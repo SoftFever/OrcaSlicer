@@ -10,6 +10,9 @@ use File::Basename qw(basename);
 use Wx qw(:misc :sizer :treectrl :button :keycode wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxID_CANCEL wxMOD_CONTROL
     wxTheApp);
 use Wx::Event qw(EVT_BUTTON EVT_TREE_ITEM_COLLAPSING EVT_TREE_SEL_CHANGED EVT_TREE_KEY_DOWN EVT_KEY_DOWN);
+#==============================================================================================================================
+use List::Util qw(max);
+#==============================================================================================================================
 use base 'Wx::Panel';
 
 use constant ICON_OBJECT        => 0;
@@ -162,6 +165,7 @@ sub new {
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
+        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,700]);

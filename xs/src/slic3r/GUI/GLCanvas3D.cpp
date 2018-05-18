@@ -196,23 +196,11 @@ void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     _calc_gridlines(poly, bed_bbox);
 
     m_polygon = offset_ex(poly.contour, bed_bbox.radius() * 1.7, jtRound, scale_(0.5))[0].contour;
-
-    set_origin(Pointf(0.0, 0.0));
 }
 
 const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
 {
     return m_bounding_box;
-}
-
-const Pointf& GLCanvas3D::Bed::get_origin() const
-{
-    return m_origin;
-}
-
-void GLCanvas3D::Bed::set_origin(const Pointf& origin)
-{
-    m_origin = origin;
 }
 
 void GLCanvas3D::Bed::render()
@@ -295,6 +283,56 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
         printf("Unable to create bed grid lines\n");
+}
+
+GLCanvas3D::Axes::Axes()
+    : m_length(0.0f)
+{
+}
+
+const Pointf3& GLCanvas3D::Axes::get_origin() const
+{
+    return m_origin;
+}
+
+void GLCanvas3D::Axes::set_origin(const Pointf3& origin)
+{
+    m_origin = origin;
+}
+
+float GLCanvas3D::Axes::get_length() const
+{
+    return m_length;
+}
+
+void GLCanvas3D::Axes::set_length(float length)
+{
+    m_length = length;
+}
+
+void GLCanvas3D::Axes::render()
+{
+    // disable depth testing so that axes are not covered by ground
+    ::glDisable(GL_DEPTH_TEST);
+    ::glLineWidth(2.0f);
+    ::glBegin(GL_LINES);
+    // draw line for x axis
+    ::glColor3f(1.0f, 0.0f, 0.0f);
+    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z);
+    ::glVertex3f((float)m_origin.x + m_length, (float)m_origin.y, (float)m_origin.z);
+     // draw line for y axis
+    ::glColor3f(0.0f, 1.0f, 0.0f);
+    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z);
+    ::glVertex3f((float)m_origin.x, (float)m_origin.y + m_length, (float)m_origin.z);
+    ::glEnd();
+    // draw line for Z axis
+    // (re-enable depth test so that axis is correctly shown when objects are behind it)
+    ::glEnable(GL_DEPTH_TEST);
+    ::glBegin(GL_LINES);
+    ::glColor3f(0.0f, 0.0f, 1.0f);
+    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z);
+    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z + m_length);
+    ::glEnd();
 }
 
 GLCanvas3D::CuttingPlane::CuttingPlane()
@@ -472,6 +510,10 @@ void GLCanvas3D::set_volumes(GLVolumeCollection* volumes)
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
     m_bed.set_shape(shape);
+
+    // Set the origin and size for painting of the coordinate system axes.
+    set_axes_origin(Pointf3(0.0, 0.0, (coordf_t)GROUND_Z));
+    set_axes_length(0.3f * (float)bed_bounding_box().max_size());
 }
 
 void GLCanvas3D::set_auto_bed_shape()
@@ -491,17 +533,27 @@ void GLCanvas3D::set_auto_bed_shape()
     set_bed_shape(bed_shape);
 
     // Set the origin for painting of the coordinate system axes.
-    set_bed_origin(Pointf(center.x, center.y));
+    set_axes_origin(Pointf3(center.x, center.y, (coordf_t)GROUND_Z));
 }
 
-const Pointf& GLCanvas3D::get_bed_origin() const
+const Pointf3& GLCanvas3D::get_axes_origin() const
 {
-    return m_bed.get_origin();
+    return m_axes.get_origin();
 }
 
-void GLCanvas3D::set_bed_origin(const Pointf& origin)
+void GLCanvas3D::set_axes_origin(const Pointf3& origin)
 {
-    m_bed.set_origin(origin);
+    m_axes.set_origin(origin);
+}
+
+float GLCanvas3D::get_axes_length() const
+{
+    return m_axes.get_length();
+}
+
+void GLCanvas3D::set_axes_length(float length)
+{
+    return m_axes.set_length(length);
 }
 
 void GLCanvas3D::set_cutting_plane(float z, const ExPolygons& polygons)
@@ -645,7 +697,14 @@ void GLCanvas3D::select_view(const std::string& direction)
 
 void GLCanvas3D::render_bed()
 {
+    ::glDisable(GL_LIGHTING);
     m_bed.render();
+}
+
+void GLCanvas3D::render_axes()
+{
+    ::glDisable(GL_LIGHTING);
+    m_axes.render();
 }
 
 void GLCanvas3D::render_cutting_plane()

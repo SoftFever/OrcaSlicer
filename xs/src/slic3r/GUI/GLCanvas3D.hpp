@@ -79,7 +79,6 @@ public:
     {
         Pointfs m_shape;
         BoundingBoxf3 m_bounding_box;
-        Pointf m_origin;
         Polygon m_polygon;
         GeometryBuffer m_triangles;
         GeometryBuffer m_gridlines;
@@ -90,15 +89,29 @@ public:
 
         const BoundingBoxf3& get_bounding_box() const;
 
-        const Pointf& get_origin() const;
-        void set_origin(const Pointf& origin);
-
         void render();
 
     private:
         void _calc_bounding_box();
         void _calc_triangles(const ExPolygon& poly);
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
+    };
+
+    class Axes
+    {
+        Pointf3 m_origin;
+        float m_length;
+
+    public:
+        Axes();
+
+        const Pointf3& get_origin() const;
+        void set_origin(const Pointf3& origin);
+
+        float get_length() const;
+        void set_length(float length);
+
+        void render();
     };
 
     class CuttingPlane
@@ -120,6 +133,7 @@ private:
     wxGLContext* m_context;
     Camera m_camera;
     Bed m_bed;
+    Axes m_axes;
     CuttingPlane m_cutting_plane;
 
     GLVolumeCollection* m_volumes;
@@ -153,8 +167,11 @@ public:
     // Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane to support the scene objects.
     void set_auto_bed_shape();
 
-    const Pointf& get_bed_origin() const;
-    void set_bed_origin(const Pointf& origin);
+    const Pointf3& get_axes_origin() const;
+    void set_axes_origin(const Pointf3& origin);
+
+    float get_axes_length() const;
+    void set_axes_length(float length);
 
     void set_cutting_plane(float z, const ExPolygons& polygons);
 
@@ -186,6 +203,7 @@ public:
     void select_view(const std::string& direction);
 
     void render_bed();
+    void render_axes();
     void render_cutting_plane();
 
     void register_on_viewport_changed_callback(void* callback);

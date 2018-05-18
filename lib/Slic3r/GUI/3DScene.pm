@@ -1551,35 +1551,36 @@ sub Render {
     
     my $volumes_bb = $self->volumes_bounding_box;
     
-    {
-        # draw axes
-        # disable depth testing so that axes are not covered by ground
-        glDisable(GL_DEPTH_TEST);
 #==============================================================================================================================
-        my $origin = Slic3r::GUI::_3DScene::get_bed_origin($self);
+    Slic3r::GUI::_3DScene::render_axes($self);
+    
+#    {
+#       # draw axes
+#        # disable depth testing so that axes are not covered by ground
+#        glDisable(GL_DEPTH_TEST);
 #        my $origin = $self->origin;
+#        my $axis_len = $self->use_plain_shader ? 0.3 * max(@{ $self->bed_bounding_box->size }) : 2 * max(@{ $volumes_bb->size });
+#        glLineWidth(2);
+#        glBegin(GL_LINES);
+#        # draw line for x axis
+#        glColor3f(1, 0, 0);
+#        glVertex3f(@$origin, $ground_z);
+#        glVertex3f($origin->x + $axis_len, $origin->y, $ground_z);  #,,
+#        # draw line for y axis
+#        glColor3f(0, 1, 0);
+#        glVertex3f(@$origin, $ground_z);
+#        glVertex3f($origin->x, $origin->y + $axis_len, $ground_z);  #++
+#        glEnd();
+#        # draw line for Z axis
+#        # (re-enable depth test so that axis is correctly shown when objects are behind it)
+#        glEnable(GL_DEPTH_TEST);
+#        glBegin(GL_LINES);
+#        glColor3f(0, 0, 1);
+#        glVertex3f(@$origin, $ground_z);
+#        glVertex3f(@$origin, $ground_z+$axis_len);
+#        glEnd();
+#    }
 #==============================================================================================================================
-        my $axis_len = $self->use_plain_shader ? 0.3 * max(@{ $self->bed_bounding_box->size }) : 2 * max(@{ $volumes_bb->size });
-        glLineWidth(2);
-        glBegin(GL_LINES);
-        # draw line for x axis
-        glColor3f(1, 0, 0);
-        glVertex3f(@$origin, $ground_z);
-        glVertex3f($origin->x + $axis_len, $origin->y, $ground_z);  #,,
-        # draw line for y axis
-        glColor3f(0, 1, 0);
-        glVertex3f(@$origin, $ground_z);
-        glVertex3f($origin->x, $origin->y + $axis_len, $ground_z);  #++
-        glEnd();
-        # draw line for Z axis
-        # (re-enable depth test so that axis is correctly shown when objects are behind it)
-        glEnable(GL_DEPTH_TEST);
-        glBegin(GL_LINES);
-        glColor3f(0, 0, 1);
-        glVertex3f(@$origin, $ground_z);
-        glVertex3f(@$origin, $ground_z+$axis_len);
-        glEnd();
-    }
     
     glEnable(GL_LIGHTING);
         

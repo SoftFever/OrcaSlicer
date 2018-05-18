@@ -221,21 +221,6 @@ set_auto_bed_shape(canvas)
     CODE:
         _3DScene::set_auto_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
-Clone<Pointf>
-get_bed_origin(canvas)
-        SV      *canvas;
-    CODE:
-        RETVAL = _3DScene::get_bed_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_bed_origin(canvas, origin)
-        SV     *canvas;
-        Pointf *origin
-    CODE:
-        _3DScene::set_bed_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), origin);
-
 Clone<BoundingBoxf3>
 get_bed_bounding_box(canvas)
         SV *canvas;
@@ -282,6 +267,36 @@ is_shown_on_screen(canvas)
         RETVAL = _3DScene::is_shown_on_screen((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
+
+Clone<Pointf3>
+get_axes_origin(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_axes_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_axes_origin(canvas, origin)
+        SV      *canvas;
+        Pointf3 *origin;
+    CODE:
+        _3DScene::set_axes_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), origin);
+
+float
+get_axes_length(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_axes_length((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_axes_length(canvas, length)
+        SV    *canvas;
+        float length;
+    CODE:
+        _3DScene::set_axes_length((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), length);
 
 void
 set_cutting_plane(canvas, z, polygons)
@@ -413,6 +428,12 @@ render_bed(canvas)
         SV *canvas;
     CODE:
         _3DScene::render_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    
+void
+render_axes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::render_axes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     
 void
 render_cutting_plane(canvas)

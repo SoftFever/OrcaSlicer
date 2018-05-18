@@ -1782,17 +1782,6 @@ void _3DScene::set_auto_bed_shape(wxGLCanvas* canvas)
     return s_canvas_mgr.set_auto_bed_shape(canvas);
 }
 
-Pointf _3DScene::get_bed_origin(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_bed_origin(canvas);
-}
-
-void _3DScene::set_bed_origin(wxGLCanvas* canvas, const Pointf* origin)
-{
-    if (origin != nullptr)
-        s_canvas_mgr.set_bed_origin(canvas, *origin);
-}
-
 BoundingBoxf3 _3DScene::get_bed_bounding_box(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_bed_bounding_box(canvas);
@@ -1806,6 +1795,27 @@ BoundingBoxf3 _3DScene::get_volumes_bounding_box(wxGLCanvas* canvas)
 BoundingBoxf3 _3DScene::get_max_bounding_box(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_max_bounding_box(canvas);
+}
+
+Pointf3 _3DScene::get_axes_origin(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_axes_origin(canvas);
+}
+
+void _3DScene::set_axes_origin(wxGLCanvas* canvas, const Pointf3* origin)
+{
+    if (origin != nullptr)
+        s_canvas_mgr.set_axes_origin(canvas, *origin);
+}
+
+float _3DScene::get_axes_length(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_axes_length(canvas);
+}
+
+void _3DScene::set_axes_length(wxGLCanvas* canvas, float length)
+{
+    s_canvas_mgr.set_axes_length(canvas, length);
 }
 
 void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
@@ -1896,6 +1906,11 @@ void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
 void _3DScene::render_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render_bed(canvas);
+}
+
+void _3DScene::render_axes(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render_axes(canvas);
 }
 
 void _3DScene::render_cutting_plane(wxGLCanvas* canvas)

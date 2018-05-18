@@ -9,6 +9,9 @@ use utf8;
 use Slic3r::Geometry qw(PI X);
 use Wx qw(wxTheApp :dialog :id :misc :sizer wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
+#==============================================================================================================================
+use List::Util qw(max);
+#==============================================================================================================================
 use base 'Wx::Dialog';
 
 sub new {
@@ -115,6 +118,7 @@ sub new {
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
+        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,500]);

@@ -65,12 +65,15 @@ public:
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     void set_auto_bed_shape(wxGLCanvas* canvas);
 
-    Pointf get_bed_origin(wxGLCanvas* canvas) const;
-    void set_bed_origin(wxGLCanvas* canvas, const Pointf& origin);
-
     BoundingBoxf3 get_bed_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
+
+    Pointf3 get_axes_origin(wxGLCanvas* canvas) const;
+    void set_axes_origin(wxGLCanvas* canvas, const Pointf3& origin);
+
+    float get_axes_length(wxGLCanvas* canvas) const;
+    void set_axes_length(wxGLCanvas* canvas, float length);
 
     void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
@@ -98,6 +101,7 @@ public:
     void select_view(wxGLCanvas* canvas, const std::string& direction);
 
     void render_bed(wxGLCanvas* canvas);
+    void render_axes(wxGLCanvas* canvas);
     void render_cutting_plane(wxGLCanvas* canvas);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);

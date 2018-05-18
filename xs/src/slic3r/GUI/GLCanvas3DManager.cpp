@@ -201,19 +201,6 @@ void GLCanvas3DManager::set_auto_bed_shape(wxGLCanvas* canvas)
         it->second->set_auto_bed_shape();
 }
 
-Pointf GLCanvas3DManager::get_bed_origin(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_bed_origin() : Pointf();
-}
-
-void GLCanvas3DManager::set_bed_origin(wxGLCanvas* canvas, const Pointf& origin)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_bed_origin(origin);
-}
-
 BoundingBoxf3 GLCanvas3DManager::get_bed_bounding_box(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -230,6 +217,32 @@ BoundingBoxf3 GLCanvas3DManager::get_max_bounding_box(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->max_bounding_box() : BoundingBoxf3();
+}
+
+Pointf3 GLCanvas3DManager::get_axes_origin(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_axes_origin() : Pointf3();
+}
+
+void GLCanvas3DManager::set_axes_origin(wxGLCanvas* canvas, const Pointf3& origin)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_axes_origin(origin);
+}
+
+float GLCanvas3DManager::get_axes_length(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_axes_length() : 0.0f;
+}
+
+void GLCanvas3DManager::set_axes_length(wxGLCanvas* canvas, float length)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_axes_length(length);
 }
 
 void GLCanvas3DManager::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
@@ -355,6 +368,13 @@ void GLCanvas3DManager::render_bed(wxGLCanvas* canvas)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->render_bed();
+}
+
+void GLCanvas3DManager::render_axes(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_axes();
 }
 
 void GLCanvas3DManager::render_cutting_plane(wxGLCanvas* canvas)
