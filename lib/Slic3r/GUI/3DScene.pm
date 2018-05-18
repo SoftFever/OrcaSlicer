@@ -2192,10 +2192,8 @@ sub reset_legend_texture {
 }
 
 sub get_current_print_zs {
-    my ($self) = @_;
-    
-    my $count = $self->volumes->get_current_print_zs();
-    return $count;
+    my ($self, $active_only) = @_;
+    return $self->volumes->get_current_print_zs($active_only);
 }
 
 1;

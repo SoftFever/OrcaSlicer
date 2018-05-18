@@ -760,13 +760,13 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     }
 }
 
-std::vector<double> GLVolumeCollection::get_current_print_zs() const
+std::vector<double> GLVolumeCollection::get_current_print_zs(bool active_only) const
 {
     // Collect layer top positions of all volumes.
     std::vector<double> print_zs;
     for (GLVolume *vol : this->volumes)
     {
-        if (vol->is_active)
+        if (!active_only || vol->is_active)
             append(print_zs, vol->print_zs);
     }
     std::sort(print_zs.begin(), print_zs.end());

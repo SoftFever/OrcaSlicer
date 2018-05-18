@@ -380,7 +380,7 @@ sub load_print {
             $self->show_hide_ui_elements('full');
 
             # recalculates zs and update sliders accordingly
-            $self->{layers_z} = $self->canvas->get_current_print_zs();
+            $self->{layers_z} = $self->canvas->get_current_print_zs(1);
             $n_layers = scalar(@{$self->{layers_z}});            
             if ($n_layers == 0) {
                 # all layers filtered out
@@ -465,10 +465,21 @@ sub set_z_range
     $self->{z_high} = $z_high;
     $self->{z_label_low}->SetLabel(sprintf '%.2f', $z_low);
     $self->{z_label_high}->SetLabel(sprintf '%.2f', $z_high);
-    my $z_idx_low = 1 + $self->slider_low->GetValue;
-    my $z_idx_high = 1 + $self->slider_high->GetValue;
-    $self->{z_label_low_idx}->SetLabel(sprintf '%d', $z_idx_low);
-    $self->{z_label_high_idx}->SetLabel(sprintf '%d', $z_idx_high);
+    
+    my $layers_z = $self->canvas->get_current_print_zs(0);
+    for (my $i = 0; $i < scalar(@{$layers_z}); $i += 1) {
+        if (($z_low - 1e-6 < @{$layers_z}[$i]) && (@{$layers_z}[$i] < $z_low + 1e-6)) {
+            $self->{z_label_low_idx}->SetLabel(sprintf '%d', $i + 1);
+            last;
+        }
+    }
+    for (my $i = 0; $i < scalar(@{$layers_z}); $i += 1) {
+        if (($z_high - 1e-6 < @{$layers_z}[$i]) && (@{$layers_z}[$i] < $z_high + 1e-6)) {
+            $self->{z_label_high_idx}->SetLabel(sprintf '%d', $i + 1);
+            last;
+        }
+    }
+
     $self->canvas->set_toolpaths_range($z_low - 1e-6, $z_high + 1e-6);
     $self->canvas->Refresh if $self->IsShown;
 }

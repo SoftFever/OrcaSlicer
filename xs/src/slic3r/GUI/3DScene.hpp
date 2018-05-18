@@ -428,7 +428,7 @@ public:
     void update_colors_by_extruder(const DynamicPrintConfig* config);
 
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
-    std::vector<double> get_current_print_zs() const;
+    std::vector<double> get_current_print_zs(bool active_only) const;
 
 private:
     GLVolumeCollection(const GLVolumeCollection &other);
