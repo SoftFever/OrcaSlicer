@@ -13,7 +13,13 @@ namespace Slic3r {
 class AppConfig
 {
 public:
-	AppConfig() : m_dirty(false), m_legacy_datadir(false) { this->reset(); }
+	AppConfig() :
+		m_dirty(false),
+		m_orig_version(Semver::invalid()),
+		m_legacy_datadir(false)
+	{
+		this->reset();
+	}
 
 	// Clear and reset to defaults.
 	void 			   	reset();
@@ -95,10 +101,15 @@ public:
 
 	// Returns true if the user's data directory comes from before Slic3r 1.40.0 (no updating)
 	bool legacy_datadir() const { return m_legacy_datadir; }
+	bool set_legacy_datadir(bool value) { m_legacy_datadir = value; }
 
 	// Get the Slic3r version check url.
 	// This returns a hardcoded string unless it is overriden by "version_check_url" in the ini file.
 	std::string version_check_url() const;
+
+	// Returns the original Slic3r version found in the ini file before it was overwritten
+	// by the current version
+	Semver orig_version() const { return m_orig_version; }
 
 	// Does the config file exist?
 	static bool 		exists();
@@ -110,6 +121,8 @@ private:
 	VendorMap                                                   m_vendors;
 	// Has any value been modified since the config.ini has been last saved or loaded?
 	bool														m_dirty;
+	// Original version found in the ini file before it was overwritten
+	Semver                                                      m_orig_version;
 	// Whether the existing version is before system profiles & configuration updating
 	bool                                                        m_legacy_datadir;
 };
