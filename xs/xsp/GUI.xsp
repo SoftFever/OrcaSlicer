@@ -116,6 +116,9 @@ void set_show_print_info(bool show)
 void set_show_manifold_warning_icon(bool show)
     %code%{ Slic3r::GUI::set_show_manifold_warning_icon(show); %};
 
+void update_mode()
+    %code%{ Slic3r::GUI::update_mode(); %};
+
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
 

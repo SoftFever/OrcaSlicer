@@ -96,6 +96,8 @@ sub new {
 
     $self->update_ui_from_settings;
 
+    Slic3r::GUI::update_mode();
+
     return $self;
 }
 

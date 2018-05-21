@@ -202,7 +202,7 @@ double m_brim_width = 0.0;
 wxButton*	g_wiping_dialog_button = nullptr;
 
 //showed/hided controls according to the view mode
-wxWindow	*g_plater = nullptr;
+wxWindow	*g_right_panel = nullptr;
 wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
 wxBoxSizer	*g_expert_mode_part_sizer = nullptr;
 wxBoxSizer	*g_scrolled_window_sizer = nullptr;
@@ -279,7 +279,7 @@ void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_par
 							wxButton *btn_print, wxButton *btn_send_gcode,
 							wxStaticBitmap *manifold_warning_icon)
 {
-	g_plater = parent;
+	g_right_panel = parent;
 	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
 	g_expert_mode_part_sizer = expert_mode_part_sizer;
 	g_scrolled_window_sizer = scrolled_window_sizer;
@@ -616,7 +616,6 @@ void create_preset_tabs(bool no_controller, int event_value_change, int event_pr
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
 	}
-	update_mode();// TODO change place of call this function
 }
 
 TabIface* get_preset_tab_iface(char *name)
@@ -1136,14 +1135,14 @@ void show_scrolled_window_sizer(bool show)
 
 void update_mode()
 {
-	wxWindowUpdateLocker noUpdates(g_plater);
+	wxWindowUpdateLocker noUpdates(g_right_panel);
 	ConfigMenuIDs mode = get_view_mode();
 
 	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
 	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
 	show_scrolled_window_sizer(mode >= ConfigMenuModeRegular);
 	show_buttons(mode >= ConfigMenuModeRegular);
-	g_plater->Layout();
+	g_right_panel->Layout();
 }
 
 ConfigOptionsGroup* get_optgroup()

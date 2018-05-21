@@ -142,6 +142,8 @@ void save_language();
 void get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
 // select language from the list of installed languages
 bool select_language(wxArrayString & names, wxArrayLong & identifiers);
+// update right panel of the Plater according to view mode
+void update_mode();
 
 std::vector<Tab *>& get_tabs_list();
 bool checked_tab(Tab* tab);

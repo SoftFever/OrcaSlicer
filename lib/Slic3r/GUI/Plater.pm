@@ -449,7 +449,8 @@ sub new {
                     $self->{"object_info_manifold_warning_icon_show"} = sub {
                         if ($self->{object_info_manifold_warning_icon}->IsShown() != $_[0]) {
                             Slic3r::GUI::set_show_manifold_warning_icon($_[0]);
-                            return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
+                            my $mode = wxTheApp->{app_config}->get("view_mode");
+                            return if ($mode eq "" || $mode eq "simple");
                             $self->{object_info_manifold_warning_icon}->Show($_[0]); 
                             $self->Layout
                         }
@@ -548,7 +549,7 @@ sub new {
         $self->SetSizer($sizer);
 
         # Send sizers/buttons to C++
-        Slic3r::GUI::set_objects_from_perl( $self,
+        Slic3r::GUI::set_objects_from_perl( $self->{right_panel},
                                 $frequently_changed_parameters_sizer,
                                 $expert_mode_part_sizer,
                                 $scrolled_window_sizer,
@@ -1767,7 +1768,7 @@ sub on_extruders_change {
         my @presets = $choices->[0]->GetStrings;
         
         # initialize new choice
-        my $choice = Wx::BitmapComboBox->new($self, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+        my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
         my $extruder_idx = scalar @$choices;
         EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down($extruder_idx, @_); } );
         push @$choices, $choice;
