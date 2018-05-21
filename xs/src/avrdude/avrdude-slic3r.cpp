@@ -21,10 +21,10 @@ static void avrdude_message_handler_closure(const char *msg, unsigned size, void
 }
 
 // Used by our custom code in avrdude to report progress in the GUI
-static bool avrdude_progress_handler_closure(const char *task, unsigned progress, void *user_p)
+static void avrdude_progress_handler_closure(const char *task, unsigned progress, void *user_p)
 {
 	auto *progress_fn = reinterpret_cast<AvrDude::ProgressFn*>(user_p);
-	return (*progress_fn)(task, progress);
+	(*progress_fn)(task, progress);
 }
 
 
@@ -132,6 +132,11 @@ AvrDude::Ptr AvrDude::run()
 	}
 
 	return self;
+}
+
+void AvrDude::cancel()
+{
+	::avrdude_cancel();
 }
 
 void AvrDude::join()

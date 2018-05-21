@@ -75,7 +75,7 @@ struct FirmwareDialog::priv
 	AvrDude::Ptr avrdude;
 	std::string avrdude_config;
 	unsigned progress_tasks_done;
-	bool cancel;
+	bool cancelled;
 
 	priv(FirmwareDialog *q) :
 		q(q),
@@ -83,12 +83,13 @@ struct FirmwareDialog::priv
 		btn_flash_label_flashing(_(L("Cancel"))),
 		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
 		progress_tasks_done(0),
-		cancel(false)
+		cancelled(false)
 	{}
 
 	void find_serial_ports();
 	void flashing_status(bool flashing, AvrDudeComplete complete = AC_NONE);
 	void perform_upload();
+	void cancel();
 	void on_avrdude(const wxCommandEvent &evt);
 };
 
@@ -118,7 +119,7 @@ void FirmwareDialog::priv::flashing_status(bool value, AvrDudeComplete complete)
 		progressbar->SetRange(200);   // See progress callback below
 		progressbar->SetValue(0);
 		progress_tasks_done = 0;
-		cancel = false;
+		cancelled = false;
 	} else {
 		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 		port_picker->Enable();
@@ -173,12 +174,11 @@ void FirmwareDialog::priv::perform_upload()
 			evt->SetString(msg);
 			wxQueueEvent(q, evt);
 		}))
-		.on_progress(std::move([this](const char * /* task */, unsigned progress) {
-			auto evt = new wxCommandEvent(EVT_AVRDUDE, this->q->GetId());
+		.on_progress(std::move([q](const char * /* task */, unsigned progress) {
+			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			evt->SetExtraLong(AE_PRORGESS);
 			evt->SetInt(progress);
-			wxQueueEvent(this->q, evt);
-			return !this->cancel;
+			wxQueueEvent(q, evt);
 		}))
 		.on_complete(std::move([q](int status) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
@@ -187,6 +187,15 @@ void FirmwareDialog::priv::perform_upload()
 			wxQueueEvent(q, evt);
 		}))
 		.run();
+}
+
+void FirmwareDialog::priv::cancel()
+{
+	if (avrdude) {
+		cancelled = true;
+		txt_status->SetLabel(_(L("Cancelling...")));
+		avrdude->cancel();
+	}
 }
 
 void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
@@ -219,7 +228,7 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 	case AE_EXIT:
 		BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << evt.GetInt();
 
-		complete_kind = cancel ? AC_CANCEL : (evt.GetInt() == 0 ? AC_SUCCESS : AC_FAILURE);
+		complete_kind = cancelled ? AC_CANCEL : (evt.GetInt() == 0 ? AC_SUCCESS : AC_FAILURE);
 		flashing_status(false, complete_kind);
 
 		// Make sure the background thread is collected and the AvrDude object reset
@@ -340,7 +349,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 				_(L("Confirmation")),
 				wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 			if (dlg.ShowModal() == wxID_YES) {
-				this->p->cancel = true;
+				this->p->cancel();
 			}
 		} else {
 			// Start a flashing task

@@ -340,6 +340,7 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
   }
 
   while (len) {
+    RETURN_IF_CANCEL();
     rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: ser_send(): write error: %s\n",
@@ -370,6 +371,7 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 
   while (len < buflen) {
   reselect:
+    RETURN_IF_CANCEL();
     FD_ZERO(&rfds);
     FD_SET(fd->ifd, &rfds);
 
@@ -458,6 +460,7 @@ static int ser_drain(union filedescriptor *fd, int display)
     FD_SET(fd->ifd, &rfds);
 
   reselect:
+    RETURN_IF_CANCEL();
     nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &timeout);
     if (nfds == 0) {
       if (display) {

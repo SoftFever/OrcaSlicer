@@ -415,6 +415,8 @@ static int ser_send(union filedescriptor *fd, const unsigned char * buf, size_t 
 	DWORD written;
         const unsigned char * b = buf;
 
+	RETURN_IF_CANCEL();
+
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
 	if (hComPort == INVALID_HANDLE_VALUE) {
@@ -571,6 +573,8 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
 	unsigned char * p = buf;
 	DWORD read;
 
+	RETURN_IF_CANCEL();
+
 	HANDLE hComPort=(HANDLE)fd->pfd;
 	
 	if (hComPort == INVALID_HANDLE_VALUE) {
@@ -653,6 +657,8 @@ static int ser_drain(union filedescriptor *fd, int display)
 	}
 
 	while (1) {
+		RETURN_IF_CANCEL();
+
 		readres=ReadFile(hComPort, buf, 1, &read, NULL);
 		if (!readres) {
 			LPVOID lpMsgBuf;

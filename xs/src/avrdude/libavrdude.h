@@ -727,11 +727,21 @@ void sort_programmers(LISTID programmers);
 
 /* formerly avr.h */
 
-typedef bool (*FP_UpdateProgress)(int percent, double etime, char *hdr);
+typedef void (*FP_UpdateProgress)(int percent, double etime, char *hdr);
 
 extern struct avrpart parts[];
 
 extern FP_UpdateProgress update_progress;
+
+extern bool cancel_flag;
+#define RETURN_IF_CANCEL() \
+  do { \
+    if (cancel_flag) { \
+      avrdude_message(MSG_INFO, "%s(): Cancelled, exiting...\n", __func__); \
+      return -99; \
+    } \
+  } while (0)
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -769,7 +779,7 @@ int avr_mem_hiaddr(AVRMEM * mem);
 
 int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p);
 
-bool report_progress (int completed, int total, char *hdr);
+void report_progress (int completed, int total, char *hdr);
 
 #ifdef __cplusplus
 }

@@ -654,6 +654,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
   tstart = tv.tv_sec;
 
   while ( (state != sDONE ) && (!timeout) ) {
+    RETURN_IF_CANCEL();
     if (serial_recv(&pgm->fd, &c, 1) < 0)
       goto timedout;
     DEBUG("0x%02x ",c);
@@ -758,6 +759,8 @@ static int stk500v2_getsync_internal(PROGRAMMER * pgm, int retries) {
 retry:
   tries++;
 
+  RETURN_IF_CANCEL();
+
   // send the sync command and see if we can get there
   buf[0] = CMD_SIGN_ON;
   if (stk500v2_send(pgm, buf, 1) != 0) {
@@ -765,8 +768,12 @@ retry:
     return -1;
   }
 
+  RETURN_IF_CANCEL();
+
   // try to get the response back and see where we got
   status = stk500v2_recv(pgm, resp, sizeof(resp));
+
+  RETURN_IF_CANCEL();
 
   // if we got bytes returned, check to see what came back
   if (status > 0) {
@@ -844,14 +851,20 @@ static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf,
 retry:
   tries++;
 
+  RETURN_IF_CANCEL();
+
   // send the command to the programmer
   if (stk500v2_send(pgm, buf, len) != 0) {
     avrdude_message(MSG_INFO, "%s: stk500v2_command(): can't communicate with device\n", progname);
     return -1;
   }
 
+  RETURN_IF_CANCEL();
+
   // attempt to read the status back
   status = stk500v2_recv(pgm,buf,maxlen);
+
+  RETURN_IF_CANCEL();
 
   // if we got a successful readback, return
   if (status > 0) {

@@ -342,6 +342,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
 
     /* load bytes */
     for (lastaddr = i = 0; i < mem->size; i++) {
+      RETURN_IF_CANCEL();
       if (vmem == NULL ||
           (vmem->tags[i] & TAG_ALLOCATED) != 0)
       {
@@ -358,7 +359,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
           return -1;
         }
       }
-      if (!report_progress(i, mem->size, NULL)) return -99;
+      report_progress(i, mem->size, NULL);
     }
     return avr_mem_hiaddr(mem);
   }
@@ -392,6 +393,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
     for (pageaddr = 0, failure = 0, nread = 0;
          !failure && pageaddr < mem->size;
          pageaddr += mem->page_size) {
+      RETURN_IF_CANCEL();
       /* check whether this page must be read */
       for (i = pageaddr, need_read = 0;
            i < pageaddr + mem->page_size;
@@ -415,7 +417,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
                         progname, pageaddr / mem->page_size);
       }
       nread++;
-      if (!report_progress(nread, npages, NULL)) return -99;
+      report_progress(nread, npages, NULL);
     }
     if (!failure) {
       if (strcasecmp(mem->desc, "flash") == 0 ||
@@ -436,6 +438,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
   }
 
   for (i=0; i < mem->size; i++) {
+    RETURN_IF_CANCEL();
     if (vmem == NULL ||
 	(vmem->tags[i] & TAG_ALLOCATED) != 0)
     {
@@ -448,7 +451,7 @@ int avr_read(PROGRAMMER * pgm, AVRPART * p, char * memtype,
 	return -2;
       }
     }
-    if (!report_progress(i, mem->size, NULL)) return -99;
+    report_progress(i, mem->size, NULL);
   }
 
   if (strcasecmp(mem->desc, "flash") == 0 ||
@@ -876,6 +879,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
     /* write words, low byte first */
     for (lastaddr = i = 0; i < wsize; i += 2) {
+      RETURN_IF_CANCEL();
       if ((m->tags[i] & TAG_ALLOCATED) != 0 ||
           (m->tags[i + 1] & TAG_ALLOCATED) != 0) {
 
@@ -896,7 +900,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
 
         while (avr_tpi_poll_nvmbsy(pgm));
       }
-      if (!report_progress(i, wsize, NULL)) return -99;
+      report_progress(i, wsize, NULL);
     }
     return i;
   }
@@ -926,6 +930,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
     for (pageaddr = 0, failure = 0, nwritten = 0;
          !failure && pageaddr < wsize;
          pageaddr += m->page_size) {
+      RETURN_IF_CANCEL();
       /* check whether this page must be written to */
       for (i = pageaddr, need_write = 0;
            i < pageaddr + m->page_size;
@@ -948,7 +953,7 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
                         progname, pageaddr / m->page_size);
       }
       nwritten++;
-      if (!report_progress(nwritten, npages, NULL)) return -99;
+      report_progress(nwritten, npages, NULL);
     }
     if (!failure)
       return wsize;
@@ -964,8 +969,9 @@ int avr_write(PROGRAMMER * pgm, AVRPART * p, char * memtype, int size,
   flush_page = 0;
 
   for (i=0; i<wsize; i++) {
+    RETURN_IF_CANCEL();
     data = m->buf[i];
-    if (!report_progress(i, wsize, NULL)) return -99;
+    report_progress(i, wsize, NULL);
 
     /*
      * Find out whether the write action must be invoked for this
@@ -1050,14 +1056,14 @@ int avr_signature(PROGRAMMER * pgm, AVRPART * p)
 {
   int rc;
 
-  if (!report_progress(0,1,"Reading")) return -99;
+  report_progress(0,1,"Reading");
   rc = avr_read(pgm, p, "signature", 0);
   if (rc < 0) {
     avrdude_message(MSG_INFO, "%s: error reading signature data for part \"%s\", rc=%d\n",
                     progname, p->desc, rc);
     return -1;
   }
-  if (!report_progress(1,1,NULL)) return -99;
+  report_progress(1,1,NULL);
 
   return 0;
 }
@@ -1106,6 +1112,7 @@ int avr_verify(AVRPART * p, AVRPART * v, char * memtype, int size)
   }
 
   for (i=0; i<size; i++) {
+    RETURN_IF_CANCEL();
     if ((b->tags[i] & TAG_ALLOCATED) != 0 &&
         buf1[i] != buf2[i]) {
       avrdude_message(MSG_INFO, "%s: verification error, first mismatch at byte 0x%04x\n"
@@ -1214,19 +1221,16 @@ int avr_chip_erase(PROGRAMMER * pgm, AVRPART * p)
  * call for each of start, during and end cases. As things stand now,
  * that is not possible and makes maintenance a bit more work.
  */
-// Prusa version modification: report_progress() returns bool to faciliate cancelation
-// the bool has "continue" semantics, ie. true = continue, false = interrupt
-bool report_progress (int completed, int total, char *hdr)
+void report_progress (int completed, int total, char *hdr)
 {
   static int last = 0;
   static double start_time;
   int percent = (total > 0) ? ((completed * 100) / total) : 100;
   struct timeval tv;
   double t;
-  bool res = true;
 
   if (update_progress == NULL)
-    return true;
+    return;
 
   gettimeofday(&tv, NULL);
   t = tv.tv_sec + ((double)tv.tv_usec)/1000000;
@@ -1234,7 +1238,7 @@ bool report_progress (int completed, int total, char *hdr)
   if (hdr) {
     last = 0;
     start_time = t;
-    res = update_progress (percent, t - start_time, hdr);
+    update_progress (percent, t - start_time, hdr);
   }
 
   if (percent > 100)
@@ -1242,11 +1246,9 @@ bool report_progress (int completed, int total, char *hdr)
 
   if (percent > last) {
     last = percent;
-    res = update_progress (percent, t - start_time, hdr);
+    update_progress (percent, t - start_time, hdr);
   }
 
   if (percent == 100)
     last = 0;                   /* Get ready for next time. */
-
-  return res;
 }

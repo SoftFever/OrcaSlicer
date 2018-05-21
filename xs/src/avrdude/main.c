@@ -66,6 +66,8 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
 #define MSGBUFFER_SIZE 4096
 char msgbuffer[MSGBUFFER_SIZE];
 
+bool cancel_flag = false;
+
 static void avrdude_message_handler_null(const char *msg, unsigned size, void *user_p)
 {
     // Output to stderr by default
@@ -115,13 +117,12 @@ int avrdude_message(const int msglvl, const char *format, ...)
 }
 
 
-static bool avrdude_progress_handler_null(const char *task, unsigned progress, void *user_p)
+static void avrdude_progress_handler_null(const char *task, unsigned progress, void *user_p)
 {
     // By default do nothing
     (void)task;
     (void)progress;
     (void)user_p;
-    return true;
 }
 
 static void *avrdude_progress_handler_user_p = NULL;
@@ -138,9 +139,14 @@ void avrdude_progress_handler_set(avrdude_progress_handler_t newhandler, void *u
     }
 }
 
-bool avrdude_progress_external(const char *task, unsigned progress)
+void avrdude_progress_external(const char *task, unsigned progress)
 {
-    return avrdude_progress_handler(task, progress, avrdude_progress_handler_user_p);
+    avrdude_progress_handler(task, progress, avrdude_progress_handler_user_p);
+}
+
+void avrdude_cancel()
+{
+    cancel_flag = true;
 }
 
 
@@ -251,7 +257,6 @@ static bool update_progress_no_tty (int percent, double etime, char *hdr)
   static int last = 0;
   static char *header = NULL;
   int cnt = (percent>>1)*2;
-  bool res = true;
 
   // setvbuf(stderr, (char*)NULL, _IONBF, 0);
 
@@ -260,7 +265,7 @@ static bool update_progress_no_tty (int percent, double etime, char *hdr)
     last = 0;
     done = 0;
     header = hdr;
-    res = avrdude_progress_external(header, 0);
+    avrdude_progress_external(header, 0);
   }
   else {
     while ((cnt > last) && (done == 0)) {
@@ -269,7 +274,7 @@ static bool update_progress_no_tty (int percent, double etime, char *hdr)
     }
 
     if (done == 0) {
-      res = avrdude_progress_external(header, percent > 99 ? 99 : percent);
+      avrdude_progress_external(header, percent > 99 ? 99 : percent);
     }
   }
 
@@ -283,8 +288,6 @@ static bool update_progress_no_tty (int percent, double etime, char *hdr)
     last = (percent>>1)*2;    /* Make last a multiple of 2. */
 
   // setvbuf(stderr, (char*)NULL, _IOLBF, 0);
-
-  return res;
 }
 
 static void list_programmers_callback(const char *name, const char *desc,
@@ -446,6 +449,8 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   // setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 
   progname = strrchr(argv[0],'/');
+
+  cancel_flag = false;
 
 #if defined (WIN32NATIVE)
   /* take care of backslash as dir sep in W32 */

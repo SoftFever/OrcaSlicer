@@ -13,7 +13,7 @@ class AvrDude
 public:
 	typedef std::shared_ptr<AvrDude> Ptr;
 	typedef std::function<void(const char * /* msg */, unsigned /* size */)> MessageFn;
-	typedef std::function<bool(const char * /* task */, unsigned /* progress */)> ProgressFn;
+	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
 	typedef std::function<void(int /* exit status */)> CompleteFn;
 
 	AvrDude();
@@ -33,8 +33,7 @@ public:
 	AvrDude& on_message(MessageFn fn);
 
 	// Set progress report callback
-	// Progress is reported per each task (reading / writing), progress is reported in percents.
-	// The callback's return value indicates whether to continue flashing (true) or cancel (false).
+	// Progress is reported per each task (reading / writing) in percents.
 	AvrDude& on_progress(ProgressFn fn);
 
 	// Called when avrdude's main function finishes
@@ -42,6 +41,8 @@ public:
 
 	int run_sync();
 	Ptr run();
+
+	void cancel();
 	void join();
 private:
 	struct priv;
