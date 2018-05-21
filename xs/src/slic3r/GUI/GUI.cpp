@@ -5,8 +5,7 @@
 #include <cmath>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 
 #if __APPLE__
@@ -931,6 +930,7 @@ void about()
 
 void desktop_open_datadir_folder()
 {	
+	// Execute command to open a file explorer, platform dependent.
 	std::string cmd =
 #ifdef _WIN32
 		"explorer "
@@ -940,7 +940,21 @@ void desktop_open_datadir_folder()
 		"xdg-open "
 #endif
 		;
-	cmd += data_dir();
+	// Escape the path, platform dependent.
+	std::string path = data_dir();
+#ifdef _WIN32
+	// Enclose the path into double quotes on Windows. A quote character is forbidden in file names, 
+	// therefore it does not need to be escaped.
+	cmd += '"';
+	cmd += path;
+	cmd += '"';	
+#else
+	// Enclose the path into single quotes on Unix / OSX. All single quote characters need to be escaped
+	// inside a file name.
+	cmd += '\'';
+	boost::replace_all(path, "'", "\\'");
+	cmd += '\'';
+#endif
 	::wxExecute(wxString::FromUTF8(cmd.c_str()), wxEXEC_ASYNC, nullptr);	
 }
 
