@@ -23,6 +23,7 @@
 	#pragma comment(lib, "user32.lib")
 #elif __APPLE__
 	#include <CoreFoundation/CoreFoundation.h>
+	#include <CoreFoundation/CFString.h>
 	#include <IOKit/IOKitLib.h>
 	#include <IOKit/serial/IOSerialKeys.h>
 	#include <IOKit/serial/ioss.h>
@@ -117,13 +118,13 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
 							// Description limited to 127 char, anything longer would not be user friendly anyway.
 							char description[128];
 							if (CFStringGetCString(cf_property, description, sizeof(description), kCFStringEncodingUTF8)) {
-								port_info.friendly_name = std::string(description) + " (" + port_info.path + ")";
+								port_info.friendly_name = std::string(description) + " (" + port_info.port + ")";
 								port_info.is_printer = looks_like_printer(port_info.friendly_name);
 							}
 							CFRelease(cf_property);
 						}
 						if (port_info.friendly_name.empty())
-							port_info.friendly_name = port_info.path;
+							port_info.friendly_name = port_info.port;
 						output.emplace_back(std::move(port_info));
 					}
 				}
