@@ -15,10 +15,6 @@
 // For png export of the sliced model
 #include <fstream>
 #include <sstream>
-//#include <wx/dcmemory.h>
-//#include <wx/bitmap.h>
-//#include <wx/image.h>
-//#include <wx/graphics.h>
 
 #include "Rasterizer/Rasterizer.hpp"
 #include "tbb/parallel_for.h"
@@ -1254,22 +1250,57 @@ void Print::set_status(int percent, const std::string &message)
     printf("Print::status %d => %s\n", percent, message.c_str());
 }
 
+/*
+ * Interface for a file printer of the slices. Implementation can be an SVG
+ * or PNG printer or any other format.
+ *
+ * The format argument spefies the output format of the printer and it enables
+ * different implementations of this class template for each supported format.
+ *
+ */
 template<Print::FilePrinterFormat format>
 class FilePrinter {
 public:
+
+    // Draw an ExPolygon which is a polygon inside a slice on the specified layer.
     void drawPolygon(const ExPolygon& p, unsigned lyr);
+
+    // Tell the printer how many layers should it consider.
     void layers(unsigned layernum);
+
+    // Get the number of layers in the print.
     unsigned layers() const;
+
+    /* Switch the a particular layer. If there where less layers then the
+     * specified layer number than an appripriate number of layers will be
+     * allocated in the printer.
+     */
     void beginLayer(unsigned layer);
+
+    // Allocate a new layer on top of the last and switch to it.
     void beginLayer();
+
+    /*
+     * Finish the selected layer. It means that no drawing is allowed on that
+     * layer anymore. This fact can be used to prepare the file system output
+     * data like png conmprimation and so on.
+     */
     void finishLayer(unsigned layer);
+
+    // Finish the top layer.
     void finishLayer();
+
+    // Save all the layers into the file (or dir) specified in the path argument
     void save(const std::string& path);
+
+    // Save only the selected layer to the file specified in path argument.
     void saveLayer(unsigned lyr, const std::string& path);
 };
 
-template<>
+template<> // Implementation for PNG raster output
 class FilePrinter<Print::FilePrinterFormat::PNG> {
+    // We will save the compressed PNG data into stringstreams which can be done
+    // in parallel. Later we can write every layer to the disk sequentially.
     std::vector<std::pair<Raster, std::stringstream>> layers_rst_;
     Raster::Resolution res_;
     Raster::PixelDim pxdim_;
@@ -1341,70 +1372,24 @@ public:
         std::fstream out(loc, std::fstream::out | std::fstream::binary);
         if(out.good()) {
             layers_rst_[i].first.save(out, Raster::Compression::PNG);
-        }
+        } /*else {
+          some logging should be done here...
+        }*/
         out.close();
         layers_rst_[i].first.reset();
     }
 };
 
-//template<>
-//class FilePrinter<Print::FilePrinterFormat::PNG> {
-//    wxBitmap bitmap_;
-//    std::unique_ptr<wxMemoryDC> dc_;
-//    std::unique_ptr<wxGraphicsContext> gc_;
-//    double pxw_;
-//    double pxh_;
-//public:
-//    inline FilePrinter(unsigned width_px, unsigned height_px,
-//                       double width_mm, double height_mm):
-//        bitmap_(width_px, height_px),
-//        dc_(new wxMemoryDC(bitmap_)),
-//        gc_(wxGraphicsContext::Create(*dc_)),
-//        pxw_(width_mm/width_px),
-//        pxh_(height_mm/width_px)
-//    {
-//        gc_->SetAntialiasMode(wxANTIALIAS_DEFAULT);
-//    }
-
-//    FilePrinter(const FilePrinter& ) = delete;
-//    FilePrinter(FilePrinter&& m):
-//        bitmap_(std::move(m.bitmap_)), dc_(std::move(m.dc_)),
-//        gc_(std::move(m.gc_)), pxw_(m.pxw_), pxh_(m.pxh_) {}
-
-//    void drawPolygon(const Polygon& p) {
-
-//        gc_->SetPen(*wxWHITE_PEN);
-//        std::vector<wxPoint2DDouble> points;
-//        points.reserve(p.points.size());
-
-//        for(auto pp : p.points) {
-//            points.emplace_back(
-//                    std::round(pp.x * SCALING_FACTOR/pxw_),
-//                    std::round(pp.y * SCALING_FACTOR/pxh_)
-//                        );
-//        }
-
-//        gc_->DrawLines(points.size(), points.data());
-//    }
-
-//    void finish() {
-
-//    }
-
-//    void save(const std::string& path) {
-//        if(!bitmap_.SaveFile(path, wxBITMAP_TYPE_PNG)) {
-//            std::cout << "fail for " << path << std::endl;
-//        }
-//    }
-//};
-
 template<Print::FilePrinterFormat format, class...Args>
-void Print::print_to(std::string dirpath, Args...args)
+void Print::print_to(std::string dirpath,
+                     double width_mm,
+                     double height_mm,
+                     Args...args)
 {
 
     std::string dir = dirpath;
 
-#ifdef WIN32
+#ifdef WIN32 // Making dirpath end with a directory separator on all platforms
     if(dir.back() != '\\') dir.push_back('\\');
 #else
     if(dir.back() != '/') dir.push_back('/');
@@ -1412,34 +1397,50 @@ void Print::print_to(std::string dirpath, Args...args)
 
     LayerPtrs layers;
 
+    // Merge the sliced layers wit hthe support layers
     std::for_each(objects.begin(), objects.end(), [&layers](PrintObject *o){
         layers.insert(layers.end(), o->layers.begin(), o->layers.end());
         layers.insert(layers.end(), o->support_layers.begin(),
                       o->support_layers.end());
     });
 
+    // Sort layers by z coord
     std::sort(layers.begin(), layers.end(), [](Layer *l1, Layer *l2){
         return l1->print_z < l2->print_z;
     });
 
     auto print_bb = bounding_box();
 
-    FilePrinter<format> printer(std::forward<Args>(args)...);
-    printer.layers(layers.size());
+    // If the print does not fit into the print area we should cry about it.
+    assert(unscale(print_bb.size().x) <= width_mm ||
+            unscale(print_bb.size().y) <= height_mm);
 
-    auto process_layer = [&layers, &printer, print_bb, dir] (unsigned layer_id) {
+    // Offset for centering the print onto the print area
+    auto cx = scale_(width_mm)/2 - (print_bb.center().x - print_bb.min.x);
+    auto cy = scale_(height_mm)/2 - (print_bb.center().y - print_bb.min.y);
+
+    // Create the actual printer, forward any additional arguments to it.
+    FilePrinter<format> printer(std::forward<Args>(args)...);
+    printer.layers(layers.size());  // Allocate space for all the layers
+
+    // Method that prints one layer
+    auto process_layer = [this, &layers, &printer, print_bb, dir, cx, cy]
+            (unsigned layer_id)
+    {
         Layer& l = *(layers[layer_id]);
 
-        ExPolygonCollection slices = l.slices;
-        using Sl = ExPolygons::value_type;
+        ExPolygonCollection slices = l.slices; // Copy the layer slices
+
+        // Sort the polygons in the layer
         std::sort(slices.expolygons.begin(),
                   slices.expolygons.end(),
-                  [](Sl a, Sl b){
+                  [](const ExPolygon& a, const ExPolygon& b){
             return a.contains(b.contour.first_point()) ? false : true;
         });
 
-        printer.beginLayer(layer_id);
+        printer.beginLayer(layer_id);   // Switch to the appropriate layer
 
+        // Draw all the polygons in the slice to the actual layer.
         std::for_each(l.object()->_shifted_copies.begin(),
                       l.object()->_shifted_copies.end(),
                       [&] (Point d)
@@ -1449,25 +1450,34 @@ void Print::print_to(std::string dirpath, Args...args)
                           [&] (ExPolygon slice)
             {
                 slice.translate(d.x, d.y);
-                slice.translate(-print_bb.min.x, -print_bb.min.y);
+                slice.translate(-print_bb.min.x + cx, -print_bb.min.y + cy);
 
                 printer.drawPolygon(slice, layer_id);
             });
         });
 
-        printer.finishLayer(layer_id);
-//        printer.saveLayer(layer_id, dir);
+        if(has_support_material() && layer_id > 0) {
+            std::cout << "support layer " << layer_id << "\n";
+        }
+
+        printer.finishLayer(layer_id);  // Finish the layer for later saving it.
+        // printer.saveLayer(layer_id, dir); We could save the layer immediately
 
     };
 
-    tbb::parallel_for<size_t, decltype(process_layer)>(0, layers.size(), process_layer);
+    // Print all the layers in parallel
+    tbb::parallel_for<size_t, decltype(process_layer)>(0,
+                                                       layers.size(),
+                                                       process_layer);
 
+    // Save the print into the file system.
     printer.save(dir);
 }
 
 void Print::print_to_png(std::string dirpath, long width_px, long height_px,
                          double width_mm, double height_mm) {
-    print_to<FilePrinterFormat::PNG>(dirpath, width_px, height_px,
+    print_to<FilePrinterFormat::PNG>(dirpath, width_mm, height_mm,
+                                     width_px, height_px,
                                      width_mm, height_mm);
 }
 

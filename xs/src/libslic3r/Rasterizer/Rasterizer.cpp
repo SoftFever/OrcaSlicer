@@ -1,4 +1,6 @@
 #include "Rasterizer.hpp"
+#include <ExPolygon.hpp>
+
 #include <cstdint>
 
 // For rasterizing
@@ -14,7 +16,7 @@
 #include <agg/agg_rasterizer_scanline_aa.h>
 #include <agg/agg_path_storage.h>
 
-// For compression
+// For png compression
 #ifdef WIN32
 inline char *strerror_r(int errnum, char *buf, size_t buflen) {
     strerror_s(buf, buflen, errnum);
@@ -70,9 +72,12 @@ public:
         agg::rasterizer_scanline_aa<> ras;
         agg::scanline_p8 scanlines;
 
-        ras.add_path(to_path(poly.contour));
+        auto&& path = to_path(poly.contour);
+        ras.add_path(path);
+
         for(auto h : poly.holes) {
-            ras.add_path(to_path(h));
+            auto&& holepath = to_path(h);
+            ras.add_path(holepath);
         }
 
         agg::render_scanlines(ras, scanlines, renderer_);

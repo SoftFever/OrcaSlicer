@@ -316,14 +316,17 @@ public:
     };
 
     template<FilePrinterFormat format, class...Args>
-    void print_to(std::string dirpath, Args...args);
+    void print_to(std::string dirpath,
+                  double width_mm,
+                  double height_mm,
+                  Args...args);
 
     void print_to_png(std::string dirpath, long width_px, long height_px,
                       double width_mm, double height_mm);
 
     void print_to_png(std::string dirpath) {
-        // Where should this be specified?
-        print_to_png(dirpath, 1440, 2560, 40.0, 72.0);
+        // Will need some GUI dialogue perhaps for these to be specified.
+        print_to_png(dirpath, 1440, 2560, 68.0, 120.0);
     }
 
 private:
