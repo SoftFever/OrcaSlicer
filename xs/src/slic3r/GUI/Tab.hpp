@@ -312,6 +312,7 @@ public:
 //Slic3r::GUI::Tab::Printer;
 class TabPrinter : public Tab
 {
+	bool		m_has_single_extruder_MM_page = false;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
