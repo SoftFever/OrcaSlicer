@@ -90,8 +90,10 @@ static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 {
 	COMMTIMEOUTS ctmo;
 	ZeroMemory (&ctmo, sizeof(COMMTIMEOUTS));
-	ctmo.ReadIntervalTimeout = timeout;
-	ctmo.ReadTotalTimeoutMultiplier = timeout;
+	// Don't use the two other two values, set them to zero. This way a constant timeout is used
+	// for the following reads.
+	// ctmo.ReadIntervalTimeout = timeout;
+	// ctmo.ReadTotalTimeoutMultiplier = timeout;
 	ctmo.ReadTotalTimeoutConstant = timeout;
 
 	return SetCommTimeouts(hComPort, &ctmo);
