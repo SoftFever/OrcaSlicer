@@ -809,8 +809,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
-//	const wxArrayInt& ar = preset_sizer->GetColWidths();
-// 	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front(); // doesn't work
+	const wxArrayInt& ar = preset_sizer->GetColWidths();
+	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front()-4; // doesn't work
 	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
