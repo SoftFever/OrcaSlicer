@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem.hpp>
 
 #if _WIN32
 	#include <Windows.h>
