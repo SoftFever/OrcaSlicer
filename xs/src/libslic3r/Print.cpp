@@ -10,6 +10,7 @@
 #include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
 
 
 // For png export of the sliced model
@@ -1352,13 +1353,22 @@ public:
     }
 
     inline void save(const std::string& path) {
+
         for(unsigned i = 0; i < layers_rst_.size(); i++) {
             if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
-                std::string loc = path + "layer" + std::to_string(i) + ".png";
+
+                char lyrnum[6];
+                std::sprintf(lyrnum, "%.5d", i);
+                std::string loc = path + "layer" + lyrnum + ".png";
+
                 std::fstream out(loc, std::fstream::out | std::fstream::binary);
                 if(out.good()) {
                     out << layers_rst_[i].second.rdbuf();
+                } else {
+                   BOOST_LOG_TRIVIAL(error) << "Can't create file for layer "
+                                            << i;
                 }
+
                 out.close();
                 layers_rst_[i].second.str("");
             }
@@ -1368,13 +1378,18 @@ public:
     void saveLayer(unsigned lyr, const std::string& path) {
         unsigned i = lyr;
         assert(i < layers_rst_.size());
-        std::string loc = path + "layer" + std::to_string(i) + ".png";
+
+        char lyrnum[6];
+        std::sprintf(lyrnum, "%.5d", lyr);
+        std::string loc = path + "layer" + lyrnum + ".png";
+
         std::fstream out(loc, std::fstream::out | std::fstream::binary);
         if(out.good()) {
             layers_rst_[i].first.save(out, Raster::Compression::PNG);
-        } /*else {
-          some logging should be done here...
-        }*/
+        } else {
+            BOOST_LOG_TRIVIAL(error) << "Can't create file for layer";
+        }
+
         out.close();
         layers_rst_[i].first.reset();
     }
