@@ -1,0 +1,364 @@
+2007-11-08 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Partially revert the line buffered output change,
+	and turn stderr into unbuffered output while producing the
+	progress report.
+
+2007-11-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Add setup and teardown hooks to the programmer
+	definition.  If present, call the setup hook immediately after
+	finding the respective programmer object, and schedule the
+	teardown hook to be called upon exit.  This allows the
+	programmer implementation to dynamically allocate private
+	programmer data.
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* avr910.c: Convert static programmer data into dynamically
+	allocated data.
+	* butterfly.c: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+	* usbtiny.c: (Ditto.)
+
+2007-11-06 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c: Remove the no_show_func_info() calls, as Brian
+	promised some 4 years ago.
+
+2007-11-06 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* main.c: Add the -x option to pass extended parameters to
+	the programmer backend.
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* jtagmkII.c: Implement the extended parameter jtagchain=
+	to support JTAG daisy-chains.
+	* avrdude.1: Document all of the above.
+	* doc/avrdude.texi: (Ditto.)
+
+2007-10-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version for post-release.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.5.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <bikenomad@gmail.com>:
+	patch #5007: Patch for line-buffering of stdout and stderr
+	* main.c: call setvbuf() for stdout and stderr.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <graceindustries@gmail.com>:
+	patch #5953: Add AT90CAN64 and AT90CAN32 to avrdude.conf
+	* avrdude.conf.in: Add entry for AT90CAN64 and AT90CAN32.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by Wolfgang Moser:
+	patch #6121: ISP support for the C2N232I device (serial port
+	bitbanging)
+	* avrdude.conf.in: Add entry for c2n232i.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <karl.yerkes@gmail.com>:
+	patch #6141: accept binary format immediate values
+	* fileio.c: Detect a 0b prefix, and call strtoul() differently
+	in that case.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	bug #21076: -vvvv serial receive prints are empty in Win32 build
+	* ser_win32.c (ser_recv): Drop the essentially unused variable
+	"len", and use the variable "read" in order to track how many
+	bytes have just been read in.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	bug #21145: atmega329p not recognized
+	* avrdude.conf.in: Add definitions for the ATmega329P/3290P.
+	Same as ATmega329/3290 except of the different signature.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	bug #21152: Unable to program atmega324p with avrdude 5.4 and AVRISP
+	using default configuration file.
+	* avrdude.conf.in: Uncomment the (bogus) stk500_devcode lines for
+	the ATmega164P, ATmega324P, ATmega644, and ATmega644P definitions.
+	This only affects users of STK500v1 firmware.
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Submitted by <ladyada@gmail.com>:
+	Patch #6233: Add support for USBtinyISP programmer
+	* usbtiny.c: New file.
+	* usbtiny.h: (Ditto.)
+	* Makefile.am: Include usbtiny into the build.
+	* avrdude.conf.in: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* lexer.l: (Ditto.)
+	* avrdude.1: Document the usbtiny support.
+	* doc/avrdude.texi: (Ditto.)
+
+2007-10-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* doc/avrdude.texi: Sort list of supported programmers into
+	alphabetical order, add all missing programmers.
+
+2007-07-24 Thomas Fischl <tfischl@gmx.de>
+
+	* usbasp.c: Added long addresses to support devices with more
+        than 64kB flash. Closes bug #20558: Long address problem with
+        USBasp.
+
+2007-06-27 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am (EXTRA_DIST): Add ChangeLog-2004-2006.
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version for post-release.
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac (AC_INIT): Bump version, releasing avrdude-5.4.
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix AVR910 devcodes.  It seems that the AVR109
+	listing refers to "BOOT"-type code, while the standard codes are
+	different (usually one below).
+
+2007-05-16 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avr.c (avr_read, avr_write): only use the paged_load and
+	paged_write backend functions iff the memory area in question has
+	a page_size != 0.
+	This is supposed to fix bug #19234: avrdude-5.3.1 segfaults when
+	stk500v1 tries to program an ATtiny15
+
+2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avr910.c: Fall back to avr_{read,write}_byte_default().  Fixes
+	bug #18803: Fuse reading regression in avrdude 5.3.1 with avr910
+	programmer
+
+2007-05-15 Colin O'Flynn <coflynn@newae.com>
+
+	* avrdude.conf.in: Rename the ATmega164 and ATmega324 into
+	ATmega164P and ATmega324P, resp.  Add an entry for the ATmega644P.
+	Fixes bug #19769: ATmega164p not recognized
+
+2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* ser_posix.c (ser_send): Don't select() on the output fd before
+	trying to write something to the serial line.  That kind of
+	polling isn't very useful anyway, and it seems it breaks for the
+	Linux CP210x USB<->RS-232 bridge driver which is certainly a bug
+	in the driver, but we can just avoid that bug alltogether.
+
+2007-05-15 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Fix the STK500v2 ISP delay parameter for
+	ATmega640/1280/1281/2560/2561.  Atmel has changed the XML
+	files after the initial release.
+
+2007-05-01 Colin O'Flynn <coflynn@newae.com>
+
+	* safemode.c: -Oops - bug in verbose output. Fixed.
+	-Fixed handling of cases where programmer cannot read fuses (AVR910)
+	* main.c: -Also fixing handling of cases where programmer cannot
+	read fuses
+	This should close one or more bugs (18803, 19570)
+
+2007-05-01 Colin O'Flynn <coflynn@newae.com>
+
+	* safemode.c: Added verbose output from safemode routines.
+
+2007-03-25 Colin O'Flynn <coflynn@newae.com>
+
+	* stk500generic.c: Forgot to close the serial port before trying to
+	open it again, caused problems on Windows machines.
+	Closes bug #19411
+
+2007-02-26 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in: Add the AT90PWM2/3B devices.
+
+2007-02-02 Thomas Fischl <tfischl@gmx.de>
+
+	* usbasp.c: Changed return value of function usbasp_initialize to stop
+	avrdude on communication errors between programmer and target.
+	Closes bug #18581: safemode destroys fuse bits
+
+2007-02-01 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* config_gram.y: Remove duplicate definition of token K_WRITEPAGE
+
+2007-01-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c: Implement ATmega256x support for butterfly/avr109.
+
+2007-01-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Fix subdir handling.  Now finally, "make
+	distcheck" will include the documentation into the tarball even if
+	the configure had been run without the --enable-doc.
+
+2007-01-30 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* safemode.c: Obtain progname from avrdude.h rather than trying to
+	roll our own (duplicate) copy of it.
+	* avr910.c: Constify char pointers.
+	* avrpart.c: (Ditto.)
+	* avrpart.h: (Ditto.)
+	* butterfly.c: (Ditto.)
+	* config.c: (Ditto.)
+	* config.h: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* par.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+	* stk500.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+
+2007-01-29 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrpart.c: More backend/library abstraction and generalization:
+	turn the list_parts() and list_programmers() functions into
+	general list iteration functions that call a caller-supplied
+	callback for each element.  Implement list_parts() and
+	list_programmers() as private functions in main.c based on that
+	approach.
+	* avrpart.h: (Ditto.)
+	* main.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+
+2007-01-25 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* Makefile.am: Rearrange everything so it is now built into a
+	libavrdude.a library, and link main.c against that library.
+	* configure.ac: Add AC_PROG_RANLIB as we are building a library
+	now.
+
+2007-01-24 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Major code cleanup.
+	- Make all internal functions "static".
+	- Make sure each module's header and implementation file match.
+	- Remove all library-like functionality from main.c, so only
+	  the actual frontend remains in main.c.
+	- Add C++ brackets to all header files.
+	* avr.c: (Ditto.)
+	* avr.h: (Ditto.)
+	* avr910.c: (Ditto.)
+	* avr910.h: (Ditto.)
+	* avrdude.h: (Ditto.)
+	* avrpart.c: (Ditto.)
+	* avrpart.h: (Ditto.)
+	* bitbang.h: (Ditto.)
+	* butterfly.h: (Ditto.)
+	* config.c: (Ditto.)
+	* config.h: (Ditto.)
+	* confwin.h: (Ditto.)
+	* crc16.c: (Ditto.)
+	* crc16.h: (Ditto.)
+	* fileio.c: (Ditto.)
+	* fileio.h: (Ditto.)
+	* jtagmkI.h: (Ditto.)
+	* jtagmkII.h: (Ditto.)
+	* lexer.l: (Ditto.)
+	* lists.h: (Ditto.)
+	* main.c: (Ditto.)
+	* par.h: (Ditto.)
+	* pgm.c: (Ditto.)
+	* pgm.h: (Ditto.)
+	* ppi.c: (Ditto.)
+	* ppi.h: (Ditto.)
+	* safemode.h: (Ditto.)
+	* serbb.h: (Ditto.)
+	* serial.h: (Ditto.)
+	* stk500.h: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* stk500v2.h: (Ditto.)
+	* term.c: (Ditto.)
+	* term.h: (Ditto.)
+	* usbasp.h: (Ditto.)
+	* update.c: New file.
+	* update.h: New file.
+	* Makefile.am: Include update.c and update.h.
+
+2007-01-24 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Move all "extern" declarations into a centreal header file.
+	* Makefile.am: Add new avrdude.h.
+	* avrdude.h: New file.
+	* avr.c: Replace private extern decl's by #include "avrdude.h".
+	* avr910.c: (Ditto.)
+	* avrpart.c: (Ditto.)
+	* bitbang.c: (Ditto.)
+	* butterfly.c: (Ditto.)
+	* config.c: (Ditto.)
+	* config_gram.y: (Ditto.)
+	* fileio.c: (Ditto.)
+	* jtagmkI.c: (Ditto.)
+	* jtagmkII.c: (Ditto.)
+	* lexer.l: (Ditto.)
+	* main.c: (Ditto.)
+	* par.c: (Ditto.)
+	* pgm.c: (Ditto.)
+	* ppi.c: (Ditto.)
+	* ppiwin.c: (Ditto.)
+	* ser_avrdoper.c: (Ditto.)
+	* ser_posix.c: (Ditto.)
+	* ser_win32.c: (Ditto.)
+	* serbb_posix.c: (Ditto.)
+	* serbb_win32.c: (Ditto.)
+	* stk500.c: (Ditto.)
+	* stk500generic.c: (Ditto.)
+	* stk500v2.c: (Ditto.)
+	* term.c: (Ditto.)
+	* usb_libusb.c: (Ditto.)
+	* usbasp.c: (Ditto.)
+
+2007-01-13 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* avrdude.conf.in (ATmega8): Bump the delay values for flash
+	and EEPROM, based on the current Atmel XML file.
+
+2007-01-12 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* configure.ac: Improve the detection of the Win32 HID library,
+	and the presence of the header ddk/hidsdi.h.  It now works
+	correctly under Cygwin and several flavours of MinGW.
+	* Makefile.am: Add new LIBHID pattern.
+
+2007-01-11 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	* butterfly.c (butterfly_initialize): when sending the 'T'
+	command (which is ignored by current AVR109 bootloaders),
+	send the first reply from the list of supported device
+	codes back rather than using avrdude.conf's idea about
+	an AVR910 device code.  Apparently, this solves disagreements
+	between different versions of at least the ATmega8 AVR910
+	device code.
+	Closes bug #18727: Writing flash failed
+
+2007-01-07 Joerg Wunsch <j@uriah.heep.sax.de>
+
+	Reported by Till Harbaum:
+	* avrdude.conf.in (ATtiny25/45/85): Change HVSP reset from
+	500 microseconds to 1 ms, matching the most recent Atmel XML
+	specs.

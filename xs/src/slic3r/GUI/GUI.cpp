@@ -4,8 +4,6 @@
 #include <assert.h>
 #include <cmath>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -25,7 +23,6 @@
 #undef max
 #endif
 #include "boost/nowide/convert.hpp"
-#pragma comment(lib, "user32.lib")
 #endif
 
 #include <wx/app.h>
@@ -55,9 +52,11 @@
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
+#include "FirmwareDialog.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+
 
 namespace Slic3r { namespace GUI {
 
@@ -84,83 +83,6 @@ void enable_screensaver()
     #elif _WIN32
     SetThreadExecutionState(ES_CONTINUOUS);
     #endif
-}
-
-std::vector<std::string> scan_serial_ports()
-{
-    std::vector<std::string> out;
-#ifdef _WIN32
-    // 1) Open the registry key SERIALCOM.
-    HKEY hKey;
-    LONG lRes = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ, &hKey);
-    assert(lRes == ERROR_SUCCESS);
-    if (lRes == ERROR_SUCCESS) {
-        // 2) Get number of values of SERIALCOM key.
-        DWORD        cValues;                   // number of values for key 
-        {
-            TCHAR    achKey[255];               // buffer for subkey name
-            DWORD    cbName;                    // size of name string 
-            TCHAR    achClass[MAX_PATH] = TEXT("");  // buffer for class name 
-            DWORD    cchClassName = MAX_PATH;   // size of class string 
-            DWORD    cSubKeys=0;                // number of subkeys 
-            DWORD    cbMaxSubKey;               // longest subkey size 
-            DWORD    cchMaxClass;               // longest class string 
-            DWORD    cchMaxValue;               // longest value name 
-            DWORD    cbMaxValueData;            // longest value data 
-            DWORD    cbSecurityDescriptor;      // size of security descriptor 
-            FILETIME ftLastWriteTime;           // last write time 
-            // Get the class name and the value count.
-            lRes = RegQueryInfoKey(
-                hKey,                    // key handle 
-                achClass,                // buffer for class name 
-                &cchClassName,           // size of class string 
-                NULL,                    // reserved 
-                &cSubKeys,               // number of subkeys 
-                &cbMaxSubKey,            // longest subkey size 
-                &cchMaxClass,            // longest class string 
-                &cValues,                // number of values for this key 
-                &cchMaxValue,            // longest value name 
-                &cbMaxValueData,         // longest value data 
-                &cbSecurityDescriptor,   // security descriptor 
-                &ftLastWriteTime);       // last write time
-            assert(lRes == ERROR_SUCCESS);
-        }
-        // 3) Read the SERIALCOM values.
-        {
-            DWORD dwIndex = 0;
-            for (int i = 0; i < cValues; ++ i, ++ dwIndex) {
-                wchar_t valueName[2048];
-                DWORD	valNameLen = 2048;
-                DWORD	dataType;
-				wchar_t data[2048];
-				DWORD	dataSize = 4096;
-				lRes = ::RegEnumValueW(hKey, dwIndex, valueName, &valNameLen, nullptr, &dataType, (BYTE*)&data, &dataSize);
-                if (lRes == ERROR_SUCCESS && dataType == REG_SZ && valueName[0] != 0)
-					out.emplace_back(boost::nowide::narrow(data));
-            }
-        }
-        ::RegCloseKey(hKey);
-    }
-#else
-    // UNIX and OS X
-    std::initializer_list<const char*> prefixes { "ttyUSB" , "ttyACM", "tty.", "cu.", "rfcomm" };
-    for (auto &dir_entry : boost::filesystem::directory_iterator(boost::filesystem::path("/dev"))) {
-        std::string name = dir_entry.path().filename().string();
-        for (const char *prefix : prefixes) {
-            if (boost::starts_with(name, prefix)) {
-                out.emplace_back(dir_entry.path().string());
-                break;
-            }
-        }
-    }
-#endif
-
-    out.erase(std::remove_if(out.begin(), out.end(), 
-        [](const std::string &key){ 
-            return boost::starts_with(key, "Bluetooth") || boost::starts_with(key, "FireFly"); 
-        }),
-        out.end());
-    return out;
 }
 
 bool debugged()
@@ -459,6 +381,43 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		}
 	});
 	menu->Append(local_menu, _(L("&Configuration")));
+}
+
+enum FirmwareMenuIDs {
+	FirmwareMenuFlash,
+	FirmwareMenuDict,
+	FirmwareMenuCnt,
+};
+
+void add_firmware_menu(wxMenuBar *top_menu)
+{
+	auto *menu = new wxMenu();
+	wxWindowID id_base = wxWindow::NewControlId(FirmwareMenuCnt);
+
+	menu->Append(id_base + FirmwareMenuFlash, _(L("Flash printer firmware")), _(L("Upload a firmware image into a Prusa printer")));
+	// TODO: for when we're able to flash dictionaries
+	// menu->Append(id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+
+	menu->Bind(wxEVT_MENU, [id_base](wxEvent &event) {
+		switch (event.GetId() - id_base) {
+		case FirmwareMenuFlash:
+			FirmwareDialog::run(g_wxMainFrame);
+			break;
+		case FirmwareMenuDict:
+			// TODO
+			break;
+		default:
+			break;
+		}
+	});
+
+	top_menu->Append(menu, _(L("Fir&mware")));
+}
+
+void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
+{
+	add_config_menu(menu, event_language_change, event_language_change);
+	add_firmware_menu(menu);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard

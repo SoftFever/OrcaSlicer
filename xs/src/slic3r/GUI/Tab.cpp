@@ -6,6 +6,7 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/OctoPrint.hpp"
+#include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
@@ -1693,7 +1694,7 @@ void TabPrinter::build()
 void TabPrinter::update_serial_ports(){
 	Field *field = get_field("serial_port");
 	Choice *choice = static_cast<Choice *>(field);
-	choice->set_values(scan_serial_ports());
+	choice->set_values(Utils::scan_serial_ports());
 }
 
 void TabPrinter::extruders_count_changed(size_t extruders_count){
