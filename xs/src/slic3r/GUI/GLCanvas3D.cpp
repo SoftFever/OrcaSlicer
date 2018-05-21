@@ -412,6 +412,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_dirty(true)
     , m_apply_zoom_to_volumes_filter(false)
     , m_warning_texture_enabled(false)
+    , m_legend_texture_enabled(false)
 {
 }
 
@@ -688,6 +689,11 @@ void GLCanvas3D::enable_warning_texture(bool enable)
     m_warning_texture_enabled = enable;
 }
 
+void GLCanvas3D::enable_legend_texture(bool enable)
+{
+    m_legend_texture_enabled = enable;
+}
+
 void GLCanvas3D::zoom_to_bed()
 {
     _zoom_to_bounding_box(bed_bounding_box());
@@ -770,10 +776,42 @@ void GLCanvas3D::render_warning_texture()
             float zoom = get_camera_zoom();
             float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
             float l = (-0.5f * (float)w) * inv_zoom;
-            float t = (-0.5f * cnv_size.second + (float)h) * inv_zoom;
+            float t = (-0.5f * (float)cnv_size.second + (float)h) * inv_zoom;
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
 
+            render_texture(tex_id, l, r, b, t);
+
+            ::glPopMatrix();
+            ::glEnable(GL_DEPTH_TEST);
+        }
+    }
+}
+
+void GLCanvas3D::render_legend_texture()
+{
+    if (!m_legend_texture_enabled)
+        return;
+
+    // If the legend texture has not been loaded into the GPU, do it now.
+    unsigned int tex_id = _3DScene::finalize_legend_texture();
+    if (tex_id > 0)
+    {
+        unsigned int w = _3DScene::get_legend_texture_width();
+        unsigned int h = _3DScene::get_legend_texture_height();
+        if ((w > 0) && (h > 0))
+        {
+            ::glDisable(GL_DEPTH_TEST);
+            ::glPushMatrix();
+            ::glLoadIdentity();
+            
+            std::pair<int, int> cnv_size = _get_canvas_size();
+            float zoom = get_camera_zoom();
+            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+            float l = (-0.5f * (float)cnv_size.first) * inv_zoom;
+            float t = (0.5f * (float)cnv_size.second) * inv_zoom;
+            float r = l + (float)w * inv_zoom;
+            float b = t - (float)h * inv_zoom;
             render_texture(tex_id, l, r, b, t);
 
             ::glPopMatrix();

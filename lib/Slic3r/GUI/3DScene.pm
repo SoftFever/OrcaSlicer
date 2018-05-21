@@ -58,7 +58,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
 
                               _layer_height_edited
 
-                              _legend_enabled
                               _mouse_dragging
                                                             
                               ) );
@@ -190,9 +189,7 @@ sub new {
 #    $self->_stheta(45);
 #    $self->_sphi(45);
 #    $self->_zoom(1);
-#==============================================================================================================================
-    $self->_legend_enabled(0);
-#==============================================================================================================================
+#    $self->_legend_enabled(0);
 #    $self->_warning_enabled(0);
 #==============================================================================================================================
     $self->use_plain_shader(0);
@@ -291,12 +288,12 @@ sub new {
     return $self;
 }
 
-sub set_legend_enabled {
-    my ($self, $value) = @_;
-    $self->_legend_enabled($value);
-}
-
 #==============================================================================================================================
+#sub set_legend_enabled {
+#    my ($self, $value) = @_;
+#    $self->_legend_enabled($value);
+#}
+#
 #sub set_warning_enabled {
 #    my ($self, $value) = @_;
 #    $self->_warning_enabled($value);
@@ -1621,6 +1618,7 @@ sub Render {
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render_cutting_plane($self);
     Slic3r::GUI::_3DScene::render_warning_texture($self);
+    Slic3r::GUI::_3DScene::render_legend_texture($self);
     
 #    if (defined $self->cutting_plane_z) {
 #        # draw cutting plane
@@ -1652,10 +1650,10 @@ sub Render {
 #
 #    # draw warning message
 #    $self->draw_warning;
+#    
+#    # draw gcode preview legend
+#    $self->draw_legend;
 #==============================================================================================================================
-    
-    # draw gcode preview legend
-    $self->draw_legend;
     
     $self->draw_active_object_annotations;
     
@@ -1919,49 +1917,40 @@ sub draw_active_object_annotations {
     glEnable(GL_DEPTH_TEST);
 }
 
-sub draw_legend {
-    my ($self) = @_;
- 
-    if (!$self->_legend_enabled) {
-        return;
-    }
-
-    # If the legend texture has not been loaded into the GPU, do it now.
-    my $tex_id = Slic3r::GUI::_3DScene::finalize_legend_texture;
-    if ($tex_id > 0)
-    {
-        my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
-        my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
-        if (($tex_w > 0) && ($tex_h > 0))
-        {
-            glDisable(GL_DEPTH_TEST);
-            glPushMatrix();
-            glLoadIdentity();
-
-            my ($cw, $ch) = $self->GetSizeWH;
-
 #==============================================================================================================================
-            my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
-            my $l = (-0.5 * $cw) / $zoom;
-            my $t = (0.5 * $ch) / $zoom;
-            my $r = $l + $tex_w / $zoom;
-            my $b = $t - $tex_h / $zoom;
-            Slic3r::GUI::_3DScene::render_texture($self, $tex_id, $l, $r, $b, $t);
-            
+#sub draw_legend {
+#    my ($self) = @_;
+# 
+#    if (!$self->_legend_enabled) {
+#        return;
+#    }
+#
+#    # If the legend texture has not been loaded into the GPU, do it now.
+#    my $tex_id = Slic3r::GUI::_3DScene::finalize_legend_texture;
+#    if ($tex_id > 0)
+#    {
+#        my $tex_w = Slic3r::GUI::_3DScene::get_legend_texture_width;
+#        my $tex_h = Slic3r::GUI::_3DScene::get_legend_texture_height;
+#        if (($tex_w > 0) && ($tex_h > 0))
+#        {
+#            glDisable(GL_DEPTH_TEST);
+#            glPushMatrix();
+#            glLoadIdentity();
+#
+#            my ($cw, $ch) = $self->GetSizeWH;
+#
 #            my $l = (-0.5 * $cw) / $self->_zoom;
 #            my $t = (0.5 * $ch) / $self->_zoom;
 #            my $r = $l + $tex_w / $self->_zoom;
 #            my $b = $t - $tex_h / $self->_zoom;
 #            $self->_render_texture($tex_id, $l, $r, $b, $t);
-#==============================================================================================================================
-
-            glPopMatrix();
-            glEnable(GL_DEPTH_TEST);
-        }
-    }
-}
-
-#==============================================================================================================================
+#
+#            glPopMatrix();
+#            glEnable(GL_DEPTH_TEST);
+#        }
+#    }
+#}
+#
 #sub draw_warning {
 #    my ($self) = @_;
 # 

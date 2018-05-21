@@ -419,6 +419,13 @@ enable_warning_texture(canvas, enable)
         _3DScene::enable_warning_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
     
 void
+enable_legend_texture(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_legend_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+    
+void
 zoom_to_bed(canvas)
         SV *canvas;
     CODE:
@@ -460,6 +467,12 @@ render_warning_texture(canvas)
         SV *canvas;
     CODE:
         _3DScene::render_warning_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+render_legend_texture(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::render_legend_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
 render_texture(canvas, tex_id, left, right, bottom, top)

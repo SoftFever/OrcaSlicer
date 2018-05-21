@@ -177,10 +177,16 @@ sub new {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
         if ($preview == $self->{preview3D})
         {
-            $self->{preview3D}->canvas->set_legend_enabled(1);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
+#            $self->{preview3D}->canvas->set_legend_enabled(1);
+#==============================================================================================================================
             $self->{preview3D}->load_print(1);
         } else {
-            $self->{preview3D}->canvas->set_legend_enabled(0);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 0);
+#            $self->{preview3D}->canvas->set_legend_enabled(0);
+#==============================================================================================================================
         }
 
         $preview->OnActivate if $preview->can('OnActivate');        

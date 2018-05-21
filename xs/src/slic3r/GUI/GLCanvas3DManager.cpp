@@ -362,6 +362,13 @@ void GLCanvas3DManager::enable_warning_texture(wxGLCanvas* canvas, bool enable)
         it->second->enable_warning_texture(enable);
 }
 
+void GLCanvas3DManager::enable_legend_texture(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_legend_texture(enable);
+}
+
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -409,6 +416,13 @@ void GLCanvas3DManager::render_warning_texture(wxGLCanvas* canvas)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->render_warning_texture();
+}
+
+void GLCanvas3DManager::render_legend_texture(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_legend_texture();
 }
 
 void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)

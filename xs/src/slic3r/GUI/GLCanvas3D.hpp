@@ -152,6 +152,7 @@ private:
     bool m_dirty;
     bool m_apply_zoom_to_volumes_filter;
     bool m_warning_texture_enabled;
+    bool m_legend_texture_enabled;
 
     PerlCallback m_on_viewport_changed_callback;
 
@@ -215,6 +216,7 @@ public:
     bool is_layers_editing_enabled() const;
 
     void enable_warning_texture(bool enable);
+    void enable_legend_texture(bool enable);
 
     void zoom_to_bed();
     void zoom_to_volumes();
@@ -224,6 +226,7 @@ public:
     void render_axes();
     void render_cutting_plane();
     void render_warning_texture();
+    void render_legend_texture();
 
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
 

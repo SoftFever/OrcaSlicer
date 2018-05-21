@@ -1903,6 +1903,11 @@ void _3DScene::enable_warning_texture(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_warning_texture(canvas, enable);
 }
 
+void _3DScene::enable_legend_texture(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_legend_texture(canvas, enable);
+}
+
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.zoom_to_bed(canvas);
@@ -1936,6 +1941,11 @@ void _3DScene::render_cutting_plane(wxGLCanvas* canvas)
 void _3DScene::render_warning_texture(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render_warning_texture(canvas);
+}
+
+void _3DScene::render_legend_texture(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render_legend_texture(canvas);
 }
 
 void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)

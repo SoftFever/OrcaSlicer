@@ -591,6 +591,7 @@ public:
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
 
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
+    static void enable_legend_texture(wxGLCanvas* canvas, bool enable);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
@@ -600,6 +601,7 @@ public:
     static void render_axes(wxGLCanvas* canvas);
     static void render_cutting_plane(wxGLCanvas* canvas);
     static void render_warning_texture(wxGLCanvas* canvas);
+    static void render_legend_texture(wxGLCanvas* canvas);
 
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 
