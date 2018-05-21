@@ -11,7 +11,7 @@ struct SerialPortInfo {
 	std::string port;
 	std::string hardware_id;
 	std::string friendly_name;
-	bool 		is_printer;
+	bool 		is_printer = false;
 };
 
 inline bool operator==(const SerialPortInfo &sp1, const SerialPortInfo &sp2) 

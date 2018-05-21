@@ -7,21 +7,27 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 #if _WIN32
-#include <Windows.h>
-#include <Setupapi.h>
-#include <initguid.h>
-#include <devguid.h>
-// Undefine min/max macros incompatible with the standard library
-// For example, std::numeric_limits<std::streamsize>::max()
-// produces some weird errors
-#ifdef min
-#undef min
-#endif
-#ifdef max
-#undef max
-#endif
-#include "boost/nowide/convert.hpp"
-#pragma comment(lib, "user32.lib")
+	#include <Windows.h>
+	#include <Setupapi.h>
+	#include <initguid.h>
+	#include <devguid.h>
+	// Undefine min/max macros incompatible with the standard library
+	// For example, std::numeric_limits<std::streamsize>::max()
+	// produces some weird errors
+	#ifdef min
+	#undef min
+	#endif
+	#ifdef max
+	#undef max
+	#endif
+	#include "boost/nowide/convert.hpp"
+	#pragma comment(lib, "user32.lib")
+#elif __APPLE__
+	#include <CoreFoundation/CoreFoundation.h>
+	#include <IOKit/IOKitLib.h>
+	#include <IOKit/serial/IOSerialKeys.h>
+	#include <IOKit/serial/ioss.h>
+	#include <sys/syslimits.h>
 #endif
 
 namespace Slic3r {
@@ -44,7 +50,7 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
 	if (hDeviceInfo != INVALID_HANDLE_VALUE) {
 		// Iterate over all the devices in the tree.
 		for (int nDevice = 0; SetupDiEnumDeviceInfo(hDeviceInfo, nDevice, &devInfoData); ++ nDevice) {
-			SerialPortInfo port_info = {};
+			SerialPortInfo port_info;
 			// Get the registry key which stores the ports settings.
 			HKEY hDeviceKey = SetupDiOpenDevRegKey(hDeviceInfo, &devInfoData, DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_QUERY_VALUE);
 			if (hDeviceKey) {
@@ -82,8 +88,52 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
 			output.emplace_back(std::move(port_info));
 		}
 	}
+#elif __APPLE__
+	// inspired by https://sigrok.org/wiki/Libserialport
+	CFMutableDictionaryRef classes = IOServiceMatching(kIOSerialBSDServiceValue);
+	if (classes != 0) {
+		io_iterator_t iter;
+		if (IOServiceGetMatchingServices(kIOMasterPortDefault, classes, &iter) == KERN_SUCCESS) {
+			io_object_t port;
+			while ((port = IOIteratorNext(iter)) != 0) {
+				CFTypeRef cf_property = IORegistryEntryCreateCFProperty(port, CFSTR(kIOCalloutDeviceKey), kCFAllocatorDefault, 0);
+				if (cf_property) {
+					char path[PATH_MAX];
+					Boolean result = CFStringGetCString(cf_property, path, sizeof(path), kCFStringEncodingUTF8);
+					CFRelease(cf_property);
+					if (result) {
+						SerialPortInfo port_info;
+						port_info.port = path;
+						if ((cf_property = IORegistryEntrySearchCFProperty(port, kIOServicePlane,
+						         CFSTR("USB Interface Name"), kCFAllocatorDefault,
+						         kIORegistryIterateRecursively | kIORegistryIterateParents)) ||
+						    (cf_property = IORegistryEntrySearchCFProperty(port, kIOServicePlane,
+						         CFSTR("USB Product Name"), kCFAllocatorDefault,
+						         kIORegistryIterateRecursively | kIORegistryIterateParents)) ||
+						    (cf_property = IORegistryEntrySearchCFProperty(port, kIOServicePlane,
+						         CFSTR("Product Name"), kCFAllocatorDefault,
+						         kIORegistryIterateRecursively | kIORegistryIterateParents)) ||
+						    (cf_property = IORegistryEntryCreateCFProperty(port, 
+						         CFSTR(kIOTTYDeviceKey), kCFAllocatorDefault, 0))) {
+							// Description limited to 127 char, anything longer would not be user friendly anyway.
+							char description[128];
+							if (CFStringGetCString(cf_property, description, sizeof(description), kCFStringEncodingUTF8)) {
+								port_info.friendly_name = std::string(description) + " (" + port_info.path + ")";
+								port_info.is_printer = looks_like_printer(port_info.friendly_name);
+							}
+							CFRelease(cf_property);
+						}
+						if (port_info.friendly_name.empty())
+							port_info.friendly_name = port_info.path;
+						output.emplace_back(std::move(port_info));
+					}
+				}
+				IOObjectRelease(port);
+			}
+		}
+	}
 #else
-    // UNIX and OS X
+    // UNIX / Linux
     std::initializer_list<const char*> prefixes { "ttyUSB" , "ttyACM", "tty.", "cu.", "rfcomm" };
     for (auto &dir_entry : boost::filesystem::directory_iterator(boost::filesystem::path("/dev"))) {
         std::string name = dir_entry.path().filename().string();
