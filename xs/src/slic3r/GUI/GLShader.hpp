@@ -16,7 +16,11 @@ public:
         {}
     ~GLShader();
 
-    bool load(const char *fragment_shader, const char *vertex_shader);
+//############################################################################################################################################
+    bool load_from_text(const char *fragment_shader, const char *vertex_shader);
+    bool load_from_file(const char* fragment_shader_filename, const char* vertex_shader_filename);
+//    bool load(const char *fragment_shader, const char *vertex_shader);
+//############################################################################################################################################
     void release();
 
     int  get_attrib_location(const char *name) const;

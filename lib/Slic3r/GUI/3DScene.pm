@@ -321,7 +321,10 @@ sub layer_editing_enabled {
                 $self->SetCurrent($self->GetContext);
                 my $shader = new Slic3r::GUI::_3DScene::GLShader;
                 my $error_message;
-                if (! $shader->load($self->_fragment_shader_variable_layer_height, $self->_vertex_shader_variable_layer_height)) {
+#==============================================================================================================================
+                if (! $shader->load_from_file("variable_layer_height.fs", "variable_layer_height.vs")) {
+#                if (! $shader->load_from_text($self->_fragment_shader_variable_layer_height, $self->_vertex_shader_variable_layer_height)) {
+#==============================================================================================================================
                     # Compilation or linking of the shaders failed.
                     $error_message = "Cannot compile an OpenGL Shader, therefore the Variable Layer Editing will be disabled.\n\n" 
                         . $shader->last_error;
@@ -1375,8 +1378,10 @@ sub InitGL {
 
     if ($self->UseVBOs) {
         my $shader = new Slic3r::GUI::_3DScene::GLShader;
-        if (! $shader->load($self->_fragment_shader_Gouraud, $self->_vertex_shader_Gouraud)) {
-#        if (! $shader->load($self->_fragment_shader_Phong, $self->_vertex_shader_Phong)) {
+#===================================================================================================================================        
+        if (! $shader->load_from_file("gouraud.fs", "gouraud.vs")) {
+##        if (! $shader->load($self->_fragment_shader_Phong, $self->_vertex_shader_Phong)) {
+#===================================================================================================================================        
             print "Compilaton of path shader failed: \n" . $shader->last_error . "\n";
             $shader = undef;
         } else {
@@ -2051,273 +2056,275 @@ sub _report_opengl_state
     }
 }
 
-sub _vertex_shader_Gouraud {
-    return <<'VERTEX';
-#version 110
-
-#define INTENSITY_CORRECTION 0.6
-
-// normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)
-const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
-#define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SPECULAR   (0.125 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SHININESS  20.0
-
-// normalized values for (1./1.43, 0.2/1.43, 1./1.43)
-const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
-#define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
-//#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
-//#define LIGHT_FRONT_SHININESS 5.0
-
-#define INTENSITY_AMBIENT    0.3
-
-const vec3 ZERO = vec3(0.0, 0.0, 0.0);
-
-struct PrintBoxDetection
-{
-    vec3 min;
-    vec3 max;
-    // xyz contains the offset, if w == 1.0 detection needs to be performed
-    vec4 volume_origin;
-};
-
-uniform PrintBoxDetection print_box;
-
-// x = tainted, y = specular;
-varying vec2 intensity;
-
-varying vec3 delta_box_min;
-varying vec3 delta_box_max;
-
-void main()
-{
-    // First transform the normal into camera space and normalize the result.
-    vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
-    
-    // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
-    // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
-    float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
-
-    intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
-    intensity.y = 0.0;
-
-    if (NdotL > 0.0)
-        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
-
-    // Perform the same lighting calculation for the 2nd light source (no specular applied).
-    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
-    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
-
-    // compute deltas for out of print volume detection (world coordinates)
-    if (print_box.volume_origin.w == 1.0)
-    {
-        vec3 v = gl_Vertex.xyz + print_box.volume_origin.xyz;
-        delta_box_min = v - print_box.min;
-        delta_box_max = v - print_box.max;
-    }
-    else
-    {
-        delta_box_min = ZERO;
-        delta_box_max = ZERO;
-    }    
-
-    gl_Position = ftransform();
-} 
-
-VERTEX
-}
-
-sub _fragment_shader_Gouraud {
-    return <<'FRAGMENT';
-#version 110
-
-const vec3 ZERO = vec3(0.0, 0.0, 0.0);
-
-// x = tainted, y = specular;
-varying vec2 intensity;
-
-varying vec3 delta_box_min;
-varying vec3 delta_box_max;
-
-uniform vec4 uniform_color;
-
-void main()
-{
-    // if the fragment is outside the print volume -> use darker color
-    vec3 color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? mix(uniform_color.rgb, ZERO, 0.3333) : uniform_color.rgb;
-    gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + color * intensity.x, uniform_color.a);
-}
-
-FRAGMENT
-}
-
-sub _vertex_shader_Phong {
-    return <<'VERTEX';
-#version 110
-
-varying vec3 normal;
-varying vec3 eye;
-void main(void)  
-{
-   eye    = normalize(vec3(gl_ModelViewMatrix * gl_Vertex));
-   normal = normalize(gl_NormalMatrix * gl_Normal);
-   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-}
-VERTEX
-}
-
-sub _fragment_shader_Phong {
-    return <<'FRAGMENT';
-#version 110
-
-#define INTENSITY_CORRECTION 0.7
-
-#define LIGHT_TOP_DIR        -0.6/1.31, 0.6/1.31, 1./1.31
-#define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
-//#define LIGHT_TOP_SHININESS  50.
-#define LIGHT_TOP_SHININESS  10.
-
-#define LIGHT_FRONT_DIR      1./1.43, 0.2/1.43, 1./1.43
-#define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
-#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
-#define LIGHT_FRONT_SHININESS 50.
-
-#define INTENSITY_AMBIENT    0.0
-
-varying vec3 normal;
-varying vec3 eye;
-uniform vec4 uniform_color;
-void main() {
- 
-    float intensity_specular = 0.;
-    float intensity_tainted  = 0.;
-    float intensity = max(dot(normal,vec3(LIGHT_TOP_DIR)), 0.0);
-    // if the vertex is lit compute the specular color
-    if (intensity > 0.0) {
-        intensity_tainted = LIGHT_TOP_DIFFUSE * intensity;
-        // compute the half vector
-        vec3 h = normalize(vec3(LIGHT_TOP_DIR) + eye);  
-        // compute the specular term into spec
-        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(h, normal), 0.0), LIGHT_TOP_SHININESS);
-    }
-    intensity = max(dot(normal,vec3(LIGHT_FRONT_DIR)), 0.0);
-    // if the vertex is lit compute the specular color
-    if (intensity > 0.0) {
-        intensity_tainted += LIGHT_FRONT_DIFFUSE * intensity;
-        // compute the half vector
-//        vec3 h = normalize(vec3(LIGHT_FRONT_DIR) + eye);
-        // compute the specular term into spec
-//        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(h,normal), 0.0), LIGHT_FRONT_SHININESS);
-    }
-    
-    gl_FragColor = max(
-        vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted, 
-        INTENSITY_AMBIENT * uniform_color);
-    gl_FragColor.a = uniform_color.a;
-}
-FRAGMENT
-}
-
-sub _vertex_shader_variable_layer_height {
-    return <<'VERTEX';
-#version 110
-
-#define INTENSITY_CORRECTION 0.6
-
-const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
-#define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SPECULAR   (0.125 * INTENSITY_CORRECTION)
-#define LIGHT_TOP_SHININESS  20.0
-
-const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
-#define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
-//#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
-//#define LIGHT_FRONT_SHININESS 5.0
-
-#define INTENSITY_AMBIENT    0.3
-
-// x = tainted, y = specular;
-varying vec2 intensity;
-
-varying float object_z;
-
-void main()
-{
-    // First transform the normal into camera space and normalize the result.
-    vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
-    
-    // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
-    // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
-    float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
-
-    intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
-    intensity.y = 0.0;
-
-    if (NdotL > 0.0)
-        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
-
-    // Perform the same lighting calculation for the 2nd light source (no specular)
-    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
-    
-    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
-    
-    // Scaled to widths of the Z texture.
-    object_z = gl_Vertex.z;
-
-    gl_Position = ftransform();
-} 
-
-VERTEX
-}
-
-sub _fragment_shader_variable_layer_height {
-    return <<'FRAGMENT';
-#version 110
-
-#define M_PI 3.1415926535897932384626433832795
-
-// 2D texture (1D texture split by the rows) of color along the object Z axis.
-uniform sampler2D z_texture;
-// Scaling from the Z texture rows coordinate to the normalized texture row coordinate.
-uniform float z_to_texture_row;
-uniform float z_texture_row_to_normalized;
-uniform float z_cursor;
-uniform float z_cursor_band_width;
-
-// x = tainted, y = specular;
-varying vec2 intensity;
-
-varying float object_z;
-
-void main()
-{
-    float object_z_row = z_to_texture_row * object_z;
-    // Index of the row in the texture.
-    float z_texture_row = floor(object_z_row);
-    // Normalized coordinate from 0. to 1.
-    float z_texture_col = object_z_row - z_texture_row;
-    float z_blend = 0.25 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor) * 1.8 / z_cursor_band_width))) + 0.25;
-    // Calculate level of detail from the object Z coordinate.
-    // This makes the slowly sloping surfaces to be show with high detail (with stripes),
-    // and the vertical surfaces to be shown with low detail (no stripes)
-    float z_in_cells    = object_z_row * 190.;
-    // Gradient of Z projected on the screen.
-    float dx_vtc        = dFdx(z_in_cells);
-    float dy_vtc        = dFdy(z_in_cells);
-    float lod           = clamp(0.5 * log2(max(dx_vtc*dx_vtc, dy_vtc*dy_vtc)), 0., 1.);
-    // Sample the Z texture. Texture coordinates are normalized to <0, 1>.
-    vec4 color       =
-        mix(texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.),
-            texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.), lod);
-            
-    // Mix the final color.
-    gl_FragColor = 
-        vec4(intensity.y, intensity.y, intensity.y, 1.0) +  intensity.x * mix(color, vec4(1.0, 1.0, 0.0, 1.0), z_blend);
-}
-
-FRAGMENT
-}
+#===================================================================================================================================        
+#sub _vertex_shader_Gouraud {
+#    return <<'VERTEX';
+##version 110
+#
+##define INTENSITY_CORRECTION 0.6
+#
+#// normalized values for (-0.6/1.31, 0.6/1.31, 1./1.31)
+#const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
+##define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
+##define LIGHT_TOP_SPECULAR   (0.125 * INTENSITY_CORRECTION)
+##define LIGHT_TOP_SHININESS  20.0
+#
+#// normalized values for (1./1.43, 0.2/1.43, 1./1.43)
+#const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
+##define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+#//#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+#//#define LIGHT_FRONT_SHININESS 5.0
+#
+##define INTENSITY_AMBIENT    0.3
+#
+#const vec3 ZERO = vec3(0.0, 0.0, 0.0);
+#
+#struct PrintBoxDetection
+#{
+#    vec3 min;
+#    vec3 max;
+#    // xyz contains the offset, if w == 1.0 detection needs to be performed
+#    vec4 volume_origin;
+#};
+#
+#uniform PrintBoxDetection print_box;
+#
+#// x = tainted, y = specular;
+#varying vec2 intensity;
+#
+#varying vec3 delta_box_min;
+#varying vec3 delta_box_max;
+#
+#void main()
+#{
+#    // First transform the normal into camera space and normalize the result.
+#    vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
+#    
+#    // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
+#    // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
+#    float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
+#
+#    intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
+#    intensity.y = 0.0;
+#
+#    if (NdotL > 0.0)
+#        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
+#
+#    // Perform the same lighting calculation for the 2nd light source (no specular applied).
+#    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
+#    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
+#
+#    // compute deltas for out of print volume detection (world coordinates)
+#    if (print_box.volume_origin.w == 1.0)
+#    {
+#        vec3 v = gl_Vertex.xyz + print_box.volume_origin.xyz;
+#        delta_box_min = v - print_box.min;
+#        delta_box_max = v - print_box.max;
+#    }
+#    else
+#    {
+#        delta_box_min = ZERO;
+#        delta_box_max = ZERO;
+#    }    
+#
+#    gl_Position = ftransform();
+#} 
+#
+#VERTEX
+#}
+#
+#sub _fragment_shader_Gouraud {
+#    return <<'FRAGMENT';
+##version 110
+#
+#const vec3 ZERO = vec3(0.0, 0.0, 0.0);
+#
+#// x = tainted, y = specular;
+#varying vec2 intensity;
+#
+#varying vec3 delta_box_min;
+#varying vec3 delta_box_max;
+#
+#uniform vec4 uniform_color;
+#
+#void main()
+#{
+#    // if the fragment is outside the print volume -> use darker color
+#    vec3 color = (any(lessThan(delta_box_min, ZERO)) || any(greaterThan(delta_box_max, ZERO))) ? mix(uniform_color.rgb, ZERO, 0.3333) : uniform_color.rgb;
+#    gl_FragColor = vec4(vec3(intensity.y, intensity.y, intensity.y) + color * intensity.x, uniform_color.a);
+#}
+#
+#FRAGMENT
+#}
+#
+#sub _vertex_shader_Phong {
+#    return <<'VERTEX';
+##version 110
+#
+#varying vec3 normal;
+#varying vec3 eye;
+#void main(void)  
+#{
+#   eye    = normalize(vec3(gl_ModelViewMatrix * gl_Vertex));
+#   normal = normalize(gl_NormalMatrix * gl_Normal);
+#   gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+#}
+#VERTEX
+#}
+#
+#sub _fragment_shader_Phong {
+#    return <<'FRAGMENT';
+##version 110
+#
+##define INTENSITY_CORRECTION 0.7
+#
+##define LIGHT_TOP_DIR        -0.6/1.31, 0.6/1.31, 1./1.31
+##define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
+##define LIGHT_TOP_SPECULAR   (0.5 * INTENSITY_CORRECTION)
+#//#define LIGHT_TOP_SHININESS  50.
+##define LIGHT_TOP_SHININESS  10.
+#
+##define LIGHT_FRONT_DIR      1./1.43, 0.2/1.43, 1./1.43
+##define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+##define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+##define LIGHT_FRONT_SHININESS 50.
+#
+##define INTENSITY_AMBIENT    0.0
+#
+#varying vec3 normal;
+#varying vec3 eye;
+#uniform vec4 uniform_color;
+#void main() {
+# 
+#    float intensity_specular = 0.;
+#    float intensity_tainted  = 0.;
+#    float intensity = max(dot(normal,vec3(LIGHT_TOP_DIR)), 0.0);
+#    // if the vertex is lit compute the specular color
+#    if (intensity > 0.0) {
+#        intensity_tainted = LIGHT_TOP_DIFFUSE * intensity;
+#        // compute the half vector
+#        vec3 h = normalize(vec3(LIGHT_TOP_DIR) + eye);  
+#        // compute the specular term into spec
+#        intensity_specular = LIGHT_TOP_SPECULAR * pow(max(dot(h, normal), 0.0), LIGHT_TOP_SHININESS);
+#    }
+#    intensity = max(dot(normal,vec3(LIGHT_FRONT_DIR)), 0.0);
+#    // if the vertex is lit compute the specular color
+#    if (intensity > 0.0) {
+#        intensity_tainted += LIGHT_FRONT_DIFFUSE * intensity;
+#        // compute the half vector
+#//        vec3 h = normalize(vec3(LIGHT_FRONT_DIR) + eye);
+#        // compute the specular term into spec
+#//        intensity_specular += LIGHT_FRONT_SPECULAR * pow(max(dot(h,normal), 0.0), LIGHT_FRONT_SHININESS);
+#    }
+#    
+#    gl_FragColor = max(
+#        vec4(intensity_specular, intensity_specular, intensity_specular, 0.) + uniform_color * intensity_tainted, 
+#        INTENSITY_AMBIENT * uniform_color);
+#    gl_FragColor.a = uniform_color.a;
+#}
+#FRAGMENT
+#}
+#
+#sub _vertex_shader_variable_layer_height {
+#    return <<'VERTEX';
+##version 110
+#
+##define INTENSITY_CORRECTION 0.6
+#
+#const vec3 LIGHT_TOP_DIR = vec3(-0.4574957, 0.4574957, 0.7624929);
+##define LIGHT_TOP_DIFFUSE    (0.8 * INTENSITY_CORRECTION)
+##define LIGHT_TOP_SPECULAR   (0.125 * INTENSITY_CORRECTION)
+##define LIGHT_TOP_SHININESS  20.0
+#
+#const vec3 LIGHT_FRONT_DIR = vec3(0.6985074, 0.1397015, 0.6985074);
+##define LIGHT_FRONT_DIFFUSE  (0.3 * INTENSITY_CORRECTION)
+#//#define LIGHT_FRONT_SPECULAR (0.0 * INTENSITY_CORRECTION)
+#//#define LIGHT_FRONT_SHININESS 5.0
+#
+##define INTENSITY_AMBIENT    0.3
+#
+#// x = tainted, y = specular;
+#varying vec2 intensity;
+#
+#varying float object_z;
+#
+#void main()
+#{
+#    // First transform the normal into camera space and normalize the result.
+#    vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
+#    
+#    // Compute the cos of the angle between the normal and lights direction. The light is directional so the direction is constant for every vertex.
+#    // Since these two are normalized the cosine is the dot product. We also need to clamp the result to the [0,1] range.
+#    float NdotL = max(dot(normal, LIGHT_TOP_DIR), 0.0);
+#
+#    intensity.x = INTENSITY_AMBIENT + NdotL * LIGHT_TOP_DIFFUSE;
+#    intensity.y = 0.0;
+#
+#    if (NdotL > 0.0)
+#        intensity.y += LIGHT_TOP_SPECULAR * pow(max(dot(normal, reflect(-LIGHT_TOP_DIR, normal)), 0.0), LIGHT_TOP_SHININESS);
+#
+#    // Perform the same lighting calculation for the 2nd light source (no specular)
+#    NdotL = max(dot(normal, LIGHT_FRONT_DIR), 0.0);
+#    
+#    intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
+#    
+#    // Scaled to widths of the Z texture.
+#    object_z = gl_Vertex.z;
+#
+#    gl_Position = ftransform();
+#} 
+#
+#VERTEX
+#}
+#
+#sub _fragment_shader_variable_layer_height {
+#    return <<'FRAGMENT';
+##version 110
+#
+##define M_PI 3.1415926535897932384626433832795
+#
+#// 2D texture (1D texture split by the rows) of color along the object Z axis.
+#uniform sampler2D z_texture;
+#// Scaling from the Z texture rows coordinate to the normalized texture row coordinate.
+#uniform float z_to_texture_row;
+#uniform float z_texture_row_to_normalized;
+#uniform float z_cursor;
+#uniform float z_cursor_band_width;
+#
+#// x = tainted, y = specular;
+#varying vec2 intensity;
+#
+#varying float object_z;
+#
+#void main()
+#{
+#    float object_z_row = z_to_texture_row * object_z;
+#    // Index of the row in the texture.
+#    float z_texture_row = floor(object_z_row);
+#    // Normalized coordinate from 0. to 1.
+#    float z_texture_col = object_z_row - z_texture_row;
+#    float z_blend = 0.25 * cos(min(M_PI, abs(M_PI * (object_z - z_cursor) * 1.8 / z_cursor_band_width))) + 0.25;
+#    // Calculate level of detail from the object Z coordinate.
+#    // This makes the slowly sloping surfaces to be show with high detail (with stripes),
+#    // and the vertical surfaces to be shown with low detail (no stripes)
+#    float z_in_cells    = object_z_row * 190.;
+#    // Gradient of Z projected on the screen.
+#    float dx_vtc        = dFdx(z_in_cells);
+#    float dy_vtc        = dFdy(z_in_cells);
+#    float lod           = clamp(0.5 * log2(max(dx_vtc*dx_vtc, dy_vtc*dy_vtc)), 0., 1.);
+#    // Sample the Z texture. Texture coordinates are normalized to <0, 1>.
+#    vec4 color       =
+#        mix(texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row + 0.5    )), -10000.),
+#            texture2D(z_texture, vec2(z_texture_col, z_texture_row_to_normalized * (z_texture_row * 2. + 1.)),  10000.), lod);
+#            
+#    // Mix the final color.
+#    gl_FragColor = 
+#        vec4(intensity.y, intensity.y, intensity.y, 1.0) +  intensity.x * mix(color, vec4(1.0, 1.0, 0.0, 1.0), z_blend);
+#}
+#
+#FRAGMENT
+#}
+#===================================================================================================================================        
 
 # The 3D canvas to display objects and tool paths.
 package Slic3r::GUI::3DScene;
