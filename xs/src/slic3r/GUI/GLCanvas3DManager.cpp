@@ -390,6 +390,13 @@ void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direc
         it->second->select_view(direction);
 }
 
+void GLCanvas3DManager::render_background(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_background();
+}
+
 void GLCanvas3DManager::render_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

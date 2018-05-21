@@ -107,6 +107,7 @@ public:
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
 
+    void render_background(wxGLCanvas* canvas);
     void render_bed(wxGLCanvas* canvas);
     void render_axes(wxGLCanvas* canvas);
     void render_cutting_plane(wxGLCanvas* canvas);

@@ -1923,6 +1923,11 @@ void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
     s_canvas_mgr.select_view(canvas, direction);
 }
 
+void _3DScene::render_background(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render_background(canvas);
+}
+
 void _3DScene::render_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render_bed(canvas);

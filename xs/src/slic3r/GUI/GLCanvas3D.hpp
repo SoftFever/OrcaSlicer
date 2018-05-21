@@ -124,8 +124,11 @@ public:
 
         bool set(float z, const ExPolygons& polygons);
 
-        void render_plane(const BoundingBoxf3& bb);
-        void render_contour();
+        void render(const BoundingBoxf3& bb);
+
+    private:
+        void _render_plane(const BoundingBoxf3& bb);
+        void _render_contour();
     };
 
     class LayersEditing
@@ -222,6 +225,7 @@ public:
     void zoom_to_volumes();
     void select_view(const std::string& direction);
 
+    void render_background();
     void render_bed();
     void render_axes();
     void render_cutting_plane();

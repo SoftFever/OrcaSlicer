@@ -46,7 +46,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               on_move
                               on_model_update
                               volumes
-                              background
                               _mouse_pos
                               _hover_volume_idx
 
@@ -183,7 +182,9 @@ sub new {
 #==============================================================================================================================    
     
     $self->{can_multisample} = $can_multisample;
-    $self->background(1);
+#==============================================================================================================================
+#    $self->background(1);
+#==============================================================================================================================
     $self->_quat((0, 0, 0, 1));
 #==============================================================================================================================
 #    $self->_stheta(45);
@@ -1491,38 +1492,40 @@ sub Render {
         }
     }
     
-    # draw fixed background
-    if ($self->background) {
-        glDisable(GL_LIGHTING);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        glMatrixMode(GL_PROJECTION);
-        glPushMatrix();
-        glLoadIdentity();
-        
-        # Draws a bluish bottom to top gradient over the complete screen.
-        glDisable(GL_DEPTH_TEST);
-        glBegin(GL_QUADS);
-        glColor3f(0.0,0.0,0.0);
-        glVertex3f(-1.0,-1.0, 1.0);
-        glVertex3f( 1.0,-1.0, 1.0);
-        glColor3f(10/255,98/255,144/255);
-        glVertex3f( 1.0, 1.0, 1.0);
-        glVertex3f(-1.0, 1.0, 1.0);
-        glEnd();
-        glPopMatrix();
-        glEnable(GL_DEPTH_TEST);
-        
-        glMatrixMode(GL_MODELVIEW);
-        glPopMatrix();
-        glEnable(GL_LIGHTING);
-    }
-    
-    # draw ground and axes
-    glDisable(GL_LIGHTING);
-    
 #==============================================================================================================================
+    Slic3r::GUI::_3DScene::render_background($self);
+    
+#    # draw fixed background
+#    if ($self->background) {
+#        glDisable(GL_LIGHTING);
+#        glPushMatrix();
+#        glLoadIdentity();
+#        
+#        glMatrixMode(GL_PROJECTION);
+#        glPushMatrix();
+#        glLoadIdentity();
+#        
+#        # Draws a bluish bottom to top gradient over the complete screen.
+#        glDisable(GL_DEPTH_TEST);
+#        glBegin(GL_QUADS);
+#        glColor3f(0.0,0.0,0.0);
+#        glVertex3f(-1.0,-1.0, 1.0);
+#        glVertex3f( 1.0,-1.0, 1.0);
+#        glColor3f(10/255,98/255,144/255);
+#        glVertex3f( 1.0, 1.0, 1.0);
+#        glVertex3f(-1.0, 1.0, 1.0);
+#        glEnd();
+#        glPopMatrix();
+#        glEnable(GL_DEPTH_TEST);
+#        
+#        glMatrixMode(GL_MODELVIEW);
+#        glPopMatrix();
+#        glEnable(GL_LIGHTING);
+#    }
+#    
+#    # draw ground and axes
+#    glDisable(GL_LIGHTING);
+#    
 #    # draw ground
 #    my $ground_z = GROUND_Z;
 #==============================================================================================================================

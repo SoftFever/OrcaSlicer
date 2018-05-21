@@ -208,6 +208,7 @@ void GLCanvas3D::Bed::render()
     unsigned int triangles_vcount = m_triangles.get_data_size() / 3;
     if (triangles_vcount > 0)
     {
+        ::glDisable(GL_LIGHTING);
         ::glDisable(GL_DEPTH_TEST);
 
         ::glEnable(GL_BLEND);
@@ -312,6 +313,7 @@ void GLCanvas3D::Axes::set_length(float length)
 
 void GLCanvas3D::Axes::render()
 {
+    ::glDisable(GL_LIGHTING);
     // disable depth testing so that axes are not covered by ground
     ::glDisable(GL_DEPTH_TEST);
     ::glLineWidth(2.0f);
@@ -350,12 +352,18 @@ bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
     return m_lines.set_from_lines(lines, m_z);
 }
 
-void GLCanvas3D::CuttingPlane::render_plane(const BoundingBoxf3& bb)
+void GLCanvas3D::CuttingPlane::render(const BoundingBoxf3& bb)
+{
+    ::glDisable(GL_LIGHTING);
+    _render_plane(bb);
+    _render_contour();
+}
+
+void GLCanvas3D::CuttingPlane::_render_plane(const BoundingBoxf3& bb)
 {
     if (m_z >= 0.0f)
     {
         ::glDisable(GL_CULL_FACE);
-        ::glDisable(GL_LIGHTING);
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -378,7 +386,7 @@ void GLCanvas3D::CuttingPlane::render_plane(const BoundingBoxf3& bb)
     }
 }
 
-void GLCanvas3D::CuttingPlane::render_contour()
+void GLCanvas3D::CuttingPlane::_render_contour()
 {
     ::glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -737,22 +745,50 @@ void GLCanvas3D::select_view(const std::string& direction)
     }
 }
 
+void GLCanvas3D::render_background()
+{
+    static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
+
+    ::glDisable(GL_LIGHTING);
+
+    ::glPushMatrix();
+    ::glLoadIdentity();
+    ::glMatrixMode(GL_PROJECTION);
+    ::glPushMatrix();
+    ::glLoadIdentity();
+
+    // Draws a bluish bottom to top gradient over the complete screen.
+    ::glDisable(GL_DEPTH_TEST);
+
+    ::glBegin(GL_QUADS);
+    ::glColor3f(0.0f, 0.0f, 0.0f);
+    ::glVertex3f(-1.0f, -1.0f, 1.0f);
+    ::glVertex3f(1.0f, -1.0f, 1.0f);
+    ::glColor3f(COLOR[0], COLOR[1], COLOR[2]);
+    ::glVertex3f(1.0f, 1.0f, 1.0f);
+    ::glVertex3f(-1.0f, 1.0f, 1.0f);
+    ::glEnd();
+
+    ::glEnable(GL_DEPTH_TEST);
+
+    ::glPopMatrix();
+    ::glMatrixMode(GL_MODELVIEW);
+    ::glPopMatrix();
+}
+
 void GLCanvas3D::render_bed()
 {
-    ::glDisable(GL_LIGHTING);
     m_bed.render();
 }
 
 void GLCanvas3D::render_axes()
 {
-    ::glDisable(GL_LIGHTING);
     m_axes.render();
 }
 
 void GLCanvas3D::render_cutting_plane()
 {
-    m_cutting_plane.render_plane(volumes_bounding_box());
-    m_cutting_plane.render_contour();
+    m_cutting_plane.render(volumes_bounding_box());
 }
 
 void GLCanvas3D::render_warning_texture()
