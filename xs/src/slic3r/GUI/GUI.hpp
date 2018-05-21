@@ -158,7 +158,9 @@ void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
 
 // Display an About dialog
-void about();
+extern void about();
+// Ask the destop to open the datadir using the default file explorer.
+extern void desktop_open_datadir_folder();
 
 } // namespace GUI
 } // namespace Slic3r

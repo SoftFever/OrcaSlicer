@@ -305,6 +305,7 @@ enum ConfigMenuIDs {
 	ConfigMenuUpdate,
 	ConfigMenuPreferences,
 	ConfigMenuLanguage,
+	ConfigMenuFlashFirmware,
 	ConfigMenuCnt,
 };
 
@@ -318,11 +319,15 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
    	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 			config_wizard_tooltip);
    	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"\u2026",	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
-   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
+// 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
-   	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
+   	local_menu->AppendSeparator();
+	local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
+	// TODO: for when we're able to flash dictionaries
+	// local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
@@ -377,47 +382,20 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				}
 			}
 			break;
-		}		
 		}
-	});
-	menu->Append(local_menu, _(L("&Configuration")));
-}
-
-enum FirmwareMenuIDs {
-	FirmwareMenuFlash,
-	FirmwareMenuDict,
-	FirmwareMenuCnt,
-};
-
-void add_firmware_menu(wxMenuBar *top_menu)
-{
-	auto *menu = new wxMenu();
-	wxWindowID id_base = wxWindow::NewControlId(FirmwareMenuCnt);
-
-	menu->Append(id_base + FirmwareMenuFlash, _(L("Flash printer firmware")), _(L("Upload a firmware image into a Prusa printer")));
-	// TODO: for when we're able to flash dictionaries
-	// menu->Append(id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
-
-	menu->Bind(wxEVT_MENU, [id_base](wxEvent &event) {
-		switch (event.GetId() - id_base) {
-		case FirmwareMenuFlash:
+		case ConfigMenuFlashFirmware:
 			FirmwareDialog::run(g_wxMainFrame);
-			break;
-		case FirmwareMenuDict:
-			// TODO
 			break;
 		default:
 			break;
 		}
 	});
-
-	top_menu->Append(menu, _(L("Fir&mware")));
+	menu->Append(local_menu, _(L("&Configuration")));
 }
 
 void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
 	add_config_menu(menu, event_language_change, event_language_change);
-	add_firmware_menu(menu);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -949,6 +927,21 @@ void about()
     AboutDialog dlg;
     dlg.ShowModal();
     dlg.Destroy();
+}
+
+void desktop_open_datadir_folder()
+{	
+	std::string cmd =
+#ifdef _WIN32
+		"explorer "
+#elif __APPLE__
+		"open "
+#else
+		"xdg-open "
+#endif
+		;
+	cmd += data_dir();
+	::wxExecute(wxString::FromUTF8(cmd.c_str()), wxEXEC_ASYNC, nullptr);	
 }
 
 } }

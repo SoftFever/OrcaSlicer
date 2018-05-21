@@ -96,3 +96,5 @@ void add_export_option(SV *ui, std::string format)
 int get_export_option(SV *ui)
     %code%{ RETVAL = Slic3r::GUI::get_export_option((wxFileDialog*)wxPli_sv_2_object(aTHX_ ui, "Wx::FileDialog")); %};
     
+void desktop_open_datadir_folder()
+    %code%{ Slic3r::GUI::desktop_open_datadir_folder(); %};

@@ -334,6 +334,9 @@ sub _init_menubar {
         $self->_append_menu_item($helpMenu, L("System Info"), L('Show system information'), sub {
             wxTheApp->system_info;
         });
+        $self->_append_menu_item($helpMenu, L("Show &Configuration Folder"), L('Show user configuration folder (datadir)'), sub {
+            Slic3r::GUI::desktop_open_datadir_folder();
+        });
         $self->_append_menu_item($helpMenu, L("Report an Issue"), L('Report an issue on the Slic3r Prusa Edition'), sub {
             Wx::LaunchDefaultBrowser('http://github.com/prusa3d/slic3r/issues/new');
         });
