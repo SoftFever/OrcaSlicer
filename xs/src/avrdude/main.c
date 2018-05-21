@@ -163,6 +163,7 @@ static LISTID extended_params = NULL;
 static LISTID additional_config_files = NULL;
 
 static PROGRAMMER * pgm;
+static bool pgm_setup = false;
 
 /*
  * global options
@@ -365,14 +366,18 @@ static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
     walk_avrparts(avrparts, list_avrparts_callback, &c);
 }
 
-static void exithook(void)
-{
-    if (pgm->teardown)
-        pgm->teardown(pgm);
-}
+// static void exithook(void)
+// {
+//     if (pgm->teardown)
+//         pgm->teardown(pgm);
+// }
 
 static int cleanup_main(int status)
 {
+    if (pgm_setup && pgm->teardown) {
+        pgm->teardown(pgm);
+    }
+
     if (updates) {
         ldestroy_cb(updates, (void(*)(void*))free_update);
         updates = NULL;
@@ -889,6 +894,7 @@ int avrdude_main(int argc, char * argv [], const char *sys_config)
   if (pgm->setup) {
     pgm->setup(pgm);
   }
+  pgm_setup = true;   // Replaces the atexit hook
   // if (pgm->teardown) {
   //   atexit(exithook);
   // }
@@ -1500,6 +1506,5 @@ main_exit:
     avrdude_message(MSG_INFO, "\n%s done.  Thank you.\n\n", progname);
   }
 
-  exithook();
   return cleanup_main(exitrc);
 }
