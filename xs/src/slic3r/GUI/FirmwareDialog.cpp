@@ -108,7 +108,7 @@ void FirmwareDialog::priv::find_serial_ports()
 void FirmwareDialog::priv::flashing_status(bool value, AvrDudeComplete complete)
 {
 	if (value) {
-		txt_stdout->SetValue(wxEmptyString);
+		txt_stdout->Clear();
 		txt_status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
 		txt_status->SetForegroundColour(GUI::get_label_clr_modified());
 		port_picker->Disable();
