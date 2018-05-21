@@ -236,6 +236,7 @@ sub new {
     
     ### Scrolled Window for info boxes
     my $scrolled_window_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $scrolled_window_sizer->SetMinSize([310, -1]);
     my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $scrolled_window_panel->SetSizer($scrolled_window_sizer);
     $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
