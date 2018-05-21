@@ -402,7 +402,11 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			PresetBundle bundle;
 			bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
 
+			BOOST_LOG_TRIVIAL(info) << boost::format("Deleting %1% conflicting presets")
+				% (bundle.prints.size() + bundle.filaments.size() + bundle.printers.size());
+
 			auto preset_remover = [](const Preset &preset) {
+				BOOST_LOG_TRIVIAL(info) << '\t' << preset.file;
 				fs::remove(preset.file);
 			};
 
@@ -411,9 +415,14 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			for (const auto &preset : bundle.printers)  { preset_remover(preset); }
 
 			// Also apply the `obsolete_presets` property, removing obsolete ini files
+
+			BOOST_LOG_TRIVIAL(info) << boost::format("Deleting %1% obsolete presets")
+				% (bundle.obsolete_presets.prints.size() + bundle.obsolete_presets.filaments.size() + bundle.obsolete_presets.printers.size());
+
 			auto obsolete_remover = [](const char *subdir, const std::string &preset) {
 				auto path = fs::path(Slic3r::data_dir()) / subdir / preset;
 				path += ".ini";
+				BOOST_LOG_TRIVIAL(info) << '\t' << path.string();
 				fs::remove(path);
 			};
 
