@@ -358,12 +358,15 @@ else()
         )
 
     add_subdirectory( ${LIBDIR}/png/libpng )
+    set_target_properties(zlibstatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    set_target_properties(png_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
     target_include_directories(rasterizer PRIVATE
         ${LIBDIR}/png/libpng
         ${CMAKE_CURRENT_BINARY_DIR}/src/png/libpng
         )
     target_link_libraries(rasterizer PRIVATE png_static zlibstatic)
+
 endif()
 
 target_link_libraries(libslic3r rasterizer )
