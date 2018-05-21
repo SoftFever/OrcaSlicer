@@ -1,9 +1,13 @@
 #include "Serial.hpp"
 
 #include <algorithm>
+#include <string>
+#include <vector>
+#include <fstream>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/format.hpp>
 
 #if _WIN32
 	#include <Windows.h>
@@ -37,6 +41,18 @@ static bool looks_like_printer(const std::string &friendly_name)
 {
 	return friendly_name.find("Original Prusa") != std::string::npos;
 }
+
+#ifdef __linux__
+static std::string get_tty_friendly_name(const std::string &path, const std::string &name)
+{
+	const auto sysfs_product = (boost::format("/sys/class/tty/%1%/device/../product") % name).str();
+	std::ifstream file(sysfs_product);
+	std::string product;
+
+	std::getline(file, product);
+	return file.good() ? (boost::format("%1% (%2%)") % product % path).str() : path;
+}
+#endif
 
 std::vector<SerialPortInfo> scan_serial_ports_extended()
 {
@@ -139,10 +155,15 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
         std::string name = dir_entry.path().filename().string();
         for (const char *prefix : prefixes) {
             if (boost::starts_with(name, prefix)) {
-            	SerialPortInfo spi;
-            	spi.port = dir_entry.path().string();
-            	spi.hardware_id = spi.port;
-            	spi.friendly_name = spi.port;
+                const auto path = dir_entry.path().string();
+                SerialPortInfo spi;
+                spi.port = path;
+                spi.hardware_id = path;
+#ifdef __linux__
+                spi.friendly_name = get_tty_friendly_name(path, name);
+#else
+                spi.friendly_name = path;
+#endif
                 output.emplace_back(std::move(spi));
                 break;
             }
