@@ -1470,7 +1470,10 @@ sub Render {
             glDisable(GL_MULTISAMPLE) if ($self->{can_multisample});
             glDisable(GL_LIGHTING);
             glDisable(GL_BLEND);
-            $self->draw_volumes(1);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::render_volumes($self, 1);
+#            $self->draw_volumes(1);
+#==============================================================================================================================
             glPopAttrib();
             glFlush();
             my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
@@ -1598,7 +1601,10 @@ sub Render {
         
     # draw objects
     if (! $self->use_plain_shader) {
-        $self->draw_volumes;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::render_volumes($self, 0);
+#        $self->draw_volumes;
+#==============================================================================================================================
     } elsif ($self->UseVBOs) {
         if ($self->enable_picking) {
             $self->mark_volumes_for_layer_height;
@@ -1663,44 +1669,46 @@ sub Render {
     $self->SwapBuffers();
 }
 
-sub draw_volumes {
-    # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
-    my ($self, $fakecolor) = @_;
-    
-    # do not cull backfaces to show broken geometry, if any
-    glDisable(GL_CULL_FACE);
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    
-    foreach my $volume_idx (0..$#{$self->volumes}) {
-        my $volume = $self->volumes->[$volume_idx];
-
-        if ($fakecolor) {
-            # Object picking mode. Render the object with a color encoding the object index.
-            my $r = ($volume_idx & 0x000000FF) >>  0;
-            my $g = ($volume_idx & 0x0000FF00) >>  8;
-            my $b = ($volume_idx & 0x00FF0000) >> 16;
-            glColor4f($r/255.0, $g/255.0, $b/255.0, 1);
-        } elsif ($volume->selected) {
-            glColor4f(@{ &SELECTED_COLOR });
-        } elsif ($volume->hover) {
-            glColor4f(@{ &HOVER_COLOR });
-        } else {
-            glColor4f(@{ $volume->color });
-        }
-
-        $volume->render;
-    }
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    
-    glDisable(GL_BLEND);
-    glEnable(GL_CULL_FACE);    
-}
+#==============================================================================================================================
+#sub draw_volumes {
+#    # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
+#    my ($self, $fakecolor) = @_;
+#    
+#    # do not cull backfaces to show broken geometry, if any
+#    glDisable(GL_CULL_FACE);
+#    
+#    glEnable(GL_BLEND);
+#    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#    
+#    glEnableClientState(GL_VERTEX_ARRAY);
+#    glEnableClientState(GL_NORMAL_ARRAY);
+#    
+#    foreach my $volume_idx (0..$#{$self->volumes}) {
+#        my $volume = $self->volumes->[$volume_idx];
+#
+#        if ($fakecolor) {
+#            # Object picking mode. Render the object with a color encoding the object index.
+#            my $r = ($volume_idx & 0x000000FF) >>  0;
+#            my $g = ($volume_idx & 0x0000FF00) >>  8;
+#            my $b = ($volume_idx & 0x00FF0000) >> 16;
+#            glColor4f($r/255.0, $g/255.0, $b/255.0, 1);
+#        } elsif ($volume->selected) {
+#            glColor4f(@{ &SELECTED_COLOR });
+#        } elsif ($volume->hover) {
+#            glColor4f(@{ &HOVER_COLOR });
+#        } else {
+#            glColor4f(@{ $volume->color });
+#        }
+#
+#        $volume->render;
+#    }
+#    glDisableClientState(GL_NORMAL_ARRAY);
+#    glDisableClientState(GL_VERTEX_ARRAY);
+#    
+#    glDisable(GL_BLEND);
+#    glEnable(GL_CULL_FACE);    
+#}
+#==============================================================================================================================
 
 sub mark_volumes_for_layer_height {
     my ($self) = @_;

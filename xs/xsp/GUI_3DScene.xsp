@@ -461,7 +461,14 @@ render_axes(canvas)
         SV *canvas;
     CODE:
         _3DScene::render_axes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    
+
+void
+render_volumes(canvas, fake_colors)
+        SV   *canvas;
+        bool fake_colors;
+    CODE:
+        _3DScene::render_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), fake_colors);
+
 void
 render_cutting_plane(canvas)
         SV *canvas;

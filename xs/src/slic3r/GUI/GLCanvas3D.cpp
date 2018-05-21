@@ -203,7 +203,7 @@ const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
     return m_bounding_box;
 }
 
-void GLCanvas3D::Bed::render()
+void GLCanvas3D::Bed::render() const
 {
     unsigned int triangles_vcount = m_triangles.get_data_size() / 3;
     if (triangles_vcount > 0)
@@ -311,7 +311,7 @@ void GLCanvas3D::Axes::set_length(float length)
     m_length = length;
 }
 
-void GLCanvas3D::Axes::render()
+void GLCanvas3D::Axes::render() const
 {
     ::glDisable(GL_LIGHTING);
     // disable depth testing so that axes are not covered by ground
@@ -352,14 +352,14 @@ bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
     return m_lines.set_from_lines(lines, m_z);
 }
 
-void GLCanvas3D::CuttingPlane::render(const BoundingBoxf3& bb)
+void GLCanvas3D::CuttingPlane::render(const BoundingBoxf3& bb) const
 {
     ::glDisable(GL_LIGHTING);
     _render_plane(bb);
     _render_contour();
 }
 
-void GLCanvas3D::CuttingPlane::_render_plane(const BoundingBoxf3& bb)
+void GLCanvas3D::CuttingPlane::_render_plane(const BoundingBoxf3& bb) const
 {
     if (m_z >= 0.0f)
     {
@@ -386,7 +386,7 @@ void GLCanvas3D::CuttingPlane::_render_plane(const BoundingBoxf3& bb)
     }
 }
 
-void GLCanvas3D::CuttingPlane::_render_contour()
+void GLCanvas3D::CuttingPlane::_render_contour() const
 {
     ::glEnableClientState(GL_VERTEX_ARRAY);
 
@@ -745,7 +745,7 @@ void GLCanvas3D::select_view(const std::string& direction)
     }
 }
 
-void GLCanvas3D::render_background()
+void GLCanvas3D::render_background() const
 {
     static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
 
@@ -776,22 +776,65 @@ void GLCanvas3D::render_background()
     ::glPopMatrix();
 }
 
-void GLCanvas3D::render_bed()
+void GLCanvas3D::render_bed() const
 {
     m_bed.render();
 }
 
-void GLCanvas3D::render_axes()
+void GLCanvas3D::render_axes() const
 {
     m_axes.render();
 }
 
-void GLCanvas3D::render_cutting_plane()
+void GLCanvas3D::render_volumes(bool fake_colors) const
+{
+    static const float INV_255 = 1.0f / 255.0f;
+
+    if (m_volumes == nullptr)
+        return;
+
+    ::glEnable(GL_LIGHTING);
+
+    // do not cull backfaces to show broken geometry, if any
+    ::glDisable(GL_CULL_FACE);
+
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+    ::glEnableClientState(GL_NORMAL_ARRAY);
+
+    unsigned int volume_id = 0;
+    for (const GLVolume* vol : m_volumes->volumes)
+    {
+        if (fake_colors)
+        {
+            // Object picking mode. Render the object with a color encoding the object index.
+            unsigned int r = (volume_id & 0x000000FF) >> 0;
+            unsigned int g = (volume_id & 0x0000FF00) >> 8;
+            unsigned int b = (volume_id & 0x00FF0000) >> 16;
+            ::glColor4f((float)r * INV_255, (float)g * INV_255, (float)b * INV_255, 1.0f);
+        }
+        else
+            ::glColor4f(vol->render_color[0], vol->render_color[1], vol->render_color[2], vol->render_color[3]);
+
+        vol->render();
+        ++volume_id;
+    }
+
+    ::glDisableClientState(GL_NORMAL_ARRAY);
+    ::glDisableClientState(GL_VERTEX_ARRAY);
+    ::glDisable(GL_BLEND);
+
+    ::glEnable(GL_CULL_FACE);
+}
+
+void GLCanvas3D::render_cutting_plane() const
 {
     m_cutting_plane.render(volumes_bounding_box());
 }
 
-void GLCanvas3D::render_warning_texture()
+void GLCanvas3D::render_warning_texture() const
 {
     if (!m_warning_texture_enabled)
         return;
@@ -824,7 +867,7 @@ void GLCanvas3D::render_warning_texture()
     }
 }
 
-void GLCanvas3D::render_legend_texture()
+void GLCanvas3D::render_legend_texture() const
 {
     if (!m_legend_texture_enabled)
         return;
@@ -856,7 +899,7 @@ void GLCanvas3D::render_legend_texture()
     }
 }
 
-void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
+void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const
 {
     ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 

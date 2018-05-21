@@ -600,6 +600,7 @@ public:
     static void render_background(wxGLCanvas* canvas);
     static void render_bed(wxGLCanvas* canvas);
     static void render_axes(wxGLCanvas* canvas);
+    static void render_volumes(wxGLCanvas* canvas, bool fake_colors);
     static void render_cutting_plane(wxGLCanvas* canvas);
     static void render_warning_texture(wxGLCanvas* canvas);
     static void render_legend_texture(wxGLCanvas* canvas);

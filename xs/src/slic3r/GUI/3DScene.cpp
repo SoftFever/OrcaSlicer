@@ -1938,6 +1938,11 @@ void _3DScene::render_axes(wxGLCanvas* canvas)
     s_canvas_mgr.render_axes(canvas);
 }
 
+void _3DScene::render_volumes(wxGLCanvas* canvas, bool fake_colors)
+{
+    s_canvas_mgr.render_volumes(canvas, fake_colors);
+}
+
 void _3DScene::render_cutting_plane(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render_cutting_plane(canvas);

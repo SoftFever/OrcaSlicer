@@ -89,7 +89,7 @@ public:
 
         const BoundingBoxf3& get_bounding_box() const;
 
-        void render();
+        void render() const;
 
     private:
         void _calc_bounding_box();
@@ -111,7 +111,7 @@ public:
         float get_length() const;
         void set_length(float length);
 
-        void render();
+        void render() const;
     };
 
     class CuttingPlane
@@ -124,11 +124,11 @@ public:
 
         bool set(float z, const ExPolygons& polygons);
 
-        void render(const BoundingBoxf3& bb);
+        void render(const BoundingBoxf3& bb) const;
 
     private:
-        void _render_plane(const BoundingBoxf3& bb);
-        void _render_contour();
+        void _render_plane(const BoundingBoxf3& bb) const;
+        void _render_contour() const;
     };
 
     class LayersEditing
@@ -225,14 +225,15 @@ public:
     void zoom_to_volumes();
     void select_view(const std::string& direction);
 
-    void render_background();
-    void render_bed();
-    void render_axes();
-    void render_cutting_plane();
-    void render_warning_texture();
-    void render_legend_texture();
+    void render_background() const;
+    void render_bed() const;
+    void render_axes() const;
+    void render_volumes(bool fake_colors) const;
+    void render_cutting_plane() const;
+    void render_warning_texture() const;
+    void render_legend_texture() const;
 
-    void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
+    void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);
 

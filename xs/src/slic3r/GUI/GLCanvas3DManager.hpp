@@ -107,14 +107,15 @@ public:
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
 
-    void render_background(wxGLCanvas* canvas);
-    void render_bed(wxGLCanvas* canvas);
-    void render_axes(wxGLCanvas* canvas);
-    void render_cutting_plane(wxGLCanvas* canvas);
-    void render_warning_texture(wxGLCanvas* canvas);
-    void render_legend_texture(wxGLCanvas* canvas);
+    void render_background(wxGLCanvas* canvas) const;
+    void render_bed(wxGLCanvas* canvas) const;
+    void render_axes(wxGLCanvas* canvas) const;
+    void render_volumes(wxGLCanvas* canvas, bool fake_colors) const;
+    void render_cutting_plane(wxGLCanvas* canvas) const;
+    void render_warning_texture(wxGLCanvas* canvas) const;
+    void render_legend_texture(wxGLCanvas* canvas) const;
 
-    void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
+    void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 
