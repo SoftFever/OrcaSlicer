@@ -1,6 +1,7 @@
 #include "FirmwareDialog.hpp"
 
 #include <numeric>
+#include <algorithm>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/log/trivial.hpp>
@@ -61,6 +62,7 @@ struct FirmwareDialog::priv
 	wxStaticText *txt_status;
 	wxStaticText *txt_progress;
 	wxGauge *progressbar;
+	wxCollapsiblePane *spoiler;
 	wxTextCtrl *txt_stdout;
 	wxButton *btn_rescan;
 	wxButton *btn_close;
@@ -235,15 +237,15 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 // Public
 
 FirmwareDialog::FirmwareDialog(wxWindow *parent) :
-	wxDialog(parent, wxID_ANY, _(L("Firmware flasher"))),
+	wxDialog(parent, wxID_ANY, _(L("Firmware flasher")), wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
 	p(new priv(this))
 {
 	enum {
 		DIALOG_MARGIN = 15,
 		SPACING = 10,
 		MIN_WIDTH = 600,
-		MIN_HEIGHT = 100,
-		LOG_MIN_HEIGHT = 200,
+		MIN_HEIGHT = 200,
+		MIN_HEIGHT_EXPANDED = 500,
 	};
 
 	wxFont status_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -288,17 +290,16 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	vsizer->Add(grid, 0, wxEXPAND | wxTOP | wxBOTTOM, SPACING);
 
-	// Unfortunatelly wxCollapsiblePane seems to resize parent in weird ways.
-	// Sometimes it disrespects min size.
-	// The only combo that seems to work well is setting size in its c-tor and a min size on the window.
-	auto *spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: avrdude output log")), wxDefaultPosition, wxSize(MIN_WIDTH, MIN_HEIGHT));
-	auto *spoiler_pane = spoiler->GetPane();
+	p->spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: avrdude output log")));
+	auto *spoiler_pane = p->spoiler->GetPane();
 	auto *spoiler_sizer = new wxBoxSizer(wxVERTICAL);
-	p->txt_stdout = new wxTextCtrl(spoiler_pane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(0, LOG_MIN_HEIGHT), wxTE_MULTILINE | wxTE_READONLY);
+	p->txt_stdout = new wxTextCtrl(spoiler_pane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
 	p->txt_stdout->SetFont(mono_font);
 	spoiler_sizer->Add(p->txt_stdout, 1, wxEXPAND);
 	spoiler_pane->SetSizer(spoiler_sizer);
-	vsizer->Add(spoiler, 1, wxEXPAND | wxBOTTOM, SPACING);
+	// The doc says proportion need to be 0 for wxCollapsiblePane.
+	// Experience says it needs to be 1, otherwise things won't get sized properly.
+	vsizer->Add(p->spoiler, 1, wxEXPAND | wxBOTTOM, SPACING);
 
 	p->btn_close = new wxButton(panel, wxID_CLOSE);
 	p->btn_flash = new wxButton(panel, wxID_ANY, p->btn_flash_label_ready);
@@ -310,10 +311,23 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	auto *topsizer = new wxBoxSizer(wxVERTICAL);
 	topsizer->Add(panel, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
-	SetSizerAndFit(topsizer);
 	SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT));
+	SetSizerAndFit(topsizer);
+	const auto size = GetSize();
+	SetSize(std::max(size.GetWidth(), static_cast<int>(MIN_WIDTH)), std::max(size.GetHeight(), static_cast<int>(MIN_HEIGHT)));
+	Layout();
 
-	p->find_serial_ports();
+	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [this](wxCollapsiblePaneEvent &evt) {
+		// Dialog size gets screwed up by wxCollapsiblePane, we need to fix it here
+		if (evt.GetCollapsed()) {
+			this->SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT));
+		} else {
+			this->SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT_EXPANDED));
+		}
+
+		this->Fit();
+		this->Layout();
+	});
 
 	p->btn_close->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->Close(); });
 	p->btn_rescan->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->p->find_serial_ports(); });
@@ -343,6 +357,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 			evt.Skip();
 		}
 	});
+
+	p->find_serial_ports();
 }
 
 FirmwareDialog::~FirmwareDialog()
