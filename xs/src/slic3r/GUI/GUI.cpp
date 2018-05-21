@@ -952,7 +952,7 @@ void desktop_open_datadir_folder()
 	// Enclose the path into single quotes on Unix / OSX. All single quote characters need to be escaped
 	// inside a file name.
 	cmd += '\'';
-	boost::replace_all(path, "'", "\\'");
+	cmd += boost::replace_all(path, "'", "\\'");
 	cmd += '\'';
 #endif
 	::wxExecute(wxString::FromUTF8(cmd.c_str()), wxEXEC_ASYNC, nullptr);	
