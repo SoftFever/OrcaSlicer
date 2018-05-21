@@ -1898,6 +1898,11 @@ bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
     return s_canvas_mgr.is_layers_editing_enabled(canvas);
 }
 
+void _3DScene::enable_warning_texture(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_warning_texture(canvas, enable);
+}
+
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.zoom_to_bed(canvas);
@@ -1926,6 +1931,16 @@ void _3DScene::render_axes(wxGLCanvas* canvas)
 void _3DScene::render_cutting_plane(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render_cutting_plane(canvas);
+}
+
+void _3DScene::render_warning_texture(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render_warning_texture(canvas);
+}
+
+void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)
+{
+    s_canvas_mgr.render_texture(canvas, tex_id, left, right, bottom, top);
 }
 
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

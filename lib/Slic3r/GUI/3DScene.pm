@@ -59,7 +59,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               _layer_height_edited
 
                               _legend_enabled
-                              _warning_enabled
                               _mouse_dragging
                                                             
                               ) );
@@ -193,7 +192,9 @@ sub new {
 #    $self->_zoom(1);
 #==============================================================================================================================
     $self->_legend_enabled(0);
-    $self->_warning_enabled(0);
+#==============================================================================================================================
+#    $self->_warning_enabled(0);
+#==============================================================================================================================
     $self->use_plain_shader(0);
 #==============================================================================================================================
 #    $self->_apply_zoom_to_volumes_filter(0);
@@ -295,10 +296,12 @@ sub set_legend_enabled {
     $self->_legend_enabled($value);
 }
 
-sub set_warning_enabled {
-    my ($self, $value) = @_;
-    $self->_warning_enabled($value);
-}
+#==============================================================================================================================
+#sub set_warning_enabled {
+#    my ($self, $value) = @_;
+#    $self->_warning_enabled($value);
+#}
+#==============================================================================================================================
 
 sub Destroy {
     my ($self) = @_;
@@ -1617,6 +1620,7 @@ sub Render {
 
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render_cutting_plane($self);
+    Slic3r::GUI::_3DScene::render_warning_texture($self);
     
 #    if (defined $self->cutting_plane_z) {
 #        # draw cutting plane
@@ -1645,10 +1649,10 @@ sub Render {
 #        glVertexPointer_c(3, GL_FLOAT, 0, 0);
 #        glDisableClientState(GL_VERTEX_ARRAY);
 #    }
+#
+#    # draw warning message
+#    $self->draw_warning;
 #==============================================================================================================================
-
-    # draw warning message
-    $self->draw_warning;
     
     # draw gcode preview legend
     $self->draw_legend;
@@ -1762,32 +1766,34 @@ sub _variable_layer_thickness_load_reset_image {
     return $self->{layer_preview_reset_image}->{valid};
 }
 
-# Paint the tooltip.
-sub _render_image {
-    my ($self, $image, $l, $r, $b, $t) = @_;
-    $self->_render_texture($image->{texture_id}, $l, $r, $b, $t);
-}
-
-sub _render_texture {
-    my ($self, $tex_id, $l, $r, $b, $t) = @_;
-    
-    glColor4f(1.,1.,1.,1.);
-    glDisable(GL_LIGHTING);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_TEXTURE_2D);
-    glBindTexture(GL_TEXTURE_2D, $tex_id);
-    glBegin(GL_QUADS);
-    glTexCoord2d(0.,1.); glVertex3f($l, $b, 0);
-    glTexCoord2d(1.,1.); glVertex3f($r, $b, 0);
-    glTexCoord2d(1.,0.); glVertex3f($r, $t, 0);
-    glTexCoord2d(0.,0.); glVertex3f($l, $t, 0);
-    glEnd();
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glEnable(GL_LIGHTING);
-}
+#==============================================================================================================================
+## Paint the tooltip.
+#sub _render_image {
+#    my ($self, $image, $l, $r, $b, $t) = @_;
+#    $self->_render_texture($image->{texture_id}, $l, $r, $b, $t);
+#}
+#
+#sub _render_texture {
+#    my ($self, $tex_id, $l, $r, $b, $t) = @_;
+#    
+#    glColor4f(1.,1.,1.,1.);
+#    glDisable(GL_LIGHTING);
+#    glEnable(GL_BLEND);
+#    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#    glEnable(GL_TEXTURE_2D);
+#    glBindTexture(GL_TEXTURE_2D, $tex_id);
+#    glBegin(GL_QUADS);
+#    glTexCoord2d(0.,1.); glVertex3f($l, $b, 0);
+#    glTexCoord2d(1.,1.); glVertex3f($r, $b, 0);
+#    glTexCoord2d(1.,0.); glVertex3f($r, $t, 0);
+#    glTexCoord2d(0.,0.); glVertex3f($l, $t, 0);
+#    glEnd();
+#    glBindTexture(GL_TEXTURE_2D, 0);
+#    glDisable(GL_TEXTURE_2D);
+#    glDisable(GL_BLEND);
+#    glEnable(GL_LIGHTING);
+#}
+#==============================================================================================================================
 
 sub draw_active_object_annotations {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
@@ -1857,16 +1863,20 @@ sub draw_active_object_annotations {
         my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
         my $gap = 10/$zoom;
         my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$zoom + $gap, $reset_bottom + $gap);
+        Slic3r::GUI::_3DScene::render_texture($self, $self->{layer_preview_annotation}->{texture_id}, $l, $r, $t, $b);
     
 #        my $gap = 10/$self->_zoom;
 #        my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$self->_zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$self->_zoom + $gap, $reset_bottom + $gap);
+#        $self->_render_image($self->{layer_preview_annotation}, $l, $r, $t, $b);
 #==============================================================================================================================
-        $self->_render_image($self->{layer_preview_annotation}, $l, $r, $t, $b);
     }
 
     # Paint the reset button.
     if ($self->_variable_layer_thickness_load_reset_image) {
-        $self->_render_image($self->{layer_preview_reset_image}, $reset_left, $reset_right, $reset_bottom, $reset_top);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::render_texture($self, $self->{layer_preview_reset_image}->{texture_id}, $reset_left, $reset_right, $reset_bottom, $reset_top);
+#        $self->_render_image($self->{layer_preview_reset_image}, $reset_left, $reset_right, $reset_bottom, $reset_top);
+#==============================================================================================================================
     }
 
     # Paint the graph.
@@ -1936,13 +1946,14 @@ sub draw_legend {
             my $t = (0.5 * $ch) / $zoom;
             my $r = $l + $tex_w / $zoom;
             my $b = $t - $tex_h / $zoom;
+            Slic3r::GUI::_3DScene::render_texture($self, $tex_id, $l, $r, $b, $t);
             
 #            my $l = (-0.5 * $cw) / $self->_zoom;
 #            my $t = (0.5 * $ch) / $self->_zoom;
 #            my $r = $l + $tex_w / $self->_zoom;
 #            my $b = $t - $tex_h / $self->_zoom;
+#            $self->_render_texture($tex_id, $l, $r, $b, $t);
 #==============================================================================================================================
-            $self->_render_texture($tex_id, $l, $r, $b, $t);
 
             glPopMatrix();
             glEnable(GL_DEPTH_TEST);
@@ -1950,46 +1961,40 @@ sub draw_legend {
     }
 }
 
-sub draw_warning {
-    my ($self) = @_;
- 
-    if (!$self->_warning_enabled) {
-        return;
-    }
-
-    # If the warning texture has not been loaded into the GPU, do it now.
-    my $tex_id = Slic3r::GUI::_3DScene::finalize_warning_texture;
-    if ($tex_id > 0)
-    {
-        my $tex_w = Slic3r::GUI::_3DScene::get_warning_texture_width;
-        my $tex_h = Slic3r::GUI::_3DScene::get_warning_texture_height;
-        if (($tex_w > 0) && ($tex_h > 0))
-        {
-            glDisable(GL_DEPTH_TEST);
-            glPushMatrix();
-            glLoadIdentity();
-        
-            my ($cw, $ch) = $self->GetSizeWH;
-                
 #==============================================================================================================================
-            my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);            
-            my $l = (-0.5 * $tex_w) / $zoom;
-            my $t = (-0.5 * $ch + $tex_h) / $zoom;
-            my $r = $l + $tex_w / $zoom;
-            my $b = $t - $tex_h / $zoom;
-            
+#sub draw_warning {
+#    my ($self) = @_;
+# 
+#    if (!$self->_warning_enabled) {
+#        return;
+#    }
+#
+#    # If the warning texture has not been loaded into the GPU, do it now.
+#    my $tex_id = Slic3r::GUI::_3DScene::finalize_warning_texture;
+#    if ($tex_id > 0)
+#    {
+#        my $tex_w = Slic3r::GUI::_3DScene::get_warning_texture_width;
+#        my $tex_h = Slic3r::GUI::_3DScene::get_warning_texture_height;
+#        if (($tex_w > 0) && ($tex_h > 0))
+#        {
+#            glDisable(GL_DEPTH_TEST);
+#            glPushMatrix();
+#            glLoadIdentity();
+#        
+#            my ($cw, $ch) = $self->GetSizeWH;
+#                
 #            my $l = (-0.5 * $tex_w) / $self->_zoom;
 #            my $t = (-0.5 * $ch + $tex_h) / $self->_zoom;
 #            my $r = $l + $tex_w / $self->_zoom;
 #            my $b = $t - $tex_h / $self->_zoom;
+#            $self->_render_texture($tex_id, $l, $r, $b, $t);
+#
+#            glPopMatrix();
+#            glEnable(GL_DEPTH_TEST);
+#        }
+#    }
+#}
 #==============================================================================================================================
-            $self->_render_texture($tex_id, $l, $r, $b, $t);
-
-            glPopMatrix();
-            glEnable(GL_DEPTH_TEST);
-        }
-    }
-}
 
 sub update_volumes_colors_by_extruder {
     my ($self, $config) = @_;    

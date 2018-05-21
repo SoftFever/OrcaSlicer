@@ -241,17 +241,26 @@ sub reload_scene {
     if (scalar @{$self->volumes} > 0)
     {
         if (!$self->{model}->fits_print_volume($self->{config})) {
-            $self->set_warning_enabled(1);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::enable_warning_texture($self, 1);
+#            $self->set_warning_enabled(1);
+#==============================================================================================================================
             Slic3r::GUI::_3DScene::generate_warning_texture(L("Detected object outside print volume"));
             $self->on_enable_action_buttons->(0) if ($self->on_enable_action_buttons);
         } else {
-            $self->set_warning_enabled(0);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::enable_warning_texture($self, 0);
+#            $self->set_warning_enabled(0);
+#==============================================================================================================================
             $self->volumes->update_outside_state($self->{config}, 1);
             Slic3r::GUI::_3DScene::reset_warning_texture();
             $self->on_enable_action_buttons->(scalar @{$self->{model}->objects} > 0) if ($self->on_enable_action_buttons);
         }
     } else {
-        $self->set_warning_enabled(0);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::enable_warning_texture($self, 0);
+#        $self->set_warning_enabled(0);
+#==============================================================================================================================
         Slic3r::GUI::_3DScene::reset_warning_texture();
     }
 }

@@ -411,6 +411,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_volumes(nullptr)
     , m_dirty(true)
     , m_apply_zoom_to_volumes_filter(false)
+    , m_warning_texture_enabled(false)
 {
 }
 
@@ -682,6 +683,11 @@ bool GLCanvas3D::is_layers_editing_enabled() const
     return m_layers_editing.is_enabled();
 }
 
+void GLCanvas3D::enable_warning_texture(bool enable)
+{
+    m_warning_texture_enabled = enable;
+}
+
 void GLCanvas3D::zoom_to_bed()
 {
     _zoom_to_bounding_box(bed_bounding_box());
@@ -741,6 +747,64 @@ void GLCanvas3D::render_cutting_plane()
 {
     m_cutting_plane.render_plane(volumes_bounding_box());
     m_cutting_plane.render_contour();
+}
+
+void GLCanvas3D::render_warning_texture()
+{
+    if (!m_warning_texture_enabled)
+        return;
+
+    // If the warning texture has not been loaded into the GPU, do it now.
+    unsigned int tex_id = _3DScene::finalize_warning_texture();
+    if (tex_id > 0)
+    {
+        unsigned int w = _3DScene::get_warning_texture_width();
+        unsigned int h = _3DScene::get_warning_texture_height();
+        if ((w > 0) && (h > 0))
+        {
+            ::glDisable(GL_DEPTH_TEST);
+            ::glPushMatrix();
+            ::glLoadIdentity();
+
+            std::pair<int, int> cnv_size = _get_canvas_size();
+            float zoom = get_camera_zoom();
+            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+            float l = (-0.5f * (float)w) * inv_zoom;
+            float t = (-0.5f * cnv_size.second + (float)h) * inv_zoom;
+            float r = l + (float)w * inv_zoom;
+            float b = t - (float)h * inv_zoom;
+
+            render_texture(tex_id, l, r, b, t);
+
+            ::glPopMatrix();
+            ::glEnable(GL_DEPTH_TEST);
+        }
+    }
+}
+
+void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
+{
+    ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+    ::glDisable(GL_LIGHTING);
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    ::glEnable(GL_TEXTURE_2D);
+
+    ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
+
+    ::glBegin(GL_QUADS);
+    ::glTexCoord2d(0.0f, 1.0f); glVertex3f(left, bottom, 0.0f);
+    ::glTexCoord2d(1.0f, 1.0f); glVertex3f(right, bottom, 0.0f);
+    ::glTexCoord2d(1.0f, 0.0f); glVertex3f(right, top, 0.0f);
+    ::glTexCoord2d(0.0f, 0.0f); glVertex3f(left, top, 0.0f);
+    ::glEnd();
+
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    ::glDisable(GL_TEXTURE_2D);
+    ::glDisable(GL_BLEND);
+    ::glEnable(GL_LIGHTING);
 }
 
 void GLCanvas3D::register_on_viewport_changed_callback(void* callback)

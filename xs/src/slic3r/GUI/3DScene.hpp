@@ -590,6 +590,8 @@ public:
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
 
+    static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
+
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
     static void select_view(wxGLCanvas* canvas, const std::string& direction);
@@ -597,6 +599,9 @@ public:
     static void render_bed(wxGLCanvas* canvas);
     static void render_axes(wxGLCanvas* canvas);
     static void render_cutting_plane(wxGLCanvas* canvas);
+    static void render_warning_texture(wxGLCanvas* canvas);
+
+    static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

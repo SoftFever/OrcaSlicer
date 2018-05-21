@@ -412,6 +412,13 @@ set_camera_target(canvas, target)
         _3DScene::set_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), target);
     
 void
+enable_warning_texture(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_warning_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+    
+void
 zoom_to_bed(canvas)
         SV *canvas;
     CODE:
@@ -447,7 +454,24 @@ render_cutting_plane(canvas)
         SV *canvas;
     CODE:
         _3DScene::render_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    
+
+void
+render_warning_texture(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::render_warning_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+render_texture(canvas, tex_id, left, right, bottom, top)
+        SV           *canvas;
+        unsigned int tex_id;
+        float        left;
+        float        right;
+        float        bottom;
+        float        top;
+    CODE:
+        _3DScene::render_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tex_id, left, right, bottom, top);
+
 void
 register_on_viewport_changed_callback(canvas, callback)
         SV *canvas;

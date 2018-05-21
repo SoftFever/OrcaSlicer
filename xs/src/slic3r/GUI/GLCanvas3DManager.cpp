@@ -355,6 +355,13 @@ bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_layers_editing_enabled() : false;
 }
 
+void GLCanvas3DManager::enable_warning_texture(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_warning_texture(enable);
+}
+
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -395,6 +402,20 @@ void GLCanvas3DManager::render_cutting_plane(wxGLCanvas* canvas)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->render_cutting_plane();
+}
+
+void GLCanvas3DManager::render_warning_texture(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_warning_texture();
+}
+
+void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_texture(tex_id, left, right, bottom, top);
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
