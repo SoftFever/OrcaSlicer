@@ -99,7 +99,7 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
 				CFTypeRef cf_property = IORegistryEntryCreateCFProperty(port, CFSTR(kIOCalloutDeviceKey), kCFAllocatorDefault, 0);
 				if (cf_property) {
 					char path[PATH_MAX];
-					Boolean result = CFStringGetCString(cf_property, path, sizeof(path), kCFStringEncodingUTF8);
+					Boolean result = CFStringGetCString((CFStringRef)cf_property, path, sizeof(path), kCFStringEncodingUTF8);
 					CFRelease(cf_property);
 					if (result) {
 						SerialPortInfo port_info;
@@ -117,7 +117,7 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
 						         CFSTR(kIOTTYDeviceKey), kCFAllocatorDefault, 0))) {
 							// Description limited to 127 char, anything longer would not be user friendly anyway.
 							char description[128];
-							if (CFStringGetCString(cf_property, description, sizeof(description), kCFStringEncodingUTF8)) {
+							if (CFStringGetCString((CFStringRef)cf_property, description, sizeof(description), kCFStringEncodingUTF8)) {
 								port_info.friendly_name = std::string(description) + " (" + port_info.port + ")";
 								port_info.is_printer = looks_like_printer(port_info.friendly_name);
 							}
@@ -141,9 +141,9 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
             if (boost::starts_with(name, prefix)) {
             	SerialPortInfo spi;
             	spi.port = dir_entry.path().string();
-            	spi.hardware_id = port;
+            	spi.hardware_id = spi.port;
             	spi.friendly_name = spi.port;
-                out.emplace_back(std::move(spi));
+                output.emplace_back(std::move(spi));
                 break;
             }
         }
