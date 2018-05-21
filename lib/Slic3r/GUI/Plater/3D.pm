@@ -245,7 +245,7 @@ sub reload_scene {
             $self->set_warning_enabled(0);
             $self->volumes->update_outside_state($self->{config}, 1);
             Slic3r::GUI::_3DScene::reset_warning_texture();
-            $self->on_enable_action_buttons->(1) if ($self->on_enable_action_buttons);
+            $self->on_enable_action_buttons->(scalar @{$self->{model}->objects} > 0) if ($self->on_enable_action_buttons);
         }
     } else {
         $self->set_warning_enabled(0);
