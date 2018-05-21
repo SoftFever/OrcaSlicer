@@ -332,18 +332,39 @@ add_library(semver STATIC
     ${LIBDIR}/semver/semver.c
 )
 
+# ##############################################################################
+# Configure rasterizer target
+# ##############################################################################
 
-find_package(PNG REQUIRED)
+option(RASTERIZER_USE_SYSTEM_LIBPNG "Use the libpng present in system instead of
+    the provided copy." OFF)
 
 add_library(rasterizer STATIC
     ${LIBDIR}/libslic3r/Rasterizer/Rasterizer.hpp
     ${LIBDIR}/libslic3r/Rasterizer/Rasterizer.cpp
 )
 
-target_link_libraries(rasterizer ${PNG_LIBRARIES})
-target_include_directories(rasterizer PRIVATE ${PNG_INCLUDE_DIRS})
-target_compile_definitions(rasterizer PRIVATE ${PNG_DEFINITIONS})
-target_link_libraries(libslic3r rasterizer)
+if(RASTERIZER_USE_SYSTEM_LIBPNG)
+    find_package(PNG REQUIRED)
+    target_link_libraries(rasterizer PRIVATE ${PNG_LIBRARIES})
+    target_include_directories(rasterizer PRIVATE ${PNG_INCLUDE_DIRS})
+    target_compile_definitions(rasterizer PRIVATE ${PNG_DEFINITIONS})
+else()
+    add_subdirectory( ${LIBDIR}/png/zlib)
+    add_subdirectory( ${LIBDIR}/png/libpng )
+
+    target_include_directories( png_static PRIVATE
+        ${LIBDIR}/png/zlib
+        ${CMAKE_CURRENT_BINARY_DIR}/src/png/zlib
+        )
+
+    target_link_libraries(rasterizer PRIVATE png_static zlibstatic)
+endif()
+
+target_link_libraries(libslic3r rasterizer )
+
+# ##############################################################################
+
 
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)

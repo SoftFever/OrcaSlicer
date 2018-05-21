@@ -9,7 +9,6 @@
 #include <agg/agg_pixfmt_gray.h>
 #include <agg/agg_pixfmt_rgb.h>
 #include <agg/agg_renderer_base.h>
-#include <agg/agg_renderer_primitives.h>
 #include <agg/agg_renderer_scanline.h>
 
 #include <agg/agg_scanline_p.h>
