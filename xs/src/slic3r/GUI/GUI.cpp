@@ -475,7 +475,8 @@ void add_firmware_menu(wxMenuBar *top_menu)
 	wxWindowID id_base = wxWindow::NewControlId(FirmwareMenuCnt);
 
 	menu->Append(id_base + FirmwareMenuFlash, _(L("Flash printer firmware")), _(L("Upload a firmware image into a Prusa printer")));
-	menu->Append(id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+	// TODO: for when we're able to flash dictionaries
+	// menu->Append(id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
 
 	menu->Bind(wxEVT_MENU, [id_base](wxEvent &event) {
 		switch (event.GetId() - id_base) {
