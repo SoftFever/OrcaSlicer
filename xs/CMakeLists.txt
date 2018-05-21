@@ -351,13 +351,18 @@ if(RASTERIZER_USE_SYSTEM_LIBPNG)
     target_compile_definitions(rasterizer PRIVATE ${PNG_DEFINITIONS})
 else()
     add_subdirectory( ${LIBDIR}/png/zlib)
-    add_subdirectory( ${LIBDIR}/png/libpng )
 
-    target_include_directories( png_static PRIVATE
+    set(ZLIB_INCLUDE_DIR
         ${LIBDIR}/png/zlib
         ${CMAKE_CURRENT_BINARY_DIR}/src/png/zlib
         )
 
+    add_subdirectory( ${LIBDIR}/png/libpng )
+
+    target_include_directories(rasterizer PRIVATE
+        ${LIBDIR}/png/libpng
+        ${CMAKE_CURRENT_BINARY_DIR}/src/png/libpng
+        )
     target_link_libraries(rasterizer PRIVATE png_static zlibstatic)
 endif()
 
