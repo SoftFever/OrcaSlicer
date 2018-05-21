@@ -68,7 +68,6 @@ inline t_file_wild_card& get_file_wild_card() {
 
 void disable_screensaver();
 void enable_screensaver();
-std::vector<std::string> scan_serial_ports();
 bool debugged();
 void break_to_debugger();
 

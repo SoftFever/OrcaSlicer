@@ -23,6 +23,7 @@
 #include "libslic3r/Utils.hpp"
 #include "avrdude/avrdude-slic3r.hpp"
 #include "GUI.hpp"
+#include "../Utils/Serial.hpp"
 
 namespace fs = boost::filesystem;
 
@@ -58,6 +59,7 @@ struct FirmwareDialog::priv
 	FirmwareDialog *q;      // PIMPL back pointer ("Q-Pointer")
 
 	wxComboBox *port_picker;
+	std::vector<Utils::SerialPortInfo> ports;
 	wxFilePickerCtrl *hex_picker;
 	wxStaticText *txt_status;
 	wxStaticText *txt_progress;
@@ -95,13 +97,22 @@ struct FirmwareDialog::priv
 
 void FirmwareDialog::priv::find_serial_ports()
 {
-	auto ports = GUI::scan_serial_ports();
-
-	port_picker->Clear();
-	for (const auto &port : ports) { port_picker->Append(port); }
-
-	if (ports.size() > 0 && port_picker->GetValue().IsEmpty()) {
-		port_picker->SetSelection(0);
+	auto new_ports = Utils::scan_serial_ports_extended();
+	if (new_ports != this->ports) {
+		this->ports = new_ports;
+		port_picker->Clear();
+		for (const auto &port : this->ports)
+			port_picker->Append(port.friendly_name);
+		if (ports.size() > 0) {
+			int idx = port_picker->GetValue().IsEmpty() ? 0 : -1;
+			for (int i = 0; i < (int)this->ports.size(); ++ i)
+				if (this->ports[i].is_printer) {
+					idx = i;
+					break;
+				}
+			if (idx != -1)
+				port_picker->SetSelection(idx);
+		}
 	}
 }
 
@@ -140,9 +151,15 @@ void FirmwareDialog::priv::flashing_status(bool value, AvrDudeComplete complete)
 
 void FirmwareDialog::priv::perform_upload()
 {
-	auto filename = hex_picker->GetPath();
-	auto port = port_picker->GetValue();
-	if (filename.IsEmpty() || port.IsEmpty()) { return; }
+	auto filename  = hex_picker->GetPath();
+	std::string port = port_picker->GetValue().ToStdString();
+	int  selection = port_picker->GetSelection();
+	if (selection != -1) {
+		// Verify whether the combo box list selection equals to the combo box edit value.
+		if (this->ports[selection].friendly_name == port)
+			port = this->ports[selection].port;
+	}
+	if (filename.IsEmpty() || port.empty()) { return; }
 
 	flashing_status(true);
 
@@ -150,7 +167,7 @@ void FirmwareDialog::priv::perform_upload()
 		"-v",
 		"-p", "atmega2560",
 		"-c", "wiring",
-		"-P", port.ToStdString(),
+		"-P", port,
 		"-b", "115200",   // XXX: is this ok to hardcode?
 		"-D",
 		"-U", (boost::format("flash:w:%1%:i") % filename.ToStdString()).str()

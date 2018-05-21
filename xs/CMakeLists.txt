@@ -220,6 +220,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Config/Version.hpp    
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.cpp
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
+    ${LIBDIR}/slic3r/Utils/Serial.cpp
+    ${LIBDIR}/slic3r/Utils/Serial.hpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
     ${LIBDIR}/slic3r/GUI/MsgDialog.cpp
@@ -440,7 +442,7 @@ endif()
 # Add the OpenGL and GLU libraries.
 if (SLIC3R_GUI)
     if (MSVC)
-        target_link_libraries(XS OpenGL32.Lib GlU32.Lib)
+        target_link_libraries(XS user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
     elseif (MINGW)
         target_link_libraries(XS -lopengl32)
     elseif (APPLE)
