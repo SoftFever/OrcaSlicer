@@ -337,6 +337,9 @@ sub _init_menubar {
         $self->_append_menu_item($helpMenu, L("System Info"), L('Show system information'), sub {
             wxTheApp->system_info;
         });
+        $self->_append_menu_item($helpMenu, L("Show &Configuration Folder"), L('Show user configuration folder (datadir)'), sub {
+            Slic3r::GUI::desktop_open_datadir_folder();
+        });
         $self->_append_menu_item($helpMenu, L("Report an Issue"), L('Report an issue on the Slic3r Prusa Edition'), sub {
             Wx::LaunchDefaultBrowser('http://github.com/prusa3d/slic3r/issues/new');
         });
@@ -355,8 +358,8 @@ sub _init_menubar {
         $menubar->Append($self->{object_menu}, L("&Object")) if $self->{object_menu};
         $menubar->Append($windowMenu, L("&Window"));
         $menubar->Append($self->{viewMenu}, L("&View")) if $self->{viewMenu};
-        # Add a configuration  menu.
-        Slic3r::GUI::add_config_menu($menubar, $self->{preferences_event}, $self->{lang_ch_event});
+        # Add additional menus from C++
+        Slic3r::GUI::add_menus($menubar, $self->{preferences_event}, $self->{lang_ch_event});
         $menubar->Append($helpMenu, L("&Help"));
         $self->SetMenuBar($menubar);
     }

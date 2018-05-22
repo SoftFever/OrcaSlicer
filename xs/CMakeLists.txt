@@ -7,12 +7,12 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-    add_compile_options(-std=c++11 -Wall)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall" )
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
-    add_compile_options(-fext-numeric-literals)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
 
 # Where all the bundled libraries reside?
@@ -226,12 +226,16 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Config/Version.hpp    
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.cpp
     ${LIBDIR}/slic3r/Utils/ASCIIFolding.hpp
+    ${LIBDIR}/slic3r/Utils/Serial.cpp
+    ${LIBDIR}/slic3r/Utils/Serial.hpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.cpp
     ${LIBDIR}/slic3r/GUI/ConfigWizard.hpp
     ${LIBDIR}/slic3r/GUI/MsgDialog.cpp
     ${LIBDIR}/slic3r/GUI/MsgDialog.hpp
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.cpp
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
+    ${LIBDIR}/slic3r/GUI/FirmwareDialog.cpp
+    ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
@@ -337,6 +341,9 @@ add_library(semver STATIC
     ${LIBDIR}/semver/semver.c
 )
 
+
+add_subdirectory(src/avrdude)
+
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(
@@ -433,7 +440,7 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver)
+target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver avrdude)
 if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
@@ -441,7 +448,7 @@ endif()
 # Add the OpenGL and GLU libraries.
 if (SLIC3R_GUI)
     if (MSVC)
-        target_link_libraries(XS OpenGL32.Lib GlU32.Lib)
+        target_link_libraries(XS user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
     elseif (MINGW)
         target_link_libraries(XS -lopengl32)
     elseif (APPLE)
