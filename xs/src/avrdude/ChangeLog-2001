@@ -1,0 +1,598 @@
+2001-12-30  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c: Update version.
+
+	* avrdude.conf.sample: Clarify a comment.
+
+	* avrdude.conf.sample: fix address bits
+
+	* avrdude.1: Bring up to date.
+
+2001-12-29  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.sample: Add the AVR3 progammer.
+
+	* avr.c, avrdude.conf.sample, config_gram.y, main.c, pindefs.h:
+	Fix VCC assertion.
+
+	Make the BUFF pin a mask like VCC to allow multiple pins to be
+	asserted at the same time (STK200 has two buffer enable lines).
+
+	Add the STK200 programmer.
+
+	Fix EEPROM address line selection for several parts.
+
+2001-12-15  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.sample: fix spelling error
+
+2001-11-24  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile:
+	Change "WARNING" to "NOTE" when overwriting the avrprog.conf file.
+
+	* avrdude.1: Add my e-mail address.
+
+	* avrdude.conf.sample:
+	Add comments about instruction formats.  Correct an instruction
+	specification (cut&paste error).
+
+2001-11-21  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c, config_gram.y, lexer.l, term.c:
+	In interactive mode, reset the address and length if we start dumping
+	a memory type different than the previous one.
+
+	* avr.c, avrdude.conf.sample, config_gram.y:
+	Allow instruction data to be specified more flexibly, which can be
+	used to make the instruction input more readable in the config file.
+
+	* main.c: Bump version number.
+
+	* Makefile, avr.c, avr.h, avrdude.conf.sample, config.c, config.h:
+	* config_gram.y, fileio.c, fileio.h, lexer.l, main.c, term.c:
+	This is a major re-write of the programming algorithms.  The Atmel
+	serial programming instructions are not very orthoganal, i.e., the
+	"read fuse bits" instruction on an ATMega103 is an entirely different
+	opcode and data format from the _same_ instruction for an ATMega163!
+	Thus, it becomes impossible to have a single instruction encoding
+	(varying the data) across the chip lines.
+
+	This set of changes allows and requires instruction encodings to be
+	defined on a per-part basis within the configuration file.  Hopefully
+	I've defined the encoding scheme in a general enough way so it is
+	useful in describing the instruction formats for yet-to-be invented
+	Atmel chips.  I've tried hard to make it match very closely with the
+	specification in Atmel's data sheets for their parts.  It's a little
+	more verbose than what I initially hoped for, but I've tried to keep
+	it as concise as I could, while still remaining reasonably flexible.
+
+2001-11-19  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c, avr.h, avrdude.conf.sample, main.c, ppi.c, term.c:
+	Add support for ATMega163.
+
+	Add support for reading/writing ATMega163 lock and fuse bits.
+	Unfortunately, in looking at the specs for other ATMega parts, they
+	use entirely different instruction formats for these commands.  Thus,
+	these routines won't work for the ATMega103, for example.
+
+	Add support for sending raw command bytes via the interactive terminal
+	interface.  This allows one to execute any programming instruction on
+	the target device, whether or not avrprog supports it explicitly or
+	not.  Thus, one can use this feature to program fuse / lock bits, or
+	access any other feature of a current or future device that avrprog
+	does not know how to do.
+
+	Add in comments, an experimental instruction format in the
+	configuration file.  If this works out, it would allow supporting new
+	parts and non-orthoganal instructions across existing parts without
+	making avrprog code changes.
+
+2001-11-17  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.conf.sample: Add ATMEGA163 part.
+
+2001-11-11  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c: output formatting
+
+2001-11-05  Brian S. Dean  <bsd@bsdhome.com>
+
+	* ppi.c: Get ppi.h from /usr/include, not /sys.
+
+2001-10-31  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c, avrdude.conf.sample, main.c: Correct version string.
+	Update read/write status more frequently.
+	Prefix ATMega parts with an 'm'.
+
+2001-10-16  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c: Change ording for memory display.
+
+	* config_gram.y: comment
+
+	* avr.c, avr.h, avrdude.conf.sample, config_gram.y, lexer.l, term.c:
+	Fix (again, hopefully) page addressing for the ATMega parts.
+
+	Rename the poorly chosen name "bank" to "page" for page addressing.
+	Atmel calls it "page" in their documentation.
+
+	* config_gram.y, main.c: Fix an (non)exit.
+	Silence a couple of compiler warnings.
+
+	* avr.c, avr.h, avrdude.conf.sample, config_gram.y, main.c:
+	Fix ATMega flash addressing.  Add an ATMEGA16 part.  Perform sanity
+	checking on the memory parameters for parts that do bank addressing.
+
+2001-10-15  Brian S. Dean  <bsd@bsdhome.com>
+
+	* config.c, config.h, lists.h: Add copyright.
+
+	* config_gram.y, lexer.l, lists.c: Add copyrights.
+
+	* Makefile: Attempt to install avrprog.conf.
+
+	* avrdude.conf.sample: Correct dt006 pinout.
+
+	* Makefile, lexer.l:
+	Try and detect an old-style config file and print an appropriate error
+	message and a suggestion for correcting it.
+
+	* Makefile, avr.c, avrdude.1, avrdude.conf.sample: Update the man page.
+
+	Miscellaneous minor cleanups.
+
+2001-10-14  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile, Makefile.inc, avr.c, avr.h, avrdude.conf.sample:
+	* config.c, config.h, config_gram.y, lexer.l, lists.c, lists.h:
+	* main.c, pindefs.h, term.c:
+	Use lex/yacc for parsing the config file.  Re-work the config file
+	format using a more human-readable format.
+
+	Read part descriptions from the config file now instead of hard-coding
+	them.
+
+	Update usage().
+
+	Cleanup unused code.
+
+	* Makefile, avr.c, avr.h, fileio.c, term.c:
+	First cut at supporting the ATmega 103 which uses bank addressing and
+	has a 128K flash.
+
+	Due to the bank addressing required, interactive update of the flash
+	is not supported, though the eeprom can be updated interactively.
+	Both memories can be programmed via non-interactive mode.
+
+	Intel Hex Record type '04' is now generated as required for outputing
+	memory contents that go beyond 64K.
+
+2001-10-13  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c, avr.h, fileio.c, fileio.h, main.c, ppi.c, ppi.h, term.c:
+	* term.h:
+	Style fixes.
+
+	* avr.c, avr.h, fileio.c, fileio.h, main.c, term.c:
+	Commit changes in preparation for support the ATMega line.
+
+2001-10-01  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile: Don't override CFLAGS.
+
+	* avrdude.1: Correct default pin assignment.
+
+	* avr.c, fileio.c, main.c, ppi.c, term.c:
+	Remove debugging code - it served its purpose.
+
+	Update copyrights.
+
+2001-09-21  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c:
+	Be sure to read the exit specs after the pin configuration has been
+	assigned, otherwise, we may apply the exit specs to the wrong pins.
+
+	* main.c: debugging
+
+2001-09-20  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrdude.1, avrdude.conf.sample, main.c:
+	Prefix pin config entries in the config file with a "c:".  Later, I
+	might make part descriptions read in this way and we can use a
+	different letter for those (p).  This will make the parsing easier to
+	distinguish between the entry types.
+
+	* main.c: Initialize pin configuration description.
+
+2001-09-19  Brian S. Dean  <bsd@bsdhome.com>
+
+	* AVRprog.pdf, Makefile, avr.c, avrdude.1, avrdude.conf.sample:
+	* avrdude.pdf, fileio.c, fileio.h, main.c, pindefs.h, term.c:
+	Make the pin definitions configurable based on entries in a config
+	file.  This makes supporting other programmers much easier.
+
+	Rename AVRprog.pdf to avrprog.pdf.
+
+2001-04-29  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog-programmer.jpg: Remove this image file from the repository.
+
+2001-04-26  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog-schematic.jpg:
+	Remove this image, use AVRprog.pdf as the preferred schematic for the
+	programmer.
+
+2001-04-25  Brian S. Dean  <bsd@bsdhome.com>
+
+	* AVRprog.pdf, Makefile, avrdude.1:
+	Add a schematic provided by Joerg Wunch and also update the manual
+	page (also updated by Joerg) to reference the schematic.
+
+2001-02-25  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile, Makefile.inc: Automate dependency generation.
+
+2001-02-08  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c: Turn off ready led when finished programming.
+
+	* main.c: update version
+
+	* avr.c, main.c: Correct a few comments.
+
+	* Makefile, avr.c, term.c: Makefile : update dependencies
+
+	avr.c : correct status led updates
+
+	term.c : update status leds on write, make the address and length
+	         arguments for dump optional.
+
+2001-01-26  Brian S. Dean  <bsd@bsdhome.com>
+
+	* main.c: Version 1.1
+
+	* main.c:
+	Hmmm ... cvs co -D <timestamp> does not work.  Change the revision
+	timestamp to a full date/time value.
+
+	* avr.c, fileio.c, main.c, ppi.c, term.c:
+	Add a -V option to display the version information about each
+	component module.  This is intended for support purposes, so that I
+	can tell unambiguously what version a binary out in the field is.
+
+	Additionally, display a revision timestamp along with the version
+	number.  This also is intended for aiding in support and is the Unix
+	time of the latest component module.  Having this, should allow me to
+	do a "cvs co -D timestamp avrprog" and get exactly the source of the
+	version that is being reported.
+
+	* fileio.c:
+	Return the maximum address (+1) written as opposed to the actual
+	number of bytes written.  The presence of an Intel Hex address
+	record can cause these two number to be different; but the callers
+	of this routine need the former.
+
+	* main.c:
+	Fix a place where we were exiting without applying the exit-specs.
+
+	Wrap a long line.
+
+	* avr.c, fileio.c: avr.c: Update a comment.
+
+	fileio.c: Properly handle all the Intel Hex record types that I can
+	          find information about.
+
+2001-01-25  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Usage, avr.h: Get rid of the Usage file.
+
+2001-01-24  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile, avr.c, avr.h, main.c, pindefs.h, ppi.c:
+	Move pin definitions to their own file.
+
+	First pass at providing feedback via the optionally connected leds.  I
+	don't actually have any of these attached to my programmer, so I can
+	only guess as whether this is toggling them on and off correctly.
+
+	Also, enable and disable the optional 74367 buffer.
+
+	* avr.h, main.c, ppi.c, ppi.h, avr.c:
+	Rearrange the pinout for the programmer to be a little more logical.
+	Provide hooks to support a buffered programmer, pin 6 is now used to
+	enable a buffer that can be used to isolate the target system from the
+	parallel port pins.  This is important when programming the target
+	in-system.
+
+	Totally change the way the pin definitions are defined.  Actually
+	set/clear pins based on the way more intuitive pin number, instead of
+	PPI data register, bit number combination.  A table of pin data is
+	used so that any hardware inversion done by the parallel port is
+	accounted for, what you set is actually what appears at the pin.
+	Retain the old method for handling Vcc, however, because the hold
+	method is much easier to use when setting / retrieving multiple pins
+	simultaneously.
+
+2001-01-22  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile: Don't gzip the man page.
+
+	* avrdude.1: .Nm macro fix.  Submitted by Joerg.
+
+	* main.c: Cosmetic, don't output a preceding linefeed for usage().
+
+	* Makefile, avr.c, avr.h, fileio.c, term.c:
+	Makefile : use gzip -f for man page installation so that we don't get
+	           prompted.
+
+	avr.c avr.h fileio.c term.c :
+
+	     Change the avrpart data structure so that the typedef AVRMEM is
+	     used as an index into an array for the sizes of the memory types
+	     and also for pointers to buffers that represent the chip data for
+	     that memory type.  This removes a lot of conditional code of the
+	     form:
+
+			switch (memtype) {
+				case AVR_FLASH :
+			 	...
+			}
+
+	     Also, re-code avr_read_byte() and avr_write_byte() to properly
+	     handle the flash memory type without having to tell them whether
+	     they should program the high byte or the low byte - figure that
+	     out from the address itself.  For flash memory type, these
+	     routines now take the actual byte address instead of the word
+	     address.  This _greatly_ simplifies many otherwise simple
+	     operations, such a reading or writing a range of memory, by not
+	     having to worry about whether the address starts on an odd byte
+	     or an even byte.
+
+2001-01-20  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avr.c, avr.h, fileio.c, fileio.h, main.c:
+	Return error codes instead of exiting, thus making sure that we exit
+	only via main() so that the exitspecs are properly applied.
+
+	When reading input data from a file, remember how many bytes were read
+	and write and verify only that many bytes.
+
+	Don't complain when an input file size is smaller than the memory size
+	we are programming.  This is normal.
+
+	* fileio.c:
+	Correct checksum calculation; failure to account for the value of the
+	record type was causing non-zero record types to be calculated
+	incorrectly.
+
+	* Makefile, main.c: Makefile : install the man page
+
+	main.c : drop the giant usage text now that we have a man page.
+
+	* avrdude.1:
+	Add initial man page graciously contributed by Joerg Wunsch.  Thanks
+	Joerg!
+
+2001-01-19  Brian S. Dean  <bsd@bsdhome.com>
+
+	* term.c:
+	Accept abbreviations for eeprom and flash for the dump and write
+	commands.
+
+	Fix small bug keeping 1 character command lines from being added to
+	the history.
+
+	* term.c:
+	Implement enough state in cmd_dump so that if it is called with no
+	arguments, it successively dumps the next chunk of data of the same
+	previously specified length.
+
+	* term.c, term.h, fileio.c, fileio.h, main.c, ppi.c, ppi.h:
+	* Makefile, avr.c, avr.h, avrprog.c:
+	The program was getting too large for a single file.  Split it up into
+	more modular pieces.
+
+	Also, accept command abbreviations as long as they are not ambiguous.
+
+	* avrprog.c:
+	Add ability to specify the state of the power and reset pins on
+	program exit.  Default to leaving the pins in the state they were when
+	we found them.
+
+	Contributed by: Joerg Wunsch
+
+2001-01-18  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile, avrprog.c:
+	Switch to using readline() for getting terminal input.  I can't seem
+	to get the history capabilities working yet, but even so, it does
+	better handling of the prompt and strips newlines for us, so it's
+	still a win.
+
+	Add a few new commands for terminal mode: help, sig, part, erase.
+	Display rudimentory help using the help command.
+
+	Add some function prototypes.
+
+	* Usage, avrprog.c:
+	Change -c (interactive command mode) to the more intuitive -t
+	(terminal mode).
+
+	Make binary format the default for output.
+
+	Update the parts table with corrections for old values and add some
+	new values.
+
+2001-01-15  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c:
+	Automatically verify on-chip data with what we just programmed.
+
+	* avrprog.c, Makefile:
+	Prepare the Makefile for integration into the FreeBSD ports tree.
+
+	Fix a few "may be used uninitialized" bugs found by -Wall.
+
+2001-01-14  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c: Free a buffer.
+
+	* avrprog.c:
+	Use a smarter programming algorithm - read the existing data byte
+	first and only write the new one if it is different.
+
+	Add -n option which is a test mode in which the chip is not actually
+	updated.  This option does not affect writes in interactive mode.
+
+	* avrprog.c: Add the "dump" and "write" interactive commands.
+
+	* avrprog.c:
+	Correctly produce and handle "end of record" for intel hex files.
+
+2001-01-13  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c:
+	Re-enable writing to the chip.  I should probably should make this a
+	command-line selectable option so that I don't keep forgetting and
+	committing it with it disabled.
+
+	* avrprog.c:
+	Add a newline before exiting due to command line errors.  Perform a
+	bit more option compatibility testing between -c, -i, and -o.
+
+	* avrprog.c: Add input file format auto-detection support.
+
+	* Usage, avrprog.c: Say what the defaults are.
+
+	* avrprog-programmer.jpg, Usage, avrprog-schematic.jpg: New files.
+
+	* avrprog.c: Correct usage text.
+
+	* avrprog.c:
+	Parameterize a few additional items per chip.  Print out all per-chip
+	parameters on startup.  Use the per-chip parameters in the code
+	instead of hard-coded values for the 2313.
+
+	* avrprog.c: Fix filename assignment error.
+
+	Clean up debugging code a little, utilize fileio() instead of making
+	direct calls to b2ihex().
+
+	* avrprog.c: A lot of general code cleanup.
+
+	Re-work command line options to be more intuitive.
+
+	Support Intel Hex input and output file formats.  Provide hooks to
+	support Motorola S-Record as well.
+
+	Add a few more part-specific parameters to the avrpart structure.
+
+	Only write the flash or eeprom if the data to be written is not 0xff.
+
+2000-12-31  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c: Update a comment.
+
+	* avrprog.c:
+	Provide the ability to tie additionally tie pins 6-9 of the parallel
+	port to Vcc in order to supply more current.
+
+	Fix a typo on the size of the S1200's Flash.
+
+	Bring RESET low when programming is completed.
+
+	* avrprog.c:
+	Correct pin connection comments.  Elaborate a bit on Vcc connection.
+
+	* avrprog.c:
+	Update after receiving some good feedback from Joerg Wunsch.  We
+	should now be able to program AT90S1200's.
+
+2000-12-30  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c: Don't limit eeprom addresses.
+
+2000-12-20  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile, avrprog.c:
+	Add support for the 8515.  Make the addition for other devices easier.
+
+2000-08-27  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c:
+	Clear all bits except AVR_RESET when finished reading or programming
+	the Atmel device.
+
+2000-08-07  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c: update announcement message
+
+	* avrprog.c: Update announcement message.
+
+	* avrprog.c: Return the correct return code from 'main()'.
+
+	* avrprog.c:
+	Add ppi_pulse() function and fix ppi_toggle() to actully toggle
+	instead of pulse.
+
+	Make all abnormal returns after the parallel port has been opened go
+	through a single exit point at the bottom of 'main()'.
+
+2000-08-06  Brian S. Dean  <bsd@bsdhome.com>
+
+	* Makefile, avrprog.c: Makefile: add --pedantic compiler option
+
+	avrprog.c:
+
+		Add lots of comments, move getop() variable declarations to
+		the top of the program.
+
+		Add a typedef name to the AVR memory type and use it for
+		function declarations.
+
+		Add a usleep() delay in the sense loop to avoid becoming a cpu
+		hog.
+
+		Print out a version string so that folks know what version of
+		the software they are running.
+
+		Be sure and close the parallel device and the i/o file when
+		terminating abnormally.
+
+	* avrprog.c: Print out version information when invoked.
+
+	* Makefile, avrprog.c: Makefile: Add an install target.
+
+	avrprog.c:
+
+	  Add license.
+
+	  Document the header a bit better.
+
+	  Add capability to read out and display the device signature bytes.
+
+	  Add capability to power the device from the parallel port.
+
+	  Eliminate debug print facility.
+
+	  Provide 'avr_cmd()' function.
+
+	  When memory locations don't program, generate a newline so that the
+	  information is not overwritten and lost.
+
+	  Don't print out the message about needing to specify a file if the
+	  user is not requesting an operation that requires the file.
+
+2000-08-05  Brian S. Dean  <bsd@bsdhome.com>
+
+	* avrprog.c: Pring usage when no arguments are supplied.
+
+	* Makefile, avrprog.c: Initial check-in
+
+	* Makefile, avrprog.c: New file.
+
