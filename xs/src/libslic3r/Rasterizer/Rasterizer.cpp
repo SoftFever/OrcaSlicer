@@ -16,7 +16,7 @@
 #include <agg/agg_path_storage.h>
 
 // For png compression
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__ )
 inline char *strerror_r(int errnum, char *buf, size_t buflen) {
     strerror_s(buf, buflen, errnum);
     return buf;

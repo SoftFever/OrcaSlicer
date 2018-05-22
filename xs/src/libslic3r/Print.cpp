@@ -1334,7 +1334,8 @@ public:
     }
 
     inline void beginLayer() {
-        layers_rst_.emplace_back(Raster(res_, pxdim_), std::stringstream());
+        layers_rst_.emplace_back();
+        layers_rst_.front().first.reset(res_, pxdim_);
     }
 
     inline void finishLayer(unsigned lyr_id) {
