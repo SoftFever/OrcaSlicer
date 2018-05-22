@@ -29,20 +29,27 @@ void AboutDialogLogo::onRepaint(wxEvent &event)
 }
 
 AboutDialog::AboutDialog()
-    : wxDialog(NULL, wxID_ANY, _(L("About Slic3r")), wxDefaultPosition, wxSize(600, 340), wxCAPTION)
+    : wxDialog(NULL, wxID_ANY, _(L("About Slic3r")), wxDefaultPosition, wxDefaultSize, wxCAPTION)
 {
-	SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW)/**wxWHITE*/);
+	wxColour bgr_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
+	SetBackgroundColour(bgr_clr);
     wxBoxSizer* hsizer = new wxBoxSizer(wxHORIZONTAL);
-    this->SetSizer(hsizer);
+
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->Add(hsizer, 0, wxEXPAND | wxALL, 20);
 
     // logo
-//     AboutDialogLogo* logo = new AboutDialogLogo(this);
 	wxBitmap logo_bmp = wxBitmap(from_u8(Slic3r::var("Slic3r_192px.png")), wxBITMAP_TYPE_PNG);
 	auto *logo = new wxStaticBitmap(this, wxID_ANY, std::move(logo_bmp));
-    hsizer->Add(logo, 0, wxEXPAND | wxLEFT | wxRIGHT, 30);
+	hsizer->Add(logo, 1, wxALIGN_CENTRE_VERTICAL | wxEXPAND | wxTOP | wxBOTTOM, 35);
     
     wxBoxSizer* vsizer = new wxBoxSizer(wxVERTICAL);
-    hsizer->Add(vsizer, 1, wxEXPAND, 0);
+#ifdef __WXMSW__
+	int proportion = 2;
+#else
+	int proportion = 3;
+#endif
+    hsizer->Add(vsizer, proportion, wxEXPAND|wxLEFT, 20);
 
     // title
     {
@@ -52,7 +59,7 @@ AboutDialog::AboutDialog()
         title_font.SetFamily(wxFONTFAMILY_ROMAN);
         title_font.SetPointSize(24);
         title->SetFont(title_font);
-        vsizer->Add(title, 0, wxALIGN_LEFT | wxTOP, 30);
+        vsizer->Add(title, 0, wxALIGN_LEFT | wxTOP, 10);
     }
     
     // version
@@ -70,34 +77,34 @@ AboutDialog::AboutDialog()
     }
     
     // text
-    wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
+    wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_AUTO/*NEVER*/);
     {
         wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-        #ifdef __WXMSW__
-            int size[] = {8,8,8,8,8,8,8};
-        #else
-            int size[] = {11,11,11,11,11,11,11};
-        #endif
+        const auto text_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+		auto text_clr_str = wxString::Format(wxT("#%02X%02X%02X"), text_clr.Red(), text_clr.Green(), text_clr.Blue());
+		auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
+
+		const int fs = font.GetPointSize()-1;
+        int size[] = {fs,fs,fs,fs,fs,fs,fs};
         html->SetFonts(font.GetFaceName(), font.GetFaceName(), size);
-		html->SetHTMLBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
         html->SetBorders(2);
-        const char* text =
+		const auto text = wxString::Format(
             "<html>"
-            "<body bgcolor=\"#ffffff\" link=\"#808080\">"
-            "<font color=\"#808080\">"
+            "<body bgcolor= %s link= %s>"
+            "<font color=%s>"
             "Copyright &copy; 2016-2018 Prusa Research. <br />"
             "Copyright &copy; 2011-2017 Alessandro Ranellucci. <br />"
             "<a href=\"http://slic3r.org/\">Slic3r</a> is licensed under the "
             "<a href=\"http://www.gnu.org/licenses/agpl-3.0.html\">GNU Affero General Public License, version 3</a>."
-            "<br /><br /><br />"
+            "<br /><br />"
             "Contributions by Henrik Brix Andersen, Nicolas Dandrimont, Mark Hindess, Petr Ledvina, Joseph Lenox, Y. Sapir, Mike Sheldrake, Vojtech Bubnik and numerous others. "
             "Manual by Gary Hodgson. Inspired by the RepRap community. <br />"
             "Slic3r logo designed by Corey Daniels, <a href=\"http://www.famfamfam.com/lab/icons/silk/\">Silk Icon Set</a> designed by Mark James. "
             "</font>"
             "</body>"
-            "</html>";
+            "</html>", bgr_clr_str, text_clr_str, text_clr_str);
         html->SetPage(text);
-        vsizer->Add(html, 1, wxEXPAND | wxALIGN_LEFT | wxRIGHT | wxBOTTOM, 20);
+        vsizer->Add(html, 1, wxEXPAND | wxBOTTOM, 10);
         html->Bind(wxEVT_HTML_LINK_CLICKED, &AboutDialog::onLinkClicked, this);
     }
     
@@ -108,6 +115,9 @@ AboutDialog::AboutDialog()
     
     this->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
     logo->Bind(wxEVT_LEFT_DOWN, &AboutDialog::onCloseDialog, this);
+
+	SetSizer(main_sizer);
+	main_sizer->SetSizeHints(this);
 }
 
 void AboutDialog::onLinkClicked(wxHtmlLinkEvent &event)

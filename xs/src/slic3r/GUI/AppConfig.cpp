@@ -100,6 +100,7 @@ void AppConfig::load()
     auto ini_ver = Semver::parse(get("version"));
     m_legacy_datadir = false;
     if (ini_ver) {
+        m_orig_version = *ini_ver;
         // Make 1.40.0 alphas compare well
         ini_ver->set_metadata(boost::none);
         ini_ver->set_prerelease(boost::none);

@@ -35,8 +35,8 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 					  "instead of the one containing the input files.");
-	def.default_value = new ConfigOptionBool{ app_config->get("remember_output_path")[0] == '1' }; // 1;
-	Option option(def, "remember_output_path");
+    def.default_value = new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path")[0] == '1' : true }; // 1;
+    Option option(def, "remember_output_path");
 	m_optgroup->append_single_option_line(option);
 
 	def.label = L("Auto-center parts");

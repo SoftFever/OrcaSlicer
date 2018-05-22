@@ -380,6 +380,7 @@ sub load_print {
                 #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
             }
             $self->show_hide_ui_elements('simple');
+            $self->canvas->reset_legend_texture();
         } else {
             $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0);
             $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);

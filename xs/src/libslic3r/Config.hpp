@@ -644,12 +644,9 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        std::istringstream iss(str);
-        iss >> this->value.x;
-        iss.ignore(std::numeric_limits<std::streamsize>::max(), ',');
-        iss.ignore(std::numeric_limits<std::streamsize>::max(), 'x');
-        iss >> this->value.y;
-        return true;
+        char dummy;
+        return sscanf(str.data(), " %lf , %lf %c", &this->value.x, &this->value.y, &dummy) == 2 ||
+               sscanf(str.data(), " %lf x %lf %c", &this->value.x, &this->value.y, &dummy) == 2;
     }
 };
 

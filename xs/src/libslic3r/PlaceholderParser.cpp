@@ -414,12 +414,47 @@ namespace client
             lhs.type = TYPE_BOOL;
             lhs.data.b = invert ? ! value : value;
         }
+        // Compare operators, store the result into lhs.
         static void equal    (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '=', false); }
         static void not_equal(expr &lhs, expr &rhs) { compare_op(lhs, rhs, '=', true ); }
         static void lower    (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '<', false); }
         static void greater  (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '>', false); }
         static void leq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '>', true ); }
         static void geq      (expr &lhs, expr &rhs) { compare_op(lhs, rhs, '<', true ); }
+
+        enum Function2ParamsType {
+            FUNCTION_MIN,
+            FUNCTION_MAX,
+        };
+        // Store the result into param1.
+        static void function_2params(expr &param1, expr &param2, Function2ParamsType fun)
+        { 
+            const char *err_msg = "Not a numeric type.";
+            param1.throw_if_not_numeric(err_msg);
+            param2.throw_if_not_numeric(err_msg);
+            if (param1.type == TYPE_DOUBLE || param2.type == TYPE_DOUBLE) {
+                double d = 0.;
+                switch (fun) {
+                    case FUNCTION_MIN:  d = std::min(param1.as_d(), param2.as_d()); break;
+                    case FUNCTION_MAX:  d = std::max(param1.as_d(), param2.as_d()); break;
+                    default: param1.throw_exception("Internal error: invalid function");
+                }
+                param1.data.d = d;
+                param1.type = TYPE_DOUBLE;
+            } else {
+                int i = 0.;
+                switch (fun) {
+                    case FUNCTION_MIN:  i = std::min(param1.as_i(), param2.as_i()); break;
+                    case FUNCTION_MAX:  i = std::max(param1.as_i(), param2.as_i()); break;
+                    default: param1.throw_exception("Internal error: invalid function");
+                }
+                param1.data.i = i;
+                param1.type = TYPE_INT;
+            }
+        }
+        // Store the result into param1.
+        static void min(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_MIN); }
+        static void max(expr &param1, expr &param2) { function_2params(param1, param2, FUNCTION_MAX); }
 
         static void regex_op(expr &lhs, boost::iterator_range<Iterator> &rhs, char op)
         {
@@ -1019,6 +1054,10 @@ namespace client
                 |   (lit('-')  > unary_expression(_r1)           )  [ px::bind(&FactorActions::minus_,  _1,     _val) ]
                 |   (lit('+')  > unary_expression(_r1) > iter_pos)  [ px::bind(&FactorActions::expr_,   _1, _2, _val) ]
                 |   ((kw["not"] | '!') > unary_expression(_r1) > iter_pos) [ px::bind(&FactorActions::not_, _1, _val) ]
+                |   (kw["min"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                                                                    [ px::bind(&expr<Iterator>::min, _val, _2) ]
+                |   (kw["max"] > '(' > conditional_expression(_r1) [_val = _1] > ',' > conditional_expression(_r1) > ')') 
+                                                                    [ px::bind(&expr<Iterator>::max, _val, _2) ]
                 |   (strict_double > iter_pos)                      [ px::bind(&FactorActions::double_, _1, _2, _val) ]
                 |   (int_      > iter_pos)                          [ px::bind(&FactorActions::int_,    _1, _2, _val) ]
                 |   (kw[bool_] > iter_pos)                          [ px::bind(&FactorActions::bool_,   _1, _2, _val) ]
@@ -1051,6 +1090,8 @@ namespace client
                 ("elsif")
                 ("endif")
                 ("false")
+                ("min")
+                ("max")
                 ("not")
                 ("or")
                 ("true");

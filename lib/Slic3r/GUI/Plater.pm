@@ -227,9 +227,10 @@ sub new {
 
     ### Panel for right column
     $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-
+    
     ### Scrolled Window for info boxes
     my $scrolled_window_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    $scrolled_window_sizer->SetMinSize([310, -1]);
     my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $scrolled_window_panel->SetSizer($scrolled_window_sizer);
     $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
@@ -410,6 +411,7 @@ sub new {
                 $presets->Add($text, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL | wxRIGHT, 4);
                 $presets->Add($choice, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 1);
             }
+            $presets->Layout;
         }
 
         my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxVERTICAL);
@@ -533,12 +535,11 @@ sub new {
         $self->{"print_info_box_show"}->(0);
 
         $right_sizer->SetSizeHints($self->{right_panel});
-        $self->{right_panel}->SetSizer($right_sizer);        
+        $self->{right_panel}->SetSizer($right_sizer);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
         $hsizer->Add($self->{right_panel}, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
-        #$hsizer->Add($right_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
         
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
         $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
@@ -1416,6 +1417,8 @@ sub export_gcode {
     };
     Slic3r::GUI::catch_error($self) and return;
     
+    # Copy the names of active presets into the placeholder parser.
+    wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
     # select output file
     if ($output_file) {
         $self->{export_gcode_output_file} = eval { $self->{print}->output_filepath($output_file) };
@@ -1707,6 +1710,8 @@ sub _get_export_file {
         $suffix = '.3mf';
         $wildcard = 'threemf';
     }
+    # Copy the names of active presets into the placeholder parser.
+    wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
     my $output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
     Slic3r::GUI::catch_error($self) and return undef;
     $output_file =~ s/\.[gG][cC][oO][dD][eE]$/$suffix/;
@@ -2051,6 +2056,8 @@ sub selection_changed {
                     $self->{object_info_manifold}->SetLabel(L("Yes"));
                     #$self->{object_info_manifold_warning_icon}->Hide;
                     $self->{"object_info_manifold_warning_icon_show"}->(0);
+                    $self->{object_info_manifold}->SetToolTipString("");
+                    $self->{object_info_manifold_warning_icon}->SetToolTipString("");
                 }
             } else {
                 $self->{object_info_facets}->SetLabel($object->facets);
@@ -2060,6 +2067,7 @@ sub selection_changed {
             #$self->{object_info_manifold_warning_icon}->Hide;
             $self->{"object_info_manifold_warning_icon_show"}->(0);
             $self->{object_info_manifold}->SetToolTipString("");
+            $self->{object_info_manifold_warning_icon}->SetToolTipString("");
         }
         $self->Layout;
     }

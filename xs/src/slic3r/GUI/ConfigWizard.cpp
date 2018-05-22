@@ -835,7 +835,9 @@ bool ConfigWizard::run(PresetBundle *preset_bundle, const PresetUpdater *updater
 {
 	BOOST_LOG_TRIVIAL(info) << "Running ConfigWizard, reason: " << p->run_reason;
 	if (ShowModal() == wxID_OK) {
-		p->apply_config(GUI::get_app_config(), preset_bundle, updater);
+		auto *app_config = GUI::get_app_config();
+		p->apply_config(app_config, preset_bundle, updater);
+		app_config->set_legacy_datadir(false);
 		BOOST_LOG_TRIVIAL(info) << "ConfigWizard applied";
 		return true;
 	} else {

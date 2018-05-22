@@ -155,11 +155,11 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
-		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":  "), 
-							wxDefaultPosition, staticbox ? wxSize(label_width, -1) : wxDefaultSize);
+		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
+							wxDefaultPosition, wxSize(label_width, -1), staticbox ? 0 : wxALIGN_RIGHT);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
-		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT) | wxALIGN_CENTER_VERTICAL, 0);
+		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
     }
@@ -177,7 +177,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
     // so we need a horizontal sizer to arrange these things
 	// If we have a single option with no sidetext just add it directly to the grid sizer
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	grid_sizer->Add(sizer, 0, wxEXPAND | wxALL, 0);
+	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM|wxTOP|wxLEFT), staticbox ? 0 : 1);
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
 		const auto& option = option_set.front();
@@ -186,7 +186,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		add_undo_buttuns_to_sizer(sizer, field);
 		if (is_window_field(field)) 
 			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, (option.opt.full_width ? wxEXPAND : 0) |
-							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, wxOSX ? 0 : 2);
+							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, (wxOSX||!staticbox) ? 0 : 2);
 		if (is_sizer_field(field)) 
 			sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
 		return;

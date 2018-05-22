@@ -1,0 +1,26 @@
+
+- Man page needs updated for avr910 info.
+
+- Website needs to link to docs:
+  http://savannah.nongnu.org/download/avrdude/doc/avrdude-html/
+
+- Add "skip empty pages" optimization on avr910 paged write. The stk500 has
+  this optimization already.
+
+- Fix "overfull \hbox" issues in building documentation.
+
+- FIXME: term.c: terminal_get_input(): strip newlines in non-readline input
+  code.
+
+- FIXME: avr910.c: avr910_cmd(): Insert version check here.
+
+- FIXME: ser_posix.c: serial_close(): Should really restore the terminal to
+  original state here.
+
+- FIXME: main.c, par.c: exitspecs don't work if RESET-pin is controlled over
+  PPICTRL.
+
+- transfer ppi-speedtuning to the windows version (CAVEAT: This will make
+  programming too fast for chips with 500kHz clock)
+
+- make SCK-period configurable for PPI-programmers
