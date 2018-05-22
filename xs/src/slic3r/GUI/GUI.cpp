@@ -886,35 +886,28 @@ wxString from_u8(const std::string &str)
 	return wxString::FromUTF8(str.c_str());
 }
 
-
-void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
+// add PrusaCollapsiblePane to sizer
+void add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
 {
- 	sizer->SetMinSize(-1, 150);
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	auto main_page = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	main_page->SetSizer(main_sizer);
-	main_page->SetScrollbars(1, 1, 1, 1);
-	sizer->Add(main_page, 1, wxEXPAND | wxALL, 1);
-
-	// Experiments with new UI
-// 	wxSizer *paneSz = new wxBoxSizer(wxVERTICAL);
-// 	paneSz->Add(m_optgroup->sizer, 1, wxGROW | wxEXPAND | wxLEFT | wxRIGHT, 5);
-// 	win->SetSizer(paneSz);
-// 	paneSz->SetSizeHints(win);
-
-	// *** Objects List ***
-	auto *collpane_objects = new PrusaCollapsiblePane(main_page, wxID_ANY, "Objects List:");
+	auto *collpane = new PrusaCollapsiblePane(parent, wxID_ANY, name);
 	// add the pane with a zero proportion value to the sizer which contains it
-	main_sizer->Add(collpane_objects, 0, wxGROW | wxALL, 0);
+	sizer_parent->Add(collpane, 0, wxGROW | wxALL, 0);
 
-	wxWindow *win_objects = collpane_objects->GetPane();
+	wxWindow *win = collpane->GetPane();
 
-	// **********************************************************************************************
-	auto objects_ctrl = new wxDataViewCtrl(win_objects, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	wxSizer *objects_sz = new wxBoxSizer(wxVERTICAL);
-	objects_ctrl->SetBestFittingSize(wxSize(-1, 200)); 
-	// TODO - Set correct height according to the opened/closed objects
-//	objects_ctrl->SetMinSize(wxSize(-1, 200));
+	wxSizer *sizer = content_function(win);
+
+	wxSizer *sizer_pane = new wxBoxSizer(wxVERTICAL);
+	sizer_pane->Add(sizer, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
+	win->SetSizer(sizer_pane);
+	sizer_pane->SetSizeHints(win);
+}
+
+wxBoxSizer* content_objects_list(wxWindow *win)
+{
+	auto objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	objects_ctrl->SetBestFittingSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+	auto objects_sz = new wxBoxSizer(wxVERTICAL);
 	objects_sz->Add(objects_ctrl, 1, wxGROW | wxALL, 5);
 
 	auto objects_model = new MyObjectTreeModel;
@@ -945,19 +938,44 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	objects_ctrl->AppendColumn(column02);
 
-// 	common_sizer->Add(objects_sz, 0, wxEXPAND | wxALL, 1);
+	return objects_sz;
+}
 
-	wxSizer *paneSz_objects = new wxBoxSizer(wxVERTICAL);
-	paneSz_objects->Add(objects_sz, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
-	win_objects->SetSizer(paneSz_objects);
-	paneSz_objects->SetSizeHints(win_objects);
+wxBoxSizer* content_object_settings(wxWindow *win)
+{
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(new wxStaticText(win, wxID_ANY, "Some object text"));
+	return sizer;
+}
+
+wxBoxSizer* content_part_settings(wxWindow *win)
+{
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(new wxStaticText(win, wxID_ANY, "Some part text"));
+	return sizer;
+}
+
+void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
+{
+ 	sizer->SetMinSize(-1, 150);
+	auto main_sizer = new wxBoxSizer(wxVERTICAL);
+	auto main_page = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	main_page->SetSizer(main_sizer);
+	main_page->SetScrollbars(1, 1, 1, 1);
+	sizer->Add(main_page, 1, wxEXPAND | wxALL, 1);
+
+	// Experiments with new UI
+
+	// *** Objects List ***	
+ 	add_prusa_collapsible_pane(main_page, main_sizer, "Objects List:", content_objects_list);
+	// *** Object Settings ***
+	add_prusa_collapsible_pane(main_page, main_sizer, "Object Settings:", content_object_settings);
+	// *** Part Settings ***
+	add_prusa_collapsible_pane(main_page, main_sizer, "Part Settings:", content_part_settings);
 
 
-
-// 	auto common_sizer = new wxBoxSizer(wxVERTICAL);
-// 	common_sizer->Add(m_optgroup->sizer);
-
-// 	auto listctrl = new wxDataViewListCtrl(win, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
+	// More experiments with UI
+// 	auto listctrl = new wxDataViewListCtrl(main_page, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
 // 	listctrl->AppendToggleColumn("Toggle");
 // 	listctrl->AppendTextColumn("Text");
 // 	wxVector<wxVariant> data;
@@ -972,9 +990,7 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 // 	data.push_back(wxVariant(false));
 // 	data.push_back(wxVariant("row 2"));
 // 	listctrl->AppendItem(data);
-// 	common_sizer->Add(listctrl, 0, wxEXPAND | wxALL, 1);
-
-
+// 	main_sizer->Add(listctrl, 0, wxEXPAND | wxALL, 1);
 }
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)

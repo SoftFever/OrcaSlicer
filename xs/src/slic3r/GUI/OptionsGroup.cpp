@@ -173,7 +173,9 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		return;
 	}
 	
-	// if we have a single option with no sidetext just add it directly to the grid sizer
+	// If we're here, we have more than one option or a single option with sidetext
+    // so we need a horizontal sizer to arrange these things
+	// If we have a single option with no sidetext just add it directly to the grid sizer
 	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	grid_sizer->Add(sizer, 0, wxEXPAND | wxALL, 0);
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
@@ -190,9 +192,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		return;
 	}
 
-    // if we're here, we have more than one option or a single option with sidetext
-    // so we need a horizontal sizer to arrange these things
-	for (auto opt : option_set) {
+    for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {

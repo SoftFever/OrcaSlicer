@@ -127,8 +127,8 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
-    OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false) : 
-		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!="") {
+    OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false, ogDrawFlag flag = ogDEFAULT) : 
+		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!=""), m_flag(flag) {
         sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
@@ -157,6 +157,8 @@ protected:
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
 	bool					m_is_tab_opt{ false };
+
+	ogDrawFlag				m_flag{ ogDEFAULT };
 
 	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
 	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel 

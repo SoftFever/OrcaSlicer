@@ -47,6 +47,11 @@ class TabIface;
 
 namespace GUI {
 
+enum ogDrawFlag{
+	ogDEFAULT,
+	ogSIDE_OPTIONS_TO_GRID
+};
+
 class Tab;
 class ConfigOptionsGroup;
 // Map from an file_type name to full file wildcard name.
