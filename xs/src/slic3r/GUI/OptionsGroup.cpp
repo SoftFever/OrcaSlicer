@@ -175,9 +175,9 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	
 	// If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
-	// If we have a single option with no sidetext just add it directly to the grid sizer
-	auto sizer = new wxBoxSizer(wxHORIZONTAL);
+	auto sizer = new wxBoxSizer((m_flag & ogSIDE_OPTIONS_VERTICAL) != 0 ? wxVERTICAL :wxHORIZONTAL);
 	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM|wxTOP|wxLEFT), staticbox ? 0 : 1);
+	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
 		const auto& option = option_set.front();

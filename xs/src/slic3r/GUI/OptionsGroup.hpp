@@ -26,6 +26,11 @@
 
 namespace Slic3r { namespace GUI {
 
+enum ogDrawFlag{
+	ogDEFAULT,
+	ogSIDE_OPTIONS_VERTICAL
+};
+
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 using column_t = std::function<wxSizer*(const Line&)>;
@@ -183,8 +188,8 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false) :
-		OptionsGroup(parent, title, is_tab_opt), m_config(_config) {}
+	ConfigOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false, ogDrawFlag flag = ogDEFAULT) :
+		OptionsGroup(parent, title, is_tab_opt, flag), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};

@@ -47,9 +47,10 @@ class TabIface;
 
 namespace GUI {
 
-enum ogDrawFlag{
-	ogDEFAULT,
-	ogSIDE_OPTIONS_TO_GRID
+enum ogGroup{
+	ogFrequentlyChangingParameters,
+	ogObjectSettings,
+	ogPartSettings
 };
 
 class Tab;
@@ -173,7 +174,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 // Update view mode according to selected menu 
 void update_mode();
 
-ConfigOptionsGroup* get_optgroup();
+ConfigOptionsGroup* get_optgroup(size_t i);
 wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);

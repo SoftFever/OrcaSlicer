@@ -118,8 +118,8 @@ std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale;
 
-std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
-double m_brim_width = 0.0;
+std::vector <std::shared_ptr<ConfigOptionsGroup>> m_optgroups;
+double		m_brim_width = 0.0;
 wxButton*	g_wiping_dialog_button = nullptr;
 
 //showed/hided controls according to the view mode
@@ -379,8 +379,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
-   	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
-   	local_menu->AppendSeparator();
+	local_menu->AppendSeparator();
 	auto mode_menu = new wxMenu();
 	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple,	_(L("&Simple")),					_(L("Simple View Mode")));
 	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeRegular,	_(L("&Regular")),					_(L("Regular View Mode")));
@@ -389,6 +388,11 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 	local_menu->AppendSubMenu(mode_menu,						_(L("&Mode")), 								_(L("Slic3r View Mode")));
    	local_menu->AppendSeparator();
 	local_menu->Append(config_id_base + ConfigMenuLanguage,		_(L("Change Application Language")));
+	local_menu->AppendSeparator();
+	local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
+	// TODO: for when we're able to flash dictionaries
+	// local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
@@ -876,8 +880,36 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 wxBoxSizer* content_object_settings(wxWindow *win)
 {
+	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "", config, false, ogSIDE_OPTIONS_VERTICAL);
+	optgroup->label_width = 100;
+
+	Line line = { _(L("Position")), "" };
+	ConfigOptionDef def;
+
+	def.label = L("X");
+	def.type = coInt;
+	def.default_value = new ConfigOptionInt(1);
+	def.sidetext = L("mm");
+
+	Option option = Option(def, "position_X");
+	option.opt.full_width = true;
+	line.append_option(option);
+
+	def.label = L("Y");
+	option = Option(def, "position_Y");
+	line.append_option(option);
+
+	def.label = L("Z");
+	option = Option(def, "position_Z");
+	line.append_option(option);
+
+	optgroup->append_line(line);
+
+	m_optgroups.push_back(optgroup);  // ogObjectSettings
+
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(new wxStaticText(win, wxID_ANY, "Some object text"));
+	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
 	return sizer;
 }
 
@@ -929,10 +961,10 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
-	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
 	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front()-4; // doesn't work
-	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
+	optgroup->label_width = ar.IsEmpty() ? 100 : ar.front()-4; // doesn't work
+	optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
 			Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
@@ -947,7 +979,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			return;
 
 		if (opt_key == "fill_density"){
-			value = m_optgroup->get_config_value(*config, opt_key);
+			value = m_optgroups[ogFrequentlyChangingParameters]->get_config_value(*config, opt_key);
 			tab_print->set_value(opt_key, value);
 			tab_print->update();
 		}
@@ -985,10 +1017,10 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		tab_print->update_dirty();
 	};
 
-	Option option = m_optgroup->get_option("fill_density");
+	Option option = optgroup->get_option("fill_density");
 	option.opt.sidetext = "";
 	option.opt.full_width = true;
-	m_optgroup->append_single_option_line(option);
+	optgroup->append_single_option_line(option);
 
 	ConfigOptionDef def;
 
@@ -1007,7 +1039,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.default_value = new ConfigOptionStrings { selection };
 	option = Option(def, "support");
 	option.opt.full_width = true;
-	m_optgroup->append_single_option_line(option);
+	optgroup->append_single_option_line(option);
 
 	m_brim_width = config->opt_float("brim_width");
 	def.label = L("Brim");
@@ -1016,7 +1048,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.gui_type = "";
 	def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
 	option = Option(def, "brim");
-	m_optgroup->append_single_option_line(option);
+	optgroup->append_single_option_line(option);
 
 
     Line line = { "", "" };
@@ -1041,9 +1073,11 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			}));
 			return sizer;
 		};
-		m_optgroup->append_line(line);
+		optgroup->append_line(line);
 
-	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+
+	m_optgroups.push_back(optgroup);// ogFrequentlyChangingParameters
 }
 
 void show_frequently_changed_parameters(bool show)
@@ -1094,9 +1128,9 @@ void update_mode()
 	g_right_panel->Layout();
 }
 
-ConfigOptionsGroup* get_optgroup()
+ConfigOptionsGroup* get_optgroup(size_t i)
 {
-	return m_optgroup.get();
+	return m_optgroups[i].get();
 }
 
 
