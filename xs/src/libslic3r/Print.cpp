@@ -1342,7 +1342,7 @@ public:
     inline unsigned layers() const { return layers_rst_.size(); }
 
     inline void drawPolygon(const ExPolygon& p, unsigned lyr) {
-        assert(lyr_id < layers_rst_.size());
+        assert(lyr < layers_rst_.size());
         layers_rst_[lyr].first.draw(p);
     }
 

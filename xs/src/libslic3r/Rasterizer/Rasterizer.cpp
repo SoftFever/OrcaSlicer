@@ -16,12 +16,6 @@
 #include <agg/agg_path_storage.h>
 
 // For png compression
-//#if !((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE)
-//inline char *strerror_r(int errnum, char *buf, size_t buflen) {
-//    strerror_s(buf, buflen, errnum);
-//    return buf;
-//}
-//#endif
 #include <png/writer.hpp>
 
 namespace Slic3r {
