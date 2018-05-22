@@ -3,14 +3,14 @@ msgstr ""
 "Project-Id-Version: Slic3rPE\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-02-28 13:53+0100\n"
-"PO-Revision-Date: 2018-02-28 14:14+0100\n"
-"Last-Translator: Oleksandra Iushchenko <yusanka@gmail.com>\n"
+"PO-Revision-Date: 2018-05-22 09:23+0200\n"
+"Last-Translator: Eric Seigne <eric.seigne@abuledu.org>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr_FR\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 1.8.11\n"
 "X-Poedit-Basepath: ..\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Poedit-SourceCharset: UTF-8\n"
@@ -21,25 +21,25 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:39
 msgid "Shape"
-msgstr ""
+msgstr "Forme"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:46
 msgid "Rectangular"
-msgstr ""
+msgstr "Rectangulaire"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:50
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1191
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:408
 msgid "Size"
-msgstr ""
+msgstr "Taille"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:51
 msgid "Size in X and Y of the rectangular plate."
-msgstr ""
+msgstr "Taille du plateau rectangulaire en X et Y"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:57
 msgid "Origin"
-msgstr ""
+msgstr "Origine"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:58
 msgid ""
@@ -49,7 +49,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:62
 msgid "Circular"
-msgstr ""
+msgstr "Circulaire"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:65
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:129
@@ -82,7 +82,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1737
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1747
 msgid "mm"
-msgstr ""
+msgstr "mm"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:66
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:431
@@ -94,53 +94,60 @@ msgid ""
 "Diameter of the print bed. It is assumed that origin (0,0) is located in the "
 "center."
 msgstr ""
+"Diamètre du lit d'impression. Il est convenu que l'origine (0,0) est au "
+"centre."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:71
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:150
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:92
 msgid "Custom"
-msgstr ""
+msgstr "Personnalisé"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:75
 msgid "Load shape from STL..."
-msgstr ""
+msgstr "Charger la forme depuis un fichier STL..."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:120
 msgid "Settings"
-msgstr ""
+msgstr "Paramètres"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:298
 msgid "Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
+"Choisissez le fichier à importer pour la forme du lit (STL/OBJ/AMF/3MF/"
+"PRUSA):"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:315
 msgid "Error! "
-msgstr ""
+msgstr "Erreur !"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:324
 msgid "The selected file contains no geometry."
-msgstr ""
+msgstr "Le fichier sélectionné ne contient aucune donnée géométrique."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:328
 msgid ""
 "The selected file contains several disjoint areas. This is not supported."
 msgstr ""
+"Le fichier sélectionné contient des aires disjointes. Ceci n'est pas pris en "
+"charge."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.hpp:42
 msgid "Bed Shape"
-msgstr ""
+msgstr "Forme du lit"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:224
 msgid "Array of language names and identifiers should have the same size."
 msgstr ""
+"Le tableau des langues et des identifiants devraient avoir la même taille."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:235
 msgid "Select the language"
-msgstr ""
+msgstr "Choisissez la langue"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:235
 msgid "Language"
-msgstr ""
+msgstr "Langue"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:300
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:170
@@ -149,29 +156,29 @@ msgstr "Défaut"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:325
 msgid "Change Application Language"
-msgstr ""
+msgstr "Changer la langue de l'application"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:332
 msgid "Application will be restarted"
-msgstr ""
+msgstr "L'application va devoir redémarrer"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:332
 msgid "Attention!"
-msgstr ""
+msgstr "Attention !"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:339
 msgid "&Localization"
-msgstr ""
+msgstr "&Localisation"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:488
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:470
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1300
 msgid "Error"
-msgstr ""
+msgstr "Erreur"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:493
 msgid "Notice"
-msgstr ""
+msgstr "Information"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:498
 msgid "GLUquadricObjPtr | Attempt to free unreferenced scalar"
@@ -179,19 +186,19 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\GUI.cpp:500
 msgid "Warning"
-msgstr ""
+msgstr "Attention"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:50
 msgid "Save current "
-msgstr ""
+msgstr "Sauvegarder le document en cours"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:51
 msgid "Delete this preset"
-msgstr ""
+msgstr "Supprimer cette préconfiguration"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:313
 msgid "Layers and perimeters"
-msgstr ""
+msgstr "Calques et périmètres"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:314
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:777
@@ -213,7 +220,7 @@ msgstr "Couches solides"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:335
 msgid "Quality (slower slicing)"
-msgstr ""
+msgstr "Qualité (tranchage plus lent)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:342
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:356
@@ -248,7 +255,7 @@ msgstr "Remplissage"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:352
 msgid "Reducing printing time"
-msgstr ""
+msgstr "Réduire le temps d'impression"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:364
 msgid "Skirt and brim"
@@ -258,11 +265,11 @@ msgstr "Contour et débord"
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:146
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:88
 msgid "Skirt"
-msgstr ""
+msgstr "Contour (Skirt)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:371
 msgid "Brim"
-msgstr ""
+msgstr "Débord (Brim)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:374
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:375
@@ -293,11 +300,11 @@ msgstr "Support"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:380
 msgid "Raft"
-msgstr ""
+msgstr "Support (Raft)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:384
 msgid "Options for support material and raft"
-msgstr ""
+msgstr "Options pour le matériel de support"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:398
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:118
@@ -315,27 +322,27 @@ msgstr "Vitesse"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:399
 msgid "Speed for print moves"
-msgstr ""
+msgstr "Vitesse pour les déplacements d'impression"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:411
 msgid "Speed for non-print moves"
-msgstr ""
+msgstr "Vitesse pour les déplacements hors impression"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:414
 msgid "Modifiers"
-msgstr ""
+msgstr "Modificateurs"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:417
 msgid "Acceleration control (advanced)"
-msgstr ""
+msgstr "Contrôle de l'accélération (avancé)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:424
 msgid "Autospeed (advanced)"
-msgstr ""
+msgstr "Vitesse automatique (avancé)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:430
 msgid "Multiple Extruders"
-msgstr ""
+msgstr "Extrudeurs multiples"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:431
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:966
@@ -356,11 +363,11 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:149
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:91
 msgid "Wipe tower"
-msgstr ""
+msgstr "Tour de "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:453
 msgid "Extrusion width"
-msgstr ""
+msgstr "Largeur d'extrusion"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:463
 msgid "Overlap"
@@ -372,15 +379,15 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:469
 msgid "Other"
-msgstr ""
+msgstr "Autre"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:476
 msgid "Output options"
-msgstr ""
+msgstr "Option de sortie"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:477
 msgid "Sequential printing"
-msgstr ""
+msgstr "Impression séquentielle"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:479
 msgid "Extruder clearance (mm)"
@@ -388,7 +395,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:488
 msgid "Output file"
-msgstr ""
+msgstr "Fichier de destination"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:494
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1001
@@ -402,17 +409,17 @@ msgstr "Script de Post-processing"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1156
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1157
 msgid "Notes"
-msgstr ""
+msgstr "Notes"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:507
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:867
 msgid "Dependencies"
-msgstr ""
+msgstr "Dépendances"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:508
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:868
 msgid "Profile dependencies"
-msgstr ""
+msgstr "Dépendances du profil"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:509
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:869
@@ -436,7 +443,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:540
 msgid "Spiral Vase"
-msgstr ""
+msgstr "Vase en spirale"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:560
 msgid ""
@@ -482,7 +489,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:620
 msgid "Support Generator"
-msgstr ""
+msgstr "Générateur de support"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:662
 msgid "The "
@@ -500,11 +507,11 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:787
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:368
 msgid "Filament"
-msgstr ""
+msgstr "Filament"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:794
 msgid "Temperature "
-msgstr ""
+msgstr "Température"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:795
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1234
@@ -514,11 +521,11 @@ msgstr "Extrudeur"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:800
 msgid "Bed"
-msgstr ""
+msgstr "Lit"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:805
 msgid "Cooling"
-msgstr ""
+msgstr "Refroidissement"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:806
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:922
@@ -528,11 +535,11 @@ msgstr "Activé"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:817
 msgid "Fan settings"
-msgstr ""
+msgstr "Paramètres du ventilateur"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:818
 msgid "Fan speed"
-msgstr ""
+msgstr "Vitesse du ventilateur"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:826
 msgid "Cooling thresholds"
@@ -540,7 +547,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:832
 msgid "Filament properties"
-msgstr ""
+msgstr "Propriétés du filament"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:836
 msgid "Print speed override"
@@ -549,7 +556,7 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:846
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1119
 msgid "Custom G-code"
-msgstr ""
+msgstr "G-Code personnalisé"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:847
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1120
@@ -568,11 +575,11 @@ msgstr "G-Code de fin"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:937
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:11
 msgid "General"
-msgstr ""
+msgstr "Général"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:938
 msgid "Size and coordinates"
-msgstr ""
+msgstr "Taille et coordonnées"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:940
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:34
@@ -590,16 +597,16 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:967
 msgid "Number of extruders of the printer."
-msgstr ""
+msgstr "Nombre d'extrudeurs de l'imprimante."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:989
 msgid "USB/Serial connection"
-msgstr ""
+msgstr "Connexion série/USB"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:990
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1193
 msgid "Serial port"
-msgstr ""
+msgstr "Port série"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:995
 msgid "Rescan serial ports"
@@ -608,31 +615,31 @@ msgstr ""
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1004
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1072
 msgid "Test"
-msgstr ""
+msgstr "Test"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1017
 msgid "Connection to printer works correctly."
-msgstr ""
+msgstr "La connexion avec l'imprimante est correcte"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1017
 msgid "Success!"
-msgstr ""
+msgstr "Succès !"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1020
 msgid "Connection failed."
-msgstr ""
+msgstr "Erreur de connexion."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1032
 msgid "OctoPrint upload"
-msgstr ""
+msgstr "Téléverser vers OctoPrint"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1035
 msgid " Browse "
-msgstr ""
+msgstr "Parcourir"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1110
 msgid "Firmware"
-msgstr ""
+msgstr "Firmware (micrologiciel)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1132
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:48
@@ -685,7 +692,7 @@ msgstr ""
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:150
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2125
 msgid "Preview"
-msgstr ""
+msgstr "Prévisualisation"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1312
 msgid ""
@@ -696,19 +703,19 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1314
 msgid "Firmware Retraction"
-msgstr ""
+msgstr "Rétractation (firmware)"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1469
 msgid "Default "
-msgstr ""
+msgstr "Défaut"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1469
 msgid " preset"
-msgstr ""
+msgstr "préconfiguration"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1470
 msgid " preset\n"
-msgstr ""
+msgstr "préconfiguration\n"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1488
 msgid ""
@@ -716,6 +723,9 @@ msgid ""
 "\n"
 "is not compatible with printer\n"
 msgstr ""
+"\n"
+"\n"
+"n'est pas compatible avec l'imprimante\n"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1488
 msgid ""
@@ -723,6 +733,9 @@ msgid ""
 "\n"
 "and it has the following unsaved changes:"
 msgstr ""
+"\n"
+"\n"
+"et il a les modifications suivantes non sauvegardées :"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1489
 msgid ""
@@ -730,6 +743,9 @@ msgid ""
 "\n"
 "has the following unsaved changes:"
 msgstr ""
+"\n"
+"\n"
+"a les modifications suivantes non sauvegardées :"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1491
 msgid ""
@@ -737,26 +753,29 @@ msgid ""
 "\n"
 "Discard changes and continue anyway?"
 msgstr ""
+"\n"
+"\n"
+"Annuler les modification et continuer ?"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1492
 msgid "Unsaved Changes"
-msgstr ""
+msgstr "Modifications non sauvegardées"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1560
 msgid "The supplied name is empty. It can't be saved."
-msgstr ""
+msgstr "Le nom est vide. Sauvegarde impossible."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1580
 msgid "remove"
-msgstr ""
+msgstr "enlever"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1580
 msgid "delete"
-msgstr ""
+msgstr "supprimer"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1581
 msgid "Are you sure you want to "
-msgstr ""
+msgstr "Êtes vous surs de vouloir"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1581
 msgid " the selected preset?"
@@ -764,14 +783,14 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1582
 msgid "Remove"
-msgstr ""
+msgstr "Enlever"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1582
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:178
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:196
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2021
 msgid "Delete"
-msgstr ""
+msgstr "Supprimer"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1583
 msgid " Preset"
@@ -779,17 +798,17 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1636
 msgid "All"
-msgstr ""
+msgstr "Tous"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1667
 msgid "Select the printers this profile is compatible with."
-msgstr ""
+msgstr "Sélectionnez les imprimante compatibles avec ce profil."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1751
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1645
 msgid "Save "
-msgstr ""
+msgstr "Sauvegarder"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1751
 msgid " as:"
@@ -799,30 +818,32 @@ msgstr ""
 msgid ""
 "The supplied name is not valid; the following characters are not allowed:"
 msgstr ""
+"Le nom proposé n'est pas valide; les caractères suivants ne sont pas "
+"acceptés:"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1788
 msgid "The supplied name is not available."
-msgstr ""
+msgstr "Le nom proposé n'est pas disponible."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:182
 msgid "Print Settings"
-msgstr ""
+msgstr "Paramètres d'impression"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:202
 msgid "Filament Settings"
-msgstr ""
+msgstr "Paramètres du filament"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:228
 msgid "Printer Settings"
-msgstr ""
+msgstr "Paramètres de l'imprimante"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:248
 msgid "Save preset"
-msgstr ""
+msgstr "Sauvegarder les paramètres"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Field.cpp:42
 msgid "default"
-msgstr ""
+msgstr "défaut"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:26
 #, c-format
@@ -848,7 +869,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:36
 msgid "Fan "
-msgstr ""
+msgstr "Ventilateur"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:41
 #, c-format
@@ -862,19 +883,19 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:48
 msgid "except for the first layer"
-msgstr ""
+msgstr "sauf pour le 1er niveau"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:50
 msgid "will be turned off."
-msgstr ""
+msgstr "sera stoppé."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:151
 msgid "external perimeters"
-msgstr ""
+msgstr "périmètre externe"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:160
 msgid "perimeters"
-msgstr ""
+msgstr "périmètre"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:169
 msgid "infill"
@@ -890,7 +911,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:198
 msgid "support"
-msgstr ""
+msgstr "support"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:208
 msgid "support interface"
@@ -918,7 +939,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:219
 msgid "when printing "
-msgstr ""
+msgstr "pendant l'impression"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:220
 msgid " with a volumetric rate "
@@ -952,11 +973,11 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.hpp:17
 msgid "Preferences"
-msgstr ""
+msgstr "Préférences"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:27
 msgid "Remember output directory"
-msgstr ""
+msgstr "Mémoriser le répertoire de destination"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:29
 msgid ""
@@ -966,17 +987,19 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:35
 msgid "Auto-center parts"
-msgstr ""
+msgstr "Centrer automatiquement les objets"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:37
 msgid ""
 "If this is enabled, Slic3r will auto-center objects around the print bed "
 "center."
 msgstr ""
+"Si activ alors Slic3r centrera automatiquement les objets sur le lit "
+"d'impression."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:43
 msgid "Background processing"
-msgstr ""
+msgstr "Calcul en arrière plan"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:45
 msgid ""
@@ -986,7 +1009,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:51
 msgid "Disable USB/serial connection"
-msgstr ""
+msgstr "Désactiver la connexion série/USB"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:53
 msgid ""
@@ -1017,7 +1040,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:75
 msgid "Use legacy OpenGL 1.1 rendering"
-msgstr ""
+msgstr "Utilisation du rendu OpenGL 1.1"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Preferences.cpp:77
 msgid ""
@@ -1071,7 +1094,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:59
 msgid "Between objects G-code"
-msgstr ""
+msgstr "G-code entre les objets"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:60
 msgid ""
@@ -1082,6 +1105,12 @@ msgid ""
 "variables for all Slic3r settings, so you can put a \"M109 "
 "S[first_layer_temperature]\" command wherever you want."
 msgstr ""
+"Ce code sera inséré entre chaque objet lors des impressions séquentielles. "
+"Par défaut la température de l'extrudeur et le lit sont remis à zéro en "
+"utilisant une commande sans délais; cependant si une commande M104, M109, "
+"M140 ou M190 est détectée dans ce code personnalisé, Slic3r n'ajoutera pas "
+"de commande de température. Note: vous pouvez utiliser des variables Slic3r "
+"comme par exemple \"M109 S[first_layer_temperature]\" où vous voulez."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:68
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:370
@@ -1129,7 +1158,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:684
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:952
 msgid "mm/s²"
-msgstr ""
+msgstr "mm/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:86
 msgid "Bridging angle"
@@ -1149,7 +1178,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1401
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1557
 msgid "°"
-msgstr ""
+msgstr "°"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:97
 msgid "Bridges fan speed"
@@ -1167,7 +1196,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:850
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1060
 msgid "%"
-msgstr ""
+msgstr "%"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:106
 msgid "Bridge flow ratio"
@@ -1204,11 +1233,11 @@ msgstr "Vitesse d'impression des ponts."
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1536
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1649
 msgid "mm/s"
-msgstr ""
+msgstr "mm/s"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:127
 msgid "Brim width"
-msgstr ""
+msgstr "Largeur du débord (brim)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:128
 msgid ""
@@ -1376,7 +1405,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:267
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:277
 msgid "External perimeters"
-msgstr ""
+msgstr "Périmètre externe"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:268
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:377
@@ -1405,7 +1434,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1458
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1619
 msgid "mm or % (leave 0 for default)"
-msgstr ""
+msgstr "mm ou % (laissez 0 pour valeur par défaut)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:279
 msgid ""
@@ -1421,7 +1450,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1501
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1631
 msgid "mm/s or %"
-msgstr ""
+msgstr "mm/s ou %"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:289
 msgid "External perimeters first"
@@ -1488,7 +1517,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:342
 msgid "Extruder Color"
-msgstr ""
+msgstr "Couleur de l'extrudeur"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:343
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:406
@@ -1557,7 +1586,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:382
 msgid "mm or % (leave 0 for auto)"
-msgstr ""
+msgstr "mm ou % (laissez 0 pour automatique)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:387
 msgid "Keep fan always on"
@@ -1620,7 +1649,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:425
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:820
 msgid "mm³/s"
-msgstr ""
+msgstr "mm³/s"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:432
 msgid ""
@@ -1650,11 +1679,11 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:444
 msgid "g/cm³"
-msgstr ""
+msgstr "g/cm³"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:450
 msgid "Filament type"
-msgstr ""
+msgstr "Type de filament"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:451
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1002
@@ -1668,7 +1697,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:470
 msgid "Soluble material"
-msgstr ""
+msgstr "Matériel soluble"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:471
 msgid "Soluble material is most likely used for a soluble support."
@@ -1775,7 +1804,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:740
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1390
 msgid "mm or %"
-msgstr ""
+msgstr "mm ou %"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:615
 msgid "First layer speed"
@@ -2030,7 +2059,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:831
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:842
 msgid "mm³/s²"
-msgstr ""
+msgstr "mm³/s²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:837
 msgid "Max volumetric slope negative"
@@ -2228,7 +2257,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:994
 msgid "(minimum)"
-msgstr ""
+msgstr "(minimum)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1014
 msgid "Printer notes"
@@ -2252,7 +2281,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1039
 msgid "Resolution"
-msgstr ""
+msgstr "Résolution"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1040
 msgid ""
@@ -2318,7 +2347,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1075
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1085
 msgid "mm (zero to disable)"
-msgstr ""
+msgstr "mm (zéro pour désactiver)"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1081
 msgid "Retraction Length (Toolchange)"
@@ -2409,7 +2438,7 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1134
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1135
 msgid "Retraction Speed"
-msgstr ""
+msgstr "Vitesse de rétractation"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1136
 msgid "The speed for retractions (it only applies to the extruder motor)."
@@ -2437,7 +2466,7 @@ msgstr "Position du point de départ des périmètres."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1169
 msgid "Direction"
-msgstr ""
+msgstr "Direction"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1171
 msgid "Preferred direction of the seam"
@@ -2465,7 +2494,7 @@ msgstr "Port USB/Série pour la connexion à l'imprimante."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1202
 msgid "Serial port speed"
-msgstr ""
+msgstr "Vitesse du port série"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1203
 msgid "Speed (baud) of USB/serial port for printer connection."
@@ -2551,7 +2580,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1265
 msgid "mm²"
-msgstr ""
+msgstr "mm²"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1271
 msgid "Solid infill extruder"
@@ -2668,11 +2697,12 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1373
 msgid "Single Extruder Multi Material"
-msgstr ""
+msgstr "Extrudeur seul et Matériaux multiples"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1374
 msgid "The printer multiplexes filaments into a single hot end."
 msgstr ""
+"L'imprimante devra multiplexer les filaments via une seule tête d'impression."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1379
 msgid "Generate support material"
@@ -2887,7 +2917,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1576
 msgid "Temperature"
-msgstr ""
+msgstr "Température"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1582
 msgid "Detect thin walls"
@@ -3049,7 +3079,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1702
 msgid "Position X"
-msgstr ""
+msgstr "Position X"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1703
 msgid "X coordinate of the left front corner of a wipe tower"
@@ -3057,7 +3087,7 @@ msgstr ""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1709
 msgid "Position Y"
-msgstr ""
+msgstr "Position Y"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1710
 msgid "Y coordinate of the left front corner of a wipe tower"
@@ -3066,11 +3096,11 @@ msgstr ""
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1716
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:70
 msgid "Width"
-msgstr ""
+msgstr "Largeur"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1717
 msgid "Width of a wipe tower"
-msgstr ""
+msgstr "Largeur de la \"wipe tower\""
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1723
 msgid "Per color change depth"
@@ -3116,17 +3146,17 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:137
 msgid "None"
-msgstr ""
+msgstr "Aucun"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:138
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:80
 msgid "Perimeter"
-msgstr ""
+msgstr "Périmètre"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:139
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:81
 msgid "External perimeter"
-msgstr ""
+msgstr "Périmètre exterieur"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:140
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:82
@@ -3145,7 +3175,7 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:151
 msgid "Mixed"
-msgstr ""
+msgstr "Mélangé"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:330
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:68
@@ -3154,33 +3184,35 @@ msgstr ""
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:332
 msgid "Height (mm)"
-msgstr ""
+msgstr "Hauteur (mm)"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:334
 msgid "Width (mm)"
-msgstr ""
+msgstr "Largeur (mm)"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:336
 msgid "Speed (mm/s)"
-msgstr ""
+msgstr "Vitesse (mm/s)"
 
 #: c:\src\Slic3r\xs\src\libslic3r\GCode\PreviewData.cpp:338
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater\3DPreview.pm:72
 msgid "Tool"
-msgstr ""
+msgstr "Outil"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI.pm:286
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
-msgstr ""
+msgstr "Sélectionnez un ou plusieurs fichiers (STL/OBJ/AMF/3MF/PRUSA):"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:66
 msgid "Version "
-msgstr ""
+msgstr "Version"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:66
 msgid ""
 " - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"
 msgstr ""
+" - N'oubliez pas de vérifier les mises à jours sur http://github.com/prusa3d/"
+"slic3r/releases"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:118
 msgid "Plater"
@@ -3188,11 +3220,11 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:120
 msgid "Controller"
-msgstr ""
+msgstr "Controleur"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:192
 msgid "No Bonjour device found"
-msgstr ""
+msgstr "Aucun périphérique de type Bonjour détecté"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:192
 msgid "Device Browser"
@@ -3200,39 +3232,41 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:211
 msgid "Connection to OctoPrint works correctly."
-msgstr ""
+msgstr "La connexion avec OctoPrint fonctionne correctement."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:214
 msgid "I wasn't able to connect to OctoPrint ("
-msgstr ""
+msgstr "Je n'ai pas pu me connecter à OctoPrint ("
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:215
 msgid "). Check hostname and OctoPrint version (at least 1.1.0 is required)."
 msgstr ""
+"). Vérifiez le nom de l'hôte et la version d'OctoPrint (il faut au moins la "
+"version 1.1.0)."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
 msgid "Open STL/OBJ/AMF…\tCtrl+O"
-msgstr ""
+msgstr "Ouvrir STL/OBJ/AMF ...\tCtrl+O"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
 msgid "Open a model"
-msgstr ""
+msgstr "Ouvrir un modèle"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:254
 msgid "&Load Config…\tCtrl+L"
-msgstr ""
+msgstr "&Charge une configuration..\tCtrl+L"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:254
 msgid "Load exported configuration file"
-msgstr ""
+msgstr "Charger un fichier de configuration exporté"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:257
 msgid "&Export Config…\tCtrl+E"
-msgstr ""
+msgstr "&Exporter la configuration...\tCtrl+E"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:257
 msgid "Export current configuration to file"
-msgstr ""
+msgstr "Exporter la configuration actuelle vers un fichier"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:260
 msgid "&Load Config Bundle…"
@@ -3292,31 +3326,31 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:294
 msgid "Repair STL file…"
-msgstr ""
+msgstr "Réparer un fichier STL..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:294
 msgid "Automatically repair an STL file"
-msgstr ""
+msgstr "Réparation automatique du fichier STL"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:299
 msgid "Preferences…\tCtrl+,"
-msgstr ""
+msgstr "Préférences...\tCtrl+,"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:299
 msgid "Application preferences"
-msgstr ""
+msgstr "Appliquer les préférences"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:304
 msgid "&Quit"
-msgstr ""
+msgstr "&Quitter"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:304
 msgid "Quit Slic3r"
-msgstr ""
+msgstr "Quitter Slic3r"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:314
 msgid "Export G-code..."
-msgstr ""
+msgstr "Exporter le G-Code..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:314
 msgid "Export current plate as G-code"
@@ -3388,55 +3422,55 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:368
 msgid "Iso"
-msgstr ""
+msgstr "Iso"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:368
 msgid "Iso View"
-msgstr ""
+msgstr "Vue Iso"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:369
 msgid "Top View"
-msgstr ""
+msgstr "Vue du dessus"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:370
 msgid "Bottom View"
-msgstr ""
+msgstr "Vue de dessous"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:371
 msgid "Front"
-msgstr ""
+msgstr "Face"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:371
 msgid "Front View"
-msgstr ""
+msgstr "Vue de face"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:372
 msgid "Rear"
-msgstr ""
+msgstr "Arrière"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:372
 msgid "Rear View"
-msgstr ""
+msgstr "Vue arrière"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:373
 msgid "Left"
-msgstr ""
+msgstr "Gauche"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:373
 msgid "Left View"
-msgstr ""
+msgstr "Vue de gauche"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:374
 msgid "Right"
-msgstr ""
+msgstr "Droite"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:374
 msgid "Right View"
-msgstr ""
+msgstr "Vue de droite"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:380
 msgid "&Configuration "
-msgstr ""
+msgstr "&Configuration"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:380
 msgid "Run Configuration "
@@ -3444,7 +3478,7 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:385
 msgid "Prusa 3D Drivers"
-msgstr ""
+msgstr "Pilotes Prusa 3D (drivers)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:385
 msgid "Open the Prusa3D drivers download page in your browser"
@@ -3468,23 +3502,23 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:398
 msgid "Slic3r &Manual"
-msgstr ""
+msgstr "Slic3r &Manuel"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:398
 msgid "Open the Slic3r manual in your browser"
-msgstr ""
+msgstr "Ouvrir le manuel Slic3r dans votre navigateur web"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:402
 msgid "System Info"
-msgstr ""
+msgstr "Informations système"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:402
 msgid "Show system information"
-msgstr ""
+msgstr "Afficher les informations système"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:405
 msgid "Report an Issue"
-msgstr ""
+msgstr "Faire un rapport de bug"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:405
 msgid "Report an issue on the Slic3r Prusa Edition"
@@ -3492,7 +3526,7 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:408
 msgid "&About Slic3r"
-msgstr ""
+msgstr "&À propos de Slic3r"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:408
 msgid "Show about dialog"
@@ -3500,27 +3534,27 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:418
 msgid "&File"
-msgstr ""
+msgstr "&Fichier"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:419
 msgid "&Plater"
-msgstr ""
+msgstr "&Plateau"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:420
 msgid "&Object"
-msgstr ""
+msgstr "&Objet"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:421
 msgid "&Window"
-msgstr ""
+msgstr "&Fenêtre"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:422
 msgid "&View"
-msgstr ""
+msgstr "&Vue"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:426
 msgid "&Help"
-msgstr ""
+msgstr "&Aide"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:457
 msgid "Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"
@@ -3540,15 +3574,15 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:475
 msgid "File Not Found"
-msgstr ""
+msgstr "Fichier introuvable"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 msgid "SVG"
-msgstr ""
+msgstr "SVG"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 msgid "G-code"
-msgstr ""
+msgstr "G-code"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:514
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1645
@@ -3620,38 +3654,38 @@ msgstr ""
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:104
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2124
 msgid "3D"
-msgstr ""
+msgstr "3D"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:138
 msgid "2D"
-msgstr ""
+msgstr "2D"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:157
 msgid "Layers"
-msgstr ""
+msgstr "Calques"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:177
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:195
 msgid "Add…"
-msgstr ""
+msgstr "Ajouter..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:179
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:197
 msgid "Delete All"
-msgstr ""
+msgstr "Supprimer (tous)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:180
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:198
 msgid "Arrange"
-msgstr ""
+msgstr "Ordonner"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:182
 msgid "More"
-msgstr ""
+msgstr "Plus"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:183
 msgid "Fewer"
-msgstr ""
+msgstr "Moins"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:185
 msgid "45° ccw"
@@ -3670,19 +3704,19 @@ msgstr ""
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:204
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2099
 msgid "Split"
-msgstr ""
+msgstr "Découper"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:189
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:205
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Cut…"
-msgstr ""
+msgstr "Couper..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:191
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:206
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2106
 msgid "Settings…"
-msgstr ""
+msgstr "Paramètres..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:192
 msgid "Layer Editing"
@@ -3694,12 +3728,12 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:220
 msgid "Name"
-msgstr ""
+msgstr "Nom"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:221
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:900
 msgid "Copies"
-msgstr ""
+msgstr "Copies"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:222
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1056
@@ -3710,7 +3744,7 @@ msgstr "Redimensionner"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:236
 msgid "Export G-code…"
-msgstr ""
+msgstr "Exporter le G-code..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:237
 msgid "Slice now"
@@ -3718,31 +3752,31 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:238
 msgid "Print…"
-msgstr ""
+msgstr "Imprimer..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:239
 msgid "Send to printer"
-msgstr ""
+msgstr "Envoyer à l'imprimante"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:240
 msgid "Export STL…"
-msgstr ""
+msgstr "Exporter le STL..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:367
 msgid "Print settings"
-msgstr ""
+msgstr "Paramètres d'impression"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:369
 msgid "Printer"
-msgstr ""
+msgstr "Imprimante"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:398
 msgid "Info"
-msgstr ""
+msgstr "Info"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:409
 msgid "Volume"
-msgstr ""
+msgstr "Volume"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:410
 msgid "Facets"
@@ -3750,7 +3784,7 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:411
 msgid "Materials"
-msgstr ""
+msgstr "Matérieux"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:412
 msgid "Manifold"
@@ -3762,19 +3796,19 @@ msgstr ""
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:447
 msgid "Used Filament (m)"
-msgstr ""
+msgstr "Filament utilisé (m)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:448
 msgid "Used Filament (mm³)"
-msgstr ""
+msgstr "Filament utilisé (mm³)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:449
 msgid "Used Filament (g)"
-msgstr ""
+msgstr "Filament utilisé (g)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:451
 msgid "Estimated printing time"
-msgstr ""
+msgstr "Estimation du temps d'impression"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:629
 msgid "Loading…"
