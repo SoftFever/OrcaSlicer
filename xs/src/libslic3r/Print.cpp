@@ -522,7 +522,7 @@ std::string Print::validate() const
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
     print_volume.min.z = -1e10;
     for (PrintObject *po : this->objects) {
-        if (! print_volume.contains(po->model_object()->tight_bounding_box(false)))
+        if (!print_volume.contains(po->model_object()->tight_bounding_box(false)))
             return "Some objects are outside of the print volume.";
     }
 

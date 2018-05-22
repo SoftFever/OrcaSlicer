@@ -1973,7 +1973,7 @@ sub object_list_changed {
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
-    my $model_fits = $self->{model}->fits_print_volume($self->{config});
+    my $model_fits = $self->{canvas3D} ? $self->{canvas3D}->volumes->check_outside_state($self->{config}) : 1;
     my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
