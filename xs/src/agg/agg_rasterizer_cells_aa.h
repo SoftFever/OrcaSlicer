@@ -260,7 +260,7 @@ namespace agg
         if(mod < 0)
         {
             delta--;
-            mod += dx;
+            mod += static_cast<int>(dx);
         }
 
         m_curr_cell.cover += delta;
@@ -279,10 +279,10 @@ namespace agg
             if (rem < 0)
             {
                 lift--;
-                rem += dx;
+                rem += static_cast<int>(dx);
             }
 
-            mod -= dx;
+            mod -= static_cast<int>(dx);
 
             while (ex1 != ex2)
             {
@@ -290,7 +290,7 @@ namespace agg
                 mod  += rem;
                 if(mod >= 0)
                 {
-                    mod -= dx;
+                    mod -= static_cast<int>(dx);
                     delta++;
                 }
 
@@ -422,7 +422,7 @@ namespace agg
         if(mod < 0)
         {
             delta--;
-            mod += dy;
+            mod += static_cast<int>(dy);
         }
 
         x_from = x1 + delta;
@@ -440,9 +440,9 @@ namespace agg
             if(rem < 0)
             {
                 lift--;
-                rem += dy;
+                rem += static_cast<int>(dy);
             }
-            mod -= dy;
+            mod -= static_cast<int>(dy);
 
             while(ey1 != ey2)
             {
@@ -450,7 +450,7 @@ namespace agg
                 mod  += rem;
                 if (mod >= 0)
                 {
-                    mod -= dy;
+                    mod -= static_cast<int>(dy);
                     delta++;
                 }
 

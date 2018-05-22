@@ -48,7 +48,8 @@ public:
     /// Constructor taking the resolution and the pixel dimension.
     explicit Raster(const Resolution& r, const PixelDim& pd );
     Raster();
-    Raster(const Raster& cpy);
+    Raster(const Raster& cpy) = delete;
+    Raster& operator=(const Raster& cpy) = delete;
     Raster(Raster&& m);
     ~Raster();
 

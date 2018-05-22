@@ -116,10 +116,6 @@ Raster::Raster() {}
 
 Raster::~Raster() {}
 
-Raster::Raster(const Raster &cpy) {
-    *impl_ = *(cpy.impl_);
-}
-
 Raster::Raster(Raster &&m):
     impl_(std::move(m.impl_)) {}
 
@@ -188,6 +184,7 @@ void Raster::save(std::ostream& stream, Compression comp)
                << impl_->resolution().width_px << " "
                << impl_->resolution().height_px << " "
                << "255 ";
+
         stream.write(reinterpret_cast<const char*>(impl_->buffer().data()),
                      impl_->buffer().size()*sizeof(Impl::TBuffer::value_type));
     }
