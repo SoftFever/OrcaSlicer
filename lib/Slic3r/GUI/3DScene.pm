@@ -35,7 +35,6 @@ use Slic3r::Geometry qw(PI);
 # _camera_type: 'perspective' or 'ortho'
 #==============================================================================================================================
 __PACKAGE__->mk_accessors( qw(_quat init
-                              enable_picking
                               enable_moving
                               use_plain_shader
                               on_viewport_changed
@@ -504,7 +503,10 @@ sub mouse_event {
             # Select volume in this 3D canvas.
             # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             # during the scene manipulation.
-            if ($self->enable_picking && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
+#==============================================================================================================================
+            if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
+#            if ($self->enable_picking && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
+#==============================================================================================================================
                 $self->deselect_volumes;
                 $self->select_volume($volume_idx);
                 
@@ -658,7 +660,10 @@ sub mouse_event {
         $self->_mouse_pos($pos);
         # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
         # hovers over.
-        if ($self->enable_picking) {
+#==============================================================================================================================
+        if (Slic3r::GUI::_3DScene::is_picking_enabled($self)) {
+#        if ($self->enable_picking) {
+#==============================================================================================================================
             $self->Update;
             $self->Refresh;
         }
@@ -1460,8 +1465,11 @@ sub Render {
 
     # Head light
     glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
-    
-    if ($self->enable_picking && !$self->_mouse_dragging) {
+
+#==============================================================================================================================
+    if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && !$self->_mouse_dragging) {
+#    if ($self->enable_picking && !$self->_mouse_dragging) {
+#==============================================================================================================================
         if (my $pos = $self->_mouse_pos) {
             # Render the object for picking.
             # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
@@ -1606,7 +1614,10 @@ sub Render {
 #        $self->draw_volumes;
 #==============================================================================================================================
     } elsif ($self->UseVBOs) {
-        if ($self->enable_picking) {
+#==============================================================================================================================
+        if (Slic3r::GUI::_3DScene::is_picking_enabled($self)) {
+#        if ($self->enable_picking) {
+#==============================================================================================================================
             $self->mark_volumes_for_layer_height;
             $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
             $self->volumes->update_outside_state($self->{config}, 0);
@@ -1616,12 +1627,21 @@ sub Render {
         $self->{plain_shader}->enable if $self->{plain_shader};
         $self->volumes->render_VBOs;
         $self->{plain_shader}->disable;
-        glEnable(GL_CULL_FACE) if ($self->enable_picking);
+#==============================================================================================================================
+        glEnable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
+#        glEnable(GL_CULL_FACE) if ($self->enable_picking);
+#==============================================================================================================================
     } else {
         # do not cull backfaces to show broken geometry, if any
-        glDisable(GL_CULL_FACE) if ($self->enable_picking);
+#==============================================================================================================================
+        glDisable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
+#        glDisable(GL_CULL_FACE) if ($self->enable_picking);
+#==============================================================================================================================
         $self->volumes->render_legacy;
-        glEnable(GL_CULL_FACE) if ($self->enable_picking);
+#==============================================================================================================================
+        glEnable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
+#        glEnable(GL_CULL_FACE) if ($self->enable_picking);
+#==============================================================================================================================
     }
 
 #==============================================================================================================================

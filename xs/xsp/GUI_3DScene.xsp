@@ -411,6 +411,14 @@ set_camera_target(canvas, target)
     CODE:
         _3DScene::set_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), target);
     
+bool
+is_picking_enabled(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_picking_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+    
 void
 enable_warning_texture(canvas, enable)
         SV   *canvas;
@@ -424,6 +432,13 @@ enable_legend_texture(canvas, enable)
         bool enable;
     CODE:
         _3DScene::enable_legend_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+    
+void
+enable_picking(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_picking((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
     
 void
 zoom_to_bed(canvas)

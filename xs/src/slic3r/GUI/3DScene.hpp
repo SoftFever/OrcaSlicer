@@ -589,9 +589,11 @@ public:
     static void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
+    static bool is_picking_enabled(wxGLCanvas* canvas);
 
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     static void enable_legend_texture(wxGLCanvas* canvas, bool enable);
+    static void enable_picking(wxGLCanvas* canvas, bool enable);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);

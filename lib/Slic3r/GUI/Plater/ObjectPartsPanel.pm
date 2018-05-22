@@ -153,7 +153,10 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
-        $canvas->enable_picking(1);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::enable_picking($canvas, 1);
+#        $canvas->enable_picking(1);
+#==============================================================================================================================
         $canvas->select_by('volume');
         
         $canvas->on_select(sub {

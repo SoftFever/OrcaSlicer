@@ -1898,6 +1898,11 @@ bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
     return s_canvas_mgr.is_layers_editing_enabled(canvas);
 }
 
+bool _3DScene::is_picking_enabled(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_picking_enabled(canvas);
+}
+
 void _3DScene::enable_warning_texture(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_warning_texture(canvas, enable);
@@ -1906,6 +1911,11 @@ void _3DScene::enable_warning_texture(wxGLCanvas* canvas, bool enable)
 void _3DScene::enable_legend_texture(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_legend_texture(canvas, enable);
+}
+
+void _3DScene::enable_picking(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_picking(canvas, enable);
 }
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)

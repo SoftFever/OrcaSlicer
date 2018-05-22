@@ -19,7 +19,10 @@ sub new {
     my ($parent, $objects, $model, $print, $config) = @_;
     
     my $self = $class->SUPER::new($parent);
-    $self->enable_picking(1);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::enable_picking($self, 1);
+#    $self->enable_picking(1);
+#==============================================================================================================================
     $self->enable_moving(1);
     $self->select_by('object');
     $self->drag_by('instance');

@@ -421,6 +421,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_apply_zoom_to_volumes_filter(false)
     , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
+    , m_picking_enabled(false)
 {
 }
 
@@ -692,6 +693,11 @@ bool GLCanvas3D::is_layers_editing_enabled() const
     return m_layers_editing.is_enabled();
 }
 
+bool GLCanvas3D::is_picking_enabled() const
+{
+    return m_picking_enabled;
+}
+
 void GLCanvas3D::enable_warning_texture(bool enable)
 {
     m_warning_texture_enabled = enable;
@@ -700,6 +706,11 @@ void GLCanvas3D::enable_warning_texture(bool enable)
 void GLCanvas3D::enable_legend_texture(bool enable)
 {
     m_legend_texture_enabled = enable;
+}
+
+void GLCanvas3D::enable_picking(bool enable)
+{
+    m_picking_enabled = enable;
 }
 
 void GLCanvas3D::zoom_to_bed()
@@ -793,7 +804,10 @@ void GLCanvas3D::render_volumes(bool fake_colors) const
     if (m_volumes == nullptr)
         return;
 
-    ::glEnable(GL_LIGHTING);
+    if (fake_colors)
+        ::glDisable(GL_LIGHTING);
+    else
+        ::glEnable(GL_LIGHTING);
 
     // do not cull backfaces to show broken geometry, if any
     ::glDisable(GL_CULL_FACE);
@@ -805,7 +819,7 @@ void GLCanvas3D::render_volumes(bool fake_colors) const
     ::glEnableClientState(GL_NORMAL_ARRAY);
 
     unsigned int volume_id = 0;
-    for (const GLVolume* vol : m_volumes->volumes)
+    for (GLVolume* vol : m_volumes->volumes)
     {
         if (fake_colors)
         {
@@ -816,7 +830,10 @@ void GLCanvas3D::render_volumes(bool fake_colors) const
             ::glColor4f((float)r * INV_255, (float)g * INV_255, (float)b * INV_255, 1.0f);
         }
         else
+        {
+            vol->set_render_color();
             ::glColor4f(vol->render_color[0], vol->render_color[1], vol->render_color[2], vol->render_color[3]);
+        }
 
         vol->render();
         ++volume_id;

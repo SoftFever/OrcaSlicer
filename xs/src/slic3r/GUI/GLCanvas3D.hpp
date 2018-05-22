@@ -156,6 +156,7 @@ private:
     bool m_apply_zoom_to_volumes_filter;
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
+    bool m_picking_enabled;
 
     PerlCallback m_on_viewport_changed_callback;
 
@@ -217,9 +218,11 @@ public:
     BoundingBoxf3 max_bounding_box() const;
 
     bool is_layers_editing_enabled() const;
+    bool is_picking_enabled() const;
 
     void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
+    void enable_picking(bool enable);
 
     void zoom_to_bed();
     void zoom_to_volumes();

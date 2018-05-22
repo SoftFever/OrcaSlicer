@@ -355,6 +355,12 @@ bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_layers_editing_enabled() : false;
 }
 
+bool GLCanvas3DManager::is_picking_enabled(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_picking_enabled() : false;
+}
+
 void GLCanvas3DManager::enable_warning_texture(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -367,6 +373,13 @@ void GLCanvas3DManager::enable_legend_texture(wxGLCanvas* canvas, bool enable)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->enable_legend_texture(enable);
+}
+
+void GLCanvas3DManager::enable_picking(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_picking(enable);
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
