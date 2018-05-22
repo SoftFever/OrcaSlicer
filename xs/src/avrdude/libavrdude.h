@@ -737,7 +737,7 @@ extern bool cancel_flag;
 #define RETURN_IF_CANCEL() \
   do { \
     if (cancel_flag) { \
-      avrdude_message(MSG_INFO, "%s(): Cancelled, exiting...\n", __func__); \
+      avrdude_message(MSG_INFO, "avrdude: %s(): Cancelled, exiting...\n", __func__); \
       return -99; \
     } \
   } while (0)
