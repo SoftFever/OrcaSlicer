@@ -16,14 +16,12 @@
 #include <agg/agg_path_storage.h>
 
 // For png compression
-#if !defined(__linux__) || \
-    (defined(__linux__) && ((_POSIX_C_SOURCE >= 200112L || \
-    _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE))
-inline char *strerror_r(int errnum, char *buf, size_t buflen) {
-    strerror_s(buf, buflen, errnum);
-    return buf;
-}
-#endif
+//#if !((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE)
+//inline char *strerror_r(int errnum, char *buf, size_t buflen) {
+//    strerror_s(buf, buflen, errnum);
+//    return buf;
+//}
+//#endif
 #include <png/writer.hpp>
 
 namespace Slic3r {
@@ -133,6 +131,10 @@ Raster::Raster(Raster &&m):
 
 void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd)
 {
+    // Free up the unneccessary memory and make sure it stays clear after
+    // an exception
+    impl_.reset();
+
     impl_.reset(new Impl(r, pd));
 }
 
