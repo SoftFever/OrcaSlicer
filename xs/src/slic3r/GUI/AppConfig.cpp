@@ -57,6 +57,9 @@ void AppConfig::set_defaults()
     // https://github.com/prusa3d/Slic3r/issues/233
     if (get("use_legacy_opengl").empty())
         set("use_legacy_opengl", "0");
+
+    if (get("remember_output_path").empty())
+        set("remember_output_path", "1");
 }
 
 void AppConfig::load()
