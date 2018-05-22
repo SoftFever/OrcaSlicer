@@ -923,7 +923,9 @@ void Print::_make_skirt()
 
     // Initial offset of the brim inner edge from the object (possible with a support & raft).
     // The skirt will touch the brim if the brim is extruded.
-    coord_t distance = scale_(std::max(this->config.skirt_distance.value, this->config.brim_width.value));
+    Flow brim_flow = this->brim_flow();
+    double actual_brim_width = brim_flow.spacing() * floor(this->config.brim_width.value / brim_flow.spacing());
+    coord_t distance = scale_(std::max(this->config.skirt_distance.value, actual_brim_width) - spacing/2.);
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
@@ -989,7 +991,7 @@ void Print::_make_brim()
             }
     }
     Polygons loops;
-    size_t num_loops = size_t(floor(this->config.brim_width.value / flow.width));
+    size_t num_loops = size_t(floor(this->config.brim_width.value / flow.spacing()));
     for (size_t i = 0; i < num_loops; ++ i) {
         islands = offset(islands, float(flow.scaled_spacing()), jtSquare);
         for (Polygon &poly : islands) {
