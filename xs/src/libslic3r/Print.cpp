@@ -925,13 +925,13 @@ void Print::_make_skirt()
     // The skirt will touch the brim if the brim is extruded.
     Flow brim_flow = this->brim_flow();
     double actual_brim_width = brim_flow.spacing() * floor(this->config.brim_width.value / brim_flow.spacing());
-    coord_t distance = scale_(std::max(this->config.skirt_distance.value, actual_brim_width));
+    coord_t distance = scale_(std::max(this->config.skirt_distance.value, actual_brim_width) - spacing/2.);
     // Draw outlines from outside to inside.
     // Loop while we have less skirts than required or any extruder hasn't reached the min length if any.
     std::vector<coordf_t> extruded_length(extruders.size(), 0.);
     for (int i = n_skirts, extruder_idx = 0; i > 0; -- i) {
         // Offset the skirt outside.
-        distance += coord_t(scale_(spacing/2.));
+        distance += coord_t(scale_(spacing));
         // Generate the skirt centerline.
         Polygon loop;
         {
