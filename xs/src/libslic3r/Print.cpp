@@ -12,10 +12,13 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 
-
 // For png export of the sliced model
 #include <fstream>
 #include <sstream>
+
+#include <wx/stdstream.h>
+#include <wx/wfstream.h>
+#include <wx/zipstrm.h>
 
 #include "Rasterizer/Rasterizer.hpp"
 #include "tbb/parallel_for.h"
@@ -1300,11 +1303,26 @@ public:
 
 template<> // Implementation for PNG raster output
 class FilePrinter<Print::FilePrinterFormat::PNG> {
+
+    struct Layer {
+        Raster first;
+        std::stringstream second;
+
+        Layer() {}
+        Layer(const Raster::Resolution& res, const Raster::PixelDim& pd):
+            first(res, pd) {}
+
+        Layer(const Layer&) = delete;
+        Layer(Layer&& m):
+            first(std::move(m.first)), second(std::move(m.second)) {}
+    };
+
     // We will save the compressed PNG data into stringstreams which can be done
     // in parallel. Later we can write every layer to the disk sequentially.
-    std::vector<std::pair<Raster, std::stringstream>> layers_rst_;
+    std::vector<Layer> layers_rst_;
     Raster::Resolution res_;
     Raster::PixelDim pxdim_;
+
 public:
     inline FilePrinter(unsigned width_px, unsigned height_px,
                        double width_mm, double height_mm,
@@ -1355,25 +1373,28 @@ public:
 
     inline void save(const std::string& path) {
 
+        wxFFileOutputStream zipfile(path + "zippedout.zip");
+
+        if(!zipfile.IsOk()) {
+            BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers!";
+        }
+
+        wxZipOutputStream zipstream(zipfile);
+        wxStdOutputStream pngstream(zipstream);
+
         for(unsigned i = 0; i < layers_rst_.size(); i++) {
             if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
-
                 char lyrnum[6];
                 std::sprintf(lyrnum, "%.5d", i);
-                std::string loc = path + "layer" + lyrnum + ".png";
-
-                std::fstream out(loc, std::fstream::out | std::fstream::binary);
-                if(out.good()) {
-                    out << layers_rst_[i].second.rdbuf();
-                } else {
-                   BOOST_LOG_TRIVIAL(error) << "Can't create file for layer "
-                                            << i;
-                }
-
-                out.close();
+                auto zfilename = std::string("layer") + lyrnum + ".png";
+                zipstream.PutNextEntry(zfilename);
+                pngstream << layers_rst_[i].second.rdbuf();
                 layers_rst_[i].second.str("");
             }
         }
+
+        zipstream.Close();
+        zipfile.Close();
     }
 
     void saveLayer(unsigned lyr, const std::string& path) {

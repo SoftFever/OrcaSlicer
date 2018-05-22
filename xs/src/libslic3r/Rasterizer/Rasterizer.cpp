@@ -16,7 +16,9 @@
 #include <agg/agg_path_storage.h>
 
 // For png compression
-#if defined(WIN32) || defined(__APPLE__ )
+#if !defined(__linux__) || \
+    (defined(__linux__) && ((_POSIX_C_SOURCE >= 200112L || \
+    _XOPEN_SOURCE >= 600) && ! _GNU_SOURCE))
 inline char *strerror_r(int errnum, char *buf, size_t buflen) {
     strerror_s(buf, buflen, errnum);
     return buf;
