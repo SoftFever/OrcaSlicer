@@ -646,29 +646,40 @@ void GLVolumeCollection::render_legacy() const
     glDisable(GL_BLEND);
 }
 
-void GLVolumeCollection::update_outside_state(const DynamicPrintConfig* config, bool all_inside)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config)
 {
     if (config == nullptr)
-        return;
+        return false;
 
     const ConfigOptionPoints* opt = dynamic_cast<const ConfigOptionPoints*>(config->option("bed_shape"));
     if (opt == nullptr)
-        return;
+        return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
     BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
     // Allow the objects to protrude below the print bed
     print_volume.min.z = -1e10;
 
+    bool contained = true;
     for (GLVolume* volume : this->volumes)
     {
-        if (all_inside)
+        if (volume != nullptr)
         {
-            volume->is_outside = false;
-            continue;
+            bool state = print_volume.contains(volume->transformed_bounding_box());
+            contained &= state;
+            volume->is_outside = !state;
         }
+    }
 
-        volume->is_outside = !print_volume.contains(volume->transformed_bounding_box());
+    return contained;
+}
+
+void GLVolumeCollection::reset_outside_state()
+{
+    for (GLVolume* volume : this->volumes)
+    {
+        if (volume != nullptr)
+            volume->is_outside = false;
     }
 }
 
@@ -749,13 +760,13 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     }
 }
 
-std::vector<double> GLVolumeCollection::get_current_print_zs() const
+std::vector<double> GLVolumeCollection::get_current_print_zs(bool active_only) const
 {
     // Collect layer top positions of all volumes.
     std::vector<double> print_zs;
     for (GLVolume *vol : this->volumes)
     {
-        if (vol->is_active)
+        if (!active_only || vol->is_active)
             append(print_zs, vol->print_zs);
     }
     std::sort(print_zs.begin(), print_zs.end());
@@ -2716,7 +2727,7 @@ bool _3DScene::_travel_paths_by_type(const GCodePreviewData& preview_data, GLVol
         TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
         if (type != types.end())
         {
-            type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().min.z));
             type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
             type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
 
@@ -2782,7 +2793,7 @@ bool _3DScene::_travel_paths_by_feedrate(const GCodePreviewData& preview_data, G
         FeedratesList::iterator feedrate = std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate));
         if (feedrate != feedrates.end())
         {
-            feedrate->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            feedrate->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().min.z));
             feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.quad_indices.size());
             feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.triangle_indices.size());
 
@@ -2848,7 +2859,7 @@ bool _3DScene::_travel_paths_by_tool(const GCodePreviewData& preview_data, GLVol
         ToolsList::iterator tool = std::find(tools.begin(), tools.end(), Tool(polyline.extruder_id));
         if (tool != tools.end())
         {
-            tool->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().max.z));
+            tool->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().min.z));
             tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.quad_indices.size());
             tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.triangle_indices.size());
 
@@ -2872,7 +2883,10 @@ void _3DScene::_load_gcode_retractions(const GCodePreviewData& preview_data, GLV
     {
         volumes.volumes.emplace_back(volume);
 
-        for (const GCodePreviewData::Retraction::Position& position : preview_data.retraction.positions)
+        GCodePreviewData::Retraction::PositionsList copy(preview_data.retraction.positions);
+        std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position.z < p2.position.z; });
+
+        for (const GCodePreviewData::Retraction::Position& position : copy)
         {
             volume->print_zs.push_back(unscale(position.position.z));
             volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
@@ -2900,7 +2914,10 @@ void _3DScene::_load_gcode_unretractions(const GCodePreviewData& preview_data, G
     {
         volumes.volumes.emplace_back(volume);
 
-        for (const GCodePreviewData::Retraction::Position& position : preview_data.unretraction.positions)
+        GCodePreviewData::Retraction::PositionsList copy(preview_data.unretraction.positions);
+        std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position.z < p2.position.z; });
+
+        for (const GCodePreviewData::Retraction::Position& position : copy)
         {
             volume->print_zs.push_back(unscale(position.position.z));
             volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());

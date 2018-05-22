@@ -243,7 +243,8 @@ sub reload_scene {
     # checks for geometry outside the print volume to render it accordingly
     if (scalar @{$self->volumes} > 0)
     {
-        if (!$self->{model}->fits_print_volume($self->{config})) {
+        my $contained = $self->volumes->check_outside_state($self->{config});
+        if (!$contained) {
 #==============================================================================================================================
             Slic3r::GUI::_3DScene::enable_warning_texture($self, 1);
 #            $self->set_warning_enabled(1);
@@ -255,7 +256,7 @@ sub reload_scene {
             Slic3r::GUI::_3DScene::enable_warning_texture($self, 0);
 #            $self->set_warning_enabled(0);
 #==============================================================================================================================
-            $self->volumes->update_outside_state($self->{config}, 1);
+            $self->volumes->reset_outside_state();
             Slic3r::GUI::_3DScene::reset_warning_texture();
             $self->on_enable_action_buttons->(scalar @{$self->{model}->objects} > 0) if ($self->on_enable_action_buttons);
         }

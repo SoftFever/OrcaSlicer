@@ -93,10 +93,9 @@
     int count()
         %code{% RETVAL = THIS->volumes.size(); %};
         
-    std::vector<double> get_current_print_zs()
-        %code{% RETVAL = THIS->get_current_print_zs(); %};
+    std::vector<double> get_current_print_zs(bool active_only)
+        %code{% RETVAL = THIS->get_current_print_zs(active_only); %};
 
-        
     void set_range(double low, double high);
 
     void render_VBOs() const;
@@ -105,7 +104,12 @@
     void release_geometry();
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
-    void update_outside_state(DynamicPrintConfig* config, bool all_inside);
+    bool check_outside_state(DynamicPrintConfig* config)
+        %code%{ 
+                RETVAL = THIS->check_outside_state(config);
+        %};
+    
+    void reset_outside_state();    
     void update_colors_by_extruder(DynamicPrintConfig* config);
 
     bool move_volume_up(int idx)
