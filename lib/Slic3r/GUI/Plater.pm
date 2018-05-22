@@ -567,7 +567,8 @@ sub _on_select_preset {
         wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
 	} else {
         my $selected_item = $choice->GetSelection();
-        return if ($selected_item == $self->{"selected_item_$group"});
+        return if ($selected_item == $self->{"selected_item_$group"} && 
+                    !Slic3r::GUI::get_preset_tab($group)->current_preset_is_dirty);
 
         my $selected_string = $choice->GetString($selected_item);
         if ($selected_string eq ("------- ".L("System presets")." -------") ||
