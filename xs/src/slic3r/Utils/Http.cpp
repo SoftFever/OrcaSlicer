@@ -50,6 +50,9 @@ struct Http::priv
 	static size_t writecb(void *data, size_t size, size_t nmemb, void *userp);
 	static int xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
 	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
+
+	void form_add_file(const char *name, const char *path, const char* filename);
+
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
 	void http_perform();
@@ -133,6 +136,26 @@ int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_o
 int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow)
 {
 	return xfercb(userp, dltotal, dlnow, ultotal, ulnow);
+}
+
+void Http::priv::form_add_file(const char *name, const char *path, const char* filename)
+{
+	if (filename != nullptr) {
+		::curl_formadd(&form, &form_end,
+			CURLFORM_COPYNAME, name,
+			CURLFORM_FILE, path,
+			CURLFORM_FILENAME, filename,
+			CURLFORM_CONTENTTYPE, "application/octet-stream",
+			CURLFORM_END
+		);
+	} else {
+		::curl_formadd(&form, &form_end,
+			CURLFORM_COPYNAME, name,
+			CURLFORM_FILE, path,
+			CURLFORM_CONTENTTYPE, "application/octet-stream",
+			CURLFORM_END
+		);
+	}
 }
 
 std::string Http::priv::curl_error(CURLcode curlcode)
@@ -265,17 +288,15 @@ Http& Http::form_add(const std::string &name, const std::string &contents)
 	return *this;
 }
 
-Http& Http::form_add_file(const std::string &name, const std::string &filename)
+Http& Http::form_add_file(const std::string &name, const std::string &path)
 {
-	if (p) {
-		::curl_formadd(&p->form, &p->form_end,
-			CURLFORM_COPYNAME, name.c_str(),
-			CURLFORM_FILE, filename.c_str(),
-			CURLFORM_CONTENTTYPE, "application/octet-stream",
-			CURLFORM_END
-		);
-	}
+	if (p) { p->form_add_file(name.c_str(), path.c_str(), nullptr); }
+	return *this;
+}
 
+Http& Http::form_add_file(const std::string &name, const std::string &path, const std::string &filename)
+{
+	if (p) { p->form_add_file(name.c_str(), path.c_str(), filename.c_str()); }
 	return *this;
 }
 

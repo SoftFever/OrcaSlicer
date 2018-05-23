@@ -1,18 +1,64 @@
 #include "OctoPrint.hpp"
 
 #include <algorithm>
+#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
+#include <boost/log/trivial.hpp>
 
 #include <wx/frame.h>
 #include <wx/event.h>
 #include <wx/progdlg.h>
+#include <wx/sizer.h>
+#include <wx/stattext.h>
+#include <wx/textctrl.h>
+#include <wx/checkbox.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/MsgDialog.hpp"
 #include "Http.hpp"
+
+namespace fs = boost::filesystem;
 
 
 namespace Slic3r {
+
+
+struct SendDialog : public GUI::MsgDialog
+{
+	wxTextCtrl *txt_filename;
+	wxCheckBox *box_print;
+
+	SendDialog(const fs::path &path) :
+		MsgDialog(nullptr, _(L("Send G-Code to printer")), _(L("Upload to OctoPrint with the following filename:")), wxID_NONE),
+		txt_filename(new wxTextCtrl(this, wxID_ANY, path.filename().string())),
+		box_print(new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))))
+	{
+		auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
+		label_dir_hint->Wrap(CONTENT_WIDTH);
+
+		content_sizer->Add(txt_filename, 0, wxEXPAND);
+		content_sizer->Add(label_dir_hint);
+		content_sizer->AddSpacer(VERT_SPACING);
+		content_sizer->Add(box_print, 0, wxBOTTOM, 2*VERT_SPACING);
+
+		btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
+
+		txt_filename->SetFocus();
+		txt_filename->SetSelection(0, path.stem().size());
+
+		Fit();
+	}
+
+	fs::path filename() const {
+		// The buffer object that utf8_str() returns may just point to data owned by the source string
+		// so we need to copy the string in any case to be on the safe side.
+		return fs::path(txt_filename->GetValue().utf8_str().data());
+	}
+
+	bool print() const { return box_print->GetValue(); }
+};
+
 
 
 OctoPrint::OctoPrint(DynamicPrintConfig *config) :
@@ -27,24 +73,39 @@ bool OctoPrint::test(wxString &msg) const
 	// it is ok to refer to `msg` from within the closure
 
 	bool res = true;
-
 	auto url = std::move(make_url("api/version"));
+
+	BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Get version at: %1%") % url;
+
 	auto http = Http::get(std::move(url));
 	set_auth(http);
 	http.on_error([&](std::string, std::string error, unsigned status) {
+			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error getting version: %1% (HTTP %2%)") % error % status;
 			res = false;
 			msg = format_error(error, status);
+		})
+		.on_complete([&](std::string body, unsigned) {
+			BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: Got version: %1%") % body;
 		})
 		.perform_sync();
 
 	return res;
 }
 
-bool OctoPrint::send_gcode(const std::string &filename, bool print) const
+bool OctoPrint::send_gcode(const std::string &filename) const
 {
 	enum { PROGRESS_RANGE = 1000 };
 
 	const auto errortitle = _(L("Error while uploading to the OctoPrint server"));
+	fs::path filepath(filename);
+
+	SendDialog send_dialog(filepath.filename().string());
+	if (send_dialog.ShowModal() != wxID_OK) { return false; }
+
+	const bool print = send_dialog.print();
+	const auto upload_filepath = send_dialog.filename();
+	const auto upload_filename = upload_filepath.filename();
+	const auto upload_parent_path = upload_filepath.parent_path();
 
 	wxProgressDialog progress_dialog(
 		_(L("OctoPrint upload")),
@@ -61,14 +122,26 @@ bool OctoPrint::send_gcode(const std::string &filename, bool print) const
 
 	bool res = true;
 
-	auto http = Http::post(std::move(make_url("api/files/local")));
+	auto url = make_url("api/files/local");
+
+	BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Uploading file %1% at %2%, filename: %3%, path: %4%, print: %5%")
+		% filepath
+		% url
+		% upload_filename
+		% upload_parent_path
+		% print;
+
+	auto http = Http::post(std::move(url));
 	set_auth(http);
 	http.form_add("print", print ? "true" : "false")
-		.form_add_file("file", filename)
+		.form_add("path", upload_parent_path.string())
+		.form_add_file("file", filename, upload_filename.string())
 		.on_complete([&](std::string body, unsigned status) {
+			BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: File uploaded: HTTP %1%: %2%") % status % body;
 			progress_dialog.Update(PROGRESS_RANGE);
 		})
 		.on_error([&](std::string body, std::string error, unsigned status) {
+			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1% (HTTP %2%)") % error % status;
 			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(error, status));
 			GUI::show_error(&progress_dialog, std::move(errormsg));
 			res = false;

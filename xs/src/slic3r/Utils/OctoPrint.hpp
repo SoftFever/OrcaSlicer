@@ -17,7 +17,7 @@ public:
 	OctoPrint(DynamicPrintConfig *config);
 
 	bool test(wxString &curl_msg) const;
-	bool send_gcode(const std::string &filename, bool print = false) const;
+	bool send_gcode(const std::string &filename) const;
 private:
 	std::string host;
 	std::string apikey;
