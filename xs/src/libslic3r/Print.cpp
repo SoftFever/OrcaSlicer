@@ -1301,8 +1301,10 @@ public:
     void saveLayer(unsigned lyr, const std::string& path);
 };
 
-template<> // Implementation for PNG raster output
-class FilePrinter<Print::FilePrinterFormat::PNG> {
+// Implementation for PNG raster output
+// Be aware that if a large number of layers are allocated, it can wery well
+// exhaust the available memory.
+template<> class FilePrinter<Print::FilePrinterFormat::PNG> {
 
     struct Layer {
         Raster first;
@@ -1498,14 +1500,17 @@ void Print::print_to(std::string dirpath,
         }
 
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
-        // printer.saveLayer(layer_id, dir); We could save the layer immediately
 
+        // printer.saveLayer(layer_id, dir); We could save the layer immediately
     };
 
     // Print all the layers in parallel
     tbb::parallel_for<size_t, decltype(process_layer)>(0,
                                                        layers.size(),
                                                        process_layer);
+
+    // Sequential version (for testing)
+    // for(unsigned l = 0; l < layers.size(); ++l) process_layer(l);
 
     // Save the print into the file system.
     printer.save(dir);
