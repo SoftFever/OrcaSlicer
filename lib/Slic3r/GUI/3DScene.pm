@@ -360,6 +360,7 @@ sub _variable_layer_thickness_action {
     my ($self, $mouse_event, $do_modification) = @_;
     # A volume is selected. Test, whether hovering over a layer thickness bar.
     return if $self->{layer_height_edit_last_object_id} == -1;
+    
     if (defined($mouse_event)) {
         my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
         $self->{layer_height_edit_last_z} = unscale($self->{print}->get_object($self->{layer_height_edit_last_object_id})->size->z)
@@ -374,9 +375,20 @@ sub _variable_layer_thickness_action {
         $self->{layer_height_edit_strength},
         $self->{layer_height_edit_band_width}, 
         $self->{layer_height_edit_last_action});
-    $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
+        
+    # searches the id of the first volume of the selected object
+    my $volume_idx = 0;
+    for my $i (0..$self->{layer_height_edit_last_object_id} - 1) {
+        my $obj = $self->{print}->get_object($i);
+        for my $j (0..$obj->region_volumes_count - 1) {
+            $volume_idx += scalar @{$obj->get_region_volumes($j)};
+        }
+    }
+
+    $self->volumes->[$volume_idx]->generate_layer_height_texture(
         $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
-    $self->Refresh;
+
+        $self->Refresh;
     # Automatic action on mouse down with the same coordinate.
     $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
 }
@@ -1623,6 +1635,11 @@ sub draw_active_object_annotations {
     $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
     $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
     glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+#=============================================================================================================================================    
+    print "texture id: ";
+    print $self->{layer_preview_z_texture_id};
+    print "\n";
+#=============================================================================================================================================    
     glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
         0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
