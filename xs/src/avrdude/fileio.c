@@ -45,6 +45,8 @@
 
 #define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
 
+#define MAX_MODE_LEN 32  // For fopen_utf8()
+
 
 struct ihexrec {
   unsigned char    reclen;
@@ -98,6 +100,23 @@ static int fileio_num(struct fioparms * fio,
 
 static int fmt_autodetect(char * fname);
 
+
+
+static FILE *fopen_utf8(const char *filename, const char *mode)
+{
+  // On Windows we need to convert the filename to UTF-16
+#if defined(WIN32NATIVE)
+  static wchar_t fname_buffer[PATH_MAX];
+  static wchar_t mode_buffer[MAX_MODE_LEN];
+
+  if (MultiByteToWideChar(CP_UTF8, 0, filename, -1, fname_buffer, PATH_MAX) == 0) { return NULL; }
+  if (MultiByteToWideChar(CP_ACP, 0, mode, -1, mode_buffer, MAX_MODE_LEN) == 0) { return NULL; }
+
+  return _wfopen(fname_buffer, mode_buffer);
+#else
+  return fopen(filename, mode);
+#endif
+}
 
 
 char * fmtstr(FILEFMT format)
@@ -1368,10 +1387,11 @@ static int fmt_autodetect(char * fname)
   int first = 1;
 
 #if defined(WIN32NATIVE)
-  f = fopen(fname, "r");
+  f = fopen_utf8(fname, "r");
 #else
   f = fopen(fname, "rb");
 #endif
+
   if (f == NULL) {
     avrdude_message(MSG_INFO, "%s: error opening %s: %s\n",
             progname, fname, strerror(errno));
@@ -1533,7 +1553,7 @@ int fileio(int op, char * filename, FILEFMT format,
 
   if (format != FMT_IMM) {
     if (!using_stdio) {
-      f = fopen(fname, fio.mode);
+      f = fopen_utf8(fname, fio.mode);
       if (f == NULL) {
         avrdude_message(MSG_INFO, "%s: can't open %s file %s: %s\n",
                 progname, fio.iodesc, fname, strerror(errno));

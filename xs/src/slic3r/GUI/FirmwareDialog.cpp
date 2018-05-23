@@ -163,6 +163,7 @@ void FirmwareDialog::priv::perform_upload()
 
 	flashing_status(true);
 
+	const auto filename_utf8 = filename.utf8_str();
 	std::vector<std::string> args {{
 		"-v",
 		"-p", "atmega2560",
@@ -170,7 +171,7 @@ void FirmwareDialog::priv::perform_upload()
 		"-P", port,
 		"-b", "115200",   // XXX: is this ok to hardcode?
 		"-D",
-		"-U", (boost::format("flash:w:%1%:i") % filename.ToStdString()).str()
+		"-U", (boost::format("flash:w:%1%:i") % filename_utf8.data()).str()
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
@@ -187,8 +188,9 @@ void FirmwareDialog::priv::perform_upload()
 		.args(args)
 		.on_message(std::move([q](const char *msg, unsigned /* size */) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
+			auto wxmsg = wxString::FromUTF8(msg);
 			evt->SetExtraLong(AE_MESSAGE);
-			evt->SetString(msg);
+			evt->SetString(std::move(wxmsg));
 			wxQueueEvent(q, evt);
 		}))
 		.on_progress(std::move([q](const char * /* task */, unsigned progress) {
