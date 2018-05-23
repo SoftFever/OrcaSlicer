@@ -1304,8 +1304,8 @@ public:
 };
 
 // Implementation for PNG raster output
-// Be aware that if a large number of layers are allocated, it can wery well
-// exhaust the available memory.
+// Be aware that if a large number of layers are allocated, it can very well
+// exhaust the available memory.especially on 32 bit platform.
 template<> class FilePrinter<Print::FilePrinterFormat::PNG> {
 
     struct Layer {
@@ -1318,7 +1318,7 @@ template<> class FilePrinter<Print::FilePrinterFormat::PNG> {
 
         Layer(const Layer&) = delete;
         Layer(Layer&& m):
-            first(std::move(m.first)), second(std::move(m.second)) {}
+            first(std::move(m.first)), second(/*std::move(m.second)*/) {}
     };
 
     // We will save the compressed PNG data into stringstreams which can be done
@@ -1439,7 +1439,7 @@ void Print::print_to(std::string dirpath,
 
     LayerPtrs layers;
 
-    // Merge the sliced layers wit hthe support layers
+    // Merge the sliced layers with the support layers
     std::for_each(objects.begin(), objects.end(), [&layers](PrintObject *o){
         layers.insert(layers.end(), o->layers.begin(), o->layers.end());
         layers.insert(layers.end(), o->support_layers.begin(),
@@ -1447,7 +1447,7 @@ void Print::print_to(std::string dirpath,
     });
 
     // Sort layers by z coord
-    std::sort(layers.begin(), layers.end(), [](Layer *l1, Layer *l2){
+    std::sort(layers.begin(), layers.end(), [](Layer *l1, Layer *l2) {
         return l1->print_z < l2->print_z;
     });
 
@@ -1503,6 +1503,8 @@ void Print::print_to(std::string dirpath,
         }
 
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
+
+        std::cout << "Layer " << layer_id << " processed." << "\n";
 
         // printer.saveLayer(layer_id, dir); We could save the layer immediately
     };

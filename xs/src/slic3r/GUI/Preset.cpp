@@ -183,8 +183,8 @@ void Preset::normalize(DynamicPrintConfig &config)
 			if (key == "compatible_printers")
 				continue;
             auto *opt = config.option(key, false);
-            assert(opt != nullptr);
-            assert(opt->is_vector());
+            /*assert(opt != nullptr);
+            assert(opt->is_vector());*/
             if (opt != nullptr && opt->is_vector())
                 static_cast<ConfigOptionVectorBase*>(opt)->resize(n, defaults.option(key));
         }

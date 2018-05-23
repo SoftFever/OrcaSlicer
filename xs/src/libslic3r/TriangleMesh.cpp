@@ -1192,8 +1192,8 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                 if ((ip1.edge_id  != -1 && ip1.edge_id  == ip2.edge_id) ||
                     (ip1.point_id != -1 && ip1.point_id == ip2.point_id)) {
                     // The current loop is complete. Add it to the output.
-                    assert(opl.points.front().point_id == opl.points.back().point_id);
-                    assert(opl.points.front().edge_id  == opl.points.back().edge_id);
+                    /*assert(opl.points.front().point_id == opl.points.back().point_id);
+                    assert(opl.points.front().edge_id  == opl.points.back().edge_id);*/
                     // Remove the duplicate last point.
                     opl.points.pop_back();
                     if (opl.points.size() >= 3) {

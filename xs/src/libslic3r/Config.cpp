@@ -572,7 +572,7 @@ void StaticConfig::set_defaults()
 t_config_option_keys StaticConfig::keys() const 
 {
     t_config_option_keys keys;
-	assert(this->def != nullptr);
+    assert(this->def() != nullptr);
     for (const auto &opt_def : this->def()->options)
         if (this->option(opt_def.first) != nullptr) 
             keys.push_back(opt_def.first);
