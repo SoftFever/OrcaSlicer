@@ -80,6 +80,9 @@ Slic3r::Polygons offset2(const Slic3r::Polygons &polygons, const float delta1,
 Slic3r::ExPolygons offset2_ex(const Slic3r::Polygons &polygons, const float delta1,
     const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
     double miterLimit = 3);
+Slic3r::ExPolygons offset2_ex(const Slic3r::ExPolygons &expolygons, const float delta1,
+    const float delta2, ClipperLib::JoinType joinType = ClipperLib::jtMiter, 
+    double miterLimit = 3);
 
 Slic3r::Polygons _clipper(ClipperLib::ClipType clipType,
     const Slic3r::Polygons &subject, const Slic3r::Polygons &clip, bool safety_offset_ = false);

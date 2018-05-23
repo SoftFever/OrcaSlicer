@@ -71,11 +71,12 @@ ErrorDialog::ErrorDialog(wxWindow *parent, const wxString &msg) :
 	text->Wrap(CONTENT_WIDTH);
 	p_sizer->Add(text, 1, wxEXPAND);
 
-	panel->SetMinSize(wxSize(CONTENT_WIDTH, CONTENT_HEIGHT));
+	panel->SetMinSize(wxSize(CONTENT_WIDTH, 0));
 	panel->SetScrollRate(0, 5);
 
 	content_sizer->Add(panel, 1, wxEXPAND);
 
+	SetMaxSize(wxSize(-1, CONTENT_MAX_HEIGHT));
 	Fit();
 }
 

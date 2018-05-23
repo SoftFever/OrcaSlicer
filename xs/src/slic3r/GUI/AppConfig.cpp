@@ -57,6 +57,9 @@ void AppConfig::set_defaults()
     // https://github.com/prusa3d/Slic3r/issues/233
     if (get("use_legacy_opengl").empty())
         set("use_legacy_opengl", "0");
+
+    if (get("remember_output_path").empty())
+        set("remember_output_path", "1");
 }
 
 void AppConfig::load()
@@ -100,6 +103,7 @@ void AppConfig::load()
     auto ini_ver = Semver::parse(get("version"));
     m_legacy_datadir = false;
     if (ini_ver) {
+        m_orig_version = *ini_ver;
         // Make 1.40.0 alphas compare well
         ini_ver->set_metadata(boost::none);
         ini_ver->set_prerelease(boost::none);

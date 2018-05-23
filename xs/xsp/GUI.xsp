@@ -4,6 +4,7 @@
 #include <xsinit.h>
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/Utils/ASCIIFolding.hpp"
+#include "slic3r/Utils/Serial.hpp"
 %}
 
 
@@ -19,7 +20,7 @@ void enable_screensaver()
     %code{% Slic3r::GUI::enable_screensaver(); %};
 
 std::vector<std::string> scan_serial_ports()
-    %code{% RETVAL=Slic3r::GUI::scan_serial_ports(); %};
+    %code{% RETVAL=Slic3r::Utils::scan_serial_ports(); %};
 
 bool debugged()
     %code{% RETVAL=Slic3r::GUI::debugged(); %};
@@ -36,8 +37,8 @@ void set_main_frame(SV *ui)
 void set_tab_panel(SV *ui)
     %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
 
-void add_config_menu(SV *ui, int event_preferences_changed, int event_language_change)    
-    %code%{ Slic3r::GUI::add_config_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
+void add_menus(SV *ui, int event_preferences_changed, int event_language_change)    
+    %code%{ Slic3r::GUI::add_menus((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
     %code%{ Slic3r::GUI::create_preset_tabs(no_controller, event_value_change, event_presets_changed); %};
@@ -95,3 +96,5 @@ void add_export_option(SV *ui, std::string format)
 int get_export_option(SV *ui)
     %code%{ RETVAL = Slic3r::GUI::get_export_option((wxFileDialog*)wxPli_sv_2_object(aTHX_ ui, "Wx::FileDialog")); %};
     
+void desktop_open_datadir_folder()
+    %code%{ Slic3r::GUI::desktop_open_datadir_folder(); %};

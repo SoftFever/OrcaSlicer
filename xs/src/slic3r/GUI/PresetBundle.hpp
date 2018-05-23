@@ -54,6 +54,13 @@ public:
     // and the system profiles will point to the VendorProfile instances owned by PresetBundle::vendors.
     std::set<VendorProfile>     vendors;
 
+    struct ObsoletePresets {
+        std::vector<std::string> prints;
+        std::vector<std::string> filaments;
+        std::vector<std::string> printers;
+    };
+    ObsoletePresets             obsolete_presets;
+
     bool                        has_defauls_only() const 
         { return prints.size() <= 1 && filaments.size() <= 1 && printers.size() <= 1; }
 

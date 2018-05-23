@@ -106,7 +106,7 @@ namespace Slic3r { namespace GUI {
 			}
 			double val;
 			str.ToCDouble(&val);
-			if (m_opt.min > val && val > m_opt.max)
+			if (m_opt.min > val || val > m_opt.max)
 			{
 				show_error(m_parent, _(L("Input value is out of range")));
 				if (m_opt.min > val) val = m_opt.min;

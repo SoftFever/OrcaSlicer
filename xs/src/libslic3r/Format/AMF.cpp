@@ -674,6 +674,33 @@ bool load_amf(const char *path, PresetBundle* bundle, Model *model)
         return false;
 }
 
+std::string xml_escape(std::string text)
+{
+    std::string::size_type pos = 0;
+    for (;;)
+    {
+        pos = text.find_first_of("\"\'&<>", pos);
+        if (pos == std::string::npos)
+            break;
+
+        std::string replacement;
+        switch (text[pos])
+        {
+        case '\"': replacement = "&quot;"; break;
+        case '\'': replacement = "&apos;"; break;
+        case '&':  replacement = "&amp;";  break;
+        case '<':  replacement = "&lt;";   break;
+        case '>':  replacement = "&gt;";   break;
+        default: break;
+        }
+
+        text.replace(pos, 1, replacement);
+        pos += replacement.size();
+    }
+
+    return text;
+}
+
 bool store_amf(const char *path, Model *model, Print* print, bool export_print_config)
 {
     if ((path == nullptr) || (model == nullptr) || (print == nullptr))
@@ -701,7 +728,7 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
     {
         std::string config = "\n";
         GCode::append_full_config(*print, config);
-        stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << config << "</metadata>\n";
+        stream << "<metadata type=\"" << SLIC3R_CONFIG_TYPE << "\">" << xml_escape(config) << "</metadata>\n";
     }
 
     for (const auto &material : model->materials) {
