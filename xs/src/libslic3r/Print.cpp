@@ -1258,7 +1258,7 @@ void Print::set_status(int percent, const std::string &message)
  * Interface for a file printer of the slices. Implementation can be an SVG
  * or PNG printer or any other format.
  *
- * The format argument spefies the output format of the printer and it enables
+ * The format argument specifies the output format of the printer and it enables
  * different implementations of this class template for each supported format.
  *
  */
@@ -1287,7 +1287,7 @@ public:
     /*
      * Finish the selected layer. It means that no drawing is allowed on that
      * layer anymore. This fact can be used to prepare the file system output
-     * data like png conmprimation and so on.
+     * data like png comprimation and so on.
      */
     void finishLayer(unsigned layer);
 
@@ -1379,6 +1379,7 @@ public:
 
         if(!zipfile.IsOk()) {
             BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers!";
+            return;
         }
 
         wxZipOutputStream zipstream(zipfile);
