@@ -250,7 +250,22 @@ reset_volumes(canvas)
         SV *canvas;
     CODE:
         _3DScene::reset_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-        
+
+DynamicPrintConfig*
+get_config(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_config((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_config(canvas, config)
+        SV                 *canvas;
+        DynamicPrintConfig *config;
+    CODE:
+        _3DScene::set_config((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), config);
+
 void
 set_bed_shape(canvas, shape)
         SV      *canvas;
@@ -527,6 +542,13 @@ render_volumes(canvas, fake_colors)
         _3DScene::render_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), fake_colors);
 
 void
+render_objects(canvas, useVBOs)
+        SV   *canvas;
+        bool useVBOs;
+    CODE:
+        _3DScene::render_objects((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), useVBOs);
+
+void
 render_cutting_plane(canvas)
         SV *canvas;
     CODE:
@@ -562,6 +584,12 @@ register_on_viewport_changed_callback(canvas, callback)
     CODE:
         _3DScene::register_on_viewport_changed_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
     
+void
+register_on_mark_volumes_for_layer_height(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_mark_volumes_for_layer_height((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
     
     
     

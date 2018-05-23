@@ -31,6 +31,9 @@ sub new {
     $self->{model}              = $model;
     $self->{print}              = $print;
     $self->{config}             = $config;
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_config($self, $config);
+#==============================================================================================================================
     $self->{on_select_object}   = sub {};
     $self->{on_instances_moved} = sub {};
     $self->{on_wipe_tower_moved} = sub {};

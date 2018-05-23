@@ -3,6 +3,7 @@
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
 #include "../../libslic3r/ClipperUtils.hpp"
+#include "../../libslic3r/PrintConfig.hpp"
 
 #include <wx/glcanvas.h>
 
@@ -477,6 +478,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
     , m_volumes(nullptr)
+    , m_config(nullptr)
     , m_dirty(true)
     , m_apply_zoom_to_volumes_filter(false)
     , m_warning_texture_enabled(false)
@@ -610,6 +612,16 @@ void GLCanvas3D::reset_volumes()
         m_volumes->clear();
         set_dirty(true);
     }
+}
+
+DynamicPrintConfig* GLCanvas3D::get_config()
+{
+    return m_config;
+}
+
+void GLCanvas3D::set_config(DynamicPrintConfig* config)
+{
+    m_config = config;
 }
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
@@ -935,6 +947,51 @@ void GLCanvas3D::render_volumes(bool fake_colors) const
     ::glEnable(GL_CULL_FACE);
 }
 
+void GLCanvas3D::render_objects(bool useVBOs)
+{
+    if (m_volumes == nullptr)
+        return;
+
+    ::glEnable(GL_LIGHTING);
+
+    if (!is_shader_enabled())
+        render_volumes(false);
+    else if (useVBOs)
+    {
+        if (is_picking_enabled())
+        {
+            m_on_mark_volumes_for_layer_height.call();
+
+            if (m_config != nullptr)
+            {
+                const BoundingBoxf3& bed_bb = bed_bounding_box();
+                m_volumes->set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
+                m_volumes->check_outside_state(m_config);
+            }
+            // do not cull backfaces to show broken geometry, if any
+            ::glDisable(GL_CULL_FACE);
+        }
+
+        start_using_shader();
+        m_volumes->render_VBOs();
+        stop_using_shader();
+
+        if (is_picking_enabled())
+            ::glEnable(GL_CULL_FACE);
+    }
+    else
+    {
+        // do not cull backfaces to show broken geometry, if any
+        if (is_picking_enabled())
+            ::glDisable(GL_CULL_FACE);
+
+        m_volumes->render_legacy();
+
+        if (is_picking_enabled())
+            ::glEnable(GL_CULL_FACE);
+    }
+}
+
 void GLCanvas3D::render_cutting_plane() const
 {
     m_cutting_plane.render(volumes_bounding_box());
@@ -1034,6 +1091,12 @@ void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
 {
     if (callback != nullptr)
         m_on_viewport_changed_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_mark_volumes_for_layer_height(void* callback)
+{
+    if (callback != nullptr)
+        m_on_mark_volumes_for_layer_height.register_callback(callback);
 }
 
 void GLCanvas3D::on_size(wxSizeEvent& evt)
@@ -1210,6 +1273,7 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
 void GLCanvas3D::_deregister_callbacks()
 {
     m_on_viewport_changed_callback.deregister_callback();
+    m_on_mark_volumes_for_layer_height.deregister_callback();
 }
 
 } // namespace GUI

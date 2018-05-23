@@ -1792,6 +1792,16 @@ void _3DScene::reset_volumes(wxGLCanvas* canvas)
     s_canvas_mgr.reset_volumes(canvas);
 }
 
+DynamicPrintConfig* _3DScene::get_config(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_config(canvas);
+}
+
+void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
+{
+    s_canvas_mgr.set_config(canvas, config);
+}
+
 void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     return s_canvas_mgr.set_bed_shape(canvas, shape);
@@ -1988,6 +1998,11 @@ void _3DScene::render_volumes(wxGLCanvas* canvas, bool fake_colors)
     s_canvas_mgr.render_volumes(canvas, fake_colors);
 }
 
+void _3DScene::render_objects(wxGLCanvas* canvas, bool useVBOs)
+{
+    s_canvas_mgr.render_objects(canvas, useVBOs);
+}
+
 void _3DScene::render_cutting_plane(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render_cutting_plane(canvas);
@@ -2011,6 +2026,11 @@ void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float lef
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);
+}
+
+void _3DScene::register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_mark_volumes_for_layer_height(canvas, callback);
 }
 
 //void _3DScene::_glew_init()

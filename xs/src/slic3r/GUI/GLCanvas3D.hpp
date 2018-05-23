@@ -14,6 +14,7 @@ class wxKeyEvent;
 namespace Slic3r {
 
 class GLVolumeCollection;
+class DynamicPrintConfig;
 class GLShader;
 class ExPolygon;
 
@@ -171,6 +172,7 @@ private:
     Shader m_shader;
 
     GLVolumeCollection* m_volumes;
+    DynamicPrintConfig* m_config;
 
     bool m_dirty;
     bool m_apply_zoom_to_volumes_filter;
@@ -179,6 +181,7 @@ private:
     bool m_picking_enabled;
 
     PerlCallback m_on_viewport_changed_callback;
+    PerlCallback m_on_mark_volumes_for_layer_height;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -197,8 +200,10 @@ public:
 
     GLVolumeCollection* get_volumes();
     void set_volumes(GLVolumeCollection* volumes);
-
     void reset_volumes();
+
+    DynamicPrintConfig* get_config();
+    void set_config(DynamicPrintConfig* config);
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -259,6 +264,7 @@ public:
     void render_bed() const;
     void render_axes() const;
     void render_volumes(bool fake_colors) const;
+    void render_objects(bool useVBOs);
     void render_cutting_plane() const;
     void render_warning_texture() const;
     void render_legend_texture() const;
@@ -266,6 +272,7 @@ public:
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);
+    void register_on_mark_volumes_for_layer_height(void* callback);
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);

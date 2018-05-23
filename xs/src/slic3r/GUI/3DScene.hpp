@@ -555,8 +555,10 @@ public:
 
     static GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
-
     static void reset_volumes(wxGLCanvas* canvas);
+
+    static DynamicPrintConfig* get_config(wxGLCanvas* canvas);
+    static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     static void set_auto_bed_shape(wxGLCanvas* canvas);
@@ -612,6 +614,7 @@ public:
     static void render_bed(wxGLCanvas* canvas);
     static void render_axes(wxGLCanvas* canvas);
     static void render_volumes(wxGLCanvas* canvas, bool fake_colors);
+    static void render_objects(wxGLCanvas* canvas, bool useVBOs);
     static void render_cutting_plane(wxGLCanvas* canvas);
     static void render_warning_texture(wxGLCanvas* canvas);
     static void render_legend_texture(wxGLCanvas* canvas);
@@ -619,6 +622,7 @@ public:
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback);
 
 //    static void _glew_init();
 //##################################################################################################################

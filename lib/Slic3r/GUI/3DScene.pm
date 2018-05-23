@@ -282,6 +282,14 @@ sub new {
         $self->_variable_layer_thickness_action(undef);
     });
     
+#==============================================================================================================================
+    my $on_mark_volumes_for_layer_height = sub {
+        $self->mark_volumes_for_layer_height;
+    };
+    
+    Slic3r::GUI::_3DScene::register_on_mark_volumes_for_layer_height($self, $on_mark_volumes_for_layer_height);
+#==============================================================================================================================
+    
     return $self;
 }
 
@@ -1504,6 +1512,7 @@ sub Render {
     
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render_background($self);
+    Slic3r::GUI::_3DScene::render_bed($self);
     
 #    # draw fixed background
 #    if ($self->background) {
@@ -1538,10 +1547,7 @@ sub Render {
 #    
 #    # draw ground
 #    my $ground_z = GROUND_Z;
-#==============================================================================================================================
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::render_bed($self);
-    
+#    
 #    if ($self->bed_triangles) {
 #        glDisable(GL_DEPTH_TEST);
 #        
@@ -1575,6 +1581,10 @@ sub Render {
     
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render_axes($self);
+    Slic3r::GUI::_3DScene::render_objects($self, $self->UseVBOs);
+    Slic3r::GUI::_3DScene::render_cutting_plane($self);
+    Slic3r::GUI::_3DScene::render_warning_texture($self);
+    Slic3r::GUI::_3DScene::render_legend_texture($self);
     
 #    {
 #       # draw axes
@@ -1602,61 +1612,31 @@ sub Render {
 #        glVertex3f(@$origin, $ground_z+$axis_len);
 #        glEnd();
 #    }
-#==============================================================================================================================
-    
-    glEnable(GL_LIGHTING);
-        
-    # draw objects
-#===================================================================================================================================        
-    if (!Slic3r::GUI::_3DScene::is_shader_enabled($self)) {
+#    
+#    glEnable(GL_LIGHTING);
+#    
+#    # draw objects
 #    if (! $self->use_plain_shader) {
-#===================================================================================================================================        
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::render_volumes($self, 0);
 #        $self->draw_volumes;
-#==============================================================================================================================
-    } elsif ($self->UseVBOs) {
-#==============================================================================================================================
-        if (Slic3r::GUI::_3DScene::is_picking_enabled($self)) {
+#    } elsif ($self->UseVBOs) {
 #        if ($self->enable_picking) {
-#==============================================================================================================================
-            $self->mark_volumes_for_layer_height;
-            $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
-            $self->volumes->check_outside_state($self->{config});
-            # do not cull backfaces to show broken geometry, if any
-            glDisable(GL_CULL_FACE);
-        }
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::start_using_shader($self);
+#            $self->mark_volumes_for_layer_height;
+#            $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
+#            $self->volumes->check_outside_state($self->{config});
+#            # do not cull backfaces to show broken geometry, if any
+#            glDisable(GL_CULL_FACE);
+#        }
 #        $self->{plain_shader}->enable if $self->{plain_shader};
-#==============================================================================================================================
-        $self->volumes->render_VBOs;
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::stop_using_shader($self);
+#        $self->volumes->render_VBOs;
 #        $self->{plain_shader}->disable;
-#==============================================================================================================================
-#==============================================================================================================================
-        glEnable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
 #        glEnable(GL_CULL_FACE) if ($self->enable_picking);
-#==============================================================================================================================
-    } else {
-        # do not cull backfaces to show broken geometry, if any
-#==============================================================================================================================
-        glDisable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
+#    } else {
+#        # do not cull backfaces to show broken geometry, if any
 #        glDisable(GL_CULL_FACE) if ($self->enable_picking);
-#==============================================================================================================================
-        $self->volumes->render_legacy;
-#==============================================================================================================================
-        glEnable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
+#        $self->volumes->render_legacy;
 #        glEnable(GL_CULL_FACE) if ($self->enable_picking);
-#==============================================================================================================================
-    }
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::render_cutting_plane($self);
-    Slic3r::GUI::_3DScene::render_warning_texture($self);
-    Slic3r::GUI::_3DScene::render_legend_texture($self);
-    
+#    }
+#
 #    if (defined $self->cutting_plane_z) {
 #        # draw cutting plane
 #        my $plane_z = $self->cutting_plane_z;

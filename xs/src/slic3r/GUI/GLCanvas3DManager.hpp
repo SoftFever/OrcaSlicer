@@ -63,8 +63,10 @@ public:
 
     GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
-
     void reset_volumes(wxGLCanvas* canvas);
+
+    DynamicPrintConfig* get_config(wxGLCanvas* canvas);
+    void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
 
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     void set_auto_bed_shape(wxGLCanvas* canvas);
@@ -120,6 +122,7 @@ public:
     void render_bed(wxGLCanvas* canvas) const;
     void render_axes(wxGLCanvas* canvas) const;
     void render_volumes(wxGLCanvas* canvas, bool fake_colors) const;
+    void render_objects(wxGLCanvas* canvas, bool useVBOs);
     void render_cutting_plane(wxGLCanvas* canvas) const;
     void render_warning_texture(wxGLCanvas* canvas) const;
     void render_legend_texture(wxGLCanvas* canvas) const;
@@ -127,6 +130,7 @@ public:
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

@@ -200,6 +200,19 @@ void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
         it->second->reset_volumes();
 }
 
+DynamicPrintConfig* GLCanvas3DManager::get_config(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_config() : nullptr;
+}
+
+void GLCanvas3DManager::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_config(config);
+}
+
 void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -463,6 +476,13 @@ void GLCanvas3DManager::render_volumes(wxGLCanvas* canvas, bool fake_colors) con
         it->second->render_volumes(fake_colors);
 }
 
+void GLCanvas3DManager::render_objects(wxGLCanvas* canvas, bool useVBOs)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->render_objects(useVBOs);
+}
+
 void GLCanvas3DManager::render_cutting_plane(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -496,6 +516,13 @@ void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_viewport_changed_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_mark_volumes_for_layer_height(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
