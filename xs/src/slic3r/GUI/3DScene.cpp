@@ -1752,10 +1752,9 @@ void _3DScene::remove_all_canvases()
     std::cout << "# canvases not yet released: " << s_canvas_mgr.count() << std::endl;
     s_canvas_mgr.remove_all();
 }
-
-void _3DScene::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
+bool _3DScene::init(wxGLCanvas* canvas, bool useVBOs)
 {
-    s_canvas_mgr.resize(canvas, w, h);
+    return s_canvas_mgr.init(canvas, useVBOs);
 }
 
 bool _3DScene::is_dirty(wxGLCanvas* canvas)
@@ -1771,6 +1770,11 @@ void _3DScene::set_dirty(wxGLCanvas* canvas, bool dirty)
 bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_shown_on_screen(canvas);
+}
+
+void _3DScene::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
+{
+    s_canvas_mgr.resize(canvas, w, h);
 }
 
 GLVolumeCollection* _3DScene::get_volumes(wxGLCanvas* canvas)
@@ -1914,6 +1918,11 @@ bool _3DScene::is_picking_enabled(wxGLCanvas* canvas)
     return s_canvas_mgr.is_picking_enabled(canvas);
 }
 
+bool _3DScene::is_shader_enabled(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_shader_enabled(canvas);
+}
+
 void _3DScene::enable_warning_texture(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_warning_texture(canvas, enable);
@@ -1929,6 +1938,11 @@ void _3DScene::enable_picking(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_picking(canvas, enable);
 }
 
+void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_shader(canvas, enable);
+}
+
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.zoom_to_bed(canvas);
@@ -1942,6 +1956,16 @@ void _3DScene::zoom_to_volumes(wxGLCanvas* canvas)
 void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
 {
     s_canvas_mgr.select_view(canvas, direction);
+}
+
+bool _3DScene::start_using_shader(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.start_using_shader(canvas);
+}
+
+void _3DScene::stop_using_shader(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.stop_using_shader(canvas);
 }
 
 void _3DScene::render_background(wxGLCanvas* canvas)

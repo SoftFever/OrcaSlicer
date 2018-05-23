@@ -148,6 +148,12 @@ bool GLCanvas3DManager::layer_editing_allowed() const
     return m_layer_editing.allowed;
 }
 
+bool GLCanvas3DManager::init(wxGLCanvas* canvas, bool useVBOs)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->init(useVBOs) : false;
+}
+
 bool GLCanvas3DManager::is_dirty(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -361,6 +367,12 @@ bool GLCanvas3DManager::is_picking_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_picking_enabled() : false;
 }
 
+bool GLCanvas3DManager::is_shader_enabled(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_shader_enabled() : false;
+}
+
 void GLCanvas3DManager::enable_warning_texture(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -382,6 +394,13 @@ void GLCanvas3DManager::enable_picking(wxGLCanvas* canvas, bool enable)
         it->second->enable_picking(enable);
 }
 
+void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_shader(enable);
+}
+
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -401,6 +420,19 @@ void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direc
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->select_view(direction);
+}
+
+bool GLCanvas3DManager::start_using_shader(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->start_using_shader() : false;
+}
+
+void GLCanvas3DManager::stop_using_shader(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->stop_using_shader();
 }
 
 void GLCanvas3DManager::render_background(wxGLCanvas* canvas) const

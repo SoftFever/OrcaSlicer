@@ -36,7 +36,6 @@ use Slic3r::Geometry qw(PI);
 #==============================================================================================================================
 __PACKAGE__->mk_accessors( qw(_quat init
                               enable_moving
-                              use_plain_shader
                               on_viewport_changed
                               on_hover
                               on_select
@@ -191,9 +190,7 @@ sub new {
 #    $self->_zoom(1);
 #    $self->_legend_enabled(0);
 #    $self->_warning_enabled(0);
-#==============================================================================================================================
-    $self->use_plain_shader(0);
-#==============================================================================================================================
+#    $self->use_plain_shader(0);
 #    $self->_apply_zoom_to_volumes_filter(0);
 #==============================================================================================================================
     $self->_mouse_dragging(0);
@@ -1382,28 +1379,30 @@ sub InitGL {
     glEnable(GL_COLOR_MATERIAL);
     glEnable(GL_MULTISAMPLE) if ($self->{can_multisample});
 
-    if ($self->UseVBOs) {
-        my $shader = new Slic3r::GUI::_3DScene::GLShader;
 #===================================================================================================================================        
-        if (! $shader->load_from_file("gouraud.fs", "gouraud.vs")) {
+    Slic3r::GUI::_3DScene::init($self, $self->UseVBOs);
+#    if ($self->UseVBOs) {
+#        my $shader = new Slic3r::GUI::_3DScene::GLShader;
 ##        if (! $shader->load($self->_fragment_shader_Phong, $self->_vertex_shader_Phong)) {
+#            print "Compilaton of path shader failed: \n" . $shader->last_error . "\n";
+#            $shader = undef;
+#        } else {
+#            $self->{plain_shader} = $shader;
+#        }
+#    }
 #===================================================================================================================================        
-            print "Compilaton of path shader failed: \n" . $shader->last_error . "\n";
-            $shader = undef;
-        } else {
-            $self->{plain_shader} = $shader;
-        }
-    }
 }
 
 sub DestroyGL {
     my $self = shift;
     if ($self->GetContext) {
         $self->SetCurrent($self->GetContext);
-        if ($self->{plain_shader}) {
-            $self->{plain_shader}->release;
-            delete $self->{plain_shader};
-        }
+#===================================================================================================================================        
+#        if ($self->{plain_shader}) {
+#            $self->{plain_shader}->release;
+#            delete $self->{plain_shader};
+#        }
+#===================================================================================================================================        
         if ($self->{layer_height_edit_shader}) {
             $self->{layer_height_edit_shader}->release;
             delete $self->{layer_height_edit_shader};
@@ -1608,7 +1607,10 @@ sub Render {
     glEnable(GL_LIGHTING);
         
     # draw objects
-    if (! $self->use_plain_shader) {
+#===================================================================================================================================        
+    if (!Slic3r::GUI::_3DScene::is_shader_enabled($self)) {
+#    if (! $self->use_plain_shader) {
+#===================================================================================================================================        
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::render_volumes($self, 0);
 #        $self->draw_volumes;
@@ -1624,9 +1626,15 @@ sub Render {
             # do not cull backfaces to show broken geometry, if any
             glDisable(GL_CULL_FACE);
         }
-        $self->{plain_shader}->enable if $self->{plain_shader};
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::start_using_shader($self);
+#        $self->{plain_shader}->enable if $self->{plain_shader};
+#==============================================================================================================================
         $self->volumes->render_VBOs;
-        $self->{plain_shader}->disable;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::stop_using_shader($self);
+#        $self->{plain_shader}->disable;
+#==============================================================================================================================
 #==============================================================================================================================
         glEnable(GL_CULL_FACE) if (Slic3r::GUI::_3DScene::is_picking_enabled($self));
 #        glEnable(GL_CULL_FACE) if ($self->enable_picking);

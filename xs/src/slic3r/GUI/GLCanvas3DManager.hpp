@@ -52,6 +52,8 @@ public:
     bool use_VBOs() const;
     bool layer_editing_allowed() const;
 
+    bool init(wxGLCanvas* canvas, bool useVBOs);
+
     bool is_dirty(wxGLCanvas* canvas) const;
     void set_dirty(wxGLCanvas* canvas, bool dirty);
 
@@ -100,14 +102,19 @@ public:
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_picking_enabled(wxGLCanvas* canvas) const;
+    bool is_shader_enabled(wxGLCanvas* canvas) const;
 
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     void enable_picking(wxGLCanvas* canvas, bool enable);
+    void enable_shader(wxGLCanvas* canvas, bool enable);
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
+
+    bool start_using_shader(wxGLCanvas* canvas) const;
+    void stop_using_shader(wxGLCanvas* canvas) const;
 
     void render_background(wxGLCanvas* canvas) const;
     void render_bed(wxGLCanvas* canvas) const;

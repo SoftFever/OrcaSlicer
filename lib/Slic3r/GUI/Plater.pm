@@ -122,7 +122,10 @@ sub new {
         $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
         $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
-        $self->{canvas3D}->use_plain_shader(1);
+#===================================================================================================================================        
+        Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
+#        $self->{canvas3D}->use_plain_shader(1);
+#===================================================================================================================================        
         $self->{canvas3D}->set_on_wipe_tower_moved(sub {
             my ($new_pos_3f) = @_;
             my $cfg = Slic3r::Config->new;

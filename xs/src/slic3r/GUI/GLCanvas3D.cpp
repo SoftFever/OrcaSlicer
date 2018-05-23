@@ -1,6 +1,7 @@
 #include "GLCanvas3D.hpp"
 
 #include "../../slic3r/GUI/3DScene.hpp"
+#include "../../slic3r/GUI/GLShader.hpp"
 #include "../../libslic3r/ClipperUtils.hpp"
 
 #include <wx/glcanvas.h>
@@ -413,6 +414,65 @@ bool GLCanvas3D::LayersEditing::is_enabled() const
     return m_enabled;
 }
 
+GLCanvas3D::Shader::Shader()
+    : m_enabled(false)
+    , m_shader(nullptr)
+{
+}
+
+bool GLCanvas3D::Shader::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
+{
+    m_shader = new GLShader();
+    if (m_shader != nullptr)
+    {
+        if (!m_shader->load_from_file(fragment_shader_filename.c_str(), vertex_shader_filename.c_str()))
+        {
+            std::cout << "Compilaton of path shader failed:" << std::endl;
+            std::cout << m_shader->last_error << std::endl;
+            reset();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void GLCanvas3D::Shader::reset()
+{
+    if (m_shader != nullptr)
+    {
+        delete m_shader;
+        m_shader = nullptr;
+    }
+}
+
+bool GLCanvas3D::Shader::is_enabled() const
+{
+    return m_enabled;
+}
+
+void GLCanvas3D::Shader::set_enabled(bool enabled)
+{
+    m_enabled = enabled;
+}
+
+bool GLCanvas3D::Shader::start() const
+{
+    if (m_enabled && (m_shader != nullptr))
+    {
+        m_shader->enable();
+        return true;
+    }
+    else
+        return false;
+}
+
+void GLCanvas3D::Shader::stop() const
+{
+    if (m_shader != nullptr)
+        m_shader->disable();
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
@@ -428,6 +488,15 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
 GLCanvas3D::~GLCanvas3D()
 {
     _deregister_callbacks();
+    m_shader.reset();
+}
+
+bool GLCanvas3D::init(bool useVBOs)
+{
+    if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
+        return false;
+
+    return true;
 }
 
 bool GLCanvas3D::set_current()
@@ -698,6 +767,11 @@ bool GLCanvas3D::is_picking_enabled() const
     return m_picking_enabled;
 }
 
+bool GLCanvas3D::is_shader_enabled() const
+{
+    return m_shader.is_enabled();
+}
+
 void GLCanvas3D::enable_warning_texture(bool enable)
 {
     m_warning_texture_enabled = enable;
@@ -711,6 +785,11 @@ void GLCanvas3D::enable_legend_texture(bool enable)
 void GLCanvas3D::enable_picking(bool enable)
 {
     m_picking_enabled = enable;
+}
+
+void GLCanvas3D::enable_shader(bool enable)
+{
+    m_shader.set_enabled(enable);
 }
 
 void GLCanvas3D::zoom_to_bed()
@@ -754,6 +833,16 @@ void GLCanvas3D::select_view(const std::string& direction)
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
+}
+
+bool GLCanvas3D::start_using_shader() const
+{
+    return m_shader.start();
+}
+
+void GLCanvas3D::stop_using_shader() const
+{
+    m_shader.stop();
 }
 
 void GLCanvas3D::render_background() const

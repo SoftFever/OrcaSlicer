@@ -24,7 +24,10 @@ sub new {
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
-    $canvas->use_plain_shader(1);
+#===================================================================================================================================        
+    Slic3r::GUI::_3DScene::enable_shader($canvas, 1);
+#    $canvas->use_plain_shader(1);
+#===================================================================================================================================        
     $self->canvas($canvas);
     my $slider_low = Wx::Slider->new(
         $self, -1,

@@ -14,6 +14,7 @@ class wxKeyEvent;
 namespace Slic3r {
 
 class GLVolumeCollection;
+class GLShader;
 class ExPolygon;
 
 namespace GUI {
@@ -141,6 +142,24 @@ public:
         bool is_enabled() const;
     };
 
+    class Shader
+    {
+        bool m_enabled;
+        GLShader* m_shader;
+
+    public:
+        Shader();
+
+        bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
+        void reset();
+
+        bool is_enabled() const;
+        void set_enabled(bool enabled);
+
+        bool start() const;
+        void stop() const;
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -149,6 +168,7 @@ private:
     Axes m_axes;
     CuttingPlane m_cutting_plane;
     LayersEditing m_layers_editing;
+    Shader m_shader;
 
     GLVolumeCollection* m_volumes;
 
@@ -163,6 +183,8 @@ private:
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
     ~GLCanvas3D();
+
+    bool init(bool useVBOs);
 
     bool set_current();
 
@@ -219,14 +241,19 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_picking_enabled() const;
+    bool is_shader_enabled() const;
 
     void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
+    void enable_shader(bool enable);
 
     void zoom_to_bed();
     void zoom_to_volumes();
     void select_view(const std::string& direction);
+
+    bool start_using_shader() const;
+    void stop_using_shader() const;
 
     void render_background() const;
     void render_bed() const;

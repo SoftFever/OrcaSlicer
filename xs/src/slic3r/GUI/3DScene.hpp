@@ -544,12 +544,14 @@ public:
     static bool remove_canvas(wxGLCanvas* canvas);
     static void remove_all_canvases();
 
-    static void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
+    static bool init(wxGLCanvas* canvas, bool useVBOs);
 
     static bool is_dirty(wxGLCanvas* canvas);
     static void set_dirty(wxGLCanvas* canvas, bool dirty);
 
     static bool is_shown_on_screen(wxGLCanvas* canvas);
+
+    static void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
 
     static GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
@@ -592,14 +594,19 @@ public:
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
     static bool is_picking_enabled(wxGLCanvas* canvas);
+    static bool is_shader_enabled(wxGLCanvas* canvas);
 
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     static void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     static void enable_picking(wxGLCanvas* canvas, bool enable);
+    static void enable_shader(wxGLCanvas* canvas, bool enable);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
     static void select_view(wxGLCanvas* canvas, const std::string& direction);
+    
+    static bool start_using_shader(wxGLCanvas* canvas);
+    static void stop_using_shader(wxGLCanvas* canvas);
 
     static void render_background(wxGLCanvas* canvas);
     static void render_bed(wxGLCanvas* canvas);
