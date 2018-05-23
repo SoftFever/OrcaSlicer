@@ -1,0 +1,28 @@
+AVRDUDE was written by:
+
+	Brian S. Dean  <bsd@bdmicro.com>
+
+Contributors:
+
+	Joerg Wunsch <j@uriah.heep.sax.de>
+	Eric Weddington <ericw@evcohs.com>
+	Jan-Hinnerk Reichert <hinni@despammed.com>
+	Alex Shepherd <maillists@ajsystems.co.nz>
+	Martin Thomas <mthomas@rhrk.uni-kl.de>
+	Theodore A. Roth <troth@openavr.org>
+	Michael Holzt <kju-avr@fqdn.org>
+	Colin O'Flynn <coflynn@newae.com>
+	Thomas Fischl <tfischl@gmx.de>
+	David Hoerl <dhoerl@mac.com>
+	Michal Ludvig <mludvig@logix.net.nz>
+	Darell Tan <darell.tan@gmail.com>
+	Wolfgang Moser
+	Ville Voipio
+	Hannes Weisbach
+	Doug Springer
+	Brett Hagman <bhagman@roguerobotics.com>
+	Rene Liebscher <r.liebscher@gmx.de>
+	Jim Paris <jim@jtan.com>
+
+For minor contributions, please see the ChangeLog files.
+

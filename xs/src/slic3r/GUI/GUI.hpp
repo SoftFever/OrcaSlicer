@@ -68,7 +68,6 @@ inline t_file_wild_card& get_file_wild_card() {
 
 void disable_screensaver();
 void enable_screensaver();
-std::vector<std::string> scan_serial_ports();
 bool debugged();
 void break_to_debugger();
 
@@ -91,7 +90,7 @@ unsigned get_colour_approx_luma(const wxColour &colour);
 void set_label_clr_modified(const wxColour& clr);
 void set_label_clr_sys(const wxColour& clr);
 
-extern void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
+extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
@@ -159,7 +158,9 @@ void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
 
 // Display an About dialog
-void about();
+extern void about();
+// Ask the destop to open the datadir using the default file explorer.
+extern void desktop_open_datadir_folder();
 
 } // namespace GUI
 } // namespace Slic3r

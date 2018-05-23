@@ -1,0 +1,28 @@
+body {
+  color : #000000 !important;
+  background : #ffffff !important;
+  font-family : "Times New Roman", Times, serif !important;
+  font-size : 12pt !important;
+}
+
+#sidebar, #sidebar-resizer, #header-resizer, #header { display: none !important;}
+
+#content { 
+	position: absolute !important;
+	margin: 0px !important;
+	left: 0px !important;
+	right: auto !important;
+	top: 0px !important;
+	height: auto !important;
+	overflow: visible !important;
+	overflow-x: visible !important;
+	border-left: 0px solid #000000 !important;
+}
+
+.ui-layout-container {
+	overflow: visible !important;
+}
+
+.mediaobject {
+	text-align: left !important;
+}

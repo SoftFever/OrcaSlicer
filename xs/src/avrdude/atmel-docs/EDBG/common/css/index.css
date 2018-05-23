@@ -1,0 +1,59 @@
+body {
+    font-size: 12px;
+	font-family: Verdana, Geneva, sans-serif;
+}
+
+.a {
+	text-decoration: none;
+}
+
+.title {
+	padding: 31px 0 0 0;
+}
+
+.group
+{
+    /*background-color: pink;*/
+    width:966px;
+}
+
+.group_header {
+	color: #0066CB;
+	font: bold 14pt IntervalLight, sans-serif;
+	text-decoration: none;
+	padding: 8px;
+	background-color: #EEEEEE;
+	margin-top: 24px;
+	/*margin-bottom: 8px;*/
+}
+
+.products 
+{
+    float:left;
+    /*background:#FFF8F8;*/
+}
+
+.product {
+	/*background: url("../images/panelbg.png") 0 0 no-repeat;*/
+	width: 300px;
+	height: 130px;
+	/*margin-left: 20px;*/
+	padding: 10px;
+	border: 1px solid #EEEEEE;
+    display:block;
+    float: left;
+}
+
+.product span {
+	font-size: 16px;
+	color: #0066CB;
+	margin-bottom: 8px;
+	clear:both;
+}
+
+.product img 
+{
+    margin-right:12px;
+    float:left;
+}
+

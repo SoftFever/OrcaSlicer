@@ -6,6 +6,7 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/OctoPrint.hpp"
+#include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
@@ -1693,7 +1694,7 @@ void TabPrinter::build()
 void TabPrinter::update_serial_ports(){
 	Field *field = get_field("serial_port");
 	Choice *choice = static_cast<Choice *>(field);
-	choice->set_values(scan_serial_ports());
+	choice->set_values(Utils::scan_serial_ports());
 }
 
 void TabPrinter::extruders_count_changed(size_t extruders_count){
@@ -1709,7 +1710,8 @@ void TabPrinter::build_extruder_pages(){
 	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
 	size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
 
-	if (m_extruders_count_old == m_extruders_count || m_extruders_count <= 2)
+	if (m_extruders_count_old == m_extruders_count || 
+		(m_has_single_extruder_MM_page && m_extruders_count == 1))
 	{
 		// if we have a single extruder MM setup, add a page with configuration options:
 		for (int i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -1717,16 +1719,19 @@ void TabPrinter::build_extruder_pages(){
 				m_pages.erase(m_pages.begin() + i);
 				break;
 			}
-		if (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material")) {
-			// create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-			auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png", true);
-			auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
-			optgroup->append_single_option_line("cooling_tube_retraction");
-			optgroup->append_single_option_line("cooling_tube_length");
-			optgroup->append_single_option_line("parking_pos_retraction");
-			m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
-		}
+		m_has_single_extruder_MM_page = false;
 	}
+	if (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page) {
+		// create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+		auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png", true);
+		auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
+		optgroup->append_single_option_line("cooling_tube_retraction");
+		optgroup->append_single_option_line("cooling_tube_length");
+		optgroup->append_single_option_line("parking_pos_retraction");
+		m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
+		m_has_single_extruder_MM_page = true;
+	}
+	
 
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page

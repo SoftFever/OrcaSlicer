@@ -46,6 +46,8 @@ sub new {
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
     
+    $self->Layout;
+    
     wxTheApp->restore_window_pos($self, "object_settings");
     
     return $self;

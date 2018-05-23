@@ -1,0 +1,194 @@
+/* ac_cfg.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to 1 if you have the <ddk/hidsdi.h> header file. */
+#undef HAVE_DDK_HIDSDI_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* Define to 1 if you have the <hidapi/hidapi.h> header file. */
+#undef HAVE_HIDAPI_HIDAPI_H
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define if ELF support is enabled via libelf */
+#undef HAVE_LIBELF
+
+/* Define to 1 if you have the <libelf.h> header file. */
+#undef HAVE_LIBELF_H
+
+/* Define to 1 if you have the <libelf/libelf.h> header file. */
+#undef HAVE_LIBELF_LIBELF_H
+
+/* Define if FTDI support is enabled via libftdi */
+#undef HAVE_LIBFTDI
+
+/* Define if FTDI support is enabled via libftdi1 */
+#undef HAVE_LIBFTDI1
+
+/* Define if libftdi supports FT232H, libftdi version >= 0.20 */
+#undef HAVE_LIBFTDI_TYPE_232H
+
+/* Define if HID support is enabled via the Win32 DDK */
+#undef HAVE_LIBHID
+
+/* Define if HID support is enabled via libhidapi */
+#undef HAVE_LIBHIDAPI
+
+/* Define to 1 if you have the `ncurses' library (-lncurses). */
+#undef HAVE_LIBNCURSES
+
+/* Define to 1 if you have the `readline' library (-lreadline). */
+#undef HAVE_LIBREADLINE
+
+/* Define to 1 if you have the `termcap' library (-ltermcap). */
+#undef HAVE_LIBTERMCAP
+
+/* Define if USB support is enabled via libusb */
+#undef HAVE_LIBUSB
+
+/* Define if USB support is enabled via a libusb-1.0 compatible libusb */
+#undef HAVE_LIBUSB_1_0
+
+/* Define to 1 if you have the <libusb-1.0/libusb.h> header file. */
+#undef HAVE_LIBUSB_1_0_LIBUSB_H
+
+/* Define to 1 if you have the <libusb.h> header file. */
+#undef HAVE_LIBUSB_H
+
+/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
+#undef HAVE_LIBWS2_32
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Linux sysfs GPIO support enabled */
+#undef HAVE_LINUXGPIO
+
+/* Define to 1 if you have the <lusb0_usb.h> header file. */
+#undef HAVE_LUSB0_USB_H
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* parallel port access enabled */
+#undef HAVE_PARPORT
+
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `select' function. */
+#undef HAVE_SELECT
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#undef HAVE_STRNCASECMP
+
+/* Define to 1 if you have the `strtol' function. */
+#undef HAVE_STRTOL
+
+/* Define to 1 if you have the `strtoul' function. */
+#undef HAVE_STRTOUL
+
+/* Define to 1 if you have the <sys/ioctl.h> header file. */
+#undef HAVE_SYS_IOCTL_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <termios.h> header file. */
+#undef HAVE_TERMIOS_H
+
+/* Define to 1 if the system has the type `uint_t'. */
+#undef HAVE_UINT_T
+
+/* Define to 1 if the system has the type `ulong_t'. */
+#undef HAVE_ULONG_T
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <usb.h> header file. */
+#undef HAVE_USB_H
+
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
+/* Define if lex/flex has yylex_destroy */
+#undef HAVE_YYLEX_DESTROY
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#undef YYTEXT_POINTER
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const

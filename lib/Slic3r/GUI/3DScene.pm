@@ -1401,7 +1401,7 @@ sub Render {
         if ($self->enable_picking) {
             $self->mark_volumes_for_layer_height;
             $self->volumes->set_print_box($self->bed_bounding_box->x_min, $self->bed_bounding_box->y_min, 0.0, $self->bed_bounding_box->x_max, $self->bed_bounding_box->y_max, $self->{config}->get('max_print_height'));
-            $self->volumes->update_outside_state($self->{config}, 0);
+            $self->volumes->check_outside_state($self->{config});
             # do not cull backfaces to show broken geometry, if any
             glDisable(GL_CULL_FACE);
         }
@@ -2192,10 +2192,8 @@ sub reset_legend_texture {
 }
 
 sub get_current_print_zs {
-    my ($self) = @_;
-    
-    my $count = $self->volumes->get_current_print_zs();
-    return $count;
+    my ($self, $active_only) = @_;
+    return $self->volumes->get_current_print_zs($active_only);
 }
 
 1;
