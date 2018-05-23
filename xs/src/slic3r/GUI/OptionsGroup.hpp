@@ -131,6 +131,7 @@ public:
 
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
+	void			set_flag(ogDrawFlag flag) { m_flag = flag; }
 
     OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false, ogDrawFlag flag = ogDEFAULT) : 
 		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!=""), m_flag(flag) {
@@ -139,7 +140,7 @@ public:
         if (label_width != 0) num_columns++;
         if (extra_column != nullptr) num_columns++;
         m_grid_sizer = new wxFlexGridSizer(0, num_columns, 0,0);
-        static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxHORIZONTAL);
+        static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH/*wxHORIZONTAL*/);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width != 0);
 #ifdef __WXGTK__
         m_panel = new wxPanel( _parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );

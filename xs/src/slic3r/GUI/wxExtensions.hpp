@@ -102,9 +102,9 @@ public:
 		this->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, this](wxCommandEvent e){
 			wxWindowUpdateLocker noUpdates_cp(this);
 			wxWindowUpdateLocker noUpdates(parent);
-			parent->GetParent()->Layout();
-			parent->Layout();
-			this->Refresh();
+			parent->GetParent() ?  parent->GetParent()->Layout() : //;
+ 			parent->Layout();
+// 			this->Refresh();
 		}));
 	}
 

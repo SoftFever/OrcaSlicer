@@ -120,6 +120,7 @@ wxLocale*	g_wxLocale;
 
 std::vector <std::shared_ptr<ConfigOptionsGroup>> m_optgroups;
 double		m_brim_width = 0.0;
+size_t		m_label_width = 100;
 wxButton*	g_wiping_dialog_button = nullptr;
 
 //showed/hided controls according to the view mode
@@ -878,33 +879,66 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	return objects_sz;
 }
 
-wxBoxSizer* content_object_settings(wxWindow *win)
+Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value=0)
 {
-	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
-	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "", config, false, ogSIDE_OPTIONS_VERTICAL);
-	optgroup->label_width = 100;
-
-	Line line = { _(L("Position")), "" };
+	Line line = { _(option_name), "" };
 	ConfigOptionDef def;
 
 	def.label = L("X");
 	def.type = coInt;
-	def.default_value = new ConfigOptionInt(1);
-	def.sidetext = L("mm");
+	def.default_value = new ConfigOptionInt(def_value);
+	def.sidetext = sidetext;
+	def.width = 50;
 
-	Option option = Option(def, "position_X");
+	const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
+
+	Option option = Option(def, lower_name + "_X");
 	option.opt.full_width = true;
 	line.append_option(option);
 
 	def.label = L("Y");
-	option = Option(def, "position_Y");
+	option = Option(def, lower_name + "_Y");
 	line.append_option(option);
 
 	def.label = L("Z");
-	option = Option(def, "position_Z");
+	option = Option(def, lower_name + "_Z");
 	line.append_option(option);
+	return line;
+}
 
-	optgroup->append_line(line);
+wxBoxSizer* content_object_settings(wxWindow *win)
+{
+	DynamicPrintConfig* config = /*&g_PresetBundle->full_config();*/&g_PresetBundle->prints.get_edited_preset().config;
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "", config);
+	optgroup->label_width = m_label_width;
+
+	ConfigOptionDef def;
+	def.label = L("Name");
+	def.type = coString;
+	def.tooltip = L("Object name");
+	def.full_width = true;
+	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
+	optgroup->append_single_option_line(Option(def, "object_name"));
+
+	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
+	
+	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
+ 	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°"/*"\u00b0"*/, 1));
+ 	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
+
+	optgroup->set_flag(ogDEFAULT);
+	
+	def.label = L("Place on bed");
+	def.type = coBool;
+	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
+	def.gui_type = "";
+	def.sidetext = "";
+	def.default_value = new ConfigOptionBool{ false };
+	optgroup->append_single_option_line(Option(def, "place_on_bed"));
+
+	Option option = optgroup->get_option("extruder");
+	option.opt.default_value = new ConfigOptionInt(1);
+	optgroup->append_single_option_line(option);
 
 	m_optgroups.push_back(optgroup);  // ogObjectSettings
 
@@ -922,7 +956,6 @@ wxBoxSizer* content_part_settings(wxWindow *win)
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
- 	sizer->SetMinSize(-1, 150);
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
 	auto main_page = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	main_page->SetSizer(main_sizer);
@@ -963,7 +996,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
 	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	optgroup->label_width = ar.IsEmpty() ? 100 : ar.front()-4; // doesn't work
+	m_label_width = ar.IsEmpty() ? 100 : ar.front()-4;
+	optgroup->label_width = m_label_width;
 	optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {

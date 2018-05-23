@@ -159,7 +159,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 							wxDefaultPosition, wxSize(label_width, -1), staticbox ? 0 : wxALIGN_RIGHT);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
-		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | 
+						(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
     }
@@ -175,7 +176,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	
 	// If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
-	auto sizer = new wxBoxSizer((m_flag & ogSIDE_OPTIONS_VERTICAL) != 0 ? wxVERTICAL :wxHORIZONTAL);
+	auto sizer = new wxBoxSizer(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxVERTICAL : wxHORIZONTAL);
 	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM|wxTOP|wxLEFT), staticbox ? 0 : 1);
 	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
@@ -194,6 +195,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 
     for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
+		wxBoxSizer* sizer_tmp = m_flag == ogSIDE_OPTIONS_VERTICAL ? new wxBoxSizer(wxHORIZONTAL) : sizer;
 		// add label if any
 		if (option.label != "") {
 			wxString str_label = L_str(option.label);
@@ -203,33 +205,35 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 // 								L_str(option.label);
 			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			label->SetFont(label_font);
-			sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
-		add_undo_buttuns_to_sizer(sizer, field);
+		add_undo_buttuns_to_sizer(sizer_tmp, field);
 		is_sizer_field(field) ? 
-			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
-			sizer->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
+			sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
 			auto sidetext = new wxStaticText(parent(), wxID_ANY, L_str(option.sidetext), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
-			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
+			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}
 
 		// add side widget if any
 		if (opt.side_widget != nullptr) {
-			sizer->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
+			sizer_tmp->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
 		}
 
-		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
+		if (opt.opt_id != option_set.back().opt_id && m_flag != ogSIDE_OPTIONS_VERTICAL) //! istead of (opt != option_set.back())
 		{
-			sizer->AddSpacer(6);
+			sizer_tmp->AddSpacer(6);
 	    }
+		if (m_flag == ogSIDE_OPTIONS_VERTICAL)
+			sizer->Add(sizer_tmp, 1, wxEXPAND|wxALIGN_RIGHT|wxALL, 0);
 	}
 	// add extra sizers if any
 	for (auto extra_widget : line.get_extra_widgets()) {

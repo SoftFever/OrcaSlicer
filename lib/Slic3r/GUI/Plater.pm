@@ -512,10 +512,10 @@ sub new {
         $scrolled_window_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
 
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $right_sizer->SetMinSize([320, 600]);
+        $right_sizer->SetMinSize([320, -1]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
         $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
-        $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
+        $right_sizer->Add($expert_mode_part_sizer, 1, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($scrolled_window_panel, 1, wxEXPAND | wxALL, 1);
         # Callback for showing / hiding the print info box.
