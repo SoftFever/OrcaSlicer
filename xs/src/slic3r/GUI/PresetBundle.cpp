@@ -54,17 +54,15 @@ PresetBundle::PresetBundle() :
 
     // Create the ID config keys, as they are not part of the Static print config classes.
     this->prints.default_preset().config.opt_string("print_settings_id", true);
-    this->filaments.default_preset().config.opt_string("filament_settings_id", true);
+    this->filaments.default_preset().config.option<ConfigOptionStrings>("filament_settings_id", true)->values.assign(1, std::string());
     this->printers.default_preset().config.opt_string("printer_settings_id", true);
-    // Create the "compatible printers" keys, as they are not part of the Static print config classes.
-    this->filaments.default_preset().config.optptr("compatible_printers", true);
-    this->filaments.default_preset().config.optptr("compatible_printers_condition", true);
-    this->prints.default_preset().config.optptr("compatible_printers", true);
-    this->prints.default_preset().config.optptr("compatible_printers_condition", true);
-    // Create the "inherits" keys.
-    this->prints.default_preset().config.optptr("inherits", true);
-    this->filaments.default_preset().config.optptr("inherits", true);
-    this->printers.default_preset().config.optptr("inherits", true);
+    // "compatible printers" are not mandatory yet. 
+    //FIXME Rename "compatible_printers" and "compatible_printers_condition", as they are defined in both print and filament profiles,
+    // therefore they are clashing when generating a a config file, G-code or AMF/3MF.
+//    this->filaments.default_preset().config.optptr("compatible_printers", true);
+//    this->filaments.default_preset().config.optptr("compatible_printers_condition", true);
+//    this->prints.default_preset().config.optptr("compatible_printers", true);
+//    this->prints.default_preset().config.optptr("compatible_printers_condition", true);
     // Create the "printer_vendor", "printer_model" and "printer_variant" keys.
     this->printers.default_preset().config.optptr("printer_vendor", true);
     this->printers.default_preset().config.optptr("printer_model", true);
@@ -364,7 +362,9 @@ DynamicPrintConfig PresetBundle::full_config() const
     DynamicPrintConfig out;
     out.apply(FullPrintConfig());
     out.apply(this->prints.get_edited_preset().config);
-    out.apply(this->printers.get_edited_preset().config);
+    // Add the default filament preset to have the "filament_preset_id" defined.
+	out.apply(this->filaments.default_preset().config);
+	out.apply(this->printers.get_edited_preset().config);
     out.apply(this->project_config);
 
     auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(out.option("nozzle_diameter"));
@@ -385,7 +385,7 @@ DynamicPrintConfig PresetBundle::full_config() const
         std::vector<const ConfigOption*> filament_opts(num_extruders, nullptr);
         // loop through options and apply them to the resulting config.
         for (const t_config_option_key &key : this->filaments.default_preset().config.keys()) {
-			if (key == "compatible_printers")
+			if (key == "compatible_printers" || key == "compatible_printers_condition")
 				continue;
             // Get a destination option.
             ConfigOption *opt_dst = out.option(key, false);
@@ -403,7 +403,9 @@ DynamicPrintConfig PresetBundle::full_config() const
         }
     }
 
+    //FIXME These two value types clash between the print and filament profiles. They should be renamed.
     out.erase("compatible_printers");
+    out.erase("compatible_printers_condition");
     
     static const char *keys[] = { "perimeter", "infill", "solid_infill", "support_material", "support_material_interface" };
     for (size_t i = 0; i < sizeof(keys) / sizeof(keys[0]); ++ i) {
@@ -838,13 +840,17 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             // Load the print, filament or printer preset.
             const DynamicPrintConfig &default_config = presets->default_preset().config;
             DynamicPrintConfig config(default_config);
+            std::vector<std::string> config_keys = config.keys();
+            // The following two keys are valid, but they are not mandatory.
+            config_keys.emplace_back("compatible_printers");
+            config_keys.emplace_back("compatible_printers_condition");
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
             Preset::normalize(config);
             // Report configuration fields, which are misplaced into a wrong group.
             std::string incorrect_keys;
             size_t      n_incorrect_keys = 0;
-            for (const std::string &key : config.keys())
+            for (const std::string &key : config_keys)
                 if (! default_config.has(key)) {
                     if (incorrect_keys.empty())
                         incorrect_keys = key;

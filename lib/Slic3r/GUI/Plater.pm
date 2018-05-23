@@ -519,7 +519,6 @@ sub new {
         # Show the box initially, let it be shown after the slicing is finished.
         $self->{"print_info_box_show"}->(0);
 
-        $right_sizer->SetSizeHints($self->{right_panel});
         $self->{right_panel}->SetSizer($right_sizer);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
