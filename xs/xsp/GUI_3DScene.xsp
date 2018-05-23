@@ -455,6 +455,14 @@ is_shader_enabled(canvas)
     OUTPUT:
         RETVAL
 
+bool
+is_multisample_allowed(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_multisample_allowed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
 void
 enable_warning_texture(canvas, enable)
         SV   *canvas;
@@ -483,6 +491,13 @@ enable_shader(canvas, enable)
     CODE:
         _3DScene::enable_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
+void
+allow_multisample(canvas, allow)
+        SV   *canvas;
+        bool allow;
+    CODE:
+        _3DScene::allow_multisample((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), allow);
+        
 bool
 is_mouse_dragging(canvas)
         SV *canvas;
@@ -512,6 +527,21 @@ set_mouse_position(canvas, position)
         Pointf *position;
     CODE:
         _3DScene::set_mouse_position((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), position);
+
+int
+get_hover_volume_id(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_hover_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_hover_volume_id(canvas, id)
+        SV  *canvas;
+        int id;
+    CODE:
+        _3DScene::set_hover_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
 
 void
 zoom_to_bed(canvas)
@@ -545,6 +575,12 @@ stop_using_shader(canvas)
         SV *canvas;
     CODE:
         _3DScene::stop_using_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+picking_pass(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::picking_pass((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
 render_background(canvas)

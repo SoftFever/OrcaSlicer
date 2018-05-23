@@ -192,9 +192,11 @@ private:
 
     bool m_dirty;
     bool m_apply_zoom_to_volumes_filter;
+    int m_hover_volume_id;
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
+    bool m_multisample_allowed;
 
     PerlCallback m_on_viewport_changed_callback;
     PerlCallback m_on_mark_volumes_for_layer_height_callback;
@@ -263,11 +265,13 @@ public:
     bool is_layers_editing_enabled() const;
     bool is_picking_enabled() const;
     bool is_shader_enabled() const;
+    bool is_multisample_allowed() const;
 
     void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
     void enable_shader(bool enable);
+    void allow_multisample(bool allow);
 
     bool is_mouse_dragging() const;
     void set_mouse_dragging(bool dragging);
@@ -275,12 +279,17 @@ public:
     const Pointf& get_mouse_position() const;
     void set_mouse_position(const Pointf& position);
 
+    int get_hover_volume_id() const;
+    void set_hover_volume_id(int id);
+
     void zoom_to_bed();
     void zoom_to_volumes();
     void select_view(const std::string& direction);
 
     bool start_using_shader() const;
     void stop_using_shader() const;
+
+    void picking_pass();
 
     void render_background() const;
     void render_bed() const;

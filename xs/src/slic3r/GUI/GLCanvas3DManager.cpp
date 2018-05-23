@@ -383,6 +383,12 @@ bool GLCanvas3DManager::is_shader_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_shader_enabled() : false;
 }
 
+bool GLCanvas3DManager::is_multisample_allowed(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_multisample_allowed() : false;
+}
+
 void GLCanvas3DManager::enable_warning_texture(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -411,6 +417,13 @@ void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
         it->second->enable_shader(enable);
 }
 
+void GLCanvas3DManager::allow_multisample(wxGLCanvas* canvas, bool allow)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->allow_multisample(allow);
+}
+
 bool GLCanvas3DManager::is_mouse_dragging(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -435,6 +448,19 @@ void GLCanvas3DManager::set_mouse_position(wxGLCanvas* canvas, const Pointf& pos
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_mouse_position(position);
+}
+
+int GLCanvas3DManager::get_hover_volume_id(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_hover_volume_id() : -1;
+}
+
+void GLCanvas3DManager::set_hover_volume_id(wxGLCanvas* canvas, int id)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_hover_volume_id(id);
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
@@ -469,6 +495,13 @@ void GLCanvas3DManager::stop_using_shader(wxGLCanvas* canvas) const
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->stop_using_shader();
+}
+
+void GLCanvas3DManager::picking_pass(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->picking_pass();
 }
 
 void GLCanvas3DManager::render_background(wxGLCanvas* canvas) const

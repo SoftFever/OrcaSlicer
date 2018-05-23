@@ -43,7 +43,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               on_move
                               on_model_update
                               volumes
-                              _hover_volume_idx
 
                               _drag_volume_idx
                               _drag_start_pos
@@ -170,13 +169,12 @@ sub new {
 
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::add_canvas($self, $self->GetContext);
+    Slic3r::GUI::_3DScene::allow_multisample($self, $can_multisample);
 #    my $context = $self->GetContext;
 #    $self->SetCurrent($context);
 #    Slic3r::GUI::_3DScene::add_canvas($self, $context);
-#==============================================================================================================================    
-    
-    $self->{can_multisample} = $can_multisample;
-#==============================================================================================================================
+#    
+#    $self->{can_multisample} = $can_multisample;
 #    $self->background(1);
 #==============================================================================================================================
     $self->_quat((0, 0, 0, 1));
@@ -486,7 +484,10 @@ sub mouse_event {
     } elsif ($e->LeftDown || $e->RightDown) {
         # If user pressed left or right button we first check whether this happened
         # on a volume or not.
-        my $volume_idx = $self->_hover_volume_idx // -1;
+#==============================================================================================================================
+        my $volume_idx = Slic3r::GUI::_3DScene::get_hover_volume_id($self);
+#        my $volume_idx = $self->_hover_volume_idx // -1;
+#==============================================================================================================================
         $self->_layer_height_edited(0);
         if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
             # A volume is selected and the mouse is hovering over a layer thickness bar.
@@ -1342,55 +1343,56 @@ sub InitGL {
                 
     $self->zoom_to_bed;
         
-    glClearColor(0, 0, 0, 1);
-    glColor3f(1, 0, 0);
-    glEnable(GL_DEPTH_TEST);
-    glClearDepth(1.0);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    # Set antialiasing/multisampling
-    glDisable(GL_LINE_SMOOTH);
-    glDisable(GL_POLYGON_SMOOTH);
-
-    # See "GL_MULTISAMPLE and GL_ARRAY_BUFFER_ARB messages on failed launch"
-    # https://github.com/alexrj/Slic3r/issues/4085
-    eval {
-        # Disable the multi sampling by default, so the picking by color will work correctly.
-        glDisable(GL_MULTISAMPLE);
-    };
-    # Disable multi sampling if the eval failed.
-    $self->{can_multisample} = 0 if $@;
-    
-    # ambient lighting
-    glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
-    
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHT1);
-    
-    # light from camera
-    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
-    glLightfv_p(GL_LIGHT1, GL_SPECULAR, 0.3, 0.3, 0.3, 1);
-    glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  0.2, 0.2, 0.2, 1);
-    
-    # Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
-    glShadeModel(GL_SMOOTH);
-    
-#    glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 0.5, 0.3, 0.3, 1);
-#    glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR, 1, 1, 1, 1);
-#    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50);
-#    glMaterialfv_p(GL_FRONT_AND_BACK, GL_EMISSION, 0.1, 0, 0, 0.9);
-    
-    # A handy trick -- have surface material mirror the color.
-    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-    glEnable(GL_COLOR_MATERIAL);
-    glEnable(GL_MULTISAMPLE) if ($self->{can_multisample});
-
 #===================================================================================================================================        
     Slic3r::GUI::_3DScene::init($self, $self->UseVBOs);
+    
+#    glClearColor(0, 0, 0, 1);
+#    glColor3f(1, 0, 0);
+#    glEnable(GL_DEPTH_TEST);
+#    glClearDepth(1.0);
+#    glDepthFunc(GL_LEQUAL);
+#    glEnable(GL_CULL_FACE);
+#    glEnable(GL_BLEND);
+#    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#    
+#    # Set antialiasing/multisampling
+#    glDisable(GL_LINE_SMOOTH);
+#    glDisable(GL_POLYGON_SMOOTH);
+#
+#    # See "GL_MULTISAMPLE and GL_ARRAY_BUFFER_ARB messages on failed launch"
+#    # https://github.com/alexrj/Slic3r/issues/4085
+#    eval {
+#        # Disable the multi sampling by default, so the picking by color will work correctly.
+#        glDisable(GL_MULTISAMPLE);
+#    };
+#    # Disable multi sampling if the eval failed.
+#    $self->{can_multisample} = 0 if $@;
+#    
+#    # ambient lighting
+#    glLightModelfv_p(GL_LIGHT_MODEL_AMBIENT, 0.3, 0.3, 0.3, 1);
+#    
+#    glEnable(GL_LIGHTING);
+#    glEnable(GL_LIGHT0);
+#    glEnable(GL_LIGHT1);
+#    
+#    # light from camera
+#    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
+#    glLightfv_p(GL_LIGHT1, GL_SPECULAR, 0.3, 0.3, 0.3, 1);
+#    glLightfv_p(GL_LIGHT1, GL_DIFFUSE,  0.2, 0.2, 0.2, 1);
+#    
+#    # Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
+#    glShadeModel(GL_SMOOTH);
+#    
+##    glMaterialfv_p(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, 0.5, 0.3, 0.3, 1);
+##    glMaterialfv_p(GL_FRONT_AND_BACK, GL_SPECULAR, 1, 1, 1, 1);
+##    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 50);
+##    glMaterialfv_p(GL_FRONT_AND_BACK, GL_EMISSION, 0.1, 0, 0, 0.9);
+#    
+#    # A handy trick -- have surface material mirror the color.
+#    glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+#    glEnable(GL_COLOR_MATERIAL);
+#    glEnable(GL_MULTISAMPLE) if ($self->{can_multisample});
+#
 #    if ($self->UseVBOs) {
 #        my $shader = new Slic3r::GUI::_3DScene::GLShader;
 ##        if (! $shader->load($self->_fragment_shader_Phong, $self->_vertex_shader_Phong)) {
@@ -1436,7 +1438,9 @@ sub Render {
     glClearColor(1, 1, 1, 1);
     glClearDepth(1);
     glDepthFunc(GL_LESS);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#==============================================================================================================================
+#    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#==============================================================================================================================
     
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -1476,50 +1480,42 @@ sub Render {
     glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
 
 #==============================================================================================================================
-    if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && !Slic3r::GUI::_3DScene::is_mouse_dragging($self)) {
-        my $pos = Slic3r::GUI::_3DScene::get_mouse_position($self);
-        if ($pos) {
-#    if ($self->enable_picking && !$self->_mouse_dragging) {
-#        if (my $pos = $self->_mouse_pos) {
-#==============================================================================================================================
-            # Render the object for picking.
-            # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
-            # Better to use software ray-casting on a bounding-box hierarchy.
-            glPushAttrib(GL_ENABLE_BIT);
-            glDisable(GL_MULTISAMPLE) if ($self->{can_multisample});
-            glDisable(GL_LIGHTING);
-            glDisable(GL_BLEND);
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::render_volumes($self, 1);
-#            $self->draw_volumes(1);
-#==============================================================================================================================
-            glPopAttrib();
-            glFlush();
-            my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
-            my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
-            $self->_hover_volume_idx(undef);
-            $_->set_hover(0) for @{$self->volumes};
-            if ($volume_idx <= $#{$self->volumes}) {
-                $self->_hover_volume_idx($volume_idx);
-                
-                $self->volumes->[$volume_idx]->set_hover(1);
-                my $group_id = $self->volumes->[$volume_idx]->select_group_id;
-                if ($group_id != -1) {
-                    $_->set_hover(1) for grep { $_->select_group_id == $group_id } @{$self->volumes};
-                }
-                
-#==============================================================================================================================
-#                $self->on_hover->($volume_idx) if $self->on_hover;
-#==============================================================================================================================
-            }
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        }
-    }
-    
-#==============================================================================================================================
+    Slic3r::GUI::_3DScene::picking_pass($self);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Slic3r::GUI::_3DScene::render_background($self);
     Slic3r::GUI::_3DScene::render_bed($self);
     
+#    if ($self->enable_picking && !$self->_mouse_dragging) {
+#        if (my $pos = $self->_mouse_pos) {
+#            # Render the object for picking.
+#            # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
+#            # Better to use software ray-casting on a bounding-box hierarchy.
+#            glPushAttrib(GL_ENABLE_BIT);
+#            glDisable(GL_MULTISAMPLE) if ($self->{can_multisample});
+#            glDisable(GL_LIGHTING);
+#            glDisable(GL_BLEND);
+#            $self->draw_volumes(1);
+#            glPopAttrib();
+#            glFlush();
+#            my $col = [ glReadPixels_p($pos->x, $self->GetSize->GetHeight - $pos->y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE) ];
+#            my $volume_idx = $col->[0] + $col->[1]*256 + $col->[2]*256*256;
+#            $self->_hover_volume_idx(undef);
+#            $_->set_hover(0) for @{$self->volumes};
+#            if ($volume_idx <= $#{$self->volumes}) {
+#                $self->_hover_volume_idx($volume_idx);
+#                
+#                $self->volumes->[$volume_idx]->set_hover(1);
+#                my $group_id = $self->volumes->[$volume_idx]->select_group_id;
+#                if ($group_id != -1) {
+#                    $_->set_hover(1) for grep { $_->select_group_id == $group_id } @{$self->volumes};
+#                }
+#                
+#                $self->on_hover->($volume_idx) if $self->on_hover;
+#            }
+#            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#        }
+#    }
+#    
 #    # draw fixed background
 #    if ($self->background) {
 #        glDisable(GL_LIGHTING);

@@ -105,11 +105,13 @@ public:
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_picking_enabled(wxGLCanvas* canvas) const;
     bool is_shader_enabled(wxGLCanvas* canvas) const;
+    bool is_multisample_allowed(wxGLCanvas* canvas) const;
 
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     void enable_picking(wxGLCanvas* canvas, bool enable);
     void enable_shader(wxGLCanvas* canvas, bool enable);
+    void allow_multisample(wxGLCanvas* canvas, bool allow);
 
     bool is_mouse_dragging(wxGLCanvas* canvas) const;
     void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
@@ -117,12 +119,17 @@ public:
     Pointf get_mouse_position(wxGLCanvas* canvas) const;
     void set_mouse_position(wxGLCanvas* canvas, const Pointf& position);
 
+    int get_hover_volume_id(wxGLCanvas* canvas) const;
+    void set_hover_volume_id(wxGLCanvas* canvas, int id);
+
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
 
     bool start_using_shader(wxGLCanvas* canvas) const;
     void stop_using_shader(wxGLCanvas* canvas) const;
+
+    void picking_pass(wxGLCanvas* canvas);
 
     void render_background(wxGLCanvas* canvas) const;
     void render_bed(wxGLCanvas* canvas) const;

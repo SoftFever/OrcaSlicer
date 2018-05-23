@@ -5,6 +5,7 @@
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 
+#include <GL/glew.h>
 #include <wx/glcanvas.h>
 
 #include <iostream>
@@ -506,9 +507,11 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_config(nullptr)
     , m_dirty(true)
     , m_apply_zoom_to_volumes_filter(false)
+    , m_hover_volume_id(-1)
     , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
+    , m_multisample_allowed(false)
 {
 }
 
@@ -520,6 +523,45 @@ GLCanvas3D::~GLCanvas3D()
 
 bool GLCanvas3D::init(bool useVBOs)
 {
+    ::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+//    ::glColor3f(1.0f, 0.0f, 0.0f);
+    ::glEnable(GL_DEPTH_TEST);
+    ::glClearDepth(1.0f);
+    ::glDepthFunc(GL_LEQUAL);
+    ::glEnable(GL_CULL_FACE);
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Set antialiasing / multisampling
+    ::glDisable(GL_LINE_SMOOTH);
+    ::glDisable(GL_POLYGON_SMOOTH);
+
+    // ambient lighting
+    GLfloat ambient[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
+    ::glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
+
+//    ::glEnable(GL_LIGHTING);
+    ::glEnable(GL_LIGHT0);
+    ::glEnable(GL_LIGHT1);
+
+    // light from camera
+    GLfloat position[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT1, GL_POSITION, position);
+    GLfloat specular[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
+    ::glLightfv(GL_LIGHT1, GL_SPECULAR, specular);
+    GLfloat diffuse[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    ::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
+
+    // Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
+    ::glShadeModel(GL_SMOOTH);
+
+    // A handy trick -- have surface material mirror the color.
+    ::glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+    ::glEnable(GL_COLOR_MATERIAL);
+
+    if (is_multisample_allowed())
+        ::glEnable(GL_MULTISAMPLE);
+
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
         return false;
 
@@ -809,6 +851,11 @@ bool GLCanvas3D::is_shader_enabled() const
     return m_shader.is_enabled();
 }
 
+bool GLCanvas3D::is_multisample_allowed() const
+{
+    return m_multisample_allowed;
+}
+
 void GLCanvas3D::enable_warning_texture(bool enable)
 {
     m_warning_texture_enabled = enable;
@@ -829,6 +876,11 @@ void GLCanvas3D::enable_shader(bool enable)
     m_shader.set_enabled(enable);
 }
 
+void GLCanvas3D::allow_multisample(bool allow)
+{
+    m_multisample_allowed = allow;
+}
+
 bool GLCanvas3D::is_mouse_dragging() const
 {
     return m_mouse.is_dragging();
@@ -847,6 +899,16 @@ const Pointf& GLCanvas3D::get_mouse_position() const
 void GLCanvas3D::set_mouse_position(const Pointf& position)
 {
     m_mouse.set_position(position);
+}
+
+int GLCanvas3D::get_hover_volume_id() const
+{
+    return m_hover_volume_id;
+}
+
+void GLCanvas3D::set_hover_volume_id(int id)
+{
+    m_hover_volume_id = id;
 }
 
 void GLCanvas3D::zoom_to_bed()
@@ -900,6 +962,66 @@ bool GLCanvas3D::start_using_shader() const
 void GLCanvas3D::stop_using_shader() const
 {
     m_shader.stop();
+}
+
+void GLCanvas3D::picking_pass()
+{
+    if (is_picking_enabled() && !is_mouse_dragging() && (m_volumes != nullptr))
+    {
+        const Pointf& pos = get_mouse_position();
+//        if (pos) {
+        // Render the object for picking.
+        // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
+        // Better to use software ray - casting on a bounding - box hierarchy.
+
+        if (is_multisample_allowed())
+            ::glDisable(GL_MULTISAMPLE);
+
+        ::glDisable(GL_LIGHTING);
+        ::glDisable(GL_BLEND);
+
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ::glPushAttrib(GL_ENABLE_BIT);
+
+        render_volumes(true);
+        
+        ::glPopAttrib();
+
+        if (is_multisample_allowed())
+            ::glEnable(GL_MULTISAMPLE);
+
+//        ::glFlush();
+
+        const std::pair<int, int>& cnv_size = _get_canvas_size();
+
+        GLubyte color[4];
+        ::glReadPixels(pos.x, cnv_size.second - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+        int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+
+        set_hover_volume_id(-1);
+
+        for (GLVolume* vol : m_volumes->volumes)
+        {
+            vol->hover = false;
+        }
+
+        if (volume_id < m_volumes->volumes.size())
+        {
+            set_hover_volume_id(volume_id);
+            m_volumes->volumes[volume_id]->hover = true;
+            int group_id = m_volumes->volumes[volume_id]->select_group_id;
+            if (group_id != -1)
+            {
+                for (GLVolume* vol : m_volumes->volumes)
+                {
+                    if (vol->select_group_id == group_id)
+                        vol->hover = true;
+                }
+            }
+        }
+    }
+//        }
 }
 
 void GLCanvas3D::render_background() const
@@ -1059,7 +1181,7 @@ void GLCanvas3D::render_warning_texture() const
             ::glPushMatrix();
             ::glLoadIdentity();
 
-            std::pair<int, int> cnv_size = _get_canvas_size();
+            const std::pair<int, int>& cnv_size = _get_canvas_size();
             float zoom = get_camera_zoom();
             float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
             float l = (-0.5f * (float)w) * inv_zoom;
@@ -1092,7 +1214,7 @@ void GLCanvas3D::render_legend_texture() const
             ::glPushMatrix();
             ::glLoadIdentity();
             
-            std::pair<int, int> cnv_size = _get_canvas_size();
+            const std::pair<int, int>& cnv_size = _get_canvas_size();
             float zoom = get_camera_zoom();
             float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
             float l = (-0.5f * (float)cnv_size.first) * inv_zoom;
@@ -1156,8 +1278,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
     if (m_canvas != nullptr)
     {
-        std::pair<int, int> size = _get_canvas_size();
-        resize((unsigned int)size.first, (unsigned int)size.second);
+        const std::pair<int, int>& cnv_size = _get_canvas_size();
+        resize((unsigned int)cnv_size.first, (unsigned int)cnv_size.second);
         m_canvas->Refresh();
     }
 }
@@ -1211,8 +1333,8 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 
         if (is_shown_on_screen())
         {
-            std::pair<int, int> size = _get_canvas_size();
-            resize((unsigned int)size.first, (unsigned int)size.second);
+            const std::pair<int, int>& cnv_size = _get_canvas_size();
+            resize((unsigned int)cnv_size.first, (unsigned int)cnv_size.second);
             if (m_canvas != nullptr)
                 m_canvas->Refresh();
         }
@@ -1311,8 +1433,8 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     max_x *= 2.0;
     max_y *= 2.0;
 
-    std::pair<int, int> cvs_size = _get_canvas_size();
-    return (float)std::min((coordf_t)cvs_size.first / max_x, (coordf_t)cvs_size.second / max_y);
+    const std::pair<int, int>& cnv_size = _get_canvas_size();
+    return (float)std::min((coordf_t)cnv_size.first / max_x, (coordf_t)cnv_size.second / max_y);
 }
 
 void GLCanvas3D::_deregister_callbacks()
