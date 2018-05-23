@@ -1377,7 +1377,7 @@ public:
 
     inline void save(const std::string& path) {
 
-        wxFFileOutputStream zipfile(path + "zippedout.zip");
+        wxFFileOutputStream zipfile(path);
 
         if(!zipfile.IsOk()) {
             BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers!";
@@ -1429,13 +1429,7 @@ void Print::print_to(std::string dirpath,
                      Args...args)
 {
 
-    std::string dir = dirpath;
-
-#ifdef WIN32 // Making dirpath end with a directory separator on all platforms
-    if(dir.back() != '\\') dir.push_back('\\');
-#else
-    if(dir.back() != '/') dir.push_back('/');
-#endif
+    std::string& dir = dirpath;
 
     LayerPtrs layers;
 
@@ -1499,12 +1493,15 @@ void Print::print_to(std::string dirpath,
         });
 
         if(has_support_material() && layer_id > 0) {
-            std::cout << "support layer " << layer_id << "\n";
+//            BOOST_LOG_TRIVIAL(warning) << "support material for layer "
+//                                       << layer_id << " defined but export is "
+//                                          "unimplemented.";
+
         }
 
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
 
-        std::cout << "Layer " << layer_id << " processed." << "\n";
+        // std::cout << "Layer " << layer_id << " processed." << "\n";
 
         // printer.saveLayer(layer_id, dir); We could save the layer immediately
     };

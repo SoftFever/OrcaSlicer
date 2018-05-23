@@ -344,7 +344,7 @@ add_library(semver STATIC
 # Configure rasterizer target
 # ##############################################################################
 
-find_package(PNG)
+find_package(PNG QUIET)
 
 option(RASTERIZER_FORCE_BUILTIN_LIBPNG "Force the usage of builting libpng instead of the system version." OFF)
 
@@ -359,6 +359,7 @@ if(PNG_FOUND AND NOT RASTERIZER_FORCE_BUILTIN_LIBPNG)
     target_include_directories(rasterizer PRIVATE ${PNG_INCLUDE_DIRS})
     target_compile_definitions(rasterizer PRIVATE ${PNG_DEFINITIONS})
 else()
+    set(ZLIB_LIBRARY "")
     message(WARNING "Using builtin libpng. This can cause crashes on some platforms.")
     add_subdirectory( ${LIBDIR}/png/zlib)
 

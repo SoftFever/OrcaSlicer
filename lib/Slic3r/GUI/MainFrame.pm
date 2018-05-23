@@ -460,7 +460,12 @@ sub quick_slice {
             wxTheApp->{app_config}->update_last_output_dir(dirname($output_file));
             $dlg->Destroy;
         } elsif($params{export_png}) {
-            my $dlg = Wx::DirDialog->new($self, L('Choose output directory'));
+            $output_file = $sprint->output_filepath;
+            $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.zip/;
+            # my $dlg = Wx::DirDialog->new($self, L('Choose output directory'));
+            my $dlg = Wx::FileDialog->new($self, L('Save zip file as:'),
+                wxTheApp->{app_config}->get_last_output_dir(dirname($output_file)),
+                basename($output_file), '*.zip', wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
             if ($dlg->ShowModal != wxID_OK) {
                 $dlg->Destroy;
                 return;
