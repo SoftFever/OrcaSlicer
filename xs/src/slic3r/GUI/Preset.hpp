@@ -244,6 +244,7 @@ public:
 	const std::string&		get_suffix_modified();
 
     // Return a preset possibly with modifications.
+	Preset&			default_preset()			{ return m_presets.front(); }
     const Preset&   default_preset() const      { return m_presets.front(); }
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
     Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }

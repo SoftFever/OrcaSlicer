@@ -53,27 +53,31 @@ PresetBundle::PresetBundle() :
         wxImage::AddHandler(new wxPNGHandler);
 
     // Create the ID config keys, as they are not part of the Static print config classes.
-    this->prints.preset(0).config.opt_string("print_settings_id", true);
-    this->filaments.preset(0).config.opt_string("filament_settings_id", true);
-    this->printers.preset(0).config.opt_string("print_settings_id", true);
+    this->prints.default_preset().config.opt_string("print_settings_id", true);
+    this->filaments.default_preset().config.opt_string("filament_settings_id", true);
+    this->printers.default_preset().config.opt_string("printer_settings_id", true);
     // Create the "compatible printers" keys, as they are not part of the Static print config classes.
-    this->filaments.preset(0).config.optptr("compatible_printers", true);
-    this->filaments.preset(0).config.optptr("compatible_printers_condition", true);
-    this->prints.preset(0).config.optptr("compatible_printers", true);
-    this->prints.preset(0).config.optptr("compatible_printers_condition", true);
+    this->filaments.default_preset().config.optptr("compatible_printers", true);
+    this->filaments.default_preset().config.optptr("compatible_printers_condition", true);
+    this->prints.default_preset().config.optptr("compatible_printers", true);
+    this->prints.default_preset().config.optptr("compatible_printers_condition", true);
     // Create the "inherits" keys.
-    this->prints.preset(0).config.optptr("inherits", true);
-    this->filaments.preset(0).config.optptr("inherits", true);
-    this->printers.preset(0).config.optptr("inherits", true);
+    this->prints.default_preset().config.optptr("inherits", true);
+    this->filaments.default_preset().config.optptr("inherits", true);
+    this->printers.default_preset().config.optptr("inherits", true);
     // Create the "printer_vendor", "printer_model" and "printer_variant" keys.
-    this->printers.preset(0).config.optptr("printer_vendor", true);
-    this->printers.preset(0).config.optptr("printer_model", true);
-    this->printers.preset(0).config.optptr("printer_variant", true);
-
+    this->printers.default_preset().config.optptr("printer_vendor", true);
+    this->printers.default_preset().config.optptr("printer_model", true);
+    this->printers.default_preset().config.optptr("printer_variant", true);
+    // Load the default preset bitmaps.
     this->prints   .load_bitmap_default("cog.png");
     this->filaments.load_bitmap_default("spool.png");
     this->printers .load_bitmap_default("printer_empty.png");
     this->load_compatible_bitmaps();
+    // Re-activate the default presets, so their "edited" preset copies will be updated with the additional configuration values above.
+    this->prints   .select_preset(0);
+    this->filaments.select_preset(0);
+    this->printers .select_preset(0);
 
     this->project_config.apply_only(FullPrintConfig::defaults(), s_project_options);
 }
@@ -832,10 +836,28 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             continue;
         if (presets != nullptr) {
             // Load the print, filament or printer preset.
-            DynamicPrintConfig config(presets->default_preset().config);
+            const DynamicPrintConfig &default_config = presets->default_preset().config;
+            DynamicPrintConfig config(default_config);
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
             Preset::normalize(config);
+            // Report configuration fields, which are misplaced into a wrong group.
+            std::string incorrect_keys;
+            size_t      n_incorrect_keys = 0;
+            for (const std::string &key : config.keys())
+                if (! default_config.has(key)) {
+                    if (incorrect_keys.empty())
+                        incorrect_keys = key;
+                    else {
+                        incorrect_keys += ", ";
+                        incorrect_keys += key;
+                    }
+                    config.erase(key);
+                    ++ n_incorrect_keys;
+                }
+            if (! incorrect_keys.empty())
+                BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
+                    section.first << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
             if ((flags & LOAD_CFGBNDLE_SYSTEM) && presets == &printers) {
                 // Filter out printer presets, which are not mentioned in the vendor profile.
                 // These presets are considered not installed.

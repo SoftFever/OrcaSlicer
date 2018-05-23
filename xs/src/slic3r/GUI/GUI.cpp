@@ -690,7 +690,7 @@ void show_error(wxWindow* parent, const wxString& message) {
 
 void show_error_id(int id, const std::string& message) {
 	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
-	show_error(parent, message);
+	show_error(parent, wxString::FromUTF8(message.data()));
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title){
