@@ -483,6 +483,36 @@ enable_shader(canvas, enable)
     CODE:
         _3DScene::enable_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
+bool
+is_mouse_dragging(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_mouse_dragging((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_mouse_dragging(canvas, dragging)
+        SV   *canvas;
+        bool dragging;
+    CODE:
+        _3DScene::set_mouse_dragging((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), dragging);
+
+Clone<Pointf>
+get_mouse_position(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_mouse_position((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_mouse_position(canvas, position)
+        SV     *canvas;
+        Pointf *position;
+    CODE:
+        _3DScene::set_mouse_position((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), position);
+
 void
 zoom_to_bed(canvas)
         SV *canvas;
@@ -585,11 +615,11 @@ register_on_viewport_changed_callback(canvas, callback)
         _3DScene::register_on_viewport_changed_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
     
 void
-register_on_mark_volumes_for_layer_height(canvas, callback)
+register_on_mark_volumes_for_layer_height_callback(canvas, callback)
         SV *canvas;
         SV *callback;
     CODE:
-        _3DScene::register_on_mark_volumes_for_layer_height((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+        _3DScene::register_on_mark_volumes_for_layer_height_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
     
     
     

@@ -161,6 +161,21 @@ public:
         void stop() const;
     };
 
+    class Mouse
+    {
+        bool m_dragging;
+        Pointf m_position;
+
+    public:
+        Mouse();
+
+        bool is_dragging() const;
+        void set_dragging(bool dragging);
+
+        const Pointf& get_position() const;
+        void set_position(const Pointf& position);
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -170,6 +185,7 @@ private:
     CuttingPlane m_cutting_plane;
     LayersEditing m_layers_editing;
     Shader m_shader;
+    Mouse m_mouse;
 
     GLVolumeCollection* m_volumes;
     DynamicPrintConfig* m_config;
@@ -181,7 +197,7 @@ private:
     bool m_picking_enabled;
 
     PerlCallback m_on_viewport_changed_callback;
-    PerlCallback m_on_mark_volumes_for_layer_height;
+    PerlCallback m_on_mark_volumes_for_layer_height_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -253,6 +269,12 @@ public:
     void enable_picking(bool enable);
     void enable_shader(bool enable);
 
+    bool is_mouse_dragging() const;
+    void set_mouse_dragging(bool dragging);
+
+    const Pointf& get_mouse_position() const;
+    void set_mouse_position(const Pointf& position);
+
     void zoom_to_bed();
     void zoom_to_volumes();
     void select_view(const std::string& direction);
@@ -272,7 +294,7 @@ public:
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);
-    void register_on_mark_volumes_for_layer_height(void* callback);
+    void register_on_mark_volumes_for_layer_height_callback(void* callback);
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);

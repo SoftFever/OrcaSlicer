@@ -100,7 +100,7 @@ public:
     void set_camera_distance(wxGLCanvas* canvas, float distance);
 
     Pointf3 get_camera_target(wxGLCanvas* canvas) const;
-    void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
+    void set_camera_target(wxGLCanvas* canvas, const Pointf3& target);
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_picking_enabled(wxGLCanvas* canvas) const;
@@ -110,6 +110,12 @@ public:
     void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     void enable_picking(wxGLCanvas* canvas, bool enable);
     void enable_shader(wxGLCanvas* canvas, bool enable);
+
+    bool is_mouse_dragging(wxGLCanvas* canvas) const;
+    void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
+
+    Pointf get_mouse_position(wxGLCanvas* canvas) const;
+    void set_mouse_position(wxGLCanvas* canvas, const Pointf& position);
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);
@@ -130,7 +136,7 @@ public:
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback);
+    void register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

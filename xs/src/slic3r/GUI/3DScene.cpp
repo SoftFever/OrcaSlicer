@@ -1915,7 +1915,8 @@ Pointf3 _3DScene::get_camera_target(wxGLCanvas* canvas)
 
 void _3DScene::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
 {
-    s_canvas_mgr.set_camera_target(canvas, target);
+    if (target != nullptr)
+        s_canvas_mgr.set_camera_target(canvas, *target);
 }
  
 bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
@@ -1951,6 +1952,27 @@ void _3DScene::enable_picking(wxGLCanvas* canvas, bool enable)
 void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_shader(canvas, enable);
+}
+
+bool _3DScene::is_mouse_dragging(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_mouse_dragging(canvas);
+}
+
+void _3DScene::set_mouse_dragging(wxGLCanvas* canvas, bool dragging)
+{
+    s_canvas_mgr.set_mouse_dragging(canvas, dragging);
+}
+
+Pointf _3DScene::get_mouse_position(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_mouse_position(canvas);
+}
+
+void _3DScene::set_mouse_position(wxGLCanvas* canvas, const Pointf* position)
+{
+    if (position != nullptr)
+        s_canvas_mgr.set_mouse_position(canvas, *position);
 }
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
@@ -2028,9 +2050,9 @@ void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* c
     s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);
 }
 
-void _3DScene::register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback)
+void _3DScene::register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback)
 {
-    s_canvas_mgr.register_on_mark_volumes_for_layer_height(canvas, callback);
+    s_canvas_mgr.register_on_mark_volumes_for_layer_height_callback(canvas, callback);
 }
 
 //void _3DScene::_glew_init()

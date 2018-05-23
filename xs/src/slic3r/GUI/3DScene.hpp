@@ -603,6 +603,12 @@ public:
     static void enable_picking(wxGLCanvas* canvas, bool enable);
     static void enable_shader(wxGLCanvas* canvas, bool enable);
 
+    static bool is_mouse_dragging(wxGLCanvas* canvas);
+    static void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
+
+    static Pointf get_mouse_position(wxGLCanvas* canvas);
+    static void set_mouse_position(wxGLCanvas* canvas, const Pointf* position);
+
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
     static void select_view(wxGLCanvas* canvas, const std::string& direction);
@@ -622,7 +628,7 @@ public:
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback);
+    static void register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback);
 
 //    static void _glew_init();
 //##################################################################################################################

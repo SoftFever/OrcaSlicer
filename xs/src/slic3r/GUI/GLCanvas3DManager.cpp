@@ -358,14 +358,11 @@ Pointf3 GLCanvas3DManager::get_camera_target(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->get_camera_target() : Pointf3(0.0, 0.0, 0.0);
 }
 
-void GLCanvas3DManager::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
+void GLCanvas3DManager::set_camera_target(wxGLCanvas* canvas, const Pointf3& target)
 {
-    if (target == nullptr)
-        return;
-
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->set_camera_target(*target);
+        it->second->set_camera_target(target);
 }
 
 bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
@@ -412,6 +409,32 @@ void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->enable_shader(enable);
+}
+
+bool GLCanvas3DManager::is_mouse_dragging(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_mouse_dragging() : false;
+}
+
+void GLCanvas3DManager::set_mouse_dragging(wxGLCanvas* canvas, bool dragging)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_mouse_dragging(dragging);
+}
+
+Pointf GLCanvas3DManager::get_mouse_position(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_mouse_position() : Pointf();
+}
+
+void GLCanvas3DManager::set_mouse_position(wxGLCanvas* canvas, const Pointf& position)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_mouse_position(position);
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
@@ -518,11 +541,11 @@ void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas
         it->second->register_on_viewport_changed_callback(callback);
 }
 
-void GLCanvas3DManager::register_on_mark_volumes_for_layer_height(wxGLCanvas* canvas, void* callback)
+void GLCanvas3DManager::register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->register_on_mark_volumes_for_layer_height(callback);
+        it->second->register_on_mark_volumes_for_layer_height_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

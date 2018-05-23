@@ -474,6 +474,31 @@ void GLCanvas3D::Shader::stop() const
         m_shader->disable();
 }
 
+GLCanvas3D::Mouse::Mouse()
+    : m_dragging(false)
+{
+}
+
+bool GLCanvas3D::Mouse::is_dragging() const
+{
+    return m_dragging;
+}
+
+void GLCanvas3D::Mouse::set_dragging(bool dragging)
+{
+    m_dragging = dragging;
+}
+
+const Pointf& GLCanvas3D::Mouse::get_position() const
+{
+    return m_position;
+}
+
+void GLCanvas3D::Mouse::set_position(const Pointf& position)
+{
+    m_position = position;
+}
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
@@ -804,6 +829,26 @@ void GLCanvas3D::enable_shader(bool enable)
     m_shader.set_enabled(enable);
 }
 
+bool GLCanvas3D::is_mouse_dragging() const
+{
+    return m_mouse.is_dragging();
+}
+
+void GLCanvas3D::set_mouse_dragging(bool dragging)
+{
+    m_mouse.set_dragging(dragging);
+}
+
+const Pointf& GLCanvas3D::get_mouse_position() const
+{
+    return m_mouse.get_position();
+}
+
+void GLCanvas3D::set_mouse_position(const Pointf& position)
+{
+    m_mouse.set_position(position);
+}
+
 void GLCanvas3D::zoom_to_bed()
 {
     _zoom_to_bounding_box(bed_bounding_box());
@@ -960,7 +1005,7 @@ void GLCanvas3D::render_objects(bool useVBOs)
     {
         if (is_picking_enabled())
         {
-            m_on_mark_volumes_for_layer_height.call();
+            m_on_mark_volumes_for_layer_height_callback.call();
 
             if (m_config != nullptr)
             {
@@ -1093,10 +1138,10 @@ void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
         m_on_viewport_changed_callback.register_callback(callback);
 }
 
-void GLCanvas3D::register_on_mark_volumes_for_layer_height(void* callback)
+void GLCanvas3D::register_on_mark_volumes_for_layer_height_callback(void* callback)
 {
     if (callback != nullptr)
-        m_on_mark_volumes_for_layer_height.register_callback(callback);
+        m_on_mark_volumes_for_layer_height_callback.register_callback(callback);
 }
 
 void GLCanvas3D::on_size(wxSizeEvent& evt)
@@ -1273,7 +1318,7 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
 void GLCanvas3D::_deregister_callbacks()
 {
     m_on_viewport_changed_callback.deregister_callback();
-    m_on_mark_volumes_for_layer_height.deregister_callback();
+    m_on_mark_volumes_for_layer_height_callback.deregister_callback();
 }
 
 } // namespace GUI

@@ -37,14 +37,12 @@ use Slic3r::Geometry qw(PI);
 __PACKAGE__->mk_accessors( qw(_quat init
                               enable_moving
                               on_viewport_changed
-                              on_hover
                               on_select
                               on_double_click
                               on_right_click
                               on_move
                               on_model_update
                               volumes
-                              _mouse_pos
                               _hover_volume_idx
 
                               _drag_volume_idx
@@ -54,8 +52,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               _dragged
 
                               _layer_height_edited
-
-                              _mouse_dragging
                                                             
                               ) );
 #__PACKAGE__->mk_accessors( qw(_quat _dirty init
@@ -192,8 +188,8 @@ sub new {
 #    $self->_warning_enabled(0);
 #    $self->use_plain_shader(0);
 #    $self->_apply_zoom_to_volumes_filter(0);
+#    $self->_mouse_dragging(0);
 #==============================================================================================================================
-    $self->_mouse_dragging(0);
 
     # Collection of GLVolume objects
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
@@ -287,7 +283,7 @@ sub new {
         $self->mark_volumes_for_layer_height;
     };
     
-    Slic3r::GUI::_3DScene::register_on_mark_volumes_for_layer_height($self, $on_mark_volumes_for_layer_height);
+    Slic3r::GUI::_3DScene::register_on_mark_volumes_for_layer_height_callback($self, $on_mark_volumes_for_layer_height);
 #==============================================================================================================================
     
     return $self;
@@ -473,7 +469,10 @@ sub mouse_event {
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
     my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
 
-    $self->_mouse_dragging($e->Dragging);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_mouse_dragging($self, $e->Dragging);
+#    $self->_mouse_dragging($e->Dragging);
+#==============================================================================================================================
     
     if ($e->Entering && (&Wx::wxMSW || $^O eq 'linux')) {
         # wxMSW needs focus in order to catch mouse wheel events
@@ -662,7 +661,10 @@ sub mouse_event {
         $self->_drag_start_xy(undef);
         $self->_dragged(undef);
     } elsif ($e->Moving) {
-        $self->_mouse_pos($pos);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_mouse_position($self, $pos);
+#        $self->_mouse_pos($pos);
+#==============================================================================================================================
         # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
         # hovers over.
 #==============================================================================================================================
@@ -1474,10 +1476,12 @@ sub Render {
     glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
 
 #==============================================================================================================================
-    if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && !$self->_mouse_dragging) {
+    if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && !Slic3r::GUI::_3DScene::is_mouse_dragging($self)) {
+        my $pos = Slic3r::GUI::_3DScene::get_mouse_position($self);
+        if ($pos) {
 #    if ($self->enable_picking && !$self->_mouse_dragging) {
+#        if (my $pos = $self->_mouse_pos) {
 #==============================================================================================================================
-        if (my $pos = $self->_mouse_pos) {
             # Render the object for picking.
             # FIXME This cannot possibly work in a multi-sampled context as the color gets mangled by the anti-aliasing.
             # Better to use software ray-casting on a bounding-box hierarchy.
@@ -1504,7 +1508,9 @@ sub Render {
                     $_->set_hover(1) for grep { $_->select_group_id == $group_id } @{$self->volumes};
                 }
                 
-                $self->on_hover->($volume_idx) if $self->on_hover;
+#==============================================================================================================================
+#                $self->on_hover->($volume_idx) if $self->on_hover;
+#==============================================================================================================================
             }
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         }
