@@ -79,6 +79,7 @@ public:
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;
     double min_mm3_per_mm() const;
+    virtual double total_volume() const {double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
     Polyline as_polyline() const {
@@ -89,6 +90,21 @@ public:
         CONFESS("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }
+
+    void set_extruder_override(int extruder) {
+        extruder_override = extruder;
+        for (auto& member : entities) {
+            if (member->is_collection())
+                dynamic_cast<ExtrusionEntityCollection*>(member)->set_extruder_override(extruder);
+        }
+    }
+    int get_extruder_override() const { return extruder_override; }
+    bool is_extruder_overridden() const { return extruder_override != -1; }
+
+
+private:
+    // Set this variable to explicitly state you want to use specific extruder for thie EEC (used for MM infill wiping)
+    int extruder_override = -1;
 };
 
 }

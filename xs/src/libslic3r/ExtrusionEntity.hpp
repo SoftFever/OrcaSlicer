@@ -92,6 +92,7 @@ public:
     virtual double min_mm3_per_mm() const = 0;
     virtual Polyline as_polyline() const = 0;
     virtual double length() const = 0;
+    virtual double total_volume() const = 0;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
@@ -148,6 +149,7 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const { return this->mm3_per_mm; }
     Polyline as_polyline() const { return this->polyline; }
+    virtual double total_volume() const { return mm3_per_mm * unscale(length()); }
 
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
@@ -194,6 +196,7 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const;
     Polyline as_polyline() const;
+    virtual double total_volume() const { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
 };
 
 // Single continuous extrusion loop, possibly with varying extrusion thickness, extrusion height or bridging / non bridging.
@@ -241,6 +244,7 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const;
     Polyline as_polyline() const { return this->polygon().split_at_first_point(); }
+    virtual double total_volume() const { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
 
 private:
     ExtrusionLoopRole m_loop_role;

@@ -1037,6 +1037,26 @@ void Print::_make_wipe_tower()
     if (! this->has_wipe_tower())
         return;
 
+
+    int wiping_extruder = 0;
+
+    for (size_t i = 0; i < objects.size(); ++ i) {
+        for (Layer* lay : objects[i]->layers) {
+            for (LayerRegion* reg : lay->regions) {
+                ExtrusionEntityCollection& eec = reg->fills;
+                for (ExtrusionEntity* ee : eec.entities) {
+                        auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                        /*if (fill->total_volume() > 1.)*/ {
+                            fill->set_extruder_override(wiping_extruder);
+                        if (++wiping_extruder > 3)
+                            wiping_extruder = 0;
+                        }
+                }
+            }
+        }
+    }
+
+
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     m_tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
     if (! m_tool_ordering.has_wipe_tower())

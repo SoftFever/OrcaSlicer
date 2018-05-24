@@ -1249,7 +1249,7 @@ void GCode::process_layer(
                             break;
                         }
                 }
-                
+
                 // process infill
                 // layerm->fills is a collection of Slic3r::ExtrusionPath::Collection objects (C++ class ExtrusionEntityCollection), 
                 // each one containing the ExtrusionPath objects of a certain infill "group" (also called "surface"
@@ -1261,6 +1261,10 @@ void GCode::process_layer(
                     if (fill->entities.empty())
                         // This shouldn't happen but first_point() would fail.
                         continue;
+
+                    if (fill->is_extruder_overridden())
+                        continue;
+
                     // init by_extruder item only if we actually use the extruder
                     int extruder_id = std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1);
                     // Init by_extruder item only if we actually use the extruder.
@@ -1334,15 +1338,37 @@ void GCode::process_layer(
             m_avoid_crossing_perimeters.disable_once = true;
         }
 
+        for (const auto& layer_to_print : layers) {   // iterate through all objects
+            if (layer_to_print.object_layer == nullptr)
+                continue;
+            std::vector<ObjectByExtruder::Island::Region> overridden;
+            for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+                ObjectByExtruder::Island::Region new_region;
+                overridden.push_back(new_region);
+                for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
+                    auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                    if (fill->get_extruder_override() == extruder_id) {
+                        overridden.back().infills.append(*fill);
+                        fill->set_extruder_override(-1);
+                    }
+               }
+                m_config.apply((layer_to_print.object_layer)->object()->config, true);
+                Point copy = (layer_to_print.object_layer)->object()->_shifted_copies.front();
+                this->set_origin(unscale(copy.x), unscale(copy.y));
+                gcode += this->extrude_infill(print, overridden);
+            }
+        }
+
+
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
         if (objects_by_extruder_it == by_extruder.end())
             continue;
         for (const ObjectByExtruder &object_by_extruder : objects_by_extruder_it->second) {
             const size_t       layer_id     = &object_by_extruder - objects_by_extruder_it->second.data();
             const PrintObject *print_object = layers[layer_id].object();
-			if (print_object == nullptr)
-				// This layer is empty for this particular object, it has neither object extrusions nor support extrusions at this print_z.
-				continue;
+            if (print_object == nullptr)
+                // This layer is empty for this particular object, it has neither object extrusions nor support extrusions at this print_z.
+                continue;
 
             m_config.apply(print_object->config, true);
             m_layer = layers[layer_id].layer();
@@ -1355,6 +1381,7 @@ void GCode::process_layer(
                 copies.push_back(print_object->_shifted_copies[single_object_idx]);
             // Sort the copies by the closest point starting with the current print position.
             
+
             for (const Point &copy : copies) {
                 // When starting a new object, use the external motion planner for the first travel move.
                 std::pair<const PrintObject*, Point> this_object_copy(print_object, copy);
@@ -2004,6 +2031,7 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
 }
 
 // Chain the paths hierarchically by a greedy algorithm to minimize a travel distance.
+// if extruder_id is set, only entities marked with given extruder_id are extruded
 std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
 {
     std::string gcode;
