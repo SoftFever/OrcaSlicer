@@ -226,14 +226,17 @@ sub new {
     }
 
     ### Panel for right column
-    $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+#    $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    $self->{right_panel} = Wx::ScrolledWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    $self->{right_panel}->SetScrollbars(0, 1, 1, 1);
     
     ### Scrolled Window for info boxes
     my $scrolled_window_sizer = Wx::BoxSizer->new(wxVERTICAL);
     $scrolled_window_sizer->SetMinSize([310, -1]);
-    my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+#    my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    my $scrolled_window_panel = Wx::Panel->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $scrolled_window_panel->SetSizer($scrolled_window_sizer);
-    $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
+#    $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
 
     $self->{list} = Wx::ListView->new($scrolled_window_panel, -1, wxDefaultPosition, wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS );
@@ -517,7 +520,7 @@ sub new {
         $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($expert_mode_part_sizer, 1, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $right_sizer->Add($scrolled_window_panel, 1, wxEXPAND | wxALL, 1);
+        $right_sizer->Add($scrolled_window_panel, 0, wxEXPAND | wxALL, 1);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
 #            if ($right_sizer->IsShown(5) != $_[0]) { 

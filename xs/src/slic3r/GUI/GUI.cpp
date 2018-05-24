@@ -136,6 +136,12 @@ wxStaticBitmap	*g_manifold_warning_icon = nullptr;
 bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
 
+wxFont		g_small_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
+#ifdef __WXMAC__
+g_small_font->SetPointSize(11);
+#endif /*__WXMAC__*/
+wxFont		g_bold_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold() };
+
 static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -739,6 +745,14 @@ void set_label_clr_sys(const wxColour& clr) {
 	g_AppConfig->save();
 }
 
+const wxFont& small_font(){
+	return g_small_font;
+}
+
+const wxFont& bold_font(){
+	return g_bold_font;
+}
+
 const wxColour& get_label_clr_default() {
 	return g_color_label_default;
 }
@@ -879,6 +893,58 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	return objects_sz;
 }
 
+wxBoxSizer* content_edit_object_buttons(wxWindow* win)
+{
+	auto sizer = new wxBoxSizer(wxVERTICAL);
+
+	auto btn_load_part = new wxButton(win, wxID_ANY, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    auto btn_load_modifier = new wxButton(win, wxID_ANY, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, "Load generic…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    auto btn_delete = new wxButton(win, wxID_ANY, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+    auto btn_split = new wxButton(win, wxID_ANY, "Split part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+	auto btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
+	auto btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
+	btn_move_up->SetMinSize(wxSize(20, -1));
+	btn_move_down->SetMinSize(wxSize(20, -1));
+	btn_load_part->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
+    btn_load_modifier->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
+    btn_load_lambda_modifier->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
+    btn_delete->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_delete.png")), wxBITMAP_TYPE_PNG));
+    btn_split->SetBitmap(wxBitmap(from_u8(Slic3r::var("shape_ungroup.png")), wxBITMAP_TYPE_PNG));
+    btn_move_up->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_up.png")), wxBITMAP_TYPE_PNG));
+    btn_move_down->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_down.png")), wxBITMAP_TYPE_PNG));
+
+	auto buttons_object_sizer = new wxFlexGridSizer(1, 3, 0, 1);
+	buttons_object_sizer->SetFlexibleDirection(wxBOTH);
+	buttons_object_sizer->Add(btn_load_part, 0, wxEXPAND);
+	buttons_object_sizer->Add(btn_load_modifier, 0, wxEXPAND);
+	buttons_object_sizer->Add(btn_load_lambda_modifier, 0, wxEXPAND);
+
+	auto buttons_part_sizer = new wxFlexGridSizer(1, 3, 0, 1);
+	buttons_part_sizer->SetFlexibleDirection(wxBOTH);
+	buttons_part_sizer->Add(btn_delete, 0, wxEXPAND);
+	buttons_part_sizer->Add(btn_split, 0, wxEXPAND);
+	{
+		auto up_down_sizer = new wxGridSizer(1, 2, 0, 1);
+		up_down_sizer->Add(btn_move_up, 1, wxEXPAND);
+		up_down_sizer->Add(btn_move_down, 1, wxEXPAND);
+		buttons_part_sizer->Add(up_down_sizer, 0, wxEXPAND);
+	}
+	buttons_part_sizer->Show(false);
+
+	btn_load_part->SetFont(Slic3r::GUI::small_font());
+	btn_load_modifier->SetFont(Slic3r::GUI::small_font());
+	btn_load_lambda_modifier->SetFont(Slic3r::GUI::small_font());
+	btn_delete->SetFont(Slic3r::GUI::small_font());
+	btn_split->SetFont(Slic3r::GUI::small_font());
+	btn_move_up->SetFont(Slic3r::GUI::small_font());
+	btn_move_down->SetFont(Slic3r::GUI::small_font());
+
+	sizer->Add(buttons_object_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
+	sizer->Add(buttons_part_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
+	return sizer;
+}
+
 Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value=0)
 {
 	Line line = { _(option_name), "" };
@@ -888,7 +954,7 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 	def.type = coInt;
 	def.default_value = new ConfigOptionInt(def_value);
 	def.sidetext = sidetext;
-	def.width = 50;
+ 	def.width = 70;
 
 	const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
 
@@ -903,38 +969,28 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 	def.label = L("Z");
 	option = Option(def, lower_name + "_Z");
 	line.append_option(option);
+
+	if (option_name == "Scale")
+	{
+		def.label = L("Units");
+		def.type = coStrings;
+		def.gui_type = "select_open";
+		def.enum_labels.push_back(L("%"));
+		def.enum_labels.push_back(L("mm"));
+		def.default_value = new ConfigOptionStrings{ "%" };
+		def.sidetext = " ";
+
+		option = Option(def, lower_name + "_unit");
+		line.append_option(option);
+	}
 	return line;
 }
 
 wxBoxSizer* content_object_settings(wxWindow *win)
 {
-	DynamicPrintConfig* config = /*&g_PresetBundle->full_config();*/&g_PresetBundle->prints.get_edited_preset().config;
-	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "", config);
+	DynamicPrintConfig* config = &g_PresetBundle->printers.get_edited_preset().config; // TODO get config from Model_volume
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
 	optgroup->label_width = m_label_width;
-
-	ConfigOptionDef def;
-	def.label = L("Name");
-	def.type = coString;
-	def.tooltip = L("Object name");
-	def.full_width = true;
-	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
-	optgroup->append_single_option_line(Option(def, "object_name"));
-
-	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
-	
-	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
- 	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°"/*"\u00b0"*/, 1));
- 	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
-
-	optgroup->set_flag(ogDEFAULT);
-	
-	def.label = L("Place on bed");
-	def.type = coBool;
-	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
-	def.gui_type = "";
-	def.sidetext = "";
-	def.default_value = new ConfigOptionBool{ false };
-	optgroup->append_single_option_line(Option(def, "place_on_bed"));
 
 	Option option = optgroup->get_option("extruder");
 	option.opt.default_value = new ConfigOptionInt(1);
@@ -957,15 +1013,17 @@ wxBoxSizer* content_part_settings(wxWindow *win)
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	auto main_page = new wxScrolledWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	auto main_page = new wxPanel/*ScrolledWindow*/(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	main_page->SetSizer(main_sizer);
-	main_page->SetScrollbars(1, 1, 1, 1);
+// 	main_page->SetScrollbars(0, 1, 1, 1);
 	sizer->Add(main_page, 1, wxEXPAND | wxALL, 1);
 
 	// Experiments with new UI
 
 	// *** Objects List ***	
  	add_prusa_collapsible_pane(main_page, main_sizer, "Objects List:", content_objects_list);
+	// *** Edit Object Buttons***	
+ 	main_sizer->Add(content_edit_object_buttons(main_page), 0, wxEXPAND, 0);
 	// *** Object Settings ***
 	add_prusa_collapsible_pane(main_page, main_sizer, "Object Settings:", content_object_settings);
 	// *** Part Settings ***
@@ -1109,9 +1167,42 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		};
 		optgroup->append_line(line);
 
-	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 2);
 
 	m_optgroups.push_back(optgroup);// ogFrequentlyChangingParameters
+
+	// Frequently Object Settings
+	optgroup = std::make_shared<ConfigOptionsGroup>(parent, _(L("Object Settings")), config);
+ 	optgroup->label_width = 100;
+	optgroup->set_grid_vgap(5);
+
+	def.label = L("Name");
+	def.type = coString;
+	def.tooltip = L("Object name");
+	def.full_width = true;
+	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
+	optgroup->append_single_option_line(Option(def, "object_name"));
+
+	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
+	optgroup->sidetext_width = 25;
+	
+	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
+	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°", 1));
+	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
+
+	optgroup->set_flag(ogDEFAULT);
+
+	def.label = L("Place on bed");
+	def.type = coBool;
+	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
+	def.gui_type = "";
+	def.sidetext = "";
+	def.default_value = new ConfigOptionBool{ false };
+	optgroup->append_single_option_line(Option(def, "place_on_bed"));
+
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT, 20);
+
+	m_optgroups.push_back(optgroup);  // ogFrequentlyObjectSettings
 }
 
 void show_frequently_changed_parameters(bool show)

@@ -93,8 +93,7 @@ public:
 
     wxFont			sidetext_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
     wxFont			label_font {wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
-
-//	std::function<const wxBitmap&()>	nonsys_btn_icon{ nullptr };
+	int				sidetext_width{ -1 };
 
     /// Returns a copy of the pointer of the parent wxWindow.
     /// Accessor function is because users are not allowed to change the parent
@@ -132,14 +131,17 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 	void			set_flag(ogDrawFlag flag) { m_flag = flag; }
+	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
     OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false, ogDrawFlag flag = ogDEFAULT) : 
 		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!=""), m_flag(flag) {
-        sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+		auto stb = new wxStaticBox(_parent, wxID_ANY, title);
+		stb->SetFont(bold_font());
+        sizer = (staticbox ? new wxStaticBoxSizer(stb/*new wxStaticBox(_parent, wxID_ANY, title)*/, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
         if (extra_column != nullptr) num_columns++;
-        m_grid_sizer = new wxFlexGridSizer(0, num_columns, 0,0);
+        m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1,0);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH/*wxHORIZONTAL*/);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width != 0);
 #ifdef __WXGTK__
@@ -179,7 +181,7 @@ protected:
 	const t_field&		build_field(const t_config_option_key& id, const ConfigOptionDef& opt, wxStaticText* label = nullptr);
 	const t_field&		build_field(const t_config_option_key& id, wxStaticText* label = nullptr);
 	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
-	void				add_undo_buttuns_to_sizer(wxBoxSizer* sizer, const t_field& field);
+	void				add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field);
 
     virtual void		on_kill_focus (){};
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);

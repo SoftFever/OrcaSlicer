@@ -21,6 +21,7 @@ class wxFlexGridSizer;
 class wxButton;
 class wxFileDialog;
 class wxStaticBitmap;
+class wxFont;
 
 namespace Slic3r { 
 
@@ -49,6 +50,7 @@ namespace GUI {
 
 enum ogGroup{
 	ogFrequentlyChangingParameters,
+	ogFrequentlyObjectSettings,
 	ogObjectSettings,
 	ogPartSettings
 };
@@ -107,6 +109,9 @@ const wxColour& get_label_clr_default();
 unsigned get_colour_approx_luma(const wxColour &colour);
 void set_label_clr_modified(const wxColour& clr);
 void set_label_clr_sys(const wxColour& clr);
+
+const wxFont& small_font();
+const wxFont& bold_font();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 

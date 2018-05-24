@@ -1446,7 +1446,7 @@ void TabPrinter::build()
 		Line line{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent){
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			//			btn->SetFont(Slic3r::GUI::small_font);
+			btn->SetFont(Slic3r::GUI::small_font());
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1514,7 +1514,7 @@ void TabPrinter::build()
 			auto serial_test = [this](wxWindow* parent){
 				auto btn = m_serial_test_btn = new wxButton(parent, wxID_ANY,
 					_(L("Test")), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-//				btn->SetFont($Slic3r::GUI::small_font);
+				btn->SetFont(Slic3r::GUI::small_font());
 				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);

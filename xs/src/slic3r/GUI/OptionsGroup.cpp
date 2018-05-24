@@ -91,7 +91,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     return field;
 }
 
-void OptionsGroup::add_undo_buttuns_to_sizer(wxBoxSizer* sizer, const t_field& field)
+void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field)
 {
 	if (!m_is_tab_opt) {
 		field->m_Undo_btn->Hide();
@@ -177,7 +177,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	// If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
 	auto sizer = new wxBoxSizer(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxVERTICAL : wxHORIZONTAL);
-	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM|wxTOP|wxLEFT), staticbox ? 0 : 1);
+	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
 	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
@@ -195,7 +195,14 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 
     for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
-		wxBoxSizer* sizer_tmp = m_flag == ogSIDE_OPTIONS_VERTICAL ? new wxBoxSizer(wxHORIZONTAL) : sizer;
+		wxSizer* sizer_tmp;
+		if (m_flag == ogSIDE_OPTIONS_VERTICAL){
+			auto sz = new wxFlexGridSizer(1, 3, 2, 2);
+			sz->RemoveGrowableCol(2);
+			sizer_tmp = sz;
+		}
+    	else
+    		sizer_tmp = sizer;
 		// add label if any
 		if (option.label != "") {
 			wxString str_label = L_str(option.label);
@@ -205,7 +212,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 // 								L_str(option.label);
 			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			label->SetFont(label_font);
-			sizer_tmp->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(label, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field
@@ -218,9 +225,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, L_str(option.sidetext), wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(	parent(), wxID_ANY, L_str(option.sidetext), wxDefaultPosition, 
+												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetFont(sidetext_font);
-			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
+			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, m_flag == ogSIDE_OPTIONS_VERTICAL ? 0 : 4);
 		}
 
 		// add side widget if any
@@ -232,8 +240,9 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		{
 			sizer_tmp->AddSpacer(6);
 	    }
+
 		if (m_flag == ogSIDE_OPTIONS_VERTICAL)
-			sizer->Add(sizer_tmp, 1, wxEXPAND|wxALIGN_RIGHT|wxALL, 0);
+			sizer->Add(sizer_tmp, 0, wxALIGN_RIGHT|wxALL, 0);
 	}
 	// add extra sizers if any
 	for (auto extra_widget : line.get_extra_widgets()) {
