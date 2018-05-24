@@ -217,6 +217,8 @@ void ToolOrdering::reorder_extruders(unsigned int last_extruder_id)
         }
 }
 
+
+
 void ToolOrdering::fill_wipe_tower_partitions(const PrintConfig &config, coordf_t object_bottom_z)
 {
     if (m_layer_tools.empty())

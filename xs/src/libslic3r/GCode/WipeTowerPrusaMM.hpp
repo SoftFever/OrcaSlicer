@@ -44,7 +44,7 @@ public:
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
                      float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, float bridging,
-                     const std::vector<float>& wiping_matrix, unsigned int initial_tool) :
+                     const std::vector<std::vector<float>>& wiping_matrix, unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_tower_rotation_angle(rotation_angle),
@@ -56,12 +56,9 @@ public:
         m_parking_pos_retraction(parking_pos_retraction),
         m_extra_loading_move(extra_loading_move),
 		m_bridging(bridging),
-        m_current_tool(initial_tool)
- 	{
-        unsigned int number_of_extruders = (unsigned int)(sqrt(wiping_matrix.size())+WT_EPSILON);
-        for (unsigned int i = 0; i<number_of_extruders; ++i)
-            wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders,wiping_matrix.begin()+(i+1)*number_of_extruders));
-	}
+        m_current_tool(initial_tool),
+        wipe_volumes(wiping_matrix)
+        {}
 
 	virtual ~WipeTowerPrusaMM() {}
 
@@ -99,7 +96,7 @@ public:
 
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim);
+	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wiping_volume_reduction = 0.f);
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
@@ -238,7 +235,7 @@ private:
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
 	unsigned int 	m_current_tool  = 0;
-    std::vector<std::vector<float>> wipe_volumes;
+    const std::vector<std::vector<float>> wipe_volumes;
 
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
 	bool 			m_left_to_right   = true;
@@ -255,7 +252,7 @@ private:
 
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
-		return volume / (layer_height * (line_width - layer_height * (1. - M_PI / 4.)));
+		return std::max(0., volume / (layer_height * (line_width - layer_height * (1. - M_PI / 4.))));
 	}
 
 	// Calculates depth for all layers and propagates them downwards
@@ -308,8 +305,9 @@ private:
 			float required_depth;
             float ramming_depth;
             float first_wipe_line;
-			ToolChange(unsigned int old,unsigned int newtool,float depth=0.f,float ramming_depth=0.f,float fwl=0.f)
-            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth},first_wipe_line{fwl} {}
+            float wipe_volume;
+			ToolChange(unsigned int old, unsigned int newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f)
+            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth}, first_wipe_line{fwl}, wipe_volume{wv} {}
 		};
 		float z;		// z position of the layer
 		float height;	// layer height
