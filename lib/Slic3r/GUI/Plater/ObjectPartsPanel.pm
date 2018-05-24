@@ -166,9 +166,11 @@ sub new {
         });
         
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
-        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
+#==============================================================================================================================        
+        Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);       
+        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
+#        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
+        
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,700]);
@@ -502,7 +504,10 @@ sub _parts_changed {
 #        $self->{canvas}->reset_objects;
 #==============================================================================================================================
         $self->{canvas}->load_object($self->{model_object});
-        $self->{canvas}->zoom_to_volumes;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas});
+#        $self->{canvas}->zoom_to_volumes;
+#==============================================================================================================================
         $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
         $self->{canvas}->Render;
     }

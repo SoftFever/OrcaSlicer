@@ -102,15 +102,13 @@ use constant TRACKBALLSIZE  => 0.8;
 use constant TURNTABLE_MODE => 1;
 #==============================================================================================================================
 #use constant GROUND_Z       => -0.02;
-#==============================================================================================================================
-# For mesh selection: Not selected - bright yellow.
-use constant DEFAULT_COLOR  => [1,1,0];
-# For mesh selection: Selected - bright green.
-use constant SELECTED_COLOR => [0,1,0,1];
-# For mesh selection: Mouse hovers over the object, but object not selected yet - dark green.
-use constant HOVER_COLOR    => [0.4,0.9,0,1];
-
-#==============================================================================================================================
+## For mesh selection: Not selected - bright yellow.
+#use constant DEFAULT_COLOR  => [1,1,0];
+## For mesh selection: Selected - bright green.
+#use constant SELECTED_COLOR => [0,1,0,1];
+## For mesh selection: Mouse hovers over the object, but object not selected yet - dark green.
+#use constant HOVER_COLOR    => [0.4,0.9,0,1];
+#
 ## phi / theta angles to orient the camera.
 #use constant VIEW_DEFAULT    => [45.0,45.0];
 #use constant VIEW_LEFT       => [90.0,90.0];
@@ -710,7 +708,10 @@ sub mouse_wheel_event {
 #    $zoom = $self->_zoom / (1-$zoom);
 #==============================================================================================================================
     # Don't allow to zoom too far outside the scene.
-    my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box);
+#==============================================================================================================================
+    my $zoom_min = $self->get_zoom_to_bounding_box_factor(Slic3r::GUI::_3DScene::get_max_bounding_box($self));
+#    my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box);
+#==============================================================================================================================
     $zoom_min *= 0.4 if defined $zoom_min;
     $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
 #==============================================================================================================================
@@ -737,7 +738,8 @@ sub mouse_wheel_event {
 
     $self->on_viewport_changed->() if $self->on_viewport_changed;
 #==============================================================================================================================
-    $self->Resize($self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::resize($self, $self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
 #    $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
 #==============================================================================================================================
     $self->Refresh;
@@ -778,13 +780,12 @@ sub set_viewport_from_scene {
 #==============================================================================================================================
 }
 
-# Set the camera to a default orientation,
-# zoom to volumes.
-sub select_view {
-    my ($self, $direction) = @_;
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::select_view($self, $direction);
-
+## Set the camera to a default orientation,
+## zoom to volumes.
+#sub select_view {
+#    my ($self, $direction) = @_;
+#
 #    my $dirvec;
 #    if (ref($direction)) {
 #        $dirvec = $direction;
@@ -815,8 +816,8 @@ sub select_view {
 #        $self->on_viewport_changed->() if $self->on_viewport_changed;
 #        $self->Refresh;
 #    }
+#}
 #==============================================================================================================================
-}
 
 sub get_zoom_to_bounding_box_factor {
     my ($self, $bb) = @_;    
@@ -927,20 +928,15 @@ sub get_zoom_to_bounding_box_factor {
 #        $self->Refresh;
 #    }
 #}
-#==============================================================================================================================
-
-sub zoom_to_bed {
-    my ($self) = @_;
-    
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::zoom_to_bed($self);
+#
+#sub zoom_to_bed {
+#    my ($self) = @_;
+#    
 #    if ($self->bed_shape) {
 #        $self->zoom_to_bounding_box($self->bed_bounding_box);
 #    }
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 #sub zoom_to_volume {
 #    my ($self, $volume_idx) = @_;
 #    
@@ -948,60 +944,43 @@ sub zoom_to_bed {
 #    my $bb = $volume->transformed_bounding_box;
 #    $self->zoom_to_bounding_box($bb);
 #}
-#==============================================================================================================================
-
-sub zoom_to_volumes {
-    my ($self) = @_;
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::zoom_to_volumes($self);
-
+#
+#sub zoom_to_volumes {
+#    my ($self) = @_;
+#
 #    $self->_apply_zoom_to_volumes_filter(1);
 #    $self->zoom_to_bounding_box($self->volumes_bounding_box);
 #    $self->_apply_zoom_to_volumes_filter(0);
-#==============================================================================================================================
-}
-
-sub volumes_bounding_box {
-    my ($self) = @_;
-    
-#==============================================================================================================================
-    return Slic3r::GUI::_3DScene::get_volumes_bounding_box($self);
-
+#}
+#
+#sub volumes_bounding_box {
+#    my ($self) = @_;
+#    
 #    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
 #    foreach my $v (@{$self->volumes}) {
 #        $bb->merge($v->transformed_bounding_box) if (! $self->_apply_zoom_to_volumes_filter || $v->zoom_to_volumes);
 #    }
 #    return $bb;
-#==============================================================================================================================
-}
-
-sub bed_bounding_box {
-    my ($self) = @_;
-    
-#==============================================================================================================================
-    return Slic3r::GUI::_3DScene::get_bed_bounding_box($self);
-    
+#}
+#
+#sub bed_bounding_box {
+#    my ($self) = @_;
+#        
 #    my $bb = Slic3r::Geometry::BoundingBoxf3->new;
 #    if ($self->bed_shape) {
 #        $bb->merge_point(Slic3r::Pointf3->new(@$_, 0)) for @{$self->bed_shape};
 #    }
 #    return $bb;
-#==============================================================================================================================
-}
-
-sub max_bounding_box {
-    my ($self) = @_;
-    
-#==============================================================================================================================
-    return Slic3r::GUI::_3DScene::get_max_bounding_box($self);
-    
+#}
+#
+#sub max_bounding_box {
+#    my ($self) = @_;
+#        
 #    my $bb = $self->bed_bounding_box;
 #    $bb->merge($self->volumes_bounding_box);
 #    return $bb;
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 ## Used by ObjectCutDialog and ObjectPartsPanel to generate a rectangular ground plane
 ## to support the scene objects.
 #sub set_auto_bed_shape {
@@ -1085,12 +1064,10 @@ sub select_volume {
         if $volume_idx != -1;
 }
 
-sub SetCuttingPlane {
-    my ($self, $z, $expolygons) = @_;
-    
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_cutting_plane($self, $z, $expolygons);
-
+#sub SetCuttingPlane {
+#    my ($self, $z, $expolygons) = @_;
+#    
 #    $self->cutting_plane_z($z);
 #    
 #    # grow slices in order to display them better
@@ -1104,8 +1081,8 @@ sub SetCuttingPlane {
 #        );
 #    }
 #    $self->cut_lines_vertices(OpenGL::Array->new_list(GL_FLOAT, @verts));
+#}
 #==============================================================================================================================
-}
 
 # Given an axis and angle, compute quaternion.
 sub axis_to_quat {
@@ -1277,12 +1254,10 @@ sub UseVBOs {
 #==============================================================================================================================
 }
 
-sub Resize {
-    my ($self, $x, $y) = @_;
-
-#==============================================================================================================================
-     Slic3r::GUI::_3DScene::resize($self, $x, $y);
-    
+#==============================================================================================================================    
+#sub Resize {
+#    my ($self, $x, $y) = @_;
+#
 #    return unless $self->GetContext;
 #    $self->_dirty(0);
 #    
@@ -1320,8 +1295,8 @@ sub Resize {
 #        glFrustum(-$w2, $w2, -$h2, $h2, $nr, $fr);        
 #    }
 #    glMatrixMode(GL_MODELVIEW);
+#}
 #==============================================================================================================================
-}
 
 sub InitGL {
     my $self = shift;
@@ -1341,11 +1316,12 @@ sub InitGL {
     $self->volumes->finalize_geometry(1) 
         if ($^O eq 'linux' && $self->UseVBOs);
                 
-    $self->zoom_to_bed;
-        
-#===================================================================================================================================        
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::zoom_to_bed($self);        
     Slic3r::GUI::_3DScene::init($self, $self->UseVBOs);
-    
+
+#    $self->zoom_to_bed;
+#    
 #    glClearColor(0, 0, 0, 1);
 #    glColor3f(1, 0, 0);
 #    glEnable(GL_DEPTH_TEST);

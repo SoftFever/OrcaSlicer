@@ -385,7 +385,10 @@ sub new {
     $self->{canvas}->update_bed_size;
     if ($self->{canvas3D}) {
         $self->{canvas3D}->update_bed_size;
-        $self->{canvas3D}->zoom_to_bed;
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::zoom_to_bed($self->{canvas3D});
+#        $self->{canvas3D}->zoom_to_bed;
+#==============================================================================================================================
     }
     if ($self->{preview3D}) {
         $self->{preview3D}->set_bed_shape($self->{config}->bed_shape);
@@ -840,8 +843,10 @@ sub load_model_objects {
     $self->update;
     
     # zoom to objects
-    $self->{canvas3D}->zoom_to_volumes
-        if $self->{canvas3D};
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
+#    $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
+#==============================================================================================================================
     
     $self->{list}->Update;
     $self->{list}->Select($obj_idx[-1], 1);
@@ -1923,7 +1928,10 @@ sub object_cut_dialog {
 	    $self->remove($obj_idx);
 	    $self->load_model_objects(grep defined($_), @new_objects);
 	    $self->arrange;
-        $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
+#        $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
+#==============================================================================================================================
 	}
 }
 
@@ -2202,10 +2210,16 @@ sub select_view {
     my $idx_page = $self->{preview_notebook}->GetSelection;
     my $page = ($idx_page == &Wx::wxNOT_FOUND) ? L('3D') : $self->{preview_notebook}->GetPageText($idx_page);
     if ($page eq L('Preview')) {
-        $self->{preview3D}->canvas->select_view($direction);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
+#        $self->{preview3D}->canvas->select_view($direction);
+#==============================================================================================================================
         $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
     } else {
-        $self->{canvas3D}->select_view($direction);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::select_view($self->{canvas3D}, $direction);
+#        $self->{canvas3D}->select_view($direction);
+#==============================================================================================================================
         $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
     }
 }

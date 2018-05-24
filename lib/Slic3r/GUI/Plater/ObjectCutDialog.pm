@@ -118,7 +118,9 @@ sub new {
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
-        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
+        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
+#        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
+        
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,500]);
@@ -260,10 +262,13 @@ sub _update {
 #            $self->{canvas}->reset_objects;
 #==============================================================================================================================
             $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
-            $self->{canvas}->SetCuttingPlane(
-                $self->{cut_options}{z},
-                [@expolygons],
-            );
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::set_cutting_plane($self->{canvas}, $self->{cut_options}{z}, [@expolygons]);
+#            $self->{canvas}->SetCuttingPlane(
+#                $self->{cut_options}{z},
+#                [@expolygons],
+#            );
+#==============================================================================================================================
             $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->{config});
             $self->{canvas}->Render;
         }
