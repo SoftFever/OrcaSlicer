@@ -12,6 +12,7 @@
 #include <wx/image.h>
 
 #include <iostream>
+#include <float.h>
 
 static const bool TURNTABLE_MODE = true;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
