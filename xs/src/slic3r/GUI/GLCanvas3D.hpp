@@ -32,6 +32,46 @@ public:
     unsigned int get_data_size() const;
 };
 
+class Size
+{
+    int m_width;
+    int m_height;
+
+public:
+    Size();
+    Size(int width, int height);
+
+    int get_width() const;
+    void set_width(int width);
+
+    int get_height() const;
+    void set_height(int height);
+};
+
+class Rect
+{
+    float m_left;
+    float m_top;
+    float m_right;
+    float m_bottom;
+
+public:
+    Rect();
+    Rect(float left, float top, float right, float bottom);
+
+    float get_left() const;
+    void set_left(float left);
+
+    float get_top() const;
+    void set_top(float top);
+
+    float get_right() const;
+    void set_right(float right);
+
+    float get_bottom() const;
+    void set_bottom(float bottom);
+};
+
 class GLCanvas3D
 {
 public:
@@ -135,12 +175,36 @@ public:
 
     class LayersEditing
     {
+        struct GLTextureData
+        {
+            unsigned int id;
+            int width;
+            int height;
+
+            GLTextureData();
+            GLTextureData(unsigned int id, int width, int height);
+        };
+
         bool m_enabled;
+        mutable GLTextureData m_tooltip_texture;
+        mutable GLTextureData m_reset_texture;
 
     public:
         LayersEditing();
+        ~LayersEditing();
 
         bool is_enabled() const;
+
+        void render(const GLCanvas3D& canvas) const;
+
+    private:
+        GLTextureData _load_texture_from_file(const std::string& filename) const;
+        void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
+        void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
+        Rect _get_bar_rect_screen(const GLCanvas3D& canvas) const;
+        Rect _get_reset_rect_screen(const GLCanvas3D& canvas) const;
+        Rect _get_bar_rect_viewport(const GLCanvas3D& canvas) const;
+        Rect _get_reset_rect_viewport(const GLCanvas3D& canvas) const;
     };
 
     class Shader
@@ -299,6 +363,7 @@ public:
     void render_cutting_plane() const;
     void render_warning_texture() const;
     void render_legend_texture() const;
+    void render_layer_editing_textures() const;
 
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
@@ -309,9 +374,10 @@ public:
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
 
+    Size get_canvas_size() const;
+
 private:
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
-    std::pair<int, int> _get_canvas_size() const;
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
 
     void _deregister_callbacks();

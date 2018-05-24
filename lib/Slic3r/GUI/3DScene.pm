@@ -1484,6 +1484,11 @@ sub Render {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     Slic3r::GUI::_3DScene::render_background($self);
     Slic3r::GUI::_3DScene::render_bed($self);
+    Slic3r::GUI::_3DScene::render_axes($self);
+    Slic3r::GUI::_3DScene::render_objects($self, $self->UseVBOs);
+    Slic3r::GUI::_3DScene::render_cutting_plane($self);
+    Slic3r::GUI::_3DScene::render_warning_texture($self);
+    Slic3r::GUI::_3DScene::render_legend_texture($self);
     
 #    if ($self->enable_picking && !$self->_mouse_dragging) {
 #        if (my $pos = $self->_mouse_pos) {
@@ -1577,17 +1582,9 @@ sub Render {
 #        
 #        glDisable(GL_BLEND);
 #    }
-#==============================================================================================================================
-    
-    my $volumes_bb = $self->volumes_bounding_box;
-    
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::render_axes($self);
-    Slic3r::GUI::_3DScene::render_objects($self, $self->UseVBOs);
-    Slic3r::GUI::_3DScene::render_cutting_plane($self);
-    Slic3r::GUI::_3DScene::render_warning_texture($self);
-    Slic3r::GUI::_3DScene::render_legend_texture($self);
-    
+#    
+#    my $volumes_bb = $self->volumes_bounding_box;
+#    
 #    {
 #       # draw axes
 #        # disable depth testing so that axes are not covered by ground
@@ -1771,21 +1768,21 @@ sub _load_image_set_texture {
     return $params;
 }
 
-sub _variable_layer_thickness_load_overlay_image {
-    my ($self) = @_;
-    $self->{layer_preview_annotation} = $self->_load_image_set_texture('variable_layer_height_tooltip.png')
-        if (! $self->{layer_preview_annotation}->{loaded});
-    return $self->{layer_preview_annotation}->{valid};
-}
-
-sub _variable_layer_thickness_load_reset_image {
-    my ($self) = @_;
-    $self->{layer_preview_reset_image} = $self->_load_image_set_texture('variable_layer_height_reset.png')
-        if (! $self->{layer_preview_reset_image}->{loaded});
-    return $self->{layer_preview_reset_image}->{valid};
-}
-
 #==============================================================================================================================
+#sub _variable_layer_thickness_load_overlay_image {
+#    my ($self) = @_;
+#    $self->{layer_preview_annotation} = $self->_load_image_set_texture('variable_layer_height_tooltip.png')
+#        if (! $self->{layer_preview_annotation}->{loaded});
+#    return $self->{layer_preview_annotation}->{valid};
+#}
+#
+#sub _variable_layer_thickness_load_reset_image {
+#    my ($self) = @_;
+#    $self->{layer_preview_reset_image} = $self->_load_image_set_texture('variable_layer_height_reset.png')
+#        if (! $self->{layer_preview_reset_image}->{loaded});
+#    return $self->{layer_preview_reset_image}->{valid};
+#}
+#
 ## Paint the tooltip.
 #sub _render_image {
 #    my ($self, $image, $l, $r, $b, $t) = @_;
@@ -1876,27 +1873,21 @@ sub draw_active_object_annotations {
     glBindTexture(GL_TEXTURE_2D, 0);
     $self->{layer_height_edit_shader}->disable;
 
-    # Paint the tooltip.
-    if ($self->_variable_layer_thickness_load_overlay_image) {
 #==============================================================================================================================
-        my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
-        my $gap = 10/$zoom;
-        my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$zoom + $gap, $reset_bottom + $gap);
-        Slic3r::GUI::_3DScene::render_texture($self, $self->{layer_preview_annotation}->{texture_id}, $l, $r, $t, $b);
-    
+    Slic3r::GUI::_3DScene::render_layer_editing_textures($self);
+
+#    # Paint the tooltip.
+#    if ($self->_variable_layer_thickness_load_overlay_image) 
 #        my $gap = 10/$self->_zoom;
 #        my ($l, $r, $b, $t) = ($bar_left - $self->{layer_preview_annotation}->{width}/$self->_zoom - $gap, $bar_left - $gap, $reset_bottom + $self->{layer_preview_annotation}->{height}/$self->_zoom + $gap, $reset_bottom + $gap);
 #        $self->_render_image($self->{layer_preview_annotation}, $l, $r, $t, $b);
-#==============================================================================================================================
-    }
-
-    # Paint the reset button.
-    if ($self->_variable_layer_thickness_load_reset_image) {
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::render_texture($self, $self->{layer_preview_reset_image}->{texture_id}, $reset_left, $reset_right, $reset_bottom, $reset_top);
+#    }
+#
+#    # Paint the reset button.
+#    if ($self->_variable_layer_thickness_load_reset_image) {
 #        $self->_render_image($self->{layer_preview_reset_image}, $reset_left, $reset_right, $reset_bottom, $reset_top);
+#    }
 #==============================================================================================================================
-    }
 
     # Paint the graph.
     #FIXME show some kind of legend.

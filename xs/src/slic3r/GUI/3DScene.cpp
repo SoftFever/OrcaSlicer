@@ -2065,6 +2065,11 @@ void _3DScene::render_legend_texture(wxGLCanvas* canvas)
     s_canvas_mgr.render_legend_texture(canvas);
 }
 
+void _3DScene::render_layer_editing_textures(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.render_layer_editing_textures(canvas);
+}
+
 void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)
 {
     s_canvas_mgr.render_texture(canvas, tex_id, left, right, bottom, top);

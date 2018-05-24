@@ -6,7 +6,9 @@
 #include "../../libslic3r/PrintConfig.hpp"
 
 #include <GL/glew.h>
+
 #include <wx/glcanvas.h>
+#include <wx/image.h>
 
 #include <iostream>
 
@@ -22,6 +24,9 @@ static const float VIEW_TOP[2] = { 0.0f, 0.0f };
 static const float VIEW_BOTTOM[2] = { 0.0f, 180.0f };
 static const float VIEW_FRONT[2] = { 0.0f, 90.0f };
 static const float VIEW_REAR[2] = { 180.0f, 90.0f };
+
+static const float VARIABLE_LAYER_THICKNESS_BAR_WIDTH = 70.0f;
+static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
 
 namespace Slic3r {
 namespace GUI {
@@ -83,6 +88,94 @@ const float* GeometryBuffer::get_data() const
 unsigned int GeometryBuffer::get_data_size() const
 {
     return (unsigned int)m_data.size();
+}
+
+Size::Size()
+    : m_width(0)
+    , m_height(0)
+{
+}
+
+Size::Size(int width, int height)
+    : m_width(width)
+    , m_height(height)
+{
+}
+
+int Size::get_width() const
+{
+    return m_width;
+}
+
+void Size::set_width(int width)
+{
+    m_width = width;
+}
+
+int Size::get_height() const
+{
+    return m_height;
+}
+
+void Size::set_height(int height)
+{
+    m_height = height;
+}
+
+Rect::Rect()
+    : m_left(0.0f)
+    , m_top(0.0f)
+    , m_right(0.0f)
+    , m_bottom(0.0f)
+{
+}
+
+Rect::Rect(float left, float top, float right, float bottom)
+    : m_left(left)
+    , m_top(top)
+    , m_right(right)
+    , m_bottom(bottom)
+{
+}
+
+float Rect::get_left() const
+{
+    return m_left;
+}
+
+void Rect::set_left(float left)
+{
+    m_left = left;
+}
+
+float Rect::get_top() const
+{
+    return m_top;
+}
+
+void Rect::set_top(float top)
+{
+    m_top = top;
+}
+
+float Rect::get_right() const
+{
+    return m_right;
+}
+
+void Rect::set_right(float right)
+{
+    m_right = right;
+}
+
+float Rect::get_bottom() const
+{
+    return m_bottom;
+}
+
+void Rect::set_bottom(float bottom)
+{
+    m_bottom = bottom;
 }
 
 GLCanvas3D::Camera::Camera()
@@ -406,14 +499,176 @@ void GLCanvas3D::CuttingPlane::_render_contour() const
     ::glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+GLCanvas3D::LayersEditing::GLTextureData::GLTextureData()
+    : id(0)
+    , width(0)
+    , height(0)
+{
+}
+
+GLCanvas3D::LayersEditing::GLTextureData::GLTextureData(unsigned int id, int width, int height)
+    : id(id)
+    , width(width)
+    , height(height)
+{
+}
+
 GLCanvas3D::LayersEditing::LayersEditing()
     : m_enabled(false)
 {
 }
 
+GLCanvas3D::LayersEditing::~LayersEditing()
+{
+    if (m_tooltip_texture.id != 0)
+    {
+        ::glDeleteTextures(1, &m_tooltip_texture.id);
+        m_tooltip_texture = GLTextureData();
+    }
+    
+    if (m_reset_texture.id != 0)
+    {
+        ::glDeleteTextures(1, &m_reset_texture.id);
+        m_reset_texture = GLTextureData();
+    }
+}
+
 bool GLCanvas3D::LayersEditing::is_enabled() const
 {
     return m_enabled;
+}
+
+void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas) const
+{
+    const Rect& bar_rect = _get_bar_rect_viewport(canvas);
+    const Rect& reset_rect = _get_reset_rect_viewport(canvas);
+    _render_tooltip_texture(canvas, bar_rect, reset_rect);
+    _render_reset_texture(canvas, reset_rect);
+}
+
+GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_texture_from_file(const std::string& filename) const
+{
+    const std::string& path = resources_dir() + "/icons/";
+
+    // Load a PNG with an alpha channel.
+    wxImage image;
+    if (!image.LoadFile(path + filename, wxBITMAP_TYPE_PNG))
+        return GLTextureData();
+
+    int width = image.GetWidth();
+    int height = image.GetHeight();
+    int n_pixels = width * height;
+
+    if (n_pixels <= 0)
+        return GLTextureData();
+
+    // Get RGB & alpha raw data from wxImage, pack them into an array.
+    unsigned char* img_rgb = image.GetData();
+    if (img_rgb == nullptr)
+        return GLTextureData();
+
+    unsigned char* img_alpha = image.GetAlpha();
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    for (int i = 0; i < n_pixels; ++i)
+    {
+        int data_id = i * 4;
+        int img_id = i * 3;
+        data[data_id + 0] = img_rgb[img_id + 0];
+        data[data_id + 1] = img_rgb[img_id + 1];
+        data[data_id + 2] = img_rgb[img_id + 2];
+        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+    }
+
+    // sends data to gpu
+    GLuint tex_id;
+    ::glGenTextures(1, &tex_id);
+    ::glBindTexture(GL_TEXTURE_2D, tex_id);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return GLTextureData((unsigned int)tex_id, width, height);
+}
+
+void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
+{
+    if (m_tooltip_texture.id == 0)
+    {
+        m_tooltip_texture = _load_texture_from_file("variable_layer_height_tooltip.png");
+        if (m_tooltip_texture.id == 0)
+            return;
+    }
+
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float gap = 10.0f * inv_zoom;
+
+    float bar_left = bar_rect.get_left();
+    float reset_bottom = reset_rect.get_bottom();
+
+    float l = bar_left - (float)m_tooltip_texture.width * inv_zoom - gap;
+    float r = bar_left - gap;
+    float t = reset_bottom + (float)m_tooltip_texture.height * inv_zoom + gap;
+    float b = reset_bottom + gap;
+
+    canvas.render_texture(m_tooltip_texture.id, l, r, b, t);
+}
+
+void GLCanvas3D::LayersEditing::_render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const
+{
+    if (m_reset_texture.id == 0)
+    {
+        m_reset_texture = _load_texture_from_file("variable_layer_height_reset.png");
+        if (m_reset_texture.id == 0)
+            return;
+    }
+
+    canvas.render_texture(m_reset_texture.id, reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
+}
+
+Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas) const
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float w = (float)cnv_size.get_width();
+    float h = (float)cnv_size.get_height();
+
+    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0.0f, w, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
+}
+
+Rect GLCanvas3D::LayersEditing::_get_reset_rect_screen(const GLCanvas3D& canvas) const
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float w = (float)cnv_size.get_width();
+    float h = (float)cnv_size.get_height();
+
+    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, w, h);
+}
+
+Rect GLCanvas3D::LayersEditing::_get_bar_rect_viewport(const GLCanvas3D& canvas) const
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float half_w = 0.5f * (float)cnv_size.get_width();
+    float half_h = 0.5f * (float)cnv_size.get_height();
+
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom);
+}
+
+Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canvas) const
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float half_w = 0.5f * (float)cnv_size.get_width();
+    float half_h = 0.5f * (float)cnv_size.get_height();
+
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
 }
 
 GLCanvas3D::Shader::Shader()
@@ -524,7 +779,6 @@ GLCanvas3D::~GLCanvas3D()
 bool GLCanvas3D::init(bool useVBOs)
 {
     ::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-//    ::glColor3f(1.0f, 0.0f, 0.0f);
     ::glEnable(GL_DEPTH_TEST);
     ::glClearDepth(1.0f);
     ::glDepthFunc(GL_LEQUAL);
@@ -540,7 +794,6 @@ bool GLCanvas3D::init(bool useVBOs)
     GLfloat ambient[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
     ::glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient);
 
-//    ::glEnable(GL_LIGHTING);
     ::glEnable(GL_LIGHT0);
     ::glEnable(GL_LIGHT1);
 
@@ -968,8 +1221,6 @@ void GLCanvas3D::picking_pass()
 {
     if (is_picking_enabled() && !is_mouse_dragging() && (m_volumes != nullptr))
     {
-        const Pointf& pos = get_mouse_position();
-//        if (pos) {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
         // Better to use software ray - casting on a bounding - box hierarchy.
@@ -991,12 +1242,11 @@ void GLCanvas3D::picking_pass()
         if (is_multisample_allowed())
             ::glEnable(GL_MULTISAMPLE);
 
-//        ::glFlush();
+        const Size& cnv_size = get_canvas_size();
 
-        const std::pair<int, int>& cnv_size = _get_canvas_size();
-
+        const Pointf& pos = get_mouse_position();
         GLubyte color[4];
-        ::glReadPixels(pos.x, cnv_size.second - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+        ::glReadPixels(pos.x, cnv_size.get_height() - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
         int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
 
         set_hover_volume_id(-1);
@@ -1021,7 +1271,6 @@ void GLCanvas3D::picking_pass()
             }
         }
     }
-//        }
 }
 
 void GLCanvas3D::render_background() const
@@ -1181,11 +1430,11 @@ void GLCanvas3D::render_warning_texture() const
             ::glPushMatrix();
             ::glLoadIdentity();
 
-            const std::pair<int, int>& cnv_size = _get_canvas_size();
+            const Size& cnv_size = get_canvas_size();
             float zoom = get_camera_zoom();
             float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
             float l = (-0.5f * (float)w) * inv_zoom;
-            float t = (-0.5f * (float)cnv_size.second + (float)h) * inv_zoom;
+            float t = (-0.5f * (float)cnv_size.get_height() + (float)h) * inv_zoom;
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
 
@@ -1214,11 +1463,11 @@ void GLCanvas3D::render_legend_texture() const
             ::glPushMatrix();
             ::glLoadIdentity();
             
-            const std::pair<int, int>& cnv_size = _get_canvas_size();
+            const Size& cnv_size = get_canvas_size();
             float zoom = get_camera_zoom();
             float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-            float l = (-0.5f * (float)cnv_size.first) * inv_zoom;
-            float t = (0.5f * (float)cnv_size.second) * inv_zoom;
+            float l = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
+            float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
             render_texture(tex_id, l, r, b, t);
@@ -1227,6 +1476,11 @@ void GLCanvas3D::render_legend_texture() const
             ::glEnable(GL_DEPTH_TEST);
         }
     }
+}
+
+void GLCanvas3D::render_layer_editing_textures() const
+{
+    m_layers_editing.render(*this);
 }
 
 void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const
@@ -1278,8 +1532,8 @@ void GLCanvas3D::on_idle(wxIdleEvent& evt)
 
     if (m_canvas != nullptr)
     {
-        const std::pair<int, int>& cnv_size = _get_canvas_size();
-        resize((unsigned int)cnv_size.first, (unsigned int)cnv_size.second);
+        const Size& cnv_size = get_canvas_size();
+        resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         m_canvas->Refresh();
     }
 }
@@ -1319,6 +1573,17 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     }
 }
 
+Size GLCanvas3D::get_canvas_size() const
+{
+    int w = 0;
+    int h = 0;
+
+    if (m_canvas != nullptr)
+        m_canvas->GetSize(&w, &h);
+
+    return Size(w, h);
+}
+
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 {
     // Calculate the zoom factor needed to adjust viewport to bounding box.
@@ -1333,22 +1598,12 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 
         if (is_shown_on_screen())
         {
-            const std::pair<int, int>& cnv_size = _get_canvas_size();
-            resize((unsigned int)cnv_size.first, (unsigned int)cnv_size.second);
+            const Size& cnv_size = get_canvas_size();
+            resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
             if (m_canvas != nullptr)
                 m_canvas->Refresh();
         }
     }
-}
-
-std::pair<int, int> GLCanvas3D::_get_canvas_size() const
-{
-    std::pair<int, int> ret(0, 0);
-
-    if (m_canvas != nullptr)
-        m_canvas->GetSize(&ret.first, &ret.second);
-
-    return ret;
 }
 
 float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const
@@ -1433,8 +1688,8 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     max_x *= 2.0;
     max_y *= 2.0;
 
-    const std::pair<int, int>& cnv_size = _get_canvas_size();
-    return (float)std::min((coordf_t)cnv_size.first / max_x, (coordf_t)cnv_size.second / max_y);
+    const Size& cnv_size = get_canvas_size();
+    return (float)std::min((coordf_t)cnv_size.get_width() / max_x, (coordf_t)cnv_size.get_height() / max_y);
 }
 
 void GLCanvas3D::_deregister_callbacks()
