@@ -560,11 +560,11 @@ void GLCanvas3DManager::render_legend_texture(wxGLCanvas* canvas) const
         it->second->render_legend_texture();
 }
 
-void GLCanvas3DManager::render_layer_editing_textures(wxGLCanvas* canvas) const
+void GLCanvas3DManager::render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject& print_object) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->render_layer_editing_textures();
+        it->second->render_layer_editing_textures(print_object);
 }
 
 void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const

@@ -4,6 +4,7 @@
 #include "../../slic3r/GUI/GLShader.hpp"
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
+#include "../../libslic3r/Print.hpp"
 
 #include <GL/glew.h>
 
@@ -538,12 +539,13 @@ bool GLCanvas3D::LayersEditing::is_enabled() const
     return m_enabled;
 }
 
-void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas) const
+void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObject& print_object) const
 {
     const Rect& bar_rect = _get_bar_rect_viewport(canvas);
     const Rect& reset_rect = _get_reset_rect_viewport(canvas);
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(canvas, reset_rect);
+    _render_profile(print_object, bar_rect);
 }
 
 GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_texture_from_file(const std::string& filename) const
@@ -627,6 +629,61 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const GLCanvas3D& canvas, 
     }
 
     canvas.render_texture(m_reset_texture.id, reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
+}
+
+void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object, const Rect& bar_rect) const
+{
+    // FIXME show some kind of legend.
+
+    // Get a maximum layer height value.
+    // FIXME This is a duplicate code of Slicing.cpp.
+    double layer_height_max = DBL_MAX;
+    const PrintConfig& print_config = print_object.print()->config;
+    const std::vector<double>& nozzle_diameters = dynamic_cast<const ConfigOptionFloats*>(print_config.option("nozzle_diameter"))->values;
+    const std::vector<double>& layer_heights_min = dynamic_cast<const ConfigOptionFloats*>(print_config.option("min_layer_height"))->values;
+    const std::vector<double>& layer_heights_max = dynamic_cast<const ConfigOptionFloats*>(print_config.option("max_layer_height"))->values;
+    for (unsigned int i = 0; i < (unsigned int)nozzle_diameters.size(); ++i)
+    {
+        double lh_min = (layer_heights_min[i] == 0.0) ? 0.07 : std::max(0.01, layer_heights_min[i]);
+        double lh_max = (layer_heights_max[i] == 0.0) ? (0.75 * nozzle_diameters[i]) : layer_heights_max[i];
+        layer_height_max = std::min(layer_height_max, std::max(lh_min, lh_max));
+    }
+
+    // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
+    layer_height_max *= 1.12;
+
+    coordf_t max_z = unscale(print_object.size.z);
+    double layer_height = dynamic_cast<const ConfigOptionFloat*>(print_object.config.option("layer_height"))->value;
+    float l = bar_rect.get_left();
+    float w = bar_rect.get_right() - l;
+    float b = bar_rect.get_bottom();
+    float t = bar_rect.get_top();
+    float h = t - b;
+    float scale_x = w / (float)layer_height_max;
+    float scale_y = h / (float)max_z;
+    float x = l + (float)layer_height * scale_x;
+
+    // Baseline
+    ::glColor3f(0.0f, 0.0f, 0.0f);
+    ::glBegin(GL_LINE_STRIP);
+    ::glVertex2f(x, b);
+    ::glVertex2f(x, t);
+    ::glEnd();
+
+    // Curve
+    const ModelObject* model_object = print_object.model_object();
+    if (model_object->layer_height_profile_valid)
+    {
+        const std::vector<coordf_t>& profile = model_object->layer_height_profile;
+
+        ::glColor3f(0.0f, 0.0f, 1.0f);
+        ::glBegin(GL_LINE_STRIP);
+        for (unsigned int i = 0; i < profile.size(); i += 2)
+        {
+            ::glVertex2f(l + (float)profile[i + 1] * scale_x, b + (float)profile[i] * scale_y);
+        }
+        ::glEnd();
+    }
 }
 
 Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas) const
@@ -1478,9 +1535,9 @@ void GLCanvas3D::render_legend_texture() const
     }
 }
 
-void GLCanvas3D::render_layer_editing_textures() const
+void GLCanvas3D::render_layer_editing_textures(const PrintObject& print_object) const
 {
-    m_layers_editing.render(*this);
+    m_layers_editing.render(*this, print_object);
 }
 
 void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const

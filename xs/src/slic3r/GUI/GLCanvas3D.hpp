@@ -17,6 +17,7 @@ class GLVolumeCollection;
 class DynamicPrintConfig;
 class GLShader;
 class ExPolygon;
+class PrintObject;
 
 namespace GUI {
 
@@ -195,12 +196,13 @@ public:
 
         bool is_enabled() const;
 
-        void render(const GLCanvas3D& canvas) const;
+        void render(const GLCanvas3D& canvas, const PrintObject& print_object) const;
 
     private:
         GLTextureData _load_texture_from_file(const std::string& filename) const;
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
+        void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
         Rect _get_bar_rect_screen(const GLCanvas3D& canvas) const;
         Rect _get_reset_rect_screen(const GLCanvas3D& canvas) const;
         Rect _get_bar_rect_viewport(const GLCanvas3D& canvas) const;
@@ -363,7 +365,7 @@ public:
     void render_cutting_plane() const;
     void render_warning_texture() const;
     void render_legend_texture() const;
-    void render_layer_editing_textures() const;
+    void render_layer_editing_textures(const PrintObject& print_object) const;
 
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 

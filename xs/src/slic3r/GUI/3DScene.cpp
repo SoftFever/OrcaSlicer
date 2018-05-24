@@ -2065,9 +2065,10 @@ void _3DScene::render_legend_texture(wxGLCanvas* canvas)
     s_canvas_mgr.render_legend_texture(canvas);
 }
 
-void _3DScene::render_layer_editing_textures(wxGLCanvas* canvas)
+void _3DScene::render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject* print_object)
 {
-    s_canvas_mgr.render_layer_editing_textures(canvas);
+    if (print_object != nullptr)
+        s_canvas_mgr.render_layer_editing_textures(canvas, *print_object);
 }
 
 void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)

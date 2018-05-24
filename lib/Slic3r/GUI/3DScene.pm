@@ -1874,7 +1874,7 @@ sub draw_active_object_annotations {
     $self->{layer_height_edit_shader}->disable;
 
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::render_layer_editing_textures($self);
+    Slic3r::GUI::_3DScene::render_layer_editing_textures($self, $print_object);
 
 #    # Paint the tooltip.
 #    if ($self->_variable_layer_thickness_load_overlay_image) 
@@ -1887,43 +1887,43 @@ sub draw_active_object_annotations {
 #    if ($self->_variable_layer_thickness_load_reset_image) {
 #        $self->_render_image($self->{layer_preview_reset_image}, $reset_left, $reset_right, $reset_bottom, $reset_top);
 #    }
+#
+#    # Paint the graph.
+#    #FIXME show some kind of legend.
+#    my $max_z = unscale($print_object->size->z);
+#    my $profile = $print_object->model_object->layer_height_profile;
+#    my $layer_height = $print_object->config->get('layer_height');
+#    my $layer_height_max  = 10000000000.;
+#    {
+#        # Get a maximum layer height value.
+#        #FIXME This is a duplicate code of Slicing.cpp.
+#        my $nozzle_diameters  = $print_object->print->config->get('nozzle_diameter');
+#        my $layer_heights_min = $print_object->print->config->get('min_layer_height');
+#        my $layer_heights_max = $print_object->print->config->get('max_layer_height');
+#        for (my $i = 0; $i < scalar(@{$nozzle_diameters}); $i += 1) {
+#            my $lh_min = ($layer_heights_min->[$i] == 0.) ? 0.07 : max(0.01, $layer_heights_min->[$i]);
+#            my $lh_max = ($layer_heights_max->[$i] == 0.) ? (0.75 * $nozzle_diameters->[$i]) : $layer_heights_max->[$i];
+#            $layer_height_max = min($layer_height_max, max($lh_min, $lh_max));
+#        }
+#    }
+#    # Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
+#    $layer_height_max *= 1.12;
+#    # Baseline
+#    glColor3f(0., 0., 0.);
+#    glBegin(GL_LINE_STRIP);
+#    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom);
+#    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / $layer_height_max,  $bar_top);
+#    glEnd();
+#    # Curve
+#    glColor3f(0., 0., 1.);
+#    glBegin(GL_LINE_STRIP);
+#    for (my $i = 0; $i < int(@{$profile}); $i += 2) {
+#        my $z = $profile->[$i];
+#        my $h = $profile->[$i+1];
+#        glVertex3f($bar_left + $h * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom + $z * ($bar_top - $bar_bottom) / $max_z, $z);
+#    }
+#    glEnd();
 #==============================================================================================================================
-
-    # Paint the graph.
-    #FIXME show some kind of legend.
-    my $max_z = unscale($print_object->size->z);
-    my $profile = $print_object->model_object->layer_height_profile;
-    my $layer_height = $print_object->config->get('layer_height');
-    my $layer_height_max  = 10000000000.;
-    {
-        # Get a maximum layer height value.
-        #FIXME This is a duplicate code of Slicing.cpp.
-        my $nozzle_diameters  = $print_object->print->config->get('nozzle_diameter');
-        my $layer_heights_min = $print_object->print->config->get('min_layer_height');
-        my $layer_heights_max = $print_object->print->config->get('max_layer_height');
-        for (my $i = 0; $i < scalar(@{$nozzle_diameters}); $i += 1) {
-            my $lh_min = ($layer_heights_min->[$i] == 0.) ? 0.07 : max(0.01, $layer_heights_min->[$i]);
-            my $lh_max = ($layer_heights_max->[$i] == 0.) ? (0.75 * $nozzle_diameters->[$i]) : $layer_heights_max->[$i];
-            $layer_height_max = min($layer_height_max, max($lh_min, $lh_max));
-        }
-    }
-    # Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
-    $layer_height_max *= 1.12;
-    # Baseline
-    glColor3f(0., 0., 0.);
-    glBegin(GL_LINE_STRIP);
-    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom);
-    glVertex2f($bar_left + $layer_height * ($bar_right - $bar_left) / $layer_height_max,  $bar_top);
-    glEnd();
-    # Curve
-    glColor3f(0., 0., 1.);
-    glBegin(GL_LINE_STRIP);
-    for (my $i = 0; $i < int(@{$profile}); $i += 2) {
-        my $z = $profile->[$i];
-        my $h = $profile->[$i+1];
-        glVertex3f($bar_left + $h * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom + $z * ($bar_top - $bar_bottom) / $max_z, $z);
-    }
-    glEnd();
     # Revert the matrices.
     glPopMatrix();
     glEnable(GL_DEPTH_TEST);

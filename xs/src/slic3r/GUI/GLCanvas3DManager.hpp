@@ -139,7 +139,7 @@ public:
     void render_cutting_plane(wxGLCanvas* canvas) const;
     void render_warning_texture(wxGLCanvas* canvas) const;
     void render_legend_texture(wxGLCanvas* canvas) const;
-    void render_layer_editing_textures(wxGLCanvas* canvas) const;
+    void render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject& print_object) const;
 
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 
