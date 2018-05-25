@@ -21,7 +21,8 @@
 #include <wx/zipstrm.h>
 
 #include "Rasterizer/Rasterizer.hpp"
-#include "tbb/parallel_for.h"
+#include <tbb/parallel_for.h>
+#include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
 
 namespace Slic3r {
 
@@ -1464,12 +1465,13 @@ void Print::print_to(std::string dirpath,
     FilePrinter<format> printer(std::forward<Args>(args)...);
     printer.layers(layers.size());  // Allocate space for all the layers
 
-    set_status(0, "Rasterizing and compressing sliced layers");
-
     int st_prev = 0;
+    const std::string jobdesc = "Rasterizing and compressing sliced layers";
+    set_status(0, jobdesc);
+    tbb::spin_mutex m;
 
     // Method that prints one layer
-    auto process_layer = [this, &layers, &printer, &st_prev,
+    auto process_layer = [this, &layers, &printer, &st_prev, &m, &jobdesc,
                           print_bb, dir, cx, cy] (unsigned layer_id)
     {
         Layer& l = *(layers[layer_id]);
@@ -1510,10 +1512,12 @@ void Print::print_to(std::string dirpath,
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
 
         auto st = static_cast<int>(layer_id*100.0/layers.size());
-        if(st > st_prev) {
-            set_status(st, "processed");
+        m.lock();
+        if( st - st_prev > 10) {
+            set_status(st, jobdesc);
             st_prev = st;
         }
+        m.unlock();
 
         // printer.saveLayer(layer_id, dir); We could save the layer immediately
     };
@@ -1526,10 +1530,12 @@ void Print::print_to(std::string dirpath,
     // Sequential version (for testing)
     // for(unsigned l = 0; l < layers.size(); ++l) process_layer(l);
 
+    set_status(100, jobdesc);
+
     // Save the print into the file system.
     set_status(0, "Writing layers to disk");
     printer.save(dir);
-    set_status(100, "Done.");
+    set_status(100, "Writing layers to disk");
 }
 
 void Print::print_to_png(std::string dirpath, long width_px, long height_px,
