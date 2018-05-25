@@ -1939,14 +1939,14 @@ bool _3DScene::is_picking_enabled(wxGLCanvas* canvas)
     return s_canvas_mgr.is_picking_enabled(canvas);
 }
 
-bool _3DScene::is_shader_enabled(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_shader_enabled(canvas);
-}
-
 bool _3DScene::is_multisample_allowed(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_multisample_allowed(canvas);
+}
+
+void _3DScene::enable_layers_editing(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_layers_editing(canvas, enable);
 }
 
 void _3DScene::enable_warning_texture(wxGLCanvas* canvas, bool enable)
@@ -2003,6 +2003,16 @@ int _3DScene::get_hover_volume_id(wxGLCanvas* canvas)
 void _3DScene::set_hover_volume_id(wxGLCanvas* canvas, int id)
 {
     s_canvas_mgr.set_hover_volume_id(canvas, id);
+}
+
+unsigned int _3DScene::get_layers_editing_z_texture_id(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_z_texture_id(canvas);
+}
+
+GLShader* _3DScene::get_layers_editing_shader(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_shader(canvas);
 }
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)

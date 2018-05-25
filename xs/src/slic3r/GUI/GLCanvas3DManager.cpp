@@ -56,11 +56,6 @@ bool GLCanvas3DManager::GLVersion::is_greater_or_equal_to(unsigned int major, un
         return vn_minor >= minor;
 }
 
-GLCanvas3DManager::LayerEditing::LayerEditing()
-    : allowed(false)
-{
-}
-
 GLCanvas3DManager::GLCanvas3DManager()
     : m_gl_initialized(false)
     , m_use_legacy_opengl(false)
@@ -129,12 +124,11 @@ void GLCanvas3DManager::init_gl()
         const AppConfig* config = GUI::get_app_config();
         m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
         m_use_VBOs = !m_use_legacy_opengl && m_gl_version.is_greater_or_equal_to(2, 0);
-        m_layer_editing.allowed = !m_use_legacy_opengl;
         m_gl_initialized = true;
 
         std::cout << "DETECTED OPENGL: " << m_gl_version.vn_major << "." << m_gl_version.vn_minor << std::endl;
         std::cout << "USE VBOS = " << (m_use_VBOs ? "YES" : "NO") << std::endl;
-        std::cout << "LAYER EDITING ALLOWED = " << (m_layer_editing.allowed ? "YES" : "NO") << std::endl;
+        std::cout << "LAYER EDITING ALLOWED = " << (!m_use_legacy_opengl ? "YES" : "NO") << std::endl;
     }
 }
 
@@ -143,15 +137,10 @@ bool GLCanvas3DManager::use_VBOs() const
     return m_use_VBOs;
 }
 
-bool GLCanvas3DManager::layer_editing_allowed() const
-{
-    return m_layer_editing.allowed;
-}
-
 bool GLCanvas3DManager::init(wxGLCanvas* canvas, bool useVBOs)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->init(useVBOs) : false;
+    return (it != m_canvases.end()) ? it->second->init(useVBOs, m_use_legacy_opengl) : false;
 }
 
 bool GLCanvas3DManager::is_dirty(wxGLCanvas* canvas) const
@@ -391,16 +380,17 @@ bool GLCanvas3DManager::is_picking_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_picking_enabled() : false;
 }
 
-bool GLCanvas3DManager::is_shader_enabled(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_shader_enabled() : false;
-}
-
 bool GLCanvas3DManager::is_multisample_allowed(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_multisample_allowed() : false;
+}
+
+void GLCanvas3DManager::enable_layers_editing(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_layers_editing(enable);
 }
 
 void GLCanvas3DManager::enable_warning_texture(wxGLCanvas* canvas, bool enable)
@@ -475,6 +465,18 @@ void GLCanvas3DManager::set_hover_volume_id(wxGLCanvas* canvas, int id)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_hover_volume_id(id);
+}
+
+unsigned int GLCanvas3DManager::get_layers_editing_z_texture_id(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_z_texture_id() : 0;
+}
+
+GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_shader() : nullptr;
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)

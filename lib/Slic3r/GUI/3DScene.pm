@@ -197,13 +197,10 @@ sub new {
 #==============================================================================================================================
 #    $self->_camera_type('ortho');
 ##    $self->_camera_type('perspective');
-#==============================================================================================================================
-#==============================================================================================================================
 #    $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
 #    $self->_camera_distance(0.);
+#    $self->layer_editing_enabled(0);
 #==============================================================================================================================
-
-    $self->layer_editing_enabled(0);
     $self->{layer_height_edit_band_width} = 2.;
     $self->{layer_height_edit_strength} = 0.005;
     $self->{layer_height_edit_last_object_id} = -1;
@@ -307,54 +304,53 @@ sub Destroy {
     return $self->SUPER::Destroy;
 }
 
-sub layer_editing_enabled {
-    my ($self, $value) = @_;
-    if (@_ == 2) {
-        $self->{layer_editing_enabled} = $value;
-        if ($value) {
-            if (! $self->{layer_editing_initialized}) {
-                # Enabling the layer editing for the first time. This triggers compilation of the necessary OpenGL shaders.
-                # If compilation fails, a message box is shown with the error codes.
-                $self->SetCurrent($self->GetContext);
-                my $shader = new Slic3r::GUI::_3DScene::GLShader;
-                my $error_message;
 #==============================================================================================================================
-                if (! $shader->load_from_file("variable_layer_height.fs", "variable_layer_height.vs")) {
+#sub layer_editing_enabled {
+#    my ($self, $value) = @_;
+#    if (@_ == 2) {
+#        $self->{layer_editing_enabled} = $value;
+#        if ($value) {
+#            if (! $self->{layer_editing_initialized}) {
+#                # Enabling the layer editing for the first time. This triggers compilation of the necessary OpenGL shaders.
+#                # If compilation fails, a message box is shown with the error codes.
+#                $self->SetCurrent($self->GetContext);
+#                my $shader = new Slic3r::GUI::_3DScene::GLShader;
+#                my $error_message;
 #                if (! $shader->load_from_text($self->_fragment_shader_variable_layer_height, $self->_vertex_shader_variable_layer_height)) {
+#                    # Compilation or linking of the shaders failed.
+#                    $error_message = "Cannot compile an OpenGL Shader, therefore the Variable Layer Editing will be disabled.\n\n" 
+#                        . $shader->last_error;
+#                    $shader = undef;
+#                } else {
+#                    $self->{layer_height_edit_shader} = $shader;
+#                    ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
+#                    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+#                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+#                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+#                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+#                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+#                    glBindTexture(GL_TEXTURE_2D, 0);
+#                }
+#                if (defined($error_message)) {
+#                    # Don't enable the layer editing tool.
+#                    $self->{layer_editing_enabled} = 0;
+#                    # 2 means failed
+#                    $self->{layer_editing_initialized} = 2;
+#                    # Show the error message.
+#                    Wx::MessageBox($error_message, "Slic3r Error", wxOK | wxICON_EXCLAMATION, $self);
+#                } else {
+#                    $self->{layer_editing_initialized} = 1;
+#                }
+#            } elsif ($self->{layer_editing_initialized} == 2) {
+#                # Initilization failed before. Don't try to initialize and disable layer editing.
+#                $self->{layer_editing_enabled} = 0;
+#            }
+#        }
+#    }
+#    return $self->{layer_editing_enabled};
+#}
 #==============================================================================================================================
-                    # Compilation or linking of the shaders failed.
-                    $error_message = "Cannot compile an OpenGL Shader, therefore the Variable Layer Editing will be disabled.\n\n" 
-                        . $shader->last_error;
-                    $shader = undef;
-                } else {
-                    $self->{layer_height_edit_shader} = $shader;
-                    ($self->{layer_preview_z_texture_id}) = glGenTextures_p(1);
-                    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-                    glBindTexture(GL_TEXTURE_2D, 0);
-                }
-                if (defined($error_message)) {
-                    # Don't enable the layer editing tool.
-                    $self->{layer_editing_enabled} = 0;
-                    # 2 means failed
-                    $self->{layer_editing_initialized} = 2;
-                    # Show the error message.
-                    Wx::MessageBox($error_message, "Slic3r Error", wxOK | wxICON_EXCLAMATION, $self);
-                } else {
-                    $self->{layer_editing_initialized} = 1;
-                }
-            } elsif ($self->{layer_editing_initialized} == 2) {
-                # Initilization failed before. Don't try to initialize and disable layer editing.
-                $self->{layer_editing_enabled} = 0;
-            }
-        }
-    }
-    return $self->{layer_editing_enabled};
-}
 
 sub layer_editing_allowed {
     my ($self) = @_;
@@ -463,7 +459,10 @@ sub mouse_event {
     my ($self, $e) = @_;
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
+#==============================================================================================================================
+    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
+#    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
+#==============================================================================================================================
 
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::set_mouse_dragging($self, $e->Dragging);
@@ -507,7 +506,9 @@ sub mouse_event {
             # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             # during the scene manipulation.
 #==============================================================================================================================
-            if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
+
+#==============================================================================================================================
+            if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && ($volume_idx != -1 || ! Slic3r::GUI::_3DScene::is_layers_editing_enabled($self))) {
                 Slic3r::GUI::_3DScene::deselect_volumes($self);
                 Slic3r::GUI::_3DScene::select_volume($self, $volume_idx);
 #            if ($self->enable_picking && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
@@ -690,8 +691,10 @@ sub mouse_wheel_event {
         # Ignore the wheel events if the middle button is pressed.
         return;
     }
-    
-    if ($self->layer_editing_enabled && $self->{print}) {
+#==============================================================================================================================
+    if (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $self->{print}) {
+#    if ($self->layer_editing_enabled && $self->{print}) {
+#==============================================================================================================================
         my $object_idx_selected = $self->_first_selected_object_id_for_variable_layer_height_editing;
         if ($object_idx_selected != -1) {
             # A volume is selected. Test, whether hovering over a layer thickness bar.
@@ -1393,11 +1396,11 @@ sub DestroyGL {
 #            $self->{plain_shader}->release;
 #            delete $self->{plain_shader};
 #        }
+#        if ($self->{layer_height_edit_shader}) {
+#            $self->{layer_height_edit_shader}->release;
+#            delete $self->{layer_height_edit_shader};
+#        }
 #===================================================================================================================================        
-        if ($self->{layer_height_edit_shader}) {
-            $self->{layer_height_edit_shader}->release;
-            delete $self->{layer_height_edit_shader};
-        }
         $self->volumes->release_geometry;
     }
 }
@@ -1702,10 +1705,19 @@ sub mark_volumes_for_layer_height {
     foreach my $volume_idx (0..$#{$self->volumes}) {
         my $volume = $self->volumes->[$volume_idx];
         my $object_id = int($volume->select_group_id / 1000000);
-        if ($self->layer_editing_enabled && $volume->selected && $self->{layer_height_edit_shader} && 
+#==============================================================================================================================
+        my $shader = Slic3r::GUI::_3DScene::get_layers_editing_shader($self);
+        
+        if (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $shader && $volume->selected &&  
             $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
-            $volume->set_layer_height_texture_data($self->{layer_preview_z_texture_id}, $self->{layer_height_edit_shader}->shader_program_id,
-                $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, $self->{layer_height_edit_band_width});
+            $volume->set_layer_height_texture_data(Slic3r::GUI::_3DScene::get_layers_editing_z_texture_id($self), $shader->shader_program_id,
+            $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, $self->{layer_height_edit_band_width});
+                                
+#        if ($self->layer_editing_enabled && $volume->selected && $self->{layer_height_edit_shader} && 
+#            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
+#            $volume->set_layer_height_texture_data($self->{layer_preview_z_texture_id}, $self->{layer_height_edit_shader}->shader_program_id,
+#                $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, $self->{layer_height_edit_band_width});
+#==============================================================================================================================
         } else {
             $volume->reset_layer_height_texture_data();
         }
@@ -1794,7 +1806,10 @@ sub draw_active_object_annotations {
     # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
     my ($self) = @_;
 
-    return if (! $self->{layer_height_edit_shader} || ! $self->layer_editing_enabled);
+#==============================================================================================================================
+    return if (!Slic3r::GUI::_3DScene::is_layers_editing_enabled($self));    
+#    return if (! $self->{layer_height_edit_shader} || ! $self->layer_editing_enabled);
+#==============================================================================================================================
 
     # Find the selected volume, over which the layer editing is active.
     my $volume;
@@ -1821,12 +1836,25 @@ sub draw_active_object_annotations {
     my $print_object = $self->{print}->get_object($object_idx);
     my $z_max = $print_object->model_object->bounding_box->z_max;
     
-    $self->{layer_height_edit_shader}->enable;
-    $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
-    $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
-    $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
-    $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
-    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+#==============================================================================================================================
+    my $shader = Slic3r::GUI::_3DScene::get_layers_editing_shader($self);
+    $shader->enable;
+    $shader->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
+    $shader->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
+    $shader->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
+    $shader->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
+
+        
+#    $self->{layer_height_edit_shader}->enable;
+#    $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
+#    $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
+#    $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
+#    $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
+#==============================================================================================================================
+#==============================================================================================================================
+    glBindTexture(GL_TEXTURE_2D, Slic3r::GUI::_3DScene::get_layers_editing_z_texture_id($self));
+#    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
+#==============================================================================================================================
     glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
         0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
@@ -1850,7 +1878,10 @@ sub draw_active_object_annotations {
     glVertex3f($bar_left,  $bar_top, $z_max);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
-    $self->{layer_height_edit_shader}->disable;
+#==============================================================================================================================
+    $shader->disable;
+#    $self->{layer_height_edit_shader}->disable;
+#==============================================================================================================================
 
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render_layer_editing_textures($self, $print_object);

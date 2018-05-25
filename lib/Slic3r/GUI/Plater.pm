@@ -329,7 +329,10 @@ sub new {
         EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
         EVT_TOOL($self, TB_LAYER_EDITING, sub {
-            my $state = $self->{canvas3D}->layer_editing_enabled;
+#==============================================================================================================================
+            my $state = Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
+#            my $state = $self->{canvas3D}->layer_editing_enabled;
+#==============================================================================================================================
             $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, ! $state);
             $self->on_layer_editing_toggled(! $state);
         });
@@ -608,8 +611,12 @@ sub _on_select_preset {
 
 sub on_layer_editing_toggled {
     my ($self, $new_state) = @_;
-    $self->{canvas3D}->layer_editing_enabled($new_state);
-    if ($new_state && ! $self->{canvas3D}->layer_editing_enabled) {
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, $new_state);
+    if ($new_state && ! Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D})) {
+#    $self->{canvas3D}->layer_editing_enabled($new_state);
+#    if ($new_state && ! $self->{canvas3D}->layer_editing_enabled) {
+#==============================================================================================================================
         # Initialization of the OpenGL shaders failed. Disable the tool.
         if ($self->{htoolbar}) {
             $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
@@ -1237,8 +1244,12 @@ sub async_apply_config {
     my $invalidated = $self->{print}->apply_config(wxTheApp->{preset_bundle}->full_config);
 
     # Just redraw the 3D canvas without reloading the scene.
-#    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
-    $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
+#==============================================================================================================================
+#    $self->{canvas3D}->Refresh if ($invalidated && Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D}));
+    $self->{canvas3D}->Refresh if Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
+##    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
+#    $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
+#==============================================================================================================================
 
     # Hide the slicing results if the current slicing status is no more valid.    
     $self->{"print_info_box_show"}->(0) if $invalidated;
@@ -1819,7 +1830,10 @@ sub on_config_change {
                     $self->{"btn_layer_editing"}->Disable;
                     $self->{"btn_layer_editing"}->SetValue(0);
                 }
-                $self->{canvas3D}->layer_editing_enabled(0);
+#==============================================================================================================================
+                Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, 0);
+#                $self->{canvas3D}->layer_editing_enabled(0);
+#==============================================================================================================================
                 $self->{canvas3D}->Refresh;
                 $self->{canvas3D}->Update;
             } elsif ($self->{canvas3D}->layer_editing_allowed) {

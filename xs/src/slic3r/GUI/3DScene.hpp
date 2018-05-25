@@ -598,9 +598,9 @@ public:
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
     static bool is_picking_enabled(wxGLCanvas* canvas);
-    static bool is_shader_enabled(wxGLCanvas* canvas);
     static bool is_multisample_allowed(wxGLCanvas* canvas);
 
+    static void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     static void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     static void enable_picking(wxGLCanvas* canvas, bool enable);
@@ -615,6 +615,9 @@ public:
 
     static int get_hover_volume_id(wxGLCanvas* canvas);
     static void set_hover_volume_id(wxGLCanvas* canvas, int id);
+
+    static unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas);
+    static GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);

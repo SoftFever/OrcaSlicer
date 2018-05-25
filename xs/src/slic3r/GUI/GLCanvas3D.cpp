@@ -501,6 +501,73 @@ void GLCanvas3D::CuttingPlane::_render_contour() const
     ::glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+GLCanvas3D::Shader::Shader()
+    : m_shader(nullptr)
+{
+}
+
+GLCanvas3D::Shader::~Shader()
+{
+    _reset();
+}
+
+bool GLCanvas3D::Shader::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
+{
+    if (is_initialized())
+        return true;
+
+    m_shader = new GLShader();
+    if (m_shader != nullptr)
+    {
+        if (!m_shader->load_from_file(fragment_shader_filename.c_str(), vertex_shader_filename.c_str()))
+        {
+            std::cout << "Compilaton of shader failed:" << std::endl;
+            std::cout << m_shader->last_error << std::endl;
+            _reset();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool GLCanvas3D::Shader::is_initialized() const
+{
+    return (m_shader != nullptr);
+}
+
+bool GLCanvas3D::Shader::start_using() const
+{
+    if (is_initialized())
+    {
+        m_shader->enable();
+        return true;
+    }
+    else
+        return false;
+}
+
+void GLCanvas3D::Shader::stop_using() const
+{
+    if (m_shader != nullptr)
+        m_shader->disable();
+}
+
+GLShader* GLCanvas3D::Shader::get_shader()
+{
+    return m_shader;
+}
+
+void GLCanvas3D::Shader::_reset()
+{
+    if (m_shader != nullptr)
+    {
+        m_shader->release();
+        delete m_shader;
+        m_shader = nullptr;
+    }
+}
+
 GLCanvas3D::LayersEditing::GLTextureData::GLTextureData()
     : id(0)
     , width(0)
@@ -516,7 +583,9 @@ GLCanvas3D::LayersEditing::GLTextureData::GLTextureData(unsigned int id, int wid
 }
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_enabled(false)
+    : m_allowed(false)
+    , m_enabled(false)
+    , m_z_texture_id(0)
 {
 }
 
@@ -533,11 +602,54 @@ GLCanvas3D::LayersEditing::~LayersEditing()
         ::glDeleteTextures(1, &m_reset_texture.id);
         m_reset_texture = GLTextureData();
     }
+
+    if (m_z_texture_id != 0)
+    {
+        ::glDeleteTextures(1, &m_z_texture_id);
+        m_z_texture_id = 0;
+    }
+}
+
+bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
+{
+    if (!m_shader.init(vertex_shader_filename, fragment_shader_filename))
+        return false;
+
+    ::glGenTextures(1, (GLuint*)&m_z_texture_id);
+    ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
+bool GLCanvas3D::LayersEditing::is_allowed() const
+{
+    return m_allowed;
+}
+
+void GLCanvas3D::LayersEditing::set_allowed(bool allowed)
+{
+    m_allowed = allowed;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
 {
     return m_enabled;
+}
+
+void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
+{
+    m_enabled = m_allowed && m_shader.is_initialized() && enabled;
+}
+
+unsigned int GLCanvas3D::LayersEditing::get_z_texture_id() const
+{
+    return m_z_texture_id;
 }
 
 void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObject& print_object) const
@@ -547,6 +659,16 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(canvas, reset_rect);
     _render_profile(print_object, bar_rect);
+}
+
+GLShader* GLCanvas3D::LayersEditing::get_shader()
+{
+    return m_shader.get_shader();
+}
+
+bool GLCanvas3D::LayersEditing::_is_initialized() const
+{
+    return m_shader.is_initialized();
 }
 
 GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_texture_from_file(const std::string& filename) const
@@ -729,65 +851,6 @@ Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canva
     return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
 }
 
-GLCanvas3D::Shader::Shader()
-    : m_enabled(false)
-    , m_shader(nullptr)
-{
-}
-
-bool GLCanvas3D::Shader::init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename)
-{
-    m_shader = new GLShader();
-    if (m_shader != nullptr)
-    {
-        if (!m_shader->load_from_file(fragment_shader_filename.c_str(), vertex_shader_filename.c_str()))
-        {
-            std::cout << "Compilaton of path shader failed:" << std::endl;
-            std::cout << m_shader->last_error << std::endl;
-            reset();
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void GLCanvas3D::Shader::reset()
-{
-    if (m_shader != nullptr)
-    {
-        delete m_shader;
-        m_shader = nullptr;
-    }
-}
-
-bool GLCanvas3D::Shader::is_enabled() const
-{
-    return m_enabled;
-}
-
-void GLCanvas3D::Shader::set_enabled(bool enabled)
-{
-    m_enabled = enabled;
-}
-
-bool GLCanvas3D::Shader::start() const
-{
-    if (m_enabled && (m_shader != nullptr))
-    {
-        m_shader->enable();
-        return true;
-    }
-    else
-        return false;
-}
-
-void GLCanvas3D::Shader::stop() const
-{
-    if (m_shader != nullptr)
-        m_shader->disable();
-}
-
 GLCanvas3D::Mouse::Mouse()
     : m_dragging(false)
 {
@@ -824,6 +887,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
+    , m_shader_enabled(false)
     , m_multisample_allowed(false)
 {
 }
@@ -831,10 +895,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
 GLCanvas3D::~GLCanvas3D()
 {
     _deregister_callbacks();
-    m_shader.reset();
 }
 
-bool GLCanvas3D::init(bool useVBOs)
+bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
     ::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     ::glEnable(GL_DEPTH_TEST);
@@ -875,6 +938,11 @@ bool GLCanvas3D::init(bool useVBOs)
 
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
         return false;
+
+    if (useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
+        return false;
+
+    m_layers_editing.set_allowed(!use_legacy_opengl);
 
     return true;
 }
@@ -1179,14 +1247,14 @@ bool GLCanvas3D::is_picking_enabled() const
     return m_picking_enabled;
 }
 
-bool GLCanvas3D::is_shader_enabled() const
-{
-    return m_shader.is_enabled();
-}
-
 bool GLCanvas3D::is_multisample_allowed() const
 {
     return m_multisample_allowed;
+}
+
+void GLCanvas3D::enable_layers_editing(bool enable)
+{
+    m_layers_editing.set_enabled(enable);
 }
 
 void GLCanvas3D::enable_warning_texture(bool enable)
@@ -1206,9 +1274,8 @@ void GLCanvas3D::enable_picking(bool enable)
 
 void GLCanvas3D::enable_shader(bool enable)
 {
-    m_shader.set_enabled(enable);
+    m_shader_enabled = enable;
 }
-
 void GLCanvas3D::allow_multisample(bool allow)
 {
     m_multisample_allowed = allow;
@@ -1289,12 +1356,12 @@ void GLCanvas3D::select_view(const std::string& direction)
 
 bool GLCanvas3D::start_using_shader() const
 {
-    return m_shader.start();
+    return m_shader.start_using();
 }
 
 void GLCanvas3D::stop_using_shader() const
 {
-    m_shader.stop();
+    m_shader.stop_using();
 }
 
 void GLCanvas3D::picking_pass()
@@ -1384,6 +1451,16 @@ void GLCanvas3D::render_background() const
     ::glPopMatrix();
 }
 
+unsigned int GLCanvas3D::get_layers_editing_z_texture_id() const
+{
+    return m_layers_editing.get_z_texture_id();
+}
+
+GLShader* GLCanvas3D::get_layers_editing_shader()
+{
+    return m_layers_editing.get_shader();
+}
+
 void GLCanvas3D::render_bed() const
 {
     m_bed.render();
@@ -1445,12 +1522,12 @@ void GLCanvas3D::render_volumes(bool fake_colors) const
 
 void GLCanvas3D::render_objects(bool useVBOs)
 {
-    if (m_volumes == nullptr)
+    if ((m_volumes == nullptr) || m_volumes->empty())
         return;
 
     ::glEnable(GL_LIGHTING);
 
-    if (!is_shader_enabled())
+    if (!m_shader_enabled)
         render_volumes(false);
     else if (useVBOs)
     {

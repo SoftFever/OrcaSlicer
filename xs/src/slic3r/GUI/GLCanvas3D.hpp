@@ -174,6 +174,27 @@ public:
         void _render_contour() const;
     };
 
+    class Shader
+    {
+        GLShader* m_shader;
+
+    public:
+        Shader();
+        ~Shader();
+
+        bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
+
+        bool is_initialized() const;
+
+        bool start_using() const;
+        void stop_using() const;
+
+        GLShader* get_shader();
+
+    private:
+        void _reset();
+    };
+
     class LayersEditing
     {
         struct GLTextureData
@@ -186,7 +207,10 @@ public:
             GLTextureData(unsigned int id, int width, int height);
         };
 
+        bool m_allowed;
         bool m_enabled;
+        Shader m_shader;
+        unsigned int m_z_texture_id;
         mutable GLTextureData m_tooltip_texture;
         mutable GLTextureData m_reset_texture;
 
@@ -194,11 +218,22 @@ public:
         LayersEditing();
         ~LayersEditing();
 
+        bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
+
+        bool is_allowed() const;
+        void set_allowed(bool allowed);
+
         bool is_enabled() const;
+        void set_enabled(bool enabled);
+
+        unsigned int get_z_texture_id() const;
 
         void render(const GLCanvas3D& canvas, const PrintObject& print_object) const;
 
+        GLShader* get_shader();
+
     private:
+        bool _is_initialized() const;
         GLTextureData _load_texture_from_file(const std::string& filename) const;
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
@@ -207,24 +242,6 @@ public:
         Rect _get_reset_rect_screen(const GLCanvas3D& canvas) const;
         Rect _get_bar_rect_viewport(const GLCanvas3D& canvas) const;
         Rect _get_reset_rect_viewport(const GLCanvas3D& canvas) const;
-    };
-
-    class Shader
-    {
-        bool m_enabled;
-        GLShader* m_shader;
-
-    public:
-        Shader();
-
-        bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
-        void reset();
-
-        bool is_enabled() const;
-        void set_enabled(bool enabled);
-
-        bool start() const;
-        void stop() const;
     };
 
     class Mouse
@@ -262,6 +279,7 @@ private:
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
+    bool m_shader_enabled;
     bool m_multisample_allowed;
 
     PerlCallback m_on_viewport_changed_callback;
@@ -271,7 +289,7 @@ public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
     ~GLCanvas3D();
 
-    bool init(bool useVBOs);
+    bool init(bool useVBOs, bool use_legacy_opengl);
 
     bool set_current();
 
@@ -332,9 +350,9 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_picking_enabled() const;
-    bool is_shader_enabled() const;
     bool is_multisample_allowed() const;
 
+    void enable_layers_editing(bool enable);
     void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
@@ -349,6 +367,9 @@ public:
 
     int get_hover_volume_id() const;
     void set_hover_volume_id(int id);
+
+    unsigned int get_layers_editing_z_texture_id() const;
+    GLShader* get_layers_editing_shader();
 
     void zoom_to_bed();
     void zoom_to_volumes();

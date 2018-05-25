@@ -21,18 +21,10 @@ class GLCanvas3DManager
         bool is_greater_or_equal_to(unsigned int major, unsigned int minor) const;
     };
 
-    struct LayerEditing
-    {
-        bool allowed;
-
-        LayerEditing();
-    };
-
     typedef std::map<wxGLCanvas*, GLCanvas3D*> CanvasesMap;
 
     CanvasesMap m_canvases;
     GLVersion m_gl_version;
-    LayerEditing m_layer_editing;
     bool m_gl_initialized;
     bool m_use_legacy_opengl;
     bool m_use_VBOs;
@@ -106,9 +98,9 @@ public:
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_picking_enabled(wxGLCanvas* canvas) const;
-    bool is_shader_enabled(wxGLCanvas* canvas) const;
     bool is_multisample_allowed(wxGLCanvas* canvas) const;
 
+    void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     void enable_picking(wxGLCanvas* canvas, bool enable);
@@ -123,6 +115,9 @@ public:
 
     int get_hover_volume_id(wxGLCanvas* canvas) const;
     void set_hover_volume_id(wxGLCanvas* canvas, int id);
+
+    unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas) const;
+    GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);

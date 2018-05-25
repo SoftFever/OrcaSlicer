@@ -451,20 +451,20 @@ set_camera_target(canvas, target)
         Pointf3 *target;
     CODE:
         _3DScene::set_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), target);
-    
+
+bool
+is_layers_editing_enabled(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_layers_editing_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
 bool
 is_picking_enabled(canvas)
         SV *canvas;
     CODE:
         RETVAL = _3DScene::is_picking_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-bool
-is_shader_enabled(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::is_shader_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
 
@@ -476,6 +476,13 @@ is_multisample_allowed(canvas)
     OUTPUT:
         RETVAL
 
+void
+enable_layers_editing(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_layers_editing((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+    
 void
 enable_warning_texture(canvas, enable)
         SV   *canvas;
@@ -556,6 +563,22 @@ set_hover_volume_id(canvas, id)
     CODE:
         _3DScene::set_hover_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
 
+unsigned int
+get_layers_editing_z_texture_id(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_z_texture_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+Ref<GLShader>
+get_layers_editing_shader(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+    
 void
 zoom_to_bed(canvas)
         SV *canvas;
@@ -676,7 +699,6 @@ register_on_mark_volumes_for_layer_height_callback(canvas, callback)
         SV *callback;
     CODE:
         _3DScene::register_on_mark_volumes_for_layer_height_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-    
     
     
     
