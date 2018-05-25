@@ -200,8 +200,8 @@ sub new {
 #    $self->_camera_target(Slic3r::Pointf3->new(0,0,0));
 #    $self->_camera_distance(0.);
 #    $self->layer_editing_enabled(0);
+#    $self->{layer_height_edit_band_width} = 2.;
 #==============================================================================================================================
-    $self->{layer_height_edit_band_width} = 2.;
     $self->{layer_height_edit_strength} = 0.005;
     $self->{layer_height_edit_last_object_id} = -1;
     $self->{layer_height_edit_last_z} = 0.;
@@ -446,7 +446,10 @@ sub _variable_layer_thickness_action {
     $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
         $self->{layer_height_edit_last_z},
         $self->{layer_height_edit_strength},
-        $self->{layer_height_edit_band_width}, 
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::get_layers_editing_band_width($self),
+#        $self->{layer_height_edit_band_width}, 
+#==============================================================================================================================
         $self->{layer_height_edit_last_action});
     $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
         $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
@@ -700,7 +703,10 @@ sub mouse_wheel_event {
             # A volume is selected. Test, whether hovering over a layer thickness bar.
             if ($self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
                 # Adjust the width of the selection.
-                $self->{layer_height_edit_band_width} = max(min($self->{layer_height_edit_band_width} * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5);
+#==============================================================================================================================
+                Slic3r::GUI::_3DScene::set_layers_editing_band_width($self, max(min(Slic3r::GUI::_3DScene::get_layers_editing_band_width($self) * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5));
+#                $self->{layer_height_edit_band_width} = max(min($self->{layer_height_edit_band_width} * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5);
+#==============================================================================================================================
                 $self->Refresh;
                 return;
             }
@@ -1471,6 +1477,7 @@ sub Render {
     Slic3r::GUI::_3DScene::render_cutting_plane($self);
     Slic3r::GUI::_3DScene::render_warning_texture($self);
     Slic3r::GUI::_3DScene::render_legend_texture($self);
+    Slic3r::GUI::_3DScene::render_layer_editing_overlay($self, $self->{print});
     
 #    if ($self->enable_picking && !$self->_mouse_dragging) {
 #        if (my $pos = $self->_mouse_pos) {
@@ -1651,9 +1658,9 @@ sub Render {
 #    
 #    # draw gcode preview legend
 #    $self->draw_legend;
+#    
+#    $self->draw_active_object_annotations;
 #==============================================================================================================================
-    
-    $self->draw_active_object_annotations;
     
     $self->SwapBuffers();
 }
@@ -1711,7 +1718,7 @@ sub mark_volumes_for_layer_height {
         if (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $shader && $volume->selected &&  
             $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
             $volume->set_layer_height_texture_data(Slic3r::GUI::_3DScene::get_layers_editing_z_texture_id($self), $shader->shader_program_id,
-            $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, $self->{layer_height_edit_band_width});
+            $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, Slic3r::GUI::_3DScene::get_layers_editing_band_width($self));
                                 
 #        if ($self->layer_editing_enabled && $volume->selected && $self->{layer_height_edit_shader} && 
 #            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
@@ -1724,42 +1731,42 @@ sub mark_volumes_for_layer_height {
     }
 }
 
-sub _load_image_set_texture {
-    my ($self, $file_name) = @_;
-    # Load a PNG with an alpha channel.
-    my $img = Wx::Image->new;
-    $img->LoadFile(Slic3r::var($file_name), wxBITMAP_TYPE_PNG);
-    # Get RGB & alpha raw data from wxImage, interleave them into a Perl array.
-    my @rgb = unpack 'C*', $img->GetData();
-    my @alpha = $img->HasAlpha ? unpack 'C*', $img->GetAlpha() : (255) x (int(@rgb) / 3);
-    my $n_pixels = int(@alpha);
-    my @data = (0)x($n_pixels * 4);
-    for (my $i = 0; $i < $n_pixels; $i += 1) {
-        $data[$i*4  ] = $rgb[$i*3];
-        $data[$i*4+1] = $rgb[$i*3+1];
-        $data[$i*4+2] = $rgb[$i*3+2];
-        $data[$i*4+3] = $alpha[$i];
-    }
-    # Initialize a raw bitmap data.
-    my $params = {
-        loaded => 1,
-        valid  => $n_pixels > 0,
-        width  => $img->GetWidth, 
-        height => $img->GetHeight,
-        data   => OpenGL::Array->new_list(GL_UNSIGNED_BYTE, @data),
-        texture_id => glGenTextures_p(1)
-    };
-    # Create and initialize a texture with the raw data.
-    glBindTexture(GL_TEXTURE_2D, $params->{texture_id});
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $params->{width}, $params->{height}, 0, GL_RGBA, GL_UNSIGNED_BYTE, $params->{data}->ptr);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    return $params;
-}
-
 #==============================================================================================================================
+#sub _load_image_set_texture {
+#    my ($self, $file_name) = @_;
+#    # Load a PNG with an alpha channel.
+#    my $img = Wx::Image->new;
+#    $img->LoadFile(Slic3r::var($file_name), wxBITMAP_TYPE_PNG);
+#    # Get RGB & alpha raw data from wxImage, interleave them into a Perl array.
+#    my @rgb = unpack 'C*', $img->GetData();
+#    my @alpha = $img->HasAlpha ? unpack 'C*', $img->GetAlpha() : (255) x (int(@rgb) / 3);
+#    my $n_pixels = int(@alpha);
+#    my @data = (0)x($n_pixels * 4);
+#    for (my $i = 0; $i < $n_pixels; $i += 1) {
+#        $data[$i*4  ] = $rgb[$i*3];
+#        $data[$i*4+1] = $rgb[$i*3+1];
+#        $data[$i*4+2] = $rgb[$i*3+2];
+#        $data[$i*4+3] = $alpha[$i];
+#    }
+#    # Initialize a raw bitmap data.
+#    my $params = {
+#        loaded => 1,
+#        valid  => $n_pixels > 0,
+#        width  => $img->GetWidth, 
+#        height => $img->GetHeight,
+#        data   => OpenGL::Array->new_list(GL_UNSIGNED_BYTE, @data),
+#        texture_id => glGenTextures_p(1)
+#    };
+#    # Create and initialize a texture with the raw data.
+#    glBindTexture(GL_TEXTURE_2D, $params->{texture_id});
+#    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+#    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+#    glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $params->{width}, $params->{height}, 0, GL_RGBA, GL_UNSIGNED_BYTE, $params->{data}->ptr);
+#    glBindTexture(GL_TEXTURE_2D, 0);
+#    return $params;
+#}
+#
 #sub _variable_layer_thickness_load_overlay_image {
 #    my ($self) = @_;
 #    $self->{layer_preview_annotation} = $self->_load_image_set_texture('variable_layer_height_tooltip.png')
@@ -1800,92 +1807,69 @@ sub _load_image_set_texture {
 #    glDisable(GL_BLEND);
 #    glEnable(GL_LIGHTING);
 #}
-#==============================================================================================================================
-
-sub draw_active_object_annotations {
-    # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
-    my ($self) = @_;
-
-#==============================================================================================================================
-    return if (!Slic3r::GUI::_3DScene::is_layers_editing_enabled($self));    
+#
+#sub draw_active_object_annotations {
+#    # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
+#    my ($self) = @_;
+#
 #    return if (! $self->{layer_height_edit_shader} || ! $self->layer_editing_enabled);
-#==============================================================================================================================
-
-    # Find the selected volume, over which the layer editing is active.
-    my $volume;
-    foreach my $volume_idx (0..$#{$self->volumes}) {
-        my $v = $self->volumes->[$volume_idx];
-        if ($v->selected && $v->has_layer_height_texture) {
-            $volume = $v;
-            last;
-        }
-    }
-    return if (! $volume);
-    
-    # If the active object was not allocated at the Print, go away. This should only be a momentary case between an object addition / deletion
-    # and an update by Platter::async_apply_config.
-    my $object_idx = int($volume->select_group_id / 1000000);
-    return if $object_idx >= $self->{print}->object_count;
-
-    # The viewport and camera are set to complete view and glOrtho(-$x/2, $x/2, -$y/2, $y/2, -$depth, $depth), 
-    # where x, y is the window size divided by $self->_zoom.
-    my ($bar_left, $bar_bottom, $bar_right, $bar_top) = $self->_variable_layer_thickness_bar_rect_viewport;
-    my ($reset_left, $reset_bottom, $reset_right, $reset_top) = $self->_variable_layer_thickness_reset_rect_viewport;
-    my $z_cursor_relative = $self->_variable_layer_thickness_bar_mouse_cursor_z_relative;
-
-    my $print_object = $self->{print}->get_object($object_idx);
-    my $z_max = $print_object->model_object->bounding_box->z_max;
-    
-#==============================================================================================================================
-    my $shader = Slic3r::GUI::_3DScene::get_layers_editing_shader($self);
-    $shader->enable;
-    $shader->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
-    $shader->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
-    $shader->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
-    $shader->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
-
-        
+#
+#    # Find the selected volume, over which the layer editing is active.
+#    my $volume;
+#    foreach my $volume_idx (0..$#{$self->volumes}) {
+#        my $v = $self->volumes->[$volume_idx];
+#        if ($v->selected && $v->has_layer_height_texture) {
+#            $volume = $v;
+#            last;
+#        }
+#    }
+#    return if (! $volume);
+#    
+#    # If the active object was not allocated at the Print, go away. This should only be a momentary case between an object addition / deletion
+#    # and an update by Platter::async_apply_config.
+#    my $object_idx = int($volume->select_group_id / 1000000);
+#    return if $object_idx >= $self->{print}->object_count;
+#
+#    # The viewport and camera are set to complete view and glOrtho(-$x/2, $x/2, -$y/2, $y/2, -$depth, $depth), 
+#    # where x, y is the window size divided by $self->_zoom.
+#    my ($bar_left, $bar_bottom, $bar_right, $bar_top) = $self->_variable_layer_thickness_bar_rect_viewport;
+#    my ($reset_left, $reset_bottom, $reset_right, $reset_top) = $self->_variable_layer_thickness_reset_rect_viewport;
+#    my $z_cursor_relative = $self->_variable_layer_thickness_bar_mouse_cursor_z_relative;
+#
+#    my $print_object = $self->{print}->get_object($object_idx);
+#    my $z_max = $print_object->model_object->bounding_box->z_max;
+#    
 #    $self->{layer_height_edit_shader}->enable;
 #    $self->{layer_height_edit_shader}->set_uniform('z_to_texture_row',            $volume->layer_height_texture_z_to_row_id);
 #    $self->{layer_height_edit_shader}->set_uniform('z_texture_row_to_normalized', 1. / $volume->layer_height_texture_height);
 #    $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
 #    $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
-#==============================================================================================================================
-#==============================================================================================================================
-    glBindTexture(GL_TEXTURE_2D, Slic3r::GUI::_3DScene::get_layers_editing_z_texture_id($self));
 #    glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-#==============================================================================================================================
-    glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
-        0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
-        0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $volume->layer_height_texture_width, $volume->layer_height_texture_height,
-        GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level0);
-    glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
-        GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level1);
-    
-    # Render the color bar.
-    glDisable(GL_DEPTH_TEST);
-    # The viewport and camera are set to complete view and glOrtho(-$x/2, $x/2, -$y/2, $y/2, -$depth, $depth), 
-    # where x, y is the window size divided by $self->_zoom.
-    glPushMatrix();
-    glLoadIdentity();
-    # Paint the overlay.
-    glBegin(GL_QUADS);
-    glVertex3f($bar_left,  $bar_bottom, 0);
-    glVertex3f($bar_right, $bar_bottom, 0);
-    glVertex3f($bar_right, $bar_top, $z_max);
-    glVertex3f($bar_left,  $bar_top, $z_max);
-    glEnd();
-    glBindTexture(GL_TEXTURE_2D, 0);
-#==============================================================================================================================
-    $shader->disable;
+#    glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
+#        0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+#    glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
+#        0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+#    glTexSubImage2D_c(GL_TEXTURE_2D, 0, 0, 0, $volume->layer_height_texture_width, $volume->layer_height_texture_height,
+#        GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level0);
+#    glTexSubImage2D_c(GL_TEXTURE_2D, 1, 0, 0, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
+#        GL_RGBA, GL_UNSIGNED_BYTE, $volume->layer_height_texture_data_ptr_level1);
+#    
+#    # Render the color bar.
+#    glDisable(GL_DEPTH_TEST);
+#    # The viewport and camera are set to complete view and glOrtho(-$x/2, $x/2, -$y/2, $y/2, -$depth, $depth), 
+#    # where x, y is the window size divided by $self->_zoom.
+#    glPushMatrix();
+#    glLoadIdentity();
+#    # Paint the overlay.
+#    glBegin(GL_QUADS);
+#    glVertex3f($bar_left,  $bar_bottom, 0);
+#    glVertex3f($bar_right, $bar_bottom, 0);
+#    glVertex3f($bar_right, $bar_top, $z_max);
+#    glVertex3f($bar_left,  $bar_top, $z_max);
+#    glEnd();
+#    glBindTexture(GL_TEXTURE_2D, 0);
 #    $self->{layer_height_edit_shader}->disable;
-#==============================================================================================================================
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::render_layer_editing_textures($self, $print_object);
-
+#
 #    # Paint the tooltip.
 #    if ($self->_variable_layer_thickness_load_overlay_image) 
 #        my $gap = 10/$self->_zoom;
@@ -1933,13 +1917,11 @@ sub draw_active_object_annotations {
 #        glVertex3f($bar_left + $h * ($bar_right - $bar_left) / $layer_height_max,  $bar_bottom + $z * ($bar_top - $bar_bottom) / $max_z, $z);
 #    }
 #    glEnd();
-#==============================================================================================================================
-    # Revert the matrices.
-    glPopMatrix();
-    glEnable(GL_DEPTH_TEST);
-}
-
-#==============================================================================================================================
+#    # Revert the matrices.
+#    glPopMatrix();
+#    glEnable(GL_DEPTH_TEST);
+#}
+#
 #sub draw_legend {
 #    my ($self) = @_;
 # 

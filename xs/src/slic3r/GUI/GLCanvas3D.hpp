@@ -14,9 +14,11 @@ class wxKeyEvent;
 namespace Slic3r {
 
 class GLVolumeCollection;
+class GLVolume;
 class DynamicPrintConfig;
 class GLShader;
 class ExPolygon;
+class Print;
 class PrintObject;
 
 namespace GUI {
@@ -189,6 +191,8 @@ public:
         bool start_using() const;
         void stop_using() const;
 
+        void set_uniform(const std::string& name, float value) const;
+
         GLShader* get_shader();
 
     private:
@@ -213,6 +217,7 @@ public:
         unsigned int m_z_texture_id;
         mutable GLTextureData m_tooltip_texture;
         mutable GLTextureData m_reset_texture;
+        float m_band_width;
 
     public:
         LayersEditing();
@@ -228,7 +233,10 @@ public:
 
         unsigned int get_z_texture_id() const;
 
-        void render(const GLCanvas3D& canvas, const PrintObject& print_object) const;
+        float get_band_width() const;
+        void set_band_width(float band_width);
+
+        void render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const;
 
         GLShader* get_shader();
 
@@ -237,11 +245,13 @@ public:
         GLTextureData _load_texture_from_file(const std::string& filename) const;
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
+        void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
         void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
         Rect _get_bar_rect_screen(const GLCanvas3D& canvas) const;
         Rect _get_reset_rect_screen(const GLCanvas3D& canvas) const;
         Rect _get_bar_rect_viewport(const GLCanvas3D& canvas) const;
         Rect _get_reset_rect_viewport(const GLCanvas3D& canvas) const;
+        float _cursor_z_relative(const GLCanvas3D& canvas) const;
     };
 
     class Mouse
@@ -369,6 +379,10 @@ public:
     void set_hover_volume_id(int id);
 
     unsigned int get_layers_editing_z_texture_id() const;
+
+    float get_layers_editing_band_width() const;
+    void set_layers_editing_band_width(float band_width);
+
     GLShader* get_layers_editing_shader();
 
     void zoom_to_bed();
@@ -388,7 +402,7 @@ public:
     void render_cutting_plane() const;
     void render_warning_texture() const;
     void render_legend_texture() const;
-    void render_layer_editing_textures(const PrintObject& print_object) const;
+    void render_layer_editing_overlay(const Print& print) const;
 
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
@@ -400,6 +414,7 @@ public:
     void on_char(wxKeyEvent& evt);
 
     Size get_canvas_size() const;
+    Point get_local_mouse_position() const;
 
 private:
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);

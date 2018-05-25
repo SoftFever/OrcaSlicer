@@ -571,6 +571,21 @@ get_layers_editing_z_texture_id(canvas)
     OUTPUT:
         RETVAL
 
+float
+get_layers_editing_band_width(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_band_width((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_layers_editing_band_width(canvas, band_width)
+        SV    *canvas;
+        float band_width;
+    CODE:
+        _3DScene::set_layers_editing_band_width((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), band_width);
+
 Ref<GLShader>
 get_layers_editing_shader(canvas)
         SV *canvas;
@@ -669,11 +684,11 @@ render_legend_texture(canvas)
         _3DScene::render_legend_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
-render_layer_editing_textures(canvas, print_object)
-        SV          *canvas;
-        PrintObject *print_object;
+render_layer_editing_overlay(canvas, print)
+        SV    *canvas;
+        Print *print;
     CODE:
-        _3DScene::render_layer_editing_textures((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print_object);
+        _3DScene::render_layer_editing_overlay((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print);
 
 void
 render_texture(canvas, tex_id, left, right, bottom, top)

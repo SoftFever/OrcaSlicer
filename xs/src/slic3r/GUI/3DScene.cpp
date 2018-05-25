@@ -2010,6 +2010,16 @@ unsigned int _3DScene::get_layers_editing_z_texture_id(wxGLCanvas* canvas)
     return s_canvas_mgr.get_layers_editing_z_texture_id(canvas);
 }
 
+float _3DScene::get_layers_editing_band_width(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_band_width(canvas);
+}
+
+void _3DScene::set_layers_editing_band_width(wxGLCanvas* canvas, float band_width)
+{
+    s_canvas_mgr.set_layers_editing_band_width(canvas, band_width);
+}
+
 GLShader* _3DScene::get_layers_editing_shader(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_layers_editing_shader(canvas);
@@ -2085,10 +2095,10 @@ void _3DScene::render_legend_texture(wxGLCanvas* canvas)
     s_canvas_mgr.render_legend_texture(canvas);
 }
 
-void _3DScene::render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject* print_object)
+void _3DScene::render_layer_editing_overlay(wxGLCanvas* canvas, const Print* print)
 {
-    if (print_object != nullptr)
-        s_canvas_mgr.render_layer_editing_textures(canvas, *print_object);
+    if (print != nullptr)
+        s_canvas_mgr.render_layer_editing_overlay(canvas, *print);
 }
 
 void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)

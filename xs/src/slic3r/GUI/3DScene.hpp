@@ -617,6 +617,10 @@ public:
     static void set_hover_volume_id(wxGLCanvas* canvas, int id);
 
     static unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas);
+
+    static float get_layers_editing_band_width(wxGLCanvas* canvas);
+    static void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
+
     static GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
@@ -636,7 +640,7 @@ public:
     static void render_cutting_plane(wxGLCanvas* canvas);
     static void render_warning_texture(wxGLCanvas* canvas);
     static void render_legend_texture(wxGLCanvas* canvas);
-    static void render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject* print_object);
+    static void render_layer_editing_overlay(wxGLCanvas* canvas, const Print* print);
 
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 

@@ -553,6 +553,12 @@ void GLCanvas3D::Shader::stop_using() const
         m_shader->disable();
 }
 
+void GLCanvas3D::Shader::set_uniform(const std::string& name, float value) const
+{
+    if (m_shader != nullptr)
+        m_shader->set_uniform(name.c_str(), value);
+}
+
 GLShader* GLCanvas3D::Shader::get_shader()
 {
     return m_shader;
@@ -586,6 +592,7 @@ GLCanvas3D::LayersEditing::LayersEditing()
     : m_allowed(false)
     , m_enabled(false)
     , m_z_texture_id(0)
+    , m_band_width(2.0f)
 {
 }
 
@@ -652,13 +659,40 @@ unsigned int GLCanvas3D::LayersEditing::get_z_texture_id() const
     return m_z_texture_id;
 }
 
-void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObject& print_object) const
+float GLCanvas3D::LayersEditing::get_band_width() const
 {
+    return m_band_width;
+}
+
+void GLCanvas3D::LayersEditing::set_band_width(float band_width)
+{
+    m_band_width = band_width;
+}
+
+void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const
+{
+    if (!m_enabled)
+        return;
+
     const Rect& bar_rect = _get_bar_rect_viewport(canvas);
     const Rect& reset_rect = _get_reset_rect_viewport(canvas);
+
+    ::glDisable(GL_DEPTH_TEST);
+
+    // The viewport and camera are set to complete view and glOrtho(-$x / 2, $x / 2, -$y / 2, $y / 2, -$depth, $depth),
+    // where x, y is the window size divided by $self->_zoom.
+    ::glPushMatrix();
+    ::glLoadIdentity();
+
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
     _render_reset_texture(canvas, reset_rect);
+    _render_active_object_annotations(canvas, volume, print_object, bar_rect);
     _render_profile(print_object, bar_rect);
+
+    // Revert the matrices.
+    glPopMatrix();
+
+    glEnable(GL_DEPTH_TEST);
 }
 
 GLShader* GLCanvas3D::LayersEditing::get_shader()
@@ -752,6 +786,45 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const GLCanvas3D& canvas, 
     }
 
     canvas.render_texture(m_reset_texture.id, reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
+}
+
+void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const
+{
+    float max_z = print_object.model_object()->bounding_box().max.z;
+
+    m_shader.start_using();
+
+    m_shader.set_uniform("z_to_texture_row", (float)volume.layer_height_texture_z_to_row_id());
+    m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)volume.layer_height_texture_height());
+    m_shader.set_uniform("z_cursor", max_z * _cursor_z_relative(canvas));
+    m_shader.set_uniform("z_cursor_band_width", get_band_width());
+
+    GLsizei w = (GLsizei)volume.layer_height_texture_width();
+    GLsizei h = (GLsizei)volume.layer_height_texture_height();
+    GLsizei half_w = w / 2;
+    GLsizei half_h = h / 2;
+
+    ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    ::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level0());
+    ::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level1());
+
+    // Render the color bar
+    float l = bar_rect.get_left();
+    float r = bar_rect.get_right();
+    float t = bar_rect.get_top();
+    float b = bar_rect.get_bottom();
+
+    ::glBegin(GL_QUADS);
+    ::glVertex3f(l, b, 0.0f);
+    ::glVertex3f(r, b, 0.0f);
+    ::glVertex3f(r, t, max_z);
+    ::glVertex3f(l, t, max_z);
+    ::glEnd();
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    m_shader.stop_using();
 }
 
 void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object, const Rect& bar_rect) const
@@ -849,6 +922,21 @@ Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canva
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
+}
+
+float GLCanvas3D::LayersEditing::_cursor_z_relative(const GLCanvas3D& canvas) const
+{
+    const Point& mouse_pos = canvas.get_local_mouse_position();
+    const Rect& bar_rect = _get_bar_rect_screen(canvas);
+    float x = (float)mouse_pos.x;
+    float y = (float)mouse_pos.y;
+    float t = bar_rect.get_top();
+    float b = bar_rect.get_bottom();
+    return ((bar_rect.get_left() <= x) && (x <= bar_rect.get_right()) && (t <= y) && (y <= b)) ?
+        // Inside the bar.
+        (b - y - 1.0f) / (b - t - 1.0f) :
+        // Outside the bar.
+        - 1000.0f;
 }
 
 GLCanvas3D::Mouse::Mouse()
@@ -1456,6 +1544,16 @@ unsigned int GLCanvas3D::get_layers_editing_z_texture_id() const
     return m_layers_editing.get_z_texture_id();
 }
 
+float GLCanvas3D::get_layers_editing_band_width() const
+{
+    return m_layers_editing.get_band_width();
+}
+
+void GLCanvas3D::set_layers_editing_band_width(float band_width)
+{
+    m_layers_editing.set_band_width(band_width);
+}
+
 GLShader* GLCanvas3D::get_layers_editing_shader()
 {
     return m_layers_editing.get_shader();
@@ -1635,9 +1733,36 @@ void GLCanvas3D::render_legend_texture() const
     }
 }
 
-void GLCanvas3D::render_layer_editing_textures(const PrintObject& print_object) const
+void GLCanvas3D::render_layer_editing_overlay(const Print& print) const
 {
-    m_layers_editing.render(*this, print_object);
+    if (m_volumes == nullptr)
+        return;
+
+    GLVolume* volume = nullptr;
+
+    for (GLVolume* vol : m_volumes->volumes)
+    {
+        if ((vol != nullptr) && vol->selected && vol->has_layer_height_texture())
+        {
+            volume = vol;
+            break;
+        }
+    }
+
+    if (volume == nullptr)
+        return;
+
+    // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
+    // and an update by Platter::async_apply_config.
+    int object_idx = int(volume->select_group_id / 1000000);
+    if ((int)print.objects.size() < object_idx)
+        return;
+
+    const PrintObject* print_object = print.get_object(object_idx);
+    if (print_object == nullptr)
+        return;
+
+    m_layers_editing.render(*this, *print_object, *volume);
 }
 
 void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const
@@ -1739,6 +1864,15 @@ Size GLCanvas3D::get_canvas_size() const
         m_canvas->GetSize(&w, &h);
 
     return Size(w, h);
+}
+
+Point GLCanvas3D::get_local_mouse_position() const
+{
+    if (m_canvas == nullptr)
+        return Point();
+
+    wxPoint mouse_pos = m_canvas->ScreenToClient(wxGetMousePosition());
+    return Point(mouse_pos.x, mouse_pos.x);
 }
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)

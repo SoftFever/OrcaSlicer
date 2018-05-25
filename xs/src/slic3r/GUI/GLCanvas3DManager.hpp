@@ -117,6 +117,10 @@ public:
     void set_hover_volume_id(wxGLCanvas* canvas, int id);
 
     unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas) const;
+
+    float get_layers_editing_band_width(wxGLCanvas* canvas) const;
+    void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
+
     GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
 
     void zoom_to_bed(wxGLCanvas* canvas);
@@ -136,7 +140,7 @@ public:
     void render_cutting_plane(wxGLCanvas* canvas) const;
     void render_warning_texture(wxGLCanvas* canvas) const;
     void render_legend_texture(wxGLCanvas* canvas) const;
-    void render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject& print_object) const;
+    void render_layer_editing_overlay(wxGLCanvas* canvas, const Print& print) const;
 
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 

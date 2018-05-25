@@ -473,6 +473,19 @@ unsigned int GLCanvas3DManager::get_layers_editing_z_texture_id(wxGLCanvas* canv
     return (it != m_canvases.end()) ? it->second->get_layers_editing_z_texture_id() : 0;
 }
 
+float GLCanvas3DManager::get_layers_editing_band_width(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_band_width() : 0.0f;
+}
+
+void GLCanvas3DManager::set_layers_editing_band_width(wxGLCanvas* canvas, float band_width)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_layers_editing_band_width(band_width);
+}
+
 GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -576,11 +589,11 @@ void GLCanvas3DManager::render_legend_texture(wxGLCanvas* canvas) const
         it->second->render_legend_texture();
 }
 
-void GLCanvas3DManager::render_layer_editing_textures(wxGLCanvas* canvas, const PrintObject& print_object) const
+void GLCanvas3DManager::render_layer_editing_overlay(wxGLCanvas* canvas, const Print& print) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->render_layer_editing_textures(print_object);
+        it->second->render_layer_editing_overlay(print);
 }
 
 void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const
