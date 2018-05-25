@@ -1884,7 +1884,15 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("degrees");
     def->cli = "wipe-tower-rotation-angle=f";
     def->default_value = new ConfigOptionFloat(0.);
-    
+
+    def = this->add("wipe_into_infill", coBool);
+    def->label = L("Wiping into infill");
+    def->tooltip = L("Wiping after toolchange will be preferentially done inside infills. "
+                     "This lowers the amount of waste but may result in longer print time "
+                     " due to additional travel moves.");
+    def->cli = "wipe-into-infill!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("wipe_tower_bridging", coFloat);
     def->label = L("Maximal bridging distance");
     def->tooltip = L("Maximal distance between supports on sparse infill sections. ");

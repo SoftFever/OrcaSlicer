@@ -1142,28 +1142,31 @@ void Print::_make_wipe_tower()
                     // we run out of the volume (or infills)
                     const float min_infill_volume = 0.f;
 
-                    if (config.filament_soluble.get_at(extruder_id)) // soluble filament cannot be wiped in a random infill
-                        continue;
-
                     float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];
+                    float saved_material = 0.f;
 
-                    for (size_t i = 0; i < objects.size(); ++ i) {                    // Let's iterate through all objects...
-                        for (Layer* lay : objects[i]->layers) {
-                            for (LayerRegion* reg : lay->regions) {                         // and all regions
-                                ExtrusionEntityCollection& eec = reg->fills;
-                                for (ExtrusionEntity* ee : eec.entities) {                  // and all infill Collections
-                                        auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                                        if (volume_to_wipe > 0.f && !fill->is_extruder_overridden() && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
-                                            fill->set_extruder_override(extruder_id);
-                                            volume_to_wipe -= fill->total_volume();
-                                        }
+                    // soluble filament cannot be wiped in a random infill, first layer is potentionally visible too
+                    if (!first_layer && !config.filament_soluble.get_at(extruder_id)) {
+                        for (size_t i = 0; i < objects.size(); ++ i) {                    // Let's iterate through all objects...
+                            for (Layer* lay : objects[i]->layers) {
+                                if (std::abs(layer_tools.print_z - lay->print_z) > EPSILON) continue;
+                                for (LayerRegion* reg : lay->regions) {                         // and all regions
+                                    ExtrusionEntityCollection& eec = reg->fills;
+                                    for (ExtrusionEntity* ee : eec.entities) {                  // and all infill Collections
+                                            auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                                            if (fill->role() == erTopSolidInfill) continue;
+                                            if (volume_to_wipe > 0.f && !fill->is_extruder_overridden() && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
+                                                fill->set_extruder_override(extruder_id);
+                                                volume_to_wipe -= fill->total_volume();
+                                            }
+                                    }
                                 }
                             }
                         }
                     }
 
-                    float saved_material = wipe_volumes[current_extruder_id][extruder_id] - std::max(0.f, volume_to_wipe);
-                    std::cout << volume_to_wipe << "\t(saved " << saved_material << ")" << std::endl;
+                    saved_material = wipe_volumes[current_extruder_id][extruder_id] - std::max(0.f, volume_to_wipe);
+                    std::cout << layer_tools.print_z << "\t" << extruder_id << "\t" << wipe_volumes[current_extruder_id][extruder_id] - volume_to_wipe << "\n";
 
                     wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), saved_material);
                     current_extruder_id = extruder_id;
