@@ -350,15 +350,15 @@ sub Destroy {
 #    }
 #    return $self->{layer_editing_enabled};
 #}
+#
+#sub layer_editing_allowed {
+#    my ($self) = @_;
+#    # Allow layer editing if either the shaders were not initialized yet and we don't know
+#    # whether it will be possible to initialize them, 
+#    # or if the initialization was done already and it failed.
+#    return ! (defined($self->{layer_editing_initialized}) && $self->{layer_editing_initialized} == 2);
+#}
 #==============================================================================================================================
-
-sub layer_editing_allowed {
-    my ($self) = @_;
-    # Allow layer editing if either the shaders were not initialized yet and we don't know
-    # whether it will be possible to initialize them, 
-    # or if the initialization was done already and it failed.
-    return ! (defined($self->{layer_editing_initialized}) && $self->{layer_editing_initialized} == 2);
-}
 
 sub _first_selected_object_id_for_variable_layer_height_editing {
     my ($self) = @_;

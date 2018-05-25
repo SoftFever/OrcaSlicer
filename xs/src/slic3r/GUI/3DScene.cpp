@@ -1939,6 +1939,11 @@ bool _3DScene::is_picking_enabled(wxGLCanvas* canvas)
     return s_canvas_mgr.is_picking_enabled(canvas);
 }
 
+bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_layers_editing_allowed(canvas);
+}
+
 bool _3DScene::is_multisample_allowed(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_multisample_allowed(canvas);

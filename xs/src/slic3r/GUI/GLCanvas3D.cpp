@@ -589,7 +589,7 @@ GLCanvas3D::LayersEditing::GLTextureData::GLTextureData(unsigned int id, int wid
 }
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_allowed(false)
+    : m_use_legacy_opengl(false)
     , m_enabled(false)
     , m_z_texture_id(0)
     , m_band_width(2.0f)
@@ -636,12 +636,12 @@ bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, 
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
-    return m_allowed;
+    return m_use_legacy_opengl && m_shader.is_initialized();
 }
 
-void GLCanvas3D::LayersEditing::set_allowed(bool allowed)
+void GLCanvas3D::LayersEditing::set_use_legacy_opengl(bool use_legacy_opengl)
 {
-    m_allowed = allowed;
+    m_use_legacy_opengl = use_legacy_opengl;
 }
 
 bool GLCanvas3D::LayersEditing::is_enabled() const
@@ -651,7 +651,7 @@ bool GLCanvas3D::LayersEditing::is_enabled() const
 
 void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
 {
-    m_enabled = m_allowed && m_shader.is_initialized() && enabled;
+    m_enabled = is_allowed() && enabled;
 }
 
 unsigned int GLCanvas3D::LayersEditing::get_z_texture_id() const
@@ -1030,7 +1030,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
         return false;
 
-    m_layers_editing.set_allowed(!use_legacy_opengl);
+    m_layers_editing.set_use_legacy_opengl(!use_legacy_opengl);
 
     return true;
 }
@@ -1333,6 +1333,11 @@ bool GLCanvas3D::is_layers_editing_enabled() const
 bool GLCanvas3D::is_picking_enabled() const
 {
     return m_picking_enabled;
+}
+
+bool GLCanvas3D::is_layers_editing_allowed() const
+{
+    return m_layers_editing.is_allowed();
 }
 
 bool GLCanvas3D::is_multisample_allowed() const

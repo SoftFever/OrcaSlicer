@@ -380,6 +380,12 @@ bool GLCanvas3DManager::is_picking_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_picking_enabled() : false;
 }
 
+bool GLCanvas3DManager::is_layers_editing_allowed(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_layers_editing_allowed() : false;
+}
+
 bool GLCanvas3DManager::is_multisample_allowed(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

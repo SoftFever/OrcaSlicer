@@ -469,6 +469,14 @@ is_picking_enabled(canvas)
         RETVAL
 
 bool
+is_layers_editing_allowed(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_layers_editing_allowed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+        
+bool
 is_multisample_allowed(canvas)
         SV *canvas;
     CODE:

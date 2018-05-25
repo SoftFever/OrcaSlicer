@@ -211,7 +211,7 @@ public:
             GLTextureData(unsigned int id, int width, int height);
         };
 
-        bool m_allowed;
+        bool m_use_legacy_opengl;
         bool m_enabled;
         Shader m_shader;
         unsigned int m_z_texture_id;
@@ -226,7 +226,7 @@ public:
         bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
 
         bool is_allowed() const;
-        void set_allowed(bool allowed);
+        void set_use_legacy_opengl(bool use_legacy_opengl);
 
         bool is_enabled() const;
         void set_enabled(bool enabled);
@@ -360,6 +360,7 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_picking_enabled() const;
+    bool is_layers_editing_allowed() const;
     bool is_multisample_allowed() const;
 
     void enable_layers_editing(bool enable);

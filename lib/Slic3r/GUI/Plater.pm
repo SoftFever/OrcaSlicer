@@ -1836,7 +1836,10 @@ sub on_config_change {
 #==============================================================================================================================
                 $self->{canvas3D}->Refresh;
                 $self->{canvas3D}->Update;
-            } elsif ($self->{canvas3D}->layer_editing_allowed) {
+#==============================================================================================================================
+            } elsif (Slic3r::GUI::_3DScene::is_layers_editing_allowed($self->{canvas3D})) {
+#            } elsif ($self->{canvas3D}->layer_editing_allowed) {
+#==============================================================================================================================
                 # Want to allow the layer editing, but do it only if the OpenGL supports it.
                 if ($self->{htoolbar}) {
                     $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 1);
@@ -1997,7 +2000,10 @@ sub object_list_changed {
         
     # Enable/disable buttons depending on whether there are any objects on the platter.
     my $have_objects = @{$self->{objects}} ? 1 : 0;
-    my $variable_layer_height_allowed = $self->{config}->variable_layer_height && $self->{canvas3D}->layer_editing_allowed;
+#==============================================================================================================================
+    my $variable_layer_height_allowed = $self->{config}->variable_layer_height && Slic3r::GUI::_3DScene::is_layers_editing_allowed($self->{canvas3D});
+#    my $variable_layer_height_allowed = $self->{config}->variable_layer_height && $self->{canvas3D}->layer_editing_allowed;
+#==============================================================================================================================
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_objects)
