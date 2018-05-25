@@ -1254,6 +1254,7 @@ std::string Print::output_filepath(const std::string &path)
 void Print::set_status(int percent, const std::string &message)
 {
     printf("Print::status %d => %s\n", percent, message.c_str());
+    std::cout.flush();
 }
 
 /*
@@ -1463,9 +1464,13 @@ void Print::print_to(std::string dirpath,
     FilePrinter<format> printer(std::forward<Args>(args)...);
     printer.layers(layers.size());  // Allocate space for all the layers
 
+    set_status(0, "Rasterizing and compressing sliced layers");
+
+    int st_prev = 0;
+
     // Method that prints one layer
-    auto process_layer = [this, &layers, &printer, print_bb, dir, cx, cy]
-            (unsigned layer_id)
+    auto process_layer = [this, &layers, &printer, &st_prev,
+                          print_bb, dir, cx, cy] (unsigned layer_id)
     {
         Layer& l = *(layers[layer_id]);
 
@@ -1504,7 +1509,11 @@ void Print::print_to(std::string dirpath,
 
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
 
-        std::cout << "Layer " << layer_id << " processed." << std::endl;
+        auto st = static_cast<int>(layer_id*100.0/layers.size());
+        if(st > st_prev) {
+            set_status(st, "processed");
+            st_prev = st;
+        }
 
         // printer.saveLayer(layer_id, dir); We could save the layer immediately
     };
@@ -1518,7 +1527,9 @@ void Print::print_to(std::string dirpath,
     // for(unsigned l = 0; l < layers.size(); ++l) process_layer(l);
 
     // Save the print into the file system.
+    set_status(0, "Writing layers to disk");
     printer.save(dir);
+    set_status(100, "Done.");
 }
 
 void Print::print_to_png(std::string dirpath, long width_px, long height_px,

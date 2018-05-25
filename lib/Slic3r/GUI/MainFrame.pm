@@ -476,7 +476,7 @@ sub quick_slice {
         
         # show processbar dialog
         $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
-            100, $self, 0);
+            100, $self, 4);
         $progress_dialog->Pulse;
         
         {
