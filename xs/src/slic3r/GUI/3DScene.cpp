@@ -1792,6 +1792,16 @@ void _3DScene::reset_volumes(wxGLCanvas* canvas)
     s_canvas_mgr.reset_volumes(canvas);
 }
 
+void _3DScene::deselect_volumes(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.deselect_volumes(canvas);
+}
+
+void _3DScene::select_volume(wxGLCanvas* canvas, unsigned int id)
+{
+    s_canvas_mgr.select_volume(canvas, id);
+}
+
 DynamicPrintConfig* _3DScene::get_config(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_config(canvas);

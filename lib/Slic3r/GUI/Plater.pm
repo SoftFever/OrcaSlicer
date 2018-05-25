@@ -1854,7 +1854,10 @@ sub list_item_deselected {
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
-        $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D}) if $self->{canvas3D};
+#        $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
+#==============================================================================================================================
         $self->{canvas3D}->Render if $self->{canvas3D};
     }
     undef $self->{_lecursor};

@@ -64,6 +64,8 @@ public:
     GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
     void reset_volumes(wxGLCanvas* canvas);
+    void deselect_volumes(wxGLCanvas* canvas);
+    void select_volume(wxGLCanvas* canvas, unsigned int id);
 
     DynamicPrintConfig* get_config(wxGLCanvas* canvas);
     void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);

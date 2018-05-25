@@ -200,6 +200,20 @@ void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
         it->second->reset_volumes();
 }
 
+void GLCanvas3DManager::deselect_volumes(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->deselect_volumes();
+}
+
+void GLCanvas3DManager::select_volume(wxGLCanvas* canvas, unsigned int id)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->select_volume(id);
+}
+
 DynamicPrintConfig* GLCanvas3DManager::get_config(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

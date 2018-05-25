@@ -992,6 +992,28 @@ void GLCanvas3D::reset_volumes()
     }
 }
 
+void GLCanvas3D::deselect_volumes()
+{
+    if (m_volumes != nullptr)
+    {
+        for (GLVolume* vol : m_volumes->volumes)
+        {
+            if (vol != nullptr)
+                vol->selected = false;
+        }
+    }
+}
+
+void GLCanvas3D::select_volume(unsigned int id)
+{
+    if ((m_volumes != nullptr) && (id < (unsigned int)m_volumes->volumes.size()))
+    {
+        GLVolume* vol = m_volumes->volumes[id];
+        if (vol != nullptr)
+            vol->selected = true;
+    }
+}
+
 DynamicPrintConfig* GLCanvas3D::get_config()
 {
     return m_config;

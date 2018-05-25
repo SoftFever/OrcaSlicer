@@ -556,6 +556,8 @@ public:
     static GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
     static void reset_volumes(wxGLCanvas* canvas);
+    static void deselect_volumes(wxGLCanvas* canvas);
+    static void select_volume(wxGLCanvas* canvas, unsigned int id);
 
     static DynamicPrintConfig* get_config(wxGLCanvas* canvas);
     static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);

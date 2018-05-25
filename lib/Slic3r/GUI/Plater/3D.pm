@@ -195,7 +195,10 @@ sub update_volumes_selection {
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
         if ($self->{objects}[$obj_idx]->selected) {
             my $volume_idxs = $self->{objects_volumes_idxs}->[$obj_idx];
-            $self->select_volume($_) for @{$volume_idxs};
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::select_volume($self, $_) for @{$volume_idxs};
+#            $self->select_volume($_) for @{$volume_idxs};
+#==============================================================================================================================
         }
     }
 }

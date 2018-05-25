@@ -508,16 +508,21 @@ sub mouse_event {
             # during the scene manipulation.
 #==============================================================================================================================
             if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
+                Slic3r::GUI::_3DScene::deselect_volumes($self);
+                Slic3r::GUI::_3DScene::select_volume($self, $volume_idx);
 #            if ($self->enable_picking && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
+#                $self->deselect_volumes;
+#                $self->select_volume($volume_idx);
 #==============================================================================================================================
-                $self->deselect_volumes;
-                $self->select_volume($volume_idx);
                 
                 if ($volume_idx != -1) {
                     my $group_id = $self->volumes->[$volume_idx]->select_group_id;
                     my @volumes;
                     if ($group_id != -1) {
-                        $self->select_volume($_)
+#==============================================================================================================================
+                        Slic3r::GUI::_3DScene::select_volume($self, $_)
+#                        $self->select_volume($_)
+#==============================================================================================================================
                             for grep $self->volumes->[$_]->select_group_id == $group_id,
                             0..$#{$self->volumes};
                     }
@@ -1048,23 +1053,21 @@ sub get_zoom_to_bounding_box_factor {
 #
 #    $self->bed_polygon(offset_ex([$expolygon->contour], $bed_bb->radius * 1.7, JT_ROUND, scale(0.5))->[0]->contour->clone);
 #}
-#==============================================================================================================================
-
-sub deselect_volumes {
-    my ($self) = @_;
-    $_->set_selected(0) for @{$self->volumes};
-}
-
-sub select_volume {
-    my ($self, $volume_idx) = @_;
-
-    return if ($volume_idx >= scalar(@{$self->volumes}));
-
-    $self->volumes->[$volume_idx]->set_selected(1)
-        if $volume_idx != -1;
-}
-
-#==============================================================================================================================
+#
+#sub deselect_volumes {
+#    my ($self) = @_;
+#    $_->set_selected(0) for @{$self->volumes};
+#}
+#
+#sub select_volume {
+#    my ($self, $volume_idx) = @_;
+#
+#    return if ($volume_idx >= scalar(@{$self->volumes}));
+#
+#    $self->volumes->[$volume_idx]->set_selected(1)
+#        if $volume_idx != -1;
+#}
+#
 #sub SetCuttingPlane {
 #    my ($self, $z, $expolygons) = @_;
 #    

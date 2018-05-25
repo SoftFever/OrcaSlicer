@@ -251,6 +251,19 @@ reset_volumes(canvas)
     CODE:
         _3DScene::reset_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
+void
+deselect_volumes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::deselect_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+select_volume(canvas, id)
+        SV           *canvas;
+        unsigned int id;
+    CODE:
+        _3DScene::select_volume((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+
 DynamicPrintConfig*
 get_config(canvas)
         SV *canvas;

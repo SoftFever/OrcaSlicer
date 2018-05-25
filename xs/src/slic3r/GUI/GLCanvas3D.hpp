@@ -285,6 +285,8 @@ public:
     GLVolumeCollection* get_volumes();
     void set_volumes(GLVolumeCollection* volumes);
     void reset_volumes();
+    void deselect_volumes();
+    void select_volume(unsigned int id);
 
     DynamicPrintConfig* get_config();
     void set_config(DynamicPrintConfig* config);
