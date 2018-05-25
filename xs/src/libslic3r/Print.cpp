@@ -1318,7 +1318,7 @@ template<> class FilePrinter<Print::FilePrinterFormat::PNG> {
 
         Layer(const Layer&) = delete;
         Layer(Layer&& m):
-            first(std::move(m.first)), second(/*std::move(m.second)*/) {}
+            first(std::move(m.first))/*, second(std::move(m.second))*/ {}
     };
 
     // We will save the compressed PNG data into stringstreams which can be done
@@ -1448,8 +1448,12 @@ void Print::print_to(std::string dirpath,
     auto print_bb = bounding_box();
 
     // If the print does not fit into the print area we should cry about it.
-    assert(unscale(print_bb.size().x) <= width_mm ||
-            unscale(print_bb.size().y) <= height_mm);
+    if(unscale(print_bb.size().x) > width_mm ||
+            unscale(print_bb.size().y) > height_mm) {
+        BOOST_LOG_TRIVIAL(warning) << "Warning: Print will not fit!" << "\n"
+            << "Width needed: " << unscale(print_bb.size().x) << "\n"
+            << "Height needed: " << unscale(print_bb.size().y) << "\n";
+    }
 
     // Offset for centering the print onto the print area
     auto cx = scale_(width_mm)/2 - (print_bb.center().x - print_bb.min.x);
@@ -1468,10 +1472,9 @@ void Print::print_to(std::string dirpath,
         ExPolygonCollection slices = l.slices; // Copy the layer slices
 
         // Sort the polygons in the layer
-        std::sort(slices.expolygons.begin(),
-                  slices.expolygons.end(),
-                  [](const ExPolygon& a, const ExPolygon& b){
-            return a.contains(b.contour.first_point()) ? false : true;
+        std::stable_sort(slices.expolygons.begin(), slices.expolygons.end(),
+                         [](const ExPolygon& a, const ExPolygon& b) {
+            return a.contour.contains(b.contour.first_point()) ? false : true;
         });
 
         printer.beginLayer(layer_id);   // Switch to the appropriate layer
@@ -1493,15 +1496,15 @@ void Print::print_to(std::string dirpath,
         });
 
         if(has_support_material() && layer_id > 0) {
-//            BOOST_LOG_TRIVIAL(warning) << "support material for layer "
-//                                       << layer_id << " defined but export is "
-//                                          "unimplemented.";
+            BOOST_LOG_TRIVIAL(warning) << "support material for layer "
+                                       << layer_id << " defined but export is "
+                                          "not yet implemented.";
 
         }
 
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
 
-        // std::cout << "Layer " << layer_id << " processed." << "\n";
+        std::cout << "Layer " << layer_id << " processed." << std::endl;
 
         // printer.saveLayer(layer_id, dir); We could save the layer immediately
     };

@@ -325,7 +325,7 @@ public:
                       double width_mm, double height_mm);
 
     void print_to_png(std::string dirpath) {
-        // Will need some GUI dialogue perhaps for these to be specified.
+        // Will need some GUI dialog perhaps for these to be specified.
         print_to_png(dirpath, 1440, 2560, 68.0, 120.0);
     }
 
