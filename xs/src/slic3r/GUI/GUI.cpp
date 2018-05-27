@@ -128,6 +128,7 @@ wxWindow	*g_right_panel = nullptr;
 wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
 wxBoxSizer	*g_expert_mode_part_sizer = nullptr;
 wxBoxSizer	*g_scrolled_window_sizer = nullptr;
+wxButton	*g_btn_export_gcode = nullptr;
 wxButton	*g_btn_export_stl = nullptr;
 wxButton	*g_btn_reslice = nullptr;
 wxButton	*g_btn_print = nullptr;
@@ -135,6 +136,9 @@ wxButton	*g_btn_send_gcode = nullptr;
 wxStaticBitmap	*g_manifold_warning_icon = nullptr;
 bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
+wxSizer		*m_sizer_object_buttons = nullptr;
+wxSizer		*m_sizer_part_buttons = nullptr;
+wxDataViewCtrl *m_objects_ctrl = nullptr;
 
 wxFont		g_small_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 #ifdef __WXMAC__
@@ -203,6 +207,7 @@ void set_preset_updater(PresetUpdater *updater)
 
 void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_parameters_sizer,
 							wxBoxSizer *expert_mode_part_sizer, wxBoxSizer *scrolled_window_sizer,
+							wxButton *btn_export_gcode,
 							wxButton *btn_export_stl, wxButton *btn_reslice, 
 							wxButton *btn_print, wxButton *btn_send_gcode,
 							wxStaticBitmap *manifold_warning_icon)
@@ -211,6 +216,7 @@ void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_par
 	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
 	g_expert_mode_part_sizer = expert_mode_part_sizer;
 	g_scrolled_window_sizer = scrolled_window_sizer;
+	g_btn_export_gcode = btn_export_gcode;
 	g_btn_export_stl = btn_export_stl;
 	g_btn_reslice = btn_reslice;
 	g_btn_print = btn_print;
@@ -353,7 +359,6 @@ enum ConfigMenuIDs {
 	ConfigMenuUpdate,
 	ConfigMenuPreferences,
 	ConfigMenuModeSimple,
-	ConfigMenuModeRegular,
 	ConfigMenuModeExpert,
 	ConfigMenuLanguage,
 	ConfigMenuFlashFirmware,
@@ -366,11 +371,7 @@ ConfigMenuIDs get_view_mode()
 		return ConfigMenuModeSimple;
 
 	const auto mode = g_AppConfig->get("view_mode");
-	return	mode == "expert" ?
-			ConfigMenuModeExpert :
-				mode == "regular" ?
-				ConfigMenuModeRegular :
-				ConfigMenuModeSimple;
+	return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
 }
 
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
@@ -389,7 +390,6 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 	local_menu->AppendSeparator();
 	auto mode_menu = new wxMenu();
 	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple,	_(L("&Simple")),					_(L("Simple View Mode")));
-	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeRegular,	_(L("&Regular")),					_(L("Regular View Mode")));
 	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert,	_(L("&Expert")),					_(L("Expert View Mode")));
 	mode_menu->Check(config_id_base + get_view_mode(), true);
 	local_menu->AppendSubMenu(mode_menu,						_(L("&Mode")), 								_(L("Slic3r View Mode")));
@@ -463,18 +463,8 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		}
 	});
 	mode_menu->Bind(wxEVT_MENU, [config_id_base](wxEvent& event) {
-		std::string mode = "";
-		switch (event.GetId() - config_id_base){
-		case ConfigMenuModeExpert:
-			mode = "expert";
-			break;
-		case ConfigMenuModeRegular:
-			mode = "regular";
-			break;
-		case ConfigMenuModeSimple:
-			mode = "simple";
-			break;
-		}
+		std::string mode =	event.GetId() - config_id_base == ConfigMenuModeExpert ?
+							"expert" : "simple";
 		g_AppConfig->set("view_mode", mode);
 		g_AppConfig->save();
 		update_mode();
@@ -839,9 +829,10 @@ wxString from_u8(const std::string &str)
 }
 
 // add PrusaCollapsiblePane to sizer
-void add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
+PrusaCollapsiblePane* add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
 {
 	auto *collpane = new PrusaCollapsiblePane(parent, wxID_ANY, name);
+	collpane->SetTopParent(g_right_panel);
 	// add the pane with a zero proportion value to the sizer which contains it
 	sizer_parent->Add(collpane, 0, wxGROW | wxALL, 0);
 
@@ -853,42 +844,54 @@ void add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, cons
 	sizer_pane->Add(sizer, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
 	win->SetSizer(sizer_pane);
 	sizer_pane->SetSizeHints(win);
+	return collpane;
 }
 
 wxBoxSizer* content_objects_list(wxWindow *win)
 {
-	auto objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	objects_ctrl->SetBestFittingSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+	m_objects_ctrl->SetBestFittingSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
 	auto objects_sz = new wxBoxSizer(wxVERTICAL);
-	objects_sz->Add(objects_ctrl, 1, wxGROW | wxALL, 5);
+	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT/*ALL*/, 20/*5*/);
 
 	auto objects_model = new MyObjectTreeModel;
-	objects_ctrl->AssociateModel(objects_model);
+	m_objects_ctrl->AssociateModel(objects_model);
 #if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
-	objects_ctrl->EnableDragSource(wxDF_UNICODETEXT);
-	objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
+	m_objects_ctrl->EnableDragSource(wxDF_UNICODETEXT);
+	m_objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
 	// column 0 of the view control:
 
 	wxDataViewTextRenderer *tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-	wxDataViewColumn *column00 = new wxDataViewColumn("Name", tr, 0, 140, wxALIGN_LEFT,
+	wxDataViewColumn *column00 = new wxDataViewColumn("Name", tr, 0, 110, wxALIGN_LEFT,
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	objects_ctrl->AppendColumn(column00);
+	m_objects_ctrl->AppendColumn(column00);
 
 	// column 1 of the view control:
 
 	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
 	wxDataViewColumn *column01 = new wxDataViewColumn("Copy", tr, 1, 75, wxALIGN_CENTER_HORIZONTAL,
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	objects_ctrl->AppendColumn(column01);
+	m_objects_ctrl->AppendColumn(column01);
 
 	// column 2 of the view control:
 
 	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
 	wxDataViewColumn *column02 = new wxDataViewColumn("Scale", tr, 2, 80, wxALIGN_CENTER_HORIZONTAL,
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	objects_ctrl->AppendColumn(column02);
+	m_objects_ctrl->AppendColumn(column02);
+
+	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [objects_model](wxCommandEvent& evt)
+	{
+		wxWindowUpdateLocker noUpdates(g_right_panel);
+		auto item = m_objects_ctrl->GetSelection();
+		auto show_obj_sizer = objects_model->GetParent(item) == wxDataViewItem(0);
+		m_sizer_object_buttons->Show(show_obj_sizer);
+		m_sizer_part_buttons->Show(!show_obj_sizer);
+
+		g_right_panel->Layout();
+	});
 
 	return objects_sz;
 }
@@ -897,11 +900,11 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
-	auto btn_load_part = new wxButton(win, wxID_ANY, "Load part…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    auto btn_load_modifier = new wxButton(win, wxID_ANY, "Load modifier…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, "Load generic…", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    auto btn_delete = new wxButton(win, wxID_ANY, "Delete part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
-    auto btn_split = new wxButton(win, wxID_ANY, "Split part", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+	auto btn_load_part = new wxButton(win, wxID_ANY, /*Load */"part…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+    auto btn_load_modifier = new wxButton(win, wxID_ANY, /*Load */"modifier…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+    auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"generic…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+    auto btn_delete = new wxButton(win, wxID_ANY, "Delete"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+    auto btn_split = new wxButton(win, wxID_ANY, "Split"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
 	auto btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
 	auto btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
 	btn_move_up->SetMinSize(wxSize(20, -1));
@@ -914,23 +917,24 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
     btn_move_up->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_up.png")), wxBITMAP_TYPE_PNG));
     btn_move_down->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_down.png")), wxBITMAP_TYPE_PNG));
 
-	auto buttons_object_sizer = new wxFlexGridSizer(1, 3, 0, 1);
-	buttons_object_sizer->SetFlexibleDirection(wxBOTH);
-	buttons_object_sizer->Add(btn_load_part, 0, wxEXPAND);
-	buttons_object_sizer->Add(btn_load_modifier, 0, wxEXPAND);
-	buttons_object_sizer->Add(btn_load_lambda_modifier, 0, wxEXPAND);
+	m_sizer_object_buttons = new /*wxFlex*/wxGridSizer(1, 3, 0, 0);
+// 	static_cast<wxFlexGridSizer*>(m_sizer_object_buttons)->SetFlexibleDirection(wxBOTH);
+	m_sizer_object_buttons->Add(btn_load_part, 0, wxEXPAND);
+	m_sizer_object_buttons->Add(btn_load_modifier, 0, wxEXPAND);
+	m_sizer_object_buttons->Add(btn_load_lambda_modifier, 0, wxEXPAND);
+	m_sizer_object_buttons->Show(false);
 
-	auto buttons_part_sizer = new wxFlexGridSizer(1, 3, 0, 1);
-	buttons_part_sizer->SetFlexibleDirection(wxBOTH);
-	buttons_part_sizer->Add(btn_delete, 0, wxEXPAND);
-	buttons_part_sizer->Add(btn_split, 0, wxEXPAND);
+	m_sizer_part_buttons = new /*wxFlex*/wxGridSizer(1, 3, 0, 0);
+//	m_sizer_part_buttons->SetFlexibleDirection(wxBOTH);
+	m_sizer_part_buttons->Add(btn_delete, 0, wxEXPAND);
+	m_sizer_part_buttons->Add(btn_split, 0, wxEXPAND);
 	{
-		auto up_down_sizer = new wxGridSizer(1, 2, 0, 1);
+		auto up_down_sizer = new wxGridSizer(1, 2, 0, 0);
 		up_down_sizer->Add(btn_move_up, 1, wxEXPAND);
 		up_down_sizer->Add(btn_move_down, 1, wxEXPAND);
-		buttons_part_sizer->Add(up_down_sizer, 0, wxEXPAND);
+		m_sizer_part_buttons->Add(up_down_sizer, 0, wxEXPAND);
 	}
-	buttons_part_sizer->Show(false);
+	m_sizer_part_buttons->Show(false);
 
 	btn_load_part->SetFont(Slic3r::GUI::small_font());
 	btn_load_modifier->SetFont(Slic3r::GUI::small_font());
@@ -940,8 +944,8 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	btn_move_up->SetFont(Slic3r::GUI::small_font());
 	btn_move_down->SetFont(Slic3r::GUI::small_font());
 
-	sizer->Add(buttons_object_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
-	sizer->Add(buttons_part_sizer, 0, wxALIGN_CENTER_HORIZONTAL);
+	sizer->Add(m_sizer_object_buttons, 0, wxEXPAND|wxLEFT, 20/*wxALIGN_CENTER_HORIZONTAL*/);
+	sizer->Add(m_sizer_part_buttons, 0, wxEXPAND|wxLEFT, 20/*wxALIGN_CENTER_HORIZONTAL*/);
 	return sizer;
 }
 
@@ -999,14 +1003,27 @@ wxBoxSizer* content_object_settings(wxWindow *win)
 	m_optgroups.push_back(optgroup);  // ogObjectSettings
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
+
+
 	return sizer;
 }
 
 wxBoxSizer* content_part_settings(wxWindow *win)
 {
+	DynamicPrintConfig* config = &g_PresetBundle->printers.get_edited_preset().config; // TODO get config from Model_volume
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
+	optgroup->label_width = m_label_width;
+
+	Option option = optgroup->get_option("extruder");
+	option.opt.default_value = new ConfigOptionInt(1);
+	optgroup->append_single_option_line(option);
+
+	m_optgroups.push_back(optgroup);  // ogPartSettings
+
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(new wxStaticText(win, wxID_ANY, "Some part text"));
+	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
+
 	return sizer;
 }
 
@@ -1021,7 +1038,17 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	// Experiments with new UI
 
 	// *** Objects List ***	
- 	add_prusa_collapsible_pane(main_page, main_sizer, "Objects List:", content_objects_list);
+ 	auto collpane = add_prusa_collapsible_pane(main_page, main_sizer, "Objects List:", content_objects_list);
+	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent e){
+		wxWindowUpdateLocker noUpdates(g_right_panel);
+		if (collpane->IsCollapsed()) {
+			m_sizer_object_buttons->Show(false);
+			m_sizer_part_buttons->Show(false);
+		}
+		else 
+			m_objects_ctrl->UnselectAll();
+		g_right_panel->Layout();
+	}));
 	// *** Edit Object Buttons***	
  	main_sizer->Add(content_edit_object_buttons(main_page), 0, wxEXPAND, 0);
 	// *** Object Settings ***
@@ -1235,7 +1262,7 @@ void show_buttons(bool show)
 
 void show_scrolled_window_sizer(bool show)
 {
-	g_scrolled_window_sizer->Show(static_cast<size_t>(0), show);
+	g_scrolled_window_sizer->Show(static_cast<size_t>(0), false/*show*/); //don't used now
 	g_scrolled_window_sizer->Show(1, show);
 	g_scrolled_window_sizer->Show(2, show && g_show_print_info);
 	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
@@ -1243,13 +1270,22 @@ void show_scrolled_window_sizer(bool show)
 
 void update_mode()
 {
+	//TODO There is a not the best place of it!
+	//*** Update style of the "Export G-code" button****
+	if (g_btn_export_gcode->GetFont() != bold_font()){
+		g_btn_export_gcode->SetBackgroundColour(wxColour(252, 77, 1));
+		g_btn_export_gcode->SetFont(bold_font());
+	}
+	//************************************
+
 	wxWindowUpdateLocker noUpdates(g_right_panel);
 	ConfigMenuIDs mode = get_view_mode();
 
-	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
+// 	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
 	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
-	show_scrolled_window_sizer(mode >= ConfigMenuModeRegular);
-	show_buttons(mode >= ConfigMenuModeRegular);
+	show_scrolled_window_sizer(mode == ConfigMenuModeExpert);
+	show_buttons(mode == ConfigMenuModeExpert);
+	g_right_panel->GetParent()->Layout();
 	g_right_panel->Layout();
 }
 

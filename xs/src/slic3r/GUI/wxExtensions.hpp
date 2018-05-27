@@ -8,6 +8,7 @@
 #include <wx/collpane.h>
 #include <wx/wupdlock.h>
 #include <wx/button.h>
+#include <wx/sizer.h>
 
 #include <vector>
 #include <set>
@@ -83,6 +84,7 @@ class PrusaCollapsiblePane : public wxCollapsiblePane
 	wxBitmap	m_bmp_close;
 	wxBitmap	m_bmp_open;
 #endif //__WXMSW__
+	wxWindow*	m_top_parent = nullptr;
 public:
 	PrusaCollapsiblePane() {}
 	PrusaCollapsiblePane(	wxWindow *parent,
@@ -102,13 +104,31 @@ public:
 		this->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, this](wxCommandEvent e){
 			wxWindowUpdateLocker noUpdates_cp(this);
 			wxWindowUpdateLocker noUpdates(parent);
-			parent->GetParent() ?  parent->GetParent()->Layout() : //;
- 			parent->Layout();
-// 			this->Refresh();
+
+			parent->Layout();
+			this->Refresh();
+
+			if (m_top_parent)
+			{
+				m_top_parent->GetSizer()->Layout();
+			}
+			else{
+ 				wxGetTopLevelParent(this)->Layout();
+			}
+			
+// 			if (parent->GetParent()){
+// 				parent->GetParent()->Layout();
+// 				parent->Refresh();
+// 			}
+// 			else{
+//  			parent->Layout();
+//  			this->Refresh();}
 		}));
 	}
 
 	~PrusaCollapsiblePane() {}
+
+	void SetTopParent(wxWindow *parent) { m_top_parent = parent; }
 
 #ifdef __WXMSW__
 	bool Create(wxWindow *parent,

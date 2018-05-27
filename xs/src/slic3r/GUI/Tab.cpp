@@ -706,18 +706,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
 // Show/hide the 'purging volumes' button
 void Tab::update_wiping_button_visibility() {
-	if (!get_app_config()->has("view_mode") || get_app_config()->get("view_mode") == "simple")
-		get_wiping_dialog_button()->Hide();
-	else {
-		bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>((m_preset_bundle->prints.get_edited_preset().config).option("wipe_tower"))->value;
-		bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
-		bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>((m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
+	bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>((m_preset_bundle->prints.get_edited_preset().config).option("wipe_tower"))->value;
+	bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
+	bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>((m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
 
-		if (wipe_tower_enabled && multiple_extruders && single_extruder_mm)
-			get_wiping_dialog_button()->Show();
-		else get_wiping_dialog_button()->Hide();
-	}
-
+	get_wiping_dialog_button()->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);
+	
     (get_wiping_dialog_button()->GetParent())->Layout();
 }
 

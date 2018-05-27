@@ -256,7 +256,7 @@ sub new {
     });
     
     # right pane buttons
-    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxNO_BORDER);#, wxBU_LEFT);
     $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_print} = Wx::Button->new($self->{right_panel}, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_send_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
@@ -266,12 +266,12 @@ sub new {
     $self->{btn_print}->Hide;
     $self->{btn_send_gcode}->Hide;
     
+    #    export_gcode    cog_go.png
     my %icons = qw(
         add             brick_add.png
         remove          brick_delete.png
         reset           cross.png
         arrange         bricks.png
-        export_gcode    cog_go.png
         print           arrow_up.png
         send_gcode      arrow_up.png
         reslice         reslice.png
@@ -508,7 +508,7 @@ sub new {
         $buttons_sizer->Add($self->{btn_reslice}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
-        $buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
+        #$buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
         $scrolled_window_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $scrolled_window_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
@@ -517,10 +517,11 @@ sub new {
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_sizer->SetMinSize([320, -1]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
-        $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
-        $right_sizer->Add($expert_mode_part_sizer, 1, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
+        $right_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
+        $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($scrolled_window_panel, 0, wxEXPAND | wxALL, 1);
+        $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
 #            if ($right_sizer->IsShown(5) != $_[0]) { 
@@ -556,6 +557,7 @@ sub new {
                                 $frequently_changed_parameters_sizer,
                                 $expert_mode_part_sizer,
                                 $scrolled_window_sizer,
+                                $self->{btn_export_gcode},
                                 $self->{btn_export_stl},
                                 $self->{btn_reslice},
                                 $self->{btn_print},
