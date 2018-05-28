@@ -425,6 +425,7 @@ sub new {
         my $object_info_sizer;
         {
             my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Info"));
+            $box->SetFont($Slic3r::GUI::small_bold_font);
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $object_info_sizer->SetMinSize([300,-1]);
             my $grid_sizer = Wx::FlexGridSizer->new(3, 4, 5, 5);
@@ -475,6 +476,7 @@ sub new {
         my $print_info_sizer;
         {
             my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Sliced Info"));
+            $box->SetFont($Slic3r::GUI::small_bold_font);
             $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $print_info_sizer->SetMinSize([300,-1]);
             my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
@@ -511,8 +513,8 @@ sub new {
         #$buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
         
         $scrolled_window_sizer->Add($self->{list}, 1, wxEXPAND, 5);
-        $scrolled_window_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
-        $scrolled_window_sizer->Add($print_info_sizer, 0, wxEXPAND, 0);
+        $scrolled_window_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT, 20);
+        $scrolled_window_sizer->Add($print_info_sizer, 0, wxEXPAND | wxLEFT, 20);
 
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $right_sizer->SetMinSize([320, -1]);

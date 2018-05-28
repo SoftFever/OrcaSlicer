@@ -139,6 +139,7 @@ bool		g_show_manifold_warning_icon = false;
 wxSizer		*m_sizer_object_buttons = nullptr;
 wxSizer		*m_sizer_part_buttons = nullptr;
 wxDataViewCtrl *m_objects_ctrl = nullptr;
+PrusaCollapsiblePane	*m_collpane_settings = nullptr;
 
 wxFont		g_small_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 #ifdef __WXMAC__
@@ -886,9 +887,12 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	{
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		auto item = m_objects_ctrl->GetSelection();
+		if (!item) return;
 		auto show_obj_sizer = objects_model->GetParent(item) == wxDataViewItem(0);
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
+		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
+		m_collpane_settings->Show(true);
 
 		g_right_panel->Layout();
 	});
@@ -990,7 +994,7 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 	return line;
 }
 
-wxBoxSizer* content_object_settings(wxWindow *win)
+wxBoxSizer* content_settings(wxWindow *win)
 {
 	DynamicPrintConfig* config = &g_PresetBundle->printers.get_edited_preset().config; // TODO get config from Model_volume
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
@@ -1005,24 +1009,10 @@ wxBoxSizer* content_object_settings(wxWindow *win)
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
 
-
-	return sizer;
-}
-
-wxBoxSizer* content_part_settings(wxWindow *win)
-{
-	DynamicPrintConfig* config = &g_PresetBundle->printers.get_edited_preset().config; // TODO get config from Model_volume
-	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
-	optgroup->label_width = m_label_width;
-
-	Option option = optgroup->get_option("extruder");
-	option.opt.default_value = new ConfigOptionInt(1);
-	optgroup->append_single_option_line(option);
-
-	m_optgroups.push_back(optgroup);  // ogPartSettings
-
-	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
+	auto add_btn = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
+	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
 
 	return sizer;
 }
@@ -1030,9 +1020,8 @@ wxBoxSizer* content_part_settings(wxWindow *win)
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
 	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	auto main_page = new wxPanel/*ScrolledWindow*/(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+	auto main_page = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	main_page->SetSizer(main_sizer);
-// 	main_page->SetScrollbars(0, 1, 1, 1);
 	sizer->Add(main_page, 1, wxEXPAND | wxALL, 1);
 
 	// Experiments with new UI
@@ -1044,17 +1033,19 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 		if (collpane->IsCollapsed()) {
 			m_sizer_object_buttons->Show(false);
 			m_sizer_part_buttons->Show(false);
+			m_collpane_settings->Show(false);
 		}
 		else 
 			m_objects_ctrl->UnselectAll();
 		g_right_panel->Layout();
 	}));
+
 	// *** Edit Object Buttons***	
  	main_sizer->Add(content_edit_object_buttons(main_page), 0, wxEXPAND, 0);
-	// *** Object Settings ***
-	add_prusa_collapsible_pane(main_page, main_sizer, "Object Settings:", content_object_settings);
-	// *** Part Settings ***
-	add_prusa_collapsible_pane(main_page, main_sizer, "Part Settings:", content_part_settings);
+
+	// *** Object/Part Settings ***
+	m_collpane_settings = add_prusa_collapsible_pane(main_page, main_sizer, "Settings:", content_settings);
+	m_collpane_settings->Show(false);
 
 
 	// More experiments with UI
