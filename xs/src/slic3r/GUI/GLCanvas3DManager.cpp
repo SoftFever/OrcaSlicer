@@ -75,6 +75,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     canvas->Bind(wxEVT_SIZE, [canvas3D](wxSizeEvent& evt) { canvas3D->on_size(evt); });
     canvas->Bind(wxEVT_IDLE, [canvas3D](wxIdleEvent& evt) { canvas3D->on_idle(evt); });
     canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
+    canvas->Bind(wxEVT_MOUSEWHEEL, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse_wheel(evt); });
 
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
@@ -203,17 +204,18 @@ void GLCanvas3DManager::select_volume(wxGLCanvas* canvas, unsigned int id)
         it->second->select_volume(id);
 }
 
-DynamicPrintConfig* GLCanvas3DManager::get_config(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_config() : nullptr;
-}
-
 void GLCanvas3DManager::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_config(config);
+}
+
+void GLCanvas3DManager::set_print(wxGLCanvas* canvas, Print* print)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_print(print);
 }
 
 void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)

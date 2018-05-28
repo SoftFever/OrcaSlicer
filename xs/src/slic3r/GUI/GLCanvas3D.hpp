@@ -10,6 +10,7 @@ class wxGLContext;
 class wxSizeEvent;
 class wxIdleEvent;
 class wxKeyEvent;
+class wxMouseEvent;
 
 namespace Slic3r {
 
@@ -302,6 +303,7 @@ private:
 
     GLVolumeCollection* m_volumes;
     DynamicPrintConfig* m_config;
+    Print* m_print;
 
     bool m_dirty;
     bool m_apply_zoom_to_volumes_filter;
@@ -336,8 +338,8 @@ public:
     void deselect_volumes();
     void select_volume(unsigned int id);
 
-    DynamicPrintConfig* get_config();
     void set_config(DynamicPrintConfig* config);
+    void set_print(Print* print);
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -450,6 +452,7 @@ public:
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
+    void on_mouse_wheel(wxMouseEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;
@@ -459,6 +462,8 @@ private:
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
 
     void _deregister_callbacks();
+
+    void _refresh_if_shown_on_screen();
 };
 
 } // namespace GUI

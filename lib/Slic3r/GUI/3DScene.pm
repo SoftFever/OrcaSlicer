@@ -226,8 +226,8 @@ sub new {
 #        $self->Resize( $self->GetSizeWH );
 #        $self->Refresh;
 #    });
+#    EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
 #==============================================================================================================================
-    EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
     EVT_MOUSE_EVENTS($self, \&mouse_event);
 #==============================================================================================================================
 ##    EVT_KEY_DOWN($self, sub {
@@ -392,12 +392,14 @@ sub _variable_layer_thickness_bar_rect_viewport {
 #==============================================================================================================================
 }
 
-# Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
-sub _variable_layer_thickness_reset_rect_screen {
-    my ($self) = @_;
-    my ($cw, $ch) = $self->GetSizeWH;
-    return ($cw - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, $ch - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, $cw, $ch);
-}
+#==============================================================================================================================
+## Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
+#sub _variable_layer_thickness_reset_rect_screen {
+#    my ($self) = @_;
+#    my ($cw, $ch) = $self->GetSizeWH;
+#    return ($cw - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, $ch - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, $cw, $ch);
+#}
+#==============================================================================================================================
 
 sub _variable_layer_thickness_reset_rect_viewport {
     my ($self) = @_;
@@ -732,83 +734,60 @@ sub mouse_event {
     }
 }
 
-sub mouse_wheel_event {
-    my ($self, $e) = @_;
-
-    if ($e->MiddleIsDown) {
-        # Ignore the wheel events if the middle button is pressed.
-        return;
-    }
 #==============================================================================================================================
-    if (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $self->{print}) {
-        my $object_idx_selected = Slic3r::GUI::_3DScene::get_layers_editing_first_selected_object_id($self, $self->{print}->object_count);
+#sub mouse_wheel_event {
+#    my ($self, $e) = @_;
+#
+#    if ($e->MiddleIsDown) {
+#        # Ignore the wheel events if the middle button is pressed.
+#        return;
+#    }
 #    if ($self->layer_editing_enabled && $self->{print}) {
 #        my $object_idx_selected = $self->_first_selected_object_id_for_variable_layer_height_editing;
-#==============================================================================================================================
-        if ($object_idx_selected != -1) {
-            # A volume is selected. Test, whether hovering over a layer thickness bar.
-#==============================================================================================================================
-            if (Slic3r::GUI::_3DScene::bar_rect_contains($self, $e->GetX, $e->GetY)) {
+#        if ($object_idx_selected != -1) {
+#            # A volume is selected. Test, whether hovering over a layer thickness bar.
 #            if ($self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
-#==============================================================================================================================
-                # Adjust the width of the selection.
-#==============================================================================================================================
-                Slic3r::GUI::_3DScene::set_layers_editing_band_width($self, max(min(Slic3r::GUI::_3DScene::get_layers_editing_band_width($self) * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5));
+#                # Adjust the width of the selection.
 #                $self->{layer_height_edit_band_width} = max(min($self->{layer_height_edit_band_width} * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5);
-#==============================================================================================================================
-                $self->Refresh;
-                return;
-            }
-        }
-    }
-
-    # Calculate the zoom delta and apply it to the current zoom factor
-    my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
-    $zoom = max(min($zoom, 4), -4);
-    $zoom /= 10;
-#==============================================================================================================================
-    $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self) / (1-$zoom);
+#                $self->Refresh;
+#                return;
+#            }
+#        }
+#    }
+#
+#    # Calculate the zoom delta and apply it to the current zoom factor
+#    my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
+#    $zoom = max(min($zoom, 4), -4);
+#    $zoom /= 10;
 #    $zoom = $self->_zoom / (1-$zoom);
-#==============================================================================================================================
-    # Don't allow to zoom too far outside the scene.
-#==============================================================================================================================
-    my $zoom_min = $self->get_zoom_to_bounding_box_factor(Slic3r::GUI::_3DScene::get_max_bounding_box($self));
+#    # Don't allow to zoom too far outside the scene.
 #    my $zoom_min = $self->get_zoom_to_bounding_box_factor($self->max_bounding_box);
-#==============================================================================================================================
-    $zoom_min *= 0.4 if defined $zoom_min;
-    $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
-#==============================================================================================================================
-    $zoom = Slic3r::GUI::_3DScene::set_camera_zoom($self, $zoom);
+#    $zoom_min *= 0.4 if defined $zoom_min;
+#    $zoom = $zoom_min if defined $zoom_min && $zoom < $zoom_min;
 #    $self->_zoom($zoom);
-#==============================================================================================================================
-    
-#    # In order to zoom around the mouse point we need to translate
-#    # the camera target
-#    my $size = Slic3r::Pointf->new($self->GetSizeWH);
-#    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
-#    $self->_camera_target->translate(
-#        # ($pos - $size/2) represents the vector from the viewport center
-#        # to the mouse point. By multiplying it by $zoom we get the new,
-#        # transformed, length of such vector.
-#        # Since we want that point to stay fixed, we move our camera target
-#        # in the opposite direction by the delta of the length of such vector
-#        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
-#        # $self->_camera_target is expressed in terms of model units.
-#        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
-#        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
-#        0,
-#    ) if 0;
-
-    $self->on_viewport_changed->() if $self->on_viewport_changed;
-#==============================================================================================================================
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::resize($self, $self->GetSizeWH) if Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+#    
+##    # In order to zoom around the mouse point we need to translate
+##    # the camera target
+##    my $size = Slic3r::Pointf->new($self->GetSizeWH);
+##    my $pos = Slic3r::Pointf->new($e->GetX, $size->y - $e->GetY); #-
+##    $self->_camera_target->translate(
+##        # ($pos - $size/2) represents the vector from the viewport center
+##        # to the mouse point. By multiplying it by $zoom we get the new,
+##        # transformed, length of such vector.
+##        # Since we want that point to stay fixed, we move our camera target
+##        # in the opposite direction by the delta of the length of such vector
+##        # ($zoom - 1). We then scale everything by 1/$self->_zoom since 
+##        # $self->_camera_target is expressed in terms of model units.
+##        -($pos->x - $size->x/2) * ($zoom) / $self->_zoom,
+##        -($pos->y - $size->y/2) * ($zoom) / $self->_zoom,
+##        0,
+##    ) if 0;
+#
+#    $self->on_viewport_changed->() if $self->on_viewport_changed;
 #    $self->Resize($self->GetSizeWH) if $self->IsShownOnScreen;
-#==============================================================================================================================
-    $self->Refresh;
-}
-
-#==============================================================================================================================
+#    $self->Refresh;
+#}
+#
 ## Reset selection.
 #sub reset_objects {
 #    my ($self) = @_;

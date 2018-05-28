@@ -1802,14 +1802,14 @@ void _3DScene::select_volume(wxGLCanvas* canvas, unsigned int id)
     s_canvas_mgr.select_volume(canvas, id);
 }
 
-DynamicPrintConfig* _3DScene::get_config(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_config(canvas);
-}
-
 void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
     s_canvas_mgr.set_config(canvas, config);
+}
+
+void _3DScene::set_print(wxGLCanvas* canvas, Print* print)
+{
+    s_canvas_mgr.set_print(canvas, print);
 }
 
 void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)

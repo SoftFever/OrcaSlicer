@@ -1041,6 +1041,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_context(context)
     , m_volumes(nullptr)
     , m_config(nullptr)
+    , m_print(nullptr)
     , m_dirty(true)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
@@ -1242,14 +1243,14 @@ void GLCanvas3D::select_volume(unsigned int id)
     }
 }
 
-DynamicPrintConfig* GLCanvas3D::get_config()
-{
-    return m_config;
-}
-
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
     m_config = config;
+}
+
+void GLCanvas3D::set_print(Print* print)
+{
+    m_print = print;
 }
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
@@ -1946,15 +1947,10 @@ void GLCanvas3D::on_size(wxSizeEvent& evt)
 
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
-    if (!is_dirty() || !is_shown_on_screen())
+    if (!is_dirty())
         return;
 
-    if (m_canvas != nullptr)
-    {
-        const Size& cnv_size = get_canvas_size();
-        resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-        m_canvas->Refresh();
-    }
+    _refresh_if_shown_on_screen();
 }
 
 void GLCanvas3D::on_char(wxKeyEvent& evt)
@@ -1992,6 +1988,51 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
     }
 }
 
+void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
+{
+    // Ignore the wheel events if the middle button is pressed.
+    if (evt.MiddleIsDown())
+        return;
+
+    // Performs layers editing updates, if enabled
+    if (is_layers_editing_enabled() && (m_print != nullptr))
+    {
+        int object_idx_selected = get_layers_editing_first_selected_object_id((unsigned int)m_print->objects.size());
+        if (object_idx_selected != -1)
+        {
+            // A volume is selected. Test, whether hovering over a layer thickness bar.
+            if (bar_rect_contains((float)evt.GetX(), (float)evt.GetY()))
+            {
+                // Adjust the width of the selection.
+                set_layers_editing_band_width(std::max(std::min(get_layers_editing_band_width() * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f));
+                if (m_canvas != nullptr)
+                    m_canvas->Refresh();
+                
+                return;
+            }
+        }
+    }
+
+    // Calculate the zoom delta and apply it to the current zoom factor
+    float zoom = (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta();
+    zoom = std::max(std::min(zoom, 4.0f), -4.0f) / 10.0f;
+    zoom = get_camera_zoom() / (1.0f - zoom);
+    
+    // Don't allow to zoom too far outside the scene.
+    float zoom_min = _get_zoom_to_bounding_box_factor(max_bounding_box());
+    if (zoom_min > 0.0f)
+    {
+        zoom_min *= 0.4f;
+        if (zoom < zoom_min)
+            zoom = zoom_min;
+    }
+    
+    set_camera_zoom(zoom);
+    m_on_viewport_changed_callback.call();
+
+    _refresh_if_shown_on_screen();
+}
+
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -2024,13 +2065,7 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 
         m_on_viewport_changed_callback.call();
 
-        if (is_shown_on_screen())
-        {
-            const Size& cnv_size = get_canvas_size();
-            resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-            if (m_canvas != nullptr)
-                m_canvas->Refresh();
-        }
+        _refresh_if_shown_on_screen();
     }
 }
 
@@ -2124,6 +2159,17 @@ void GLCanvas3D::_deregister_callbacks()
 {
     m_on_viewport_changed_callback.deregister_callback();
     m_on_mark_volumes_for_layer_height_callback.deregister_callback();
+}
+
+void GLCanvas3D::_refresh_if_shown_on_screen()
+{
+    if (is_shown_on_screen())
+    {
+        const Size& cnv_size = get_canvas_size();
+        resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+        if (m_canvas != nullptr)
+            m_canvas->Refresh();
+    }
 }
 
 } // namespace GUI

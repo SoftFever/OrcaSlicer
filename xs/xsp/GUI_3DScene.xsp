@@ -264,20 +264,19 @@ select_volume(canvas, id)
     CODE:
         _3DScene::select_volume((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
 
-DynamicPrintConfig*
-get_config(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_config((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
 void
 set_config(canvas, config)
         SV                 *canvas;
         DynamicPrintConfig *config;
     CODE:
         _3DScene::set_config((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), config);
+
+void
+set_print(canvas, print)
+        SV    *canvas;
+        Print *print;
+    CODE:
+        _3DScene::set_print((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print);
 
 void
 set_bed_shape(canvas, shape)

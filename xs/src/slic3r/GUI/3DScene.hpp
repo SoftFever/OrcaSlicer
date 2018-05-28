@@ -559,8 +559,8 @@ public:
     static void deselect_volumes(wxGLCanvas* canvas);
     static void select_volume(wxGLCanvas* canvas, unsigned int id);
 
-    static DynamicPrintConfig* get_config(wxGLCanvas* canvas);
     static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
+    static void set_print(wxGLCanvas* canvas, Print* print);
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     static void set_auto_bed_shape(wxGLCanvas* canvas);
