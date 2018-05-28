@@ -594,6 +594,66 @@ set_layers_editing_band_width(canvas, band_width)
     CODE:
         _3DScene::set_layers_editing_band_width((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), band_width);
 
+float
+get_layers_editing_strength(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_strength((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_layers_editing_strength(canvas, strength)
+        SV    *canvas;
+        float strength;
+    CODE:
+        _3DScene::set_layers_editing_strength((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), strength);
+
+int
+get_layers_editing_last_object_id(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_last_object_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_layers_editing_last_object_id(canvas, id)
+        SV  *canvas;
+        int id;
+    CODE:
+        _3DScene::set_layers_editing_last_object_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+
+float
+get_layers_editing_last_z(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_last_z((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_layers_editing_last_z(canvas, z)
+        SV    *canvas;
+        float z;
+    CODE:
+        _3DScene::set_layers_editing_last_z((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), z);
+
+unsigned int
+get_layers_editing_last_action(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_last_action((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_layers_editing_last_action(canvas, action)
+        SV           *canvas;
+        unsigned int action;
+    CODE:
+        _3DScene::set_layers_editing_last_action((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), action);
+
 Ref<GLShader>
 get_layers_editing_shader(canvas)
         SV *canvas;
@@ -601,7 +661,15 @@ get_layers_editing_shader(canvas)
         RETVAL = _3DScene::get_layers_editing_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
-    
+
+float
+get_layers_editing_cursor_z_relative(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_cursor_z_relative((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
 void
 zoom_to_bed(canvas)
         SV *canvas;

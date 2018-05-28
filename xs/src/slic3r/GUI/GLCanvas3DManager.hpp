@@ -122,7 +122,21 @@ public:
     float get_layers_editing_band_width(wxGLCanvas* canvas) const;
     void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
 
+    float get_layers_editing_strength(wxGLCanvas* canvas) const;
+    void set_layers_editing_strength(wxGLCanvas* canvas, float strength);
+
+    int get_layers_editing_last_object_id(wxGLCanvas* canvas) const;
+    void set_layers_editing_last_object_id(wxGLCanvas* canvas, int id);
+
+    float get_layers_editing_last_z(wxGLCanvas* canvas) const;
+    void set_layers_editing_last_z(wxGLCanvas* canvas, float z);
+
+    unsigned int get_layers_editing_last_action(wxGLCanvas* canvas) const;
+    void set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action);
+
     GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
+
+    float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const;
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);

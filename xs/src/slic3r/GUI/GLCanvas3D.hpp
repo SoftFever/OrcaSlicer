@@ -218,6 +218,10 @@ public:
         mutable GLTextureData m_tooltip_texture;
         mutable GLTextureData m_reset_texture;
         float m_band_width;
+        float m_strength;
+        int m_last_object_id;
+        float m_last_z;
+        unsigned int m_last_action;
 
     public:
         LayersEditing();
@@ -236,9 +240,23 @@ public:
         float get_band_width() const;
         void set_band_width(float band_width);
 
+        float get_strength() const;
+        void set_strength(float strength);
+
+        int get_last_object_id() const;
+        void set_last_object_id(int id);
+
+        float get_last_z() const;
+        void set_last_z(float z);
+
+        unsigned int get_last_action() const;
+        void set_last_action(unsigned int action);
+
         void render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const;
 
         GLShader* get_shader();
+
+        float get_cursor_z_relative(const GLCanvas3D& canvas) const;
 
     private:
         bool _is_initialized() const;
@@ -251,7 +269,6 @@ public:
         Rect _get_reset_rect_screen(const GLCanvas3D& canvas) const;
         Rect _get_bar_rect_viewport(const GLCanvas3D& canvas) const;
         Rect _get_reset_rect_viewport(const GLCanvas3D& canvas) const;
-        float _cursor_z_relative(const GLCanvas3D& canvas) const;
     };
 
     class Mouse
@@ -384,7 +401,21 @@ public:
     float get_layers_editing_band_width() const;
     void set_layers_editing_band_width(float band_width);
 
+    float get_layers_editing_strength() const;
+    void set_layers_editing_strength(float strength);
+
+    int get_layers_editing_last_object_id() const;
+    void set_layers_editing_last_object_id(int id);
+
+    float get_layers_editing_last_z() const;
+    void set_layers_editing_last_z(float z);
+
+    unsigned int get_layers_editing_last_action() const;
+    void set_layers_editing_last_action(unsigned int action);
+
     GLShader* get_layers_editing_shader();
+
+    float get_layers_editing_cursor_z_relative(const GLCanvas3D& canvas) const;
 
     void zoom_to_bed();
     void zoom_to_volumes();

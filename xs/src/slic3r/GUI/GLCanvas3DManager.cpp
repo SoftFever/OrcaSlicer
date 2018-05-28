@@ -492,10 +492,68 @@ void GLCanvas3DManager::set_layers_editing_band_width(wxGLCanvas* canvas, float 
         it->second->set_layers_editing_band_width(band_width);
 }
 
+float GLCanvas3DManager::get_layers_editing_strength(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_strength() : 0.0f;
+}
+
+void GLCanvas3DManager::set_layers_editing_strength(wxGLCanvas* canvas, float strength)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_layers_editing_strength(strength);
+}
+
+int GLCanvas3DManager::get_layers_editing_last_object_id(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_last_object_id() : -1;
+}
+
+void GLCanvas3DManager::set_layers_editing_last_object_id(wxGLCanvas* canvas, int id)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_layers_editing_last_object_id(id);
+}
+
+float GLCanvas3DManager::get_layers_editing_last_z(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_last_z() : 0.0f;
+}
+
+void GLCanvas3DManager::set_layers_editing_last_z(wxGLCanvas* canvas, float z)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_layers_editing_last_z(z);
+}
+
+unsigned int GLCanvas3DManager::get_layers_editing_last_action(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_last_action() : 0;
+}
+
+void GLCanvas3DManager::set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_layers_editing_last_action(action);
+}
+
 GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->get_layers_editing_shader() : nullptr;
+}
+
+float GLCanvas3DManager::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_cursor_z_relative(*it->second) : 0.0f;
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)

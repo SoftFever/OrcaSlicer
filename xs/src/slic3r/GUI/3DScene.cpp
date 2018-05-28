@@ -2025,9 +2025,54 @@ void _3DScene::set_layers_editing_band_width(wxGLCanvas* canvas, float band_widt
     s_canvas_mgr.set_layers_editing_band_width(canvas, band_width);
 }
 
+float _3DScene::get_layers_editing_strength(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_strength(canvas);
+}
+
+void _3DScene::set_layers_editing_strength(wxGLCanvas* canvas, float strength)
+{
+    s_canvas_mgr.set_layers_editing_strength(canvas, strength);
+}
+
+int _3DScene::get_layers_editing_last_object_id(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_last_object_id(canvas);
+}
+
+void _3DScene::set_layers_editing_last_object_id(wxGLCanvas* canvas, int id)
+{
+    s_canvas_mgr.set_layers_editing_last_object_id(canvas, id);
+}
+
+float _3DScene::get_layers_editing_last_z(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_last_z(canvas);
+}
+
+void _3DScene::set_layers_editing_last_z(wxGLCanvas* canvas, float z)
+{
+    s_canvas_mgr.set_layers_editing_last_z(canvas, z);
+}
+
+unsigned int _3DScene::get_layers_editing_last_action(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_last_action(canvas);
+}
+
+void _3DScene::set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action)
+{
+    s_canvas_mgr.set_layers_editing_last_action(canvas, action);
+}
+
 GLShader* _3DScene::get_layers_editing_shader(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_layers_editing_shader(canvas);
+}
+
+float _3DScene::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_cursor_z_relative(canvas);
 }
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)

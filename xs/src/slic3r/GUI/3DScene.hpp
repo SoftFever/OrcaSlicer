@@ -622,7 +622,21 @@ public:
     static float get_layers_editing_band_width(wxGLCanvas* canvas);
     static void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
 
+    static float get_layers_editing_strength(wxGLCanvas* canvas);
+    static void set_layers_editing_strength(wxGLCanvas* canvas, float strength);
+
+    static int get_layers_editing_last_object_id(wxGLCanvas* canvas);
+    static void set_layers_editing_last_object_id(wxGLCanvas* canvas, int id);
+
+    static float get_layers_editing_last_z(wxGLCanvas* canvas);
+    static void set_layers_editing_last_z(wxGLCanvas* canvas, float z);
+
+    static unsigned int get_layers_editing_last_action(wxGLCanvas* canvas);
+    static void set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action);
+
     static GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
+
+    static float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);

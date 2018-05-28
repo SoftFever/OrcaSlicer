@@ -201,11 +201,11 @@ sub new {
 #    $self->_camera_distance(0.);
 #    $self->layer_editing_enabled(0);
 #    $self->{layer_height_edit_band_width} = 2.;
+#    $self->{layer_height_edit_strength} = 0.005;
+#    $self->{layer_height_edit_last_object_id} = -1;
+#    $self->{layer_height_edit_last_z} = 0.;
+#    $self->{layer_height_edit_last_action} = 0;
 #==============================================================================================================================
-    $self->{layer_height_edit_strength} = 0.005;
-    $self->{layer_height_edit_last_object_id} = -1;
-    $self->{layer_height_edit_last_z} = 0.;
-    $self->{layer_height_edit_last_action} = 0;
 
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::reset_volumes($self);
@@ -267,7 +267,9 @@ sub new {
     EVT_TIMER($self, $self->{layer_height_edit_timer_id}, sub {
         my ($self, $event) = @_;
         return if $self->_layer_height_edited != 1;
-        return if $self->{layer_height_edit_last_object_id} == -1;
+#==============================================================================================================================
+        return if Slic3r::GUI::_3DScene::get_layers_editing_last_object_id($self) == -1;
+#==============================================================================================================================
         $self->_variable_layer_thickness_action(undef);
     });
     
@@ -419,40 +421,73 @@ sub _variable_layer_thickness_reset_rect_mouse_inside {
    return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
 }
 
-sub _variable_layer_thickness_bar_mouse_cursor_z_relative {
-   my ($self) = @_;
-   my $mouse_pos = $self->ScreenToClientPoint(Wx::GetMousePosition());
-   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
-   return ($mouse_pos->x >= $bar_left && $mouse_pos->x <= $bar_right && $mouse_pos->y >= $bar_top && $mouse_pos->y <= $bar_bottom) ?
-        # Inside the bar.
-        ($bar_bottom - $mouse_pos->y - 1.) / ($bar_bottom - $bar_top - 1) :
-        # Outside the bar.
-        -1000.;
-}
+#==============================================================================================================================
+#sub _variable_layer_thickness_bar_mouse_cursor_z_relative {
+#   my ($self) = @_;
+#   my $mouse_pos = $self->ScreenToClientPoint(Wx::GetMousePosition());
+#   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
+#   return ($mouse_pos->x >= $bar_left && $mouse_pos->x <= $bar_right && $mouse_pos->y >= $bar_top && $mouse_pos->y <= $bar_bottom) ?
+#        # Inside the bar.
+#        ($bar_bottom - $mouse_pos->y - 1.) / ($bar_bottom - $bar_top - 1) :
+#        # Outside the bar.
+#        -1000.;
+#}
+#==============================================================================================================================
 
 sub _variable_layer_thickness_action {
     my ($self, $mouse_event, $do_modification) = @_;
+#==============================================================================================================================
+    my $object_idx_selected = Slic3r::GUI::_3DScene::get_layers_editing_last_object_id($self);
     # A volume is selected. Test, whether hovering over a layer thickness bar.
-    return if $self->{layer_height_edit_last_object_id} == -1;
+    return if ($object_idx_selected == -1);
+#    return if $self->{layer_height_edit_last_object_id} == -1;
+#==============================================================================================================================
     if (defined($mouse_event)) {
         my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
-        $self->{layer_height_edit_last_z} = unscale($self->{print}->get_object($self->{layer_height_edit_last_object_id})->size->z)
-            * ($bar_bottom - $mouse_event->GetY - 1.) / ($bar_bottom - $bar_top);
-        $self->{layer_height_edit_last_action} = $mouse_event->ShiftDown ? ($mouse_event->RightIsDown ? 3 : 2) : ($mouse_event->RightIsDown ? 0 : 1);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_layers_editing_last_z($self, unscale($self->{print}->get_object($object_idx_selected)->size->z)
+            * ($bar_bottom - $mouse_event->GetY - 1.) / ($bar_bottom - $bar_top));
+        Slic3r::GUI::_3DScene::set_layers_editing_last_action($self, $mouse_event->ShiftDown ? ($mouse_event->RightIsDown ? 3 : 2) : ($mouse_event->RightIsDown ? 0 : 1));
+#        $self->{layer_height_edit_last_z} = unscale($self->{print}->get_object($self->{layer_height_edit_last_object_id})->size->z)
+#            * ($bar_bottom - $mouse_event->GetY - 1.) / ($bar_bottom - $bar_top);
+#        $self->{layer_height_edit_last_action} = $mouse_event->ShiftDown ? ($mouse_event->RightIsDown ? 3 : 2) : ($mouse_event->RightIsDown ? 0 : 1);
+#==============================================================================================================================
     }
     # Mark the volume as modified, so Print will pick its layer height profile? Where to mark it?
     # Start a timer to refresh the print? schedule_background_process() ?
     # The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself.
-    $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
-        $self->{layer_height_edit_last_z},
-        $self->{layer_height_edit_strength},
 #==============================================================================================================================
+    $self->{print}->get_object($object_idx_selected)->adjust_layer_height_profile(
+        Slic3r::GUI::_3DScene::get_layers_editing_last_z($self),
+        Slic3r::GUI::_3DScene::get_layers_editing_strength($self),
         Slic3r::GUI::_3DScene::get_layers_editing_band_width($self),
+        Slic3r::GUI::_3DScene::get_layers_editing_last_action($self));
+#    $self->{print}->get_object($self->{layer_height_edit_last_object_id})->adjust_layer_height_profile(
+#        $self->{layer_height_edit_last_z},
+#        $self->{layer_height_edit_strength},
 #        $self->{layer_height_edit_band_width}, 
+#        $self->{layer_height_edit_last_action});
 #==============================================================================================================================
-        $self->{layer_height_edit_last_action});
-    $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
-        $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
+     
+ #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@   MERGE FROM SCENE_MANIPULATORS   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+    # searches the id of the first volume of the selected object
+    my $volume_idx = 0;
+    for my $i (0..$object_idx_selected - 1) {
+        my $obj = $self->{print}->get_object($i);
+        for my $j (0..$obj->region_volumes_count - 1) {
+            $volume_idx += scalar @{$obj->get_region_volumes($j)};
+        }
+    }                
+ #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@   MERGE FROM SCENE_MANIPULATORS   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+        
+#==============================================================================================================================
+ #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@   MERGE FROM SCENE_MANIPULATORS   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+    $self->volumes->[$volume_idx]->generate_layer_height_texture($self->{print}->get_object($object_idx_selected), 1);
+#    $self->volumes->[$object_idx_selected]->generate_layer_height_texture($self->{print}->get_object($object_idx_selected), 1);
+ #@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@   MERGE FROM SCENE_MANIPULATORS   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
+#    $self->volumes->[$self->{layer_height_edit_last_object_id}]->generate_layer_height_texture(
+#        $self->{print}->get_object($self->{layer_height_edit_last_object_id}), 1);
+#==============================================================================================================================
     $self->Refresh;
     # Automatic action on mouse down with the same coordinate.
     $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
@@ -463,7 +498,8 @@ sub mouse_event {
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
 #==============================================================================================================================
-    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
+    my $object_idx_selected = (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
+    Slic3r::GUI::_3DScene::set_layers_editing_last_object_id($self, $object_idx_selected);
 #    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
 #==============================================================================================================================
 
@@ -1718,7 +1754,7 @@ sub mark_volumes_for_layer_height {
         if (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $shader && $volume->selected &&  
             $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
             $volume->set_layer_height_texture_data(Slic3r::GUI::_3DScene::get_layers_editing_z_texture_id($self), $shader->shader_program_id,
-            $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, Slic3r::GUI::_3DScene::get_layers_editing_band_width($self));
+            $self->{print}->get_object($object_id), Slic3r::GUI::_3DScene::get_layers_editing_cursor_z_relative($self), Slic3r::GUI::_3DScene::get_layers_editing_band_width($self));
                                 
 #        if ($self->layer_editing_enabled && $volume->selected && $self->{layer_height_edit_shader} && 
 #            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {

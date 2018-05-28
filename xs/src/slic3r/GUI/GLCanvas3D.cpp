@@ -593,6 +593,10 @@ GLCanvas3D::LayersEditing::LayersEditing()
     , m_enabled(false)
     , m_z_texture_id(0)
     , m_band_width(2.0f)
+    , m_strength(0.005f)
+    , m_last_object_id(-1)
+    , m_last_z(0.0f)
+    , m_last_action(0)
 {
 }
 
@@ -669,6 +673,46 @@ void GLCanvas3D::LayersEditing::set_band_width(float band_width)
     m_band_width = band_width;
 }
 
+float GLCanvas3D::LayersEditing::get_strength() const
+{
+    return m_strength;
+}
+
+void GLCanvas3D::LayersEditing::set_strength(float strength)
+{
+    m_strength = strength;
+}
+
+int GLCanvas3D::LayersEditing::get_last_object_id() const
+{
+    return m_last_object_id;
+}
+
+void GLCanvas3D::LayersEditing::set_last_object_id(int id)
+{
+    m_last_object_id = id;
+}
+
+float GLCanvas3D::LayersEditing::get_last_z() const
+{
+    return m_last_z;
+}
+
+void GLCanvas3D::LayersEditing::set_last_z(float z)
+{
+    m_last_z = z;
+}
+
+unsigned int GLCanvas3D::LayersEditing::get_last_action() const
+{
+    return m_last_action;
+}
+
+void GLCanvas3D::LayersEditing::set_last_action(unsigned int action)
+{
+    m_last_action = action;
+}
+
 void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const
 {
     if (!m_enabled)
@@ -698,6 +742,22 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
 GLShader* GLCanvas3D::LayersEditing::get_shader()
 {
     return m_shader.get_shader();
+}
+
+float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas) const
+{
+    const Point& mouse_pos = canvas.get_local_mouse_position();
+    const Rect& bar_rect = _get_bar_rect_screen(canvas);
+    float x = (float)mouse_pos.x;
+    float y = (float)mouse_pos.y;
+    float t = bar_rect.get_top();
+    float b = bar_rect.get_bottom();
+
+    return ((bar_rect.get_left() <= x) && (x <= bar_rect.get_right()) && (t <= y) && (y <= b)) ?
+        // Inside the bar.
+        (b - y - 1.0f) / (b - t - 1.0f) :
+        // Outside the bar.
+        -1000.0f;
 }
 
 bool GLCanvas3D::LayersEditing::_is_initialized() const
@@ -796,7 +856,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
 
     m_shader.set_uniform("z_to_texture_row", (float)volume.layer_height_texture_z_to_row_id());
     m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)volume.layer_height_texture_height());
-    m_shader.set_uniform("z_cursor", max_z * _cursor_z_relative(canvas));
+    m_shader.set_uniform("z_cursor", max_z * get_cursor_z_relative(canvas));
     m_shader.set_uniform("z_cursor_band_width", get_band_width());
 
     GLsizei w = (GLsizei)volume.layer_height_texture_width();
@@ -922,21 +982,6 @@ Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canva
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
-}
-
-float GLCanvas3D::LayersEditing::_cursor_z_relative(const GLCanvas3D& canvas) const
-{
-    const Point& mouse_pos = canvas.get_local_mouse_position();
-    const Rect& bar_rect = _get_bar_rect_screen(canvas);
-    float x = (float)mouse_pos.x;
-    float y = (float)mouse_pos.y;
-    float t = bar_rect.get_top();
-    float b = bar_rect.get_bottom();
-    return ((bar_rect.get_left() <= x) && (x <= bar_rect.get_right()) && (t <= y) && (y <= b)) ?
-        // Inside the bar.
-        (b - y - 1.0f) / (b - t - 1.0f) :
-        // Outside the bar.
-        - 1000.0f;
 }
 
 GLCanvas3D::Mouse::Mouse()
@@ -1559,9 +1604,54 @@ void GLCanvas3D::set_layers_editing_band_width(float band_width)
     m_layers_editing.set_band_width(band_width);
 }
 
+float GLCanvas3D::get_layers_editing_strength() const
+{
+    return m_layers_editing.get_strength();
+}
+
+void GLCanvas3D::set_layers_editing_strength(float strength)
+{
+    m_layers_editing.set_strength(strength);
+}
+
+int GLCanvas3D::get_layers_editing_last_object_id() const
+{
+    return m_layers_editing.get_last_object_id();
+}
+
+void GLCanvas3D::set_layers_editing_last_object_id(int id)
+{
+    m_layers_editing.set_last_object_id(id);
+}
+
+float GLCanvas3D::get_layers_editing_last_z() const
+{
+    return m_layers_editing.get_last_z();
+}
+
+void GLCanvas3D::set_layers_editing_last_z(float z)
+{
+    m_layers_editing.set_last_z(z);
+}
+
+unsigned int GLCanvas3D::get_layers_editing_last_action() const
+{
+    return m_layers_editing.get_last_action();
+}
+
+void GLCanvas3D::set_layers_editing_last_action(unsigned int action)
+{
+    m_layers_editing.set_last_action(action);
+}
+
 GLShader* GLCanvas3D::get_layers_editing_shader()
 {
     return m_layers_editing.get_shader();
+}
+
+float GLCanvas3D::get_layers_editing_cursor_z_relative(const GLCanvas3D& canvas) const
+{
+    return m_layers_editing.get_cursor_z_relative(canvas);
 }
 
 void GLCanvas3D::render_bed() const
@@ -1877,7 +1967,7 @@ Point GLCanvas3D::get_local_mouse_position() const
         return Point();
 
     wxPoint mouse_pos = m_canvas->ScreenToClient(wxGetMousePosition());
-    return Point(mouse_pos.x, mouse_pos.x);
+    return Point(mouse_pos.x, mouse_pos.y);
 }
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
