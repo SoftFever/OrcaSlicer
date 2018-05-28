@@ -1635,11 +1635,6 @@ sub draw_active_object_annotations {
     $self->{layer_height_edit_shader}->set_uniform('z_cursor',                    $z_max * $z_cursor_relative);
     $self->{layer_height_edit_shader}->set_uniform('z_cursor_band_width',         $self->{layer_height_edit_band_width});
     glBindTexture(GL_TEXTURE_2D, $self->{layer_preview_z_texture_id});
-#=============================================================================================================================================    
-    print "texture id: ";
-    print $self->{layer_preview_z_texture_id};
-    print "\n";
-#=============================================================================================================================================    
     glTexImage2D_c(GL_TEXTURE_2D, 0, GL_RGBA8, $volume->layer_height_texture_width, $volume->layer_height_texture_height, 
         0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexImage2D_c(GL_TEXTURE_2D, 1, GL_RGBA8, $volume->layer_height_texture_width / 2, $volume->layer_height_texture_height / 2,
