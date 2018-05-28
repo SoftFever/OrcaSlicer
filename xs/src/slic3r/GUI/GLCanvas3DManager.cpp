@@ -556,6 +556,12 @@ float GLCanvas3DManager::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas
     return (it != m_canvases.end()) ? it->second->get_layers_editing_cursor_z_relative(*it->second) : 0.0f;
 }
 
+int GLCanvas3DManager::get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_first_selected_object_id(objects_count) : 0.;
+}
+
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

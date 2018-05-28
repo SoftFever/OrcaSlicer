@@ -670,6 +670,16 @@ get_layers_editing_cursor_z_relative(canvas)
     OUTPUT:
         RETVAL
 
+int
+get_layers_editing_first_selected_object_id(canvas, objects_count)
+        SV           *canvas;
+        unsigned int objects_count;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_first_selected_object_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), objects_count);
+    OUTPUT:
+        RETVAL
+
+
 void
 zoom_to_bed(canvas)
         SV *canvas;

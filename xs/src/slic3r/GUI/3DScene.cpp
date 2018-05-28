@@ -2075,6 +2075,11 @@ float _3DScene::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas)
     return s_canvas_mgr.get_layers_editing_cursor_z_relative(canvas);
 }
 
+int _3DScene::get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count)
+{
+    return s_canvas_mgr.get_layers_editing_first_selected_object_id(canvas, objects_count);
+}
+
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.zoom_to_bed(canvas);

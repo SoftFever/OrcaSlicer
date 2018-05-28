@@ -637,6 +637,7 @@ public:
     static GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
 
     static float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas);
+    static int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);

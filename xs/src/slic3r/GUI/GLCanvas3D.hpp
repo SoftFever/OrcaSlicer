@@ -256,7 +256,8 @@ public:
 
         GLShader* get_shader();
 
-        float get_cursor_z_relative(const GLCanvas3D& canvas) const;
+        static float get_cursor_z_relative(const GLCanvas3D& canvas);
+        static int get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count);
 
     private:
         bool _is_initialized() const;
@@ -265,10 +266,10 @@ public:
         void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
         void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
         void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
-        Rect _get_bar_rect_screen(const GLCanvas3D& canvas) const;
-        Rect _get_reset_rect_screen(const GLCanvas3D& canvas) const;
-        Rect _get_bar_rect_viewport(const GLCanvas3D& canvas) const;
-        Rect _get_reset_rect_viewport(const GLCanvas3D& canvas) const;
+        static Rect _get_bar_rect_screen(const GLCanvas3D& canvas);
+        static Rect _get_reset_rect_screen(const GLCanvas3D& canvas);
+        static Rect _get_bar_rect_viewport(const GLCanvas3D& canvas);
+        static Rect _get_reset_rect_viewport(const GLCanvas3D& canvas);
     };
 
     class Mouse
@@ -416,6 +417,7 @@ public:
     GLShader* get_layers_editing_shader();
 
     float get_layers_editing_cursor_z_relative(const GLCanvas3D& canvas) const;
+    int get_layers_editing_first_selected_object_id(unsigned int objects_count) const;
 
     void zoom_to_bed();
     void zoom_to_volumes();

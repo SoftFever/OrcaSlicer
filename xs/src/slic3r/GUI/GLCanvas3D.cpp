@@ -744,7 +744,7 @@ GLShader* GLCanvas3D::LayersEditing::get_shader()
     return m_shader.get_shader();
 }
 
-float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas) const
+float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
 {
     const Point& mouse_pos = canvas.get_local_mouse_position();
     const Rect& bar_rect = _get_bar_rect_screen(canvas);
@@ -758,6 +758,21 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
         (b - y - 1.0f) / (b - t - 1.0f) :
         // Outside the bar.
         -1000.0f;
+}
+
+int GLCanvas3D::LayersEditing::get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count)
+{
+    for (const GLVolume* vol : volumes.volumes)
+    {
+        if ((vol != nullptr) && vol->selected)
+        {
+            int object_id = vol->select_group_id / 1000000;
+            // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
+            if (object_id < 10000)
+                return (object_id >= (int)objects_count) ? -1 : object_id;
+        }
+    }
+    return -1;
 }
 
 bool GLCanvas3D::LayersEditing::_is_initialized() const
@@ -942,7 +957,7 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
     }
 }
 
-Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas) const
+Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
     float w = (float)cnv_size.get_width();
@@ -951,7 +966,7 @@ Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas) c
     return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0.0f, w, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
 }
 
-Rect GLCanvas3D::LayersEditing::_get_reset_rect_screen(const GLCanvas3D& canvas) const
+Rect GLCanvas3D::LayersEditing::_get_reset_rect_screen(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
     float w = (float)cnv_size.get_width();
@@ -960,7 +975,7 @@ Rect GLCanvas3D::LayersEditing::_get_reset_rect_screen(const GLCanvas3D& canvas)
     return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, w, h);
 }
 
-Rect GLCanvas3D::LayersEditing::_get_bar_rect_viewport(const GLCanvas3D& canvas) const
+Rect GLCanvas3D::LayersEditing::_get_bar_rect_viewport(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
     float half_w = 0.5f * (float)cnv_size.get_width();
@@ -972,7 +987,7 @@ Rect GLCanvas3D::LayersEditing::_get_bar_rect_viewport(const GLCanvas3D& canvas)
     return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom);
 }
 
-Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canvas) const
+Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canvas)
 {
     const Size& cnv_size = canvas.get_canvas_size();
     float half_w = 0.5f * (float)cnv_size.get_width();
@@ -1652,6 +1667,11 @@ GLShader* GLCanvas3D::get_layers_editing_shader()
 float GLCanvas3D::get_layers_editing_cursor_z_relative(const GLCanvas3D& canvas) const
 {
     return m_layers_editing.get_cursor_z_relative(canvas);
+}
+
+int GLCanvas3D::get_layers_editing_first_selected_object_id(unsigned int objects_count) const
+{
+    return (m_volumes != nullptr) ? m_layers_editing.get_first_selected_object_id(*m_volumes, objects_count) : -1;
 }
 
 void GLCanvas3D::render_bed() const
