@@ -258,14 +258,16 @@ public:
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static int get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count);
+        static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
+        static bool reset_rect_contains(const GLCanvas3D& canvas, float x, float y);
 
     private:
         bool _is_initialized() const;
-        GLTextureData _load_texture_from_file(const std::string& filename) const;
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
         void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
         void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
         void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
+        static GLTextureData _load_texture_from_file(const std::string& filename);
         static Rect _get_bar_rect_screen(const GLCanvas3D& canvas);
         static Rect _get_reset_rect_screen(const GLCanvas3D& canvas);
         static Rect _get_bar_rect_viewport(const GLCanvas3D& canvas);
@@ -416,8 +418,10 @@ public:
 
     GLShader* get_layers_editing_shader();
 
-    float get_layers_editing_cursor_z_relative(const GLCanvas3D& canvas) const;
+    float get_layers_editing_cursor_z_relative() const;
     int get_layers_editing_first_selected_object_id(unsigned int objects_count) const;
+    bool bar_rect_contains(float x, float y) const;
+    bool reset_rect_contains(float x, float y) const;
 
     void zoom_to_bed();
     void zoom_to_volumes();

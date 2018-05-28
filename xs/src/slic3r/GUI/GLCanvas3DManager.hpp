@@ -138,6 +138,8 @@ public:
 
     float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const;
     int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count) const;
+    bool bar_rect_contains(wxGLCanvas* canvas, float x, float y) const;
+    bool reset_rect_contains(wxGLCanvas* canvas, float x, float y) const;
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);

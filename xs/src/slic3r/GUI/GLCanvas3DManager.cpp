@@ -553,13 +553,25 @@ GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas)
 float GLCanvas3DManager::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_cursor_z_relative(*it->second) : 0.0f;
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_cursor_z_relative() : 0.0f;
 }
 
 int GLCanvas3DManager::get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->get_layers_editing_first_selected_object_id(objects_count) : 0.;
+}
+
+bool GLCanvas3DManager::bar_rect_contains(wxGLCanvas* canvas, float x, float y) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->bar_rect_contains(x, y) : false;
+}
+
+bool GLCanvas3DManager::reset_rect_contains(wxGLCanvas* canvas, float x, float y) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->reset_rect_contains(x, y) : false;
 }
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)

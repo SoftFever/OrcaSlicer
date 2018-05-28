@@ -409,19 +409,19 @@ sub _variable_layer_thickness_reset_rect_viewport {
 #==============================================================================================================================
 }
 
-sub _variable_layer_thickness_bar_rect_mouse_inside {
-   my ($self, $mouse_evt) = @_;
-   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
-   return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
-}
-
-sub _variable_layer_thickness_reset_rect_mouse_inside {
-   my ($self, $mouse_evt) = @_;
-   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_reset_rect_screen;
-   return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
-}
-
 #==============================================================================================================================
+#sub _variable_layer_thickness_bar_rect_mouse_inside {
+#   my ($self, $mouse_evt) = @_;
+#   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
+#   return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
+#}
+#
+#sub _variable_layer_thickness_reset_rect_mouse_inside {
+#   my ($self, $mouse_evt) = @_;
+#   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_reset_rect_screen;
+#   return $mouse_evt->GetX >= $bar_left && $mouse_evt->GetX <= $bar_right && $mouse_evt->GetY >= $bar_top && $mouse_evt->GetY <= $bar_bottom;
+#}
+#
 #sub _variable_layer_thickness_bar_mouse_cursor_z_relative {
 #   my ($self) = @_;
 #   my $mouse_pos = $self->ScreenToClientPoint(Wx::GetMousePosition());
@@ -513,7 +513,10 @@ sub mouse_event {
         $self->SetFocus;
         $self->_drag_start_xy(undef);        
     } elsif ($e->LeftDClick) {
-        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+#==============================================================================================================================
+        if ($object_idx_selected != -1 && Slic3r::GUI::_3DScene::bar_rect_contains($self, $e->GetX, $e->GetY)) {
+#        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+#==============================================================================================================================
         } elsif ($self->on_double_click) {
             $self->on_double_click->();
         }
@@ -525,12 +528,18 @@ sub mouse_event {
 #        my $volume_idx = $self->_hover_volume_idx // -1;
 #==============================================================================================================================
         $self->_layer_height_edited(0);
-        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+#==============================================================================================================================
+        if ($object_idx_selected != -1 && Slic3r::GUI::_3DScene::bar_rect_contains($self, $e->GetX, $e->GetY)) {
+#        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+#==============================================================================================================================
             # A volume is selected and the mouse is hovering over a layer thickness bar.
             # Start editing the layer height.
             $self->_layer_height_edited(1);
             $self->_variable_layer_thickness_action($e);
-        } elsif ($object_idx_selected != -1 && $self->_variable_layer_thickness_reset_rect_mouse_inside($e)) {
+#==============================================================================================================================
+        } elsif ($object_idx_selected != -1 && Slic3r::GUI::_3DScene::reset_rect_contains($self, $e->GetX, $e->GetY)) {
+#        } elsif ($object_idx_selected != -1 && $self->_variable_layer_thickness_reset_rect_mouse_inside($e)) {
+#==============================================================================================================================
             $self->{print}->get_object($object_idx_selected)->reset_layer_height_profile;
             # Index 2 means no editing, just wait for mouse up event.
             $self->_layer_height_edited(2);
@@ -738,7 +747,10 @@ sub mouse_wheel_event {
 #==============================================================================================================================
         if ($object_idx_selected != -1) {
             # A volume is selected. Test, whether hovering over a layer thickness bar.
-            if ($self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+#==============================================================================================================================
+            if (Slic3r::GUI::_3DScene::bar_rect_contains($self, $e->GetX, $e->GetY)) {
+#            if ($self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
+#==============================================================================================================================
                 # Adjust the width of the selection.
 #==============================================================================================================================
                 Slic3r::GUI::_3DScene::set_layers_editing_band_width($self, max(min(Slic3r::GUI::_3DScene::get_layers_editing_band_width($self) * (1 + 0.1 * $e->GetWheelRotation() / $e->GetWheelDelta()), 10.), 1.5));

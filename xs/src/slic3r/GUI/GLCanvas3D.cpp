@@ -775,56 +775,21 @@ int GLCanvas3D::LayersEditing::get_first_selected_object_id(const GLVolumeCollec
     return -1;
 }
 
+bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, float x, float y)
+{
+    const Rect& rect = _get_bar_rect_screen(canvas);
+    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
+}
+
+bool GLCanvas3D::LayersEditing::reset_rect_contains(const GLCanvas3D& canvas, float x, float y)
+{
+    const Rect& rect = _get_reset_rect_screen(canvas);
+    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
+}
+
 bool GLCanvas3D::LayersEditing::_is_initialized() const
 {
     return m_shader.is_initialized();
-}
-
-GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_texture_from_file(const std::string& filename) const
-{
-    const std::string& path = resources_dir() + "/icons/";
-
-    // Load a PNG with an alpha channel.
-    wxImage image;
-    if (!image.LoadFile(path + filename, wxBITMAP_TYPE_PNG))
-        return GLTextureData();
-
-    int width = image.GetWidth();
-    int height = image.GetHeight();
-    int n_pixels = width * height;
-
-    if (n_pixels <= 0)
-        return GLTextureData();
-
-    // Get RGB & alpha raw data from wxImage, pack them into an array.
-    unsigned char* img_rgb = image.GetData();
-    if (img_rgb == nullptr)
-        return GLTextureData();
-
-    unsigned char* img_alpha = image.GetAlpha();
-
-    std::vector<unsigned char> data(n_pixels * 4, 0);
-    for (int i = 0; i < n_pixels; ++i)
-    {
-        int data_id = i * 4;
-        int img_id = i * 3;
-        data[data_id + 0] = img_rgb[img_id + 0];
-        data[data_id + 1] = img_rgb[img_id + 1];
-        data[data_id + 2] = img_rgb[img_id + 2];
-        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
-    }
-
-    // sends data to gpu
-    GLuint tex_id;
-    ::glGenTextures(1, &tex_id);
-    ::glBindTexture(GL_TEXTURE_2D, tex_id);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    ::glBindTexture(GL_TEXTURE_2D, 0);
-
-    return GLTextureData((unsigned int)tex_id, width, height);
 }
 
 void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
@@ -955,6 +920,53 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
         }
         ::glEnd();
     }
+}
+
+GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_texture_from_file(const std::string& filename)
+{
+    const std::string& path = resources_dir() + "/icons/";
+
+    // Load a PNG with an alpha channel.
+    wxImage image;
+    if (!image.LoadFile(path + filename, wxBITMAP_TYPE_PNG))
+        return GLTextureData();
+
+    int width = image.GetWidth();
+    int height = image.GetHeight();
+    int n_pixels = width * height;
+
+    if (n_pixels <= 0)
+        return GLTextureData();
+
+    // Get RGB & alpha raw data from wxImage, pack them into an array.
+    unsigned char* img_rgb = image.GetData();
+    if (img_rgb == nullptr)
+        return GLTextureData();
+
+    unsigned char* img_alpha = image.GetAlpha();
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    for (int i = 0; i < n_pixels; ++i)
+    {
+        int data_id = i * 4;
+        int img_id = i * 3;
+        data[data_id + 0] = img_rgb[img_id + 0];
+        data[data_id + 1] = img_rgb[img_id + 1];
+        data[data_id + 2] = img_rgb[img_id + 2];
+        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+    }
+
+    // sends data to gpu
+    GLuint tex_id;
+    ::glGenTextures(1, &tex_id);
+    ::glBindTexture(GL_TEXTURE_2D, tex_id);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return GLTextureData((unsigned int)tex_id, width, height);
 }
 
 Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas)
@@ -1664,14 +1676,24 @@ GLShader* GLCanvas3D::get_layers_editing_shader()
     return m_layers_editing.get_shader();
 }
 
-float GLCanvas3D::get_layers_editing_cursor_z_relative(const GLCanvas3D& canvas) const
+float GLCanvas3D::get_layers_editing_cursor_z_relative() const
 {
-    return m_layers_editing.get_cursor_z_relative(canvas);
+    return m_layers_editing.get_cursor_z_relative(*this);
 }
 
 int GLCanvas3D::get_layers_editing_first_selected_object_id(unsigned int objects_count) const
 {
     return (m_volumes != nullptr) ? m_layers_editing.get_first_selected_object_id(*m_volumes, objects_count) : -1;
+}
+
+bool GLCanvas3D::bar_rect_contains(float x, float y) const
+{
+    return m_layers_editing.bar_rect_contains(*this, x, y);
+}
+
+bool GLCanvas3D::reset_rect_contains(float x, float y) const
+{
+    return m_layers_editing.reset_rect_contains(*this, x, y);
 }
 
 void GLCanvas3D::render_bed() const

@@ -638,6 +638,8 @@ public:
 
     static float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas);
     static int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count);
+    static bool bar_rect_contains(wxGLCanvas* canvas, float x, float y);
+    static bool reset_rect_contains(wxGLCanvas* canvas, float x, float y);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);

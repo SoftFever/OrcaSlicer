@@ -2080,6 +2080,16 @@ int _3DScene::get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, un
     return s_canvas_mgr.get_layers_editing_first_selected_object_id(canvas, objects_count);
 }
 
+bool _3DScene::bar_rect_contains(wxGLCanvas* canvas, float x, float y)
+{
+    return s_canvas_mgr.bar_rect_contains(canvas, x, y);
+}
+
+bool _3DScene::reset_rect_contains(wxGLCanvas* canvas, float x, float y)
+{
+    return s_canvas_mgr.reset_rect_contains(canvas, x, y);
+}
+
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.zoom_to_bed(canvas);

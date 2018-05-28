@@ -679,6 +679,25 @@ get_layers_editing_first_selected_object_id(canvas, objects_count)
     OUTPUT:
         RETVAL
 
+bool
+bar_rect_contains(canvas, x, y)
+        SV *canvas;
+        float x;
+        float y;
+    CODE:
+        RETVAL = _3DScene::bar_rect_contains((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), x, y);
+    OUTPUT:
+        RETVAL
+
+bool
+reset_rect_contains(canvas, x, y)
+        SV    *canvas;
+        float x;
+        float y;
+    CODE:
+        RETVAL = _3DScene::reset_rect_contains((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), x, y);
+    OUTPUT:
+        RETVAL
 
 void
 zoom_to_bed(canvas)
