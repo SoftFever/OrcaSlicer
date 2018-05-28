@@ -142,10 +142,11 @@ wxDataViewCtrl *m_objects_ctrl = nullptr;
 PrusaCollapsiblePane	*m_collpane_settings = nullptr;
 
 wxFont		g_small_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
-#ifdef __WXMAC__
-g_small_font->SetPointSize(11);
-#endif /*__WXMAC__*/
 wxFont		g_bold_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold() };
+#ifdef __WXMAC__
+g_small_font.SetPointSize(11);
+g_bold_font.SetPointSize(11);
+#endif /*__WXMAC__*/
 
 static void init_label_colours()
 {
@@ -833,7 +834,6 @@ wxString from_u8(const std::string &str)
 PrusaCollapsiblePane* add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
 {
 	auto *collpane = new PrusaCollapsiblePane(parent, wxID_ANY, name);
-	collpane->SetTopParent(g_right_panel);
 	// add the pane with a zero proportion value to the sizer which contains it
 	sizer_parent->Add(collpane, 0, wxGROW | wxALL, 0);
 
@@ -844,14 +844,14 @@ PrusaCollapsiblePane* add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* s
 	wxSizer *sizer_pane = new wxBoxSizer(wxVERTICAL);
 	sizer_pane->Add(sizer, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
 	win->SetSizer(sizer_pane);
-	sizer_pane->SetSizeHints(win);
+// 	sizer_pane->SetSizeHints(win);
 	return collpane;
 }
 
 wxBoxSizer* content_objects_list(wxWindow *win)
 {
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	m_objects_ctrl->SetBestFittingSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+	m_objects_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
 	auto objects_sz = new wxBoxSizer(wxVERTICAL);
 	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT/*ALL*/, 20/*5*/);
 
@@ -883,18 +883,17 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	m_objects_ctrl->AppendColumn(column02);
 
-	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [objects_model](wxCommandEvent& evt)
+	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [objects_model](wxEvent& evt)
 	{
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		auto item = m_objects_ctrl->GetSelection();
 		if (!item) return;
+//		m_objects_ctrl->SetSize(m_objects_ctrl->GetBestSize()); // TODO override GetBestSize(), than use it
 		auto show_obj_sizer = objects_model->GetParent(item) == wxDataViewItem(0);
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
 		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
-		m_collpane_settings->Show(true);
-
-		g_right_panel->Layout();
+		m_collpane_settings->show_it(true);
 	});
 
 	return objects_sz;
@@ -921,15 +920,13 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
     btn_move_up->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_up.png")), wxBITMAP_TYPE_PNG));
     btn_move_down->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_down.png")), wxBITMAP_TYPE_PNG));
 
-	m_sizer_object_buttons = new /*wxFlex*/wxGridSizer(1, 3, 0, 0);
-// 	static_cast<wxFlexGridSizer*>(m_sizer_object_buttons)->SetFlexibleDirection(wxBOTH);
+	m_sizer_object_buttons = new wxGridSizer(1, 3, 0, 0);
 	m_sizer_object_buttons->Add(btn_load_part, 0, wxEXPAND);
 	m_sizer_object_buttons->Add(btn_load_modifier, 0, wxEXPAND);
 	m_sizer_object_buttons->Add(btn_load_lambda_modifier, 0, wxEXPAND);
 	m_sizer_object_buttons->Show(false);
 
-	m_sizer_part_buttons = new /*wxFlex*/wxGridSizer(1, 3, 0, 0);
-//	m_sizer_part_buttons->SetFlexibleDirection(wxBOTH);
+	m_sizer_part_buttons = new wxGridSizer(1, 3, 0, 0);
 	m_sizer_part_buttons->Add(btn_delete, 0, wxEXPAND);
 	m_sizer_part_buttons->Add(btn_split, 0, wxEXPAND);
 	{
@@ -948,8 +945,8 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	btn_move_up->SetFont(Slic3r::GUI::small_font());
 	btn_move_down->SetFont(Slic3r::GUI::small_font());
 
-	sizer->Add(m_sizer_object_buttons, 0, wxEXPAND|wxLEFT, 20/*wxALIGN_CENTER_HORIZONTAL*/);
-	sizer->Add(m_sizer_part_buttons, 0, wxEXPAND|wxLEFT, 20/*wxALIGN_CENTER_HORIZONTAL*/);
+	sizer->Add(m_sizer_object_buttons, 0, wxEXPAND|wxLEFT, 20);
+	sizer->Add(m_sizer_part_buttons, 0, wxEXPAND|wxLEFT, 20);
 	return sizer;
 }
 
@@ -1021,31 +1018,29 @@ wxBoxSizer* content_settings(wxWindow *win)
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
-	auto main_sizer = new wxBoxSizer(wxVERTICAL);
-	auto main_page = new wxPanel(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-	main_page->SetSizer(main_sizer);
-	sizer->Add(main_page, 1, wxEXPAND | wxALL, 1);
+	wxWindowUpdateLocker noUpdates(parent);
 
 	// Experiments with new UI
 
 	// *** Objects List ***	
- 	auto collpane = add_prusa_collapsible_pane(main_page, main_sizer, "Objects List:", content_objects_list);
-	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent e){
+ 	auto collpane = add_prusa_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
+	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent& e){
+		e.Skip();
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		if (collpane->IsCollapsed()) {
 			m_sizer_object_buttons->Show(false);
 			m_sizer_part_buttons->Show(false);
-			m_collpane_settings->Show(false);
+			m_collpane_settings->show_it(false);
 		}
 		else 
 			m_objects_ctrl->UnselectAll();
+		
 		g_right_panel->Layout();
 	}));
 
 	// *** Object/Part Settings ***
-	m_collpane_settings = add_prusa_collapsible_pane(main_page, main_sizer, "Settings:", content_settings);
-	m_collpane_settings->Show(false);
-
+	m_collpane_settings = add_prusa_collapsible_pane(parent, sizer, "Settings:", content_settings);
+	m_collpane_settings->Hide(); // ? TODO why doesn't work?
 
 	// More experiments with UI
 // 	auto listctrl = new wxDataViewListCtrl(main_page, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));

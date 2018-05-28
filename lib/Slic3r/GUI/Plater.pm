@@ -230,15 +230,7 @@ sub new {
     $self->{right_panel} = Wx::ScrolledWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{right_panel}->SetScrollbars(0, 1, 1, 1);
     
-    ### Scrolled Window for info boxes
-    my $scrolled_window_sizer = Wx::BoxSizer->new(wxVERTICAL);
-    $scrolled_window_sizer->SetMinSize([310, -1]);
-#    my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    my $scrolled_window_panel = Wx::Panel->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $scrolled_window_panel->SetSizer($scrolled_window_sizer);
-#    $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
-
-    $self->{list} = Wx::ListView->new($scrolled_window_panel, -1, wxDefaultPosition, wxDefaultSize,
+    $self->{list} = Wx::ListView->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize,
         wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS );
     $self->{list}->InsertColumn(0, L("Name"), wxLIST_FORMAT_LEFT, 145);
     $self->{list}->InsertColumn(1, L("Copies"), wxLIST_FORMAT_CENTER, 45);
@@ -424,7 +416,7 @@ sub new {
 
         my $object_info_sizer;
         {
-            my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Info"));
+            my $box = Wx::StaticBox->new($self->{right_panel}, -1, L("Info"));
             $box->SetFont($Slic3r::GUI::small_bold_font);
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $object_info_sizer->SetMinSize([300,-1]);
@@ -443,14 +435,14 @@ sub new {
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
-                my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 $grid_sizer->Add($text, 0);
                 
-                $self->{"object_info_$field"} = Wx::StaticText->new($scrolled_window_panel, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $self->{"object_info_$field"} = Wx::StaticText->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 if ($field eq 'manifold') {
-                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($scrolled_window_panel, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
+                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self->{right_panel}, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
                     #$self->{object_info_manifold_warning_icon}->Hide;
                     $self->{"object_info_manifold_warning_icon_show"} = sub {
                         if ($self->{object_info_manifold_warning_icon}->IsShown() != $_[0]) {
@@ -475,7 +467,7 @@ sub new {
 
         my $print_info_sizer;
         {
-            my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Sliced Info"));
+            my $box = Wx::StaticBox->new($self->{right_panel}, -1, L("Sliced Info"));
             $box->SetFont($Slic3r::GUI::small_bold_font);
             $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $print_info_sizer->SetMinSize([300,-1]);
@@ -493,11 +485,11 @@ sub new {
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
-                my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 $grid_sizer->Add($text, 0);
                 
-                $self->{"print_info_$field"} = Wx::StaticText->new($scrolled_window_panel, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $self->{"print_info_$field"} = Wx::StaticText->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"print_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 $grid_sizer->Add($self->{"print_info_$field"}, 0);
             }
@@ -511,18 +503,22 @@ sub new {
         $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
         $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
         #$buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
-        
-        $scrolled_window_sizer->Add($self->{list}, 1, wxEXPAND, 5);
-        $scrolled_window_sizer->Add($object_info_sizer, 0, wxEXPAND | wxLEFT, 20);
-        $scrolled_window_sizer->Add($print_info_sizer, 0, wxEXPAND | wxLEFT, 20);
+
+        ### Sizer for info boxes
+        my $info_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $info_sizer->SetMinSize([310, -1]);        
+        $info_sizer->Add($self->{list}, 1, wxEXPAND, 5);
+        $info_sizer->Add($object_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
+        $info_sizer->Add($print_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
 
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $self->{right_panel}->SetSizer($right_sizer);
         $right_sizer->SetMinSize([320, -1]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
         $right_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $right_sizer->Add($scrolled_window_panel, 0, wxEXPAND | wxALL, 1);
+        $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
         $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
@@ -530,17 +526,15 @@ sub new {
 #                $right_sizer->Show(5, $_[0]); 
 #                $self->Layout
 #            }
-            if ($scrolled_window_sizer->IsShown(2) != $_[0]) {
+            if ($info_sizer->IsShown(2) != $_[0]) {
                 Slic3r::GUI::set_show_print_info($_[0]);
                 return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
-                $scrolled_window_sizer->Show(2, $_[0]); 
-                $scrolled_window_panel->Layout
+                $info_sizer->Show(2, $_[0]); 
+                $self->{right_panel}->Layout
             }
         };
         # Show the box initially, let it be shown after the slicing is finished.
         $self->{"print_info_box_show"}->(0);
-
-        $self->{right_panel}->SetSizer($right_sizer);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
@@ -558,7 +552,7 @@ sub new {
         Slic3r::GUI::set_objects_from_perl( $self->{right_panel},
                                 $frequently_changed_parameters_sizer,
                                 $expert_mode_part_sizer,
-                                $scrolled_window_sizer,
+                                $info_sizer,
                                 $self->{btn_export_gcode},
                                 $self->{btn_export_stl},
                                 $self->{btn_reslice},

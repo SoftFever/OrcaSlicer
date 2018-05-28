@@ -84,7 +84,6 @@ class PrusaCollapsiblePane : public wxCollapsiblePane
 	wxBitmap	m_bmp_close;
 	wxBitmap	m_bmp_open;
 #endif //__WXMSW__
-	wxWindow*	m_top_parent = nullptr;
 public:
 	PrusaCollapsiblePane() {}
 	PrusaCollapsiblePane(	wxWindow *parent,
@@ -101,34 +100,9 @@ public:
 #else
 		Create(parent, winid, label);
 #endif //__WXMSW__
-		this->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([parent, this](wxCommandEvent e){
-			wxWindowUpdateLocker noUpdates_cp(this);
-			wxWindowUpdateLocker noUpdates(parent);
-
-			parent->Layout();
-			this->Refresh();
-
-			if (m_top_parent)
-			{
-				m_top_parent->GetSizer()->Layout();
-			}
-			else{
- 				wxGetTopLevelParent(this)->Layout();
-			}
-			
-// 			if (parent->GetParent()){
-// 				parent->GetParent()->Layout();
-// 				parent->Refresh();
-// 			}
-// 			else{
-//  			parent->Layout();
-//  			this->Refresh();}
-		}));
 	}
 
 	~PrusaCollapsiblePane() {}
-
-	void SetTopParent(wxWindow *parent) { m_top_parent = parent; }
 
 #ifdef __WXMSW__
 	bool Create(wxWindow *parent,
@@ -141,11 +115,12 @@ public:
 				const wxString& name);
 
 	void UpdateBtnBmp();
-	void Collapse(bool collapse) override;
 	void SetLabel(const wxString &label) override;
 	bool Layout() override;
 #endif //__WXMSW__
-
+	void Collapse(bool collapse) override;
+	void OnStateChange_(const wxSize& sz); //override of OnStateChange
+	void show_it(bool show) { Show(show); OnStateChange_(GetBestSize()); }
 };
 
 
