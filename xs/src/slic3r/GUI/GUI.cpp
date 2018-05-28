@@ -1007,6 +1007,8 @@ wxBoxSizer* content_settings(wxWindow *win)
 	m_optgroups.push_back(optgroup);  // ogObjectSettings
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
+	sizer->Add(content_edit_object_buttons(win), 0, wxEXPAND, 0); // *** Edit Object Buttons***
+
 	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
 
 	auto add_btn = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
@@ -1039,9 +1041,6 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 			m_objects_ctrl->UnselectAll();
 		g_right_panel->Layout();
 	}));
-
-	// *** Edit Object Buttons***	
- 	main_sizer->Add(content_edit_object_buttons(main_page), 0, wxEXPAND, 0);
 
 	// *** Object/Part Settings ***
 	m_collpane_settings = add_prusa_collapsible_pane(main_page, main_sizer, "Settings:", content_settings);
