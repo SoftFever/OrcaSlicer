@@ -1145,16 +1145,20 @@ void Print::_make_wipe_tower()
                     float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];
                     float saved_material = 0.f;
 
-                    // soluble filament cannot be wiped in a random infill, first layer is potentionally visible too
-                    if (!first_layer && !config.filament_soluble.get_at(extruder_id)) {
-                        for (size_t i = 0; i < objects.size(); ++ i) {                    // Let's iterate through all objects...
-                            for (Layer* lay : objects[i]->layers) {
-                                if (std::abs(layer_tools.print_z - lay->print_z) > EPSILON) continue;
-                                for (LayerRegion* reg : lay->regions) {                         // and all regions
-                                    ExtrusionEntityCollection& eec = reg->fills;
-                                    for (ExtrusionEntity* ee : eec.entities) {                  // and all infill Collections
+
+                    if (!first_layer && !config.filament_soluble.get_at(extruder_id)) {             // soluble filament cannot be wiped in a random infill, first layer is potentionally visible too
+                        for (size_t i = 0; i < objects.size(); ++ i) {                              // Let's iterate through all objects...
+                            for (Layer* lay : objects[i]->layers) {                                 // Find this layer
+                                if (std::abs(layer_tools.print_z - lay->print_z) > EPSILON)
+                                    continue;
+                                for (size_t region_id = 0; region_id < objects[i]->print()->regions.size(); ++ region_id) {
+                                    unsigned int region_extruder = objects[i]->print()->regions[region_id]->config.infill_extruder - 1; // config value is 1-based
+                                    if (config.filament_soluble.get_at(region_extruder)) // if this infill is meant to be soluble, keep it that way
+                                        continue;
+                                    ExtrusionEntityCollection& eec = lay->regions[region_id]->fills;
+                                    for (ExtrusionEntity* ee : eec.entities) {                      // and all infill Collections
                                             auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                                            if (fill->role() == erTopSolidInfill) continue;
+                                            if (fill->role() == erTopSolidInfill) continue;         // color of TopSolidInfill cannot be changed - it is visible
                                             if (volume_to_wipe > 0.f && !fill->is_extruder_overridden() && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
                                                 fill->set_extruder_override(extruder_id);
                                                 volume_to_wipe -= fill->total_volume();

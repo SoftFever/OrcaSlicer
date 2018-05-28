@@ -1338,31 +1338,37 @@ void GCode::process_layer(
             m_avoid_crossing_perimeters.disable_once = true;
         }
 
-        gcode += "; INFILL WIPING STARTS\n";
-
-        if (extruder_id != layer_tools.extruders.front()) { // if this is the first extruder on this layer, there was no toolchange
-            for (const auto& layer_to_print : layers) {     // iterate through all objects
-                if (layer_to_print.object_layer == nullptr)
-                    continue;
-                std::vector<ObjectByExtruder::Island::Region> overridden;
-                for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
-                    ObjectByExtruder::Island::Region new_region;
-                    overridden.push_back(new_region);
-                    for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
-                        auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                        if (fill->get_extruder_override() == extruder_id) {
-                            overridden.back().infills.append(*fill);
-                            fill->set_extruder_override(-1);
-                        }
-                   }
+        if (print.config.wipe_into_infill.value) {
+            gcode += "; INFILL WIPING STARTS\n";
+            if (extruder_id != layer_tools.extruders.front()) { // if this is the first extruder on this layer, there was no toolchange
+                for (const auto& layer_to_print : layers) {     // iterate through all objects
+                gcode+="objekt\n";
+                    if (layer_to_print.object_layer == nullptr)
+                        continue;
+                    std::vector<ObjectByExtruder::Island::Region> overridden;
+                    for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+                        gcode+="region\n";
+                        ObjectByExtruder::Island::Region new_region;
+                        overridden.push_back(new_region);
+                        for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
+                            gcode+="entity\n";
+                            auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                            if (fill->get_extruder_override() == extruder_id) {
+                                gcode+="*\n";
+                                overridden.back().infills.append(*fill);
+                                fill->set_extruder_override(-1);
+                            }
+                       }
+                    }
                     m_config.apply((layer_to_print.object_layer)->object()->config, true);
                     Point copy = (layer_to_print.object_layer)->object()->_shifted_copies.front();
                     this->set_origin(unscale(copy.x), unscale(copy.y));
                     gcode += this->extrude_infill(print, overridden);
                 }
             }
+            gcode += "; WIPING FINISHED\n";
         }
-        gcode += "; WIPING FINISHED\n";
+
 
 
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
