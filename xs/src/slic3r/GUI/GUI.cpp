@@ -138,7 +138,8 @@ bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
 wxSizer		*m_sizer_object_buttons = nullptr;
 wxSizer		*m_sizer_part_buttons = nullptr;
-wxDataViewCtrl *m_objects_ctrl = nullptr;
+wxDataViewCtrl			*m_objects_ctrl = nullptr;
+MyObjectTreeModel		*m_objects_model = nullptr;
 PrusaCollapsiblePane	*m_collpane_settings = nullptr;
 
 wxFont		g_small_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
@@ -853,10 +854,10 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 	m_objects_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
 	auto objects_sz = new wxBoxSizer(wxVERTICAL);
-	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT/*ALL*/, 20/*5*/);
+	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT, 20);
 
-	auto objects_model = new MyObjectTreeModel;
-	m_objects_ctrl->AssociateModel(objects_model);
+	m_objects_model = new MyObjectTreeModel;
+	m_objects_ctrl->AssociateModel(m_objects_model);
 #if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 	m_objects_ctrl->EnableDragSource(wxDF_UNICODETEXT);
 	m_objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
@@ -883,13 +884,13 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	m_objects_ctrl->AppendColumn(column02);
 
-	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [objects_model](wxEvent& evt)
+	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& evt)
 	{
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		auto item = m_objects_ctrl->GetSelection();
 		if (!item) return;
 //		m_objects_ctrl->SetSize(m_objects_ctrl->GetBestSize()); // TODO override GetBestSize(), than use it
-		auto show_obj_sizer = objects_model->GetParent(item) == wxDataViewItem(0);
+		auto show_obj_sizer = m_objects_model->GetParent(item) == wxDataViewItem(0);
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
 		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
@@ -910,6 +911,17 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
     auto btn_split = new wxButton(win, wxID_ANY, "Split"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
 	auto btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
 	auto btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
+
+	//*** button's functions
+	btn_load_part->Bind(wxEVT_BUTTON, [](wxEvent&)
+	{
+		auto item = m_objects_ctrl->GetSelection();
+		if (!item) return;
+		wxString name = "Part";
+		m_objects_model->AddChild(item, name);
+	});
+	//***
+
 	btn_move_up->SetMinSize(wxSize(20, -1));
 	btn_move_down->SetMinSize(wxSize(20, -1));
 	btn_load_part->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
@@ -1021,6 +1033,10 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	wxWindowUpdateLocker noUpdates(parent);
 
 	// Experiments with new UI
+	auto add_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
+	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
 
 	// *** Objects List ***	
  	auto collpane = add_prusa_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
@@ -1041,6 +1057,12 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	// *** Object/Part Settings ***
 	m_collpane_settings = add_prusa_collapsible_pane(parent, sizer, "Settings:", content_settings);
 	m_collpane_settings->Hide(); // ? TODO why doesn't work?
+
+	add_btn->Bind(wxEVT_BUTTON, [](wxEvent& )
+	{
+		wxString name = "Object";
+		m_objects_model->Add(name);
+	});
 
 	// More experiments with UI
 // 	auto listctrl = new wxDataViewListCtrl(main_page, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));

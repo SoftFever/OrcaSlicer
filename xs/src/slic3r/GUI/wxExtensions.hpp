@@ -209,12 +209,16 @@ class MyObjectTreeModel :public wxDataViewModel
 {
 	std::set<MyObjectTreeModelNode*> m_objects;
 public:
-	MyObjectTreeModel();
+	MyObjectTreeModel(){}
 	~MyObjectTreeModel()
 	{
 		for (auto object : m_objects)
 			delete object;		
 	}
+
+	void Add(wxString &name);
+	void AddChild(const wxDataViewItem &parent_item, wxString &name);
+ 	void Delete(const wxDataViewItem &item);
 
 	// helper method for wxLog
 
@@ -223,10 +227,6 @@ public:
 	wxString GetScale(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
-
-// 	void AddToClassical(const wxString &title, const wxString &artist,
-// 		unsigned int year);
-// 	void Delete(const wxDataViewItem &item);
 
 	virtual unsigned int GetColumnCount() const override { return 3;}
 	virtual wxString GetColumnType(unsigned int col) const override{ return wxT("string"); }

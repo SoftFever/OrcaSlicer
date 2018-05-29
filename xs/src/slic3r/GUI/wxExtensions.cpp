@@ -352,26 +352,52 @@ bool PrusaCollapsiblePane::Layout()
 // MyObjectTreeModel
 // ----------------------------------------------------------------------------
 
-MyObjectTreeModel::MyObjectTreeModel()
+void MyObjectTreeModel::Add(wxString &name)
 {
-	auto root1 = new MyObjectTreeModelNode("Object1");
-	m_objects.emplace(root1);
+	auto root = new MyObjectTreeModelNode(name);
+	m_objects.emplace(root);
+	// notify control
+	wxDataViewItem child((void*)root);
+	wxDataViewItem parent((void*)NULL);
+	ItemAdded(parent, child);
+}
 
-	auto root2 = new MyObjectTreeModelNode("Object2");
-	m_objects.emplace(root2);
-	root2->Append(new MyObjectTreeModelNode(root2, "SubObject2_1"));
-	root2->Append(new MyObjectTreeModelNode(root2, "SubObject2_2"));
-	root2->Append(new MyObjectTreeModelNode(root2, "SubObject2_3"));
+void MyObjectTreeModel::AddChild(const wxDataViewItem &parent_item, wxString &name)
+{
+	MyObjectTreeModelNode *root = (MyObjectTreeModelNode*)parent_item.GetID();
+	if (!root) return;
 
-	auto root3 = new MyObjectTreeModelNode("Object3");
-	m_objects.emplace(root3);
-	auto root4 = new MyObjectTreeModelNode("Object4");
-	m_objects.emplace(root4);
-	root4->Append(new MyObjectTreeModelNode(root4, "SubObject4_1"));
-	root4->Append(new MyObjectTreeModelNode(root4, "SubObject4_2"));
+	auto node = new MyObjectTreeModelNode(root, name);
+	root->Append(node);
+	// notify control
+	wxDataViewItem child((void*)node);
+	ItemAdded(parent_item, child);
+}
 
-	auto root5 = new MyObjectTreeModelNode("Object5");
-	m_objects.emplace(root5);
+void MyObjectTreeModel::Delete(const wxDataViewItem &item)
+{
+	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
+	if (!node)      // happens if item.IsOk()==false
+		return;
+
+	wxDataViewItem parent(node->GetParent());
+	if (!parent.IsOk())
+	{
+// 		wxASSERT(node == m_root);
+		// don't make the control completely empty:
+		//wxLogError("Cannot remove the root item!");
+		return;
+	}
+
+	// first remove the node from the parent's array of children;
+	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
+	//       thus removing the node from it doesn't result in freeing it
+	node->GetParent()->GetChildren().Remove(node);
+	// free the node
+	delete node;
+
+	// notify control
+	ItemDeleted(parent, item);
 }
 
 wxString MyObjectTreeModel::GetName(const wxDataViewItem &item) const
@@ -463,7 +489,7 @@ wxDataViewItem MyObjectTreeModel::GetParent(const wxDataViewItem &item) const
 
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
 
-	// objects nodes also has no parent
+	// objects nodes has no parent too
 	if (m_objects.find(node) != m_objects.end())
 		return wxDataViewItem(0);
 
