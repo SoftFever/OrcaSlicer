@@ -195,7 +195,7 @@ public:
 			m_container = true;
 		m_children.Add(child);
 	}
-	unsigned int GetChildCount() const
+	size_t GetChildCount() const
 	{
 		return m_children.GetCount();
 	}
@@ -219,6 +219,7 @@ public:
 	void Add(wxString &name);
 	void AddChild(const wxDataViewItem &parent_item, wxString &name);
  	void Delete(const wxDataViewItem &item);
+	bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
 

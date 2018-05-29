@@ -920,6 +920,13 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 		wxString name = "Part";
 		m_objects_model->AddChild(item, name);
 	});
+
+	btn_delete->Bind(wxEVT_BUTTON, [](wxEvent&)
+	{
+		auto item = m_objects_ctrl->GetSelection();
+		if (!item) return;
+		m_objects_model->Delete(item);
+	});
 	//***
 
 	btn_move_up->SetMinSize(wxSize(20, -1));
@@ -1036,7 +1043,12 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	auto add_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
-	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
+	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT | wxTOP, 20);
+
+	auto del_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	if (wxMSW) del_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	del_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_delete.png")), wxBITMAP_TYPE_PNG));
+	sizer->Add(del_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
 
 	// *** Objects List ***	
  	auto collpane = add_prusa_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
@@ -1062,6 +1074,15 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	{
 		wxString name = "Object";
 		m_objects_model->Add(name);
+	});
+
+	del_btn->Bind(wxEVT_BUTTON, [](wxEvent& )
+	{
+		auto item = m_objects_ctrl->GetSelection();
+		if (!item) return;
+		m_objects_model->Delete(item);
+		if (m_objects_model->IsEmpty())
+			m_collpane_settings->show_it(false);
 	});
 
 	// More experiments with UI

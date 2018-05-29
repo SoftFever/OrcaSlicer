@@ -367,6 +367,15 @@ void MyObjectTreeModel::AddChild(const wxDataViewItem &parent_item, wxString &na
 	MyObjectTreeModelNode *root = (MyObjectTreeModelNode*)parent_item.GetID();
 	if (!root) return;
 
+	if (root->GetChildren().Count() == 0)
+	{
+		auto node = new MyObjectTreeModelNode(root, root->m_name);
+		root->Append(node);
+		// notify control
+		wxDataViewItem child((void*)node);
+		ItemAdded(parent_item, child);
+	}
+
 	auto node = new MyObjectTreeModelNode(root, name);
 	root->Append(node);
 	// notify control
@@ -380,21 +389,26 @@ void MyObjectTreeModel::Delete(const wxDataViewItem &item)
 	if (!node)      // happens if item.IsOk()==false
 		return;
 
-	wxDataViewItem parent(node->GetParent());
-	if (!parent.IsOk())
-	{
-// 		wxASSERT(node == m_root);
-		// don't make the control completely empty:
-		//wxLogError("Cannot remove the root item!");
-		return;
-	}
+	auto node_parent = node->GetParent();
+	wxDataViewItem parent(node_parent);
 
 	// first remove the node from the parent's array of children;
 	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
 	//       thus removing the node from it doesn't result in freeing it
-	node->GetParent()->GetChildren().Remove(node);
+	if (node_parent)
+		node_parent->GetChildren().Remove(node);
+	else
+	{
+		auto it = m_objects.find(node);
+		if (it != m_objects.end())
+			m_objects.erase(it);
+	}
 	// free the node
 	delete node;
+
+	// set m_containet to FALSE if parent has no child
+	if (node_parent && node_parent->GetChildCount() == 0)
+		node_parent->m_container = false;
 
 	// notify control
 	ItemDeleted(parent, item);
@@ -498,7 +512,7 @@ wxDataViewItem MyObjectTreeModel::GetParent(const wxDataViewItem &item) const
 
 bool MyObjectTreeModel::IsContainer(const wxDataViewItem &item) const
 {
-	// the invisble root node can have children
+	// the invisible root node can have children
 	if (!item.IsOk())
 		return true;
 
