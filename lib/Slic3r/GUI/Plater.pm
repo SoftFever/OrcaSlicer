@@ -529,8 +529,9 @@ sub new {
             if ($info_sizer->IsShown(2) != $_[0]) {
                 Slic3r::GUI::set_show_print_info($_[0]);
                 return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
-                $info_sizer->Show(2, $_[0]); 
-                $self->{right_panel}->Layout
+                $info_sizer->Show(2, $_[0]);
+                $self->Layout;
+                $self->{right_panel}->Refresh;
             }
         };
         # Show the box initially, let it be shown after the slicing is finished.
