@@ -2172,7 +2172,7 @@ void GLCanvas3D::_render_legend_texture() const
 
 void GLCanvas3D::_render_layer_editing_overlay() const
 {
-    if ((m_volumes == nullptr) && (m_print == nullptr))
+    if ((m_volumes == nullptr) || (m_print == nullptr))
         return;
 
     GLVolume* volume = nullptr;
