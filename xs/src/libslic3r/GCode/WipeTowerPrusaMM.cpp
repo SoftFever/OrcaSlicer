@@ -42,14 +42,31 @@ namespace PrusaMultiMaterial {
 class Writer
 {
 public:
-	Writer() : 
+	Writer(float layer_height, float line_width) :
 		m_current_pos(std::numeric_limits<float>::max(), std::numeric_limits<float>::max()),
 		m_current_z(0.f),
 		m_current_feedrate(0.f),
-		m_layer_height(0.f),
+		m_layer_height(layer_height),
 		m_extrusion_flow(0.f),
 		m_preview_suppressed(false),
-		m_elapsed_time(0.f) {}
+		m_elapsed_time(0.f),
+        m_default_analyzer_line_width(line_width)
+        {
+            // adds tag for analyzer:
+            char buf[64];
+            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Height_Tag.c_str(), m_layer_height); // don't rely on GCodeAnalyzer knowing the layer height - it knows nothing at priming
+            m_gcode += buf;
+            sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
+            m_gcode += buf;
+            change_analyzer_line_width(line_width);
+        }
+
+    Writer&              change_analyzer_line_width(float line_width) {
+            // adds tag for analyzer:
+            char buf[64];
+            sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), line_width);
+            m_gcode += buf;
+    }
 
 	Writer& 			 set_initial_position(const WipeTower::xy &pos) { 
 		m_start_pos = WipeTower::xy(pos,0.f,m_y_shift).rotate(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_angle_deg);
@@ -61,9 +78,6 @@ public:
 
 	Writer&				 set_z(float z) 
 		{ m_current_z = z; return *this; }
-
-	Writer&				 set_layer_height(float layer_height)
-		{ m_layer_height = layer_height; return *this; }
 
 	Writer& 			 set_extrusion_flow(float flow)
 		{ m_extrusion_flow = flow; return *this; }
@@ -80,8 +94,8 @@ public:
 	// Suppress / resume G-code preview in Slic3r. Slic3r will have difficulty to differentiate the various
 	// filament loading and cooling moves from normal extrusion moves. Therefore the writer
 	// is asked to suppres output of some lines, which look like extrusions.
-	Writer& 			 suppress_preview() { m_preview_suppressed = true; return *this; }
-	Writer& 			 resume_preview() { m_preview_suppressed = false; return *this; }
+	Writer& 			 suppress_preview() { change_analyzer_line_width(0.f); m_preview_suppressed = true; return *this; }
+	Writer& 			 resume_preview()   { change_analyzer_line_width(m_default_analyzer_line_width); m_preview_suppressed = false; return *this; }
 
 	Writer& 			 feedrate(float f)
 	{
@@ -125,11 +139,6 @@ public:
 				m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
 			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));			
 		}
-
-        // adds tag for analyzer
-        char buf[64];
-        sprintf(buf, ";%s%d\n", GCodeAnalyzer::Extrusion_Role_Tag.c_str(), erWipeTower);
-        m_gcode += buf;
 
 		m_gcode += "G1";
 		if (rot.x != rotated_current_pos.x) {
@@ -397,6 +406,7 @@ private:
 	float 		  m_wipe_tower_width = 0.f;
 	float		  m_wipe_tower_depth = 0.f;
 	float		  m_last_fan_speed = 0.f;
+    const float   m_default_analyzer_line_width;
 
 	std::string   set_format_X(float x)
 	{
@@ -485,10 +495,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
 	box_coordinates cleaning_box(xy(5.f, 0.f), prime_section_width, 100.f);
 
-	PrusaMultiMaterial::Writer writer;
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		  .set_z(m_z_pos)
-		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
 		  .append(";--------------------\n"
 			 	  "; CP PRIMING START\n")
@@ -574,10 +583,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 		(tool != (unsigned int)(-1) ? /*m_layer_info->depth*/wipe_area+m_depth_traversed-0.5*m_perimeter_width
                                     : m_wipe_tower_depth-m_perimeter_width));
 
-	PrusaMultiMaterial::Writer writer;
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
-		.set_layer_height(m_layer_height)
 		.set_initial_tool(m_current_tool)
 		.set_rotation(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_wipe_tower_rotation_angle)
 		.set_y_shift(m_y_shift + (tool!=(unsigned int)(-1) && (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower) ? m_layer_info->depth - m_layer_info->toolchanges_depth(): 0.f))
@@ -646,10 +654,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
 		m_wipe_tower_width,
 		m_wipe_tower_depth);
 
-	PrusaMultiMaterial::Writer writer;
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
 	writer.set_extrusion_flow(m_extrusion_flow * 1.1f)
 		  .set_z(m_z_pos) // Let the writer know the current Z position as a base for Z-hop.
-		  .set_layer_height(m_layer_height)
 		  .set_initial_tool(m_current_tool)
   		  .set_rotation(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_wipe_tower_rotation_angle)
 		  .append(";-------------------------------------\n"
@@ -703,10 +710,11 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	float xl = cleaning_box.ld.x + 1.f * m_perimeter_width;
 	float xr = cleaning_box.rd.x - 1.f * m_perimeter_width;
 	
-	writer.append("; CP TOOLCHANGE UNLOAD\n");
-	
 	const float line_width = m_perimeter_width * m_filpar[m_current_tool].ramming_line_width_multiplicator;       // desired ramming line thickness
 	const float y_step = line_width * m_filpar[m_current_tool].ramming_step_multiplicator * m_extra_spacing; // spacing between lines in mm
+
+    writer.append("; CP TOOLCHANGE UNLOAD\n")
+          .change_analyzer_line_width(line_width);
 
 	unsigned i = 0;										// iterates through ramming_speed
 	m_left_to_right = true;								// current direction of ramming
@@ -781,7 +789,7 @@ void WipeTowerPrusaMM::toolchange_Unload(
 		}
 	}
 	WipeTower::xy end_of_ramming(writer.x(),writer.y());
-
+    writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
 
     // Retraction:
     float old_x = writer.x();
@@ -960,10 +968,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 	// Otherwise the caller would likely travel to the wipe tower in vain.
 	assert(! this->layer_finished());
 
-	PrusaMultiMaterial::Writer writer;
+	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
 	writer.set_extrusion_flow(m_extrusion_flow)
 		.set_z(m_z_pos)
-		.set_layer_height(m_layer_height)
 		.set_initial_tool(m_current_tool)
 		.set_rotation(m_wipe_tower_pos, m_wipe_tower_width, m_wipe_tower_depth, m_wipe_tower_rotation_angle)
 		.set_y_shift(m_y_shift - (m_current_shape == SHAPE_REVERSED && !m_peters_wipe_tower ? m_layer_info->toolchanges_depth() : 0.f))
