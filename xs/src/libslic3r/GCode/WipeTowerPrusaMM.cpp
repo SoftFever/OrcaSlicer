@@ -66,6 +66,7 @@ public:
             char buf[64];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), line_width);
             m_gcode += buf;
+            return *this;
     }
 
 	Writer& 			 set_initial_position(const WipeTower::xy &pos) { 
