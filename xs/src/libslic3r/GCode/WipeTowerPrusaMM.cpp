@@ -197,7 +197,7 @@ public:
         do {
             ++i;
             if (i==4) i=0;
-            extrude(corners[i]);
+            extrude(corners[i], f);
         } while (i != index_of_closest);
         return (*this);
     }
