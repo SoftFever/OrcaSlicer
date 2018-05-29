@@ -244,8 +244,11 @@ sub reload_scene {
                 $self->{model}->bounding_box->z_max, $self->{config}->wipe_tower_rotation_angle, $self->UseVBOs);
         }
     }
-    
-    $self->update_volumes_colors_by_extruder($self->{config});
+
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self);
+#    $self->update_volumes_colors_by_extruder($self->{config});
+#==============================================================================================================================
     
     # checks for geometry outside the print volume to render it accordingly
     if (scalar @{$self->volumes} > 0)

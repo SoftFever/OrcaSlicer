@@ -428,13 +428,13 @@ public:
     void zoom_to_volumes();
     void select_view(const std::string& direction);
 
+    void update_volumes_colors_by_extruder();
+
     bool start_using_shader() const;
     void stop_using_shader() const;
 
     void render(bool useVBOs) const;
-
     void render_volumes(bool fake_colors) const;
-
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);

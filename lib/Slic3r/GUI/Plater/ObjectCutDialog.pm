@@ -119,12 +119,14 @@ sub new {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
         Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
-#        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
         
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_config($canvas, $self->GetParent->{config});
+#==============================================================================================================================
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -264,12 +266,13 @@ sub _update {
             $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
 #==============================================================================================================================
             Slic3r::GUI::_3DScene::set_cutting_plane($self->{canvas}, $self->{cut_options}{z}, [@expolygons]);
+            Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
 #            $self->{canvas}->SetCuttingPlane(
 #                $self->{cut_options}{z},
 #                [@expolygons],
 #            );
+#            $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->{config});
 #==============================================================================================================================
-            $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->{config});
             $self->{canvas}->Render;
         }
     }

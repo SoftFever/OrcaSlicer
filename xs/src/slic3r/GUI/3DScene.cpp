@@ -2105,6 +2105,11 @@ void _3DScene::select_view(wxGLCanvas* canvas, const std::string& direction)
     s_canvas_mgr.select_view(canvas, direction);
 }
 
+void _3DScene::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.update_volumes_colors_by_extruder(canvas);
+}
+
 bool _3DScene::start_using_shader(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.start_using_shader(canvas);

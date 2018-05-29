@@ -169,12 +169,15 @@ sub new {
 #==============================================================================================================================        
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);       
         Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
-#        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ $canvas->volumes_bounding_box->size }));
         
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,700]);
-        $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_config($canvas, $self->GetParent->GetParent->GetParent->{config});
+        Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($canvas);
+#        $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#==============================================================================================================================
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -506,9 +509,10 @@ sub _parts_changed {
         $self->{canvas}->load_object($self->{model_object});
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas});
+        Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
 #        $self->{canvas}->zoom_to_volumes;
+#        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
 #==============================================================================================================================
-        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
         $self->{canvas}->Render;
     }
 }
@@ -562,8 +566,11 @@ sub _update_canvas {
                 $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
             }
         }
-                
-        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+#        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#==============================================================================================================================
         $self->{canvas}->Render;
     }
 }
@@ -591,7 +598,10 @@ sub _update {
 #    $self->{canvas}->reset_objects;
 #==============================================================================================================================
     $self->{canvas}->load_object($_, undef, [0]) for @objects;
-    $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+#    $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#==============================================================================================================================
     $self->{canvas}->Render;
 }
 

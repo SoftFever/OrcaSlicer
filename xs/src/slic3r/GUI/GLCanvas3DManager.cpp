@@ -597,6 +597,13 @@ void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direc
         it->second->select_view(direction);
 }
 
+void GLCanvas3DManager::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->update_volumes_colors_by_extruder();
+}
+
 bool GLCanvas3DManager::start_using_shader(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

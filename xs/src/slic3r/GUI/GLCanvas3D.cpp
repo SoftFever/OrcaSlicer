@@ -1520,6 +1520,14 @@ void GLCanvas3D::select_view(const std::string& direction)
     }
 }
 
+void GLCanvas3D::update_volumes_colors_by_extruder()
+{
+    if ((m_volumes == nullptr) || (m_config == nullptr))
+        return;
+
+    m_volumes->update_colors_by_extruder(m_config);
+}
+
 bool GLCanvas3D::start_using_shader() const
 {
     return m_shader.start_using();

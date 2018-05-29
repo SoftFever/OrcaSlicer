@@ -145,13 +145,13 @@ public:
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
 
+    void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
+
     bool start_using_shader(wxGLCanvas* canvas) const;
     void stop_using_shader(wxGLCanvas* canvas) const;
 
     void render(wxGLCanvas* canvas) const;
-
     void render_volumes(wxGLCanvas* canvas, bool fake_colors) const;
-
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
