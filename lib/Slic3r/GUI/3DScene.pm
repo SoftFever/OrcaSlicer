@@ -273,14 +273,6 @@ sub new {
         $self->_variable_layer_thickness_action(undef);
     });
     
-#==============================================================================================================================
-    my $on_mark_volumes_for_layer_height = sub {
-        $self->mark_volumes_for_layer_height;
-    };
-    
-    Slic3r::GUI::_3DScene::register_on_mark_volumes_for_layer_height_callback($self, $on_mark_volumes_for_layer_height);
-#==============================================================================================================================
-    
     return $self;
 }
 
@@ -1677,9 +1669,9 @@ sub Render {
 #    $self->draw_legend;
 #    
 #    $self->draw_active_object_annotations;
+#    
+#    $self->SwapBuffers();
 #==============================================================================================================================
-    
-    $self->SwapBuffers();
 }
 
 #==============================================================================================================================
@@ -1721,34 +1713,23 @@ sub Render {
 #    glDisable(GL_BLEND);
 #    glEnable(GL_CULL_FACE);    
 #}
-#==============================================================================================================================
-
-sub mark_volumes_for_layer_height {
-    my ($self) = @_;
-    
-    foreach my $volume_idx (0..$#{$self->volumes}) {
-        my $volume = $self->volumes->[$volume_idx];
-        my $object_id = int($volume->select_group_id / 1000000);
-#==============================================================================================================================
-        my $shader = Slic3r::GUI::_3DScene::get_layers_editing_shader($self);
-        
-        if (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $shader && $volume->selected &&  
-            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
-            $volume->set_layer_height_texture_data(Slic3r::GUI::_3DScene::get_layers_editing_z_texture_id($self), $shader->shader_program_id,
-            $self->{print}->get_object($object_id), Slic3r::GUI::_3DScene::get_layers_editing_cursor_z_relative($self), Slic3r::GUI::_3DScene::get_layers_editing_band_width($self));
-                                
+#
+#sub mark_volumes_for_layer_height {
+#    my ($self) = @_;
+#    
+#    foreach my $volume_idx (0..$#{$self->volumes}) {
+#        my $volume = $self->volumes->[$volume_idx];
+#        my $object_id = int($volume->select_group_id / 1000000);
 #        if ($self->layer_editing_enabled && $volume->selected && $self->{layer_height_edit_shader} && 
 #            $volume->has_layer_height_texture && $object_id < $self->{print}->object_count) {
 #            $volume->set_layer_height_texture_data($self->{layer_preview_z_texture_id}, $self->{layer_height_edit_shader}->shader_program_id,
 #                $self->{print}->get_object($object_id), $self->_variable_layer_thickness_bar_mouse_cursor_z_relative, $self->{layer_height_edit_band_width});
-#==============================================================================================================================
-        } else {
-            $volume->reset_layer_height_texture_data();
-        }
-    }
-}
-
-#==============================================================================================================================
+#        } else {
+#            $volume->reset_layer_height_texture_data();
+#        }
+#    }
+#}
+#
 #sub _load_image_set_texture {
 #    my ($self, $file_name) = @_;
 #    # Load a PNG with an alpha channel.

@@ -194,7 +194,7 @@ public:
 
         void set_uniform(const std::string& name, float value) const;
 
-        GLShader* get_shader();
+        const GLShader* get_shader() const;
 
     private:
         void _reset();
@@ -255,7 +255,7 @@ public:
 
         void render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const;
 
-        GLShader* get_shader();
+        const GLShader* get_shader() const;
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
         static int get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count);
@@ -315,7 +315,6 @@ private:
     bool m_multisample_allowed;
 
     PerlCallback m_on_viewport_changed_callback;
-    PerlCallback m_on_mark_volumes_for_layer_height_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -418,7 +417,7 @@ public:
     unsigned int get_layers_editing_last_action() const;
     void set_layers_editing_last_action(unsigned int action);
 
-    GLShader* get_layers_editing_shader();
+    const GLShader* get_layers_editing_shader() const;
 
     float get_layers_editing_cursor_z_relative() const;
     int get_layers_editing_first_selected_object_id(unsigned int objects_count) const;
@@ -439,7 +438,6 @@ public:
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);
-    void register_on_mark_volumes_for_layer_height_callback(void* callback);
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
@@ -455,6 +453,7 @@ private:
 
     void _deregister_callbacks();
 
+    void _mark_volumes_for_layer_height() const;
     void _refresh_if_shown_on_screen();
 
     void _picking_pass() const;

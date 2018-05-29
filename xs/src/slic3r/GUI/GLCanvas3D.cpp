@@ -559,7 +559,7 @@ void GLCanvas3D::Shader::set_uniform(const std::string& name, float value) const
         m_shader->set_uniform(name.c_str(), value);
 }
 
-GLShader* GLCanvas3D::Shader::get_shader()
+const GLShader* GLCanvas3D::Shader::get_shader() const
 {
     return m_shader;
 }
@@ -739,7 +739,7 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
     glEnable(GL_DEPTH_TEST);
 }
 
-GLShader* GLCanvas3D::LayersEditing::get_shader()
+const GLShader* GLCanvas3D::LayersEditing::get_shader() const
 {
     return m_shader.get_shader();
 }
@@ -1532,6 +1532,9 @@ void GLCanvas3D::stop_using_shader() const
 
 void GLCanvas3D::render(bool useVBOs) const
 {
+    if (m_canvas == nullptr)
+        return;
+
     Pointf3 neg_target = get_camera_target().negative();
     ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);
 
@@ -1556,6 +1559,8 @@ void GLCanvas3D::render(bool useVBOs) const
     _render_warning_texture();
     _render_legend_texture();
     _render_layer_editing_overlay();
+
+    m_canvas->SwapBuffers();
 }
 
 unsigned int GLCanvas3D::get_layers_editing_z_texture_id() const
@@ -1613,7 +1618,7 @@ void GLCanvas3D::set_layers_editing_last_action(unsigned int action)
     m_layers_editing.set_last_action(action);
 }
 
-GLShader* GLCanvas3D::get_layers_editing_shader()
+const GLShader* GLCanvas3D::get_layers_editing_shader() const
 {
     return m_layers_editing.get_shader();
 }
@@ -1716,12 +1721,6 @@ void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
 {
     if (callback != nullptr)
         m_on_viewport_changed_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_mark_volumes_for_layer_height_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_mark_volumes_for_layer_height_callback.register_callback(callback);
 }
 
 void GLCanvas3D::on_size(wxSizeEvent& evt)
@@ -1942,7 +1941,27 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
 void GLCanvas3D::_deregister_callbacks()
 {
     m_on_viewport_changed_callback.deregister_callback();
-    m_on_mark_volumes_for_layer_height_callback.deregister_callback();
+}
+
+void GLCanvas3D::_mark_volumes_for_layer_height() const
+{
+    if ((m_volumes == nullptr) || (m_print == nullptr))
+        return;
+
+    for (GLVolume* vol : m_volumes->volumes)
+    {
+        int object_id = int(vol->select_group_id / 1000000);
+        const GLShader* shader = get_layers_editing_shader();
+
+        if (is_layers_editing_enabled() && (shader != nullptr) && vol->selected &&
+            vol->has_layer_height_texture() && (object_id < (int)m_print->objects.size()))
+        {
+            vol->set_layer_height_texture_data(get_layers_editing_z_texture_id(), shader->shader_program_id,
+                m_print->get_object(object_id), get_layers_editing_cursor_z_relative(), get_layers_editing_band_width());
+        }
+        else
+            vol->reset_layer_height_texture_data();
+    }
 }
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
@@ -2068,7 +2087,7 @@ void GLCanvas3D::_render_objects(bool useVBOs) const
     {
         if (is_picking_enabled())
         {
-            m_on_mark_volumes_for_layer_height_callback.call();
+            _mark_volumes_for_layer_height();
 
             if (m_config != nullptr)
             {

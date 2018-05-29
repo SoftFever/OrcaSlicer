@@ -2065,7 +2065,7 @@ void _3DScene::set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int a
     s_canvas_mgr.set_layers_editing_last_action(canvas, action);
 }
 
-GLShader* _3DScene::get_layers_editing_shader(wxGLCanvas* canvas)
+const GLShader* _3DScene::get_layers_editing_shader(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_layers_editing_shader(canvas);
 }
@@ -2133,11 +2133,6 @@ void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float lef
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);
-}
-
-void _3DScene::register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback)
-{
-    s_canvas_mgr.register_on_mark_volumes_for_layer_height_callback(canvas, callback);
 }
 
 //void _3DScene::_glew_init()

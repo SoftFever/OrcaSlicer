@@ -762,13 +762,6 @@ register_on_viewport_changed_callback(canvas, callback)
     CODE:
         _3DScene::register_on_viewport_changed_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
     
-void
-register_on_mark_volumes_for_layer_height_callback(canvas, callback)
-        SV *canvas;
-        SV *callback;
-    CODE:
-        _3DScene::register_on_mark_volumes_for_layer_height_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-    
     
     
 unsigned int

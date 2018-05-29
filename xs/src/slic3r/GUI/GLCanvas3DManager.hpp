@@ -134,7 +134,7 @@ public:
     unsigned int get_layers_editing_last_action(wxGLCanvas* canvas) const;
     void set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action);
 
-    GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
+    const GLShader* get_layers_editing_shader(wxGLCanvas* canvas) const;
 
     float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const;
     int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count) const;
@@ -155,7 +155,6 @@ public:
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

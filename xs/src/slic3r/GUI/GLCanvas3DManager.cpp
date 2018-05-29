@@ -546,7 +546,7 @@ void GLCanvas3DManager::set_layers_editing_last_action(wxGLCanvas* canvas, unsig
         it->second->set_layers_editing_last_action(action);
 }
 
-GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas)
+const GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->get_layers_editing_shader() : nullptr;
@@ -636,13 +636,6 @@ void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_viewport_changed_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_mark_volumes_for_layer_height_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

@@ -634,7 +634,7 @@ public:
     static unsigned int get_layers_editing_last_action(wxGLCanvas* canvas);
     static void set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action);
 
-    static GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
+    static const GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
 
     static float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas);
     static int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count);
@@ -655,7 +655,6 @@ public:
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_mark_volumes_for_layer_height_callback(wxGLCanvas* canvas, void* callback);
 
 //    static void _glew_init();
 //##################################################################################################################
