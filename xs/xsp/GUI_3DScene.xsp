@@ -732,28 +732,10 @@ stop_using_shader(canvas)
         _3DScene::stop_using_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
-picking_pass(canvas)
+render(canvas)
         SV *canvas;
     CODE:
-        _3DScene::picking_pass((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-render_background(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::render_background((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    
-void
-render_bed(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::render_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    
-void
-render_axes(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::render_axes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+        _3DScene::render((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
 render_volumes(canvas, fake_colors)
@@ -761,38 +743,6 @@ render_volumes(canvas, fake_colors)
         bool fake_colors;
     CODE:
         _3DScene::render_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), fake_colors);
-
-void
-render_objects(canvas, useVBOs)
-        SV   *canvas;
-        bool useVBOs;
-    CODE:
-        _3DScene::render_objects((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), useVBOs);
-
-void
-render_cutting_plane(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::render_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-render_warning_texture(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::render_warning_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-render_legend_texture(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::render_legend_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-render_layer_editing_overlay(canvas, print)
-        SV    *canvas;
-        Print *print;
-    CODE:
-        _3DScene::render_layer_editing_overlay((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print);
 
 void
 render_texture(canvas, tex_id, left, right, bottom, top)

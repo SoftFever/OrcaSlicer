@@ -610,32 +610,11 @@ void GLCanvas3DManager::stop_using_shader(wxGLCanvas* canvas) const
         it->second->stop_using_shader();
 }
 
-void GLCanvas3DManager::picking_pass(wxGLCanvas* canvas)
+void GLCanvas3DManager::render(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->picking_pass();
-}
-
-void GLCanvas3DManager::render_background(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_background();
-}
-
-void GLCanvas3DManager::render_bed(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_bed();
-}
-
-void GLCanvas3DManager::render_axes(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_axes();
+        it->second->render(m_use_VBOs);
 }
 
 void GLCanvas3DManager::render_volumes(wxGLCanvas* canvas, bool fake_colors) const
@@ -643,41 +622,6 @@ void GLCanvas3DManager::render_volumes(wxGLCanvas* canvas, bool fake_colors) con
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->render_volumes(fake_colors);
-}
-
-void GLCanvas3DManager::render_objects(wxGLCanvas* canvas, bool useVBOs)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_objects(useVBOs);
-}
-
-void GLCanvas3DManager::render_cutting_plane(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_cutting_plane();
-}
-
-void GLCanvas3DManager::render_warning_texture(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_warning_texture();
-}
-
-void GLCanvas3DManager::render_legend_texture(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_legend_texture();
-}
-
-void GLCanvas3DManager::render_layer_editing_overlay(wxGLCanvas* canvas, const Print& print) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_layer_editing_overlay(print);
 }
 
 void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const

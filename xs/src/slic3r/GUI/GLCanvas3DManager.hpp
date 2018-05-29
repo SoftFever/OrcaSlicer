@@ -148,17 +148,9 @@ public:
     bool start_using_shader(wxGLCanvas* canvas) const;
     void stop_using_shader(wxGLCanvas* canvas) const;
 
-    void picking_pass(wxGLCanvas* canvas);
+    void render(wxGLCanvas* canvas) const;
 
-    void render_background(wxGLCanvas* canvas) const;
-    void render_bed(wxGLCanvas* canvas) const;
-    void render_axes(wxGLCanvas* canvas) const;
     void render_volumes(wxGLCanvas* canvas, bool fake_colors) const;
-    void render_objects(wxGLCanvas* canvas, bool useVBOs);
-    void render_cutting_plane(wxGLCanvas* canvas) const;
-    void render_warning_texture(wxGLCanvas* canvas) const;
-    void render_legend_texture(wxGLCanvas* canvas) const;
-    void render_layer_editing_overlay(wxGLCanvas* canvas, const Print& print) const;
 
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
 

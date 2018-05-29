@@ -1482,31 +1482,20 @@ sub Render {
         my @rotmat = quat_to_rotmatrix($self->quat);
         glMultMatrixd_p(@rotmat[0..15]);
     }
+    
 #==============================================================================================================================
-    glTranslatef(@{ Slic3r::GUI::_3DScene::get_camera_target($self)->negative });
+    Slic3r::GUI::_3DScene::render($self);
+
 #    glTranslatef(@{ $self->_camera_target->negative });
-#==============================================================================================================================
-    
-    # light from above
-    glLightfv_p(GL_LIGHT0, GL_POSITION, -0.5, -0.5, 1, 0);
-    glLightfv_p(GL_LIGHT0, GL_SPECULAR, 0.2, 0.2, 0.2, 1);
-    glLightfv_p(GL_LIGHT0, GL_DIFFUSE,  0.5, 0.5, 0.5, 1);
-
-    # Head light
-    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::picking_pass($self);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    Slic3r::GUI::_3DScene::render_background($self);
-    Slic3r::GUI::_3DScene::render_bed($self);
-    Slic3r::GUI::_3DScene::render_axes($self);
-    Slic3r::GUI::_3DScene::render_objects($self, $self->UseVBOs);
-    Slic3r::GUI::_3DScene::render_cutting_plane($self);
-    Slic3r::GUI::_3DScene::render_warning_texture($self);
-    Slic3r::GUI::_3DScene::render_legend_texture($self);
-    Slic3r::GUI::_3DScene::render_layer_editing_overlay($self, $self->{print});
-    
+#    
+#    # light from above
+#    glLightfv_p(GL_LIGHT0, GL_POSITION, -0.5, -0.5, 1, 0);
+#    glLightfv_p(GL_LIGHT0, GL_SPECULAR, 0.2, 0.2, 0.2, 1);
+#    glLightfv_p(GL_LIGHT0, GL_DIFFUSE,  0.5, 0.5, 0.5, 1);
+#
+#    # Head light
+#    glLightfv_p(GL_LIGHT1, GL_POSITION, 1, 0, 1, 0);
+#    
 #    if ($self->enable_picking && !$self->_mouse_dragging) {
 #        if (my $pos = $self->_mouse_pos) {
 #            # Render the object for picking.

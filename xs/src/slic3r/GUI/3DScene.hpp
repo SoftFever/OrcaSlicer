@@ -648,17 +648,9 @@ public:
     static bool start_using_shader(wxGLCanvas* canvas);
     static void stop_using_shader(wxGLCanvas* canvas);
 
-    static void picking_pass(wxGLCanvas* canvas);
+    static void render(wxGLCanvas* canvas);
 
-    static void render_background(wxGLCanvas* canvas);
-    static void render_bed(wxGLCanvas* canvas);
-    static void render_axes(wxGLCanvas* canvas);
     static void render_volumes(wxGLCanvas* canvas, bool fake_colors);
-    static void render_objects(wxGLCanvas* canvas, bool useVBOs);
-    static void render_cutting_plane(wxGLCanvas* canvas);
-    static void render_warning_texture(wxGLCanvas* canvas);
-    static void render_legend_texture(wxGLCanvas* canvas);
-    static void render_layer_editing_overlay(wxGLCanvas* canvas, const Print* print);
 
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
 

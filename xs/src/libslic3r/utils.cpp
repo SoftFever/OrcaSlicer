@@ -184,7 +184,10 @@ void PerlCallback::deregister_callback()
 	}
 }
 
-void PerlCallback::call()
+//##############################################################################################################
+void PerlCallback::call() const
+//void PerlCallback::call()
+//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -198,7 +201,10 @@ void PerlCallback::call()
     LEAVE;
 }
 
-void PerlCallback::call(int i)
+//##############################################################################################################
+void PerlCallback::call(int i) const
+//void PerlCallback::call(int i)
+//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -213,7 +219,10 @@ void PerlCallback::call(int i)
     LEAVE;
 }
 
-void PerlCallback::call(int i, int j)
+//##############################################################################################################
+void PerlCallback::call(int i, int j) const
+//void PerlCallback::call(int i, int j)
+//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -230,7 +239,10 @@ void PerlCallback::call(int i, int j)
 }
 
 /*
-void PerlCallback::call(const std::vector<int> &ints)
+//##############################################################################################################
+void PerlCallback::call(const std::vector<int> &ints) const
+//void PerlCallback::call(const std::vector<int> &ints)
+//##############################################################################################################
 {
     if (! m_callback)
         return;

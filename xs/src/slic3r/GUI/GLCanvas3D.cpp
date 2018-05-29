@@ -1530,91 +1530,32 @@ void GLCanvas3D::stop_using_shader() const
     m_shader.stop_using();
 }
 
-void GLCanvas3D::picking_pass()
+void GLCanvas3D::render(bool useVBOs) const
 {
-    if (is_picking_enabled() && !is_mouse_dragging() && (m_volumes != nullptr))
-    {
-        // Render the object for picking.
-        // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
-        // Better to use software ray - casting on a bounding - box hierarchy.
+    Pointf3 neg_target = get_camera_target().negative();
+    ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);
 
-        if (is_multisample_allowed())
-            ::glDisable(GL_MULTISAMPLE);
+    // light from above
+    GLfloat position0[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT0, GL_POSITION, position0);
+    GLfloat specular[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
+    GLfloat diffuse[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    ::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
 
-        ::glDisable(GL_LIGHTING);
-        ::glDisable(GL_BLEND);
+    // Head light
+    GLfloat position1[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT1, GL_POSITION, position1);
 
-        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        ::glPushAttrib(GL_ENABLE_BIT);
-
-        render_volumes(true);
-        
-        ::glPopAttrib();
-
-        if (is_multisample_allowed())
-            ::glEnable(GL_MULTISAMPLE);
-
-        const Size& cnv_size = get_canvas_size();
-
-        const Pointf& pos = get_mouse_position();
-        GLubyte color[4];
-        ::glReadPixels(pos.x, cnv_size.get_height() - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
-        int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
-
-        set_hover_volume_id(-1);
-
-        for (GLVolume* vol : m_volumes->volumes)
-        {
-            vol->hover = false;
-        }
-
-        if (volume_id < m_volumes->volumes.size())
-        {
-            set_hover_volume_id(volume_id);
-            m_volumes->volumes[volume_id]->hover = true;
-            int group_id = m_volumes->volumes[volume_id]->select_group_id;
-            if (group_id != -1)
-            {
-                for (GLVolume* vol : m_volumes->volumes)
-                {
-                    if (vol->select_group_id == group_id)
-                        vol->hover = true;
-                }
-            }
-        }
-    }
-}
-
-void GLCanvas3D::render_background() const
-{
-    static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
-
-    ::glDisable(GL_LIGHTING);
-
-    ::glPushMatrix();
-    ::glLoadIdentity();
-    ::glMatrixMode(GL_PROJECTION);
-    ::glPushMatrix();
-    ::glLoadIdentity();
-
-    // Draws a bluish bottom to top gradient over the complete screen.
-    ::glDisable(GL_DEPTH_TEST);
-
-    ::glBegin(GL_QUADS);
-    ::glColor3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f(-1.0f, -1.0f, 1.0f);
-    ::glVertex3f(1.0f, -1.0f, 1.0f);
-    ::glColor3f(COLOR[0], COLOR[1], COLOR[2]);
-    ::glVertex3f(1.0f, 1.0f, 1.0f);
-    ::glVertex3f(-1.0f, 1.0f, 1.0f);
-    ::glEnd();
-
-    ::glEnable(GL_DEPTH_TEST);
-
-    ::glPopMatrix();
-    ::glMatrixMode(GL_MODELVIEW);
-    ::glPopMatrix();
+    _picking_pass();
+    _render_background();
+    _render_bed();
+    _render_axes();
+    _render_objects(useVBOs);
+    _render_cutting_plane();
+    _render_warning_texture();
+    _render_legend_texture();
+    _render_layer_editing_overlay();
 }
 
 unsigned int GLCanvas3D::get_layers_editing_z_texture_id() const
@@ -1697,16 +1638,6 @@ bool GLCanvas3D::reset_rect_contains(float x, float y) const
     return m_layers_editing.reset_rect_contains(*this, x, y);
 }
 
-void GLCanvas3D::render_bed() const
-{
-    m_bed.render();
-}
-
-void GLCanvas3D::render_axes() const
-{
-    m_axes.render();
-}
-
 void GLCanvas3D::render_volumes(bool fake_colors) const
 {
     static const float INV_255 = 1.0f / 255.0f;
@@ -1754,153 +1685,6 @@ void GLCanvas3D::render_volumes(bool fake_colors) const
     ::glDisable(GL_BLEND);
 
     ::glEnable(GL_CULL_FACE);
-}
-
-void GLCanvas3D::render_objects(bool useVBOs)
-{
-    if ((m_volumes == nullptr) || m_volumes->empty())
-        return;
-
-    ::glEnable(GL_LIGHTING);
-
-    if (!m_shader_enabled)
-        render_volumes(false);
-    else if (useVBOs)
-    {
-        if (is_picking_enabled())
-        {
-            m_on_mark_volumes_for_layer_height_callback.call();
-
-            if (m_config != nullptr)
-            {
-                const BoundingBoxf3& bed_bb = bed_bounding_box();
-                m_volumes->set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
-                m_volumes->check_outside_state(m_config);
-            }
-            // do not cull backfaces to show broken geometry, if any
-            ::glDisable(GL_CULL_FACE);
-        }
-
-        start_using_shader();
-        m_volumes->render_VBOs();
-        stop_using_shader();
-
-        if (is_picking_enabled())
-            ::glEnable(GL_CULL_FACE);
-    }
-    else
-    {
-        // do not cull backfaces to show broken geometry, if any
-        if (is_picking_enabled())
-            ::glDisable(GL_CULL_FACE);
-
-        m_volumes->render_legacy();
-
-        if (is_picking_enabled())
-            ::glEnable(GL_CULL_FACE);
-    }
-}
-
-void GLCanvas3D::render_cutting_plane() const
-{
-    m_cutting_plane.render(volumes_bounding_box());
-}
-
-void GLCanvas3D::render_warning_texture() const
-{
-    if (!m_warning_texture_enabled)
-        return;
-
-    // If the warning texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::finalize_warning_texture();
-    if (tex_id > 0)
-    {
-        unsigned int w = _3DScene::get_warning_texture_width();
-        unsigned int h = _3DScene::get_warning_texture_height();
-        if ((w > 0) && (h > 0))
-        {
-            ::glDisable(GL_DEPTH_TEST);
-            ::glPushMatrix();
-            ::glLoadIdentity();
-
-            const Size& cnv_size = get_canvas_size();
-            float zoom = get_camera_zoom();
-            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-            float l = (-0.5f * (float)w) * inv_zoom;
-            float t = (-0.5f * (float)cnv_size.get_height() + (float)h) * inv_zoom;
-            float r = l + (float)w * inv_zoom;
-            float b = t - (float)h * inv_zoom;
-
-            render_texture(tex_id, l, r, b, t);
-
-            ::glPopMatrix();
-            ::glEnable(GL_DEPTH_TEST);
-        }
-    }
-}
-
-void GLCanvas3D::render_legend_texture() const
-{
-    if (!m_legend_texture_enabled)
-        return;
-
-    // If the legend texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::finalize_legend_texture();
-    if (tex_id > 0)
-    {
-        unsigned int w = _3DScene::get_legend_texture_width();
-        unsigned int h = _3DScene::get_legend_texture_height();
-        if ((w > 0) && (h > 0))
-        {
-            ::glDisable(GL_DEPTH_TEST);
-            ::glPushMatrix();
-            ::glLoadIdentity();
-            
-            const Size& cnv_size = get_canvas_size();
-            float zoom = get_camera_zoom();
-            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-            float l = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
-            float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
-            float r = l + (float)w * inv_zoom;
-            float b = t - (float)h * inv_zoom;
-            render_texture(tex_id, l, r, b, t);
-
-            ::glPopMatrix();
-            ::glEnable(GL_DEPTH_TEST);
-        }
-    }
-}
-
-void GLCanvas3D::render_layer_editing_overlay(const Print& print) const
-{
-    if (m_volumes == nullptr)
-        return;
-
-    GLVolume* volume = nullptr;
-
-    for (GLVolume* vol : m_volumes->volumes)
-    {
-        if ((vol != nullptr) && vol->selected && vol->has_layer_height_texture())
-        {
-            volume = vol;
-            break;
-        }
-    }
-
-    if (volume == nullptr)
-        return;
-
-    // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
-    // and an update by Platter::async_apply_config.
-    int object_idx = int(volume->select_group_id / 1000000);
-    if ((int)print.objects.size() < object_idx)
-        return;
-
-    const PrintObject* print_object = print.get_object(object_idx);
-    if (print_object == nullptr)
-        return;
-
-    m_layers_editing.render(*this, *print_object, *volume);
 }
 
 void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const
@@ -2170,6 +1954,252 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
+}
+
+void GLCanvas3D::_picking_pass() const
+{
+    if (is_picking_enabled() && !is_mouse_dragging() && (m_volumes != nullptr))
+    {
+        // Render the object for picking.
+        // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
+        // Better to use software ray - casting on a bounding - box hierarchy.
+
+        if (is_multisample_allowed())
+            ::glDisable(GL_MULTISAMPLE);
+
+        ::glDisable(GL_LIGHTING);
+        ::glDisable(GL_BLEND);
+
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ::glPushAttrib(GL_ENABLE_BIT);
+
+        render_volumes(true);
+
+        ::glPopAttrib();
+
+        if (is_multisample_allowed())
+            ::glEnable(GL_MULTISAMPLE);
+
+        const Size& cnv_size = get_canvas_size();
+
+        const Pointf& pos = get_mouse_position();
+        GLubyte color[4];
+        ::glReadPixels(pos.x, cnv_size.get_height() - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+        int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+
+        m_hover_volume_id = -1;
+
+        for (GLVolume* vol : m_volumes->volumes)
+        {
+            vol->hover = false;
+        }
+
+        if (volume_id < m_volumes->volumes.size())
+        {
+            m_hover_volume_id = volume_id;
+            m_volumes->volumes[volume_id]->hover = true;
+            int group_id = m_volumes->volumes[volume_id]->select_group_id;
+            if (group_id != -1)
+            {
+                for (GLVolume* vol : m_volumes->volumes)
+                {
+                    if (vol->select_group_id == group_id)
+                        vol->hover = true;
+                }
+            }
+        }
+    }
+}
+
+void GLCanvas3D::_render_background() const
+{
+    ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
+
+    ::glDisable(GL_LIGHTING);
+
+    ::glPushMatrix();
+    ::glLoadIdentity();
+    ::glMatrixMode(GL_PROJECTION);
+    ::glPushMatrix();
+    ::glLoadIdentity();
+
+    // Draws a bluish bottom to top gradient over the complete screen.
+    ::glDisable(GL_DEPTH_TEST);
+
+    ::glBegin(GL_QUADS);
+    ::glColor3f(0.0f, 0.0f, 0.0f);
+    ::glVertex3f(-1.0f, -1.0f, 1.0f);
+    ::glVertex3f(1.0f, -1.0f, 1.0f);
+    ::glColor3f(COLOR[0], COLOR[1], COLOR[2]);
+    ::glVertex3f(1.0f, 1.0f, 1.0f);
+    ::glVertex3f(-1.0f, 1.0f, 1.0f);
+    ::glEnd();
+
+    ::glEnable(GL_DEPTH_TEST);
+
+    ::glPopMatrix();
+    ::glMatrixMode(GL_MODELVIEW);
+    ::glPopMatrix();
+}
+
+void GLCanvas3D::_render_bed() const
+{
+    m_bed.render();
+}
+
+void GLCanvas3D::_render_axes() const
+{
+    m_axes.render();
+}
+
+void GLCanvas3D::_render_objects(bool useVBOs) const
+{
+    if ((m_volumes == nullptr) || m_volumes->empty())
+        return;
+
+    ::glEnable(GL_LIGHTING);
+
+    if (!m_shader_enabled)
+        render_volumes(false);
+    else if (useVBOs)
+    {
+        if (is_picking_enabled())
+        {
+            m_on_mark_volumes_for_layer_height_callback.call();
+
+            if (m_config != nullptr)
+            {
+                const BoundingBoxf3& bed_bb = bed_bounding_box();
+                m_volumes->set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
+                m_volumes->check_outside_state(m_config);
+            }
+            // do not cull backfaces to show broken geometry, if any
+            ::glDisable(GL_CULL_FACE);
+        }
+
+        start_using_shader();
+        m_volumes->render_VBOs();
+        stop_using_shader();
+
+        if (is_picking_enabled())
+            ::glEnable(GL_CULL_FACE);
+    }
+    else
+    {
+        // do not cull backfaces to show broken geometry, if any
+        if (is_picking_enabled())
+            ::glDisable(GL_CULL_FACE);
+
+        m_volumes->render_legacy();
+
+        if (is_picking_enabled())
+            ::glEnable(GL_CULL_FACE);
+    }
+}
+
+void GLCanvas3D::_render_cutting_plane() const
+{
+    m_cutting_plane.render(volumes_bounding_box());
+}
+
+void GLCanvas3D::_render_warning_texture() const
+{
+    if (!m_warning_texture_enabled)
+        return;
+
+    // If the warning texture has not been loaded into the GPU, do it now.
+    unsigned int tex_id = _3DScene::finalize_warning_texture();
+    if (tex_id > 0)
+    {
+        unsigned int w = _3DScene::get_warning_texture_width();
+        unsigned int h = _3DScene::get_warning_texture_height();
+        if ((w > 0) && (h > 0))
+        {
+            ::glDisable(GL_DEPTH_TEST);
+            ::glPushMatrix();
+            ::glLoadIdentity();
+
+            const Size& cnv_size = get_canvas_size();
+            float zoom = get_camera_zoom();
+            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+            float l = (-0.5f * (float)w) * inv_zoom;
+            float t = (-0.5f * (float)cnv_size.get_height() + (float)h) * inv_zoom;
+            float r = l + (float)w * inv_zoom;
+            float b = t - (float)h * inv_zoom;
+
+            render_texture(tex_id, l, r, b, t);
+
+            ::glPopMatrix();
+            ::glEnable(GL_DEPTH_TEST);
+        }
+    }
+}
+
+void GLCanvas3D::_render_legend_texture() const
+{
+    if (!m_legend_texture_enabled)
+        return;
+
+    // If the legend texture has not been loaded into the GPU, do it now.
+    unsigned int tex_id = _3DScene::finalize_legend_texture();
+    if (tex_id > 0)
+    {
+        unsigned int w = _3DScene::get_legend_texture_width();
+        unsigned int h = _3DScene::get_legend_texture_height();
+        if ((w > 0) && (h > 0))
+        {
+            ::glDisable(GL_DEPTH_TEST);
+            ::glPushMatrix();
+            ::glLoadIdentity();
+
+            const Size& cnv_size = get_canvas_size();
+            float zoom = get_camera_zoom();
+            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+            float l = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
+            float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
+            float r = l + (float)w * inv_zoom;
+            float b = t - (float)h * inv_zoom;
+            render_texture(tex_id, l, r, b, t);
+
+            ::glPopMatrix();
+            ::glEnable(GL_DEPTH_TEST);
+        }
+    }
+}
+
+void GLCanvas3D::_render_layer_editing_overlay() const
+{
+    if ((m_volumes == nullptr) && (m_print == nullptr))
+        return;
+
+    GLVolume* volume = nullptr;
+
+    for (GLVolume* vol : m_volumes->volumes)
+    {
+        if ((vol != nullptr) && vol->selected && vol->has_layer_height_texture())
+        {
+            volume = vol;
+            break;
+        }
+    }
+
+    if (volume == nullptr)
+        return;
+
+    // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
+    // and an update by Platter::async_apply_config.
+    int object_idx = int(volume->select_group_id / 1000000);
+    if ((int)m_print->objects.size() < object_idx)
+        return;
+
+    const PrintObject* print_object = m_print->get_object(object_idx);
+    if (print_object == nullptr)
+        return;
+
+    m_layers_editing.render(*this, *print_object, *volume);
 }
 
 } // namespace GUI

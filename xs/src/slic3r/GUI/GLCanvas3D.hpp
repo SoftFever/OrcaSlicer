@@ -307,7 +307,7 @@ private:
 
     bool m_dirty;
     bool m_apply_zoom_to_volumes_filter;
-    int m_hover_volume_id;
+    mutable int m_hover_volume_id;
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
@@ -432,17 +432,9 @@ public:
     bool start_using_shader() const;
     void stop_using_shader() const;
 
-    void picking_pass();
+    void render(bool useVBOs) const;
 
-    void render_background() const;
-    void render_bed() const;
-    void render_axes() const;
     void render_volumes(bool fake_colors) const;
-    void render_objects(bool useVBOs);
-    void render_cutting_plane() const;
-    void render_warning_texture() const;
-    void render_legend_texture() const;
-    void render_layer_editing_overlay(const Print& print) const;
 
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
@@ -464,6 +456,16 @@ private:
     void _deregister_callbacks();
 
     void _refresh_if_shown_on_screen();
+
+    void _picking_pass() const;
+    void _render_background() const;
+    void _render_bed() const;
+    void _render_axes() const;
+    void _render_objects(bool useVBOs) const;
+    void _render_cutting_plane() const;
+    void _render_warning_texture() const;
+    void _render_legend_texture() const;
+    void _render_layer_editing_overlay() const;
 };
 
 } // namespace GUI

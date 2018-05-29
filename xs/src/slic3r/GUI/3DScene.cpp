@@ -2115,55 +2115,14 @@ void _3DScene::stop_using_shader(wxGLCanvas* canvas)
     s_canvas_mgr.stop_using_shader(canvas);
 }
 
-void _3DScene::picking_pass(wxGLCanvas* canvas)
+void _3DScene::render(wxGLCanvas* canvas)
 {
-    s_canvas_mgr.picking_pass(canvas);
-}
-
-void _3DScene::render_background(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.render_background(canvas);
-}
-
-void _3DScene::render_bed(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.render_bed(canvas);
-}
-
-void _3DScene::render_axes(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.render_axes(canvas);
+    s_canvas_mgr.render(canvas);
 }
 
 void _3DScene::render_volumes(wxGLCanvas* canvas, bool fake_colors)
 {
     s_canvas_mgr.render_volumes(canvas, fake_colors);
-}
-
-void _3DScene::render_objects(wxGLCanvas* canvas, bool useVBOs)
-{
-    s_canvas_mgr.render_objects(canvas, useVBOs);
-}
-
-void _3DScene::render_cutting_plane(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.render_cutting_plane(canvas);
-}
-
-void _3DScene::render_warning_texture(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.render_warning_texture(canvas);
-}
-
-void _3DScene::render_legend_texture(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.render_legend_texture(canvas);
-}
-
-void _3DScene::render_layer_editing_overlay(wxGLCanvas* canvas, const Print* print)
-{
-    if (print != nullptr)
-        s_canvas_mgr.render_layer_editing_overlay(canvas, *print);
 }
 
 void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)
