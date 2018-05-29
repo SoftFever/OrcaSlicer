@@ -427,6 +427,7 @@ public:
     void zoom_to_bed();
     void zoom_to_volumes();
     void select_view(const std::string& direction);
+    void set_viewport_from_scene(const GLCanvas3D& other);
 
     void update_volumes_colors_by_extruder();
 

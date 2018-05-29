@@ -144,6 +144,7 @@ public:
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
+    void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
 

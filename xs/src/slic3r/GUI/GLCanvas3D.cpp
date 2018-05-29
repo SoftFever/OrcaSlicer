@@ -1520,6 +1520,15 @@ void GLCanvas3D::select_view(const std::string& direction)
     }
 }
 
+void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
+{
+    set_camera_phi(other.get_camera_phi());
+    set_camera_theta(other.get_camera_theta());
+    set_camera_target(other.get_camera_target());
+    set_camera_zoom(other.get_camera_zoom());
+    set_dirty(true);
+}
+
 void GLCanvas3D::update_volumes_colors_by_extruder()
 {
     if ((m_volumes == nullptr) || (m_config == nullptr))

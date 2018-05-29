@@ -597,6 +597,17 @@ void GLCanvas3DManager::select_view(wxGLCanvas* canvas, const std::string& direc
         it->second->select_view(direction);
 }
 
+void GLCanvas3DManager::set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+    {
+        CanvasesMap::iterator other_it = _get_canvas(other);
+        if (other_it != m_canvases.end())
+            it->second->set_viewport_from_scene(*other_it->second);
+    }
+}
+
 void GLCanvas3DManager::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

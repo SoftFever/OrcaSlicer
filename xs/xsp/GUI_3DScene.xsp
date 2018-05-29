@@ -718,6 +718,13 @@ select_view(canvas, direction)
         _3DScene::select_view((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), direction);
 
 void
+set_viewport_from_scene(canvas, other)
+        SV *canvas;
+        SV *other;
+    CODE:
+        _3DScene::set_viewport_from_scene((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (wxGLCanvas*)wxPli_sv_2_object(aTHX_ other, "Wx::GLCanvas"));
+
+void
 update_volumes_colors_by_extruder(canvas)
         SV *canvas;
     CODE:

@@ -790,31 +790,19 @@ sub mouse_event {
 #    $self->volumes->erase;
 #    $self->_dirty(1);
 #}
-#==============================================================================================================================
-
-# Setup camera to view all objects.
-sub set_viewport_from_scene {
-    my ($self, $scene) = @_;
-    
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($scene));
-    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($scene));
-    Slic3r::GUI::_3DScene::set_camera_target($self, Slic3r::GUI::_3DScene::get_camera_target($scene));
-    Slic3r::GUI::_3DScene::set_camera_zoom($self, Slic3r::GUI::_3DScene::get_camera_zoom($scene));
-    
+#
+## Setup camera to view all objects.
+#sub set_viewport_from_scene {
+#    my ($self, $scene) = @_;
+#    
 #    $self->_sphi($scene->_sphi);
 #    $self->_stheta($scene->_stheta);
 #    $self->_camera_target($scene->_camera_target);
 #    $self->_zoom($scene->_zoom);
-#==============================================================================================================================
-    $self->_quat($scene->_quat);
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_dirty($self, 1);
+#    $self->_quat($scene->_quat);
 #    $self->_dirty(1);
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 ## Set the camera to a default orientation,
 ## zoom to volumes.
 #sub select_view {
@@ -851,104 +839,89 @@ sub set_viewport_from_scene {
 #        $self->Refresh;
 #    }
 #}
-#==============================================================================================================================
-
-sub get_zoom_to_bounding_box_factor {
-    my ($self, $bb) = @_;    
-    my $max_bb_size = max(@{ $bb->size });
-    return undef if ($max_bb_size == 0);
-        
-    # project the bbox vertices on a plane perpendicular to the camera forward axis
-    # then calculates the vertices coordinate on this plane along the camera xy axes
-    
-    # we need the view matrix, we let opengl calculate it (same as done in render sub)
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    if (!TURNTABLE_MODE) {
-        # Shift the perspective camera.
-#==============================================================================================================================
-        my $camera_pos = Slic3r::Pointf3->new(0,0,-Slic3r::GUI::_3DScene::get_camera_distance($self));
+#
+#sub get_zoom_to_bounding_box_factor {
+#    my ($self, $bb) = @_;    
+#    my $max_bb_size = max(@{ $bb->size });
+#    return undef if ($max_bb_size == 0);
+#        
+#    # project the bbox vertices on a plane perpendicular to the camera forward axis
+#    # then calculates the vertices coordinate on this plane along the camera xy axes
+#    
+#    # we need the view matrix, we let opengl calculate it (same as done in render sub)
+#    glMatrixMode(GL_MODELVIEW);
+#    glLoadIdentity();
+#
+#    if (!TURNTABLE_MODE) {
+#        # Shift the perspective camera.
 #        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
-#==============================================================================================================================
-        glTranslatef(@$camera_pos);
-    }
-    
-    if (TURNTABLE_MODE) {
-        # Turntable mode is enabled by default.
-#==============================================================================================================================        
-        glRotatef(-Slic3r::GUI::_3DScene::get_camera_theta($self), 1, 0, 0); # pitch
-        glRotatef(Slic3r::GUI::_3DScene::get_camera_phi($self), 0, 0, 1);    # yaw
+#        glTranslatef(@$camera_pos);
+#    }
+#    
+#    if (TURNTABLE_MODE) {
+#        # Turntable mode is enabled by default.
 #        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
 #        glRotatef($self->_sphi, 0, 0, 1);    # yaw
-#==============================================================================================================================
-    } else {
-        # Shift the perspective camera.
-#==============================================================================================================================
-        my $camera_pos = Slic3r::Pointf3->new(0,0,-Slic3r::GUI::_3DScene::get_camera_distance($self));
+#    } else {
+#        # Shift the perspective camera.
 #        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
-#==============================================================================================================================
-        glTranslatef(@$camera_pos);
-        my @rotmat = quat_to_rotmatrix($self->quat);
-        glMultMatrixd_p(@rotmat[0..15]);
-    }    
-#==============================================================================================================================
-    glTranslatef(@{ Slic3r::GUI::_3DScene::get_camera_target($self)->negative });
+#        glTranslatef(@$camera_pos);
+#        my @rotmat = quat_to_rotmatrix($self->quat);
+#        glMultMatrixd_p(@rotmat[0..15]);
+#    }    
 #    glTranslatef(@{ $self->_camera_target->negative });
-#==============================================================================================================================
-    
-    # get the view matrix back from opengl
-    my @matrix = glGetFloatv_p(GL_MODELVIEW_MATRIX);
-
-    # camera axes
-    my $right = Slic3r::Pointf3->new($matrix[0], $matrix[4], $matrix[8]);
-    my $up = Slic3r::Pointf3->new($matrix[1], $matrix[5], $matrix[9]);
-    my $forward = Slic3r::Pointf3->new($matrix[2], $matrix[6], $matrix[10]);
-    
-    my $bb_min = $bb->min_point();
-    my $bb_max = $bb->max_point();
-    my $bb_center = $bb->center();
-    
-    # bbox vertices in world space
-    my @vertices = ();    
-    push(@vertices, $bb_min);
-    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_min->z()));
-    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_max->y(), $bb_min->z()));
-    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_min->z()));
-    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_min->y(), $bb_max->z()));
-    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_max->z()));
-    push(@vertices, $bb_max);
-    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_max->z()));
-    
-    my $max_x = 0.0;
-    my $max_y = 0.0;
-
-    # margin factor to give some empty space around the bbox
-    my $margin_factor = 1.25;
-    
-    foreach my $v (@vertices) {
-        # project vertex on the plane perpendicular to camera forward axis
-        my $pos = Slic3r::Pointf3->new($v->x() - $bb_center->x(), $v->y() - $bb_center->y(), $v->z() - $bb_center->z());
-        my $proj_on_normal = $pos->x() * $forward->x() + $pos->y() * $forward->y() + $pos->z() * $forward->z();
-        my $proj_on_plane = Slic3r::Pointf3->new($pos->x() - $proj_on_normal * $forward->x(), $pos->y() - $proj_on_normal * $forward->y(), $pos->z() - $proj_on_normal * $forward->z());
-        
-        # calculates vertex coordinate along camera xy axes
-        my $x_on_plane = $proj_on_plane->x() * $right->x() + $proj_on_plane->y() * $right->y() + $proj_on_plane->z() * $right->z();
-        my $y_on_plane = $proj_on_plane->x() * $up->x() + $proj_on_plane->y() * $up->y() + $proj_on_plane->z() * $up->z();
-    
-        $max_x = max($max_x, $margin_factor * 2 * abs($x_on_plane));
-        $max_y = max($max_y, $margin_factor * 2 * abs($y_on_plane));
-    }
-    
-    return undef if (($max_x == 0) || ($max_y == 0));
-    
-    my ($cw, $ch) = $self->GetSizeWH;
-    my $min_ratio = min($cw / $max_x, $ch / $max_y);
-
-    return $min_ratio;
-}
-
-#==============================================================================================================================
+#    
+#    # get the view matrix back from opengl
+#    my @matrix = glGetFloatv_p(GL_MODELVIEW_MATRIX);
+#
+#    # camera axes
+#    my $right = Slic3r::Pointf3->new($matrix[0], $matrix[4], $matrix[8]);
+#    my $up = Slic3r::Pointf3->new($matrix[1], $matrix[5], $matrix[9]);
+#    my $forward = Slic3r::Pointf3->new($matrix[2], $matrix[6], $matrix[10]);
+#    
+#    my $bb_min = $bb->min_point();
+#    my $bb_max = $bb->max_point();
+#    my $bb_center = $bb->center();
+#    
+#    # bbox vertices in world space
+#    my @vertices = ();    
+#    push(@vertices, $bb_min);
+#    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_min->z()));
+#    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_max->y(), $bb_min->z()));
+#    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_min->z()));
+#    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_min->y(), $bb_max->z()));
+#    push(@vertices, Slic3r::Pointf3->new($bb_max->x(), $bb_min->y(), $bb_max->z()));
+#    push(@vertices, $bb_max);
+#    push(@vertices, Slic3r::Pointf3->new($bb_min->x(), $bb_max->y(), $bb_max->z()));
+#    
+#    my $max_x = 0.0;
+#    my $max_y = 0.0;
+#
+#    # margin factor to give some empty space around the bbox
+#    my $margin_factor = 1.25;
+#    
+#    foreach my $v (@vertices) {
+#        # project vertex on the plane perpendicular to camera forward axis
+#        my $pos = Slic3r::Pointf3->new($v->x() - $bb_center->x(), $v->y() - $bb_center->y(), $v->z() - $bb_center->z());
+#        my $proj_on_normal = $pos->x() * $forward->x() + $pos->y() * $forward->y() + $pos->z() * $forward->z();
+#        my $proj_on_plane = Slic3r::Pointf3->new($pos->x() - $proj_on_normal * $forward->x(), $pos->y() - $proj_on_normal * $forward->y(), $pos->z() - $proj_on_normal * $forward->z());
+#        
+#        # calculates vertex coordinate along camera xy axes
+#        my $x_on_plane = $proj_on_plane->x() * $right->x() + $proj_on_plane->y() * $right->y() + $proj_on_plane->z() * $right->z();
+#        my $y_on_plane = $proj_on_plane->x() * $up->x() + $proj_on_plane->y() * $up->y() + $proj_on_plane->z() * $up->z();
+#    
+#        $max_x = max($max_x, $margin_factor * 2 * abs($x_on_plane));
+#        $max_y = max($max_y, $margin_factor * 2 * abs($y_on_plane));
+#    }
+#    
+#    return undef if (($max_x == 0) || ($max_y == 0));
+#    
+#    my ($cw, $ch) = $self->GetSizeWH;
+#    my $min_ratio = min($cw / $max_x, $ch / $max_y);
+#
+#    return $min_ratio;
+#}
+#
 #sub zoom_to_bounding_box {
 #    my ($self, $bb) = @_;
 #    # Calculate the zoom factor needed to adjust viewport to bounding box.

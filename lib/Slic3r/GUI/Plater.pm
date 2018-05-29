@@ -142,10 +142,13 @@ sub new {
             }
         });
         $self->{canvas3D}->on_viewport_changed(sub {
-            $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
+#            $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
+#==============================================================================================================================
         });
 #==============================================================================================================================
-        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D}); });
+        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
 #==============================================================================================================================
     }
     
@@ -161,10 +164,13 @@ sub new {
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
         $self->{preview3D}->canvas->on_viewport_changed(sub {
-            $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
+#            $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
+#==============================================================================================================================
         });
 #==============================================================================================================================
-        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas); });
+        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
 #==============================================================================================================================
         $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
@@ -2235,15 +2241,17 @@ sub select_view {
     if ($page eq L('Preview')) {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
+        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
 #        $self->{preview3D}->canvas->select_view($direction);
+#        $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
 #==============================================================================================================================
-        $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
     } else {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::select_view($self->{canvas3D}, $direction);
+        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
 #        $self->{canvas3D}->select_view($direction);
+#        $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
 #==============================================================================================================================
-        $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
     }
 }
 
