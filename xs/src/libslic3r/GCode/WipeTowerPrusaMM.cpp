@@ -1147,7 +1147,8 @@ void WipeTowerPrusaMM::save_on_last_wipe()
 // Resulting ToolChangeResults are appended into vector "result"
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
 {
-	if (m_plan.empty())	return;
+	if (m_plan.empty())
+            return;
 
     m_extra_spacing = 1.f;
 
@@ -1161,8 +1162,9 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 			make_wipe_tower_square();
 
     m_layer_info = m_plan.begin();
+    m_current_tool = (unsigned int)(-2); // we don't know which extruder to start with - we'll set it according to the first toolchange
 
-	std::vector<WipeTower::ToolChangeResult> layer_result;
+    std::vector<WipeTower::ToolChangeResult> layer_result;
 	for (auto layer : m_plan)
 	{
 		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
@@ -1176,8 +1178,11 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 		if (!m_peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 
-		for (const auto &toolchange : layer.tool_changes)
+		for (const auto &toolchange : layer.tool_changes) {
+            if (m_current_tool == (unsigned int)(-2))
+                m_current_tool = toolchange.old_tool;
 			layer_result.emplace_back(tool_change(toolchange.new_tool, false));
+        }
 
 		if (! layer_finished()) {
             auto finish_layer_toolchange = finish_layer();
