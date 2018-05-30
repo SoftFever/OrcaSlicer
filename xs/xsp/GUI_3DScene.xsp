@@ -578,6 +578,21 @@ get_layers_editing_z_texture_id(canvas)
     OUTPUT:
         RETVAL
 
+unsigned int
+get_layers_editing_state(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_layers_editing_state((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_layers_editing_state(canvas, state)
+        SV           *canvas;
+        unsigned int state;
+    CODE:
+        _3DScene::set_layers_editing_state((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), state);
+
 float
 get_layers_editing_band_width(canvas)
         SV *canvas;
@@ -767,6 +782,27 @@ render_texture(canvas, tex_id, left, right, bottom, top)
         float        top;
     CODE:
         _3DScene::render_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tex_id, left, right, bottom, top);
+
+void
+start_timer(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::start_timer((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+stop_timer(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::stop_timer((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+perform_layer_editing_action(canvas, y, shift_down, right_down)
+        SV   *canvas;
+        int  y;
+        bool shift_down;
+        bool right_down;
+    CODE:
+        _3DScene::perform_layer_editing_action((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), y, shift_down, right_down);
 
 void
 register_on_viewport_changed_callback(canvas, callback)

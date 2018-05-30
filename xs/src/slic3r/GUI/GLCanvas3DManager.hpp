@@ -119,6 +119,9 @@ public:
 
     unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas) const;
 
+    unsigned int get_layers_editing_state(wxGLCanvas* canvas) const;
+    void set_layers_editing_state(wxGLCanvas* canvas, unsigned int state);
+
     float get_layers_editing_band_width(wxGLCanvas* canvas) const;
     void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
 
@@ -154,6 +157,10 @@ public:
     void render(wxGLCanvas* canvas) const;
     void render_volumes(wxGLCanvas* canvas, bool fake_colors) const;
     void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
+
+    void start_timer(wxGLCanvas* canvas);
+    void stop_timer(wxGLCanvas* canvas);
+    void perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

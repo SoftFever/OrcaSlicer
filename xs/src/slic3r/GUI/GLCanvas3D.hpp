@@ -7,10 +7,12 @@
 
 class wxGLCanvas;
 class wxGLContext;
+class wxTimer;
 class wxSizeEvent;
 class wxIdleEvent;
 class wxKeyEvent;
 class wxMouseEvent;
+class wxTimerEvent;
 
 namespace Slic3r {
 
@@ -202,6 +204,16 @@ public:
 
     class LayersEditing
     {
+    public:
+        enum EState : unsigned char
+        {
+            Unknown,
+            Editing,
+            Completed,
+            Num_States
+        };
+
+    private:
         struct GLTextureData
         {
             unsigned int id;
@@ -212,6 +224,7 @@ public:
             GLTextureData(unsigned int id, int width, int height);
         };
 
+        EState m_state;
         bool m_use_legacy_opengl;
         bool m_enabled;
         Shader m_shader;
@@ -229,6 +242,9 @@ public:
         ~LayersEditing();
 
         bool init(const std::string& vertex_shader_filename, const std::string& fragment_shader_filename);
+
+        EState get_state() const;
+        void set_state(EState state);
 
         bool is_allowed() const;
         void set_use_legacy_opengl(bool use_legacy_opengl);
@@ -261,6 +277,10 @@ public:
         static int get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static bool reset_rect_contains(const GLCanvas3D& canvas, float x, float y);
+        static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
+        static Rect get_reset_rect_screen(const GLCanvas3D& canvas);
+        static Rect get_bar_rect_viewport(const GLCanvas3D& canvas);
+        static Rect get_reset_rect_viewport(const GLCanvas3D& canvas);
 
     private:
         bool _is_initialized() const;
@@ -269,10 +289,6 @@ public:
         void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
         void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
         static GLTextureData _load_texture_from_file(const std::string& filename);
-        static Rect _get_bar_rect_screen(const GLCanvas3D& canvas);
-        static Rect _get_reset_rect_screen(const GLCanvas3D& canvas);
-        static Rect _get_bar_rect_viewport(const GLCanvas3D& canvas);
-        static Rect _get_reset_rect_viewport(const GLCanvas3D& canvas);
     };
 
     class Mouse
@@ -293,6 +309,7 @@ public:
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    wxTimer* m_timer;
     Camera m_camera;
     Bed m_bed;
     Axes m_axes;
@@ -402,6 +419,9 @@ public:
 
     unsigned int get_layers_editing_z_texture_id() const;
 
+    unsigned int get_layers_editing_state() const;
+    void set_layers_editing_state(unsigned int state);
+
     float get_layers_editing_band_width() const;
     void set_layers_editing_band_width(float band_width);
 
@@ -444,9 +464,14 @@ public:
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
+    void on_timer(wxTimerEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;
+
+    void start_timer();
+    void stop_timer();
+    void perform_layer_editing_action(int y, bool shift_down, bool right_down);
 
 private:
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
@@ -466,6 +491,8 @@ private:
     void _render_warning_texture() const;
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;
+
+    void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
 };
 
 } // namespace GUI

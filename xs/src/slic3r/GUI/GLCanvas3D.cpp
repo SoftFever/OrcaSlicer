@@ -10,6 +10,7 @@
 
 #include <wx/glcanvas.h>
 #include <wx/image.h>
+#include <wx/timer.h>
 
 #include <iostream>
 #include <float.h>
@@ -589,7 +590,8 @@ GLCanvas3D::LayersEditing::GLTextureData::GLTextureData(unsigned int id, int wid
 }
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_use_legacy_opengl(false)
+    : m_state(Unknown)
+    , m_use_legacy_opengl(false)
     , m_enabled(false)
     , m_z_texture_id(0)
     , m_band_width(2.0f)
@@ -636,6 +638,16 @@ bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, 
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
     return true;
+}
+
+GLCanvas3D::LayersEditing::EState GLCanvas3D::LayersEditing::get_state() const
+{
+    return m_state;
+}
+
+void GLCanvas3D::LayersEditing::set_state(GLCanvas3D::LayersEditing::EState state)
+{
+    m_state = state;
 }
 
 bool GLCanvas3D::LayersEditing::is_allowed() const
@@ -718,8 +730,8 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
     if (!m_enabled)
         return;
 
-    const Rect& bar_rect = _get_bar_rect_viewport(canvas);
-    const Rect& reset_rect = _get_reset_rect_viewport(canvas);
+    const Rect& bar_rect = get_bar_rect_viewport(canvas);
+    const Rect& reset_rect = get_reset_rect_viewport(canvas);
 
     ::glDisable(GL_DEPTH_TEST);
 
@@ -747,13 +759,13 @@ const GLShader* GLCanvas3D::LayersEditing::get_shader() const
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
 {
     const Point& mouse_pos = canvas.get_local_mouse_position();
-    const Rect& bar_rect = _get_bar_rect_screen(canvas);
+    const Rect& rect = get_bar_rect_screen(canvas);
     float x = (float)mouse_pos.x;
     float y = (float)mouse_pos.y;
-    float t = bar_rect.get_top();
-    float b = bar_rect.get_bottom();
+    float t = rect.get_top();
+    float b = rect.get_bottom();
 
-    return ((bar_rect.get_left() <= x) && (x <= bar_rect.get_right()) && (t <= y) && (y <= b)) ?
+    return ((rect.get_left() <= x) && (x <= rect.get_right()) && (t <= y) && (y <= b)) ?
         // Inside the bar.
         (b - y - 1.0f) / (b - t - 1.0f) :
         // Outside the bar.
@@ -777,15 +789,58 @@ int GLCanvas3D::LayersEditing::get_first_selected_object_id(const GLVolumeCollec
 
 bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, float x, float y)
 {
-    const Rect& rect = _get_bar_rect_screen(canvas);
+    const Rect& rect = get_bar_rect_screen(canvas);
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
 
 bool GLCanvas3D::LayersEditing::reset_rect_contains(const GLCanvas3D& canvas, float x, float y)
 {
-    const Rect& rect = _get_reset_rect_screen(canvas);
+    const Rect& rect = get_reset_rect_screen(canvas);
     return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
+
+Rect GLCanvas3D::LayersEditing::get_bar_rect_screen(const GLCanvas3D& canvas)
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float w = (float)cnv_size.get_width();
+    float h = (float)cnv_size.get_height();
+
+    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0.0f, w, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
+}
+
+Rect GLCanvas3D::LayersEditing::get_reset_rect_screen(const GLCanvas3D& canvas)
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float w = (float)cnv_size.get_width();
+    float h = (float)cnv_size.get_height();
+
+    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, w, h);
+}
+
+Rect GLCanvas3D::LayersEditing::get_bar_rect_viewport(const GLCanvas3D& canvas)
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float half_w = 0.5f * (float)cnv_size.get_width();
+    float half_h = 0.5f * (float)cnv_size.get_height();
+
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom);
+}
+
+Rect GLCanvas3D::LayersEditing::get_reset_rect_viewport(const GLCanvas3D& canvas)
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float half_w = 0.5f * (float)cnv_size.get_width();
+    float half_h = 0.5f * (float)cnv_size.get_height();
+
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
+}
+
 
 bool GLCanvas3D::LayersEditing::_is_initialized() const
 {
@@ -969,48 +1024,6 @@ GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_textur
     return GLTextureData((unsigned int)tex_id, width, height);
 }
 
-Rect GLCanvas3D::LayersEditing::_get_bar_rect_screen(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (float)cnv_size.get_width();
-    float h = (float)cnv_size.get_height();
-
-    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0.0f, w, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
-}
-
-Rect GLCanvas3D::LayersEditing::_get_reset_rect_screen(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float w = (float)cnv_size.get_width();
-    float h = (float)cnv_size.get_height();
-
-    return Rect(w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, h - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, w, h);
-}
-
-Rect GLCanvas3D::LayersEditing::_get_bar_rect_viewport(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float half_w = 0.5f * (float)cnv_size.get_width();
-    float half_h = 0.5f * (float)cnv_size.get_height();
-
-    float zoom = canvas.get_camera_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, half_h * inv_zoom, half_w * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom);
-}
-
-Rect GLCanvas3D::LayersEditing::_get_reset_rect_viewport(const GLCanvas3D& canvas)
-{
-    const Size& cnv_size = canvas.get_canvas_size();
-    float half_w = 0.5f * (float)cnv_size.get_width();
-    float half_h = 0.5f * (float)cnv_size.get_height();
-
-    float zoom = canvas.get_camera_zoom();
-    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-
-    return Rect((half_w - VARIABLE_LAYER_THICKNESS_BAR_WIDTH) * inv_zoom, (-half_h + VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT) * inv_zoom, half_w * inv_zoom, -half_h * inv_zoom);
-}
-
 GLCanvas3D::Mouse::Mouse()
     : m_dragging(false)
 {
@@ -1039,6 +1052,7 @@ void GLCanvas3D::Mouse::set_position(const Pointf& position)
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
+    , m_timer(nullptr)
     , m_volumes(nullptr)
     , m_config(nullptr)
     , m_print(nullptr)
@@ -1051,10 +1065,18 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_shader_enabled(false)
     , m_multisample_allowed(false)
 {
+    if (m_canvas != nullptr)
+        m_timer = new wxTimer(m_canvas);
 }
 
 GLCanvas3D::~GLCanvas3D()
 {
+    if (m_timer != nullptr)
+    {
+        delete m_timer;
+        m_timer = nullptr;
+    }
+
     _deregister_callbacks();
 }
 
@@ -1585,6 +1607,17 @@ unsigned int GLCanvas3D::get_layers_editing_z_texture_id() const
     return m_layers_editing.get_z_texture_id();
 }
 
+unsigned int GLCanvas3D::get_layers_editing_state() const
+{
+    return (unsigned int)m_layers_editing.get_state();
+}
+
+void GLCanvas3D::set_layers_editing_state(unsigned int state)
+{
+    if (state < (unsigned int)LayersEditing::Num_States)
+        m_layers_editing.set_state((LayersEditing::EState)state);
+}
+
 float GLCanvas3D::get_layers_editing_band_width() const
 {
     return m_layers_editing.get_band_width();
@@ -1833,6 +1866,14 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     _refresh_if_shown_on_screen();
 }
 
+void GLCanvas3D::on_timer(wxTimerEvent& evt)
+{
+    if (get_layers_editing_state() != 1)
+        return;
+
+    _perform_layer_editing_action();
+}
+
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -1851,6 +1892,28 @@ Point GLCanvas3D::get_local_mouse_position() const
 
     wxPoint mouse_pos = m_canvas->ScreenToClient(wxGetMousePosition());
     return Point(mouse_pos.x, mouse_pos.y);
+}
+
+void GLCanvas3D::start_timer()
+{
+    if (m_timer != nullptr)
+        m_timer->Start(100, wxTIMER_CONTINUOUS);
+}
+
+void GLCanvas3D::stop_timer()
+{
+    if (m_timer != nullptr)
+        m_timer->Stop();
+}
+
+void GLCanvas3D::perform_layer_editing_action(int y, bool shift_down, bool right_down)
+{
+    wxMouseEvent evt;
+    evt.m_y = (wxCoord)y;
+    evt.SetShiftDown(shift_down);
+    evt.SetRightDown(right_down);
+
+    _perform_layer_editing_action(&evt);
 }
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
@@ -2236,6 +2299,54 @@ void GLCanvas3D::_render_layer_editing_overlay() const
         return;
 
     m_layers_editing.render(*this, *print_object, *volume);
+}
+
+void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
+{
+    int object_idx_selected = get_layers_editing_last_object_id();
+    if (object_idx_selected == -1)
+        return;
+
+    if ((m_volumes == nullptr) || (m_print == nullptr))
+        return;
+
+    PrintObject* selected_obj = m_print->get_object(object_idx_selected);
+    if (selected_obj == nullptr)
+        return;
+
+    // A volume is selected. Test, whether hovering over a layer thickness bar.
+    if (evt != nullptr)
+    {
+        const Rect& rect = LayersEditing::get_bar_rect_screen(*this);
+        float b = rect.get_bottom();
+        set_layers_editing_last_z(unscale(selected_obj->size.z) * (b - evt->GetY() - 1.0f) / (b - rect.get_top()));
+        set_layers_editing_last_action(evt->ShiftDown() ? (evt->RightIsDown() ? 3 : 2) : (evt->RightIsDown() ? 0 : 1));
+    }
+
+    // Mark the volume as modified, so Print will pick its layer height profile ? Where to mark it ?
+    // Start a timer to refresh the print ? schedule_background_process() ?
+    // The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself.
+    selected_obj->adjust_layer_height_profile(get_layers_editing_last_z(), get_layers_editing_strength(), get_layers_editing_band_width(), get_layers_editing_last_action());
+
+    // searches the id of the first volume of the selected object
+    int volume_idx = 0;
+    for (int i = 0; i < object_idx_selected; ++i)
+    {
+        PrintObject* obj = m_print->get_object(i);
+        if (obj != nullptr)
+        {
+            for (int j = 0; j < (int)obj->region_volumes.size(); ++j)
+            {
+                volume_idx += (int)obj->region_volumes[j].size();
+            }
+        }
+    }
+
+    m_volumes->volumes[volume_idx]->generate_layer_height_texture(selected_obj, 1);
+    _refresh_if_shown_on_screen();
+
+    // Automatic action on mouse down with the same coordinate.
+    start_timer();
 }
 
 } // namespace GUI

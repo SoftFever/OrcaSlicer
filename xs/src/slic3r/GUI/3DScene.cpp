@@ -2015,6 +2015,16 @@ unsigned int _3DScene::get_layers_editing_z_texture_id(wxGLCanvas* canvas)
     return s_canvas_mgr.get_layers_editing_z_texture_id(canvas);
 }
 
+unsigned int _3DScene::get_layers_editing_state(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_layers_editing_state(canvas);
+}
+
+void _3DScene::set_layers_editing_state(wxGLCanvas* canvas, unsigned int state)
+{
+    s_canvas_mgr.set_layers_editing_state(canvas, state);
+}
+
 float _3DScene::get_layers_editing_band_width(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_layers_editing_band_width(canvas);
@@ -2138,6 +2148,21 @@ void _3DScene::render_volumes(wxGLCanvas* canvas, bool fake_colors)
 void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)
 {
     s_canvas_mgr.render_texture(canvas, tex_id, left, right, bottom, top);
+}
+
+void _3DScene::start_timer(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.start_timer(canvas);
+}
+
+void _3DScene::stop_timer(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.stop_timer(canvas);
+}
+
+void _3DScene::perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down)
+{
+    s_canvas_mgr.perform_layer_editing_action(canvas, y, shift_down, right_down);
 }
 
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

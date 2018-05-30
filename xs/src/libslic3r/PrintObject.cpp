@@ -4,6 +4,9 @@
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
+//############################################################################################################################################
+#include "Slicing.hpp"
+//############################################################################################################################################
 
 #include <utility>
 #include <boost/log/trivial.hpp>
@@ -1960,5 +1963,15 @@ void PrintObject::reset_layer_height_profile()
     this->model_object()->layer_height_profile.clear();
     this->model_object()->layer_height_profile_valid = false;
 }
+
+//############################################################################################################################################
+void PrintObject::adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
+{
+    update_layer_height_profile(_model_object->layer_height_profile);
+    Slic3r::adjust_layer_height_profile(slicing_parameters(), _model_object->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
+    _model_object->layer_height_profile_valid = true;
+    layer_height_profile_valid = false;
+}
+//############################################################################################################################################
 
 } // namespace Slic3r

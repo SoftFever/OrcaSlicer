@@ -619,6 +619,9 @@ public:
 
     static unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas);
 
+    static unsigned int get_layers_editing_state(wxGLCanvas* canvas);
+    static void set_layers_editing_state(wxGLCanvas* canvas, unsigned int state);
+
     static float get_layers_editing_band_width(wxGLCanvas* canvas);
     static void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
 
@@ -654,6 +657,10 @@ public:
     static void render(wxGLCanvas* canvas);
     static void render_volumes(wxGLCanvas* canvas, bool fake_colors);
     static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
+
+    static void start_timer(wxGLCanvas* canvas);
+    static void stop_timer(wxGLCanvas* canvas);
+    static void perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
 

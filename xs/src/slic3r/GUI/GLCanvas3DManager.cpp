@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/classification.hpp>
 
 #include <wx/glcanvas.h>
+#include <wx/timer.h>
 
 #include <vector>
 #include <string>
@@ -76,6 +77,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     canvas->Bind(wxEVT_IDLE, [canvas3D](wxIdleEvent& evt) { canvas3D->on_idle(evt); });
     canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
     canvas->Bind(wxEVT_MOUSEWHEEL, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse_wheel(evt); });
+    canvas->Bind(wxEVT_TIMER, [canvas3D](wxTimerEvent& evt) { canvas3D->on_timer(evt); });
 
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
@@ -481,6 +483,19 @@ unsigned int GLCanvas3DManager::get_layers_editing_z_texture_id(wxGLCanvas* canv
     return (it != m_canvases.end()) ? it->second->get_layers_editing_z_texture_id() : 0;
 }
 
+unsigned int GLCanvas3DManager::get_layers_editing_state(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_layers_editing_state() : 0;
+}
+
+void GLCanvas3DManager::set_layers_editing_state(wxGLCanvas* canvas, unsigned int state)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_layers_editing_state(state);
+}
+
 float GLCanvas3DManager::get_layers_editing_band_width(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -647,6 +662,27 @@ void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, 
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->render_texture(tex_id, left, right, bottom, top);
+}
+
+void GLCanvas3DManager::start_timer(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->start_timer();
+}
+
+void GLCanvas3DManager::stop_timer(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->stop_timer();
+}
+
+void GLCanvas3DManager::perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->perform_layer_editing_action(y, shift_down, right_down);
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
