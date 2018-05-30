@@ -76,6 +76,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     this->collect_extruder_statistics(prime_multi_material);
 }
 
+
 ToolOrdering::LayerTools&  ToolOrdering::tools_for_layer(coordf_t print_z)
 {
     auto it_layer_tools = std::lower_bound(m_layer_tools.begin(), m_layer_tools.end(), ToolOrdering::LayerTools(print_z - EPSILON));

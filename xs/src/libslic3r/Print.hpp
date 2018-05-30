@@ -309,10 +309,15 @@ public:
     void restart() { m_canceled = false; }
     // Has the calculation been canceled?
     bool canceled() { return m_canceled; }
-    
+
+
 private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
+
+    // This function goes through all infill entities, decides which ones will be used for wiping and
+    // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
+    float mark_wiping_infill(const ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe);
 
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;

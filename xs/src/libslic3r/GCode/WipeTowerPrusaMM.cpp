@@ -66,6 +66,7 @@ public:
             char buf[64];
             sprintf(buf, ";%s%f\n", GCodeAnalyzer::Width_Tag.c_str(), line_width);
             m_gcode += buf;
+            return *this;
     }
 
 	Writer& 			 set_initial_position(const WipeTower::xy &pos) { 
@@ -137,7 +138,7 @@ public:
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
 				m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
-			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));			
+			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));
 		}
 
 		m_gcode += "G1";
@@ -483,7 +484,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
 	bool 						last_wipe_inside_wipe_tower)
 {
-
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
 	this->m_current_tool 		= tools.front();
     
@@ -1058,7 +1058,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 }
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
-void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wiping_volume_reduction)
+void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wipe_volume)
 {
 	assert(m_plan.back().z <= z_par + WT_EPSILON );	// refuses to add a layer below the last one
 
@@ -1083,7 +1083,6 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
     float ramming_depth = depth;
     length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
     float first_wipe_line = -length_to_extrude;
-    float wipe_volume = wipe_volumes[old_tool][new_tool] - wiping_volume_reduction;
     length_to_extrude += volume_to_length(wipe_volume, m_perimeter_width, layer_height_par);
     length_to_extrude = std::max(length_to_extrude,0.f);
 
@@ -1146,7 +1145,8 @@ void WipeTowerPrusaMM::save_on_last_wipe()
 // Resulting ToolChangeResults are appended into vector "result"
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
 {
-	if (m_plan.empty())	return;
+	if (m_plan.empty())
+        return;
 
     m_extra_spacing = 1.f;
 
@@ -1161,12 +1161,10 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 
     m_layer_info = m_plan.begin();
 
-	std::vector<WipeTower::ToolChangeResult> layer_result;
+    std::vector<WipeTower::ToolChangeResult> layer_result;
 	for (auto layer : m_plan)
 	{
 		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
-
-
 		if (m_peters_wipe_tower)
 			m_wipe_tower_rotation_angle += 90.f;
 		else
