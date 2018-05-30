@@ -917,15 +917,18 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	{
 		auto item = m_objects_ctrl->GetSelection();
 		if (!item) return;
+		if (m_objects_model->GetParent(item) != wxDataViewItem(0))
+			item = m_objects_model->GetParent(item);
+		if (!item) return;
 		wxString name = "Part";
-		m_objects_model->AddChild(item, name);
+		m_objects_ctrl->Select(m_objects_model->AddChild(item, name));
 	});
 
 	btn_delete->Bind(wxEVT_BUTTON, [](wxEvent&)
 	{
 		auto item = m_objects_ctrl->GetSelection();
 		if (!item) return;
-		m_objects_model->Delete(item);
+		m_objects_ctrl->Select(m_objects_model->Delete(item));
 	});
 	//***
 
@@ -1035,6 +1038,22 @@ wxBoxSizer* content_settings(wxWindow *win)
 	return sizer;
 }
 
+void add_object(const std::string &name)
+{
+	wxString item = name;
+	m_objects_ctrl->Select(m_objects_model->Add(item));
+}
+
+void del_object()
+{
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item) return;
+	m_objects_ctrl->Select(m_objects_model->Delete(item));
+
+	if (m_objects_model->IsEmpty())
+		m_collpane_settings->show_it(false);
+}
+
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
 	wxWindowUpdateLocker noUpdates(parent);
@@ -1073,17 +1092,10 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	add_btn->Bind(wxEVT_BUTTON, [](wxEvent& )
 	{
 		wxString name = "Object";
-		m_objects_model->Add(name);
+		m_objects_ctrl->Select(m_objects_model->Add(name));
 	});
 
-	del_btn->Bind(wxEVT_BUTTON, [](wxEvent& )
-	{
-		auto item = m_objects_ctrl->GetSelection();
-		if (!item) return;
-		m_objects_model->Delete(item);
-		if (m_objects_model->IsEmpty())
-			m_collpane_settings->show_it(false);
-	});
+	del_btn->Bind(wxEVT_BUTTON, [](wxEvent& ) { del_object(); });
 
 	// More experiments with UI
 // 	auto listctrl = new wxDataViewListCtrl(main_page, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));

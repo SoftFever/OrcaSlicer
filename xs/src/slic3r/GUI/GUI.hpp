@@ -174,6 +174,10 @@ wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
 
+// Add object to the list
+void add_object(const std::string &name);
+// Delete object from the list
+void del_object();
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);

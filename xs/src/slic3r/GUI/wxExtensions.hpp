@@ -207,7 +207,7 @@ public:
 
 class MyObjectTreeModel :public wxDataViewModel
 {
-	std::set<MyObjectTreeModelNode*> m_objects;
+	std::vector<MyObjectTreeModelNode*> m_objects;
 public:
 	MyObjectTreeModel(){}
 	~MyObjectTreeModel()
@@ -216,9 +216,9 @@ public:
 			delete object;		
 	}
 
-	void Add(wxString &name);
-	void AddChild(const wxDataViewItem &parent_item, wxString &name);
- 	void Delete(const wxDataViewItem &item);
+	wxDataViewItem Add(wxString &name);
+	wxDataViewItem AddChild(const wxDataViewItem &parent_item, wxString &name);
+	wxDataViewItem Delete(const wxDataViewItem &item);
 	bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog

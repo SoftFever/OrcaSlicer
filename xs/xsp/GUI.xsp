@@ -122,6 +122,12 @@ void set_show_manifold_warning_icon(bool show)
 void update_mode()
     %code%{ Slic3r::GUI::update_mode(); %};
 
+void add_object(const char *name)
+    %code%{ Slic3r::GUI::add_object(name); %};
+
+void del_object()
+    %code%{ Slic3r::GUI::del_object(); %};
+
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
 

@@ -352,20 +352,21 @@ bool PrusaCollapsiblePane::Layout()
 // MyObjectTreeModel
 // ----------------------------------------------------------------------------
 
-void MyObjectTreeModel::Add(wxString &name)
+wxDataViewItem MyObjectTreeModel::Add(wxString &name)
 {
 	auto root = new MyObjectTreeModelNode(name);
-	m_objects.emplace(root);
+	m_objects.push_back(root);
 	// notify control
 	wxDataViewItem child((void*)root);
 	wxDataViewItem parent((void*)NULL);
 	ItemAdded(parent, child);
+	return child;
 }
 
-void MyObjectTreeModel::AddChild(const wxDataViewItem &parent_item, wxString &name)
+wxDataViewItem MyObjectTreeModel::AddChild(const wxDataViewItem &parent_item, wxString &name)
 {
 	MyObjectTreeModelNode *root = (MyObjectTreeModelNode*)parent_item.GetID();
-	if (!root) return;
+	if (!root) return wxDataViewItem(0);
 
 	if (root->GetChildren().Count() == 0)
 	{
@@ -381,13 +382,15 @@ void MyObjectTreeModel::AddChild(const wxDataViewItem &parent_item, wxString &na
 	// notify control
 	wxDataViewItem child((void*)node);
 	ItemAdded(parent_item, child);
+	return child;
 }
 
-void MyObjectTreeModel::Delete(const wxDataViewItem &item)
+wxDataViewItem MyObjectTreeModel::Delete(const wxDataViewItem &item)
 {
+	auto ret_item = wxDataViewItem(0);
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
 	if (!node)      // happens if item.IsOk()==false
-		return;
+		return ret_item;
 
 	auto node_parent = node->GetParent();
 	wxDataViewItem parent(node_parent);
@@ -395,23 +398,37 @@ void MyObjectTreeModel::Delete(const wxDataViewItem &item)
 	// first remove the node from the parent's array of children;
 	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
 	//       thus removing the node from it doesn't result in freeing it
-	if (node_parent)
+	if (node_parent){
+		auto id = node_parent->GetChildren().Index(node);
 		node_parent->GetChildren().Remove(node);
+		if (id > 0){ 
+			if(id == node_parent->GetChildCount()) id--;
+			ret_item = wxDataViewItem(node_parent->GetChildren().Item(id));
+		}
+	}
 	else
 	{
-		auto it = m_objects.find(node);
+		auto it = find(m_objects.begin(), m_objects.end(), node);
+		auto id = it - m_objects.begin();
 		if (it != m_objects.end())
 			m_objects.erase(it);
+		if (id > 0){ 
+			if(id == m_objects.size()) id--;
+			ret_item = wxDataViewItem(m_objects[id]);
+		}
 	}
 	// free the node
 	delete node;
 
 	// set m_containet to FALSE if parent has no child
-	if (node_parent && node_parent->GetChildCount() == 0)
+	if (node_parent && node_parent->GetChildCount() == 0){
 		node_parent->m_container = false;
+		ret_item = parent;
+	}
 
 	// notify control
 	ItemDeleted(parent, item);
+	return ret_item;
 }
 
 wxString MyObjectTreeModel::GetName(const wxDataViewItem &item) const
@@ -440,11 +457,6 @@ wxString MyObjectTreeModel::GetScale(const wxDataViewItem &item) const
 
 	return node->m_scale;
 }
-
-// void MyObjectTreeModel::Delete(const wxDataViewItem &item)
-// {
-// 
-// }
 
 void MyObjectTreeModel::GetValue(wxVariant &variant, const wxDataViewItem &item, unsigned int col) const
 {
@@ -504,7 +516,7 @@ wxDataViewItem MyObjectTreeModel::GetParent(const wxDataViewItem &item) const
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
 
 	// objects nodes has no parent too
-	if (m_objects.find(node) != m_objects.end())
+	if (find(m_objects.begin(), m_objects.end(),node) != m_objects.end())
 		return wxDataViewItem(0);
 
 	return wxDataViewItem((void*)node->GetParent());
