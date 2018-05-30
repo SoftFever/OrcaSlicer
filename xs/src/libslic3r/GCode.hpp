@@ -133,6 +133,8 @@ public:
         m_last_height(GCodeAnalyzer::Default_Height),
         m_brim_done(false),
         m_second_layer_things_done(false),
+        m_default_time_estimator(GCodeTimeEstimator::Default),
+        m_silent_time_estimator(GCodeTimeEstimator::Silent),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
         {}
     ~GCode() {}
@@ -289,8 +291,9 @@ protected:
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
-    // Time estimator
-    GCodeTimeEstimator m_time_estimator;
+    // Time estimators
+    GCodeTimeEstimator m_default_time_estimator;
+    GCodeTimeEstimator m_silent_time_estimator;
 
     // Analyzer
     GCodeAnalyzer m_analyzer;

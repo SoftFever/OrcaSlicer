@@ -472,7 +472,8 @@ sub new {
                 fil_mm3 => L("Used Filament (mm³)"),
                 fil_g   => L("Used Filament (g)"),
                 cost    => L("Cost"),
-                time    => L("Estimated printing time"),
+                default_time => L("Estimated printing time (default mode)"),
+                silent_time  => L("Estimated printing time (silent mode)"),
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -1542,7 +1543,8 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
-    $self->{"print_info_time"}->SetLabel($self->{print}->estimated_print_time);
+    $self->{"print_info_default_time"}->SetLabel($self->{print}->estimated_default_print_time);
+    $self->{"print_info_silent_time"}->SetLabel($self->{print}->estimated_silent_print_time);
     $self->{"print_info_fil_m"}->SetLabel(sprintf("%.2f" , $self->{print}->total_used_filament / 1000));
     $self->{"print_info_box_show"}->(1);
 
