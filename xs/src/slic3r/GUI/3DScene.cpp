@@ -1939,6 +1939,11 @@ bool _3DScene::is_picking_enabled(wxGLCanvas* canvas)
     return s_canvas_mgr.is_picking_enabled(canvas);
 }
 
+bool _3DScene::is_moving_enabled(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_moving_enabled(canvas);
+}
+
 bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_layers_editing_allowed(canvas);
@@ -1967,6 +1972,11 @@ void _3DScene::enable_legend_texture(wxGLCanvas* canvas, bool enable)
 void _3DScene::enable_picking(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_picking(canvas, enable);
+}
+
+void _3DScene::enable_moving(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_moving(canvas, enable);
 }
 
 void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
@@ -2168,6 +2178,21 @@ void _3DScene::perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shif
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);
+}
+
+void _3DScene::register_on_double_click_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_double_click_callback(canvas, callback);
+}
+
+void _3DScene::register_on_right_click_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_right_click_callback(canvas, callback);
+}
+
+void _3DScene::register_on_select_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_select_callback(canvas, callback);
 }
 
 //void _3DScene::_glew_init()

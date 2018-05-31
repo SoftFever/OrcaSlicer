@@ -35,11 +35,8 @@ use Slic3r::Geometry qw(PI);
 # _camera_type: 'perspective' or 'ortho'
 #==============================================================================================================================
 __PACKAGE__->mk_accessors( qw(_quat init
-                              enable_moving
                               on_viewport_changed
                               on_select
-                              on_double_click
-                              on_right_click
                               on_move
                               on_model_update
                               volumes
@@ -220,9 +217,7 @@ sub new {
 #        $self->Refresh;
 #    });
 #    EVT_MOUSEWHEEL($self, \&mouse_wheel_event);
-#==============================================================================================================================
-    EVT_MOUSE_EVENTS($self, \&mouse_event);
-#==============================================================================================================================
+#    EVT_MOUSE_EVENTS($self, \&mouse_event);
 ##    EVT_KEY_DOWN($self, sub {
 #    EVT_CHAR($self, sub {
 #        my ($s, $event) = @_;
@@ -433,139 +428,97 @@ sub Destroy {
 #    # Automatic action on mouse down with the same coordinate.
 #    $self->{layer_height_edit_timer}->Start(100, wxTIMER_CONTINUOUS);
 #}
-#==============================================================================================================================
-
-sub mouse_event {
-    my ($self, $e) = @_;
-    
-    my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-#==============================================================================================================================
-    my $object_idx_selected = (Slic3r::GUI::_3DScene::is_layers_editing_enabled($self) && $self->{print}) ? Slic3r::GUI::_3DScene::get_layers_editing_first_selected_object_id($self, $self->{print}->object_count) : -1;
-    Slic3r::GUI::_3DScene::set_layers_editing_last_object_id($self, $object_idx_selected);
+#
+#sub mouse_event {
+#    my ($self, $e) = @_;
+#    
+#    my $pos = Slic3r::Pointf->new($e->GetPositionXY);
 #    my $object_idx_selected = $self->{layer_height_edit_last_object_id} = ($self->layer_editing_enabled && $self->{print}) ? $self->_first_selected_object_id_for_variable_layer_height_editing : -1;
-#==============================================================================================================================
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_mouse_dragging($self, $e->Dragging);
+#
 #    $self->_mouse_dragging($e->Dragging);
-#==============================================================================================================================
-    
-    if ($e->Entering && (&Wx::wxMSW || $^O eq 'linux')) {
-        # wxMSW needs focus in order to catch mouse wheel events
-        $self->SetFocus;
-        $self->_drag_start_xy(undef);        
-    } elsif ($e->LeftDClick) {
-#==============================================================================================================================
-        if ($object_idx_selected != -1 && Slic3r::GUI::_3DScene::bar_rect_contains($self, $e->GetX, $e->GetY)) {
+#    
+#    if ($e->Entering && (&Wx::wxMSW || $^O eq 'linux')) {
+#        # wxMSW needs focus in order to catch mouse wheel events
+#        $self->SetFocus;
+#        $self->_drag_start_xy(undef);        
+#    } elsif ($e->LeftDClick) {
 #        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
-#==============================================================================================================================
-        } elsif ($self->on_double_click) {
-            $self->on_double_click->();
-        }
-    } elsif ($e->LeftDown || $e->RightDown) {
-        # If user pressed left or right button we first check whether this happened
-        # on a volume or not.
-#==============================================================================================================================
-        my $volume_idx = Slic3r::GUI::_3DScene::get_hover_volume_id($self);
-        Slic3r::GUI::_3DScene::set_layers_editing_state($self, 0);
+#        } elsif ($self->on_double_click) {
+#            $self->on_double_click->();
+#        }
+#    } elsif ($e->LeftDown || $e->RightDown) {
+#        # If user pressed left or right button we first check whether this happened
+#        # on a volume or not.
 #        my $volume_idx = $self->_hover_volume_idx // -1;
 #        $self->_layer_height_edited(0);
-#==============================================================================================================================
-#==============================================================================================================================
-        if ($object_idx_selected != -1 && Slic3r::GUI::_3DScene::bar_rect_contains($self, $e->GetX, $e->GetY)) {
 #        if ($object_idx_selected != -1 && $self->_variable_layer_thickness_bar_rect_mouse_inside($e)) {
-#==============================================================================================================================
-            # A volume is selected and the mouse is hovering over a layer thickness bar.
-            # Start editing the layer height.
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::set_layers_editing_state($self, 1);
-            Slic3r::GUI::_3DScene::perform_layer_editing_action($self, $e->GetY, $e->ShiftDown, $e->RightIsDown);
+#            # A volume is selected and the mouse is hovering over a layer thickness bar.
+#            # Start editing the layer height.
 #            $self->_layer_height_edited(1);
 #            $self->_variable_layer_thickness_action($e);
-#==============================================================================================================================
-#==============================================================================================================================
-        } elsif ($object_idx_selected != -1 && Slic3r::GUI::_3DScene::reset_rect_contains($self, $e->GetX, $e->GetY)) {
 #        } elsif ($object_idx_selected != -1 && $self->_variable_layer_thickness_reset_rect_mouse_inside($e)) {
-#==============================================================================================================================
-            $self->{print}->get_object($object_idx_selected)->reset_layer_height_profile;
-            # Index 2 means no editing, just wait for mouse up event.
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::set_layers_editing_state($self, 2);
+#            $self->{print}->get_object($object_idx_selected)->reset_layer_height_profile;
+#            # Index 2 means no editing, just wait for mouse up event.
 #            $self->_layer_height_edited(2);
-#==============================================================================================================================
-            $self->Refresh;
-            $self->Update;
-        } else {
-            # The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate $pos->x,y,
-            # an converts the screen space coordinate to unscaled object space.
-            my $pos3d = ($volume_idx == -1) ? undef : $self->mouse_to_3d(@$pos);
-
-            # Select volume in this 3D canvas.
-            # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
-            # during the scene manipulation.
-#==============================================================================================================================
-
-#==============================================================================================================================
-            if (Slic3r::GUI::_3DScene::is_picking_enabled($self) && ($volume_idx != -1 || ! Slic3r::GUI::_3DScene::is_layers_editing_enabled($self))) {
-                Slic3r::GUI::_3DScene::deselect_volumes($self);
-                Slic3r::GUI::_3DScene::select_volume($self, $volume_idx);
+#            $self->Refresh;
+#            $self->Update;
+#        } else {
+#            # The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate $pos->x,y,
+#            # an converts the screen space coordinate to unscaled object space.
+#            my $pos3d = ($volume_idx == -1) ? undef : $self->mouse_to_3d(@$pos);
+#
+#            # Select volume in this 3D canvas.
+#            # Don't deselect a volume if layer editing is enabled. We want the object to stay selected
+#            # during the scene manipulation.
+#
 #            if ($self->enable_picking && ($volume_idx != -1 || ! $self->layer_editing_enabled)) {
 #                $self->deselect_volumes;
 #                $self->select_volume($volume_idx);
-#==============================================================================================================================
-                
-                if ($volume_idx != -1) {
-                    my $group_id = $self->volumes->[$volume_idx]->select_group_id;
-                    my @volumes;
-                    if ($group_id != -1) {
-#==============================================================================================================================
-                        Slic3r::GUI::_3DScene::select_volume($self, $_)
+#                
+#                if ($volume_idx != -1) {
+#                    my $group_id = $self->volumes->[$volume_idx]->select_group_id;
+#                    my @volumes;
+#                    if ($group_id != -1) {
 #                        $self->select_volume($_)
-#==============================================================================================================================
-                            for grep $self->volumes->[$_]->select_group_id == $group_id,
-                            0..$#{$self->volumes};
-                    }
-                }
-                
-                $self->Refresh;
-                $self->Update;
-            }
-            
-            # propagate event through callback
-            $self->on_select->($volume_idx)
-                if $self->on_select;
-            
-            if ($volume_idx != -1) {
-                if ($e->LeftDown && $self->enable_moving) {
-                    # Only accept the initial position, if it is inside the volume bounding box.
-                    my $volume_bbox = $self->volumes->[$volume_idx]->transformed_bounding_box;
-                    $volume_bbox->offset(1.);
-                    if ($volume_bbox->contains_point($pos3d)) {
-                        # The dragging operation is initiated.
-                        $self->_drag_volume_idx($volume_idx);
-                        $self->_drag_start_pos($pos3d);
-                        # Remember the shift to to the object center. The object center will later be used
-                        # to limit the object placement close to the bed.
-                        $self->_drag_volume_center_offset($pos3d->vector_to($volume_bbox->center));
-                    }
-                } elsif ($e->RightDown) {
-                    # if right clicking on volume, propagate event through callback
-                    $self->on_right_click->($e->GetPosition)
-                        if $self->on_right_click;
-                }
-            }
-        }
-#==============================================================================================================================
-    } elsif ($e->Dragging && $e->LeftIsDown && (Slic3r::GUI::_3DScene::get_layers_editing_state($self) == 0) && defined($self->_drag_volume_idx)) {
+#                            for grep $self->volumes->[$_]->select_group_id == $group_id,
+#                            0..$#{$self->volumes};
+#                    }
+#                }
+#                
+#                $self->Refresh;
+#                $self->Update;
+#            }
+#            
+#            # propagate event through callback
+#            $self->on_select->($volume_idx)
+#                if $self->on_select;
+#            
+#            if ($volume_idx != -1) {
+#                if ($e->LeftDown && $self->enable_moving) {
+#                    # Only accept the initial position, if it is inside the volume bounding box.
+#                    my $volume_bbox = $self->volumes->[$volume_idx]->transformed_bounding_box;
+#                    $volume_bbox->offset(1.);
+#                    if ($volume_bbox->contains_point($pos3d)) {
+#                        # The dragging operation is initiated.
+#                        $self->_drag_volume_idx($volume_idx);
+#                        $self->_drag_start_pos($pos3d);
+#                        # Remember the shift to to the object center. The object center will later be used
+#                        # to limit the object placement close to the bed.
+#                        $self->_drag_volume_center_offset($pos3d->vector_to($volume_bbox->center));
+#                    }
+#                } elsif ($e->RightDown) {
+#                    # if right clicking on volume, propagate event through callback
+#                    $self->on_right_click->($e->GetPosition)
+#                        if $self->on_right_click;
+#                }
+#            }
+#        }
 #    } elsif ($e->Dragging && $e->LeftIsDown && ! $self->_layer_height_edited && defined($self->_drag_volume_idx)) {
-#==============================================================================================================================
-        # Get new position at the same Z of the initial click point.
-        my $cur_pos = Slic3r::Linef3->new(
-                $self->mouse_to_3d($e->GetX, $e->GetY, 0),
-                $self->mouse_to_3d($e->GetX, $e->GetY, 1))
-            ->intersect_plane($self->_drag_start_pos->z);
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#   >>>>>>>>>>>>>>>>>>>>>>>>>> TEMPORARY DISABLED DUE TO bed_polygon REMOVAL <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+#        # Get new position at the same Z of the initial click point.
+#        my $cur_pos = Slic3r::Linef3->new(
+#                $self->mouse_to_3d($e->GetX, $e->GetY, 0),
+#                $self->mouse_to_3d($e->GetX, $e->GetY, 1))
+#            ->intersect_plane($self->_drag_start_pos->z);
 # 
 #        # Clip the new position, so the object center remains close to the bed.
 #        {
@@ -578,124 +531,96 @@ sub mouse_event {
 #            }
 #            $cur_pos->translate(@{$self->_drag_volume_center_offset->negative});
 #        }
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-        # Calculate the translation vector.
-        my $vector = $self->_drag_start_pos->vector_to($cur_pos);
-        # Get the volume being dragged.
-        my $volume = $self->volumes->[$self->_drag_volume_idx];
-        # Get all volumes belonging to the same group, if any.
-        my @volumes = ($volume->drag_group_id == -1) ?
-            ($volume) :
-            grep $_->drag_group_id == $volume->drag_group_id, @{$self->volumes};
-        # Apply new temporary volume origin and ignore Z.
-        $_->translate($vector->x, $vector->y, 0) for @volumes;
-        $self->_drag_start_pos($cur_pos);
-        $self->_dragged(1);
-        $self->Refresh;
-        $self->Update;
-    } elsif ($e->Dragging) {
-#==============================================================================================================================
-        if ((Slic3r::GUI::_3DScene::get_layers_editing_state($self) > 0) && ($object_idx_selected != -1)) {
-            Slic3r::GUI::_3DScene::perform_layer_editing_action($self, $e->GetY, $e->ShiftDown, $e->RightIsDown) if (Slic3r::GUI::_3DScene::get_layers_editing_state($self) == 1);
-                
+#        # Calculate the translation vector.
+#        my $vector = $self->_drag_start_pos->vector_to($cur_pos);
+#        # Get the volume being dragged.
+#        my $volume = $self->volumes->[$self->_drag_volume_idx];
+#        # Get all volumes belonging to the same group, if any.
+#        my @volumes = ($volume->drag_group_id == -1) ?
+#            ($volume) :
+#            grep $_->drag_group_id == $volume->drag_group_id, @{$self->volumes};
+#        # Apply new temporary volume origin and ignore Z.
+#        $_->translate($vector->x, $vector->y, 0) for @volumes;
+#        $self->_drag_start_pos($cur_pos);
+#        $self->_dragged(1);
+#        $self->Refresh;
+#        $self->Update;
+#    } elsif ($e->Dragging) {
 #        if ($self->_layer_height_edited && $object_idx_selected != -1) {
 #            $self->_variable_layer_thickness_action($e) if ($self->_layer_height_edited == 1);
-#==============================================================================================================================
-        } elsif ($e->LeftIsDown) {
-            # if dragging over blank area with left button, rotate
-            if (defined $self->_drag_start_pos) {
-                my $orig = $self->_drag_start_pos;
-                if (TURNTABLE_MODE) {
-                    # Turntable mode is enabled by default.
-#==============================================================================================================================
-                    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($self) + ($pos->x - $orig->x) * TRACKBALLSIZE);
-                    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($self) - ($pos->y - $orig->y) * TRACKBALLSIZE);
-                                       
+#        } elsif ($e->LeftIsDown) {
+#            # if dragging over blank area with left button, rotate
+#            if (defined $self->_drag_start_pos) {
+#                my $orig = $self->_drag_start_pos;
+#                if (TURNTABLE_MODE) {
+#                    # Turntable mode is enabled by default.
 #                    $self->_sphi($self->_sphi + ($pos->x - $orig->x) * TRACKBALLSIZE);
 #                    $self->_stheta($self->_stheta - ($pos->y - $orig->y) * TRACKBALLSIZE);        #-
 #                    $self->_stheta(GIMBALL_LOCK_THETA_MAX) if $self->_stheta > GIMBALL_LOCK_THETA_MAX;
 #                    $self->_stheta(0) if $self->_stheta < 0;
-#==============================================================================================================================
-                } else {
-                    my $size = $self->GetClientSize;
-                    my @quat = trackball(
-                        $orig->x / ($size->width / 2) - 1,
-                        1 - $orig->y / ($size->height / 2),       #/
-                        $pos->x / ($size->width / 2) - 1,
-                        1 - $pos->y / ($size->height / 2),        #/
-                    );
-                    $self->_quat(mulquats($self->_quat, \@quat));
-                }
-                $self->on_viewport_changed->() if $self->on_viewport_changed;
-                $self->Refresh;
-                $self->Update;
-            }
-            $self->_drag_start_pos($pos);
-        } elsif ($e->MiddleIsDown || $e->RightIsDown) {
-            # If dragging over blank area with right button, pan.
-            if (defined $self->_drag_start_xy) {
-                # get point in model space at Z = 0
-                my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
-                my $orig    = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
-#==============================================================================================================================
-                my $camera_target = Slic3r::GUI::_3DScene::get_camera_target($self);
-                $camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
-                Slic3r::GUI::_3DScene::set_camera_target($self, $camera_target);
+#                } else {
+#                    my $size = $self->GetClientSize;
+#                    my @quat = trackball(
+#                        $orig->x / ($size->width / 2) - 1,
+#                        1 - $orig->y / ($size->height / 2),       #/
+#                        $pos->x / ($size->width / 2) - 1,
+#                        1 - $pos->y / ($size->height / 2),        #/
+#                    );
+#                    $self->_quat(mulquats($self->_quat, \@quat));
+#                }
+#                $self->on_viewport_changed->() if $self->on_viewport_changed;
+#                $self->Refresh;
+#                $self->Update;
+#            }
+#            $self->_drag_start_pos($pos);
+#        } elsif ($e->MiddleIsDown || $e->RightIsDown) {
+#            # If dragging over blank area with right button, pan.
+#            if (defined $self->_drag_start_xy) {
+#                # get point in model space at Z = 0
+#                my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
+#                my $orig    = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
 #                $self->_camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
-#==============================================================================================================================
-                $self->on_viewport_changed->() if $self->on_viewport_changed;
-                $self->Refresh;
-                $self->Update;
-            }
-            $self->_drag_start_xy($pos);
-        }
-    } elsif ($e->LeftUp || $e->MiddleUp || $e->RightUp) {
-#==============================================================================================================================
-        if (Slic3r::GUI::_3DScene::get_layers_editing_state($self) > 0) {
-            Slic3r::GUI::_3DScene::set_layers_editing_state($self, 0);
-            Slic3r::GUI::_3DScene::stop_timer($self);
+#                $self->on_viewport_changed->() if $self->on_viewport_changed;
+#                $self->Refresh;
+#                $self->Update;
+#            }
+#            $self->_drag_start_xy($pos);
+#        }
+#    } elsif ($e->LeftUp || $e->MiddleUp || $e->RightUp) {
 #        if ($self->_layer_height_edited) {
 #            $self->_layer_height_edited(undef);
 #            $self->{layer_height_edit_timer}->Stop;
-#==============================================================================================================================
-            $self->on_model_update->()
-                if ($object_idx_selected != -1 && $self->on_model_update);
-        } elsif ($self->on_move && defined($self->_drag_volume_idx) && $self->_dragged) {
-            # get all volumes belonging to the same group, if any
-            my @volume_idxs;
-            my $group_id = $self->volumes->[$self->_drag_volume_idx]->drag_group_id;
-            if ($group_id == -1) {
-                @volume_idxs = ($self->_drag_volume_idx);
-            } else {
-                @volume_idxs = grep $self->volumes->[$_]->drag_group_id == $group_id,
-                    0..$#{$self->volumes};
-            }
-            $self->on_move->(@volume_idxs);
-        }
-        $self->_drag_volume_idx(undef);
-        $self->_drag_start_pos(undef);
-        $self->_drag_start_xy(undef);
-        $self->_dragged(undef);
-    } elsif ($e->Moving) {
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::set_mouse_position($self, $pos);
+#            $self->on_model_update->()
+#                if ($object_idx_selected != -1 && $self->on_model_update);
+#        } elsif ($self->on_move && defined($self->_drag_volume_idx) && $self->_dragged) {
+#            # get all volumes belonging to the same group, if any
+#            my @volume_idxs;
+#            my $group_id = $self->volumes->[$self->_drag_volume_idx]->drag_group_id;
+#            if ($group_id == -1) {
+#                @volume_idxs = ($self->_drag_volume_idx);
+#            } else {
+#                @volume_idxs = grep $self->volumes->[$_]->drag_group_id == $group_id,
+#                    0..$#{$self->volumes};
+#            }
+#            $self->on_move->(@volume_idxs);
+#        }
+#        $self->_drag_volume_idx(undef);
+#        $self->_drag_start_pos(undef);
+#        $self->_drag_start_xy(undef);
+#        $self->_dragged(undef);
+#    } elsif ($e->Moving) {
 #        $self->_mouse_pos($pos);
-#==============================================================================================================================
-        # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
-        # hovers over.
-#==============================================================================================================================
-        if (Slic3r::GUI::_3DScene::is_picking_enabled($self)) {
+#        # Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor
+#        # hovers over.
 #        if ($self->enable_picking) {
-#==============================================================================================================================
-            $self->Update;
-            $self->Refresh;
-        }
-    } else {
-        $e->Skip();
-    }
-}
-
-#==============================================================================================================================
+#            $self->Update;
+#            $self->Refresh;
+#        }
+#    } else {
+#        $e->Skip();
+#    }
+#}
+#
 #sub mouse_wheel_event {
 #    my ($self, $e) = @_;
 #
@@ -1165,23 +1090,25 @@ sub mulquats {
             @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
 }
 
-# Convert the screen space coordinate to an object space coordinate.
-# If the Z screen space coordinate is not provided, a depth buffer value is substituted.
-sub mouse_to_3d {
-    my ($self, $x, $y, $z) = @_;
-
-    return unless $self->GetContext;
-    $self->SetCurrent($self->GetContext);
-
-    my @viewport    = glGetIntegerv_p(GL_VIEWPORT);             # 4 items
-    my @mview       = glGetDoublev_p(GL_MODELVIEW_MATRIX);      # 16 items
-    my @proj        = glGetDoublev_p(GL_PROJECTION_MATRIX);     # 16 items
-    
-    $y = $viewport[3] - $y;
-    $z //= glReadPixels_p($x, $y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT);
-    my @projected = gluUnProject_p($x, $y, $z, @mview, @proj, @viewport);
-    return Slic3r::Pointf3->new(@projected);
-}
+#==============================================================================================================================
+## Convert the screen space coordinate to an object space coordinate.
+## If the Z screen space coordinate is not provided, a depth buffer value is substituted.
+#sub mouse_to_3d {
+#    my ($self, $x, $y, $z) = @_;
+#
+#    return unless $self->GetContext;
+#    $self->SetCurrent($self->GetContext);
+#
+#    my @viewport    = glGetIntegerv_p(GL_VIEWPORT);             # 4 items
+#    my @mview       = glGetDoublev_p(GL_MODELVIEW_MATRIX);      # 16 items
+#    my @proj        = glGetDoublev_p(GL_PROJECTION_MATRIX);     # 16 items
+#    
+#    $y = $viewport[3] - $y;
+#    $z //= glReadPixels_p($x, $y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT);
+#    my @projected = gluUnProject_p($x, $y, $z, @mview, @proj, @viewport);
+#    return Slic3r::Pointf3->new(@projected);
+#}
+#==============================================================================================================================
 
 sub GetContext {
     my ($self) = @_;

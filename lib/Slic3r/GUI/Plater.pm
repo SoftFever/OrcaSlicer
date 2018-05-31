@@ -84,13 +84,19 @@ sub new {
         $self->object_settings_dialog if $self->selected_object;
     };
     my $on_right_click = sub {
-        my ($canvas, $click_pos) = @_;
-        
+#==============================================================================================================================
+        my ($canvas, $click_pos_x, $click_pos_y) = @_;
+#        my ($canvas, $click_pos) = @_;
+#==============================================================================================================================
+
         my ($obj_idx, $object) = $self->selected_object;
         return if !defined $obj_idx;
         
         my $menu = $self->object_menu;
-        $canvas->PopupMenu($menu, $click_pos);
+#==============================================================================================================================
+        $canvas->PopupMenu($menu, $click_pos_x, $click_pos_y);
+#        $canvas->PopupMenu($menu, $click_pos);
+#==============================================================================================================================
         $menu->Destroy;
     };
     my $on_instances_moved = sub {
@@ -111,8 +117,12 @@ sub new {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, L('3D'));
         $self->{canvas3D}->set_on_select_object($on_select_object);
-        $self->{canvas3D}->set_on_double_click($on_double_click);
-        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
+        Slic3r::GUI::_3DScene::register_on_right_click_callback($self->{canvas3D}, sub { $on_right_click->($self->{canvas3D}, @_); });
+#        $self->{canvas3D}->set_on_double_click($on_double_click);
+#        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+#==============================================================================================================================
         $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
         $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
         $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });

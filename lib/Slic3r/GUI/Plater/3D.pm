@@ -21,9 +21,10 @@ sub new {
     my $self = $class->SUPER::new($parent);
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::enable_picking($self, 1);
+    Slic3r::GUI::_3DScene::enable_moving($self, 1);
 #    $self->enable_picking(1);
+#    $self->enable_moving(1);
 #==============================================================================================================================
-    $self->enable_moving(1);
     $self->select_by('object');
     $self->drag_by('instance');
     
@@ -46,6 +47,9 @@ sub new {
         $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
             if ($self->{on_select_object});
     });
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::register_on_select_callback($self, $self->on_select);
+#==============================================================================================================================
     $self->on_move(sub {
         my @volume_idxs = @_;
         
@@ -125,15 +129,17 @@ sub set_on_select_object {
     $self->{on_select_object} = $cb;
 }
 
-sub set_on_double_click {
-    my ($self, $cb) = @_;
-    $self->on_double_click($cb);
-}
-
-sub set_on_right_click {
-    my ($self, $cb) = @_;
-    $self->on_right_click($cb);
-}
+#==============================================================================================================================
+#sub set_on_double_click {
+#    my ($self, $cb) = @_;
+#    $self->on_double_click($cb);
+#}
+#
+#sub set_on_right_click {
+#    my ($self, $cb) = @_;
+#    $self->on_right_click($cb);
+#}
+#==============================================================================================================================
 
 sub set_on_arrange {
     my ($self, $cb) = @_;

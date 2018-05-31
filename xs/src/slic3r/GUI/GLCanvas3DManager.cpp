@@ -78,6 +78,18 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
     canvas->Bind(wxEVT_MOUSEWHEEL, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse_wheel(evt); });
     canvas->Bind(wxEVT_TIMER, [canvas3D](wxTimerEvent& evt) { canvas3D->on_timer(evt); });
+    canvas->Bind(wxEVT_LEFT_DOWN, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_LEFT_UP, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_MIDDLE_DOWN, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_MIDDLE_UP, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_RIGHT_DOWN, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_RIGHT_UP, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_MOTION, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_ENTER_WINDOW, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_LEAVE_WINDOW, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_LEFT_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_MIDDLE_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_RIGHT_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
 
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
@@ -384,6 +396,12 @@ bool GLCanvas3DManager::is_picking_enabled(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_picking_enabled() : false;
 }
 
+bool GLCanvas3DManager::is_moving_enabled(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_moving_enabled() : false;
+}
+
 bool GLCanvas3DManager::is_layers_editing_allowed(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -422,6 +440,13 @@ void GLCanvas3DManager::enable_picking(wxGLCanvas* canvas, bool enable)
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->enable_picking(enable);
+}
+
+void GLCanvas3DManager::enable_moving(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_moving(enable);
 }
 
 void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
@@ -690,6 +715,27 @@ void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_viewport_changed_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_double_click_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_double_click_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_right_click_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_right_click_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_select_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_select_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

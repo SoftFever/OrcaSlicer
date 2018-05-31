@@ -598,6 +598,7 @@ public:
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
     static bool is_picking_enabled(wxGLCanvas* canvas);
+    static bool is_moving_enabled(wxGLCanvas* canvas);
     static bool is_layers_editing_allowed(wxGLCanvas* canvas);
     static bool is_multisample_allowed(wxGLCanvas* canvas);
 
@@ -605,6 +606,7 @@ public:
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
     static void enable_legend_texture(wxGLCanvas* canvas, bool enable);
     static void enable_picking(wxGLCanvas* canvas, bool enable);
+    static void enable_moving(wxGLCanvas* canvas, bool enable);
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
 
@@ -663,6 +665,9 @@ public:
     static void perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_select_callback(wxGLCanvas* canvas, void* callback);
 
 //    static void _glew_init();
 //##################################################################################################################

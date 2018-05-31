@@ -306,6 +306,29 @@ public:
         void set_position(const Pointf& position);
     };
 
+    class Drag
+    {
+        Point m_start_mouse_position;
+        Pointf3 m_start_position_3D;
+        Vectorf3 m_volume_center_offset;
+        int m_volume_idx;
+        
+    public:
+        Drag();
+
+        const Point& get_start_mouse_position() const;
+        void set_start_mouse_position(const Point& mouse_position);
+
+        const Pointf3& get_start_position_3D() const;
+        void set_start_position_3D(const Pointf3& position);
+
+        const Vectorf3& get_volume_center_offset() const;
+        void set_volume_center_offset(const Vectorf3& offset);
+
+        int get_volume_idx() const;
+        void set_volume_idx(int idx);
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
@@ -317,6 +340,7 @@ private:
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
+    Drag m_drag;
 
     GLVolumeCollection* m_volumes;
     DynamicPrintConfig* m_config;
@@ -328,10 +352,14 @@ private:
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
+    bool m_moving_enabled;
     bool m_shader_enabled;
     bool m_multisample_allowed;
 
     PerlCallback m_on_viewport_changed_callback;
+    PerlCallback m_on_double_click_callback;
+    PerlCallback m_on_right_click_callback;
+    PerlCallback m_on_select_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -398,6 +426,7 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_picking_enabled() const;
+    bool is_moving_enabled() const;
     bool is_layers_editing_allowed() const;
     bool is_multisample_allowed() const;
 
@@ -405,6 +434,7 @@ public:
     void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
+    void enable_moving(bool enable);
     void enable_shader(bool enable);
     void allow_multisample(bool allow);
 
@@ -459,12 +489,16 @@ public:
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);
+    void register_on_double_click_callback(void* callback);
+    void register_on_right_click_callback(void* callback);
+    void register_on_select_callback(void* callback);
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
+    void on_mouse(wxMouseEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;
@@ -494,6 +528,10 @@ private:
     void _render_layer_editing_overlay() const;
 
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
+
+    // Convert the screen space coordinate to an object space coordinate.
+    // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
+    Pointf3 _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
 };
 
 } // namespace GUI
