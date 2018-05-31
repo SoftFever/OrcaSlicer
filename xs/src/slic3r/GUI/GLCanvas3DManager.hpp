@@ -113,9 +113,6 @@ public:
     bool is_mouse_dragging(wxGLCanvas* canvas) const;
     void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
 
-    Pointf get_mouse_position(wxGLCanvas* canvas) const;
-    void set_mouse_position(wxGLCanvas* canvas, const Pointf& position);
-
     int get_hover_volume_id(wxGLCanvas* canvas) const;
     void set_hover_volume_id(wxGLCanvas* canvas, int id);
 
@@ -168,6 +165,8 @@ public:
     void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
     void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
     void register_on_select_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_move_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

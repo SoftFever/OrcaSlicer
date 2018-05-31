@@ -143,7 +143,8 @@ sub new {
             $cfg->set('wipe_tower_y', $new_pos_3f->y);
             $self->GetFrame->{options_tabs}{print}->load_config($cfg);
         });
-        $self->{canvas3D}->set_on_model_update(sub {
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_model_update_callback($self->{canvas3D}, sub {
             if (wxTheApp->{app_config}->get("background_processing")) {
                 $self->schedule_background_process;
             } else {
@@ -151,6 +152,16 @@ sub new {
                 $self->{"print_info_box_show"}->(0);
             }
         });
+        
+#        $self->{canvas3D}->set_on_model_update(sub {
+#            if (wxTheApp->{app_config}->get("background_processing")) {
+#                $self->schedule_background_process;
+#            } else {
+#                # Hide the print info box, it is no more valid.
+#                $self->{"print_info_box_show"}->(0);
+#            }
+#        });
+#==============================================================================================================================
         $self->{canvas3D}->on_viewport_changed(sub {
 #==============================================================================================================================
             Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});

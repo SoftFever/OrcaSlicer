@@ -555,21 +555,6 @@ set_mouse_dragging(canvas, dragging)
     CODE:
         _3DScene::set_mouse_dragging((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), dragging);
 
-Clone<Pointf>
-get_mouse_position(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_mouse_position((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_mouse_position(canvas, position)
-        SV     *canvas;
-        Pointf *position;
-    CODE:
-        _3DScene::set_mouse_position((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), position);
-
 int
 get_hover_volume_id(canvas)
         SV *canvas;
@@ -846,7 +831,21 @@ register_on_select_callback(canvas, callback)
         SV *callback;
     CODE:
         _3DScene::register_on_select_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-    
+
+void
+register_on_model_update_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_model_update_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_move_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_move_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+        
     
 unsigned int
 finalize_legend_texture()

@@ -476,19 +476,6 @@ void GLCanvas3DManager::set_mouse_dragging(wxGLCanvas* canvas, bool dragging)
         it->second->set_mouse_dragging(dragging);
 }
 
-Pointf GLCanvas3DManager::get_mouse_position(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_mouse_position() : Pointf();
-}
-
-void GLCanvas3DManager::set_mouse_position(wxGLCanvas* canvas, const Pointf& position)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_mouse_position(position);
-}
-
 int GLCanvas3DManager::get_hover_volume_id(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -736,6 +723,20 @@ void GLCanvas3DManager::register_on_select_callback(wxGLCanvas* canvas, void* ca
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_select_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_model_update_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_model_update_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_move_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_move_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

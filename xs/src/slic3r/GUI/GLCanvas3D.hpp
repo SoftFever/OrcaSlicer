@@ -136,6 +136,8 @@ public:
         void set_shape(const Pointfs& shape);
 
         const BoundingBoxf3& get_bounding_box() const;
+        bool contains(const Point& point) const;
+        Point point_projection(const Point& point) const;
 
         void render() const;
 
@@ -308,7 +310,7 @@ public:
 
     class Drag
     {
-        Point m_start_mouse_position;
+        Point m_start_position_2D;
         Pointf3 m_start_position_3D;
         Vectorf3 m_volume_center_offset;
         int m_volume_idx;
@@ -316,8 +318,8 @@ public:
     public:
         Drag();
 
-        const Point& get_start_mouse_position() const;
-        void set_start_mouse_position(const Point& mouse_position);
+        const Point& get_start_position_2D() const;
+        void set_start_position_2D(const Point& position);
 
         const Pointf3& get_start_position_3D() const;
         void set_start_position_3D(const Pointf3& position);
@@ -360,6 +362,8 @@ private:
     PerlCallback m_on_double_click_callback;
     PerlCallback m_on_right_click_callback;
     PerlCallback m_on_select_callback;
+    PerlCallback m_on_model_update_callback;
+    PerlCallback m_on_move_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -492,6 +496,8 @@ public:
     void register_on_double_click_callback(void* callback);
     void register_on_right_click_callback(void* callback);
     void register_on_select_callback(void* callback);
+    void register_on_model_update_callback(void* callback);
+    void register_on_move_callback(void* callback);
 
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);

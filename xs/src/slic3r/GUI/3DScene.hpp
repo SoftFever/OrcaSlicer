@@ -613,9 +613,6 @@ public:
     static bool is_mouse_dragging(wxGLCanvas* canvas);
     static void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
 
-    static Pointf get_mouse_position(wxGLCanvas* canvas);
-    static void set_mouse_position(wxGLCanvas* canvas, const Pointf* position);
-
     static int get_hover_volume_id(wxGLCanvas* canvas);
     static void set_hover_volume_id(wxGLCanvas* canvas, int id);
 
@@ -668,6 +665,8 @@ public:
     static void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_select_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_move_callback(wxGLCanvas* canvas, void* callback);
 
 //    static void _glew_init();
 //##################################################################################################################

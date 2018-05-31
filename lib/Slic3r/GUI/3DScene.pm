@@ -37,8 +37,6 @@ use Slic3r::Geometry qw(PI);
 __PACKAGE__->mk_accessors( qw(_quat init
                               on_viewport_changed
                               on_select
-                              on_move
-                              on_model_update
                               volumes
 
                               _drag_volume_idx

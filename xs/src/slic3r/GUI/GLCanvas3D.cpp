@@ -301,6 +301,16 @@ const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
     return m_bounding_box;
 }
 
+bool GLCanvas3D::Bed::contains(const Point& point) const
+{
+    return m_polygon.contains(point);
+}
+
+Point GLCanvas3D::Bed::point_projection(const Point& point) const
+{
+    return m_polygon.point_projection(point);
+}
+
 void GLCanvas3D::Bed::render() const
 {
     unsigned int triangles_vcount = m_triangles.get_data_size() / 3;
@@ -1049,19 +1059,19 @@ void GLCanvas3D::Mouse::set_position(const Pointf& position)
 }
 
 GLCanvas3D::Drag::Drag()
-    : m_start_mouse_position(DBL_MAX, DBL_MAX)
+    : m_start_position_2D(INT_MAX, INT_MAX)
     , m_volume_idx(-1)
 {
 }
 
-const Point& GLCanvas3D::Drag::get_start_mouse_position() const
+const Point& GLCanvas3D::Drag::get_start_position_2D() const
 {
-    return m_start_mouse_position;
+    return m_start_position_2D;
 }
 
-void GLCanvas3D::Drag::set_start_mouse_position(const Point& position)
+void GLCanvas3D::Drag::set_start_position_2D(const Point& position)
 {
-    m_start_mouse_position = position;
+    m_start_position_2D = position;
 }
 
 const Pointf3& GLCanvas3D::Drag::get_start_position_3D() const
@@ -1843,6 +1853,18 @@ void GLCanvas3D::register_on_select_callback(void* callback)
         m_on_select_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_on_model_update_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_model_update_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_move_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_move_callback.register_callback(callback);
+}
+
 void GLCanvas3D::on_size(wxSizeEvent& evt)
 {
     set_dirty(true);
@@ -1954,14 +1976,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = (is_layers_editing_enabled() && (m_print != nullptr)) ? get_layers_editing_first_selected_object_id(m_print->objects.size()) : -1;
     set_layers_editing_last_object_id(selected_object_idx);
 
-    set_mouse_dragging(evt.Dragging());
+//    set_mouse_dragging(false);
 
     if (evt.Entering())
     {
 #if defined(__WXMSW__) || defined(__WXGTK__)
         // On Windows and Linux needs focus in order to catch key events
         m_canvas->SetFocus();
-        m_drag.set_start_mouse_position(Point(INT_MAX, INT_MAX));
+        m_drag.set_start_position_2D(Point(INT_MAX, INT_MAX));
 #endif
     } 
     else if (evt.LeftDClick())
@@ -1979,7 +2001,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // A volume is selected and the mouse is inside the layer thickness bar.
             // Start editing the layer height.
             set_layers_editing_state(1);
-            perform_layer_editing_action(evt.GetY(), evt.ShiftDown(), evt.RightDown());
+            perform_layer_editing_action(pos.y, evt.ShiftDown(), evt.RightDown());
         }
         else if ((selected_object_idx != -1) && reset_rect_contains(pos.x, pos.y))
         {
@@ -2056,105 +2078,136 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-//    } elsif($e->Dragging && $e->LeftIsDown && (Slic3r::GUI::_3DScene::get_layers_editing_state($self) == 0) && defined($self->_drag_volume_idx)) {
-//        # Get new position at the same Z of the initial click point.
-//        my $cur_pos = Slic3r::Linef3->new(
-//            $self->mouse_to_3d($e->GetX, $e->GetY, 0),
-//            $self->mouse_to_3d($e->GetX, $e->GetY, 1))
-//            ->intersect_plane($self->_drag_start_pos->z);
-//
-//        # Clip the new position, so the object center remains close to the bed.
-//        {
-//            $cur_pos->translate(@{$self->_drag_volume_center_offset});
-//            my $cur_pos2 = Slic3r::Point->new(scale($cur_pos->x), scale($cur_pos->y));
-//            if (!$self->bed_polygon->contains_point($cur_pos2)) {
-//                my $ip = $self->bed_polygon->point_projection($cur_pos2);
-//                $cur_pos->set_x(unscale($ip->x));
-//                $cur_pos->set_y(unscale($ip->y));
-//            }
-//            $cur_pos->translate(@{$self->_drag_volume_center_offset->negative});
-//        }
-//
-//        # Calculate the translation vector.
-//        my $vector = $self->_drag_start_pos->vector_to($cur_pos);
-//        # Get the volume being dragged.
-//        my $volume = $self->volumes->[$self->_drag_volume_idx];
-//        # Get all volumes belonging to the same group, if any.
-//        my @volumes = ($volume->drag_group_id == -1) ?
-//            ($volume) :
-//            grep $_->drag_group_id == $volume->drag_group_id, @{$self->volumes};
-//        # Apply new temporary volume origin and ignore Z.
-//        $_->translate($vector->x, $vector->y, 0) for @volumes;
-//        $self->_drag_start_pos($cur_pos);
-//        $self->_dragged(1);
-//        $self->Refresh;
-//        $self->Update;
-//    } elsif($e->Dragging) {
-//        if ((Slic3r::GUI::_3DScene::get_layers_editing_state($self) > 0) && ($object_idx_selected != -1)) {
-//            Slic3r::GUI::_3DScene::perform_layer_editing_action($self, $e->GetY, $e->ShiftDown, $e->RightIsDown) if (Slic3r::GUI::_3DScene::get_layers_editing_state($self) == 1);
-//        } elsif($e->LeftIsDown) {
-//# if dragging over blank area with left button, rotate
-//            if (defined $self->_drag_start_pos) {
-//                my $orig = $self->_drag_start_pos;
-//                if (TURNTABLE_MODE) {
-//                    # Turntable mode is enabled by default.
-//                    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($self) + ($pos->x - $orig->x) * TRACKBALLSIZE);
-//                    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($self) - ($pos->y - $orig->y) * TRACKBALLSIZE);
-//                }
-//                else {
-//                    my $size = $self->GetClientSize;
-//                    my @quat = trackball(
-//                        $orig->x / ($size->width / 2) - 1,
-//                        1 - $orig->y / ($size->height / 2), # /
-//                        $pos->x / ($size->width / 2) - 1,
-//                        1 - $pos->y / ($size->height / 2), # /
-//                        );
-//                    $self->_quat(mulquats($self->_quat, \@quat));
-//                }
-//                $self->on_viewport_changed->() if $self->on_viewport_changed;
-//                $self->Refresh;
-//                $self->Update;
-//            }
-//            $self->_drag_start_pos($pos);
-//        } elsif($e->MiddleIsDown || $e->RightIsDown) {
-//            # If dragging over blank area with right button, pan.
-//            if (defined $self->_drag_start_xy) {
-//                # get point in model space at Z = 0
-//                my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
-//                my $orig = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
-//                my $camera_target = Slic3r::GUI::_3DScene::get_camera_target($self);
-//                $camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
-//                Slic3r::GUI::_3DScene::set_camera_target($self, $camera_target);
-//                $self->on_viewport_changed->() if $self->on_viewport_changed;
-//                $self->Refresh;
-//                $self->Update;
-//            }
-//            $self->_drag_start_xy($pos);
-//        }
-//    } elsif($e->LeftUp || $e->MiddleUp || $e->RightUp) {
-//        if (Slic3r::GUI::_3DScene::get_layers_editing_state($self) > 0) {
-//            Slic3r::GUI::_3DScene::set_layers_editing_state($self, 0);
-//            Slic3r::GUI::_3DScene::stop_timer($self);
-//            $self->on_model_update->()
-//                if ($object_idx_selected != -1 && $self->on_model_update);
-//        } elsif($self->on_move && defined($self->_drag_volume_idx) && $self->_dragged) {
-//            # get all volumes belonging to the same group, if any
-//            my @volume_idxs;
-//            my $group_id = $self->volumes->[$self->_drag_volume_idx]->drag_group_id;
-//            if ($group_id == -1) {
-//                @volume_idxs = ($self->_drag_volume_idx);
-//            }
-//            else {
-//                @volume_idxs = grep $self->volumes->[$_]->drag_group_id == $group_id,
-//                    0..$#{$self->volumes};
-//            }
-//            $self->on_move->(@volume_idxs);
-//        }
-//        $self->_drag_volume_idx(undef);
-//        $self->_drag_start_pos(undef);
-//        $self->_drag_start_xy(undef);
-//        $self->_dragged(undef);
-//    }
+    else if (evt.Dragging() && evt.LeftIsDown() && (get_layers_editing_state() == 0) && (m_drag.get_volume_idx() != -1))
+    {
+        // Get new position at the same Z of the initial click point.
+        float z0 = 0.0f;
+        float z1 = 1.0f;
+        Pointf3 cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_drag.get_start_position_3D().z);
+
+        // Clip the new position, so the object center remains close to the bed.
+        cur_pos.translate(m_drag.get_volume_center_offset());
+        Point cur_pos2(scale_(cur_pos.x), scale_(cur_pos.y));
+        if (!m_bed.contains(cur_pos2))
+        {
+            Point ip = m_bed.point_projection(cur_pos2);
+            cur_pos.x = unscale(ip.x);
+            cur_pos.y = unscale(ip.y);
+        }
+        cur_pos.translate(m_drag.get_volume_center_offset().negative());
+
+        // Calculate the translation vector.
+        Vectorf3 vector = m_drag.get_start_position_3D().vector_to(cur_pos);
+        // Get the volume being dragged.
+        GLVolume* volume = m_volumes->volumes[m_drag.get_volume_idx()];
+        // Get all volumes belonging to the same group, if any.
+        std::vector<GLVolume*> volumes;
+        if (volume->drag_group_id == -1)
+            volumes.push_back(volume);
+        else
+        {
+            for (GLVolume* v : m_volumes->volumes)
+            {
+                if ((v != nullptr) && (v->drag_group_id == volume->drag_group_id))
+                    volumes.push_back(v);
+            }
+        }
+
+        // Apply new temporary volume origin and ignore Z.
+        for (GLVolume* v : volumes)
+        {
+            v->origin.translate(vector.x, vector.y, 0.0);
+        }
+
+        m_drag.set_start_position_3D(cur_pos);
+        set_mouse_dragging(true);
+        m_canvas->Refresh();
+        m_canvas->Update();
+    }
+    else if (evt.Dragging())
+    {
+        if ((get_layers_editing_state() > 0) && (selected_object_idx != -1))
+        {
+            if (get_layers_editing_state() == 1)
+                perform_layer_editing_action(pos.y, evt.ShiftDown(), evt.RightIsDown());
+        }
+        //        } elsif($e->LeftIsDown) {
+        //# if dragging over blank area with left button, rotate
+        //            if (defined $self->_drag_start_pos) {
+        //                my $orig = $self->_drag_start_pos;
+        //                if (TURNTABLE_MODE) {
+        //                    # Turntable mode is enabled by default.
+        //                    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($self) + ($pos->x - $orig->x) * TRACKBALLSIZE);
+        //                    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($self) - ($pos->y - $orig->y) * TRACKBALLSIZE);
+        //                }
+        //                else {
+        //                    my $size = $self->GetClientSize;
+        //                    my @quat = trackball(
+        //                        $orig->x / ($size->width / 2) - 1,
+        //                        1 - $orig->y / ($size->height / 2), # /
+        //                        $pos->x / ($size->width / 2) - 1,
+        //                        1 - $pos->y / ($size->height / 2), # /
+        //                        );
+        //                    $self->_quat(mulquats($self->_quat, \@quat));
+        //                }
+        //                $self->on_viewport_changed->() if $self->on_viewport_changed;
+        //                $self->Refresh;
+        //                $self->Update;
+        //            }
+        //            $self->_drag_start_pos($pos);
+        //        } elsif($e->MiddleIsDown || $e->RightIsDown) {
+        //            # If dragging over blank area with right button, pan.
+        //            if (defined $self->_drag_start_xy) {
+        //                # get point in model space at Z = 0
+        //                my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
+        //                my $orig = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
+        //                my $camera_target = Slic3r::GUI::_3DScene::get_camera_target($self);
+        //                $camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
+        //                Slic3r::GUI::_3DScene::set_camera_target($self, $camera_target);
+        //                $self->on_viewport_changed->() if $self->on_viewport_changed;
+        //                $self->Refresh;
+        //                $self->Update;
+        //            }
+        //            $self->_drag_start_xy($pos);
+        //        }
+    }
+    else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
+    {
+        if (get_layers_editing_state() > 0)
+        {
+            set_layers_editing_state(0);
+            stop_timer();
+
+            if (selected_object_idx != -1)
+                m_on_model_update_callback.call();
+        }
+        else if ((m_drag.get_volume_idx() != -1) && m_mouse.is_dragging())
+        {
+            // get all volumes belonging to the same group, if any
+            std::vector<int> volume_idxs;
+            int vol_id = m_drag.get_volume_idx();
+            int group_id = m_volumes->volumes[vol_id]->drag_group_id;
+            if (group_id == -1)
+            {
+                volume_idxs.push_back(vol_id);
+            }
+            else
+            {
+                for (int i = 0; i < m_volumes->volumes.size(); ++i)
+                {
+                    if (m_volumes->volumes[i]->drag_group_id == group_id)
+                        volume_idxs.push_back(i);
+                }
+            }
+            
+            m_on_move_callback.call(volume_idxs);
+        }
+        
+        m_drag.set_volume_idx(-1);
+        m_drag.set_start_position_3D(Pointf3(DBL_MAX, DBL_MAX, DBL_MAX));
+        m_drag.set_start_position_2D(Point(INT_MAX, INT_MAX));
+        set_mouse_dragging(false);
+    }
     else if (evt.Moving())
     {
         set_mouse_position(Pointf((coordf_t)pos.x, (coordf_t)pos.y));
@@ -2300,6 +2353,8 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_double_click_callback.deregister_callback();
     m_on_right_click_callback.deregister_callback();
     m_on_select_callback.deregister_callback();
+    m_on_model_update_callback.deregister_callback();
+    m_on_move_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -2655,12 +2710,12 @@ Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     GLint y = viewport[3] - (GLint)mouse_pos.y;
     GLfloat mouse_z;
     if (z == nullptr)
-        ::glReadPixels((GLint)mouse_pos.x, (GLint)mouse_pos.y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z);
+        ::glReadPixels((GLint)mouse_pos.x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z);
     else
         mouse_z = *z;
 
     GLdouble out_x, out_y, out_z;
-    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)mouse_pos.y, mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
+    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
     return Pointf3((coordf_t)out_x, (coordf_t)out_y, (coordf_t)out_z);
 }
 

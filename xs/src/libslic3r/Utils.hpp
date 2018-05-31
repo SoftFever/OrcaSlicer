@@ -95,7 +95,7 @@ public:
     void call() const;
     void call(int i) const;
     void call(int i, int j) const;
-    //    void call(const std::vector<int> &ints);
+    void call(const std::vector<int>& ints) const;
 //    void call();
 //    void call(int i);
 //    void call(int i, int j);

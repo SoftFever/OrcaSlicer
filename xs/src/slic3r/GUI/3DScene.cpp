@@ -1999,17 +1999,6 @@ void _3DScene::set_mouse_dragging(wxGLCanvas* canvas, bool dragging)
     s_canvas_mgr.set_mouse_dragging(canvas, dragging);
 }
 
-Pointf _3DScene::get_mouse_position(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_mouse_position(canvas);
-}
-
-void _3DScene::set_mouse_position(wxGLCanvas* canvas, const Pointf* position)
-{
-    if (position != nullptr)
-        s_canvas_mgr.set_mouse_position(canvas, *position);
-}
-
 int _3DScene::get_hover_volume_id(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_hover_volume_id(canvas);
@@ -2193,6 +2182,16 @@ void _3DScene::register_on_right_click_callback(wxGLCanvas* canvas, void* callba
 void _3DScene::register_on_select_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_select_callback(canvas, callback);
+}
+
+void _3DScene::register_on_model_update_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_model_update_callback(canvas, callback);
+}
+
+void _3DScene::register_on_move_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_move_callback(canvas, callback);
 }
 
 //void _3DScene::_glew_init()

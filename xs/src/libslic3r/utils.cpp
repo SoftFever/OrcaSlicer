@@ -238,9 +238,8 @@ void PerlCallback::call(int i, int j) const
     LEAVE;
 }
 
-/*
 //##############################################################################################################
-void PerlCallback::call(const std::vector<int> &ints) const
+void PerlCallback::call(const std::vector<int>& ints) const
 //void PerlCallback::call(const std::vector<int> &ints)
 //##############################################################################################################
 {
@@ -250,16 +249,22 @@ void PerlCallback::call(const std::vector<int> &ints) const
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    AV* av = newAV();
+//##############################################################################################################
     for (int i : ints)
-        av_push(av, newSViv(i));
-    XPUSHs(av);
+    {
+        XPUSHs(sv_2mortal(newSViv(i)));
+    }
+
+//    AV* av = newAV();
+//    for (int i : ints)
+//        av_push(av, newSViv(i));
+//    XPUSHs(av);
+//##############################################################################################################
     PUTBACK;
     perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
     FREETMPS;
     LEAVE;
 }
-*/
 
 #ifdef WIN32
     #ifndef NOMINMAX
