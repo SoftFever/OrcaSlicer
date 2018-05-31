@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <algorithm>
 
 #include "WipeTower.hpp"
 

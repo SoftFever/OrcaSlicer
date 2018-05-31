@@ -91,20 +91,12 @@ public:
         return 0.;        
     }
 
-    void set_extruder_override(int extruder) {
-        extruder_override = extruder;
-        for (auto& member : entities) {
-            if (member->is_collection())
-                dynamic_cast<ExtrusionEntityCollection*>(member)->set_extruder_override(extruder);
-        }
+    void set_extruder_override(unsigned int copy, int extruder) {
+        for (ExtrusionEntity* member : entities)
+            member->set_entity_extruder_override(copy, extruder);
     }
-    int get_extruder_override() const { return extruder_override; }
-    bool is_extruder_overridden() const { return extruder_override != -1; }
-
-
-private:
-    // Set this variable to explicitly state you want to use specific extruder for thie EEC (used for MM infill wiping)
-    int extruder_override = -1;
+    virtual int get_extruder_override(unsigned int copy) const   { return entities.front()->get_extruder_override(copy);  }
+    virtual bool is_extruder_overridden(unsigned int copy) const { return entities.front()->is_extruder_overridden(copy); }
 };
 
 }

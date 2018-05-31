@@ -1262,8 +1262,8 @@ void GCode::process_layer(
                         // This shouldn't happen but first_point() would fail.
                         continue;
 
-                    if (fill->is_extruder_overridden())
-                        continue;
+                    /*if (fill->is_extruder_overridden())
+                        continue;*/
 
                     // init by_extruder item only if we actually use the extruder
                     int extruder_id = std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1);
@@ -1342,28 +1342,27 @@ void GCode::process_layer(
             gcode += "; INFILL WIPING STARTS\n";
             if (extruder_id != layer_tools.extruders.front()) { // if this is the first extruder on this layer, there was no toolchange
                 for (const auto& layer_to_print : layers) {     // iterate through all objects
-                gcode+="objekt\n";
                     if (layer_to_print.object_layer == nullptr)
                         continue;
-                    std::vector<ObjectByExtruder::Island::Region> overridden;
-                    for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
-                        gcode+="region\n";
-                        ObjectByExtruder::Island::Region new_region;
-                        overridden.push_back(new_region);
-                        for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
-                            gcode+="entity\n";
-                            auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                            if (fill->get_extruder_override() == extruder_id) {
-                                gcode+="*\n";
-                                overridden.back().infills.append(*fill);
-                                fill->set_extruder_override(-1);
-                            }
-                       }
-                    }
+
                     m_config.apply((layer_to_print.object_layer)->object()->config, true);
-                    Point copy = (layer_to_print.object_layer)->object()->_shifted_copies.front();
-                    this->set_origin(unscale(copy.x), unscale(copy.y));
-                    gcode += this->extrude_infill(print, overridden);
+
+                    for (unsigned copy_id = 0; copy_id < layer_to_print.object()->copies().size(); ++copy_id) {
+                        std::vector<ObjectByExtruder::Island::Region> overridden;
+                        for (size_t region_id = 0; region_id < print.regions.size(); ++ region_id) {
+                            ObjectByExtruder::Island::Region new_region;
+                            overridden.push_back(new_region);
+                            for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
+                                auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                                if (fill->get_extruder_override(copy_id) == extruder_id)
+                                        overridden.back().infills.append(*fill);
+                           }
+                        }
+
+                        Point copy = (layer_to_print.object_layer)->object()->_shifted_copies[copy_id];
+                        this->set_origin(unscale(copy.x), unscale(copy.y));
+                        gcode += this->extrude_infill(print, overridden);
+                    }
                 }
             }
             gcode += "; WIPING FINISHED\n";
@@ -1393,6 +1392,7 @@ void GCode::process_layer(
             // Sort the copies by the closest point starting with the current print position.
             
 
+            unsigned int copy_id = 0;
             for (const Point &copy : copies) {
                 // When starting a new object, use the external motion planner for the first travel move.
                 std::pair<const PrintObject*, Point> this_object_copy(print_object, copy);
@@ -1409,13 +1409,14 @@ void GCode::process_layer(
                 }
                 for (const ObjectByExtruder::Island &island : object_by_extruder.islands) {
                     if (print.config.infill_first) {
-                        gcode += this->extrude_infill(print, island.by_region);
+                        gcode += this->extrude_infill(print, island.by_region_special(copy_id));
                         gcode += this->extrude_perimeters(print, island.by_region, lower_layer_edge_grids[layer_id]);
                     } else {
                         gcode += this->extrude_perimeters(print, island.by_region, lower_layer_edge_grids[layer_id]);
-                        gcode += this->extrude_infill(print, island.by_region);
+                        gcode += this->extrude_infill(print, island.by_region_special(copy_id));
                     }
                 }
+                ++copy_id;
             }
         }
     }
@@ -2042,7 +2043,6 @@ std::string GCode::extrude_perimeters(const Print &print, const std::vector<Obje
 }
 
 // Chain the paths hierarchically by a greedy algorithm to minimize a travel distance.
-// if extruder_id is set, only entities marked with given extruder_id are extruded
 std::string GCode::extrude_infill(const Print &print, const std::vector<ObjectByExtruder::Island::Region> &by_region)
 {
     std::string gcode;
@@ -2477,4 +2477,19 @@ Point GCode::gcode_to_point(const Pointf &point) const
         scale_(point.y - m_origin.y + extruder_offset.y));
 }
 
+
+std::vector<GCode::ObjectByExtruder::Island::Region> GCode::ObjectByExtruder::Island::by_region_special(unsigned int copy) const
+{
+    std::vector<ObjectByExtruder::Island::Region> out;
+    for (const auto& reg : by_region) {
+        out.push_back(ObjectByExtruder::Island::Region());
+        out.back().perimeters.append(reg.perimeters);
+
+        for (const auto& ee : reg.infills.entities)
+            if (ee->get_extruder_override(copy) == -1)
+                out.back().infills.append(*ee);
+    }
+    return out;
 }
+
+}   // namespace Slic3r
