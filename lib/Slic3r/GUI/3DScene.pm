@@ -188,6 +188,7 @@ sub new {
     $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::set_volumes($self, $self->volumes);
+    Slic3r::GUI::_3DScene::reset_volumes($self);
 #==============================================================================================================================
 
     # 3D point in model space
@@ -202,10 +203,7 @@ sub new {
 #    $self->{layer_height_edit_last_object_id} = -1;
 #    $self->{layer_height_edit_last_z} = 0.;
 #    $self->{layer_height_edit_last_action} = 0;
-#==============================================================================================================================
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::reset_volumes($self);
+#
 #    $self->reset_objects;
 #==============================================================================================================================
     
@@ -215,8 +213,6 @@ sub new {
     });
 #=======================================================================================================================    
 #    EVT_SIZE($self, sub { $self->_dirty(1) });
-#=======================================================================================================================    
-#==============================================================================================================================
 #    EVT_IDLE($self, sub {
 #        return unless $self->_dirty;
 #        return if !$self->IsShownOnScreen;
@@ -362,45 +358,33 @@ sub Destroy {
 #    }
 #    return -1;
 #}
-#==============================================================================================================================
-
-# Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
-sub _variable_layer_thickness_bar_rect_screen {
-    my ($self) = @_;
-    my ($cw, $ch) = $self->GetSizeWH;
-    return ($cw - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0, $cw, $ch - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
-}
-
-sub _variable_layer_thickness_bar_rect_viewport {
-    my ($self) = @_;
-    my ($cw, $ch) = $self->GetSizeWH;
-#==============================================================================================================================
-    my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
-    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$zoom, (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$zoom, $cw/(2*$zoom), $ch/(2*$zoom));
+#
+## Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
+#sub _variable_layer_thickness_bar_rect_screen {
+#    my ($self) = @_;
+#    my ($cw, $ch) = $self->GetSizeWH;
+#    return ($cw - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, 0, $cw, $ch - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT);
+#}
+#
+#sub _variable_layer_thickness_bar_rect_viewport {
+#    my ($self) = @_;
+#    my ($cw, $ch) = $self->GetSizeWH;
 #    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$self->_zoom, (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$self->_zoom, $cw/(2*$self->_zoom), $ch/(2*$self->_zoom));
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 ## Returns an array with (left, top, right, bottom) of the variable layer thickness bar on the screen.
 #sub _variable_layer_thickness_reset_rect_screen {
 #    my ($self) = @_;
 #    my ($cw, $ch) = $self->GetSizeWH;
 #    return ($cw - VARIABLE_LAYER_THICKNESS_BAR_WIDTH, $ch - VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT, $cw, $ch);
 #}
-#==============================================================================================================================
-
-sub _variable_layer_thickness_reset_rect_viewport {
-    my ($self) = @_;
-    my ($cw, $ch) = $self->GetSizeWH;
-#==============================================================================================================================
-    my $zoom = Slic3r::GUI::_3DScene::get_camera_zoom($self);
-    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$zoom, -$ch/(2*$zoom), $cw/(2*$zoom), (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$zoom);
+#
+#sub _variable_layer_thickness_reset_rect_viewport {
+#    my ($self) = @_;
+#    my ($cw, $ch) = $self->GetSizeWH;
 #    return ((0.5*$cw-VARIABLE_LAYER_THICKNESS_BAR_WIDTH)/$self->_zoom, -$ch/(2*$self->_zoom), $cw/(2*$self->_zoom), (-0.5*$ch+VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT)/$self->_zoom);
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 #sub _variable_layer_thickness_bar_rect_mouse_inside {
 #   my ($self, $mouse_evt) = @_;
 #   my ($bar_left, $bar_top, $bar_right, $bar_bottom) = $self->_variable_layer_thickness_bar_rect_screen;
@@ -1400,42 +1384,33 @@ sub Render {
     return unless my $context = $self->GetContext;
     $self->SetCurrent($context);
     $self->InitGL;
-    
-    glClearColor(1, 1, 1, 1);
-    glClearDepth(1);
-    glDepthFunc(GL_LESS);
-#==============================================================================================================================
-#    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#==============================================================================================================================
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-
-    if (!TURNTABLE_MODE) {
-        # Shift the perspective camera.
-#==============================================================================================================================
-        my $camera_pos = Slic3r::Pointf3->new(0,0,-Slic3r::GUI::_3DScene::get_camera_distance($self));
-#        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
-#==============================================================================================================================
-        glTranslatef(@$camera_pos);
-    }
-    
-    if (TURNTABLE_MODE) {
-        # Turntable mode is enabled by default.
-#==============================================================================================================================        
-        glRotatef(-Slic3r::GUI::_3DScene::get_camera_theta($self), 1, 0, 0); # pitch
-        glRotatef(Slic3r::GUI::_3DScene::get_camera_phi($self), 0, 0, 1);    # yaw
-#        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
-#        glRotatef($self->_sphi, 0, 0, 1);    # yaw
-#==============================================================================================================================        
-    } else {
-        my @rotmat = quat_to_rotmatrix($self->quat);
-        glMultMatrixd_p(@rotmat[0..15]);
-    }
-    
+        
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render($self);
 
+#    glClearColor(1, 1, 1, 1);
+#    glClearDepth(1);
+#    glDepthFunc(GL_LESS);
+#    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#    
+#    glMatrixMode(GL_MODELVIEW);
+#    glLoadIdentity();
+#
+#    if (!TURNTABLE_MODE) {
+#        # Shift the perspective camera.
+#        my $camera_pos = Slic3r::Pointf3->new(0,0,-$self->_camera_distance);
+#        glTranslatef(@$camera_pos);
+#    }
+#    
+#    if (TURNTABLE_MODE) {
+#        # Turntable mode is enabled by default.
+#        glRotatef(-$self->_stheta, 1, 0, 0); # pitch
+#        glRotatef($self->_sphi, 0, 0, 1);    # yaw
+#    } else {
+#        my @rotmat = quat_to_rotmatrix($self->quat);
+#        glMultMatrixd_p(@rotmat[0..15]);
+#    }
+#    
 #    glTranslatef(@{ $self->_camera_target->negative });
 #    
 #    # light from above

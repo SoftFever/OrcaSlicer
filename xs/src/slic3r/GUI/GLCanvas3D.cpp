@@ -15,7 +15,6 @@
 #include <iostream>
 #include <float.h>
 
-static const bool TURNTABLE_MODE = true;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 static const float GROUND_Z = -0.02f;
 
@@ -1082,10 +1081,12 @@ GLCanvas3D::~GLCanvas3D()
 
 bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
-    ::glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    ::glEnable(GL_DEPTH_TEST);
+    ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
     ::glClearDepth(1.0f);
-    ::glDepthFunc(GL_LEQUAL);
+    ::glDepthFunc(GL_LESS);
+
+    ::glEnable(GL_DEPTH_TEST);
     ::glEnable(GL_CULL_FACE);
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1108,6 +1109,14 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     ::glLightfv(GL_LIGHT1, GL_SPECULAR, specular);
     GLfloat diffuse[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
     ::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
+
+    // light from above
+    GLfloat position1[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT0, GL_POSITION, position1);
+    GLfloat specular1[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular1);
+    GLfloat diffuse1[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    ::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse1);
 
     // Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
     ::glShadeModel(GL_SMOOTH);
@@ -1574,21 +1583,7 @@ void GLCanvas3D::render(bool useVBOs) const
     if (m_canvas == nullptr)
         return;
 
-    Pointf3 neg_target = get_camera_target().negative();
-    ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);
-
-    // light from above
-    GLfloat position0[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT0, GL_POSITION, position0);
-    GLfloat specular[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
-    GLfloat diffuse[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    ::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
-
-    // Head light
-    GLfloat position1[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT1, GL_POSITION, position1);
-
+    _camera_tranform();
     _picking_pass();
     _render_background();
     _render_bed();
@@ -1941,27 +1936,8 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     // project the bbox vertices on a plane perpendicular to the camera forward axis
     // then calculates the vertices coordinate on this plane along the camera xy axes
 
-    // we need the view matrix, we let opengl calculate it(same as done in render sub)
-    ::glMatrixMode(GL_MODELVIEW);
-    ::glLoadIdentity();
-
-    if (TURNTABLE_MODE)
-    {
-        // Turntable mode is enabled by default.
-        ::glRotatef(-get_camera_theta(), 1.0f, 0.0f, 0.0f); // pitch
-        ::glRotatef(get_camera_phi(), 0.0f, 0.0f, 1.0f);    // yaw
-    }
-    else
-    {
-        // Shift the perspective camera.
-        Pointf3 camera_pos(0.0, 0.0, -(coordf_t)get_camera_distance());
-        ::glTranslatef((float)camera_pos.x, (float)camera_pos.y, (float)camera_pos.z);
-//        my @rotmat = quat_to_rotmatrix($self->quat); <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TEMPORARY COMMENTED OUT
-//        glMultMatrixd_p(@rotmat[0..15]);             <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< TEMPORARY COMMENTED OUT
-    }
-
-    const Pointf3& target = get_camera_target();
-    ::glTranslatef(-(float)target.x, -(float)target.y, -(float)target.z);
+    // we need the view matrix, we let opengl calculate it (same as done in render())
+    _camera_tranform();
 
     // get the view matrix back from opengl
     GLfloat matrix[16];
@@ -2053,6 +2029,18 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
+}
+
+void GLCanvas3D::_camera_tranform() const
+{
+    ::glMatrixMode(GL_MODELVIEW);
+    ::glLoadIdentity();
+
+    ::glRotatef(-get_camera_theta(), 1.0f, 0.0f, 0.0f); // pitch
+    ::glRotatef(get_camera_phi(), 0.0f, 0.0f, 1.0f);    // yaw
+
+    Pointf3 neg_target = get_camera_target().negative();
+    ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);
 }
 
 void GLCanvas3D::_picking_pass() const

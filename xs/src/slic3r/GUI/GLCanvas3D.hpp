@@ -482,6 +482,7 @@ private:
     void _mark_volumes_for_layer_height() const;
     void _refresh_if_shown_on_screen();
 
+    void _camera_tranform() const;
     void _picking_pass() const;
     void _render_background() const;
     void _render_bed() const;
