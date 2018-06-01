@@ -38,12 +38,6 @@ __PACKAGE__->mk_accessors( qw(_quat init
                               on_viewport_changed
                               on_select
                               volumes
-
-                              _drag_volume_idx
-                              _drag_start_pos
-                              _drag_volume_center_offset
-                              _drag_start_xy
-                              _dragged
                               ) );
 #__PACKAGE__->mk_accessors( qw(_quat _dirty init
 #                              enable_picking

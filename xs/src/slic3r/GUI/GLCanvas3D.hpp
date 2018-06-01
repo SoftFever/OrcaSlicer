@@ -324,6 +324,9 @@ public:
         const Pointf3& get_start_position_3D() const;
         void set_start_position_3D(const Pointf3& position);
 
+        bool is_start_position_2D_defined() const;
+        bool is_start_position_3D_defined() const;
+
         const Vectorf3& get_volume_center_offset() const;
         void set_volume_center_offset(const Vectorf3& offset);
 

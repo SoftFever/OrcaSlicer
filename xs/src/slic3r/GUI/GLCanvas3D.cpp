@@ -15,6 +15,7 @@
 #include <iostream>
 #include <float.h>
 
+static const float TRACKBALLSIZE = 0.8f;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 static const float GROUND_Z = -0.02f;
 
@@ -1084,6 +1085,16 @@ void GLCanvas3D::Drag::set_start_position_3D(const Pointf3& position)
     m_start_position_3D = position;
 }
 
+bool GLCanvas3D::Drag::is_start_position_2D_defined() const
+{
+    return (m_start_position_2D != Point(INT_MAX, INT_MAX));
+}
+
+bool GLCanvas3D::Drag::is_start_position_3D_defined() const
+{
+    return (m_start_position_3D != Pointf3(DBL_MAX, DBL_MAX, DBL_MAX));
+}
+
 const Vectorf3& GLCanvas3D::Drag::get_volume_center_offset() const
 {
     return m_volume_center_offset;
@@ -2131,45 +2142,43 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (get_layers_editing_state() == 1)
                 perform_layer_editing_action(pos.y, evt.ShiftDown(), evt.RightIsDown());
         }
-        //        } elsif($e->LeftIsDown) {
-        //# if dragging over blank area with left button, rotate
-        //            if (defined $self->_drag_start_pos) {
-        //                my $orig = $self->_drag_start_pos;
-        //                if (TURNTABLE_MODE) {
-        //                    # Turntable mode is enabled by default.
-        //                    Slic3r::GUI::_3DScene::set_camera_phi($self, Slic3r::GUI::_3DScene::get_camera_phi($self) + ($pos->x - $orig->x) * TRACKBALLSIZE);
-        //                    Slic3r::GUI::_3DScene::set_camera_theta($self, Slic3r::GUI::_3DScene::get_camera_theta($self) - ($pos->y - $orig->y) * TRACKBALLSIZE);
-        //                }
-        //                else {
-        //                    my $size = $self->GetClientSize;
-        //                    my @quat = trackball(
-        //                        $orig->x / ($size->width / 2) - 1,
-        //                        1 - $orig->y / ($size->height / 2), # /
-        //                        $pos->x / ($size->width / 2) - 1,
-        //                        1 - $pos->y / ($size->height / 2), # /
-        //                        );
-        //                    $self->_quat(mulquats($self->_quat, \@quat));
-        //                }
-        //                $self->on_viewport_changed->() if $self->on_viewport_changed;
-        //                $self->Refresh;
-        //                $self->Update;
-        //            }
-        //            $self->_drag_start_pos($pos);
-        //        } elsif($e->MiddleIsDown || $e->RightIsDown) {
-        //            # If dragging over blank area with right button, pan.
-        //            if (defined $self->_drag_start_xy) {
-        //                # get point in model space at Z = 0
-        //                my $cur_pos = $self->mouse_to_3d($e->GetX, $e->GetY, 0);
-        //                my $orig = $self->mouse_to_3d($self->_drag_start_xy->x, $self->_drag_start_xy->y, 0);
-        //                my $camera_target = Slic3r::GUI::_3DScene::get_camera_target($self);
-        //                $camera_target->translate(@{$orig->vector_to($cur_pos)->negative});
-        //                Slic3r::GUI::_3DScene::set_camera_target($self, $camera_target);
-        //                $self->on_viewport_changed->() if $self->on_viewport_changed;
-        //                $self->Refresh;
-        //                $self->Update;
-        //            }
-        //            $self->_drag_start_xy($pos);
-        //        }
+        else if (evt.LeftIsDown())
+        {
+            // if dragging over blank area with left button, rotate
+            if (m_drag.is_start_position_3D_defined())
+            {
+                Pointf3 orig = m_drag.get_start_position_3D();
+                set_camera_phi(get_camera_phi() + ((float)pos.x - (float)orig.x) * TRACKBALLSIZE);
+                set_camera_theta(get_camera_theta() - ((float)pos.y - (float)orig.y) * TRACKBALLSIZE);
+
+                m_on_viewport_changed_callback.call();
+
+                m_canvas->Refresh();
+                m_canvas->Update();
+            }
+            m_drag.set_start_position_3D(Pointf3((coordf_t)pos.x, (coordf_t)pos.y, 0.0));
+        }
+        else if (evt.MiddleIsDown() || evt.RightIsDown())
+        {
+            // If dragging over blank area with right button, pan.
+            if (m_drag.is_start_position_2D_defined())
+            {
+                // get point in model space at Z = 0
+                float z = 0.0f;
+                const Pointf3& cur_pos = _mouse_to_3d(pos, &z);
+                Pointf3 orig = _mouse_to_3d(m_drag.get_start_position_2D(), &z);
+                Pointf3 camera_target = get_camera_target();
+                camera_target.translate(orig.vector_to(cur_pos).negative());
+                set_camera_target(camera_target);
+
+                m_on_viewport_changed_callback.call();
+
+                m_canvas->Refresh();
+                m_canvas->Update();
+            }
+            
+            m_drag.set_start_position_2D(pos);
+        }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
     {
