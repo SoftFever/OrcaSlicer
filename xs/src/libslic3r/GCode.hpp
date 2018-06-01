@@ -215,9 +215,10 @@ protected:
             struct Region {
                 ExtrusionEntityCollection perimeters;
                 ExtrusionEntityCollection infills;
+                std::vector<std::vector<unsigned int>> infills_per_copy_ids; // each member of the struct denotes first and one-past-last element to actually print
             };
             std::vector<Region> by_region;
-            std::vector<Region> by_region_special(unsigned int copy) const;
+            std::vector<Region> by_region_per_copy(unsigned int copy)  const; // returns only extrusions that are NOT printed during wiping into infill for this copy
         };
         std::vector<Island>         islands;
     };
