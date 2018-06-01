@@ -1222,6 +1222,7 @@ float Print::mark_wiping_infill(const ToolOrdering::LayerTools& layer_tools, uns
             }
         }
     }
+
     return std::max(0.f, volume_to_wipe);
 }
 
