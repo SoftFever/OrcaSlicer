@@ -158,36 +158,10 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas, bool useVBOs)
     return (it != m_canvases.end()) ? it->second->init(useVBOs, m_use_legacy_opengl) : false;
 }
 
-bool GLCanvas3DManager::is_dirty(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_dirty() : false;
-}
-
-void GLCanvas3DManager::set_dirty(wxGLCanvas* canvas, bool dirty)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_dirty(dirty);
-}
-
 bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_shown_on_screen() : false;
-}
-
-void GLCanvas3DManager::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->resize(w, h);
-}
-
-GLVolumeCollection* GLCanvas3DManager::get_volumes(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_volumes() : nullptr;
 }
 
 void GLCanvas3DManager::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
@@ -246,41 +220,10 @@ void GLCanvas3DManager::set_auto_bed_shape(wxGLCanvas* canvas)
         it->second->set_auto_bed_shape();
 }
 
-BoundingBoxf3 GLCanvas3DManager::get_bed_bounding_box(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->bed_bounding_box() : BoundingBoxf3();
-}
-
 BoundingBoxf3 GLCanvas3DManager::get_volumes_bounding_box(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->volumes_bounding_box() : BoundingBoxf3();
-}
-
-BoundingBoxf3 GLCanvas3DManager::get_max_bounding_box(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->max_bounding_box() : BoundingBoxf3();
-}
-
-Pointf3 GLCanvas3DManager::get_axes_origin(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_axes_origin() : Pointf3();
-}
-
-void GLCanvas3DManager::set_axes_origin(wxGLCanvas* canvas, const Pointf3& origin)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_axes_origin(origin);
-}
-
-float GLCanvas3DManager::get_axes_length(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_axes_length() : 0.0f;
 }
 
 void GLCanvas3DManager::set_axes_length(wxGLCanvas* canvas, float length)
@@ -297,121 +240,16 @@ void GLCanvas3DManager::set_cutting_plane(wxGLCanvas* canvas, float z, const ExP
         it->second->set_cutting_plane(z, polygons);
 }
 
-unsigned int GLCanvas3DManager::get_camera_type(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? (unsigned int)it->second->get_camera_type() : 0;
-}
-
-void GLCanvas3DManager::set_camera_type(wxGLCanvas* canvas, unsigned int type)
-{
-    if ((type <= (unsigned int)GLCanvas3D::Camera::CT_Unknown) || ((unsigned int)GLCanvas3D::Camera::CT_Count <= type))
-        return;
-
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_camera_type((GLCanvas3D::Camera::EType)type);
-}
-
-std::string GLCanvas3DManager::get_camera_type_as_string(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_camera_type_as_string() : "unknown";
-}
-
-float GLCanvas3DManager::get_camera_zoom(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_camera_zoom() : 1.0f;
-}
-
-void GLCanvas3DManager::set_camera_zoom(wxGLCanvas* canvas, float zoom)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_camera_zoom(zoom);
-}
-
-float GLCanvas3DManager::get_camera_phi(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_camera_phi() : 0.0f;
-}
-
-void GLCanvas3DManager::set_camera_phi(wxGLCanvas* canvas, float phi)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_camera_phi(phi);
-}
-
-float GLCanvas3DManager::get_camera_theta(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_camera_theta() : 0.0f;
-}
-
-void GLCanvas3DManager::set_camera_theta(wxGLCanvas* canvas, float theta)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_camera_theta(theta);
-}
-
-float GLCanvas3DManager::get_camera_distance(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_camera_distance() : 0.0f;
-}
-
-void GLCanvas3DManager::set_camera_distance(wxGLCanvas* canvas, float distance)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_camera_distance(distance);
-}
-
-Pointf3 GLCanvas3DManager::get_camera_target(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_camera_target() : Pointf3(0.0, 0.0, 0.0);
-}
-
-void GLCanvas3DManager::set_camera_target(wxGLCanvas* canvas, const Pointf3& target)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_camera_target(target);
-}
-
 bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_layers_editing_enabled() : false;
 }
 
-bool GLCanvas3DManager::is_picking_enabled(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_picking_enabled() : false;
-}
-
-bool GLCanvas3DManager::is_moving_enabled(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_moving_enabled() : false;
-}
-
 bool GLCanvas3DManager::is_layers_editing_allowed(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_layers_editing_allowed() : false;
-}
-
-bool GLCanvas3DManager::is_multisample_allowed(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_multisample_allowed() : false;
 }
 
 void GLCanvas3DManager::enable_layers_editing(wxGLCanvas* canvas, bool enable)
@@ -463,146 +301,6 @@ void GLCanvas3DManager::allow_multisample(wxGLCanvas* canvas, bool allow)
         it->second->allow_multisample(allow);
 }
 
-bool GLCanvas3DManager::is_mouse_dragging(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_mouse_dragging() : false;
-}
-
-void GLCanvas3DManager::set_mouse_dragging(wxGLCanvas* canvas, bool dragging)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_mouse_dragging(dragging);
-}
-
-int GLCanvas3DManager::get_hover_volume_id(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_hover_volume_id() : -1;
-}
-
-void GLCanvas3DManager::set_hover_volume_id(wxGLCanvas* canvas, int id)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_hover_volume_id(id);
-}
-
-unsigned int GLCanvas3DManager::get_layers_editing_z_texture_id(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_z_texture_id() : 0;
-}
-
-unsigned int GLCanvas3DManager::get_layers_editing_state(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_state() : 0;
-}
-
-void GLCanvas3DManager::set_layers_editing_state(wxGLCanvas* canvas, unsigned int state)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_layers_editing_state(state);
-}
-
-float GLCanvas3DManager::get_layers_editing_band_width(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_band_width() : 0.0f;
-}
-
-void GLCanvas3DManager::set_layers_editing_band_width(wxGLCanvas* canvas, float band_width)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_layers_editing_band_width(band_width);
-}
-
-float GLCanvas3DManager::get_layers_editing_strength(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_strength() : 0.0f;
-}
-
-void GLCanvas3DManager::set_layers_editing_strength(wxGLCanvas* canvas, float strength)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_layers_editing_strength(strength);
-}
-
-int GLCanvas3DManager::get_layers_editing_last_object_id(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_last_object_id() : -1;
-}
-
-void GLCanvas3DManager::set_layers_editing_last_object_id(wxGLCanvas* canvas, int id)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_layers_editing_last_object_id(id);
-}
-
-float GLCanvas3DManager::get_layers_editing_last_z(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_last_z() : 0.0f;
-}
-
-void GLCanvas3DManager::set_layers_editing_last_z(wxGLCanvas* canvas, float z)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_layers_editing_last_z(z);
-}
-
-unsigned int GLCanvas3DManager::get_layers_editing_last_action(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_last_action() : 0;
-}
-
-void GLCanvas3DManager::set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_layers_editing_last_action(action);
-}
-
-const GLShader* GLCanvas3DManager::get_layers_editing_shader(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_shader() : nullptr;
-}
-
-float GLCanvas3DManager::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_cursor_z_relative() : 0.0f;
-}
-
-int GLCanvas3DManager::get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->get_layers_editing_first_selected_object_id(objects_count) : 0.;
-}
-
-bool GLCanvas3DManager::bar_rect_contains(wxGLCanvas* canvas, float x, float y) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->bar_rect_contains(x, y) : false;
-}
-
-bool GLCanvas3DManager::reset_rect_contains(wxGLCanvas* canvas, float x, float y) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->reset_rect_contains(x, y) : false;
-}
-
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -642,59 +340,11 @@ void GLCanvas3DManager::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
         it->second->update_volumes_colors_by_extruder();
 }
 
-bool GLCanvas3DManager::start_using_shader(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->start_using_shader() : false;
-}
-
-void GLCanvas3DManager::stop_using_shader(wxGLCanvas* canvas) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->stop_using_shader();
-}
-
 void GLCanvas3DManager::render(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->render(m_use_VBOs);
-}
-
-void GLCanvas3DManager::render_volumes(wxGLCanvas* canvas, bool fake_colors) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_volumes(fake_colors);
-}
-
-void GLCanvas3DManager::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->render_texture(tex_id, left, right, bottom, top);
-}
-
-void GLCanvas3DManager::start_timer(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->start_timer();
-}
-
-void GLCanvas3DManager::stop_timer(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->stop_timer();
-}
-
-void GLCanvas3DManager::perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->perform_layer_editing_action(y, shift_down, right_down);
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

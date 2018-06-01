@@ -1757,29 +1757,9 @@ bool _3DScene::init(wxGLCanvas* canvas, bool useVBOs)
     return s_canvas_mgr.init(canvas, useVBOs);
 }
 
-bool _3DScene::is_dirty(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_dirty(canvas);
-}
-
-void _3DScene::set_dirty(wxGLCanvas* canvas, bool dirty)
-{
-    s_canvas_mgr.set_dirty(canvas, dirty);
-}
-
 bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_shown_on_screen(canvas);
-}
-
-void _3DScene::resize(wxGLCanvas* canvas, unsigned int w, unsigned int h)
-{
-    s_canvas_mgr.resize(canvas, w, h);
-}
-
-GLVolumeCollection* _3DScene::get_volumes(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_volumes(canvas);
 }
 
 void _3DScene::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
@@ -1822,35 +1802,9 @@ void _3DScene::set_auto_bed_shape(wxGLCanvas* canvas)
     return s_canvas_mgr.set_auto_bed_shape(canvas);
 }
 
-BoundingBoxf3 _3DScene::get_bed_bounding_box(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_bed_bounding_box(canvas);
-}
-
 BoundingBoxf3 _3DScene::get_volumes_bounding_box(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_volumes_bounding_box(canvas);
-}
-
-BoundingBoxf3 _3DScene::get_max_bounding_box(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_max_bounding_box(canvas);
-}
-
-Pointf3 _3DScene::get_axes_origin(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_axes_origin(canvas);
-}
-
-void _3DScene::set_axes_origin(wxGLCanvas* canvas, const Pointf3* origin)
-{
-    if (origin != nullptr)
-        s_canvas_mgr.set_axes_origin(canvas, *origin);
-}
-
-float _3DScene::get_axes_length(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_axes_length(canvas);
 }
 
 void _3DScene::set_axes_length(wxGLCanvas* canvas, float length)
@@ -1863,95 +1817,14 @@ void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& 
     return s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
 }
 
-unsigned int _3DScene::get_camera_type(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_type(canvas);
-}
-
-void _3DScene::set_camera_type(wxGLCanvas* canvas, unsigned int type)
-{
-    s_canvas_mgr.set_camera_type(canvas, type);
-}
-
-std::string _3DScene::get_camera_type_as_string(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_type_as_string(canvas);
-}
-
-float _3DScene::get_camera_zoom(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_zoom(canvas);
-}
-
-void _3DScene::set_camera_zoom(wxGLCanvas* canvas, float zoom)
-{
-    s_canvas_mgr.set_camera_zoom(canvas, zoom);
-}
-
-float _3DScene::get_camera_phi(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_phi(canvas);
-}
-
-void _3DScene::set_camera_phi(wxGLCanvas* canvas, float phi)
-{
-    s_canvas_mgr.set_camera_phi(canvas, phi);
-}
-
-float _3DScene::get_camera_theta(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_theta(canvas);
-}
-
-void _3DScene::set_camera_theta(wxGLCanvas* canvas, float theta)
-{
-    s_canvas_mgr.set_camera_theta(canvas, theta);
-}
-
-float _3DScene::get_camera_distance(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_distance(canvas);
-}
-
-void _3DScene::set_camera_distance(wxGLCanvas* canvas, float distance)
-{
-    s_canvas_mgr.set_camera_distance(canvas, distance);
-}
-
-Pointf3 _3DScene::get_camera_target(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_camera_target(canvas);
-}
-
-void _3DScene::set_camera_target(wxGLCanvas* canvas, const Pointf3* target)
-{
-    if (target != nullptr)
-        s_canvas_mgr.set_camera_target(canvas, *target);
-}
- 
 bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_layers_editing_enabled(canvas);
 }
 
-bool _3DScene::is_picking_enabled(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_picking_enabled(canvas);
-}
-
-bool _3DScene::is_moving_enabled(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_moving_enabled(canvas);
-}
-
 bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_layers_editing_allowed(canvas);
-}
-
-bool _3DScene::is_multisample_allowed(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_multisample_allowed(canvas);
 }
 
 void _3DScene::enable_layers_editing(wxGLCanvas* canvas, bool enable)
@@ -1989,116 +1862,6 @@ void _3DScene::allow_multisample(wxGLCanvas* canvas, bool allow)
     s_canvas_mgr.allow_multisample(canvas, allow);
 }
 
-bool _3DScene::is_mouse_dragging(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.is_mouse_dragging(canvas);
-}
-
-void _3DScene::set_mouse_dragging(wxGLCanvas* canvas, bool dragging)
-{
-    s_canvas_mgr.set_mouse_dragging(canvas, dragging);
-}
-
-int _3DScene::get_hover_volume_id(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_hover_volume_id(canvas);
-}
-
-void _3DScene::set_hover_volume_id(wxGLCanvas* canvas, int id)
-{
-    s_canvas_mgr.set_hover_volume_id(canvas, id);
-}
-
-unsigned int _3DScene::get_layers_editing_z_texture_id(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_z_texture_id(canvas);
-}
-
-unsigned int _3DScene::get_layers_editing_state(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_state(canvas);
-}
-
-void _3DScene::set_layers_editing_state(wxGLCanvas* canvas, unsigned int state)
-{
-    s_canvas_mgr.set_layers_editing_state(canvas, state);
-}
-
-float _3DScene::get_layers_editing_band_width(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_band_width(canvas);
-}
-
-void _3DScene::set_layers_editing_band_width(wxGLCanvas* canvas, float band_width)
-{
-    s_canvas_mgr.set_layers_editing_band_width(canvas, band_width);
-}
-
-float _3DScene::get_layers_editing_strength(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_strength(canvas);
-}
-
-void _3DScene::set_layers_editing_strength(wxGLCanvas* canvas, float strength)
-{
-    s_canvas_mgr.set_layers_editing_strength(canvas, strength);
-}
-
-int _3DScene::get_layers_editing_last_object_id(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_last_object_id(canvas);
-}
-
-void _3DScene::set_layers_editing_last_object_id(wxGLCanvas* canvas, int id)
-{
-    s_canvas_mgr.set_layers_editing_last_object_id(canvas, id);
-}
-
-float _3DScene::get_layers_editing_last_z(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_last_z(canvas);
-}
-
-void _3DScene::set_layers_editing_last_z(wxGLCanvas* canvas, float z)
-{
-    s_canvas_mgr.set_layers_editing_last_z(canvas, z);
-}
-
-unsigned int _3DScene::get_layers_editing_last_action(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_last_action(canvas);
-}
-
-void _3DScene::set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action)
-{
-    s_canvas_mgr.set_layers_editing_last_action(canvas, action);
-}
-
-const GLShader* _3DScene::get_layers_editing_shader(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_shader(canvas);
-}
-
-float _3DScene::get_layers_editing_cursor_z_relative(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_layers_editing_cursor_z_relative(canvas);
-}
-
-int _3DScene::get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count)
-{
-    return s_canvas_mgr.get_layers_editing_first_selected_object_id(canvas, objects_count);
-}
-
-bool _3DScene::bar_rect_contains(wxGLCanvas* canvas, float x, float y)
-{
-    return s_canvas_mgr.bar_rect_contains(canvas, x, y);
-}
-
-bool _3DScene::reset_rect_contains(wxGLCanvas* canvas, float x, float y)
-{
-    return s_canvas_mgr.reset_rect_contains(canvas, x, y);
-}
-
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {
     s_canvas_mgr.zoom_to_bed(canvas);
@@ -2124,44 +1887,9 @@ void _3DScene::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
     s_canvas_mgr.update_volumes_colors_by_extruder(canvas);
 }
 
-bool _3DScene::start_using_shader(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.start_using_shader(canvas);
-}
-
-void _3DScene::stop_using_shader(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.stop_using_shader(canvas);
-}
-
 void _3DScene::render(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render(canvas);
-}
-
-void _3DScene::render_volumes(wxGLCanvas* canvas, bool fake_colors)
-{
-    s_canvas_mgr.render_volumes(canvas, fake_colors);
-}
-
-void _3DScene::render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top)
-{
-    s_canvas_mgr.render_texture(canvas, tex_id, left, right, bottom, top);
-}
-
-void _3DScene::start_timer(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.start_timer(canvas);
-}
-
-void _3DScene::stop_timer(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.stop_timer(canvas);
-}
-
-void _3DScene::perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down)
-{
-    s_canvas_mgr.perform_layer_editing_action(canvas, y, shift_down, right_down);
 }
 
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

@@ -200,41 +200,10 @@ init(canvas, useVBOs)
         RETVAL
 
 bool
-is_dirty(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::is_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_dirty(canvas, dirty)
-        SV   *canvas;
-        bool dirty;
-    CODE:
-        _3DScene::set_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), dirty);
-
-bool
 is_shown_on_screen(canvas)
         SV *canvas;
     CODE:
         RETVAL = _3DScene::is_shown_on_screen((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-resize(canvas, w, h)
-        SV           *canvas;
-        unsigned int w;
-        unsigned int h;
-    CODE:
-        _3DScene::resize((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), w, h);
-        
-GLVolumeCollection*
-get_volumes(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
 
@@ -292,49 +261,10 @@ set_auto_bed_shape(canvas)
         _3DScene::set_auto_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 Clone<BoundingBoxf3>
-get_bed_bounding_box(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_bed_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-Clone<BoundingBoxf3>
 get_volumes_bounding_box(canvas)
         SV *canvas;
     CODE:
         RETVAL = _3DScene::get_volumes_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-        
-Clone<BoundingBoxf3>
-get_max_bounding_box(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_max_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-        
-Clone<Pointf3>
-get_axes_origin(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_axes_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_axes_origin(canvas, origin)
-        SV      *canvas;
-        Pointf3 *origin;
-    CODE:
-        _3DScene::set_axes_origin((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), origin);
-
-float
-get_axes_length(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_axes_length((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
 
@@ -352,104 +282,6 @@ set_cutting_plane(canvas, z, polygons)
         ExPolygons polygons;
     CODE:
         _3DScene::set_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), z, polygons);
-        
-unsigned int
-get_camera_type(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_type((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_camera_type(canvas, type)
-        SV *canvas;
-        unsigned int type;
-    CODE:
-        _3DScene::set_camera_type((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), type);
-
-std::string
-get_camera_type_as_string(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_type_as_string((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-float
-get_camera_zoom(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_zoom((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_camera_zoom(canvas, zoom)
-        SV    *canvas;
-        float zoom;
-    CODE:
-        _3DScene::set_camera_zoom((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), zoom);
-
-float
-get_camera_phi(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_phi((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_camera_phi(canvas, phi)
-        SV    *canvas;
-        float phi;
-    CODE:
-        _3DScene::set_camera_phi((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), phi);
-
-float
-get_camera_theta(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_theta((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_camera_theta(canvas, theta)
-        SV    *canvas;
-        float theta;
-    CODE:
-        _3DScene::set_camera_theta((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), theta);
-
-float
-get_camera_distance(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_distance((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_camera_distance(canvas, distance)
-        SV    *canvas;
-        float distance;
-    CODE:
-        _3DScene::set_camera_distance((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), distance);
-
-Clone<Pointf3>
-get_camera_target(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_camera_target(canvas, target)
-        SV      *canvas;
-        Pointf3 *target;
-    CODE:
-        _3DScene::set_camera_target((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), target);
 
 bool
 is_layers_editing_enabled(canvas)
@@ -460,34 +292,10 @@ is_layers_editing_enabled(canvas)
         RETVAL
 
 bool
-is_picking_enabled(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::is_picking_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-bool
-is_moving_enabled(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::is_moving_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-bool
 is_layers_editing_allowed(canvas)
         SV *canvas;
     CODE:
         RETVAL = _3DScene::is_layers_editing_allowed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-        
-bool
-is_multisample_allowed(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::is_multisample_allowed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
 
@@ -539,179 +347,6 @@ allow_multisample(canvas, allow)
         bool allow;
     CODE:
         _3DScene::allow_multisample((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), allow);
-        
-bool
-is_mouse_dragging(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::is_mouse_dragging((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_mouse_dragging(canvas, dragging)
-        SV   *canvas;
-        bool dragging;
-    CODE:
-        _3DScene::set_mouse_dragging((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), dragging);
-
-int
-get_hover_volume_id(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_hover_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_hover_volume_id(canvas, id)
-        SV  *canvas;
-        int id;
-    CODE:
-        _3DScene::set_hover_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
-
-unsigned int
-get_layers_editing_z_texture_id(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_z_texture_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_layers_editing_state(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_state((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_layers_editing_state(canvas, state)
-        SV           *canvas;
-        unsigned int state;
-    CODE:
-        _3DScene::set_layers_editing_state((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), state);
-
-float
-get_layers_editing_band_width(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_band_width((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_layers_editing_band_width(canvas, band_width)
-        SV    *canvas;
-        float band_width;
-    CODE:
-        _3DScene::set_layers_editing_band_width((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), band_width);
-
-float
-get_layers_editing_strength(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_strength((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_layers_editing_strength(canvas, strength)
-        SV    *canvas;
-        float strength;
-    CODE:
-        _3DScene::set_layers_editing_strength((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), strength);
-
-int
-get_layers_editing_last_object_id(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_last_object_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_layers_editing_last_object_id(canvas, id)
-        SV  *canvas;
-        int id;
-    CODE:
-        _3DScene::set_layers_editing_last_object_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
-
-float
-get_layers_editing_last_z(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_last_z((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_layers_editing_last_z(canvas, z)
-        SV    *canvas;
-        float z;
-    CODE:
-        _3DScene::set_layers_editing_last_z((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), z);
-
-unsigned int
-get_layers_editing_last_action(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_last_action((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-set_layers_editing_last_action(canvas, action)
-        SV           *canvas;
-        unsigned int action;
-    CODE:
-        _3DScene::set_layers_editing_last_action((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), action);
-
-Ref<GLShader>
-get_layers_editing_shader(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-float
-get_layers_editing_cursor_z_relative(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_cursor_z_relative((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-int
-get_layers_editing_first_selected_object_id(canvas, objects_count)
-        SV           *canvas;
-        unsigned int objects_count;
-    CODE:
-        RETVAL = _3DScene::get_layers_editing_first_selected_object_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), objects_count);
-    OUTPUT:
-        RETVAL
-
-bool
-bar_rect_contains(canvas, x, y)
-        SV *canvas;
-        float x;
-        float y;
-    CODE:
-        RETVAL = _3DScene::bar_rect_contains((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), x, y);
-    OUTPUT:
-        RETVAL
-
-bool
-reset_rect_contains(canvas, x, y)
-        SV    *canvas;
-        float x;
-        float y;
-    CODE:
-        RETVAL = _3DScene::reset_rect_contains((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), x, y);
-    OUTPUT:
-        RETVAL
 
 void
 zoom_to_bed(canvas)
@@ -745,64 +380,11 @@ update_volumes_colors_by_extruder(canvas)
     CODE:
         _3DScene::update_volumes_colors_by_extruder((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
-bool
-start_using_shader(canvas)
-        SV *canvas;
-    CODE:
-        RETVAL = _3DScene::start_using_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
-
-void
-stop_using_shader(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::stop_using_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
 void
 render(canvas)
         SV *canvas;
     CODE:
         _3DScene::render((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-render_volumes(canvas, fake_colors)
-        SV   *canvas;
-        bool fake_colors;
-    CODE:
-        _3DScene::render_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), fake_colors);
-
-void
-render_texture(canvas, tex_id, left, right, bottom, top)
-        SV           *canvas;
-        unsigned int tex_id;
-        float        left;
-        float        right;
-        float        bottom;
-        float        top;
-    CODE:
-        _3DScene::render_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tex_id, left, right, bottom, top);
-
-void
-start_timer(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::start_timer((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-stop_timer(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::stop_timer((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void
-perform_layer_editing_action(canvas, y, shift_down, right_down)
-        SV   *canvas;
-        int  y;
-        bool shift_down;
-        bool right_down;
-    CODE:
-        _3DScene::perform_layer_editing_action((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), y, shift_down, right_down);
 
 void
 register_on_viewport_changed_callback(canvas, callback)

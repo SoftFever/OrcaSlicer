@@ -546,14 +546,8 @@ public:
 
     static bool init(wxGLCanvas* canvas, bool useVBOs);
 
-    static bool is_dirty(wxGLCanvas* canvas);
-    static void set_dirty(wxGLCanvas* canvas, bool dirty);
-
     static bool is_shown_on_screen(wxGLCanvas* canvas);
 
-    static void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
-
-    static GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
     static void reset_volumes(wxGLCanvas* canvas);
     static void deselect_volumes(wxGLCanvas* canvas);
@@ -565,42 +559,14 @@ public:
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     static void set_auto_bed_shape(wxGLCanvas* canvas);
 
-    static BoundingBoxf3 get_bed_bounding_box(wxGLCanvas* canvas);
     static BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
-    static BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
 
-    static Pointf3 get_axes_origin(wxGLCanvas* canvas);
-    static void set_axes_origin(wxGLCanvas* canvas, const Pointf3* origin);
-
-    static float get_axes_length(wxGLCanvas* canvas);
     static void set_axes_length(wxGLCanvas* canvas, float length);
 
     static void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
-    static unsigned int get_camera_type(wxGLCanvas* canvas);
-    static void set_camera_type(wxGLCanvas* canvas, unsigned int type);
-    static std::string get_camera_type_as_string(wxGLCanvas* canvas);
-
-    static float get_camera_zoom(wxGLCanvas* canvas);
-    static void set_camera_zoom(wxGLCanvas* canvas, float zoom);
-
-    static float get_camera_phi(wxGLCanvas* canvas);
-    static void set_camera_phi(wxGLCanvas* canvas, float phi);
-
-    static float get_camera_theta(wxGLCanvas* canvas);
-    static void set_camera_theta(wxGLCanvas* canvas, float theta);
-
-    static float get_camera_distance(wxGLCanvas* canvas);
-    static void set_camera_distance(wxGLCanvas* canvas, float distance);
-
-    static Pointf3 get_camera_target(wxGLCanvas* canvas);
-    static void set_camera_target(wxGLCanvas* canvas, const Pointf3* target);
-
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
-    static bool is_picking_enabled(wxGLCanvas* canvas);
-    static bool is_moving_enabled(wxGLCanvas* canvas);
     static bool is_layers_editing_allowed(wxGLCanvas* canvas);
-    static bool is_multisample_allowed(wxGLCanvas* canvas);
 
     static void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
@@ -610,39 +576,6 @@ public:
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
 
-    static bool is_mouse_dragging(wxGLCanvas* canvas);
-    static void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
-
-    static int get_hover_volume_id(wxGLCanvas* canvas);
-    static void set_hover_volume_id(wxGLCanvas* canvas, int id);
-
-    static unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas);
-
-    static unsigned int get_layers_editing_state(wxGLCanvas* canvas);
-    static void set_layers_editing_state(wxGLCanvas* canvas, unsigned int state);
-
-    static float get_layers_editing_band_width(wxGLCanvas* canvas);
-    static void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
-
-    static float get_layers_editing_strength(wxGLCanvas* canvas);
-    static void set_layers_editing_strength(wxGLCanvas* canvas, float strength);
-
-    static int get_layers_editing_last_object_id(wxGLCanvas* canvas);
-    static void set_layers_editing_last_object_id(wxGLCanvas* canvas, int id);
-
-    static float get_layers_editing_last_z(wxGLCanvas* canvas);
-    static void set_layers_editing_last_z(wxGLCanvas* canvas, float z);
-
-    static unsigned int get_layers_editing_last_action(wxGLCanvas* canvas);
-    static void set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action);
-
-    static const GLShader* get_layers_editing_shader(wxGLCanvas* canvas);
-
-    static float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas);
-    static int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count);
-    static bool bar_rect_contains(wxGLCanvas* canvas, float x, float y);
-    static bool reset_rect_contains(wxGLCanvas* canvas, float x, float y);
-
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
     static void select_view(wxGLCanvas* canvas, const std::string& direction);
@@ -650,16 +583,7 @@ public:
 
     static void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
 
-    static bool start_using_shader(wxGLCanvas* canvas);
-    static void stop_using_shader(wxGLCanvas* canvas);
-
     static void render(wxGLCanvas* canvas);
-    static void render_volumes(wxGLCanvas* canvas, bool fake_colors);
-    static void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top);
-
-    static void start_timer(wxGLCanvas* canvas);
-    static void stop_timer(wxGLCanvas* canvas);
-    static void perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down);
 
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);

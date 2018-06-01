@@ -46,14 +46,8 @@ public:
 
     bool init(wxGLCanvas* canvas, bool useVBOs);
 
-    bool is_dirty(wxGLCanvas* canvas) const;
-    void set_dirty(wxGLCanvas* canvas, bool dirty);
-
     bool is_shown_on_screen(wxGLCanvas* canvas) const;
 
-    void resize(wxGLCanvas* canvas, unsigned int w, unsigned int h);
-
-    GLVolumeCollection* get_volumes(wxGLCanvas* canvas);
     void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
     void reset_volumes(wxGLCanvas* canvas);
     void deselect_volumes(wxGLCanvas* canvas);
@@ -65,42 +59,14 @@ public:
     void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     void set_auto_bed_shape(wxGLCanvas* canvas);
 
-    BoundingBoxf3 get_bed_bounding_box(wxGLCanvas* canvas);
     BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
-    BoundingBoxf3 get_max_bounding_box(wxGLCanvas* canvas);
 
-    Pointf3 get_axes_origin(wxGLCanvas* canvas) const;
-    void set_axes_origin(wxGLCanvas* canvas, const Pointf3& origin);
-
-    float get_axes_length(wxGLCanvas* canvas) const;
     void set_axes_length(wxGLCanvas* canvas, float length);
 
     void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
-    unsigned int get_camera_type(wxGLCanvas* canvas) const;
-    void set_camera_type(wxGLCanvas* canvas, unsigned int type);
-    std::string get_camera_type_as_string(wxGLCanvas* canvas) const;
-    
-    float get_camera_zoom(wxGLCanvas* canvas) const;
-    void set_camera_zoom(wxGLCanvas* canvas, float zoom);
-
-    float get_camera_phi(wxGLCanvas* canvas) const;
-    void set_camera_phi(wxGLCanvas* canvas, float phi);
-
-    float get_camera_theta(wxGLCanvas* canvas) const;
-    void set_camera_theta(wxGLCanvas* canvas, float theta);
-
-    float get_camera_distance(wxGLCanvas* canvas) const;
-    void set_camera_distance(wxGLCanvas* canvas, float distance);
-
-    Pointf3 get_camera_target(wxGLCanvas* canvas) const;
-    void set_camera_target(wxGLCanvas* canvas, const Pointf3& target);
-
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
-    bool is_picking_enabled(wxGLCanvas* canvas) const;
-    bool is_moving_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
-    bool is_multisample_allowed(wxGLCanvas* canvas) const;
 
     void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);
@@ -110,39 +76,6 @@ public:
     void enable_shader(wxGLCanvas* canvas, bool enable);
     void allow_multisample(wxGLCanvas* canvas, bool allow);
 
-    bool is_mouse_dragging(wxGLCanvas* canvas) const;
-    void set_mouse_dragging(wxGLCanvas* canvas, bool dragging);
-
-    int get_hover_volume_id(wxGLCanvas* canvas) const;
-    void set_hover_volume_id(wxGLCanvas* canvas, int id);
-
-    unsigned int get_layers_editing_z_texture_id(wxGLCanvas* canvas) const;
-
-    unsigned int get_layers_editing_state(wxGLCanvas* canvas) const;
-    void set_layers_editing_state(wxGLCanvas* canvas, unsigned int state);
-
-    float get_layers_editing_band_width(wxGLCanvas* canvas) const;
-    void set_layers_editing_band_width(wxGLCanvas* canvas, float band_width);
-
-    float get_layers_editing_strength(wxGLCanvas* canvas) const;
-    void set_layers_editing_strength(wxGLCanvas* canvas, float strength);
-
-    int get_layers_editing_last_object_id(wxGLCanvas* canvas) const;
-    void set_layers_editing_last_object_id(wxGLCanvas* canvas, int id);
-
-    float get_layers_editing_last_z(wxGLCanvas* canvas) const;
-    void set_layers_editing_last_z(wxGLCanvas* canvas, float z);
-
-    unsigned int get_layers_editing_last_action(wxGLCanvas* canvas) const;
-    void set_layers_editing_last_action(wxGLCanvas* canvas, unsigned int action);
-
-    const GLShader* get_layers_editing_shader(wxGLCanvas* canvas) const;
-
-    float get_layers_editing_cursor_z_relative(wxGLCanvas* canvas) const;
-    int get_layers_editing_first_selected_object_id(wxGLCanvas* canvas, unsigned int objects_count) const;
-    bool bar_rect_contains(wxGLCanvas* canvas, float x, float y) const;
-    bool reset_rect_contains(wxGLCanvas* canvas, float x, float y) const;
-
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);
     void select_view(wxGLCanvas* canvas, const std::string& direction);
@@ -150,16 +83,7 @@ public:
 
     void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
 
-    bool start_using_shader(wxGLCanvas* canvas) const;
-    void stop_using_shader(wxGLCanvas* canvas) const;
-
     void render(wxGLCanvas* canvas) const;
-    void render_volumes(wxGLCanvas* canvas, bool fake_colors) const;
-    void render_texture(wxGLCanvas* canvas, unsigned int tex_id, float left, float right, float bottom, float top) const;
-
-    void start_timer(wxGLCanvas* canvas);
-    void stop_timer(wxGLCanvas* canvas);
-    void perform_layer_editing_action(wxGLCanvas* canvas, int y, bool shift_down, bool right_down);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);

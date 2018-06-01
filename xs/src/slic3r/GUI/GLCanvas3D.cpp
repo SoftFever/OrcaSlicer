@@ -182,57 +182,27 @@ void Rect::set_bottom(float bottom)
 }
 
 GLCanvas3D::Camera::Camera()
-    : m_type(CT_Ortho)
-    , m_zoom(1.0f)
-    , m_phi(45.0f)
+    : type(Ortho)
+    , zoom(1.0f)
+    , phi(45.0f)
+    , distance(0.0f)
+    , target(0.0, 0.0, 0.0)
     , m_theta(45.0f)
-    , m_distance(0.0f)
-    , m_target(0.0, 0.0, 0.0)
 {
-}
-
-GLCanvas3D::Camera::EType GLCanvas3D::Camera::get_type() const
-{
-    return m_type;
-}
-
-void GLCanvas3D::Camera::set_type(GLCanvas3D::Camera::EType type)
-{
-    m_type = type;
 }
 
 std::string GLCanvas3D::Camera::get_type_as_string() const
 {
-    switch (m_type)
+    switch (type)
     {
     default:
-    case CT_Unknown:
+    case Unknown:
         return "unknown";
-    case CT_Perspective:
+    case Perspective:
         return "perspective";
-    case CT_Ortho:
+    case Ortho:
         return "ortho";
     };
-}
-
-float GLCanvas3D::Camera::get_zoom() const
-{
-    return m_zoom;
-}
-
-void GLCanvas3D::Camera::set_zoom(float zoom)
-{
-    m_zoom = zoom;
-}
-
-float GLCanvas3D::Camera::get_phi() const
-{
-    return m_phi;
-}
-
-void GLCanvas3D::Camera::set_phi(float phi)
-{
-    m_phi = phi;
 }
 
 float GLCanvas3D::Camera::get_theta() const
@@ -242,34 +212,7 @@ float GLCanvas3D::Camera::get_theta() const
 
 void GLCanvas3D::Camera::set_theta(float theta)
 {
-    m_theta = theta;
-
-    // clamp angle
-    if (m_theta > GIMBALL_LOCK_THETA_MAX)
-        m_theta = GIMBALL_LOCK_THETA_MAX;
-
-    if (m_theta < 0.0f)
-        m_theta = 0.0f;
-}
-
-float GLCanvas3D::Camera::get_distance() const
-{
-    return m_distance;
-}
-
-void GLCanvas3D::Camera::set_distance(float distance)
-{
-    m_distance = distance;
-}
-
-const Pointf3& GLCanvas3D::Camera::get_target() const
-{
-    return m_target;
-}
-
-void GLCanvas3D::Camera::set_target(const Pointf3& target)
-{
-    m_target = target;
+    m_theta = clamp(0.0f, GIMBALL_LOCK_THETA_MAX, theta);
 }
 
 const Pointfs& GLCanvas3D::Bed::get_shape() const
@@ -396,28 +339,8 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
 }
 
 GLCanvas3D::Axes::Axes()
-    : m_length(0.0f)
+    : length(0.0f)
 {
-}
-
-const Pointf3& GLCanvas3D::Axes::get_origin() const
-{
-    return m_origin;
-}
-
-void GLCanvas3D::Axes::set_origin(const Pointf3& origin)
-{
-    m_origin = origin;
-}
-
-float GLCanvas3D::Axes::get_length() const
-{
-    return m_length;
-}
-
-void GLCanvas3D::Axes::set_length(float length)
-{
-    m_length = length;
 }
 
 void GLCanvas3D::Axes::render() const
@@ -429,20 +352,20 @@ void GLCanvas3D::Axes::render() const
     ::glBegin(GL_LINES);
     // draw line for x axis
     ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z);
-    ::glVertex3f((float)m_origin.x + m_length, (float)m_origin.y, (float)m_origin.z);
-     // draw line for y axis
+    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
+    ::glVertex3f((GLfloat)origin.x + length, (GLfloat)origin.y, (GLfloat)origin.z);
+    // draw line for y axis
     ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z);
-    ::glVertex3f((float)m_origin.x, (float)m_origin.y + m_length, (float)m_origin.z);
+    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
+    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y + length, (GLfloat)origin.z);
     ::glEnd();
     // draw line for Z axis
     // (re-enable depth test so that axis is correctly shown when objects are behind it)
     ::glEnable(GL_DEPTH_TEST);
     ::glBegin(GL_LINES);
     ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z);
-    ::glVertex3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z + m_length);
+    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
+    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z + length);
     ::glEnd();
 }
 
@@ -600,15 +523,15 @@ GLCanvas3D::LayersEditing::GLTextureData::GLTextureData(unsigned int id, int wid
 }
 
 GLCanvas3D::LayersEditing::LayersEditing()
-    : m_state(Unknown)
-    , m_use_legacy_opengl(false)
+    : m_use_legacy_opengl(false)
     , m_enabled(false)
     , m_z_texture_id(0)
-    , m_band_width(2.0f)
-    , m_strength(0.005f)
-    , m_last_object_id(-1)
-    , m_last_z(0.0f)
-    , m_last_action(0)
+    , state(Unknown)
+    , band_width(2.0f)
+    , strength(0.005f)
+    , last_object_id(-1)
+    , last_z(0.0f)
+    , last_action(0)
 {
 }
 
@@ -650,16 +573,6 @@ bool GLCanvas3D::LayersEditing::init(const std::string& vertex_shader_filename, 
     return true;
 }
 
-GLCanvas3D::LayersEditing::EState GLCanvas3D::LayersEditing::get_state() const
-{
-    return m_state;
-}
-
-void GLCanvas3D::LayersEditing::set_state(GLCanvas3D::LayersEditing::EState state)
-{
-    m_state = state;
-}
-
 bool GLCanvas3D::LayersEditing::is_allowed() const
 {
     return m_use_legacy_opengl && m_shader.is_initialized();
@@ -683,56 +596,6 @@ void GLCanvas3D::LayersEditing::set_enabled(bool enabled)
 unsigned int GLCanvas3D::LayersEditing::get_z_texture_id() const
 {
     return m_z_texture_id;
-}
-
-float GLCanvas3D::LayersEditing::get_band_width() const
-{
-    return m_band_width;
-}
-
-void GLCanvas3D::LayersEditing::set_band_width(float band_width)
-{
-    m_band_width = band_width;
-}
-
-float GLCanvas3D::LayersEditing::get_strength() const
-{
-    return m_strength;
-}
-
-void GLCanvas3D::LayersEditing::set_strength(float strength)
-{
-    m_strength = strength;
-}
-
-int GLCanvas3D::LayersEditing::get_last_object_id() const
-{
-    return m_last_object_id;
-}
-
-void GLCanvas3D::LayersEditing::set_last_object_id(int id)
-{
-    m_last_object_id = id;
-}
-
-float GLCanvas3D::LayersEditing::get_last_z() const
-{
-    return m_last_z;
-}
-
-void GLCanvas3D::LayersEditing::set_last_z(float z)
-{
-    m_last_z = z;
-}
-
-unsigned int GLCanvas3D::LayersEditing::get_last_action() const
-{
-    return m_last_action;
-}
-
-void GLCanvas3D::LayersEditing::set_last_action(unsigned int action)
-{
-    m_last_action = action;
 }
 
 void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObject& print_object, const GLVolume& volume) const
@@ -761,9 +624,10 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
     glEnable(GL_DEPTH_TEST);
 }
 
-const GLShader* GLCanvas3D::LayersEditing::get_shader() const
+int GLCanvas3D::LayersEditing::get_shader_program_id() const
 {
-    return m_shader.get_shader();
+    const GLShader* shader = m_shader.get_shader();
+    return (shader != nullptr) ? shader->shader_program_id : -1;
 }
 
 float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
@@ -902,7 +766,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     m_shader.set_uniform("z_to_texture_row", (float)volume.layer_height_texture_z_to_row_id());
     m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)volume.layer_height_texture_height());
     m_shader.set_uniform("z_cursor", max_z * get_cursor_z_relative(canvas));
-    m_shader.set_uniform("z_cursor_band_width", get_band_width());
+    m_shader.set_uniform("z_cursor_band_width", band_width);
 
     GLsizei w = (GLsizei)volume.layer_height_texture_width();
     GLsizei h = (GLsizei)volume.layer_height_texture_height();
@@ -1034,85 +898,40 @@ GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_textur
     return GLTextureData((unsigned int)tex_id, width, height);
 }
 
+const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
+const Pointf3 GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX);
+
+GLCanvas3D::Mouse::Drag::Drag()
+    : start_position_2D(Invalid_2D_Point)
+    , start_position_3D(Invalid_3D_Point)
+    , volume_idx(-1)
+{
+}
+
 GLCanvas3D::Mouse::Mouse()
-    : m_dragging(false)
+    : dragging(false)
+    , position(DBL_MAX, DBL_MAX)
 {
 }
 
-bool GLCanvas3D::Mouse::is_dragging() const
+void GLCanvas3D::Mouse::set_start_position_2D_as_invalid()
 {
-    return m_dragging;
+    drag.start_position_2D = Drag::Invalid_2D_Point;
 }
 
-void GLCanvas3D::Mouse::set_dragging(bool dragging)
+void GLCanvas3D::Mouse::set_start_position_3D_as_invalid()
 {
-    m_dragging = dragging;
+    drag.start_position_3D = Drag::Invalid_3D_Point;
 }
 
-const Pointf& GLCanvas3D::Mouse::get_position() const
+bool GLCanvas3D::Mouse::is_start_position_2D_defined() const
 {
-    return m_position;
+    return (drag.start_position_2D != Drag::Invalid_2D_Point);
 }
 
-void GLCanvas3D::Mouse::set_position(const Pointf& position)
+bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
 {
-    m_position = position;
-}
-
-GLCanvas3D::Drag::Drag()
-    : m_start_position_2D(INT_MAX, INT_MAX)
-    , m_volume_idx(-1)
-{
-}
-
-const Point& GLCanvas3D::Drag::get_start_position_2D() const
-{
-    return m_start_position_2D;
-}
-
-void GLCanvas3D::Drag::set_start_position_2D(const Point& position)
-{
-    m_start_position_2D = position;
-}
-
-const Pointf3& GLCanvas3D::Drag::get_start_position_3D() const
-{
-    return m_start_position_3D;
-}
-
-void GLCanvas3D::Drag::set_start_position_3D(const Pointf3& position)
-{
-    m_start_position_3D = position;
-}
-
-bool GLCanvas3D::Drag::is_start_position_2D_defined() const
-{
-    return (m_start_position_2D != Point(INT_MAX, INT_MAX));
-}
-
-bool GLCanvas3D::Drag::is_start_position_3D_defined() const
-{
-    return (m_start_position_3D != Pointf3(DBL_MAX, DBL_MAX, DBL_MAX));
-}
-
-const Vectorf3& GLCanvas3D::Drag::get_volume_center_offset() const
-{
-    return m_volume_center_offset;
-}
-
-void GLCanvas3D::Drag::set_volume_center_offset(const Vectorf3& offset)
-{
-    m_volume_center_offset = offset;
-}
-
-int GLCanvas3D::Drag::get_volume_idx() const
-{
-    return m_volume_idx;
-}
-
-void GLCanvas3D::Drag::set_volume_idx(int idx)
-{
-    m_volume_idx = idx;
+    return (drag.start_position_3D != Drag::Invalid_3D_Point);
 }
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
@@ -1150,8 +969,8 @@ GLCanvas3D::~GLCanvas3D()
 bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
     ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
     ::glClearDepth(1.0f);
+
     ::glDepthFunc(GL_LESS);
 
     ::glEnable(GL_DEPTH_TEST);
@@ -1193,7 +1012,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     ::glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
     ::glEnable(GL_COLOR_MATERIAL);
 
-    if (is_multisample_allowed())
+    if (m_multisample_allowed)
         ::glEnable(GL_MULTISAMPLE);
 
     if (useVBOs && !m_shader.init("gouraud.vs", "gouraud.fs"))
@@ -1218,91 +1037,9 @@ bool GLCanvas3D::set_current()
     return false;
 }
 
-bool GLCanvas3D::is_dirty() const
-{
-    return m_dirty;
-}
-
-void GLCanvas3D::set_dirty(bool dirty)
-{
-    m_dirty = dirty;
-}
-
 bool GLCanvas3D::is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
-}
-
-void GLCanvas3D::resize(unsigned int w, unsigned int h)
-{
-    if (m_context == nullptr)
-        return;
-    
-    set_current();
-    ::glViewport(0, 0, w, h);
-
-    ::glMatrixMode(GL_PROJECTION);
-    ::glLoadIdentity();
-
-    BoundingBoxf3 bbox = max_bounding_box();
-
-    switch (get_camera_type())
-    {
-    case Camera::CT_Ortho:
-        {
-            float w2 = w;
-            float h2 = h;
-            float two_zoom = 2.0f * get_camera_zoom();
-            if (two_zoom != 0.0f)
-            {
-                float inv_two_zoom = 1.0f / two_zoom;
-                w2 *= inv_two_zoom;
-                h2 *= inv_two_zoom;
-            }
-
-            // FIXME: calculate a tighter value for depth will improve z-fighting
-            float depth = 5.0f * (float)bbox.max_size();
-            ::glOrtho(-w2, w2, -h2, h2, -depth, depth);
-
-            break;
-        }
-    case Camera::CT_Perspective:
-        {
-            float bbox_r = (float)bbox.radius();
-            float fov = PI * 45.0f / 180.0f;
-            float fov_tan = tan(0.5f * fov);
-            float cam_distance = 0.5f * bbox_r / fov_tan;
-            set_camera_distance(cam_distance);
-
-            float nr = cam_distance - bbox_r * 1.1f;
-            float fr = cam_distance + bbox_r * 1.1f;
-            if (nr < 1.0f)
-                nr = 1.0f;
-
-            if (fr < nr + 1.0f)
-                fr = nr + 1.0f;
-
-            float h2 = fov_tan * nr;
-            float w2 = h2 * w / h;
-            ::glFrustum(-w2, w2, -h2, h2, nr, fr);
-
-            break;
-        }
-    default:
-        {
-            throw std::runtime_error("Invalid camera type.");
-            break;
-        }
-    }
-
-    ::glMatrixMode(GL_MODELVIEW);
-
-    set_dirty(false);
-}
-
-GLVolumeCollection* GLCanvas3D::get_volumes()
-{
-    return m_volumes;
 }
 
 void GLCanvas3D::set_volumes(GLVolumeCollection* volumes)
@@ -1316,7 +1053,7 @@ void GLCanvas3D::reset_volumes()
     {
         m_volumes->release_geometry();
         m_volumes->clear();
-        set_dirty(true);
+        m_dirty = true;
     }
 }
 
@@ -1357,8 +1094,8 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     m_bed.set_shape(shape);
 
     // Set the origin and size for painting of the coordinate system axes.
-    set_axes_origin(Pointf3(0.0, 0.0, (coordf_t)GROUND_Z));
-    set_axes_length(0.3f * (float)bed_bounding_box().max_size());
+    m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
+    set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
 }
 
 void GLCanvas3D::set_auto_bed_shape()
@@ -1378,27 +1115,12 @@ void GLCanvas3D::set_auto_bed_shape()
     set_bed_shape(bed_shape);
 
     // Set the origin for painting of the coordinate system axes.
-    set_axes_origin(Pointf3(center.x, center.y, (coordf_t)GROUND_Z));
-}
-
-const Pointf3& GLCanvas3D::get_axes_origin() const
-{
-    return m_axes.get_origin();
-}
-
-void GLCanvas3D::set_axes_origin(const Pointf3& origin)
-{
-    m_axes.set_origin(origin);
-}
-
-float GLCanvas3D::get_axes_length() const
-{
-    return m_axes.get_length();
+    m_axes.origin = Pointf3(center.x, center.y, (coordf_t)GROUND_Z);
 }
 
 void GLCanvas3D::set_axes_length(float length)
 {
-    return m_axes.set_length(length);
+    m_axes.length = length;
 }
 
 void GLCanvas3D::set_cutting_plane(float z, const ExPolygons& polygons)
@@ -1406,74 +1128,9 @@ void GLCanvas3D::set_cutting_plane(float z, const ExPolygons& polygons)
     m_cutting_plane.set(z, polygons);
 }
 
-GLCanvas3D::Camera::EType GLCanvas3D::get_camera_type() const
-{
-    return m_camera.get_type();
-}
-
-void GLCanvas3D::set_camera_type(GLCanvas3D::Camera::EType type)
-{
-    m_camera.set_type(type);
-}
-
-std::string GLCanvas3D::get_camera_type_as_string() const
-{
-    return m_camera.get_type_as_string();
-}
-
 float GLCanvas3D::get_camera_zoom() const
 {
-    return m_camera.get_zoom();
-}
-
-void GLCanvas3D::set_camera_zoom(float zoom)
-{
-    m_camera.set_zoom(zoom);
-}
-
-float GLCanvas3D::get_camera_phi() const
-{
-    return m_camera.get_phi();
-}
-
-void GLCanvas3D::set_camera_phi(float phi)
-{
-    m_camera.set_phi(phi);
-}
-
-float GLCanvas3D::get_camera_theta() const
-{
-    return m_camera.get_theta();
-}
-
-void GLCanvas3D::set_camera_theta(float theta)
-{
-    m_camera.set_theta(theta);
-}
-
-float GLCanvas3D::get_camera_distance() const
-{
-    return m_camera.get_distance();
-}
-
-void GLCanvas3D::set_camera_distance(float distance)
-{
-    m_camera.set_distance(distance);
-}
-
-const Pointf3& GLCanvas3D::get_camera_target() const
-{
-    return m_camera.get_target();
-}
-
-void GLCanvas3D::set_camera_target(const Pointf3& target)
-{
-    m_camera.set_target(target);
-}
-
-BoundingBoxf3 GLCanvas3D::bed_bounding_box() const
-{
-    return m_bed.get_bounding_box();
+    return m_camera.zoom;
 }
 
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
@@ -1490,36 +1147,14 @@ BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
     return bb;
 }
 
-BoundingBoxf3 GLCanvas3D::max_bounding_box() const
-{
-    BoundingBoxf3 bb = bed_bounding_box();
-    bb.merge(volumes_bounding_box());
-    return bb;
-}
-
 bool GLCanvas3D::is_layers_editing_enabled() const
 {
     return m_layers_editing.is_enabled();
 }
 
-bool GLCanvas3D::is_picking_enabled() const
-{
-    return m_picking_enabled;
-}
-
-bool GLCanvas3D::is_moving_enabled() const
-{
-    return m_moving_enabled;
-}
-
 bool GLCanvas3D::is_layers_editing_allowed() const
 {
     return m_layers_editing.is_allowed();
-}
-
-bool GLCanvas3D::is_multisample_allowed() const
-{
-    return m_multisample_allowed;
 }
 
 void GLCanvas3D::enable_layers_editing(bool enable)
@@ -1556,39 +1191,9 @@ void GLCanvas3D::allow_multisample(bool allow)
     m_multisample_allowed = allow;
 }
 
-bool GLCanvas3D::is_mouse_dragging() const
-{
-    return m_mouse.is_dragging();
-}
-
-void GLCanvas3D::set_mouse_dragging(bool dragging)
-{
-    m_mouse.set_dragging(dragging);
-}
-
-const Pointf& GLCanvas3D::get_mouse_position() const
-{
-    return m_mouse.get_position();
-}
-
-void GLCanvas3D::set_mouse_position(const Pointf& position)
-{
-    m_mouse.set_position(position);
-}
-
-int GLCanvas3D::get_hover_volume_id() const
-{
-    return m_hover_volume_id;
-}
-
-void GLCanvas3D::set_hover_volume_id(int id)
-{
-    m_hover_volume_id = id;
-}
-
 void GLCanvas3D::zoom_to_bed()
 {
-    _zoom_to_bounding_box(bed_bounding_box());
+    _zoom_to_bounding_box(m_bed.get_bounding_box());
 }
 
 void GLCanvas3D::zoom_to_volumes()
@@ -1619,7 +1224,7 @@ void GLCanvas3D::select_view(const std::string& direction)
 
     if ((dir_vec != nullptr) && !empty(volumes_bounding_box()))
     {
-        m_camera.set_phi(dir_vec[0]);
+        m_camera.phi = dir_vec[0];
         m_camera.set_theta(dir_vec[1]);
 
         m_on_viewport_changed_callback.call();
@@ -1631,11 +1236,11 @@ void GLCanvas3D::select_view(const std::string& direction)
 
 void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
 {
-    set_camera_phi(other.get_camera_phi());
-    set_camera_theta(other.get_camera_theta());
-    set_camera_target(other.get_camera_target());
-    set_camera_zoom(other.get_camera_zoom());
-    set_dirty(true);
+    m_camera.phi = other.m_camera.phi;
+    m_camera.set_theta(other.m_camera.get_theta());
+    m_camera.target = other.m_camera.target;
+    m_camera.zoom = other.m_camera.zoom;
+    m_dirty = true;
 }
 
 void GLCanvas3D::update_volumes_colors_by_extruder()
@@ -1644,16 +1249,6 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         return;
 
     m_volumes->update_colors_by_extruder(m_config);
-}
-
-bool GLCanvas3D::start_using_shader() const
-{
-    return m_shader.start_using();
-}
-
-void GLCanvas3D::stop_using_shader() const
-{
-    m_shader.stop_using();
 }
 
 void GLCanvas3D::render(bool useVBOs) const
@@ -1673,146 +1268,6 @@ void GLCanvas3D::render(bool useVBOs) const
     _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
-}
-
-unsigned int GLCanvas3D::get_layers_editing_z_texture_id() const
-{
-    return m_layers_editing.get_z_texture_id();
-}
-
-unsigned int GLCanvas3D::get_layers_editing_state() const
-{
-    return (unsigned int)m_layers_editing.get_state();
-}
-
-void GLCanvas3D::set_layers_editing_state(unsigned int state)
-{
-    if (state < (unsigned int)LayersEditing::Num_States)
-        m_layers_editing.set_state((LayersEditing::EState)state);
-}
-
-float GLCanvas3D::get_layers_editing_band_width() const
-{
-    return m_layers_editing.get_band_width();
-}
-
-void GLCanvas3D::set_layers_editing_band_width(float band_width)
-{
-    m_layers_editing.set_band_width(band_width);
-}
-
-float GLCanvas3D::get_layers_editing_strength() const
-{
-    return m_layers_editing.get_strength();
-}
-
-void GLCanvas3D::set_layers_editing_strength(float strength)
-{
-    m_layers_editing.set_strength(strength);
-}
-
-int GLCanvas3D::get_layers_editing_last_object_id() const
-{
-    return m_layers_editing.get_last_object_id();
-}
-
-void GLCanvas3D::set_layers_editing_last_object_id(int id)
-{
-    m_layers_editing.set_last_object_id(id);
-}
-
-float GLCanvas3D::get_layers_editing_last_z() const
-{
-    return m_layers_editing.get_last_z();
-}
-
-void GLCanvas3D::set_layers_editing_last_z(float z)
-{
-    m_layers_editing.set_last_z(z);
-}
-
-unsigned int GLCanvas3D::get_layers_editing_last_action() const
-{
-    return m_layers_editing.get_last_action();
-}
-
-void GLCanvas3D::set_layers_editing_last_action(unsigned int action)
-{
-    m_layers_editing.set_last_action(action);
-}
-
-const GLShader* GLCanvas3D::get_layers_editing_shader() const
-{
-    return m_layers_editing.get_shader();
-}
-
-float GLCanvas3D::get_layers_editing_cursor_z_relative() const
-{
-    return m_layers_editing.get_cursor_z_relative(*this);
-}
-
-int GLCanvas3D::get_layers_editing_first_selected_object_id(unsigned int objects_count) const
-{
-    return (m_volumes != nullptr) ? m_layers_editing.get_first_selected_object_id(*m_volumes, objects_count) : -1;
-}
-
-bool GLCanvas3D::bar_rect_contains(float x, float y) const
-{
-    return m_layers_editing.bar_rect_contains(*this, x, y);
-}
-
-bool GLCanvas3D::reset_rect_contains(float x, float y) const
-{
-    return m_layers_editing.reset_rect_contains(*this, x, y);
-}
-
-void GLCanvas3D::render_volumes(bool fake_colors) const
-{
-    static const float INV_255 = 1.0f / 255.0f;
-
-    if (m_volumes == nullptr)
-        return;
-
-    if (fake_colors)
-        ::glDisable(GL_LIGHTING);
-    else
-        ::glEnable(GL_LIGHTING);
-
-    // do not cull backfaces to show broken geometry, if any
-    ::glDisable(GL_CULL_FACE);
-
-    ::glEnable(GL_BLEND);
-    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    ::glEnableClientState(GL_VERTEX_ARRAY);
-    ::glEnableClientState(GL_NORMAL_ARRAY);
-
-    unsigned int volume_id = 0;
-    for (GLVolume* vol : m_volumes->volumes)
-    {
-        if (fake_colors)
-        {
-            // Object picking mode. Render the object with a color encoding the object index.
-            unsigned int r = (volume_id & 0x000000FF) >> 0;
-            unsigned int g = (volume_id & 0x0000FF00) >> 8;
-            unsigned int b = (volume_id & 0x00FF0000) >> 16;
-            ::glColor4f((float)r * INV_255, (float)g * INV_255, (float)b * INV_255, 1.0f);
-        }
-        else
-        {
-            vol->set_render_color();
-            ::glColor4f(vol->render_color[0], vol->render_color[1], vol->render_color[2], vol->render_color[3]);
-        }
-
-        vol->render();
-        ++volume_id;
-    }
-
-    ::glDisableClientState(GL_NORMAL_ARRAY);
-    ::glDisableClientState(GL_VERTEX_ARRAY);
-    ::glDisable(GL_BLEND);
-
-    ::glEnable(GL_CULL_FACE);
 }
 
 void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const
@@ -1878,12 +1333,12 @@ void GLCanvas3D::register_on_move_callback(void* callback)
 
 void GLCanvas3D::on_size(wxSizeEvent& evt)
 {
-    set_dirty(true);
+    m_dirty = true;
 }
 
 void GLCanvas3D::on_idle(wxIdleEvent& evt)
 {
-    if (!is_dirty())
+    if (!m_dirty)
         return;
 
     _refresh_if_shown_on_screen();
@@ -1933,14 +1388,14 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     // Performs layers editing updates, if enabled
     if (is_layers_editing_enabled() && (m_print != nullptr))
     {
-        int object_idx_selected = get_layers_editing_first_selected_object_id((unsigned int)m_print->objects.size());
+        int object_idx_selected = _get_layers_editing_first_selected_object_id((unsigned int)m_print->objects.size());
         if (object_idx_selected != -1)
         {
             // A volume is selected. Test, whether hovering over a layer thickness bar.
-            if (bar_rect_contains((float)evt.GetX(), (float)evt.GetY()))
+            if (_bar_rect_contains((float)evt.GetX(), (float)evt.GetY()))
             {
                 // Adjust the width of the selection.
-                set_layers_editing_band_width(std::max(std::min(get_layers_editing_band_width() * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f));
+                m_layers_editing.band_width = std::max(std::min(m_layers_editing.band_width * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f);
                 if (m_canvas != nullptr)
                     m_canvas->Refresh();
                 
@@ -1955,7 +1410,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     zoom = get_camera_zoom() / (1.0f - zoom);
     
     // Don't allow to zoom too far outside the scene.
-    float zoom_min = _get_zoom_to_bounding_box_factor(max_bounding_box());
+    float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
     if (zoom_min > 0.0f)
     {
         zoom_min *= 0.4f;
@@ -1963,7 +1418,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
             zoom = zoom_min;
     }
     
-    set_camera_zoom(zoom);
+    m_camera.zoom = zoom;
     m_on_viewport_changed_callback.call();
 
     _refresh_if_shown_on_screen();
@@ -1971,7 +1426,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
 
 void GLCanvas3D::on_timer(wxTimerEvent& evt)
 {
-    if (get_layers_editing_state() != 1)
+    if (m_layers_editing.state != LayersEditing::Editing)
         return;
 
     _perform_layer_editing_action();
@@ -1979,20 +1434,22 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
-    if ((m_canvas == nullptr) || (m_volumes == nullptr))
+    if (m_volumes == nullptr)
         return;
 
     Point pos(evt.GetX(), evt.GetY());
 
-    int selected_object_idx = (is_layers_editing_enabled() && (m_print != nullptr)) ? get_layers_editing_first_selected_object_id(m_print->objects.size()) : -1;
-    set_layers_editing_last_object_id(selected_object_idx);
+    int selected_object_idx = (is_layers_editing_enabled() && (m_print != nullptr)) ? _get_layers_editing_first_selected_object_id(m_print->objects.size()) : -1;
+    m_layers_editing.last_object_id = selected_object_idx;
 
     if (evt.Entering())
     {
 #if defined(__WXMSW__) || defined(__linux__)
         // On Windows and Linux needs focus in order to catch key events
-        m_canvas->SetFocus();
-        m_drag.set_start_position_2D(Point(INT_MAX, INT_MAX));
+        if (m_canvas != nullptr)
+            m_canvas->SetFocus();
+
+        m_mouse.set_start_position_2D_as_invalid();
 #endif
     } 
     else if (evt.LeftDClick())
@@ -2001,25 +1458,25 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
-        int volume_idx = get_hover_volume_id();
-        set_layers_editing_state(0);
-        if ((selected_object_idx != -1) && bar_rect_contains(pos.x, pos.y))
+        int volume_idx = m_hover_volume_id;
+        m_layers_editing.state = LayersEditing::Unknown;
+        if ((selected_object_idx != -1) && _bar_rect_contains(pos.x, pos.y))
         {
             // A volume is selected and the mouse is inside the layer thickness bar.
             // Start editing the layer height.
-            set_layers_editing_state(1);
-            perform_layer_editing_action(pos.y, evt.ShiftDown(), evt.RightDown());
+            m_layers_editing.state = LayersEditing::Editing;
+            _perform_layer_editing_action(&evt);
         }
-        else if ((selected_object_idx != -1) && reset_rect_contains(pos.x, pos.y))
+        else if ((selected_object_idx != -1) && _reset_rect_contains(pos.x, pos.y))
         {
             if (evt.LeftDown())
             {
                 // A volume is selected and the mouse is inside the reset button.
                 m_print->get_object(selected_object_idx)->reset_layer_height_profile();
                 // Index 2 means no editing, just wait for mouse up event.
-                set_layers_editing_state(2);
-                m_canvas->Refresh();
-                m_canvas->Update();
+                m_layers_editing.state = LayersEditing::Completed;
+
+                m_dirty = true;
             }
         }
         else
@@ -2028,7 +1485,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             // during the scene manipulation.
 
-            if (is_picking_enabled() && ((volume_idx != -1) || !is_layers_editing_enabled()))
+            if (m_picking_enabled && ((volume_idx != -1) || !is_layers_editing_enabled()))
             {
                 deselect_volumes();
                 select_volume(volume_idx);
@@ -2046,8 +1503,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
                 }
 
-                m_canvas->Refresh();
-                m_canvas->Update();
+                m_dirty = true;
             }
 
             // propagate event through callback
@@ -2059,7 +1515,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (volume_idx != -1)
             {
-                if (evt.LeftDown() && is_moving_enabled())
+                if (evt.LeftDown() && m_moving_enabled)
                 {
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes->volumes[volume_idx]->transformed_bounding_box();
@@ -2067,33 +1523,33 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (volume_bbox.contains(pos3d))
                     {
                         // The dragging operation is initiated.
-                        m_drag.set_volume_idx(volume_idx);
-                        m_drag.set_start_position_3D(pos3d);
+                        m_mouse.drag.volume_idx = volume_idx;
+                        m_mouse.drag.start_position_3D = pos3d;
                         // Remember the shift to to the object center.The object center will later be used
                         // to limit the object placement close to the bed.
-                        m_drag.set_volume_center_offset(pos3d.vector_to(volume_bbox.center()));
+                        m_mouse.drag.volume_center_offset = pos3d.vector_to(volume_bbox.center());
                     }
                 }
                 else if (evt.RightDown())
                 {
                     // if right clicking on volume, propagate event through callback
                     if (m_volumes->volumes[volume_idx]->hover)
-                    {
                         m_on_right_click_callback.call(pos.x, pos.y);
-                    }
                 }
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && (get_layers_editing_state() == 0) && (m_drag.get_volume_idx() != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
     {
+        m_mouse.dragging = true;
+
         // Get new position at the same Z of the initial click point.
         float z0 = 0.0f;
         float z1 = 1.0f;
-        Pointf3 cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_drag.get_start_position_3D().z);
+        Pointf3 cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D.z);
 
         // Clip the new position, so the object center remains close to the bed.
-        cur_pos.translate(m_drag.get_volume_center_offset());
+        cur_pos.translate(m_mouse.drag.volume_center_offset);
         Point cur_pos2(scale_(cur_pos.x), scale_(cur_pos.y));
         if (!m_bed.contains(cur_pos2))
         {
@@ -2101,12 +1557,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             cur_pos.x = unscale(ip.x);
             cur_pos.y = unscale(ip.y);
         }
-        cur_pos.translate(m_drag.get_volume_center_offset().negative());
+        cur_pos.translate(m_mouse.drag.volume_center_offset.negative());
 
         // Calculate the translation vector.
-        Vectorf3 vector = m_drag.get_start_position_3D().vector_to(cur_pos);
+        Vectorf3 vector = m_mouse.drag.start_position_3D.vector_to(cur_pos);
         // Get the volume being dragged.
-        GLVolume* volume = m_volumes->volumes[m_drag.get_volume_idx()];
+        GLVolume* volume = m_volumes->volumes[m_mouse.drag.volume_idx];
         // Get all volumes belonging to the same group, if any.
         std::vector<GLVolume*> volumes;
         if (volume->drag_group_id == -1)
@@ -2126,71 +1582,70 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             v->origin.translate(vector.x, vector.y, 0.0);
         }
 
-        m_drag.set_start_position_3D(cur_pos);
-        set_mouse_dragging(true);
-        m_canvas->Refresh();
-        m_canvas->Update();
+        m_mouse.drag.start_position_3D = cur_pos;
+
+        m_dirty = true;
     }
     else if (evt.Dragging())
     {
-        if ((get_layers_editing_state() > 0) && (selected_object_idx != -1))
+        m_mouse.dragging = true;
+
+        if ((m_layers_editing.state != LayersEditing::Unknown) && (selected_object_idx != -1))
         {
-            if (get_layers_editing_state() == 1)
-                perform_layer_editing_action(pos.y, evt.ShiftDown(), evt.RightIsDown());
+            if (m_layers_editing.state == LayersEditing::Editing)
+                _perform_layer_editing_action(&evt);
         }
         else if (evt.LeftIsDown())
         {
             // if dragging over blank area with left button, rotate
-            if (m_drag.is_start_position_3D_defined())
+            if (m_mouse.is_start_position_3D_defined())
             {
-                Pointf3 orig = m_drag.get_start_position_3D();
-                set_camera_phi(get_camera_phi() + ((float)pos.x - (float)orig.x) * TRACKBALLSIZE);
-                set_camera_theta(get_camera_theta() - ((float)pos.y - (float)orig.y) * TRACKBALLSIZE);
+                const Pointf3& orig = m_mouse.drag.start_position_3D;
+                m_camera.phi += (((float)pos.x - (float)orig.x) * TRACKBALLSIZE);
+                m_camera.set_theta(m_camera.get_theta() - ((float)pos.y - (float)orig.y) * TRACKBALLSIZE);
 
                 m_on_viewport_changed_callback.call();
 
-                m_canvas->Refresh();
-                m_canvas->Update();
+                m_dirty = true;
             }
-            m_drag.set_start_position_3D(Pointf3((coordf_t)pos.x, (coordf_t)pos.y, 0.0));
+            m_mouse.drag.start_position_3D = Pointf3((coordf_t)pos.x, (coordf_t)pos.y, 0.0);
         }
         else if (evt.MiddleIsDown() || evt.RightIsDown())
         {
             // If dragging over blank area with right button, pan.
-            if (m_drag.is_start_position_2D_defined())
+            if (m_mouse.is_start_position_2D_defined())
             {
                 // get point in model space at Z = 0
                 float z = 0.0f;
                 const Pointf3& cur_pos = _mouse_to_3d(pos, &z);
-                Pointf3 orig = _mouse_to_3d(m_drag.get_start_position_2D(), &z);
-                Pointf3 camera_target = get_camera_target();
+                Pointf3 orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
+                Pointf3 camera_target = m_camera.target;
                 camera_target.translate(orig.vector_to(cur_pos).negative());
-                set_camera_target(camera_target);
+                m_camera.target = camera_target;
 
                 m_on_viewport_changed_callback.call();
 
-                m_canvas->Refresh();
-                m_canvas->Update();
+                m_dirty = true;
             }
             
-            m_drag.set_start_position_2D(pos);
+            m_mouse.drag.start_position_2D = pos;
         }
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
     {
-        if (get_layers_editing_state() > 0)
+        if (m_layers_editing.state != LayersEditing::Unknown)
         {
-            set_layers_editing_state(0);
-            stop_timer();
+            m_layers_editing.state = LayersEditing::Unknown;
+            _stop_timer();
 
             if (selected_object_idx != -1)
                 m_on_model_update_callback.call();
         }
-        else if ((m_drag.get_volume_idx() != -1) && m_mouse.is_dragging())
+        else if ((m_mouse.drag.volume_idx != -1) && m_mouse.dragging)
         {
             // get all volumes belonging to the same group, if any
             std::vector<int> volume_idxs;
-            int vol_id = m_drag.get_volume_idx();
+            int vol_id = m_mouse.drag.volume_idx;
             int group_id = m_volumes->volumes[vol_id]->drag_group_id;
             if (group_id == -1)
                 volume_idxs.push_back(vol_id);
@@ -2206,20 +1661,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_on_move_callback.call(volume_idxs);
         }
         
-        m_drag.set_volume_idx(-1);
-        m_drag.set_start_position_3D(Pointf3(DBL_MAX, DBL_MAX, DBL_MAX));
-        m_drag.set_start_position_2D(Point(INT_MAX, INT_MAX));
-        set_mouse_dragging(false);
+        m_mouse.drag.volume_idx = -1;
+        m_mouse.set_start_position_3D_as_invalid();
+        m_mouse.set_start_position_2D_as_invalid();
+        m_mouse.dragging = false;
     }
     else if (evt.Moving())
     {
-        set_mouse_position(Pointf((coordf_t)pos.x, (coordf_t)pos.y));
+        m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
-        if (is_picking_enabled())
-        {
-            m_canvas->Refresh();
-            m_canvas->Update();
-        }
+        if (m_picking_enabled)
+            m_dirty = true;
     }
     else
         evt.Skip();
@@ -2245,26 +1697,78 @@ Point GLCanvas3D::get_local_mouse_position() const
     return Point(mouse_pos.x, mouse_pos.y);
 }
 
-void GLCanvas3D::start_timer()
+void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
-    if (m_timer != nullptr)
-        m_timer->Start(100, wxTIMER_CONTINUOUS);
+    if (m_context == nullptr)
+        return;
+
+    set_current();
+    ::glViewport(0, 0, w, h);
+
+    ::glMatrixMode(GL_PROJECTION);
+    ::glLoadIdentity();
+
+    const BoundingBoxf3& bbox = _max_bounding_box();
+
+    switch (m_camera.type)
+    {
+    case Camera::Ortho:
+    {
+        float w2 = w;
+        float h2 = h;
+        float two_zoom = 2.0f * get_camera_zoom();
+        if (two_zoom != 0.0f)
+        {
+            float inv_two_zoom = 1.0f / two_zoom;
+            w2 *= inv_two_zoom;
+            h2 *= inv_two_zoom;
+        }
+
+        // FIXME: calculate a tighter value for depth will improve z-fighting
+        float depth = 5.0f * (float)bbox.max_size();
+        ::glOrtho(-w2, w2, -h2, h2, -depth, depth);
+
+        break;
+    }
+    case Camera::Perspective:
+    {
+        float bbox_r = (float)bbox.radius();
+        float fov = PI * 45.0f / 180.0f;
+        float fov_tan = tan(0.5f * fov);
+        float cam_distance = 0.5f * bbox_r / fov_tan;
+        m_camera.distance = cam_distance;
+
+        float nr = cam_distance - bbox_r * 1.1f;
+        float fr = cam_distance + bbox_r * 1.1f;
+        if (nr < 1.0f)
+            nr = 1.0f;
+
+        if (fr < nr + 1.0f)
+            fr = nr + 1.0f;
+
+        float h2 = fov_tan * nr;
+        float w2 = h2 * w / h;
+        ::glFrustum(-w2, w2, -h2, h2, nr, fr);
+
+        break;
+    }
+    default:
+    {
+        throw std::runtime_error("Invalid camera type.");
+        break;
+    }
+    }
+
+    ::glMatrixMode(GL_MODELVIEW);
+
+    m_dirty = false;
 }
 
-void GLCanvas3D::stop_timer()
+BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
 {
-    if (m_timer != nullptr)
-        m_timer->Stop();
-}
-
-void GLCanvas3D::perform_layer_editing_action(int y, bool shift_down, bool right_down)
-{
-    wxMouseEvent evt;
-    evt.m_y = (wxCoord)y;
-    evt.SetShiftDown(shift_down);
-    evt.SetRightDown(right_down);
-
-    _perform_layer_editing_action(&evt);
+    BoundingBoxf3 bb = m_bed.get_bounding_box();
+    bb.merge(volumes_bounding_box());
+    return bb;
 }
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
@@ -2273,9 +1777,9 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
     float zoom = _get_zoom_to_bounding_box_factor(bbox);
     if (zoom > 0.0f)
     {
-        set_camera_zoom(zoom);
+        m_camera.zoom = zoom;
         // center view around bounding box center
-        set_camera_target(bbox.center());
+        m_camera.target = bbox.center();
 
         m_on_viewport_changed_callback.call();
 
@@ -2368,13 +1872,13 @@ void GLCanvas3D::_mark_volumes_for_layer_height() const
     for (GLVolume* vol : m_volumes->volumes)
     {
         int object_id = int(vol->select_group_id / 1000000);
-        const GLShader* shader = get_layers_editing_shader();
+        int shader_id = m_layers_editing.get_shader_program_id();
 
-        if (is_layers_editing_enabled() && (shader != nullptr) && vol->selected &&
+        if (is_layers_editing_enabled() && (shader_id != -1) && vol->selected &&
             vol->has_layer_height_texture() && (object_id < (int)m_print->objects.size()))
         {
-            vol->set_layer_height_texture_data(get_layers_editing_z_texture_id(), shader->shader_program_id,
-                m_print->get_object(object_id), get_layers_editing_cursor_z_relative(), get_layers_editing_band_width());
+            vol->set_layer_height_texture_data(m_layers_editing.get_z_texture_id(), shader_id,
+                m_print->get_object(object_id), _get_layers_editing_cursor_z_relative(), m_layers_editing.band_width);
         }
         else
             vol->reset_layer_height_texture_data();
@@ -2386,7 +1890,7 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
     if (is_shown_on_screen())
     {
         const Size& cnv_size = get_canvas_size();
-        resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
+        _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
         if (m_canvas != nullptr)
             m_canvas->Refresh();
     }
@@ -2397,22 +1901,24 @@ void GLCanvas3D::_camera_tranform() const
     ::glMatrixMode(GL_MODELVIEW);
     ::glLoadIdentity();
 
-    ::glRotatef(-get_camera_theta(), 1.0f, 0.0f, 0.0f); // pitch
-    ::glRotatef(get_camera_phi(), 0.0f, 0.0f, 1.0f);    // yaw
+    ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
+    ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);    // yaw
 
-    Pointf3 neg_target = get_camera_target().negative();
+    Pointf3 neg_target = m_camera.target.negative();
     ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);
 }
 
 void GLCanvas3D::_picking_pass() const
 {
-    if (is_picking_enabled() && !is_mouse_dragging() && (m_volumes != nullptr))
+    const Pointf& pos = m_mouse.position;
+
+    if (m_picking_enabled && !m_mouse.dragging && (pos != Pointf(DBL_MAX, DBL_MAX)) && (m_volumes != nullptr))
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
         // Better to use software ray - casting on a bounding - box hierarchy.
 
-        if (is_multisample_allowed())
+        if (m_multisample_allowed)
             ::glDisable(GL_MULTISAMPLE);
 
         ::glDisable(GL_LIGHTING);
@@ -2422,16 +1928,15 @@ void GLCanvas3D::_picking_pass() const
 
         ::glPushAttrib(GL_ENABLE_BIT);
 
-        render_volumes(true);
+        _render_volumes(true);
 
         ::glPopAttrib();
 
-        if (is_multisample_allowed())
+        if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
 
         const Size& cnv_size = get_canvas_size();
 
-        const Pointf& pos = get_mouse_position();
         GLubyte color[4];
         ::glReadPixels(pos.x, cnv_size.get_height() - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
         int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
@@ -2511,16 +2016,16 @@ void GLCanvas3D::_render_objects(bool useVBOs) const
     ::glEnable(GL_LIGHTING);
 
     if (!m_shader_enabled)
-        render_volumes(false);
+        _render_volumes(false);
     else if (useVBOs)
     {
-        if (is_picking_enabled())
+        if (m_picking_enabled)
         {
             _mark_volumes_for_layer_height();
 
             if (m_config != nullptr)
             {
-                const BoundingBoxf3& bed_bb = bed_bounding_box();
+                const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
                 m_volumes->set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
                 m_volumes->check_outside_state(m_config);
             }
@@ -2528,22 +2033,22 @@ void GLCanvas3D::_render_objects(bool useVBOs) const
             ::glDisable(GL_CULL_FACE);
         }
 
-        start_using_shader();
+        m_shader.start_using();
         m_volumes->render_VBOs();
-        stop_using_shader();
+        m_shader.stop_using();
 
-        if (is_picking_enabled())
+        if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
     }
     else
     {
         // do not cull backfaces to show broken geometry, if any
-        if (is_picking_enabled())
+        if (m_picking_enabled)
             ::glDisable(GL_CULL_FACE);
 
         m_volumes->render_legacy();
 
-        if (is_picking_enabled())
+        if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
     }
 }
@@ -2650,9 +2155,68 @@ void GLCanvas3D::_render_layer_editing_overlay() const
     m_layers_editing.render(*this, *print_object, *volume);
 }
 
+void GLCanvas3D::_render_volumes(bool fake_colors) const
+{
+    static const float INV_255 = 1.0f / 255.0f;
+
+    if (m_volumes == nullptr)
+        return;
+
+    if (fake_colors)
+        ::glDisable(GL_LIGHTING);
+    else
+        ::glEnable(GL_LIGHTING);
+
+    // do not cull backfaces to show broken geometry, if any
+    ::glDisable(GL_CULL_FACE);
+
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    ::glEnableClientState(GL_VERTEX_ARRAY);
+    ::glEnableClientState(GL_NORMAL_ARRAY);
+
+    unsigned int volume_id = 0;
+    for (GLVolume* vol : m_volumes->volumes)
+    {
+        if (fake_colors)
+        {
+            // Object picking mode. Render the object with a color encoding the object index.
+            unsigned int r = (volume_id & 0x000000FF) >> 0;
+            unsigned int g = (volume_id & 0x0000FF00) >> 8;
+            unsigned int b = (volume_id & 0x00FF0000) >> 16;
+            ::glColor4f((float)r * INV_255, (float)g * INV_255, (float)b * INV_255, 1.0f);
+        }
+        else
+        {
+            vol->set_render_color();
+            ::glColor4f(vol->render_color[0], vol->render_color[1], vol->render_color[2], vol->render_color[3]);
+        }
+
+        vol->render();
+        ++volume_id;
+    }
+
+    ::glDisableClientState(GL_NORMAL_ARRAY);
+    ::glDisableClientState(GL_VERTEX_ARRAY);
+    ::glDisable(GL_BLEND);
+
+    ::glEnable(GL_CULL_FACE);
+}
+
+float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
+{
+    return m_layers_editing.get_cursor_z_relative(*this);
+}
+
+int GLCanvas3D::_get_layers_editing_first_selected_object_id(unsigned int objects_count) const
+{
+    return (m_volumes != nullptr) ? m_layers_editing.get_first_selected_object_id(*m_volumes, objects_count) : -1;
+}
+
 void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
 {
-    int object_idx_selected = get_layers_editing_last_object_id();
+    int object_idx_selected = m_layers_editing.last_object_id;
     if (object_idx_selected == -1)
         return;
 
@@ -2668,14 +2232,14 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     {
         const Rect& rect = LayersEditing::get_bar_rect_screen(*this);
         float b = rect.get_bottom();
-        set_layers_editing_last_z(unscale(selected_obj->size.z) * (b - evt->GetY() - 1.0f) / (b - rect.get_top()));
-        set_layers_editing_last_action(evt->ShiftDown() ? (evt->RightIsDown() ? 3 : 2) : (evt->RightIsDown() ? 0 : 1));
+        m_layers_editing.last_z = unscale(selected_obj->size.z) * (b - evt->GetY() - 1.0f) / (b - rect.get_top());
+        m_layers_editing.last_action = evt->ShiftDown() ? (evt->RightIsDown() ? 3 : 2) : (evt->RightIsDown() ? 0 : 1);
     }
 
     // Mark the volume as modified, so Print will pick its layer height profile ? Where to mark it ?
     // Start a timer to refresh the print ? schedule_background_process() ?
     // The PrintObject::adjust_layer_height_profile() call adjusts the profile of its associated ModelObject, it does not modify the profile of the PrintObject itself.
-    selected_obj->adjust_layer_height_profile(get_layers_editing_last_z(), get_layers_editing_strength(), get_layers_editing_band_width(), get_layers_editing_last_action());
+    selected_obj->adjust_layer_height_profile(m_layers_editing.last_z, m_layers_editing.strength, m_layers_editing.band_width, m_layers_editing.last_action);
 
     // searches the id of the first volume of the selected object
     int volume_idx = 0;
@@ -2695,7 +2259,17 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     _refresh_if_shown_on_screen();
 
     // Automatic action on mouse down with the same coordinate.
-    start_timer();
+    _start_timer();
+}
+
+bool GLCanvas3D::_bar_rect_contains(float x, float y) const
+{
+    return m_layers_editing.bar_rect_contains(*this, x, y);
+}
+
+bool GLCanvas3D::_reset_rect_contains(float x, float y) const
+{
+    return m_layers_editing.reset_rect_contains(*this, x, y);
 }
 
 Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
@@ -2720,6 +2294,18 @@ Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     GLdouble out_x, out_y, out_z;
     ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
     return Pointf3((coordf_t)out_x, (coordf_t)out_y, (coordf_t)out_z);
+}
+
+void GLCanvas3D::_start_timer()
+{
+    if (m_timer != nullptr)
+        m_timer->Start(100, wxTIMER_CONTINUOUS);
+}
+
+void GLCanvas3D::_stop_timer()
+{
+    if (m_timer != nullptr)
+        m_timer->Stop();
 }
 
 } // namespace GUI
