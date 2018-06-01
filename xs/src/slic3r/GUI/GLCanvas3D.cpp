@@ -1987,20 +1987,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = (is_layers_editing_enabled() && (m_print != nullptr)) ? get_layers_editing_first_selected_object_id(m_print->objects.size()) : -1;
     set_layers_editing_last_object_id(selected_object_idx);
 
-//    set_mouse_dragging(false);
-
     if (evt.Entering())
     {
-#if defined(__WXMSW__) || defined(__WXGTK__)
+#if defined(__WXMSW__) || defined(__linux__)
         // On Windows and Linux needs focus in order to catch key events
         m_canvas->SetFocus();
         m_drag.set_start_position_2D(Point(INT_MAX, INT_MAX));
 #endif
     } 
     else if (evt.LeftDClick())
-    {
         m_on_double_click_callback.call();
-    }
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -2197,9 +2193,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             int vol_id = m_drag.get_volume_idx();
             int group_id = m_volumes->volumes[vol_id]->drag_group_id;
             if (group_id == -1)
-            {
                 volume_idxs.push_back(vol_id);
-            }
             else
             {
                 for (int i = 0; i < m_volumes->volumes.size(); ++i)
