@@ -17,7 +17,6 @@ use warnings;
 
 use Wx qw(wxTheApp :timer :bitmap :icon :dialog);
 #==============================================================================================================================
-use Wx::Event qw(EVT_PAINT EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
 #use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
 #==============================================================================================================================
 # must load OpenGL *before* Wx::GLCanvas
@@ -82,11 +81,9 @@ __PACKAGE__->mk_accessors( qw(init
 #                              _mouse_dragging
 #                                                            
 #                              ) );
-#==============================================================================================================================
-
-use constant TRACKBALLSIZE  => 0.8;
-use constant TURNTABLE_MODE => 1;
-#==============================================================================================================================
+#
+#use constant TRACKBALLSIZE  => 0.8;
+#use constant TURNTABLE_MODE => 1;
 #use constant GROUND_Z       => -0.02;
 ## For mesh selection: Not selected - bright yellow.
 #use constant DEFAULT_COLOR  => [1,1,0];
@@ -109,16 +106,16 @@ use constant TURNTABLE_MODE => 1;
 #use constant MANIPULATION_LAYER_HEIGHT  => 2;
 #
 #use constant GIMBALL_LOCK_THETA_MAX => 180;
+#
+#use constant VARIABLE_LAYER_THICKNESS_BAR_WIDTH => 70;
+#use constant VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT => 22;
+#
+## make OpenGL::Array thread-safe
+#{
+#    no warnings 'redefine';
+#    *OpenGL::Array::CLONE_SKIP = sub { 1 };
+#}
 #==============================================================================================================================
-
-use constant VARIABLE_LAYER_THICKNESS_BAR_WIDTH => 70;
-use constant VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT => 22;
-
-# make OpenGL::Array thread-safe
-{
-    no warnings 'redefine';
-    *OpenGL::Array::CLONE_SKIP = sub { 1 };
-}
 
 sub new {
     my ($class, $parent) = @_;
@@ -192,13 +189,11 @@ sub new {
 #    $self->{layer_height_edit_last_action} = 0;
 #
 #    $self->reset_objects;
-#==============================================================================================================================
-    
-    EVT_PAINT($self, sub {
-        my $dc = Wx::PaintDC->new($self);
-        $self->Render($dc);
-    });
-#=======================================================================================================================    
+#    
+#    EVT_PAINT($self, sub {
+#        my $dc = Wx::PaintDC->new($self);
+#        $self->Render($dc);
+#    });
 #    EVT_SIZE($self, sub { $self->_dirty(1) });
 #    EVT_IDLE($self, sub {
 #        return unless $self->_dirty;
@@ -970,116 +965,114 @@ sub Destroy {
 #    }
 #    $self->cut_lines_vertices(OpenGL::Array->new_list(GL_FLOAT, @verts));
 #}
-#==============================================================================================================================
-
-# Given an axis and angle, compute quaternion.
-sub axis_to_quat {
-    my ($ax, $phi) = @_;
-    
-    my $lena = sqrt(reduce { $a + $b } (map { $_ * $_ } @$ax));
-    my @q = map { $_ * (1 / $lena) } @$ax;
-    @q = map { $_ * sin($phi / 2.0) } @q;
-    $q[$#q + 1] = cos($phi / 2.0);
-    return @q;
-}
-
-# Project a point on the virtual trackball. 
-# If it is inside the sphere, map it to the sphere, if it outside map it
-# to a hyperbola.
-sub project_to_sphere {
-    my ($r, $x, $y) = @_;
-    
-    my $d = sqrt($x * $x + $y * $y);
-    if ($d < $r * 0.70710678118654752440) {     # Inside sphere
-        return sqrt($r * $r - $d * $d);
-    } else {                                    # On hyperbola
-        my $t = $r / 1.41421356237309504880;
-        return $t * $t / $d;
-    }
-}
-
-sub cross {
-    my ($v1, $v2) = @_;
-  
-    return (@$v1[1] * @$v2[2] - @$v1[2] * @$v2[1],
-            @$v1[2] * @$v2[0] - @$v1[0] * @$v2[2],
-            @$v1[0] * @$v2[1] - @$v1[1] * @$v2[0]);
-}
-
-# Simulate a track-ball. Project the points onto the virtual trackball, 
-# then figure out the axis of rotation, which is the cross product of 
-# P1 P2 and O P1 (O is the center of the ball, 0,0,0) Note: This is a 
-# deformed trackball-- is a trackball in the center, but is deformed 
-# into a hyperbolic sheet of rotation away from the center. 
-# It is assumed that the arguments to this routine are in the range 
-# (-1.0 ... 1.0).
-sub trackball {
-    my ($p1x, $p1y, $p2x, $p2y) = @_;
-    
-    if ($p1x == $p2x && $p1y == $p2y) {
-        # zero rotation
-        return (0.0, 0.0, 0.0, 1.0);
-    }
-    
-    # First, figure out z-coordinates for projection of P1 and P2 to
-    # deformed sphere
-    my @p1 = ($p1x, $p1y, project_to_sphere(TRACKBALLSIZE, $p1x, $p1y));
-    my @p2 = ($p2x, $p2y, project_to_sphere(TRACKBALLSIZE, $p2x, $p2y));
-    
-    # axis of rotation (cross product of P1 and P2)
-    my @a = cross(\@p2, \@p1);
-
-    # Figure out how much to rotate around that axis.
-    my @d = map { $_ * $_ } (map { $p1[$_] - $p2[$_] } 0 .. $#p1);
-    my $t = sqrt(reduce { $a + $b } @d) / (2.0 * TRACKBALLSIZE);
-    
-    # Avoid problems with out-of-control values...
-    $t = 1.0 if ($t > 1.0);
-    $t = -1.0 if ($t < -1.0);
-    my $phi = 2.0 * asin($t);
-
-    return axis_to_quat(\@a, $phi);
-}
-
-# Build a rotation matrix, given a quaternion rotation.
-sub quat_to_rotmatrix {
-    my ($q) = @_;
-  
-    my @m = ();
-  
-    $m[0] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[2] * @$q[2]);
-    $m[1] = 2.0 * (@$q[0] * @$q[1] - @$q[2] * @$q[3]);
-    $m[2] = 2.0 * (@$q[2] * @$q[0] + @$q[1] * @$q[3]);
-    $m[3] = 0.0;
-
-    $m[4] = 2.0 * (@$q[0] * @$q[1] + @$q[2] * @$q[3]);
-    $m[5] = 1.0 - 2.0 * (@$q[2] * @$q[2] + @$q[0] * @$q[0]);
-    $m[6] = 2.0 * (@$q[1] * @$q[2] - @$q[0] * @$q[3]);
-    $m[7] = 0.0;
-
-    $m[8] = 2.0 * (@$q[2] * @$q[0] - @$q[1] * @$q[3]);
-    $m[9] = 2.0 * (@$q[1] * @$q[2] + @$q[0] * @$q[3]);
-    $m[10] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[0] * @$q[0]);
-    $m[11] = 0.0;
-
-    $m[12] = 0.0;
-    $m[13] = 0.0;
-    $m[14] = 0.0;
-    $m[15] = 1.0;
-  
-    return @m;
-}
-
-sub mulquats {
-    my ($q1, $rq) = @_;
-  
-    return (@$q1[3] * @$rq[0] + @$q1[0] * @$rq[3] + @$q1[1] * @$rq[2] - @$q1[2] * @$rq[1],
-            @$q1[3] * @$rq[1] + @$q1[1] * @$rq[3] + @$q1[2] * @$rq[0] - @$q1[0] * @$rq[2],
-            @$q1[3] * @$rq[2] + @$q1[2] * @$rq[3] + @$q1[0] * @$rq[1] - @$q1[1] * @$rq[0],
-            @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
-}
-
-#==============================================================================================================================
+#
+## Given an axis and angle, compute quaternion.
+#sub axis_to_quat {
+#    my ($ax, $phi) = @_;
+#    
+#    my $lena = sqrt(reduce { $a + $b } (map { $_ * $_ } @$ax));
+#    my @q = map { $_ * (1 / $lena) } @$ax;
+#    @q = map { $_ * sin($phi / 2.0) } @q;
+#    $q[$#q + 1] = cos($phi / 2.0);
+#    return @q;
+#}
+#
+## Project a point on the virtual trackball. 
+## If it is inside the sphere, map it to the sphere, if it outside map it
+## to a hyperbola.
+#sub project_to_sphere {
+#    my ($r, $x, $y) = @_;
+#    
+#    my $d = sqrt($x * $x + $y * $y);
+#    if ($d < $r * 0.70710678118654752440) {     # Inside sphere
+#        return sqrt($r * $r - $d * $d);
+#    } else {                                    # On hyperbola
+#        my $t = $r / 1.41421356237309504880;
+#        return $t * $t / $d;
+#    }
+#}
+#
+#sub cross {
+#    my ($v1, $v2) = @_;
+#  
+#    return (@$v1[1] * @$v2[2] - @$v1[2] * @$v2[1],
+#            @$v1[2] * @$v2[0] - @$v1[0] * @$v2[2],
+#            @$v1[0] * @$v2[1] - @$v1[1] * @$v2[0]);
+#}
+#
+## Simulate a track-ball. Project the points onto the virtual trackball, 
+## then figure out the axis of rotation, which is the cross product of 
+## P1 P2 and O P1 (O is the center of the ball, 0,0,0) Note: This is a 
+## deformed trackball-- is a trackball in the center, but is deformed 
+## into a hyperbolic sheet of rotation away from the center. 
+## It is assumed that the arguments to this routine are in the range 
+## (-1.0 ... 1.0).
+#sub trackball {
+#    my ($p1x, $p1y, $p2x, $p2y) = @_;
+#    
+#    if ($p1x == $p2x && $p1y == $p2y) {
+#        # zero rotation
+#        return (0.0, 0.0, 0.0, 1.0);
+#    }
+#    
+#    # First, figure out z-coordinates for projection of P1 and P2 to
+#    # deformed sphere
+#    my @p1 = ($p1x, $p1y, project_to_sphere(TRACKBALLSIZE, $p1x, $p1y));
+#    my @p2 = ($p2x, $p2y, project_to_sphere(TRACKBALLSIZE, $p2x, $p2y));
+#    
+#    # axis of rotation (cross product of P1 and P2)
+#    my @a = cross(\@p2, \@p1);
+#
+#    # Figure out how much to rotate around that axis.
+#    my @d = map { $_ * $_ } (map { $p1[$_] - $p2[$_] } 0 .. $#p1);
+#    my $t = sqrt(reduce { $a + $b } @d) / (2.0 * TRACKBALLSIZE);
+#    
+#    # Avoid problems with out-of-control values...
+#    $t = 1.0 if ($t > 1.0);
+#    $t = -1.0 if ($t < -1.0);
+#    my $phi = 2.0 * asin($t);
+#
+#    return axis_to_quat(\@a, $phi);
+#}
+#
+## Build a rotation matrix, given a quaternion rotation.
+#sub quat_to_rotmatrix {
+#    my ($q) = @_;
+#  
+#    my @m = ();
+#  
+#    $m[0] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[2] * @$q[2]);
+#    $m[1] = 2.0 * (@$q[0] * @$q[1] - @$q[2] * @$q[3]);
+#    $m[2] = 2.0 * (@$q[2] * @$q[0] + @$q[1] * @$q[3]);
+#    $m[3] = 0.0;
+#
+#    $m[4] = 2.0 * (@$q[0] * @$q[1] + @$q[2] * @$q[3]);
+#    $m[5] = 1.0 - 2.0 * (@$q[2] * @$q[2] + @$q[0] * @$q[0]);
+#    $m[6] = 2.0 * (@$q[1] * @$q[2] - @$q[0] * @$q[3]);
+#    $m[7] = 0.0;
+#
+#    $m[8] = 2.0 * (@$q[2] * @$q[0] - @$q[1] * @$q[3]);
+#    $m[9] = 2.0 * (@$q[1] * @$q[2] + @$q[0] * @$q[3]);
+#    $m[10] = 1.0 - 2.0 * (@$q[1] * @$q[1] + @$q[0] * @$q[0]);
+#    $m[11] = 0.0;
+#
+#    $m[12] = 0.0;
+#    $m[13] = 0.0;
+#    $m[14] = 0.0;
+#    $m[15] = 1.0;
+#  
+#    return @m;
+#}
+#
+#sub mulquats {
+#    my ($q1, $rq) = @_;
+#  
+#    return (@$q1[3] * @$rq[0] + @$q1[0] * @$rq[3] + @$q1[1] * @$rq[2] - @$q1[2] * @$rq[1],
+#            @$q1[3] * @$rq[1] + @$q1[1] * @$rq[3] + @$q1[2] * @$rq[0] - @$q1[0] * @$rq[2],
+#            @$q1[3] * @$rq[2] + @$q1[2] * @$rq[3] + @$q1[0] * @$rq[1] - @$q1[1] * @$rq[0],
+#            @$q1[3] * @$rq[3] - @$q1[0] * @$rq[0] - @$q1[1] * @$rq[1] - @$q1[2] * @$rq[2])
+#}
+#
 ## Convert the screen space coordinate to an object space coordinate.
 ## If the Z screen space coordinate is not provided, a depth buffer value is substituted.
 #sub mouse_to_3d {
@@ -1196,20 +1189,14 @@ sub InitGL {
     $self->init(1);
 
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::init_gl;
-#==============================================================================================================================
-    
-    # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
-    # first when an OpenGL widget is shown for the first time. How ugly.
-    # In that case the volumes are wainting to be moved to Vertex Buffer Objects
-    # after the OpenGL context is being initialized.
-    $self->volumes->finalize_geometry(1) 
-        if ($^O eq 'linux' && $self->UseVBOs);
-                
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::zoom_to_bed($self);        
-    Slic3r::GUI::_3DScene::init($self, $self->UseVBOs);
-
+#    
+##    # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
+##    # first when an OpenGL widget is shown for the first time. How ugly.
+##    # In that case the volumes are wainting to be moved to Vertex Buffer Objects
+##    # after the OpenGL context is being initialized.
+##    $self->volumes->finalize_geometry(1) 
+##        if ($^O eq 'linux' && $self->UseVBOs);
+# 
 #    $self->zoom_to_bed;
 #    
 #    glClearColor(0, 0, 0, 1);
@@ -1870,38 +1857,36 @@ sub Render {
 #
 #    return $out;
 #}
-#==============================================================================================================================
-
-sub _report_opengl_state
-{
-    my ($self, $comment) = @_;
-    my $err = glGetError();
-    return 0 if ($err == 0);
- 
-    # gluErrorString() hangs. Don't use it.
-#    my $errorstr = gluErrorString();
-    my $errorstr = '';
-    if ($err == 0x0500) {
-        $errorstr = 'GL_INVALID_ENUM';
-    } elsif ($err == GL_INVALID_VALUE) {
-        $errorstr = 'GL_INVALID_VALUE';
-    } elsif ($err == GL_INVALID_OPERATION) {
-        $errorstr = 'GL_INVALID_OPERATION';
-    } elsif ($err == GL_STACK_OVERFLOW) {
-        $errorstr = 'GL_STACK_OVERFLOW';
-    } elsif ($err == GL_OUT_OF_MEMORY) {
-        $errorstr = 'GL_OUT_OF_MEMORY';
-    } else {        
-        $errorstr = 'unknown';
-    }
-    if (defined($comment)) {
-        printf("OpenGL error at %s, nr %d (0x%x): %s\n", $comment, $err, $err, $errorstr);
-    } else {
-        printf("OpenGL error nr %d (0x%x): %s\n", $err, $err, $errorstr);
-    }
-}
-
-#===================================================================================================================================        
+#
+#sub _report_opengl_state
+#{
+#    my ($self, $comment) = @_;
+#    my $err = glGetError();
+#    return 0 if ($err == 0);
+# 
+#    # gluErrorString() hangs. Don't use it.
+##    my $errorstr = gluErrorString();
+#    my $errorstr = '';
+#    if ($err == 0x0500) {
+#        $errorstr = 'GL_INVALID_ENUM';
+#    } elsif ($err == GL_INVALID_VALUE) {
+#        $errorstr = 'GL_INVALID_VALUE';
+#    } elsif ($err == GL_INVALID_OPERATION) {
+#        $errorstr = 'GL_INVALID_OPERATION';
+#    } elsif ($err == GL_STACK_OVERFLOW) {
+#        $errorstr = 'GL_STACK_OVERFLOW';
+#    } elsif ($err == GL_OUT_OF_MEMORY) {
+#        $errorstr = 'GL_OUT_OF_MEMORY';
+#    } else {        
+#        $errorstr = 'unknown';
+#    }
+#    if (defined($comment)) {
+#        printf("OpenGL error at %s, nr %d (0x%x): %s\n", $comment, $err, $err, $errorstr);
+#    } else {
+#        printf("OpenGL error nr %d (0x%x): %s\n", $err, $err, $errorstr);
+#    }
+#}
+#
 #sub _vertex_shader_Gouraud {
 #    return <<'VERTEX';
 ##version 110

@@ -13,6 +13,7 @@ class wxIdleEvent;
 class wxKeyEvent;
 class wxMouseEvent;
 class wxTimerEvent;
+class wxPaintEvent;
 
 namespace Slic3r {
 
@@ -86,7 +87,7 @@ public:
         enum EType : unsigned char
         {
             Unknown,
-            Perspective,
+//            Perspective,
             Ortho,
             Num_types
         };
@@ -94,7 +95,7 @@ public:
         EType type;
         float zoom;
         float phi;
-        float distance;
+//        float distance;
         Pointf3 target;
 
     private:
@@ -301,6 +302,8 @@ private:
     Print* m_print;
 
     bool m_dirty;
+    bool m_use_VBOs;
+    bool m_late_init;
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
     bool m_warning_texture_enabled;
@@ -369,7 +372,7 @@ public:
 
     void update_volumes_colors_by_extruder();
 
-    void render(bool useVBOs) const;
+    void render();
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
     void register_on_viewport_changed_callback(void* callback);
@@ -385,11 +388,14 @@ public:
     void on_mouse_wheel(wxMouseEvent& evt);
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
+    void on_paint(wxPaintEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;
 
 private:
+    void _late_init();
+
     void _resize(unsigned int w, unsigned int h);
 
     BoundingBoxf3 _max_bounding_box() const;
@@ -407,7 +413,7 @@ private:
     void _render_background() const;
     void _render_bed() const;
     void _render_axes() const;
-    void _render_objects(bool useVBOs) const;
+    void _render_objects() const;
     void _render_cutting_plane() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;

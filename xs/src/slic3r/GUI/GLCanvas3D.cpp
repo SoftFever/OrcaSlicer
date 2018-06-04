@@ -185,7 +185,7 @@ GLCanvas3D::Camera::Camera()
     : type(Ortho)
     , zoom(1.0f)
     , phi(45.0f)
-    , distance(0.0f)
+//    , distance(0.0f)
     , target(0.0, 0.0, 0.0)
     , m_theta(45.0f)
 {
@@ -198,8 +198,8 @@ std::string GLCanvas3D::Camera::get_type_as_string() const
     default:
     case Unknown:
         return "unknown";
-    case Perspective:
-        return "perspective";
+//    case Perspective:
+//        return "perspective";
     case Ortho:
         return "ortho";
     };
@@ -942,6 +942,8 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_config(nullptr)
     , m_print(nullptr)
     , m_dirty(true)
+    , m_use_VBOs(false)
+    , m_late_init(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
     , m_warning_texture_enabled(false)
@@ -968,6 +970,9 @@ GLCanvas3D::~GLCanvas3D()
 
 bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
+    if (!set_current())
+        return false;
+
     ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     ::glClearDepth(1.0f);
 
@@ -990,16 +995,12 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     ::glEnable(GL_LIGHT1);
 
     // light from camera
-    GLfloat position[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT1, GL_POSITION, position);
     GLfloat specular[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
     ::glLightfv(GL_LIGHT1, GL_SPECULAR, specular);
     GLfloat diffuse[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
     ::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
 
     // light from above
-    GLfloat position1[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT0, GL_POSITION, position1);
     GLfloat specular1[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
     ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular1);
     GLfloat diffuse1[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
@@ -1021,6 +1022,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (useVBOs && !m_layers_editing.init("variable_layer_height.vs", "variable_layer_height.fs"))
         return false;
 
+    m_use_VBOs = useVBOs;
     m_layers_editing.set_use_legacy_opengl(!use_legacy_opengl);
 
     return true;
@@ -1251,17 +1253,32 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
     m_volumes->update_colors_by_extruder(m_config);
 }
 
-void GLCanvas3D::render(bool useVBOs) const
+void GLCanvas3D::render()
 {
     if (m_canvas == nullptr)
         return;
 
+    if (!is_shown_on_screen())
+        return;
+
+    if (!set_current())
+        return;
+
+    if (!m_late_init)
+        _late_init();
+
     _camera_tranform();
+
+    GLfloat position[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT1, GL_POSITION, position);
+    GLfloat position1[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT0, GL_POSITION, position1);
+
     _picking_pass();
     _render_background();
     _render_bed();
     _render_axes();
-    _render_objects(useVBOs);
+    _render_objects();
     _render_cutting_plane();
     _render_warning_texture();
     _render_legend_texture();
@@ -1677,6 +1694,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         evt.Skip();
 }
 
+void GLCanvas3D::on_paint(wxPaintEvent& evt)
+{
+    render();
+}
+
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -1695,6 +1717,24 @@ Point GLCanvas3D::get_local_mouse_position() const
 
     wxPoint mouse_pos = m_canvas->ScreenToClient(wxGetMousePosition());
     return Point(mouse_pos.x, mouse_pos.y);
+}
+
+void GLCanvas3D::_late_init()
+{
+    // This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
+    // first when an OpenGL widget is shown for the first time.How ugly.
+    // In that case the volumes are wainting to be moved to Vertex Buffer Objects
+    // after the OpenGL context is being initialized.
+#if defined(__LINUX__)
+    if (() && m_use_VBOs && (m_volumes != nullptr)
+    {
+            m_volumes->finalize_geometry(m_use_VBOs);
+            if ($^O eq 'linux' && $self->UseVBOs);
+    }
+#endif // __LINUX__
+
+    zoom_to_bed();
+    m_late_init = true;
 }
 
 void GLCanvas3D::_resize(unsigned int w, unsigned int h)
@@ -1730,28 +1770,28 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 
         break;
     }
-    case Camera::Perspective:
-    {
-        float bbox_r = (float)bbox.radius();
-        float fov = PI * 45.0f / 180.0f;
-        float fov_tan = tan(0.5f * fov);
-        float cam_distance = 0.5f * bbox_r / fov_tan;
-        m_camera.distance = cam_distance;
-
-        float nr = cam_distance - bbox_r * 1.1f;
-        float fr = cam_distance + bbox_r * 1.1f;
-        if (nr < 1.0f)
-            nr = 1.0f;
-
-        if (fr < nr + 1.0f)
-            fr = nr + 1.0f;
-
-        float h2 = fov_tan * nr;
-        float w2 = h2 * w / h;
-        ::glFrustum(-w2, w2, -h2, h2, nr, fr);
-
-        break;
-    }
+//    case Camera::Perspective:
+//    {
+//        float bbox_r = (float)bbox.radius();
+//        float fov = PI * 45.0f / 180.0f;
+//        float fov_tan = tan(0.5f * fov);
+//        float cam_distance = 0.5f * bbox_r / fov_tan;
+//        m_camera.distance = cam_distance;
+//
+//        float nr = cam_distance - bbox_r * 1.1f;
+//        float fr = cam_distance + bbox_r * 1.1f;
+//        if (nr < 1.0f)
+//            nr = 1.0f;
+//
+//        if (fr < nr + 1.0f)
+//            fr = nr + 1.0f;
+//
+//        float h2 = fov_tan * nr;
+//        float w2 = h2 * w / h;
+//        ::glFrustum(-w2, w2, -h2, h2, nr, fr);
+//
+//        break;
+//    }
     default:
     {
         throw std::runtime_error("Invalid camera type.");
@@ -2008,7 +2048,7 @@ void GLCanvas3D::_render_axes() const
     m_axes.render();
 }
 
-void GLCanvas3D::_render_objects(bool useVBOs) const
+void GLCanvas3D::_render_objects() const
 {
     if ((m_volumes == nullptr) || m_volumes->empty())
         return;
@@ -2017,7 +2057,7 @@ void GLCanvas3D::_render_objects(bool useVBOs) const
 
     if (!m_shader_enabled)
         _render_volumes(false);
-    else if (useVBOs)
+    else if (m_use_VBOs)
     {
         if (m_picking_enabled)
         {

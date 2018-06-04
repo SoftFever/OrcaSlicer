@@ -138,6 +138,19 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     if (canvas3D == nullptr)
         return false;
 
+    if (!m_gl_initialized)
+    {
+        canvas3D->set_current();
+        init_gl();
+    }
+
+    if (!canvas3D->init(m_use_VBOs, m_use_legacy_opengl))
+    {
+        delete canvas3D;
+        canvas3D = nullptr;
+        return false;
+    }
+
     canvas->Bind(wxEVT_SIZE, [canvas3D](wxSizeEvent& evt) { canvas3D->on_size(evt); });
     canvas->Bind(wxEVT_IDLE, [canvas3D](wxIdleEvent& evt) { canvas3D->on_idle(evt); });
     canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
@@ -155,6 +168,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     canvas->Bind(wxEVT_LEFT_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
     canvas->Bind(wxEVT_MIDDLE_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
     canvas->Bind(wxEVT_RIGHT_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
+    canvas->Bind(wxEVT_PAINT, [canvas3D](wxPaintEvent& evt) { canvas3D->on_paint(evt); });
 
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
@@ -417,7 +431,7 @@ void GLCanvas3DManager::render(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->render(m_use_VBOs);
+        it->second->render();
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
