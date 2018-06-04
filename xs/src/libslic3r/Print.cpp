@@ -1191,7 +1191,7 @@ float Print::mark_wiping_infill(const ToolOrdering::LayerTools& layer_tools, uns
             if (this_layer == nullptr)
                 continue;
 
-            for (unsigned int copy = 0; copy < objects[i]->copies().size(); ++copy) {    // iterate through copies first, so that we mark neighbouring infills
+            for (unsigned int copy = 0; copy < objects[i]->_shifted_copies.size(); ++copy) {    // iterate through copies first, so that we mark neighbouring infills
                 for (size_t region_id = 0; region_id < objects[i]->print()->regions.size(); ++ region_id) {
 
                     unsigned int region_extruder = objects[i]->print()->regions[region_id]->config.infill_extruder - 1; // config value is 1-based

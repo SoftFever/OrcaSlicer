@@ -1262,9 +1262,6 @@ void GCode::process_layer(
                         // This shouldn't happen but first_point() would fail.
                         continue;
 
-                    /*if (fill->is_extruder_overridden())
-                        continue;*/
-
                     // init by_extruder item only if we actually use the extruder
                     int extruder_id = std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1);
                     // Init by_extruder item only if we actually use the extruder.
@@ -1285,12 +1282,12 @@ void GCode::process_layer(
                             // We just added fill->entities.size() entities, if they are not to be printed before the main object (during infill wiping),
                             // we will note their indices (for each copy separately):
                             unsigned int last_added_entity_index = islands[i].by_region[region_id].infills.entities.size()-1;
-                            for (unsigned copy_id = 0; copy_id < layer_to_print.object()->copies().size(); ++copy_id) {
+                            for (unsigned copy_id = 0; copy_id < layer_to_print.object()->_shifted_copies.size(); ++copy_id) {
                                 if (islands[i].by_region[region_id].infills_per_copy_ids.size() < copy_id + 1)  // if this copy isn't in the list yet
                                     islands[i].by_region[region_id].infills_per_copy_ids.push_back(std::vector<unsigned int>());
                                 if (!fill->is_extruder_overridden(copy_id))
                                     for (int j=0; j<fill->entities.size(); ++j)
-                                        islands[i].by_region[region_id].infills_per_copy_ids.back().push_back(last_added_entity_index - j);
+                                        islands[i].by_region[region_id].infills_per_copy_ids[copy_id].push_back(last_added_entity_index - j);
                             }
                             break;
                         }
@@ -1401,7 +1398,6 @@ void GCode::process_layer(
             else
                 copies.push_back(print_object->_shifted_copies[single_object_idx]);
             // Sort the copies by the closest point starting with the current print position.
-            
 
             unsigned int copy_id = 0;
             for (const Point &copy : copies) {
