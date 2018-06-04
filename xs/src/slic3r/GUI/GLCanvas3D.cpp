@@ -1726,7 +1726,7 @@ void GLCanvas3D::_late_init()
     // In that case the volumes are wainting to be moved to Vertex Buffer Objects
     // after the OpenGL context is being initialized.
 #if defined(__LINUX__)
-    if (() && m_use_VBOs && (m_volumes != nullptr)
+    if (m_use_VBOs && (m_volumes != nullptr)
     {
             m_volumes->finalize_geometry(m_use_VBOs);
             if ($^O eq 'linux' && $self->UseVBOs);
