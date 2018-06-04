@@ -1033,8 +1033,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     // In that case the volumes are wainting to be moved to Vertex Buffer Objects
     // after the OpenGL context is being initialized.
 #if defined(__LINUX__)
-    if (use_VBOs && (m_volumes != nullptr))
-        m_volumes->finalize_geometry(use_VBOs);
+    if (useVBOs && (m_volumes != nullptr))
+        m_volumes->finalize_geometry(useVBOs);
 #endif // __LINUX__
 //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
