@@ -1,16 +1,33 @@
 #ifdef HAS_WIN10SDK
 
+#ifndef NOMINMAX
+# define NOMINMAX
+#endif
+
 #include "FixModelByWin10.hpp"
 
 #include <roapi.h>
 #include <string>
 #include <cstdint>
+#include <thread>
 // for ComPtr
 #include <wrl/client.h>
 // from C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/
 #include <winrt/robuffer.h>
 #include <winrt/windows.storage.provider.h>
 #include <winrt/windows.graphics.printing3d.h>
+
+#include <boost/filesystem.hpp>
+#include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
+
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Print.hpp"
+#include "libslic3r/Format/3mf.hpp"
+#include "../GUI/GUI.hpp"
+#include "../GUI/PresetBundle.hpp"
+
+#include <wx/progdlg.h>
 
 extern "C"{
 	// from rapi.h
@@ -22,6 +39,8 @@ extern "C"{
 	typedef HRESULT	(__stdcall* FunctionWindowsCreateString)(LPCWSTR sourceString, UINT32  length, HSTRING *string);
 	typedef HRESULT	(__stdcall* FunctionWindowsDelteString)(HSTRING string);
 }
+
+namespace Slic3r {
 
 HMODULE							s_hRuntimeObjectLibrary  = nullptr;
 FunctionRoInitialize			s_RoInitialize			 = nullptr;
@@ -178,13 +197,13 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 
 	if (! winrt_load_runtime_object_library()) {
 		printf("Failed to initialize the WinRT library. This should not happen on Windows 10. Exiting.\n");
-		return -1;
+		return false;
 	}
 
-	(*s_RoInitialize)(RO_INIT_MULTITHREADED);
+	HRESULT hr = (*s_RoInitialize)(RO_INIT_MULTITHREADED);
 	{
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream>       fileStream;
-		HRESULT hr = winrt_open_file_stream(L"D:\\3dprint\\bug.3mf", ABI::Windows::Storage::FileAccessMode::FileAccessMode_Read, fileStream.GetAddressOf());
+		hr = winrt_open_file_stream(boost::nowide::widen(path_src), ABI::Windows::Storage::FileAccessMode::FileAccessMode_Read, fileStream.GetAddressOf());
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Graphics::Printing3D::IPrinting3D3MFPackage> printing3d3mfpackage;
 		hr = winrt_activate_instance(L"Windows.Graphics.Printing3D.Printing3D3MFPackage", printing3d3mfpackage.GetAddressOf());
@@ -198,7 +217,7 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 			hr = modelAsync->GetResults(model.GetAddressOf());
 		} else {
 			printf("Failed loading the input model. Exiting.\n");
-			return -1;
+			return false;
 		}
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::Collections::IVector<ABI::Windows::Graphics::Printing3D::Printing3DMesh*>> meshes;
@@ -211,7 +230,7 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		status = winrt_async_await(repairAsync);
 		if (status != AsyncStatus::Completed) {
 			printf("Mesh repair failed. Exiting.\n");
-			return -1;
+			return false;
 		}
 		printf("Mesh repair finished successfully.\n");
 		repairAsync->GetResults();
@@ -227,7 +246,7 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		status = winrt_async_await(saveToPackageAsync);
 		if (status != AsyncStatus::Completed) {
 			printf("Saving mesh into the 3MF container failed. Exiting.\n");
-			return -1;
+			return false;
 		}
 		hr = saveToPackageAsync->GetResults();
 
@@ -236,7 +255,7 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		status = winrt_async_await(generatorStreamAsync);
 		if (status != AsyncStatus::Completed) {
 			printf("Saving mesh into the 3MF container failed. Exiting.\n");
-			return -1;
+			return false;
 		}
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream> generatorStream;
 		hr = generatorStreamAsync->GetResults(generatorStream.GetAddressOf());
@@ -251,7 +270,7 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		hr = winrt_get_activation_factory(L"Windows.Storage.Streams.Buffer", bufferFactory.GetAddressOf());
 
 		// Open the destination file.
-		FILE *fout = ::fopen("D:\\3dprint\\bug-repaired.3mf", "wb");
+		FILE *fout = boost::nowide::fopen(path_dst.c_str(), "wb");
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IBuffer> buffer;
 		byte														   *buffer_ptr;
@@ -270,7 +289,7 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 			status = winrt_async_await(asyncRead);
 			if (status != AsyncStatus::Completed) {
 				printf("Saving mesh into the 3MF container failed. Exiting.\n");
-				return -1;
+				return false;
 			}
 			hr = buffer->get_Length(&length);
 			if (length == 0)
@@ -281,7 +300,40 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		// Here all the COM objects will be released through the ComPtr destructors.
 	}
 	(*s_RoUninitialize)();
-	return 0;
+	return true;
 }
+
+void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &print, Model &result)
+{
+	enum { PROGRESS_RANGE = 1000 };
+	wxProgressDialog progress_dialog(
+		_(L("Model fixing")),
+		_(L("Exporting model...")),
+		PROGRESS_RANGE, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
+	progress_dialog.Pulse();
+
+	// Executing the calculation in a background thread, so that the COM context could be created with its own threading model.
+	// (It seems like wxWidgets initialize the COM contex as single threaded and we need a multi-threaded context).
+	auto worker = std::thread([&model_object, &print, &result, &progress_dialog](){
+		boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+		path_src += ".3mf";
+		Model model;
+		model.add_object(model_object);
+		bool res = Slic3r::store_3mf(path_src.string().c_str(), &model, const_cast<Print*>(&print), false);
+		model.clear_objects(); 
+		model.clear_materials();
+
+		boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+		path_dst += ".3mf";
+		res = fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string());
+		boost::filesystem::remove(path_src);
+		PresetBundle bundle;
+	    res = Slic3r::load_3mf(path_dst.string().c_str(), &bundle, &result);
+		boost::filesystem::remove(path_dst);
+	});
+	worker.join();
+}
+
+} // namespace Slic3r
 
 #endif /* HAS_WIN10SDK */
