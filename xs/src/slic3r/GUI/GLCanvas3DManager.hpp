@@ -10,21 +10,25 @@ namespace GUI {
 
 class GLCanvas3DManager
 {
-    struct GLVersion
+    struct GLInfo
     {
-        unsigned int vn_major;
-        unsigned int vn_minor;
+        std::string version;
+        std::string glsl_version;
+        std::string vendor;
+        std::string renderer;
 
-        GLVersion();
+        GLInfo();
+
         bool detect();
+        bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
 
-        bool is_greater_or_equal_to(unsigned int major, unsigned int minor) const;
+        std::string to_string(bool format_as_html, bool extensions) const;
     };
 
     typedef std::map<wxGLCanvas*, GLCanvas3D*> CanvasesMap;
 
     CanvasesMap m_canvases;
-    GLVersion m_gl_version;
+    GLInfo m_gl_info;
     bool m_gl_initialized;
     bool m_use_legacy_opengl;
     bool m_use_VBOs;
@@ -40,6 +44,7 @@ public:
     unsigned int count() const;
 
     void init_gl();
+    std::string get_gl_info(bool format_as_html, bool extensions) const;
 
     bool use_VBOs() const;
     bool layer_editing_allowed() const;

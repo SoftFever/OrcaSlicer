@@ -538,6 +538,7 @@ class _3DScene
 public:
 //##################################################################################################################
     static void init_gl();
+    static std::string get_gl_info(bool format_as_html, bool extensions);
     static bool use_VBOs();
 
     static bool add_canvas(wxGLCanvas* canvas, wxGLContext* context);

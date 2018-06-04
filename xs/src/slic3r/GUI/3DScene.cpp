@@ -1729,6 +1729,11 @@ void _3DScene::init_gl()
     s_canvas_mgr.init_gl();
 }
 
+std::string _3DScene::get_gl_info(bool format_as_html, bool extensions)
+{
+    return s_canvas_mgr.get_gl_info(format_as_html, extensions);
+}
+
 bool _3DScene::use_VBOs()
 {
     return s_canvas_mgr.use_VBOs();

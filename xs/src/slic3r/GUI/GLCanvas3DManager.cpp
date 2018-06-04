@@ -17,20 +17,47 @@
 namespace Slic3r {
 namespace GUI {
 
-GLCanvas3DManager::GLVersion::GLVersion()
-    : vn_major(0)
-    , vn_minor(0)
+GLCanvas3DManager::GLInfo::GLInfo()
+    : version("")
+    , glsl_version("")
+    , vendor("")
+    , renderer("")
 {
 }
 
-bool GLCanvas3DManager::GLVersion::detect()
+bool GLCanvas3DManager::GLInfo::detect()
 {
-    const char* gl_version = (const char*)::glGetString(GL_VERSION);
-    if (gl_version == nullptr)
+    const char* data = (const char*)::glGetString(GL_VERSION);
+    if (data == nullptr)
         return false;
 
+    version = data;
+
+    data = (const char*)::glGetString(GL_SHADING_LANGUAGE_VERSION);
+    if (data == nullptr)
+        return false;
+
+    glsl_version = data;
+
+    data = (const char*)::glGetString(GL_VENDOR);
+    if (data == nullptr)
+        return false;
+
+    vendor = data;
+
+    data = (const char*)::glGetString(GL_RENDERER);
+    if (data == nullptr)
+        return false;
+
+    renderer = data;
+
+    return true;
+}
+
+bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
+{
     std::vector<std::string> tokens;
-    boost::split(tokens, gl_version, boost::is_any_of(" "), boost::token_compress_on);
+    boost::split(tokens, version, boost::is_any_of(" "), boost::token_compress_on);
 
     if (tokens.empty())
         return false;
@@ -38,23 +65,61 @@ bool GLCanvas3DManager::GLVersion::detect()
     std::vector<std::string> numbers;
     boost::split(numbers, tokens[0], boost::is_any_of("."), boost::token_compress_on);
 
+    unsigned int gl_major = 0;
+    unsigned int gl_minor = 0;
+
     if (numbers.size() > 0)
-        vn_major = ::atoi(numbers[0].c_str());
+        gl_major = ::atoi(numbers[0].c_str());
 
     if (numbers.size() > 1)
-        vn_minor = ::atoi(numbers[1].c_str());
+        gl_minor = ::atoi(numbers[1].c_str());
 
-    return true;
-}
-
-bool GLCanvas3DManager::GLVersion::is_greater_or_equal_to(unsigned int major, unsigned int minor) const
-{
-    if (vn_major < major)
+    if (gl_major < major)
         return false;
-    else if (vn_major > major)
+    else if (gl_major > major)
         return true;
     else
-        return vn_minor >= minor;
+        return gl_minor >= minor;
+}
+
+std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool extensions) const
+{
+    std::stringstream out;
+
+    std::string h2_start = format_as_html ? "<b>" : "";
+    std::string h2_end   = format_as_html ? "</b>" : "";
+    std::string b_start  = format_as_html ? "<b>" : "";
+    std::string b_end    = format_as_html ? "</b>" : "";
+    std::string line_end = format_as_html ? "<br>" : "\n";
+
+    out << h2_start << "OpenGL installation" << h2_end << line_end;
+    out << b_start  << "GL version:   " << b_end << version << line_end;
+    out << b_start  << "Vendor:       " << b_end << vendor << line_end;
+    out << b_start  << "Renderer:     " << b_end << renderer << line_end;
+    out << b_start  << "GLSL version: " << b_end << glsl_version << line_end;
+
+    if (extensions)
+    {
+        out << h2_start << "Installed extensions:" << h2_end << line_end;
+
+        std::vector<std::string> extensions_list;
+        GLint num_extensions;
+        ::glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+         
+        for (unsigned int i = 0; i < num_extensions; ++i)
+        {
+            const char* e = (const char*)::glGetStringi(GL_EXTENSIONS, i);
+            extensions_list.push_back(e);
+        }
+
+        std::sort(extensions_list.begin(), extensions_list.end());
+        for (const std::string& ext : extensions_list)
+        {
+            out << ext << line_end;
+        }
+    }
+
+    return out.str();
 }
 
 GLCanvas3DManager::GLCanvas3DManager()
@@ -134,17 +199,25 @@ void GLCanvas3DManager::init_gl()
         std::cout << "GLCanvas3DManager::init_gl()" << std::endl;
 
         glewInit();
-        m_gl_version.detect();
+        if (m_gl_info.detect())
+        {
+            const AppConfig* config = GUI::get_app_config();
+            m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
+            m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
+            m_gl_initialized = true;
 
-        const AppConfig* config = GUI::get_app_config();
-        m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
-        m_use_VBOs = !m_use_legacy_opengl && m_gl_version.is_greater_or_equal_to(2, 0);
-        m_gl_initialized = true;
-
-        std::cout << "DETECTED OPENGL: " << m_gl_version.vn_major << "." << m_gl_version.vn_minor << std::endl;
-        std::cout << "USE VBOS = " << (m_use_VBOs ? "YES" : "NO") << std::endl;
-        std::cout << "LAYER EDITING ALLOWED = " << (!m_use_legacy_opengl ? "YES" : "NO") << std::endl;
+            std::cout << "DETECTED OPENGL: " << m_gl_info.version << std::endl;
+            std::cout << "USE VBOS = " << (m_use_VBOs ? "YES" : "NO") << std::endl;
+            std::cout << "LAYER EDITING ALLOWED = " << (!m_use_legacy_opengl ? "YES" : "NO") << std::endl;
+        }
+        else
+            throw std::runtime_error(std::string("Unable to initialize OpenGL driver\n"));
     }
+}
+
+std::string GLCanvas3DManager::get_gl_info(bool format_as_html, bool extensions) const
+{
+    return m_gl_info.to_string(format_as_html, extensions);
 }
 
 bool GLCanvas3DManager::use_VBOs() const

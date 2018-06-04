@@ -1839,38 +1839,38 @@ sub Render {
 #    my ($self, $config) = @_;    
 #    $self->volumes->update_colors_by_extruder($config);
 #}
+#
+#sub opengl_info
+#{
+#    my ($self, %params) = @_;
+#    my %tag = Slic3r::tags($params{format});
+#
+#    my $gl_version       = glGetString(GL_VERSION);
+#    my $gl_vendor        = glGetString(GL_VENDOR);
+#    my $gl_renderer      = glGetString(GL_RENDERER);
+#    my $glsl_version     = glGetString(GL_SHADING_LANGUAGE_VERSION);
+#
+#    my $out = '';
+#    $out .= "$tag{h2start}OpenGL installation$tag{h2end}$tag{eol}";
+#    $out .= "  $tag{bstart}Using POGL$tag{bend} v$OpenGL::BUILD_VERSION$tag{eol}";
+#    $out .= "  $tag{bstart}GL version:   $tag{bend}${gl_version}$tag{eol}";
+#    $out .= "  $tag{bstart}vendor:       $tag{bend}${gl_vendor}$tag{eol}";
+#    $out .= "  $tag{bstart}renderer:     $tag{bend}${gl_renderer}$tag{eol}";
+#    $out .= "  $tag{bstart}GLSL version: $tag{bend}${glsl_version}$tag{eol}";
+#
+#    # Check for other OpenGL extensions
+#    $out .= "$tag{h2start}Installed extensions (* implemented in the module):$tag{h2end}$tag{eol}";
+#    my $extensions = glGetString(GL_EXTENSIONS);
+#    my @extensions = split(' ',$extensions);
+#    foreach my $ext (sort @extensions) {
+#        my $stat = glpCheckExtension($ext);
+#        $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
+#        $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
+#    }
+#
+#    return $out;
+#}
 #==============================================================================================================================
-
-sub opengl_info
-{
-    my ($self, %params) = @_;
-    my %tag = Slic3r::tags($params{format});
-
-    my $gl_version       = glGetString(GL_VERSION);
-    my $gl_vendor        = glGetString(GL_VENDOR);
-    my $gl_renderer      = glGetString(GL_RENDERER);
-    my $glsl_version     = glGetString(GL_SHADING_LANGUAGE_VERSION);
-
-    my $out = '';
-    $out .= "$tag{h2start}OpenGL installation$tag{h2end}$tag{eol}";
-    $out .= "  $tag{bstart}Using POGL$tag{bend} v$OpenGL::BUILD_VERSION$tag{eol}";
-    $out .= "  $tag{bstart}GL version:   $tag{bend}${gl_version}$tag{eol}";
-    $out .= "  $tag{bstart}vendor:       $tag{bend}${gl_vendor}$tag{eol}";
-    $out .= "  $tag{bstart}renderer:     $tag{bend}${gl_renderer}$tag{eol}";
-    $out .= "  $tag{bstart}GLSL version: $tag{bend}${glsl_version}$tag{eol}";
-
-    # Check for other OpenGL extensions
-    $out .= "$tag{h2start}Installed extensions (* implemented in the module):$tag{h2end}$tag{eol}";
-    my $extensions = glGetString(GL_EXTENSIONS);
-    my @extensions = split(' ',$extensions);
-    foreach my $ext (sort @extensions) {
-        my $stat = glpCheckExtension($ext);
-        $out .= sprintf("%s ${ext}$tag{eol}", $stat?' ':'*');
-        $out .= sprintf("    ${stat}$tag{eol}") if ($stat && $stat !~ m|^$ext |);
-    }
-
-    return $out;
-}
 
 sub _report_opengl_state
 {

@@ -161,6 +161,15 @@ init_gl()
     CODE:
         _3DScene::init_gl();
 
+std::string
+get_gl_info(format_as_html, extensions)
+        bool format_as_html;
+        bool extensions;
+    CODE:
+        RETVAL = _3DScene::get_gl_info(format_as_html, extensions);
+    OUTPUT:
+        RETVAL
+
 bool
 use_VBOs()
     CODE:
