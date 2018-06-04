@@ -156,11 +156,6 @@ GLVolumeCollection::arrayref()
 %package{Slic3r::GUI::_3DScene};
 %{
 
-void
-init_gl()
-    CODE:
-        _3DScene::init_gl();
-
 std::string
 get_gl_info(format_as_html, extensions)
         bool format_as_html;
@@ -198,15 +193,6 @@ void
 remove_all_canvases()
     CODE:
         _3DScene::remove_all_canvases();
-
-bool
-init(canvas, useVBOs)
-        SV   *canvas;
-        bool useVBOs;
-    CODE:
-        RETVAL = _3DScene::init((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), useVBOs);
-    OUTPUT:
-        RETVAL
 
 bool
 is_shown_on_screen(canvas)
