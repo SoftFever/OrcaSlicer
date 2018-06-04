@@ -1758,16 +1758,10 @@ void _3DScene::remove_all_canvases()
     s_canvas_mgr.remove_all();
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool _3DScene::init(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.init(canvas);
 }
-//bool _3DScene::init(wxGLCanvas* canvas, bool useVBOs)
-//{
-//    return s_canvas_mgr.init(canvas, useVBOs);
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
 {

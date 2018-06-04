@@ -138,21 +138,6 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     if (canvas3D == nullptr)
         return false;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    if (!m_gl_initialized)
-//    {
-//        canvas3D->set_current();
-//        init_gl();
-//    }
-//
-//    if (!canvas3D->init(m_use_VBOs, m_use_legacy_opengl))
-//    {
-//        delete canvas3D;
-//        canvas3D = nullptr;
-//        return false;
-//    }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
     canvas->Bind(wxEVT_SIZE, [canvas3D](wxSizeEvent& evt) { canvas3D->on_size(evt); });
     canvas->Bind(wxEVT_IDLE, [canvas3D](wxIdleEvent& evt) { canvas3D->on_idle(evt); });
     canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
@@ -241,7 +226,6 @@ bool GLCanvas3DManager::use_VBOs() const
     return m_use_VBOs;
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool GLCanvas3DManager::init(wxGLCanvas* canvas)
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -250,13 +234,6 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
     else
         return false;
 }
-
-//bool GLCanvas3DManager::init(wxGLCanvas* canvas, bool useVBOs)
-//{
-//    CanvasesMap::const_iterator it = _get_canvas(canvas);
-//    return (it != m_canvases.end()) ? it->second->init(useVBOs, m_use_legacy_opengl) : false;
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
 {
@@ -505,18 +482,13 @@ GLCanvas3DManager::CanvasesMap::const_iterator GLCanvas3DManager::_get_canvas(wx
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 bool GLCanvas3DManager::_init(GLCanvas3D& canvas)
 {
     if (!m_gl_initialized)
-    {
-//        canvas.set_current();
         init_gl();
-    }
 
     return canvas.init(m_use_VBOs, m_use_legacy_opengl);
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 } // namespace GUI
 } // namespace Slic3r
