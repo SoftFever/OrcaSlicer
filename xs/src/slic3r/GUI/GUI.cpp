@@ -394,7 +394,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
 void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
-	add_config_menu(menu, event_language_change, event_language_change);
+    add_config_menu(menu, event_preferences_changed, event_language_change);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
