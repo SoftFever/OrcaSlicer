@@ -394,7 +394,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
 void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
-	add_config_menu(menu, event_language_change, event_language_change);
+    add_config_menu(menu, event_preferences_changed, event_language_change);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -443,8 +443,13 @@ void config_wizard(int reason)
     if (! check_unsaved_changes())
     	return;
 
-	ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
-	wizard.run(g_PresetBundle, g_PresetUpdater);
+	try {
+		ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
+		wizard.run(g_PresetBundle, g_PresetUpdater);
+	}
+	catch (const std::exception &e) {
+		show_error(nullptr, e.what());
+	}
 
     // Load the currently selected preset into the GUI, update the preset selection box.
 	for (Tab *tab : g_tabs_list)
@@ -929,34 +934,51 @@ void about()
 }
 
 void desktop_open_datadir_folder()
-{	
+{
 	// Execute command to open a file explorer, platform dependent.
-	std::string cmd =
+	// FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
+
+	const auto path = data_dir();
 #ifdef _WIN32
-		"explorer "
+		const auto widepath = wxString::FromUTF8(path.data());
+		const wchar_t *argv[] = { L"explorer", widepath.GetData(), nullptr };
+		::wxExecute(const_cast<wchar_t**>(argv), wxEXEC_ASYNC, nullptr);
 #elif __APPLE__
-		"open "
+		const char *argv[] = { "open", path.data(), nullptr };
+		::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr);
 #else
-		"xdg-open "
+		const char *argv[] = { "xdg-open", path.data(), nullptr };
+
+		// Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
+		// because they may mess up the environment expected by the file manager.
+		// Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
+		if (wxGetEnv("APPIMAGE", nullptr)) {
+			// We're running from AppImage
+			wxEnvVariableHashMap env_vars;
+			wxGetEnvMap(&env_vars);
+
+			env_vars.erase("APPIMAGE");
+			env_vars.erase("APPDIR");
+			env_vars.erase("LD_LIBRARY_PATH");
+			env_vars.erase("LD_PRELOAD");
+			env_vars.erase("UNION_PRELOAD");
+
+			wxExecuteEnv exec_env;
+			exec_env.env = std::move(env_vars);
+
+			wxString owd;
+			if (wxGetEnv("OWD", &owd)) {
+				// This is the original work directory from which the AppImage image was run,
+				// set it as CWD for the child process:
+				exec_env.cwd = std::move(owd);
+			}
+
+			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+		} else {
+			// Looks like we're NOT running from AppImage, we'll make no changes to the environment.
+			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+		}
 #endif
-		;
-	// Escape the path, platform dependent.
-	std::string path = data_dir();
-#ifdef _WIN32
-	// Enclose the path into double quotes on Windows. A quote character is forbidden in file names, 
-	// therefore it does not need to be escaped.
-	cmd += '"';
-	cmd += path;
-	cmd += '"';	
-#else
-	// Enclose the path into single quotes on Unix / OSX. All single quote characters need to be escaped
-	// inside a file name.
-	cmd += '\'';
-	boost::replace_all(path, "'", "\\'");
-	cmd += path;
-	cmd += '\'';
-#endif
-	::wxExecute(wxString::FromUTF8(cmd.c_str()), wxEXEC_ASYNC, nullptr);	
 }
 
 } }

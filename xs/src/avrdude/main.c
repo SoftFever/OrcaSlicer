@@ -252,7 +252,7 @@ static void usage(void)
 //   setvbuf(stderr, (char*)NULL, _IOLBF, 0);
 // }
 
-static bool update_progress_no_tty (int percent, double etime, char *hdr)
+static void update_progress_no_tty (int percent, double etime, char *hdr)
 {
   static int done = 0;
   static int last = 0;

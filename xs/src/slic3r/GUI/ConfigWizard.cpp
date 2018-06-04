@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <utility>
 #include <unordered_map>
-
+#include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <wx/settings.h>
@@ -615,8 +615,14 @@ void ConfigWizard::priv::load_vendors()
 	// Load vendors from the "vendors" directory in datadir
 	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
 		if (it->path().extension() == ".ini") {
-			auto vp = VendorProfile::from_ini(it->path());
-			vendors[vp.id] = std::move(vp);
+			try {
+				auto vp = VendorProfile::from_ini(it->path());
+				vendors[vp.id] = std::move(vp);
+			}
+			catch (const std::exception& e) {
+				BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % it->path() % e.what();
+			}
+			
 		}
 	}
 
@@ -625,9 +631,14 @@ void ConfigWizard::priv::load_vendors()
 		if (it->path().extension() == ".ini") {
 			const auto id = it->path().stem().string();
 			if (vendors.find(id) == vendors.end()) {
-				auto vp = VendorProfile::from_ini(it->path());
-				vendors_rsrc[vp.id] = it->path().filename().string();
-				vendors[vp.id] = std::move(vp);
+				try {
+					auto vp = VendorProfile::from_ini(it->path());
+					vendors_rsrc[vp.id] = it->path().filename().string();
+					vendors[vp.id] = std::move(vp);
+				}
+				catch (const std::exception& e) {
+					BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % it->path() % e.what();
+				}
 			}
 		}
 	}
