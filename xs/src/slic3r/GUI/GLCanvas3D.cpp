@@ -1317,6 +1317,17 @@ void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, fl
     ::glEnable(GL_LIGHTING);
 }
 
+std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
+{
+    return (m_volumes != nullptr) ? m_volumes->get_current_print_zs(active_only) : std::vector<double>();
+}
+
+void GLCanvas3D::set_toolpaths_range(double low, double high)
+{
+    if (m_volumes != nullptr)
+        m_volumes->set_range(low, high);
+}
+
 void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
 {
     if (callback != nullptr)

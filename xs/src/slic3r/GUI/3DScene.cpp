@@ -1903,6 +1903,16 @@ void _3DScene::render(wxGLCanvas* canvas)
     s_canvas_mgr.render(canvas);
 }
 
+std::vector<double> _3DScene::get_current_print_zs(wxGLCanvas* canvas, bool active_only)
+{
+    return s_canvas_mgr.get_current_print_zs(canvas, active_only);
+}
+
+void _3DScene::set_toolpaths_range(wxGLCanvas* canvas, double low, double high)
+{
+    s_canvas_mgr.set_toolpaths_range(canvas, low, high);
+}
+
 void _3DScene::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_viewport_changed_callback(canvas, callback);

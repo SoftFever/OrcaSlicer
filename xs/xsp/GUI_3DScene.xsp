@@ -93,9 +93,6 @@
     int count()
         %code{% RETVAL = THIS->volumes.size(); %};
         
-    std::vector<double> get_current_print_zs(bool active_only)
-        %code{% RETVAL = THIS->get_current_print_zs(active_only); %};
-
     void set_range(double low, double high);
 
     void render_VBOs() const;
@@ -388,6 +385,23 @@ render(canvas)
         SV *canvas;
     CODE:
         _3DScene::render((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+std::vector<double>
+get_current_print_zs(canvas, active_only)
+        SV   *canvas;
+        bool active_only;
+    CODE:
+        RETVAL = _3DScene::get_current_print_zs((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active_only);
+    OUTPUT:
+        RETVAL
+
+void
+set_toolpaths_range(canvas, low, high)
+        SV *canvas;
+        double low;
+        double high;
+    CODE:
+        _3DScene::set_toolpaths_range((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), low, high);
 
 void
 register_on_viewport_changed_callback(canvas, callback)

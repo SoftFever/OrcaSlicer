@@ -587,6 +587,9 @@ public:
 
     static void render(wxGLCanvas* canvas);
 
+    static std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only);
+    static void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
+
     static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);

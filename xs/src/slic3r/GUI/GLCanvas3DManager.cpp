@@ -430,6 +430,19 @@ void GLCanvas3DManager::render(wxGLCanvas* canvas) const
         it->second->render();
 }
 
+std::vector<double> GLCanvas3DManager::get_current_print_zs(wxGLCanvas* canvas, bool active_only) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_current_print_zs(active_only) : std::vector<double>();
+}
+
+void GLCanvas3DManager::set_toolpaths_range(wxGLCanvas* canvas, double low, double high)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_toolpaths_range(low, high);
+}
+
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

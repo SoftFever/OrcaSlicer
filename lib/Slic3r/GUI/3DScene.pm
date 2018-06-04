@@ -24,8 +24,11 @@ use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
 use Math::Trig qw(asin tan);
 use List::Util qw(reduce min max first);
-use Slic3r::Geometry qw(X Y normalize scale unscale scaled_epsilon);
-use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl JT_ROUND);
+#==============================================================================================================================
+use Slic3r::Geometry qw(X Y);
+#use Slic3r::Geometry qw(X Y normalize scale unscale scaled_epsilon);
+#use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl JT_ROUND);
+#==============================================================================================================================
 use Wx::GLCanvas qw(:all);
 use Slic3r::Geometry qw(PI);
 
@@ -33,9 +36,7 @@ use Slic3r::Geometry qw(PI);
 # volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
 # _camera_type: 'perspective' or 'ortho'
 #==============================================================================================================================
-__PACKAGE__->mk_accessors( qw(init
-                              on_viewport_changed
-                              on_select
+__PACKAGE__->mk_accessors( qw(
                               volumes
                               ) );
 #__PACKAGE__->mk_accessors( qw(_quat _dirty init
@@ -1268,12 +1269,10 @@ sub DestroyGL {
     }
 }
 
-sub Render {
-    my ($self, $dc) = @_;
-
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::render($self);
-    
+#sub Render {
+#    my ($self, $dc) = @_;
+#    
 #    # prevent calling SetCurrent() when window is not shown yet
 #    return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
 ##    return unless $self->IsShownOnScreen;
@@ -1497,10 +1496,8 @@ sub Render {
 #    $self->draw_active_object_annotations;
 #    
 #    $self->SwapBuffers();
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 #sub draw_volumes {
 #    # $fakecolor is a boolean indicating, that the objects shall be rendered in a color coding the object index for picking.
 #    my ($self, $fakecolor) = @_;
@@ -2264,18 +2261,20 @@ sub load_gcode_preview {
 #==============================================================================================================================
 }
 
-sub set_toolpaths_range {
-    my ($self, $min_z, $max_z) = @_;
-    $self->volumes->set_range($min_z, $max_z);
-}
-
-sub reset_legend_texture {
-    Slic3r::GUI::_3DScene::reset_legend_texture();
-}
-
-sub get_current_print_zs {
-    my ($self, $active_only) = @_;
-    return $self->volumes->get_current_print_zs($active_only);
-}
+#==============================================================================================================================
+#sub set_toolpaths_range {
+#    my ($self, $min_z, $max_z) = @_;
+#    $self->volumes->set_range($min_z, $max_z);
+#}
+#
+#sub reset_legend_texture {
+#    Slic3r::GUI::_3DScene::reset_legend_texture();
+#}
+#
+#sub get_current_print_zs {
+#    my ($self, $active_only) = @_;
+#    return $self->volumes->get_current_print_zs($active_only);
+#}
+#==============================================================================================================================
 
 1;

@@ -376,6 +376,9 @@ public:
     void render();
     void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
 
+    std::vector<double> get_current_print_zs(bool active_only) const;
+    void set_toolpaths_range(double low, double high);
+
     void register_on_viewport_changed_callback(void* callback);
     void register_on_double_click_callback(void* callback);
     void register_on_right_click_callback(void* callback);

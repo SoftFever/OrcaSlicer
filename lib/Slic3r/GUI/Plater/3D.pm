@@ -42,13 +42,17 @@ sub new {
 
     $self->{objects_volumes_idxs} = [];
         
-    $self->on_select(sub {
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::register_on_select_callback($self, sub {
         my ($volume_idx) = @_;
         $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
             if ($self->{on_select_object});
-    });
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::register_on_select_callback($self, $self->on_select);
+    });    
+#    $self->on_select(sub {
+#        my ($volume_idx) = @_;
+#        $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
+#            if ($self->{on_select_object});
+#    });
 #==============================================================================================================================
 
 #==============================================================================================================================

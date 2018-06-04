@@ -159,11 +159,18 @@ sub new {
 #==============================================================================================================================
         $canvas->select_by('volume');
         
-        $canvas->on_select(sub {
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_select_callback($canvas, sub {
             my ($volume_idx) = @_;
             # convert scene volume to model object volume
             $self->reload_tree(($volume_idx == -1) ? undef : $canvas->volumes->[$volume_idx]->volume_idx);
         });
+#        $canvas->on_select(sub {
+#            my ($volume_idx) = @_;
+#            # convert scene volume to model object volume
+#            $self->reload_tree(($volume_idx == -1) ? undef : $canvas->volumes->[$volume_idx]->volume_idx);
+#        });
+#==============================================================================================================================
         
         $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #==============================================================================================================================        
@@ -348,7 +355,10 @@ sub selection_changed {
         $self->{settings_panel}->enable;
     }
     
-    $self->{canvas}->Render if $self->{canvas};
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::render($self->{canvas}) if $self->{canvas};
+#    $self->{canvas}->Render if $self->{canvas};
+#==============================================================================================================================
 }
 
 sub on_btn_load {
@@ -510,10 +520,11 @@ sub _parts_changed {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas});
         Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+        Slic3r::GUI::_3DScene::render($self->{canvas});        
 #        $self->{canvas}->zoom_to_volumes;
 #        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#        $self->{canvas}->Render;
 #==============================================================================================================================
-        $self->{canvas}->Render;
     }
 }
 
@@ -569,9 +580,10 @@ sub _update_canvas {
 
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+        Slic3r::GUI::_3DScene::render($self->{canvas});
 #        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#        $self->{canvas}->Render;
 #==============================================================================================================================
-        $self->{canvas}->Render;
     }
 }
 
@@ -600,9 +612,10 @@ sub _update {
     $self->{canvas}->load_object($_, undef, [0]) for @objects;
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+    Slic3r::GUI::_3DScene::render($self->{canvas});
 #    $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
+#    $self->{canvas}->Render;
 #==============================================================================================================================
-    $self->{canvas}->Render;
 }
 
 1;

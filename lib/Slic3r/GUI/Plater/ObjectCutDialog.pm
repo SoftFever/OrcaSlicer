@@ -267,13 +267,14 @@ sub _update {
 #==============================================================================================================================
             Slic3r::GUI::_3DScene::set_cutting_plane($self->{canvas}, $self->{cut_options}{z}, [@expolygons]);
             Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+            Slic3r::GUI::_3DScene::render($self->{canvas});
 #            $self->{canvas}->SetCuttingPlane(
 #                $self->{cut_options}{z},
 #                [@expolygons],
 #            );
 #            $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->{config});
+#            $self->{canvas}->Render;
 #==============================================================================================================================
-            $self->{canvas}->Render;
         }
     }
     
