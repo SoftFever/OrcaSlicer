@@ -137,11 +137,11 @@ class MyObjectTreeModelNode
 	MyObjectTreeModelNode*			m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
 public:
-	MyObjectTreeModelNode(	const wxString &name) {
+	MyObjectTreeModelNode(const wxString &name, int instances_count=1, int scale=100) {
 		m_parent	= NULL;
 		m_name		= name;
-		m_copy		= "1";
-		m_scale		= "100%";
+		m_copy		= wxString::Format("%d", instances_count);
+		m_scale		= wxString::Format("%d%%", scale);
 	}
 
 	MyObjectTreeModelNode(	MyObjectTreeModelNode* parent,
@@ -195,6 +195,20 @@ public:
 			m_container = true;
 		m_children.Add(child);
 	}
+	void RemoveAllChildren()
+	{
+		if (GetChildCount() == 0)
+			return;
+		for (size_t id = GetChildCount() - 1; id >= 0; --id)
+		{
+			if (m_children.Item(id)->GetChildCount() > 0)
+				m_children[id]->RemoveAllChildren();
+			auto node = m_children[id];
+			m_children.RemoveAt(id);
+			delete node;
+		}
+	}
+
 	size_t GetChildCount() const
 	{
 		return m_children.GetCount();
@@ -217,8 +231,11 @@ public:
 	}
 
 	wxDataViewItem Add(wxString &name);
+	wxDataViewItem Add(wxString &name, int instances_count, int scale);
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, wxString &name);
 	wxDataViewItem Delete(const wxDataViewItem &item);
+	void DeleteAll();
+	wxDataViewItem GetItemById(int obj_idx);
 	bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog

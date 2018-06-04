@@ -175,9 +175,12 @@ wxString	L_str(const std::string &str);
 wxString	from_u8(const std::string &str);
 
 // Add object to the list
-void add_object(const std::string &name);
+//void add_object(const std::string &name);
+void add_object_to_list(const std::string &name, int instances_count=1, int scale=100);
 // Delete object from the list
-void del_object();
+void delete_object_from_list();
+// Delete all objects from the list
+void delete_all_objects_from_list();
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);

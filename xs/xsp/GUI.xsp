@@ -122,11 +122,14 @@ void set_show_manifold_warning_icon(bool show)
 void update_mode()
     %code%{ Slic3r::GUI::update_mode(); %};
 
-void add_object(const char *name)
-    %code%{ Slic3r::GUI::add_object(name); %};
+void add_object_to_list(const char *name, int instances_count, int scale)
+    %code%{ Slic3r::GUI::add_object_to_list(name, instances_count, scale); %};
 
-void del_object()
-    %code%{ Slic3r::GUI::del_object(); %};
+void delete_object_from_list()
+    %code%{ Slic3r::GUI::delete_object_from_list(); %};
+
+void delete_all_objects_from_list()
+    %code%{ Slic3r::GUI::delete_all_objects_from_list(); %};
 
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};

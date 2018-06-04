@@ -363,6 +363,17 @@ wxDataViewItem MyObjectTreeModel::Add(wxString &name)
 	return child;
 }
 
+wxDataViewItem MyObjectTreeModel::Add(wxString &name, int instances_count, int scale)
+{
+	auto root = new MyObjectTreeModelNode(name, instances_count, scale);
+	m_objects.push_back(root);
+	// notify control
+	wxDataViewItem child((void*)root);
+	wxDataViewItem parent((void*)NULL);
+	ItemAdded(parent, child);
+	return child;
+}
+
 wxDataViewItem MyObjectTreeModel::AddChild(const wxDataViewItem &parent_item, wxString &name)
 {
 	MyObjectTreeModelNode *root = (MyObjectTreeModelNode*)parent_item.GetID();
@@ -431,6 +442,27 @@ wxDataViewItem MyObjectTreeModel::Delete(const wxDataViewItem &item)
 	return ret_item;
 }
 
+void MyObjectTreeModel::DeleteAll()
+{
+	while (!m_objects.empty())
+	{
+		auto object = m_objects.back();
+// 		object->RemoveAllChildren();
+		Delete(wxDataViewItem(object));	
+	}
+}
+
+wxDataViewItem MyObjectTreeModel::GetItemById(int obj_idx)
+{
+	if (obj_idx >= m_objects.size())
+	{
+		printf("Error! Out of objects range.\n");
+		return wxDataViewItem(0);
+	}
+	return wxDataViewItem(m_objects[obj_idx]);
+}
+
+
 wxString MyObjectTreeModel::GetName(const wxDataViewItem &item) const
 {
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
@@ -475,7 +507,7 @@ void MyObjectTreeModel::GetValue(wxVariant &variant, const wxDataViewItem &item,
 		variant = node->m_scale;
 		break;
 	default:
-		;// wxLogError("MyMusicTreeModel::GetValue: wrong column %d", col);
+		;
 	}
 }
 

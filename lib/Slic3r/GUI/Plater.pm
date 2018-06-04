@@ -515,10 +515,10 @@ sub new {
         $self->{right_panel}->SetSizer($right_sizer);
         $right_sizer->SetMinSize([320, -1]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
-        $right_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
+        $right_sizer->Add($frequently_changed_parameters_sizer, 2, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
+        $right_sizer->Add($info_sizer, 1, wxEXPAND | wxLEFT, 20);
         $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
@@ -847,6 +847,9 @@ sub load_model_objects {
     
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
         $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");
+
+        # Add object to list on c++ side
+        Slic3r::GUI::add_object_to_list($object->name, $model_object->instances_count, ($model_object->instances->[0]->scaling_factor * 100));
     
         $self->reset_thumbnail($obj_idx);
     }
@@ -894,6 +897,8 @@ sub remove {
     $self->{model}->delete_object($obj_idx);
     $self->{print}->delete_object($obj_idx);
     $self->{list}->DeleteItem($obj_idx);
+    # Delete object from list on c++ side
+    Slic3r::GUI::delete_object_from_list();
     $self->object_list_changed;
     
     $self->select_object(undef);
@@ -917,6 +922,8 @@ sub reset {
     $self->{model}->clear_objects;
     $self->{print}->clear_objects;
     $self->{list}->DeleteAllItems;
+    # Delete all objects from list on c++ side
+    Slic3r::GUI::delete_all_objects_from_list();
     $self->object_list_changed;
     
     $self->select_object(undef);

@@ -477,7 +477,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
 void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
-	add_config_menu(menu, event_language_change, event_language_change);
+	add_config_menu(menu, event_preferences_changed, event_language_change);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -1038,36 +1038,52 @@ wxBoxSizer* content_settings(wxWindow *win)
 	return sizer;
 }
 
-void add_object(const std::string &name)
+void add_object_to_list(const std::string &name, int instances_count, int scale)
 {
 	wxString item = name;
-	m_objects_ctrl->Select(m_objects_model->Add(item));
+	m_objects_ctrl->Select(m_objects_model->Add(item, instances_count, scale));
 }
 
-void del_object()
+void delete_object_from_list()
 {
 	auto item = m_objects_ctrl->GetSelection();
-	if (!item) return;
-	m_objects_ctrl->Select(m_objects_model->Delete(item));
+	if (!item || m_objects_model->GetParent(item) != wxDataViewItem(0)) 
+		return;
+// 	m_objects_ctrl->Select(m_objects_model->Delete(item));
+	m_objects_model->Delete(item);
 
 	if (m_objects_model->IsEmpty())
 		m_collpane_settings->show_it(false);
+}
+
+void delete_all_objects_from_list()
+{
+	m_objects_model->DeleteAll();
+	m_collpane_settings->show_it(false);
 }
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
 	wxWindowUpdateLocker noUpdates(parent);
 
+	auto btn_grid_sizer = new wxGridSizer(1, 3, 2, 2);
+	sizer->Add(btn_grid_sizer, 0, wxALIGN_LEFT | wxLEFT, 20);
+
 	// Experiments with new UI
 	auto add_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
-	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT | wxTOP, 20);
+	btn_grid_sizer->Add(add_btn, 0, wxEXPAND, 0);
 
 	auto del_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	if (wxMSW) del_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	del_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_delete.png")), wxBITMAP_TYPE_PNG));
-	sizer->Add(del_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
+	btn_grid_sizer->Add(del_btn, 0, wxEXPAND, 0);
+
+	auto del_all_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	if (wxMSW) del_all_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+	del_all_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG));
+	btn_grid_sizer->Add(del_all_btn, 0, wxEXPAND, 0);
 
 	// *** Objects List ***	
  	auto collpane = add_prusa_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
@@ -1095,7 +1111,9 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 		m_objects_ctrl->Select(m_objects_model->Add(name));
 	});
 
-	del_btn->Bind(wxEVT_BUTTON, [](wxEvent& ) { del_object(); });
+	del_btn->Bind(wxEVT_BUTTON, [](wxEvent& ) { delete_object_from_list(); });
+
+	del_all_btn->Bind(wxEVT_BUTTON, [](wxEvent&) { delete_all_objects_from_list(); });
 
 	// More experiments with UI
 // 	auto listctrl = new wxDataViewListCtrl(main_page, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
@@ -1302,7 +1320,7 @@ void show_buttons(bool show)
 
 void show_scrolled_window_sizer(bool show)
 {
-	g_scrolled_window_sizer->Show(static_cast<size_t>(0), false/*show*/); //don't used now
+	g_scrolled_window_sizer->Show(static_cast<size_t>(0), /*false*/show); //don't used now
 	g_scrolled_window_sizer->Show(1, show);
 	g_scrolled_window_sizer->Show(2, show && g_show_print_info);
 	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
