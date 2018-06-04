@@ -1102,13 +1102,10 @@ sub SetCurrent {
     return $self->SUPER::SetCurrent($context);
 }
 
-sub UseVBOs {
-    my ($self) = @_;
-
 #==============================================================================================================================
-    return 0 if (! $self->init && $^O eq 'linux');
-    return Slic3r::GUI::_3DScene::use_VBOs();
-        
+#sub UseVBOs {
+#    my ($self) = @_;
+#        
 #    if (! defined ($self->{use_VBOs})) {
 #        my $use_legacy = wxTheApp->{app_config}->get('use_legacy_opengl');
 #        if ($use_legacy eq '1') {
@@ -1134,10 +1131,8 @@ sub UseVBOs {
 #        }
 #    }
 #    return $self->{use_VBOs};
-#==============================================================================================================================
-}
-
-#==============================================================================================================================    
+#}
+#
 #sub Resize {
 #    my ($self, $x, $y) = @_;
 #
@@ -1179,16 +1174,13 @@ sub UseVBOs {
 #    }
 #    glMatrixMode(GL_MODELVIEW);
 #}
-#==============================================================================================================================
-
-sub InitGL {
-    my $self = shift;
- 
-    return if $self->init;
-    return unless $self->GetContext;
-    $self->init(1);
-
-#==============================================================================================================================
+#
+#sub InitGL {
+#    my $self = shift;
+# 
+#    return if $self->init;
+#    return unless $self->GetContext;
+#    $self->init(1);
 #    
 ##    # This is a special path for wxWidgets on GTK, where an OpenGL context is initialized
 ##    # first when an OpenGL widget is shown for the first time. How ugly.
@@ -1255,8 +1247,8 @@ sub InitGL {
 #            $self->{plain_shader} = $shader;
 #        }
 #    }
+#}
 #===================================================================================================================================        
-}
 
 sub DestroyGL {
     my $self = shift;
@@ -1278,19 +1270,17 @@ sub DestroyGL {
 
 sub Render {
     my ($self, $dc) = @_;
-    
-    # prevent calling SetCurrent() when window is not shown yet
-#==============================================================================================================================
-    return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
-#    return unless $self->IsShownOnScreen;
-#==============================================================================================================================
-    return unless my $context = $self->GetContext;
-    $self->SetCurrent($context);
-    $self->InitGL;
-        
+
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::render($self);
-
+    
+#    # prevent calling SetCurrent() when window is not shown yet
+#    return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
+##    return unless $self->IsShownOnScreen;
+#    return unless my $context = $self->GetContext;
+#    $self->SetCurrent($context);
+#    $self->InitGL;
+#        
 #    glClearColor(1, 1, 1, 1);
 #    glClearDepth(1);
 #    glDepthFunc(GL_LESS);
@@ -2185,7 +2175,12 @@ sub new {
 sub load_object {
     my ($self, $model, $print, $obj_idx, $instance_idxs) = @_;
     
-    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+#==============================================================================================================================
+    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
+    $self->SetCurrent($self->GetContext) if $useVBOs;
+    
+#    $self->SetCurrent($self->GetContext) if $useVBOs;
+#==============================================================================================================================
 
     my $model_object;
     if ($model->isa('Slic3r::Model::Object')) {
@@ -2197,9 +2192,13 @@ sub load_object {
     }
     
     $instance_idxs ||= [0..$#{$model_object->instances}];
+#==============================================================================================================================
     my $volume_indices = $self->volumes->load_object(
-        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by,
-        $self->UseVBOs);
+        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by, $useVBOs);
+#    my $volume_indices = $self->volumes->load_object(
+#        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by,
+#        $self->UseVBOs);
+#==============================================================================================================================
     return @{$volume_indices};
 }
 
@@ -2208,9 +2207,16 @@ sub load_object {
 sub load_print_toolpaths {
     my ($self, $print, $colors) = @_;
 
-    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
+#==============================================================================================================================
+    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
+    $self->SetCurrent($self->GetContext) if $useVBOs;
+    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $colors, $useVBOs)
         if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
+    
+#    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+#    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
+#        if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
+#==============================================================================================================================
 }
 
 # Create 3D thick extrusion lines for object forming extrusions.
@@ -2219,24 +2225,43 @@ sub load_print_toolpaths {
 sub load_print_object_toolpaths {
     my ($self, $object, $colors) = @_;
 
-    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $self->UseVBOs);
+#==============================================================================================================================
+    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
+    $self->SetCurrent($self->GetContext) if $useVBOs;
+    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $useVBOs);
+    
+#    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+#    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $self->UseVBOs);
+#==============================================================================================================================
 }
 
 # Create 3D thick extrusion lines for wipe tower extrusions.
 sub load_wipe_tower_toolpaths {
     my ($self, $print, $colors) = @_;
 
-    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::_load_wipe_tower_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
+#==============================================================================================================================
+    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
+    $self->SetCurrent($self->GetContext) if $useVBOs;
+    Slic3r::GUI::_3DScene::_load_wipe_tower_toolpaths($print, $self->volumes, $colors, $useVBOs)
         if ($print->step_done(STEP_WIPE_TOWER));
+       
+#    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+#    Slic3r::GUI::_3DScene::_load_wipe_tower_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
+#        if ($print->step_done(STEP_WIPE_TOWER));
+#==============================================================================================================================
 }
 
 sub load_gcode_preview {
     my ($self, $print, $gcode_preview_data, $colors) = @_;
 
-    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
-    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $self->UseVBOs);
+#==============================================================================================================================
+    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
+    $self->SetCurrent($self->GetContext) if $useVBOs;
+    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $useVBOs);
+
+#    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
+#    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $self->UseVBOs);
+#==============================================================================================================================
 }
 
 sub set_toolpaths_range {
