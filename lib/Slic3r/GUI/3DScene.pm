@@ -2194,7 +2194,7 @@ sub load_object {
     $instance_idxs ||= [0..$#{$model_object->instances}];
 #==============================================================================================================================
     my $volume_indices = $self->volumes->load_object(
-        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by, $useVBOs);
+        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by, $useVBOs && Slic3r::GUI::_3DScene::is_shader_enabled($self));
 #    my $volume_indices = $self->volumes->load_object(
 #        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by,
 #        $self->UseVBOs);

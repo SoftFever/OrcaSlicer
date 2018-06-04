@@ -294,6 +294,14 @@ is_layers_editing_allowed(canvas)
     OUTPUT:
         RETVAL
 
+bool
+is_shader_enabled(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_shader_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
 void
 enable_layers_editing(canvas, enable)
         SV   *canvas;

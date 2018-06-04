@@ -1839,6 +1839,11 @@ bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
     return s_canvas_mgr.is_layers_editing_allowed(canvas);
 }
 
+bool _3DScene::is_shader_enabled(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_shader_enabled(canvas);
+}
+
 void _3DScene::enable_layers_editing(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_layers_editing(canvas, enable);

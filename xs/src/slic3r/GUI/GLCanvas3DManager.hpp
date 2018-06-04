@@ -75,6 +75,7 @@ public:
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
+    bool is_shader_enabled(wxGLCanvas* canvas) const;
 
     void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);

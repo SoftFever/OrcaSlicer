@@ -1175,6 +1175,11 @@ bool GLCanvas3D::is_layers_editing_allowed() const
     return m_layers_editing.is_allowed();
 }
 
+bool GLCanvas3D::is_shader_enabled() const
+{
+    return m_shader_enabled;
+}
+
 void GLCanvas3D::enable_layers_editing(bool enable)
 {
     m_layers_editing.set_enabled(enable);

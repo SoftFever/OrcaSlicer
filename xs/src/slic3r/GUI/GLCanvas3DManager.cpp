@@ -352,6 +352,12 @@ bool GLCanvas3DManager::is_layers_editing_allowed(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_layers_editing_allowed() : false;
 }
 
+bool GLCanvas3DManager::is_shader_enabled(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_shader_enabled() : false;
+}
+
 void GLCanvas3DManager::enable_layers_editing(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

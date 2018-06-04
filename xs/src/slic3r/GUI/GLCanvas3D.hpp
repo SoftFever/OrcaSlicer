@@ -359,6 +359,7 @@ public:
 
     bool is_layers_editing_enabled() const;
     bool is_layers_editing_allowed() const;
+    bool is_shader_enabled() const;
 
     void enable_layers_editing(bool enable);
     void enable_warning_texture(bool enable);
