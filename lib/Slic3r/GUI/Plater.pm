@@ -134,6 +134,7 @@ sub new {
         $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
 #===================================================================================================================================        
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
+        Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
 #        $self->{canvas3D}->use_plain_shader(1);
 #===================================================================================================================================        
         $self->{canvas3D}->set_on_wipe_tower_moved(sub {

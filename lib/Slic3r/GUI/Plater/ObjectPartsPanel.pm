@@ -183,6 +183,7 @@ sub new {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::set_config($canvas, $self->GetParent->GetParent->GetParent->{config});
         Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($canvas);
+        Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($canvas, 1);
 #        $canvas->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
 #==============================================================================================================================
     }

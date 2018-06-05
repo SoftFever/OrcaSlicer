@@ -80,6 +80,7 @@ public:
     void enable_picking(wxGLCanvas* canvas, bool enable);
     void enable_moving(wxGLCanvas* canvas, bool enable);
     void enable_shader(wxGLCanvas* canvas, bool enable);
+    void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
     void allow_multisample(wxGLCanvas* canvas, bool allow);
 
     void zoom_to_bed(wxGLCanvas* canvas);
@@ -93,6 +94,8 @@ public:
 
     std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only) const;
     void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
+
+    void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);

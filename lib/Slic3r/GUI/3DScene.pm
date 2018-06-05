@@ -2248,20 +2248,14 @@ sub load_wipe_tower_toolpaths {
 #==============================================================================================================================
 }
 
-sub load_gcode_preview {
-    my ($self, $print, $gcode_preview_data, $colors) = @_;
-
 #==============================================================================================================================
-    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
-    $self->SetCurrent($self->GetContext) if $useVBOs;
-    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $useVBOs);
-
+#sub load_gcode_preview {
+#    my ($self, $print, $gcode_preview_data, $colors) = @_;
+#
 #    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
 #    Slic3r::GUI::_3DScene::load_gcode_preview($print, $gcode_preview_data, $self->volumes, $colors, $self->UseVBOs);
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 #sub set_toolpaths_range {
 #    my ($self, $min_z, $max_z) = @_;
 #    $self->volumes->set_range($min_z, $max_z);

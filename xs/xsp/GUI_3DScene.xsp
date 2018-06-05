@@ -342,6 +342,13 @@ enable_shader(canvas, enable)
         _3DScene::enable_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
 void
+enable_force_zoom_to_bed(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_force_zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
 allow_multisample(canvas, allow)
         SV   *canvas;
         bool allow;
@@ -531,13 +538,11 @@ _load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs)
         _3DScene::_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
 
 void 
-load_gcode_preview(print, preview_data, volumes, str_tool_colors, use_VBOs)
-        Print                    *print;
+load_gcode_preview(canvas, preview_data, str_tool_colors)
+        SV                       *canvas;
         GCodePreviewData         *preview_data;
-        GLVolumeCollection       *volumes;
         std::vector<std::string> str_tool_colors;
-        int                      use_VBOs;
     CODE:
-        _3DScene::load_gcode_preview(print, preview_data, volumes, str_tool_colors, use_VBOs != 0);
+        _3DScene::load_gcode_preview((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), preview_data, str_tool_colors);
         
 %}

@@ -24,6 +24,7 @@ class GLShader;
 class ExPolygon;
 class Print;
 class PrintObject;
+class GCodePreviewData;
 
 namespace GUI {
 
@@ -81,6 +82,33 @@ public:
 
 class GLCanvas3D
 {
+    struct GCodePreviewVolumeIndex
+    {
+        enum EType
+        {
+            Extrusion,
+            Travel,
+            Retraction,
+            Unretraction,
+            Shell,
+            Num_Geometry_Types
+        };
+
+        struct FirstVolume
+        {
+            EType type;
+            unsigned int flag;
+            // Index of the first volume in a GLVolumeCollection.
+            unsigned int id;
+
+            FirstVolume(EType type, unsigned int flag, unsigned int id) : type(type), flag(flag), id(id) {}
+        };
+
+        std::vector<FirstVolume> first_volumes;
+
+        void reset() { first_volumes.clear(); }
+    };
+
 public:
     struct Camera
     {
@@ -303,7 +331,7 @@ private:
 
     bool m_dirty;
     bool m_use_VBOs;
-    bool m_first_render;
+    bool m_force_zoom_to_bed_enabled;
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
     bool m_warning_texture_enabled;
@@ -312,6 +340,8 @@ private:
     bool m_moving_enabled;
     bool m_shader_enabled;
     bool m_multisample_allowed;
+
+    GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
     PerlCallback m_on_viewport_changed_callback;
     PerlCallback m_on_double_click_callback;
@@ -364,6 +394,7 @@ public:
     void enable_picking(bool enable);
     void enable_moving(bool enable);
     void enable_shader(bool enable);
+    void enable_force_zoom_to_bed(bool enable);
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -378,6 +409,8 @@ public:
 
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);
+
+    void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
 
     void register_on_viewport_changed_callback(void* callback);
     void register_on_double_click_callback(void* callback);
@@ -398,7 +431,7 @@ public:
     Point get_local_mouse_position() const;
 
 private:
-    void _before_first_render();
+    void _force_zoom_to_bed();
 
     void _resize(unsigned int w, unsigned int h);
 
@@ -437,6 +470,24 @@ private:
 
     void _start_timer();
     void _stop_timer();
+
+    static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
+
+    // generates gcode extrusion paths geometry
+    void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+    // generates gcode travel paths geometry
+    void _load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+    bool _travel_paths_by_type(const GCodePreviewData& preview_data);
+    bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data);
+    bool _travel_paths_by_tool(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+    // generates gcode retractions geometry
+    void _load_gcode_retractions(const GCodePreviewData& preview_data);
+    // generates gcode unretractions geometry
+    void _load_gcode_unretractions(const GCodePreviewData& preview_data);
+    // generates objects and wipe tower geometry
+    void _load_shells();
+    // sets gcode geometry visibility according to user selection
+    void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
 };
 
 } // namespace GUI

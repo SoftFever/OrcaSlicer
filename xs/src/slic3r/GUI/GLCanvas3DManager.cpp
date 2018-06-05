@@ -377,6 +377,13 @@ void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
         it->second->enable_shader(enable);
 }
 
+void GLCanvas3DManager::enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_force_zoom_to_bed(enable);
+}
+
 void GLCanvas3DManager::allow_multisample(wxGLCanvas* canvas, bool allow)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -441,6 +448,16 @@ void GLCanvas3DManager::set_toolpaths_range(wxGLCanvas* canvas, double low, doub
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_toolpaths_range(low, high);
+}
+
+void GLCanvas3DManager::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)
+{
+    if (preview_data == nullptr)
+        return;
+
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->load_gcode_preview(*preview_data, str_tool_colors);
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
