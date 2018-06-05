@@ -257,63 +257,6 @@ void PrusaCollapsiblePane::UpdateBtnBmp()
 	Layout();
 }
 
-void PrusaCollapsiblePane::OnStateChange_(const wxSize& sz)
-{
-	SetSize(sz);
-
-	if (this->HasFlag(wxCP_NO_TLW_RESIZE))
-	{
-		// the user asked to explicitly handle the resizing itself...
-		return;
-	}
-
-	auto top = GetParent(); //right_panel
-	if (!top)
-		return;
-
-	wxSizer *sizer = top->GetSizer();
-	if (!sizer)
-		return;
-
-	const wxSize newBestSize = sizer->ComputeFittingClientSize(top);
-	top->SetMinClientSize(newBestSize);
-
- 	wxWindowUpdateLocker noUpdates_p(top->GetParent());
-	// we shouldn't attempt to resize a maximized window, whatever happens
-// 	if (!top->IsMaximized())
-// 		top->SetClientSize(newBestSize);
-		top->GetParent()->Layout();
-		top->Refresh();
-}
-
-
-void PrusaCollapsiblePane::Collapse(bool collapse)
-{
-	// optimization
-	if (IsCollapsed() == collapse)
-		return;
-
-	InvalidateBestSize();
-
-	// update our state
-	m_pPane->Show(!collapse);
-
-	// update button label
-#if defined( __WXMAC__ ) && !defined(__WXUNIVERSAL__)
-	m_pButton->SetOpen(!collapse);
-#else 
-#ifdef __WXMSW__
-	// update button bitmap
-	UpdateBtnBmp();
-#else
-	// NB: this must be done after updating our "state"
-	m_pButton->SetLabel(GetBtnLabel());
-#endif //__WXMSW__
-#endif
-
-	OnStateChange_(GetBestSize());
-}
-
 void PrusaCollapsiblePane::SetLabel(const wxString &label)
 {
 	m_strLabel = label;
@@ -346,6 +289,62 @@ bool PrusaCollapsiblePane::Layout()
 	return true;
 }
 #endif //__WXMSW__
+
+void PrusaCollapsiblePane::OnStateChange_(const wxSize& sz)
+{
+	SetSize(sz);
+
+	if (this->HasFlag(wxCP_NO_TLW_RESIZE))
+	{
+		// the user asked to explicitly handle the resizing itself...
+		return;
+	}
+
+	auto top = GetParent(); //right_panel
+	if (!top)
+		return;
+
+	wxSizer *sizer = top->GetSizer();
+	if (!sizer)
+		return;
+
+	const wxSize newBestSize = sizer->ComputeFittingClientSize(top);
+	top->SetMinClientSize(newBestSize);
+
+	wxWindowUpdateLocker noUpdates_p(top->GetParent());
+	// we shouldn't attempt to resize a maximized window, whatever happens
+// 	if (!top->IsMaximized())
+// 		top->SetClientSize(newBestSize);
+	top->GetParent()->Layout();
+	top->Refresh();
+}
+
+void PrusaCollapsiblePane::Collapse(bool collapse)
+{
+	// optimization
+	if (IsCollapsed() == collapse)
+		return;
+
+	InvalidateBestSize();
+
+	// update our state
+	m_pPane->Show(!collapse);
+
+	// update button label
+#if defined( __WXMAC__ ) && !defined(__WXUNIVERSAL__)
+	m_pButton->SetOpen(!collapse);
+#else 
+#ifdef __WXMSW__
+	// update button bitmap
+	UpdateBtnBmp();
+#else
+	// NB: this must be done after updating our "state"
+	m_pButton->SetLabel(GetBtnLabel());
+#endif //__WXMSW__
+#endif
+
+	OnStateChange_(GetBestSize());
+}
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------

@@ -142,12 +142,8 @@ wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
 PrusaCollapsiblePane	*m_collpane_settings = nullptr;
 
-wxFont		g_small_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
-wxFont		g_bold_font{ wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold() };
-#ifdef __WXMAC__
-g_small_font.SetPointSize(11);
-g_bold_font.SetPointSize(11);
-#endif /*__WXMAC__*/
+wxFont		g_small_font { wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
+wxFont		g_bold_font { wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold() };
 
 static void init_label_colours()
 {
@@ -177,10 +173,19 @@ void update_label_colours_from_appconfig()
 	}
 }
 
+static void init_fonts()
+{
+#ifdef __WXMAC__
+	g_small_font.SetPointSize(11);
+	g_bold_font.SetPointSize(11);
+#endif /*__WXMAC__*/
+}
+
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
     init_label_colours();
+	init_fonts();
 }
 
 void set_main_frame(wxFrame *main_frame)
