@@ -943,6 +943,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_config(nullptr)
     , m_print(nullptr)
     , m_dirty(true)
+    , m_initialized(false)
     , m_use_VBOs(false)
     , m_force_zoom_to_bed_enabled(false)
     , m_apply_zoom_to_volumes_filter(false)
@@ -971,6 +972,11 @@ GLCanvas3D::~GLCanvas3D()
 
 bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
+    if (m_initialized)
+        return true;
+
+    std::cout << "init: " << (void*)m_canvas << " (" << (void*)this << ")" << std::endl;
+
     ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     ::glClearDepth(1.0f);
 
@@ -1022,6 +1028,13 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 
     m_use_VBOs = useVBOs;
     m_layers_editing.set_use_legacy_opengl(use_legacy_opengl);
+
+    // on linux the gl context is not valid until the canvas is not shown on screen
+    // we defer the geometry finalization of volumes until the first call to render()
+    if ((m_volumes != nullptr) && !m_volumes->empty())
+        m_volumes->finalize_geometry(m_use_VBOs);
+
+    m_initialized = true;
 
     return true;
 }
@@ -1337,8 +1350,8 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
 {
     if ((m_canvas != nullptr) && (m_volumes != nullptr) && (m_print != nullptr))
     {
-        // ensures that the proper context is selected and that this canvas is initialized
-        if (!set_current() || !_3DScene::init(m_canvas))
+        // ensures that the proper context is selected
+        if (!set_current())
             return;
 
         if (m_volumes->empty())
@@ -2577,7 +2590,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
         {
             GLVolume* volume = m_volumes->volumes[i];
             volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(m_use_VBOs);
+            volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
         }
     }
 }
@@ -2632,7 +2645,7 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
         {
             GLVolume* volume = m_volumes->volumes[i];
             volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-            volume->indexed_vertex_array.finalize_geometry(m_use_VBOs);
+            volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
         }
     }
 }
@@ -2862,7 +2875,7 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
 
         // finalize volumes and sends geometry to gpu
         volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-        volume->indexed_vertex_array.finalize_geometry(m_use_VBOs);
+        volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
     }
 }
 
@@ -2893,7 +2906,7 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
 
         // finalize volumes and sends geometry to gpu
         volume->bounding_box = volume->indexed_vertex_array.bounding_box();
-        volume->indexed_vertex_array.finalize_geometry(m_use_VBOs);
+        volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
     }
 }
 
@@ -2920,7 +2933,7 @@ void GLCanvas3D::_load_shells()
 
         for (ModelInstance* instance : model_obj->instances)
         {
-            m_volumes->load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs);
+            m_volumes->load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
         }
 
         ++object_id;
@@ -2931,8 +2944,8 @@ void GLCanvas3D::_load_shells()
     const PrintConfig& config = m_print->config;
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
-        const float width_per_extruder = 15.f; // a simple workaround after wipe_tower_per_color_wipe got obsolete
-        m_volumes->load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, m_use_VBOs);
+        const float width_per_extruder = 15.0f; // a simple workaround after wipe_tower_per_color_wipe got obsolete
+        m_volumes->load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, m_use_VBOs && m_initialized);
     }
 }
 

@@ -330,6 +330,7 @@ private:
     Print* m_print;
 
     bool m_dirty;
+    bool m_initialized;
     bool m_use_VBOs;
     bool m_force_zoom_to_bed_enabled;
     bool m_apply_zoom_to_volumes_filter;
