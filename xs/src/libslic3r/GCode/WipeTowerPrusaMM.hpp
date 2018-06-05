@@ -229,7 +229,7 @@ private:
 	bool m_print_brim = true;
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
-	unsigned int 	m_current_tool  = 0;
+	unsigned int 	m_current_tool;
     std::vector<std::vector<float>> wipe_volumes;
 
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
