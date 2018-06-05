@@ -1071,6 +1071,28 @@ void delete_all_objects_from_list()
 	m_collpane_settings->Show(false);
 }
 
+void set_object_count(int idx, int count)
+{
+	m_objects_model->SetValue(wxString::Format("%d", count), idx, 1);
+	m_objects_ctrl->Refresh();
+}
+
+void set_object_scale(int idx, int scale)
+{
+	m_objects_model->SetValue(wxString::Format("%d%%", scale), idx, 2);
+	m_objects_ctrl->Refresh();
+}
+
+void unselect_objects()
+{
+	m_objects_ctrl->UnselectAll();
+}
+
+void select_current_object(int idx)
+{
+	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
+}
+
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 {
 	wxWindowUpdateLocker noUpdates(parent);

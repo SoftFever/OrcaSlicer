@@ -949,6 +949,8 @@ sub increase {
         $self->{print}->objects->[$obj_idx]->add_copy($instance->offset);
     }
     $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
+    # Set conut of object on c++ side
+    Slic3r::GUI::set_object_count($obj_idx, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled
     $self->stop_background_process;
@@ -975,6 +977,8 @@ sub decrease {
             $self->{print}->objects->[$obj_idx]->delete_last_copy;
         }
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
+        # Set conut of object on c++ side
+        Slic3r::GUI::set_object_count($obj_idx, $model_object->instances_count);
     } elsif (defined $copies_asked) {
         # The "decrease" came from the "set number of copies" dialog.
         $self->remove;
@@ -1168,6 +1172,8 @@ sub changescale {
         }
     
         $self->{list}->SetItem($obj_idx, 2, "$scale%");
+        # Set object scale on c++ side
+        Slic3r::GUI::set_object_scale($obj_idx, $scale);
         $scale /= 100;  # turn percent into factor
         
         my $variation = $scale / $model_instance->scaling_factor;
@@ -2096,6 +2102,9 @@ sub select_object {
         $self->{list}->Select($o, 0);
         $PreventListEvents = 0;
     }
+
+    # Unselect all objects in the list on c++ side
+    Slic3r::GUI::unselect_objects();
     
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
@@ -2105,6 +2114,8 @@ sub select_object {
         $PreventListEvents = 1;
         $self->{list}->Select($obj_idx, 1);
         $PreventListEvents = 0;
+        # Select current object in the list on c++ side
+        Slic3r::GUI::select_current_object($obj_idx);
     } else {
         # TODO: deselect all in list
     }

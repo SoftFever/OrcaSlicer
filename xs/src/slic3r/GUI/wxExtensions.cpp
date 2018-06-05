@@ -505,22 +505,7 @@ bool MyObjectTreeModel::SetValue(const wxVariant &variant, const wxDataViewItem 
 	wxASSERT(item.IsOk());
 
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
-	switch (col)
-	{
-	case 0:
-		node->m_name = variant.GetString();
-		return true;
-	case 1:
-		node->m_copy = variant.GetString();
-		return true;
-	case 2:
-		node->m_scale = variant.GetString();
-		return true;
-
-	default:;
-		//		wxLogError("MyObjectTreeModel::SetValue: wrong column");
-	}
-	return false;
+	return node->SetValue(variant, col);
 }
 
 bool MyObjectTreeModel::SetValue(const wxVariant &variant, const int item_idx, unsigned int col)

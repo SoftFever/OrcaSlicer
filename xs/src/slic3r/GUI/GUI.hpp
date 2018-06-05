@@ -181,6 +181,14 @@ void add_object_to_list(const std::string &name, int instances_count=1, int scal
 void delete_object_from_list();
 // Delete all objects from the list
 void delete_all_objects_from_list();
+// Set count of object on c++ side
+void set_object_count(int idx, int count);
+// Set object scale on c++ side
+void set_object_scale(int idx, int scale);
+// Unselect all objects in the list on c++ side
+void unselect_objects();
+// Select current object in the list on c++ side
+void select_current_object(int idx);
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);

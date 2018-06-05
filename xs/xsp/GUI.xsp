@@ -131,6 +131,18 @@ void delete_object_from_list()
 void delete_all_objects_from_list()
     %code%{ Slic3r::GUI::delete_all_objects_from_list(); %};
 
+void set_object_count(int idx, int count)
+    %code%{ Slic3r::GUI::set_object_count(idx, count); %};
+
+void set_object_scale(int idx, int scale)
+    %code%{ Slic3r::GUI::set_object_scale(idx, scale); %};
+
+void unselect_objects()
+    %code%{ Slic3r::GUI::unselect_objects(); %};
+
+void select_current_object(int idx)
+    %code%{ Slic3r::GUI::select_current_object(idx); %};
+
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
 
