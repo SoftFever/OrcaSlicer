@@ -376,10 +376,18 @@ sub load_print {
 
         if ($self->gcode_preview_data->empty) {
             # load skirt and brim
-            $self->canvas->load_print_toolpaths($self->print, \@colors);
-            $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);        
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::set_print($self->canvas, $self->print);
+            Slic3r::GUI::_3DScene::load_print_toolpaths($self->canvas);
+            Slic3r::GUI::_3DScene::load_wipe_tower_toolpaths($self->canvas, \@colors);
+#            $self->canvas->load_print_toolpaths($self->print, \@colors);
+#            $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);        
+#==============================================================================================================================
             foreach my $object (@{$self->print->objects}) {
-                $self->canvas->load_print_object_toolpaths($object, \@colors);            
+#==============================================================================================================================
+                Slic3r::GUI::_3DScene::load_print_object_toolpaths($self->canvas, $object, \@colors);
+#                $self->canvas->load_print_object_toolpaths($object, \@colors);            
+#==============================================================================================================================
                 # Show the objects in very transparent color.
                 #my @volume_ids = $self->canvas->load_object($object->model_object);
                 #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;

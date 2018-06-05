@@ -611,6 +611,9 @@ public:
 //##################################################################################################################
 
 //##################################################################################################################
+    static void load_print_toolpaths(wxGLCanvas* canvas);
+    static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
+    static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
 //    static void load_gcode_preview(const Print* print, const GCodePreviewData* preview_data, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
 //##################################################################################################################
@@ -633,25 +636,29 @@ public:
     static void reset_warning_texture();
     static unsigned int finalize_warning_texture();
 
-    static void _load_print_toolpaths(
-        const Print                     *print,
-        GLVolumeCollection              *volumes,
-        const std::vector<std::string>  &tool_colors,
-        bool                             use_VBOs);
-
-    static void _load_print_object_toolpaths(
-        const PrintObject               *print_object,
-        GLVolumeCollection              *volumes,
-        const std::vector<std::string>  &tool_colors,
-        bool                             use_VBOs);
-
-    static void _load_wipe_tower_toolpaths(
-        const Print                    *print,
-        GLVolumeCollection             *volumes,
-        const std::vector<std::string> &tool_colors_str,
-        bool                            use_VBOs);
+//##################################################################################################################
+//    static void _load_print_toolpaths(
+//        const Print                     *print,
+//        GLVolumeCollection              *volumes,
+//        const std::vector<std::string>  &tool_colors,
+//        bool                             use_VBOs);
+//
+//    static void _load_print_object_toolpaths(
+//        const PrintObject               *print_object,
+//        GLVolumeCollection              *volumes,
+//        const std::vector<std::string>  &tool_colors,
+//        bool                             use_VBOs);
+//
+//    static void _load_wipe_tower_toolpaths(
+//        const Print                    *print,
+//        GLVolumeCollection             *volumes,
+//        const std::vector<std::string> &tool_colors_str,
+//        bool                            use_VBOs);
+//##################################################################################################################
 
 //##################################################################################################################
+    static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
+    static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionPath& extrusion_path, float print_z, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionPath& extrusion_path, float print_z, const Point& copy, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionLoop& extrusion_loop, float print_z, const Point& copy, GLVolume& volume);

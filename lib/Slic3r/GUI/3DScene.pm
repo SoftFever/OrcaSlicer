@@ -2199,56 +2199,36 @@ sub load_object {
     return @{$volume_indices};
 }
 
-# Create 3D thick extrusion lines for a skirt and brim.
-# Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes.
-sub load_print_toolpaths {
-    my ($self, $print, $colors) = @_;
-
 #==============================================================================================================================
-    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
-    $self->SetCurrent($self->GetContext) if $useVBOs;
-    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $colors, $useVBOs)
-        if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
-    
+## Create 3D thick extrusion lines for a skirt and brim.
+## Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes.
+#sub load_print_toolpaths {
+#    my ($self, $print, $colors) = @_;
+#
 #    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
 #    Slic3r::GUI::_3DScene::_load_print_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
 #        if ($print->step_done(STEP_SKIRT) && $print->step_done(STEP_BRIM));
-#==============================================================================================================================
-}
-
-# Create 3D thick extrusion lines for object forming extrusions.
-# Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
-# one for perimeters, one for infill and one for supports.
-sub load_print_object_toolpaths {
-    my ($self, $object, $colors) = @_;
-
-#==============================================================================================================================
-    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
-    $self->SetCurrent($self->GetContext) if $useVBOs;
-    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $useVBOs);
-    
+#}
+#
+## Create 3D thick extrusion lines for object forming extrusions.
+## Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
+## one for perimeters, one for infill and one for supports.
+#sub load_print_object_toolpaths {
+#    my ($self, $object, $colors) = @_;
+#
 #    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
 #    Slic3r::GUI::_3DScene::_load_print_object_toolpaths($object, $self->volumes, $colors, $self->UseVBOs);
-#==============================================================================================================================
-}
-
-# Create 3D thick extrusion lines for wipe tower extrusions.
-sub load_wipe_tower_toolpaths {
-    my ($self, $print, $colors) = @_;
-
-#==============================================================================================================================
-    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
-    $self->SetCurrent($self->GetContext) if $useVBOs;
-    Slic3r::GUI::_3DScene::_load_wipe_tower_toolpaths($print, $self->volumes, $colors, $useVBOs)
-        if ($print->step_done(STEP_WIPE_TOWER));
-       
+#}
+#
+## Create 3D thick extrusion lines for wipe tower extrusions.
+#sub load_wipe_tower_toolpaths {
+#    my ($self, $print, $colors) = @_;
+#       
 #    $self->SetCurrent($self->GetContext) if $self->UseVBOs;
 #    Slic3r::GUI::_3DScene::_load_wipe_tower_toolpaths($print, $self->volumes, $colors, $self->UseVBOs)
 #        if ($print->step_done(STEP_WIPE_TOWER));
-#==============================================================================================================================
-}
-
-#==============================================================================================================================
+#}
+#
 #sub load_gcode_preview {
 #    my ($self, $print, $gcode_preview_data, $colors) = @_;
 #

@@ -511,31 +511,25 @@ reset_warning_texture()
         _3DScene::reset_warning_texture();
 
 void
-_load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
-        Print               *print;
-        GLVolumeCollection  *volumes;
-        std::vector<std::string> tool_colors;
-        int                  use_VBOs;
+load_print_toolpaths(canvas)
+        SV *canvas;
     CODE:
-        _3DScene::_load_print_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
+        _3DScene::load_print_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void 
-_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs)
-        PrintObject        *print_object;
-        GLVolumeCollection *volumes;
+load_print_object_toolpaths(canvas, print_object, tool_colors)
+        SV                       *canvas;
+        PrintObject              *print_object;
         std::vector<std::string> tool_colors;
-        int                 use_VBOs;
     CODE:
-        _3DScene::_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs != 0);
+        _3DScene::load_print_object_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print_object, tool_colors);
 
 void
-_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs)
-        Print               *print;
-        GLVolumeCollection  *volumes;
+load_wipe_tower_toolpaths(canvas, tool_colors)
+        SV                       *canvas;
         std::vector<std::string> tool_colors;
-        int                  use_VBOs;
     CODE:
-        _3DScene::_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
+        _3DScene::load_wipe_tower_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tool_colors);
 
 void 
 load_gcode_preview(canvas, preview_data, str_tool_colors)

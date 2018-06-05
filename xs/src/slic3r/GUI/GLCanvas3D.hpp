@@ -411,6 +411,15 @@ public:
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);
 
+    // Create 3D thick extrusion lines for a skirt and brim.
+    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
+    void load_print_toolpaths();
+    // Create 3D thick extrusion lines for object forming extrusions.
+    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
+    // one for perimeters, one for infill and one for supports.
+    void load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors);
+    // Create 3D thick extrusion lines for wipe tower extrusions
+    void load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
 
     void register_on_viewport_changed_callback(void* callback);
@@ -472,8 +481,6 @@ private:
     void _start_timer();
     void _stop_timer();
 
-    static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
-
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates gcode travel paths geometry
@@ -489,6 +496,8 @@ private:
     void _load_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
+
+    static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };
 
 } // namespace GUI

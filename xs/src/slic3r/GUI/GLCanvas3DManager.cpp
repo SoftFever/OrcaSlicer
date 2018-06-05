@@ -450,6 +450,30 @@ void GLCanvas3DManager::set_toolpaths_range(wxGLCanvas* canvas, double low, doub
         it->second->set_toolpaths_range(low, high);
 }
 
+void GLCanvas3DManager::load_print_toolpaths(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->load_print_toolpaths();
+}
+
+void GLCanvas3DManager::load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& tool_colors)
+{
+    if (print_object == nullptr)
+        return;
+
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->load_print_object_toolpaths(*print_object, tool_colors);
+}
+
+void GLCanvas3DManager::load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->load_wipe_tower_toolpaths(str_tool_colors);
+}
+
 void GLCanvas3DManager::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)
 {
     if (preview_data == nullptr)
