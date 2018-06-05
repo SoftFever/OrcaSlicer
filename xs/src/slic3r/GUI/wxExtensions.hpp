@@ -75,15 +75,14 @@ public:
 
 
 
-// ***  PrusaCollapsiblePane  ***
+// ***  PrusaCollapsiblePane  ***  used only #ifdef __WXMSW__
 // ----------------------------------------------------------------------------
+#ifdef __WXMSW__
 class PrusaCollapsiblePane : public wxCollapsiblePane
 {
-#ifdef __WXMSW__
 	wxButton*	m_pDisclosureTriangleButton = nullptr;
 	wxBitmap	m_bmp_close;
 	wxBitmap	m_bmp_open;
-#endif //__WXMSW__
 public:
 	PrusaCollapsiblePane() {}
 	PrusaCollapsiblePane(	wxWindow *parent,
@@ -95,16 +94,11 @@ public:
 							const wxValidator& val = wxDefaultValidator,
 							const wxString& name = wxCollapsiblePaneNameStr)
 	{
-#ifdef __WXMSW__
 		Create(parent, winid, label, pos, size, style, val, name);
-#else
-		Create(parent, winid, label);
-#endif //__WXMSW__
 	}
 
 	~PrusaCollapsiblePane() {}
 
-#ifdef __WXMSW__
 	bool Create(wxWindow *parent,
 				wxWindowID id,
 				const wxString& label,
@@ -117,7 +111,6 @@ public:
 	void UpdateBtnBmp();
 	void SetLabel(const wxString &label) override;
 	bool Layout() override;
-#endif //__WXMSW__
 	void Collapse(bool collapse) override;
 	void OnStateChange_(const wxSize& sz); //override of OnStateChange
 	virtual bool Show(bool show=true) override {
@@ -126,7 +119,7 @@ public:
 		return true;
 	}
 };
-
+#endif //__WXMSW__
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------

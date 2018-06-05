@@ -190,7 +190,7 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 }
 
 // ----------------------------------------------------------------------------
-// ***  PrusaCollapsiblePane  ***
+// ***  PrusaCollapsiblePane  ***    used only #ifdef __WXMSW__
 // ----------------------------------------------------------------------------
 #ifdef __WXMSW__
 bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxString& label, 
@@ -288,7 +288,6 @@ bool PrusaCollapsiblePane::Layout()
 
 	return true;
 }
-#endif //__WXMSW__
 
 void PrusaCollapsiblePane::OnStateChange_(const wxSize& sz)
 {
@@ -330,21 +329,12 @@ void PrusaCollapsiblePane::Collapse(bool collapse)
 	// update our state
 	m_pPane->Show(!collapse);
 
-	// update button label
-#if defined( __WXMAC__ ) && !defined(__WXUNIVERSAL__)
-	m_pButton->SetOpen(!collapse);
-#else 
-#ifdef __WXMSW__
 	// update button bitmap
 	UpdateBtnBmp();
-#else
-	// NB: this must be done after updating our "state"
-	m_pButton->SetLabel(GetBtnLabel());
-#endif //__WXMSW__
-#endif
 
 	OnStateChange_(GetBestSize());
 }
+#endif //__WXMSW__
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
