@@ -34,6 +34,7 @@ struct AvrDude::priv
 {
 	std::string sys_config;
 	std::vector<std::string> args;
+	RunFn run_fn;
 	MessageFn message_fn;
 	ProgressFn progress_fn;
 	CompleteFn complete_fn;
@@ -94,6 +95,12 @@ AvrDude& AvrDude::args(std::vector<std::string> args)
 	return *this;
 }
 
+AvrDude& AvrDude::on_run(RunFn fn)
+{
+	if (p) { p->run_fn = std::move(fn); }
+	return *this;
+}
+
 AvrDude& AvrDude::on_message(MessageFn fn)
 {
 	if (p) { p->message_fn = std::move(fn); }
@@ -123,11 +130,17 @@ AvrDude::Ptr AvrDude::run()
 
 	if (self->p) {
 		auto avrdude_thread = std::thread([self]() {
-				auto res = self->p->run();
-				if (self->p->complete_fn) {
-					self->p->complete_fn(res);
-				}
-			});
+			if (self->p->run_fn) {
+				self->p->run_fn();
+			}
+
+			auto res = self->p->run();
+
+			if (self->p->complete_fn) {
+				self->p->complete_fn(res);
+			}
+		});
+
 		self->p->avrdude_thread = std::move(avrdude_thread);
 	}
 

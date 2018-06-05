@@ -12,6 +12,7 @@ class AvrDude
 {
 public:
 	typedef std::shared_ptr<AvrDude> Ptr;
+	typedef std::function<void()> RunFn;
 	typedef std::function<void(const char * /* msg */, unsigned /* size */)> MessageFn;
 	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
 	typedef std::function<void(int /* exit status */)> CompleteFn;
@@ -28,6 +29,11 @@ public:
 
 	// Set avrdude cli arguments
 	AvrDude& args(std::vector<std::string> args);
+
+	// Set a callback to be called just after run() before avrdude is ran
+	// This can be used to perform any needed setup tasks from the background thread.
+	// This has no effect when using run_sync().
+	AvrDude& on_run(RunFn fn);
 
 	// Set message output callback
 	AvrDude& on_message(MessageFn fn);

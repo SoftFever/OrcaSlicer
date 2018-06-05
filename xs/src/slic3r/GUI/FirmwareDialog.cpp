@@ -10,6 +10,7 @@
 #include <wx/event.h>
 #include <wx/sizer.h>
 #include <wx/settings.h>
+#include <wx/timer.h>
 #include <wx/panel.h>
 #include <wx/button.h>
 #include <wx/filepicker.h>
@@ -36,7 +37,7 @@ namespace Slic3r {
 enum AvrdudeEvent
 {
 	AE_MESSAGE,
-	AE_PRORGESS,
+	AE_PROGRESS,
 	AE_EXIT,
 };
 
@@ -62,7 +63,6 @@ struct FirmwareDialog::priv
 	std::vector<Utils::SerialPortInfo> ports;
 	wxFilePickerCtrl *hex_picker;
 	wxStaticText *txt_status;
-	wxStaticText *txt_progress;
 	wxGauge *progressbar;
 	wxCollapsiblePane *spoiler;
 	wxTextCtrl *txt_stdout;
@@ -71,6 +71,8 @@ struct FirmwareDialog::priv
 	wxButton *btn_flash;
 	wxString btn_flash_label_ready;
 	wxString btn_flash_label_flashing;
+
+	wxTimer timer_pulse;
 
 	// This is a shared pointer holding the background AvrDude task
 	// also serves as a status indication (it is set _iff_ the background task is running, otherwise it is reset).
@@ -83,6 +85,7 @@ struct FirmwareDialog::priv
 		q(q),
 		btn_flash_label_ready(_(L("Flash!"))),
 		btn_flash_label_flashing(_(L("Cancel"))),
+		timer_pulse(q),
 		avrdude_config((fs::path(::Slic3r::resources_dir()) / "avrdude" / "avrdude.conf").string()),
 		progress_tasks_done(0),
 		cancelled(false)
@@ -131,6 +134,7 @@ void FirmwareDialog::priv::flashing_status(bool value, AvrDudeComplete complete)
 		progressbar->SetValue(0);
 		progress_tasks_done = 0;
 		cancelled = false;
+		timer_pulse.Start(50);
 	} else {
 		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
 		port_picker->Enable();
@@ -186,6 +190,7 @@ void FirmwareDialog::priv::perform_upload()
 	avrdude = AvrDude()
 		.sys_config(avrdude_config)
 		.args(args)
+		.on_run([]() { /* TODO: needed? */ })
 		.on_message(std::move([q](const char *msg, unsigned /* size */) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			auto wxmsg = wxString::FromUTF8(msg);
@@ -195,7 +200,7 @@ void FirmwareDialog::priv::perform_upload()
 		}))
 		.on_progress(std::move([q](const char * /* task */, unsigned progress) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
-			evt->SetExtraLong(AE_PRORGESS);
+			evt->SetExtraLong(AE_PROGRESS);
 			evt->SetInt(progress);
 			wxQueueEvent(q, evt);
 		}))
@@ -226,19 +231,19 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 		txt_stdout->AppendText(evt.GetString());
 		break;
 
-	case AE_PRORGESS:
+	case AE_PROGRESS:
 		// We try to track overall progress here.
 		// When uploading the firmware, avrdude first reads a littlebit of status data,
 		// then performs write, then reading (verification).
-		// We Pulse() during the first read and combine progress of the latter two tasks.
+		// We ignore the first task (which just let's the timer_pulse work)
+		// and then display overall progress during the latter two tasks.
 
-		if (progress_tasks_done == 0) {
-			progressbar->Pulse();
-		} else {
+		if (progress_tasks_done > 0) {
 			progressbar->SetValue(progress_tasks_done - 100 + evt.GetInt());
 		}
 
 		if (evt.GetInt() == 100) {
+			timer_pulse.Stop();
 			progress_tasks_done += 100;
 		}
 
@@ -375,6 +380,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 			this->p->perform_upload();
 		}
 	});
+
+	Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->p->progressbar->Pulse(); });
 
 	Bind(EVT_AVRDUDE, [this](wxCommandEvent &evt) { this->p->on_avrdude(evt); });
 

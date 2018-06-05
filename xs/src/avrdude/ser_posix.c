@@ -376,6 +376,10 @@ static int ser_recv(union filedescriptor *fd, unsigned char * buf, size_t buflen
     FD_SET(fd->ifd, &rfds);
 
     nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
+    // FIXME: The timeout has different behaviour on Linux vs other Unices
+    // On Linux, the timeout is modified by subtracting the time spent,
+    // on OS X (for example), it is not modified.
+    // POSIX recommends re-initializing it before selecting.
     if (nfds == 0) {
       avrdude_message(MSG_NOTICE2, "%s: ser_recv(): programmer is not responding\n",
                         progname);
