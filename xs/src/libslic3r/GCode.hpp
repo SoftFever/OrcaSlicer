@@ -215,7 +215,8 @@ protected:
             struct Region {
                 ExtrusionEntityCollection perimeters;
                 ExtrusionEntityCollection infills;
-                std::vector<std::vector<unsigned int>> infills_per_copy_ids; // indices of infill.entities that are not part of infill wiping (an element for each object copy)
+                std::vector<std::vector<unsigned int>> infills_per_copy_ids;    // indices of infill.entities that are not part of infill wiping (an element for each object copy)
+                std::vector<std::vector<unsigned int>> perimeters_per_copy_ids; // indices of infill.entities that are not part of infill wiping (an element for each object copy)
             };
             std::vector<Region> by_region;
             std::vector<Region> by_region_per_copy(unsigned int copy)  const; // returns only extrusions that are NOT printed during wiping into infill for this copy

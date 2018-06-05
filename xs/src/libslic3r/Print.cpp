@@ -1209,11 +1209,29 @@ float Print::mark_wiping_infill(const ToolOrdering::LayerTools& layer_tools, uns
                         if (unused_yet)
                             continue;
                     }
+
+                    //if (object.wipe_into_perimeters)
+                    {
+                        ExtrusionEntityCollection& eec = this_layer->regions[region_id]->perimeters;
+                        for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all perimeter Collections
+                            auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                                if (volume_to_wipe <= 0.f)
+                                    break;
+                                if (!fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {
+                                    fill->set_extruder_override(copy, new_extruder);
+                                    volume_to_wipe -= fill->total_volume();
+                                }
+                        }
+                    }
+
+
                     ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
                     for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
                         auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
                         if (fill->role() == erTopSolidInfill || fill->role() == erGapFill) continue;         // these cannot be changed - it is / may be visible
-                            if (volume_to_wipe > 0.f && !fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
+                            if (volume_to_wipe <= 0.f)
+                                break;
+                            if (!fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
                                 fill->set_extruder_override(copy, new_extruder);
                                 volume_to_wipe -= fill->total_volume();
                             }

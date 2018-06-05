@@ -1224,7 +1224,7 @@ void GCode::process_layer(
                 if (layerm == nullptr)
                     continue;
                 const PrintRegion &region = *print.regions[region_id];
-                
+
                 // process perimeters
                 for (const ExtrusionEntity *ee : layerm->perimeters.entities) {
                     // perimeter_coll represents perimeter extrusions of a single island.
@@ -1246,6 +1246,17 @@ void GCode::process_layer(
                             if (islands[i].by_region.empty())
                                 islands[i].by_region.assign(print.regions.size(), ObjectByExtruder::Island::Region());
                             islands[i].by_region[region_id].perimeters.append(perimeter_coll->entities);
+
+                            // We just added perimeter_coll->entities.size() entities, if they are not to be printed before the main object (during infill wiping),
+                            // we will note their indices (for each copy separately):
+                            unsigned int last_added_entity_index = islands[i].by_region[region_id].perimeters.entities.size()-1;
+                            for (unsigned copy_id = 0; copy_id < layer_to_print.object()->_shifted_copies.size(); ++copy_id) {
+                                if (islands[i].by_region[region_id].perimeters_per_copy_ids.size() < copy_id + 1)  // if this copy isn't in the list yet
+                                    islands[i].by_region[region_id].perimeters_per_copy_ids.push_back(std::vector<unsigned int>());
+                                if (!perimeter_coll->is_extruder_overridden(copy_id))
+                                    for (int j=0; j<perimeter_coll->entities.size(); ++j)
+                                        islands[i].by_region[region_id].perimeters_per_copy_ids[copy_id].push_back(last_added_entity_index - j);
+                            }
                             break;
                         }
                 }
@@ -1362,14 +1373,29 @@ void GCode::process_layer(
                             overridden.push_back(new_region);
                             for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
                                 auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                                if (fill->get_extruder_override(copy_id) == extruder_id)
+                                if (fill->get_extruder_override(copy_id) == (unsigned int)extruder_id)
                                         overridden.back().infills.append(*fill);
+                           }
+                           for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->perimeters.entities) {
+                                auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                                if (fill->get_extruder_override(copy_id) == (unsigned int)extruder_id)
+                                        overridden.back().perimeters.append((*fill).entities);
                            }
                         }
 
                         Point copy = (layer_to_print.object_layer)->object()->_shifted_copies[copy_id];
                         this->set_origin(unscale(copy.x), unscale(copy.y));
-                        gcode += this->extrude_infill(print, overridden);
+
+
+                        std::unique_ptr<EdgeGrid::Grid> u;
+                        if (print.config.infill_first) {
+                            gcode += this->extrude_infill(print, overridden);
+                            gcode += this->extrude_perimeters(print, overridden, u);
+                        }
+                        else {
+                            gcode += this->extrude_perimeters(print, overridden, u);
+                            gcode += this->extrude_infill(print, overridden);
+                        }
                     }
                 }
             }
@@ -1417,9 +1443,9 @@ void GCode::process_layer(
                 for (const ObjectByExtruder::Island &island : object_by_extruder.islands) {
                     if (print.config.infill_first) {
                         gcode += this->extrude_infill(print, island.by_region_per_copy(copy_id));
-                        gcode += this->extrude_perimeters(print, island.by_region, lower_layer_edge_grids[layer_id]);
+                        gcode += this->extrude_perimeters(print, island.by_region_per_copy(copy_id), lower_layer_edge_grids[layer_id]);
                     } else {
-                        gcode += this->extrude_perimeters(print, island.by_region, lower_layer_edge_grids[layer_id]);
+                        gcode += this->extrude_perimeters(print, island.by_region_per_copy(copy_id), lower_layer_edge_grids[layer_id]);
                         gcode += this->extrude_infill(print, island.by_region_per_copy(copy_id));
                     }
                 }
@@ -2492,11 +2518,13 @@ std::vector<GCode::ObjectByExtruder::Island::Region> GCode::ObjectByExtruder::Is
     std::vector<ObjectByExtruder::Island::Region> out;
     for (auto& reg : by_region) {
         out.push_back(ObjectByExtruder::Island::Region());
-        out.back().perimeters.append(reg.perimeters);       // we will print all perimeters there are
+        //out.back().perimeters.append(reg.perimeters);       // we will print all perimeters there are
 
         if (!reg.infills_per_copy_ids.empty()) {
             for (unsigned int i=0; i<reg.infills_per_copy_ids[copy].size(); ++i)
                 out.back().infills.append(*(reg.infills.entities[reg.infills_per_copy_ids[copy][i]]));
+            for (unsigned int i=0; i<reg.perimeters_per_copy_ids[copy].size(); ++i)
+                out.back().perimeters.append(*(reg.perimeters.entities[reg.perimeters_per_copy_ids[copy][i]]));
         }
     }
     return out;
