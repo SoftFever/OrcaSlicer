@@ -142,8 +142,8 @@ wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
 wxCollapsiblePane		*m_collpane_settings = nullptr;
 
-wxFont		g_small_font { wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
-wxFont		g_bold_font { wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold() };
+wxFont		g_small_font;
+wxFont		g_bold_font;
 
 static void init_label_colours()
 {
@@ -175,6 +175,8 @@ void update_label_colours_from_appconfig()
 
 static void init_fonts()
 {
+	g_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	g_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
 #ifdef __WXMAC__
 	g_small_font.SetPointSize(11);
 	g_bold_font.SetPointSize(11);
