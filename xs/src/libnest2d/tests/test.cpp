@@ -1,11 +1,21 @@
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
+#include <gtest/gtest.h>
 #include <fstream>
 
 #include <libnest2d.h>
 #include "printer_parts.h"
 #include <libnest2d/geometries_io.hpp>
 #include <libnest2d/geometries_nfp.hpp>
+
+std::vector<libnest2d::Item>& prusaParts() {
+    static std::vector<libnest2d::Item> ret;
+
+    if(ret.empty()) {
+        ret.reserve(PRINTER_PART_POLYGONS.size());
+        for(auto& inp : PRINTER_PART_POLYGONS) ret.emplace_back(inp);
+    }
+
+    return ret;
+}
 
 TEST(BasicFunctionality, Angles)
 {
@@ -24,6 +34,44 @@ TEST(BasicFunctionality, Angles)
 
     ASSERT_TRUE(rad == deg);
 
+    Segment seg = {{0, 0}, {12, -10}};
+
+    ASSERT_TRUE(Degrees(seg.angleToXaxis()) > 270 &&
+                Degrees(seg.angleToXaxis()) < 360);
+
+    seg = {{0, 0}, {12, 10}};
+
+    ASSERT_TRUE(Degrees(seg.angleToXaxis()) > 0 &&
+                Degrees(seg.angleToXaxis()) < 90);
+
+    seg = {{0, 0}, {-12, 10}};
+
+    ASSERT_TRUE(Degrees(seg.angleToXaxis()) > 90 &&
+                Degrees(seg.angleToXaxis()) < 180);
+
+    seg = {{0, 0}, {-12, -10}};
+
+    ASSERT_TRUE(Degrees(seg.angleToXaxis()) > 180 &&
+                Degrees(seg.angleToXaxis()) < 270);
+
+    seg = {{0, 0}, {1, 0}};
+
+    ASSERT_DOUBLE_EQ(Degrees(seg.angleToXaxis()), 0);
+
+    seg = {{0, 0}, {0, 1}};
+
+    ASSERT_DOUBLE_EQ(Degrees(seg.angleToXaxis()), 90);
+
+
+    seg = {{0, 0}, {-1, 0}};
+
+    ASSERT_DOUBLE_EQ(Degrees(seg.angleToXaxis()), 180);
+
+
+    seg = {{0, 0}, {0, -1}};
+
+    ASSERT_DOUBLE_EQ(Degrees(seg.angleToXaxis()), 270);
+
 }
 
 // Simple test, does not use gmock
@@ -33,21 +81,21 @@ TEST(BasicFunctionality, creationAndDestruction)
 
     Item sh = { {0, 0}, {1, 0}, {1, 1}, {0, 1} };
 
-    ASSERT_EQ(sh.vertexCount(), 4);
+    ASSERT_EQ(sh.vertexCount(), 4u);
 
     Item sh2 ({ {0, 0}, {1, 0}, {1, 1}, {0, 1} });
 
-    ASSERT_EQ(sh2.vertexCount(), 4);
+    ASSERT_EQ(sh2.vertexCount(), 4u);
 
     // copy
     Item sh3 = sh2;
 
-    ASSERT_EQ(sh3.vertexCount(), 4);
+    ASSERT_EQ(sh3.vertexCount(), 4u);
 
     sh2 = {};
 
-    ASSERT_EQ(sh2.vertexCount(), 0);
-    ASSERT_EQ(sh3.vertexCount(), 4);
+    ASSERT_EQ(sh2.vertexCount(), 0u);
+    ASSERT_EQ(sh3.vertexCount(), 4u);
 
 }
 
@@ -70,7 +118,8 @@ TEST(GeometryAlgorithms, Distance) {
 
     auto check = [](Coord val, Coord expected) {
         if(std::is_floating_point<Coord>::value)
-            ASSERT_DOUBLE_EQ(static_cast<double>(val), expected);
+            ASSERT_DOUBLE_EQ(static_cast<double>(val),
+                             static_cast<double>(expected));
         else
             ASSERT_EQ(val, expected);
     };
@@ -112,6 +161,18 @@ TEST(GeometryAlgorithms, Area) {
 
     ASSERT_EQ(rect2.area(), 10000);
 
+    Item item = {
+        {61, 97},
+        {70, 151},
+        {176, 151},
+        {189, 138},
+        {189, 59},
+        {70, 59},
+        {61, 77},
+        {61, 97}
+    };
+
+    ASSERT_TRUE(ShapeLike::area(item.transformedShape()) > 0 );
 }
 
 TEST(GeometryAlgorithms, IsPointInsidePolygon) {
@@ -240,7 +301,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
 
     auto groups = arrange(rects.begin(), rects.end());
 
-    ASSERT_EQ(groups.size(), 1);
+    ASSERT_EQ(groups.size(), 1u);
     ASSERT_EQ(groups[0].size(), rects.size());
 
     // check for no intersections, no containment:
@@ -294,7 +355,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
 
     auto groups = arrange(rects.begin(), rects.end());
 
-    ASSERT_EQ(groups.size(), 1);
+    ASSERT_EQ(groups.size(), 1u);
     ASSERT_EQ(groups[0].size(), rects.size());
 
     // check for no intersections, no containment:
@@ -363,7 +424,7 @@ R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 TEST(GeometryAlgorithms, BottomLeftStressTest) {
     using namespace libnest2d;
 
-    auto input = PRINTER_PART_POLYGONS;
+    auto& input = prusaParts();
 
     Box bin(210, 250);
     BottomLeftPlacer placer(bin);
@@ -399,73 +460,240 @@ TEST(GeometryAlgorithms, BottomLeftStressTest) {
     }
 }
 
+namespace {
+
+struct ItemPair {
+    Item orbiter;
+    Item stationary;
+};
+
+std::vector<ItemPair> nfp_testdata = {
+    {
+        {
+            {80, 50},
+            {100, 70},
+            {120, 50},
+            {80, 50}
+        },
+        {
+            {10, 10},
+            {10, 40},
+            {40, 40},
+            {40, 10},
+            {10, 10}
+        }
+    },
+    {
+        {
+            {80, 50},
+            {60, 70},
+            {80, 90},
+            {120, 90},
+            {140, 70},
+            {120, 50},
+            {80, 50}
+        },
+        {
+            {10, 10},
+            {10, 40},
+            {40, 40},
+            {40, 10},
+            {10, 10}
+        }
+    },
+    {
+        {
+            {40, 10},
+            {30, 10},
+            {20, 20},
+            {20, 30},
+            {30, 40},
+            {40, 40},
+            {50, 30},
+            {50, 20},
+            {40, 10}
+        },
+        {
+            {80, 0},
+            {80, 30},
+            {110, 30},
+            {110, 0},
+            {80, 0}
+        }
+    },
+    {
+        {
+            {117, 107},
+            {118, 109},
+            {120, 112},
+            {122, 113},
+            {128, 113},
+            {130, 112},
+            {132, 109},
+            {133, 107},
+            {133, 103},
+            {132, 101},
+            {130, 98},
+            {128, 97},
+            {122, 97},
+            {120, 98},
+            {118, 101},
+            {117, 103},
+            {117, 107}
+        },
+        {
+            {102, 116},
+            {111, 126},
+            {114, 126},
+            {144, 106},
+            {148, 100},
+            {148, 85},
+            {147, 84},
+            {102, 84},
+            {102, 116},
+        }
+    },
+    {
+        {
+            {99, 122},
+            {108, 140},
+            {110, 142},
+            {139, 142},
+            {151, 122},
+            {151, 102},
+            {142, 70},
+            {139, 68},
+            {111, 68},
+            {108, 70},
+            {99, 102},
+            {99, 122},
+        },
+        {
+            {107, 124},
+            {128, 125},
+            {133, 125},
+            {136, 124},
+            {140, 121},
+            {142, 119},
+            {143, 116},
+            {143, 109},
+            {141, 93},
+            {139, 89},
+            {136, 86},
+            {134, 85},
+            {108, 85},
+            {107, 86},
+            {107, 124},
+        }
+    },
+    {
+        {
+            {91, 100},
+            {94, 144},
+            {117, 153},
+            {118, 153},
+            {159, 112},
+            {159, 110},
+            {156, 66},
+            {133, 57},
+            {132, 57},
+            {91, 98},
+            {91, 100},
+        },
+        {
+            {101, 90},
+            {103, 98},
+            {107, 113},
+            {114, 125},
+            {115, 126},
+            {135, 126},
+            {136, 125},
+            {144, 114},
+            {149, 90},
+            {149, 89},
+            {148, 87},
+            {145, 84},
+            {105, 84},
+            {102, 87},
+            {101, 89},
+            {101, 90},
+        }
+    }
+};
+
+}
+
 TEST(GeometryAlgorithms, nfpConvexConvex) {
     using namespace libnest2d;
 
-    const unsigned long SCALE = 1;
+    const Coord SCALE = 1000000;
 
     Box bin(210*SCALE, 250*SCALE);
 
-    Item stationary = {
-        {120, 114},
-        {130, 114},
-        {130, 103},
-        {128, 96},
-        {122, 96},
-        {120, 103},
-        {120, 114}
-    };
+    int testcase = 0;
 
-    Item orbiter = {
-        {72, 147},
-        {94, 151},
-        {178, 151},
-        {178, 59},
-        {72, 59},
-        {72, 147}
-    };
+    auto& exportfun = exportSVG<1, Box>;
 
-    orbiter.translate({210*SCALE, 0});
+    auto onetest = [&](Item& orbiter, Item& stationary){
+        testcase++;
 
-    auto&& nfp = Nfp::noFitPolygon(stationary.rawShape(),
-                                   orbiter.transformedShape());
+        orbiter.translate({210*SCALE, 0});
 
-    auto v = ShapeLike::isValid(nfp);
+        auto&& nfp = Nfp::noFitPolygon(stationary.rawShape(),
+                                       orbiter.transformedShape());
 
-    if(!v.first) {
-        std::cout << v.second << std::endl;
-    }
+        auto v = ShapeLike::isValid(nfp);
 
-    ASSERT_TRUE(v.first);
-
-    Item infp(nfp);
-
-    int i = 0;
-    auto rorbiter = orbiter.transformedShape();
-    auto vo = *(ShapeLike::begin(rorbiter));
-    for(auto v : infp) {
-        auto dx = getX(v) - getX(vo);
-        auto dy = getY(v) - getY(vo);
-
-        Item tmp = orbiter;
-
-        tmp.translate({dx, dy});
-
-        bool notinside = !tmp.isInside(stationary);
-        bool notintersecting = !Item::intersects(tmp, stationary);
-
-        if(!(notinside && notintersecting)) {
-            std::vector<std::reference_wrapper<Item>> inp = {
-                std::ref(stationary), std::ref(tmp), std::ref(infp)
-            };
-
-            exportSVG<SCALE>(inp, bin, i++);
+        if(!v.first) {
+            std::cout << v.second << std::endl;
         }
 
-        //ASSERT_TRUE(notintersecting);
-        ASSERT_TRUE(notinside);
+        ASSERT_TRUE(v.first);
+
+        Item infp(nfp);
+
+        int i = 0;
+        auto rorbiter = orbiter.transformedShape();
+        auto vo = Nfp::referenceVertex(rorbiter);
+
+        ASSERT_TRUE(stationary.isInside(infp));
+
+        for(auto v : infp) {
+            auto dx = getX(v) - getX(vo);
+            auto dy = getY(v) - getY(vo);
+
+            Item tmp = orbiter;
+
+            tmp.translate({dx, dy});
+
+            bool notinside = !tmp.isInside(stationary);
+            bool notintersecting = !Item::intersects(tmp, stationary) ||
+                                    Item::touches(tmp, stationary);
+
+            if(!(notinside && notintersecting)) {
+                std::vector<std::reference_wrapper<Item>> inp = {
+                    std::ref(stationary), std::ref(tmp), std::ref(infp)
+                };
+
+                exportfun(inp, bin, testcase*i++);
+            }
+
+            ASSERT_TRUE(notintersecting);
+            ASSERT_TRUE(notinside);
+        }
+    };
+
+    for(auto& td : nfp_testdata) {
+        auto orbiter = td.orbiter;
+        auto stationary = td.stationary;
+        onetest(orbiter, stationary);
     }
 
+    for(auto& td : nfp_testdata) {
+        auto orbiter = td.stationary;
+        auto stationary = td.orbiter;
+        onetest(orbiter, stationary);
+    }
 }
 
 int main(int argc, char **argv) {

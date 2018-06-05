@@ -97,6 +97,12 @@ public:
     inline _Item(const std::initializer_list< Vertex >& il):
         sh_(ShapeLike::create<RawShape>(il)) {}
 
+    inline _Item(const TContour<RawShape>& contour):
+        sh_(ShapeLike::create<RawShape>(contour)) {}
+
+    inline _Item(TContour<RawShape>&& contour):
+        sh_(ShapeLike::create<RawShape>(std::move(contour))) {}
+
     /**
      * @brief Convert the polygon to string representation. The format depends
      * on the implementation of the polygon.
@@ -174,7 +180,7 @@ public:
         double ret ;
         if(area_cache_valid_) ret = area_cache_;
         else {
-            ret = std::abs(ShapeLike::area(offsettedShape()));
+            ret = ShapeLike::area(offsettedShape());
             area_cache_ = ret;
             area_cache_valid_ = true;
         }
@@ -200,6 +206,8 @@ public:
     {
         return ShapeLike::isInside(transformedShape(), sh.transformedShape());
     }
+
+    inline bool isInside(const _Box<TPoint<RawShape>>& box);
 
     inline void translate(const Vertex& d) BP2D_NOEXCEPT
     {
@@ -328,7 +336,7 @@ class _Rectangle: public _Item<RawShape> {
     using TO = Orientation;
 public:
 
-    using Unit =  TCoord<RawShape>;
+    using Unit = TCoord<TPoint<RawShape>>;
 
     template<TO o = OrientationType<RawShape>::Value>
     inline _Rectangle(Unit width, Unit height,
@@ -366,6 +374,12 @@ public:
         return getY(vertex(2));
     }
 };
+
+template<class RawShape>
+inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) {
+    _Rectangle<RawShape> rect(box.width(), box.height());
+    return _Item<RawShape>::isInside(rect);
+}
 
 /**
  * \brief A wrapper interface (trait) class for any placement strategy provider.
@@ -481,7 +495,17 @@ public:
     /// Clear the packed items so a new session can be started.
     inline void clearItems() { impl_.clearItems(); }
 
+#ifndef NDEBUG
+    inline auto getDebugItems() -> decltype(impl_.debug_items_)&
+    {
+        return impl_.debug_items_;
+    }
+#endif
+
 };
+
+// The progress function will be called with the number of placed items
+using ProgressFunction = std::function<void(unsigned)>;
 
 /**
  * A wrapper interface (trait) class for any selections strategy provider.
@@ -507,6 +531,14 @@ public:
     inline void configure(const Config& config) {
         impl_.configure(config);
     }
+
+    /**
+     * @brief A function callback which should be called whenewer an item or
+     * a group of items where succesfully packed.
+     * @param fn A function callback object taking one unsigned integer as the
+     * number of the remaining items to pack.
+     */
+    void progressIndicator(ProgressFunction fn) { impl_.progressIndicator(fn); }
 
     /**
      * \brief A method to start the calculation on the input sequence.
@@ -614,7 +646,7 @@ public:
 private:
     BinType bin_;
     PlacementConfig pconfig_;
-    TCoord<typename Item::ShapeType> min_obj_distance_;
+    Unit min_obj_distance_;
 
     using SItem =  typename SelectionStrategy::Item;
     using TPItem = remove_cvref_t<Item>;
@@ -680,6 +712,21 @@ public:
         return _arrange(from, to);
     }
 
+    /// Set a progress indicatior function object for the selector.
+    inline void progressIndicator(ProgressFunction func)
+    {
+        selector_.progressIndicator(func);
+    }
+
+    inline PackGroup lastResult() {
+        PackGroup ret;
+        for(size_t i = 0; i < selector_.binCount(); i++) {
+            auto items = selector_.itemsForBin(i);
+            ret.push_back(items);
+        }
+        return ret;
+    }
+
 private:
 
     template<class TIterator,
@@ -694,14 +741,7 @@ private:
     inline PackGroup _arrange(TIterator from, TIterator to, bool = false)
     {
         __arrange(from, to);
-
-        PackGroup ret;
-        for(size_t i = 0; i < selector_.binCount(); i++) {
-            auto items = selector_.itemsForBin(i);
-            ret.push_back(items);
-        }
-
-        return ret;
+        return lastResult();
     }
 
     template<class TIterator,
@@ -713,14 +753,7 @@ private:
         item_cache_ = {from, to};
 
         __arrange(item_cache_.begin(), item_cache_.end());
-
-        PackGroup ret;
-        for(size_t i = 0; i < selector_.binCount(); i++) {
-            auto items = selector_.itemsForBin(i);
-            ret.push_back(items);
-        }
-
-        return ret;
+        return lastResult();
     }
 
     template<class TIterator,
@@ -784,7 +817,7 @@ private:
     template<class TIter> inline void __arrange(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
-            item.addOffset(std::ceil(min_obj_distance_/2.0));
+            item.addOffset(static_cast<Unit>(std::ceil(min_obj_distance_/2.0)));
         });
 
         selector_.template packItems<PlacementStrategy>(

@@ -684,6 +684,7 @@ add_custom_target(pot
 # ##############################################################################
 
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
+set(LIBNEST2D_BUILD_SHARED_LIB OFF CACHE BOOL "Disable build of shared lib.")
 
 if(LIBNEST2D_UNITTESTS)
    # If we want the libnest2d unit tests we need to build and executable with
@@ -705,7 +706,7 @@ add_subdirectory(${LIBDIR}/libnest2d)
 target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
 
 # Add the binpack2d main sources and link them to libslic3r
-target_link_libraries(libslic3r libnest2d)
+target_link_libraries(libslic3r libnest2d_static)
 # ##############################################################################
 
 # Installation

@@ -19,6 +19,9 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/)
 option(LIBNEST2D_UNITTESTS "If enabled, googletest framework will be downloaded
     and the provided unit tests will be included in the build." OFF)
 
+option(LIBNEST2D_BUILD_EXAMPLES "If enabled, examples will be built." OFF)
+option(LIBNEST2D_BUILD_SHARED_LIB "Build shared library." ON)
+
 #set(LIBNEST2D_GEOMETRIES_TARGET "" CACHE STRING
 #    "Build libnest2d with geometry classes implemented by the chosen target.")
 
@@ -46,7 +49,7 @@ if((NOT LIBNEST2D_GEOMETRIES_TARGET) OR (LIBNEST2D_GEOMETRIES_TARGET STREQUAL ""
     message(STATUS "libnest2D backend is default")
 
     if(NOT Boost_INCLUDE_DIRS_FOUND)
-        find_package(Boost REQUIRED)
+        find_package(Boost 1.58 REQUIRED)
         # TODO automatic download of boost geometry headers
     endif()
 
@@ -65,9 +68,19 @@ else()
     message(STATUS "Libnest2D backend is: ${LIBNEST2D_GEOMETRIES_TARGET}")
 endif()
 
-add_library(libnest2d STATIC ${LIBNEST2D_SRCFILES} )
-target_link_libraries(libnest2d ${LIBNEST2D_GEOMETRIES_TARGET})
-target_include_directories(libnest2d PUBLIC ${CMAKE_SOURCE_DIR})
+message(STATUS "clipper lib is:  ${LIBNEST2D_GEOMETRIES_TARGET}")
+
+add_library(libnest2d_static STATIC ${LIBNEST2D_SRCFILES} )
+target_link_libraries(libnest2d_static PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET})
+target_include_directories(libnest2d_static PUBLIC ${CMAKE_SOURCE_DIR})
+set_target_properties(libnest2d_static PROPERTIES PREFIX "")
+
+if(LIBNEST2D_BUILD_SHARED_LIB)
+    add_library(libnest2d SHARED ${LIBNEST2D_SRCFILES} )
+    target_link_libraries(libnest2d PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET})
+    target_include_directories(libnest2d PUBLIC ${CMAKE_SOURCE_DIR})
+    set_target_properties(libnest2d PROPERTIES PREFIX "")
+endif()
 
 set(LIBNEST2D_HEADERS ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -78,4 +91,13 @@ endif()
 
 if(LIBNEST2D_UNITTESTS)
     add_subdirectory(tests)
+endif()
+
+if(LIBNEST2D_BUILD_EXAMPLES)
+    add_executable(example tests/main.cpp
+                           tests/svgtools.hpp
+                           tests/printer_parts.cpp
+                           tests/printer_parts.h)
+    target_link_libraries(example libnest2d_static)
+    target_include_directories(example PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endif()

@@ -1,6 +1,6 @@
 if(NOT TARGET clipper) # If there is a clipper target in the parent project we are good to go.
 
-    find_package(Clipper QUIET)
+    find_package(Clipper 6.1)
 
     if(NOT CLIPPER_FOUND)
         find_package(Subversion QUIET)

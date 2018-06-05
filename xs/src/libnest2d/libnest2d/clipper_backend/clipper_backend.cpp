@@ -46,10 +46,25 @@ std::string ShapeLike::toString(const PolygonImpl& sh)
    return ss.str();
 }
 
-template<> PolygonImpl ShapeLike::create( std::initializer_list< PointImpl > il)
+template<> PolygonImpl ShapeLike::create( const PathImpl& path )
 {
     PolygonImpl p;
-    p.Contour = il;
+    p.Contour = path;
+
+    // Expecting that the coordinate system Y axis is positive in upwards
+    // direction
+    if(ClipperLib::Orientation(p.Contour)) {
+        // Not clockwise then reverse the b*tch
+        ClipperLib::ReversePath(p.Contour);
+    }
+
+    return p;
+}
+
+template<> PolygonImpl ShapeLike::create( PathImpl&& path )
+{
+    PolygonImpl p;
+    p.Contour.swap(path);
 
     // Expecting that the coordinate system Y axis is positive in upwards
     // direction

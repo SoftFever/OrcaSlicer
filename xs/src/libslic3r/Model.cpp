@@ -20,6 +20,8 @@
 #include <boost/nowide/iostream.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
+#include <benchmark.h>
+
 namespace Slic3r {
 
     unsigned int Model::s_auto_extruder_id = 1;
@@ -378,8 +380,32 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // Create the arranger config
     auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
 
+    Benchmark bench;
+
+    std::cout << "Creating model siluett..." << std::endl;
+
+    bench.start();
     // Get the 2D projected shapes with their 3D model instance pointers
     auto shapemap = arr::projectModelFromTop(model);
+    bench.stop();
+
+    std::cout << "Model siluett created in " << bench.getElapsedSec()
+              << " seconds. " << "Min object distance = " << min_obj_distance << std::endl;
+
+//    std::cout << "{" << std::endl;
+//    std::for_each(shapemap.begin(), shapemap.end(),
+//                  [] (ShapeData2D::value_type& it)
+//    {
+//        std::cout << "\t{" << std::endl;
+//        Item& item = it.second;
+//        for(auto& v : item) {
+//            std::cout << "\t\t" << "{" << getX(v)
+//                      << ", " << getY(v) << "},\n";
+//        }
+//        std::cout << "\t}," << std::endl;
+//    });
+//    std::cout << "}" << std::endl;
+//    return true;
 
     double area = 0;
     double area_max = 0;
@@ -427,14 +453,22 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
     // Will use the DJD selection heuristic with the BottomLeft placement
     // strategy
-    using Arranger = Arranger<BottomLeftPlacer, DJDHeuristic>;
+    using Arranger = Arranger<NfpPlacer, DJDHeuristic>;
 
-    Arranger arranger(bin, min_obj_distance);
+    Arranger::PlacementConfig pcfg;
+    pcfg.alignment = Arranger::PlacementConfig::Alignment::BOTTOM_LEFT;
+    Arranger arranger(bin, min_obj_distance, pcfg);
 
+    std::cout << "Arranging model..." << std::endl;
+    bench.start();
     // Arrange and return the items with their respective indices within the
     // input sequence.
     ArrangeResult result =
             arranger.arrangeIndexed(shapes.begin(), shapes.end());
+
+    bench.stop();
+    std::cout << "Model arranged in " << bench.getElapsedSec()
+              << " seconds." << std::endl;
 
 
     auto applyResult = [&shapemap](ArrangeResult::value_type& group,
@@ -464,6 +498,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
         }
     };
 
+    std::cout << "Applying result..." << std::endl;
+    bench.start();
     if(first_bin_only) {
         applyResult(result.front(), 0);
     } else {
@@ -477,6 +513,9 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
             batch_offset += static_cast<Coord>(2*bin.width()*SCALING_FACTOR);
         }
     }
+    bench.stop();
+    std::cout << "Result applied in " << bench.getElapsedSec()
+              << " seconds." << std::endl;
 
     for(auto objptr : model.objects) objptr->invalidate_bounding_box();
 
@@ -490,7 +529,7 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
 {
     bool ret = false;
     if(bb != nullptr && bb->defined) {
-        const bool FIRST_BIN_ONLY = true;
+        const bool FIRST_BIN_ONLY = false;
         ret = arr::arrange(*this, dist, bb, FIRST_BIN_ONLY);
     } else {
         // get the (transformed) size of each instance so that we take

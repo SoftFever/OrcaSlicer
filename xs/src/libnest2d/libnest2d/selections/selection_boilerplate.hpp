@@ -26,8 +26,14 @@ public:
         return packed_bins_[binIndex];
     }
 
+    inline void progressIndicator(ProgressFunction fn) {
+        progress_ = fn;
+    }
+
 protected:
+
     PackGroup packed_bins_;
+    ProgressFunction progress_ = [](unsigned){};
 };
 
 }

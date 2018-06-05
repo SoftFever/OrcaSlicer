@@ -14,6 +14,8 @@ FIND_PATH(CLIPPER_INCLUDE_DIRS clipper.hpp
     $ENV{CLIPPER_PATH}/include/polyclipping/
     ${PROJECT_SOURCE_DIR}/python/pymesh/third_party/include/
     ${PROJECT_SOURCE_DIR}/python/pymesh/third_party/include/polyclipping/
+    ${CMAKE_PREFIX_PATH}/include/polyclipping
+    ${CMAKE_PREFIX_PATH}/include/
     /opt/local/include/
     /opt/local/include/polyclipping/
     /usr/local/include/
@@ -29,6 +31,8 @@ FIND_LIBRARY(CLIPPER_LIBRARIES polyclipping
     $ENV{CLIPPER_PATH}/lib/polyclipping/
     ${PROJECT_SOURCE_DIR}/python/pymesh/third_party/lib/
     ${PROJECT_SOURCE_DIR}/python/pymesh/third_party/lib/polyclipping/
+    ${CMAKE_PREFIX_PATH}/lib/
+    ${CMAKE_PREFIX_PATH}/lib/polyclipping/
     /opt/local/lib/
     /opt/local/lib/polyclipping/
     /usr/local/lib/

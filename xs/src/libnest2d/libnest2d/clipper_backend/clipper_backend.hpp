@@ -20,6 +20,7 @@ using PolygonImpl = ClipperLib::PolyNode;
 using PathImpl = ClipperLib::Path;
 
 inline PointImpl& operator +=(PointImpl& p, const PointImpl& pa ) {
+    // This could be done with SIMD
     p.X += pa.X;
     p.Y += pa.Y;
     return p;
@@ -35,6 +36,13 @@ inline PointImpl& operator -=(PointImpl& p, const PointImpl& pa ) {
     p.X -= pa.X;
     p.Y -= pa.Y;
     return p;
+}
+
+inline PointImpl operator -(PointImpl& p ) {
+    PointImpl ret = p;
+    ret.X = -ret.X;
+    ret.Y = -ret.Y;
+    return ret;
 }
 
 inline PointImpl operator-(const PointImpl& p1, const PointImpl& p2) {
@@ -100,14 +108,29 @@ inline void ShapeLike::reserve(PolygonImpl& sh, unsigned long vertex_capacity)
     return sh.Contour.reserve(vertex_capacity);
 }
 
+#define DISABLE_BOOST_AREA
+
+namespace _smartarea {
+template<Orientation o>
+inline double area(const PolygonImpl& sh) {
+    return std::nan("");
+}
+
+template<>
+inline double area<Orientation::CLOCKWISE>(const PolygonImpl& sh) {
+    return -ClipperLib::Area(sh.Contour);
+}
+
+template<>
+inline double area<Orientation::COUNTER_CLOCKWISE>(const PolygonImpl& sh) {
+    return ClipperLib::Area(sh.Contour);
+}
+}
+
 // Tell binpack2d how to make string out of a ClipperPolygon object
 template<>
 inline double ShapeLike::area(const PolygonImpl& sh) {
-    #define DISABLE_BOOST_AREA
-    double ret = ClipperLib::Area(sh.Contour);
-//    if(OrientationType<PolygonImpl>::Value == Orientation::COUNTER_CLOCKWISE)
-//        ret = -ret;
-    return ret;
+    return _smartarea::area<OrientationType<PolygonImpl>::Value>(sh);
 }
 
 template<>
@@ -191,8 +214,9 @@ template<> struct HolesContainer<PolygonImpl> {
     using Type = ClipperLib::Paths;
 };
 
-template<>
-PolygonImpl ShapeLike::create( std::initializer_list< PointImpl > il);
+template<> PolygonImpl ShapeLike::create( const PathImpl& path);
+
+template<> PolygonImpl ShapeLike::create( PathImpl&& path);
 
 template<>
 const THolesContainer<PolygonImpl>& ShapeLike::holes(
@@ -202,31 +226,92 @@ template<>
 THolesContainer<PolygonImpl>& ShapeLike::holes(PolygonImpl& sh);
 
 template<>
-inline TCountour<PolygonImpl>& ShapeLike::getHole(PolygonImpl& sh,
+inline TContour<PolygonImpl>& ShapeLike::getHole(PolygonImpl& sh,
                                                   unsigned long idx)
 {
     return sh.Childs[idx]->Contour;
 }
 
 template<>
-inline const TCountour<PolygonImpl>& ShapeLike::getHole(const PolygonImpl& sh,
-                                                        unsigned long idx) {
+inline const TContour<PolygonImpl>& ShapeLike::getHole(const PolygonImpl& sh,
+                                                        unsigned long idx)
+{
     return sh.Childs[idx]->Contour;
 }
 
-template<>
-inline size_t ShapeLike::holeCount(const PolygonImpl& sh) {
+template<> inline size_t ShapeLike::holeCount(const PolygonImpl& sh)
+{
     return sh.Childs.size();
 }
 
-template<>
-inline PathImpl& ShapeLike::getContour(PolygonImpl& sh) {
+template<> inline PathImpl& ShapeLike::getContour(PolygonImpl& sh)
+{
     return sh.Contour;
 }
 
 template<>
-inline const PathImpl& ShapeLike::getContour(const PolygonImpl& sh) {
+inline const PathImpl& ShapeLike::getContour(const PolygonImpl& sh)
+{
     return sh.Contour;
+}
+
+#define DISABLE_BOOST_TRANSLATE
+template<>
+inline void ShapeLike::translate(PolygonImpl& sh, const PointImpl& offs)
+{
+    for(auto& p : sh.Contour) { p += offs; }
+    for(auto& hole : sh.Childs) for(auto& p : hole->Contour) { p += offs; }
+}
+
+#define DISABLE_BOOST_NFP_MERGE
+
+template<> inline
+Nfp::Shapes<PolygonImpl> Nfp::merge(const Nfp::Shapes<PolygonImpl>& shapes,
+                                    const PolygonImpl& sh)
+{
+    Nfp::Shapes<PolygonImpl> retv;
+
+    ClipperLib::Clipper clipper;
+
+    bool closed =  true;
+
+#ifndef NDEBUG
+#define _valid() valid =
+    bool valid = false;
+#else
+#define _valid()
+#endif
+
+    _valid() clipper.AddPath(sh.Contour, ClipperLib::ptSubject, closed);
+
+    for(auto& hole : sh.Childs) {
+        _valid() clipper.AddPath(hole->Contour, ClipperLib::ptSubject, closed);
+        assert(valid);
+    }
+
+    for(auto& path : shapes) {
+        _valid() clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+        assert(valid);
+        for(auto& hole : path.Childs) {
+            _valid() clipper.AddPath(hole->Contour, ClipperLib::ptSubject, closed);
+            assert(valid);
+        }
+    }
+
+    ClipperLib::Paths rret;
+    clipper.Execute(ClipperLib::ctUnion, rret, ClipperLib::pftNonZero);
+    retv.reserve(rret.size());
+    for(auto& p : rret) {
+        if(ClipperLib::Orientation(p)) {
+            // Not clockwise then reverse the b*tch
+            ClipperLib::ReversePath(p);
+        }
+        retv.emplace_back();
+        retv.back().Contour = p;
+        retv.back().Contour.emplace_back(p.front());
+    }
+
+    return retv;
 }
 
 }

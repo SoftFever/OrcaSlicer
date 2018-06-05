@@ -84,9 +84,11 @@ public:
         bool try_reverse = config_.try_reverse_order;
 
         // Will use a subroutine to add a new bin
-        auto addBin = [&placers, &free_area, &filled_area, &bin, &pconfig]()
+        auto addBin = [this, &placers, &free_area,
+                       &filled_area, &bin, &pconfig]()
         {
             placers.emplace_back(bin);
+            packed_bins_.emplace_back();
             placers.back().configure(pconfig);
             free_area = ShapeLike::area<RawShape>(bin);
             filled_area = 0;
@@ -457,6 +459,16 @@ public:
             }
         }
 
+        auto makeProgress = [this, &not_packed](Placer& placer) {
+            packed_bins_.back() = placer.getItems();
+#ifndef NDEBUG
+            packed_bins_.back().insert(packed_bins_.back().end(),
+                                       placer.getDebugItems().begin(),
+                                       placer.getDebugItems().end());
+#endif
+            this->progress_(not_packed.size());
+        };
+
         while(!not_packed.empty()) {
 
             auto& placer = placers.back();
@@ -472,30 +484,37 @@ public:
                         free_area = bin_area - filled_area;
                         auto itmp = it++;
                         not_packed.erase(itmp);
+                        makeProgress(placer);
                     } else it++;
                 }
             }
 
             // try pieses one by one
-            while(tryOneByOne(placer, waste))
+            while(tryOneByOne(placer, waste)) {
                 waste = 0;
+                makeProgress(placer);
+            }
 
             // try groups of 2 pieses
-            while(tryGroupsOfTwo(placer, waste))
+            while(tryGroupsOfTwo(placer, waste)) {
                 waste = 0;
+                makeProgress(placer);
+            }
 
             // try groups of 3 pieses
-            while(tryGroupsOfThree(placer, waste))
+            while(tryGroupsOfThree(placer, waste)) {
                 waste = 0;
+                makeProgress(placer);
+            }
 
             if(waste < free_area) waste += w;
             else if(!not_packed.empty()) addBin();
         }
 
-        std::for_each(placers.begin(), placers.end(),
-                      [this](Placer& placer){
-            packed_bins_.push_back(placer.getItems());
-        });
+//        std::for_each(placers.begin(), placers.end(),
+//                      [this](Placer& placer){
+//            packed_bins_.push_back(placer.getItems());
+//        });
     }
 };
 

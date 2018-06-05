@@ -1,10 +1,11 @@
 
 # Try to find existing GTest installation
-find_package(GTest QUIET)
+find_package(GTest 1.7)
 
 if(NOT GTEST_FOUND)
+    message(STATUS "GTest not found so downloading...")
     # Go and download google test framework, integrate it with the build
-    set(GTEST_LIBRARIES gtest gmock)
+    set(GTEST_LIBS_TO_LINK gtest gtest_main)
 
     if (CMAKE_VERSION VERSION_LESS 3.2)
         set(UPDATE_DISCONNECTED_IF_AVAILABLE "")
@@ -15,7 +16,7 @@ if(NOT GTEST_FOUND)
     include(DownloadProject)
     download_project(PROJ                googletest
                      GIT_REPOSITORY      https://github.com/google/googletest.git
-                     GIT_TAG             release-1.8.0
+                     GIT_TAG             release-1.7.0
                      ${UPDATE_DISCONNECTED_IF_AVAILABLE}
     )
 
@@ -27,22 +28,20 @@ if(NOT GTEST_FOUND)
                      ${googletest_BINARY_DIR}
                      )
 
+    set(GTEST_INCLUDE_DIRS ${googletest_SOURCE_DIR}/include)
+
 else()
-    include_directories(${GTEST_INCLUDE_DIRS} )
+    find_package(Threads REQUIRED)
+    set(GTEST_LIBS_TO_LINK  ${GTEST_BOTH_LIBRARIES}  Threads::Threads)
 endif()
 
-include_directories(BEFORE ${LIBNEST2D_HEADERS})
-add_executable(bp2d_tests test.cpp printer_parts.h printer_parts.cpp)
-target_link_libraries(bp2d_tests libnest2d
-    ${GTEST_LIBRARIES}
-)
+add_executable(bp2d_tests test.cpp svgtools.hpp printer_parts.h printer_parts.cpp)
+target_link_libraries(bp2d_tests libnest2d_static ${GTEST_LIBS_TO_LINK} )
+target_include_directories(bp2d_tests PRIVATE BEFORE ${LIBNEST2D_HEADERS}
+                                                     ${GTEST_INCLUDE_DIRS})
 
 if(DEFINED LIBNEST2D_TEST_LIBRARIES)
     target_link_libraries(bp2d_tests ${LIBNEST2D_TEST_LIBRARIES})
 endif()
 
-add_test(gtests bp2d_tests)
-
-add_executable(main EXCLUDE_FROM_ALL main.cpp printer_parts.cpp printer_parts.h)
-target_link_libraries(main libnest2d)
-target_include_directories(main PUBLIC ${CMAKE_SOURCE_DIR})
+add_test(libnest2d_tests bp2d_tests)

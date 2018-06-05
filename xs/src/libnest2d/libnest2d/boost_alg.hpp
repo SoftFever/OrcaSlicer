@@ -25,12 +25,13 @@ using libnest2d::setX;
 using libnest2d::setY;
 using Box = libnest2d::_Box<PointImpl>;
 using Segment = libnest2d::_Segment<PointImpl>;
+using Shapes = libnest2d::Nfp::Shapes<PolygonImpl>;
 
 }
 
 /**
- * We have to make all the binpack2d geometry types available to boost. The real
- * models of the geometries remain the same if a conforming model for binpack2d
+ * We have to make all the libnest2d geometry types available to boost. The real
+ * models of the geometries remain the same if a conforming model for libnest2d
  * was defined by the library client. Boost is used only as an optional
  * implementer of some algorithms that can be implemented by the model itself
  * if a faster alternative exists.
@@ -184,10 +185,10 @@ template<> struct indexed_access<bp2d::Segment, 1, 1> {
 
 
 /* ************************************************************************** */
-/* Polygon concept adaptaion ************************************************ */
+/* Polygon concept adaptation *********************************************** */
 /* ************************************************************************** */
 
-// Connversion between binpack2d::Orientation and order_selector ///////////////
+// Connversion between libnest2d::Orientation and order_selector ///////////////
 
 template<bp2d::Orientation> struct ToBoostOrienation {};
 
@@ -269,16 +270,33 @@ struct interior_rings<bp2d::PolygonImpl> {
     }
 };
 
+/* ************************************************************************** */
+/* MultiPolygon concept adaptation ****************************************** */
+/* ************************************************************************** */
+
+template<> struct tag<bp2d::Shapes> {
+    using type = multi_polygon_tag;
+};
+
 }   // traits
 }   // geometry
 
-// This is an addition to the ring implementation
+// This is an addition to the ring implementation of Polygon concept
 template<>
 struct range_value<bp2d::PathImpl> {
     using type = bp2d::PointImpl;
 };
 
+template<>
+struct range_value<bp2d::Shapes> {
+    using type = bp2d::PolygonImpl;
+};
+
 }   // boost
+
+/* ************************************************************************** */
+/* Algorithms *************************************************************** */
+/* ************************************************************************** */
 
 namespace libnest2d { // Now the algorithms that boost can provide...
 
@@ -296,7 +314,7 @@ inline double PointLike::distance(const PointImpl& p,
     return boost::geometry::distance(p, seg);
 }
 
-// Tell binpack2d how to make string out of a ClipperPolygon object
+// Tell libnest2d how to make string out of a ClipperPolygon object
 template<>
 inline bool ShapeLike::intersects(const PathImpl& sh1,
                                   const PathImpl& sh2)
@@ -304,14 +322,14 @@ inline bool ShapeLike::intersects(const PathImpl& sh1,
     return boost::geometry::intersects(sh1, sh2);
 }
 
-// Tell binpack2d how to make string out of a ClipperPolygon object
+// Tell libnest2d how to make string out of a ClipperPolygon object
 template<>
 inline bool ShapeLike::intersects(const PolygonImpl& sh1,
                                   const PolygonImpl& sh2) {
     return boost::geometry::intersects(sh1, sh2);
 }
 
-// Tell binpack2d how to make string out of a ClipperPolygon object
+// Tell libnest2d how to make string out of a ClipperPolygon object
 template<>
 inline bool ShapeLike::intersects(const bp2d::Segment& s1,
                                   const bp2d::Segment& s2) {
@@ -346,6 +364,7 @@ inline bool ShapeLike::touches( const PolygonImpl& sh1,
     return boost::geometry::touches(sh1, sh2);
 }
 
+#ifndef DISABLE_BOOST_BOUNDING_BOX
 template<>
 inline bp2d::Box ShapeLike::boundingBox(const PolygonImpl& sh) {
     bp2d::Box b;
@@ -354,7 +373,34 @@ inline bp2d::Box ShapeLike::boundingBox(const PolygonImpl& sh) {
 }
 
 template<>
-inline void ShapeLike::rotate(PolygonImpl& sh, const Radians& rads) {
+inline bp2d::Box ShapeLike::boundingBox(const bp2d::Shapes& shapes) {
+    bp2d::Box b;
+    boost::geometry::envelope(shapes, b);
+    return b;
+}
+#endif
+
+#ifndef DISABLE_BOOST_CONVEX_HULL
+template<>
+inline PolygonImpl ShapeLike::convexHull(const PolygonImpl& sh)
+{
+    PolygonImpl ret;
+    boost::geometry::convex_hull(sh, ret);
+    return ret;
+}
+
+template<>
+inline PolygonImpl ShapeLike::convexHull(const bp2d::Shapes& shapes)
+{
+    PolygonImpl ret;
+    boost::geometry::convex_hull(shapes, ret);
+    return ret;
+}
+#endif
+
+template<>
+inline void ShapeLike::rotate(PolygonImpl& sh, const Radians& rads)
+{
     namespace trans = boost::geometry::strategy::transform;
 
     PolygonImpl cpy = sh;
@@ -364,8 +410,10 @@ inline void ShapeLike::rotate(PolygonImpl& sh, const Radians& rads) {
     boost::geometry::transform(cpy, sh, rotate);
 }
 
+#ifndef DISABLE_BOOST_TRANSLATE
 template<>
-inline void ShapeLike::translate(PolygonImpl& sh, const PointImpl& offs) {
+inline void ShapeLike::translate(PolygonImpl& sh, const PointImpl& offs)
+{
     namespace trans = boost::geometry::strategy::transform;
 
     PolygonImpl cpy = sh;
@@ -374,19 +422,33 @@ inline void ShapeLike::translate(PolygonImpl& sh, const PointImpl& offs) {
 
     boost::geometry::transform(cpy, sh, translate);
 }
+#endif
 
 #ifndef DISABLE_BOOST_OFFSET
 template<>
-inline void ShapeLike::offset(PolygonImpl& sh, bp2d::Coord distance) {
+inline void ShapeLike::offset(PolygonImpl& sh, bp2d::Coord distance)
+{
     PolygonImpl cpy = sh;
     boost::geometry::buffer(cpy, sh, distance);
+}
+#endif
+
+#ifndef DISABLE_BOOST_NFP_MERGE
+template<>
+inline bp2d::Shapes Nfp::merge(const bp2d::Shapes& shapes,
+                               const PolygonImpl& sh)
+{
+    bp2d::Shapes retv;
+    boost::geometry::union_(shapes, sh, retv);
+    return retv;
 }
 #endif
 
 #ifndef DISABLE_BOOST_MINKOWSKI_ADD
 template<>
 inline PolygonImpl& Nfp::minkowskiAdd(PolygonImpl& sh,
-                                      const PolygonImpl& /*other*/) {
+                                      const PolygonImpl& /*other*/)
+{
     return sh;
 }
 #endif
@@ -394,12 +456,26 @@ inline PolygonImpl& Nfp::minkowskiAdd(PolygonImpl& sh,
 #ifndef DISABLE_BOOST_SERIALIZE
 template<>
 inline std::string ShapeLike::serialize<libnest2d::Formats::SVG>(
-        const PolygonImpl& sh)
+        const PolygonImpl& sh, double scale)
 {
 
     std::stringstream ss;
-    std::string style = "fill: orange; stroke: black; stroke-width: 1px;";
-    auto svg_data = boost::geometry::svg(sh, style);
+    std::string style = "fill: none; stroke: black; stroke-width: 1px;";
+
+    using namespace boost::geometry;
+    using Pointf = model::point<double, 2, cs::cartesian>;
+    using Polygonf = model::polygon<Pointf>;
+
+    Polygonf::ring_type ring;
+    ring.reserve(ShapeLike::contourVertexCount(sh));
+
+    for(auto it = ShapeLike::cbegin(sh); it != ShapeLike::cend(sh); it++) {
+        auto& v = *it;
+        ring.emplace_back(getX(v)*scale, getY(v)*scale);
+    };
+    Polygonf poly;
+    poly.outer() = ring;
+    auto svg_data = boost::geometry::svg(poly, style);
 
     ss << svg_data << std::endl;
 
@@ -417,7 +493,8 @@ inline void ShapeLike::unserialize<libnest2d::Formats::SVG>(
 #endif
 
 template<> inline std::pair<bool, std::string>
-ShapeLike::isValid(const PolygonImpl& sh) {
+ShapeLike::isValid(const PolygonImpl& sh)
+{
     std::string message;
     bool ret = boost::geometry::is_valid(sh, message);
 

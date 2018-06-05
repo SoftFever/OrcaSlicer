@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <array>
 #include <vector>
+#include <numeric>
 #include <limits>
 
 #include "common.hpp"
@@ -81,6 +82,8 @@ public:
 
     inline TCoord<RawPoint> width() const BP2D_NOEXCEPT;
     inline TCoord<RawPoint> height() const BP2D_NOEXCEPT;
+
+    inline RawPoint center() const BP2D_NOEXCEPT;
 };
 
 template<class RawPoint>
@@ -102,8 +105,9 @@ public:
     inline Radians angleToXaxis() const;
 };
 
-class PointLike {
-public:
+// This struct serves as a namespace. The only difference is that is can be
+// used in friend declarations.
+struct PointLike {
 
     template<class RawPoint>
     static TCoord<RawPoint> x(const RawPoint& p)
@@ -133,7 +137,7 @@ public:
     static double distance(const RawPoint& /*p1*/, const RawPoint& /*p2*/)
     {
         static_assert(always_false<RawPoint>::value,
-                      "PointLike::distance(point, point) unimplemented");
+                      "PointLike::distance(point, point) unimplemented!");
         return 0;
     }
 
@@ -142,7 +146,7 @@ public:
                            const _Segment<RawPoint>& /*s*/)
     {
         static_assert(always_false<RawPoint>::value,
-                      "PointLike::distance(point, segment) unimplemented");
+                      "PointLike::distance(point, segment) unimplemented!");
         return 0;
     }
 
@@ -229,19 +233,36 @@ void setY(RawPoint& p, const TCoord<RawPoint>& val) {
 template<class RawPoint>
 inline Radians _Segment<RawPoint>::angleToXaxis() const
 {
+    static const double Pi_2 = 2*Pi;
     TCoord<RawPoint> dx = getX(second()) - getX(first());
     TCoord<RawPoint> dy = getY(second()) - getY(first());
 
-    if(dx == 0 && dy >= 0) return Pi/2;
-    if(dx == 0 && dy < 0) return 3*Pi/2;
-    if(dy == 0 && dx >= 0) return 0;
-    if(dy == 0 && dx < 0) return Pi;
+    double a = std::atan2(dy, dx);
+//    if(dx == 0 && dy >= 0) return Pi/2;
+//    if(dx == 0 && dy < 0) return 3*Pi/2;
+//    if(dy == 0 && dx >= 0) return 0;
+//    if(dy == 0 && dx < 0) return Pi;
 
-    double ddx = static_cast<double>(dx);
-    auto s = std::signbit(ddx);
-    double a = std::atan(ddx/dy);
-    if(s) a += Pi;
+//    double ddx = static_cast<double>(dx);
+    auto s = std::signbit(a);
+//    double a = std::atan(ddx/dy);
+    if(s) a += Pi_2;
     return a;
+}
+
+template<class RawPoint>
+inline RawPoint _Box<RawPoint>::center() const BP2D_NOEXCEPT {
+    auto& minc = minCorner();
+    auto& maxc = maxCorner();
+
+    using Coord = TCoord<RawPoint>;
+
+    RawPoint ret =  {
+        static_cast<Coord>( std::round((getX(minc) + getX(maxc))/2.0) ),
+        static_cast<Coord>( std::round((getY(minc) + getY(maxc))/2.0) )
+    };
+
+    return ret;
 }
 
 template<class RawShape>
@@ -258,7 +279,7 @@ struct CountourType {
 };
 
 template<class RawShape>
-using TCountour = typename CountourType<remove_cvref_t<RawShape>>::Type;
+using TContour = typename CountourType<remove_cvref_t<RawShape>>::Type;
 
 enum class Orientation {
     CLOCKWISE,
@@ -277,12 +298,23 @@ enum class Formats {
     SVG
 };
 
+// This struct serves as a namespace. The only difference is that is can be
+// used in friend declarations.
 struct ShapeLike {
 
     template<class RawShape>
-    static RawShape create( std::initializer_list< TPoint<RawShape> > il)
+    using Shapes = std::vector<RawShape>;
+
+    template<class RawShape>
+    static RawShape create(const TContour<RawShape>& contour)
     {
-        return RawShape(il);
+        return RawShape(contour);
+    }
+
+    template<class RawShape>
+    static RawShape create(TContour<RawShape>&& contour)
+    {
+        return RawShape(contour);
     }
 
     // Optional, does nothing by default
@@ -320,35 +352,16 @@ struct ShapeLike {
     }
 
     template<class RawShape>
-    static TPoint<RawShape>& vertex(RawShape& sh, unsigned long idx)
-    {
-        return *(begin(sh) + idx);
-    }
-
-    template<class RawShape>
-    static const TPoint<RawShape>& vertex(const RawShape& sh,
-                                          unsigned long idx)
-    {
-        return *(cbegin(sh) + idx);
-    }
-
-    template<class RawShape>
-    static size_t contourVertexCount(const RawShape& sh)
-    {
-        return cend(sh) - cbegin(sh);
-    }
-
-    template<class RawShape>
     static std::string toString(const RawShape& /*sh*/)
     {
         return "";
     }
 
     template<Formats, class RawShape>
-    static std::string serialize(const RawShape& /*sh*/)
+    static std::string serialize(const RawShape& /*sh*/, double scale=1)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::serialize() unimplemented");
+                      "ShapeLike::serialize() unimplemented!");
         return "";
     }
 
@@ -356,21 +369,14 @@ struct ShapeLike {
     static void unserialize(RawShape& /*sh*/, const std::string& /*str*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::unserialize() unimplemented");
+                      "ShapeLike::unserialize() unimplemented!");
     }
 
     template<class RawShape>
     static double area(const RawShape& /*sh*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::area() unimplemented");
-        return 0;
-    }
-
-    template<class RawShape>
-    static double area(const _Box<TPoint<RawShape>>& box)
-    {
-        return box.width() * box.height();
+                      "ShapeLike::area() unimplemented!");
         return 0;
     }
 
@@ -378,7 +384,7 @@ struct ShapeLike {
     static bool intersects(const RawShape& /*sh*/, const RawShape& /*sh*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::intersects() unimplemented");
+                      "ShapeLike::intersects() unimplemented!");
         return false;
     }
 
@@ -387,7 +393,7 @@ struct ShapeLike {
                          const RawShape& /*shape*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::isInside(point, shape) unimplemented");
+                      "ShapeLike::isInside(point, shape) unimplemented!");
         return false;
     }
 
@@ -396,7 +402,7 @@ struct ShapeLike {
                          const RawShape& /*shape*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::isInside(shape, shape) unimplemented");
+                      "ShapeLike::isInside(shape, shape) unimplemented!");
         return false;
     }
 
@@ -405,7 +411,7 @@ struct ShapeLike {
                          const RawShape& /*shape*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::touches(shape, shape) unimplemented");
+                      "ShapeLike::touches(shape, shape) unimplemented!");
         return false;
     }
 
@@ -413,13 +419,30 @@ struct ShapeLike {
     static _Box<TPoint<RawShape>> boundingBox(const RawShape& /*sh*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::boundingBox(shape) unimplemented");
+                      "ShapeLike::boundingBox(shape) unimplemented!");
     }
 
     template<class RawShape>
-    static _Box<TPoint<RawShape>> boundingBox(const _Box<TPoint<RawShape>>& box)
+    static _Box<TPoint<RawShape>> boundingBox(const Shapes<RawShape>& /*sh*/)
     {
-        return box;
+        static_assert(always_false<RawShape>::value,
+                      "ShapeLike::boundingBox(shapes) unimplemented!");
+    }
+
+    template<class RawShape>
+    static RawShape convexHull(const RawShape& /*sh*/)
+    {
+        static_assert(always_false<RawShape>::value,
+                      "ShapeLike::convexHull(shape) unimplemented!");
+        return RawShape();
+    }
+
+    template<class RawShape>
+    static RawShape convexHull(const Shapes<RawShape>& /*sh*/)
+    {
+        static_assert(always_false<RawShape>::value,
+                      "ShapeLike::convexHull(shapes) unimplemented!");
+        return RawShape();
     }
 
     template<class RawShape>
@@ -437,13 +460,13 @@ struct ShapeLike {
     }
 
     template<class RawShape>
-    static TCountour<RawShape>& getHole(RawShape& sh, unsigned long idx)
+    static TContour<RawShape>& getHole(RawShape& sh, unsigned long idx)
     {
         return holes(sh)[idx];
     }
 
     template<class RawShape>
-    static const TCountour<RawShape>& getHole(const RawShape& sh,
+    static const TContour<RawShape>& getHole(const RawShape& sh,
                                               unsigned long idx)
     {
         return holes(sh)[idx];
@@ -456,13 +479,13 @@ struct ShapeLike {
     }
 
     template<class RawShape>
-    static TCountour<RawShape>& getContour(RawShape& sh)
+    static TContour<RawShape>& getContour(RawShape& sh)
     {
         return sh;
     }
 
     template<class RawShape>
-    static const TCountour<RawShape>& getContour(const RawShape& sh)
+    static const TContour<RawShape>& getContour(const RawShape& sh)
     {
         return sh;
     }
@@ -471,14 +494,14 @@ struct ShapeLike {
     static void rotate(RawShape& /*sh*/, const Radians& /*rads*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::rotate() unimplemented");
+                      "ShapeLike::rotate() unimplemented!");
     }
 
     template<class RawShape, class RawPoint>
     static void translate(RawShape& /*sh*/, const RawPoint& /*offs*/)
     {
         static_assert(always_false<RawShape>::value,
-                      "ShapeLike::translate() unimplemented");
+                      "ShapeLike::translate() unimplemented!");
     }
 
     template<class RawShape>
@@ -490,11 +513,95 @@ struct ShapeLike {
 
     template<class RawShape>
     static std::pair<bool, std::string> isValid(const RawShape& /*sh*/) {
-        return {false, "ShapeLike::isValid() unimplemented"};
+        return {false, "ShapeLike::isValid() unimplemented!"};
+    }
+
+    // *************************************************************************
+    // No need to implement these
+    // *************************************************************************
+
+    template<class RawShape>
+    static inline _Box<TPoint<RawShape>> boundingBox(
+            const _Box<TPoint<RawShape>>& box)
+    {
+        return box;
+    }
+
+    template<class RawShape>
+    static inline double area(const _Box<TPoint<RawShape>>& box)
+    {
+        return static_cast<double>(box.width() * box.height());
+    }
+
+    template<class RawShape>
+    static double area(const Shapes<RawShape>& shapes)
+    {
+        double ret = 0;
+        std::accumulate(shapes.first(), shapes.end(),
+                        [](const RawShape& a, const RawShape& b) {
+            return area(a) + area(b);
+        });
+        return ret;
+    }
+
+    template<class RawShape> // Potential O(1) implementation may exist
+    static inline TPoint<RawShape>& vertex(RawShape& sh, unsigned long idx)
+    {
+        return *(begin(sh) + idx);
+    }
+
+    template<class RawShape> // Potential O(1) implementation may exist
+    static inline const TPoint<RawShape>& vertex(const RawShape& sh,
+                                          unsigned long idx)
+    {
+        return *(cbegin(sh) + idx);
+    }
+
+    template<class RawShape>
+    static inline size_t contourVertexCount(const RawShape& sh)
+    {
+        return cend(sh) - cbegin(sh);
+    }
+
+    template<class RawShape, class Fn>
+    static inline void foreachContourVertex(RawShape& sh, Fn fn) {
+        for(auto it = begin(sh); it != end(sh); ++it) fn(*it);
+    }
+
+    template<class RawShape, class Fn>
+    static inline void foreachHoleVertex(RawShape& sh, Fn fn) {
+        for(int i = 0; i < holeCount(sh); ++i) {
+            auto& h = getHole(sh, i);
+            for(auto it = begin(h); it != end(h); ++it) fn(*it);
+        }
+    }
+
+    template<class RawShape, class Fn>
+    static inline void foreachContourVertex(const RawShape& sh, Fn fn) {
+        for(auto it = cbegin(sh); it != cend(sh); ++it) fn(*it);
+    }
+
+    template<class RawShape, class Fn>
+    static inline void foreachHoleVertex(const RawShape& sh, Fn fn) {
+        for(int i = 0; i < holeCount(sh); ++i) {
+            auto& h = getHole(sh, i);
+            for(auto it = cbegin(h); it != cend(h); ++it) fn(*it);
+        }
+    }
+
+    template<class RawShape, class Fn>
+    static inline void foreachVertex(RawShape& sh, Fn fn) {
+        foreachContourVertex(sh, fn);
+        foreachHoleVertex(sh, fn);
+    }
+
+    template<class RawShape, class Fn>
+    static inline void foreachVertex(const RawShape& sh, Fn fn) {
+        foreachContourVertex(sh, fn);
+        foreachHoleVertex(sh, fn);
     }
 
 };
-
 
 }
 

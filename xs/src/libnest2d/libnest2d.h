@@ -29,6 +29,7 @@ using FillerSelection = strategies::_FillerSelection<PolygonImpl>;
 using FirstFitSelection = strategies::_FirstFitSelection<PolygonImpl>;
 using DJDHeuristic  = strategies::_DJDHeuristic<PolygonImpl>;
 
+using NfpPlacer = strategies::_NofitPolyPlacer<PolygonImpl>;
 using BottomLeftPlacer = strategies::_BottomLeftPlacer<PolygonImpl>;
 using NofitPolyPlacer = strategies::_NofitPolyPlacer<PolygonImpl>;
 
