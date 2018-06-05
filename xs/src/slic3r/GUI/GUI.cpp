@@ -140,7 +140,7 @@ wxSizer		*m_sizer_object_buttons = nullptr;
 wxSizer		*m_sizer_part_buttons = nullptr;
 wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
-PrusaCollapsiblePane	*m_collpane_settings = nullptr;
+wxCollapsiblePane		*m_collpane_settings = nullptr;
 
 wxFont		g_small_font { wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT) };
 wxFont		g_bold_font { wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold() };
@@ -836,10 +836,14 @@ wxString from_u8(const std::string &str)
 	return wxString::FromUTF8(str.c_str());
 }
 
-// add PrusaCollapsiblePane to sizer
-PrusaCollapsiblePane* add_prusa_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
+// add Collapsible Pane to sizer
+wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
 {
+#ifdef __WXMSW__
 	auto *collpane = new PrusaCollapsiblePane(parent, wxID_ANY, name);
+#else
+	auto *collpane = new wxCollapsiblePane(parent, wxID_ANY, name);
+#endif // __WXMSW__
 	// add the pane with a zero proportion value to the sizer which contains it
 	sizer_parent->Add(collpane, 0, wxGROW | wxALL, 0);
 
@@ -899,7 +903,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
 		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
-		m_collpane_settings->show_it(true);
+		m_collpane_settings->Show(true);
 	});
 
 	return objects_sz;
@@ -1058,13 +1062,13 @@ void delete_object_from_list()
 	m_objects_model->Delete(item);
 
 	if (m_objects_model->IsEmpty())
-		m_collpane_settings->show_it(false);
+		m_collpane_settings->Show(false);
 }
 
 void delete_all_objects_from_list()
 {
 	m_objects_model->DeleteAll();
-	m_collpane_settings->show_it(false);
+	m_collpane_settings->Show(false);
 }
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
@@ -1091,14 +1095,14 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	btn_grid_sizer->Add(del_all_btn, 0, wxEXPAND, 0);
 
 	// *** Objects List ***	
- 	auto collpane = add_prusa_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
+ 	auto collpane = add_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
 	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent& e){
 		e.Skip();
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		if (collpane->IsCollapsed()) {
 			m_sizer_object_buttons->Show(false);
 			m_sizer_part_buttons->Show(false);
-			m_collpane_settings->show_it(false);
+			m_collpane_settings->Show(false);
 		}
 		else 
 			m_objects_ctrl->UnselectAll();
@@ -1107,7 +1111,7 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	}));
 
 	// *** Object/Part Settings ***
-	m_collpane_settings = add_prusa_collapsible_pane(parent, sizer, "Settings:", content_settings);
+	m_collpane_settings = add_collapsible_pane(parent, sizer, "Settings:", content_settings);
 	m_collpane_settings->Hide(); // ? TODO why doesn't work?
 
 	add_btn->Bind(wxEVT_BUTTON, [](wxEvent& )

@@ -120,7 +120,11 @@ public:
 #endif //__WXMSW__
 	void Collapse(bool collapse) override;
 	void OnStateChange_(const wxSize& sz); //override of OnStateChange
-	void show_it(bool show) { Show(show); OnStateChange_(GetBestSize()); }
+	virtual bool Show(bool show=true) override {
+		wxCollapsiblePane::Show(show); 
+		OnStateChange_(GetBestSize());
+		return true;
+	}
 };
 
 
@@ -213,6 +217,26 @@ public:
 	{
 		return m_children.GetCount();
 	}
+
+	bool SetValue(const wxVariant &variant, unsigned int col)
+	{
+		switch (col)
+		{
+		case 0:
+			m_name = variant.GetString();
+			return true;
+		case 1:
+			m_copy = variant.GetString();
+			return true;
+		case 2:
+			m_scale = variant.GetString();
+			return true;
+
+		default:
+			printf("MyObjectTreeModel::SetValue: wrong column");
+		}
+		return false;
+	}
 };
 
 // ----------------------------------------------------------------------------
@@ -253,6 +277,7 @@ public:
 		const wxDataViewItem &item, unsigned int col) const override;
 	virtual bool SetValue(const wxVariant &variant,
 		const wxDataViewItem &item, unsigned int col) override;
+	bool SetValue(const wxVariant &variant, const int item_idx, unsigned int col);
 
 // 	virtual bool IsEnabled(const wxDataViewItem &item,
 // 		unsigned int col) const override;

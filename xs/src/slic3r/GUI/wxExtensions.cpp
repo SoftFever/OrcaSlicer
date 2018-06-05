@@ -533,6 +533,14 @@ bool MyObjectTreeModel::SetValue(const wxVariant &variant, const wxDataViewItem 
 	return false;
 }
 
+bool MyObjectTreeModel::SetValue(const wxVariant &variant, const int item_idx, unsigned int col)
+{
+	if (item_idx < 0 || item_idx >= m_objects.size())
+		return false;
+
+	return m_objects[item_idx]->SetValue(variant, col);
+}
+
 // bool MyObjectTreeModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
 // {
 // 
