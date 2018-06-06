@@ -12,13 +12,11 @@ class Print;
 #ifdef HAS_WIN10SDK
 
 extern bool is_windows10();
-extern bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path_dst);
 extern void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &print, Model &result);
 
 #else /* HAS_WIN10SDK */
 
 inline bool is_windows10() { return false; }
-inline bool fix_model_by_win10_sdk(const std::string &, const std::string &) { return false; }
 inline void fix_model_by_win10_sdk_gui(const ModelObject &, const Print &, Model &) {}
 
 #endif /* HAS_WIN10SDK */

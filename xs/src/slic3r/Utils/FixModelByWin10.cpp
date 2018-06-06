@@ -6,10 +6,19 @@
 
 #include "FixModelByWin10.hpp"
 
-#include <roapi.h>
-#include <string>
+#include <atomic>
+#include <chrono>
 #include <cstdint>
+#include <condition_variable>
+#include <exception>
+#include <string>
 #include <thread>
+
+#include <boost/filesystem.hpp>
+#include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
+
+#include <roapi.h>
 // for ComPtr
 #include <wrl/client.h>
 // from C:/Program Files (x86)/Windows Kits/10/Include/10.0.17134.0/
@@ -17,16 +26,13 @@
 #include <winrt/windows.storage.provider.h>
 #include <winrt/windows.graphics.printing3d.h>
 
-#include <boost/filesystem.hpp>
-#include <boost/nowide/convert.hpp>
-#include <boost/nowide/cstdio.hpp>
-
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
 #include "libslic3r/Format/3mf.hpp"
 #include "../GUI/GUI.hpp"
 #include "../GUI/PresetBundle.hpp"
 
+#include <wx/msgdlg.h>
 #include <wx/progdlg.h>
 
 extern "C"{
@@ -105,8 +111,11 @@ static HRESULT winrt_get_activation_factory(const std::wstring &class_name, TYPE
 	return winrt_get_activation_factory(class_name, __uuidof(TYPE), reinterpret_cast<void**>(pinst));
 }
 
+// To be called often to test whether to cancel the operation.
+typedef std::function<void ()> ThrowOnCancelFn;
+
 template<typename T>
-static AsyncStatus winrt_async_await(const Microsoft::WRL::ComPtr<T> &asyncAction, int blocking_tick_ms = 300)
+static AsyncStatus winrt_async_await(const Microsoft::WRL::ComPtr<T> &asyncAction, ThrowOnCancelFn throw_on_cancel, int blocking_tick_ms = 100)
 {
 	Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncInfo> asyncInfo;
 	asyncAction.As(&asyncInfo);
@@ -118,6 +127,7 @@ static AsyncStatus winrt_async_await(const Microsoft::WRL::ComPtr<T> &asyncActio
 		asyncInfo->get_Status(&status);
 		if (status != AsyncStatus::Started)
 			return status;
+		throw_on_cancel();
 		::Sleep(blocking_tick_ms);
 	}
 }
@@ -125,7 +135,8 @@ static AsyncStatus winrt_async_await(const Microsoft::WRL::ComPtr<T> &asyncActio
 static HRESULT winrt_open_file_stream(
 	const std::wstring									 &path,
 	ABI::Windows::Storage::FileAccessMode				  mode,
-	ABI::Windows::Storage::Streams::IRandomAccessStream **fileStream)
+	ABI::Windows::Storage::Streams::IRandomAccessStream **fileStream,
+	ThrowOnCancelFn										  throw_on_cancel)
 {
 	// Get the file factory.
 	Microsoft::WRL::ComPtr<ABI::Windows::Storage::IStorageFileStatics> fileFactory;
@@ -142,7 +153,7 @@ static HRESULT winrt_open_file_stream(
 	(*s_WindowsDeleteString)(hstr_path);
 
 	// Wait until the file gets open, get the actual file.
-	AsyncStatus status = winrt_async_await(fileOpenAsync);
+	AsyncStatus status = winrt_async_await(fileOpenAsync, throw_on_cancel);
 	Microsoft::WRL::ComPtr<ABI::Windows::Storage::IStorageFile> storageFile;
 	if (status == AsyncStatus::Completed) {
 		hr = fileOpenAsync->GetResults(storageFile.GetAddressOf());
@@ -159,7 +170,7 @@ static HRESULT winrt_open_file_stream(
 	hr = storageFile->OpenAsync(mode, fileStreamAsync.GetAddressOf());
 	if (FAILED(hr)) return hr;
 
-	status = winrt_async_await(fileStreamAsync);
+	status = winrt_async_await(fileStreamAsync, throw_on_cancel);
 	if (status == AsyncStatus::Completed) {
 		hr = fileStreamAsync->GetResults(fileStream);
 	} else {
@@ -189,21 +200,23 @@ bool is_windows10()
 	return false;
 }
 
-bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path_dst)
-{
-	if (! is_windows10()) {
-		return false;
-	}
+// Progress function, to be called regularly to update the progress.
+typedef std::function<void (const char * /* message */, unsigned /* progress */)> ProgressFn;
 
-	if (! winrt_load_runtime_object_library()) {
-		printf("Failed to initialize the WinRT library. This should not happen on Windows 10. Exiting.\n");
-		return false;
-	}
+void fix_model_by_win10_sdk(const std::string &path_src, const std::string &path_dst, ProgressFn on_progress, ThrowOnCancelFn throw_on_cancel)
+{
+	if (! is_windows10())
+		throw std::runtime_error("fix_model_by_win10_sdk called on non Windows 10 system");
+
+	if (! winrt_load_runtime_object_library())
+		throw std::runtime_error("Failed to initialize the WinRT library.");
 
 	HRESULT hr = (*s_RoInitialize)(RO_INIT_MULTITHREADED);
 	{
+		on_progress(L("Exporting the source model"), 20);
+
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream>       fileStream;
-		hr = winrt_open_file_stream(boost::nowide::widen(path_src), ABI::Windows::Storage::FileAccessMode::FileAccessMode_Read, fileStream.GetAddressOf());
+		hr = winrt_open_file_stream(boost::nowide::widen(path_src), ABI::Windows::Storage::FileAccessMode::FileAccessMode_Read, fileStream.GetAddressOf(), throw_on_cancel);
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Graphics::Printing3D::IPrinting3D3MFPackage> printing3d3mfpackage;
 		hr = winrt_activate_instance(L"Windows.Graphics.Printing3D.Printing3D3MFPackage", printing3d3mfpackage.GetAddressOf());
@@ -211,29 +224,28 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncOperation<ABI::Windows::Graphics::Printing3D::Printing3DModel*>> modelAsync;
 		hr = printing3d3mfpackage->LoadModelFromPackageAsync(fileStream.Get(), modelAsync.GetAddressOf());
 
-		AsyncStatus status = winrt_async_await(modelAsync);
+		AsyncStatus status = winrt_async_await(modelAsync, throw_on_cancel);
 		Microsoft::WRL::ComPtr<ABI::Windows::Graphics::Printing3D::IPrinting3DModel>	  model;
-		if (status == AsyncStatus::Completed) {
+		if (status == AsyncStatus::Completed)
 			hr = modelAsync->GetResults(model.GetAddressOf());
-		} else {
-			printf("Failed loading the input model. Exiting.\n");
-			return false;
-		}
+		else
+			throw std::runtime_error(L("Failed loading the input model."));
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::Collections::IVector<ABI::Windows::Graphics::Printing3D::Printing3DMesh*>> meshes;
 		hr = model->get_Meshes(meshes.GetAddressOf());
 		unsigned num_meshes = 0;
 		hr = meshes->get_Size(&num_meshes);
 		
+		on_progress(L("Repairing the model by the Netfabb service"), 40);
+		
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncAction>					  repairAsync;
 		hr = model->RepairAsync(repairAsync.GetAddressOf());
-		status = winrt_async_await(repairAsync);
-		if (status != AsyncStatus::Completed) {
-			printf("Mesh repair failed. Exiting.\n");
-			return false;
-		}
-		printf("Mesh repair finished successfully.\n");
+		status = winrt_async_await(repairAsync, throw_on_cancel);
+		if (status != AsyncStatus::Completed)
+			throw std::runtime_error(L("Mesh repair failed."));
 		repairAsync->GetResults();
+
+		on_progress(L("Loading the repaired model"), 60);
 
 		// Verify the number of meshes returned after the repair action.
 		meshes.Reset();
@@ -243,20 +255,16 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		// Save model to this class' Printing3D3MFPackage.
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncAction>					  saveToPackageAsync;
 		hr = printing3d3mfpackage->SaveModelToPackageAsync(model.Get(), saveToPackageAsync.GetAddressOf());
-		status = winrt_async_await(saveToPackageAsync);
-		if (status != AsyncStatus::Completed) {
-			printf("Saving mesh into the 3MF container failed. Exiting.\n");
-			return false;
-		}
+		status = winrt_async_await(saveToPackageAsync, throw_on_cancel);
+		if (status != AsyncStatus::Completed)
+			throw std::runtime_error(L("Saving mesh into the 3MF container failed."));
 		hr = saveToPackageAsync->GetResults();
 
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncOperation<ABI::Windows::Storage::Streams::IRandomAccessStream*>> generatorStreamAsync;
 		hr = printing3d3mfpackage->SaveAsync(generatorStreamAsync.GetAddressOf());
-		status = winrt_async_await(generatorStreamAsync);
-		if (status != AsyncStatus::Completed) {
-			printf("Saving mesh into the 3MF container failed. Exiting.\n");
-			return false;
-		}
+		status = winrt_async_await(generatorStreamAsync, throw_on_cancel);
+		if (status != AsyncStatus::Completed)
+			throw std::runtime_error(L("Saving mesh into the 3MF container failed."));
 		Microsoft::WRL::ComPtr<ABI::Windows::Storage::Streams::IRandomAccessStream> generatorStream;
 		hr = generatorStreamAsync->GetResults(generatorStream.GetAddressOf());
 
@@ -286,11 +294,9 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		Microsoft::WRL::ComPtr<ABI::Windows::Foundation::IAsyncOperationWithProgress<ABI::Windows::Storage::Streams::IBuffer*, UINT32>> asyncRead;
 		for (;;) {
 			hr = inputStream->ReadAsync(buffer.Get(), 65536 * 2048, ABI::Windows::Storage::Streams::InputStreamOptions_ReadAhead, asyncRead.GetAddressOf());
-			status = winrt_async_await(asyncRead);
-			if (status != AsyncStatus::Completed) {
-				printf("Saving mesh into the 3MF container failed. Exiting.\n");
-				return false;
-			}
+			status = winrt_async_await(asyncRead, throw_on_cancel);
+			if (status != AsyncStatus::Completed)
+				throw std::runtime_error(L("Saving mesh into the 3MF container failed."));
 			hr = buffer->get_Length(&length);
 			if (length == 0)
 				break;
@@ -300,38 +306,95 @@ bool fix_model_by_win10_sdk(const std::string &path_src, const std::string &path
 		// Here all the COM objects will be released through the ComPtr destructors.
 	}
 	(*s_RoUninitialize)();
-	return true;
 }
+
+class RepairCanceledException : public std::exception {
+public:
+   const char* what() const throw() { return "Model repair has been canceled"; }
+};
 
 void fix_model_by_win10_sdk_gui(const ModelObject &model_object, const Print &print, Model &result)
 {
-	enum { PROGRESS_RANGE = 1000 };
+	std::mutex 						mutex;
+	std::condition_variable			condition;
+	std::unique_lock<std::mutex>	lock(mutex);
+	struct Progress {
+		std::string 				message;
+		int 						percent  = 0;
+		bool						updated = false;
+	} progress;
+	std::atomic<bool>				canceled = false;
+	std::atomic<bool>				finished = false;
+
+	// Open a progress dialog.
 	wxProgressDialog progress_dialog(
 		_(L("Model fixing")),
 		_(L("Exporting model...")),
-		PROGRESS_RANGE, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
-	progress_dialog.Pulse();
-
+		100, nullptr, wxPD_AUTO_HIDE | wxPD_APP_MODAL | wxPD_CAN_ABORT);
 	// Executing the calculation in a background thread, so that the COM context could be created with its own threading model.
 	// (It seems like wxWidgets initialize the COM contex as single threaded and we need a multi-threaded context).
-	auto worker = std::thread([&model_object, &print, &result, &progress_dialog](){
-		boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-		path_src += ".3mf";
-		Model model;
-		model.add_object(model_object);
-		bool res = Slic3r::store_3mf(path_src.string().c_str(), &model, const_cast<Print*>(&print), false);
-		model.clear_objects(); 
-		model.clear_materials();
-
-		boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
-		path_dst += ".3mf";
-		res = fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string());
-		boost::filesystem::remove(path_src);
-		PresetBundle bundle;
-	    res = Slic3r::load_3mf(path_dst.string().c_str(), &bundle, &result);
-		boost::filesystem::remove(path_dst);
+	bool success  = false;
+	auto on_progress = [&mutex, &condition, &progress](const char *msg, unsigned prcnt) {
+        std::lock_guard<std::mutex> lk(mutex);
+		progress.message = msg;
+		progress.percent = prcnt;
+		progress.updated = true;
+	    condition.notify_all();
+	};
+	auto worker_thread = boost::thread([&model_object, &print, &result, on_progress, &success, &canceled, &finished]() {
+		try {
+			on_progress(L("Exporting the source model"), 0);
+			boost::filesystem::path path_src = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+			path_src += ".3mf";
+			Model model;
+			model.add_object(model_object);
+			if (! Slic3r::store_3mf(path_src.string().c_str(), &model, const_cast<Print*>(&print), false)) {
+				boost::filesystem::remove(path_src);
+				throw std::runtime_error(L("Export of a temporary 3mf file failed"));
+			}
+			model.clear_objects(); 
+			model.clear_materials();
+			boost::filesystem::path path_dst = boost::filesystem::temp_directory_path() / boost::filesystem::unique_path();
+			path_dst += ".3mf";
+			fix_model_by_win10_sdk(path_src.string().c_str(), path_dst.string(), on_progress, 
+				[&canceled]() { if (canceled) throw RepairCanceledException(); });
+			boost::filesystem::remove(path_src);
+			PresetBundle bundle;
+			on_progress(L("Loading the repaired model"), 80);
+		    bool loaded = Slic3r::load_3mf(path_dst.string().c_str(), &bundle, &result);
+			boost::filesystem::remove(path_dst);
+			if (! loaded)
+ 				throw std::runtime_error(L("Import of the repaired 3mf file failed"));
+			success  = true;
+			finished = true;
+			on_progress(L("Model repair finished"), 100);
+		} catch (RepairCanceledException &ex) {
+			canceled = true;
+			finished = true;
+			on_progress(L("Model repair canceled"), 100);
+		} catch (std::exception &ex) {
+			success = false;
+			finished = true;
+			on_progress(ex.what(), 100);
+		}
 	});
-	worker.join();
+    while (! finished) {
+		condition.wait_for(lock, std::chrono::milliseconds(500), [&progress]{ return progress.updated; });
+		if (! progress_dialog.Update(progress.percent, _(progress.message)))
+			canceled = true;
+		progress.updated = false;
+    }
+
+	if (canceled) {
+		// Nothing to show.
+	} else if (success) {
+		wxMessageDialog dlg(nullptr, _(L("Model repaired successfully")), _(L("Model Repair by the Netfabb service")), wxICON_INFORMATION | wxOK_DEFAULT);
+		dlg.ShowModal();
+	} else {
+		wxMessageDialog dlg(nullptr, _(L("Model repair failed: \n")) + _(progress.message), _(L("Model Repair by the Netfabb service")), wxICON_ERROR | wxOK_DEFAULT);
+		dlg.ShowModal();
+	}
+	worker_thread.join();
 }
 
 } // namespace Slic3r
