@@ -115,11 +115,12 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
-        $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #==============================================================================================================================
+        Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $self->{model_object}, 0, [0]);
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
         Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
         
+#        $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,500]);
@@ -261,14 +262,13 @@ sub _update {
             }
 
 #==============================================================================================================================
-            Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
-#            $self->{canvas}->reset_objects;
-#==============================================================================================================================
-            $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
-#==============================================================================================================================
+            Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});
+            Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $_, 0, [0]) for @objects;
             Slic3r::GUI::_3DScene::set_cutting_plane($self->{canvas}, $self->{cut_options}{z}, [@expolygons]);
             Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
             Slic3r::GUI::_3DScene::render($self->{canvas});
+#            $self->{canvas}->reset_objects;
+#            $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
 #            $self->{canvas}->SetCuttingPlane(
 #                $self->{cut_options}{z},
 #                [@expolygons],

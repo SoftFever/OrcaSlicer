@@ -237,8 +237,13 @@ sub reload_scene {
 
     $self->{objects_volumes_idxs} = [];    
     foreach my $obj_idx (0..$#{$self->{model}->objects}) {
-        my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
-        push(@{$self->{objects_volumes_idxs}}, \@volume_idxs);
+#==============================================================================================================================
+        my $volume_idxs = Slic3r::GUI::_3DScene::load_model($self, $self->{model}, $obj_idx, [0]);
+        push(@{$self->{objects_volumes_idxs}}, \@{$volume_idxs});
+        
+#        my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
+#        push(@{$self->{objects_volumes_idxs}}, \@volume_idxs);
+#==============================================================================================================================
     }
     
     $self->update_volumes_selection;

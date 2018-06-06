@@ -32,9 +32,7 @@ use Slic3r::Geometry qw(X Y);
 use Wx::GLCanvas qw(:all);
 use Slic3r::Geometry qw(PI);
 
-# _dirty: boolean flag indicating, that the screen has to be redrawn on EVT_IDLE.
 # volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
-# _camera_type: 'perspective' or 'ortho'
 #==============================================================================================================================
 __PACKAGE__->mk_accessors( qw(
                               volumes
@@ -2169,37 +2167,28 @@ sub new {
     return $self;
 }
 
-sub load_object {
-    my ($self, $model, $print, $obj_idx, $instance_idxs) = @_;
-    
 #==============================================================================================================================
-    my $useVBOs = Slic3r::GUI::_3DScene::use_VBOs();
-    $self->SetCurrent($self->GetContext) if $useVBOs;
-    
+#sub load_object {
+#    my ($self, $model, $print, $obj_idx, $instance_idxs) = @_;
+#    
 #    $self->SetCurrent($self->GetContext) if $useVBOs;
-#==============================================================================================================================
-
-    my $model_object;
-    if ($model->isa('Slic3r::Model::Object')) {
-        $model_object = $model;
-        $model = $model_object->model;
-        $obj_idx = 0;
-    } else {
-        $model_object = $model->get_object($obj_idx);
-    }
-    
-    $instance_idxs ||= [0..$#{$model_object->instances}];
-#==============================================================================================================================
-    my $volume_indices = $self->volumes->load_object(
-        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by, $useVBOs && Slic3r::GUI::_3DScene::is_shader_enabled($self));
+#
+#    my $model_object;
+#    if ($model->isa('Slic3r::Model::Object')) {
+#        $model_object = $model;
+#        $model = $model_object->model;
+#        $obj_idx = 0;
+#    } else {
+#        $model_object = $model->get_object($obj_idx);
+#    }
+#    
+#    $instance_idxs ||= [0..$#{$model_object->instances}];
 #    my $volume_indices = $self->volumes->load_object(
 #        $model_object, $obj_idx, $instance_idxs, $self->color_by, $self->select_by, $self->drag_by,
 #        $self->UseVBOs);
-#==============================================================================================================================
-    return @{$volume_indices};
-}
-
-#==============================================================================================================================
+#    return @{$volume_indices};
+#}
+#
 ## Create 3D thick extrusion lines for a skirt and brim.
 ## Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes.
 #sub load_print_toolpaths {

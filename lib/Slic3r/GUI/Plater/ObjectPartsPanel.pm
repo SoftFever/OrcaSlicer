@@ -165,18 +165,16 @@ sub new {
             # convert scene volume to model object volume
             $self->reload_tree(($volume_idx == -1) ? undef : $canvas->volumes->[$volume_idx]->volume_idx);
         });
+        Slic3r::GUI::_3DScene::load_model_object($canvas, $self->{model_object}, 0, [0]);
+        Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
+        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
+        
 #        $canvas->on_select(sub {
 #            my ($volume_idx) = @_;
 #            # convert scene volume to model object volume
 #            $self->reload_tree(($volume_idx == -1) ? undef : $canvas->volumes->[$volume_idx]->volume_idx);
 #        });
-#==============================================================================================================================
-        
-        $canvas->load_object($self->{model_object}, undef, undef, [0]);
-#==============================================================================================================================        
-        Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);       
-        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
-        
+#        $canvas->load_object($self->{model_object}, undef, undef, [0]);
 #        $canvas->set_auto_bed_shape;
 #==============================================================================================================================
         $canvas->SetSize([500,700]);
@@ -514,14 +512,13 @@ sub _parts_changed {
     $self->reload_tree;
     if ($self->{canvas}) {
 #==============================================================================================================================
-        Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
-#        $self->{canvas}->reset_objects;
-#==============================================================================================================================
-        $self->{canvas}->load_object($self->{model_object});
-#==============================================================================================================================
+        Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});
+        Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $self->{model_object}, 0, [0]);
         Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas});
         Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
         Slic3r::GUI::_3DScene::render($self->{canvas});        
+#        $self->{canvas}->reset_objects;
+#        $self->{canvas}->load_object($self->{model_object});
 #        $self->{canvas}->zoom_to_volumes;
 #        $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
 #        $self->{canvas}->Render;
@@ -567,10 +564,11 @@ sub _update_canvas {
     
     if ($self->{canvas}) {
 #==============================================================================================================================
-        Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
+        Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});
+        Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $self->{model_object}, 0, [0]);
 #        $self->{canvas}->reset_objects;
+#        $self->{canvas}->load_object($self->{model_object});
 #==============================================================================================================================
-        $self->{canvas}->load_object($self->{model_object});
 
         # restore selection, if any
         if (my $itemData = $self->get_selection) {
@@ -607,13 +605,12 @@ sub _update {
     my @objects = ();
     push @objects, $self->{model_object};
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});           
-#    $self->{canvas}->reset_objects;
-#==============================================================================================================================
-    $self->{canvas}->load_object($_, undef, [0]) for @objects;
-#==============================================================================================================================
+    Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});
+    Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $_, 0, [0]) for @objects;
     Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
     Slic3r::GUI::_3DScene::render($self->{canvas});
+#    $self->{canvas}->reset_objects;
+#    $self->{canvas}->load_object($_, undef, [0]) for @objects;
 #    $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->GetParent->GetParent->{config});
 #    $self->{canvas}->Render;
 #==============================================================================================================================

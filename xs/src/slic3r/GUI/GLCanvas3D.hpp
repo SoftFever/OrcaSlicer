@@ -25,6 +25,8 @@ class ExPolygon;
 class Print;
 class PrintObject;
 class GCodePreviewData;
+class ModelObject;
+class Model;
 
 namespace GUI {
 
@@ -342,6 +344,10 @@ private:
     bool m_shader_enabled;
     bool m_multisample_allowed;
 
+    std::string m_color_by;
+    std::string m_select_by;
+    std::string m_drag_by;
+
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
     PerlCallback m_on_viewport_changed_callback;
@@ -410,6 +416,9 @@ public:
 
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);
+
+    std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
+    std::vector<int> load_object(const Model& model, int obj_idx, std::vector<int> instance_idxs);
 
     // Create 3D thick extrusion lines for a skirt and brim.
     // Adds a new Slic3r::GUI::3DScene::Volume to volumes.

@@ -2016,6 +2016,16 @@ static inline std::vector<float> parse_colors(const std::vector<std::string> &sc
 }
 
 //##################################################################################################################
+std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs)
+{
+    return s_canvas_mgr.load_object(canvas, model_object, obj_idx, instance_idxs);
+}
+
+std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs)
+{
+    return s_canvas_mgr.load_object(canvas, model, obj_idx, instance_idxs);
+}
+
 void _3DScene::load_print_toolpaths(wxGLCanvas* canvas)
 {
     s_canvas_mgr.load_print_toolpaths(canvas);

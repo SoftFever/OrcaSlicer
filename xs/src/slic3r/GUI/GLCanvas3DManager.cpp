@@ -450,6 +450,24 @@ void GLCanvas3DManager::set_toolpaths_range(wxGLCanvas* canvas, double low, doub
         it->second->set_toolpaths_range(low, high);
 }
 
+std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs)
+{
+    if (model_object == nullptr)
+        return std::vector<int>();
+
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->load_object(*model_object, obj_idx, instance_idxs) : std::vector<int>();
+}
+
+std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs)
+{
+    if (model == nullptr)
+        return std::vector<int>();
+
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->load_object(*model, obj_idx, instance_idxs) : std::vector<int>();
+}
+
 void GLCanvas3DManager::load_print_toolpaths(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

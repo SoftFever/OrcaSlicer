@@ -95,6 +95,9 @@ public:
     std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only) const;
     void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
 
+    std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
+    std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs);
+
     void load_print_toolpaths(wxGLCanvas* canvas);
     void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& tool_colors);
     void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);

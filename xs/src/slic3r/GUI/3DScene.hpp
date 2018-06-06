@@ -611,6 +611,9 @@ public:
 //##################################################################################################################
 
 //##################################################################################################################
+    static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
+    static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs);
+
     static void load_print_toolpaths(wxGLCanvas* canvas);
     static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
     static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);

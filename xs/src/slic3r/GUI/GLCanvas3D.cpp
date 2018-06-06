@@ -959,6 +959,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_moving_enabled(false)
     , m_shader_enabled(false)
     , m_multisample_allowed(false)
+    , m_color_by("volume")
+    , m_select_by("object")
+    , m_drag_by("instance")
 {
     if (m_canvas != nullptr)
         m_timer = new wxTimer(m_canvas);
@@ -1349,6 +1352,34 @@ void GLCanvas3D::set_toolpaths_range(double low, double high)
 {
     if (m_volumes != nullptr)
         m_volumes->set_range(low, high);
+}
+
+std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs)
+{
+    if (m_volumes == nullptr)
+        return std::vector<int>();
+
+    if (instance_idxs.empty())
+    {
+        for (unsigned int i = 0; i < model_object.instances.size(); ++i)
+        {
+            instance_idxs.push_back(i);
+        }
+    }
+
+    return m_volumes->load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_select_by, m_drag_by, m_use_VBOs && m_initialized);
+}
+
+std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx, std::vector<int> instance_idxs)
+{
+    if ((0 <= obj_idx) && (obj_idx < (int)model.objects.size()))
+    {
+        const ModelObject* model_object = model.objects[obj_idx];
+        if (model_object != nullptr)
+            return load_object(*model_object, obj_idx, instance_idxs);
+    }
+
+    return std::vector<int>();
 }
 
 void GLCanvas3D::load_print_toolpaths()

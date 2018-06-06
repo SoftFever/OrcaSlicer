@@ -510,6 +510,28 @@ reset_warning_texture()
     CODE:
         _3DScene::reset_warning_texture();
 
+std::vector<int>
+load_model_object(canvas, model_object, obj_idx, instance_idxs)
+        SV               *canvas;
+        ModelObject      *model_object;
+        int              obj_idx;
+        std::vector<int> instance_idxs;
+    CODE:
+        RETVAL = _3DScene::load_object((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model_object, obj_idx, instance_idxs);
+    OUTPUT:
+        RETVAL
+
+std::vector<int>
+load_model(canvas, model, obj_idx, instance_idxs)
+        SV               *canvas;
+        Model            *model;
+        int              obj_idx;
+        std::vector<int> instance_idxs;
+    CODE:
+        RETVAL = _3DScene::load_object((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model, obj_idx, instance_idxs);
+    OUTPUT:
+        RETVAL
+
 void
 load_print_toolpaths(canvas)
         SV *canvas;
