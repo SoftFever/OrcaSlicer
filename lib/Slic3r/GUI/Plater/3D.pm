@@ -228,9 +228,10 @@ sub reload_scene {
 
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::reset_volumes($self);
+    Slic3r::GUI::_3DScene::set_bed_shape($self, $self->{config}->bed_shape);
 #    $self->reset_objects;
+#    $self->update_bed_size;
 #==============================================================================================================================
-    $self->update_bed_size;
 
     if (! $self->IsShown && ! $force) {
         $self->{reload_delayed} = 1;
@@ -306,13 +307,12 @@ sub reload_scene {
     }
 }
 
-sub update_bed_size {
-    my ($self) = @_;
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_bed_shape($self, $self->{config}->bed_shape);
+#sub update_bed_size {
+#    my ($self) = @_;
 #    $self->set_bed_shape($self->{config}->bed_shape);
+#}
 #==============================================================================================================================
-}
 
 # Called by the Platter wxNotebook when this page is activated.
 sub OnActivate {

@@ -408,14 +408,18 @@ sub new {
     
     $self->{canvas}->update_bed_size;
     if ($self->{canvas3D}) {
-        $self->{canvas3D}->update_bed_size;
 #==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape);
         Slic3r::GUI::_3DScene::zoom_to_bed($self->{canvas3D});
+#        $self->{canvas3D}->update_bed_size;
 #        $self->{canvas3D}->zoom_to_bed;
 #==============================================================================================================================
     }
     if ($self->{preview3D}) {
-        $self->{preview3D}->set_bed_shape($self->{config}->bed_shape);
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape);
+#        $self->{preview3D}->set_bed_shape($self->{config}->bed_shape);
+#==============================================================================================================================
     }
     $self->update;
     
@@ -1830,9 +1834,13 @@ sub on_config_change {
         $self->{config}->set($opt_key, $config->get($opt_key));
         if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
-            $self->{canvas3D}->update_bed_size if $self->{canvas3D};
-            $self->{preview3D}->set_bed_shape($self->{config}->bed_shape)
-                if $self->{preview3D};
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
+            Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
+#            $self->{canvas3D}->update_bed_size if $self->{canvas3D};
+#            $self->{preview3D}->set_bed_shape($self->{config}->bed_shape)
+#                if $self->{preview3D};
+#==============================================================================================================================
             $update_scheduled = 1;
         } elsif ($opt_key =~ '^wipe_tower' || $opt_key eq 'single_extruder_multi_material') {
             $update_scheduled = 1;
