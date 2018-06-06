@@ -1871,7 +1871,6 @@ void GLCanvas3D::unbind_event_handlers()
 {
     if (m_canvas != nullptr)
     {
-        m_canvas->GetEventHandler()->ProcessPendingEvents();
         m_canvas->Unbind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
         m_canvas->Unbind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
         m_canvas->Unbind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
