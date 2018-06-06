@@ -375,7 +375,8 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
     fclose(file);
 
-    GCodeTimeEstimator::post_process_elapsed_times(path_tmp, m_default_time_estimator.get_time(), m_silent_time_estimator.get_time());
+    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+        GCodeTimeEstimator::post_process_elapsed_times(path_tmp, m_default_time_estimator.get_time(), m_silent_time_estimator.get_time());
 
     if (! this->m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
@@ -409,8 +410,11 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // resets time estimators
     m_default_time_estimator.reset();
     m_default_time_estimator.set_dialect(print.config.gcode_flavor);
-    m_silent_time_estimator.reset();
-    m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
+    if (print.config.gcode_flavor == gcfMarlin)
+    {
+        m_silent_time_estimator.reset();
+        m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
+    }
 
     // resets analyzer
     m_analyzer.reset();
@@ -602,8 +606,11 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     }
 
     // before start gcode time estimation
-    _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
-    _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
+    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    {
+        _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
+        _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
+    }
 
     // Write the custom start G-code
     _writeln(file, start_gcode);
@@ -810,8 +817,11 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front()), &config));
         }
         // before end gcode time estimation
-        _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
-        _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
+        if (m_default_time_estimator.get_dialect() == gcfMarlin)
+        {
+            _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
+            _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
+        }
         _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id(), &config));
     }
     _write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
@@ -819,7 +829,8 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 
     // calculates estimated printing time
     m_default_time_estimator.calculate_time();
-    m_silent_time_estimator.calculate_time();
+    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+        m_silent_time_estimator.calculate_time();
 
     // Get filament stats.
     print.filament_stats.clear();
@@ -828,7 +839,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     print.total_weight           = 0.;
     print.total_cost             = 0.;
     print.estimated_default_print_time = m_default_time_estimator.get_time_dhms();
-    print.estimated_silent_print_time = m_silent_time_estimator.get_time_dhms();
+    print.estimated_silent_print_time = (m_default_time_estimator.get_dialect() == gcfMarlin) ? m_silent_time_estimator.get_time_dhms() : "N/A";
     for (const Extruder &extruder : m_writer.extruders()) {
         double used_filament   = extruder.used_filament();
         double extruded_volume = extruder.extruded_volume();
@@ -849,7 +860,8 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     }
     _write_format(file, "; total filament cost = %.1lf\n", print.total_cost);
     _write_format(file, "; estimated printing time (default mode) = %s\n", m_default_time_estimator.get_time_dhms().c_str());
-    _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
+    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+        _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
 
     // Append full config.
     _write(file, "\n");
@@ -1418,8 +1430,11 @@ void GCode::process_layer(
     _write(file, gcode);
 
     // after layer time estimation
-    _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
-    _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
+    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    {
+        _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
+        _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
+    }
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
@@ -2079,7 +2094,8 @@ void GCode::_write(FILE* file, const char *what)
         fwrite(gcode, 1, ::strlen(gcode), file);
         // updates time estimator and gcode lines vector
         m_default_time_estimator.add_gcode_block(gcode);
-        m_silent_time_estimator.add_gcode_block(gcode);
+        if (m_default_time_estimator.get_dialect() == gcfMarlin)
+            m_silent_time_estimator.add_gcode_block(gcode);
     }
 }
 
