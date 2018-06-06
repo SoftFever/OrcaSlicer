@@ -47,7 +47,7 @@ use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 my $PreventListEvents = 0;
 
 sub new {
-    my ($class, $parent) = @_;
+    my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
@@ -55,6 +55,10 @@ sub new {
         nozzle_diameter single_extruder_multi_material wipe_tower wipe_tower_x wipe_tower_y wipe_tower_width
 	wipe_tower_rotation_angle extruder_colour filament_colour max_print_height
     )]);
+
+    # store input params
+    $self->{event_object_selection_changed} = $params{event_object_selection_changed};
+
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
     # C++ Slic3r::Print with Perl extensions in Slic3r/Print.pm
@@ -411,8 +415,16 @@ sub new {
 
         my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxVERTICAL);
         Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
+
         my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        Slic3r::GUI::add_expert_mode_part($self->{right_panel}, $expert_mode_part_sizer);
+        print "Plater event = ".$self->{event_object_selection_changed}."\n";
+        Slic3r::GUI::add_expert_mode_part($self->{right_panel}, $expert_mode_part_sizer, $self->{event_object_selection_changed});
+        if ($expert_mode_part_sizer->IsShown(2)==1) 
+        { 
+            $expert_mode_part_sizer->Layout;
+            $expert_mode_part_sizer->Show(2, 0); # ? Why doesn't work
+            $self->{right_panel}->Layout;
+        }
 
         my $object_info_sizer;
         {
@@ -535,7 +547,7 @@ sub new {
             }
         };
         # Show the box initially, let it be shown after the slicing is finished.
-        $self->{"print_info_box_show"}->(0);
+        #$self->{"print_info_box_show"}->(0);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
@@ -2095,6 +2107,7 @@ sub selection_changed {
 sub select_object {
     my ($self, $obj_idx) = @_;
 
+    print "obj_idx = $obj_idx\n";
     # remove current selection
     foreach my $o (0..$#{$self->{objects}}) {
         $PreventListEvents = 1;
@@ -2104,7 +2117,7 @@ sub select_object {
     }
 
     # Unselect all objects in the list on c++ side
-    Slic3r::GUI::unselect_objects();
+    #Slic3r::GUI::unselect_objects();
     
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
@@ -2118,6 +2131,7 @@ sub select_object {
         Slic3r::GUI::select_current_object($obj_idx);
     } else {
         # TODO: deselect all in list
+        Slic3r::GUI::unselect_objects();
     }
     $self->selection_changed(1);
 }
@@ -2125,6 +2139,7 @@ sub select_object {
 sub selected_object {
     my ($self) = @_;
     my $obj_idx = first { $self->{objects}[$_]->selected } 0..$#{ $self->{objects} };
+    print "selected obj_idx = $obj_idx\n";
     return defined $obj_idx ? ($obj_idx, $self->{objects}[$obj_idx]) : undef;
 }
 

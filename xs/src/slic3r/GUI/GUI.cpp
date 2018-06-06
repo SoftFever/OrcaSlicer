@@ -141,6 +141,7 @@ wxSizer		*m_sizer_part_buttons = nullptr;
 wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
 wxCollapsiblePane		*m_collpane_settings = nullptr;
+int			m_event_object_selection_changed = 0;
 
 wxFont		g_small_font;
 wxFont		g_bold_font;
@@ -895,17 +896,38 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 	m_objects_ctrl->AppendColumn(column02);
 
-	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& evt)
+	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		auto item = m_objects_ctrl->GetSelection();
-		if (!item) return;
+		int obj_idx = -1;
+		if (!item) 
+			unselect_objects();
+		else
+			obj_idx = m_objects_model->GetIdByItem(item);
+
+		if (m_event_object_selection_changed > 0) {
+			wxCommandEvent event(m_event_object_selection_changed);
+			event.SetInt(obj_idx);
+			g_wxMainFrame->ProcessWindowEvent(event);
+		}
+
+		if (obj_idx < 0) return;
+
 //		m_objects_ctrl->SetSize(m_objects_ctrl->GetBestSize()); // TODO override GetBestSize(), than use it
 		auto show_obj_sizer = m_objects_model->GetParent(item) == wxDataViewItem(0);
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
 		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
 		m_collpane_settings->Show(true);
+	});
+
+	m_objects_ctrl->Bind(wxEVT_KEY_DOWN, [](wxKeyEvent& event)
+	{
+		if (event.GetKeyCode() == WXK_TAB)
+			m_objects_ctrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
+		else
+			event.Skip();
 	});
 
 	return objects_sz;
@@ -1088,15 +1110,29 @@ void set_object_scale(int idx, int scale)
 void unselect_objects()
 {
 	m_objects_ctrl->UnselectAll();
+	if (m_sizer_object_buttons->IsShown(1)) 
+		m_sizer_object_buttons->Show(false);
+	if (m_sizer_part_buttons->IsShown(1)) 
+		m_sizer_part_buttons->Show(false);
+	if (m_collpane_settings->IsShown())
+		m_collpane_settings->Show(false);
 }
 
 void select_current_object(int idx)
 {
+	m_objects_ctrl->UnselectAll();
+	if (idx < 0) return;
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
+
+	if (!m_sizer_object_buttons->IsShown(1)) 
+		m_sizer_object_buttons->Show(true);
+	if (!m_collpane_settings->IsShown())
+		m_collpane_settings->Show(true);
 }
 
-void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
+void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_selection_changed)
 {
+	m_event_object_selection_changed = event_object_selection_changed;
 	wxWindowUpdateLocker noUpdates(parent);
 
 	auto btn_grid_sizer = new wxGridSizer(1, 3, 2, 2);
@@ -1135,8 +1171,7 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer)
 	}));
 
 	// *** Object/Part Settings ***
-	m_collpane_settings = add_collapsible_pane(parent, sizer, "Settings:", content_settings);
-	m_collpane_settings->Hide(); // ? TODO why doesn't work?
+	m_collpane_settings = add_collapsible_pane(parent, sizer, "Settings", content_settings);
 
 	add_btn->Bind(wxEVT_BUTTON, [](wxEvent& )
 	{

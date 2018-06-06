@@ -25,6 +25,8 @@ our $last_config;
 our $VALUE_CHANGE_EVENT    = Wx::NewEventType;
 # 2) To inform about a preset selection change or a "modified" status change.
 our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
+# 3) To inform about a change of object selection
+our $OBJECT_SELECTION_CHANGED_EVENT = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -113,7 +115,9 @@ sub _init_tabpanel {
     });
     
     if (!$self->{no_plater}) {
-        $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel), L("Plater"));
+        $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel,
+            event_object_selection_changed   => $OBJECT_SELECTION_CHANGED_EVENT,
+            ), L("Plater"));
         if (!$self->{no_controller}) {
             $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
         }
@@ -168,6 +172,20 @@ sub _init_tabpanel {
             }
         }
     });
+
+    # The following event is emited by the C++ Tab implementation on config value change.
+    EVT_COMMAND($self, -1, $OBJECT_SELECTION_CHANGED_EVENT, sub {
+        my ($self, $event) = @_;
+        my $obj_idx = $event->GetInt;
+        print "obj_idx = $obj_idx\n";
+        $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx);
+        
+        $self->{plater}->{canvas}->Refresh;
+        $self->{plater}->{canvas3D}->deselect_volumes if $self->{canvas3D};
+        $self->{plater}->{canvas3D}->Render if $self->{canvas3D};
+    });       
+        
+
     Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
     for my $tab_name (qw(print filament printer)) {

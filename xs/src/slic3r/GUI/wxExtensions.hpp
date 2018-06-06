@@ -253,6 +253,7 @@ public:
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	void DeleteAll();
 	wxDataViewItem GetItemById(int obj_idx);
+	int GetIdByItem(wxDataViewItem& item);
 	bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog

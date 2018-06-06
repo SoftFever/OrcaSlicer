@@ -87,9 +87,9 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
                                                            (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
                                                            (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};
 
-void add_expert_mode_part(SV *ui_parent, SV *ui_sizer)
+void add_expert_mode_part(SV *ui_parent, SV *ui_sizer, int event)
     %code%{ Slic3r::GUI::add_expert_mode_part((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
-                                                           (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer")); %};
+                                                           (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"), event); %};
 
 void set_objects_from_perl( SV *ui_parent, 
                             SV *frequently_changed_parameters_sizer,

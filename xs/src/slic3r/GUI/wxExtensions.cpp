@@ -452,6 +452,18 @@ wxDataViewItem MyObjectTreeModel::GetItemById(int obj_idx)
 }
 
 
+int MyObjectTreeModel::GetIdByItem(wxDataViewItem& item)
+{
+	wxASSERT(item.IsOk());
+
+	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
+	auto it = find(m_objects.begin(), m_objects.end(), node);
+	if (it == m_objects.end())
+		return -1;
+
+	return it - m_objects.begin();
+}
+
 wxString MyObjectTreeModel::GetName(const wxDataViewItem &item) const
 {
 	MyObjectTreeModelNode *node = (MyObjectTreeModelNode*)item.GetID();
