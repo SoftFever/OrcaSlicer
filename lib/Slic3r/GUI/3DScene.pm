@@ -18,19 +18,19 @@ use warnings;
 use Wx qw(wxTheApp :timer :bitmap :icon :dialog);
 #==============================================================================================================================
 #use Wx::Event qw(EVT_PAINT EVT_SIZE EVT_ERASE_BACKGROUND EVT_IDLE EVT_MOUSEWHEEL EVT_MOUSE_EVENTS EVT_CHAR EVT_TIMER);
-#==============================================================================================================================
 # must load OpenGL *before* Wx::GLCanvas
 use OpenGL qw(:glconstants :glfunctions :glufunctions :gluconstants);
 use base qw(Wx::GLCanvas Class::Accessor);
-use Math::Trig qw(asin tan);
-use List::Util qw(reduce min max first);
 #==============================================================================================================================
-use Slic3r::Geometry qw(X Y);
+#use Math::Trig qw(asin tan);
+#use List::Util qw(reduce min max first);
 #use Slic3r::Geometry qw(X Y normalize scale unscale scaled_epsilon);
 #use Slic3r::Geometry::Clipper qw(offset_ex intersection_pl JT_ROUND);
 #==============================================================================================================================
 use Wx::GLCanvas qw(:all);
-use Slic3r::Geometry qw(PI);
+#==============================================================================================================================
+#use Slic3r::Geometry qw(PI);
+#==============================================================================================================================
 
 # volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
 #==============================================================================================================================
@@ -260,11 +260,9 @@ sub new {
 sub Destroy {
     my ($self) = @_;
 #==============================================================================================================================
-#    $self->{layer_height_edit_timer}->Stop;
-#==============================================================================================================================
-    $self->DestroyGL;
-#==============================================================================================================================
     Slic3r::GUI::_3DScene::remove_canvas($self);    
+#    $self->{layer_height_edit_timer}->Stop;
+#    $self->DestroyGL;
 #==============================================================================================================================
     return $self->SUPER::Destroy;
 }
@@ -1247,13 +1245,11 @@ sub SetCurrent {
 #        }
 #    }
 #}
-#===================================================================================================================================        
-
-sub DestroyGL {
-    my $self = shift;
-    if ($self->GetContext) {
-        $self->SetCurrent($self->GetContext);
-#===================================================================================================================================        
+#
+#sub DestroyGL {
+#    my $self = shift;
+#    if ($self->GetContext) {
+#        $self->SetCurrent($self->GetContext);
 #        if ($self->{plain_shader}) {
 #            $self->{plain_shader}->release;
 #            delete $self->{plain_shader};
@@ -1262,12 +1258,10 @@ sub DestroyGL {
 #            $self->{layer_height_edit_shader}->release;
 #            delete $self->{layer_height_edit_shader};
 #        }
-#===================================================================================================================================        
-        $self->volumes->release_geometry;
-    }
-}
-
-#==============================================================================================================================
+#        $self->volumes->release_geometry;
+#    }
+#}
+#
 #sub Render {
 #    my ($self, $dc) = @_;
 #    
@@ -2145,10 +2139,12 @@ sub DestroyGL {
 package Slic3r::GUI::3DScene;
 use base qw(Slic3r::GUI::3DScene::Base);
 
-use OpenGL qw(:glconstants :gluconstants :glufunctions);
-use List::Util qw(first min max);
-use Slic3r::Geometry qw(scale unscale epsilon);
-use Slic3r::Print::State ':steps';
+#===================================================================================================================================        
+#use OpenGL qw(:glconstants :gluconstants :glufunctions);
+#use List::Util qw(first min max);
+#use Slic3r::Geometry qw(scale unscale epsilon);
+#use Slic3r::Print::State ':steps';
+#===================================================================================================================================        
 
 #===================================================================================================================================        
 #__PACKAGE__->mk_accessors(qw(

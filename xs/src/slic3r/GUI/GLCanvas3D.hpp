@@ -442,6 +442,9 @@ public:
     void register_on_model_update_callback(void* callback);
     void register_on_move_callback(void* callback);
 
+    void bind_event_handlers();
+    void unbind_event_handlers();
+
     void on_size(wxSizeEvent& evt);
     void on_idle(wxIdleEvent& evt);
     void on_char(wxKeyEvent& evt);

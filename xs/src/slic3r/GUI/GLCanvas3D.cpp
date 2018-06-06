@@ -969,6 +969,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
 
 GLCanvas3D::~GLCanvas3D()
 {
+    if (m_volumes != nullptr)
+    {
+        set_current();
+        m_volumes->release_geometry();
+    }
+
     if (m_timer != nullptr)
     {
         delete m_timer;
@@ -1834,6 +1840,57 @@ void GLCanvas3D::register_on_move_callback(void* callback)
 {
     if (callback != nullptr)
         m_on_move_callback.register_callback(callback);
+}
+
+void GLCanvas3D::bind_event_handlers()
+{
+    if (m_canvas != nullptr)
+    {
+        m_canvas->Bind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
+        m_canvas->Bind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
+        m_canvas->Bind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
+        m_canvas->Bind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
+        m_canvas->Bind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
+        m_canvas->Bind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_RIGHT_UP, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_MOTION, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_ENTER_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_LEAVE_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_LEFT_DCLICK, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
+        m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
+    }
+}
+
+void GLCanvas3D::unbind_event_handlers()
+{
+    if (m_canvas != nullptr)
+    {
+        m_canvas->GetEventHandler()->ProcessPendingEvents();
+        m_canvas->Unbind(wxEVT_SIZE, &GLCanvas3D::on_size, this);
+        m_canvas->Unbind(wxEVT_IDLE, &GLCanvas3D::on_idle, this);
+        m_canvas->Unbind(wxEVT_CHAR, &GLCanvas3D::on_char, this);
+        m_canvas->Unbind(wxEVT_MOUSEWHEEL, &GLCanvas3D::on_mouse_wheel, this);
+        m_canvas->Unbind(wxEVT_TIMER, &GLCanvas3D::on_timer, this);
+        m_canvas->Unbind(wxEVT_LEFT_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_LEFT_UP, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_MIDDLE_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_MIDDLE_UP, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_RIGHT_DOWN, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_RIGHT_UP, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_MOTION, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_ENTER_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_LEAVE_WINDOW, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_LEFT_DCLICK, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
+        m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
+    }
 }
 
 void GLCanvas3D::on_size(wxSizeEvent& evt)

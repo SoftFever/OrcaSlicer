@@ -91,6 +91,7 @@ sub new {
         # but in rare cases it may not have been called yet.
         wxTheApp->{app_config}->save;
 #==============================================================================================================================
+        $self->{plater}->{print} = undef if($self->{plater});
         Slic3r::GUI::_3DScene::remove_all_canvases();
 #==============================================================================================================================
         # propagate event

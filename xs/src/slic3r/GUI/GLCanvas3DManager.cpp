@@ -138,25 +138,7 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
     if (canvas3D == nullptr)
         return false;
 
-    canvas->Bind(wxEVT_SIZE, [canvas3D](wxSizeEvent& evt) { canvas3D->on_size(evt); });
-    canvas->Bind(wxEVT_IDLE, [canvas3D](wxIdleEvent& evt) { canvas3D->on_idle(evt); });
-    canvas->Bind(wxEVT_CHAR, [canvas3D](wxKeyEvent& evt)  { canvas3D->on_char(evt); });
-    canvas->Bind(wxEVT_MOUSEWHEEL, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse_wheel(evt); });
-    canvas->Bind(wxEVT_TIMER, [canvas3D](wxTimerEvent& evt) { canvas3D->on_timer(evt); });
-    canvas->Bind(wxEVT_LEFT_DOWN, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_LEFT_UP, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_MIDDLE_DOWN, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_MIDDLE_UP, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_RIGHT_DOWN, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_RIGHT_UP, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_MOTION, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_ENTER_WINDOW, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_LEAVE_WINDOW, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_LEFT_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_MIDDLE_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_RIGHT_DCLICK, [canvas3D](wxMouseEvent& evt) { canvas3D->on_mouse(evt); });
-    canvas->Bind(wxEVT_PAINT, [canvas3D](wxPaintEvent& evt) { canvas3D->on_paint(evt); });
-
+    canvas3D->bind_event_handlers();
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
     std::cout << "canvas added: " << (void*)canvas << " (" << (void*)canvas3D << ")" << std::endl;
@@ -170,6 +152,7 @@ bool GLCanvas3DManager::remove(wxGLCanvas* canvas)
     if (it == m_canvases.end())
         return false;
 
+    it->second->unbind_event_handlers();
     delete it->second;
     m_canvases.erase(it);
 
@@ -183,6 +166,8 @@ void GLCanvas3DManager::remove_all()
     for (CanvasesMap::value_type& item : m_canvases)
     {
         std::cout << "canvas removed: " << (void*)item.second << std::endl;
+
+        item.second->unbind_event_handlers();
         delete item.second;
     }
     m_canvases.clear();
