@@ -22,11 +22,13 @@ sub new {
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::enable_picking($self, 1);
     Slic3r::GUI::_3DScene::enable_moving($self, 1);
+    Slic3r::GUI::_3DScene::set_select_by($self, 'object');
+    Slic3r::GUI::_3DScene::set_drag_by($self, 'instance');
 #    $self->enable_picking(1);
 #    $self->enable_moving(1);
+#    $self->select_by('object');
+#    $self->drag_by('instance');
 #==============================================================================================================================
-    $self->select_by('object');
-    $self->drag_by('instance');
     
     $self->{objects}            = $objects;
     $self->{model}              = $model;

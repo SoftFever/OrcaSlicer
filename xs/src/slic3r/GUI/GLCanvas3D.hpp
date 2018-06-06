@@ -386,7 +386,11 @@ public:
     void set_axes_length(float length);
 
     void set_cutting_plane(float z, const ExPolygons& polygons);
-    
+
+    void set_color_by(const std::string& value);
+    void set_select_by(const std::string& value);
+    void set_drag_by(const std::string& value);
+
     float get_camera_zoom() const;
 
     BoundingBoxf3 volumes_bounding_box() const;

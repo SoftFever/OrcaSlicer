@@ -1149,6 +1149,21 @@ void GLCanvas3D::set_cutting_plane(float z, const ExPolygons& polygons)
     m_cutting_plane.set(z, polygons);
 }
 
+void GLCanvas3D::set_color_by(const std::string& value)
+{
+    m_color_by = value;
+}
+
+void GLCanvas3D::set_select_by(const std::string& value)
+{
+    m_select_by = value;
+}
+
+void GLCanvas3D::set_drag_by(const std::string& value)
+{
+    m_drag_by = value;
+}
+
 float GLCanvas3D::get_camera_zoom() const
 {
     return m_camera.zoom;

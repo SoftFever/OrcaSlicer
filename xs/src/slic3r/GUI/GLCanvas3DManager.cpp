@@ -317,6 +317,27 @@ void GLCanvas3DManager::set_cutting_plane(wxGLCanvas* canvas, float z, const ExP
         it->second->set_cutting_plane(z, polygons);
 }
 
+void GLCanvas3DManager::set_color_by(wxGLCanvas* canvas, const std::string& value)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_color_by(value);
+}
+
+void GLCanvas3DManager::set_select_by(wxGLCanvas* canvas, const std::string& value)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_select_by(value);
+}
+
+void GLCanvas3DManager::set_drag_by(wxGLCanvas* canvas, const std::string& value)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_drag_by(value);
+}
+
 bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);

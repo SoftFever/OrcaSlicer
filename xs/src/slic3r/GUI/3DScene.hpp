@@ -575,6 +575,10 @@ public:
 
     static void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
+    static void set_color_by(wxGLCanvas* canvas, const std::string& value);
+    static void set_select_by(wxGLCanvas* canvas, const std::string& value);
+    static void set_drag_by(wxGLCanvas* canvas, const std::string& value);
+
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
     static bool is_layers_editing_allowed(wxGLCanvas* canvas);
     static bool is_shader_enabled(wxGLCanvas* canvas);

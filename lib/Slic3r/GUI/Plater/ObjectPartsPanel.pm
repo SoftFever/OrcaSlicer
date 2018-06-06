@@ -155,11 +155,7 @@ sub new {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::enable_picking($canvas, 1);
-#        $canvas->enable_picking(1);
-#==============================================================================================================================
-        $canvas->select_by('volume');
-        
-#==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_select_by($canvas, 'volume');
         Slic3r::GUI::_3DScene::register_on_select_callback($canvas, sub {
             my ($volume_idx) = @_;
             # convert scene volume to model object volume
@@ -169,6 +165,8 @@ sub new {
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
         Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
         
+#        $canvas->enable_picking(1);
+#        $canvas->select_by('volume');
 #        $canvas->on_select(sub {
 #            my ($volume_idx) = @_;
 #            # convert scene volume to model object volume

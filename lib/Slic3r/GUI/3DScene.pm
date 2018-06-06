@@ -2150,19 +2150,23 @@ use List::Util qw(first min max);
 use Slic3r::Geometry qw(scale unscale epsilon);
 use Slic3r::Print::State ':steps';
 
-__PACKAGE__->mk_accessors(qw(
-    color_by
-    select_by
-    drag_by
-));
+#===================================================================================================================================        
+#__PACKAGE__->mk_accessors(qw(
+#    color_by
+#    select_by
+#    drag_by
+#));
+#===================================================================================================================================        
 
 sub new {
     my $class = shift;
     
     my $self = $class->SUPER::new(@_);
-    $self->color_by('volume');      # object | volume
-    $self->select_by('object');     # object | volume | instance
-    $self->drag_by('instance');     # object | instance
+#===================================================================================================================================        
+#    $self->color_by('volume');      # object | volume
+#    $self->select_by('object');     # object | volume | instance
+#    $self->drag_by('instance');     # object | instance
+#===================================================================================================================================        
     
     return $self;
 }

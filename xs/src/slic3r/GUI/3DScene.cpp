@@ -1857,6 +1857,21 @@ void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& 
     return s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
 }
 
+void _3DScene::set_color_by(wxGLCanvas* canvas, const std::string& value)
+{
+    return s_canvas_mgr.set_color_by(canvas, value);
+}
+
+void _3DScene::set_select_by(wxGLCanvas* canvas, const std::string& value)
+{
+    return s_canvas_mgr.set_select_by(canvas, value);
+}
+
+void _3DScene::set_drag_by(wxGLCanvas* canvas, const std::string& value)
+{
+    return s_canvas_mgr.set_drag_by(canvas, value);
+}
+
 bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_layers_editing_enabled(canvas);

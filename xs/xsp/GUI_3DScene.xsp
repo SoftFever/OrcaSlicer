@@ -275,6 +275,27 @@ set_cutting_plane(canvas, z, polygons)
     CODE:
         _3DScene::set_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), z, polygons);
 
+void
+set_color_by(canvas, value)
+        SV          *canvas;
+        std::string value;
+    CODE:
+        _3DScene::set_color_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
+void
+set_select_by(canvas, value)
+        SV          *canvas;
+        std::string value;
+    CODE:
+        _3DScene::set_select_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
+void
+set_drag_by(canvas, value)
+        SV          *canvas;
+        std::string value;
+    CODE:
+        _3DScene::set_drag_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
 bool
 is_layers_editing_enabled(canvas)
         SV *canvas;
