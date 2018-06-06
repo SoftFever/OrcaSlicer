@@ -297,6 +297,9 @@ namespace Slic3r {
         // Returns the estimated time, in format DDd HHh MMm SSs
         std::string get_time_dhms() const;
 
+        // Returns the estimated time, in minutes (integer)
+        std::string get_time_minutes() const;
+
     private:
         void _reset();
         void _reset_time();
@@ -380,6 +383,9 @@ namespace Slic3r {
 
         // Returns the given time is seconds in format DDd HHh MMm SSs
         static std::string _get_time_dhms(float time_in_secs);
+
+        // Returns the given, in minutes (integer)
+        static std::string _get_time_minutes(float time_in_secs);
 
 #if ENABLE_MOVE_STATS
         void _log_moves_stats() const;

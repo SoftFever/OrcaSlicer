@@ -37,15 +37,7 @@ static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
 static const std::string ELAPSED_TIME_TAG_DEFAULT = ";_ELAPSED_TIME_DEFAULT: ";
 static const std::string ELAPSED_TIME_TAG_SILENT = ";_ELAPSED_TIME_SILENT: ";
 
-#define REMAINING_TIME_USE_SINGLE_GCODE_COMMAND 1
-#if REMAINING_TIME_USE_SINGLE_GCODE_COMMAND
-static const std::string REMAINING_TIME_CMD = "M998";
-#else
-static const std::string REMAINING_TIME_CMD_DEFAULT = "M998";
-static const std::string REMAINING_TIME_CMD_SILENT = "M999";
-#endif // REMAINING_TIME_USE_SINGLE_GCODE_COMMAND
-
-static const std::string REMAINING_TIME_COMMENT = " ; estimated remaining time";
+static const std::string REMAINING_TIME_CMD = "M73";
 
 #if ENABLE_MOVE_STATS
 static const std::string MOVE_TYPE_STR[Slic3r::GCodeTimeEstimator::Block::Num_Types] =
@@ -307,12 +299,14 @@ namespace Slic3r {
                 throw std::runtime_error(std::string("Remaining times estimation failed.\nError while reading from file.\n"));
             }
 
-#if REMAINING_TIME_USE_SINGLE_GCODE_COMMAND
             // this function expects elapsed time for default and silent mode to be into two consecutive lines inside the gcode
             if (boost::contains(line, ELAPSED_TIME_TAG_DEFAULT))
             {
                 std::string default_elapsed_time_str = line.substr(ELAPSED_TIME_TAG_DEFAULT.length());
-                line = REMAINING_TIME_CMD + " D:" + _get_time_dhms(default_time - (float)atof(default_elapsed_time_str.c_str()));
+                float elapsed_time = (float)atof(default_elapsed_time_str.c_str());
+                float remaining_time = default_time - elapsed_time;
+                line = REMAINING_TIME_CMD + " P" + std::to_string((int)(100.0f * elapsed_time / default_time));
+                line += " R" + _get_time_minutes(remaining_time);
 
                 std::string next_line;
                 std::getline(in, next_line);
@@ -325,7 +319,10 @@ namespace Slic3r {
                 if (boost::contains(next_line, ELAPSED_TIME_TAG_SILENT))
                 {
                     std::string silent_elapsed_time_str = next_line.substr(ELAPSED_TIME_TAG_SILENT.length());
-                    line += " S:" + _get_time_dhms(silent_time - (float)atof(silent_elapsed_time_str.c_str())) + REMAINING_TIME_COMMENT;
+                    float elapsed_time = (float)atof(silent_elapsed_time_str.c_str());
+                    float remaining_time = silent_time - elapsed_time;
+                    line += " Q" + std::to_string((int)(100.0f * elapsed_time / silent_time));
+                    line += " S" + _get_time_minutes(remaining_time);
                 }
                 else
                     // found horphaned default elapsed time, skip the remaining time line output
@@ -334,24 +331,6 @@ namespace Slic3r {
             else if (boost::contains(line, ELAPSED_TIME_TAG_SILENT))
                 // found horphaned silent elapsed time, skip the remaining time line output
                 continue;
-#else
-            bool processed = false;
-            if (boost::contains(line, ELAPSED_TIME_TAG_DEFAULT))
-            {
-                std::string elapsed_time_str = line.substr(ELAPSED_TIME_TAG_DEFAULT.length());
-                line = REMAINING_TIME_CMD_DEFAULT + " " + _get_time_dhms(default_time - (float)atof(elapsed_time_str.c_str()));
-                processed = true;
-            }
-            else if (boost::contains(line, ELAPSED_TIME_TAG_SILENT))
-            {
-                std::string elapsed_time_str = line.substr(ELAPSED_TIME_TAG_SILENT.length());
-                line = REMAINING_TIME_CMD_SILENT + " " + _get_time_dhms(silent_time - (float)atof(elapsed_time_str.c_str()));
-                processed = true;
-            }
-
-            if (processed)
-                line += REMAINING_TIME_COMMENT;
-#endif // REMAINING_TIME_USE_SINGLE_GCODE_COMMAND
 
             line += "\n";
             fwrite((const void*)line.c_str(), 1, line.length(), out);
@@ -571,6 +550,11 @@ namespace Slic3r {
     std::string GCodeTimeEstimator::get_time_dhms() const
     {
         return _get_time_dhms(get_time());
+    }
+
+    std::string GCodeTimeEstimator::get_time_minutes() const
+    {
+        return _get_time_minutes(get_time());
     }
 
     void GCodeTimeEstimator::_reset()
@@ -1337,6 +1321,11 @@ namespace Slic3r {
             ::sprintf(buffer, "%ds", (int)time_in_secs);
 
         return buffer;
+    }
+
+    std::string GCodeTimeEstimator::_get_time_minutes(float time_in_secs)
+    {
+        return std::to_string((int)(::roundf(time_in_secs / 60.0f)));
     }
 
 #if ENABLE_MOVE_STATS
