@@ -356,8 +356,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		    			Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig).id);
 		    		g_PresetBundle->load_presets(*g_AppConfig);
 		    		// Load the currently selected preset into the GUI, update the preset selection box.
-					for (Tab *tab : g_tabs_list)
-						tab->load_current_preset();
+					load_current_presets();
 		    	}
 		    }
 		    break;
@@ -451,9 +450,8 @@ void config_wizard(int reason)
 		show_error(nullptr, e.what());
 	}
 
-    // Load the currently selected preset into the GUI, update the preset selection box.
-	for (Tab *tab : g_tabs_list)
-		tab->load_current_preset();
+	// Load the currently selected preset into the GUI, update the preset selection box.
+	load_current_presets();
 }
 
 void open_preferences_dialog(int event_preferences)
@@ -603,6 +601,13 @@ void add_created_tab(Tab* panel)
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
 	g_wxTabPanel->AddPage(panel, panel->title());
+}
+
+void load_current_presets()
+{
+	for (Tab *tab : g_tabs_list) {
+		tab->load_current_preset();
+	}
 }
 
 void show_error(wxWindow* parent, const wxString& message) {

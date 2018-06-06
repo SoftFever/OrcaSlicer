@@ -162,7 +162,7 @@ bool PresetUpdater::priv::get_file(const std::string &url, const fs::path &targe
 				% http_status
 				% error;
 		})
-		.on_complete([&](std::string body, unsigned http_status) {
+		.on_complete([&](std::string body, unsigned /* http_status */) {
 			fs::fstream file(tmp_path, std::ios::out | std::ios::binary | std::ios::trunc);
 			file.write(body.c_str(), body.size());
 			file.close();
@@ -204,7 +204,7 @@ void PresetUpdater::priv::sync_version() const
 				% http_status
 				% error;
 		})
-		.on_complete([&](std::string body, unsigned http_status) {
+		.on_complete([&](std::string body, unsigned /* http_status */) {
 			boost::trim(body);
 			BOOST_LOG_TRIVIAL(info) << boost::format("Got Slic3rPE online version: `%1%`. Sending to GUI thread...") % body;
 			wxCommandEvent* evt = new wxCommandEvent(version_online_event);
@@ -553,6 +553,12 @@ bool PresetUpdater::config_update() const
 		if (res == wxID_OK) {
 			BOOST_LOG_TRIVIAL(debug) << "User agreed to perform the update";
 			p->perform_updates(std::move(updates));
+
+			// Reload global configuration
+			auto *app_config = GUI::get_app_config();
+			app_config->reset_selections();
+			GUI::get_preset_bundle()->load_presets(*app_config);
+			GUI::load_current_presets();
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User refused the update";
 		}

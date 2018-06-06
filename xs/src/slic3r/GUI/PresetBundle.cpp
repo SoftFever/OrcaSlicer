@@ -101,6 +101,7 @@ PresetBundle::~PresetBundle()
 void PresetBundle::reset(bool delete_files)
 {
     // Clear the existing presets, delete their respective files.
+    this->vendors.clear();
     this->prints   .reset(delete_files);
     this->filaments.reset(delete_files);
     this->printers .reset(delete_files);
