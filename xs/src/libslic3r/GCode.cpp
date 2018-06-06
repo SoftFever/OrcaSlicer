@@ -1407,7 +1407,7 @@ void GCode::process_layer(
         auto objects_by_extruder_it = by_extruder.find(extruder_id);
         if (objects_by_extruder_it == by_extruder.end())
             continue;
-        for (const ObjectByExtruder &object_by_extruder : objects_by_extruder_it->second) {
+        for (ObjectByExtruder &object_by_extruder : objects_by_extruder_it->second) {
             const size_t       layer_id     = &object_by_extruder - objects_by_extruder_it->second.data();
             const PrintObject *print_object = layers[layer_id].object();
             if (print_object == nullptr)
@@ -1440,7 +1440,7 @@ void GCode::process_layer(
                         object_by_extruder.support->chained_path_from(m_last_pos, false, object_by_extruder.support_extrusion_role));
                     m_layer = layers[layer_id].layer();
                 }
-                for (const ObjectByExtruder::Island &island : object_by_extruder.islands) {
+                for (ObjectByExtruder::Island &island : object_by_extruder.islands) {
                     if (print.config.infill_first) {
                         gcode += this->extrude_infill(print, island.by_region_per_copy(copy_id));
                         gcode += this->extrude_perimeters(print, island.by_region_per_copy(copy_id), lower_layer_edge_grids[layer_id]);
@@ -2511,23 +2511,30 @@ Point GCode::gcode_to_point(const Pointf &point) const
 }
 
 
-// Goes through by_region std::vector and returns only a subvector of entities to be printed in usual time
+// Goes through by_region std::vector and returns ref a subvector of entities to be printed in usual time
 // i.e. not when it's going to be done during infill wiping
-std::vector<GCode::ObjectByExtruder::Island::Region> GCode::ObjectByExtruder::Island::by_region_per_copy(unsigned int copy) const
+const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtruder::Island::by_region_per_copy(unsigned int copy)
 {
-    std::vector<ObjectByExtruder::Island::Region> out;
-    for (auto& reg : by_region) {
-        out.push_back(ObjectByExtruder::Island::Region());
+    if (copy == last_copy)
+        return by_region_per_copy_cache;
+    else {
+        by_region_per_copy_cache.clear();
+        last_copy = copy;
+    }
+
+    //std::vector<ObjectByExtruder::Island::Region> out;
+    for (const auto& reg : by_region) {
+        by_region_per_copy_cache.push_back(ObjectByExtruder::Island::Region());
         //out.back().perimeters.append(reg.perimeters);       // we will print all perimeters there are
 
         if (!reg.infills_per_copy_ids.empty()) {
             for (unsigned int i=0; i<reg.infills_per_copy_ids[copy].size(); ++i)
-                out.back().infills.append(*(reg.infills.entities[reg.infills_per_copy_ids[copy][i]]));
+                by_region_per_copy_cache.back().infills.append(*(reg.infills.entities[reg.infills_per_copy_ids[copy][i]]));
             for (unsigned int i=0; i<reg.perimeters_per_copy_ids[copy].size(); ++i)
-                out.back().perimeters.append(*(reg.perimeters.entities[reg.perimeters_per_copy_ids[copy][i]]));
+                by_region_per_copy_cache.back().perimeters.append(*(reg.perimeters.entities[reg.perimeters_per_copy_ids[copy][i]]));
         }
     }
-    return out;
+    return by_region_per_copy_cache;
 }
 
 }   // namespace Slic3r

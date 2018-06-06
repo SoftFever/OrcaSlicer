@@ -1893,6 +1893,16 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "wipe-into-infill!";
     def->default_value = new ConfigOptionBool(true);
 
+    def = this->add("wipe_into_objects", coBool);
+    def->category = L("Extruders");
+    def->label = L("Wiping into objects");
+    def->tooltip = L("Objects will be used to wipe the nozzle after a toolchange to save material "
+                     "that would otherwise end up in the wipe tower and decrease print time. "
+                     "Colours of the objects will be mixed as a result. (This setting is usually "
+                     "used on per-object basis.)");
+    def->cli = "wipe-into-objects!";
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("wipe_tower_bridging", coFloat);
     def->label = L("Maximal bridging distance");
     def->tooltip = L("Maximal distance between supports on sparse infill sections. ");
