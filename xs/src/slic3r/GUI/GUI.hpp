@@ -5,6 +5,9 @@
 #include <vector>
 #include "Config.hpp"
 
+#include <wx/intl.h>
+#include <wx/string.h>
+
 class wxApp;
 class wxWindow;
 class wxFrame;
@@ -29,6 +32,12 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+
+#define _(s)    Slic3r::translate((s))
+inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
+inline wxString translate(const wchar_t *s) 	 { return wxGetTranslation(s); }
+inline wxString translate(const std::string &s)  { return wxGetTranslation(wxString(s.c_str(), wxConvUTF8)); }
+inline wxString translate(const std::wstring &s) { return wxGetTranslation(s.c_str()); }
 
 // !!! If you needed to translate some wxString,
 // !!! please use _(L(string))
