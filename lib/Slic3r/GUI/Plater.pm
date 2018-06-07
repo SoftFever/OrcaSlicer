@@ -44,8 +44,6 @@ our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
 use constant FILAMENT_CHOOSERS_SPACING => 0;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
-my $PreventListEvents = 0;
-
 sub new {
     my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -234,23 +232,6 @@ sub new {
     $self->{right_panel} = Wx::ScrolledWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $self->{right_panel}->SetScrollbars(0, 1, 1, 1);
     
-    $self->{list} = Wx::ListView->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize,
-        wxLC_SINGLE_SEL | wxLC_REPORT | wxBORDER_SUNKEN | wxTAB_TRAVERSAL | wxWANTS_CHARS );
-    $self->{list}->InsertColumn(0, L("Name"), wxLIST_FORMAT_LEFT, 145);
-    $self->{list}->InsertColumn(1, L("Copies"), wxLIST_FORMAT_CENTER, 45);
-    $self->{list}->InsertColumn(2, L("Scale"), wxLIST_FORMAT_CENTER, wxLIST_AUTOSIZE_USEHEADER);
-    EVT_LIST_ITEM_SELECTED($self, $self->{list}, \&list_item_selected);
-    EVT_LIST_ITEM_DESELECTED($self, $self->{list}, \&list_item_deselected);
-    EVT_LIST_ITEM_ACTIVATED($self, $self->{list}, \&list_item_activated);
-    EVT_KEY_DOWN($self->{list}, sub {
-        my ($list, $event) = @_;
-        if ($event->GetKeyCode == WXK_TAB) {
-            $list->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
-        } else {
-            $event->Skip;
-        }
-    });
-    
     # right pane buttons
     $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxNO_BORDER);#, wxBU_LEFT);
     $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
@@ -335,7 +316,7 @@ sub new {
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for grep defined($_),
-            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D}, $self->{list};
+            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D};
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
         my ($self, $event) = @_;
@@ -417,7 +398,6 @@ sub new {
         Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
 
         my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        print "Plater event = ".$self->{event_object_selection_changed}."\n";
         Slic3r::GUI::add_expert_mode_part($self->{right_panel}, $expert_mode_part_sizer, $self->{event_object_selection_changed});
         if ($expert_mode_part_sizer->IsShown(2)==1) 
         { 
@@ -519,7 +499,6 @@ sub new {
         ### Sizer for info boxes
         my $info_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $info_sizer->SetMinSize([310, -1]);        
-        $info_sizer->Add($self->{list}, 1, wxEXPAND, 5);
         $info_sizer->Add($object_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $info_sizer->Add($print_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
 
@@ -527,21 +506,17 @@ sub new {
         $self->{right_panel}->SetSizer($right_sizer);
         $right_sizer->SetMinSize([320, -1]);
         $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
-        $right_sizer->Add($frequently_changed_parameters_sizer, 2, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
-        $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 0) if defined $expert_mode_part_sizer;
-        $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $right_sizer->Add($info_sizer, 1, wxEXPAND | wxLEFT, 20);
+        $right_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
+        $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 10) if defined $expert_mode_part_sizer;
+        $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM | wxTOP, 10);
+        $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
         $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
         # Callback for showing / hiding the print info box.
         $self->{"print_info_box_show"} = sub {
-#            if ($right_sizer->IsShown(5) != $_[0]) { 
-#                $right_sizer->Show(5, $_[0]); 
-#                $self->Layout
-#            }
-            if ($info_sizer->IsShown(2) != $_[0]) {
+            if ($info_sizer->IsShown(1) != $_[0]) {
                 Slic3r::GUI::set_show_print_info($_[0]);
                 return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
-                $info_sizer->Show(2, $_[0]);
+                $info_sizer->Show(1, $_[0]);
                 $self->Layout;
                 $self->{right_panel}->Refresh;
             }
@@ -853,12 +828,6 @@ sub load_model_objects {
     foreach my $obj_idx (@obj_idx) {
         my $object = $self->{objects}[$obj_idx];
         my $model_object = $self->{model}->objects->[$obj_idx];
-        $self->{list}->InsertStringItem($obj_idx, $object->name);
-        $self->{list}->SetItemFont($obj_idx, Wx::Font->new(10, wxDEFAULT, wxNORMAL, wxNORMAL))
-            if $self->{list}->can('SetItemFont');  # legacy code for wxPerl < 0.9918 not supporting SetItemFont()
-    
-        $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
-        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");
 
         # Add object to list on c++ side
         Slic3r::GUI::add_object_to_list($object->name, $model_object->instances_count, ($model_object->instances->[0]->scaling_factor * 100));
@@ -872,8 +841,6 @@ sub load_model_objects {
     $self->{canvas3D}->zoom_to_volumes
         if $self->{canvas3D};
     
-    $self->{list}->Update;
-    $self->{list}->Select($obj_idx[-1], 1);
     $self->object_list_changed;
     
     $self->schedule_background_process;
@@ -908,7 +875,6 @@ sub remove {
     splice @{$self->{objects}}, $obj_idx, 1;
     $self->{model}->delete_object($obj_idx);
     $self->{print}->delete_object($obj_idx);
-    $self->{list}->DeleteItem($obj_idx);
     # Delete object from list on c++ side
     Slic3r::GUI::delete_object_from_list();
     $self->object_list_changed;
@@ -933,7 +899,6 @@ sub reset {
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
     $self->{print}->clear_objects;
-    $self->{list}->DeleteAllItems;
     # Delete all objects from list on c++ side
     Slic3r::GUI::delete_all_objects_from_list();
     $self->object_list_changed;
@@ -960,7 +925,6 @@ sub increase {
         );
         $self->{print}->objects->[$obj_idx]->add_copy($instance->offset);
     }
-    $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
     # Set conut of object on c++ side
     Slic3r::GUI::set_object_count($obj_idx, $model_object->instances_count);
     
@@ -988,7 +952,6 @@ sub decrease {
             $model_object->delete_last_instance;
             $self->{print}->objects->[$obj_idx]->delete_last_copy;
         }
-        $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
         # Set conut of object on c++ side
         Slic3r::GUI::set_object_count($obj_idx, $model_object->instances_count);
     } elsif (defined $copies_asked) {
@@ -999,11 +962,7 @@ sub decrease {
         $self->resume_background_process;
         return;
     }
-    
-    if ($self->{objects}[$obj_idx]) {
-        $self->{list}->Select($obj_idx, 0);
-        $self->{list}->Select($obj_idx, 1);
-    }
+
     $self->update;
     $self->schedule_background_process;
 }
@@ -1182,8 +1141,7 @@ sub changescale {
             $scale = $self->_get_number_from_user(L('Enter the scale % for the selected object:'), L('Scale'), L('Invalid scaling value entered'), $model_instance->scaling_factor*100, 1);
             return if ! defined($scale) || $scale eq '';
         }
-    
-        $self->{list}->SetItem($obj_idx, 2, "$scale%");
+
         # Set object scale on c++ side
         Slic3r::GUI::set_object_scale($obj_idx, $scale);
         $scale /= 100;  # turn percent into factor
@@ -1887,31 +1845,19 @@ sub on_config_change {
     $self->schedule_background_process;
 }
 
-sub list_item_deselected {
-    my ($self, $event) = @_;
-    return if $PreventListEvents;
-    $self->{_lecursor} = Wx::BusyCursor->new();
-    if ($self->{list}->GetFirstSelected == -1) {
-        $self->select_object(undef);
-        $self->{canvas}->Refresh;
-        $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
-        $self->{canvas3D}->Render if $self->{canvas3D};
-    }
-    undef $self->{_lecursor};
-}
+sub item_changed_selection{
+    my ($self, $obj_idx) = @_;
 
-sub list_item_selected {
-    my ($self, $event) = @_;
-    return if $PreventListEvents;
-    $self->{_lecursor} = Wx::BusyCursor->new();
-    my $obj_idx = $event->GetIndex;
-    $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
-    $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
+    if ($self->{canvas3D}){
+        $self->{canvas3D}->deselect_volumes;
+        if ($obj_idx >= 0) {
+            $self->{canvas3D}->update_volumes_selection};
+    }
     $self->{canvas3D}->Render if $self->{canvas3D};
-    undef $self->{_lecursor};
 }
 
+# doesn't used now
 sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
     
@@ -2107,30 +2053,17 @@ sub selection_changed {
 sub select_object {
     my ($self, $obj_idx) = @_;
 
-    print "obj_idx = $obj_idx\n";
     # remove current selection
     foreach my $o (0..$#{$self->{objects}}) {
-        $PreventListEvents = 1;
         $self->{objects}->[$o]->selected(0);
-        $self->{list}->Select($o, 0);
-        $PreventListEvents = 0;
     }
 
-    # Unselect all objects in the list on c++ side
-    #Slic3r::GUI::unselect_objects();
-    
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
-        # We use this flag to avoid circular event handling
-        # Select() happens to fire a wxEVT_LIST_ITEM_SELECTED on Windows, 
-        # whose event handler calls this method again and again and again
-        $PreventListEvents = 1;
-        $self->{list}->Select($obj_idx, 1);
-        $PreventListEvents = 0;
         # Select current object in the list on c++ side
         Slic3r::GUI::select_current_object($obj_idx);
     } else {
-        # TODO: deselect all in list
+        # Unselect all objects in the list on c++ side
         Slic3r::GUI::unselect_objects();
     }
     $self->selection_changed(1);
@@ -2139,7 +2072,6 @@ sub select_object {
 sub selected_object {
     my ($self) = @_;
     my $obj_idx = first { $self->{objects}[$_]->selected } 0..$#{ $self->{objects} };
-    print "selected obj_idx = $obj_idx\n";
     return defined $obj_idx ? ($obj_idx, $self->{objects}[$obj_idx]) : undef;
 }
 

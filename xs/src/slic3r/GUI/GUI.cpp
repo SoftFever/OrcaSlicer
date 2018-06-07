@@ -904,7 +904,12 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		if (!item) 
 			unselect_objects();
 		else
-			obj_idx = m_objects_model->GetIdByItem(item);
+		{
+			if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+				obj_idx = m_objects_model->GetIdByItem(item);
+			else
+				obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item)); // TODO Temporary decision for sub-objects selection
+		}
 
 		if (m_event_object_selection_changed > 0) {
 			wxCommandEvent event(m_event_object_selection_changed);
@@ -915,6 +920,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		if (obj_idx < 0) return;
 
 //		m_objects_ctrl->SetSize(m_objects_ctrl->GetBestSize()); // TODO override GetBestSize(), than use it
+
 		auto show_obj_sizer = m_objects_model->GetParent(item) == wxDataViewItem(0);
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
@@ -1135,25 +1141,6 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_
 	m_event_object_selection_changed = event_object_selection_changed;
 	wxWindowUpdateLocker noUpdates(parent);
 
-	auto btn_grid_sizer = new wxGridSizer(1, 3, 2, 2);
-	sizer->Add(btn_grid_sizer, 0, wxALIGN_LEFT | wxLEFT, 20);
-
-	// Experiments with new UI
-	auto add_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
-	btn_grid_sizer->Add(add_btn, 0, wxEXPAND, 0);
-
-	auto del_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	if (wxMSW) del_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-	del_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_delete.png")), wxBITMAP_TYPE_PNG));
-	btn_grid_sizer->Add(del_btn, 0, wxEXPAND, 0);
-
-	auto del_all_btn = new wxButton(parent, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	if (wxMSW) del_all_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-	del_all_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG));
-	btn_grid_sizer->Add(del_all_btn, 0, wxEXPAND, 0);
-
 	// *** Objects List ***	
  	auto collpane = add_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
 	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent& e){
@@ -1171,17 +1158,7 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_
 	}));
 
 	// *** Object/Part Settings ***
-	m_collpane_settings = add_collapsible_pane(parent, sizer, "Settings", content_settings);
-
-	add_btn->Bind(wxEVT_BUTTON, [](wxEvent& )
-	{
-		wxString name = "Object";
-		m_objects_ctrl->Select(m_objects_model->Add(name));
-	});
-
-	del_btn->Bind(wxEVT_BUTTON, [](wxEvent& ) { delete_object_from_list(); });
-
-	del_all_btn->Bind(wxEVT_BUTTON, [](wxEvent&) { delete_all_objects_from_list(); });
+	m_collpane_settings = add_collapsible_pane(parent, sizer, "Object Settings", content_settings);
 
 	// More experiments with UI
 // 	auto listctrl = new wxDataViewListCtrl(main_page, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
@@ -1386,31 +1363,36 @@ void show_buttons(bool show)
 	}
 }
 
-void show_scrolled_window_sizer(bool show)
+void show_info_sizer(bool show)
 {
-	g_scrolled_window_sizer->Show(static_cast<size_t>(0), /*false*/show); //don't used now
-	g_scrolled_window_sizer->Show(1, show);
-	g_scrolled_window_sizer->Show(2, show && g_show_print_info);
+	g_scrolled_window_sizer->Show(static_cast<size_t>(0), show); 
+	g_scrolled_window_sizer->Show(1, show && g_show_print_info);
 	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
 }
 
 void update_mode()
 {
-	//TODO There is a not the best place of it!
+	wxWindowUpdateLocker noUpdates(g_right_panel);
+
+	// TODO There is a not the best place of it!
 	//*** Update style of the "Export G-code" button****
 	if (g_btn_export_gcode->GetFont() != bold_font()){
 		g_btn_export_gcode->SetBackgroundColour(wxColour(252, 77, 1));
 		g_btn_export_gcode->SetFont(bold_font());
 	}
-	//************************************
+	// ***********************************
 
-	wxWindowUpdateLocker noUpdates(g_right_panel);
 	ConfigMenuIDs mode = get_view_mode();
 
 // 	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
 	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
-	show_scrolled_window_sizer(mode == ConfigMenuModeExpert);
+	show_info_sizer(mode == ConfigMenuModeExpert);
 	show_buttons(mode == ConfigMenuModeExpert);
+
+	// TODO There is a not the best place of it!
+	// *** Update showing of the collpane_settings
+	m_collpane_settings->Show(mode == ConfigMenuModeExpert && !m_objects_model->IsEmpty());
+	// *************************
 	g_right_panel->GetParent()->Layout();
 	g_right_panel->Layout();
 }

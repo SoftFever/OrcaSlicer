@@ -177,12 +177,9 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $OBJECT_SELECTION_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
         my $obj_idx = $event->GetInt;
-        print "obj_idx = $obj_idx\n";
+
         $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx);
-        
-        $self->{plater}->{canvas}->Refresh;
-        $self->{plater}->{canvas3D}->deselect_volumes if $self->{canvas3D};
-        $self->{plater}->{canvas3D}->Render if $self->{canvas3D};
+        $self->{plater}->item_changed_selection($obj_idx);
     });       
         
 
