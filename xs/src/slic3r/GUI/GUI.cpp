@@ -1132,10 +1132,12 @@ void select_current_object(int idx)
 	if (idx < 0) return;
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
 
-	if (!m_sizer_object_buttons->IsShown(1)) 
-		m_sizer_object_buttons->Show(true);
-	if (!m_collpane_settings->IsShown())
-		m_collpane_settings->Show(true);
+	if (get_view_mode() == ConfigMenuModeExpert){
+		if (!m_sizer_object_buttons->IsShown(1))
+			m_sizer_object_buttons->Show(true);
+		if (!m_collpane_settings->IsShown())
+			m_collpane_settings->Show(true);
+	}
 }
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_selection_changed)
