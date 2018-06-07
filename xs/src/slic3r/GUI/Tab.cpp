@@ -1263,7 +1263,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_density");
 		optgroup->append_single_option_line("filament_cost");
 
-		optgroup = page->new_optgroup(_(L("Temperature ")) + wxString("°", wxConvUTF8));
+		optgroup = page->new_optgroup(_(L("Temperature ")) + wxString("°C", wxConvUTF8));
 		Line line = { _(L("Extruder")), "" };
 		line.append_option(optgroup->get_option("first_layer_temperature"));
 		line.append_option(optgroup->get_option("temperature"));
