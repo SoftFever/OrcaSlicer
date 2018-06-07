@@ -105,15 +105,6 @@ sub OnInit {
 
     $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT);
     Slic3r::GUI::set_preset_updater($self->{preset_updater});
-    eval {
-        if (! $self->{preset_updater}->config_update()) {
-            exit 0;
-        }
-    };
-    if ($@) {
-        warn $@ . "\n";
-        fatal_error(undef, $@);
-    }
 
     Slic3r::GUI::load_language();
 
@@ -137,6 +128,7 @@ sub OnInit {
     );
     $self->SetTopWindow($frame);
 
+    # This makes CallAfter() work
     EVT_IDLE($self->{mainframe}, sub {
         while (my $cb = shift @cb) {
             $cb->();
@@ -144,8 +136,21 @@ sub OnInit {
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
 
-    # On OSX the UI was not initialized correctly if the wizard was called
-    # before the UI was up and running.
+    # On OS X the UI tends to freeze in weird ways if modal dialogs (config wizard, update notifications, ...)
+    # are shown before or in the same event callback with the main frame creation.
+    # Therefore we schedule them for later using CallAfter.
+    $self->CallAfter(sub {
+        eval {
+            if (! $self->{preset_updater}->config_update()) {
+                exit 0;
+            }
+        };
+        if ($@) {
+            warn $@ . "\n";
+            fatal_error(undef, $@);
+        }
+    });
+
     $self->CallAfter(sub {
         if (! Slic3r::GUI::config_wizard_startup($app_conf_exists)) {
             # Only notify if there was not wizard so as not to bother too much ...

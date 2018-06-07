@@ -125,6 +125,9 @@ void add_created_tab(Tab* panel);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
+// Update UI / Tabs to reflect changes in the currently loaded presets
+void load_current_presets();
+
 void show_error(wxWindow* parent, const wxString& message);
 void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title);
