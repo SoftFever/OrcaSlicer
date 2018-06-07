@@ -947,6 +947,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_volumes(nullptr)
     , m_config(nullptr)
     , m_print(nullptr)
+    , m_model(nullptr)
     , m_dirty(true)
     , m_initialized(false)
     , m_use_VBOs(false)
@@ -1114,6 +1115,11 @@ void GLCanvas3D::set_config(DynamicPrintConfig* config)
 void GLCanvas3D::set_print(Print* print)
 {
     m_print = print;
+}
+
+void GLCanvas3D::set_model(Model* model)
+{
+    m_model = model;
 }
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
@@ -1836,12 +1842,6 @@ void GLCanvas3D::register_on_model_update_callback(void* callback)
         m_on_model_update_callback.register_callback(callback);
 }
 
-void GLCanvas3D::register_on_move_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_move_callback.register_callback(callback);
-}
-
 void GLCanvas3D::register_on_remove_object_callback(void* callback)
 {
     if (callback != nullptr)
@@ -1882,6 +1882,24 @@ void GLCanvas3D::register_on_decrease_objects_callback(void* callback)
 {
     if (callback != nullptr)
         m_on_decrease_objects_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_instance_moved_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_instance_moved_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_wipe_tower_moved_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_wipe_tower_moved_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_enable_action_buttons_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_enable_action_buttons_callback.register_callback(callback);
 }
 
 void GLCanvas3D::bind_event_handlers()
@@ -2283,7 +2301,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
             }
             
-            m_on_move_callback.call(volume_idxs);
+            _on_move(volume_idxs);
         }
         
         m_mouse.drag.volume_idx = -1;
@@ -2511,7 +2529,6 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_right_click_callback.deregister_callback();
     m_on_select_callback.deregister_callback();
     m_on_model_update_callback.deregister_callback();
-    m_on_move_callback.deregister_callback();
     m_on_remove_object_callback.deregister_callback();
     m_on_arrange_callback.deregister_callback();
     m_on_rotate_object_left_callback.deregister_callback();
@@ -2519,6 +2536,9 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_scale_object_uniformly_callback.deregister_callback();
     m_on_increase_objects_callback.deregister_callback();
     m_on_decrease_objects_callback.deregister_callback();
+    m_on_instance_moved_callback.deregister_callback();
+    m_on_wipe_tower_moved_callback.deregister_callback();
+    m_on_enable_action_buttons_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -3541,6 +3561,48 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
             }
         }
     }
+}
+
+void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
+{
+    if ((m_model == nullptr) || (m_volumes == nullptr))
+        return;
+
+    std::set<std::string> done;  // prevent moving instances twice
+    bool object_moved = false;
+    Pointf3 wipe_tower_origin(0.0, 0.0, 0.0);
+    for (int volume_idx : volume_idxs)
+    {
+        GLVolume* volume = m_volumes->volumes[volume_idx];
+        int obj_idx = volume->object_idx();
+        int instance_idx = volume->instance_idx();
+
+        // prevent moving instances twice
+        char done_id[64];
+        ::sprintf(done_id, "%d_%d", obj_idx, instance_idx);
+        if (done.find(done_id) != done.end())
+            continue;
+
+        done.insert(done_id);
+
+        if (obj_idx < 1000)
+        {
+            // Move a regular object.
+            ModelObject* model_object = m_model->objects[obj_idx];
+            model_object->instances[instance_idx]->offset.translate(volume->origin.x, volume->origin.y);
+            model_object->invalidate_bounding_box();
+            object_moved = true;
+        }
+        else if (obj_idx == 1000)
+            // Move a wipe tower proxy.
+            wipe_tower_origin = volume->origin;
+    }
+
+    if (object_moved)
+        m_on_instance_moved_callback.call();
+
+    if (wipe_tower_origin != Pointf3(0.0, 0.0, 0.0))
+        m_on_wipe_tower_moved_callback.call(wipe_tower_origin.x, wipe_tower_origin.y);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

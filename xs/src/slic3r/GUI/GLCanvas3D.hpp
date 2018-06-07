@@ -330,6 +330,7 @@ private:
     GLVolumeCollection* m_volumes;
     DynamicPrintConfig* m_config;
     Print* m_print;
+    Model* m_model;
 
     bool m_dirty;
     bool m_initialized;
@@ -355,7 +356,6 @@ private:
     PerlCallback m_on_right_click_callback;
     PerlCallback m_on_select_callback;
     PerlCallback m_on_model_update_callback;
-    PerlCallback m_on_move_callback;
     PerlCallback m_on_remove_object_callback;
     PerlCallback m_on_arrange_callback;
     PerlCallback m_on_rotate_object_left_callback;
@@ -363,6 +363,9 @@ private:
     PerlCallback m_on_scale_object_uniformly_callback;
     PerlCallback m_on_increase_objects_callback;
     PerlCallback m_on_decrease_objects_callback;
+    PerlCallback m_on_instance_moved_callback;
+    PerlCallback m_on_wipe_tower_moved_callback;
+    PerlCallback m_on_enable_action_buttons_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -381,6 +384,7 @@ public:
 
     void set_config(DynamicPrintConfig* config);
     void set_print(Print* print);
+    void set_model(Model* model);
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -447,7 +451,6 @@ public:
     void register_on_right_click_callback(void* callback);
     void register_on_select_callback(void* callback);
     void register_on_model_update_callback(void* callback);
-    void register_on_move_callback(void* callback);
     void register_on_remove_object_callback(void* callback);
     void register_on_arrange_callback(void* callback);
     void register_on_rotate_object_left_callback(void* callback);
@@ -455,6 +458,9 @@ public:
     void register_on_scale_object_uniformly_callback(void* callback);
     void register_on_increase_objects_callback(void* callback);
     void register_on_decrease_objects_callback(void* callback);
+    void register_on_instance_moved_callback(void* callback);
+    void register_on_wipe_tower_moved_callback(void* callback);
+    void register_on_enable_action_buttons_callback(void* callback);
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -527,6 +533,8 @@ private:
     void _load_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
+
+    void _on_move(const std::vector<int>& volume_idxs);
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

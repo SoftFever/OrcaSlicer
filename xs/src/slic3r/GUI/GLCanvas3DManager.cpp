@@ -268,6 +268,13 @@ void GLCanvas3DManager::set_print(wxGLCanvas* canvas, Print* print)
         it->second->set_print(print);
 }
 
+void GLCanvas3DManager::set_model(wxGLCanvas* canvas, Model* model)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_model(model);
+}
+
 void GLCanvas3DManager::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -543,13 +550,6 @@ void GLCanvas3DManager::register_on_model_update_callback(wxGLCanvas* canvas, vo
         it->second->register_on_model_update_callback(callback);
 }
 
-void GLCanvas3DManager::register_on_move_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_move_callback(callback);
-}
-
 void GLCanvas3DManager::register_on_remove_object_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -597,6 +597,27 @@ void GLCanvas3DManager::register_on_decrease_objects_callback(wxGLCanvas* canvas
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_decrease_objects_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_instance_moved_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_wipe_tower_moved_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_enable_action_buttons_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

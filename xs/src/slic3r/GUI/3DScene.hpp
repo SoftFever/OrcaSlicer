@@ -565,6 +565,7 @@ public:
 
     static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     static void set_print(wxGLCanvas* canvas, Print* print);
+    static void set_model(wxGLCanvas* canvas, Model* model);
 
     static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
     static void set_auto_bed_shape(wxGLCanvas* canvas);
@@ -609,7 +610,6 @@ public:
     static void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_select_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_move_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_remove_object_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_arrange_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback);
@@ -617,6 +617,9 @@ public:
     static void register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
 
 //    static void _glew_init();
 //##################################################################################################################

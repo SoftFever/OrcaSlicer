@@ -1832,6 +1832,11 @@ void _3DScene::set_print(wxGLCanvas* canvas, Print* print)
     s_canvas_mgr.set_print(canvas, print);
 }
 
+void _3DScene::set_model(wxGLCanvas* canvas, Model* model)
+{
+    s_canvas_mgr.set_model(canvas, model);
+}
+
 void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
     return s_canvas_mgr.set_bed_shape(canvas, shape);
@@ -1992,11 +1997,6 @@ void _3DScene::register_on_model_update_callback(wxGLCanvas* canvas, void* callb
     s_canvas_mgr.register_on_model_update_callback(canvas, callback);
 }
 
-void _3DScene::register_on_move_callback(wxGLCanvas* canvas, void* callback)
-{
-    s_canvas_mgr.register_on_move_callback(canvas, callback);
-}
-
 void _3DScene::register_on_remove_object_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_remove_object_callback(canvas, callback);
@@ -2030,6 +2030,21 @@ void _3DScene::register_on_increase_objects_callback(wxGLCanvas* canvas, void* c
 void _3DScene::register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_decrease_objects_callback(canvas, callback);
+}
+
+void _3DScene::register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_instance_moved_callback(canvas, callback);
+}
+
+void _3DScene::register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_wipe_tower_moved_callback(canvas, callback);
+}
+
+void _3DScene::register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_enable_action_buttons_callback(canvas, callback);
 }
 
 //void _3DScene::_glew_init()

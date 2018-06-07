@@ -240,6 +240,13 @@ set_print(canvas, print)
         _3DScene::set_print((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print);
 
 void
+set_model(canvas, model)
+        SV    *canvas;
+        Model *model;
+    CODE:
+        _3DScene::set_model((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model);
+
+void
 set_bed_shape(canvas, shape)
         SV      *canvas;
         Pointfs shape;
@@ -467,13 +474,6 @@ register_on_model_update_callback(canvas, callback)
         _3DScene::register_on_model_update_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 void
-register_on_move_callback(canvas, callback)
-        SV *canvas;
-        SV *callback;
-    CODE:
-        _3DScene::register_on_move_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-
-void
 register_on_remove_object_callback(canvas, callback)
         SV *canvas;
         SV *callback;
@@ -521,6 +521,27 @@ register_on_decrease_objects_callback(canvas, callback)
         SV *callback;
     CODE:
         _3DScene::register_on_decrease_objects_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_instance_moved_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_instance_moved_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_wipe_tower_moved_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_wipe_tower_moved_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_enable_action_buttons_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_enable_action_buttons_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 unsigned int
 finalize_legend_texture()

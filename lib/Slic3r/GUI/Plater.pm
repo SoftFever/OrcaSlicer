@@ -126,7 +126,8 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_scale_object_uniformly_callback($self->{canvas3D}, sub { $self->changescale(undef) });
         Slic3r::GUI::_3DScene::register_on_increase_objects_callback($self->{canvas3D}, sub { $self->increase() });
         Slic3r::GUI::_3DScene::register_on_decrease_objects_callback($self->{canvas3D}, sub { $self->decrease() });
-        Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { $self->remove() });        
+        Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { $self->remove() });
+        Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
 #        $self->{canvas3D}->set_on_double_click($on_double_click);
 #        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
 #        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
@@ -136,21 +137,29 @@ sub new {
 #        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
 #        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
 #        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
+#        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
 #==============================================================================================================================
-        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
         $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
 #===================================================================================================================================        
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
 #        $self->{canvas3D}->use_plain_shader(1);
 #===================================================================================================================================        
-        $self->{canvas3D}->set_on_wipe_tower_moved(sub {
-            my ($new_pos_3f) = @_;
+        Slic3r::GUI::_3DScene::register_on_wipe_tower_moved_callback($self->{canvas3D}, sub {
+            my ($x, $y) = @_;
             my $cfg = Slic3r::Config->new;
-            $cfg->set('wipe_tower_x', $new_pos_3f->x);
-            $cfg->set('wipe_tower_y', $new_pos_3f->y);
+            $cfg->set('wipe_tower_x', $x);
+            $cfg->set('wipe_tower_y', $y);
             $self->GetFrame->{options_tabs}{print}->load_config($cfg);
         });
+
+#        $self->{canvas3D}->set_on_wipe_tower_moved(sub {
+#            my ($new_pos_3f) = @_;
+#            my $cfg = Slic3r::Config->new;
+#            $cfg->set('wipe_tower_x', $new_pos_3f->x);
+#            $cfg->set('wipe_tower_y', $new_pos_3f->y);
+#            $self->GetFrame->{options_tabs}{print}->load_config($cfg);
+#        });
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::register_on_model_update_callback($self->{canvas3D}, sub {
             if (wxTheApp->{app_config}->get("background_processing")) {

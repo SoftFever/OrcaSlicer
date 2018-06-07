@@ -13,9 +13,7 @@ use base qw(Slic3r::GUI::3DScene Class::Accessor);
 use Wx::Locale gettext => 'L';
 
 #==============================================================================================================================
-__PACKAGE__->mk_accessors(qw(
-    on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
-    on_remove_object on_increase_objects on_decrease_objects on_enable_action_buttons));
+__PACKAGE__->mk_accessors(qw(on_enable_action_buttons));
 #__PACKAGE__->mk_accessors(qw(
 #    on_arrange on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
 #    on_remove_object on_increase_objects on_decrease_objects on_enable_action_buttons));
@@ -44,12 +42,15 @@ sub new {
 #==============================================================================================================================
     $self->{config}             = $config;
 #==============================================================================================================================
+    Slic3r::GUI::_3DScene::set_model($self, $model);
     Slic3r::GUI::_3DScene::set_print($self, $print);
     Slic3r::GUI::_3DScene::set_config($self, $config);
 #==============================================================================================================================
     $self->{on_select_object}   = sub {};
-    $self->{on_instances_moved} = sub {};
-    $self->{on_wipe_tower_moved} = sub {};
+#==============================================================================================================================
+#    $self->{on_instances_moved} = sub {};
+#    $self->{on_wipe_tower_moved} = sub {};
+#==============================================================================================================================
 
     $self->{objects_volumes_idxs} = [];
         
@@ -64,44 +65,39 @@ sub new {
 #        $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
 #            if ($self->{on_select_object});
 #    });
-#==============================================================================================================================
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::register_on_move_callback($self, sub {
+#
 #    $self->on_move(sub {
-#==============================================================================================================================
-        my @volume_idxs = @_;
-        my %done = ();  # prevent moving instances twice
-        my $object_moved;
-        my $wipe_tower_moved;
-        foreach my $volume_idx (@volume_idxs) {
-            my $volume = $self->volumes->[$volume_idx];
-            my $obj_idx = $volume->object_idx;
-            my $instance_idx = $volume->instance_idx;
-            next if $done{"${obj_idx}_${instance_idx}"};
-            $done{"${obj_idx}_${instance_idx}"} = 1;
-            if ($obj_idx < 1000) {
-                # Move a regular object.
-                my $model_object = $self->{model}->get_object($obj_idx);
-                $model_object
-                    ->instances->[$instance_idx]
-                    ->offset
-                    ->translate($volume->origin->x, $volume->origin->y); #))
-                $model_object->invalidate_bounding_box;
-                $object_moved = 1;
-            } elsif ($obj_idx == 1000) {
-                # Move a wipe tower proxy.
-                $wipe_tower_moved = $volume->origin;
-            }
-        }
-        
-        $self->{on_instances_moved}->()
-            if $object_moved && $self->{on_instances_moved};
-        $self->{on_wipe_tower_moved}->($wipe_tower_moved)
-            if $wipe_tower_moved && $self->{on_wipe_tower_moved};
-    });
-
-#==============================================================================================================================
+#        my @volume_idxs = @_;
+#        my %done = ();  # prevent moving instances twice
+#        my $object_moved;
+#        my $wipe_tower_moved;
+#        foreach my $volume_idx (@volume_idxs) {
+#            my $volume = $self->volumes->[$volume_idx];
+#            my $obj_idx = $volume->object_idx;
+#            my $instance_idx = $volume->instance_idx;
+#            next if $done{"${obj_idx}_${instance_idx}"};
+#            $done{"${obj_idx}_${instance_idx}"} = 1;
+#            if ($obj_idx < 1000) {
+#                # Move a regular object.
+#                my $model_object = $self->{model}->get_object($obj_idx);
+#                $model_object
+#                    ->instances->[$instance_idx]
+#                    ->offset
+#                    ->translate($volume->origin->x, $volume->origin->y); #))
+#                $model_object->invalidate_bounding_box;
+#                $object_moved = 1;
+#            } elsif ($obj_idx == 1000) {
+#                # Move a wipe tower proxy.
+#                $wipe_tower_moved = $volume->origin;
+#            }
+#        }
+#        
+#        $self->{on_instances_moved}->()
+#            if $object_moved && $self->{on_instances_moved};
+#        $self->{on_wipe_tower_moved}->($wipe_tower_moved)
+#            if $wipe_tower_moved && $self->{on_wipe_tower_moved};
+#    });
+#
 #    EVT_KEY_DOWN($self, sub {
 #        my ($s, $event) = @_;
 #        if ($event->HasModifiers) {
@@ -194,19 +190,17 @@ sub set_on_select_object {
 #    my ($self, $cb) = @_;
 #    $self->on_remove_object($cb);
 #}
-#==============================================================================================================================
-
-sub set_on_instances_moved {
-    my ($self, $cb) = @_;
-    $self->{on_instances_moved} = $cb;
-}
-
-sub set_on_wipe_tower_moved {
-    my ($self, $cb) = @_;
-    $self->{on_wipe_tower_moved} = $cb;
-}
-
-#==============================================================================================================================
+#
+#sub set_on_instances_moved {
+#    my ($self, $cb) = @_;
+#    $self->{on_instances_moved} = $cb;
+#}
+#
+#sub set_on_wipe_tower_moved {
+#    my ($self, $cb) = @_;
+#    $self->{on_wipe_tower_moved} = $cb;
+#}
+#
 #sub set_on_model_update {
 #    my ($self, $cb) = @_;
 #    $self->on_model_update($cb);
@@ -216,6 +210,9 @@ sub set_on_wipe_tower_moved {
 sub set_on_enable_action_buttons {
     my ($self, $cb) = @_;
     $self->on_enable_action_buttons($cb);
+#==============================================================================================================================
+    Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self, $cb);
+#==============================================================================================================================
 }
 
 sub update_volumes_selection {
