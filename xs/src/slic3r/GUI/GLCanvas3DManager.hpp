@@ -100,7 +100,7 @@ public:
     void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
 
     std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
-    std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs);
+    std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
 
     void load_print_toolpaths(wxGLCanvas* canvas);
     void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& tool_colors);
@@ -113,6 +113,13 @@ public:
     void register_on_select_callback(wxGLCanvas* canvas, void* callback);
     void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
     void register_on_move_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_remove_object_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_arrange_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

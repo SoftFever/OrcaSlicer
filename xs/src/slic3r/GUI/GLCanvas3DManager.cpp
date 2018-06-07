@@ -465,13 +465,13 @@ std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const ModelO
     return (it != m_canvases.end()) ? it->second->load_object(*model_object, obj_idx, instance_idxs) : std::vector<int>();
 }
 
-std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs)
+std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx)
 {
     if (model == nullptr)
         return std::vector<int>();
 
     CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->load_object(*model, obj_idx, instance_idxs) : std::vector<int>();
+    return (it != m_canvases.end()) ? it->second->load_object(*model, obj_idx) : std::vector<int>();
 }
 
 void GLCanvas3DManager::load_print_toolpaths(wxGLCanvas* canvas)
@@ -548,6 +548,55 @@ void GLCanvas3DManager::register_on_move_callback(wxGLCanvas* canvas, void* call
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_move_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_remove_object_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_remove_object_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_arrange_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_arrange_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_rotate_object_left_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_rotate_object_right_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_scale_object_uniformly_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_increase_objects_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_decrease_objects_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

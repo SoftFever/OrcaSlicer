@@ -1391,13 +1391,13 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
     return m_volumes->load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_select_by, m_drag_by, m_use_VBOs && m_initialized);
 }
 
-std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx, std::vector<int> instance_idxs)
+std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 {
     if ((0 <= obj_idx) && (obj_idx < (int)model.objects.size()))
     {
         const ModelObject* model_object = model.objects[obj_idx];
         if (model_object != nullptr)
-            return load_object(*model_object, obj_idx, instance_idxs);
+            return load_object(*model_object, obj_idx, std::vector<int>());
     }
 
     return std::vector<int>();
@@ -1842,6 +1842,48 @@ void GLCanvas3D::register_on_move_callback(void* callback)
         m_on_move_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_on_remove_object_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_remove_object_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_arrange_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_arrange_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_rotate_object_left_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_rotate_object_left_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_rotate_object_right_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_rotate_object_right_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_scale_object_uniformly_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_scale_object_uniformly_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_increase_objects_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_increase_objects_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_decrease_objects_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_decrease_objects_callback.register_callback(callback);
+}
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -1864,6 +1906,7 @@ void GLCanvas3D::bind_event_handlers()
         m_canvas->Bind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Bind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
+        m_canvas->Bind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -1889,6 +1932,7 @@ void GLCanvas3D::unbind_event_handlers()
         m_canvas->Unbind(wxEVT_MIDDLE_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_RIGHT_DCLICK, &GLCanvas3D::on_mouse, this);
         m_canvas->Unbind(wxEVT_PAINT, &GLCanvas3D::on_paint, this);
+        m_canvas->Unbind(wxEVT_KEY_DOWN, &GLCanvas3D::on_key_down, this);
     }
 }
 
@@ -1927,13 +1971,33 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 // text input
                 switch (keyCode)
                 {
+                // key +
+                case 43: { m_on_increase_objects_callback.call(); break; }
+                // key -
+                case 45: { m_on_decrease_objects_callback.call(); break; }
+                // key A/a
+                case 65:
+                case 97: { m_on_arrange_callback.call(); break; }
                 // key B/b
                 case 66:
                 case 98: { zoom_to_bed(); break; }
+                // key L/l
+                case 76:
+                case 108: { m_on_rotate_object_left_callback.call(); break; }
+                // key R/r
+                case 82:
+                case 114: { m_on_rotate_object_right_callback.call(); break; }
+                // key S/s
+                case 83:
+                case 115: { m_on_scale_object_uniformly_callback.call(); break; }
                 // key Z/z
                 case 90:
                 case 122: { zoom_to_volumes(); break; }
-                default: { evt.Skip(); break; }
+                default:
+                {
+                    evt.Skip();
+                    break;
+                }
                 }
             }
         }
@@ -2243,6 +2307,20 @@ void GLCanvas3D::on_paint(wxPaintEvent& evt)
     render();
 }
 
+void GLCanvas3D::on_key_down(wxKeyEvent& evt)
+{
+    if (evt.HasModifiers())
+        evt.Skip();
+    else
+    {
+        int key = evt.GetKeyCode();
+        if (key == WXK_DELETE)
+            m_on_remove_object_callback.call();
+        else
+            evt.Skip();
+    }
+}
+
 Size GLCanvas3D::get_canvas_size() const
 {
     int w = 0;
@@ -2434,6 +2512,13 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_select_callback.deregister_callback();
     m_on_model_update_callback.deregister_callback();
     m_on_move_callback.deregister_callback();
+    m_on_remove_object_callback.deregister_callback();
+    m_on_arrange_callback.deregister_callback();
+    m_on_rotate_object_left_callback.deregister_callback();
+    m_on_rotate_object_right_callback.deregister_callback();
+    m_on_scale_object_uniformly_callback.deregister_callback();
+    m_on_increase_objects_callback.deregister_callback();
+    m_on_decrease_objects_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const

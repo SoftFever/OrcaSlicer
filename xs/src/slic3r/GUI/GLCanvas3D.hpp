@@ -356,6 +356,13 @@ private:
     PerlCallback m_on_select_callback;
     PerlCallback m_on_model_update_callback;
     PerlCallback m_on_move_callback;
+    PerlCallback m_on_remove_object_callback;
+    PerlCallback m_on_arrange_callback;
+    PerlCallback m_on_rotate_object_left_callback;
+    PerlCallback m_on_rotate_object_right_callback;
+    PerlCallback m_on_scale_object_uniformly_callback;
+    PerlCallback m_on_increase_objects_callback;
+    PerlCallback m_on_decrease_objects_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -422,7 +429,7 @@ public:
     void set_toolpaths_range(double low, double high);
 
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
-    std::vector<int> load_object(const Model& model, int obj_idx, std::vector<int> instance_idxs);
+    std::vector<int> load_object(const Model& model, int obj_idx);
 
     // Create 3D thick extrusion lines for a skirt and brim.
     // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
@@ -441,6 +448,13 @@ public:
     void register_on_select_callback(void* callback);
     void register_on_model_update_callback(void* callback);
     void register_on_move_callback(void* callback);
+    void register_on_remove_object_callback(void* callback);
+    void register_on_arrange_callback(void* callback);
+    void register_on_rotate_object_left_callback(void* callback);
+    void register_on_rotate_object_right_callback(void* callback);
+    void register_on_scale_object_uniformly_callback(void* callback);
+    void register_on_increase_objects_callback(void* callback);
+    void register_on_decrease_objects_callback(void* callback);
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -452,6 +466,7 @@ public:
     void on_timer(wxTimerEvent& evt);
     void on_mouse(wxMouseEvent& evt);
     void on_paint(wxPaintEvent& evt);
+    void on_key_down(wxKeyEvent& evt);
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;

@@ -120,16 +120,23 @@ sub new {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
         Slic3r::GUI::_3DScene::register_on_right_click_callback($self->{canvas3D}, sub { $on_right_click->($self->{canvas3D}, @_); });
+        Slic3r::GUI::_3DScene::register_on_arrange_callback($self->{canvas3D}, sub { $self->arrange });
+        Slic3r::GUI::_3DScene::register_on_rotate_object_left_callback($self->{canvas3D}, sub { $self->rotate(-45, Z, 'relative') });
+        Slic3r::GUI::_3DScene::register_on_rotate_object_right_callback($self->{canvas3D}, sub { $self->rotate( 45, Z, 'relative') });
+        Slic3r::GUI::_3DScene::register_on_scale_object_uniformly_callback($self->{canvas3D}, sub { $self->changescale(undef) });
+        Slic3r::GUI::_3DScene::register_on_increase_objects_callback($self->{canvas3D}, sub { $self->increase() });
+        Slic3r::GUI::_3DScene::register_on_decrease_objects_callback($self->{canvas3D}, sub { $self->decrease() });
+        Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { $self->remove() });        
 #        $self->{canvas3D}->set_on_double_click($on_double_click);
 #        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+#        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
+#        $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
+#        $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
+#        $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
+#        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
+#        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
+#        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
 #==============================================================================================================================
-        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
-        $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
-        $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
-        $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
-        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
-        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
-        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
         $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
         $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
 #===================================================================================================================================        

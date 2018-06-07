@@ -1997,6 +1997,41 @@ void _3DScene::register_on_move_callback(wxGLCanvas* canvas, void* callback)
     s_canvas_mgr.register_on_move_callback(canvas, callback);
 }
 
+void _3DScene::register_on_remove_object_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_remove_object_callback(canvas, callback);
+}
+
+void _3DScene::register_on_arrange_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_arrange_callback(canvas, callback);
+}
+
+void _3DScene::register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_rotate_object_left_callback(canvas, callback);
+}
+
+void _3DScene::register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_rotate_object_right_callback(canvas, callback);
+}
+
+void _3DScene::register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_scale_object_uniformly_callback(canvas, callback);
+}
+
+void _3DScene::register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_increase_objects_callback(canvas, callback);
+}
+
+void _3DScene::register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_decrease_objects_callback(canvas, callback);
+}
+
 //void _3DScene::_glew_init()
 //{ 
 //    glewInit();
@@ -2036,9 +2071,9 @@ std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const ModelObject* mo
     return s_canvas_mgr.load_object(canvas, model_object, obj_idx, instance_idxs);
 }
 
-std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx, std::vector<int> instance_idxs)
+std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx)
 {
-    return s_canvas_mgr.load_object(canvas, model, obj_idx, instance_idxs);
+    return s_canvas_mgr.load_object(canvas, model, obj_idx);
 }
 
 void _3DScene::load_print_toolpaths(wxGLCanvas* canvas)
