@@ -179,6 +179,7 @@ sub _init_tabpanel {
         my $obj_idx = $event->GetInt;
 
         $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx);
+        Wx::MessageBox("Before item_changed_selection", "Slic3r Info", wxOK | wxICON_INFORMATION, $self);
         $self->{plater}->item_changed_selection($obj_idx);
     });       
         

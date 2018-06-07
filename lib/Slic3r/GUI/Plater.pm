@@ -1852,6 +1852,8 @@ sub on_config_change {
 sub item_changed_selection{
     my ($self, $obj_idx) = @_;
 
+    Wx::MessageBox("Inside item_changed_selection", "Slic3r Info", wxOK | wxICON_INFORMATION, $self);
+
     $self->{canvas}->Refresh;
     if ($self->{canvas3D}){
         $self->{canvas3D}->deselect_volumes;
@@ -2065,6 +2067,7 @@ sub select_object {
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
         # Select current object in the list on c++ side
+        Wx::MessageBox("Before select_current_object", "Slic3r Info", wxOK | wxICON_INFORMATION, $self);
         Slic3r::GUI::select_current_object($obj_idx);
     } else {
         # Unselect all objects in the list on c++ side

@@ -1128,9 +1128,12 @@ void unselect_objects()
 
 void select_current_object(int idx)
 {
+	wxMessageBox("Inside select_current_object", "Info");
 	m_objects_ctrl->UnselectAll();
+	wxMessageBox("UnselectAll", "Info");
 	if (idx < 0) return;
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
+	wxMessageBox("Item is selected", "Info");
 
 	if (get_view_mode() == ConfigMenuModeExpert){
 		if (!m_sizer_object_buttons->IsShown(1))
@@ -1138,6 +1141,7 @@ void select_current_object(int idx)
 		if (!m_collpane_settings->IsShown())
 			m_collpane_settings->Show(true);
 	}
+	wxMessageBox("Updated sizer showing", "Info");
 }
 
 void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_selection_changed)
