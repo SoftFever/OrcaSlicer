@@ -160,6 +160,11 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
     bool invalidated = false;
+
+    // Always invalidate the wipe tower. This is probably necessary because of the wipe_into_infill / wipe_into_objects
+    // features - nearly anything can influence what should (and could) be wiped into.
+    steps.emplace_back(psWipeTower);
+
     for (const t_config_option_key &opt_key : opt_keys) {
         if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These options only affect G-code export or they are just notes without influence on the generated G-code,
@@ -201,7 +206,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wiping_volumes_matrix"
-            || opt_key == "parking_pos_retraction"
+            || opt_key == u8"parking_pos_retraction"
             || opt_key == "cooling_tube_retraction"
             || opt_key == "cooling_tube_length"
             || opt_key == "extra_loading_move"
@@ -216,7 +221,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             osteps.emplace_back(posSupportMaterial);
             steps.emplace_back(psSkirt);
             steps.emplace_back(psBrim);
-            steps.emplace_back(psWipeTower);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
@@ -1125,6 +1129,7 @@ void Print::_make_wipe_tower()
     m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
         wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full));
 
+    reset_wiping_extrusions(); // if this is not the first time the wipe tower is generated, some extrusions might remember their last wiping status
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
@@ -1138,8 +1143,8 @@ void Print::_make_wipe_tower()
                 if ((first_layer && extruder_id == m_tool_ordering.all_extruders().back()) || extruder_id != current_extruder_id) {
                     float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];    // total volume to wipe after this toolchange
 
-                    if (config.wipe_into_infill && !first_layer)
-                        volume_to_wipe = mark_wiping_infill(layer_tools, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
+                    if (!first_layer)   // unless we're on the first layer, try to assign some infills/objects for the wiping:
+                        volume_to_wipe = mark_wiping_extrusions(layer_tools, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
 
                     wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
@@ -1176,12 +1181,31 @@ void Print::_make_wipe_tower()
 
 
 
-float Print::mark_wiping_infill(const ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe)
+void Print::reset_wiping_extrusions() {
+     for (size_t i = 0; i < objects.size(); ++ i) {
+        for (auto& this_layer : objects[i]->layers) {
+            for (size_t region_id = 0; region_id < objects[i]->print()->regions.size(); ++ region_id) {
+                for (unsigned int copy = 0; copy < objects[i]->_shifted_copies.size(); ++copy) {
+                    this_layer->regions[region_id]->fills.set_extruder_override(copy, -1);
+                    this_layer->regions[region_id]->perimeters.set_extruder_override(copy, -1);
+                }
+            }
+        }
+     }
+}
+
+
+
+float Print::mark_wiping_extrusions(const ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe)
 {
     const float min_infill_volume = 0.f; // ignore infill with smaller volume than this
 
     if (!config.filament_soluble.get_at(new_extruder)) {                            // Soluble filament cannot be wiped in a random infill
         for (size_t i = 0; i < objects.size(); ++ i) {                              // Let's iterate through all objects...
+
+            if (!objects[i]->config.wipe_into_infill && !objects[i]->config.wipe_into_objects)
+                continue;
+
             Layer* this_layer = nullptr;
             for (unsigned int a = 0; a < objects[i]->layers.size(); ++a) // Finds this layer
                 if (std::abs(layer_tools.print_z - objects[i]->layers[a]->print_z) < EPSILON) {
@@ -1210,16 +1234,18 @@ float Print::mark_wiping_infill(const ToolOrdering::LayerTools& layer_tools, uns
                             continue;
                     }
 
-                    ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
-                    for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
-                        auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                        if (fill->role() == erTopSolidInfill || fill->role() == erGapFill) continue;         // these cannot be changed - it is / may be visible
-                            if (volume_to_wipe <= 0.f)
-                                break;
-                            if (!fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
-                                fill->set_extruder_override(copy, new_extruder);
-                                volume_to_wipe -= fill->total_volume();
-                            }
+                    if (objects[i]->config.wipe_into_infill) {
+                        ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
+                        for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
+                            auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                            if (fill->role() == erTopSolidInfill || fill->role() == erGapFill) continue;         // these cannot be changed - it is / may be visible
+                                if (volume_to_wipe <= 0.f)
+                                    break;
+                                if (!fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
+                                    fill->set_extruder_override(copy, new_extruder);
+                                    volume_to_wipe -= fill->total_volume();
+                                }
+                        }
                     }
 
                     if (objects[i]->config.wipe_into_objects)

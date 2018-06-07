@@ -337,6 +337,7 @@ public:
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
     ConfigOptionBool                wipe_into_objects;
+    ConfigOptionBool                wipe_into_infill;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -374,6 +375,7 @@ protected:
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
         OPT_PTR(wipe_into_objects);
+        OPT_PTR(wipe_into_infill);
     }
 };
 
@@ -644,7 +646,6 @@ public:
     ConfigOptionFloat               wipe_tower_per_color_wipe;
     ConfigOptionFloat               wipe_tower_rotation_angle;
     ConfigOptionFloat               wipe_tower_bridging;
-    ConfigOptionBool                wipe_into_infill;
     ConfigOptionFloats              wiping_volumes_matrix;
     ConfigOptionFloats              wiping_volumes_extruders;
     ConfigOptionFloat               z_offset;
@@ -713,7 +714,6 @@ protected:
         OPT_PTR(wipe_tower_width);
         OPT_PTR(wipe_tower_per_color_wipe);
         OPT_PTR(wipe_tower_rotation_angle);
-        OPT_PTR(wipe_into_infill);
         OPT_PTR(wipe_tower_bridging);
         OPT_PTR(wiping_volumes_matrix);
         OPT_PTR(wiping_volumes_extruders);

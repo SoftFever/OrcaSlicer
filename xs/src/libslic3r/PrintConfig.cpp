@@ -1886,6 +1886,7 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(0.);
 
     def = this->add("wipe_into_infill", coBool);
+    def->category = L("Extruders");
     def->label = L("Wiping into infill");
     def->tooltip = L("Wiping after toolchange will be preferentially done inside infills. "
                      "This lowers the amount of waste but may result in longer print time "

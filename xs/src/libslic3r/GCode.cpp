@@ -1357,7 +1357,7 @@ void GCode::process_layer(
             m_avoid_crossing_perimeters.disable_once = true;
         }
 
-        if (print.config.wipe_into_infill.value) {
+        {
             gcode += "; INFILL WIPING STARTS\n";
             if (extruder_id != layer_tools.extruders.front()) { // if this is the first extruder on this layer, there was no toolchange
                 for (const auto& layer_to_print : layers) {     // iterate through all objects
@@ -1373,12 +1373,12 @@ void GCode::process_layer(
                             overridden.push_back(new_region);
                             for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->fills.entities) {
                                 auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                                if (fill->get_extruder_override(copy_id) == (unsigned int)extruder_id)
+                                if (fill->get_extruder_override(copy_id) == (int)extruder_id)
                                         overridden.back().infills.append(*fill);
                            }
                            for (ExtrusionEntity *ee : (*layer_to_print.object_layer).regions[region_id]->perimeters.entities) {
                                 auto *fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                                if (fill->get_extruder_override(copy_id) == (unsigned int)extruder_id)
+                                if (fill->get_extruder_override(copy_id) == (int)extruder_id)
                                         overridden.back().perimeters.append((*fill).entities);
                            }
                         }
@@ -2527,12 +2527,13 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
         by_region_per_copy_cache.push_back(ObjectByExtruder::Island::Region());
         //out.back().perimeters.append(reg.perimeters);       // we will print all perimeters there are
 
-        if (!reg.infills_per_copy_ids.empty()) {
+        if (!reg.infills_per_copy_ids.empty())
             for (unsigned int i=0; i<reg.infills_per_copy_ids[copy].size(); ++i)
                 by_region_per_copy_cache.back().infills.append(*(reg.infills.entities[reg.infills_per_copy_ids[copy][i]]));
+
+        if (!reg.perimeters_per_copy_ids.empty())
             for (unsigned int i=0; i<reg.perimeters_per_copy_ids[copy].size(); ++i)
                 by_region_per_copy_cache.back().perimeters.append(*(reg.perimeters.entities[reg.perimeters_per_copy_ids[copy][i]]));
-        }
     }
     return by_region_per_copy_cache;
 }
