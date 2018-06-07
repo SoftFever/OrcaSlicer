@@ -907,8 +907,10 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		{
 			if (m_objects_model->GetParent(item) == wxDataViewItem(0))
 				obj_idx = m_objects_model->GetIdByItem(item);
-			else
-				obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item)); // TODO Temporary decision for sub-objects selection
+			else {
+				auto parent = m_objects_model->GetParent(item);
+				obj_idx = m_objects_model->GetIdByItem(parent); // TODO Temporary decision for sub-objects selection
+			}
 		}
 
 		if (m_event_object_selection_changed > 0) {

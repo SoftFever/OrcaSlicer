@@ -412,7 +412,8 @@ sub new {
             $box->SetFont($Slic3r::GUI::small_bold_font);
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $object_info_sizer->SetMinSize([300,-1]);
-            my $grid_sizer = Wx::FlexGridSizer->new(3, 4, 5, 5);
+            #!my $grid_sizer = Wx::FlexGridSizer->new(3, 4, 5, 5);
+            my $grid_sizer = Wx::FlexGridSizer->new(2, 4, 5, 5);
             $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
             $grid_sizer->AddGrowableCol(1, 1);
             $grid_sizer->AddGrowableCol(3, 1);
@@ -429,7 +430,7 @@ sub new {
                 my $label = shift @info;
                 my $text = Wx::StaticText->new($self->{right_panel}, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $text->SetFont($Slic3r::GUI::small_font);
-                $grid_sizer->Add($text, 0);
+                #!$grid_sizer->Add($text, 0);
                 
                 $self->{"object_info_$field"} = Wx::StaticText->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
@@ -448,10 +449,13 @@ sub new {
                     $self->{"object_info_manifold_warning_icon_show"}->(0);
                     
                     my $h_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
-                    $h_sizer->Add($self->{object_info_manifold_warning_icon}, 0);
-                    $h_sizer->Add($self->{"object_info_$field"}, 0);
-                    $grid_sizer->Add($h_sizer, 0, wxEXPAND);
+                    $h_sizer->Add($text, 0);
+                    $h_sizer->Add($self->{object_info_manifold_warning_icon}, 0, wxLEFT, 2);
+                    $h_sizer->Add($self->{"object_info_$field"}, 0, wxLEFT, 2);
+                    #!$grid_sizer->Add($h_sizer, 0, wxEXPAND);
+                    $object_info_sizer->Add($h_sizer, 0, wxEXPAND|wxTOP, 4);
                 } else {
+                    $grid_sizer->Add($text, 0);
                     $grid_sizer->Add($self->{"object_info_$field"}, 0);
                 }
             }
