@@ -29,7 +29,7 @@ if(WIN32)
     # -D_ITERATOR_DEBUG_LEVEL)
 endif()
 
-add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE)
+add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
 
 add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/BoundingBox.cpp
