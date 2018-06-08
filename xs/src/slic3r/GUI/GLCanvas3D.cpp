@@ -1935,10 +1935,10 @@ void GLCanvas3D::register_on_right_click_callback(void* callback)
         m_on_right_click_callback.register_callback(callback);
 }
 
-void GLCanvas3D::register_on_select_callback(void* callback)
+void GLCanvas3D::register_on_select_object_callback(void* callback)
 {
     if (callback != nullptr)
-        m_on_select_callback.register_callback(callback);
+        m_on_select_object_callback.register_callback(callback);
 }
 
 void GLCanvas3D::register_on_model_update_callback(void* callback)
@@ -2255,7 +2255,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             // propagate event through callback
-            m_on_select_callback.call(volume_idx);
+            if (m_picking_enabled)
+                _on_select(volume_idx);
 
             // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
             // an converts the screen space coordinate to unscaled object space.
@@ -2632,7 +2633,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_viewport_changed_callback.deregister_callback();
     m_on_double_click_callback.deregister_callback();
     m_on_right_click_callback.deregister_callback();
-    m_on_select_callback.deregister_callback();
+    m_on_select_object_callback.deregister_callback();
     m_on_model_update_callback.deregister_callback();
     m_on_remove_object_callback.deregister_callback();
     m_on_arrange_callback.deregister_callback();
@@ -3710,10 +3711,19 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         m_on_wipe_tower_moved_callback.call(wipe_tower_origin.x, wipe_tower_origin.y);
 }
 
+void GLCanvas3D::_on_select(int volume_idx)
+{
+    if ((m_volumes != nullptr) && (volume_idx < (int)m_volumes->volumes.size()))
+        m_on_select_object_callback.call((volume_idx == -1) ? -1 : m_volumes->volumes[volume_idx]->object_idx());
+}
+
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
 {
+    static const float INV_255 = 1.0f / 255.0f;
+
     std::vector<float> output(colors.size() * 4, 1.0f);
-    for (size_t i = 0; i < colors.size(); ++i) {
+    for (size_t i = 0; i < colors.size(); ++i)
+    {
         const std::string& color = colors[i];
         const char* c = color.data() + 1;
         if ((color.size() == 7) && (color.front() == '#'))
@@ -3725,7 +3735,7 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
                 if ((digit1 == -1) || (digit2 == -1))
                     break;
 
-                output[i * 4 + j] = float(digit1 * 16 + digit2) / 255.0f;
+                output[i * 4 + j] = float(digit1 * 16 + digit2) * INV_255;
             }
         }
     }

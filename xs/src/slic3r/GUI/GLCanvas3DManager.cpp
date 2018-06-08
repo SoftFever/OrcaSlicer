@@ -563,11 +563,11 @@ void GLCanvas3DManager::register_on_right_click_callback(wxGLCanvas* canvas, voi
         it->second->register_on_right_click_callback(callback);
 }
 
-void GLCanvas3DManager::register_on_select_callback(wxGLCanvas* canvas, void* callback)
+void GLCanvas3DManager::register_on_select_object_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->register_on_select_callback(callback);
+        it->second->register_on_select_object_callback(callback);
 }
 
 void GLCanvas3DManager::register_on_model_update_callback(wxGLCanvas* canvas, void* callback)

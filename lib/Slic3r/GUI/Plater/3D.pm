@@ -10,9 +10,9 @@ use Wx qw(:misc :pen :brush :sizer :font :cursor :keycode wxTAB_TRAVERSAL);
 #==============================================================================================================================
 use base qw(Slic3r::GUI::3DScene Class::Accessor);
 
-use Wx::Locale gettext => 'L';
-
 #==============================================================================================================================
+#use Wx::Locale gettext => 'L';
+#
 #__PACKAGE__->mk_accessors(qw(
 #    on_arrange on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
 #    on_remove_object on_increase_objects on_decrease_objects on_enable_action_buttons));
@@ -28,37 +28,24 @@ sub new {
     Slic3r::GUI::_3DScene::enable_moving($self, 1);
     Slic3r::GUI::_3DScene::set_select_by($self, 'object');
     Slic3r::GUI::_3DScene::set_drag_by($self, 'instance');
+    Slic3r::GUI::_3DScene::set_model($self, $model);
+    Slic3r::GUI::_3DScene::set_print($self, $print);
+    Slic3r::GUI::_3DScene::set_config($self, $config);
 #    $self->enable_picking(1);
 #    $self->enable_moving(1);
 #    $self->select_by('object');
 #    $self->drag_by('instance');
 #    
 #    $self->{objects}            = $objects;
-#==============================================================================================================================
-    $self->{model}              = $model;
-#==============================================================================================================================
+#    $self->{model}              = $model;
 #    $self->{print}              = $print;
-#==============================================================================================================================
-    $self->{config}             = $config;
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_model($self, $model);
-    Slic3r::GUI::_3DScene::set_print($self, $print);
-    Slic3r::GUI::_3DScene::set_config($self, $config);
-#==============================================================================================================================
-    $self->{on_select_object}   = sub {};
-#==============================================================================================================================
+#    $self->{config}             = $config;
+#    $self->{on_select_object}   = sub {};
 #    $self->{on_instances_moved} = sub {};
 #    $self->{on_wipe_tower_moved} = sub {};
 #
 #    $self->{objects_volumes_idxs} = [];
-#==============================================================================================================================
-        
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::register_on_select_callback($self, sub {
-        my ($volume_idx) = @_;
-        $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
-            if ($self->{on_select_object});
-    });    
+#
 #    $self->on_select(sub {
 #        my ($volume_idx) = @_;
 #        $self->{on_select_object}->(($volume_idx == -1) ? undef : $self->volumes->[$volume_idx]->object_idx)
@@ -139,12 +126,12 @@ sub new {
     return $self;
 }
 
-sub set_on_select_object {
-    my ($self, $cb) = @_;
-    $self->{on_select_object} = $cb;
-}
-
 #==============================================================================================================================
+#sub set_on_select_object {
+#    my ($self, $cb) = @_;
+#    $self->{on_select_object} = $cb;
+#}
+#
 #sub set_on_double_click {
 #    my ($self, $cb) = @_;
 #    $self->on_double_click($cb);

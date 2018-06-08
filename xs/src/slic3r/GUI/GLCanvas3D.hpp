@@ -359,7 +359,7 @@ private:
     PerlCallback m_on_viewport_changed_callback;
     PerlCallback m_on_double_click_callback;
     PerlCallback m_on_right_click_callback;
-    PerlCallback m_on_select_callback;
+    PerlCallback m_on_select_object_callback;
     PerlCallback m_on_model_update_callback;
     PerlCallback m_on_remove_object_callback;
     PerlCallback m_on_arrange_callback;
@@ -461,7 +461,7 @@ public:
     void register_on_viewport_changed_callback(void* callback);
     void register_on_double_click_callback(void* callback);
     void register_on_right_click_callback(void* callback);
-    void register_on_select_callback(void* callback);
+    void register_on_select_object_callback(void* callback);
     void register_on_model_update_callback(void* callback);
     void register_on_remove_object_callback(void* callback);
     void register_on_arrange_callback(void* callback);
@@ -547,6 +547,7 @@ private:
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
 
     void _on_move(const std::vector<int>& volume_idxs);
+    void _on_select(int volume_idx);
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

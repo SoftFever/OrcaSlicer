@@ -482,11 +482,11 @@ register_on_right_click_callback(canvas, callback)
         _3DScene::register_on_right_click_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 void
-register_on_select_callback(canvas, callback)
+register_on_select_object_callback(canvas, callback)
         SV *canvas;
         SV *callback;
     CODE:
-        _3DScene::register_on_select_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+        _3DScene::register_on_select_object_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 void
 register_on_model_update_callback(canvas, callback)

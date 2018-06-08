@@ -78,7 +78,10 @@ sub new {
     my $on_select_object = sub {
         my ($obj_idx) = @_;
         # Ignore the special objects (the wipe tower proxy and such).
-        $self->select_object((defined($obj_idx) && $obj_idx < 1000) ? $obj_idx : undef);
+#==============================================================================================================================
+        $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
+#        $self->select_object((defined($obj_idx) && $obj_idx < 1000) ? $obj_idx : undef);
+#==============================================================================================================================
     };
     my $on_double_click = sub {
         $self->object_settings_dialog if $self->selected_object;
@@ -116,8 +119,8 @@ sub new {
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, L('3D'));
-        $self->{canvas3D}->set_on_select_object($on_select_object);
 #==============================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_select_object_callback($self->{canvas3D}, $on_select_object);
         Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
         Slic3r::GUI::_3DScene::register_on_right_click_callback($self->{canvas3D}, sub { $on_right_click->($self->{canvas3D}, @_); });
         Slic3r::GUI::_3DScene::register_on_arrange_callback($self->{canvas3D}, sub { $self->arrange });
@@ -151,6 +154,7 @@ sub new {
 
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
         
+#        $self->{canvas3D}->set_on_select_object($on_select_object);
 #        $self->{canvas3D}->set_on_double_click($on_double_click);
 #        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
 #        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });

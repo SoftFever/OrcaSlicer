@@ -2002,9 +2002,9 @@ void _3DScene::register_on_right_click_callback(wxGLCanvas* canvas, void* callba
     s_canvas_mgr.register_on_right_click_callback(canvas, callback);
 }
 
-void _3DScene::register_on_select_callback(wxGLCanvas* canvas, void* callback)
+void _3DScene::register_on_select_object_callback(wxGLCanvas* canvas, void* callback)
 {
-    s_canvas_mgr.register_on_select_callback(canvas, callback);
+    s_canvas_mgr.register_on_select_object_callback(canvas, callback);
 }
 
 void _3DScene::register_on_model_update_callback(wxGLCanvas* canvas, void* callback)

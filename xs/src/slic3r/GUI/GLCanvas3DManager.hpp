@@ -118,7 +118,7 @@ public:
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
     void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_select_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_select_object_callback(wxGLCanvas* canvas, void* callback);
     void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
     void register_on_remove_object_callback(wxGLCanvas* canvas, void* callback);
     void register_on_arrange_callback(wxGLCanvas* canvas, void* callback);
