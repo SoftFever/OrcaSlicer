@@ -226,6 +226,20 @@ select_volume(canvas, id)
         _3DScene::select_volume((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
 
 void
+update_volumes_selection(canvas, selections)
+        SV               *canvas;
+        std::vector<int> selections;
+    CODE:
+        _3DScene::update_volumes_selection((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
+
+void
+set_objects_selections(canvas, selections)
+        SV               *canvas;
+        std::vector<int> selections;
+    CODE:
+        _3DScene::set_objects_selections((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
+
+void
 set_config(canvas, config)
         SV                 *canvas;
         DynamicPrintConfig *config;
@@ -324,6 +338,14 @@ is_shader_enabled(canvas)
         SV *canvas;
     CODE:
         RETVAL = _3DScene::is_shader_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+bool
+is_reload_delayed(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_reload_delayed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
 
@@ -620,6 +642,13 @@ load_model(canvas, model, obj_idx)
         RETVAL = _3DScene::load_object((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model, obj_idx);
     OUTPUT:
         RETVAL
+
+void
+reload_scene(canvas, force)
+        SV   *canvas;
+        bool force;
+    CODE:
+        _3DScene::reload_scene((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), force);
 
 void
 load_print_toolpaths(canvas)

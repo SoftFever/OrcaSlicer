@@ -2,6 +2,7 @@
 
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
+#include "../../slic3r/GUI/GUI.hpp"
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/Print.hpp"
@@ -963,6 +964,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_color_by("volume")
     , m_select_by("object")
     , m_drag_by("instance")
+    , m_reload_delayed(false)
 {
     if (m_canvas != nullptr)
         m_timer = new wxTimer(m_canvas);
@@ -1107,6 +1109,29 @@ void GLCanvas3D::select_volume(unsigned int id)
     }
 }
 
+void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
+{
+    if (m_model == nullptr)
+        return;
+
+    for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
+    {
+        if (selections[obj_idx] == 1)
+        {
+            const std::vector<int>& volume_idxs = m_objects_volumes_idxs[obj_idx];
+            for (int v : volume_idxs)
+            {
+                select_volume(v);
+            }
+        }
+    }
+}
+
+void GLCanvas3D::set_objects_selections(const std::vector<int>& selections)
+{
+    m_objects_selections = selections;
+}
+
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
     m_config = config;
@@ -1208,6 +1233,11 @@ bool GLCanvas3D::is_layers_editing_allowed() const
 bool GLCanvas3D::is_shader_enabled() const
 {
     return m_shader_enabled;
+}
+
+bool GLCanvas3D::is_reload_delayed() const
+{
+    return m_reload_delayed;
 }
 
 void GLCanvas3D::enable_layers_editing(bool enable)
@@ -1407,6 +1437,81 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
     }
 
     return std::vector<int>();
+}
+
+void GLCanvas3D::reload_scene(bool force)
+{
+    if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr) || (m_volumes == nullptr))
+        return;
+
+    reset_volumes();
+    set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
+
+    if (!m_canvas->IsShown() && !force)
+    {
+        m_reload_delayed = true;
+        return;
+    }
+
+    m_reload_delayed = false;
+
+    m_objects_volumes_idxs.clear();
+
+    for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
+    {
+        m_objects_volumes_idxs.push_back(load_object(*m_model, obj_idx));
+    }
+
+    update_volumes_selection(m_objects_selections);
+
+    if (m_config->has("nozzle_diameter"))
+    {
+        // Should the wipe tower be visualized ?
+        unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
+
+        bool semm = dynamic_cast<const ConfigOptionBool*>(m_config->option("single_extruder_multi_material"))->value;
+        bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
+        bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
+
+        if ((extruders_count > 1) && semm && wt && !co)
+        {
+            // Height of a print (Show at least a slab)
+            coordf_t height = std::max(m_model->bounding_box().max.z, 10.0);
+
+            float x = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_x"))->value;
+            float y = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_y"))->value;
+            float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
+            float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
+
+            m_volumes->load_wipe_tower_preview(1000, x, y, w, 15.0f * (float)(extruders_count - 1), (float)height, a, m_use_VBOs && m_initialized);
+        }
+    }
+
+    update_volumes_colors_by_extruder();
+
+    // checks for geometry outside the print volume to render it accordingly
+    if (!m_volumes->empty())
+    {
+        bool contained = m_volumes->check_outside_state(m_config);
+        if (!contained)
+        {
+            enable_warning_texture(true);
+            _3DScene::generate_warning_texture(L("Detected object outside print volume"));
+            m_on_enable_action_buttons_callback.call(false);
+        }
+        else
+        {
+            enable_warning_texture(false);
+            m_volumes->reset_outside_state();
+            _3DScene::reset_warning_texture();
+            m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
+        }
+    }
+    else
+    {
+        enable_warning_texture(false);
+        _3DScene::reset_warning_texture();
+    }
 }
 
 void GLCanvas3D::load_print_toolpaths()

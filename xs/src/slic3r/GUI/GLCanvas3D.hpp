@@ -14,6 +14,7 @@ class wxKeyEvent;
 class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
+class wxActivateEvent;
 
 namespace Slic3r {
 
@@ -349,6 +350,10 @@ private:
     std::string m_select_by;
     std::string m_drag_by;
 
+    bool m_reload_delayed;
+    std::vector<std::vector<int>> m_objects_volumes_idxs;
+    std::vector<int> m_objects_selections;
+
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
     PerlCallback m_on_viewport_changed_callback;
@@ -381,6 +386,9 @@ public:
     void reset_volumes();
     void deselect_volumes();
     void select_volume(unsigned int id);
+    void update_volumes_selection(const std::vector<int>& selections);
+
+    void set_objects_selections(const std::vector<int>& selections);
 
     void set_config(DynamicPrintConfig* config);
     void set_print(Print* print);
@@ -410,6 +418,8 @@ public:
     bool is_layers_editing_allowed() const;
     bool is_shader_enabled() const;
 
+    bool is_reload_delayed() const;
+
     void enable_layers_editing(bool enable);
     void enable_warning_texture(bool enable);
     void enable_legend_texture(bool enable);
@@ -434,6 +444,8 @@ public:
 
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(const Model& model, int obj_idx);
+
+    void reload_scene(bool force);
 
     // Create 3D thick extrusion lines for a skirt and brim.
     // Adds a new Slic3r::GUI::3DScene::Volume to volumes.

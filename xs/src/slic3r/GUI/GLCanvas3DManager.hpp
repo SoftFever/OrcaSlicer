@@ -57,6 +57,9 @@ public:
     void reset_volumes(wxGLCanvas* canvas);
     void deselect_volumes(wxGLCanvas* canvas);
     void select_volume(wxGLCanvas* canvas, unsigned int id);
+    void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
+
+    void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
 
     void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     void set_print(wxGLCanvas* canvas, Print* print);
@@ -78,6 +81,8 @@ public:
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
     bool is_shader_enabled(wxGLCanvas* canvas) const;
+
+    bool is_reload_delayed(wxGLCanvas* canvas) const;
 
     void enable_layers_editing(wxGLCanvas* canvas, bool enable);
     void enable_warning_texture(wxGLCanvas* canvas, bool enable);
@@ -102,6 +107,8 @@ public:
 
     std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
+
+    void reload_scene(wxGLCanvas* canvas, bool force);
 
     void load_print_toolpaths(wxGLCanvas* canvas);
     void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& tool_colors);

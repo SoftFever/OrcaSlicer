@@ -254,6 +254,20 @@ void GLCanvas3DManager::select_volume(wxGLCanvas* canvas, unsigned int id)
         it->second->select_volume(id);
 }
 
+void GLCanvas3DManager::update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->update_volumes_selection(selections);
+}
+
+void GLCanvas3DManager::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_objects_selections(selections);
+}
+
 void GLCanvas3DManager::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -346,6 +360,12 @@ bool GLCanvas3DManager::is_shader_enabled(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_shader_enabled() : false;
+}
+
+bool GLCanvas3DManager::is_reload_delayed(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->is_reload_delayed() : false;
 }
 
 void GLCanvas3DManager::enable_layers_editing(wxGLCanvas* canvas, bool enable)
@@ -479,6 +499,13 @@ std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const Model*
 
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->load_object(*model, obj_idx) : std::vector<int>();
+}
+
+void GLCanvas3DManager::reload_scene(wxGLCanvas* canvas, bool force)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->reload_scene(force);
 }
 
 void GLCanvas3DManager::load_print_toolpaths(wxGLCanvas* canvas)

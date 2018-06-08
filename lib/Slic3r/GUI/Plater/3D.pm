@@ -13,7 +13,6 @@ use base qw(Slic3r::GUI::3DScene Class::Accessor);
 use Wx::Locale gettext => 'L';
 
 #==============================================================================================================================
-__PACKAGE__->mk_accessors(qw(on_enable_action_buttons));
 #__PACKAGE__->mk_accessors(qw(
 #    on_arrange on_rotate_object_left on_rotate_object_right on_scale_object_uniformly
 #    on_remove_object on_increase_objects on_decrease_objects on_enable_action_buttons));
@@ -33,9 +32,9 @@ sub new {
 #    $self->enable_moving(1);
 #    $self->select_by('object');
 #    $self->drag_by('instance');
+#    
+#    $self->{objects}            = $objects;
 #==============================================================================================================================
-    
-    $self->{objects}            = $objects;
     $self->{model}              = $model;
 #==============================================================================================================================
 #    $self->{print}              = $print;
@@ -50,9 +49,9 @@ sub new {
 #==============================================================================================================================
 #    $self->{on_instances_moved} = sub {};
 #    $self->{on_wipe_tower_moved} = sub {};
+#
+#    $self->{objects_volumes_idxs} = [];
 #==============================================================================================================================
-
-    $self->{objects_volumes_idxs} = [];
         
 #==============================================================================================================================
     Slic3r::GUI::_3DScene::register_on_select_callback($self, sub {
@@ -205,125 +204,93 @@ sub set_on_select_object {
 #    my ($self, $cb) = @_;
 #    $self->on_model_update($cb);
 #}
-#==============================================================================================================================
-
-sub set_on_enable_action_buttons {
-    my ($self, $cb) = @_;
-    $self->on_enable_action_buttons($cb);
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self, $cb);
-#==============================================================================================================================
-}
-
-sub update_volumes_selection {
-    my ($self) = @_;
-
-    foreach my $obj_idx (0..$#{$self->{model}->objects}) {
-        if ($self->{objects}[$obj_idx]->selected) {
-            my $volume_idxs = $self->{objects_volumes_idxs}->[$obj_idx];
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::select_volume($self, $_) for @{$volume_idxs};
+#
+#sub set_on_enable_action_buttons {
+#    my ($self, $cb) = @_;
+#    $self->on_enable_action_buttons($cb);
+#}
+#
+#sub update_volumes_selection {
+#    my ($self) = @_;
+#
+#    foreach my $obj_idx (0..$#{$self->{model}->objects}) {
+#        if ($self->{objects}[$obj_idx]->selected) {
+#            my $volume_idxs = $self->{objects_volumes_idxs}->[$obj_idx];
 #            $self->select_volume($_) for @{$volume_idxs};
-#==============================================================================================================================
-        }
-    }
-}
-
-sub reload_scene {
-    my ($self, $force) = @_;
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::reset_volumes($self);
-    Slic3r::GUI::_3DScene::set_bed_shape($self, $self->{config}->bed_shape);
+#        }
+#    }
+#}
+#
+#sub reload_scene {
+#    my ($self, $force) = @_;
+#
 #    $self->reset_objects;
 #    $self->update_bed_size;
-#==============================================================================================================================
-
-    if (! $self->IsShown && ! $force) {
-        $self->{reload_delayed} = 1;
-        return;
-    }
-
-    $self->{reload_delayed} = 0;
-
-    $self->{objects_volumes_idxs} = [];    
-    foreach my $obj_idx (0..$#{$self->{model}->objects}) {
-#==============================================================================================================================
-        my $volume_idxs = Slic3r::GUI::_3DScene::load_model($self, $self->{model}, $obj_idx);
-        push(@{$self->{objects_volumes_idxs}}, \@{$volume_idxs});
-        
+#
+#    if (! $self->IsShown && ! $force) {
+#        $self->{reload_delayed} = 1;
+#        return;
+#    }
+#
+#    $self->{reload_delayed} = 0;
+#
+#    $self->{objects_volumes_idxs} = [];    
+#    foreach my $obj_idx (0..$#{$self->{model}->objects}) {
 #        my @volume_idxs = $self->load_object($self->{model}, $self->{print}, $obj_idx);
 #        push(@{$self->{objects_volumes_idxs}}, \@volume_idxs);
-#==============================================================================================================================
-    }
-    
-    $self->update_volumes_selection;
-        
-    if (defined $self->{config}->nozzle_diameter) {
-        # Should the wipe tower be visualized?
-        my $extruders_count = scalar @{ $self->{config}->nozzle_diameter };
-        # Height of a print.
-        my $height = $self->{model}->bounding_box->z_max;
-        # Show at least a slab.
-        $height = 10 if $height < 10;
-        if ($extruders_count > 1 && $self->{config}->single_extruder_multi_material && $self->{config}->wipe_tower &&
-            ! $self->{config}->complete_objects) {
-            $self->volumes->load_wipe_tower_preview(1000, 
-                $self->{config}->wipe_tower_x, $self->{config}->wipe_tower_y, $self->{config}->wipe_tower_width,
-		#$self->{config}->wipe_tower_per_color_wipe# 15 * ($extruders_count - 1), # this is just a hack when the config parameter became obsolete
-		15 * ($extruders_count - 1),
-#==============================================================================================================================
-                $self->{model}->bounding_box->z_max, $self->{config}->wipe_tower_rotation_angle, Slic3r::GUI::_3DScene::use_VBOs());
+#    }
+#    
+#    $self->update_volumes_selection;
+#        
+#    if (defined $self->{config}->nozzle_diameter) {
+#        # Should the wipe tower be visualized?
+#        my $extruders_count = scalar @{ $self->{config}->nozzle_diameter };
+#        # Height of a print.
+#        my $height = $self->{model}->bounding_box->z_max;
+#        # Show at least a slab.
+#        $height = 10 if $height < 10;
+#        if ($extruders_count > 1 && $self->{config}->single_extruder_multi_material && $self->{config}->wipe_tower &&
+#            ! $self->{config}->complete_objects) {
+#            $self->volumes->load_wipe_tower_preview(1000, 
+#                $self->{config}->wipe_tower_x, $self->{config}->wipe_tower_y, $self->{config}->wipe_tower_width,
+#		#$self->{config}->wipe_tower_per_color_wipe# 15 * ($extruders_count - 1), # this is just a hack when the config parameter became obsolete
+#		15 * ($extruders_count - 1),
 #                $self->{model}->bounding_box->z_max, $self->{config}->wipe_tower_rotation_angle, $self->UseVBOs);
-#==============================================================================================================================
-        }
-    }
-
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self);
+#        }
+#    }
+#
 #    $self->update_volumes_colors_by_extruder($self->{config});
-#==============================================================================================================================
-    
-    # checks for geometry outside the print volume to render it accordingly
-    if (scalar @{$self->volumes} > 0)
-    {
-        my $contained = $self->volumes->check_outside_state($self->{config});
-        if (!$contained) {
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::enable_warning_texture($self, 1);
+#    
+#    # checks for geometry outside the print volume to render it accordingly
+#    if (scalar @{$self->volumes} > 0)
+#    {
+#        my $contained = $self->volumes->check_outside_state($self->{config});
+#        if (!$contained) {
 #            $self->set_warning_enabled(1);
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::generate_warning_texture(L("Detected object outside print volume"));
-            $self->on_enable_action_buttons->(0) if ($self->on_enable_action_buttons);
-        } else {
-#==============================================================================================================================
-            Slic3r::GUI::_3DScene::enable_warning_texture($self, 0);
+#            Slic3r::GUI::_3DScene::generate_warning_texture(L("Detected object outside print volume"));
+#            $self->on_enable_action_buttons->(0) if ($self->on_enable_action_buttons);
+#        } else {
 #            $self->set_warning_enabled(0);
-#==============================================================================================================================
-            $self->volumes->reset_outside_state();
-            Slic3r::GUI::_3DScene::reset_warning_texture();
-            $self->on_enable_action_buttons->(scalar @{$self->{model}->objects} > 0) if ($self->on_enable_action_buttons);
-        }
-    } else {
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::enable_warning_texture($self, 0);
+#            $self->volumes->reset_outside_state();
+#            Slic3r::GUI::_3DScene::reset_warning_texture();
+#            $self->on_enable_action_buttons->(scalar @{$self->{model}->objects} > 0) if ($self->on_enable_action_buttons);
+#        }
+#    } else {
 #        $self->set_warning_enabled(0);
-#==============================================================================================================================
-        Slic3r::GUI::_3DScene::reset_warning_texture();
-    }
-}
-
-#==============================================================================================================================
+#        Slic3r::GUI::_3DScene::reset_warning_texture();
+#    }
+#}
+#
 #sub update_bed_size {
 #    my ($self) = @_;
 #    $self->set_bed_shape($self->{config}->bed_shape);
 #}
+#
+## Called by the Platter wxNotebook when this page is activated.
+#sub OnActivate {
+#    my ($self) = @_;
+#    $self->reload_scene(1) if ($self->{reload_delayed});
+#}
 #==============================================================================================================================
-
-# Called by the Platter wxNotebook when this page is activated.
-sub OnActivate {
-    my ($self) = @_;
-    $self->reload_scene(1) if ($self->{reload_delayed});
-}
 
 1;

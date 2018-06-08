@@ -128,23 +128,10 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_decrease_objects_callback($self->{canvas3D}, sub { $self->decrease() });
         Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { $self->remove() });
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
-#        $self->{canvas3D}->set_on_double_click($on_double_click);
-#        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
-#        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
-#        $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
-#        $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
-#        $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
-#        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
-#        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
-#        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
-#        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
-#==============================================================================================================================
-        $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
-#===================================================================================================================================        
+        Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
-#        $self->{canvas3D}->use_plain_shader(1);
-#===================================================================================================================================        
+
         Slic3r::GUI::_3DScene::register_on_wipe_tower_moved_callback($self->{canvas3D}, sub {
             my ($x, $y) = @_;
             my $cfg = Slic3r::Config->new;
@@ -153,14 +140,6 @@ sub new {
             $self->GetFrame->{options_tabs}{print}->load_config($cfg);
         });
 
-#        $self->{canvas3D}->set_on_wipe_tower_moved(sub {
-#            my ($new_pos_3f) = @_;
-#            my $cfg = Slic3r::Config->new;
-#            $cfg->set('wipe_tower_x', $new_pos_3f->x);
-#            $cfg->set('wipe_tower_y', $new_pos_3f->y);
-#            $self->GetFrame->{options_tabs}{print}->load_config($cfg);
-#        });
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::register_on_model_update_callback($self->{canvas3D}, sub {
             if (wxTheApp->{app_config}->get("background_processing")) {
                 $self->schedule_background_process;
@@ -172,6 +151,27 @@ sub new {
 
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
         
+#        $self->{canvas3D}->set_on_double_click($on_double_click);
+#        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
+#        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
+#        $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
+#        $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
+#        $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
+#        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
+#        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
+#        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
+#        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
+#        $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
+#        $self->{canvas3D}->use_plain_shader(1);
+#
+#        $self->{canvas3D}->set_on_wipe_tower_moved(sub {
+#            my ($new_pos_3f) = @_;
+#            my $cfg = Slic3r::Config->new;
+#            $cfg->set('wipe_tower_x', $new_pos_3f->x);
+#            $cfg->set('wipe_tower_y', $new_pos_3f->y);
+#            $self->GetFrame->{options_tabs}{print}->load_config($cfg);
+#        });
+#        
 #        $self->{canvas3D}->set_on_model_update(sub {
 #            if (wxTheApp->{app_config}->get("background_processing")) {
 #                $self->schedule_background_process;
@@ -229,7 +229,20 @@ sub new {
 #==============================================================================================================================
         }
 
+#==============================================================================================================================
+        if ($preview == $self->{canvas3D}) {
+            if (Slic3r::GUI::_3DScene::is_reload_delayed($self->{canvas3D})) {
+                my $selections = $self->collect_selections;
+                Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+                Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
+            }            
+        }
+        else {
+#==============================================================================================================================
         $preview->OnActivate if $preview->can('OnActivate');        
+#==============================================================================================================================
+        }
+#==============================================================================================================================
     });
     
     # toolbar for object manipulation
@@ -1795,7 +1808,12 @@ sub update {
     }
 
     $self->{canvas}->reload_scene if $self->{canvas};
-    $self->{canvas3D}->reload_scene if $self->{canvas3D};
+#==============================================================================================================================
+    my $selections = $self->collect_selections;
+    Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+    Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
+#    $self->{canvas3D}->reload_scene if $self->{canvas3D};
+#==============================================================================================================================
     $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
@@ -1933,13 +1951,28 @@ sub list_item_selected {
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
-    $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::render($self->{canvas3D}) if $self->{canvas3D};
+    if ($self->{canvas3D}) {
+        my $selections = $self->collect_selections;
+        Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+        Slic3r::GUI::_3DScene::render($self->{canvas3D});
+    }
+#    $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
 #    $self->{canvas3D}->Render if $self->{canvas3D};
 #==============================================================================================================================
     undef $self->{_lecursor};
 }
+
+#==============================================================================================================================
+sub collect_selections {
+    my ($self) = @_;
+    my $selections = [];
+    foreach my $o (@{$self->{objects}}) {
+        push(@$selections, $o->selected);
+    }            
+    return $selections;
+}
+#==============================================================================================================================
 
 sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
@@ -2036,7 +2069,12 @@ sub object_settings_dialog {
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
         $self->{canvas}->reload_scene if $self->{canvas};
-        $self->{canvas3D}->reload_scene if $self->{canvas3D};
+#==============================================================================================================================
+        my $selections = $self->collect_selections;
+        Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
+#        $self->{canvas3D}->reload_scene if $self->{canvas3D};
+#==============================================================================================================================
     } else {
         $self->resume_background_process;
     }

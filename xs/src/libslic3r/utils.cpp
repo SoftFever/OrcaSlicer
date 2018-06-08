@@ -282,6 +282,11 @@ void PerlCallback::call(double x, double y) const
     FREETMPS;
     LEAVE;
 }
+
+void PerlCallback::call(bool b) const
+{
+    call(b ? 1 : 0);
+}
 //##############################################################################################################
 
 #ifdef WIN32

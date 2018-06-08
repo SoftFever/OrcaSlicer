@@ -1822,6 +1822,16 @@ void _3DScene::select_volume(wxGLCanvas* canvas, unsigned int id)
     s_canvas_mgr.select_volume(canvas, id);
 }
 
+void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections)
+{
+    s_canvas_mgr.update_volumes_selection(canvas, selections);
+}
+
+void _3DScene::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
+{
+    s_canvas_mgr.set_objects_selections(canvas, selections);
+}
+
 void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
     s_canvas_mgr.set_config(canvas, config);
@@ -1890,6 +1900,11 @@ bool _3DScene::is_layers_editing_allowed(wxGLCanvas* canvas)
 bool _3DScene::is_shader_enabled(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.is_shader_enabled(canvas);
+}
+
+bool _3DScene::is_reload_delayed(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.is_reload_delayed(canvas);
 }
 
 void _3DScene::enable_layers_editing(wxGLCanvas* canvas, bool enable)
@@ -2089,6 +2104,11 @@ std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const ModelObject* mo
 std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx)
 {
     return s_canvas_mgr.load_object(canvas, model, obj_idx);
+}
+
+void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
+{
+    s_canvas_mgr.reload_scene(canvas, force);
 }
 
 void _3DScene::load_print_toolpaths(wxGLCanvas* canvas)
