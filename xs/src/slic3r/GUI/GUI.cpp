@@ -388,6 +388,8 @@ ConfigMenuIDs get_view_mode()
 	return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
 }
 
+static wxString dots("â€¦", wxConvUTF8);
+
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
     auto local_menu = new wxMenu();
@@ -395,12 +397,12 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"\u2026",	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + dots, 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+dots+"\tCtrl+,", 		_(L("Application preferences")));
 	local_menu->AppendSeparator();
 	auto mode_menu = new wxMenu();
 	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple,	_(L("&Simple")),					_(L("Simple View Mode")));
@@ -443,8 +445,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		    			Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig).id);
 		    		g_PresetBundle->load_presets(*g_AppConfig);
 		    		// Load the currently selected preset into the GUI, update the preset selection box.
-					for (Tab *tab : g_tabs_list)
-						tab->load_current_preset();
+					load_current_presets();
 		    	}
 		    }
 		    break;
@@ -537,12 +538,16 @@ void config_wizard(int reason)
     if (! check_unsaved_changes())
     	return;
 
-	ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
-	wizard.run(g_PresetBundle, g_PresetUpdater);
+	try {
+		ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
+		wizard.run(g_PresetBundle, g_PresetUpdater);
+	}
+	catch (const std::exception &e) {
+		show_error(nullptr, e.what());
+	}
 
-    // Load the currently selected preset into the GUI, update the preset selection box.
-	for (Tab *tab : g_tabs_list)
-		tab->load_current_preset();
+	// Load the currently selected preset into the GUI, update the preset selection box.
+	load_current_presets();
 }
 
 void open_preferences_dialog(int event_preferences)
@@ -692,6 +697,13 @@ void add_created_tab(Tab* panel)
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
 	g_wxTabPanel->AddPage(panel, panel->title());
+}
+
+void load_current_presets()
+{
+	for (Tab *tab : g_tabs_list) {
+		tab->load_current_preset();
+	}
 }
 
 void show_error(wxWindow* parent, const wxString& message) {
@@ -950,9 +962,9 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
-	auto btn_load_part = new wxButton(win, wxID_ANY, /*Load */"part…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-    auto btn_load_modifier = new wxButton(win, wxID_ANY, /*Load */"modifier…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-    auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"generic…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+	auto btn_load_part = new wxButton(win, wxID_ANY, /*Load */"partâ€¦", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+    auto btn_load_modifier = new wxButton(win, wxID_ANY, /*Load */"modifierâ€¦", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+    auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"genericâ€¦", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
     auto btn_delete = new wxButton(win, wxID_ANY, "Delete"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
     auto btn_split = new wxButton(win, wxID_ANY, "Split"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
 	auto btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
@@ -1289,7 +1301,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
     Line line = { "", "" };
         line.widget = [config](wxWindow* parent){
-			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(g_wiping_dialog_button);
 			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
@@ -1331,7 +1343,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	optgroup->sidetext_width = 25;
 	
 	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
-	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°", 1));
+	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "Â°", 1));
 	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
 
 	optgroup->set_flag(ogDEFAULT);
@@ -1477,34 +1489,51 @@ void about()
 }
 
 void desktop_open_datadir_folder()
-{	
+{
 	// Execute command to open a file explorer, platform dependent.
-	std::string cmd =
+	// FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
+
+	const auto path = data_dir();
 #ifdef _WIN32
-		"explorer "
+		const auto widepath = wxString::FromUTF8(path.data());
+		const wchar_t *argv[] = { L"explorer", widepath.GetData(), nullptr };
+		::wxExecute(const_cast<wchar_t**>(argv), wxEXEC_ASYNC, nullptr);
 #elif __APPLE__
-		"open "
+		const char *argv[] = { "open", path.data(), nullptr };
+		::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr);
 #else
-		"xdg-open "
+		const char *argv[] = { "xdg-open", path.data(), nullptr };
+
+		// Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
+		// because they may mess up the environment expected by the file manager.
+		// Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
+		if (wxGetEnv("APPIMAGE", nullptr)) {
+			// We're running from AppImage
+			wxEnvVariableHashMap env_vars;
+			wxGetEnvMap(&env_vars);
+
+			env_vars.erase("APPIMAGE");
+			env_vars.erase("APPDIR");
+			env_vars.erase("LD_LIBRARY_PATH");
+			env_vars.erase("LD_PRELOAD");
+			env_vars.erase("UNION_PRELOAD");
+
+			wxExecuteEnv exec_env;
+			exec_env.env = std::move(env_vars);
+
+			wxString owd;
+			if (wxGetEnv("OWD", &owd)) {
+				// This is the original work directory from which the AppImage image was run,
+				// set it as CWD for the child process:
+				exec_env.cwd = std::move(owd);
+			}
+
+			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+		} else {
+			// Looks like we're NOT running from AppImage, we'll make no changes to the environment.
+			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+		}
 #endif
-		;
-	// Escape the path, platform dependent.
-	std::string path = data_dir();
-#ifdef _WIN32
-	// Enclose the path into double quotes on Windows. A quote character is forbidden in file names, 
-	// therefore it does not need to be escaped.
-	cmd += '"';
-	cmd += path;
-	cmd += '"';	
-#else
-	// Enclose the path into single quotes on Unix / OSX. All single quote characters need to be escaped
-	// inside a file name.
-	cmd += '\'';
-	boost::replace_all(path, "'", "\\'");
-	cmd += path;
-	cmd += '\'';
-#endif
-	::wxExecute(wxString::FromUTF8(cmd.c_str()), wxEXEC_ASYNC, nullptr);	
 }
 
 } }
