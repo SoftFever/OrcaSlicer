@@ -142,6 +142,9 @@ wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
 wxCollapsiblePane		*m_collpane_settings = nullptr;
 int			m_event_object_selection_changed = 0;
+bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
+												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
+												// calls this method again and again and again
 
 wxFont		g_small_font;
 wxFont		g_bold_font;
@@ -898,6 +901,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
+		if (g_prevent_list_events) return;
+
 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		auto item = m_objects_ctrl->GetSelection();
 		int obj_idx = -1;
@@ -1129,10 +1134,15 @@ void unselect_objects()
 void select_current_object(int idx)
 {
 	wxMessageBox("Inside select_current_object", "Info");
+	g_prevent_list_events = true;
 	m_objects_ctrl->UnselectAll();
 	wxMessageBox("UnselectAll", "Info");
-	if (idx < 0) return;
+	if (idx < 0) {
+		g_prevent_list_events = false;
+		return;
+	}
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
+	g_prevent_list_events = false;
 	wxMessageBox("Item is selected", "Info");
 
 	if (get_view_mode() == ConfigMenuModeExpert){
