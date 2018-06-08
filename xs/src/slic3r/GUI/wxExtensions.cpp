@@ -190,10 +190,42 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 }
 
 // ----------------------------------------------------------------------------
-// ***  PrusaCollapsiblePane  ***    used only #ifdef __WXMSW__
+// ***  PrusaCollapsiblePane  ***    
+// ----------------------------------------------------------------------------
+void PrusaCollapsiblePane::OnStateChange(const wxSize& sz)
+{
+	SetSize(sz);
+
+	if (this->HasFlag(wxCP_NO_TLW_RESIZE))
+	{
+		// the user asked to explicitly handle the resizing itself...
+		return;
+	}
+
+	auto top = GetParent(); //right_panel
+	if (!top)
+		return;
+
+	wxSizer *sizer = top->GetSizer();
+	if (!sizer)
+		return;
+
+	const wxSize newBestSize = sizer->ComputeFittingClientSize(top);
+	top->SetMinClientSize(newBestSize);
+
+	wxWindowUpdateLocker noUpdates_p(top->GetParent());
+	// we shouldn't attempt to resize a maximized window, whatever happens
+	// 	if (!top->IsMaximized())
+	// 		top->SetClientSize(newBestSize);
+	top->GetParent()->Layout();
+	top->Refresh();
+}
+
+// ----------------------------------------------------------------------------
+// ***  PrusaCollapsiblePaneMSW  ***    used only #ifdef __WXMSW__
 // ----------------------------------------------------------------------------
 #ifdef __WXMSW__
-bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxString& label, 
+bool PrusaCollapsiblePaneMSW::Create(wxWindow *parent, wxWindowID id, const wxString& label, 
 	const wxPoint& pos, const wxSize& size, long style, const wxValidator& val, const wxString& name)
 {
 	if (!wxControl::Create(parent, id, pos, size, style, val, name))
@@ -242,7 +274,7 @@ bool PrusaCollapsiblePane::Create(wxWindow *parent, wxWindowID id, const wxStrin
 	return true;
 }
 
-void PrusaCollapsiblePane::UpdateBtnBmp()
+void PrusaCollapsiblePaneMSW::UpdateBtnBmp()
 {
 	if (IsCollapsed())
 		m_pDisclosureTriangleButton->SetBitmap(m_bmp_close);
@@ -257,14 +289,14 @@ void PrusaCollapsiblePane::UpdateBtnBmp()
 	Layout();
 }
 
-void PrusaCollapsiblePane::SetLabel(const wxString &label)
+void PrusaCollapsiblePaneMSW::SetLabel(const wxString &label)
 {
 	m_strLabel = label;
 	m_pDisclosureTriangleButton->SetLabel(m_strLabel);
 	Layout();
 }
 
-bool PrusaCollapsiblePane::Layout()
+bool PrusaCollapsiblePaneMSW::Layout()
 {
 	if (!m_pDisclosureTriangleButton || !m_pPane || !m_sz)
 		return false;     // we need to complete the creation first!
@@ -289,36 +321,7 @@ bool PrusaCollapsiblePane::Layout()
 	return true;
 }
 
-void PrusaCollapsiblePane::OnStateChange_(const wxSize& sz)
-{
-	SetSize(sz);
-
-	if (this->HasFlag(wxCP_NO_TLW_RESIZE))
-	{
-		// the user asked to explicitly handle the resizing itself...
-		return;
-	}
-
-	auto top = GetParent(); //right_panel
-	if (!top)
-		return;
-
-	wxSizer *sizer = top->GetSizer();
-	if (!sizer)
-		return;
-
-	const wxSize newBestSize = sizer->ComputeFittingClientSize(top);
-	top->SetMinClientSize(newBestSize);
-
-	wxWindowUpdateLocker noUpdates_p(top->GetParent());
-	// we shouldn't attempt to resize a maximized window, whatever happens
-// 	if (!top->IsMaximized())
-// 		top->SetClientSize(newBestSize);
-	top->GetParent()->Layout();
-	top->Refresh();
-}
-
-void PrusaCollapsiblePane::Collapse(bool collapse)
+void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 {
 	// optimization
 	if (IsCollapsed() == collapse)
@@ -332,7 +335,7 @@ void PrusaCollapsiblePane::Collapse(bool collapse)
 	// update button bitmap
 	UpdateBtnBmp();
 
-	OnStateChange_(GetBestSize());
+	OnStateChange(GetBestSize());
 }
 #endif //__WXMSW__
 

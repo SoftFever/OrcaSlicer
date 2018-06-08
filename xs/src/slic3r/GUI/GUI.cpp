@@ -858,9 +858,9 @@ wxString from_u8(const std::string &str)
 wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
 {
 #ifdef __WXMSW__
-	auto *collpane = new PrusaCollapsiblePane(parent, wxID_ANY, name);
+	auto *collpane = new PrusaCollapsiblePaneMSW(parent, wxID_ANY, name);
 #else
-	auto *collpane = new wxCollapsiblePane(parent, wxID_ANY, name);
+	auto *collpane = new PrusaCollapsiblePane/*wxCollapsiblePane*/(parent, wxID_ANY, name);
 #endif // __WXMSW__
 	// add the pane with a zero proportion value to the sizer which contains it
 	sizer_parent->Add(collpane, 0, wxGROW | wxALL, 0);
@@ -962,9 +962,9 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
-	auto btn_load_part = new wxButton(win, wxID_ANY, /*Load */"part…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-    auto btn_load_modifier = new wxButton(win, wxID_ANY, /*Load */"modifier…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-    auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"generic…", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+	auto btn_load_part = new wxButton(win, wxID_ANY, /*Load */"part"+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+	auto btn_load_modifier = new wxButton(win, wxID_ANY, /*Load */"modifier" + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
+	auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"generic" + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
     auto btn_delete = new wxButton(win, wxID_ANY, "Delete"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
     auto btn_split = new wxButton(win, wxID_ANY, "Split"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
 	auto btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
@@ -1170,17 +1170,17 @@ void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_
 	// *** Objects List ***	
  	auto collpane = add_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
 	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent& e){
-		e.Skip();
-		wxWindowUpdateLocker noUpdates(g_right_panel);
+// 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		if (collpane->IsCollapsed()) {
 			m_sizer_object_buttons->Show(false);
 			m_sizer_part_buttons->Show(false);
 			m_collpane_settings->Show(false);
 		}
-		else 
-			m_objects_ctrl->UnselectAll();
+// 		else 
+// 			m_objects_ctrl->UnselectAll();
 		
-		g_right_panel->Layout();
+// 		e.Skip();
+//		g_right_panel->Layout();
 	}));
 
 	// *** Object/Part Settings ***

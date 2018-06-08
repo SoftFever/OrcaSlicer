@@ -75,17 +75,45 @@ public:
 
 
 
-// ***  PrusaCollapsiblePane  ***  used only #ifdef __WXMSW__
+// ***  PrusaCollapsiblePane  *** 
+// ----------------------------------------------------------------------------
+class PrusaCollapsiblePane : public wxCollapsiblePane
+{
+public:
+	PrusaCollapsiblePane() {}
+	PrusaCollapsiblePane(wxWindow *parent,
+		wxWindowID winid,
+		const wxString& label,
+		const wxPoint& pos = wxDefaultPosition,
+		const wxSize& size = wxDefaultSize,
+		long style = wxCP_DEFAULT_STYLE,
+		const wxValidator& val = wxDefaultValidator,
+		const wxString& name = wxCollapsiblePaneNameStr)
+	{
+		Create(parent, winid, label, pos, size, style, val, name);
+	}
+	~PrusaCollapsiblePane() {}
+
+	void OnStateChange(const wxSize& sz); //override/hide of OnStateChange from wxCollapsiblePane
+	virtual bool Show(bool show = true) override {
+		wxCollapsiblePane::Show(show);
+		OnStateChange(GetBestSize());
+		return true;
+	}
+};
+
+
+// ***  PrusaCollapsiblePaneMSW  ***  used only #ifdef __WXMSW__
 // ----------------------------------------------------------------------------
 #ifdef __WXMSW__
-class PrusaCollapsiblePane : public wxCollapsiblePane
+class PrusaCollapsiblePaneMSW : public PrusaCollapsiblePane//wxCollapsiblePane
 {
 	wxButton*	m_pDisclosureTriangleButton = nullptr;
 	wxBitmap	m_bmp_close;
 	wxBitmap	m_bmp_open;
 public:
-	PrusaCollapsiblePane() {}
-	PrusaCollapsiblePane(	wxWindow *parent,
+	PrusaCollapsiblePaneMSW() {}
+	PrusaCollapsiblePaneMSW(	wxWindow *parent,
 							wxWindowID winid,
 							const wxString& label,
 							const wxPoint& pos = wxDefaultPosition,
@@ -97,7 +125,7 @@ public:
 		Create(parent, winid, label, pos, size, style, val, name);
 	}
 
-	~PrusaCollapsiblePane() {}
+	~PrusaCollapsiblePaneMSW() {}
 
 	bool Create(wxWindow *parent,
 				wxWindowID id,
@@ -112,12 +140,6 @@ public:
 	void SetLabel(const wxString &label) override;
 	bool Layout() override;
 	void Collapse(bool collapse) override;
-	void OnStateChange_(const wxSize& sz); //override of OnStateChange
-	virtual bool Show(bool show=true) override {
-		wxCollapsiblePane::Show(show); 
-		OnStateChange_(GetBestSize());
-		return true;
-	}
 };
 #endif //__WXMSW__
 
