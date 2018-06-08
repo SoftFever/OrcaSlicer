@@ -308,6 +308,8 @@ enum ConfigMenuIDs {
 	ConfigMenuCnt,
 };
 
+static wxString dots("…", wxConvUTF8);
+
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
     auto local_menu = new wxMenu();
@@ -315,12 +317,12 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"\u2026",	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + dots, 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+dots+"\tCtrl+,", 		_(L("Application preferences")));
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
    	local_menu->AppendSeparator();
 	local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
@@ -356,8 +358,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		    			Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig).id);
 		    		g_PresetBundle->load_presets(*g_AppConfig);
 		    		// Load the currently selected preset into the GUI, update the preset selection box.
-					for (Tab *tab : g_tabs_list)
-						tab->load_current_preset();
+					load_current_presets();
 		    	}
 		    }
 		    break;
@@ -451,9 +452,8 @@ void config_wizard(int reason)
 		show_error(nullptr, e.what());
 	}
 
-    // Load the currently selected preset into the GUI, update the preset selection box.
-	for (Tab *tab : g_tabs_list)
-		tab->load_current_preset();
+	// Load the currently selected preset into the GUI, update the preset selection box.
+	load_current_presets();
 }
 
 void open_preferences_dialog(int event_preferences)
@@ -603,6 +603,13 @@ void add_created_tab(Tab* panel)
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
 	g_wxTabPanel->AddPage(panel, panel->title());
+}
+
+void load_current_presets()
+{
+	for (Tab *tab : g_tabs_list) {
+		tab->load_current_preset();
+	}
 }
 
 void show_error(wxWindow* parent, const wxString& message) {
@@ -841,7 +848,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
     Line line = { "", "" };
         line.widget = [config](wxWindow* parent){
-			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(g_wiping_dialog_button);
 			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)

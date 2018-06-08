@@ -51,7 +51,7 @@ class GCodeSender : private boost::noncopyable {
     bool can_send;
     bool queue_paused;
     size_t sent;
-    std::vector<std::string> last_sent;
+    std::deque<std::string> last_sent;
     
     // this mutex guards log, T, B
     mutable boost::mutex log_mutex;

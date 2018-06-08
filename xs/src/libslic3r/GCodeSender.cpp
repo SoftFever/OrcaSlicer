@@ -41,6 +41,7 @@ struct termios2 {
 
 //#define DEBUG_SERIAL
 #ifdef DEBUG_SERIAL
+#include <cstdlib>
 #include <fstream>
 std::fstream fs;
 #endif
@@ -52,7 +53,11 @@ namespace Slic3r {
 GCodeSender::GCodeSender()
     : io(), serial(io), can_send(false), sent(0), open(false), error(false),
       connected(false), queue_paused(false)
-{}
+{
+#ifdef DEBUG_SERIAL
+    std::srand(std::time(nullptr));
+#endif
+}
 
 GCodeSender::~GCodeSender()
 {
@@ -358,15 +363,23 @@ GCodeSender::on_read(const boost::system::error_code& error,
             // extract the first number from line
             boost::algorithm::trim_left_if(line, !boost::algorithm::is_digit());
             size_t toresend = boost::lexical_cast<size_t>(line.substr(0, line.find_first_not_of("0123456789")));
-            ++ toresend; // N is 0-based
-            if (toresend >= this->sent - this->last_sent.size() && toresend < this->last_sent.size()) {
+            
+#ifdef DEBUG_SERIAL
+            fs << "!! line num out of sync: toresend = " << toresend << ", sent = " << sent << ", last_sent.size = " << last_sent.size() << std::endl;
+#endif
+
+            if (toresend > this->sent - this->last_sent.size() && toresend <= this->sent) {
                 {
                     boost::lock_guard<boost::mutex> l(this->queue_mutex);
                     
+                    const auto lines_to_resend = this->sent - toresend + 1;
+#ifdef DEBUG_SERIAL
+            fs << "!! resending " << lines_to_resend << " lines" << std::endl;
+#endif
                     // move the unsent lines to priqueue
                     this->priqueue.insert(
                         this->priqueue.begin(),  // insert at the beginning
-                        this->last_sent.begin() + toresend - (this->sent - this->last_sent.size()) - 1,
+                        this->last_sent.begin() + this->last_sent.size() - lines_to_resend,
                         this->last_sent.end()
                     );
                     
@@ -477,8 +490,14 @@ GCodeSender::do_send()
     if (line.empty()) return;
     
     // compute full line
-    std::string full_line = "N" + boost::lexical_cast<std::string>(this->sent) + " " + line;
     ++ this->sent;
+#ifndef DEBUG_SERIAL
+    const auto line_num = this->sent;
+#else
+    // In DEBUG_SERIAL mode, test line re-synchronization by sending bad line number 1/4 of the time
+    const auto line_num = std::rand() < RAND_MAX/4 ? 0 : this->sent;
+#endif
+    std::string full_line = "N" + boost::lexical_cast<std::string>(line_num) + " " + line;
     
     // calculate checksum
     int cs = 0;
@@ -497,8 +516,9 @@ GCodeSender::do_send()
     this->last_sent.push_back(line);
     this->can_send = false;
     
-    if (this->last_sent.size() > KEEP_SENT)
-        this->last_sent.erase(this->last_sent.begin(), this->last_sent.end() - KEEP_SENT);
+    while (this->last_sent.size() > KEEP_SENT) {
+        this->last_sent.pop_front();
+    }
     
     // we can't supply boost::asio::buffer(full_line) to async_write() because full_line is on the
     // stack and the buffer would lose its underlying storage causing memory corruption
