@@ -199,12 +199,13 @@ is_shown_on_screen(canvas)
     OUTPUT:
         RETVAL
 
-void
-set_volumes(canvas, volumes)
-        SV                 *canvas;
-        GLVolumeCollection *volumes;
+unsigned int
+get_volumes_count(canvas)
+        SV *canvas;
     CODE:
-        _3DScene::set_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), volumes);
+        RETVAL = _3DScene::get_volumes_count((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
 
 void
 reset_volumes(canvas)
@@ -231,6 +232,33 @@ update_volumes_selection(canvas, selections)
         std::vector<int> selections;
     CODE:
         _3DScene::update_volumes_selection((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
+
+bool
+check_volumes_outside_state(canvas, config)
+        SV                 *canvas;
+        DynamicPrintConfig *config;
+    CODE:
+        RETVAL = _3DScene::check_volumes_outside_state((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), config);
+    OUTPUT:
+        RETVAL
+
+bool
+move_volume_up(canvas, id)
+        SV           *canvas;
+        unsigned int id;
+    CODE:
+        RETVAL = _3DScene::move_volume_up((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+    OUTPUT:
+        RETVAL
+
+bool
+move_volume_down(canvas, id)
+        SV           *canvas;
+        unsigned int id;
+    CODE:
+        RETVAL = _3DScene::move_volume_down((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+    OUTPUT:
+        RETVAL
 
 void
 set_objects_selections(canvas, selections)

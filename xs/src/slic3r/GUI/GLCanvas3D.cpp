@@ -24,10 +24,6 @@
 #include <iostream>
 #include <float.h>
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-#include "SVG.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 static const float TRACKBALLSIZE = 0.8f;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
 static const float GROUND_Z = -0.02f;
@@ -661,7 +657,6 @@ bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 
     return true;
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 GLCanvas3D::Axes::Axes()
     : length(0.0f)
@@ -1212,15 +1207,18 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_reload_delayed(false)
 {
     if (m_canvas != nullptr)
+    {
         m_timer = new wxTimer(m_canvas);
+        m_volumes = new GLVolumeCollection;
+    }
 }
 
 GLCanvas3D::~GLCanvas3D()
 {
     if (m_volumes != nullptr)
     {
-        set_current();
-        m_volumes->release_geometry();
+        reset_volumes();
+        delete m_volumes;
     }
 
     if (m_timer != nullptr)
@@ -1317,9 +1315,9 @@ bool GLCanvas3D::is_shown_on_screen() const
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
-void GLCanvas3D::set_volumes(GLVolumeCollection* volumes)
+unsigned int GLCanvas3D::get_volumes_count() const
 {
-    m_volumes = volumes;
+    return (m_volumes != nullptr) ? (unsigned int)m_volumes->volumes.size() : 0;
 }
 
 void GLCanvas3D::reset_volumes()
@@ -1370,6 +1368,45 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
             }
         }
     }
+}
+
+bool GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
+{
+    return (m_volumes != nullptr) ? m_volumes->check_outside_state(config) : false;
+}
+
+bool GLCanvas3D::move_volume_up(unsigned int id)
+{
+    if (m_volumes != nullptr)
+    {
+        if ((id > 0) && (id < (unsigned int)m_volumes->volumes.size()))
+        {
+            std::swap(m_volumes->volumes[id - 1], m_volumes->volumes[id]);
+            std::swap(m_volumes->volumes[id - 1]->composite_id, m_volumes->volumes[id]->composite_id);
+            std::swap(m_volumes->volumes[id - 1]->select_group_id, m_volumes->volumes[id]->select_group_id);
+            std::swap(m_volumes->volumes[id - 1]->drag_group_id, m_volumes->volumes[id]->drag_group_id);
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool GLCanvas3D::move_volume_down(unsigned int id)
+{
+    if (m_volumes != nullptr)
+    {
+        if ((id >= 0) && (id + 1 < (unsigned int)m_volumes->volumes.size()))
+        {
+            std::swap(m_volumes->volumes[id + 1], m_volumes->volumes[id]);
+            std::swap(m_volumes->volumes[id + 1]->composite_id, m_volumes->volumes[id]->composite_id);
+            std::swap(m_volumes->volumes[id + 1]->select_group_id, m_volumes->volumes[id]->select_group_id);
+            std::swap(m_volumes->volumes[id + 1]->drag_group_id, m_volumes->volumes[id]->drag_group_id);
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void GLCanvas3D::set_objects_selections(const std::vector<int>& selections)

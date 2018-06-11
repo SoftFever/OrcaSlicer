@@ -398,10 +398,11 @@ sub load_print {
 #            $self->canvas->reset_legend_texture();
 #==============================================================================================================================
         } else {
-            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0);
 #==============================================================================================================================
+            $self->{force_sliders_full_range} = (Slic3r::GUI::_3DScene::get_volumes_count($self->canvas) == 0);
             Slic3r::GUI::_3DScene::set_print($self->canvas, $self->print);
             Slic3r::GUI::_3DScene::load_gcode_preview($self->canvas, $self->gcode_preview_data, \@colors);
+#            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0);
 #            $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
 #==============================================================================================================================
             $self->show_hide_ui_elements('full');

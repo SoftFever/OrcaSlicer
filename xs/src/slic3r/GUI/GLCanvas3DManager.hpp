@@ -53,11 +53,14 @@ public:
 
     bool is_shown_on_screen(wxGLCanvas* canvas) const;
 
-    void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
+    unsigned int get_volumes_count(wxGLCanvas* canvas) const;
     void reset_volumes(wxGLCanvas* canvas);
     void deselect_volumes(wxGLCanvas* canvas);
     void select_volume(wxGLCanvas* canvas, unsigned int id);
     void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
+    bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const;
+    bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
+    bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
     void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
 

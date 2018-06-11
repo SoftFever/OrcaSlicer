@@ -1802,9 +1802,9 @@ bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
     return s_canvas_mgr.is_shown_on_screen(canvas);
 }
 
-void _3DScene::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
+unsigned int _3DScene::get_volumes_count(wxGLCanvas* canvas)
 {
-    s_canvas_mgr.set_volumes(canvas, volumes);
+    return s_canvas_mgr.get_volumes_count(canvas);
 }
 
 void _3DScene::reset_volumes(wxGLCanvas* canvas)
@@ -1825,6 +1825,21 @@ void _3DScene::select_volume(wxGLCanvas* canvas, unsigned int id)
 void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections)
 {
     s_canvas_mgr.update_volumes_selection(canvas, selections);
+}
+
+bool _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
+{
+    return s_canvas_mgr.check_volumes_outside_state(canvas, config);
+}
+
+bool _3DScene::move_volume_up(wxGLCanvas* canvas, unsigned int id)
+{
+    return s_canvas_mgr.move_volume_up(canvas, id);
+}
+
+bool _3DScene::move_volume_down(wxGLCanvas* canvas, unsigned int id)
+{
+    return s_canvas_mgr.move_volume_down(canvas, id);
 }
 
 void _3DScene::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)

@@ -558,11 +558,14 @@ public:
 
     static bool is_shown_on_screen(wxGLCanvas* canvas);
 
-    static void set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes);
+    static unsigned int get_volumes_count(wxGLCanvas* canvas);
     static void reset_volumes(wxGLCanvas* canvas);
     static void deselect_volumes(wxGLCanvas* canvas);
     static void select_volume(wxGLCanvas* canvas, unsigned int id);
     static void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
+    static bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
+    static bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
+    static bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
     static void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
 

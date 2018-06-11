@@ -2109,7 +2109,10 @@ sub object_list_changed {
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
-    my $model_fits = $self->{canvas3D} ? $self->{canvas3D}->volumes->check_outside_state($self->{config}) : 1;
+#==============================================================================================================================
+    my $model_fits = $self->{canvas3D} ? Slic3r::GUI::_3DScene::check_volumes_outside_state($self->{canvas3D}, $self->{config}) : 1;
+#    my $model_fits = $self->{canvas3D} ? $self->{canvas3D}->volumes->check_outside_state($self->{config}) : 1;
+#==============================================================================================================================
     my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);

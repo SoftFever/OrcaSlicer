@@ -34,9 +34,6 @@ use Wx::GLCanvas qw(:all);
 
 # volumes: reference to vector of Slic3r::GUI::3DScene::Volume.
 #==============================================================================================================================
-__PACKAGE__->mk_accessors( qw(
-                              volumes
-                              ) );
 #__PACKAGE__->mk_accessors( qw(_quat _dirty init
 #                              enable_picking
 #                              enable_moving
@@ -165,17 +162,11 @@ sub new {
 #    $self->use_plain_shader(0);
 #    $self->_apply_zoom_to_volumes_filter(0);
 #    $self->_mouse_dragging(0);
-#==============================================================================================================================
-
-    # Collection of GLVolume objects
-    $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
-#==============================================================================================================================
-    Slic3r::GUI::_3DScene::set_volumes($self, $self->volumes);
-    Slic3r::GUI::_3DScene::reset_volumes($self);
-#==============================================================================================================================
-
-    # 3D point in model space
-#==============================================================================================================================
+#
+#    # Collection of GLVolume objects
+#    $self->volumes(Slic3r::GUI::_3DScene::GLVolume::Collection->new);
+#
+#    # 3D point in model space
 #    $self->_camera_type('ortho');
 ##    $self->_camera_type('perspective');
 #    $self->_camera_target(Slic3r::Pointf3->new(0,0,0));

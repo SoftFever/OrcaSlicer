@@ -419,11 +419,14 @@ public:
 
     bool is_shown_on_screen() const;
 
-    void set_volumes(GLVolumeCollection* volumes);
+    unsigned int get_volumes_count() const;
     void reset_volumes();
     void deselect_volumes();
     void select_volume(unsigned int id);
     void update_volumes_selection(const std::vector<int>& selections);
+    bool check_volumes_outside_state(const DynamicPrintConfig* config) const;
+    bool move_volume_up(unsigned int id);
+    bool move_volume_down(unsigned int id);
 
     void set_objects_selections(const std::vector<int>& selections);
 

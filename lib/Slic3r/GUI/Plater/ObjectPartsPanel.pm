@@ -280,7 +280,10 @@ sub selection_changed {
     
     # deselect all meshes
     if ($self->{canvas}) {
-        $_->set_selected(0) for @{$self->{canvas}->volumes};
+#==============================================================================================================================
+        Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas});
+#        $_->set_selected(0) for @{$self->{canvas}->volumes};
+#==============================================================================================================================
     }
     
     # disable things as if nothing is selected
@@ -308,7 +311,10 @@ sub selection_changed {
         if ($itemData->{type} eq 'volume') {
             # select volume in 3D preview
             if ($self->{canvas}) {
-                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
+#==============================================================================================================================
+                Slic3r::GUI::_3DScene::select_volume($self->{canvas}, $itemData->{volume_id});
+#                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
+#==============================================================================================================================
             }
             $self->{btn_delete}->Enable;
             $self->{btn_split}->Enable;
@@ -450,7 +456,10 @@ sub on_btn_move_up {
     if ($itemData && $itemData->{type} eq 'volume') {
         my $volume_id = $itemData->{volume_id};
         if ($self->{model_object}->move_volume_up($volume_id)) {
-            $self->{canvas}->volumes->move_volume_up($volume_id);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::move_volume_up($self->{canvas}, $volume_id);
+#            $self->{canvas}->volumes->move_volume_up($volume_id);
+#==============================================================================================================================
             $self->{parts_changed} = 1;
             $self->reload_tree($volume_id - 1);
         }
@@ -463,7 +472,10 @@ sub on_btn_move_down {
     if ($itemData && $itemData->{type} eq 'volume') {
         my $volume_id = $itemData->{volume_id};
         if ($self->{model_object}->move_volume_down($volume_id)) {
-            $self->{canvas}->volumes->move_volume_down($volume_id);
+#==============================================================================================================================
+            Slic3r::GUI::_3DScene::move_volume_down($self->{canvas}, $volume_id);
+#            $self->{canvas}->volumes->move_volume_down($volume_id);
+#==============================================================================================================================
             $self->{parts_changed} = 1;
             $self->reload_tree($volume_id + 1);
         }
@@ -570,7 +582,10 @@ sub _update_canvas {
         # restore selection, if any
         if (my $itemData = $self->get_selection) {
             if ($itemData->{type} eq 'volume') {
-                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
+#==============================================================================================================================
+                Slic3r::GUI::_3DScene::select_volume($self->{canvas}, $itemData->{volume_id});
+#                $self->{canvas}->volumes->[ $itemData->{volume_id} ]->set_selected(1);
+#==============================================================================================================================
             }
         }
 

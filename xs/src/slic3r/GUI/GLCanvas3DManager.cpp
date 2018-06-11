@@ -226,11 +226,10 @@ bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
     return (it != m_canvases.end()) ? it->second->is_shown_on_screen() : false;
 }
 
-void GLCanvas3DManager::set_volumes(wxGLCanvas* canvas, GLVolumeCollection* volumes)
+unsigned int GLCanvas3DManager::get_volumes_count(wxGLCanvas* canvas) const
 {
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_volumes(volumes);
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_volumes_count() : 0;
 }
 
 void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
@@ -259,6 +258,24 @@ void GLCanvas3DManager::update_volumes_selection(wxGLCanvas* canvas, const std::
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->update_volumes_selection(selections);
+}
+
+bool GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->check_volumes_outside_state(config) : false;
+}
+
+bool GLCanvas3DManager::move_volume_up(wxGLCanvas* canvas, unsigned int id)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->move_volume_up(id) : false;
+}
+
+bool GLCanvas3DManager::move_volume_down(wxGLCanvas* canvas, unsigned int id)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->move_volume_down(id) : false;
 }
 
 void GLCanvas3DManager::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
