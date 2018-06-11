@@ -3,6 +3,7 @@
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
 #include "../../slic3r/GUI/GUI.hpp"
+#include "../../slic3r/GUI/PresetBundle.hpp"
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/Print.hpp"
@@ -18,9 +19,14 @@
 #include <tbb/spin_mutex.h>
 
 #include <boost/log/trivial.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 #include <iostream>
 #include <float.h>
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+#include "SVG.hpp"
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 static const float TRACKBALLSIZE = 0.8f;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
@@ -41,25 +47,66 @@ static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
 namespace Slic3r {
 namespace GUI {
 
-bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z)
+bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool generate_tex_coords)
 {
-    m_data.clear();
+    m_vertices.clear();
+    m_tex_coords.clear();
 
-    unsigned int size = 9 * (unsigned int)triangles.size();
-    if (size == 0)
+    unsigned int v_size = 9 * (unsigned int)triangles.size();
+    unsigned int t_size = 6 * (unsigned int)triangles.size();
+    if (v_size == 0)
         return false;
 
-    m_data = std::vector<float>(size, 0.0f);
+    m_vertices = std::vector<float>(v_size, 0.0f);
+    if (generate_tex_coords)
+        m_tex_coords = std::vector<float>(t_size, 0.0f);
 
-    unsigned int coord = 0;
+    float min_x = (float)unscale(triangles[0].points[0].x);
+    float min_y = (float)unscale(triangles[0].points[0].y);
+    float max_x = min_x;
+    float max_y = min_y;
+
+    unsigned int v_coord = 0;
+    unsigned int t_coord = 0;
     for (const Polygon& t : triangles)
     {
         for (unsigned int v = 0; v < 3; ++v)
         {
             const Point& p = t.points[v];
-            m_data[coord++] = (float)unscale(p.x);
-            m_data[coord++] = (float)unscale(p.y);
-            m_data[coord++] = z;
+            float x = (float)unscale(p.x);
+            float y = (float)unscale(p.y);
+
+            m_vertices[v_coord++] = x;
+            m_vertices[v_coord++] = y;
+            m_vertices[v_coord++] = z;
+
+            if (generate_tex_coords)
+            {
+                m_tex_coords[t_coord++] = x;
+                m_tex_coords[t_coord++] = y;
+
+                min_x = std::min(min_x, x);
+                max_x = std::max(max_x, x);
+                min_y = std::min(min_y, y);
+                max_y = std::max(max_y, y);
+            }
+        }
+    }
+
+    if (generate_tex_coords)
+    {
+        float size_x = max_x - min_x;
+        float size_y = max_y - min_y;
+
+        if ((size_x != 0.0f) && (size_y != 0.0f))
+        {
+            float inv_size_x = 1.0f / size_x;
+            float inv_size_y = -1.0f / size_y;
+            for (unsigned int i = 0; i < m_tex_coords.size(); i += 2)
+            {
+                m_tex_coords[i] *= inv_size_x;
+                m_tex_coords[i + 1] *= inv_size_y;
+            }
         }
     }
 
@@ -68,36 +115,42 @@ bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z)
 
 bool GeometryBuffer::set_from_lines(const Lines& lines, float z)
 {
-    m_data.clear();
+    m_vertices.clear();
+    m_tex_coords.clear();
 
     unsigned int size = 6 * (unsigned int)lines.size();
     if (size == 0)
         return false;
 
-    m_data = std::vector<float>(size, 0.0f);
+    m_vertices = std::vector<float>(size, 0.0f);
 
     unsigned int coord = 0;
     for (const Line& l : lines)
     {
-        m_data[coord++] = (float)unscale(l.a.x);
-        m_data[coord++] = (float)unscale(l.a.y);
-        m_data[coord++] = z;
-        m_data[coord++] = (float)unscale(l.b.x);
-        m_data[coord++] = (float)unscale(l.b.y);
-        m_data[coord++] = z;
+        m_vertices[coord++] = (float)unscale(l.a.x);
+        m_vertices[coord++] = (float)unscale(l.a.y);
+        m_vertices[coord++] = z;
+        m_vertices[coord++] = (float)unscale(l.b.x);
+        m_vertices[coord++] = (float)unscale(l.b.y);
+        m_vertices[coord++] = z;
     }
 
     return true;
 }
 
-const float* GeometryBuffer::get_data() const
+const float* GeometryBuffer::get_vertices() const
 {
-    return m_data.data();
+    return m_vertices.data();
 }
 
-unsigned int GeometryBuffer::get_data_size() const
+const float* GeometryBuffer::get_tex_coords() const
 {
-    return (unsigned int)m_data.size();
+    return m_tex_coords.data();
+}
+
+unsigned int GeometryBuffer::get_vertices_count() const
+{
+    return (unsigned int)m_vertices.size() / 3;
 }
 
 Size::Size()
@@ -188,6 +241,106 @@ void Rect::set_bottom(float bottom)
     m_bottom = bottom;
 }
 
+GLCanvas3D::GLTextureData::GLTextureData()
+    : m_id(0)
+    , m_width(0)
+    , m_height(0)
+    , m_source("")
+{
+}
+
+GLCanvas3D::GLTextureData::~GLTextureData()
+{
+    reset();
+}
+
+bool GLCanvas3D::GLTextureData::load_from_file(const std::string& filename)
+{
+    reset();
+
+    // Load a PNG with an alpha channel.
+    wxImage image;
+    if (!image.LoadFile(filename, wxBITMAP_TYPE_PNG))
+    {
+        reset();
+        return false;
+    }
+
+    m_width = image.GetWidth();
+    m_height = image.GetHeight();
+    int n_pixels = m_width * m_height;
+
+    if (n_pixels <= 0)
+    {
+        reset();
+        return false;
+    }
+
+    // Get RGB & alpha raw data from wxImage, pack them into an array.
+    unsigned char* img_rgb = image.GetData();
+    if (img_rgb == nullptr)
+    {
+        reset();
+        return false;
+    }
+
+    unsigned char* img_alpha = image.GetAlpha();
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    for (int i = 0; i < n_pixels; ++i)
+    {
+        int data_id = i * 4;
+        int img_id = i * 3;
+        data[data_id + 0] = img_rgb[img_id + 0];
+        data[data_id + 1] = img_rgb[img_id + 1];
+        data[data_id + 2] = img_rgb[img_id + 2];
+        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+    }
+
+    // sends data to gpu
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, m_id);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    m_source = filename;
+    return true;
+}
+
+void GLCanvas3D::GLTextureData::reset()
+{
+    if (m_id != 0)
+        ::glDeleteTextures(1, &m_id);
+
+    m_id = 0;
+    m_width = 0;
+    m_height = 0;
+    m_source = "";
+}
+
+unsigned int GLCanvas3D::GLTextureData::get_id() const
+{
+    return m_id;
+}
+
+int GLCanvas3D::GLTextureData::get_width() const
+{
+    return m_width;
+}
+
+int GLCanvas3D::GLTextureData::get_height() const
+{
+    return m_height;
+}
+
+const std::string& GLCanvas3D::GLTextureData::get_source() const
+{
+    return m_source;
+}
+
 GLCanvas3D::Camera::Camera()
     : type(Ortho)
     , zoom(1.0f)
@@ -222,6 +375,11 @@ void GLCanvas3D::Camera::set_theta(float theta)
     m_theta = clamp(0.0f, GIMBALL_LOCK_THETA_MAX, theta);
 }
 
+GLCanvas3D::Bed::Bed()
+    : m_type(Custom)
+{
+}
+
 const Pointfs& GLCanvas3D::Bed::get_shape() const
 {
     return m_shape;
@@ -230,6 +388,7 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
 void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
     m_shape = shape;
+    m_type = _detect_type();
 
     _calc_bounding_box();
 
@@ -244,7 +403,7 @@ void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     const BoundingBox& bed_bbox = poly.contour.bounding_box();
     _calc_gridlines(poly, bed_bbox);
 
-    m_polygon = offset_ex(poly.contour, bed_bbox.radius() * 1.7, jtRound, scale_(0.5))[0].contour;
+    m_polygon = offset_ex(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0].contour;
 }
 
 const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
@@ -262,39 +421,26 @@ Point GLCanvas3D::Bed::point_projection(const Point& point) const
     return m_polygon.point_projection(point);
 }
 
-void GLCanvas3D::Bed::render() const
+void GLCanvas3D::Bed::render(float theta) const
 {
-    unsigned int triangles_vcount = m_triangles.get_data_size() / 3;
-    if (triangles_vcount > 0)
+    switch (m_type)
     {
-        ::glDisable(GL_LIGHTING);
-        ::glDisable(GL_DEPTH_TEST);
-
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        ::glEnableClientState(GL_VERTEX_ARRAY);
-
-        ::glColor4f(0.8f, 0.6f, 0.5f, 0.4f);
-        ::glNormal3d(0.0f, 0.0f, 1.0f);
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_data());
-        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
-
-        // we need depth test for grid, otherwise it would disappear when looking
-        // the object from below
-        glEnable(GL_DEPTH_TEST);
-
-        // draw grid
-        unsigned int gridlines_vcount = m_gridlines.get_data_size() / 3;
-
-        ::glLineWidth(3.0f);
-        ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_data());
-        ::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount);
-
-        ::glDisableClientState(GL_VERTEX_ARRAY);
-
-        ::glDisable(GL_BLEND);
+    case MK2:
+    {
+        _render_mk2(theta);
+        break;
+    }
+    case MK3:
+    {
+        _render_mk3(theta);
+        break;
+    }
+    default:
+    case Custom:
+    {
+        _render_custom();
+        break;
+    }
     }
 }
 
@@ -312,7 +458,7 @@ void GLCanvas3D::Bed::_calc_triangles(const ExPolygon& poly)
     Polygons triangles;
     poly.triangulate(&triangles);
 
-    if (!m_triangles.set_from_triangles(triangles, GROUND_Z))
+    if (!m_triangles.set_from_triangles(triangles, GROUND_Z, m_type != Custom))
         printf("Unable to create bed triangles\n");
 }
 
@@ -344,6 +490,166 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
     if (!m_gridlines.set_from_lines(gridlines, GROUND_Z))
         printf("Unable to create bed grid lines\n");
 }
+
+GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
+{
+    EType type = Custom;
+
+    const PresetBundle* bundle = get_preset_bundle();
+    if (bundle != nullptr)
+    {
+        const Preset& curr = bundle->printers.get_selected_preset();
+        if (curr.config.has("bed_shape") && _are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr.config.option("bed_shape"))->values))
+        {
+            if ((curr.vendor != nullptr) && (curr.vendor->name == "Prusa Research"))
+            {
+                if (boost::contains(curr.name, "MK2"))
+                    type = MK2;
+                else if (boost::contains(curr.name, "MK3"))
+                    type = MK3;
+            }
+        }
+    }
+
+    return type;
+}
+
+void GLCanvas3D::Bed::_render_mk2(float theta) const
+{
+    std::string filename = resources_dir() + "/icons/bed/mk2_top.png";
+    if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
+    {
+        if (!m_top_texture.load_from_file(filename))
+        {
+            _render_custom();
+            return;
+        }
+    }
+
+    filename = resources_dir() + "/icons/bed/mk2_bottom.png";
+    if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
+    {
+        if (!m_bottom_texture.load_from_file(filename))
+        {
+            _render_custom();
+            return;
+        }
+    }
+
+    _render_prusa(theta);
+}
+
+void GLCanvas3D::Bed::_render_mk3(float theta) const
+{
+    std::string filename = resources_dir() + "/icons/bed/mk3_top.png";
+    if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
+    {
+        if (!m_top_texture.load_from_file(filename))
+        {
+            _render_custom();
+            return;
+        }
+    }
+
+    filename = resources_dir() + "/icons/bed/mk3_bottom.png";
+    if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
+    {
+        if (!m_bottom_texture.load_from_file(filename))
+        {
+            _render_custom();
+            return;
+        }
+    }
+
+    _render_prusa(theta);
+}
+
+void GLCanvas3D::Bed::_render_prusa(float theta) const
+{
+    unsigned int triangles_vcount = m_triangles.get_vertices_count();
+    if (triangles_vcount > 0)
+    {
+        ::glEnable(GL_DEPTH_TEST);
+
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        ::glEnable(GL_TEXTURE_2D);
+
+        ::glEnableClientState(GL_VERTEX_ARRAY);
+        ::glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        if (theta > 90.0f)
+            ::glFrontFace(GL_CW);
+
+        ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        ::glBindTexture(GL_TEXTURE_2D, (theta <= 90.0f) ? (GLuint)m_top_texture.get_id() : (GLuint)m_bottom_texture.get_id());
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
+        ::glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)m_triangles.get_tex_coords());
+        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
+
+        if (theta > 90.0f)
+            ::glFrontFace(GL_CCW);
+
+        ::glBindTexture(GL_TEXTURE_2D, 0);
+        ::glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        ::glDisableClientState(GL_VERTEX_ARRAY);
+
+        ::glDisable(GL_TEXTURE_2D);
+
+        ::glDisable(GL_BLEND);
+    }
+}
+
+void GLCanvas3D::Bed::_render_custom() const
+{
+    m_top_texture.reset();
+    m_bottom_texture.reset();
+
+    unsigned int triangles_vcount = m_triangles.get_vertices_count();
+    if (triangles_vcount > 0)
+    {
+        ::glEnable(GL_LIGHTING);
+        ::glEnable(GL_DEPTH_TEST);
+
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        ::glEnableClientState(GL_VERTEX_ARRAY);
+
+        ::glColor4f(0.8f, 0.6f, 0.5f, 0.4f);
+        ::glNormal3d(0.0f, 0.0f, 1.0f);
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
+        ::glDrawArrays(GL_TRIANGLES, 0, (GLsizei)triangles_vcount);
+
+        // draw grid
+        unsigned int gridlines_vcount = m_gridlines.get_vertices_count();
+
+        ::glLineWidth(3.0f);
+        ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_vertices());
+        ::glDrawArrays(GL_LINES, 0, (GLsizei)gridlines_vcount);
+
+        ::glDisableClientState(GL_VERTEX_ARRAY);
+
+        ::glDisable(GL_BLEND);
+    }
+}
+
+bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
+{
+    if (bed_1.size() != bed_2.size())
+        return false;
+
+    for (unsigned int i = 0; i < (unsigned int)bed_1.size(); ++i)
+    {
+        if (bed_1[i] != bed_2[i])
+            return false;
+    }
+
+    return true;
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 GLCanvas3D::Axes::Axes()
     : length(0.0f)
@@ -431,11 +737,11 @@ void GLCanvas3D::CuttingPlane::_render_contour() const
 
     if (m_z >= 0.0f)
     {
-        unsigned int lines_vcount = m_lines.get_data_size() / 3;
+        unsigned int lines_vcount = m_lines.get_vertices_count();
 
         ::glLineWidth(2.0f);
         ::glColor3f(0.0f, 0.0f, 0.0f);
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_lines.get_data());
+        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_lines.get_vertices());
         ::glDrawArrays(GL_LINES, 0, (GLsizei)lines_vcount);
     }
 
@@ -515,20 +821,6 @@ void GLCanvas3D::Shader::_reset()
     }
 }
 
-GLCanvas3D::LayersEditing::GLTextureData::GLTextureData()
-    : id(0)
-    , width(0)
-    , height(0)
-{
-}
-
-GLCanvas3D::LayersEditing::GLTextureData::GLTextureData(unsigned int id, int width, int height)
-    : id(id)
-    , width(width)
-    , height(height)
-{
-}
-
 GLCanvas3D::LayersEditing::LayersEditing()
     : m_use_legacy_opengl(false)
     , m_enabled(false)
@@ -544,18 +836,6 @@ GLCanvas3D::LayersEditing::LayersEditing()
 
 GLCanvas3D::LayersEditing::~LayersEditing()
 {
-    if (m_tooltip_texture.id != 0)
-    {
-        ::glDeleteTextures(1, &m_tooltip_texture.id);
-        m_tooltip_texture = GLTextureData();
-    }
-    
-    if (m_reset_texture.id != 0)
-    {
-        ::glDeleteTextures(1, &m_reset_texture.id);
-        m_reset_texture = GLTextureData();
-    }
-
     if (m_z_texture_id != 0)
     {
         ::glDeleteTextures(1, &m_z_texture_id);
@@ -626,9 +906,9 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
     _render_profile(print_object, bar_rect);
 
     // Revert the matrices.
-    glPopMatrix();
+    ::glPopMatrix();
 
-    glEnable(GL_DEPTH_TEST);
+    ::glEnable(GL_DEPTH_TEST);
 }
 
 int GLCanvas3D::LayersEditing::get_shader_program_id() const
@@ -730,10 +1010,10 @@ bool GLCanvas3D::LayersEditing::_is_initialized() const
 
 void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const
 {
-    if (m_tooltip_texture.id == 0)
+    if (m_tooltip_texture.get_id() == 0)
     {
-        m_tooltip_texture = _load_texture_from_file("variable_layer_height_tooltip.png");
-        if (m_tooltip_texture.id == 0)
+        std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
+        if (!m_tooltip_texture.load_from_file(filename))
             return;
     }
 
@@ -744,24 +1024,24 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     float bar_left = bar_rect.get_left();
     float reset_bottom = reset_rect.get_bottom();
 
-    float l = bar_left - (float)m_tooltip_texture.width * inv_zoom - gap;
+    float l = bar_left - (float)m_tooltip_texture.get_width() * inv_zoom - gap;
     float r = bar_left - gap;
-    float t = reset_bottom + (float)m_tooltip_texture.height * inv_zoom + gap;
+    float t = reset_bottom + (float)m_tooltip_texture.get_height() * inv_zoom + gap;
     float b = reset_bottom + gap;
 
-    canvas.render_texture(m_tooltip_texture.id, l, r, b, t);
+    canvas.render_texture(m_tooltip_texture.get_id(), l, r, b, t);
 }
 
 void GLCanvas3D::LayersEditing::_render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const
 {
-    if (m_reset_texture.id == 0)
+    if (m_reset_texture.get_id() == 0)
     {
-        m_reset_texture = _load_texture_from_file("variable_layer_height_reset.png");
-        if (m_reset_texture.id == 0)
+        std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
+        if (!m_reset_texture.load_from_file(filename))
             return;
     }
 
-    canvas.render_texture(m_reset_texture.id, reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
+    canvas.render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
 }
 
 void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const
@@ -856,53 +1136,6 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
         }
         ::glEnd();
     }
-}
-
-GLCanvas3D::LayersEditing::GLTextureData GLCanvas3D::LayersEditing::_load_texture_from_file(const std::string& filename)
-{
-    const std::string& path = resources_dir() + "/icons/";
-
-    // Load a PNG with an alpha channel.
-    wxImage image;
-    if (!image.LoadFile(path + filename, wxBITMAP_TYPE_PNG))
-        return GLTextureData();
-
-    int width = image.GetWidth();
-    int height = image.GetHeight();
-    int n_pixels = width * height;
-
-    if (n_pixels <= 0)
-        return GLTextureData();
-
-    // Get RGB & alpha raw data from wxImage, pack them into an array.
-    unsigned char* img_rgb = image.GetData();
-    if (img_rgb == nullptr)
-        return GLTextureData();
-
-    unsigned char* img_alpha = image.GetAlpha();
-
-    std::vector<unsigned char> data(n_pixels * 4, 0);
-    for (int i = 0; i < n_pixels; ++i)
-    {
-        int data_id = i * 4;
-        int img_id = i * 3;
-        data[data_id + 0] = img_rgb[img_id + 0];
-        data[data_id + 1] = img_rgb[img_id + 1];
-        data[data_id + 2] = img_rgb[img_id + 2];
-        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
-    }
-
-    // sends data to gpu
-    GLuint tex_id;
-    ::glGenTextures(1, &tex_id);
-    ::glBindTexture(GL_TEXTURE_2D, tex_id);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)width, (GLsizei)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    ::glBindTexture(GL_TEXTURE_2D, 0);
-
-    return GLTextureData((unsigned int)tex_id, width, height);
 }
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
@@ -1016,16 +1249,16 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     ::glEnable(GL_LIGHT1);
 
     // light from camera
-    GLfloat specular[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
-    ::glLightfv(GL_LIGHT1, GL_SPECULAR, specular);
-    GLfloat diffuse[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    ::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
+    GLfloat specular_cam[4] = { 0.3f, 0.3f, 0.3f, 1.0f };
+    ::glLightfv(GL_LIGHT1, GL_SPECULAR, specular_cam);
+    GLfloat diffuse_cam[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    ::glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse_cam);
 
     // light from above
-    GLfloat specular1[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
-    ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular1);
-    GLfloat diffuse1[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
-    ::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse1);
+    GLfloat specular_top[4] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    ::glLightfv(GL_LIGHT0, GL_SPECULAR, specular_top);
+    GLfloat diffuse_top[4] = { 0.5f, 0.5f, 0.5f, 1.0f };
+    ::glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse_top);
 
     // Enables Smooth Color Shading; try GL_FLAT for (lack of) fun.
     ::glShadeModel(GL_SMOOTH);
@@ -1357,16 +1590,16 @@ void GLCanvas3D::render()
 
     _camera_tranform();
 
-    GLfloat position[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT1, GL_POSITION, position);
-    GLfloat position1[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
-    ::glLightfv(GL_LIGHT0, GL_POSITION, position1);
+    GLfloat position_cam[4] = { 1.0f, 0.0f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT1, GL_POSITION, position_cam);
+    GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
+    ::glLightfv(GL_LIGHT0, GL_POSITION, position_top);
 
     _picking_pass();
     _render_background();
-    _render_bed();
-    _render_axes();
     _render_objects();
+    _render_bed(m_camera.get_theta());
+    _render_axes();
     _render_cutting_plane();
     _render_warning_texture();
     _render_legend_texture();
@@ -2781,9 +3014,9 @@ void GLCanvas3D::_render_background() const
     ::glPopMatrix();
 }
 
-void GLCanvas3D::_render_bed() const
+void GLCanvas3D::_render_bed(float theta) const
 {
-    m_bed.render();
+    m_bed.render(theta);
 }
 
 void GLCanvas3D::_render_axes() const

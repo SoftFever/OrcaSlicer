@@ -33,14 +33,17 @@ namespace GUI {
 
 class GeometryBuffer
 {
-    std::vector<float> m_data;
+    std::vector<float> m_vertices;
+    std::vector<float> m_tex_coords;
 
 public:
-    bool set_from_triangles(const Polygons& triangles, float z);
+    bool set_from_triangles(const Polygons& triangles, float z, bool generate_tex_coords);
     bool set_from_lines(const Lines& lines, float z);
 
-    const float* get_data() const;
-    unsigned int get_data_size() const;
+    const float* get_vertices() const;
+    const float* get_tex_coords() const;
+
+    unsigned int get_vertices_count() const;
 };
 
 class Size
@@ -112,6 +115,27 @@ class GLCanvas3D
         void reset() { first_volumes.clear(); }
     };
 
+    struct GLTextureData
+    {
+    private:
+        unsigned int m_id;
+        int m_width;
+        int m_height;
+        std::string m_source;
+
+    public:
+        GLTextureData();
+        ~GLTextureData();
+
+        bool load_from_file(const std::string& filename);
+        void reset();
+
+        unsigned int get_id() const;
+        int get_width() const;
+        int get_height() const;
+        const std::string& get_source() const;
+    };
+
 public:
     struct Camera
     {
@@ -143,13 +167,28 @@ public:
 
     class Bed
     {
+    public:
+        enum EType : unsigned char
+        {
+            MK2,
+            MK3,
+            Custom,
+            Num_Types
+        };
+
+    private:
+        EType m_type;
         Pointfs m_shape;
         BoundingBoxf3 m_bounding_box;
         Polygon m_polygon;
         GeometryBuffer m_triangles;
         GeometryBuffer m_gridlines;
+        mutable GLTextureData m_top_texture;
+        mutable GLTextureData m_bottom_texture;
 
     public:
+        Bed();
+
         const Pointfs& get_shape() const;
         void set_shape(const Pointfs& shape);
 
@@ -157,12 +196,18 @@ public:
         bool contains(const Point& point) const;
         Point point_projection(const Point& point) const;
 
-        void render() const;
+        void render(float theta) const;
 
     private:
         void _calc_bounding_box();
         void _calc_triangles(const ExPolygon& poly);
         void _calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox);
+        EType _detect_type() const;
+        void _render_mk2(float theta) const;
+        void _render_mk3(float theta) const;
+        void _render_prusa(float theta) const;
+        void _render_custom() const;
+        static bool _are_equal(const Pointfs& bed_1, const Pointfs& bed_2);
     };
 
     struct Axes
@@ -227,16 +272,6 @@ public:
         };
 
     private:
-        struct GLTextureData
-        {
-            unsigned int id;
-            int width;
-            int height;
-
-            GLTextureData();
-            GLTextureData(unsigned int id, int width, int height);
-        };
-
         bool m_use_legacy_opengl;
         bool m_enabled;
         Shader m_shader;
@@ -284,7 +319,6 @@ public:
         void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
         void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
         void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
-        static GLTextureData _load_texture_from_file(const std::string& filename);
     };
 
     struct Mouse
@@ -507,7 +541,7 @@ private:
     void _camera_tranform() const;
     void _picking_pass() const;
     void _render_background() const;
-    void _render_bed() const;
+    void _render_bed(float theta) const;
     void _render_axes() const;
     void _render_objects() const;
     void _render_cutting_plane() const;
