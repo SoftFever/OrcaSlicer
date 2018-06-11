@@ -189,6 +189,9 @@ public:
     public:
         Bed();
 
+        bool is_prusa() const;
+        bool is_custom() const;
+
         const Pointfs& get_shape() const;
         void set_shape(const Pointfs& shape);
 

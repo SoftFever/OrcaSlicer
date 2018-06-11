@@ -380,6 +380,16 @@ GLCanvas3D::Bed::Bed()
 {
 }
 
+bool GLCanvas3D::Bed::is_prusa() const
+{
+    return (m_type == MK2) || (m_type == MK3);
+}
+
+bool GLCanvas3D::Bed::is_custom() const
+{
+    return m_type == Custom;
+}
+
 const Pointfs& GLCanvas3D::Bed::get_shape() const
 {
     return m_shape;
@@ -610,7 +620,7 @@ void GLCanvas3D::Bed::_render_custom() const
     if (triangles_vcount > 0)
     {
         ::glEnable(GL_LIGHTING);
-        ::glEnable(GL_DEPTH_TEST);
+        ::glDisable(GL_DEPTH_TEST);
 
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -625,6 +635,8 @@ void GLCanvas3D::Bed::_render_custom() const
         // draw grid
         unsigned int gridlines_vcount = m_gridlines.get_vertices_count();
 
+        // we need depth test for grid, otherwise it would disappear when looking the object from below
+        ::glEnable(GL_DEPTH_TEST);
         ::glLineWidth(3.0f);
         ::glColor4f(0.2f, 0.2f, 0.2f, 0.4f);
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_gridlines.get_vertices());
@@ -1595,11 +1607,24 @@ void GLCanvas3D::render()
     GLfloat position_top[4] = { -0.5f, -0.5f, 1.0f, 0.0f };
     ::glLightfv(GL_LIGHT0, GL_POSITION, position_top);
 
+    float theta = m_camera.get_theta();
+    bool is_custom_bed = m_bed.is_custom();
+
     _picking_pass();
     _render_background();
+    // untextured bed needs to be rendered before objects
+    if (is_custom_bed)
+    {
+        _render_bed(theta);
+        _render_axes();
+    }
     _render_objects();
-    _render_bed(m_camera.get_theta());
-    _render_axes();
+    // textured bed needs to be rendered after objects
+    if (!is_custom_bed)
+    {
+        _render_bed(theta);
+        _render_axes();
+    }
     _render_cutting_plane();
     _render_warning_texture();
     _render_legend_texture();
@@ -2393,11 +2418,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     // Don't allow to zoom too far outside the scene.
     float zoom_min = _get_zoom_to_bounding_box_factor(_max_bounding_box());
     if (zoom_min > 0.0f)
-    {
-        zoom_min *= 0.4f;
-        if (zoom < zoom_min)
-            zoom = zoom_min;
-    }
+        zoom = std::max(zoom, zoom_min * 0.8f);
     
     m_camera.zoom = zoom;
     m_on_viewport_changed_callback.call();
@@ -3946,8 +3967,18 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 
 void GLCanvas3D::_on_select(int volume_idx)
 {
+    int id = -1;
     if ((m_volumes != nullptr) && (volume_idx < (int)m_volumes->volumes.size()))
-        m_on_select_object_callback.call((volume_idx == -1) ? -1 : m_volumes->volumes[volume_idx]->object_idx());
+    {
+        if (volume_idx != -1)
+        {
+            if (m_select_by == "volume")
+                id = m_volumes->volumes[volume_idx]->volume_idx();
+            else if (m_select_by == "object")
+                id = m_volumes->volumes[volume_idx]->object_idx();
+        }
+    }
+    m_on_select_object_callback.call(id);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

@@ -156,10 +156,9 @@ sub new {
 #==============================================================================================================================
         Slic3r::GUI::_3DScene::enable_picking($canvas, 1);
         Slic3r::GUI::_3DScene::set_select_by($canvas, 'volume');
-        Slic3r::GUI::_3DScene::register_on_select_callback($canvas, sub {
+        Slic3r::GUI::_3DScene::register_on_select_object_callback($canvas, sub {
             my ($volume_idx) = @_;
-            # convert scene volume to model object volume
-            $self->reload_tree(($volume_idx == -1) ? undef : $canvas->volumes->[$volume_idx]->volume_idx);
+            $self->reload_tree($volume_idx);
         });
         Slic3r::GUI::_3DScene::load_model_object($canvas, $self->{model_object}, 0, [0]);
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
