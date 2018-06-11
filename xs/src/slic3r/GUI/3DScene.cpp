@@ -1773,10 +1773,10 @@ bool _3DScene::use_VBOs()
     return s_canvas_mgr.use_VBOs();
 }
 
-bool _3DScene::add_canvas(wxGLCanvas* canvas, wxGLContext* context)
+bool _3DScene::add_canvas(wxGLCanvas* canvas)
 {
     std::cout << "_3DScene::add_canvas()" << std::endl;
-    return s_canvas_mgr.add(canvas, context);
+    return s_canvas_mgr.add(canvas);
 }
 
 bool _3DScene::remove_canvas(wxGLCanvas* canvas)

@@ -124,18 +124,35 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 }
 
 GLCanvas3DManager::GLCanvas3DManager()
-    : m_gl_initialized(false)
+    : m_context(nullptr)
+    , m_gl_initialized(false)
     , m_use_legacy_opengl(false)
     , m_use_VBOs(false)
 {
 }
 
-bool GLCanvas3DManager::add(wxGLCanvas* canvas, wxGLContext* context)
+GLCanvas3DManager::~GLCanvas3DManager()
 {
+    if (m_context != nullptr)
+        delete m_context;
+}
+
+bool GLCanvas3DManager::add(wxGLCanvas* canvas)
+{
+    if (canvas == nullptr)
+        return false;
+
     if (_get_canvas(canvas) != m_canvases.end())
         return false;
 
-    GLCanvas3D* canvas3D = new GLCanvas3D(canvas, context);
+    if (m_context == nullptr)
+    {
+        m_context = new wxGLContext(canvas);
+        if (m_context == nullptr)
+            return false;
+    }
+
+    GLCanvas3D* canvas3D = new GLCanvas3D(canvas, m_context);
     if (canvas3D == nullptr)
         return false;
 

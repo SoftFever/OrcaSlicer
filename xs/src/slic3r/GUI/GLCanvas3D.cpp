@@ -1348,7 +1348,7 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
 
     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
     {
-        if (selections[obj_idx] == 1)
+        if ((selections[obj_idx] == 1) && (obj_idx < (unsigned int)m_objects_volumes_idxs.size()))
         {
             const std::vector<int>& volume_idxs = m_objects_volumes_idxs[obj_idx];
             for (int v : volume_idxs)

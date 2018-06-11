@@ -43,6 +43,7 @@ class GLCanvas3DManager
 
     typedef std::map<wxGLCanvas*, GLCanvas3D*> CanvasesMap;
 
+    wxGLContext* m_context;
     CanvasesMap m_canvases;
     GLInfo m_gl_info;
     bool m_gl_initialized;
@@ -51,8 +52,9 @@ class GLCanvas3DManager
 
 public:
     GLCanvas3DManager();
+    ~GLCanvas3DManager();
 
-    bool add(wxGLCanvas* canvas, wxGLContext* context);
+    bool add(wxGLCanvas* canvas);
     bool remove(wxGLCanvas* canvas);
 
     void remove_all();

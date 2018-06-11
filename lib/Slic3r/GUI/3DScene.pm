@@ -145,7 +145,7 @@ sub new {
 #==============================================================================================================================
 
 #==============================================================================================================================
-    Slic3r::GUI::_3DScene::add_canvas($self, $self->GetContext);
+    Slic3r::GUI::_3DScene::add_canvas($self);
     Slic3r::GUI::_3DScene::allow_multisample($self, $can_multisample);
 #    my $context = $self->GetContext;
 #    $self->SetCurrent($context);
@@ -1078,19 +1078,17 @@ sub Destroy {
 #    my @projected = gluUnProject_p($x, $y, $z, @mview, @proj, @viewport);
 #    return Slic3r::Pointf3->new(@projected);
 #}
-#==============================================================================================================================
-
-sub GetContext {
-    my ($self) = @_;
-    return $self->{context} ||= Wx::GLContext->new($self);
-}
- 
-sub SetCurrent {
-    my ($self, $context) = @_;
-    return $self->SUPER::SetCurrent($context);
-}
-
-#==============================================================================================================================
+#
+#sub GetContext {
+#    my ($self) = @_;
+#    return $self->{context} ||= Wx::GLContext->new($self);
+#}
+# 
+#sub SetCurrent {
+#    my ($self, $context) = @_;
+#    return $self->SUPER::SetCurrent($context);
+#}
+#
 #sub UseVBOs {
 #    my ($self) = @_;
 #        

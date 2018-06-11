@@ -168,13 +168,12 @@ use_VBOs()
         RETVAL = _3DScene::use_VBOs();
     OUTPUT:
         RETVAL
-        
+
 bool
-add_canvas(canvas, context)
+add_canvas(canvas)
         SV *canvas;
-        SV *context;
     CODE:
-        RETVAL = _3DScene::add_canvas((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (wxGLContext*)wxPli_sv_2_object(aTHX_ context, "Wx::GLContext"));
+        RETVAL = _3DScene::add_canvas((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
     OUTPUT:
         RETVAL
 
