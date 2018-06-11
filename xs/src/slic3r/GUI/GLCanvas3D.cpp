@@ -1185,7 +1185,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
     , m_context(context)
     , m_timer(nullptr)
-    , m_volumes(nullptr)
     , m_config(nullptr)
     , m_print(nullptr)
     , m_model(nullptr)
@@ -1207,19 +1206,12 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_reload_delayed(false)
 {
     if (m_canvas != nullptr)
-    {
         m_timer = new wxTimer(m_canvas);
-        m_volumes = new GLVolumeCollection;
-    }
 }
 
 GLCanvas3D::~GLCanvas3D()
 {
-    if (m_volumes != nullptr)
-    {
-        reset_volumes();
-        delete m_volumes;
-    }
+    reset_volumes();
 
     if (m_timer != nullptr)
     {
@@ -1291,8 +1283,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 
     // on linux the gl context is not valid until the canvas is not shown on screen
     // we defer the geometry finalization of volumes until the first call to render()
-    if ((m_volumes != nullptr) && !m_volumes->empty())
-        m_volumes->finalize_geometry(m_use_VBOs);
+    if (!m_volumes.empty())
+        m_volumes.finalize_geometry(m_use_VBOs);
 
     m_initialized = true;
 
@@ -1317,36 +1309,33 @@ bool GLCanvas3D::is_shown_on_screen() const
 
 unsigned int GLCanvas3D::get_volumes_count() const
 {
-    return (m_volumes != nullptr) ? (unsigned int)m_volumes->volumes.size() : 0;
+    return (unsigned int)m_volumes.volumes.size();
 }
 
 void GLCanvas3D::reset_volumes()
 {
-    if (set_current() && (m_volumes != nullptr))
+    if (set_current())
     {
-        m_volumes->release_geometry();
-        m_volumes->clear();
+        m_volumes.release_geometry();
+        m_volumes.clear();
         m_dirty = true;
     }
 }
 
 void GLCanvas3D::deselect_volumes()
 {
-    if (m_volumes != nullptr)
+    for (GLVolume* vol : m_volumes.volumes)
     {
-        for (GLVolume* vol : m_volumes->volumes)
-        {
-            if (vol != nullptr)
-                vol->selected = false;
-        }
+        if (vol != nullptr)
+            vol->selected = false;
     }
 }
 
 void GLCanvas3D::select_volume(unsigned int id)
 {
-    if ((m_volumes != nullptr) && (id < (unsigned int)m_volumes->volumes.size()))
+    if (id < (unsigned int)m_volumes.volumes.size())
     {
-        GLVolume* vol = m_volumes->volumes[id];
+        GLVolume* vol = m_volumes.volumes[id];
         if (vol != nullptr)
             vol->selected = true;
     }
@@ -1372,38 +1361,32 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
 
 bool GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
-    return (m_volumes != nullptr) ? m_volumes->check_outside_state(config) : false;
+    return m_volumes.check_outside_state(config);
 }
 
 bool GLCanvas3D::move_volume_up(unsigned int id)
 {
-    if (m_volumes != nullptr)
+    if ((id > 0) && (id < (unsigned int)m_volumes.volumes.size()))
     {
-        if ((id > 0) && (id < (unsigned int)m_volumes->volumes.size()))
-        {
-            std::swap(m_volumes->volumes[id - 1], m_volumes->volumes[id]);
-            std::swap(m_volumes->volumes[id - 1]->composite_id, m_volumes->volumes[id]->composite_id);
-            std::swap(m_volumes->volumes[id - 1]->select_group_id, m_volumes->volumes[id]->select_group_id);
-            std::swap(m_volumes->volumes[id - 1]->drag_group_id, m_volumes->volumes[id]->drag_group_id);
-            return true;
-        }
+        std::swap(m_volumes.volumes[id - 1], m_volumes.volumes[id]);
+        std::swap(m_volumes.volumes[id - 1]->composite_id, m_volumes.volumes[id]->composite_id);
+        std::swap(m_volumes.volumes[id - 1]->select_group_id, m_volumes.volumes[id]->select_group_id);
+        std::swap(m_volumes.volumes[id - 1]->drag_group_id, m_volumes.volumes[id]->drag_group_id);
+        return true;
     }
-    
+
     return false;
 }
 
 bool GLCanvas3D::move_volume_down(unsigned int id)
 {
-    if (m_volumes != nullptr)
+    if ((id >= 0) && (id + 1 < (unsigned int)m_volumes.volumes.size()))
     {
-        if ((id >= 0) && (id + 1 < (unsigned int)m_volumes->volumes.size()))
-        {
-            std::swap(m_volumes->volumes[id + 1], m_volumes->volumes[id]);
-            std::swap(m_volumes->volumes[id + 1]->composite_id, m_volumes->volumes[id]->composite_id);
-            std::swap(m_volumes->volumes[id + 1]->select_group_id, m_volumes->volumes[id]->select_group_id);
-            std::swap(m_volumes->volumes[id + 1]->drag_group_id, m_volumes->volumes[id]->drag_group_id);
-            return true;
-        }
+        std::swap(m_volumes.volumes[id + 1], m_volumes.volumes[id]);
+        std::swap(m_volumes.volumes[id + 1]->composite_id, m_volumes.volumes[id]->composite_id);
+        std::swap(m_volumes.volumes[id + 1]->select_group_id, m_volumes.volumes[id]->select_group_id);
+        std::swap(m_volumes.volumes[id + 1]->drag_group_id, m_volumes.volumes[id]->drag_group_id);
+        return true;
     }
 
     return false;
@@ -1491,13 +1474,10 @@ float GLCanvas3D::get_camera_zoom() const
 BoundingBoxf3 GLCanvas3D::volumes_bounding_box() const
 {
     BoundingBoxf3 bb;
-    if (m_volumes != nullptr)
+    for (const GLVolume* volume : m_volumes.volumes)
     {
-        for (const GLVolume* volume : m_volumes->volumes)
-        {
-            if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes))
-                bb.merge(volume->transformed_bounding_box());
-        }
+        if (!m_apply_zoom_to_volumes_filter || ((volume != nullptr) && volume->zoom_to_volumes))
+            bb.merge(volume->transformed_bounding_box());
     }
     return bb;
 }
@@ -1616,10 +1596,8 @@ void GLCanvas3D::set_viewport_from_scene(const GLCanvas3D& other)
 
 void GLCanvas3D::update_volumes_colors_by_extruder()
 {
-    if ((m_volumes == nullptr) || (m_config == nullptr))
-        return;
-
-    m_volumes->update_colors_by_extruder(m_config);
+    if (m_config != nullptr)
+        m_volumes.update_colors_by_extruder(m_config);
 }
 
 void GLCanvas3D::render()
@@ -1697,20 +1675,16 @@ void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, fl
 
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {
-    return (m_volumes != nullptr) ? m_volumes->get_current_print_zs(active_only) : std::vector<double>();
+    return m_volumes.get_current_print_zs(active_only);
 }
 
 void GLCanvas3D::set_toolpaths_range(double low, double high)
 {
-    if (m_volumes != nullptr)
-        m_volumes->set_range(low, high);
+    m_volumes.set_range(low, high);
 }
 
 std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs)
 {
-    if (m_volumes == nullptr)
-        return std::vector<int>();
-
     if (instance_idxs.empty())
     {
         for (unsigned int i = 0; i < model_object.instances.size(); ++i)
@@ -1718,8 +1692,7 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
             instance_idxs.push_back(i);
         }
     }
-
-    return m_volumes->load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_select_by, m_drag_by, m_use_VBOs && m_initialized);
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_select_by, m_drag_by, m_use_VBOs && m_initialized);
 }
 
 std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
@@ -1736,7 +1709,7 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
 
 void GLCanvas3D::reload_scene(bool force)
 {
-    if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr) || (m_volumes == nullptr))
+    if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
     reset_volumes();
@@ -1778,16 +1751,16 @@ void GLCanvas3D::reload_scene(bool force)
             float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
             float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
 
-            m_volumes->load_wipe_tower_preview(1000, x, y, w, 15.0f * (float)(extruders_count - 1), (float)height, a, m_use_VBOs && m_initialized);
+            m_volumes.load_wipe_tower_preview(1000, x, y, w, 15.0f * (float)(extruders_count - 1), (float)height, a, m_use_VBOs && m_initialized);
         }
     }
 
     update_volumes_colors_by_extruder();
 
     // checks for geometry outside the print volume to render it accordingly
-    if (!m_volumes->empty())
+    if (!m_volumes.empty())
     {
-        bool contained = m_volumes->check_outside_state(m_config);
+        bool contained = m_volumes.check_outside_state(m_config);
         if (!contained)
         {
             enable_warning_texture(true);
@@ -1797,7 +1770,7 @@ void GLCanvas3D::reload_scene(bool force)
         else
         {
             enable_warning_texture(false);
-            m_volumes->reset_outside_state();
+            m_volumes.reset_outside_state();
             _3DScene::reset_warning_texture();
             m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
         }
@@ -1811,7 +1784,7 @@ void GLCanvas3D::reload_scene(bool force)
 
 void GLCanvas3D::load_print_toolpaths()
 {
-    if ((m_print == nullptr) || (m_volumes == nullptr))
+    if (m_print == nullptr)
         return;
 
     if (!m_print->state.is_done(psSkirt) || !m_print->state.is_done(psBrim))
@@ -1849,8 +1822,8 @@ void GLCanvas3D::load_print_toolpaths()
     if (print_zs.size() > skirt_height)
         print_zs.erase(print_zs.begin() + skirt_height, print_zs.end());
 
-    m_volumes->volumes.emplace_back(new GLVolume(color));
-    GLVolume& volume = *m_volumes->volumes.back();
+    m_volumes.volumes.emplace_back(new GLVolume(color));
+    GLVolume& volume = *m_volumes.volumes.back();
     for (size_t i = 0; i < skirt_height; ++i) {
         volume.print_zs.push_back(print_zs[i]);
         volume.offsets.push_back(volume.indexed_vertex_array.quad_indices.size());
@@ -1896,9 +1869,6 @@ void GLCanvas3D::load_print_object_toolpaths(const PrintObject& print_object, co
             return this->color_by_tool() ? std::min<int>(this->number_tools() - 1, std::max<int>(extruder - 1, 0)) : feature;
         }
     } ctxt;
-        
-    if (m_volumes == nullptr)
-        return;
 
     ctxt.shifted_copies = &print_object._shifted_copies;
 
@@ -1925,11 +1895,11 @@ void GLCanvas3D::load_print_object_toolpaths(const PrintObject& print_object, co
         auto *volume = new GLVolume(color);
         new_volume_mutex.lock();
         volume->outside_printer_detection_enabled = false;
-        m_volumes->volumes.emplace_back(volume);
+        m_volumes.volumes.emplace_back(volume);
         new_volume_mutex.unlock();
         return volume;
     };
-    const size_t   volumes_cnt_initial = m_volumes->volumes.size();
+    const size_t   volumes_cnt_initial = m_volumes.volumes.size();
     std::vector<GLVolumeCollection> volumes_per_thread(ctxt.layers.size());
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
@@ -2012,19 +1982,19 @@ void GLCanvas3D::load_print_object_toolpaths(const PrintObject& print_object, co
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - finalizing results";
     // Remove empty volumes from the newly added volumes.
-    m_volumes->volumes.erase(
-        std::remove_if(m_volumes->volumes.begin() + volumes_cnt_initial, m_volumes->volumes.end(),
+    m_volumes.volumes.erase(
+        std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
-        m_volumes->volumes.end());
-    for (size_t i = volumes_cnt_initial; i < m_volumes->volumes.size(); ++i)
-        m_volumes->volumes[i]->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
+        m_volumes.volumes.end());
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
+        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading print object toolpaths in parallel - end";
 }
 
 void GLCanvas3D::load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors)
 {
-    if ((m_volumes == nullptr) || (m_print == nullptr) || m_print->m_wipe_tower_tool_changes.empty())
+    if ((m_print == nullptr) || m_print->m_wipe_tower_tool_changes.empty())
         return;
 
     if (!m_print->state.is_done(psWipeTower))
@@ -2078,11 +2048,11 @@ void GLCanvas3D::load_wipe_tower_toolpaths(const std::vector<std::string>& str_t
         auto *volume = new GLVolume(color);
         new_volume_mutex.lock();
         volume->outside_printer_detection_enabled = false;
-        m_volumes->volumes.emplace_back(volume);
+        m_volumes.volumes.emplace_back(volume);
         new_volume_mutex.unlock();
         return volume;
     };
-    const size_t   volumes_cnt_initial = m_volumes->volumes.size();
+    const size_t   volumes_cnt_initial = m_volumes.volumes.size();
     std::vector<GLVolumeCollection> volumes_per_thread(n_items);
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, n_items, grain_size),
@@ -2164,25 +2134,25 @@ void GLCanvas3D::load_wipe_tower_toolpaths(const std::vector<std::string>& str_t
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - finalizing results";
     // Remove empty volumes from the newly added volumes.
-    m_volumes->volumes.erase(
-        std::remove_if(m_volumes->volumes.begin() + volumes_cnt_initial, m_volumes->volumes.end(),
+    m_volumes.volumes.erase(
+        std::remove_if(m_volumes.volumes.begin() + volumes_cnt_initial, m_volumes.volumes.end(),
         [](const GLVolume *volume) { return volume->empty(); }),
-        m_volumes->volumes.end());
-    for (size_t i = volumes_cnt_initial; i < m_volumes->volumes.size(); ++i)
-        m_volumes->volumes[i]->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
+        m_volumes.volumes.end());
+    for (size_t i = volumes_cnt_initial; i < m_volumes.volumes.size(); ++i)
+        m_volumes.volumes[i]->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - end";
 }
 
 void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors)
 {
-    if ((m_canvas != nullptr) && (m_volumes != nullptr) && (m_print != nullptr))
+    if ((m_canvas != nullptr) && (m_print != nullptr))
     {
         // ensures that the proper context is selected
         if (!set_current())
             return;
 
-        if (m_volumes->empty())
+        if (m_volumes.empty())
         {
             std::vector<float> tool_colors = _parse_colors(str_tool_colors);
             
@@ -2193,17 +2163,16 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _load_gcode_retractions(preview_data);
             _load_gcode_unretractions(preview_data);
             
-            if (m_volumes->empty())
+            if (m_volumes.empty())
                 _3DScene::reset_legend_texture();
             else
             {
                 _3DScene::generate_legend_texture(preview_data, tool_colors);
                 
                 // removes empty volumes
-                m_volumes->volumes.erase(std::remove_if(m_volumes->volumes.begin(), m_volumes->volumes.end(),
-                    [](const GLVolume* volume) { return volume->print_zs.empty(); }),
-                    m_volumes->volumes.end());
-                
+                m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
+                    [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
+
                 _load_shells();
             }
         }
@@ -2473,9 +2442,6 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
-    if (m_volumes == nullptr)
-        return;
-
     Point pos(evt.GetX(), evt.GetY());
 
     int selected_object_idx = (is_layers_editing_enabled() && (m_print != nullptr)) ? _get_layers_editing_first_selected_object_id(m_print->objects.size()) : -1;
@@ -2531,10 +2497,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 if (volume_idx != -1)
                 {
-                    int group_id = m_volumes->volumes[volume_idx]->select_group_id;
+                    int group_id = m_volumes.volumes[volume_idx]->select_group_id;
                     if (group_id != -1)
                     {
-                        for (GLVolume* vol : m_volumes->volumes)
+                        for (GLVolume* vol : m_volumes.volumes)
                         {
                             if ((vol != nullptr) && (vol->select_group_id == group_id))
                                 vol->selected = true;
@@ -2558,7 +2524,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (evt.LeftDown() && m_moving_enabled)
                 {
                     // Only accept the initial position, if it is inside the volume bounding box.
-                    BoundingBoxf3 volume_bbox = m_volumes->volumes[volume_idx]->transformed_bounding_box();
+                    BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
                     if (volume_bbox.contains(pos3d))
                     {
@@ -2573,7 +2539,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 else if (evt.RightDown())
                 {
                     // if right clicking on volume, propagate event through callback
-                    if (m_volumes->volumes[volume_idx]->hover)
+                    if (m_volumes.volumes[volume_idx]->hover)
                         m_on_right_click_callback.call(pos.x, pos.y);
                 }
             }
@@ -2602,14 +2568,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Calculate the translation vector.
         Vectorf3 vector = m_mouse.drag.start_position_3D.vector_to(cur_pos);
         // Get the volume being dragged.
-        GLVolume* volume = m_volumes->volumes[m_mouse.drag.volume_idx];
+        GLVolume* volume = m_volumes.volumes[m_mouse.drag.volume_idx];
         // Get all volumes belonging to the same group, if any.
         std::vector<GLVolume*> volumes;
         if (volume->drag_group_id == -1)
             volumes.push_back(volume);
         else
         {
-            for (GLVolume* v : m_volumes->volumes)
+            for (GLVolume* v : m_volumes.volumes)
             {
                 if ((v != nullptr) && (v->drag_group_id == volume->drag_group_id))
                     volumes.push_back(v);
@@ -2686,14 +2652,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // get all volumes belonging to the same group, if any
             std::vector<int> volume_idxs;
             int vol_id = m_mouse.drag.volume_idx;
-            int group_id = m_volumes->volumes[vol_id]->drag_group_id;
+            int group_id = m_volumes.volumes[vol_id]->drag_group_id;
             if (group_id == -1)
                 volume_idxs.push_back(vol_id);
             else
             {
-                for (int i = 0; i < m_volumes->volumes.size(); ++i)
+                for (int i = 0; i < m_volumes.volumes.size(); ++i)
                 {
-                    if (m_volumes->volumes[i]->drag_group_id == group_id)
+                    if (m_volumes.volumes[i]->drag_group_id == group_id)
                         volume_idxs.push_back(i);
                 }
             }
@@ -2940,10 +2906,10 @@ void GLCanvas3D::_deregister_callbacks()
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
 {
-    if ((m_volumes == nullptr) || (m_print == nullptr))
+    if (m_print == nullptr)
         return;
 
-    for (GLVolume* vol : m_volumes->volumes)
+    for (GLVolume* vol : m_volumes.volumes)
     {
         int object_id = int(vol->select_group_id / 1000000);
         int shader_id = m_layers_editing.get_shader_program_id();
@@ -2986,7 +2952,7 @@ void GLCanvas3D::_picking_pass() const
 {
     const Pointf& pos = m_mouse.position;
 
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Pointf(DBL_MAX, DBL_MAX)) && (m_volumes != nullptr))
+    if (m_picking_enabled && !m_mouse.dragging && (pos != Pointf(DBL_MAX, DBL_MAX)))
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -3017,19 +2983,19 @@ void GLCanvas3D::_picking_pass() const
 
         m_hover_volume_id = -1;
 
-        for (GLVolume* vol : m_volumes->volumes)
+        for (GLVolume* vol : m_volumes.volumes)
         {
             vol->hover = false;
         }
 
-        if (volume_id < m_volumes->volumes.size())
+        if (volume_id < m_volumes.volumes.size())
         {
             m_hover_volume_id = volume_id;
-            m_volumes->volumes[volume_id]->hover = true;
-            int group_id = m_volumes->volumes[volume_id]->select_group_id;
+            m_volumes.volumes[volume_id]->hover = true;
+            int group_id = m_volumes.volumes[volume_id]->select_group_id;
             if (group_id != -1)
             {
-                for (GLVolume* vol : m_volumes->volumes)
+                for (GLVolume* vol : m_volumes.volumes)
                 {
                     if (vol->select_group_id == group_id)
                         vol->hover = true;
@@ -3084,7 +3050,8 @@ void GLCanvas3D::_render_axes() const
 
 void GLCanvas3D::_render_objects() const
 {
-    if ((m_volumes == nullptr) || m_volumes->empty())
+    if (m_volumes.empty())
+
         return;
 
     ::glEnable(GL_LIGHTING);
@@ -3100,15 +3067,15 @@ void GLCanvas3D::_render_objects() const
             if (m_config != nullptr)
             {
                 const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
-                m_volumes->set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
-                m_volumes->check_outside_state(m_config);
+                m_volumes.set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
+                m_volumes.check_outside_state(m_config);
             }
             // do not cull backfaces to show broken geometry, if any
             ::glDisable(GL_CULL_FACE);
         }
 
         m_shader.start_using();
-        m_volumes->render_VBOs();
+        m_volumes.render_VBOs();
         m_shader.stop_using();
 
         if (m_picking_enabled)
@@ -3120,7 +3087,7 @@ void GLCanvas3D::_render_objects() const
         if (m_picking_enabled)
             ::glDisable(GL_CULL_FACE);
 
-        m_volumes->render_legacy();
+        m_volumes.render_legacy();
 
         if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
@@ -3199,12 +3166,12 @@ void GLCanvas3D::_render_legend_texture() const
 
 void GLCanvas3D::_render_layer_editing_overlay() const
 {
-    if ((m_volumes == nullptr) || (m_print == nullptr))
+    if (m_print == nullptr)
         return;
 
     GLVolume* volume = nullptr;
 
-    for (GLVolume* vol : m_volumes->volumes)
+    for (GLVolume* vol : m_volumes.volumes)
     {
         if ((vol != nullptr) && vol->selected && vol->has_layer_height_texture())
         {
@@ -3233,9 +3200,6 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 {
     static const float INV_255 = 1.0f / 255.0f;
 
-    if (m_volumes == nullptr)
-        return;
-
     if (fake_colors)
         ::glDisable(GL_LIGHTING);
     else
@@ -3251,7 +3215,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     ::glEnableClientState(GL_NORMAL_ARRAY);
 
     unsigned int volume_id = 0;
-    for (GLVolume* vol : m_volumes->volumes)
+    for (GLVolume* vol : m_volumes.volumes)
     {
         if (fake_colors)
         {
@@ -3285,7 +3249,7 @@ float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
 
 int GLCanvas3D::_get_layers_editing_first_selected_object_id(unsigned int objects_count) const
 {
-    return (m_volumes != nullptr) ? m_layers_editing.get_first_selected_object_id(*m_volumes, objects_count) : -1;
+    return m_layers_editing.get_first_selected_object_id(m_volumes, objects_count);
 }
 
 void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
@@ -3294,7 +3258,7 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     if (object_idx_selected == -1)
         return;
 
-    if ((m_volumes == nullptr) || (m_print == nullptr))
+    if (m_print == nullptr)
         return;
 
     PrintObject* selected_obj = m_print->get_object(object_idx_selected);
@@ -3329,7 +3293,7 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
         }
     }
 
-    m_volumes->volumes[volume_idx]->generate_layer_height_texture(selected_obj, 1);
+    m_volumes.volumes[volume_idx]->generate_layer_height_texture(selected_obj, 1);
     _refresh_if_shown_on_screen();
 
     // Automatic action on mouse down with the same coordinate.
@@ -3469,7 +3433,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
     };
 
     typedef std::vector<Filter> FiltersList;
-    size_t initial_volumes_count = m_volumes->volumes.size();
+    size_t initial_volumes_count = m_volumes.volumes.size();
 
     // detects filters
     FiltersList filters;
@@ -3491,27 +3455,27 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
     // creates a new volume for each filter
     for (Filter& filter : filters)
     {
-        m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Extrusion, (unsigned int)filter.role, (unsigned int)m_volumes->volumes.size());
+        m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Extrusion, (unsigned int)filter.role, (unsigned int)m_volumes.volumes.size());
         GLVolume* volume = new GLVolume(Helper::path_color(preview_data, tool_colors, filter.value).rgba);
         if (volume != nullptr)
         {
             filter.volume = volume;
-            m_volumes->volumes.emplace_back(volume);
+            m_volumes.volumes.emplace_back(volume);
         }
         else
         {
             // an error occourred - restore to previous state and return
             m_gcode_preview_volume_index.first_volumes.pop_back();
-            if (initial_volumes_count != m_volumes->volumes.size())
+            if (initial_volumes_count != m_volumes.volumes.size())
             {
-                std::vector<GLVolume*>::iterator begin = m_volumes->volumes.begin() + initial_volumes_count;
-                std::vector<GLVolume*>::iterator end = m_volumes->volumes.end();
+                std::vector<GLVolume*>::iterator begin = m_volumes.volumes.begin() + initial_volumes_count;
+                std::vector<GLVolume*>::iterator end = m_volumes.volumes.end();
                 for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
                 {
                     GLVolume* volume = *it;
                     delete volume;
                 }
-                m_volumes->volumes.erase(begin, end);
+                m_volumes.volumes.erase(begin, end);
                 return;
             }
         }
@@ -3536,11 +3500,11 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
     }
 
     // finalize volumes and sends geometry to gpu
-    if (m_volumes->volumes.size() > initial_volumes_count)
+    if (m_volumes.volumes.size() > initial_volumes_count)
     {
-        for (size_t i = initial_volumes_count; i < m_volumes->volumes.size(); ++i)
+        for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
         {
-            GLVolume* volume = m_volumes->volumes[i];
+            GLVolume* volume = m_volumes.volumes[i];
             volume->bounding_box = volume->indexed_vertex_array.bounding_box();
             volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
         }
@@ -3549,7 +3513,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
 
 void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
-    size_t initial_volumes_count = m_volumes->volumes.size();
+    size_t initial_volumes_count = m_volumes.volumes.size();
     m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Travel, 0, (unsigned int)initial_volumes_count);
 
     bool res = true;
@@ -3575,27 +3539,27 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
     if (!res)
     {
         // an error occourred - restore to previous state and return
-        if (initial_volumes_count != m_volumes->volumes.size())
+        if (initial_volumes_count != m_volumes.volumes.size())
         {
-            std::vector<GLVolume*>::iterator begin = m_volumes->volumes.begin() + initial_volumes_count;
-            std::vector<GLVolume*>::iterator end = m_volumes->volumes.end();
+            std::vector<GLVolume*>::iterator begin = m_volumes.volumes.begin() + initial_volumes_count;
+            std::vector<GLVolume*>::iterator end = m_volumes.volumes.end();
             for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
             {
                 GLVolume* volume = *it;
                 delete volume;
             }
-            m_volumes->volumes.erase(begin, end);
+            m_volumes.volumes.erase(begin, end);
         }
 
         return;
     }
 
     // finalize volumes and sends geometry to gpu
-    if (m_volumes->volumes.size() > initial_volumes_count)
+    if (m_volumes.volumes.size() > initial_volumes_count)
     {
-        for (size_t i = initial_volumes_count; i < m_volumes->volumes.size(); ++i)
+        for (size_t i = initial_volumes_count; i < m_volumes.volumes.size(); ++i)
         {
-            GLVolume* volume = m_volumes->volumes[i];
+            GLVolume* volume = m_volumes.volumes[i];
             volume->bounding_box = volume->indexed_vertex_array.bounding_box();
             volume->indexed_vertex_array.finalize_geometry(m_use_VBOs && m_initialized);
         }
@@ -3647,7 +3611,7 @@ bool GLCanvas3D::_travel_paths_by_type(const GCodePreviewData& preview_data)
         else
         {
             type.volume = volume;
-            m_volumes->volumes.emplace_back(volume);
+            m_volumes.volumes.emplace_back(volume);
         }
     }
 
@@ -3713,7 +3677,7 @@ bool GLCanvas3D::_travel_paths_by_feedrate(const GCodePreviewData& preview_data)
         else
         {
             feedrate.volume = volume;
-            m_volumes->volumes.emplace_back(volume);
+            m_volumes.volumes.emplace_back(volume);
         }
     }
 
@@ -3779,7 +3743,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
         else
         {
             tool.volume = volume;
-            m_volumes->volumes.emplace_back(volume);
+            m_volumes.volumes.emplace_back(volume);
         }
     }
 
@@ -3802,7 +3766,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
 
 void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
 {
-    m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Retraction, 0, (unsigned int)m_volumes->volumes.size());
+    m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Retraction, 0, (unsigned int)m_volumes.volumes.size());
 
     // nothing to render, return
     if (preview_data.retraction.positions.empty())
@@ -3811,7 +3775,7 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
     GLVolume* volume = new GLVolume(preview_data.retraction.color.rgba);
     if (volume != nullptr)
     {
-        m_volumes->volumes.emplace_back(volume);
+        m_volumes.volumes.emplace_back(volume);
 
         GCodePreviewData::Retraction::PositionsList copy(preview_data.retraction.positions);
         std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position.z < p2.position.z; });
@@ -3833,7 +3797,7 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
 
 void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
 {
-    m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Unretraction, 0, (unsigned int)m_volumes->volumes.size());
+    m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Unretraction, 0, (unsigned int)m_volumes.volumes.size());
 
     // nothing to render, return
     if (preview_data.unretraction.positions.empty())
@@ -3842,7 +3806,7 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
     GLVolume* volume = new GLVolume(preview_data.unretraction.color.rgba);
     if (volume != nullptr)
     {
-        m_volumes->volumes.emplace_back(volume);
+        m_volumes.volumes.emplace_back(volume);
 
         GCodePreviewData::Retraction::PositionsList copy(preview_data.unretraction.positions);
         std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position.z < p2.position.z; });
@@ -3864,7 +3828,7 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
 
 void GLCanvas3D::_load_shells()
 {
-    size_t initial_volumes_count = m_volumes->volumes.size();
+    size_t initial_volumes_count = m_volumes.volumes.size();
     m_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Shell, 0, (unsigned int)initial_volumes_count);
 
     if (m_print->objects.empty())
@@ -3885,7 +3849,7 @@ void GLCanvas3D::_load_shells()
 
         for (ModelInstance* instance : model_obj->instances)
         {
-            m_volumes->load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
+            m_volumes.load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
         }
 
         ++object_id;
@@ -3897,7 +3861,7 @@ void GLCanvas3D::_load_shells()
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
         const float width_per_extruder = 15.0f; // a simple workaround after wipe_tower_per_color_wipe got obsolete
-        m_volumes->load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, m_use_VBOs && m_initialized);
+        m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, m_use_VBOs && m_initialized);
     }
 }
 
@@ -3906,8 +3870,8 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
     unsigned int size = (unsigned int)m_gcode_preview_volume_index.first_volumes.size();
     for (unsigned int i = 0; i < size; ++i)
     {
-        std::vector<GLVolume*>::iterator begin = m_volumes->volumes.begin() + m_gcode_preview_volume_index.first_volumes[i].id;
-        std::vector<GLVolume*>::iterator end = (i + 1 < size) ? m_volumes->volumes.begin() + m_gcode_preview_volume_index.first_volumes[i + 1].id : m_volumes->volumes.end();
+        std::vector<GLVolume*>::iterator begin = m_volumes.volumes.begin() + m_gcode_preview_volume_index.first_volumes[i].id;
+        std::vector<GLVolume*>::iterator end = (i + 1 < size) ? m_volumes.volumes.begin() + m_gcode_preview_volume_index.first_volumes[i + 1].id : m_volumes.volumes.end();
 
         for (std::vector<GLVolume*>::iterator it = begin; it != end; ++it)
         {
@@ -3962,7 +3926,7 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
 
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 {
-    if ((m_model == nullptr) || (m_volumes == nullptr))
+    if (m_model == nullptr)
         return;
 
     std::set<std::string> done;  // prevent moving instances twice
@@ -3970,7 +3934,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     Pointf3 wipe_tower_origin(0.0, 0.0, 0.0);
     for (int volume_idx : volume_idxs)
     {
-        GLVolume* volume = m_volumes->volumes[volume_idx];
+        GLVolume* volume = m_volumes.volumes[volume_idx];
         int obj_idx = volume->object_idx();
         int instance_idx = volume->instance_idx();
 
@@ -4005,14 +3969,14 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 void GLCanvas3D::_on_select(int volume_idx)
 {
     int id = -1;
-    if ((m_volumes != nullptr) && (volume_idx < (int)m_volumes->volumes.size()))
+    if (volume_idx < (int)m_volumes.volumes.size())
     {
         if (volume_idx != -1)
         {
             if (m_select_by == "volume")
-                id = m_volumes->volumes[volume_idx]->volume_idx();
+                id = m_volumes.volumes[volume_idx]->volume_idx();
             else if (m_select_by == "object")
-                id = m_volumes->volumes[volume_idx]->object_idx();
+                id = m_volumes.volumes[volume_idx]->object_idx();
         }
     }
     m_on_select_object_callback.call(id);

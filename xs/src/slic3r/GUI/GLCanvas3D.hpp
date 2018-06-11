@@ -1,12 +1,8 @@
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
-#include "../../libslic3r/BoundingBox.hpp"
-#include "../../libslic3r/Utils.hpp"
-#include "../../libslic3r/ExPolygon.hpp"
+#include "../../slic3r/GUI/3DScene.hpp"
 
-class wxGLCanvas;
-class wxGLContext;
 class wxTimer;
 class wxSizeEvent;
 class wxIdleEvent;
@@ -14,20 +10,11 @@ class wxKeyEvent;
 class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
-class wxActivateEvent;
 
 namespace Slic3r {
 
-class GLVolumeCollection;
-class GLVolume;
-class DynamicPrintConfig;
 class GLShader;
 class ExPolygon;
-class Print;
-class PrintObject;
-class GCodePreviewData;
-class ModelObject;
-class Model;
 
 namespace GUI {
 
@@ -365,7 +352,7 @@ private:
     Shader m_shader;
     Mouse m_mouse;
 
-    GLVolumeCollection* m_volumes;
+    mutable GLVolumeCollection m_volumes;
     DynamicPrintConfig* m_config;
     Print* m_print;
     Model* m_model;

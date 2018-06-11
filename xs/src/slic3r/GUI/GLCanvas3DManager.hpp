@@ -1,12 +1,28 @@
 #ifndef slic3r_GLCanvas3DManager_hpp_
 #define slic3r_GLCanvas3DManager_hpp_
 
-#include "../../slic3r/GUI/GLCanvas3D.hpp"
+#include "../../libslic3r/BoundingBox.hpp"
 
 #include <map>
+#include <vector>
+
+class wxGLCanvas;
+class wxGLContext;
 
 namespace Slic3r {
+
+class DynamicPrintConfig;
+class Print;
+class Model;
+class ExPolygon;
+typedef std::vector<ExPolygon> ExPolygons;
+class ModelObject;
+class PrintObject;
+class GCodePreviewData;
+    
 namespace GUI {
+
+class GLCanvas3D;
 
 class GLCanvas3DManager
 {

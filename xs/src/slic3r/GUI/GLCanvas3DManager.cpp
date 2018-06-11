@@ -1,6 +1,7 @@
 #include "GLCanvas3DManager.hpp"
 #include "../../slic3r/GUI/GUI.hpp"
 #include "../../slic3r/GUI/AppConfig.hpp"
+#include "../../slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
 
