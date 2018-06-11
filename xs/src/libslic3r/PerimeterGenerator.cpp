@@ -243,7 +243,7 @@ void PerimeterGenerator::process()
                 perimeter_spacing / 2;
         // only apply infill overlap if we actually have one perimeter
         if (inset > 0)
-            inset -= this->config->get_abs_value("infill_overlap", inset + solid_infill_spacing / 2);
+            inset -= scale_(this->config->get_abs_value("infill_overlap", unscale(inset + solid_infill_spacing / 2)));
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon &ex : last)
