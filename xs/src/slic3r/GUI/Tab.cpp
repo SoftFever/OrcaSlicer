@@ -2056,7 +2056,15 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
 	if (m_disable_tree_sel_changed_event) return;
+
+// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
+// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
+// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
+#ifdef __linux__	
+	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
+#else
 	wxWindowUpdateLocker noUpdates(this);
+#endif
 
 	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
@@ -2072,6 +2080,11 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 
 	for (auto& el : m_pages)
 		el.get()->Hide();
+
+#ifdef __linux__
+    no_updates.reset(nullptr);
+#endif
+
 	page->Show();
 	m_hsizer->Layout();
 	Refresh();
