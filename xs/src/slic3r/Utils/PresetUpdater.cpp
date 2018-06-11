@@ -440,7 +440,9 @@ void PresetUpdater::priv::copy_file(const fs::path &source, const fs::path &targ
 	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
 
 	// Make sure the file has correct permission both before and after we copy over it
-	fs::permissions(target, perms);
+	if (fs::exists(target)) {
+		fs::permissions(target, perms);
+	}
 	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
 	fs::permissions(target, perms);
 }
