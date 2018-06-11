@@ -37,6 +37,7 @@
 #include <wx/window.h>
 #include <wx/msgdlg.h>
 #include <wx/settings.h>
+#include <wx/display.h>
 
 #include "wxExtensions.hpp"
 
@@ -931,6 +932,14 @@ int get_export_option(wxFileDialog* dlg)
 
     return 0;
 
+}
+
+void get_current_screen_size(unsigned &width, unsigned &height)
+{
+	wxDisplay display(wxDisplay::GetFromWindow(g_wxMainFrame));
+	const auto disp_size = display.GetClientArea();
+	width = disp_size.GetWidth();
+	height = disp_size.GetHeight();
 }
 
 void about()
