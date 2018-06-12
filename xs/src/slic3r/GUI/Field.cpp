@@ -202,7 +202,7 @@ namespace Slic3r { namespace GUI {
 		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent)
 		{
 #ifdef __WXGTK__
-			bool	bChangedValueEvent = true;
+			bChangedValueEvent = true;
 #else
 			on_change_field();
 #endif //__WXGTK__
