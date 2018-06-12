@@ -5,7 +5,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.0.8\n"
 "Project-Id-Version: \n"
 "POT-Creation-Date: \n"
 "PO-Revision-Date: \n"
@@ -367,6 +367,10 @@ msgstr "Import…"
 msgid "Advanced"
 msgstr "Erweiterte Einstellungen"
 
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:319
+msgid "Advanced: avrdude output log"
+msgstr "Fortgeschritten: Avrdude Output Log"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1138
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:766
 msgid "After layer change G-code"
@@ -426,6 +430,12 @@ msgstr "ungefähre Sekunden"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1581
 msgid "Are you sure you want to "
 msgstr "Wollen Sie wirklich "
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:365
+msgid ""
+"Are you sure you want to cancel firmware flashing?\n"
+"This could leave your printer in an unusable state!"
+msgstr "Sind Sie sicher, dass Sie das Flashen der Firmware abbrechen wollen? Dies könnte Ihren Drucker in einen unbrauchbaren Zustand versetzen!"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2044
 msgid "Around X axis…"
@@ -619,6 +629,14 @@ msgstr "Schaltflächen und Textfarben Beschreibung"
 msgid "by the print profile maximum"
 msgstr "mit dem Maximum des Druckerprofils"
 
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:85
+msgid "Cancel"
+msgstr "Abbrechen"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:213
+msgid "Cancelling..."
+msgstr "Abbrechen..."
+
 #: xs/src/slic3r/GUI/Tab.cpp:2124
 msgid "Cannot overwrite a system profile."
 msgstr "Systemprofil kann nicht überschrieben werden."
@@ -649,14 +667,6 @@ msgstr "Ändere die Anzahl der Kopien der ausgewählten Objekte"
 
 #: xs/src/slic3r/GUI/ConfigWizard.cpp:272 xs/src/slic3r/GUI/Preferences.cpp:59
 msgid "Check for application updates"
-msgstr "Nach Updates suchen"
-
-#: xs/src/slic3r/GUI/GUI.cpp:404
-msgid "Check for configuration updates"
-msgstr "Nach Konfigurationsupdates suchen"
-
-#: xs/src/slic3r/GUI/GUI.cpp:404
-msgid "Check for updates"
 msgstr "Nach Updates suchen"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\BedShapeDialog.cpp:298
@@ -734,6 +744,10 @@ msgstr "Konfigurationsupdate ist verfügbar"
 #: xs/src/slic3r/GUI/ConfigWizard.cpp:844
 msgid "Configuration Wizard"
 msgstr "Konfigurations-Assistent"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:366
+msgid "Confirmation"
+msgstr "Bestätigung"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1020
 msgid "Connection failed."
@@ -1077,10 +1091,6 @@ msgstr "Geben Sie die neue Größe für das ausgewählte Objekt (Druckbett: %s m
 msgid "Enter the number of copies of the selected object:"
 msgstr "Geben Sie die Anzahl der Kopien der ausgewählten Objekte ein:"
 
-#: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
-msgid "Enter the rotation angle:"
-msgstr "Geben Sie den Rotationswinkel ein:"
-
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1061
 #, no-perl-format
@@ -1157,6 +1167,10 @@ msgstr "Experimentelle Option zur Anpassung des Durchflusses für Überhänge (B
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:263
 msgid "Export all presets to file"
 msgstr "Exportiere alle Voreinstellungen in eine Datei"
+
+#: lib/Slic3r/GUI/Plater.pm:1416
+msgid "Export cancelled"
+msgstr "Export abgebrochen"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:257
 msgid "Export current configuration to file"
@@ -1427,6 +1441,14 @@ msgstr "Fertig"
 msgid "Firmware"
 msgstr "Firmware"
 
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:266
+msgid "Firmware flasher"
+msgstr "Firmware Flasher"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:293
+msgid "Firmware image:"
+msgstr "Firmware Image:"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1314
 msgid "Firmware Retraction"
 msgstr "Firmware Einzug"
@@ -1453,6 +1475,30 @@ msgstr "Druckgeschwindigkeit der ersten Schicht"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "First layer volumetric"
 msgstr "Volumenparameter der ersten Schicht"
+
+#: xs/src/slic3r/GUI/GUI.cpp:326
+msgid "Flash printer firmware"
+msgstr "Flashe Drucker Firmware"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:84
+msgid "Flash!"
+msgstr "Flash!"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:147
+msgid "Flashing cancelled."
+msgstr "Flashen abgebrochen."
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:146
+msgid "Flashing failed. Please see the avrdude log below."
+msgstr "Flashen misslungen. Bitte überprüfen Sie das Avrdude log unterhalb."
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:123
+msgid "Flashing in progress. Please do not disconnect the printer!"
+msgstr "Es wird geflashed. Bitte nicht den Drucker abklemmen!"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:145
+msgid "Flashing succeeded!"
+msgstr "Flashen erfolgreich!"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:466
 msgid "Flow"
@@ -1555,10 +1601,9 @@ msgstr "Höhe der Schürze in Schichten.  Eine hohe Schürze kann gegen Zugluft 
 msgid "Hello, welcome to Slic3r Prusa Edition! This %s helps you with the initial configuration; just a few settings and you will be ready to print."
 msgstr "Hallo, willkommen bei Slic3r Prusa Edition! Dieses %s hilft Ihnen bei der Erstkonfiguration; nur ein paar Einstellungen und Sie sind bereit zum Drucken."
 
-#: xs/src/slic3r/GUI/WipeTowerDialog.cpp:223
-#, c-format
-msgid "Here you can adjust required purging volume (mm%s) for any given pair of tools."
-msgstr "Hier können Sie das erforderliche Reinigungsvolumen (mm %s) für ein beliebiges Werkzeugpaar einstellen."
+#: xs/src/slic3r/GUI/WipeTowerDialog.cpp:218
+msgid "Here you can adjust required purging volume (mm³) for any given pair of tools."
+msgstr "Hier können Sie das erforderliche Reinigungsvolumen (mm³) für ein beliebiges Werkzeugpaar einstellen."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:329
 msgid "Horizontal shells"
@@ -1744,10 +1789,6 @@ msgstr "Internes Infill"
 #: xs/src/slic3r/Utils/OctoPrint.cpp:120
 msgid "Invalid API key"
 msgstr "Ungültiger API-Schlüssel"
-
-#: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
-msgid "Invalid rotation angle entered"
-msgstr "Ungültiger Rotationswinkel wurde eingegeben"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1031
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1035
@@ -1966,13 +2007,13 @@ msgstr "Minimale Druckgeschwindigkeit"
 msgid "min slic3r version"
 msgstr "Min. Slic3r Version"
 
+#: xs/src/libslic3r/PrintConfig.cpp:951
+msgid "Minimal filament extrusion length"
+msgstr "Minimale Filament Extrusionlänge"
+
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1040
 msgid "Minimum detail resolution, used to simplify the input file for speeding up the slicing job and reducing memory usage. High-resolution models often carry more detail than printers can render. Set to zero to disable any simplification and use full resolution from input."
 msgstr "Minimale Detailauflösung, die verwendet wird, um die Eingabedatei zu vereinfachen, um den Slicingjob zu beschleunigen und den Speicherverbrauch zu reduzieren. Hochauflösende Modelle weisen oft mehr Details auf, als der Drucker wiedergeben kann. Setzen Sie den Wert auf Null, um die Vereinfachung zu deaktivieren und die volle Auflösung des Eingangsdatei zu verwenden."
-
-#: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:874
-msgid "Minimum extrusion length"
-msgstr "Minimale Extrusionslänge"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1050
 msgid "Minimum travel after retraction"
@@ -2288,9 +2329,9 @@ msgstr "Modell öffnen"
 msgid "Open CA certificate file"
 msgstr "Open CA Zertifikat Datei"
 
-#: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
-msgid "Open STL/OBJ/AMF…\tCtrl+O"
-msgstr "STL/OBJ/AMF öffnen…\tCtrl+O"
+#: lib/Slic3r/GUI/MainFrame.pm:194
+msgid "Open STL/OBJ/AMF/3MF…\tCtrl+O"
+msgstr "Öffne STL/OBJ/AMF/3MF…\tCtrl+O"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Open the 3D cutting tool"
@@ -2418,6 +2459,10 @@ msgstr "Eine weitere Kopie des ausgewählten Objekts positionieren"
 msgid "Plater"
 msgstr "Druckplatte"
 
+#: lib/Slic3r/GUI/Plater.pm:1897
+msgid "Please install the OpenGL modules to use this feature (see build instructions)."
+msgstr "Bitte installieren Sie die OpenGL-Module, um diese Funktion nutzen zu können (siehe Build Anleitung)."
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1199
 msgid "Position (for multi-extruder printers)"
 msgstr "Position (für Multi-Extruder-Drucker)"
@@ -2535,6 +2580,10 @@ msgstr "Eingabe Datei wird verarbeitet\n"
 msgid "Profile dependencies"
 msgstr "Profil Abhängigkeiten"
 
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:300
+msgid "Progress:"
+msgstr "Fortschritt:"
+
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:385
 msgid "Prusa 3D Drivers"
 msgstr "Prusa 3D Treiber"
@@ -2621,6 +2670,10 @@ msgstr "Einstellungen für das Rammen"
 msgid "Re-configure"
 msgstr "Neu konfigurieren"
 
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:297
+msgid "Ready"
+msgstr "Fertig"
+
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:372
 msgid "Rear"
 msgstr "Hinten"
@@ -2698,6 +2751,15 @@ msgstr "Einen Fehler melden"
 msgid "Report an issue on the Slic3r Prusa Edition"
 msgstr "Einen Fehler in der Slic3r Prusa Edition melden"
 
+#: xs/src/slic3r/Utils/PresetUpdater.cpp:514
+#, c-format
+msgid "requires min. %s and max. %s"
+msgstr "benötigt min. %s und max. %s"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:288
+msgid "Rescan"
+msgstr "Rescan"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:995
 msgid "Rescan serial ports"
 msgstr "Serielle Schnittstellen nochmals abfragen"
@@ -2763,10 +2825,6 @@ msgstr "45° im Uhrzeigersinn drehen"
 msgid "Rotate 45° counter-clockwise"
 msgstr "45° im Gegenuhrzeigersinn drehen"
 
-#: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:950
-msgid "Rotate around "
-msgstr "Rotieren um "
-
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2034
 msgid "Rotate the selected object by 45° clockwise"
 msgstr "Drehen Sie das ausgewählte Objekt um 45° mit dem Uhrzeiger"
@@ -2815,6 +2873,10 @@ msgstr "Konfiguration speichern unter:"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:50
 msgid "Save current "
 msgstr "Aktuell sichern "
+
+#: lib/Slic3r/GUI/Plater.pm:1399
+msgid "Save G-code file as:"
+msgstr "Speichere G-Code Datei als:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:580
 msgid "Save OBJ file (less prone to coordinate errors than STL) as:"
@@ -2960,6 +3022,10 @@ msgstr "Serieller Port"
 msgid "Serial port speed"
 msgstr "Serielle Portgeschwindigkeit"
 
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:286
+msgid "Serial port:"
+msgstr "Serieller Port:"
+
 #: xs/src/slic3r/GUI/BonjourDialog.cpp:68
 msgid "Service name"
 msgstr "Name des Dienstes"
@@ -3038,6 +3104,10 @@ msgstr "Konturhüllen"
 msgid "Show"
 msgstr "Anzeigen"
 
+#: lib/Slic3r/GUI/MainFrame.pm:337
+msgid "Show &Configuration Folder"
+msgstr "Zeige Konfigurationsordner (&C)"
+
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:408
 msgid "Show about dialog"
 msgstr "\"Über\"-Dialog anzeigen"
@@ -3077,6 +3147,10 @@ msgstr "Drucker-Controller anzeigen"
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:356
 msgid "Show the printer settings"
 msgstr "Druckereinstellungen anzeigen"
+
+#: lib/Slic3r/GUI/MainFrame.pm:337
+msgid "Show user configuration folder (datadir)"
+msgstr "Zeige User Konfiguration Ordner (datadir)"
 
 #: xs/src/slic3r/GUI/Tab.cpp:1716 xs/src/slic3r/GUI/Tab.cpp:1722
 msgid "Single extruder MM setup"
@@ -3385,6 +3459,10 @@ msgstr "Start G-Code"
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:291
 msgid "Start new slicing process"
 msgstr "Neuen Slicing-Prozess starten"
+
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:296
+msgid "Status:"
+msgstr "Status:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1539
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:1581
@@ -4045,6 +4123,10 @@ msgstr "Updates werden niemals ohne das Einverständnis des Benutzers ausgeführ
 msgid "Upgrade"
 msgstr "Aktualisieren"
 
+#: xs/src/slic3r/GUI/GUI.cpp:326
+msgid "Upload a firmware image into an Arduino based printer"
+msgstr "Lade ein Firmware Image zu einem Arduino basierten Drucker hoch"
+
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:989
 msgid "USB/Serial connection"
 msgstr "USB/Serielle Verbindung"
@@ -4142,10 +4224,9 @@ msgstr "Ansicht"
 msgid "Volume"
 msgstr "Volumen"
 
-#: xs/src/slic3r/GUI/WipeTowerDialog.cpp:246
-#, c-format
-msgid "Volume to purge (mm%s) when the filament is being"
-msgstr "Auszuwerfendes Volumen (mm%s), wenn das Filament"
+#: xs/src/slic3r/GUI/WipeTowerDialog.cpp:241
+msgid "Volume to purge (mm³) when the filament is being"
+msgstr "Volumen zum Reinigen (mm³) wenn das Filament ist"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "Volumetric"
