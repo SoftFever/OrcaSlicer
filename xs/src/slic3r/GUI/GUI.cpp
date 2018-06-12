@@ -143,6 +143,7 @@ wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
 wxCollapsiblePane		*m_collpane_settings = nullptr;
 int			m_event_object_selection_changed = 0;
+int			m_event_object_settings_changed = 0;
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
@@ -1163,9 +1164,12 @@ void select_current_object(int idx)
 	}
 }
 
-void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_selection_changed)
+void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
+							int event_object_selection_changed,
+							int event_object_settings_changed)
 {
 	m_event_object_selection_changed = event_object_selection_changed;
+	m_event_object_settings_changed = event_object_settings_changed;
 	wxWindowUpdateLocker noUpdates(parent);
 
 	// *** Objects List ***	

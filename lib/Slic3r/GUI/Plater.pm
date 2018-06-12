@@ -56,6 +56,7 @@ sub new {
 
     # store input params
     $self->{event_object_selection_changed} = $params{event_object_selection_changed};
+    $self->{event_object_settings_changed} = $params{event_object_settings_changed};
 
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
@@ -398,13 +399,15 @@ sub new {
         Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
 
         my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        Slic3r::GUI::add_expert_mode_part($self->{right_panel}, $expert_mode_part_sizer, $self->{event_object_selection_changed});
-        if ($expert_mode_part_sizer->IsShown(2)==1) 
-        { 
-            $expert_mode_part_sizer->Layout;
-            $expert_mode_part_sizer->Show(2, 0); # ? Why doesn't work
-            $self->{right_panel}->Layout;
-        }
+        Slic3r::GUI::add_expert_mode_part(  $self->{right_panel}, $expert_mode_part_sizer, 
+                                            $self->{event_object_selection_changed},
+                                            $self->{event_object_settings_changed});
+#        if ($expert_mode_part_sizer->IsShown(2)==1) 
+#        { 
+#           $expert_mode_part_sizer->Layout;
+#            $expert_mode_part_sizer->Show(2, 0); # ? Why doesn't work
+#            $self->{right_panel}->Layout;
+#       }
 
         my $object_info_sizer;
         {
@@ -1951,6 +1954,29 @@ sub object_settings_dialog {
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
 	    $self->stop_background_process;
+        $self->{print}->reload_object($obj_idx);
+        $self->schedule_background_process;
+        $self->{canvas}->reload_scene if $self->{canvas};
+        $self->{canvas3D}->reload_scene if $self->{canvas3D};
+    } else {
+        $self->resume_background_process;
+    }
+}
+
+sub changed_object_settings {
+    my ($self, $obj_idx, $parts_changed, $part_settings_changed) = @_;
+    
+    # update thumbnail since parts may have changed
+    if ($parts_changed) {
+        # recenter and re-align to Z = 0
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        $model_object->center_around_origin;
+        $self->reset_thumbnail($obj_idx);
+    }
+    
+    # update print
+    if ($parts_changed || $part_settings_changed) {
+        $self->stop_background_process;
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
         $self->{canvas}->reload_scene if $self->{canvas};

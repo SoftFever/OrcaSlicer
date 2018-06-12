@@ -202,7 +202,9 @@ void unselect_objects();
 // Select current object in the list on c++ side
 void select_current_object(int idx);
 
-void add_expert_mode_part(wxWindow* parent, wxBoxSizer* sizer, int event_object_selection_changed);
+void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
+							int event_object_selection_changed,
+							int event_object_settings_changed);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 // Update view mode according to selected menu 
 void update_mode();
