@@ -199,7 +199,25 @@ namespace Slic3r { namespace GUI {
 		}), temp->GetId());
 #endif // __WXGTK__
 
-		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent) { on_change_field(); }), temp->GetId());
+		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent)
+		{
+#ifdef __WXGTK__
+			bChangedValueEvent = true;
+#else
+			on_change_field();
+#endif //__WXGTK__
+		}), temp->GetId());
+
+#ifdef __WXGTK__
+		temp->Bind(wxEVT_KEY_UP, [this](wxKeyEvent& event)
+		{
+			if (bChangedValueEvent)	{
+				on_change_field();
+				bChangedValueEvent = false;
+			}
+			event.Skip();
+		});
+#endif //__WXGTK__
 
 		// select all text using Ctrl+A
 		temp->Bind(wxEVT_CHAR, ([temp](wxKeyEvent& event)
