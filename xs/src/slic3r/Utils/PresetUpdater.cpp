@@ -116,6 +116,8 @@ struct PresetUpdater::priv
 	void check_install_indices() const;
 	Updates get_config_updates() const;
 	void perform_updates(Updates &&updates, bool snapshot = true) const;
+
+	static void copy_file(const fs::path &from, const fs::path &to);
 };
 
 PresetUpdater::priv::priv(int version_online_event) :
@@ -285,7 +287,7 @@ void PresetUpdater::priv::check_install_indices() const
 
 			if (! fs::exists(path_in_cache)) {
 				BOOST_LOG_TRIVIAL(info) << "Install index from resources: " << path.filename();
-				fs::copy_file(path, path_in_cache, fs::copy_option::overwrite_if_exists);
+				copy_file(path, path_in_cache);
 			} else {
 				Index idx_rsrc, idx_cache;
 				idx_rsrc.load(path);
@@ -293,7 +295,7 @@ void PresetUpdater::priv::check_install_indices() const
 
 				if (idx_cache.version() < idx_rsrc.version()) {
 					BOOST_LOG_TRIVIAL(info) << "Update index from resources: " << path.filename();
-					fs::copy_file(path, path_in_cache, fs::copy_option::overwrite_if_exists);
+					copy_file(path, path_in_cache);
 				}
 			}
 		}
@@ -397,7 +399,7 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 		for (const auto &update : updates.updates) {
 			BOOST_LOG_TRIVIAL(info) << '\t' << update;
 
-			fs::copy_file(update.source, update.target, fs::copy_option::overwrite_if_exists);
+			copy_file(update.source, update.target);
 
 			PresetBundle bundle;
 			bundle.load_configbundle(update.target.string(), PresetBundle::LOAD_CFGBNDLE_SYSTEM);
@@ -431,6 +433,18 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 			for (const auto &name : bundle.obsolete_presets.printers)  { obsolete_remover("printer", name); }
 		}
 	}
+}
+
+void PresetUpdater::priv::copy_file(const fs::path &source, const fs::path &target)
+{
+	static const auto perms = fs::owner_read | fs::owner_write | fs::group_read | fs::others_read;   // aka 644
+
+	// Make sure the file has correct permission both before and after we copy over it
+	if (fs::exists(target)) {
+		fs::permissions(target, perms);
+	}
+	fs::copy_file(source, target, fs::copy_option::overwrite_if_exists);
+	fs::permissions(target, perms);
 }
 
 

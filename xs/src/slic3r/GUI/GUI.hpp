@@ -169,6 +169,9 @@ wxButton*			get_wiping_dialog_button();
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
 
+// Returns the dimensions of the screen on which the main frame is displayed
+void get_current_screen_size(unsigned &width, unsigned &height);
+
 // Display an About dialog
 extern void about();
 // Ask the destop to open the datadir using the default file explorer.
