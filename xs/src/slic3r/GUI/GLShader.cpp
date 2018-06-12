@@ -2,10 +2,8 @@
 
 #include "GLShader.hpp"
 
-//############################################################################################################################################
 #include "../../libslic3r/Utils.hpp"
 #include <boost/nowide/fstream.hpp>
-//############################################################################################################################################
 
 #include <string>
 #include <utility>
@@ -27,10 +25,7 @@ inline std::string gl_get_string_safe(GLenum param)
     return std::string(value ? value : "N/A");
 }
 
-//############################################################################################################################################
 bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_shader)
-//bool GLShader::load(const char *fragment_shader, const char *vertex_shader)
-//############################################################################################################################################
 {
     std::string gl_version = gl_get_string_safe(GL_VERSION);
     int major = atoi(gl_version.c_str());
@@ -131,7 +126,6 @@ bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_sh
     return true;
 }
 
-//############################################################################################################################################
 bool GLShader::load_from_file(const char* fragment_shader_filename, const char* vertex_shader_filename)
 {
     const std::string& path = resources_dir() + "/shaders/";
@@ -166,7 +160,6 @@ bool GLShader::load_from_file(const char* fragment_shader_filename, const char* 
 
     return load_from_text(fragment_shader.c_str(), vertex_shader.c_str());
 }
-//############################################################################################################################################
 
 void GLShader::release()
 {

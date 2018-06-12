@@ -184,9 +184,7 @@ public:
 
     void reset_layer_height_profile();
 
-//############################################################################################################################################
     void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action);
-//############################################################################################################################################
 
     // Collect the slicing parameters, to be used by variable layer thickness algorithm,
     // by the interactive layer height editor and by the printing process itself.

@@ -6,14 +6,10 @@
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
-//##################################################################################################################
 #include "../../slic3r/GUI/GLCanvas3DManager.hpp"
-//##################################################################################################################
 
 class wxBitmap;
-//##################################################################################################################
 class wxWindow;
-//##################################################################################################################
 
 namespace Slic3r {
 
@@ -23,13 +19,11 @@ class Model;
 class ModelObject;
 class GCodePreviewData;
 class DynamicPrintConfig;
-//##################################################################################################################
 class ExtrusionPath;
 class ExtrusionMultiPath;
 class ExtrusionLoop;
 class ExtrusionEntity;
 class ExtrusionEntityCollection;
-//##################################################################################################################
 
 // A container for interleaved arrays of 3D vertices and normals,
 // possibly indexed by triangles and / or quads.
@@ -450,37 +444,6 @@ private:
 
 class _3DScene
 {
-//##################################################################################################################
-//    struct GCodePreviewVolumeIndex
-//    {
-//        enum EType
-//        {
-//            Extrusion,
-//            Travel,
-//            Retraction,
-//            Unretraction,
-//            Shell,
-//            Num_Geometry_Types
-//        };
-//
-//        struct FirstVolume
-//        {
-//            EType type;
-//            unsigned int flag;
-//            // Index of the first volume in a GLVolumeCollection.
-//            unsigned int id;
-//
-//            FirstVolume(EType type, unsigned int flag, unsigned int id) : type(type), flag(flag), id(id) {}
-//        };
-//
-//        std::vector<FirstVolume> first_volumes;
-//
-//        void reset() { first_volumes.clear(); }
-//    };
-//
-//    static GCodePreviewVolumeIndex s_gcode_preview_volume_index;
-//##################################################################################################################
-
     class TextureBase
     {
     protected:
@@ -540,12 +503,9 @@ class _3DScene
 
     static LegendTexture s_legend_texture;
     static WarningTexture s_warning_texture;
-//##################################################################################################################
     static GUI::GLCanvas3DManager s_canvas_mgr;
-//##################################################################################################################
 
 public:
-//##################################################################################################################
     static void init_gl();
     static std::string get_gl_info(bool format_as_html, bool extensions);
     static bool use_VBOs();
@@ -629,10 +589,6 @@ public:
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
 
-//    static void _glew_init();
-//##################################################################################################################
-
-//##################################################################################################################
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
 
@@ -642,13 +598,9 @@ public:
     static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
     static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
-//    static void load_gcode_preview(const Print* print, const GCodePreviewData* preview_data, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
-//##################################################################################################################
 
-//##################################################################################################################
     // generates the legend texture in dependence of the current shown view type
     static void generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-//##################################################################################################################
     static unsigned int get_legend_texture_width();
     static unsigned int get_legend_texture_height();
 
@@ -663,27 +615,6 @@ public:
     static void reset_warning_texture();
     static unsigned int finalize_warning_texture();
 
-//##################################################################################################################
-//    static void _load_print_toolpaths(
-//        const Print                     *print,
-//        GLVolumeCollection              *volumes,
-//        const std::vector<std::string>  &tool_colors,
-//        bool                             use_VBOs);
-//
-//    static void _load_print_object_toolpaths(
-//        const PrintObject               *print_object,
-//        GLVolumeCollection              *volumes,
-//        const std::vector<std::string>  &tool_colors,
-//        bool                             use_VBOs);
-//
-//    static void _load_wipe_tower_toolpaths(
-//        const Print                    *print,
-//        GLVolumeCollection             *volumes,
-//        const std::vector<std::string> &tool_colors_str,
-//        bool                            use_VBOs);
-//##################################################################################################################
-
-//##################################################################################################################
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionPath& extrusion_path, float print_z, GLVolume& volume);
@@ -694,28 +625,6 @@ public:
     static void extrusionentity_to_verts(const ExtrusionEntity* extrusion_entity, float print_z, const Point& copy, GLVolume& volume);
     static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume);
     static void point3_to_verts(const Point3& point, double width, double height, GLVolume& volume);
-//##################################################################################################################
-
-private:
-//##################################################################################################################
-//    // generates gcode extrusion paths geometry
-//    static void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
-//    // generates gcode travel paths geometry
-//    static void _load_gcode_travel_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
-//    static bool _travel_paths_by_type(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
-//    static bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
-//    static bool _travel_paths_by_tool(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors);
-//    // generates gcode retractions geometry
-//    static void _load_gcode_retractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
-//    // generates gcode unretractions geometry
-//    static void _load_gcode_unretractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
-//    // sets gcode geometry visibility according to user selection
-//    static void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
-//    // generates the legend texture in dependence of the current shown view type
-//    static void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-//    // generates objects and wipe tower geometry
-//    static void _load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
-//##################################################################################################################
 };
 
 }

@@ -1255,8 +1255,7 @@ sub Destroy {
 #    my ($self, $dc) = @_;
 #    
 #    # prevent calling SetCurrent() when window is not shown yet
-#    return unless Slic3r::GUI::_3DScene::is_shown_on_screen($self);
-##    return unless $self->IsShownOnScreen;
+#    return unless $self->IsShownOnScreen;
 #    return unless my $context = $self->GetContext;
 #    $self->SetCurrent($context);
 #    $self->InitGL;

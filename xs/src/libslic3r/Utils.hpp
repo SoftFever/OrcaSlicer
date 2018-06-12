@@ -91,18 +91,12 @@ public:
     ~PerlCallback() { this->deregister_callback(); }
     void register_callback(void *sv);
     void deregister_callback();
-//##############################################################################################################
     void call() const;
     void call(int i) const;
     void call(int i, int j) const;
     void call(const std::vector<int>& ints) const;
     void call(double x, double y) const;
     void call(bool b) const;
-//    void call();
-//    void call(int i);
-//    void call(int i, int j);
-////    void call(const std::vector<int> &ints);
-//##############################################################################################################
 private:
     void *m_callback;
 };

@@ -184,10 +184,7 @@ void PerlCallback::deregister_callback()
 	}
 }
 
-//##############################################################################################################
 void PerlCallback::call() const
-//void PerlCallback::call()
-//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -201,10 +198,7 @@ void PerlCallback::call() const
     LEAVE;
 }
 
-//##############################################################################################################
 void PerlCallback::call(int i) const
-//void PerlCallback::call(int i)
-//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -219,10 +213,7 @@ void PerlCallback::call(int i) const
     LEAVE;
 }
 
-//##############################################################################################################
 void PerlCallback::call(int i, int j) const
-//void PerlCallback::call(int i, int j)
-//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -238,10 +229,7 @@ void PerlCallback::call(int i, int j) const
     LEAVE;
 }
 
-//##############################################################################################################
 void PerlCallback::call(const std::vector<int>& ints) const
-//void PerlCallback::call(const std::vector<int> &ints)
-//##############################################################################################################
 {
     if (! m_callback)
         return;
@@ -249,24 +237,16 @@ void PerlCallback::call(const std::vector<int>& ints) const
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-//##############################################################################################################
     for (int i : ints)
     {
         XPUSHs(sv_2mortal(newSViv(i)));
     }
-
-//    AV* av = newAV();
-//    for (int i : ints)
-//        av_push(av, newSViv(i));
-//    XPUSHs(av);
-//##############################################################################################################
     PUTBACK;
     perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
     FREETMPS;
     LEAVE;
 }
 
-//##############################################################################################################
 void PerlCallback::call(double x, double y) const
 {
     if (!m_callback)
@@ -287,7 +267,6 @@ void PerlCallback::call(bool b) const
 {
     call(b ? 1 : 0);
 }
-//##############################################################################################################
 
 #ifdef WIN32
     #ifndef NOMINMAX
