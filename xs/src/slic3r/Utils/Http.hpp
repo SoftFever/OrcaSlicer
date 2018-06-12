@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <boost/filesystem/path.hpp>
 
 
 namespace Slic3r {
@@ -33,6 +34,8 @@ public:
 
 	Http(Http &&other);
 
+	// Note: strings are expected to be UTF-8-encoded
+
 	// These are the primary constructors that create a HTTP object
 	// for a GET and a POST request respectively.
 	static Http get(std::string url);
@@ -55,10 +58,10 @@ public:
 	Http& ca_file(const std::string &filename);
 	// Add a HTTP multipart form field
 	Http& form_add(const std::string &name, const std::string &contents);
-	// Add a HTTP multipart form file data contents
-	Http& form_add_file(const std::string &name, const std::string &path);
+	// Add a HTTP multipart form file data contents, `name` is the name of the part
+	Http& form_add_file(const std::string &name, const boost::filesystem::path &path);
 	// Same as above except also override the file's filename with a custom one
-	Http& form_add_file(const std::string &name, const std::string &path, const std::string &filename);
+	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
 	// Callback called on HTTP request complete
 	Http& on_complete(CompleteFn fn);

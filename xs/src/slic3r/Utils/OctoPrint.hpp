@@ -17,6 +17,7 @@ public:
 	OctoPrint(DynamicPrintConfig *config);
 
 	bool test(wxString &curl_msg) const;
+	// Send gcode file to octoprint, filename is expected to be in UTF-8
 	bool send_gcode(const std::string &filename) const;
 private:
 	std::string host;
@@ -25,7 +26,7 @@ private:
 
 	void set_auth(Http &http) const;
 	std::string make_url(const std::string &path) const;
-	static wxString format_error(std::string error, unsigned status);
+	static wxString format_error(const std::string &error, unsigned status);
 };
 
 

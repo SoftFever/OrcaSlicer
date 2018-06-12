@@ -31,7 +31,7 @@ struct SendDialog : public GUI::MsgDialog
 
 	SendDialog(const fs::path &path) :
 		MsgDialog(nullptr, _(L("Send G-Code to printer")), _(L("Upload to OctoPrint with the following filename:")), wxID_NONE),
-		txt_filename(new wxTextCtrl(this, wxID_ANY, path.filename().string())),
+		txt_filename(new wxTextCtrl(this, wxID_ANY, path.filename().wstring())),
 		box_print(new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))))
 	{
 		auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
@@ -45,15 +45,14 @@ struct SendDialog : public GUI::MsgDialog
 		btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
 
 		txt_filename->SetFocus();
-		txt_filename->SetSelection(0, path.stem().size());
+		wxString stem(path.stem().wstring());
+		txt_filename->SetSelection(0, stem.Length());
 
 		Fit();
 	}
 
 	fs::path filename() const {
-		// The buffer object that utf8_str() returns may just point to data owned by the source string
-		// so we need to copy the string in any case to be on the safe side.
-		return fs::path(txt_filename->GetValue().utf8_str().data());
+		return fs::path(txt_filename->GetValue().wx_str());
 	}
 
 	bool print() const { return box_print->GetValue(); }
@@ -73,7 +72,7 @@ bool OctoPrint::test(wxString &msg) const
 	// it is ok to refer to `msg` from within the closure
 
 	bool res = true;
-	auto url = std::move(make_url("api/version"));
+	auto url = make_url("api/version");
 
 	BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Get version at: %1%") % url;
 
@@ -99,7 +98,7 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	const auto errortitle = _(L("Error while uploading to the OctoPrint server"));
 	fs::path filepath(filename);
 
-	SendDialog send_dialog(filepath.filename().string());
+	SendDialog send_dialog(filepath.filename());
 	if (send_dialog.ShowModal() != wxID_OK) { return false; }
 
 	const bool print = send_dialog.print();
@@ -125,10 +124,10 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	auto url = make_url("api/files/local");
 
 	BOOST_LOG_TRIVIAL(info) << boost::format("Octoprint: Uploading file %1% at %2%, filename: %3%, path: %4%, print: %5%")
-		% filepath
+		% filepath.string()
 		% url
-		% upload_filename
-		% upload_parent_path
+		% upload_filename.string()
+		% upload_parent_path.string()
 		% print;
 
 	auto http = Http::post(std::move(url));
@@ -175,24 +174,24 @@ std::string OctoPrint::make_url(const std::string &path) const
 {
 	if (host.find("http://") == 0 || host.find("https://") == 0) {
 		if (host.back() == '/') {
-			return std::move((boost::format("%1%%2%") % host % path).str());
+			return (boost::format("%1%%2%") % host % path).str();
 		} else {
-			return std::move((boost::format("%1%/%2%") % host % path).str());
+			return (boost::format("%1%/%2%") % host % path).str();
 		}
 	} else {
-		return std::move((boost::format("http://%1%/%2%") % host % path).str());
+		return (boost::format("http://%1%/%2%") % host % path).str();
 	}
 }
 
-wxString OctoPrint::format_error(std::string error, unsigned status)
+wxString OctoPrint::format_error(const std::string &error, unsigned status)
 {
-	const wxString wxerror = error;
+	auto wxerror = wxString::FromUTF8(error.data());
 
 	if (status != 0) {
 		return wxString::Format("HTTP %u: %s", status,
 			(status == 401 ? _(L("Invalid API key")) : wxerror));
 	} else {
-		return std::move(wxerror);
+		return wxerror;
 	}
 }
 
