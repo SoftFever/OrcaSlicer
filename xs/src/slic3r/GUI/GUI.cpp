@@ -139,6 +139,7 @@ bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
 wxSizer		*m_sizer_object_buttons = nullptr;
 wxSizer		*m_sizer_part_buttons = nullptr;
+wxSizer		*m_sizer_object_movers = nullptr;
 wxDataViewCtrl			*m_objects_ctrl = nullptr;
 MyObjectTreeModel		*m_objects_model = nullptr;
 wxCollapsiblePane		*m_collpane_settings = nullptr;
@@ -1032,6 +1033,42 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	return sizer;
 }
 
+wxSizer* object_movers(wxWindow *win)
+{
+	DynamicPrintConfig* config = &g_PresetBundle->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Move", config);
+ 	optgroup->label_width = 20;
+
+	ConfigOptionDef def;
+	def.label = L("X");
+	def.type = coInt;
+	def.gui_type = "slider";
+	def.default_value = new ConfigOptionInt(0);
+// 	def.min = -(model_object->bounding_box->size->x) * 4;
+// 	def.max =  model_object->bounding_box->size->x * 4;
+
+	Option option = Option(def, "x");
+	option.opt.full_width = true;
+	optgroup->append_single_option_line(option);
+
+	def.label = L("Y");
+// 	def.min = -(model_object->bounding_box->size->y) * 4;
+// 	def.max =  model_object->bounding_box->size->y * 4;
+	option = Option(def, "y");
+	optgroup->append_single_option_line(option);
+	
+	def.label = L("Z");
+// 	def.min = -(model_object->bounding_box->size->z) * 4;
+// 	def.max =  model_object->bounding_box->size->z * 4;
+	option = Option(def, "z");
+	optgroup->append_single_option_line(option);
+
+	m_optgroups.push_back(optgroup);  // ogObjectMovers
+	m_sizer_object_movers = optgroup->sizer;
+	m_sizer_object_movers->Show(false);
+	return optgroup->sizer;
+}
+
 Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value=0)
 {
 	Line line = { _(option_name), "" };
@@ -1075,7 +1112,7 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 
 wxBoxSizer* content_settings(wxWindow *win)
 {
-	DynamicPrintConfig* config = &g_PresetBundle->printers.get_edited_preset().config; // TODO get config from Model_volume
+	DynamicPrintConfig* config = &g_PresetBundle->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
 	optgroup->label_width = m_label_width;
 
@@ -1094,6 +1131,8 @@ wxBoxSizer* content_settings(wxWindow *win)
 	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
 	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
+
+	sizer->Add(object_movers(win), 0, wxEXPAND | wxLEFT, 20);
 
 	return sizer;
 }
@@ -1141,6 +1180,8 @@ void unselect_objects()
 		m_sizer_object_buttons->Show(false);
 	if (m_sizer_part_buttons->IsShown(1)) 
 		m_sizer_part_buttons->Show(false);
+	if (m_sizer_object_movers->IsShown(1)) 
+		m_sizer_object_movers->Show(false);
 	if (m_collpane_settings->IsShown())
 		m_collpane_settings->Show(false);
 }
@@ -1159,6 +1200,8 @@ void select_current_object(int idx)
 	if (get_view_mode() == ConfigMenuModeExpert){
 		if (!m_sizer_object_buttons->IsShown(1))
 			m_sizer_object_buttons->Show(true);
+		if (!m_sizer_object_movers->IsShown(1))
+			m_sizer_object_movers->Show(true);
 		if (!m_collpane_settings->IsShown())
 			m_collpane_settings->Show(true);
 	}
@@ -1179,6 +1222,7 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 		if (collpane->IsCollapsed()) {
 			m_sizer_object_buttons->Show(false);
 			m_sizer_part_buttons->Show(false);
+			m_sizer_object_movers->Show(false);
 			m_collpane_settings->Show(false);
 		}
 // 		else 

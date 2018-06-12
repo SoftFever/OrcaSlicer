@@ -665,6 +665,70 @@ boost::any& PointCtrl::get_value()
 	return m_value = ret_point;
 }
 
+void SliderCtrl::BUILD()
+{
+	auto size = wxSize(wxDefaultSize);
+	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
+	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+
+	auto temp = new wxBoxSizer(wxHORIZONTAL);
+
+	auto default = static_cast<ConfigOptionInt*>(m_opt.default_value)->value;
+	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
+	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
+
+	m_slider = new wxSlider(m_parent, wxID_ANY, default * m_scale, 
+							min * m_scale, max * m_scale,
+							wxDefaultPosition, size);
+ 	wxSize field_size(40, -1);
+
+	m_textctrl = new wxTextCtrl(m_parent, wxID_ANY, wxString::Format("%d", m_slider->GetValue()/m_scale), 
+								wxDefaultPosition, field_size);
+
+	temp->Add(m_slider, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
+	temp->Add(m_textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+	m_slider->Bind(wxEVT_SLIDER, ([this](wxCommandEvent e) {
+		if (!m_disable_change_event){
+			int val = boost::any_cast<int>(get_value());
+			m_textctrl->SetLabel(wxString::Format("%d", val));
+			on_change_field();
+		}
+	}), m_slider->GetId());
+
+	m_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) {
+		std::string value = e.GetString().utf8_str().data();
+		if (is_matched(value, "^-?\\d+(\\.\\d*)?$")){
+			m_disable_change_event = true;
+			m_slider->SetValue(stoi(value)*m_scale);
+			m_disable_change_event = false;
+			on_change_field();
+		}
+	}), m_textctrl->GetId());
+
+	// 	// recast as a wxWindow to fit the calling convention
+	m_sizer = dynamic_cast<wxSizer*>(temp);
+}
+
+void SliderCtrl::set_value(const boost::any& value, bool change_event)
+{
+	m_disable_change_event = !change_event;
+
+	m_slider->SetValue(boost::any_cast<int>(value)*m_scale);
+	int val = boost::any_cast<int>(get_value());
+	m_textctrl->SetLabel(wxString::Format("%d", val));
+
+	m_disable_change_event = false;
+}
+
+boost::any& SliderCtrl::get_value()
+{
+// 	int ret_val;
+// 	x_textctrl->GetValue().ToDouble(&val);
+	return m_value = int(m_slider->GetValue()/m_scale);
+}
+
+
 } // GUI
 } // Slic3r
 

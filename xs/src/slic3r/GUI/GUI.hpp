@@ -61,6 +61,7 @@ enum ogGroup{
 	ogFrequentlyChangingParameters,
 	ogFrequentlyObjectSettings,
 	ogObjectSettings,
+	ogObjectMovers,
 	ogPartSettings
 };
 

@@ -384,6 +384,38 @@ public:
 	wxSizer*		getSizer() override { return sizer; }
 };
 
+class SliderCtrl : public Field {
+	using Field::Field;
+public:
+	SliderCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	SliderCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~SliderCtrl() {}
+
+	wxSizer*		m_sizer{ nullptr };
+	wxTextCtrl*		m_textctrl{ nullptr };
+	wxSlider*		m_slider{ nullptr };
+
+	int				m_scale = 10;
+
+	void			BUILD()  override;
+
+	void			set_value(const int value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false);
+	boost::any&		get_value() override;
+
+	void			enable() override {
+		m_slider->Enable();
+		m_textctrl->Enable();
+		m_textctrl->SetEditable(true);
+	}
+	void			disable() override{
+		m_slider->Disable();
+		m_textctrl->Disable();
+		m_textctrl->SetEditable(false);
+	}
+	wxSizer*		getSizer() override { return m_sizer; }
+};
+
 } // GUI
 } // Slic3r
 

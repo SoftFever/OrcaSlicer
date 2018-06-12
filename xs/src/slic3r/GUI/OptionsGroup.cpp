@@ -30,6 +30,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
                 opt.gui_type.compare("i_enum_closed") == 0) {
 		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
+		m_fields.emplace(id, STDMOVE(SliderCtrl::Create<SliderCtrl>(parent(), opt, id)));
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else { 
         switch (opt.type) {
@@ -189,7 +190,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, (option.opt.full_width ? wxEXPAND : 0) |
 							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, (wxOSX||!staticbox) ? 0 : 2);
 		if (is_sizer_field(field)) 
-			sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+			sizer->Add(field->getSizer(), 1, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
 		return;
 	}
 
