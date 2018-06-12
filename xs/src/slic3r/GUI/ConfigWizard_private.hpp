@@ -26,7 +26,7 @@ namespace Slic3r {
 namespace GUI {
 
 enum {
-	CONTENT_WIDTH = 500,
+	WRAP_WIDTH = 500,
 
 	DIALOG_MARGIN = 15,
 	INDEX_MARGIN = 40,
@@ -196,7 +196,8 @@ struct ConfigWizard::priv
 	std::unordered_map<std::string, std::string> vendors_rsrc;
 	std::unique_ptr<DynamicPrintConfig> custom_config;
 
-	wxBoxSizer *topsizer = nullptr;
+	wxScrolledWindow *hscroll = nullptr;
+	wxBoxSizer *hscroll_sizer = nullptr;
 	wxBoxSizer *btnsizer = nullptr;
 	ConfigWizardPage *page_current = nullptr;
 	ConfigWizardIndex *index = nullptr;
