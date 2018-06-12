@@ -1797,9 +1797,9 @@ bool _3DScene::init(wxGLCanvas* canvas)
     return s_canvas_mgr.init(canvas);
 }
 
-bool _3DScene::is_shown_on_screen(wxGLCanvas* canvas)
+void _3DScene::set_active(wxGLCanvas* canvas, bool active)
 {
-    return s_canvas_mgr.is_shown_on_screen(canvas);
+    s_canvas_mgr.set_active(canvas, active);
 }
 
 unsigned int _3DScene::get_volumes_count(wxGLCanvas* canvas)

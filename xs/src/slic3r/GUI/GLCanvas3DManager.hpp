@@ -69,7 +69,7 @@ public:
 
     bool init(wxGLCanvas* canvas);
 
-    bool is_shown_on_screen(wxGLCanvas* canvas) const;
+    void set_active(wxGLCanvas* canvas, bool active);
 
     unsigned int get_volumes_count(wxGLCanvas* canvas) const;
     void reset_volumes(wxGLCanvas* canvas);

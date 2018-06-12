@@ -190,13 +190,12 @@ remove_all_canvases()
     CODE:
         _3DScene::remove_all_canvases();
 
-bool
-is_shown_on_screen(canvas)
-        SV *canvas;
+void
+set_active(canvas, active)
+        SV   *canvas;
+        bool active;
     CODE:
-        RETVAL = _3DScene::is_shown_on_screen((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-    OUTPUT:
-        RETVAL
+        _3DScene::set_active((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active);
 
 unsigned int
 get_volumes_count(canvas)

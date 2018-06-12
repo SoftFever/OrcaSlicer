@@ -1189,6 +1189,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_print(nullptr)
     , m_model(nullptr)
     , m_dirty(true)
+    , m_active(true)
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_force_zoom_to_bed_enabled(false)
@@ -1302,9 +1303,9 @@ bool GLCanvas3D::set_current()
     return false;
 }
 
-bool GLCanvas3D::is_shown_on_screen() const
+void GLCanvas3D::set_active(bool active)
 {
-    return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
+    m_active = active;
 }
 
 unsigned int GLCanvas3D::get_volumes_count() const
@@ -1605,7 +1606,7 @@ void GLCanvas3D::render()
     if (m_canvas == nullptr)
         return;
 
-    if (!is_shown_on_screen())
+    if (!_is_shown_on_screen())
         return;
 
     // ensures that the proper context is selected and that this canvas is initialized
@@ -2722,6 +2723,11 @@ Point GLCanvas3D::get_local_mouse_position() const
     return Point(mouse_pos.x, mouse_pos.y);
 }
 
+bool GLCanvas3D::_is_shown_on_screen() const
+{
+    return (m_canvas != nullptr) ? m_active && m_canvas->IsShownOnScreen() : false;
+}
+
 void GLCanvas3D::_force_zoom_to_bed()
 {
     zoom_to_bed();
@@ -2927,7 +2933,7 @@ void GLCanvas3D::_mark_volumes_for_layer_height() const
 
 void GLCanvas3D::_refresh_if_shown_on_screen()
 {
-    if (is_shown_on_screen())
+    if (_is_shown_on_screen())
     {
         const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
@@ -2942,7 +2948,7 @@ void GLCanvas3D::_camera_tranform() const
     ::glLoadIdentity();
 
     ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
-    ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);    // yaw
+    ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
     Pointf3 neg_target = m_camera.target.negative();
     ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);

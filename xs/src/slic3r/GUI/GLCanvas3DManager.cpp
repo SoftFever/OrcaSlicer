@@ -238,10 +238,11 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
         return false;
 }
 
-bool GLCanvas3DManager::is_shown_on_screen(wxGLCanvas* canvas) const
+void GLCanvas3DManager::set_active(wxGLCanvas* canvas, bool active)
 {
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    return (it != m_canvases.end()) ? it->second->is_shown_on_screen() : false;
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_active(active);
 }
 
 unsigned int GLCanvas3DManager::get_volumes_count(wxGLCanvas* canvas) const

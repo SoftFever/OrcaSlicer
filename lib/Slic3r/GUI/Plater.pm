@@ -202,6 +202,7 @@ sub new {
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
 #==============================================================================================================================
+        Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 0);
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
 #        $self->{preview3D}->canvas->on_viewport_changed(sub {
 #            $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
@@ -222,6 +223,8 @@ sub new {
         if ($preview == $self->{preview3D})
         {
 #==============================================================================================================================
+            Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 1);
+            Slic3r::GUI::_3DScene::set_active($self->{canvas3D}, 0);
             Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
 #            $self->{preview3D}->canvas->set_legend_enabled(1);
 #==============================================================================================================================
@@ -235,6 +238,8 @@ sub new {
 
 #==============================================================================================================================
         if ($preview == $self->{canvas3D}) {
+            Slic3r::GUI::_3DScene::set_active($self->{canvas3D}, 1);
+            Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 0);
             if (Slic3r::GUI::_3DScene::is_reload_delayed($self->{canvas3D})) {
                 my $selections = $self->collect_selections;
                 Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
