@@ -564,11 +564,14 @@ GLCanvas3D::Axes::Axes()
 {
 }
 
-void GLCanvas3D::Axes::render() const
+void GLCanvas3D::Axes::render(bool depth_test) const
 {
     ::glDisable(GL_LIGHTING);
-    // disable depth testing so that axes are not covered by ground
-    ::glDisable(GL_DEPTH_TEST);
+    if (depth_test)
+        ::glEnable(GL_DEPTH_TEST);
+    else
+        ::glDisable(GL_DEPTH_TEST);
+
     ::glLineWidth(2.0f);
     ::glBegin(GL_LINES);
     // draw line for x axis
@@ -582,7 +585,9 @@ void GLCanvas3D::Axes::render() const
     ::glEnd();
     // draw line for Z axis
     // (re-enable depth test so that axis is correctly shown when objects are behind it)
-    ::glEnable(GL_DEPTH_TEST);
+    if (!depth_test)
+        ::glEnable(GL_DEPTH_TEST);
+
     ::glBegin(GL_LINES);
     ::glColor3f(0.0f, 0.0f, 1.0f);
     ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
@@ -839,21 +844,6 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
         (b - y - 1.0f) / (b - t - 1.0f) :
         // Outside the bar.
         -1000.0f;
-}
-
-int GLCanvas3D::LayersEditing::get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count)
-{
-    for (const GLVolume* vol : volumes.volumes)
-    {
-        if ((vol != nullptr) && vol->selected)
-        {
-            int object_id = vol->select_group_id / 1000000;
-            // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
-            if (object_id < 10000)
-                return (object_id >= (int)objects_count) ? -1 : object_id;
-        }
-    }
-    return -1;
 }
 
 bool GLCanvas3D::LayersEditing::bar_rect_contains(const GLCanvas3D& canvas, float x, float y)
@@ -1156,17 +1146,66 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Poin
     float top_y = 0.5f * (cnv_h - height);
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if ((it->second == nullptr) || (it->second->get_state() == GLGizmoBase::On))
+        if (it->second == nullptr)
             continue;
 
         float tex_size = (float)it->second->get_textures_size();
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        bool inside = length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size;
-        it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
+        if (it->second->get_state() != GLGizmoBase::On)
+        {
+            bool inside = length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size;
+            it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
+        }
         top_y += (tex_size + OverlayGapY);
     }
+}
+
+void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+{
+    if (!m_enabled)
+        return;
+
+    float cnv_h = (float)canvas.get_canvas_size().get_height();
+    float height = _get_total_overlay_height();
+    float top_y = 0.5f * (cnv_h - height);
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if (it->second == nullptr)
+            continue;
+
+        float tex_size = (float)it->second->get_textures_size();
+        float half_tex_size = 0.5f * tex_size;
+
+        // we currently use circular icons for gizmo, so we check the radius
+        if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
+            it->second->set_state((it->second->get_state() == GLGizmoBase::On) ? GLGizmoBase::Off : GLGizmoBase::On);
+        else
+            it->second->set_state(GLGizmoBase::Off);
+
+        top_y += (tex_size + OverlayGapY);
+    }
+}
+
+void GLCanvas3D::Gizmos::reset_all_states()
+{
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if (it->second != nullptr)
+            it->second->set_state(GLGizmoBase::Off);
+    }
+}
+
+bool GLCanvas3D::Gizmos::contains_mouse() const
+{
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if ((it->second != nullptr) && (it->second->get_state() == GLGizmoBase::Hover))
+            return true;
+    }
+
+    return false;
 }
 
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas) const
@@ -1696,14 +1735,15 @@ void GLCanvas3D::render()
     if (is_custom_bed)
     {
         _render_bed(theta);
-        _render_axes();
+        // disable depth testing so that axes are not covered by ground
+        _render_axes(false);
     }
     _render_objects();
     // textured bed needs to be rendered after objects
     if (!is_custom_bed)
     {
+        _render_axes(true);
         _render_bed(theta);
-        _render_axes();
     }
     _render_cutting_plane();
     _render_warning_texture();
@@ -2439,13 +2479,13 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         return;
 
     // Performs layers editing updates, if enabled
-    if (is_layers_editing_enabled() && (m_print != nullptr))
+    if (is_layers_editing_enabled())
     {
-        int object_idx_selected = _get_layers_editing_first_selected_object_id((unsigned int)m_print->objects.size());
+        int object_idx_selected = _get_first_selected_object_id();
         if (object_idx_selected != -1)
         {
             // A volume is selected. Test, whether hovering over a layer thickness bar.
-            if (_bar_rect_contains((float)evt.GetX(), (float)evt.GetY()))
+            if (m_layers_editing.bar_rect_contains(*this, (float)evt.GetX(), (float)evt.GetY()))
             {
                 // Adjust the width of the selection.
                 m_layers_editing.band_width = std::max(std::min(m_layers_editing.band_width * (1.0f + 0.1f * (float)evt.GetWheelRotation() / (float)evt.GetWheelDelta()), 10.0f), 1.5f);
@@ -2485,8 +2525,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
     Point pos(evt.GetX(), evt.GetY());
 
-    int selected_object_idx = (is_layers_editing_enabled() && (m_print != nullptr)) ? _get_layers_editing_first_selected_object_id(m_print->objects.size()) : -1;
-    m_layers_editing.last_object_id = selected_object_idx;
+    int selected_object_idx = _get_first_selected_object_id();
+    int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
+    m_layers_editing.last_object_id = layer_editing_object_idx;
+    bool gizmos_contains_mouse = m_gizmos.contains_mouse();
 
     if (evt.Entering())
     {
@@ -2506,24 +2548,29 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // on a volume or not.
         int volume_idx = m_hover_volume_id;
         m_layers_editing.state = LayersEditing::Unknown;
-        if ((selected_object_idx != -1) && _bar_rect_contains(pos.x, pos.y))
+        if ((layer_editing_object_idx != -1) && m_layers_editing.bar_rect_contains(*this, pos.x, pos.y))
         {
             // A volume is selected and the mouse is inside the layer thickness bar.
             // Start editing the layer height.
             m_layers_editing.state = LayersEditing::Editing;
             _perform_layer_editing_action(&evt);
         }
-        else if ((selected_object_idx != -1) && _reset_rect_contains(pos.x, pos.y))
+        else if ((layer_editing_object_idx != -1) && m_layers_editing.reset_rect_contains(*this, pos.x, pos.y))
         {
             if (evt.LeftDown())
             {
                 // A volume is selected and the mouse is inside the reset button.
-                m_print->get_object(selected_object_idx)->reset_layer_height_profile();
+                m_print->get_object(layer_editing_object_idx)->reset_layer_height_profile();
                 // Index 2 means no editing, just wait for mouse up event.
                 m_layers_editing.state = LayersEditing::Completed;
 
                 m_dirty = true;
             }
+        }
+        else if ((selected_object_idx != -1) && gizmos_contains_mouse)
+        {
+            m_gizmos.update_on_off_state(*this, m_mouse.position);
+            m_dirty = true;
         }
         else
         {
@@ -2586,7 +2633,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
     {
         m_mouse.dragging = true;
 
@@ -2633,11 +2680,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_dirty = true;
     }
-    else if (evt.Dragging())
+    else if (evt.Dragging() && !gizmos_contains_mouse)
     {
         m_mouse.dragging = true;
 
-        if ((m_layers_editing.state != LayersEditing::Unknown) && (selected_object_idx != -1))
+        if ((m_layers_editing.state != LayersEditing::Unknown) && (layer_editing_object_idx != -1))
         {
             if (m_layers_editing.state == LayersEditing::Editing)
                 _perform_layer_editing_action(&evt);
@@ -2685,7 +2732,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_layers_editing.state = LayersEditing::Unknown;
             _stop_timer();
 
-            if (selected_object_idx != -1)
+            if (layer_editing_object_idx != -1)
                 m_on_model_update_callback.call();
         }
         else if ((m_mouse.drag.volume_idx != -1) && m_mouse.dragging)
@@ -3050,8 +3097,10 @@ void GLCanvas3D::_picking_pass() const
         }
 
         // updates gizmos overlay
-        if (!m_volumes.empty())
+        if (_get_first_selected_object_id() != -1)
             m_gizmos.update_hover_state(*this, pos);
+        else
+            m_gizmos.reset_all_states();
     }
 }
 
@@ -3093,9 +3142,9 @@ void GLCanvas3D::_render_bed(float theta) const
     m_bed.render(theta);
 }
 
-void GLCanvas3D::_render_axes() const
+void GLCanvas3D::_render_axes(bool depth_test) const
 {
-    m_axes.render();
+    m_axes.render(depth_test);
 }
 
 void GLCanvas3D::_render_objects() const
@@ -3302,11 +3351,6 @@ float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
     return m_layers_editing.get_cursor_z_relative(*this);
 }
 
-int GLCanvas3D::_get_layers_editing_first_selected_object_id(unsigned int objects_count) const
-{
-    return m_layers_editing.get_first_selected_object_id(m_volumes, objects_count);
-}
-
 void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
 {
     int object_idx_selected = m_layers_editing.last_object_id;
@@ -3355,16 +3399,6 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     _start_timer();
 }
 
-bool GLCanvas3D::_bar_rect_contains(float x, float y) const
-{
-    return m_layers_editing.bar_rect_contains(*this, x, y);
-}
-
-bool GLCanvas3D::_reset_rect_contains(float x, float y) const
-{
-    return m_layers_editing.reset_rect_contains(*this, x, y);
-}
-
 Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
 {
     if (!set_current())
@@ -3399,6 +3433,26 @@ void GLCanvas3D::_stop_timer()
 {
     if (m_timer != nullptr)
         m_timer->Stop();
+}
+
+int GLCanvas3D::_get_first_selected_object_id() const
+{
+    if (m_print != nullptr)
+    {
+        int objects_count = (int)m_print->objects.size();
+
+        for (const GLVolume* vol : m_volumes.volumes)
+        {
+            if ((vol != nullptr) && vol->selected)
+            {
+                int object_id = vol->select_group_id / 1000000;
+                // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
+                if (object_id < 10000)
+                    return (object_id >= objects_count) ? -1 : object_id;
+            }
+        }
+    }
+    return -1;
 }
 
 static inline int hex_digit_to_int(const char c)

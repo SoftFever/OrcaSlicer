@@ -189,7 +189,7 @@ public:
 
         Axes();
 
-        void render() const;
+        void render(bool depth_test) const;
     };
 
     class CuttingPlane
@@ -277,7 +277,6 @@ public:
         int get_shader_program_id() const;
 
         static float get_cursor_z_relative(const GLCanvas3D& canvas);
-        static int get_first_selected_object_id(const GLVolumeCollection& volumes, unsigned int objects_count);
         static bool bar_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static bool reset_rect_contains(const GLCanvas3D& canvas, float x, float y);
         static Rect get_bar_rect_screen(const GLCanvas3D& canvas);
@@ -355,6 +354,10 @@ public:
         void reset_selection();
 
         void update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
+        void update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
+        void reset_all_states();
+
+        bool contains_mouse() const;
 
         void render(const GLCanvas3D& canvas) const;
 
@@ -567,7 +570,7 @@ private:
     void _picking_pass() const;
     void _render_background() const;
     void _render_bed(float theta) const;
-    void _render_axes() const;
+    void _render_axes(bool depth_test) const;
     void _render_objects() const;
     void _render_cutting_plane() const;
     void _render_warning_texture() const;
@@ -577,11 +580,7 @@ private:
     void _render_gizmo() const;
 
     float _get_layers_editing_cursor_z_relative() const;
-    int _get_layers_editing_first_selected_object_id(unsigned int objects_count) const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
-
-    bool _bar_rect_contains(float x, float y) const;
-    bool _reset_rect_contains(float x, float y) const;
 
     // Convert the screen space coordinate to an object space coordinate.
     // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
@@ -589,6 +588,8 @@ private:
 
     void _start_timer();
     void _stop_timer();
+
+    int _get_first_selected_object_id() const;
 
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
