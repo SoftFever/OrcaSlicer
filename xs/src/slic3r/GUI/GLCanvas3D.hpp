@@ -369,7 +369,7 @@ public:
     public:
         enum EType : unsigned char
         {
-            None,
+            Undefined,
             Scale,
             Rotate,
             Num_Types

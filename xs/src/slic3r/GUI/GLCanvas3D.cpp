@@ -1209,7 +1209,7 @@ const float GLCanvas3D::Gizmos::OverlayGapY = 10.0f;
 
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
-    , m_current(None)
+    , m_current(Undefined)
 {
 }
 
@@ -1265,7 +1265,7 @@ void GLCanvas3D::Gizmos::select(EType type)
 
 void GLCanvas3D::Gizmos::reset_selection()
 {
-    m_current = None;
+    m_current = Undefined;
 }
 
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas) const
@@ -2829,7 +2829,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 volume_idxs.push_back(vol_id);
             else
             {
-                for (int i = 0; i < m_volumes.volumes.size(); ++i)
+                for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
                 {
                     if (m_volumes.volumes[i]->drag_group_id == group_id)
                         volume_idxs.push_back(i);
@@ -3165,7 +3165,7 @@ void GLCanvas3D::_picking_pass() const
             vol->hover = false;
         }
 
-        if (volume_id < m_volumes.volumes.size())
+        if (volume_id < (int)m_volumes.volumes.size())
         {
             m_hover_volume_id = volume_id;
             m_volumes.volumes[volume_id]->hover = true;
@@ -3565,6 +3565,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 return path.feedrate * (float)path.mm3_per_mm;
             case GCodePreviewData::Extrusion::Tool:
                 return (float)path.extruder_id;
+            default:
+                return 0.0f;
             }
 
             return 0.0f;
@@ -3590,6 +3592,8 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + (unsigned int)value * 4), 4 * sizeof(float));
                 return color;
             }
+            default:
+                return GCodePreviewData::Color::Dummy;
             }
 
             return GCodePreviewData::Color::Dummy;
@@ -4032,15 +4036,12 @@ void GLCanvas3D::_load_shells()
         ModelObject* model_obj = obj->model_object();
 
         std::vector<int> instance_ids(model_obj->instances.size());
-        for (int i = 0; i < model_obj->instances.size(); ++i)
+        for (int i = 0; i < (int)model_obj->instances.size(); ++i)
         {
             instance_ids[i] = i;
         }
 
-        for (ModelInstance* instance : model_obj->instances)
-        {
-            m_volumes.load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
-        }
+        m_volumes.load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
 
         ++object_id;
     }

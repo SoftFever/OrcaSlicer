@@ -1,6 +1,6 @@
 #include "GLGizmo.hpp"
 
-#include "../../libslic3r/utils.hpp"
+#include "../../libslic3r/Utils.hpp"
 
 #include <iostream>
 
