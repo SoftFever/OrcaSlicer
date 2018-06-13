@@ -107,7 +107,7 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
         GLint num_extensions;
         ::glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
          
-        for (unsigned int i = 0; i < num_extensions; ++i)
+        for (GLint i = 0; i < num_extensions; ++i)
         {
             const char* e = (const char*)::glGetStringi(GL_EXTENSIONS, i);
             extensions_list.push_back(e);
@@ -427,14 +427,12 @@ void GLCanvas3DManager::enable_moving(wxGLCanvas* canvas, bool enable)
         it->second->enable_moving(enable);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3DManager::enable_gizmos(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->enable_gizmos(enable);
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
 {

@@ -19,7 +19,7 @@ public:
 
 protected:
     EState m_state;
-    // textures are assumed to be all the same size in pixels
+    // textures are assumed to be square and all with the same size in pixels
     // no internal check is done
     GLTexture m_textures[Num_States];
 
@@ -30,10 +30,10 @@ public:
     bool init();
 
     EState get_state() const;
+    void set_state(EState state);
 
     unsigned int get_textures_id() const;
-    int get_textures_height() const;
-    int get_textures_width() const;
+    int get_textures_size() const;
 
     virtual void render() const = 0;
 

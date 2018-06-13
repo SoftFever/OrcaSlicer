@@ -2,9 +2,7 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include "../../slic3r/GUI/3DScene.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include "../../slic3r/GUI/GLTexture.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 class wxTimer;
 class wxSizeEvent;
@@ -21,9 +19,7 @@ class ExPolygon;
 
 namespace GUI {
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 class GLGizmoBase;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 class GeometryBuffer
 {
@@ -109,29 +105,6 @@ class GLCanvas3D
         void reset() { first_volumes.clear(); }
     };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    struct GLTextureData
-//    {
-//    private:
-//        unsigned int m_id;
-//        int m_width;
-//        int m_height;
-//        std::string m_source;
-//
-//    public:
-//        GLTextureData();
-//        ~GLTextureData();
-//
-//        bool load_from_file(const std::string& filename);
-//        void reset();
-//
-//        unsigned int get_id() const;
-//        int get_width() const;
-//        int get_height() const;
-//        const std::string& get_source() const;
-//    };
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 public:
     struct Camera
     {
@@ -179,12 +152,8 @@ public:
         Polygon m_polygon;
         GeometryBuffer m_triangles;
         GeometryBuffer m_gridlines;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         mutable GLTexture m_top_texture;
         mutable GLTexture m_bottom_texture;
-//        mutable GLTextureData m_top_texture;
-//        mutable GLTextureData m_bottom_texture;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     public:
         Bed();
@@ -279,12 +248,8 @@ public:
         bool m_enabled;
         Shader m_shader;
         unsigned int m_z_texture_id;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         mutable GLTexture m_tooltip_texture;
         mutable GLTexture m_reset_texture;
-//        mutable GLTextureData m_tooltip_texture;
-//        mutable GLTextureData m_reset_texture;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     public:
         EState state;
@@ -323,10 +288,7 @@ public:
     private:
         bool _is_initialized() const;
         void _render_tooltip_texture(const GLCanvas3D& canvas, const Rect& bar_rect, const Rect& reset_rect) const;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         void _render_reset_texture(const Rect& reset_rect) const;
-//        void _render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         void _render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const;
         void _render_profile(const PrintObject& print_object, const Rect& bar_rect) const;
     };
@@ -360,7 +322,6 @@ public:
         bool is_start_position_3D_defined() const;
     };
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     class Gizmos
     {
         static const float OverlayOffsetX;
@@ -393,6 +354,8 @@ public:
         void select(EType type);
         void reset_selection();
 
+        void update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
+
         void render(const GLCanvas3D& canvas) const;
 
     private:
@@ -400,8 +363,9 @@ public:
 
         void _render_overlay(const GLCanvas3D& canvas) const;
         void _render_current_gizmo() const;
+
+        float _get_total_overlay_height() const;
     };
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 private:
     wxGLCanvas* m_canvas;
@@ -414,9 +378,7 @@ private:
     LayersEditing m_layers_editing;
     Shader m_shader;
     Mouse m_mouse;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-    Gizmos m_gizmos;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+    mutable Gizmos m_gizmos;
 
     mutable GLVolumeCollection m_volumes;
     DynamicPrintConfig* m_config;
@@ -521,9 +483,7 @@ public:
     void enable_legend_texture(bool enable);
     void enable_picking(bool enable);
     void enable_moving(bool enable);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void enable_gizmos(bool enable);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
     void allow_multisample(bool allow);
@@ -536,9 +496,6 @@ public:
     void update_volumes_colors_by_extruder();
 
     void render();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//    void render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     std::vector<double> get_current_print_zs(bool active_only) const;
     void set_toolpaths_range(double low, double high);
@@ -617,9 +574,7 @@ private:
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     void _render_gizmo() const;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     float _get_layers_editing_cursor_z_relative() const;
     int _get_layers_editing_first_selected_object_id(unsigned int objects_count) const;

@@ -21,17 +21,17 @@ GLGizmoBase::EState GLGizmoBase::get_state() const
     return m_state;
 }
 
+void GLGizmoBase::set_state(GLGizmoBase::EState state)
+{
+    m_state = state;
+}
+
 unsigned int GLGizmoBase::get_textures_id() const
 {
     return m_textures[m_state].get_id();
 }
 
-int GLGizmoBase::get_textures_height() const
-{
-    return m_textures[Off].get_height();
-}
-
-int GLGizmoBase::get_textures_width() const
+int GLGizmoBase::get_textures_size() const
 {
     return m_textures[Off].get_width();
 }

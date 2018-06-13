@@ -1903,12 +1903,10 @@ void _3DScene::enable_moving(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_moving(canvas, enable);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void _3DScene::enable_gizmos(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_gizmos(canvas, enable);
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
 {

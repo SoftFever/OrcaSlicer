@@ -4,9 +4,7 @@
 #include "../../slic3r/GUI/GLShader.hpp"
 #include "../../slic3r/GUI/GUI.hpp"
 #include "../../slic3r/GUI/PresetBundle.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include "../../slic3r/GUI/GLGizmo.hpp"
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/Print.hpp"
@@ -15,9 +13,6 @@
 #include <GL/glew.h>
 
 #include <wx/glcanvas.h>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//#include <wx/image.h>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include <wx/timer.h>
 
 #include <tbb/parallel_for.h>
@@ -28,9 +23,7 @@
 
 #include <iostream>
 #include <float.h>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 #include <algorithm>
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 static const float TRACKBALLSIZE = 0.8f;
 static const float GIMBALL_LOCK_THETA_MAX = 180.0f;
@@ -244,108 +237,6 @@ void Rect::set_bottom(float bottom)
 {
     m_bottom = bottom;
 }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//GLCanvas3D::GLTextureData::GLTextureData()
-//    : m_id(0)
-//    , m_width(0)
-//    , m_height(0)
-//    , m_source("")
-//{
-//}
-//
-//GLCanvas3D::GLTextureData::~GLTextureData()
-//{
-//    reset();
-//}
-//
-//bool GLCanvas3D::GLTextureData::load_from_file(const std::string& filename)
-//{
-//    reset();
-//
-//    // Load a PNG with an alpha channel.
-//    wxImage image;
-//    if (!image.LoadFile(filename, wxBITMAP_TYPE_PNG))
-//    {
-//        reset();
-//        return false;
-//    }
-//
-//    m_width = image.GetWidth();
-//    m_height = image.GetHeight();
-//    int n_pixels = m_width * m_height;
-//
-//    if (n_pixels <= 0)
-//    {
-//        reset();
-//        return false;
-//    }
-//
-//    // Get RGB & alpha raw data from wxImage, pack them into an array.
-//    unsigned char* img_rgb = image.GetData();
-//    if (img_rgb == nullptr)
-//    {
-//        reset();
-//        return false;
-//    }
-//
-//    unsigned char* img_alpha = image.GetAlpha();
-//
-//    std::vector<unsigned char> data(n_pixels * 4, 0);
-//    for (int i = 0; i < n_pixels; ++i)
-//    {
-//        int data_id = i * 4;
-//        int img_id = i * 3;
-//        data[data_id + 0] = img_rgb[img_id + 0];
-//        data[data_id + 1] = img_rgb[img_id + 1];
-//        data[data_id + 2] = img_rgb[img_id + 2];
-//        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
-//    }
-//
-//    // sends data to gpu
-//    ::glGenTextures(1, &m_id);
-//    ::glBindTexture(GL_TEXTURE_2D, m_id);
-//    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-//    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-//    ::glBindTexture(GL_TEXTURE_2D, 0);
-//
-//    m_source = filename;
-//    return true;
-//}
-//
-//void GLCanvas3D::GLTextureData::reset()
-//{
-//    if (m_id != 0)
-//        ::glDeleteTextures(1, &m_id);
-//
-//    m_id = 0;
-//    m_width = 0;
-//    m_height = 0;
-//    m_source = "";
-//}
-//
-//unsigned int GLCanvas3D::GLTextureData::get_id() const
-//{
-//    return m_id;
-//}
-//
-//int GLCanvas3D::GLTextureData::get_width() const
-//{
-//    return m_width;
-//}
-//
-//int GLCanvas3D::GLTextureData::get_height() const
-//{
-//    return m_height;
-//}
-//
-//const std::string& GLCanvas3D::GLTextureData::get_source() const
-//{
-//    return m_source;
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 GLCanvas3D::Camera::Camera()
     : type(Ortho)
@@ -918,10 +809,7 @@ void GLCanvas3D::LayersEditing::render(const GLCanvas3D& canvas, const PrintObje
     ::glLoadIdentity();
 
     _render_tooltip_texture(canvas, bar_rect, reset_rect);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     _render_reset_texture(reset_rect);
-//    _render_reset_texture(canvas, reset_rect);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     _render_active_object_annotations(canvas, volume, print_object, bar_rect);
     _render_profile(print_object, bar_rect);
 
@@ -1049,16 +937,10 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     float t = reset_bottom + (float)m_tooltip_texture.get_height() * inv_zoom + gap;
     float b = reset_bottom + gap;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
-//    canvas.render_texture(m_tooltip_texture.get_id(), l, r, b, t);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) const
-//void GLCanvas3D::LayersEditing::_render_reset_texture(const GLCanvas3D& canvas, const Rect& reset_rect) const
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 {
     if (m_reset_texture.get_id() == 0)
     {
@@ -1067,10 +949,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
             return;
     }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
-//    canvas.render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 }
 
 void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const
@@ -1203,7 +1082,6 @@ bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
     return (drag.start_position_3D != Drag::Invalid_3D_Point);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f;
 const float GLCanvas3D::Gizmos::OverlayGapY = 10.0f;
 
@@ -1268,6 +1146,29 @@ void GLCanvas3D::Gizmos::reset_selection()
     m_current = Undefined;
 }
 
+void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+{
+    if (!m_enabled)
+        return;
+
+    float cnv_h = (float)canvas.get_canvas_size().get_height();
+    float height = _get_total_overlay_height();
+    float top_y = 0.5f * (cnv_h - height);
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if ((it->second == nullptr) || (it->second->get_state() == GLGizmoBase::On))
+            continue;
+
+        float tex_size = (float)it->second->get_textures_size();
+        float half_tex_size = 0.5f * tex_size;
+
+        // we currently use circular icons for gizmo, so we check the radius
+        bool inside = length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size;
+        it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
+        top_y += (tex_size + OverlayGapY);
+    }
+}
+
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas) const
 {
     if (!m_enabled)
@@ -1300,30 +1201,19 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     if (m_gizmos.empty())
         return;
 
-    const Size& cnv_size = canvas.get_canvas_size();
-
-    float cnv_w = (float)cnv_size.get_width();
-
+    float cnv_w = (float)canvas.get_canvas_size().get_width();
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
-    float total_h = 0.0f;
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
-    {
-        total_h += (float)it->second->get_textures_height();
-        if (std::distance(it, m_gizmos.end()) > 1)
-            total_h += OverlayGapY;
-    }
-
+    float height = _get_total_overlay_height();
     float top_x = (OverlayOffsetX - 0.5f * cnv_w) * inv_zoom;
-    float top_y = 0.5f * total_h * inv_zoom;
+    float top_y = 0.5f * height * inv_zoom;
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        float tex_w = (float)it->second->get_textures_width() * inv_zoom;
-        float tex_h = (float)it->second->get_textures_height() * inv_zoom;
-        GLTexture::render_texture(it->second->get_textures_id(), top_x, top_x + tex_w, top_y - tex_h, top_y);
-        top_y -= (tex_h + scaled_gap_y);
+        float tex_size = (float)it->second->get_textures_size() * inv_zoom;
+        GLTexture::render_texture(it->second->get_textures_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
+        top_y -= (tex_size + scaled_gap_y);
     }
 }
 
@@ -1335,7 +1225,19 @@ void GLCanvas3D::Gizmos::_render_current_gizmo() const
 
     it->second->render();
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+float GLCanvas3D::Gizmos::_get_total_overlay_height() const
+{
+    float height = 0.0f;
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        height += (float)it->second->get_textures_size();
+        if (std::distance(it, m_gizmos.end()) > 1)
+            height += OverlayGapY;
+    }
+
+    return height;
+}
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     : m_canvas(canvas)
@@ -1441,10 +1343,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!m_volumes.empty())
         m_volumes.finalize_geometry(m_use_VBOs);
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         return false;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     m_initialized = true;
 
@@ -1687,12 +1587,10 @@ void GLCanvas3D::enable_moving(bool enable)
     m_moving_enabled = enable;
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::enable_gizmos(bool enable)
 {
     m_gizmos.set_enabled(enable);
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLCanvas3D::enable_shader(bool enable)
 {
@@ -1811,39 +1709,10 @@ void GLCanvas3D::render()
     _render_warning_texture();
     _render_legend_texture();
     _render_layer_editing_overlay();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
     _render_gizmo();
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
     m_canvas->SwapBuffers();
 }
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//void GLCanvas3D::render_texture(unsigned int tex_id, float left, float right, float bottom, float top) const
-//{
-//    ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-//
-//    ::glDisable(GL_LIGHTING);
-//    ::glEnable(GL_BLEND);
-//    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    ::glEnable(GL_TEXTURE_2D);
-//
-//    ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
-//
-//    ::glBegin(GL_QUADS);
-//    ::glTexCoord2d(0.0f, 1.0f); ::glVertex3f(left, bottom, 0.0f);
-//    ::glTexCoord2d(1.0f, 1.0f); ::glVertex3f(right, bottom, 0.0f);
-//    ::glTexCoord2d(1.0f, 0.0f); ::glVertex3f(right, top, 0.0f);
-//    ::glTexCoord2d(0.0f, 0.0f); ::glVertex3f(left, top, 0.0f);
-//    ::glEnd();
-//
-//    ::glBindTexture(GL_TEXTURE_2D, 0);
-//
-//    ::glDisable(GL_TEXTURE_2D);
-//    ::glDisable(GL_BLEND);
-//    ::glEnable(GL_LIGHTING);
-//}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 std::vector<double> GLCanvas3D::get_current_print_zs(bool active_only) const
 {
@@ -3179,6 +3048,10 @@ void GLCanvas3D::_picking_pass() const
                 }
             }
         }
+
+        // updates gizmos overlay
+        if (!m_volumes.empty())
+            m_gizmos.update_hover_state(*this, pos);
     }
 }
 
@@ -3301,10 +3174,7 @@ void GLCanvas3D::_render_warning_texture() const
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             GLTexture::render_texture(tex_id, l, r, b, t);
-//            render_texture(tex_id, l, r, b, t);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             ::glPopMatrix();
             ::glEnable(GL_DEPTH_TEST);
@@ -3336,10 +3206,7 @@ void GLCanvas3D::_render_legend_texture() const
             float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
             GLTexture::render_texture(tex_id, l, r, b, t);
-//            render_texture(tex_id, l, r, b, t);
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
             ::glPopMatrix();
             ::glEnable(GL_DEPTH_TEST);
@@ -3425,12 +3292,10 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     ::glEnable(GL_CULL_FACE);
 }
 
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 void GLCanvas3D::_render_gizmo() const
 {
     m_gizmos.render(*this);
 }
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
 {
