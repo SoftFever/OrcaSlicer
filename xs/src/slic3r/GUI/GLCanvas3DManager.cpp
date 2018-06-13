@@ -159,8 +159,6 @@ bool GLCanvas3DManager::add(wxGLCanvas* canvas)
     canvas3D->bind_event_handlers();
     m_canvases.insert(CanvasesMap::value_type(canvas, canvas3D));
 
-    std::cout << "canvas added: " << (void*)canvas << " (" << (void*)canvas3D << ")" << std::endl;
-
     return true;
 }
 
@@ -174,8 +172,6 @@ bool GLCanvas3DManager::remove(wxGLCanvas* canvas)
     delete it->second;
     m_canvases.erase(it);
 
-    std::cout << "canvas removed: " << (void*)canvas << std::endl;
-
     return true;
 }
 
@@ -183,8 +179,6 @@ void GLCanvas3DManager::remove_all()
 {
     for (CanvasesMap::value_type& item : m_canvases)
     {
-        std::cout << "canvas removed: " << (void*)item.second << std::endl;
-
         item.second->unbind_event_handlers();
         delete item.second;
     }
@@ -200,8 +194,6 @@ void GLCanvas3DManager::init_gl()
 {
     if (!m_gl_initialized)
     {
-        std::cout << "GLCanvas3DManager::init_gl()" << std::endl;
-
         glewInit();
         if (m_gl_info.detect())
         {
@@ -209,10 +201,6 @@ void GLCanvas3DManager::init_gl()
             m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
             m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
             m_gl_initialized = true;
-
-            std::cout << "DETECTED OPENGL: " << m_gl_info.version << std::endl;
-            std::cout << "USE VBOS = " << (m_use_VBOs ? "YES" : "NO") << std::endl;
-            std::cout << "LAYER EDITING ALLOWED = " << (!m_use_legacy_opengl ? "YES" : "NO") << std::endl;
         }
         else
             throw std::runtime_error(std::string("Unable to initialize OpenGL driver\n"));
@@ -438,6 +426,15 @@ void GLCanvas3DManager::enable_moving(wxGLCanvas* canvas, bool enable)
     if (it != m_canvases.end())
         it->second->enable_moving(enable);
 }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLCanvas3DManager::enable_gizmos(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_gizmos(enable);
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
 {

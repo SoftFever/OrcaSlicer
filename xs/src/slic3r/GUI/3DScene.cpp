@@ -1735,20 +1735,16 @@ bool _3DScene::use_VBOs()
 
 bool _3DScene::add_canvas(wxGLCanvas* canvas)
 {
-    std::cout << "_3DScene::add_canvas()" << std::endl;
     return s_canvas_mgr.add(canvas);
 }
 
 bool _3DScene::remove_canvas(wxGLCanvas* canvas)
 {
-    std::cout << "_3DScene::remove_canvas()" << std::endl;
     return s_canvas_mgr.remove(canvas);
 }
 
 void _3DScene::remove_all_canvases()
 {
-    std::cout << "_3DScene::remove_all_canvases()" << std::endl;
-    std::cout << "# canvases not yet released: " << s_canvas_mgr.count() << std::endl;
     s_canvas_mgr.remove_all();
 }
 
@@ -1906,6 +1902,13 @@ void _3DScene::enable_moving(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_moving(canvas, enable);
 }
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void _3DScene::enable_gizmos(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_gizmos(canvas, enable);
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
 void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
 {

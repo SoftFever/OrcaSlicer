@@ -411,6 +411,13 @@ enable_moving(canvas, enable)
         _3DScene::enable_moving((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
 void
+enable_gizmos(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_gizmos((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
 enable_shader(canvas, enable)
         SV   *canvas;
         bool enable;
