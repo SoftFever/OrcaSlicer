@@ -206,7 +206,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wiping_volumes_matrix"
-            || opt_key == u8"parking_pos_retraction"
+            || opt_key == "parking_pos_retraction"
             || opt_key == "cooling_tube_retraction"
             || opt_key == "cooling_tube_length"
             || opt_key == "extra_loading_move"
@@ -1194,6 +1194,25 @@ void Print::reset_wiping_extrusions() {
      }
 }
 
+
+
+// Strategy for  wiping (TODO):
+// if !infill_first
+//      start with dedicated objects
+//            print a perimeter and its corresponding infill immediately after
+//            repeat until there are no dedicated objects left
+//            if there are some left and this is the last toolchange on the layer, mark all remaining extrusions of the object (so we don't have to travel back to it later)
+//      move to normal objects
+//            start with one object and start assigning its infill, if their perimeters ARE ALREADY EXTRUDED
+//            never touch perimeters
+//
+// if infill first
+//        start with dedicated objects
+//            print an infill and its corresponding perimeter immediately after
+//            repeat until you run out of infills
+//        move to normal objects
+//            start assigning infills (one copy after another)
+//            repeat until you run out of infills, leave perimeters be
 
 
 float Print::mark_wiping_extrusions(const ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe)

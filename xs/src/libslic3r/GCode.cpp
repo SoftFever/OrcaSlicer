@@ -1249,13 +1249,13 @@ void GCode::process_layer(
 
                             // We just added perimeter_coll->entities.size() entities, if they are not to be printed before the main object (during infill wiping),
                             // we will note their indices (for each copy separately):
-                            unsigned int last_added_entity_index = islands[i].by_region[region_id].perimeters.entities.size()-1;
+                            unsigned int first_added_entity_index = islands[i].by_region[region_id].perimeters.entities.size() - perimeter_coll->entities.size();
                             for (unsigned copy_id = 0; copy_id < layer_to_print.object()->_shifted_copies.size(); ++copy_id) {
                                 if (islands[i].by_region[region_id].perimeters_per_copy_ids.size() < copy_id + 1)  // if this copy isn't in the list yet
                                     islands[i].by_region[region_id].perimeters_per_copy_ids.push_back(std::vector<unsigned int>());
                                 if (!perimeter_coll->is_extruder_overridden(copy_id))
-                                    for (int j=0; j<perimeter_coll->entities.size(); ++j)
-                                        islands[i].by_region[region_id].perimeters_per_copy_ids[copy_id].push_back(last_added_entity_index - j);
+                                    for (int j=first_added_entity_index; j<islands[i].by_region[region_id].perimeters.entities.size(); ++j)
+                                        islands[i].by_region[region_id].perimeters_per_copy_ids[copy_id].push_back(j);
                             }
                             break;
                         }
@@ -1292,13 +1292,13 @@ void GCode::process_layer(
 
                             // We just added fill->entities.size() entities, if they are not to be printed before the main object (during infill wiping),
                             // we will note their indices (for each copy separately):
-                            unsigned int last_added_entity_index = islands[i].by_region[region_id].infills.entities.size()-1;
+                            unsigned int first_added_entity_index = islands[i].by_region[region_id].infills.entities.size() - fill->entities.size();
                             for (unsigned copy_id = 0; copy_id < layer_to_print.object()->_shifted_copies.size(); ++copy_id) {
                                 if (islands[i].by_region[region_id].infills_per_copy_ids.size() < copy_id + 1)  // if this copy isn't in the list yet
                                     islands[i].by_region[region_id].infills_per_copy_ids.push_back(std::vector<unsigned int>());
                                 if (!fill->is_extruder_overridden(copy_id))
-                                    for (int j=0; j<fill->entities.size(); ++j)
-                                        islands[i].by_region[region_id].infills_per_copy_ids[copy_id].push_back(last_added_entity_index - j);
+                                    for (int j=first_added_entity_index; j<islands[i].by_region[region_id].infills.entities.size(); ++j)
+                                        islands[i].by_region[region_id].infills_per_copy_ids[copy_id].push_back(j);
                             }
                             break;
                         }
@@ -1357,6 +1357,7 @@ void GCode::process_layer(
             m_avoid_crossing_perimeters.disable_once = true;
         }
 
+        if (layer_tools.has_wipe_tower)   // the infill/perimeter wiping to save the material on the wipe tower
         {
             gcode += "; INFILL WIPING STARTS\n";
             if (extruder_id != layer_tools.extruders.front()) { // if this is the first extruder on this layer, there was no toolchange
@@ -2511,7 +2512,7 @@ Point GCode::gcode_to_point(const Pointf &point) const
 }
 
 
-// Goes through by_region std::vector and returns ref a subvector of entities to be printed in usual time
+// Goes through by_region std::vector and returns reference to a subvector of entities to be printed in usual time
 // i.e. not when it's going to be done during infill wiping
 const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtruder::Island::by_region_per_copy(unsigned int copy)
 {
@@ -2522,10 +2523,8 @@ const std::vector<GCode::ObjectByExtruder::Island::Region>& GCode::ObjectByExtru
         last_copy = copy;
     }
 
-    //std::vector<ObjectByExtruder::Island::Region> out;
     for (const auto& reg : by_region) {
         by_region_per_copy_cache.push_back(ObjectByExtruder::Island::Region());
-        //out.back().perimeters.append(reg.perimeters);       // we will print all perimeters there are
 
         if (!reg.infills_per_copy_ids.empty())
             for (unsigned int i=0; i<reg.infills_per_copy_ids[copy].size(); ++i)
