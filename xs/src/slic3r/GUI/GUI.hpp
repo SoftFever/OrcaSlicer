@@ -124,6 +124,8 @@ void set_label_clr_sys(const wxColour& clr);
 const wxFont& small_font();
 const wxFont& bold_font();
 
+wxArrayString* open_model(wxWindow *parent);
+
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
 // This is called when closing the application, when loading a config file or when starting the config wizard

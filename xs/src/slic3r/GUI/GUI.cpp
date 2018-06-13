@@ -55,6 +55,7 @@
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
 #include "FirmwareDialog.hpp"
+#include "GUI_ObjectParts.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
@@ -493,6 +494,27 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
 	add_config_menu(menu, event_preferences_changed, event_language_change);
+}
+
+wxArrayString* open_model(wxWindow *parent){
+	t_file_wild_card vec_FILE_WILDCARDS = get_file_wild_card();
+	std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "3mf", "prusa" };
+	wxString MODEL_WILDCARD;
+	for (auto file_type : file_types)
+		MODEL_WILDCARD += vec_FILE_WILDCARDS.at(file_type) + "|";
+
+	auto dlg_title = _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"));
+	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow(g_wxMainFrame)*/, dlg_title, 
+		g_AppConfig->get_last_dir(), "",
+		MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+	if (dialog->ShowModal() != wxID_OK) {
+		dialog->Destroy();
+		return nullptr;
+	}
+	wxArrayString input_files;
+	dialog->GetPaths(input_files);
+	dialog->Destroy();
+	return &input_files;
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -983,6 +1005,18 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 		if (!item) return;
 		wxString name = "Part";
 		m_objects_ctrl->Select(m_objects_model->AddChild(item, name));
+	});
+
+	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&)
+	{
+		on_btn_load(win, true);
+// 		auto item = m_objects_ctrl->GetSelection();
+// 		if (!item) return;
+// 		if (m_objects_model->GetParent(item) != wxDataViewItem(0))
+// 			item = m_objects_model->GetParent(item);
+// 		if (!item) return;
+// 		wxString name = "Part";
+// 		m_objects_ctrl->Select(m_objects_model->AddChild(item, name));
 	});
 
 	btn_delete->Bind(wxEVT_BUTTON, [](wxEvent&)
