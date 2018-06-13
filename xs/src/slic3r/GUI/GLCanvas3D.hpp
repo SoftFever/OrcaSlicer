@@ -350,22 +350,19 @@ public:
         bool is_enabled() const;
         void set_enabled(bool enable);
 
-        void select(EType type);
-        void reset_selection();
-
         void update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
         void update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
         void reset_all_states();
 
         bool contains_mouse() const;
 
-        void render(const GLCanvas3D& canvas) const;
+        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
 
     private:
         void _reset();
 
         void _render_overlay(const GLCanvas3D& canvas) const;
-        void _render_current_gizmo() const;
+        void _render_current_gizmo(const BoundingBoxf3& box) const;
 
         float _get_total_overlay_height() const;
     };
@@ -557,6 +554,7 @@ private:
     void _resize(unsigned int w, unsigned int h);
 
     BoundingBoxf3 _max_bounding_box() const;
+    BoundingBoxf3 _selected_volumes_bounding_box() const;
 
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;

@@ -1125,17 +1125,6 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
-void GLCanvas3D::Gizmos::select(EType type)
-{
-    if (m_gizmos.find(type) != m_gizmos.end())
-        m_current = type;
-}
-
-void GLCanvas3D::Gizmos::reset_selection()
-{
-    m_current = Undefined;
-}
-
 void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
 {
     if (!m_enabled)
@@ -1180,7 +1169,18 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
 
         // we currently use circular icons for gizmo, so we check the radius
         if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
-            it->second->set_state((it->second->get_state() == GLGizmoBase::On) ? GLGizmoBase::Off : GLGizmoBase::On);
+        {
+            if ((it->second->get_state() == GLGizmoBase::On))
+            {
+                it->second->set_state(GLGizmoBase::Off);
+                m_current = Undefined;
+            }
+            else
+            {
+                it->second->set_state(GLGizmoBase::On);
+                m_current = it->first;
+            }
+        }
         else
             it->second->set_state(GLGizmoBase::Off);
 
@@ -1190,15 +1190,23 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
 
 void GLCanvas3D::Gizmos::reset_all_states()
 {
+    if (!m_enabled)
+        return;
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if (it->second != nullptr)
             it->second->set_state(GLGizmoBase::Off);
     }
+
+    m_current = Undefined;
 }
 
 bool GLCanvas3D::Gizmos::contains_mouse() const
 {
+    if (!m_enabled)
+        return false;
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if ((it->second != nullptr) && (it->second->get_state() == GLGizmoBase::Hover))
@@ -1208,7 +1216,7 @@ bool GLCanvas3D::Gizmos::contains_mouse() const
     return false;
 }
 
-void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas) const
+void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
 {
     if (!m_enabled)
         return;
@@ -1219,9 +1227,10 @@ void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas) const
     ::glLoadIdentity();
 
     _render_overlay(canvas);
-    _render_current_gizmo();
 
     ::glPopMatrix();
+
+    _render_current_gizmo(box);
 }
 
 void GLCanvas3D::Gizmos::_reset()
@@ -1256,13 +1265,13 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     }
 }
 
-void GLCanvas3D::Gizmos::_render_current_gizmo() const
+void GLCanvas3D::Gizmos::_render_current_gizmo(const BoundingBoxf3& box) const
 {
     GizmosMap::const_iterator it = m_gizmos.find(m_current);
     if (it == m_gizmos.end())
         return;
 
-    it->second->render();
+    it->second->render(box);
 }
 
 float GLCanvas3D::Gizmos::_get_total_overlay_height() const
@@ -2603,14 +2612,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_picking_enabled)
                 _on_select(volume_idx);
 
-            // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
-            // an converts the screen space coordinate to unscaled object space.
-            Pointf3 pos3d = (volume_idx == -1) ? Pointf3(DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
-
             if (volume_idx != -1)
             {
                 if (evt.LeftDown() && m_moving_enabled)
                 {
+                    // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
+                    // an converts the screen space coordinate to unscaled object space.
+                    Pointf3 pos3d = (volume_idx == -1) ? Pointf3(DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
+
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
@@ -2895,6 +2904,17 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
     return bb;
 }
 
+BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
+{
+    BoundingBoxf3 bb;
+    for (const GLVolume* volume : m_volumes.volumes)
+    {
+        if ((volume != nullptr) && volume->selected)
+            bb.merge(volume->transformed_bounding_box());
+    }
+    return bb;
+}
+
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 {
     // Calculate the zoom factor needed to adjust viewport to bounding box.
@@ -3150,7 +3170,6 @@ void GLCanvas3D::_render_axes(bool depth_test) const
 void GLCanvas3D::_render_objects() const
 {
     if (m_volumes.empty())
-
         return;
 
     ::glEnable(GL_LIGHTING);
@@ -3343,7 +3362,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 
 void GLCanvas3D::_render_gizmo() const
 {
-    m_gizmos.render(*this);
+    m_gizmos.render(*this, _selected_volumes_bounding_box());
 }
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
@@ -4079,15 +4098,12 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 void GLCanvas3D::_on_select(int volume_idx)
 {
     int id = -1;
-    if (volume_idx < (int)m_volumes.volumes.size())
+    if ((volume_idx != -1) && (volume_idx < (int)m_volumes.volumes.size()))
     {
-        if (volume_idx != -1)
-        {
-            if (m_select_by == "volume")
-                id = m_volumes.volumes[volume_idx]->volume_idx();
-            else if (m_select_by == "object")
-                id = m_volumes.volumes[volume_idx]->object_idx();
-        }
+        if (m_select_by == "volume")
+            id = m_volumes.volumes[volume_idx]->volume_idx();
+        else if (m_select_by == "object")
+            id = m_volumes.volumes[volume_idx]->object_idx();
     }
     m_on_select_object_callback.call(id);
 }
