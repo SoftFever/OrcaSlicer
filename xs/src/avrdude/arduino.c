@@ -102,6 +102,57 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
    */
   stk500_drain(pgm, 0);
 
+{
+  //FIXME initialization sequence for programming the external FLASH.
+  const char entry_magic_send   [] = "start\n";
+  const char entry_magic_receive[] = "w25x20cl_enter\n";
+  const char entry_magic_cfm    [] = "w25x20cl_cfm\n";
+  const char *entry_magic_ptr = entry_magic_send;
+  struct timeval tv;
+  double tstart, tnow;
+  char c;
+  gettimeofday(&tv, NULL);
+  tstart = tv.tv_sec;
+  while (*entry_magic_ptr != 0) {
+     if (serial_recv(&pgm->fd, &c, 1) < 0)
+        goto timedout;
+     printf("Received: %c (%d)\n", c, (int)c);
+     if (c != *entry_magic_ptr ++) {
+       avrdude_message(MSG_INFO, "%s: stk500v2_recv(): MK3 printer emited incorrect start code\n", progname);
+       return -1;
+     }
+     gettimeofday(&tv, NULL);
+     tnow = tv.tv_sec;
+     if (tnow-tstart > 2.) {      // wuff - signed/unsigned/overflow
+     timedout:
+       avrdude_message(MSG_INFO, "%s: stk500v2_recv(): MK3 printer did not boot up on time\n", progname);
+       return -1;
+     }
+  }
+  if (serial_send(&pgm->fd, entry_magic_receive, strlen(entry_magic_receive)) < 0) {
+    avrdude_message(MSG_INFO, "%s: stk500v2_send(): failed to send command to serial port\n",progname);
+    return -1;
+  }
+
+  entry_magic_ptr = entry_magic_cfm;
+  while (*entry_magic_ptr != 0) {
+    if (serial_recv(&pgm->fd, &c, 1) < 0)
+      goto timedout2;
+    printf("Received: %c (%d)\n", c, (int)c);
+    if (c != *entry_magic_ptr++) {
+      avrdude_message(MSG_INFO, "%s: stk500v2_recv(): MK3 printer emited incorrect start code\n", progname);
+      return -1;
+    }
+    gettimeofday(&tv, NULL);
+    tnow = tv.tv_sec;
+    if (tnow - tstart > 2.) {      // wuff - signed/unsigned/overflow
+    timedout2:
+      avrdude_message(MSG_INFO, "%s: stk500v2_recv(): MK3 printer did not boot up on time\n", progname);
+      return -1;
+    }
+  }
+}
+
   if (stk500_getsync(pgm) < 0)
     return -1;
 

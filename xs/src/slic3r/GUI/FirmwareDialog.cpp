@@ -171,11 +171,19 @@ void FirmwareDialog::priv::perform_upload()
 	std::vector<std::string> args {{
 		"-v",
 		"-p", "atmega2560",
-		"-c", "wiring",
+		// Using the "Wiring" mode to program Rambo or Einsy, using the STK500v2 protocol (not the STK500).
+		// The Prusa's avrdude is patched to never send semicolons inside the data packets, as the USB to serial chip
+		// is flashed with a buggy firmware.
+//		"-c", "wiring",
+		// Using the "Arduino" mode to program Einsy's external flash with languages, using the STK500 protocol (not the STK500v2).
+		// The Prusa's avrdude is patched again to never send semicolons inside the data packets.
+		"-c", "arduino",
 		"-P", port,
 		"-b", "115200",   // XXX: is this ok to hardcode?
 		"-D",
+		"-u", // disable safe mode
 		"-U", (boost::format("flash:w:%1%:i") % filename_utf8.data()).str()
+//		"-v", "-v", "-v", "-v", "-v", // enable super verbose mode, logging each serial line exchange
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
@@ -192,6 +200,8 @@ void FirmwareDialog::priv::perform_upload()
 		.args(args)
 		.on_run([]() { /* TODO: needed? */ })
 		.on_message(std::move([q](const char *msg, unsigned /* size */) {
+			// Debugging output to console, useful when avrdude is executed in a super verbose mode (with -v -v -v).
+			// printf("%s", msg);
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			auto wxmsg = wxString::FromUTF8(msg);
 			evt->SetExtraLong(AE_MESSAGE);
