@@ -1202,15 +1202,27 @@ void GLCanvas3D::Gizmos::reset_all_states()
     m_current = Undefined;
 }
 
-bool GLCanvas3D::Gizmos::contains_mouse() const
+bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
 {
     if (!m_enabled)
         return false;
 
+    float cnv_h = (float)canvas.get_canvas_size().get_height();
+    float height = _get_total_overlay_height();
+    float top_y = 0.5f * (cnv_h - height);
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        if ((it->second != nullptr) && (it->second->get_state() == GLGizmoBase::Hover))
+        if (it->second == nullptr)
+            continue;
+
+        float tex_size = (float)it->second->get_textures_size();
+        float half_tex_size = 0.5f * tex_size;
+
+        // we currently use circular icons for gizmo, so we check the radius
+        if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
             return true;
+
+        top_y += (tex_size + OverlayGapY);
     }
 
     return false;
@@ -1223,14 +1235,14 @@ void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& b
 
     ::glDisable(GL_DEPTH_TEST);
 
+    _render_current_gizmo(box);
+
     ::glPushMatrix();
     ::glLoadIdentity();
 
     _render_overlay(canvas);
 
     ::glPopMatrix();
-
-    _render_current_gizmo(box);
 }
 
 void GLCanvas3D::Gizmos::_reset()
@@ -1757,8 +1769,8 @@ void GLCanvas3D::render()
     _render_cutting_plane();
     _render_warning_texture();
     _render_legend_texture();
-    _render_layer_editing_overlay();
     _render_gizmo();
+    _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
 }
@@ -2537,7 +2549,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int selected_object_idx = _get_first_selected_object_id();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.last_object_id = layer_editing_object_idx;
-    bool gizmos_contains_mouse = m_gizmos.contains_mouse();
+    bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
 
     if (evt.Entering())
     {
@@ -2549,7 +2561,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_2D_as_invalid();
 #endif
     } 
-    else if (evt.LeftDClick())
+    else if (evt.LeftDClick() && (m_hover_volume_id != -1))
         m_on_double_click_callback.call();
     else if (evt.LeftDown() || evt.RightDown())
     {
@@ -2576,7 +2588,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
-        else if ((selected_object_idx != -1) && gizmos_contains_mouse)
+        else if ((selected_object_idx != -1) && gizmos_overlay_contains_mouse)
         {
             m_gizmos.update_on_off_state(*this, m_mouse.position);
             m_dirty = true;
@@ -2589,11 +2601,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (m_picking_enabled && ((volume_idx != -1) || !is_layers_editing_enabled()))
             {
-                deselect_volumes();
-                select_volume(volume_idx);
-
                 if (volume_idx != -1)
                 {
+                    deselect_volumes();
+                    select_volume(volume_idx);
                     int group_id = m_volumes.volumes[volume_idx]->select_group_id;
                     if (group_id != -1)
                     {
@@ -2603,13 +2614,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                 vol->selected = true;
                         }
                     }
+                    m_dirty = true;
                 }
-
-                m_dirty = true;
             }
 
             // propagate event through callback
-            if (m_picking_enabled)
+            if (m_picking_enabled && (volume_idx != -1))
                 _on_select(volume_idx);
 
             if (volume_idx != -1)
@@ -2642,7 +2652,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
     {
         m_mouse.dragging = true;
 
@@ -2689,7 +2699,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_dirty = true;
     }
-    else if (evt.Dragging() && !gizmos_contains_mouse)
+    else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
     {
         m_mouse.dragging = true;
 
@@ -2763,7 +2773,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             
             _on_move(volume_idxs);
         }
-        
+        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !is_layers_editing_enabled())
+        {
+            // deselect and propagate event through callback
+            if (m_picking_enabled)
+            {
+                deselect_volumes();
+                _on_select(-1);
+            }
+        }
+
         m_mouse.drag.volume_idx = -1;
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();

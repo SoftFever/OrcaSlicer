@@ -354,7 +354,7 @@ public:
         void update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
         void reset_all_states();
 
-        bool contains_mouse() const;
+        bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
 
         void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
 
