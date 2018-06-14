@@ -1202,6 +1202,18 @@ void GLCanvas3D::Gizmos::reset_all_states()
     m_current = Undefined;
 }
 
+void GLCanvas3D::Gizmos::set_hover_id(int id)
+{
+    if (!m_enabled)
+        return;
+
+    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    {
+        if ((it->second != nullptr) && (it->second->get_state() == GLGizmoBase::On))
+            it->second->set_hover_id(id);
+    }
+}
+
 bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
 {
     if (!m_enabled)
@@ -1243,6 +1255,20 @@ void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& b
     _render_overlay(canvas);
 
     ::glPopMatrix();
+}
+
+void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const
+{
+    if (!m_enabled)
+        return;
+
+    ::glDisable(GL_DEPTH_TEST);
+
+    GizmosMap::const_iterator it = m_gizmos.find(m_current);
+    if (it == m_gizmos.end())
+        return;
+
+    it->second->render_for_picking(box);
 }
 
 void GLCanvas3D::Gizmos::_reset()
@@ -3098,11 +3124,8 @@ void GLCanvas3D::_picking_pass() const
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ::glPushAttrib(GL_ENABLE_BIT);
-
         _render_volumes(true);
-
-        ::glPopAttrib();
+        m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
 
         if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
@@ -3110,7 +3133,7 @@ void GLCanvas3D::_picking_pass() const
         const Size& cnv_size = get_canvas_size();
 
         GLubyte color[4];
-        ::glReadPixels(pos.x, cnv_size.get_height() - pos.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+        ::glReadPixels(pos.x, cnv_size.get_height() - pos.y - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
         int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
 
         m_hover_volume_id = -1;
@@ -3133,7 +3156,10 @@ void GLCanvas3D::_picking_pass() const
                         vol->hover = true;
                 }
             }
+            m_gizmos.set_hover_id(-1);
         }
+        else
+            m_gizmos.set_hover_id(254 - (int)color[2]);
 
         // updates gizmos overlay
         if (_get_first_selected_object_id() != -1)
@@ -3335,7 +3361,7 @@ void GLCanvas3D::_render_layer_editing_overlay() const
 
 void GLCanvas3D::_render_volumes(bool fake_colors) const
 {
-    static const float INV_255 = 1.0f / 255.0f;
+    static const GLfloat INV_255 = 1.0f / 255.0f;
 
     if (fake_colors)
         ::glDisable(GL_LIGHTING);
@@ -3360,7 +3386,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
             unsigned int r = (volume_id & 0x000000FF) >> 0;
             unsigned int g = (volume_id & 0x0000FF00) >> 8;
             unsigned int b = (volume_id & 0x00FF0000) >> 16;
-            ::glColor4f((float)r * INV_255, (float)g * INV_255, (float)b * INV_255, 1.0f);
+            ::glColor3f((GLfloat)r * INV_255, (GLfloat)g * INV_255, (GLfloat)b * INV_255);
         }
         else
         {

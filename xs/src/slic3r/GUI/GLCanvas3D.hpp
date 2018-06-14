@@ -354,9 +354,12 @@ public:
         void update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
         void reset_all_states();
 
+        void set_hover_id(int id);
+
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
 
         void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
+        void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
 
     private:
         void _reset();

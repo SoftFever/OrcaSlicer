@@ -16,6 +16,7 @@ protected:
     static const float BaseColor[3];
     static const float HighlightColor[3];
     static const float GrabberHalfSize;
+    static const float HoverOffset;
 
 public:
     enum EState
@@ -31,6 +32,7 @@ protected:
     // textures are assumed to be square and all with the same size in pixels
     // no internal check is done
     GLTexture m_textures[Num_States];
+    int m_hover_id;
 
 public:
     GLGizmoBase();
@@ -44,13 +46,17 @@ public:
     unsigned int get_textures_id() const;
     int get_textures_size() const;
 
+    void set_hover_id(int id);
+
     void render(const BoundingBoxf3& box) const;
+    void render_for_picking(const BoundingBoxf3& box) const;
 
 protected:
     virtual bool on_init() = 0;
     virtual void on_render(const BoundingBoxf3& box) const = 0;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
-    void _render_square(const Pointf3& center) const;
+    void render_grabber(const Pointf3& center, bool hover) const;
 };
 
 class GLGizmoRotate : public GLGizmoBase
@@ -75,6 +81,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
 private:
     void _render_circle(const Pointf3& center, float radius) const;
@@ -98,6 +105,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 };
 
 } // namespace GUI
