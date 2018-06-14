@@ -25,6 +25,8 @@ class wxButton;
 class wxFileDialog;
 class wxStaticBitmap;
 class wxFont;
+class wxDataViewCtrl;
+class MyObjectTreeModel;
 
 namespace Slic3r { 
 
@@ -34,6 +36,7 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+class ModelObject;
 
 #define _(s)    Slic3r::translate((s))
 inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
@@ -67,6 +70,7 @@ enum ogGroup{
 
 class Tab;
 class ConfigOptionsGroup;
+typedef std::vector<ModelObject*> ModelObjectPtrs;
 // Map from an file_type name to full file wildcard name.
 typedef std::map<std::string, std::string> t_file_wild_card;
 inline t_file_wild_card& get_file_wild_card() {
@@ -124,7 +128,13 @@ void set_label_clr_sys(const wxColour& clr);
 const wxFont& small_font();
 const wxFont& bold_font();
 
-wxArrayString* open_model(wxWindow *parent);
+void open_model(wxWindow *parent, wxArrayString& input_files);
+
+wxDataViewCtrl*		get_objects_ctrl ();
+MyObjectTreeModel*	get_objects_model();
+ModelObjectPtrs&	get_objects();
+const int&			get_event_object_settings_changed();
+wxFrame*			get_main_frame();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -191,7 +201,7 @@ wxString	from_u8(const std::string &str);
 
 // Add object to the list
 //void add_object(const std::string &name);
-void add_object_to_list(const std::string &name, int instances_count=1, int scale=100);
+void add_object_to_list(const std::string &name, ModelObject* model_object);
 // Delete object from the list
 void delete_object_from_list();
 // Delete all objects from the list

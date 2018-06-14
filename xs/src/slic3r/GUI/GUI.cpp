@@ -59,6 +59,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+#include "Model.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -149,6 +150,7 @@ int			m_event_object_settings_changed = 0;
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
+ModelObjectPtrs			m_objects;
 
 wxFont		g_small_font;
 wxFont		g_bold_font;
@@ -496,7 +498,7 @@ void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_languag
 	add_config_menu(menu, event_preferences_changed, event_language_change);
 }
 
-wxArrayString* open_model(wxWindow *parent){
+void open_model(wxWindow *parent, wxArrayString& input_files){
 	t_file_wild_card vec_FILE_WILDCARDS = get_file_wild_card();
 	std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "3mf", "prusa" };
 	wxString MODEL_WILDCARD;
@@ -509,12 +511,11 @@ wxArrayString* open_model(wxWindow *parent){
 		MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 	if (dialog->ShowModal() != wxID_OK) {
 		dialog->Destroy();
-		return nullptr;
+		return ;
 	}
-	wxArrayString input_files;
+	
 	dialog->GetPaths(input_files);
 	dialog->Destroy();
-	return &input_files;
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -810,6 +811,24 @@ unsigned get_colour_approx_luma(const wxColour &colour)
 		b * b * .068
 	));
 }
+wxDataViewCtrl*		get_objects_ctrl() {
+	return m_objects_ctrl;
+}
+MyObjectTreeModel*	get_objects_model() {
+	return m_objects_model;
+}
+
+ModelObjectPtrs& get_objects() {
+	return m_objects;
+}
+
+const int& get_event_object_settings_changed() {
+	return m_event_object_settings_changed;
+}
+
+wxFrame* get_main_frame() {
+	return g_wxMainFrame;
+}
 
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
@@ -996,27 +1015,14 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	auto btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
 
 	//*** button's functions
-	btn_load_part->Bind(wxEVT_BUTTON, [](wxEvent&)
+	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&)
 	{
-		auto item = m_objects_ctrl->GetSelection();
-		if (!item) return;
-		if (m_objects_model->GetParent(item) != wxDataViewItem(0))
-			item = m_objects_model->GetParent(item);
-		if (!item) return;
-		wxString name = "Part";
-		m_objects_ctrl->Select(m_objects_model->AddChild(item, name));
+		on_btn_load(win);
 	});
 
 	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&)
 	{
 		on_btn_load(win, true);
-// 		auto item = m_objects_ctrl->GetSelection();
-// 		if (!item) return;
-// 		if (m_objects_model->GetParent(item) != wxDataViewItem(0))
-// 			item = m_objects_model->GetParent(item);
-// 		if (!item) return;
-// 		wxString name = "Part";
-// 		m_objects_ctrl->Select(m_objects_model->AddChild(item, name));
 	});
 
 	btn_delete->Bind(wxEVT_BUTTON, [](wxEvent&)
@@ -1171,10 +1177,12 @@ wxBoxSizer* content_settings(wxWindow *win)
 	return sizer;
 }
 
-void add_object_to_list(const std::string &name, int instances_count, int scale)
+void add_object_to_list(const std::string &name, ModelObject* model_object)
 {
 	wxString item = name;
-	m_objects_ctrl->Select(m_objects_model->Add(item, instances_count, scale));
+	int scale = model_object->instances[0]->scaling_factor * 100;
+	m_objects_ctrl->Select(m_objects_model->Add(item, model_object->instances.size(), scale));
+	m_objects.push_back(model_object);
 }
 
 void delete_object_from_list()

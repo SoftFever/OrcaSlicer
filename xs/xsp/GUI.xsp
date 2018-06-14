@@ -122,8 +122,10 @@ void set_show_manifold_warning_icon(bool show)
 void update_mode()
     %code%{ Slic3r::GUI::update_mode(); %};
 
-void add_object_to_list(const char *name, int instances_count, int scale)
-    %code%{ Slic3r::GUI::add_object_to_list(name, instances_count, scale); %};
+void add_object_to_list(const char *name, SV *object_model)
+    %code%{ Slic3r::GUI::add_object_to_list(
+                    name, 
+                    (ModelObject *)wxPli_sv_2_object(aTHX_ object_model, "Slic3r::Model::Object") ); %};
 
 void delete_object_from_list()
     %code%{ Slic3r::GUI::delete_object_from_list(); %};

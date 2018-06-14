@@ -837,7 +837,7 @@ sub load_model_objects {
         my $model_object = $self->{model}->objects->[$obj_idx];
 
         # Add object to list on c++ side
-        Slic3r::GUI::add_object_to_list($object->name, $model_object->instances_count, ($model_object->instances->[0]->scaling_factor * 100));
+        Slic3r::GUI::add_object_to_list($object->name, $model_object);
     
         $self->reset_thumbnail($obj_idx);
     }

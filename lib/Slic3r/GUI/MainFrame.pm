@@ -188,12 +188,11 @@ sub _init_tabpanel {
     # The following event is emited by the C++ Tab implementation on object settings change.
     EVT_COMMAND($self, -1, $OBJECT_SETTINGS_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
-        my $obj_idx = $event->GetInt;
 
-        #my $line = $event->GetString;
-        #my ($parts_changed, $part_settings_changed) = split('',$line);
+        my $line = $event->GetString;
+        my ($obj_idx, $parts_changed, $part_settings_changed) = split('',$line);
 
-        #$self->{plater}->changed_object_settings($obj_idx, $parts_changed, $part_settings_changed);
+        $self->{plater}->changed_object_settings($obj_idx, $parts_changed, $part_settings_changed);
     });
         
 
