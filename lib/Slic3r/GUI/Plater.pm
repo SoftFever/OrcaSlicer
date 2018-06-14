@@ -78,28 +78,19 @@ sub new {
     my $on_select_object = sub {
         my ($obj_idx) = @_;
         # Ignore the special objects (the wipe tower proxy and such).
-#==============================================================================================================================
         $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
-#        $self->select_object((defined($obj_idx) && $obj_idx < 1000) ? $obj_idx : undef);
-#==============================================================================================================================
     };
     my $on_double_click = sub {
         $self->object_settings_dialog if $self->selected_object;
     };
     my $on_right_click = sub {
-#==============================================================================================================================
         my ($canvas, $click_pos_x, $click_pos_y) = @_;
-#        my ($canvas, $click_pos) = @_;
-#==============================================================================================================================
 
         my ($obj_idx, $object) = $self->selected_object;
         return if !defined $obj_idx;
         
         my $menu = $self->object_menu;
-#==============================================================================================================================
         $canvas->PopupMenu($menu, $click_pos_x, $click_pos_y);
-#        $canvas->PopupMenu($menu, $click_pos);
-#==============================================================================================================================
         $menu->Destroy;
     };
     my $on_instances_moved = sub {
@@ -119,7 +110,6 @@ sub new {
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, L('3D'));
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::register_on_select_object_callback($self->{canvas3D}, $on_select_object);
         Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
         Slic3r::GUI::_3DScene::register_on_right_click_callback($self->{canvas3D}, sub { $on_right_click->($self->{canvas3D}, @_); });
@@ -154,41 +144,6 @@ sub new {
         });
 
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
-        
-#        $self->{canvas3D}->set_on_select_object($on_select_object);
-#        $self->{canvas3D}->set_on_double_click($on_double_click);
-#        $self->{canvas3D}->set_on_right_click(sub { $on_right_click->($self->{canvas3D}, @_); });
-#        $self->{canvas3D}->set_on_arrange(sub { $self->arrange });
-#        $self->{canvas3D}->set_on_rotate_object_left(sub { $self->rotate(-45, Z, 'relative') });
-#        $self->{canvas3D}->set_on_rotate_object_right(sub { $self->rotate( 45, Z, 'relative') });
-#        $self->{canvas3D}->set_on_scale_object_uniformly(sub { $self->changescale(undef) });
-#        $self->{canvas3D}->set_on_increase_objects(sub { $self->increase() });
-#        $self->{canvas3D}->set_on_decrease_objects(sub { $self->decrease() });
-#        $self->{canvas3D}->set_on_remove_object(sub { $self->remove() });
-#        $self->{canvas3D}->set_on_instances_moved($on_instances_moved);
-#        $self->{canvas3D}->set_on_enable_action_buttons($enable_action_buttons);
-#        $self->{canvas3D}->use_plain_shader(1);
-#
-#        $self->{canvas3D}->set_on_wipe_tower_moved(sub {
-#            my ($new_pos_3f) = @_;
-#            my $cfg = Slic3r::Config->new;
-#            $cfg->set('wipe_tower_x', $new_pos_3f->x);
-#            $cfg->set('wipe_tower_y', $new_pos_3f->y);
-#            $self->GetFrame->{options_tabs}{print}->load_config($cfg);
-#        });
-#        
-#        $self->{canvas3D}->set_on_model_update(sub {
-#            if (wxTheApp->{app_config}->get("background_processing")) {
-#                $self->schedule_background_process;
-#            } else {
-#                # Hide the print info box, it is no more valid.
-#                $self->{"print_info_box_show"}->(0);
-#            }
-#        });
-#        $self->{canvas3D}->on_viewport_changed(sub {
-#            $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
-#        });
-#==============================================================================================================================
     }
     
     # Initialize 2D preview canvas
@@ -202,13 +157,8 @@ sub new {
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 0);
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
-#        $self->{preview3D}->canvas->on_viewport_changed(sub {
-#            $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
-#        });
-#==============================================================================================================================
         $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }
@@ -223,21 +173,14 @@ sub new {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
         if ($preview == $self->{preview3D})
         {
-#==============================================================================================================================
             Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 1);
             Slic3r::GUI::_3DScene::set_active($self->{canvas3D}, 0);
             Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
-#            $self->{preview3D}->canvas->set_legend_enabled(1);
-#==============================================================================================================================
             $self->{preview3D}->load_print(1);
         } else {
-#==============================================================================================================================
             Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 0);
-#            $self->{preview3D}->canvas->set_legend_enabled(0);
-#==============================================================================================================================
         }
 
-#==============================================================================================================================
         if ($preview == $self->{canvas3D}) {
             Slic3r::GUI::_3DScene::set_active($self->{canvas3D}, 1);
             Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 0);
@@ -246,13 +189,9 @@ sub new {
                 Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
                 Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
             }            
+        } else {
+            $preview->OnActivate if $preview->can('OnActivate');        
         }
-        else {
-#==============================================================================================================================
-        $preview->OnActivate if $preview->can('OnActivate');        
-#==============================================================================================================================
-        }
-#==============================================================================================================================
     });
     
     # toolbar for object manipulation
@@ -389,10 +328,7 @@ sub new {
         EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
         EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
         EVT_TOOL($self, TB_LAYER_EDITING, sub {
-#==============================================================================================================================
             my $state = Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
-#            my $state = $self->{canvas3D}->layer_editing_enabled;
-#==============================================================================================================================
             $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, ! $state);
             $self->on_layer_editing_toggled(! $state);
         });
@@ -447,18 +383,11 @@ sub new {
     
     $self->{canvas}->update_bed_size;
     if ($self->{canvas3D}) {
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape);
         Slic3r::GUI::_3DScene::zoom_to_bed($self->{canvas3D});
-#        $self->{canvas3D}->update_bed_size;
-#        $self->{canvas3D}->zoom_to_bed;
-#==============================================================================================================================
     }
     if ($self->{preview3D}) {
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape);
-#        $self->{preview3D}->set_bed_shape($self->{config}->bed_shape);
-#==============================================================================================================================
     }
     $self->update;
     
@@ -675,12 +604,8 @@ sub _on_select_preset {
 
 sub on_layer_editing_toggled {
     my ($self, $new_state) = @_;
-#==============================================================================================================================
     Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, $new_state);
     if ($new_state && ! Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D})) {
-#    $self->{canvas3D}->layer_editing_enabled($new_state);
-#    if ($new_state && ! $self->{canvas3D}->layer_editing_enabled) {
-#==============================================================================================================================
         # Initialization of the OpenGL shaders failed. Disable the tool.
         if ($self->{htoolbar}) {
             $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
@@ -914,10 +839,7 @@ sub load_model_objects {
     $self->update;
     
     # zoom to objects
-#==============================================================================================================================
     Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
-#    $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
-#==============================================================================================================================
     
     $self->{list}->Update;
     $self->{list}->Select($obj_idx[-1], 1);
@@ -1308,12 +1230,7 @@ sub async_apply_config {
     my $invalidated = $self->{print}->apply_config(wxTheApp->{preset_bundle}->full_config);
 
     # Just redraw the 3D canvas without reloading the scene.
-#==============================================================================================================================
-#    $self->{canvas3D}->Refresh if ($invalidated && Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D}));
     $self->{canvas3D}->Refresh if Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
-##    $self->{canvas3D}->Refresh if ($invalidated && $self->{canvas3D}->layer_editing_enabled);
-#    $self->{canvas3D}->Refresh if ($self->{canvas3D}->layer_editing_enabled);
-#==============================================================================================================================
 
     # Hide the slicing results if the current slicing status is no more valid.    
     $self->{"print_info_box_show"}->(0) if $invalidated;
@@ -1818,12 +1735,9 @@ sub update {
     }
 
     $self->{canvas}->reload_scene if $self->{canvas};
-#==============================================================================================================================
     my $selections = $self->collect_selections;
     Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
-#    $self->{canvas3D}->reload_scene if $self->{canvas3D};
-#==============================================================================================================================
     $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
@@ -1878,13 +1792,8 @@ sub on_config_change {
         $self->{config}->set($opt_key, $config->get($opt_key));
         if ($opt_key eq 'bed_shape') {
             $self->{canvas}->update_bed_size;
-#==============================================================================================================================
             Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
             Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
-#            $self->{canvas3D}->update_bed_size if $self->{canvas3D};
-#            $self->{preview3D}->set_bed_shape($self->{config}->bed_shape)
-#                if $self->{preview3D};
-#==============================================================================================================================
             $update_scheduled = 1;
         } elsif ($opt_key =~ '^wipe_tower' || $opt_key eq 'single_extruder_multi_material') {
             $update_scheduled = 1;
@@ -1903,16 +1812,10 @@ sub on_config_change {
                     $self->{"btn_layer_editing"}->Disable;
                     $self->{"btn_layer_editing"}->SetValue(0);
                 }
-#==============================================================================================================================
                 Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, 0);
-#                $self->{canvas3D}->layer_editing_enabled(0);
-#==============================================================================================================================
                 $self->{canvas3D}->Refresh;
                 $self->{canvas3D}->Update;
-#==============================================================================================================================
             } elsif (Slic3r::GUI::_3DScene::is_layers_editing_allowed($self->{canvas3D})) {
-#            } elsif ($self->{canvas3D}->layer_editing_allowed) {
-#==============================================================================================================================
                 # Want to allow the layer editing, but do it only if the OpenGL supports it.
                 if ($self->{htoolbar}) {
                     $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 1);
@@ -1944,12 +1847,8 @@ sub list_item_deselected {
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
         $self->{canvas}->Refresh;
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D}) if $self->{canvas3D};
         Slic3r::GUI::_3DScene::render($self->{canvas3D}) if $self->{canvas3D};
-#        $self->{canvas3D}->deselect_volumes if $self->{canvas3D};
-#        $self->{canvas3D}->Render if $self->{canvas3D};
-#==============================================================================================================================
     }
     undef $self->{_lecursor};
 }
@@ -1961,19 +1860,14 @@ sub list_item_selected {
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
     $self->{canvas}->Refresh;
-#==============================================================================================================================
     if ($self->{canvas3D}) {
         my $selections = $self->collect_selections;
         Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
         Slic3r::GUI::_3DScene::render($self->{canvas3D});
     }
-#    $self->{canvas3D}->update_volumes_selection if $self->{canvas3D};
-#    $self->{canvas3D}->Render if $self->{canvas3D};
-#==============================================================================================================================
     undef $self->{_lecursor};
 }
 
-#==============================================================================================================================
 sub collect_selections {
     my ($self) = @_;
     my $selections = [];
@@ -1982,7 +1876,6 @@ sub collect_selections {
     }            
     return $selections;
 }
-#==============================================================================================================================
 
 sub list_item_activated {
     my ($self, $event, $obj_idx) = @_;
@@ -2040,10 +1933,7 @@ sub object_cut_dialog {
 	    $self->remove($obj_idx);
 	    $self->load_model_objects(grep defined($_), @new_objects);
 	    $self->arrange;
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
-#        $self->{canvas3D}->zoom_to_volumes if $self->{canvas3D};
-#==============================================================================================================================
 	}
 }
 
@@ -2079,12 +1969,9 @@ sub object_settings_dialog {
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
         $self->{canvas}->reload_scene if $self->{canvas};
-#==============================================================================================================================
         my $selections = $self->collect_selections;
         Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
         Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
-#        $self->{canvas3D}->reload_scene if $self->{canvas3D};
-#==============================================================================================================================
     } else {
         $self->resume_background_process;
     }
@@ -2097,10 +1984,7 @@ sub object_list_changed {
         
     # Enable/disable buttons depending on whether there are any objects on the platter.
     my $have_objects = @{$self->{objects}} ? 1 : 0;
-#==============================================================================================================================
     my $variable_layer_height_allowed = $self->{config}->variable_layer_height && Slic3r::GUI::_3DScene::is_layers_editing_allowed($self->{canvas3D});
-#    my $variable_layer_height_allowed = $self->{config}->variable_layer_height && $self->{canvas3D}->layer_editing_allowed;
-#==============================================================================================================================
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_objects)
@@ -2115,10 +1999,7 @@ sub object_list_changed {
     }
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
-#==============================================================================================================================
     my $model_fits = $self->{canvas3D} ? Slic3r::GUI::_3DScene::check_volumes_outside_state($self->{canvas3D}, $self->{config}) : 1;
-#    my $model_fits = $self->{canvas3D} ? $self->{canvas3D}->volumes->check_outside_state($self->{config}) : 1;
-#==============================================================================================================================
     my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
@@ -2333,19 +2214,11 @@ sub select_view {
     my $idx_page = $self->{preview_notebook}->GetSelection;
     my $page = ($idx_page == &Wx::wxNOT_FOUND) ? L('3D') : $self->{preview_notebook}->GetPageText($idx_page);
     if ($page eq L('Preview')) {
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
         Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
-#        $self->{preview3D}->canvas->select_view($direction);
-#        $self->{canvas3D}->set_viewport_from_scene($self->{preview3D}->canvas);
-#==============================================================================================================================
     } else {
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::select_view($self->{canvas3D}, $direction);
         Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
-#        $self->{canvas3D}->select_view($direction);
-#        $self->{preview3D}->canvas->set_viewport_from_scene($self->{canvas3D});
-#==============================================================================================================================
     }
 }
 

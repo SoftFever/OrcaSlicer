@@ -9,9 +9,7 @@ use utf8;
 use Slic3r::Geometry qw(PI X);
 use Wx qw(wxTheApp :dialog :id :misc :sizer wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
-#==============================================================================================================================
 use List::Util qw(max);
-#==============================================================================================================================
 use base 'Wx::Dialog';
 
 sub new {
@@ -115,20 +113,13 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $self->{model_object}, 0, [0]);
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
         Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
-        
-#        $canvas->load_object($self->{model_object}, undef, undef, [0]);
-#        $canvas->set_auto_bed_shape;
-#==============================================================================================================================
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
-#==============================================================================================================================
         Slic3r::GUI::_3DScene::set_config($canvas, $self->GetParent->{config});
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($canvas, 1);
-#==============================================================================================================================
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -157,9 +148,7 @@ sub new {
         # Note that the window was already closed, so a pending update will not be executed.
         $self->{already_closed} = 1;
         $self->EndModal(wxID_OK);
-#=============================================================================================================================        
         $self->{canvas}->Destroy;
-#=============================================================================================================================        
         $self->Destroy();
     });
 
@@ -167,9 +156,7 @@ sub new {
         # Note that the window was already closed, so a pending update will not be executed.
         $self->{already_closed} = 1;
         $self->EndModal(wxID_CANCEL);
-#=============================================================================================================================        
         $self->{canvas}->Destroy;
-#=============================================================================================================================        
         $self->Destroy();
     });
 
@@ -261,21 +248,11 @@ sub _update {
                 $expolygon->translate(map Slic3r::Geometry::scale($_), @{ $self->{model_object}->instances->[0]->offset });
             }
 
-#==============================================================================================================================
             Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});
             Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $_, 0, [0]) for @objects;
             Slic3r::GUI::_3DScene::set_cutting_plane($self->{canvas}, $self->{cut_options}{z}, [@expolygons]);
             Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
             Slic3r::GUI::_3DScene::render($self->{canvas});
-#            $self->{canvas}->reset_objects;
-#            $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
-#            $self->{canvas}->SetCuttingPlane(
-#                $self->{cut_options}{z},
-#                [@expolygons],
-#            );
-#            $self->{canvas}->update_volumes_colors_by_extruder($self->GetParent->{config});
-#            $self->{canvas}->Render;
-#==============================================================================================================================
         }
     }
     
