@@ -105,7 +105,11 @@ namespace Slic3r { namespace GUI {
 				break;
 			}
 			double val;
-			str.ToCDouble(&val);
+			if(!str.ToCDouble(&val))
+			{
+				show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
+				set_value(double_to_string(val), true);
+			}
 			if (m_opt.min > val || val > m_opt.max)
 			{
 				show_error(m_parent, _(L("Input value is out of range")));
