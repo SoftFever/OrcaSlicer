@@ -21,6 +21,7 @@ public:
 	~LambdaObjectDialog(){}
 
 	bool CanClose() { return true; }	// ???
+	OBJECT_PARAMETERS& ObjectParameters(){ return object_parameters; }
 
 	ConfigOptionsGroupShp init_modificator_options_page(wxString title);
 	

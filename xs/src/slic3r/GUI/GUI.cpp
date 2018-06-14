@@ -1028,8 +1028,7 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 
 	btn_load_lambda_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&)
 	{
-		auto dlg = new LambdaObjectDialog(win);
-		dlg->ShowModal();
+		on_btn_load(win, true, true);
 	});
 
 	btn_delete->Bind(wxEVT_BUTTON, [](wxEvent&)

@@ -6,6 +6,7 @@
 #include <wx/msgdlg.h>
 #include <wx/frame.h>
 #include <boost/filesystem.hpp>
+#include "LambdaObjectDialog.hpp"
 
 namespace Slic3r
 {
@@ -17,7 +18,8 @@ bool m_part_settings_changed = false;
 bool is_parts_changed(){return m_parts_changed;}
 bool is_part_settings_changed(){ return m_part_settings_changed; }
 
-void load_part(wxWindow* parent, ModelObject* model_object, wxArrayString& part_names, bool is_modifier)
+void load_part(	wxWindow* parent, ModelObject* model_object, 
+				wxArrayString& part_names, const bool is_modifier)
 {
 	wxArrayString input_files;
 	open_model(parent, input_files);
@@ -47,7 +49,6 @@ void load_part(wxWindow* parent, ModelObject* model_object, wxArrayString& part_
 				new_volume->mesh.translate( model_object->origin_translation.x,
 											model_object->origin_translation.y, 
 											model_object->origin_translation.y );
-
 				// set a default extruder value, since user can't add it manually
 				new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
@@ -57,7 +58,56 @@ void load_part(wxWindow* parent, ModelObject* model_object, wxArrayString& part_
 	}
 }
 
-void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/)
+void load_lambda(	wxWindow* parent, ModelObject* model_object,
+					wxArrayString& part_names, const bool is_modifier)
+{
+	auto dlg = new LambdaObjectDialog(parent);
+	if (dlg->ShowModal() == wxID_CANCEL) {
+		return;
+	}
+
+	std::string name = "lambda-";
+	TriangleMesh mesh;
+
+	auto params = dlg->ObjectParameters();
+	switch (params.type)
+	{
+	case LambdaTypeBox:{
+		mesh = make_cube(params.dim[0], params.dim[1], params.dim[2]);
+		name += "Box";
+		break;}
+	case LambdaTypeCylinder:{
+		mesh = make_cylinder(params.cyl_r, params.cyl_h);
+		name += "Cylinder";
+		break;}
+	case LambdaTypeSphere:{
+		mesh = make_sphere(params.sph_rho);
+		name += "Sphere";
+		break;}
+	case LambdaTypeSlab:{
+		const auto& size = model_object->bounding_box().size();
+		mesh = make_cube(size.x*1.5, size.y*1.5, params.slab_h);
+		// box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
+		mesh.translate(-size.x*1.5 / 2.0, -size.y*1.5 / 2.0, params.slab_z);
+		name += "Slab";
+		break; }
+	default:
+		break;
+	}
+	mesh.repair();
+
+	auto new_volume = model_object->add_volume(mesh);
+	new_volume->modifier = is_modifier;
+	new_volume->name = name;
+	// set a default extruder value, since user can't add it manually
+	new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+
+	part_names.Add(name);
+
+	m_parts_changed = true;
+}
+
+void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/* = false*/)
 {
 	auto objects_ctrl = get_objects_ctrl();
 	auto item = objects_ctrl->GetSelection();
@@ -73,7 +123,10 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/)
 	if (obj_idx < 0) return;
 	wxArrayString part_names;
 	ModelObjectPtrs& objects = get_objects();
-	load_part(parent, objects[obj_idx], part_names, is_modifier);
+	if (is_lambda)
+		load_lambda(parent, objects[obj_idx], part_names, is_modifier);
+	else
+		load_part(parent, objects[obj_idx], part_names, is_modifier);
 
 	parts_changed(obj_idx);
 

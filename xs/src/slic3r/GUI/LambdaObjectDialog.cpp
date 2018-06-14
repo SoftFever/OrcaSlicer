@@ -13,7 +13,7 @@ static wxString dots("…", wxConvUTF8);
 LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 {
 	Create(parent, wxID_ANY, _(L("Lambda Object")),
-		wxDefaultPosition, wxSize(500, 500),
+		wxDefaultPosition, wxDefaultSize,
 		wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
 	// instead of double dim[3] = { 1.0, 1.0, 1.0 };
@@ -24,7 +24,8 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 	sizer = new wxBoxSizer(wxVERTICAL);
 
 	// modificator options
-	m_modificator_options_book = new wxChoicebook(this, wxID_ANY, wxDefaultPosition, wxSize(300, -1), wxCHB_TOP);
+	m_modificator_options_book = new wxChoicebook(	this, wxID_ANY, wxDefaultPosition, 
+													wxDefaultSize, wxCHB_TOP);
 	sizer->Add(m_modificator_options_book, 1, wxEXPAND| wxALL, 10);
 
 	auto optgroup = init_modificator_options_page(_(L("Box")));
@@ -37,6 +38,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 		};
 
 		ConfigOptionDef def;
+		def.width = 70;
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat{ 1.0 };
 		def.label = L("L");
@@ -101,6 +103,29 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 		def.label = L("Initial Z");
 		option = Option(def, "slab_z");
 		optgroup->append_single_option_line(option);
+
+	Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent e)
+	{
+		auto page_idx = m_modificator_options_book->GetSelection();
+		if (page_idx < 0) return;
+		switch (page_idx)
+		{
+		case 0:
+			object_parameters.type = LambdaTypeBox;
+			break;
+		case 1:
+			object_parameters.type = LambdaTypeCylinder;
+			break;
+		case 2:
+			object_parameters.type = LambdaTypeSphere;
+			break;
+		case 3:
+			object_parameters.type = LambdaTypeSlab;
+			break;
+		default:
+			break;
+		}
+	}));
 
 
 	auto button_sizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
