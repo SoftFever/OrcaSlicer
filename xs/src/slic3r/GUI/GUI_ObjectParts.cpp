@@ -55,8 +55,6 @@ void load_part(wxWindow* parent, ModelObject* model_object, wxArrayString& part_
 			}
 		}
 	}
-
-	parts_changed();
 }
 
 void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/)
@@ -77,21 +75,25 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/)
 	ModelObjectPtrs& objects = get_objects();
 	load_part(parent, objects[obj_idx], part_names, is_modifier);
 
-	auto event = get_event_object_settings_changed();
-	if (event > 0) {
-		wxCommandEvent e(event);
-		auto event_str = wxString::Format("%d %d %d", obj_idx,
-			is_parts_changed() ? 1 : 0,
-			is_part_settings_changed() ? 1 : 0);
-		e.SetString(event_str);
-		get_main_frame()->ProcessWindowEvent(e);
-	}
+	parts_changed(obj_idx);
 
 	for (int i = 0; i < part_names.size(); ++i)
 		objects_ctrl->Select(objects_model->AddChild(item, part_names.Item(i)));
 }
 
-void parts_changed(){ ; }
+void parts_changed(int obj_idx)
+{ 
+	auto event = get_event_object_settings_changed();
+	if (event <= 0)
+		return;
+
+	wxCommandEvent e(event);
+	auto event_str = wxString::Format("%d %d %d", obj_idx,
+		is_parts_changed() ? 1 : 0,
+		is_part_settings_changed() ? 1 : 0);
+	e.SetString(event_str);
+	get_main_frame()->ProcessWindowEvent(e);
+}
 
 } //namespace GUI
 } //namespace Slic3r 

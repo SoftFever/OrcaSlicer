@@ -89,6 +89,17 @@ inline t_file_wild_card& get_file_wild_card() {
 	return FILE_WILDCARDS;
 }
 
+struct OBJECT_PARAMETERS
+{
+	std::string	type = "box";
+	double dim[3];// = { 1.0, 1.0, 1.0 };
+	int	cyl_r = 1;
+	int	cyl_h = 1;
+	double sph_rho = 1.0;
+	double slab_h = 1.0;
+	double slab_z = 0.0;
+};
+
 void disable_screensaver();
 void enable_screensaver();
 bool debugged();
