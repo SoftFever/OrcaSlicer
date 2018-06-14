@@ -426,7 +426,7 @@ void GLCanvas3D::Bed::_render_mk2(float theta) const
     std::string filename = resources_dir() + "/icons/bed/mk2_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
-        if (!m_top_texture.load_from_file(filename))
+        if (!m_top_texture.load_from_file(filename, true))
         {
             _render_custom();
             return;
@@ -436,7 +436,7 @@ void GLCanvas3D::Bed::_render_mk2(float theta) const
     filename = resources_dir() + "/icons/bed/mk2_bottom.png";
     if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
     {
-        if (!m_bottom_texture.load_from_file(filename))
+        if (!m_bottom_texture.load_from_file(filename, true))
         {
             _render_custom();
             return;
@@ -451,7 +451,7 @@ void GLCanvas3D::Bed::_render_mk3(float theta) const
     std::string filename = resources_dir() + "/icons/bed/mk3_top.png";
     if ((m_top_texture.get_id() == 0) || (m_top_texture.get_source() != filename))
     {
-        if (!m_top_texture.load_from_file(filename))
+        if (!m_top_texture.load_from_file(filename, true))
         {
             _render_custom();
             return;
@@ -461,7 +461,7 @@ void GLCanvas3D::Bed::_render_mk3(float theta) const
     filename = resources_dir() + "/icons/bed/mk3_bottom.png";
     if ((m_bottom_texture.get_id() == 0) || (m_bottom_texture.get_source() != filename))
     {
-        if (!m_bottom_texture.load_from_file(filename))
+        if (!m_bottom_texture.load_from_file(filename, true))
         {
             _render_custom();
             return;
@@ -911,7 +911,7 @@ void GLCanvas3D::LayersEditing::_render_tooltip_texture(const GLCanvas3D& canvas
     if (m_tooltip_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_tooltip.png";
-        if (!m_tooltip_texture.load_from_file(filename))
+        if (!m_tooltip_texture.load_from_file(filename, false))
             return;
     }
 
@@ -935,7 +935,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
     if (m_reset_texture.get_id() == 0)
     {
         std::string filename = resources_dir() + "/icons/variable_layer_height_reset.png";
-        if (!m_reset_texture.load_from_file(filename))
+        if (!m_reset_texture.load_from_file(filename, false))
             return;
     }
 

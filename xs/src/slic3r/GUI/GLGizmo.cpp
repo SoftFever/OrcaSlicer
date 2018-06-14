@@ -95,15 +95,15 @@ bool GLGizmoRotate::on_init()
     std::string path = resources_dir() + "/icons/overlay/";
 
     std::string filename = path + "rotate_off.png";
-    if (!m_textures[Off].load_from_file(filename))
+    if (!m_textures[Off].load_from_file(filename, false))
         return false;
 
     filename = path + "rotate_hover.png";
-    if (!m_textures[Hover].load_from_file(filename))
+    if (!m_textures[Hover].load_from_file(filename, false))
         return false;
 
     filename = path + "rotate_on.png";
-    if (!m_textures[On].load_from_file(filename))
+    if (!m_textures[On].load_from_file(filename, false))
         return false;
 
     return true;
@@ -224,15 +224,15 @@ bool GLGizmoScale::on_init()
     std::string path = resources_dir() + "/icons/overlay/";
 
     std::string filename = path + "scale_off.png";
-    if (!m_textures[Off].load_from_file(filename))
+    if (!m_textures[Off].load_from_file(filename, false))
         return false;
 
     filename = path + "scale_hover.png";
-    if (!m_textures[Hover].load_from_file(filename))
+    if (!m_textures[Hover].load_from_file(filename, false))
         return false;
 
     filename = path + "scale_on.png";
-    if (!m_textures[On].load_from_file(filename))
+    if (!m_textures[On].load_from_file(filename, false))
         return false;
 
     return true;

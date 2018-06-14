@@ -3,10 +3,12 @@
 
 #include <string>
 
+class wxImage;
+
 namespace Slic3r {
 namespace GUI {
 
-    struct GLTexture
+    class GLTexture
     {
     private:
         unsigned int m_id;
@@ -18,7 +20,7 @@ namespace GUI {
         GLTexture();
         ~GLTexture();
 
-        bool load_from_file(const std::string& filename);
+        bool load_from_file(const std::string& filename, bool generate_mipmaps);
         void reset();
 
         unsigned int get_id() const;
@@ -27,6 +29,9 @@ namespace GUI {
         const std::string& get_source() const;
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
+
+    private:
+        void _generate_mipmaps(wxImage& image);
     };
 
 } // namespace GUI

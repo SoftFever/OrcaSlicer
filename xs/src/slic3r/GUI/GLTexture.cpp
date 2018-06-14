@@ -5,6 +5,7 @@
 #include <wx/image.h>
 
 #include <vector>
+#include <algorithm>
 
 namespace Slic3r {
 namespace GUI {
@@ -22,7 +23,7 @@ GLTexture::~GLTexture()
     reset();
 }
 
-bool GLTexture::load_from_file(const std::string& filename)
+bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmaps)
 {
     reset();
 
@@ -68,10 +69,20 @@ bool GLTexture::load_from_file(const std::string& filename)
     // sends data to gpu
     ::glGenTextures(1, &m_id);
     ::glBindTexture(GL_TEXTURE_2D, m_id);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    if (generate_mipmaps)
+    {
+        // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
+        _generate_mipmaps(image);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    }
+    else
+    {
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    }
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
     m_source = filename;
@@ -132,6 +143,42 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
     ::glDisable(GL_TEXTURE_2D);
     ::glDisable(GL_BLEND);
     ::glEnable(GL_LIGHTING);
+}
+
+void GLTexture::_generate_mipmaps(wxImage& image)
+{
+    int w = image.GetWidth();
+    int h = image.GetHeight();
+    GLint level = 0;
+    std::vector<unsigned char> data(w * h * 4, 0);
+
+    while ((w > 1) && (h > 1))
+    {
+        ++level;
+
+        w = std::max(w / 2, 1);
+        h = std::max(h / 2, 1);
+
+        int n_pixels = w * h;
+
+        image = image.ResampleBicubic(w, h);
+
+        unsigned char* img_rgb = image.GetData();
+        unsigned char* img_alpha = image.GetAlpha();
+
+        data.resize(n_pixels * 4);
+        for (int i = 0; i < n_pixels; ++i)
+        {
+            int data_id = i * 4;
+            int img_id = i * 3;
+            data[data_id + 0] = img_rgb[img_id + 0];
+            data[data_id + 1] = img_rgb[img_id + 1];
+            data[data_id + 2] = img_rgb[img_id + 2];
+            data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+        }
+
+        ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    }
 }
 
 } // namespace GUI
