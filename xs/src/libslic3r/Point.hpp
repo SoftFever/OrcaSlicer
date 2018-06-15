@@ -238,6 +238,11 @@ inline coordf_t dot(const Pointf &v1, const Pointf &v2) { return v1.x * v2.x + v
 inline coordf_t dot(const Pointf &v) { return v.x * v.x + v.y * v.y; }
 inline double length(const Vectorf &v) { return sqrt(dot(v)); }
 inline double l2(const Vectorf &v) { return dot(v); }
+inline Vectorf normalize(const Vectorf& v)
+{
+    coordf_t len = ::sqrt(sqr(v.x) + sqr(v.y));
+    return (len != 0.0) ? 1.0 / len * v : Vectorf(0.0, 0.0);
+}
 
 class Pointf3 : public Pointf
 {

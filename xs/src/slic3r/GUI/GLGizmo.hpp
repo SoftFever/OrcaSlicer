@@ -25,6 +25,7 @@ protected:
         static const float HoverOffset;
 
         Pointf center;
+        float angle_z;
         float color[3];
 
         Grabber();
@@ -82,6 +83,7 @@ class GLGizmoRotate : public GLGizmoBase
 {
     static const float Offset;
     static const unsigned int CircleResolution;
+    static const unsigned int AngleResolution;
     static const unsigned int ScaleStepsCount;
     static const float ScaleStepRad;
     static const unsigned int ScaleLongEvery;
@@ -90,9 +92,12 @@ class GLGizmoRotate : public GLGizmoBase
     static const unsigned int SnapRegionsCount;
     static const float GrabberOffset;
 
-    float m_angle_x;
-    float m_angle_y;
+//    float m_angle_x;
+//    float m_angle_y;
     float m_angle_z;
+
+    mutable Pointf m_center;
+    mutable float m_radius;
 
 public:
     GLGizmoRotate();
@@ -104,11 +109,12 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
 private:
-    void _render_circle(const Pointf3& center, float radius) const;
-    void _render_scale(const Pointf3& center, float radius) const;
-    void _render_snap_radii(const Pointf3& center, float radius) const;
-    void _render_reference_radius(const Pointf3& center, float radius) const;
-    void _render_grabber(const Pointf3& center, float radius) const;
+    void _render_circle() const;
+    void _render_scale() const;
+    void _render_snap_radii() const;
+    void _render_reference_radius() const;
+    void _render_angle_z() const;
+    void _render_grabber() const;
 };
 
 class GLGizmoScale : public GLGizmoBase
