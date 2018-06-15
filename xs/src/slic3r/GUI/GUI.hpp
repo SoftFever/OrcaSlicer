@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "Config.hpp"
+#include "GUI_ObjectParts.hpp"
 
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -11,7 +12,6 @@
 class wxApp;
 class wxWindow;
 class wxFrame;
-class wxWindow;
 class wxMenuBar;
 class wxNotebook;
 class wxComboCtrl;
@@ -25,8 +25,6 @@ class wxButton;
 class wxFileDialog;
 class wxStaticBitmap;
 class wxFont;
-class wxDataViewCtrl;
-class PrusaObjectDataViewModel;
 
 namespace Slic3r { 
 
@@ -36,7 +34,6 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
-class ModelObject;
 
 #define _(s)    Slic3r::translate((s))
 inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
@@ -60,24 +57,8 @@ inline wxString translate(const std::wstring &s) { return wxGetTranslation(s.c_s
 
 namespace GUI {
 
-enum ogGroup{
-	ogFrequentlyChangingParameters,
-	ogFrequentlyObjectSettings,
-	ogObjectSettings,
-	ogObjectMovers,
-	ogPartSettings
-};
-
-enum LambdaTypeIDs{
-	LambdaTypeBox,
-	LambdaTypeCylinder,
-	LambdaTypeSphere,
-	LambdaTypeSlab
-};
-
 class Tab;
 class ConfigOptionsGroup;
-typedef std::vector<ModelObject*> ModelObjectPtrs;
 // Map from an file_type name to full file wildcard name.
 typedef std::map<std::string, std::string> t_file_wild_card;
 inline t_file_wild_card& get_file_wild_card() {
@@ -95,17 +76,6 @@ inline t_file_wild_card& get_file_wild_card() {
 	}
 	return FILE_WILDCARDS;
 }
-
-struct OBJECT_PARAMETERS
-{
-	LambdaTypeIDs	type = LambdaTypeBox;
-	double			dim[3];// = { 1.0, 1.0, 1.0 };
-	int				cyl_r = 1;
-	int				cyl_h = 1;
-	double			sph_rho = 1.0;
-	double			slab_h = 1.0;
-	double			slab_z = 0.0;
-};
 
 void disable_screensaver();
 void enable_screensaver();
@@ -132,9 +102,10 @@ void set_objects_from_perl(	wxWindow* parent,
 void set_show_print_info(bool show);
 void set_show_manifold_warning_icon(bool show);
 
-AppConfig*	get_app_config();
-wxApp*		get_app();
-PresetBundle* get_preset_bundle();
+AppConfig*		get_app_config();
+wxApp*			get_app();
+PresetBundle*	get_preset_bundle();
+wxFrame*		get_main_frame();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
@@ -148,11 +119,8 @@ const wxFont& bold_font();
 
 void open_model(wxWindow *parent, wxArrayString& input_files);
 
-wxDataViewCtrl*		get_objects_ctrl ();
-PrusaObjectDataViewModel*	get_objects_model();
-ModelObjectPtrs&	get_objects();
-const int&			get_event_object_settings_changed();
-wxFrame*			get_main_frame();
+wxWindow*			get_right_panel();
+const int&			label_width();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -217,30 +185,16 @@ wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
 
-// Add object to the list
-//void add_object(const std::string &name);
-void add_object_to_list(const std::string &name, ModelObject* model_object);
-// Delete object from the list
-void delete_object_from_list();
-// Delete all objects from the list
-void delete_all_objects_from_list();
-// Set count of object on c++ side
-void set_object_count(int idx, int count);
-// Set object scale on c++ side
-void set_object_scale(int idx, int scale);
-// Unselect all objects in the list on c++ side
-void unselect_objects();
-// Select current object in the list on c++ side
-void select_current_object(int idx);
-
 void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
 							int event_object_selection_changed,
 							int event_object_settings_changed);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 // Update view mode according to selected menu 
 void update_mode();
+bool is_expert_mode();
 
-ConfigOptionsGroup* get_optgroup(size_t i);
+ConfigOptionsGroup* get_optgroup(size_t i); 
+std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups();
 wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
