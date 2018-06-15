@@ -677,11 +677,11 @@ void SliderCtrl::BUILD()
 
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
 
-	auto default = static_cast<ConfigOptionInt*>(m_opt.default_value)->value;
+	auto def_val = static_cast<ConfigOptionInt*>(m_opt.default_value)->value;
 	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
 	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
 
-	m_slider = new wxSlider(m_parent, wxID_ANY, default * m_scale, 
+	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
 							min * m_scale, max * m_scale,
 							wxDefaultPosition, size);
  	wxSize field_size(40, -1);

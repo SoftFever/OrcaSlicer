@@ -145,25 +145,25 @@ public:
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
-// MyObjectTreeModelNode: a node inside MyObjectTreeModel
+// PrusaObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
-class MyObjectTreeModelNode;
-WX_DEFINE_ARRAY_PTR(MyObjectTreeModelNode*, MyObjectTreeModelNodePtrArray);
+class PrusaObjectDataViewModelNode;
+WX_DEFINE_ARRAY_PTR(PrusaObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray);
 
-class MyObjectTreeModelNode
+class PrusaObjectDataViewModelNode
 {
-	MyObjectTreeModelNode*			m_parent;
+	PrusaObjectDataViewModelNode*			m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
 public:
-	MyObjectTreeModelNode(const wxString &name, int instances_count=1, int scale=100) {
+	PrusaObjectDataViewModelNode(const wxString &name, int instances_count=1, int scale=100) {
 		m_parent	= NULL;
 		m_name		= name;
 		m_copy		= wxString::Format("%d", instances_count);
 		m_scale		= wxString::Format("%d%%", scale);
 	}
 
-	MyObjectTreeModelNode(	MyObjectTreeModelNode* parent,
+	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
 							const wxString& sub_obj) {
 		m_parent	= parent;
 		m_name		= sub_obj;
@@ -171,18 +171,25 @@ public:
 		m_scale		= wxEmptyString;
 	}
 
-	~MyObjectTreeModelNode()
+	PrusaObjectDataViewModelNode(PrusaObjectDataViewModelNode* parent,
+		const wxString& sub_obj, const wxIcon& icon):
+		PrusaObjectDataViewModelNode(parent, sub_obj){
+		m_icon = icon;
+	}
+
+	~PrusaObjectDataViewModelNode()
 	{
 		// free all our children nodes
 		size_t count = m_children.GetCount();
 		for (size_t i = 0; i < count; i++)
 		{
-			MyObjectTreeModelNode *child = m_children[i];
+			PrusaObjectDataViewModelNode *child = m_children[i];
 			delete child;
 		}
 	}
 	
 	wxString				m_name;
+	wxIcon					m_icon;
 	wxString				m_copy;
 	wxString				m_scale;
 	bool					m_container = false;
@@ -192,7 +199,7 @@ public:
 		return m_container;
 	}
 
-	MyObjectTreeModelNode* GetParent()
+	PrusaObjectDataViewModelNode* GetParent()
 	{
 		return m_parent;
 	}
@@ -200,15 +207,15 @@ public:
 	{
 		return m_children;
 	}
-	MyObjectTreeModelNode* GetNthChild(unsigned int n)
+	PrusaObjectDataViewModelNode* GetNthChild(unsigned int n)
 	{
 		return m_children.Item(n);
 	}
-	void Insert(MyObjectTreeModelNode* child, unsigned int n)
+	void Insert(PrusaObjectDataViewModelNode* child, unsigned int n)
 	{
 		m_children.Insert(child, n);
 	}
-	void Append(MyObjectTreeModelNode* child)
+	void Append(PrusaObjectDataViewModelNode* child)
 	{
 		if (!m_container)
 			m_container = true;
@@ -237,33 +244,39 @@ public:
 	{
 		switch (col)
 		{
-		case 0:
-			m_name = variant.GetString();
-			return true;
+		case 0:{
+			wxDataViewIconText data;
+			data << variant;
+			m_icon = data.GetIcon();
+			m_name = data.GetText();
+			return true;}
 		case 1:
 			m_copy = variant.GetString();
 			return true;
 		case 2:
 			m_scale = variant.GetString();
 			return true;
-
 		default:
 			printf("MyObjectTreeModel::SetValue: wrong column");
 		}
 		return false;
 	}
+	void SetIcon(const wxIcon &icon)
+	{
+		m_icon = icon;
+	}
 };
 
 // ----------------------------------------------------------------------------
-// MyObjectTreeModel
+// PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
-class MyObjectTreeModel :public wxDataViewModel
+class PrusaObjectDataViewModel :public wxDataViewModel
 {
-	std::vector<MyObjectTreeModelNode*> m_objects;
+	std::vector<PrusaObjectDataViewModelNode*> m_objects;
 public:
-	MyObjectTreeModel(){}
-	~MyObjectTreeModel()
+	PrusaObjectDataViewModel(){}
+	~PrusaObjectDataViewModel()
 	{
 		for (auto object : m_objects)
 			delete object;		
@@ -271,7 +284,9 @@ public:
 
 	wxDataViewItem Add(wxString &name);
 	wxDataViewItem Add(wxString &name, int instances_count, int scale);
-	wxDataViewItem AddChild(const wxDataViewItem &parent_item, wxString &name);
+	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
+							const wxString &name, 
+							const wxIcon& icon);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	void DeleteAll();
 	wxDataViewItem GetItemById(int obj_idx);
@@ -309,197 +324,6 @@ public:
 };
 
 
-
-
-// *****************************************************************************
-// ----------------------------------------------------------------------------
-// MyMusicTreeModelNode: a node inside MyMusicTreeModel
-// ----------------------------------------------------------------------------
-
-class MyMusicTreeModelNode;
-WX_DEFINE_ARRAY_PTR(MyMusicTreeModelNode*, MyMusicTreeModelNodePtrArray);
-
-class MyMusicTreeModelNode
-{
-public:
-	MyMusicTreeModelNode(MyMusicTreeModelNode* parent,
-		const wxString &title, const wxString &artist,
-		unsigned int year)
-	{
-		m_parent = parent;
-
-		m_title = title;
-		m_artist = artist;
-		m_year = year;
-		m_quality = "good";
-
-		m_container = false;
-	}
-
-	MyMusicTreeModelNode(MyMusicTreeModelNode* parent,
-		const wxString &branch)
-	{
-		m_parent = parent;
-
-		m_title = branch;
-		m_year = -1;
-
-		m_container = true;
-	}
-
-	~MyMusicTreeModelNode()
-	{
-		// free all our children nodes
-		size_t count = m_children.GetCount();
-		for (size_t i = 0; i < count; i++)
-		{
-			MyMusicTreeModelNode *child = m_children[i];
-			delete child;
-		}
-	}
-
-	bool IsContainer() const
-	{
-		return m_container;
-	}
-
-	MyMusicTreeModelNode* GetParent()
-	{
-		return m_parent;
-	}
-	MyMusicTreeModelNodePtrArray& GetChildren()
-	{
-		return m_children;
-	}
-	MyMusicTreeModelNode* GetNthChild(unsigned int n)
-	{
-		return m_children.Item(n);
-	}
-	void Insert(MyMusicTreeModelNode* child, unsigned int n)
-	{
-		m_children.Insert(child, n);
-	}
-	void Append(MyMusicTreeModelNode* child)
-	{
-		m_children.Add(child);
-	}
-	unsigned int GetChildCount() const
-	{
-		return m_children.GetCount();
-	}
-
-public:     // public to avoid getters/setters
-	wxString                m_title;
-	wxString                m_artist;
-	int                     m_year;
-	wxString                m_quality;
-
-	// TODO/FIXME:
-	// the GTK version of wxDVC (in particular wxDataViewCtrlInternal::ItemAdded)
-	// needs to know in advance if a node is or _will be_ a container.
-	// Thus implementing:
-	//   bool IsContainer() const
-	//    { return m_children.GetCount()>0; }
-	// doesn't work with wxGTK when MyMusicTreeModel::AddToClassical is called
-	// AND the classical node was removed (a new node temporary without children
-	// would be added to the control)
-	bool m_container;
-
-private:
-	MyMusicTreeModelNode          *m_parent;
-	MyMusicTreeModelNodePtrArray   m_children;
-};
-
-
-// ----------------------------------------------------------------------------
-// MyMusicTreeModel
-// ----------------------------------------------------------------------------
-
-/*
-Implement this data model
-Title               Artist               Year        Judgement
---------------------------------------------------------------------------
-1: My Music:
-2:  Pop music
-3:  You are not alone   Michael Jackson      1995        good
-4:  Take a bow          Madonna              1994        good
-5:  Classical music
-6:  Ninth Symphony      Ludwig v. Beethoven  1824        good
-7:  German Requiem      Johannes Brahms      1868        good
-*/
-
-class MyMusicTreeModel : public wxDataViewModel
-{
-public:
-	MyMusicTreeModel();
-	~MyMusicTreeModel()
-	{
-		if (m_root)
-			delete m_root;
-		
-	}
-
-	// helper method for wxLog
-
-	wxString GetTitle(const wxDataViewItem &item) const;
-	wxString GetArtist(const wxDataViewItem &item) const;
-	int GetYear(const wxDataViewItem &item) const;
-
-	// helper methods to change the model
-
-	void AddToClassical(const wxString &title, const wxString &artist,
-		unsigned int year);
-	void Delete(const wxDataViewItem &item);
-
-	wxDataViewItem GetNinthItem() const
-	{
-		return wxDataViewItem(m_ninth);
-	}
-
-	// override sorting to always sort branches ascendingly
-
-	int Compare(const wxDataViewItem &item1, const wxDataViewItem &item2,
-		unsigned int column, bool ascending) const override/*wxOVERRIDE*/;
-
-	// implementation of base class virtuals to define model
-
-	virtual unsigned int GetColumnCount() const override/*wxOVERRIDE*/
-	{
-		return 6;
-	}
-
-	virtual wxString GetColumnType(unsigned int col) const override/*wxOVERRIDE*/
-	{
-		if (col == 2)
-		return wxT("long");
-
-		return wxT("string");
-	}
-
-	virtual void GetValue(wxVariant &variant,
-		const wxDataViewItem &item, unsigned int col) const override/*wxOVERRIDE*/;
-	virtual bool SetValue(const wxVariant &variant,
-		const wxDataViewItem &item, unsigned int col) override/*wxOVERRIDE*/;
-
-	virtual bool IsEnabled(const wxDataViewItem &item,
-		unsigned int col) const override/*wxOVERRIDE*/;
-
-	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override/*wxOVERRIDE*/;
-	virtual bool IsContainer(const wxDataViewItem &item) const override/*wxOVERRIDE*/;
-	virtual unsigned int GetChildren(const wxDataViewItem &parent,
-		wxDataViewItemArray &array) const override/*wxOVERRIDE*/;
-
-private:
-	MyMusicTreeModelNode*   m_root;
-
-	// pointers to some "special" nodes of the tree:
-	MyMusicTreeModelNode*   m_pop;
-	MyMusicTreeModelNode*   m_classical;
-	MyMusicTreeModelNode*   m_ninth;
-
-	// ??
-	bool                    m_classicalMusicIsKnownToControl;
-};
 
 // ----------------------------------------------------------------------------
 // MyCustomRenderer

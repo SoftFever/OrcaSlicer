@@ -144,7 +144,7 @@ wxSizer		*m_sizer_object_buttons = nullptr;
 wxSizer		*m_sizer_part_buttons = nullptr;
 wxSizer		*m_sizer_object_movers = nullptr;
 wxDataViewCtrl			*m_objects_ctrl = nullptr;
-MyObjectTreeModel		*m_objects_model = nullptr;
+PrusaObjectDataViewModel		*m_objects_model = nullptr;
 wxCollapsiblePane		*m_collpane_settings = nullptr;
 int			m_event_object_selection_changed = 0;
 int			m_event_object_settings_changed = 0;
@@ -815,7 +815,7 @@ unsigned get_colour_approx_luma(const wxColour &colour)
 wxDataViewCtrl*		get_objects_ctrl() {
 	return m_objects_ctrl;
 }
-MyObjectTreeModel*	get_objects_model() {
+PrusaObjectDataViewModel*	get_objects_model() {
 	return m_objects_model;
 }
 
@@ -925,36 +925,28 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 {
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 	m_objects_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+	
 	auto objects_sz = new wxBoxSizer(wxVERTICAL);
 	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT, 20);
 
-	m_objects_model = new MyObjectTreeModel;
+	m_objects_model = new PrusaObjectDataViewModel;
 	m_objects_ctrl->AssociateModel(m_objects_model);
 #if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 	m_objects_ctrl->EnableDragSource(wxDF_UNICODETEXT);
 	m_objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
-	// column 0 of the view control:
-
-	wxDataViewTextRenderer *tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-	wxDataViewColumn *column00 = new wxDataViewColumn("Name", tr, 0, 110, wxALIGN_LEFT,
-		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	m_objects_ctrl->AppendColumn(column00);
+	// column 0(Icon+Text) of the view control:
+	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 150,
+					wxALIGN_LEFT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
-
-	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-	wxDataViewColumn *column01 = new wxDataViewColumn("Copy", tr, 1, 75, wxALIGN_CENTER_HORIZONTAL,
-		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	m_objects_ctrl->AppendColumn(column01);
+	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 65,
+		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 
 	// column 2 of the view control:
-
-	tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-	wxDataViewColumn *column02 = new wxDataViewColumn("Scale", tr, 2, 80, wxALIGN_CENTER_HORIZONTAL,
-		wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-	m_objects_ctrl->AppendColumn(column02);
+	m_objects_ctrl->AppendTextColumn(_(L("Scale")), 2, wxDATAVIEW_CELL_INERT, 70,
+		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
@@ -988,6 +980,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		auto show_obj_sizer = m_objects_model->GetParent(item) == wxDataViewItem(0);
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
+		m_sizer_object_movers->Show(!show_obj_sizer);
 		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
 		m_collpane_settings->Show(true);
 	});

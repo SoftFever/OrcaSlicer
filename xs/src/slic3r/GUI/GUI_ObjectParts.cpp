@@ -2,11 +2,12 @@
 #include "GUI_ObjectParts.hpp"
 #include "Model.hpp"
 #include "wxExtensions.hpp"
+#include "LambdaObjectDialog.hpp"
+#include "../../libslic3r/Utils.hpp"
 
 #include <wx/msgdlg.h>
 #include <wx/frame.h>
 #include <boost/filesystem.hpp>
-#include "LambdaObjectDialog.hpp"
 
 namespace Slic3r
 {
@@ -130,8 +131,10 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 
 	parts_changed(obj_idx);
 
+	const std::string icon_name = is_modifier ? "plugin.png" : "package.png";
+	auto icon = wxIcon(Slic3r::GUI::from_u8(Slic3r::var(icon_name)), wxBITMAP_TYPE_PNG);
 	for (int i = 0; i < part_names.size(); ++i)
-		objects_ctrl->Select(objects_model->AddChild(item, part_names.Item(i)));
+		objects_ctrl->Select(objects_model->AddChild(item, part_names.Item(i), icon));
 }
 
 void parts_changed(int obj_idx)

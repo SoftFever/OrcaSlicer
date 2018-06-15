@@ -26,7 +26,7 @@ class wxFileDialog;
 class wxStaticBitmap;
 class wxFont;
 class wxDataViewCtrl;
-class MyObjectTreeModel;
+class PrusaObjectDataViewModel;
 
 namespace Slic3r { 
 
@@ -149,7 +149,7 @@ const wxFont& bold_font();
 void open_model(wxWindow *parent, wxArrayString& input_files);
 
 wxDataViewCtrl*		get_objects_ctrl ();
-MyObjectTreeModel*	get_objects_model();
+PrusaObjectDataViewModel*	get_objects_model();
 ModelObjectPtrs&	get_objects();
 const int&			get_event_object_settings_changed();
 wxFrame*			get_main_frame();
