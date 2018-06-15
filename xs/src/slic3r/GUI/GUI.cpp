@@ -4,11 +4,8 @@
 #include <assert.h>
 #include <cmath>
 
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
 
 #if __APPLE__
@@ -25,7 +22,6 @@
 #undef max
 #endif
 #include "boost/nowide/convert.hpp"
-#pragma comment(lib, "user32.lib")
 #endif
 
 #include <wx/app.h>
@@ -41,6 +37,7 @@
 #include <wx/window.h>
 #include <wx/msgdlg.h>
 #include <wx/settings.h>
+#include <wx/display.h>
 
 #include "wxExtensions.hpp"
 
@@ -55,9 +52,11 @@
 #include "Preferences.hpp"
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
+#include "FirmwareDialog.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+
 
 namespace Slic3r { namespace GUI {
 
@@ -84,83 +83,6 @@ void enable_screensaver()
     #elif _WIN32
     SetThreadExecutionState(ES_CONTINUOUS);
     #endif
-}
-
-std::vector<std::string> scan_serial_ports()
-{
-    std::vector<std::string> out;
-#ifdef _WIN32
-    // 1) Open the registry key SERIALCOM.
-    HKEY hKey;
-    LONG lRes = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"HARDWARE\\DEVICEMAP\\SERIALCOMM", 0, KEY_READ, &hKey);
-    assert(lRes == ERROR_SUCCESS);
-    if (lRes == ERROR_SUCCESS) {
-        // 2) Get number of values of SERIALCOM key.
-        DWORD        cValues;                   // number of values for key 
-        {
-            TCHAR    achKey[255];               // buffer for subkey name
-            DWORD    cbName;                    // size of name string 
-            TCHAR    achClass[MAX_PATH] = TEXT("");  // buffer for class name 
-            DWORD    cchClassName = MAX_PATH;   // size of class string 
-            DWORD    cSubKeys=0;                // number of subkeys 
-            DWORD    cbMaxSubKey;               // longest subkey size 
-            DWORD    cchMaxClass;               // longest class string 
-            DWORD    cchMaxValue;               // longest value name 
-            DWORD    cbMaxValueData;            // longest value data 
-            DWORD    cbSecurityDescriptor;      // size of security descriptor 
-            FILETIME ftLastWriteTime;           // last write time 
-            // Get the class name and the value count.
-            lRes = RegQueryInfoKey(
-                hKey,                    // key handle 
-                achClass,                // buffer for class name 
-                &cchClassName,           // size of class string 
-                NULL,                    // reserved 
-                &cSubKeys,               // number of subkeys 
-                &cbMaxSubKey,            // longest subkey size 
-                &cchMaxClass,            // longest class string 
-                &cValues,                // number of values for this key 
-                &cchMaxValue,            // longest value name 
-                &cbMaxValueData,         // longest value data 
-                &cbSecurityDescriptor,   // security descriptor 
-                &ftLastWriteTime);       // last write time
-            assert(lRes == ERROR_SUCCESS);
-        }
-        // 3) Read the SERIALCOM values.
-        {
-            DWORD dwIndex = 0;
-            for (int i = 0; i < cValues; ++ i, ++ dwIndex) {
-                wchar_t valueName[2048];
-                DWORD	valNameLen = 2048;
-                DWORD	dataType;
-				wchar_t data[2048];
-				DWORD	dataSize = 4096;
-				lRes = ::RegEnumValueW(hKey, dwIndex, valueName, &valNameLen, nullptr, &dataType, (BYTE*)&data, &dataSize);
-                if (lRes == ERROR_SUCCESS && dataType == REG_SZ && valueName[0] != 0)
-					out.emplace_back(boost::nowide::narrow(data));
-            }
-        }
-        ::RegCloseKey(hKey);
-    }
-#else
-    // UNIX and OS X
-    std::initializer_list<const char*> prefixes { "ttyUSB" , "ttyACM", "tty.", "cu.", "rfcomm" };
-    for (auto &dir_entry : boost::filesystem::directory_iterator(boost::filesystem::path("/dev"))) {
-        std::string name = dir_entry.path().filename().string();
-        for (const char *prefix : prefixes) {
-            if (boost::starts_with(name, prefix)) {
-                out.emplace_back(dir_entry.path().string());
-                break;
-            }
-        }
-    }
-#endif
-
-    out.erase(std::remove_if(out.begin(), out.end(), 
-        [](const std::string &key){ 
-            return boost::starts_with(key, "Bluetooth") || boost::starts_with(key, "FireFly"); 
-        }),
-        out.end());
-    return out;
 }
 
 bool debugged()
@@ -383,8 +305,11 @@ enum ConfigMenuIDs {
 	ConfigMenuUpdate,
 	ConfigMenuPreferences,
 	ConfigMenuLanguage,
+	ConfigMenuFlashFirmware,
 	ConfigMenuCnt,
 };
+
+static wxString dots("…", wxConvUTF8);
 
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
@@ -393,14 +318,18 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 
     const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + "\u2026", 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+"\u2026",	_(L("Inspect / activate configuration snapshots")));
+   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + dots, 			config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,	_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
-   	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
+// 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
-   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+"\u2026\tCtrl+,", 		_(L("Application preferences")));
-   	local_menu->AppendSeparator();
+   	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+dots+"\tCtrl+,", 		_(L("Application preferences")));
    	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
+   	local_menu->AppendSeparator();
+	local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
+	// TODO: for when we're able to flash dictionaries
+	// local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+
 	local_menu->Bind(wxEVT_MENU, [config_id_base, event_language_change, event_preferences_changed](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case ConfigMenuWizard:
@@ -430,8 +359,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 		    			Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *g_AppConfig).id);
 		    		g_PresetBundle->load_presets(*g_AppConfig);
 		    		// Load the currently selected preset into the GUI, update the preset selection box.
-					for (Tab *tab : g_tabs_list)
-						tab->load_current_preset();
+					load_current_presets();
 		    	}
 		    }
 		    break;
@@ -455,10 +383,20 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				}
 			}
 			break;
-		}		
+		}
+		case ConfigMenuFlashFirmware:
+			FirmwareDialog::run(g_wxMainFrame);
+			break;
+		default:
+			break;
 		}
 	});
 	menu->Append(local_menu, _(L("&Configuration")));
+}
+
+void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
+{
+    add_config_menu(menu, event_preferences_changed, event_language_change);
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -507,12 +445,16 @@ void config_wizard(int reason)
     if (! check_unsaved_changes())
     	return;
 
-	ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
-	wizard.run(g_PresetBundle, g_PresetUpdater);
+	try {
+		ConfigWizard wizard(nullptr, static_cast<ConfigWizard::RunReason>(reason));
+		wizard.run(g_PresetBundle, g_PresetUpdater);
+	}
+	catch (const std::exception &e) {
+		show_error(nullptr, e.what());
+	}
 
-    // Load the currently selected preset into the GUI, update the preset selection box.
-	for (Tab *tab : g_tabs_list)
-		tab->load_current_preset();
+	// Load the currently selected preset into the GUI, update the preset selection box.
+	load_current_presets();
 }
 
 void open_preferences_dialog(int event_preferences)
@@ -664,6 +606,13 @@ void add_created_tab(Tab* panel)
 	g_wxTabPanel->AddPage(panel, panel->title());
 }
 
+void load_current_presets()
+{
+	for (Tab *tab : g_tabs_list) {
+		tab->load_current_preset();
+	}
+}
+
 void show_error(wxWindow* parent, const wxString& message) {
 	ErrorDialog msg(parent, message);
 	msg.ShowModal();
@@ -671,7 +620,7 @@ void show_error(wxWindow* parent, const wxString& message) {
 
 void show_error_id(int id, const std::string& message) {
 	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
-	show_error(parent, message);
+	show_error(parent, wxString::FromUTF8(message.data()));
 }
 
 void show_info(wxWindow* parent, const wxString& message, const wxString& title){
@@ -809,8 +758,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
-//	const wxArrayInt& ar = preset_sizer->GetColWidths();
-// 	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front(); // doesn't work
+	const wxArrayInt& ar = preset_sizer->GetColWidths();
+	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front()-4; // doesn't work
 	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
@@ -900,7 +849,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
     Line line = { "", "" };
         line.widget = [config](wxWindow* parent){
-			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + "\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(g_wiping_dialog_button);
 			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
@@ -985,11 +934,67 @@ int get_export_option(wxFileDialog* dlg)
 
 }
 
+void get_current_screen_size(unsigned &width, unsigned &height)
+{
+	wxDisplay display(wxDisplay::GetFromWindow(g_wxMainFrame));
+	const auto disp_size = display.GetClientArea();
+	width = disp_size.GetWidth();
+	height = disp_size.GetHeight();
+}
+
 void about()
 {
     AboutDialog dlg;
     dlg.ShowModal();
     dlg.Destroy();
+}
+
+void desktop_open_datadir_folder()
+{
+	// Execute command to open a file explorer, platform dependent.
+	// FIXME: The const_casts aren't needed in wxWidgets 3.1, remove them when we upgrade.
+
+	const auto path = data_dir();
+#ifdef _WIN32
+		const auto widepath = wxString::FromUTF8(path.data());
+		const wchar_t *argv[] = { L"explorer", widepath.GetData(), nullptr };
+		::wxExecute(const_cast<wchar_t**>(argv), wxEXEC_ASYNC, nullptr);
+#elif __APPLE__
+		const char *argv[] = { "open", path.data(), nullptr };
+		::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr);
+#else
+		const char *argv[] = { "xdg-open", path.data(), nullptr };
+
+		// Check if we're running in an AppImage container, if so, we need to remove AppImage's env vars,
+		// because they may mess up the environment expected by the file manager.
+		// Mostly this is about LD_LIBRARY_PATH, but we remove a few more too for good measure.
+		if (wxGetEnv("APPIMAGE", nullptr)) {
+			// We're running from AppImage
+			wxEnvVariableHashMap env_vars;
+			wxGetEnvMap(&env_vars);
+
+			env_vars.erase("APPIMAGE");
+			env_vars.erase("APPDIR");
+			env_vars.erase("LD_LIBRARY_PATH");
+			env_vars.erase("LD_PRELOAD");
+			env_vars.erase("UNION_PRELOAD");
+
+			wxExecuteEnv exec_env;
+			exec_env.env = std::move(env_vars);
+
+			wxString owd;
+			if (wxGetEnv("OWD", &owd)) {
+				// This is the original work directory from which the AppImage image was run,
+				// set it as CWD for the child process:
+				exec_env.cwd = std::move(owd);
+			}
+
+			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, &exec_env);
+		} else {
+			// Looks like we're NOT running from AppImage, we'll make no changes to the environment.
+			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
+		}
+#endif
 }
 
 } }

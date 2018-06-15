@@ -1459,7 +1459,6 @@ void PrintObject::_make_perimeters()
         size_t region_id = region_it - this->_print->regions.begin();
         const PrintRegion &region = **region_it;
         
-        
         if (!region.config.extra_perimeters
             || region.config.perimeters == 0
             || region.config.fill_density == 0

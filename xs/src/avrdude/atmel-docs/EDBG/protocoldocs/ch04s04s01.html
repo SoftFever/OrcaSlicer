@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+<meta content="IE=edge" http-equiv="X-UA-Compatible" />
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+<title>CMD: QUERY -  - Atmel EDBG-based Tools Protocols</title><meta content="DocBook XSL Stylesheets V1.78.1" name="generator" /><link rel="home" href="index.html" title="Atmel EDBG-based Tools Protocols" /><link rel="up" href="ch04s04.html" title="Discovery Protocol Definition" /><link rel="prev" href="ch04s04.html" title="Discovery Protocol Definition" /><link rel="next" href="section_jdx_m11_sl.html" title="Discovery QUERY contexts" /><meta content="CMD: QUERY" name="Section-title" /><script type="text/javascript">
+			//The id for tree cookie
+			var treeCookieId = "treeview-10619";
+			var language = "en";
+			var w = new Object();
+			//Localization
+			txt_filesfound = 'Results';
+			txt_enter_at_least_1_char = "You must enter at least one character.";
+			txt_browser_not_supported = "JavaScript is disabled on your browser. Please enable JavaScript to enjoy all the features of this site.";
+			txt_please_wait = "Please wait. Search in progress...";
+			txt_results_for = "Results for: ";
+		</script><link type="image/x-icon" href="../favicon.ico" rel="shortcut icon" /><link href="../common/css/positioning.css" type="text/css" rel="stylesheet" /><link href="../common/jquery/theme-redmond/jquery-ui-1.8.2.custom.css" type="text/css" rel="stylesheet" /><link href="../common/jquery/treeview/jquery.treeview.css" type="text/css" rel="stylesheet" /><style type="text/css">
+			#noscript{
+			font-weight:bold;
+			background-color:#55AA55;
+			font-weight:bold;
+			height:25spx;
+			z-index:3000;
+			top:0px;
+			width:100%;
+			position:relative;
+			border-bottom:solid 5px black;
+			text-align:center;
+			color:white;
+			}
+			
+			input{
+			margin-bottom:5px;
+			margin-top:2px;
+			}
+			.folder{
+			display:block;
+			height:22px;
+			padding-left:20px;
+			background:transparent url(../common/jquery/treeview/images/folder.gif) 0 0px no-repeat;
+			}
+			.dochome{
+			display:block;
+			margin:10px 0 0 0;
+			padding-left:20px;
+			background:transparent url(../common/images/Library.png) 0 0px no-repeat;
+			}
+			.root{
+			display:block;
+			margin:10px 0 0 2px;
+			padding-left:20px;
+			background:transparent url(../common/images/Book_Open.png) 0 0px no-repeat;
+			}
+			.dochome a,
+			.root a {
+			text-decoration:none;
+			font-size:12px;
+			color:#517291;
+			}
+			span.contentsTab{
+			padding-left:20px;
+			background:url(../common/images/toc-icon.png) no-repeat 0 center;
+			}
+			span.searchTab{
+			padding-left:20px;
+			background:url(../common/images/search-icon.png) no-repeat 0 center;
+			}
+			
+			/* Overide jquery treeview's defaults for ul. */
+			.treeview ul{
+			background-color:transparent;
+			margin-top:4px;
+			}
+			#webhelp-currentid{
+			background-color:#D8D8D8 !important;
+			}
+			.treeview .hover{
+			color:black;
+			}
+			.filetree li span a{
+			text-decoration:none;
+			font-size:12px;
+			color:#517291;
+			}
+			
+			.filetree span.file {
+			background: url(../common/images/Document_Text.png) 0 0 no-repeat;
+			}
+			
+			/* Override jquery-ui's default css customizations. These are supposed to take precedence over those.*/
+			.ui-widget-content{
+			border:0px;
+			background:none;
+			color:none;
+			}
+			.ui-widget-header{
+			color:#e9e8e9;
+			border-left:1px solid #e5e5e5;
+			border-right:1px solid #e5e5e5;
+			border-bottom:1px solid #bbc4c5;
+			border-top:4px solid #e5e5e5;
+			border:medium none;
+			background:#F4F4F4; /* old browsers */
+			background:-moz-linear-gradient(top, #F4F4F4 0%, #E6E4E5 100%); /* firefox */
+			background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #F4F4F4), color-stop(100%, #E6E4E5)); /* webkit */
+			font-weight:none;
+			}
+			.ui-widget-header a{
+			color:none;
+			}
+			.ui-state-default,
+			.ui-widget-content .ui-state-default,
+			.ui-widget-header .ui-state-default{
+			border:none;
+			background:none;
+			font-weight:none;
+			color:none;
+			}
+			.ui-state-default a,
+			.ui-state-default a:link,
+			.ui-state-default a:visited{
+			color:black;
+			text-decoration:none;
+			}
+			.ui-state-hover,
+			.ui-widget-content .ui-state-hover,
+			.ui-widget-header .ui-state-hover,
+			.ui-state-focus,
+			.ui-widget-content .ui-state-focus,
+			.ui-widget-header .ui-state-focus{
+			border:none;
+			background:none;
+			font-weight:none;
+			color:none;
+			}
+			
+			.ui-state-active,
+			.ui-widget-content .ui-state-active,
+			.ui-widget-header .ui-state-active{
+			border:none;
+			background:none;
+			font-weight:none;
+			color:none;
+			}
+			.ui-state-active a,
+			.ui-state-active a:link,
+			.ui-state-active a:visited{
+			color:black;
+			text-decoration:none;
+			background:#C6C6C6; /* old browsers */
+			background:-moz-linear-gradient(top, #C6C6C6 0%, #D8D8D8 100%); /* firefox */
+			background:-webkit-gradient(linear, left top, left bottom, color-stop(0%, #C6C6C6), color-stop(100%, #D8D8D8)); /* webkit */
+			-webkit-border-radius:15px;
+			-moz-border-radius:10px;
+			border:1px solid #f1f1f1;
+			}
+			.ui-corner-all{
+			border-radius:0 0 0 0;
+			}
+			
+			.ui-tabs{
+			padding:.2em;
+			}
+			.ui-tabs .ui-tabs-panel {
+			padding-top: 6px;
+			}
+			.ui-tabs .ui-tabs-nav li{
+			top:0px;
+			margin:-2px 0 1px;
+			text-transform:uppercase;
+			font-size:10.5px;
+			}
+			.ui-tabs .ui-tabs-nav li a{
+			padding:.25em 2em .25em 1em;
+			margin:.5em;
+			text-shadow:0 1px 0 rgba(255, 255, 255, .5);
+			}
+			/**
+			*	Basic Layout Theme
+			* 
+			*	This theme uses the default layout class-names for all classes
+			*	Add any 'custom class-names', from options: paneClass, resizerClass, togglerClass
+			*/
+			
+			.ui-layout-resizer{ /* all 'resizer-bars' */
+			background:#DDD;
+			top:100px
+			}
+			
+			.ui-layout-toggler{ /* all 'toggler-buttons' */
+			background:#AAA;
+			}
+		</style><!--[if IE]>
+	<link rel="stylesheet" type="text/css" href="../common/css/ie.css"/>
+	<![endif]--><script src="../common/browserDetect.js" type="text/javascript"><!----></script><script src="../common/jquery/jquery-1.7.2.min.js" type="text/javascript"><!----></script><script src="../common/jquery/jquery.ui.all.js" type="text/javascript"><!----></script><script src="../common/jquery/jquery.cookie.js" type="text/javascript"><!----></script><script src="../common/jquery/treeview/jquery.treeview.min.js" type="text/javascript"><!----></script><script src="../common/jquery/layout/jquery.layout.js" type="text/javascript"><!----></script><script src="search/l10n.js" type="text/javascript"><!----></script><script src="search/htmlFileInfoList.js" type="text/javascript"><!----></script><script src="search/nwSearchFnt.js" type="text/javascript"><!----></script><script src="search/stemmers/en_stemmer.js" type="text/javascript" /><script src="search/index-1.js" type="text/javascript"><!----></script><script src="search/index-2.js" type="text/javascript"><!----></script><script src="search/index-3.js" type="text/javascript"><!----></script><meta name="date" content="" /><meta name="dc.date.created" content="" /><link rel="stylesheet" type="text/css" href="../common/css/docbook.css" /><link media="print" rel="stylesheet" type="text/css" href="../common/css/print.css" /><script type="text/javascript">
+				  var _gaq = _gaq || [];
+				  _gaq.push(['_setAccount', 'UA-41389295-1']);
+				  _gaq.push(['_trackPageview']);
+
+				  (function() {
+					var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+					ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+					var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+				  })();
+		</script></head><body><noscript><link rel="stylesheet" type="text/css" href="../common/css/print.css" /><div id="noscript">JavaScript is disabled on your browser. Please enable JavaScript to enjoy all the features of this site.</div></noscript><div id="header"><a href="http://www.atmel.com/webdoc"><img id="logo" alt="Atmel Logo" src="../common/images/logo.png" /></a><h1>Atmel EDBG-based Tools Protocols<br />Discovery Protocol Definition</h1><div id="navheader"><!----><table class="navLinks"><tr><td><a title="Hide TOC tree" tabindex="5" class="pointLeft" onclick="myLayout.toggle('west')" href="#" id="showHideButton">Sidebar
+                            </a></td><td><a tabindex="5" class="navLinkPrevious" accesskey="p" href="ch04s04.html">Prev</a>
+                                        |
+                                        <a tabindex="5" class="navLinkUp" accesskey="u" href="ch04s04.html">Up</a>
+                                    |
+                                    <a tabindex="5" class="navLinkNext" accesskey="n" href="section_jdx_m11_sl.html">Next</a></td></tr></table></div></div><div id="content"><!----><div class="section"><div xmlns="" class="titlepage"><div><div><h3 xmlns="http://www.w3.org/1999/xhtml" class="title"><a id="N10B29" />CMD: QUERY</h3></div></div></div><p xmlns="http://www.w3.org/1999/xhtml">Used to discover the capabilities of the tool.</p><p>For lists of valid query types, see <a class="xref" href="section_jdx_m11_sl.html" title="Discovery QUERY contexts">the section called &ldquo;Discovery QUERY contexts&rdquo;</a>.</p><p>
+                </p><div class="table"><a id="N10B36" /><p class="title"><strong>Table&nbsp;48.&nbsp;Query</strong></p><div class="table-contents"><table summary="Query" border="1"><colgroup><col /><col /><col /></colgroup><thead><tr><th>Field</th><th>Size</th><th>Description</th></tr></thead><tbody><tr><td>QUERY (0x00)</td><td>1 byte</td><td>Command ID</td></tr><tr><td>Version (0x00)</td><td>1 byte</td><td>Command version</td></tr><tr><td>Query context</td><td>1 byte</td><td>Type of query to execute</td></tr></tbody></table></div></div><p><br class="table-break" />
+            </p><p>Responses:</p><p>
+                </p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>LIST</p></li><li class="listitem"><p>FAILED</p></li></ul></div><p>
+            </p></div><script src="../common/main.js" type="text/javascript"><!----></script><script src="../common/splitterInit.js" type="text/javascript"><!----></script><div class="navfooter"><table summary="Navigation footer" width="100%"><tr><td align="left" width="40%"><a accesskey="p" href="ch04s04.html">Prev</a>&nbsp;</td><td align="center" width="20%"><a accesskey="u" href="ch04s04.html">Up</a></td><td align="right" width="40%">&nbsp;<a accesskey="n" href="section_jdx_m11_sl.html">Next</a></td></tr><tr><td valign="top" align="left" width="40%">&nbsp;</td><td align="center" width="20%"><a accesskey="h" href="index.html">Home</a></td><td valign="top" align="right" width="40%">&nbsp;</td></tr></table></div></div><div id="sidebar"><div style="padding-top:3px;" id="leftnavigation"><div id="tabs"><ul><li><a tabindex="1" style="outline:0;" href="#treeDiv"><span class="contentsTab">Contents</span></a></li><li><a onclick="doSearch()" tabindex="1" style="outline:0;" href="#searchDiv"><span class="searchTab">Search</span></a></li></ul><div id="treeDiv"><img style="display:block;" id="tocLoading" alt="loading table of contents..." src="../common/images/loading.gif" /><span class="dochome"><a href="../index.html" tabindex="1">Documentation Home</a></span><span class="root"><a href="index.html" tabindex="1">Atmel EDBG-based Tools Protocols</a></span><div style="display:none" id="ulTreeDiv"><ul class="filetree" id="tree"><li><span class="file"><a tabindex="1" href="pr01.html">Preface</a></span></li><li><span class="file"><a tabindex="1" href="protocoldocs.Introduction.html">Introduction</a></span><ul><li><span class="file"><a tabindex="1" href="ch01s01.html">EDBG interface overview</a></span></li><li><span class="file"><a tabindex="1" href="ch01s02.html">Atmel EDBG-based tool implementations</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.cmsis_dap.html">CMSIS-DAP</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s01.html">CMSIS-DAP protocol</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02.html">CMSIS-DAP vendor commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s02s01.html">AVR-target specific vendor commands</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s02.html">ARM-target specific vendor commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s02s02s01.html">Erase pin</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s02s02.html">Serial trace</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch02s02s03.html">EDBG-specific vendor commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s02s03s01.html">Get configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s03s02.html">Set configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s03s03.html">EDBG GET request</a></span></li><li><span class="file"><a tabindex="1" href="ch02s02s03s04.html">EDBG SET request</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="section_serial_trace.html">Serial trace commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s03s01.html">Set transport mode</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s02.html">Set capture mode</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s03.html">Set baud rate</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s04.html">Start</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s05.html">Stop</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s06.html">Get data</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s07.html">Get status</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s08.html">Get buffer size</a></span></li><li><span class="file"><a tabindex="1" href="ch02s03s09.html">Signon</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch02s04.html">Enveloped AVR commands, responses &amp; events</a></span><ul><li><span class="file"><a tabindex="1" href="ch02s04s01.html">Wrapping AVR commands</a></span></li><li><span class="file"><a tabindex="1" href="ch02s04s02.html">Unwrapping AVR responses</a></span></li><li><span class="file"><a tabindex="1" href="ch02s04s03.html">Unwrapping AVR events</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.edbg_ctrl_protocol.html">EDBG Control Protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s01.html">Protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s01s01.html">QUERY</a></span><ul><li><span class="file"><a tabindex="1" href="section_edbg_query_contexts.html">EDBG QUERY contexts</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch03s01s02.html">SET</a></span></li><li><span class="file"><a tabindex="1" href="ch03s01s03.html">GET</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s01s03s01.html">SET/GET parameters</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="ch03s02.html">Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch03s02s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch03s02s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch03s02s03.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch03s02s04.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="section_edbg_ctrl_setget_params.html">EDBGCTRL ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avrprotocol.Overview.html">AVR communication protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s01.html">Overview</a></span></li><li><span class="file"><a tabindex="1" href="ch04s02.html">Framing</a></span></li><li><span class="file"><a tabindex="1" href="ch04s03.html">Protocol sub-set overview</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04.html">Discovery Protocol Definition</a></span><ul><li id="webhelp-currentid"><span class="file"><a tabindex="1" href="ch04s04s01.html">CMD: QUERY</a></span></li><li><span class="file"><a tabindex="1" href="section_jdx_m11_sl.html">Discovery QUERY contexts</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04s03.html">RSP: LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04s04.html">RSP: FAILED</a></span></li><li><span class="file"><a tabindex="1" href="ch04s04s05.html">Discovery Protocol ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05.html">Housekeeping Protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s05s01.html">CMD: QUERY</a></span></li><li><span class="file"><a tabindex="1" href="section_i5v_3yz_rl.html">Housekeeping QUERY contexts</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s03.html">CMD: SET</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s04.html">CMD: GET</a></span></li><li><span class="file"><a tabindex="1" href="section_t1f_hb1_sl.html">Housekeeping SET/GET parameters</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06.html">Housekeeping Commands</a></span><ul><li><span class="file"><a tabindex="1" href="section_housekeeping_start_session.html">Start session</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s02.html">End Session</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s03.html">Firmware Upgrade</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s04.html">JTAG scan-chain detection</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s06s05.html">Calibrate Oscillator</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05s07.html">Housekeeping Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s05s07s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s07s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s07s03.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s07s04.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05s08.html">Events</a></span><ul><li><span class="file"><a tabindex="1" href="ch04s05s08s01.html">Event: power</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s08s02.html">Event: sleep</a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s08s03.html">Event: external reset</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch04s05s09.html">
+                Hints and tips
+            </a></span></li><li><span class="file"><a tabindex="1" href="ch04s05s10.html">Housekeeping ID definitions</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avr32protocol.html">AVR32 generic protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s01.html">Protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s01s01.html">QUERY</a></span><ul><li><span class="file"><a tabindex="1" href="section_qhb_x1c_sl.html">AVR32 QUERY contexts</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s01s02.html">SET</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s03.html">GET</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr32_setget_params.html">SET/GET parameters</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s01s04.html">Activate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s05.html">Deactivate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s06.html">Get ID</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s07.html">Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s08.html">Halt</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s09.html">Reset</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s10.html">Step</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s11.html">Read</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s12.html">Write</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr32_memtypes.html">Memory Types</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s01s13.html">TAP</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s14.html">Is protected</a></span></li><li><span class="file"><a tabindex="1" href="ch05s01s15.html">Erase Section</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s02.html">Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s02s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s03.html">ID</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s04.html">PC</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s05.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch05s02s06.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s03.html">Hints and tips</a></span><ul><li><span class="file"><a tabindex="1" href="ch05s03s01.html">Configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch05s03s02.html">Activate and deactivate physical</a></span></li><li><span class="file"><a tabindex="1" href="ch05s03s03.html">Programming and debugging commands</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch05s04.html">AVR32GENERIC ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avr8protocol.html">AVR8 generic protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s01.html">Protocol Commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s01s01.html">QUERY</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr8_query_contexts.html">AVR8 QUERY contexts</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s01s02.html">SET</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s03.html">GET</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html">SET/GET parameters</a></span><ul><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html#N11932">Device context: debugWIRE targets</a></span></li><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html#N119D3">Device context: megaAVR JTAG targets</a></span></li><li><span class="file"><a tabindex="1" href="section_avr8_setget_params.html#section_avr8_xmega_device_context">Device context: AVR XMEGA targets</a></span></li></ul></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s01s04.html">Activate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s05.html">Deactivate Physical</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s06.html">Get ID</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s07.html">Attach</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s08.html">Detach</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s09.html">Reset</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s10.html">Stop</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s11.html">Run</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s12.html">Run To</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s13.html">Step</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s14.html">PC read</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s15.html">PC write</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s16.html">Prog Mode Enter</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s17.html">Prog Mode Leave</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s18.html">Disable debugWIRE</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s19.html">Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s20.html">CRC</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s21.html">Memory Read</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s22.html">Memory Read masked</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s23.html">Memory Write</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s24.html">Page Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s25.html">Hardware Breakpoint Set</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s26.html">Hardware Breakpoint Clear</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s27.html">Software Breakpoint Set</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s28.html">Software Breakpoint Clear</a></span></li><li><span class="file"><a tabindex="1" href="ch06s01s29.html">Software Breakpoint Clear All</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s02.html">Responses</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s02s01.html">OK</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s02.html">LIST</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s03.html">PC</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s04.html">DATA</a></span></li><li><span class="file"><a tabindex="1" href="ch06s02s05.html">FAILED</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s03.html">Events</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s03s01.html">Event: Break</a></span></li><li><span class="file"><a tabindex="1" href="ch06s03s02.html">Event: IDR message</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="section_avr8_memtypes.html">Memory Types</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s04s01.html">debugWIRE memtypes</a></span></li><li><span class="file"><a tabindex="1" href="ch06s04s02.html">megaAVR (JTAG) OCD memtypes</a></span></li><li><span class="file"><a tabindex="1" href="ch06s04s03.html">AVR XMEGA memtypes</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s05.html">Hints and tips:</a></span><ul><li><span class="file"><a tabindex="1" href="ch06s05s01.html">Configuration</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s02.html">Activate and deactivate physical</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s03.html">Programming session control</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s04.html">Debug session control</a></span></li><li><span class="file"><a tabindex="1" href="ch06s05s05.html">Flow control</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch06s06.html">AVR8GENERIC ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.avrispprotocol.html">AVR ISP protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch07s01.html">SPI programming protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch07s01s01.html">SPI Load Address</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s02.html">SPI Set Baud</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s03.html">SPI Get Baud</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s04.html">SPI Enter Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s05.html">SPI Leave Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s06.html">SPI Chip Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s07.html">SPI Program Flash</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s08.html">SPI Read Flash</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s09.html">SPI Program EEPROM</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s10.html">SPI Read EEPROM</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s11.html">SPI Program Fuse</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s12.html">SPI Read Fuse</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s13.html">SPI Program Lock</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s14.html">SPI Read Lock</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s15.html">SPI Read Signature</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s16.html">SPI Read OSCCAL</a></span></li><li><span class="file"><a tabindex="1" href="ch07s01s17.html">SPI Multi</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch07s02.html">SPI programming protocol responses</a></span></li><li><span class="file"><a tabindex="1" href="ch07s03.html">ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="protocoldocs.tpiprotocol.html">TPI Protocol</a></span><ul><li><span class="file"><a tabindex="1" href="ch08s01.html">TPI protocol commands</a></span><ul><li><span class="file"><a tabindex="1" href="ch08s01s01.html">TPI Enter Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s02.html">TPI Leave Programming Mode</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s03.html">TPI Set Parameter</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s04.html">TPI Erase</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s05.html">TPI Write Memory</a></span></li><li><span class="file"><a tabindex="1" href="ch08s01s06.html">TPI Read Memory</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="ch08s02.html">TPI programming protocol responses</a></span></li><li><span class="file"><a tabindex="1" href="ch08s03.html">ID definitions</a></span></li></ul></li><li><span class="file"><a tabindex="1" href="document.revisions.html">Document Revisions</a></span></li></ul></div></div><div id="searchDiv"><div id="search"><form class="searchForm" name="searchForm" onsubmit="Verifie(searchForm);return false"><div><input tabindex="1" class="searchText" placeholder="Search" type="search" name="textToSearch" id="textToSearch" /> &nbsp; <input tabindex="1" id="doSearch" value="Go" class="searchButton" type="button" onclick="Verifie(searchForm)" /></div></form></div><div id="searchResults"><center /></div><p class="searchHighlight"><a onclick="toggleHighlight()" href="#">Search Highlighter (On/Off)</a></p></div></div></div></div></body></html>

@@ -6,6 +6,7 @@
 
 #include "slic3r/Utils/Http.hpp"
 #include "slic3r/Utils/OctoPrint.hpp"
+#include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
 #include "ButtonsDescription.hpp"
@@ -30,6 +31,8 @@
 
 namespace Slic3r {
 namespace GUI {
+
+static wxString dots("…", wxConvUTF8);
 
 // sub new
 void Tab::create_preset_tab(PresetBundle *preset_bundle)
@@ -1260,7 +1263,7 @@ void TabFilament::build()
 		optgroup->append_single_option_line("filament_density");
 		optgroup->append_single_option_line("filament_cost");
 
-		optgroup = page->new_optgroup(_(L("Temperature ")) +" (\u00B0C)"); // degree sign
+		optgroup = page->new_optgroup(_(L("Temperature ")) + wxString("°C", wxConvUTF8));
 		Line line = { _(L("Extruder")), "" };
 		line.append_option(optgroup->get_option("first_layer_temperature"));
 		line.append_option(optgroup->get_option("temperature"));
@@ -1318,7 +1321,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_toolchange_delay");
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
-			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(ramming_dialog_btn);
             
@@ -1440,7 +1443,7 @@ void TabPrinter::build()
 
 		Line line{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent){
-			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 			//			btn->SetFont(Slic3r::GUI::small_font);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
@@ -1539,7 +1542,7 @@ void TabPrinter::build()
 		optgroup = page->new_optgroup(_(L("OctoPrint upload")));
 
 		auto octoprint_host_browse = [this, optgroup] (wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1588,7 +1591,7 @@ void TabPrinter::build()
 			Line cafile_line = optgroup->create_single_option_line("octoprint_cafile");
 
 			auto octoprint_cafile_browse = [this, optgroup] (wxWindow* parent) {
-				auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+				auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
@@ -1693,7 +1696,7 @@ void TabPrinter::build()
 void TabPrinter::update_serial_ports(){
 	Field *field = get_field("serial_port");
 	Choice *choice = static_cast<Choice *>(field);
-	choice->set_values(scan_serial_ports());
+	choice->set_values(Utils::scan_serial_ports());
 }
 
 void TabPrinter::extruders_count_changed(size_t extruders_count){
@@ -1709,7 +1712,8 @@ void TabPrinter::build_extruder_pages(){
 	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
 	size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
 
-	if (m_extruders_count_old == m_extruders_count || m_extruders_count <= 2)
+	if (m_extruders_count_old == m_extruders_count || 
+		(m_has_single_extruder_MM_page && m_extruders_count == 1))
 	{
 		// if we have a single extruder MM setup, add a page with configuration options:
 		for (int i = 0; i < m_pages.size(); ++i) // first make sure it's not there already
@@ -1717,16 +1721,19 @@ void TabPrinter::build_extruder_pages(){
 				m_pages.erase(m_pages.begin() + i);
 				break;
 			}
-		if (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material")) {
-			// create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
-			auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png", true);
-			auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
-			optgroup->append_single_option_line("cooling_tube_retraction");
-			optgroup->append_single_option_line("cooling_tube_length");
-			optgroup->append_single_option_line("parking_pos_retraction");
-			m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
-		}
+		m_has_single_extruder_MM_page = false;
 	}
+	if (m_extruders_count > 1 && m_config->opt_bool("single_extruder_multi_material") && !m_has_single_extruder_MM_page) {
+		// create a page, but pretend it's an extruder page, so we can add it to m_pages ourselves
+		auto page = add_options_page(_(L("Single extruder MM setup")), "printer_empty.png", true);
+		auto optgroup = page->new_optgroup(_(L("Single extruder multimaterial parameters")));
+		optgroup->append_single_option_line("cooling_tube_retraction");
+		optgroup->append_single_option_line("cooling_tube_length");
+		optgroup->append_single_option_line("parking_pos_retraction");
+		m_pages.insert(m_pages.end() - n_after_single_extruder_MM, page);
+		m_has_single_extruder_MM_page = true;
+	}
+	
 
 	for (auto extruder_idx = m_extruders_count_old; extruder_idx < m_extruders_count; ++extruder_idx){
 		//# build page
@@ -2049,7 +2056,15 @@ bool Tab::may_discard_current_dirty_preset(PresetCollection* presets /*= nullptr
 void Tab::OnTreeSelChange(wxTreeEvent& event)
 {
 	if (m_disable_tree_sel_changed_event) return;
+
+// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
+// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
+// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
+#ifdef __linux__	
+	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
+#else
 	wxWindowUpdateLocker noUpdates(this);
+#endif
 
 	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
@@ -2065,6 +2080,11 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 
 	for (auto& el : m_pages)
 		el.get()->Hide();
+
+#ifdef __linux__
+    no_updates.reset(nullptr);
+#endif
+
 	page->Show();
 	m_hsizer->Layout();
 	Refresh();
@@ -2206,7 +2226,7 @@ void Tab::update_ui_from_settings()
 wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn)
 {
 	*checkbox = new wxCheckBox(parent, wxID_ANY, _(L("All")));
-	*btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+"\u2026", wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+	*btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 
 	(*btn)->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
