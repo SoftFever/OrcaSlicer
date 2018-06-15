@@ -340,6 +340,7 @@ public:
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
         EType m_current;
+        bool m_dragging;
 
     public:
         Gizmos();
@@ -357,6 +358,12 @@ public:
         void set_hover_id(int id);
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
+        bool grabber_contains_mouse() const;
+        void update(const Pointf& mouse_pos);
+
+        bool is_dragging() const;
+        void start_dragging();
+        void stop_dragging();
 
         void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
@@ -368,6 +375,7 @@ public:
         void _render_current_gizmo(const BoundingBoxf3& box) const;
 
         float _get_total_overlay_height() const;
+        GLGizmoBase* _get_current() const;
     };
 
 private:
@@ -586,6 +594,9 @@ private:
     // Convert the screen space coordinate to an object space coordinate.
     // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
     Pointf3 _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
+
+    // Convert the screen space coordinate to world coordinate on the bed.
+    Pointf3 _mouse_to_bed_3d(const Point& mouse_pos);
 
     void _start_timer();
     void _stop_timer();

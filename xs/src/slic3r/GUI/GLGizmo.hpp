@@ -2,6 +2,9 @@
 #define slic3r_GLGizmo_hpp_
 
 #include "../../slic3r/GUI/GLTexture.hpp"
+#include "../../libslic3r/Point.hpp"
+
+#include <vector>
 
 namespace Slic3r {
 
@@ -15,8 +18,18 @@ class GLGizmoBase
 protected:
     static const float BaseColor[3];
     static const float HighlightColor[3];
-    static const float GrabberHalfSize;
-    static const float HoverOffset;
+
+    struct Grabber
+    {
+        static const float HalfSize;
+        static const float HoverOffset;
+
+        Pointf center;
+        float color[3];
+
+        Grabber();
+        void render(bool hover) const;
+    };
 
 public:
     enum EState
@@ -29,10 +42,11 @@ public:
 
 protected:
     EState m_state;
-    // textures are assumed to be square and all with the same size in pixels
-    // no internal check is done
+    // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
+    mutable std::vector<Grabber> m_grabbers;
+    Pointf m_start_drag_position;
 
 public:
     GLGizmoBase();
@@ -46,17 +60,22 @@ public:
     unsigned int get_textures_id() const;
     int get_textures_size() const;
 
+    int get_hover_id() const;
     void set_hover_id(int id);
+
+    void start_dragging();
+    void update(const Pointf& mouse_pos);
 
     void render(const BoundingBoxf3& box) const;
     void render_for_picking(const BoundingBoxf3& box) const;
 
 protected:
     virtual bool on_init() = 0;
+    virtual void on_update(const Pointf& mouse_pos) = 0;
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
-    void render_grabber(const Pointf3& center, bool hover) const;
+    void render_grabbers() const;
 };
 
 class GLGizmoRotate : public GLGizmoBase
@@ -80,6 +99,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual void on_update(const Pointf& mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -104,6 +124,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual void on_update(const Pointf& mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 };

@@ -10,10 +10,54 @@
 namespace Slic3r {
 namespace GUI {
 
+const float GLGizmoBase::Grabber::HalfSize = 2.0f;
+const float GLGizmoBase::Grabber::HoverOffset = 0.5f;
 const float GLGizmoBase::BaseColor[3] = { 1.0f, 1.0f, 1.0f };
 const float GLGizmoBase::HighlightColor[3] = { 1.0f, 0.38f, 0.0f };
-const float GLGizmoBase::GrabberHalfSize = 2.0f;
-const float GLGizmoBase::HoverOffset = 0.5f;
+
+GLGizmoBase::Grabber::Grabber()
+    : center(Pointf(0.0, 0.0))
+{
+    color[0] = 1.0f;
+    color[1] = 1.0f;
+    color[2] = 1.0f;
+}
+
+void GLGizmoBase::Grabber::render(bool hover) const
+{
+    float min_x = (float)center.x - HalfSize;
+    float max_x = (float)center.x + HalfSize;
+    float min_y = (float)center.y - HalfSize;
+    float max_y = (float)center.y + HalfSize;
+
+    ::glColor3f((GLfloat)color[0], (GLfloat)color[1], (GLfloat)color[2]);
+
+    ::glDisable(GL_CULL_FACE);
+    ::glBegin(GL_TRIANGLES);
+    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
+    ::glVertex3f((GLfloat)max_x, (GLfloat)min_y, 0.0f);
+    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
+    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
+    ::glVertex3f((GLfloat)min_x, (GLfloat)max_y, 0.0f);
+    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
+    ::glEnd();
+    ::glEnable(GL_CULL_FACE);
+
+    if (hover)
+    {
+        min_x -= HoverOffset;
+        max_x += HoverOffset;
+        min_y -= HoverOffset;
+        max_y += HoverOffset;
+
+        ::glBegin(GL_LINE_LOOP);
+        ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
+        ::glVertex3f((GLfloat)max_x, (GLfloat)min_y, 0.0f);
+        ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
+        ::glVertex3f((GLfloat)min_x, (GLfloat)max_y, 0.0f);
+        ::glEnd();
+    }
+}
 
 GLGizmoBase::GLGizmoBase()
     : m_state(Off)
@@ -50,9 +94,27 @@ int GLGizmoBase::get_textures_size() const
     return m_textures[Off].get_width();
 }
 
+int GLGizmoBase::get_hover_id() const
+{
+    return m_hover_id;
+}
+
 void GLGizmoBase::set_hover_id(int id)
 {
-    m_hover_id = id;
+    if (id < (int)m_grabbers.size())
+        m_hover_id = id;
+}
+
+void GLGizmoBase::start_dragging()
+{
+    if (m_hover_id != -1)
+        m_start_drag_position = m_grabbers[m_hover_id].center;
+}
+
+void GLGizmoBase::update(const Pointf& mouse_pos)
+{
+    if (m_hover_id != -1)
+        on_update(mouse_pos);
 }
 
 void GLGizmoBase::render(const BoundingBoxf3& box) const
@@ -65,37 +127,11 @@ void GLGizmoBase::render_for_picking(const BoundingBoxf3& box) const
     on_render_for_picking(box);
 }
 
-void GLGizmoBase::render_grabber(const Pointf3& center, bool hover) const
+void GLGizmoBase::render_grabbers() const
 {
-    float min_x = (float)center.x - GrabberHalfSize;
-    float max_x = (float)center.x + GrabberHalfSize;
-    float min_y = (float)center.y - GrabberHalfSize;
-    float max_y = (float)center.y + GrabberHalfSize;
-
-    ::glDisable(GL_CULL_FACE);
-    ::glBegin(GL_TRIANGLES);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)min_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
-    ::glEnd();
-    ::glEnable(GL_CULL_FACE);
-
-    if (hover)
+    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
-        min_x -= HoverOffset;
-        max_x += HoverOffset;
-        min_y -= HoverOffset;
-        max_y += HoverOffset;
-
-        ::glBegin(GL_LINE_LOOP);
-        ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
-        ::glVertex3f((GLfloat)max_x, (GLfloat)min_y, 0.0f);
-        ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
-        ::glVertex3f((GLfloat)min_x, (GLfloat)max_y, 0.0f);
-        ::glEnd();
+        m_grabbers[i].render(m_hover_id == i);
     }
 }
 
@@ -133,7 +169,14 @@ bool GLGizmoRotate::on_init()
     if (!m_textures[On].load_from_file(filename, false))
         return false;
 
+    m_grabbers.push_back(Grabber());
+
     return true;
+}
+
+void GLGizmoRotate::on_update(const Pointf& mouse_pos)
+{
+//    std::cout << "GLGizmoRotate::on_update() - delta (" << delta.x << ", " << delta.y << ")" << std::endl;
 }
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
@@ -161,15 +204,10 @@ void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
     ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
-    const Pointf3& size = box.size();
-    const Pointf3& center = box.center();
-
-    float radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y)) + GrabberOffset;
-    float x = center.x + ::cos(m_angle_z) * radius;
-    float y = center.y + ::sin(m_angle_z) * radius;
-
-    ::glColor3f(1.0f, 1.0f, 254.0f / 255.0f);
-    render_grabber(Pointf3((coordf_t)x, (coordf_t)y, 0.0), false);
+    m_grabbers[0].color[0] = 1.0f;
+    m_grabbers[0].color[1] = 1.0f;
+    m_grabbers[0].color[2] = 254.0f / 255.0f;
+    render_grabbers();
 }
 
 void GLGizmoRotate::_render_circle(const Pointf3& center, float radius) const
@@ -240,16 +278,16 @@ void GLGizmoRotate::_render_reference_radius(const Pointf3& center, float radius
 void GLGizmoRotate::_render_grabber(const Pointf3& center, float radius) const
 {
     float grabber_radius = radius + GrabberOffset;
-    float x = center.x + ::cos(m_angle_z) * grabber_radius;
-    float y = center.y + ::sin(m_angle_z) * grabber_radius;
+    m_grabbers[0].center.x = center.x + ::cos(m_angle_z) * grabber_radius;
+    m_grabbers[0].center.y = center.y + ::sin(m_angle_z) * grabber_radius;
 
     ::glBegin(GL_LINES);
     ::glVertex3f((GLfloat)center.x, (GLfloat)center.y, 0.0f);
-    ::glVertex3f((GLfloat)x, (GLfloat)y, 0.0f);
+    ::glVertex3f((GLfloat)m_grabbers[0].center.x, (GLfloat)m_grabbers[0].center.y, 0.0f);
     ::glEnd();
 
-    ::glColor3fv(HighlightColor);
-    render_grabber(Pointf3((coordf_t)x, (coordf_t)y, 0.0), (m_hover_id != -1));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)HighlightColor, 4 * sizeof(float));
+    render_grabbers();
 }
 
 const float GLGizmoScale::Offset = 5.0f;
@@ -278,7 +316,26 @@ bool GLGizmoScale::on_init()
     if (!m_textures[On].load_from_file(filename, false))
         return false;
 
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        m_grabbers.push_back(Grabber());
+    }
+
     return true;
+}
+
+void GLGizmoScale::on_update(const Pointf& mouse_pos)
+{
+    Pointf center(0.5 * (m_grabbers[1].center.x + m_grabbers[0].center.x), 0.5 * (m_grabbers[3].center.y + m_grabbers[0].center.y));
+
+    coordf_t orig_len = length(m_start_drag_position - center);
+    coordf_t new_len = length(mouse_pos - center);
+
+    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+
+    m_scale_x = (float)ratio;
+    m_scale_y = (float)ratio;
+    m_scale_z = (float)ratio;
 }
 
 void GLGizmoScale::on_render(const BoundingBoxf3& box) const
@@ -295,22 +352,31 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
     coordf_t min_y = center.y - half_scaled_size.y - (coordf_t)Offset;
     coordf_t max_y = center.y + half_scaled_size.y + (coordf_t)Offset;
 
+    m_grabbers[0].center.x = min_x;
+    m_grabbers[0].center.y = min_y;
+    m_grabbers[1].center.x = max_x;
+    m_grabbers[1].center.y = min_y;
+    m_grabbers[2].center.x = max_x;
+    m_grabbers[2].center.y = max_y;
+    m_grabbers[3].center.x = min_x;
+    m_grabbers[3].center.y = max_y;
+
     ::glLineWidth(2.0f);
     ::glColor3fv(BaseColor);
     // draw outline
     ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)min_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)max_y, 0.0f);
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        ::glVertex3f((GLfloat)m_grabbers[i].center.x, (GLfloat)m_grabbers[i].center.y, 0.0f);
+    }
     ::glEnd();
 
     // draw grabbers
-    ::glColor3fv(HighlightColor);
-    render_grabber(Pointf3(min_x, min_y, 0.0), (m_hover_id == 0));
-    render_grabber(Pointf3(max_x, min_y, 0.0), (m_hover_id == 1));
-    render_grabber(Pointf3(max_x, max_y, 0.0), (m_hover_id == 2));
-    render_grabber(Pointf3(min_x, max_y, 0.0), (m_hover_id == 3));
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        ::memcpy((void*)m_grabbers[i].color, (const void*)HighlightColor, 4 * sizeof(float));
+    }
+    render_grabbers();
 }
 
 void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
@@ -320,24 +386,13 @@ void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
     ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
-    const Pointf3& size = box.size();
-    const Pointf3& center = box.center();
-
-    Pointf half_scaled_size = 0.5 * Pointf((coordf_t)m_scale_x * size.x, (coordf_t)m_scale_y * size.y);
-    coordf_t min_x = center.x - half_scaled_size.x - (coordf_t)Offset;
-    coordf_t max_x = center.x + half_scaled_size.x + (coordf_t)Offset;
-    coordf_t min_y = center.y - half_scaled_size.y - (coordf_t)Offset;
-    coordf_t max_y = center.y + half_scaled_size.y + (coordf_t)Offset;
-
-    // draw grabbers
-    ::glColor3f(1.0f, 1.0f, 254.0f * INV_255);
-    render_grabber(Pointf3(min_x, min_y, 0.0), false);
-    ::glColor3f(1.0f, 1.0f, 253.0f * INV_255);
-    render_grabber(Pointf3(max_x, min_y, 0.0), false);
-    ::glColor3f(1.0f, 1.0f, 252.0f * INV_255);
-    render_grabber(Pointf3(max_x, max_y, 0.0), false);
-    ::glColor3f(1.0f, 1.0f, 251.0f * INV_255);
-    render_grabber(Pointf3(min_x, max_y, 0.0), false);
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        m_grabbers[i].color[0] = 1.0f;
+        m_grabbers[i].color[1] = 1.0f;
+        m_grabbers[i].color[2] = (254.0f - (float)i) * INV_255;
+    }
+    render_grabbers();
 }
 
 } // namespace GUI

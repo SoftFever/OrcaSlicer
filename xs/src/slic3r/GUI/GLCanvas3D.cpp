@@ -1078,6 +1078,7 @@ const float GLCanvas3D::Gizmos::OverlayGapY = 10.0f;
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
     , m_current(Undefined)
+    , m_dragging(false)
 {
 }
 
@@ -1196,7 +1197,10 @@ void GLCanvas3D::Gizmos::reset_all_states()
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if (it->second != nullptr)
+        {
             it->second->set_state(GLGizmoBase::Off);
+            it->second->set_hover_id(-1);
+        }
     }
 
     m_current = Undefined;
@@ -1240,6 +1244,43 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
     return false;
 }
 
+bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
+{
+    if (!m_enabled)
+        return false;
+
+    GLGizmoBase* curr = _get_current();
+    return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
+}
+
+void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
+{
+    if (!m_enabled)
+        return;
+
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->update(mouse_pos);
+}
+
+bool GLCanvas3D::Gizmos::is_dragging() const
+{
+    return m_dragging;
+}
+
+void GLCanvas3D::Gizmos::start_dragging()
+{
+    m_dragging = true;
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->start_dragging();
+}
+
+void GLCanvas3D::Gizmos::stop_dragging()
+{
+    m_dragging = false;
+}
+
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
 {
     if (!m_enabled)
@@ -1264,11 +1305,9 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBox
 
     ::glDisable(GL_DEPTH_TEST);
 
-    GizmosMap::const_iterator it = m_gizmos.find(m_current);
-    if (it == m_gizmos.end())
-        return;
-
-    it->second->render_for_picking(box);
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->render_for_picking(box);
 }
 
 void GLCanvas3D::Gizmos::_reset()
@@ -1305,16 +1344,15 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
 
 void GLCanvas3D::Gizmos::_render_current_gizmo(const BoundingBoxf3& box) const
 {
-    GizmosMap::const_iterator it = m_gizmos.find(m_current);
-    if (it == m_gizmos.end())
-        return;
-
-    it->second->render(box);
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->render(box);
 }
 
 float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 {
     float height = 0.0f;
+
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         height += (float)it->second->get_textures_size();
@@ -1323,6 +1361,12 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     }
 
     return height;
+}
+
+GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
+{
+    GizmosMap::const_iterator it = m_gizmos.find(m_current);
+    return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
@@ -2619,6 +2663,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_gizmos.update_on_off_state(*this, m_mouse.position);
             m_dirty = true;
         }
+        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
+        {
+            m_gizmos.start_dragging();
+        }
         else
         {
             // Select volume in this 3D canvas.
@@ -2725,6 +2773,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_dirty = true;
     }
+    else if (evt.Dragging() && m_gizmos.is_dragging())
+    {
+        m_mouse.dragging = true;
+
+        const Pointf3& cur_pos = _mouse_to_bed_3d(pos);
+        m_gizmos.update(Pointf(cur_pos.x, cur_pos.y));
+        m_dirty = true;
+    }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
     {
         m_mouse.dragging = true;
@@ -2799,7 +2855,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             
             _on_move(volume_idxs);
         }
-        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !is_layers_editing_enabled())
+        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
             if (m_picking_enabled)
@@ -2807,6 +2863,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 deselect_volumes();
                 _on_select(-1);
             }
+        }
+        else if (evt.LeftUp() && m_gizmos.is_dragging())
+        {
+            m_gizmos.stop_dragging();
         }
 
         m_mouse.drag.volume_idx = -1;
@@ -3483,8 +3543,34 @@ Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
         mouse_z = *z;
 
     GLdouble out_x, out_y, out_z;
-    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
+    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, (GLdouble)mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
     return Pointf3((coordf_t)out_x, (coordf_t)out_y, (coordf_t)out_z);
+}
+
+Pointf3 GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
+{
+    if (!set_current())
+        return Pointf3(DBL_MAX, DBL_MAX, DBL_MAX);
+
+    GLint viewport[4];
+    ::glGetIntegerv(GL_VIEWPORT, viewport);
+
+    _camera_tranform();
+
+    GLdouble modelview_matrix[16];
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix);
+    GLdouble projection_matrix[16];
+    ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
+
+    GLint y = viewport[3] - (GLint)mouse_pos.y;
+
+    GLdouble x0, y0, z0;
+    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, 0.1, modelview_matrix, projection_matrix, viewport, &x0, &y0, &z0);
+
+    GLdouble x1, y1, z1;
+    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, 0.9, modelview_matrix, projection_matrix, viewport, &x1, &y1, &z1);
+
+    return Linef3(Pointf3(x0, y0, z0), Pointf3(x1, y1, z1)).intersect_plane(0.0);
 }
 
 void GLCanvas3D::_start_timer()
