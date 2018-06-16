@@ -179,9 +179,10 @@ sub _init_tabpanel {
     # The following event is emited by the C++ Tab implementation on object selection change.
     EVT_COMMAND($self, -1, $OBJECT_SELECTION_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
-        my $obj_idx = $event->GetInt;
+        my $obj_idx = $event->GetId;
+        my $child = $event->GetInt == 1 ? 1 : undef;
 
-        $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx);
+        $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx, $child);
         $self->{plater}->item_changed_selection($obj_idx);
     });
 

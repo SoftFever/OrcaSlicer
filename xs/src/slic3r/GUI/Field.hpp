@@ -213,7 +213,7 @@ protected:
 inline bool is_bad_field(const t_field& obj) { return obj->getSizer() == nullptr && obj->getWindow() == nullptr; }
 
 /// Covenience function to determine whether this field is a valid window field.
-inline bool is_window_field(const t_field& obj) { return !is_bad_field(obj) && obj->getWindow() != nullptr; }
+inline bool is_window_field(const t_field& obj) { return !is_bad_field(obj) && obj->getWindow() != nullptr && obj->getSizer() == nullptr; }
 
 /// Covenience function to determine whether this field is a valid sizer field.
 inline bool is_sizer_field(const t_field& obj) { return !is_bad_field(obj) && obj->getSizer() != nullptr; }
@@ -414,6 +414,7 @@ public:
 		m_textctrl->SetEditable(false);
 	}
 	wxSizer*		getSizer() override { return m_sizer; }
+	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(m_slider); }
 };
 
 } // GUI

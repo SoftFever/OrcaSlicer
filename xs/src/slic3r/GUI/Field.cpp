@@ -710,7 +710,6 @@ void SliderCtrl::BUILD()
 		}
 	}), m_textctrl->GetId());
 
-	// 	// recast as a wxWindow to fit the calling convention
 	m_sizer = dynamic_cast<wxSizer*>(temp);
 }
 

@@ -2081,7 +2081,7 @@ sub selection_changed {
 }
 
 sub select_object {
-    my ($self, $obj_idx) = @_;
+    my ($self, $obj_idx, $child) = @_;
 
     # remove current selection
     foreach my $o (0..$#{$self->{objects}}) {
@@ -2090,8 +2090,9 @@ sub select_object {
 
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
-        # Select current object in the list on c++ side
-        Slic3r::GUI::select_current_object($obj_idx);
+        # Select current object in the list on c++ side, if item isn't child
+        if (!defined $child){
+            Slic3r::GUI::select_current_object($obj_idx);}
     } else {
         # Unselect all objects in the list on c++ side
         Slic3r::GUI::unselect_objects();

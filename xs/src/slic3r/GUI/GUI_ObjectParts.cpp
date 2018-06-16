@@ -23,6 +23,10 @@ wxDataViewCtrl				*m_objects_ctrl = nullptr;
 PrusaObjectDataViewModel	*m_objects_model = nullptr;
 wxCollapsiblePane			*m_collpane_settings = nullptr;
 
+wxSlider*		mover_x = nullptr;
+wxSlider*		mover_y = nullptr;
+wxSlider*		mover_z = nullptr;
+
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
@@ -95,7 +99,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 		if (m_event_object_selection_changed > 0) {
 			wxCommandEvent event(m_event_object_selection_changed);
-			event.SetInt(obj_idx);
+			event.SetInt(int(m_objects_model->GetParent(item) != wxDataViewItem(0)));
+			event.SetId(obj_idx);
 			get_main_frame()->ProcessWindowEvent(event);
 		}
 
@@ -107,6 +112,22 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		m_sizer_object_buttons->Show(show_obj_sizer);
 		m_sizer_part_buttons->Show(!show_obj_sizer);
 		m_sizer_object_movers->Show(!show_obj_sizer);
+
+		if (!show_obj_sizer)
+		{
+			auto bb_size = m_objects[obj_idx]->bounding_box().size();
+			int scale = 10; //??
+
+			mover_x->SetMin(-bb_size.x * 4*scale);
+			mover_x->SetMax( bb_size.x * 4*scale);
+
+			mover_y->SetMin(-bb_size.y * 4*scale);
+			mover_y->SetMax( bb_size.y * 4*scale);
+
+			mover_z->SetMin(-bb_size.z * 4 * scale);
+			mover_z->SetMax( bb_size.z * 4 * scale);
+		}
+
 		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
 		m_collpane_settings->Show(true);
 	});
@@ -200,8 +221,8 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 
 wxSizer* object_movers(wxWindow *win)
 {
-	DynamicPrintConfig* config = &get_preset_bundle()->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
-	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Move", config);
+// 	DynamicPrintConfig* config = &get_preset_bundle()->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Move"/*, config*/);
 	optgroup->label_width = 20;
 
 	ConfigOptionDef def;
@@ -209,24 +230,21 @@ wxSizer* object_movers(wxWindow *win)
 	def.type = coInt;
 	def.gui_type = "slider";
 	def.default_value = new ConfigOptionInt(0);
-	// 	def.min = -(model_object->bounding_box->size->x) * 4;
-	// 	def.max =  model_object->bounding_box->size->x * 4;
 
 	Option option = Option(def, "x");
 	option.opt.full_width = true;
 	optgroup->append_single_option_line(option);
+	mover_x = dynamic_cast<wxSlider*>(optgroup->get_field("x")->getWindow());
 
 	def.label = L("Y");
-	// 	def.min = -(model_object->bounding_box->size->y) * 4;
-	// 	def.max =  model_object->bounding_box->size->y * 4;
 	option = Option(def, "y");
 	optgroup->append_single_option_line(option);
+	mover_y = dynamic_cast<wxSlider*>(optgroup->get_field("y")->getWindow());
 
 	def.label = L("Z");
-	// 	def.min = -(model_object->bounding_box->size->z) * 4;
-	// 	def.max =  model_object->bounding_box->size->z * 4;
 	option = Option(def, "z");
 	optgroup->append_single_option_line(option);
+	mover_z = dynamic_cast<wxSlider*>(optgroup->get_field("z")->getWindow());
 
 	get_optgroups().push_back(optgroup);  // ogObjectMovers
 	m_sizer_object_movers = optgroup->sizer;
