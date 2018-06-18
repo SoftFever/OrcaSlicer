@@ -598,6 +598,13 @@ register_on_enable_action_buttons_callback(canvas, callback)
     CODE:
         _3DScene::register_on_enable_action_buttons_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
+void
+register_on_gizmo_scale_uniformly_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_gizmo_scale_uniformly_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
 unsigned int
 finalize_legend_texture()
     CODE:

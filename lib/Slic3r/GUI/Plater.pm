@@ -105,6 +105,34 @@ sub new {
         $self->{btn_print}->Enable($enable);
         $self->{btn_send_gcode}->Enable($enable);
     };
+
+    # callback to react to gizmo scale
+    my $on_gizmo_scale_uniformly = sub {
+        my ($scale) = @_;
+
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $model_instance = $model_object->instances->[0];
+        
+        my $variation = $scale / $model_instance->scaling_factor;
+        #FIXME Scale the layer height profile?
+        foreach my $range (@{ $model_object->layer_height_ranges }) {
+            $range->[0] *= $variation;
+            $range->[1] *= $variation;
+        }
+        $_->set_scaling_factor($scale) for @{ $model_object->instances };
+        $object->transform_thumbnail($self->{model}, $obj_idx);
+    
+        #update print and start background processing
+        $self->stop_background_process;
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    
+        $self->selection_changed(1);  # refresh info (size, volume etc.)
+        $self->update;
+        $self->schedule_background_process;
+    };
     
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
@@ -122,6 +150,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { $self->remove() });
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
+        Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
         Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);

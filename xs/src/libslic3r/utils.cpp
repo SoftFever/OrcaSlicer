@@ -247,6 +247,21 @@ void PerlCallback::call(const std::vector<int>& ints) const
     LEAVE;
 }
 
+void PerlCallback::call(double d) const
+{
+    if (!m_callback)
+        return;
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVnv(d)));
+    PUTBACK;
+    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
+    FREETMPS;
+    LEAVE;
+}
+
 void PerlCallback::call(double x, double y) const
 {
     if (!m_callback)

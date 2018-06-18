@@ -47,7 +47,6 @@ protected:
     GLTexture m_textures[Num_States];
     int m_hover_id;
     mutable std::vector<Grabber> m_grabbers;
-    Pointf m_start_drag_position;
 
 public:
     GLGizmoBase();
@@ -72,6 +71,7 @@ public:
 
 protected:
     virtual bool on_init() = 0;
+    virtual void on_start_dragging();
     virtual void on_update(const Pointf& mouse_pos) = 0;
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
@@ -92,8 +92,6 @@ class GLGizmoRotate : public GLGizmoBase
     static const unsigned int SnapRegionsCount;
     static const float GrabberOffset;
 
-//    float m_angle_x;
-//    float m_angle_y;
     float m_angle_z;
 
     mutable Pointf m_center;
@@ -121,15 +119,20 @@ class GLGizmoScale : public GLGizmoBase
 {
     static const float Offset;
 
-    float m_scale_x;
-    float m_scale_y;
-    float m_scale_z;
+    float m_scale;
+
+    Pointf m_starting_drag_position;
+    float m_starting_scale;
 
 public:
     GLGizmoScale();
 
+    float get_scale() const;
+    void set_scale(float scale);
+
 protected:
     virtual bool on_init();
+    virtual void on_start_dragging();
     virtual void on_update(const Pointf& mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;

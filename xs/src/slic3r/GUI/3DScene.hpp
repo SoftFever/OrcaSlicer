@@ -312,9 +312,9 @@ public:
     // Boolean: Is mouse over this object?
     bool                hover;
     // Wheter or not this volume has been generated from a modifier
-    bool                 is_modifier;
+    bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower
-    bool                 is_wipe_tower;
+    bool                is_wipe_tower;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -589,6 +589,7 @@ public:
     static void register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);

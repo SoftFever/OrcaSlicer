@@ -1263,6 +1263,25 @@ void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
         curr->update(mouse_pos);
 }
 
+void GLCanvas3D::Gizmos::update_data(float scale)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Scale);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoScale*>(it->second)->set_scale(scale);
+}
+
+bool GLCanvas3D::Gizmos::is_running() const
+{
+    if (!m_enabled)
+        return false;
+
+    GLGizmoBase* curr = _get_current();
+    return (curr != nullptr) ? (curr->get_state() == GLGizmoBase::On) : false;
+}
+
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
     return m_dragging;
@@ -1279,6 +1298,15 @@ void GLCanvas3D::Gizmos::start_dragging()
 void GLCanvas3D::Gizmos::stop_dragging()
 {
     m_dragging = false;
+}
+
+float GLCanvas3D::Gizmos::get_scale() const
+{
+    if (!m_enabled)
+        return 1.0f;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Scale);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale*>(it->second)->get_scale() : 1.0f;
 }
 
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
@@ -2443,6 +2471,12 @@ void GLCanvas3D::register_on_enable_action_buttons_callback(void* callback)
         m_on_enable_action_buttons_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_on_gizmo_scale_uniformly_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_scale_uniformly_callback.register_callback(callback);
+}
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -2661,11 +2695,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if ((selected_object_idx != -1) && gizmos_overlay_contains_mouse)
         {
             m_gizmos.update_on_off_state(*this, m_mouse.position);
+            _update_gizmos_data();
             m_dirty = true;
         }
         else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
-        {
+        {            
+            _update_gizmos_data();
             m_gizmos.start_dragging();
+            m_dirty = true;
         }
         else
         {
@@ -2688,6 +2725,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                                 vol->selected = true;
                         }
                     }
+
+                    if (m_gizmos.is_running())
+                        _update_gizmos_data();
+
                     m_dirty = true;
                 }
             }
@@ -2779,6 +2820,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         const Pointf3& cur_pos = _mouse_to_bed_3d(pos);
         m_gizmos.update(Pointf(cur_pos.x, cur_pos.y));
+
+        m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
         m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
@@ -3120,6 +3163,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_instance_moved_callback.deregister_callback();
     m_on_wipe_tower_moved_callback.deregister_callback();
     m_on_enable_action_buttons_callback.deregister_callback();
+    m_on_gizmo_scale_uniformly_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -3549,28 +3593,9 @@ Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
 
 Pointf3 GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
 {
-    if (!set_current())
-        return Pointf3(DBL_MAX, DBL_MAX, DBL_MAX);
-
-    GLint viewport[4];
-    ::glGetIntegerv(GL_VIEWPORT, viewport);
-
-    _camera_tranform();
-
-    GLdouble modelview_matrix[16];
-    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix);
-    GLdouble projection_matrix[16];
-    ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
-
-    GLint y = viewport[3] - (GLint)mouse_pos.y;
-
-    GLdouble x0, y0, z0;
-    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, 0.1, modelview_matrix, projection_matrix, viewport, &x0, &y0, &z0);
-
-    GLdouble x1, y1, z1;
-    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, 0.9, modelview_matrix, projection_matrix, viewport, &x1, &y1, &z1);
-
-    return Linef3(Pointf3(x0, y0, z0), Pointf3(x1, y1, z1)).intersect_plane(0.0);
+    float z0 = 0.0f;
+    float z1 = 1.0f;
+    return Linef3(_mouse_to_3d(mouse_pos, &z0), _mouse_to_3d(mouse_pos, &z1)).intersect_plane(0.0);
 }
 
 void GLCanvas3D::_start_timer()
@@ -4237,6 +4262,21 @@ void GLCanvas3D::_on_select(int volume_idx)
             id = m_volumes.volumes[volume_idx]->object_idx();
     }
     m_on_select_object_callback.call(id);
+}
+
+void GLCanvas3D::_update_gizmos_data()
+{
+    int id = _get_first_selected_object_id();
+    if ((id != -1) && (m_model != nullptr))
+    {
+        ModelObject* model_object = m_model->objects[id];
+        if (model_object != nullptr)
+        {
+            ModelInstance* model_instance = model_object->instances[0];
+            if (model_instance != nullptr)
+                m_gizmos.update_data(model_instance->scaling_factor);
+        }
+    }
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

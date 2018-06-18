@@ -152,6 +152,7 @@ public:
     void register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback);
     void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

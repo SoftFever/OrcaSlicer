@@ -2038,6 +2038,11 @@ void _3DScene::register_on_enable_action_buttons_callback(wxGLCanvas* canvas, vo
     s_canvas_mgr.register_on_enable_action_buttons_callback(canvas, callback);
 }
 
+void _3DScene::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_gizmo_scale_uniformly_callback(canvas, callback);
+}
+
 static inline int hex_digit_to_int(const char c)
 {
     return 

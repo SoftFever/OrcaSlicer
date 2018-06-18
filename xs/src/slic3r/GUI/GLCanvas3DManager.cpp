@@ -678,6 +678,13 @@ void GLCanvas3DManager::register_on_enable_action_buttons_callback(wxGLCanvas* c
         it->second->register_on_enable_action_buttons_callback(callback);
 }
 
+void GLCanvas3DManager::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_gizmo_scale_uniformly_callback(callback);
+}
+
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);

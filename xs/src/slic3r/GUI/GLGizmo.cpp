@@ -115,8 +115,7 @@ void GLGizmoBase::set_hover_id(int id)
 
 void GLGizmoBase::start_dragging()
 {
-    if (m_hover_id != -1)
-        m_start_drag_position = m_grabbers[m_hover_id].center;
+    on_start_dragging();
 }
 
 void GLGizmoBase::update(const Pointf& mouse_pos)
@@ -133,6 +132,10 @@ void GLGizmoBase::render(const BoundingBoxf3& box) const
 void GLGizmoBase::render_for_picking(const BoundingBoxf3& box) const
 {
     on_render_for_picking(box);
+}
+
+void GLGizmoBase::on_start_dragging()
+{
 }
 
 void GLGizmoBase::render_grabbers() const
@@ -156,8 +159,6 @@ const float GLGizmoRotate::GrabberOffset = 5.0f;
 
 GLGizmoRotate::GLGizmoRotate()
     : GLGizmoBase()
-//    , m_angle_x(0.0f)
-//    , m_angle_y(0.0f)
     , m_angle_z(0.0f)
     , m_center(Pointf(0.0, 0.0))
     , m_radius(0.0f)
@@ -332,7 +333,7 @@ void GLGizmoRotate::_render_grabber() const
     ::glVertex3f((GLfloat)m_grabbers[0].center.x, (GLfloat)m_grabbers[0].center.y, 0.0f);
     ::glEnd();
 
-    ::memcpy((void*)m_grabbers[0].color, (const void*)HighlightColor, 4 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)HighlightColor, 3 * sizeof(float));
     render_grabbers();
 }
 
@@ -340,10 +341,19 @@ const float GLGizmoScale::Offset = 5.0f;
 
 GLGizmoScale::GLGizmoScale()
     : GLGizmoBase()
-    , m_scale_x(1.0f)
-    , m_scale_y(1.0f)
-    , m_scale_z(1.0f)
+    , m_scale(1.0f)
+    , m_starting_scale(1.0f)
 {
+}
+
+float GLGizmoScale::get_scale() const
+{
+    return m_scale;
+}
+
+void GLGizmoScale::set_scale(float scale)
+{
+    m_starting_scale = scale;
 }
 
 bool GLGizmoScale::on_init()
@@ -370,17 +380,21 @@ bool GLGizmoScale::on_init()
     return true;
 }
 
+void GLGizmoScale::on_start_dragging()
+{
+    if (m_hover_id != -1)
+        m_starting_drag_position = m_grabbers[m_hover_id].center;
+}
+
 void GLGizmoScale::on_update(const Pointf& mouse_pos)
 {
     Pointf center(0.5 * (m_grabbers[1].center.x + m_grabbers[0].center.x), 0.5 * (m_grabbers[3].center.y + m_grabbers[0].center.y));
 
-    coordf_t orig_len = length(m_start_drag_position - center);
+    coordf_t orig_len = length(m_starting_drag_position - center);
     coordf_t new_len = length(mouse_pos - center);
     coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
 
-    m_scale_x = (float)ratio;
-    m_scale_y = (float)ratio;
-    m_scale_z = (float)ratio;
+    m_scale = m_starting_scale * (float)ratio;
 }
 
 void GLGizmoScale::on_render(const BoundingBoxf3& box) const
@@ -388,14 +402,10 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
     ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
-    const Pointf3& size = box.size();
-    const Pointf3& center = box.center();
-
-    Pointf half_scaled_size = 0.5 * Pointf((coordf_t)m_scale_x * size.x, (coordf_t)m_scale_y * size.y);
-    coordf_t min_x = center.x - half_scaled_size.x - (coordf_t)Offset;
-    coordf_t max_x = center.x + half_scaled_size.x + (coordf_t)Offset;
-    coordf_t min_y = center.y - half_scaled_size.y - (coordf_t)Offset;
-    coordf_t max_y = center.y + half_scaled_size.y + (coordf_t)Offset;
+    coordf_t min_x = box.min.x - (coordf_t)Offset;
+    coordf_t max_x = box.max.x + (coordf_t)Offset;
+    coordf_t min_y = box.min.y - (coordf_t)Offset;
+    coordf_t max_y = box.max.y + (coordf_t)Offset;
 
     m_grabbers[0].center.x = min_x;
     m_grabbers[0].center.y = min_y;
@@ -419,7 +429,7 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
     // draw grabbers
     for (unsigned int i = 0; i < 4; ++i)
     {
-        ::memcpy((void*)m_grabbers[i].color, (const void*)HighlightColor, 4 * sizeof(float));
+        ::memcpy((void*)m_grabbers[i].color, (const void*)HighlightColor, 3 * sizeof(float));
     }
     render_grabbers();
 }
