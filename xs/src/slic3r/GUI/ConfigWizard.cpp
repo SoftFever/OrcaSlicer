@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <utility>
 #include <unordered_map>
-
+#include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <wx/settings.h>
@@ -59,7 +59,7 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	auto *sizer = new wxBoxSizer(wxVERTICAL);
 
 	auto *printer_grid = new wxFlexGridSizer(models.size(), 0, 20);
-	printer_grid->SetFlexibleDirection(wxVERTICAL);
+	printer_grid->SetFlexibleDirection(wxVERTICAL | wxHORIZONTAL);
 	sizer->Add(printer_grid);
 
 	auto namefont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -136,7 +136,7 @@ void PrinterPicker::on_checkbox(const Checkbox *cbox, bool checked)
 // Wizard page base
 
 ConfigWizardPage::ConfigWizardPage(ConfigWizard *parent, wxString title, wxString shortname) :
-	wxPanel(parent),
+	wxPanel(parent->p->hscroll),
 	parent(parent),
 	shortname(std::move(shortname)),
 	p_prev(nullptr),
@@ -182,8 +182,8 @@ ConfigWizardPage* ConfigWizardPage::chain(ConfigWizardPage *page)
 void ConfigWizardPage::append_text(wxString text)
 {
 	auto *widget = new wxStaticText(this, wxID_ANY, text, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-	widget->Wrap(CONTENT_WIDTH);
-	widget->SetMinSize(wxSize(CONTENT_WIDTH, -1));
+	widget->Wrap(WRAP_WIDTH);
+	widget->SetMinSize(wxSize(WRAP_WIDTH, -1));
 	append(widget);
 }
 
@@ -285,7 +285,7 @@ PageUpdate::PageUpdate(ConfigWizard *parent) :
 	const auto text_bold = _(L("Updates are never applied without user's consent and never overwrite user's customized settings."));
 	auto *label_bold = new wxStaticText(this, wxID_ANY, text_bold);
 	label_bold->SetFont(boldfont);
-	label_bold->Wrap(CONTENT_WIDTH);
+	label_bold->Wrap(WRAP_WIDTH);
 	append(label_bold);
 	append_text(_(L("Additionally a backup snapshot of the whole configuration is created before an update is applied.")));
 
@@ -615,8 +615,14 @@ void ConfigWizard::priv::load_vendors()
 	// Load vendors from the "vendors" directory in datadir
 	for (fs::directory_iterator it(vendor_dir); it != fs::directory_iterator(); ++it) {
 		if (it->path().extension() == ".ini") {
-			auto vp = VendorProfile::from_ini(it->path());
-			vendors[vp.id] = std::move(vp);
+			try {
+				auto vp = VendorProfile::from_ini(it->path());
+				vendors[vp.id] = std::move(vp);
+			}
+			catch (const std::exception& e) {
+				BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % it->path() % e.what();
+			}
+
 		}
 	}
 
@@ -625,9 +631,14 @@ void ConfigWizard::priv::load_vendors()
 		if (it->path().extension() == ".ini") {
 			const auto id = it->path().stem().string();
 			if (vendors.find(id) == vendors.end()) {
-				auto vp = VendorProfile::from_ini(it->path());
-				vendors_rsrc[vp.id] = it->path().filename().string();
-				vendors[vp.id] = std::move(vp);
+				try {
+					auto vp = VendorProfile::from_ini(it->path());
+					vendors_rsrc[vp.id] = it->path().filename().string();
+					vendors[vp.id] = std::move(vp);
+				}
+				catch (const std::exception& e) {
+					BOOST_LOG_TRIVIAL(error) << boost::format("Error loading vendor bundle %1%: %2%") % it->path() % e.what();
+				}
 			}
 		}
 	}
@@ -657,7 +668,7 @@ void ConfigWizard::priv::index_refresh()
 
 void ConfigWizard::priv::add_page(ConfigWizardPage *page)
 {
-	topsizer->Add(page, 0, wxEXPAND);
+	hscroll_sizer->Add(page, 0, wxEXPAND);
 
 	auto *extra_buttons = page->extra_buttons();
 	if (extra_buttons != nullptr) {
@@ -784,12 +795,19 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	p->index = new ConfigWizardIndex(this);
 
 	auto *vsizer = new wxBoxSizer(wxVERTICAL);
-	p->topsizer = new wxBoxSizer(wxHORIZONTAL);
+	auto *topsizer = new wxBoxSizer(wxHORIZONTAL);
 	auto *hline = new wxStaticLine(this);
 	p->btnsizer = new wxBoxSizer(wxHORIZONTAL);
 
-	p->topsizer->Add(p->index, 0, wxEXPAND);
-	p->topsizer->AddSpacer(INDEX_MARGIN);
+	// Initially we _do not_ SetScrollRate in order to figure out the overall width of the Wizard  without scrolling.
+	// Later, we compare that to the size of the current screen and set minimum width based on that (see below).
+	p->hscroll = new wxScrolledWindow(this);
+	p->hscroll_sizer = new wxBoxSizer(wxHORIZONTAL);
+	p->hscroll->SetSizer(p->hscroll_sizer);
+
+	topsizer->Add(p->index, 0, wxEXPAND);
+	topsizer->AddSpacer(INDEX_MARGIN);
+	topsizer->Add(p->hscroll, 1, wxEXPAND);
 
 	p->btn_prev = new wxButton(this, wxID_BACKWARD);
 	p->btn_next = new wxButton(this, wxID_FORWARD);
@@ -816,13 +834,25 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 		->chain(p->page_diams)
 		->chain(p->page_temps);
 
-	vsizer->Add(p->topsizer, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
+	vsizer->Add(topsizer, 1, wxEXPAND | wxALL, DIALOG_MARGIN);
 	vsizer->Add(hline, 0, wxEXPAND);
 	vsizer->Add(p->btnsizer, 0, wxEXPAND | wxALL, DIALOG_MARGIN);
 
 	p->set_page(p->page_welcome);
+	SetSizer(vsizer);
 	SetSizerAndFit(vsizer);
-	SetMinSize(GetSize());
+
+	// We can now enable scrolling on hscroll
+	p->hscroll->SetScrollRate(30, 30);
+	// Compare current ("ideal") wizard size with the size of the current screen.
+	// If the screen is smaller, resize wizrad to match, which will enable scrollbars.
+	auto wizard_size = GetSize();
+	unsigned width, height;
+	GUI::get_current_screen_size(width, height);
+	wizard_size.SetWidth(std::min(wizard_size.GetWidth(), (int)(width - 2 * DIALOG_MARGIN)));
+	wizard_size.SetHeight(std::min(wizard_size.GetHeight(), (int)(height - 2 * DIALOG_MARGIN)));
+	SetMinSize(wizard_size);
+	Fit();
 
 	p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_prev(); });
 	p->btn_next->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_next(); });
