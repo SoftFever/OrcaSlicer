@@ -148,28 +148,22 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	m_btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
 
 	//*** button's functions
-	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&)
-	{
+	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&) {
 		on_btn_load(win);
 	});
 
-	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&)
-	{
+	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
 		on_btn_load(win, true);
 	});
 
-	btn_load_lambda_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&)
-	{
+	btn_load_lambda_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
 		on_btn_load(win, true, true);
 	});
 
-	btn_delete->Bind(wxEVT_BUTTON, [](wxEvent&)
-	{
-		auto item = m_objects_ctrl->GetSelection();
-		if (!item) return;
-		m_objects_ctrl->Select(m_objects_model->Delete(item));
-		parts_changed(m_selected_object_id);
-	});
+	btn_delete		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_del(); });
+	btn_split		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_split(); });
+	m_btn_move_up	->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_move_up(); });
+	m_btn_move_down	->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_move_down(); });
 	//***
 
 	m_btn_move_up->SetMinSize(wxSize(20, -1));
@@ -552,6 +546,82 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 	for (int i = 0; i < part_names.size(); ++i)
 		m_objects_ctrl->Select(	m_objects_model->AddChild(item, part_names.Item(i), 
 								is_modifier ? m_icon_modifiermesh : m_icon_solidmesh));
+}
+
+void on_btn_del()
+{
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item) return;
+
+	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id < 0)
+		return;
+	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+
+	// if user is deleting the last solid part, throw error
+	int solid_cnt = 0;
+	for (auto vol : m_objects[m_selected_object_id]->volumes)
+		if (!vol->modifier)
+			++solid_cnt;
+	if (!volume->modifier && solid_cnt == 1) {
+		Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from this object.")));
+		return;
+	}
+
+	m_objects_ctrl->Select(m_objects_model->Delete(item));
+	m_objects[m_selected_object_id]->delete_volume(volume_id);
+	m_parts_changed = true;
+
+	parts_changed(m_selected_object_id);
+}
+
+void on_btn_split()
+{
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item)
+		return;
+	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id < 0)
+		return;
+
+	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+	DynamicPrintConfig&	config = get_preset_bundle()->prints.get_edited_preset().config;
+	auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+	if (volume->split(nozzle_dmrs_cnt) > 1)	{
+		// TODO update model
+		m_parts_changed = true;
+		parts_changed(m_selected_object_id);
+	}
+}
+
+void on_btn_move_up(){
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item)
+		return;
+	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id < 0)
+		return;
+	auto& volumes = m_objects[m_selected_object_id]->volumes;
+	if (0 < volume_id && volume_id < volumes.size()) {
+		std::swap(volumes[volume_id - 1], volumes[volume_id]);
+		m_parts_changed = true;
+		// TODO update model ($volume_id - 1);
+	}
+}
+
+void on_btn_move_down(){
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item)
+		return;
+	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id < 0)
+		return;
+	auto& volumes = m_objects[m_selected_object_id]->volumes;
+	if (0 <= volume_id && volume_id+1 < volumes.size()) {
+		std::swap(volumes[volume_id + 1], volumes[volume_id - 1]);
+		m_parts_changed = true;
+		// TODO update model ($volume_id - 1);
+	}
 }
 
 void parts_changed(int obj_idx)

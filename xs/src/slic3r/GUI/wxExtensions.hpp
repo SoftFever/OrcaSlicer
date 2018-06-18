@@ -276,7 +276,10 @@ public:
 		return m_type;
 	}
 
-	const int GetVolumeId(){
+	void SetVolumeId(const int& volume_id){
+		m_volume_id = volume_id;
+	}
+	const int& GetVolumeId(){
 		return m_volume_id;
 	}
 };

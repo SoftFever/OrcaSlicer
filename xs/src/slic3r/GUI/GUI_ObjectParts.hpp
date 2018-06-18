@@ -71,6 +71,10 @@ void load_lambda(wxWindow* parent, ModelObject* model_object,
 				wxArrayString& part_names, const bool is_modifier);
 
 void on_btn_load(wxWindow* parent, bool is_modifier = false, bool is_lambda = false);
+void on_btn_del();
+void on_btn_split();
+void on_btn_move_up();
+void on_btn_move_down();
 
 void parts_changed(int obj_idx);
 void part_selection_changed();

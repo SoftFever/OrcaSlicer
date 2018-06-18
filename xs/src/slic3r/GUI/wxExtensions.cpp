@@ -407,10 +407,20 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 	//       thus removing the node from it doesn't result in freeing it
 	if (node_parent){
 		auto id = node_parent->GetChildren().Index(node);
+		auto v_id = node->GetVolumeId();
 		node_parent->GetChildren().Remove(node);
 		if (id > 0){ 
 			if(id == node_parent->GetChildCount()) id--;
 			ret_item = wxDataViewItem(node_parent->GetChildren().Item(id));
+		}
+
+		//update volume_id value for remaining child-nodes
+		auto children = node_parent->GetChildren();
+		for (size_t i = 0; i < node_parent->GetChildCount(); i++)
+		{
+			auto volume_id = children[i]->GetVolumeId();
+			if (volume_id > v_id)
+				children[i]->SetVolumeId(volume_id-1);
 		}
 	}
 	else
