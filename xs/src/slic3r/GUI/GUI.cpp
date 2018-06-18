@@ -887,6 +887,8 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 {
 	set_event_object_selection_changed(event_object_selection_changed);
 	set_event_object_settings_changed(event_object_settings_changed);
+	init_mesh_icons();
+
 	wxWindowUpdateLocker noUpdates(parent);
 
 	add_collapsible_panes(parent, sizer);

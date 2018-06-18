@@ -57,6 +57,7 @@ void unselect_objects();
 // Select current object in the list on c++ side
 void select_current_object(int idx);
 
+void init_mesh_icons();
 void set_event_object_selection_changed(const int& event);
 void set_event_object_settings_changed (const int& event);
 
@@ -72,6 +73,7 @@ void load_lambda(wxWindow* parent, ModelObject* model_object,
 void on_btn_load(wxWindow* parent, bool is_modifier = false, bool is_lambda = false);
 
 void parts_changed(int obj_idx);
+void part_selection_changed();
 } //namespace GUI
 } //namespace Slic3r 
 #endif  //slic3r_GUI_ObjectParts_hpp_

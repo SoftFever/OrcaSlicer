@@ -376,14 +376,15 @@ wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_
 	if (root->GetChildren().Count() == 0)
 	{
 		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
-		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh);
+		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, 0);
 		root->Append(node);
 		// notify control
 		wxDataViewItem child((void*)node);
 		ItemAdded(parent_item, child);
 	}
 
-	auto node = new PrusaObjectDataViewModelNode(root, name, icon);
+	auto volume_id = root->GetChildCount();
+	auto node = new PrusaObjectDataViewModelNode(root, name, icon, volume_id);
 	root->Append(node);
 	// notify control
 	wxDataViewItem child((void*)node);
@@ -468,6 +469,16 @@ int PrusaObjectDataViewModel::GetIdByItem(wxDataViewItem& item)
 		return -1;
 
 	return it - m_objects.begin();
+}
+
+int PrusaObjectDataViewModel::GetVolumeIdByItem(wxDataViewItem& item)
+{
+	wxASSERT(item.IsOk());
+
+	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+	if (!node)      // happens if item.IsOk()==false
+		return -1;
+	return node->GetVolumeId();
 }
 
 wxString PrusaObjectDataViewModel::GetName(const wxDataViewItem &item) const

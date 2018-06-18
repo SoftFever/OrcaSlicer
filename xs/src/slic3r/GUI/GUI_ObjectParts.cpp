@@ -23,9 +23,17 @@ wxDataViewCtrl				*m_objects_ctrl = nullptr;
 PrusaObjectDataViewModel	*m_objects_model = nullptr;
 wxCollapsiblePane			*m_collpane_settings = nullptr;
 
-wxSlider*		mover_x = nullptr;
-wxSlider*		mover_y = nullptr;
-wxSlider*		mover_z = nullptr;
+wxIcon		m_icon_modifiermesh;
+wxIcon		m_icon_solidmesh;
+
+wxSlider*	m_mover_x = nullptr;
+wxSlider*	m_mover_y = nullptr;
+wxSlider*	m_mover_z = nullptr;
+wxButton*	m_btn_move_up = nullptr;
+wxButton*	m_btn_move_down = nullptr;
+Point3		m_move_options;
+Point3		m_last_coords;
+int			m_selected_object_id = -1;
 
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
@@ -43,6 +51,11 @@ void set_event_object_selection_changed(const int& event){
 }
 void set_event_object_settings_changed(const int& event){
 	m_event_object_settings_changed = event;
+}
+
+void init_mesh_icons(){
+	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 }
 
 bool is_parts_changed(){return m_parts_changed;}
@@ -96,6 +109,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 				obj_idx = m_objects_model->GetIdByItem(parent); // TODO Temporary decision for sub-objects selection
 			}
 		}
+		m_selected_object_id = obj_idx;
 
 		if (m_event_object_selection_changed > 0) {
 			wxCommandEvent event(m_event_object_selection_changed);
@@ -107,29 +121,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		if (obj_idx < 0) return;
 
 //		m_objects_ctrl->SetSize(m_objects_ctrl->GetBestSize()); // TODO override GetBestSize(), than use it
-
-		auto show_obj_sizer = m_objects_model->GetParent(item) == wxDataViewItem(0);
-		m_sizer_object_buttons->Show(show_obj_sizer);
-		m_sizer_part_buttons->Show(!show_obj_sizer);
-		m_sizer_object_movers->Show(!show_obj_sizer);
-
-		if (!show_obj_sizer)
-		{
-			auto bb_size = m_objects[obj_idx]->bounding_box().size();
-			int scale = 10; //??
-
-			mover_x->SetMin(-bb_size.x * 4*scale);
-			mover_x->SetMax( bb_size.x * 4*scale);
-
-			mover_y->SetMin(-bb_size.y * 4*scale);
-			mover_y->SetMax( bb_size.y * 4*scale);
-
-			mover_z->SetMin(-bb_size.z * 4 * scale);
-			mover_z->SetMax( bb_size.z * 4 * scale);
-		}
-
-		m_collpane_settings->SetLabelText((show_obj_sizer ? _(L("Object Settings")) : _(L("Part Settings"))) + ":");
-		m_collpane_settings->Show(true);
+		part_selection_changed();
 	});
 
 	m_objects_ctrl->Bind(wxEVT_KEY_DOWN, [](wxKeyEvent& event)
@@ -152,8 +144,8 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"generic" + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
 	auto btn_delete = new wxButton(win, wxID_ANY, "Delete"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
 	auto btn_split = new wxButton(win, wxID_ANY, "Split"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-	auto btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
-	auto btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
+	m_btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
+	m_btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
 
 	//*** button's functions
 	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&)
@@ -176,18 +168,19 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 		auto item = m_objects_ctrl->GetSelection();
 		if (!item) return;
 		m_objects_ctrl->Select(m_objects_model->Delete(item));
+		parts_changed(m_selected_object_id);
 	});
 	//***
 
-	btn_move_up->SetMinSize(wxSize(20, -1));
-	btn_move_down->SetMinSize(wxSize(20, -1));
+	m_btn_move_up->SetMinSize(wxSize(20, -1));
+	m_btn_move_down->SetMinSize(wxSize(20, -1));
 	btn_load_part->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
 	btn_load_modifier->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
 	btn_load_lambda_modifier->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
 	btn_delete->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_delete.png")), wxBITMAP_TYPE_PNG));
 	btn_split->SetBitmap(wxBitmap(from_u8(Slic3r::var("shape_ungroup.png")), wxBITMAP_TYPE_PNG));
-	btn_move_up->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_up.png")), wxBITMAP_TYPE_PNG));
-	btn_move_down->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_down.png")), wxBITMAP_TYPE_PNG));
+	m_btn_move_up->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_up.png")), wxBITMAP_TYPE_PNG));
+	m_btn_move_down->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_down.png")), wxBITMAP_TYPE_PNG));
 
 	m_sizer_object_buttons = new wxGridSizer(1, 3, 0, 0);
 	m_sizer_object_buttons->Add(btn_load_part, 0, wxEXPAND);
@@ -200,8 +193,8 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	m_sizer_part_buttons->Add(btn_split, 0, wxEXPAND);
 	{
 		auto up_down_sizer = new wxGridSizer(1, 2, 0, 0);
-		up_down_sizer->Add(btn_move_up, 1, wxEXPAND);
-		up_down_sizer->Add(btn_move_down, 1, wxEXPAND);
+		up_down_sizer->Add(m_btn_move_up, 1, wxEXPAND);
+		up_down_sizer->Add(m_btn_move_down, 1, wxEXPAND);
 		m_sizer_part_buttons->Add(up_down_sizer, 0, wxEXPAND);
 	}
 	m_sizer_part_buttons->Show(false);
@@ -211,12 +204,34 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	btn_load_lambda_modifier->SetFont(Slic3r::GUI::small_font());
 	btn_delete->SetFont(Slic3r::GUI::small_font());
 	btn_split->SetFont(Slic3r::GUI::small_font());
-	btn_move_up->SetFont(Slic3r::GUI::small_font());
-	btn_move_down->SetFont(Slic3r::GUI::small_font());
+	m_btn_move_up->SetFont(Slic3r::GUI::small_font());
+	m_btn_move_down->SetFont(Slic3r::GUI::small_font());
 
 	sizer->Add(m_sizer_object_buttons, 0, wxEXPAND | wxLEFT, 20);
 	sizer->Add(m_sizer_part_buttons, 0, wxEXPAND | wxLEFT, 20);
 	return sizer;
+}
+
+void update_after_moving()
+{
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item || m_selected_object_id<0)
+		return;
+
+	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id < 0)
+		return;
+
+	Point3 m = m_move_options;
+	Point3 l = m_last_coords;
+
+	auto d = Pointf3(m.x - l.x, m.y - l.y, m.z - l.z);
+	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+	volume->mesh.translate(d.x,d.y,d.z);
+	m_last_coords = m;
+
+	m_parts_changed = true;
+	parts_changed(m_selected_object_id);
 }
 
 wxSizer* object_movers(wxWindow *win)
@@ -224,6 +239,23 @@ wxSizer* object_movers(wxWindow *win)
 // 	DynamicPrintConfig* config = &get_preset_bundle()->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Move"/*, config*/);
 	optgroup->label_width = 20;
+	optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
+		int val = boost::any_cast<int>(value);
+		bool update = false;
+		if (opt_key == "x" && m_move_options.x != val){
+			update = true;
+			m_move_options.x = val;
+		}
+		else if (opt_key == "y" && m_move_options.y != val){
+			update = true;
+			m_move_options.y = val;
+		}
+		else if (opt_key == "z" && m_move_options.z != val){
+			update = true;
+			m_move_options.z = val;
+		}
+		if (update) update_after_moving();
+	};
 
 	ConfigOptionDef def;
 	def.label = L("X");
@@ -234,21 +266,26 @@ wxSizer* object_movers(wxWindow *win)
 	Option option = Option(def, "x");
 	option.opt.full_width = true;
 	optgroup->append_single_option_line(option);
-	mover_x = dynamic_cast<wxSlider*>(optgroup->get_field("x")->getWindow());
+	m_mover_x = dynamic_cast<wxSlider*>(optgroup->get_field("x")->getWindow());
 
 	def.label = L("Y");
 	option = Option(def, "y");
 	optgroup->append_single_option_line(option);
-	mover_y = dynamic_cast<wxSlider*>(optgroup->get_field("y")->getWindow());
+	m_mover_y = dynamic_cast<wxSlider*>(optgroup->get_field("y")->getWindow());
 
 	def.label = L("Z");
 	option = Option(def, "z");
 	optgroup->append_single_option_line(option);
-	mover_z = dynamic_cast<wxSlider*>(optgroup->get_field("z")->getWindow());
+	m_mover_z = dynamic_cast<wxSlider*>(optgroup->get_field("z")->getWindow());
 
 	get_optgroups().push_back(optgroup);  // ogObjectMovers
+
 	m_sizer_object_movers = optgroup->sizer;
 	m_sizer_object_movers->Show(false);
+
+	m_move_options = Point3(0, 0, 0);
+	m_last_coords = Point3(0, 0, 0);
+
 	return optgroup->sizer;
 }
 
@@ -512,10 +549,9 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 
 	parts_changed(obj_idx);
 
-	const std::string icon_name = is_modifier ? "plugin.png" : "package.png";
-	auto icon = wxIcon(Slic3r::GUI::from_u8(Slic3r::var(icon_name)), wxBITMAP_TYPE_PNG);
 	for (int i = 0; i < part_names.size(); ++i)
-		m_objects_ctrl->Select(m_objects_model->AddChild(item, part_names.Item(i), icon));
+		m_objects_ctrl->Select(	m_objects_model->AddChild(item, part_names.Item(i), 
+								is_modifier ? m_icon_modifiermesh : m_icon_solidmesh));
 }
 
 void parts_changed(int obj_idx)
@@ -528,6 +564,101 @@ void parts_changed(int obj_idx)
 		is_part_settings_changed() ? 1 : 0);
 	e.SetString(event_str);
 	get_main_frame()->ProcessWindowEvent(e);
+}
+
+void part_selection_changed()
+{
+	m_move_options = Point3(0, 0, 0);
+	m_last_coords = Point3(0, 0, 0);
+	// reset move sliders
+	std::vector<std::string> opt_keys = {"x", "y", "z"};
+	auto og = get_optgroup(ogObjectMovers);
+	for (auto opt_key: opt_keys)
+		og->set_value(opt_key, int(0));
+
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item || m_selected_object_id < 0){
+		m_sizer_object_buttons->Show(false);
+		m_sizer_part_buttons->Show(false);
+		m_sizer_object_movers->Show(false);
+		m_collpane_settings->Show(false);
+		return;
+	}
+
+	m_collpane_settings->Show(true);
+
+	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id < 0){
+		m_sizer_object_buttons->Show(true);
+		m_sizer_part_buttons->Show(false);
+		m_sizer_object_movers->Show(false);
+		m_collpane_settings->SetLabelText(_(L("Object Settings")) + ":");
+
+// 		elsif($itemData->{type} eq 'object') {
+// 			# select nothing in 3D preview
+// 
+// 			# attach object config to settings panel
+// 			$self->{optgroup_movers}->disable;
+// 			$self->{staticbox}->SetLabel('Object Settings');
+// 			@opt_keys = (map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new);
+// 			$config = $self->{model_object}->config;
+// 		}
+
+		return;
+	}
+
+	m_collpane_settings->SetLabelText(_(L("Part Settings")) + ":");
+	
+	m_sizer_object_buttons->Show(false);
+	m_sizer_part_buttons->Show(true);
+	m_sizer_object_movers->Show(true);
+
+	auto bb_size = m_objects[m_selected_object_id]->bounding_box().size();
+	int scale = 10; //??
+
+	m_mover_x->SetMin(-bb_size.x * 4 * scale);
+	m_mover_x->SetMax(bb_size.x * 4 * scale);
+
+	m_mover_y->SetMin(-bb_size.y * 4 * scale);
+	m_mover_y->SetMax(bb_size.y * 4 * scale);
+
+	m_mover_z->SetMin(-bb_size.z * 4 * scale);
+	m_mover_z->SetMax(bb_size.z * 4 * scale);
+
+
+	
+//	my ($config, @opt_keys);
+	m_btn_move_up->Enable(volume_id > 0);
+	m_btn_move_down->Enable(volume_id + 1 < m_objects[m_selected_object_id]->volumes.size());
+
+	// attach volume config to settings panel
+	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+
+	if (volume->modifier) 
+		og->enable();
+	else 
+		og->disable();
+
+//	auto config = volume->config;
+
+	// get default values
+// 	@opt_keys = @{Slic3r::Config::PrintRegion->new->get_keys};
+// 	} 
+/*	
+	# get default values
+	my $default_config = Slic3r::Config::new_from_defaults_keys(\@opt_keys);
+
+	# append default extruder
+	push @opt_keys, 'extruder';
+	$default_config->set('extruder', 0);
+	$config->set_ifndef('extruder', 0);
+	$self->{settings_panel}->set_default_config($default_config);
+	$self->{settings_panel}->set_config($config);
+	$self->{settings_panel}->set_opt_keys(\@opt_keys);
+	$self->{settings_panel}->set_fixed_options([qw(extruder)]);
+	$self->{settings_panel}->enable;
+	}
+	 */
 }
 
 } //namespace GUI

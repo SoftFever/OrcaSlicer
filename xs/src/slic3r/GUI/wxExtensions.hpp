@@ -153,7 +153,7 @@ WX_DEFINE_ARRAY_PTR(PrusaObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray
 
 class PrusaObjectDataViewModelNode
 {
-	PrusaObjectDataViewModelNode*			m_parent;
+	PrusaObjectDataViewModelNode*	m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
 public:
 	PrusaObjectDataViewModelNode(const wxString &name, int instances_count=1, int scale=100) {
@@ -161,20 +161,21 @@ public:
 		m_name		= name;
 		m_copy		= wxString::Format("%d", instances_count);
 		m_scale		= wxString::Format("%d%%", scale);
+		m_type		= "object";
+		m_volume_id	= -1;
 	}
 
 	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
-							const wxString& sub_obj) {
+									const wxString& sub_obj, 
+									const wxIcon& icon, 
+									int volume_id=-1) {
 		m_parent	= parent;
 		m_name		= sub_obj;
 		m_copy		= wxEmptyString;
 		m_scale		= wxEmptyString;
-	}
-
-	PrusaObjectDataViewModelNode(PrusaObjectDataViewModelNode* parent,
-		const wxString& sub_obj, const wxIcon& icon):
-		PrusaObjectDataViewModelNode(parent, sub_obj){
-		m_icon = icon;
+		m_icon		= icon;
+		m_type		= "volume";
+		m_volume_id	= volume_id;
 	}
 
 	~PrusaObjectDataViewModelNode()
@@ -192,6 +193,8 @@ public:
 	wxIcon					m_icon;
 	wxString				m_copy;
 	wxString				m_scale;
+	std::string				m_type;
+	int						m_volume_id;
 	bool					m_container = false;
 
 	bool IsContainer() const
@@ -265,6 +268,17 @@ public:
 	{
 		m_icon = icon;
 	}
+	
+	void SetType(const std::string& type){
+		m_type = type;
+	}	
+	const std::string& GetType(){
+		return m_type;
+	}
+
+	const int GetVolumeId(){
+		return m_volume_id;
+	}
 };
 
 // ----------------------------------------------------------------------------
@@ -291,6 +305,7 @@ public:
 	void DeleteAll();
 	wxDataViewItem GetItemById(int obj_idx);
 	int GetIdByItem(wxDataViewItem& item);
+	int GetVolumeIdByItem(wxDataViewItem& item);
 	bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
