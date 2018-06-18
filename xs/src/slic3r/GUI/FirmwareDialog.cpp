@@ -182,8 +182,8 @@ void FirmwareDialog::priv::perform_upload()
 		"-b", "115200",   // XXX: is this ok to hardcode?
 		"-D",
 		"-u", // disable safe mode
-		"-U", (boost::format("flash:w:%1%:i") % filename_utf8.data()).str()
-//		"-v", "-v", "-v", "-v", "-v", // enable super verbose mode, logging each serial line exchange
+		"-U", (boost::format("flash:w:0:%1%:i") % filename_utf8.data()).str(),    // FIXME
+		// "-vvvvv", //"-v", "-v", "-v", "-v", // enable super verbose mode, logging each serial line exchange
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "

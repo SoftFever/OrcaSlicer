@@ -101,6 +101,25 @@ UPDATE * parse_op(char * s)
 
   p++;
 
+  // Extension: Parse file contents offset
+  size_t offset = 0;
+
+  for (; *p != ':'; p++) {
+    if (*p >= '0' && *p <= '9') {
+      offset *= 10;
+      offset += *p - 0x30;
+    } else {
+      avrdude_message(MSG_INFO, "%s: invalid update specification: offset is not a number\n", progname);
+      free(upd->memtype);
+      free(upd);
+      return NULL;
+    }
+  }
+
+  upd->offset = offset;
+  printf("parse_op: offset: %lu\n", offset);
+  p++;
+
   /*
    * Now, parse the filename component.  Instead of looking for the
    * leftmost possible colon delimiter, we look for the rightmost one.
@@ -176,7 +195,7 @@ UPDATE * dup_update(UPDATE * upd)
   return u;
 }
 
-UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
+UPDATE * new_update(int op, char * memtype, int filefmt, char * filename, size_t offset)
 {
   UPDATE * u;
 
@@ -190,6 +209,7 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
   u->filename = strdup(filename);
   u->op = op;
   u->format = filefmt;
+  u->offset = offset;
 
   return u;
 }
@@ -250,7 +270,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
                       progname,
                       strcmp(upd->filename, "-")==0 ? "<stdout>" : upd->filename);
     }
-    rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size);
+    rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size, 0);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: write to file '%s' failed\n",
               progname, upd->filename);
@@ -267,7 +287,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
                       progname,
                       strcmp(upd->filename, "-")==0 ? "<stdin>" : upd->filename);
     }
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1, upd->offset);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file '%s' failed\n",
               progname, upd->filename);
@@ -296,11 +316,11 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
       report_progress(1,1,NULL);
     }
     else {
-      /*
-       * test mode, don't actually write to the chip, output the buffer
-       * to stdout in intel hex instead
-       */
-      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, upd->memtype, size);
+      // /*
+      //  * test mode, don't actually write to the chip, output the buffer
+      //  * to stdout in intel hex instead
+      //  */
+      // rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, upd->memtype, size, 0);
     }
 
     if (rc < 0) {
@@ -332,7 +352,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
             progname, mem->desc, upd->filename);
     }
 
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1, upd->offset);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file '%s' failed\n",
               progname, upd->filename);

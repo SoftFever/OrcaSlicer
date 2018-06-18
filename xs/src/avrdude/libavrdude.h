@@ -821,7 +821,7 @@ extern "C" {
 char * fmtstr(FILEFMT format);
 
 int fileio(int op, char * filename, FILEFMT format,
-           struct avrpart * p, char * memtype, int size);
+           struct avrpart * p, char * memtype, int size, size_t offset);
 
 #ifdef __cplusplus
 }
@@ -870,6 +870,7 @@ enum updateflags {
 typedef struct update_t {
   char * memtype;
   int    op;
+  size_t offset;
   char * filename;
   int    format;
 } UPDATE;
@@ -881,7 +882,7 @@ extern "C" {
 extern UPDATE * parse_op(char * s);
 extern UPDATE * dup_update(UPDATE * upd);
 extern UPDATE * new_update(int op, char * memtype, int filefmt,
-			   char * filename);
+			   char * filename, size_t offset);
 extern void free_update(UPDATE * upd);
 extern int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd,
 		 enum updateflags flags);
