@@ -17,7 +17,7 @@ A derived User preset keeps track of wich settings are inherited from the parent
 This system ensures that we don't overwrite user's settings when there is an update to the built in presets.
 
 Slic3r GUI now displays accurately which settings are inherited and which are modified.
-A setting derived from a System preset is represeted by green label and a locked lock icon:
+A setting derived from a System preset is represented by green label and a locked lock icon:
 
 ![a system setting](setting_sys.png)
 
