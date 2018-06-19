@@ -27,6 +27,13 @@ if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB)
     # -D_ITERATOR_DEBUG_LEVEL)
+    if(WIN10SDK_PATH)
+        message("Building with Win10 Netfabb STL fixing service support")
+        add_definitions(-DHAS_WIN10SDK)
+        include_directories("${WIN10SDK_PATH}/Include")
+    else()
+        message("Building without Win10 Netfabb STL fixing service support")
+    endif()
 endif()
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
@@ -232,6 +239,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
+    ${LIBDIR}/slic3r/Utils/FixModelByWin10.cpp
+    ${LIBDIR}/slic3r/Utils/FixModelByWin10.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
     ${LIBDIR}/slic3r/Utils/Bonjour.cpp
