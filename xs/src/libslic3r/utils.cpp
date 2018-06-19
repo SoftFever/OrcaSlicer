@@ -184,7 +184,7 @@ void PerlCallback::deregister_callback()
 	}
 }
 
-void PerlCallback::call()
+void PerlCallback::call() const
 {
     if (! m_callback)
         return;
@@ -198,7 +198,7 @@ void PerlCallback::call()
     LEAVE;
 }
 
-void PerlCallback::call(int i)
+void PerlCallback::call(int i) const
 {
     if (! m_callback)
         return;
@@ -213,7 +213,7 @@ void PerlCallback::call(int i)
     LEAVE;
 }
 
-void PerlCallback::call(int i, int j)
+void PerlCallback::call(int i, int j) const
 {
     if (! m_callback)
         return;
@@ -229,8 +229,7 @@ void PerlCallback::call(int i, int j)
     LEAVE;
 }
 
-/*
-void PerlCallback::call(const std::vector<int> &ints)
+void PerlCallback::call(const std::vector<int>& ints) const
 {
     if (! m_callback)
         return;
@@ -238,16 +237,51 @@ void PerlCallback::call(const std::vector<int> &ints)
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    AV* av = newAV();
     for (int i : ints)
-        av_push(av, newSViv(i));
-    XPUSHs(av);
+    {
+        XPUSHs(sv_2mortal(newSViv(i)));
+    }
     PUTBACK;
     perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
     FREETMPS;
     LEAVE;
 }
-*/
+
+void PerlCallback::call(double d) const
+{
+    if (!m_callback)
+        return;
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVnv(d)));
+    PUTBACK;
+    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
+    FREETMPS;
+    LEAVE;
+}
+
+void PerlCallback::call(double x, double y) const
+{
+    if (!m_callback)
+        return;
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVnv(x)));
+    XPUSHs(sv_2mortal(newSVnv(y)));
+    PUTBACK;
+    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
+    FREETMPS;
+    LEAVE;
+}
+
+void PerlCallback::call(bool b) const
+{
+    call(b ? 1 : 0);
+}
 
 #ifdef WIN32
     #ifndef NOMINMAX
