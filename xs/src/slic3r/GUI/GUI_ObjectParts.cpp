@@ -93,36 +93,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
-		if (g_prevent_list_events) return;
-
-		wxWindowUpdateLocker noUpdates(get_right_panel());
-		auto item = m_objects_ctrl->GetSelection();
-		int obj_idx = -1;
-		if (!item)
-			unselect_objects();
-		else
-		{
-			if (m_objects_model->GetParent(item) == wxDataViewItem(0))
-				obj_idx = m_objects_model->GetIdByItem(item);
-			else {
-				auto parent = m_objects_model->GetParent(item);
-				// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
-				obj_idx = m_objects_model->GetIdByItem(parent);
-			}
-		}
-		m_selected_object_id = obj_idx;
-
-		if (m_event_object_selection_changed > 0) {
-			wxCommandEvent event(m_event_object_selection_changed);
-			event.SetInt(int(m_objects_model->GetParent(item) != wxDataViewItem(0)));
-			event.SetId(obj_idx);
-			get_main_frame()->ProcessWindowEvent(event);
-		}
-
-		if (obj_idx < 0) return;
-
-//		m_objects_ctrl->SetSize(m_objects_ctrl->GetBestSize()); // TODO override GetBestSize(), than use it
-		part_selection_changed();
+		object_ctrl_selection_changed();
 	});
 
 	m_objects_ctrl->Bind(wxEVT_KEY_DOWN, [](wxKeyEvent& event)
@@ -344,13 +315,9 @@ void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer)
 			m_sizer_object_buttons->Show(false);
 			m_sizer_part_buttons->Show(false);
 			m_sizer_object_movers->Show(false);
-			m_collpane_settings->Show(false);
+			if (!m_objects_ctrl->HasSelection())
+				m_collpane_settings->Show(false);
 		}
-// 		else 
-// 			m_objects_ctrl->UnselectAll();
-
-// 		e.Skip();
-//		g_right_panel->Layout();
 	}));
 
 	// *** Object/Part Settings ***
@@ -367,6 +334,10 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 	wxString item = name;
 	int scale = model_object->instances[0]->scaling_factor * 100;
 	m_objects_ctrl->Select(m_objects_model->Add(item, model_object->instances.size(), scale));
+// 	part_selection_changed();
+#ifdef __WXMSW__
+	object_ctrl_selection_changed();
+#endif //__WXMSW__
 	m_objects.push_back(model_object);
 }
 
@@ -403,14 +374,7 @@ void set_object_scale(int idx, int scale)
 void unselect_objects()
 {
 	m_objects_ctrl->UnselectAll();
-	if (m_sizer_object_buttons->IsShown(1))
-		m_sizer_object_buttons->Show(false);
-	if (m_sizer_part_buttons->IsShown(1))
-		m_sizer_part_buttons->Show(false);
-	if (m_sizer_object_movers->IsShown(1))
-		m_sizer_object_movers->Show(false);
-	if (m_collpane_settings->IsShown())
-		m_collpane_settings->Show(false);
+	part_selection_changed();
 }
 
 void select_current_object(int idx)
@@ -422,17 +386,26 @@ void select_current_object(int idx)
 		return;
 	}
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
+	part_selection_changed();
 	g_prevent_list_events = false;
+}
 
-	if (is_expert_mode()){
-		if (!m_sizer_object_buttons->IsShown(1))
-			m_sizer_object_buttons->Show(true);
-		if (!m_sizer_object_movers->IsShown(1))
-			m_sizer_object_movers->Show(true);
-		if (!m_collpane_settings->IsShown())
-			m_collpane_settings->Show(true);
+void object_ctrl_selection_changed()
+{
+	if (g_prevent_list_events) return;
+
+	part_selection_changed();
+
+	if (m_selected_object_id < 0) return;
+
+	if (m_event_object_selection_changed > 0) {
+		wxCommandEvent event(m_event_object_selection_changed);
+		event.SetInt(int(m_objects_model->GetParent(/*item*/ m_objects_ctrl->GetSelection()) != wxDataViewItem(0)));
+		event.SetId(m_selected_object_id);
+		get_main_frame()->ProcessWindowEvent(event);
 	}
 }
+
 // ******
 
 void load_part(	wxWindow* parent, ModelObject* model_object, 
@@ -547,6 +520,10 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 	for (int i = 0; i < part_names.size(); ++i)
 		m_objects_ctrl->Select(	m_objects_model->AddChild(item, part_names.Item(i), 
 								is_modifier ? m_icon_modifiermesh : m_icon_solidmesh));
+// 	part_selection_changed();
+#ifdef __WXMSW__
+	object_ctrl_selection_changed();
+#endif //__WXMSW__
 }
 
 void on_btn_del()
@@ -569,11 +546,16 @@ void on_btn_del()
 		return;
 	}
 
-	m_objects_ctrl->Select(m_objects_model->Delete(item));
 	m_objects[m_selected_object_id]->delete_volume(volume_id);
 	m_parts_changed = true;
 
 	parts_changed(m_selected_object_id);
+
+	m_objects_ctrl->Select(m_objects_model->Delete(item));
+	part_selection_changed();
+// #ifdef __WXMSW__
+// 	object_ctrl_selection_changed();
+// #endif //__WXMSW__
 }
 
 void on_btn_split()
@@ -607,6 +589,10 @@ void on_btn_move_up(){
 		std::swap(volumes[volume_id - 1], volumes[volume_id]);
 		m_parts_changed = true;
 		m_objects_ctrl->Select(m_objects_model->MoveChildUp(item));
+		part_selection_changed();
+// #ifdef __WXMSW__
+// 		object_ctrl_selection_changed();
+// #endif //__WXMSW__
 	}
 }
 
@@ -622,6 +608,10 @@ void on_btn_move_down(){
 		std::swap(volumes[volume_id + 1], volumes[volume_id]);
 		m_parts_changed = true;
 		m_objects_ctrl->Select(m_objects_model->MoveChildDown(item));
+		part_selection_changed();
+// #ifdef __WXMSW__
+// 		object_ctrl_selection_changed();
+// #endif //__WXMSW__
 	}
 }
 
@@ -639,6 +629,22 @@ void parts_changed(int obj_idx)
 
 void part_selection_changed()
 {
+	auto item = m_objects_ctrl->GetSelection();
+	int obj_idx = -1;
+	if (item)
+	{
+		if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+			obj_idx = m_objects_model->GetIdByItem(item);
+		else {
+			auto parent = m_objects_model->GetParent(item);
+			// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
+			obj_idx = m_objects_model->GetIdByItem(parent);
+		}
+	}
+	m_selected_object_id = obj_idx;
+
+	wxWindowUpdateLocker noUpdates(get_right_panel());
+
 	m_move_options = Point3(0, 0, 0);
 	m_last_coords = Point3(0, 0, 0);
 	// reset move sliders
@@ -647,8 +653,7 @@ void part_selection_changed()
 	for (auto opt_key: opt_keys)
 		og->set_value(opt_key, int(0));
 
-	auto item = m_objects_ctrl->GetSelection();
-	if (!item || m_selected_object_id < 0){
+	if (/*!item || */m_selected_object_id < 0){
 		m_sizer_object_buttons->Show(false);
 		m_sizer_part_buttons->Show(false);
 		m_sizer_object_movers->Show(false);

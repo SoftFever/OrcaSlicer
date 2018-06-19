@@ -57,6 +57,8 @@ void unselect_objects();
 // Select current object in the list on c++ side
 void select_current_object(int idx);
 
+void object_ctrl_selection_changed();
+
 void init_mesh_icons();
 void set_event_object_selection_changed(const int& event);
 void set_event_object_settings_changed (const int& event);
