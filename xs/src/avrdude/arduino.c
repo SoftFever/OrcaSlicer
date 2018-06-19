@@ -148,6 +148,7 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
   // Initialization sequence for programming the external FLASH on the Prusa MK3
   if (prusa_init_external_flash(pgm) < 0) {
     avrdude_message(MSG_INFO, "%s: arduino_open(): Failed to initialize MK3 external flash programming mode\n", progname);
+    return -1;
   }
 
   if (stk500_getsync(pgm) < 0)

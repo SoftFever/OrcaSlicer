@@ -117,7 +117,6 @@ UPDATE * parse_op(char * s)
   }
 
   upd->offset = offset;
-  printf("parse_op: offset: %lu\n", offset);
   p++;
 
   /*
