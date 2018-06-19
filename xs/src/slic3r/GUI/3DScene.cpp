@@ -1948,6 +1948,11 @@ void _3DScene::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
     s_canvas_mgr.update_volumes_colors_by_extruder(canvas);
 }
 
+void _3DScene::update_gizmos_data(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.update_gizmos_data(canvas);
+}
+
 void _3DScene::render(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render(canvas);
@@ -2041,6 +2046,11 @@ void _3DScene::register_on_enable_action_buttons_callback(wxGLCanvas* canvas, vo
 void _3DScene::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_gizmo_scale_uniformly_callback(canvas, callback);
+}
+
+void _3DScene::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_gizmo_rotate_callback(canvas, callback);
 }
 
 static inline int hex_digit_to_int(const char c)

@@ -100,6 +100,9 @@ class GLGizmoRotate : public GLGizmoBase
 public:
     GLGizmoRotate();
 
+    float get_angle_z() const;
+    void set_angle_z(float angle_z);
+
 protected:
     virtual bool on_init();
     virtual void on_update(const Pointf& mouse_pos);
@@ -120,9 +123,9 @@ class GLGizmoScale : public GLGizmoBase
     static const float Offset;
 
     float m_scale;
+    float m_starting_scale;
 
     Pointf m_starting_drag_position;
-    float m_starting_scale;
 
 public:
     GLGizmoScale();

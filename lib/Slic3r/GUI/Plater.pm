@@ -14,6 +14,7 @@ use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :
 use Wx::Event qw(EVT_BUTTON EVT_TOGGLEBUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_LEFT_DOWN EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_COMBOBOX EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
+use Slic3r::Geometry qw(PI);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -134,6 +135,12 @@ sub new {
         $self->schedule_background_process;
     };
     
+    # callback to react to gizmo rotate
+    my $on_gizmo_rotate = sub {
+        my ($angle_z) = @_;
+        $self->rotate(rad2deg($angle_z), Z, 'absolute');
+    };
+    
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
@@ -151,6 +158,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
+        Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
         Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
@@ -1060,7 +1068,17 @@ sub rotate {
     
     if ($axis == Z) {
         my $new_angle = deg2rad($angle);
-        $_->set_rotation(($relative ? $_->rotation : 0.) + $new_angle) for @{ $model_object->instances };
+        foreach my $inst (@{ $model_object->instances }) {
+            my $rotation = ($relative ? $inst->rotation : 0.) + $new_angle;
+            while ($rotation > 2.0 * PI) {
+                $rotation -= 2.0 * PI;
+            }
+            while ($rotation < 0.0) {
+                $rotation += 2.0 * PI;
+            }
+            $inst->set_rotation($rotation);
+            Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});            
+        }
         $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
         # rotation around X and Y needs to be performed on mesh

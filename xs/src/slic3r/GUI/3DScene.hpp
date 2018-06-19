@@ -568,6 +568,7 @@ public:
     static void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     static void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
+    static void update_gizmos_data(wxGLCanvas* canvas);
 
     static void render(wxGLCanvas* canvas);
 
@@ -590,6 +591,7 @@ public:
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);

@@ -360,14 +360,20 @@ public:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Pointf& mouse_pos);
-        void update_data(float scale);
+
+        EType get_current_type() const;
 
         bool is_running() const;
+
         bool is_dragging() const;
         void start_dragging();
         void stop_dragging();
 
         float get_scale() const;
+        void set_scale(float scale);
+
+        float get_angle_z() const;
+        void set_angle_z(float angle_z);
 
         void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
@@ -442,6 +448,7 @@ private:
     PerlCallback m_on_wipe_tower_moved_callback;
     PerlCallback m_on_enable_action_buttons_callback;
     PerlCallback m_on_gizmo_scale_uniformly_callback;
+    PerlCallback m_on_gizmo_rotate_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -510,6 +517,7 @@ public:
     void set_viewport_from_scene(const GLCanvas3D& other);
 
     void update_volumes_colors_by_extruder();
+    void update_gizmos_data();
 
     void render();
 
@@ -548,6 +556,7 @@ public:
     void register_on_wipe_tower_moved_callback(void* callback);
     void register_on_enable_action_buttons_callback(void* callback);
     void register_on_gizmo_scale_uniformly_callback(void* callback);
+    void register_on_gizmo_rotate_callback(void* callback);
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -627,8 +636,6 @@ private:
 
     void _on_move(const std::vector<int>& volume_idxs);
     void _on_select(int volume_idx);
-
-    void _update_gizmos_data();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

@@ -1263,14 +1263,9 @@ void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
         curr->update(mouse_pos);
 }
 
-void GLCanvas3D::Gizmos::update_data(float scale)
+GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Scale);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoScale*>(it->second)->set_scale(scale);
+    return m_current;
 }
 
 bool GLCanvas3D::Gizmos::is_running() const
@@ -1307,6 +1302,35 @@ float GLCanvas3D::Gizmos::get_scale() const
 
     GizmosMap::const_iterator it = m_gizmos.find(Scale);
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale*>(it->second)->get_scale() : 1.0f;
+}
+
+void GLCanvas3D::Gizmos::set_scale(float scale)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Scale);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoScale*>(it->second)->set_scale(scale);
+}
+
+float GLCanvas3D::Gizmos::get_angle_z() const
+{
+    if (!m_enabled)
+        return 0.0f;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate*>(it->second)->get_angle_z() : 0.0f;
+}
+
+void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle_z(angle_z);
 }
 
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
@@ -1823,6 +1847,38 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
+void GLCanvas3D::update_gizmos_data()
+{
+    if (!m_gizmos.is_running())
+        return;
+
+    int id = _get_first_selected_object_id();
+    if ((id != -1) && (m_model != nullptr))
+    {
+        ModelObject* model_object = m_model->objects[id];
+        if (model_object != nullptr)
+        {
+            ModelInstance* model_instance = model_object->instances[0];
+            if (model_instance != nullptr)
+            {
+                switch (m_gizmos.get_current_type())
+                {
+                case Gizmos::Scale:
+                {
+                    m_gizmos.set_scale(model_instance->scaling_factor);
+                    break;
+                }
+                case Gizmos::Rotate:
+                {
+                    m_gizmos.set_angle_z(model_instance->rotation);
+                    break;
+                }
+                }
+            }
+        }
+    }
+}
+
 void GLCanvas3D::render()
 {
     if (m_canvas == nullptr)
@@ -1930,6 +1986,7 @@ void GLCanvas3D::reload_scene(bool force)
         m_objects_volumes_idxs.push_back(load_object(*m_model, obj_idx));
     }
 
+    update_gizmos_data();
     update_volumes_selection(m_objects_selections);
 
     if (m_config->has("nozzle_diameter"))
@@ -2477,6 +2534,12 @@ void GLCanvas3D::register_on_gizmo_scale_uniformly_callback(void* callback)
         m_on_gizmo_scale_uniformly_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_rotate_callback.register_callback(callback);
+}
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -2694,13 +2757,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if ((selected_object_idx != -1) && gizmos_overlay_contains_mouse)
         {
+            update_gizmos_data();
             m_gizmos.update_on_off_state(*this, m_mouse.position);
-            _update_gizmos_data();
             m_dirty = true;
         }
         else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
-        {            
-            _update_gizmos_data();
+        {
+            update_gizmos_data();
             m_gizmos.start_dragging();
             m_dirty = true;
         }
@@ -2726,9 +2789,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         }
                     }
 
-                    if (m_gizmos.is_running())
-                        _update_gizmos_data();
-
+                    update_gizmos_data();
                     m_dirty = true;
                 }
             }
@@ -2821,7 +2882,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         const Pointf3& cur_pos = _mouse_to_bed_3d(pos);
         m_gizmos.update(Pointf(cur_pos.x, cur_pos.y));
 
-        m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+        switch (m_gizmos.get_current_type())
+        {
+        case Gizmos::Scale:
+        {
+            m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+            break;
+        }
+        case Gizmos::Rotate:
+        {
+            m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+            break;
+        }
+        default:
+            break;
+        }
         m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
@@ -3164,6 +3239,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_wipe_tower_moved_callback.deregister_callback();
     m_on_enable_action_buttons_callback.deregister_callback();
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
+    m_on_gizmo_rotate_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -4262,21 +4338,6 @@ void GLCanvas3D::_on_select(int volume_idx)
             id = m_volumes.volumes[volume_idx]->object_idx();
     }
     m_on_select_object_callback.call(id);
-}
-
-void GLCanvas3D::_update_gizmos_data()
-{
-    int id = _get_first_selected_object_id();
-    if ((id != -1) && (m_model != nullptr))
-    {
-        ModelObject* model_object = m_model->objects[id];
-        if (model_object != nullptr)
-        {
-            ModelInstance* model_instance = model_object->instances[0];
-            if (model_instance != nullptr)
-                m_gizmos.update_data(model_instance->scaling_factor);
-        }
-    }
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

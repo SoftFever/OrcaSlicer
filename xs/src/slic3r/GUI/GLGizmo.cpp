@@ -140,7 +140,7 @@ void GLGizmoBase::on_start_dragging()
 
 void GLGizmoBase::render_grabbers() const
 {
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
+    for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         m_grabbers[i].render(m_hover_id == i);
     }
@@ -163,6 +163,19 @@ GLGizmoRotate::GLGizmoRotate()
     , m_center(Pointf(0.0, 0.0))
     , m_radius(0.0f)
 {
+}
+
+float GLGizmoRotate::get_angle_z() const
+{
+    return m_angle_z;
+}
+
+void GLGizmoRotate::set_angle_z(float angle_z)
+{
+    if (std::abs(angle_z - 2.0f * PI) < EPSILON)
+        angle_z = 0.0f;
+
+    m_angle_z = angle_z;
 }
 
 bool GLGizmoRotate::on_init()
@@ -194,6 +207,7 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
     if (cross(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (coordf_t)PI - theta;
 
+    // snap
     if (length(m_center.vector_to(mouse_pos)) < 2.0 * (double)m_radius / 3.0)
     {
         coordf_t step = 2.0 * (coordf_t)PI / (coordf_t)SnapRegionsCount;
@@ -202,7 +216,7 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 
     if (theta == 2.0 * (coordf_t)PI)
         theta = 0.0;
-    
+
     m_angle_z = (float)theta;
 }
 
