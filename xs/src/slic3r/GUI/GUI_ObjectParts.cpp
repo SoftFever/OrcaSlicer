@@ -81,15 +81,15 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	// column 0(Icon+Text) of the view control:
 	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 150,
-		wxALIGN_LEFT, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+		wxALIGN_LEFT, /*wxDATAVIEW_COL_SORTABLE | */wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
 	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 65,
-		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 2 of the view control:
 	m_objects_ctrl->AppendTextColumn(_(L("Scale")), 2, wxDATAVIEW_CELL_INERT, 70,
-		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
+		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
@@ -106,7 +106,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 				obj_idx = m_objects_model->GetIdByItem(item);
 			else {
 				auto parent = m_objects_model->GetParent(item);
-				obj_idx = m_objects_model->GetIdByItem(parent); // TODO Temporary decision for sub-objects selection
+				// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
+				obj_idx = m_objects_model->GetIdByItem(parent);
 			}
 		}
 		m_selected_object_id = obj_idx;
@@ -605,7 +606,7 @@ void on_btn_move_up(){
 	if (0 < volume_id && volume_id < volumes.size()) {
 		std::swap(volumes[volume_id - 1], volumes[volume_id]);
 		m_parts_changed = true;
-		// TODO update model ($volume_id - 1);
+		m_objects_ctrl->Select(m_objects_model->MoveChildUp(item));
 	}
 }
 
@@ -618,9 +619,9 @@ void on_btn_move_down(){
 		return;
 	auto& volumes = m_objects[m_selected_object_id]->volumes;
 	if (0 <= volume_id && volume_id+1 < volumes.size()) {
-		std::swap(volumes[volume_id + 1], volumes[volume_id - 1]);
+		std::swap(volumes[volume_id + 1], volumes[volume_id]);
 		m_parts_changed = true;
-		// TODO update model ($volume_id - 1);
+		m_objects_ctrl->Select(m_objects_model->MoveChildDown(item));
 	}
 }
 

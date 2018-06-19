@@ -556,6 +556,54 @@ bool PrusaObjectDataViewModel::SetValue(const wxVariant &variant, const int item
 	return m_objects[item_idx]->SetValue(variant, col);
 }
 
+wxDataViewItem PrusaObjectDataViewModel::MoveChildUp(const wxDataViewItem &item)
+{
+	auto ret_item = wxDataViewItem(0);
+	wxASSERT(item.IsOk());
+	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+	if (!node)      // happens if item.IsOk()==false
+		return ret_item;
+
+	auto node_parent = node->GetParent();
+	if (!node_parent) // If isn't part, but object
+		return ret_item;
+
+	auto volume_id = node->GetVolumeId();
+	if (0 < volume_id && volume_id < node_parent->GetChildCount()){
+		node_parent->SwapChildrens(volume_id - 1, volume_id);
+		ret_item = wxDataViewItem(node_parent->GetNthChild(volume_id - 1));
+		ItemChanged(item);
+		ItemChanged(ret_item);
+	}
+	else
+		ret_item = wxDataViewItem(node_parent->GetNthChild(0));
+	return ret_item;
+}
+
+wxDataViewItem PrusaObjectDataViewModel::MoveChildDown(const wxDataViewItem &item)
+{
+	auto ret_item = wxDataViewItem(0);
+	wxASSERT(item.IsOk());
+	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+	if (!node)      // happens if item.IsOk()==false
+		return ret_item;
+
+	auto node_parent = node->GetParent();
+	if (!node_parent) // If isn't part, but object
+		return ret_item;
+
+	auto volume_id = node->GetVolumeId();
+	if (0 <= volume_id && volume_id+1 < node_parent->GetChildCount()){
+		node_parent->SwapChildrens(volume_id + 1, volume_id);
+		ret_item = wxDataViewItem(node_parent->GetNthChild(volume_id + 1));
+		ItemChanged(item);
+		ItemChanged(ret_item);
+	}
+	else
+		ret_item = wxDataViewItem(node_parent->GetNthChild(node_parent->GetChildCount()-1));
+	return ret_item;
+}
+
 // bool MyObjectTreeModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
 // {
 // 

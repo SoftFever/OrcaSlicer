@@ -282,6 +282,33 @@ public:
 	const int& GetVolumeId(){
 		return m_volume_id;
 	}
+
+	// use this function only for childrens
+	void AssignAllVal(PrusaObjectDataViewModelNode& from_node)
+	{
+		// ! Don't overwrite other values because of equality of this values for all children --
+		m_name = from_node.m_name;
+		m_icon = from_node.m_icon;
+		m_volume_id = from_node.m_volume_id;
+	}
+
+	bool SwapChildrens(int frst_id, int scnd_id) {
+		if (GetChildCount() < 2 || 
+			frst_id < 0 || frst_id >= GetChildCount() || 
+			scnd_id < 0 || scnd_id >= GetChildCount())
+			return false;
+
+		PrusaObjectDataViewModelNode new_scnd = *GetNthChild(frst_id);
+		PrusaObjectDataViewModelNode new_frst = *GetNthChild(scnd_id);
+
+		new_scnd.m_volume_id = m_children.Item(scnd_id)->m_volume_id;
+		new_frst.m_volume_id = m_children.Item(frst_id)->m_volume_id;
+
+		m_children.Item(frst_id)->AssignAllVal(new_frst);
+		m_children.Item(scnd_id)->AssignAllVal(new_scnd);
+		return true;
+	}
+
 };
 
 // ----------------------------------------------------------------------------
@@ -327,6 +354,9 @@ public:
 	virtual bool SetValue(const wxVariant &variant,
 		const wxDataViewItem &item, unsigned int col) override;
 	bool SetValue(const wxVariant &variant, const int item_idx, unsigned int col);
+
+	wxDataViewItem MoveChildUp(const wxDataViewItem &item);
+	wxDataViewItem MoveChildDown(const wxDataViewItem &item);
 
 // 	virtual bool IsEnabled(const wxDataViewItem &item,
 // 		unsigned int col) const override;
