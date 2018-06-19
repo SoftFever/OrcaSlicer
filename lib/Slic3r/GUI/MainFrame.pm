@@ -19,6 +19,7 @@ use Wx::Locale gettext => 'L';
 our $qs_last_input_file;
 our $qs_last_output_file;
 our $last_config;
+our $appController;
 
 # Events to be sent from a C++ Tab implementation:
 # 1) To inform about a change of a configuration value.
@@ -31,6 +32,8 @@ sub new {
     
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
     Slic3r::GUI::set_main_frame($self);
+    $appController = Slic3r::AppController->new();
+
     if ($^O eq 'MSWin32') {
         # Load the icon either from the exe, or from the ico file.
         my $iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
@@ -61,6 +64,12 @@ sub new {
     $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, -1);
     $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
     $self->SetStatusBar($self->{statusbar});
+
+    # Make the global status bar and its progress indicator available in C++
+    $appController->set_global_progress_indicator_id(
+        $self->{statusbar}->{prog}->GetId(),
+        $self->{statusbar}->GetId(),
+    );
     
     $self->{loaded} = 1;
     
@@ -115,6 +124,8 @@ sub _init_tabpanel {
         if (!$self->{no_controller}) {
             $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
         }
+        $appController->set_model($self->{plater}->{model});
+        $appController->set_print($self->{plater}->{print});
     }
     
     #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
@@ -231,7 +242,7 @@ sub _init_menubar {
             $self->quick_slice(save_as => 1, export_svg => 1);
         }, undef, 'shape_handles.png');
         $self->_append_menu_item($fileMenu, L("Slice to PNG…"), L('Slice file to a set of PNG files'), sub {
-            $self->quick_slice(save_as => 0, export_png => 1);
+            $self->slice_to_png; #$self->quick_slice(save_as => 0, export_png => 1);
         }, undef, 'shape_handles.png');
         $self->{menu_item_reslice_now} = $self->_append_menu_item(
             $fileMenu, L("(&Re)Slice Now\tCtrl+S"), L('Start new slicing process'), 
@@ -376,6 +387,11 @@ sub on_plater_selection_changed {
     return if !defined $self->{object_menu};
     $self->{object_menu}->Enable($_->GetId, $have_selection)
         for $self->{object_menu}->GetMenuItems;
+}
+
+sub slice_to_png {
+    my $self = shift;
+    $appController->slice_to_png;
 }
 
 # To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".

@@ -65,6 +65,7 @@ REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(TabIface, "GUI::Tab");
 REGISTER_CLASS(PresetUpdater, "PresetUpdater");
 REGISTER_CLASS(OctoPrint, "OctoPrint");
+REGISTER_CLASS(AppController, "AppController");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {
