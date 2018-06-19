@@ -374,7 +374,7 @@ static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
 
 static int cleanup_main(int status)
 {
-    if (pgm_setup && pgm->teardown) {
+    if (pgm_setup && pgm != NULL && pgm->teardown) {
         pgm->teardown(pgm);
     }
 

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <boost/format.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <wx/app.h>
@@ -92,7 +93,9 @@ struct FirmwareDialog::priv
 	{}
 
 	void find_serial_ports();
-	void flashing_status(bool flashing, AvrDudeComplete complete = AC_NONE);
+	void flashing_start(bool flashing_l10n);
+	void flashing_done(AvrDudeComplete complete);
+	size_t hex_lang_offset(const wxString &path);
 	void perform_upload();
 	void cancel();
 	void on_avrdude(const wxCommandEvent &evt);
@@ -119,43 +122,76 @@ void FirmwareDialog::priv::find_serial_ports()
 	}
 }
 
-void FirmwareDialog::priv::flashing_status(bool value, AvrDudeComplete complete)
+void FirmwareDialog::priv::flashing_start(bool flashing_l10n)
 {
-	if (value) {
-		txt_stdout->Clear();
-		txt_status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
-		txt_status->SetForegroundColour(GUI::get_label_clr_modified());
-		port_picker->Disable();
-		btn_rescan->Disable();
-		hex_picker->Disable();
-		btn_close->Disable();
-		btn_flash->SetLabel(btn_flash_label_flashing);
-		progressbar->SetRange(200);   // See progress callback below
-		progressbar->SetValue(0);
-		progress_tasks_done = 0;
-		cancelled = false;
-		timer_pulse.Start(50);
-	} else {
-		auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-		port_picker->Enable();
-		btn_rescan->Enable();
-		hex_picker->Enable();
-		btn_close->Enable();
-		btn_flash->SetLabel(btn_flash_label_ready);
-		txt_status->SetForegroundColour(text_color);
-		progressbar->SetValue(200);
+	txt_stdout->Clear();
+	txt_status->SetLabel(_(L("Flashing in progress. Please do not disconnect the printer!")));
+	txt_status->SetForegroundColour(GUI::get_label_clr_modified());
+	port_picker->Disable();
+	btn_rescan->Disable();
+	hex_picker->Disable();
+	btn_close->Disable();
+	btn_flash->SetLabel(btn_flash_label_flashing);
+	progressbar->SetRange(flashing_l10n ? 500 : 200);   // See progress callback below
+	progressbar->SetValue(0);
+	progress_tasks_done = 0;
+	cancelled = false;
+	timer_pulse.Start(50);
+}
 
-		switch (complete) {
-		case AC_SUCCESS: txt_status->SetLabel(_(L("Flashing succeeded!"))); break;
-		case AC_FAILURE: txt_status->SetLabel(_(L("Flashing failed. Please see the avrdude log below."))); break;
-		case AC_CANCEL: txt_status->SetLabel(_(L("Flashing cancelled."))); break;
+void FirmwareDialog::priv::flashing_done(AvrDudeComplete complete)
+{
+	auto text_color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+	port_picker->Enable();
+	btn_rescan->Enable();
+	hex_picker->Enable();
+	btn_close->Enable();
+	btn_flash->SetLabel(btn_flash_label_ready);
+	txt_status->SetForegroundColour(text_color);
+	timer_pulse.Stop();
+	progressbar->SetValue(progressbar->GetRange());
+
+	switch (complete) {
+	case AC_SUCCESS: txt_status->SetLabel(_(L("Flashing succeeded!"))); break;
+	case AC_FAILURE: txt_status->SetLabel(_(L("Flashing failed. Please see the avrdude log below."))); break;
+	case AC_CANCEL: txt_status->SetLabel(_(L("Flashing cancelled."))); break;
+	}
+}
+
+size_t FirmwareDialog::priv::hex_lang_offset(const wxString &path)
+{
+	fs::ifstream file(fs::path(path.wx_str()));
+	if (! file.good()) {
+		return 0;
+	}
+
+	static const char *hex_terminator = ":00000001FF\r";
+	size_t res = 0;
+	std::string line;
+	while (getline(file, line, '\n').good()) {
+		// Account for LF vs CRLF
+		if (!line.empty() && line.back() != '\r') {
+			line.push_back('\r');
+		}
+
+		if (line == hex_terminator) {
+			if (res == 0) {
+				// This is the first terminator seen, save the position
+				res = file.tellg();
+			} else {
+				// We've found another terminator, return the offset just after the first one
+				// which is the start of the second 'section'.
+				return res;
+			}
 		}
 	}
+
+	return 0;
 }
 
 void FirmwareDialog::priv::perform_upload()
 {
-	auto filename  = hex_picker->GetPath();
+	auto filename = hex_picker->GetPath();
 	std::string port = port_picker->GetValue().ToStdString();
 	int  selection = port_picker->GetSelection();
 	if (selection != -1) {
@@ -165,25 +201,32 @@ void FirmwareDialog::priv::perform_upload()
 	}
 	if (filename.IsEmpty() || port.empty()) { return; }
 
-	flashing_status(true);
-
+	const bool extra_verbose = false;   // For debugging
+	const auto lang_offset = hex_lang_offset(filename);
 	const auto filename_utf8 = filename.utf8_str();
+
+	flashing_start(lang_offset > 0);
+
+	// It is ok here to use the q-pointer to the FirmwareDialog
+	// because the dialog ensures it doesn't exit before the background thread is done.
+	auto q = this->q;
+
+	// Init the avrdude object
+	AvrDude avrdude(avrdude_config);
+
+	// Build argument list(s)
 	std::vector<std::string> args {{
-		"-v",
+		extra_verbose ? "-vvvvv" : "-v",
 		"-p", "atmega2560",
 		// Using the "Wiring" mode to program Rambo or Einsy, using the STK500v2 protocol (not the STK500).
 		// The Prusa's avrdude is patched to never send semicolons inside the data packets, as the USB to serial chip
 		// is flashed with a buggy firmware.
-//		"-c", "wiring",
-		// Using the "Arduino" mode to program Einsy's external flash with languages, using the STK500 protocol (not the STK500v2).
-		// The Prusa's avrdude is patched again to never send semicolons inside the data packets.
-		"-c", "arduino",
+		"-c", "wiring",
 		"-P", port,
-		"-b", "115200",   // XXX: is this ok to hardcode?
+		"-b", "115200",   // TODO: Allow other rates? Ditto below.
 		"-D",
-		"-u", // disable safe mode
-		"-U", (boost::format("flash:w:0:%1%:i") % filename_utf8.data()).str(),    // FIXME
-		// "-vvvvv", //"-v", "-v", "-v", "-v", // enable super verbose mode, logging each serial line exchange
+		// XXX: Safe mode?
+		"-U", (boost::format("flash:w:0:%1%:i") % filename_utf8.data()).str(),
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
@@ -191,17 +234,38 @@ void FirmwareDialog::priv::perform_upload()
 			return a + ' ' + b;
 		});
 
-	// It is ok here to use the q-pointer to the FirmwareDialog
-	// because the dialog ensures it doesn't exit before the background thread is done.
-	auto q = this->q;
+	avrdude.push_args(std::move(args));
+	
+	if (lang_offset > 0) {
+		// The hex file also contains another section with l10n data to be flashed into the external flash on MK3 (Einsy)
+		// This is done via another avrdude invocation, here we build arg list for that:
+		std::vector<std::string> args_l10n {{
+			extra_verbose ? "-vvvvv" : "-v",
+			"-p", "atmega2560",
+			// Using the "Arduino" mode to program Einsy's external flash with languages, using the STK500 protocol (not the STK500v2).
+			// The Prusa's avrdude is patched again to never send semicolons inside the data packets.
+			"-c", "arduino",
+			"-P", port,
+			"-b", "115200",
+			"-D",
+			"-u", // disable safe mode
+			"-U", (boost::format("flash:w:%1%:%2%:i") % lang_offset % filename_utf8.data()).str(),
+		}};
 
-	avrdude = AvrDude()
-		.sys_config(avrdude_config)
-		.args(args)
-		.on_run([]() { /* TODO: needed? */ })
-		.on_message(std::move([q](const char *msg, unsigned /* size */) {
-			// Debugging output to console, useful when avrdude is executed in a super verbose mode (with -v -v -v).
-			// printf("%s", msg);
+		BOOST_LOG_TRIVIAL(info) << "Invoking avrdude for external flash flashing, arguments: "
+			<< std::accumulate(std::next(args_l10n.begin()), args_l10n.end(), args_l10n[0], [](std::string a, const std::string &b) {
+				return a + ' ' + b;
+			});
+
+		avrdude.push_args(std::move(args_l10n));
+	}
+	
+	this->avrdude = avrdude
+		.on_message(std::move([q, extra_verbose](const char *msg, unsigned /* size */) {
+			if (extra_verbose) {
+				BOOST_LOG_TRIVIAL(debug) << "avrdude: " << msg;
+			}
+
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			auto wxmsg = wxString::FromUTF8(msg);
 			evt->SetExtraLong(AE_MESSAGE);
@@ -214,7 +278,7 @@ void FirmwareDialog::priv::perform_upload()
 			evt->SetInt(progress);
 			wxQueueEvent(q, evt);
 		}))
-		.on_complete(std::move([q](int status) {
+		.on_complete(std::move([q](int status, size_t /* args_id */) {
 			auto evt = new wxCommandEvent(EVT_AVRDUDE, q->GetId());
 			evt->SetExtraLong(AE_EXIT);
 			evt->SetInt(status);
@@ -243,10 +307,10 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 
 	case AE_PROGRESS:
 		// We try to track overall progress here.
-		// When uploading the firmware, avrdude first reads a littlebit of status data,
-		// then performs write, then reading (verification).
-		// We ignore the first task (which just let's the timer_pulse work)
-		// and then display overall progress during the latter two tasks.
+		// Avrdude performs 3 tasks per one memory operation ("-U" arg),
+		// first of which is reading of status data (very short).
+		// We use the timer_pulse during the very first task to indicate intialization
+		// and then display overall progress during the latter tasks.
 
 		if (progress_tasks_done > 0) {
 			progressbar->SetValue(progress_tasks_done - 100 + evt.GetInt());
@@ -263,7 +327,7 @@ void FirmwareDialog::priv::on_avrdude(const wxCommandEvent &evt)
 		BOOST_LOG_TRIVIAL(info) << "avrdude exit code: " << evt.GetInt();
 
 		complete_kind = cancelled ? AC_CANCEL : (evt.GetInt() == 0 ? AC_SUCCESS : AC_FAILURE);
-		flashing_status(false, complete_kind);
+		flashing_done(complete_kind);
 
 		// Make sure the background thread is collected and the AvrDude object reset
 		if (avrdude) { avrdude->join(); }
