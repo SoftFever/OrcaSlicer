@@ -151,7 +151,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
-        Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
+#        Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
 
