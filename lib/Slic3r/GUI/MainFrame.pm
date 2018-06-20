@@ -70,6 +70,9 @@ sub new {
         $self->{statusbar}->{prog}->GetId(),
         $self->{statusbar}->GetId(),
     );
+
+    $appController->set_model($self->{plater}->{model});
+    $appController->set_print($self->{plater}->{print});
     
     $self->{loaded} = 1;
     
@@ -124,8 +127,6 @@ sub _init_tabpanel {
         if (!$self->{no_controller}) {
             $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
         }
-        $appController->set_model($self->{plater}->{model});
-        $appController->set_print($self->{plater}->{print});
     }
     
     #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
@@ -391,7 +392,8 @@ sub on_plater_selection_changed {
 
 sub slice_to_png {
     my $self = shift;
-    $appController->slice_to_png;
+    $self->{plater}->async_apply_config;
+    $appController->print_ctl()->slice_to_png();
 }
 
 # To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".

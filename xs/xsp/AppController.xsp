@@ -7,14 +7,20 @@
 #include "libslic3r/Print.hpp"
 %}
 
+%name{Slic3r::PrintController} class PrintController {
+
+    PrintController(Print *print);
+
+    void slice_to_png(); 
+    void slice();
+};
+
 %name{Slic3r::AppController} class AppController {
 
     AppController();
 
-    void slice_to_png(); 
-
+    PrintController *print_ctl();
     void set_model(Model *model);
     void set_print(Print *print);
     void set_global_progress_indicator_id(unsigned gauge_id, unsigned statusbar_id);
-
 };

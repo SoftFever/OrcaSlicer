@@ -269,3 +269,4 @@
   %};
 };
 %typemap{AppController*};
+%typemap{PrintController*};

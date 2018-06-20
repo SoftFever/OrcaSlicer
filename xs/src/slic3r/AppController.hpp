@@ -58,6 +58,8 @@ public:
         virtual void message(const std::string&) = 0;
         virtual void title(const std::string&) = 0;
 
+        virtual void messageFmt(const std::string& fmt, ...);
+
         template<class T>
         void update(T st, const std::string& msg) {
             message(msg); state(st);
@@ -66,40 +68,76 @@ public:
 
     using ProgresIndicatorPtr = std::shared_ptr<ProgressIndicator>;
 
+
+    inline void progressIndicator(ProgresIndicatorPtr progrind) {
+        progressind_ = progrind;
+    }
+
+    inline void progressIndicator(unsigned statenum,
+                                  const std::string& title,
+                                  const std::string& firstmsg = "") {
+        progressind_ = createProgressIndicator(statenum, title, firstmsg);
+    }
+
+    inline ProgresIndicatorPtr progressIndicator() {
+        if(!progressind_)
+            progressind_ = createProgressIndicator(100, "Progress");
+
+        return progressind_;
+    }
+
+protected:
+
     ProgresIndicatorPtr createProgressIndicator(
             unsigned statenum,
             const std::string& title,
             const std::string& firstmsg = "") const;
 
-    inline void globalProgressIndicator(ProgresIndicatorPtr progrind) {
-        glob_progressind_ = progrind;
-    }
-
-    inline ProgresIndicatorPtr globalProgressIndicator() {
-        if(!glob_progressind_)
-            glob_progressind_ = createProgressIndicator(100, "Progress");
-
-        return glob_progressind_;
-    }
-
 private:
-    ProgresIndicatorPtr glob_progressind_;
+    ProgresIndicatorPtr progressind_;
 };
 
-class AppController: protected AppControllerBoilerplate {
-    Model *model_ = nullptr; Print *print_ = nullptr;
+class PrintController: public AppControllerBoilerplate {
+    Print *print_ = nullptr;
+protected:
 
-    void sliceObject(PrintObject *pobj);
+    void make_skirt();
+    void make_brim();
+    void make_wipe_tower();
 
 public:
 
-    void slice();
+    using Ptr = std::unique_ptr<PrintController>;
 
+    explicit inline PrintController(Print *print): print_(print) {}
+
+    inline static Ptr create(Print *print) {
+        return std::make_unique<PrintController>(print);
+    }
+
+    void slice(PrintObject *pobj);
+    void make_perimeters(PrintObject *pobj);
+    void infill(PrintObject *pobj);
+    void gen_support_material(PrintObject *pobj);
+
+    void slice();
     void slice_to_png();
+
+};
+
+class AppController: protected AppControllerBoilerplate {
+    Model *model_ = nullptr;
+    PrintController::Ptr printctl;
+public:
+
+    PrintController * print_ctl() { return printctl.get(); }
 
     void set_model(Model *model) { model_ = model; }
 
-    void set_print(Print *print) { print_ = print; }
+    void set_print(Print *print) {
+        printctl = PrintController::create(print);
+        printctl->progressIndicator(progressIndicator());
+    }
 
     void set_global_progress_indicator_id(unsigned gauge_id,
                                           unsigned statusbar_id);
