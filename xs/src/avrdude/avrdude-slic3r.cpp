@@ -1,5 +1,6 @@
 #include "avrdude-slic3r.hpp"
 
+#include <deque>
 #include <thread>
 
 extern "C" {
@@ -33,17 +34,22 @@ static void avrdude_progress_handler_closure(const char *task, unsigned progress
 struct AvrDude::priv
 {
 	std::string sys_config;
-	std::vector<std::string> args;
+	std::deque<std::vector<std::string>> args;
+	size_t current_args_set = 0;
+	RunFn run_fn;
 	MessageFn message_fn;
 	ProgressFn progress_fn;
 	CompleteFn complete_fn;
 
 	std::thread avrdude_thread;
 
+	priv(std::string &&sys_config) : sys_config(sys_config) {}
+
+	int run_one(const std::vector<std::string> &args);
 	int run();
 };
 
-int AvrDude::priv::run() {
+int AvrDude::priv::run_one(const std::vector<std::string> &args) {
 	std::vector<char*> c_args {{ const_cast<char*>(PACKAGE_NAME) }};
 	for (const auto &arg : args) {
 		c_args.push_back(const_cast<char*>(arg.data()));
@@ -68,10 +74,22 @@ int AvrDude::priv::run() {
 	return res;
 }
 
+int AvrDude::priv::run() {
+	for (; args.size() > 0; current_args_set++) {
+		int res = run_one(args.front());
+		args.pop_front();
+		if (res != 0) {
+			return res;
+		}
+	}
+
+	return 0;
+}
+
 
 // Public
 
-AvrDude::AvrDude() : p(new priv()) {}
+AvrDude::AvrDude(std::string sys_config) : p(new priv(std::move(sys_config))) {}
 
 AvrDude::AvrDude(AvrDude &&other) : p(std::move(other.p)) {}
 
@@ -82,15 +100,15 @@ AvrDude::~AvrDude()
 	}
 }
 
-AvrDude& AvrDude::sys_config(std::string sys_config)
+AvrDude& AvrDude::push_args(std::vector<std::string> args)
 {
-	if (p) { p->sys_config = std::move(sys_config); }
+	if (p) { p->args.push_back(std::move(args)); }
 	return *this;
 }
 
-AvrDude& AvrDude::args(std::vector<std::string> args)
+AvrDude& AvrDude::on_run(RunFn fn)
 {
-	if (p) { p->args = std::move(args); }
+	if (p) { p->run_fn = std::move(fn); }
 	return *this;
 }
 
@@ -123,11 +141,17 @@ AvrDude::Ptr AvrDude::run()
 
 	if (self->p) {
 		auto avrdude_thread = std::thread([self]() {
-				auto res = self->p->run();
-				if (self->p->complete_fn) {
-					self->p->complete_fn(res);
-				}
-			});
+			if (self->p->run_fn) {
+				self->p->run_fn();
+			}
+
+			auto res = self->p->run();
+
+			if (self->p->complete_fn) {
+				self->p->complete_fn(res, self->p->current_args_set);
+			}
+		});
+
 		self->p->avrdude_thread = std::move(avrdude_thread);
 	}
 

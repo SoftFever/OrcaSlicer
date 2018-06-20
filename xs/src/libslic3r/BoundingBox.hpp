@@ -94,6 +94,7 @@ public:
     void translate(const Pointf3 &pos) { this->translate(pos.x, pos.y, pos.z); }
     void offset(coordf_t delta);
     PointClass center() const;
+    coordf_t max_size() const;
 
     bool contains(const PointClass &point) const {
         return BoundingBoxBase<PointClass>::contains(point) && point.z >= this->min.z && point.z <= this->max.z;

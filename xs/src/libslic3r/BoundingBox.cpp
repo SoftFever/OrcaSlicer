@@ -222,6 +222,14 @@ BoundingBox3Base<PointClass>::center() const
 }
 template Pointf3 BoundingBox3Base<Pointf3>::center() const;
 
+template <class PointClass> coordf_t
+BoundingBox3Base<PointClass>::max_size() const
+{
+    PointClass s = size();
+    return std::max(s.x, std::max(s.y, s.z));
+}
+template coordf_t BoundingBox3Base<Pointf3>::max_size() const;
+
 // Align a coordinate to a grid. The coordinate may be negative,
 // the aligned value will never be bigger than the original one.
 static inline coord_t _align_to_grid(const coord_t coord, const coord_t spacing) {
