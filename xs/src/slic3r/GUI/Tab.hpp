@@ -330,6 +330,7 @@ public:
 	void		update() override;
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
+	PageShp		create_kinematics_page();
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;

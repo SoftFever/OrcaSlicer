@@ -117,6 +117,9 @@ std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale;
 
+wxFont		g_small_font;
+wxFont		g_bold_font;
+
 std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 double m_brim_width = 0.0;
 wxButton*	g_wiping_dialog_button = nullptr;
@@ -149,10 +152,21 @@ void update_label_colours_from_appconfig()
 	}
 }
 
+static void init_fonts()
+{
+	g_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	g_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+#ifdef __WXMAC__
+	g_small_font.SetPointSize(11);
+	g_bold_font.SetPointSize(13);
+#endif /*__WXMAC__*/
+}
+
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
     init_label_colours();
+	init_fonts();
 }
 
 void set_main_frame(wxFrame *main_frame)
@@ -666,6 +680,14 @@ void set_label_clr_sys(const wxColour& clr) {
 	std::string str = clr_str.ToStdString();
 	g_AppConfig->set("label_clr_sys", str);
 	g_AppConfig->save();
+}
+
+const wxFont& small_font(){
+	return g_small_font;
+}
+
+const wxFont& bold_font(){
+	return g_bold_font;
 }
 
 const wxColour& get_label_clr_default() {

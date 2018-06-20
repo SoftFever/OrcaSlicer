@@ -129,7 +129,9 @@ public:
 
     OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false) : 
 		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!="") {
-        sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+		auto stb = new wxStaticBox(_parent, wxID_ANY, title);
+		stb->SetFont(bold_font());
+		sizer = (staticbox ? new wxStaticBoxSizer(stb/*new wxStaticBox(_parent, wxID_ANY, title)*/, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
         if (extra_column != nullptr) num_columns++;

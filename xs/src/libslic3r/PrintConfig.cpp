@@ -283,11 +283,11 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
-    def->enum_labels.push_back("Rectilinear");
-    def->enum_labels.push_back("Concentric");
-    def->enum_labels.push_back("Hilbert Curve");
-    def->enum_labels.push_back("Archimedean Chords");
-    def->enum_labels.push_back("Octagram Spiral");
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
     // solid_fill_pattern is an obsolete equivalent to external_fill_pattern.
     def->aliases.push_back("solid_fill_pattern");
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
@@ -617,19 +617,19 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
-    def->enum_labels.push_back("Rectilinear");
-    def->enum_labels.push_back("Grid");
-    def->enum_labels.push_back("Triangles");
-    def->enum_labels.push_back("Stars");
-    def->enum_labels.push_back("Cubic");
-    def->enum_labels.push_back("Line");
-    def->enum_labels.push_back("Concentric");
-    def->enum_labels.push_back("Honeycomb");
-    def->enum_labels.push_back("3D Honeycomb");
-    def->enum_labels.push_back("Gyroid");
-    def->enum_labels.push_back("Hilbert Curve");
-    def->enum_labels.push_back("Archimedean Chords");
-    def->enum_labels.push_back("Octagram Spiral");
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("Triangles"));
+    def->enum_labels.push_back(L("Stars"));
+    def->enum_labels.push_back(L("Cubic"));
+    def->enum_labels.push_back(L("Line"));
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Honeycomb"));
+    def->enum_labels.push_back(L("3D Honeycomb"));
+    def->enum_labels.push_back(L("Gyroid"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipStars);
 
     def = this->add("first_layer_acceleration", coFloat);
@@ -737,7 +737,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
     def->enum_labels.push_back("Smoothie");
-    def->enum_labels.push_back("No extrusion");
+    def->enum_labels.push_back(L("No extrusion"));
     def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfMarlin);
 
     def = this->add("infill_acceleration", coFloat);
@@ -1265,10 +1265,10 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
     def->enum_values.push_back("rear");
-    def->enum_labels.push_back("Random");
-    def->enum_labels.push_back("Nearest");
-    def->enum_labels.push_back("Aligned");
-    def->enum_labels.push_back("Rear"); 
+    def->enum_labels.push_back(L("Random"));
+    def->enum_labels.push_back(L("Nearest"));
+    def->enum_labels.push_back(L("Aligned"));
+    def->enum_labels.push_back(L("Rear")); 
     def->default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
 
 #if 0
@@ -1481,7 +1481,14 @@ PrintConfigDef::PrintConfigDef()
     def->label = L("Single Extruder Multi Material");
     def->tooltip = L("The printer multiplexes filaments into a single hot end.");
     def->cli = "single-extruder-multi-material!";
-    def->default_value = new ConfigOptionBool(false);
+	def->default_value = new ConfigOptionBool(false);
+
+	// -- ! Kinematics options
+	def = this->add("silent_mode", coBool);
+	def->label = L("Silent mode");
+	def->tooltip = L("Set silent mode for the G-code flavor");
+	def->default_value = new ConfigOptionBool(true);
+	// -- !
 
     def = this->add("support_material", coBool);
     def->label = L("Generate support material");
@@ -1621,9 +1628,9 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
-    def->enum_labels.push_back("rectilinear");
-    def->enum_labels.push_back("rectilinear grid");
-    def->enum_labels.push_back("honeycomb");
+	def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Rectilinear grid"));
+    def->enum_labels.push_back(L("Honeycomb"));
     def->default_value = new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear);
 
     def = this->add("support_material_spacing", coFloat);
