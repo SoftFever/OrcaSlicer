@@ -4,12 +4,17 @@
 #include "Extruder.hpp"
 #include "Flow.hpp"
 #include "Geometry.hpp"
+#include "I18N.hpp"
 #include "SupportMaterial.hpp"
 #include "GCode/WipeTowerPrusaMM.hpp"
 #include <algorithm>
 #include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+
+//! macro used to mark string used at localization, 
+//! return same string
+#define L(s) translate(s)
 
 namespace Slic3r {
 
@@ -523,7 +528,7 @@ std::string Print::validate() const
     print_volume.min.z = -1e10;
     for (PrintObject *po : this->objects) {
         if (!print_volume.contains(po->model_object()->tight_bounding_box(false)))
-            return "Some objects are outside of the print volume.";
+            return L("Some objects are outside of the print volume.");
     }
 
     if (this->config.complete_objects) {
@@ -550,7 +555,7 @@ std::string Print::validate() const
                     Polygon p = convex_hull;
                     p.translate(copy);
                     if (! intersection(convex_hulls_other, p).empty())
-                        return "Some objects are too close; your extruder will collide with them.";
+                        return L("Some objects are too close; your extruder will collide with them.");
                     polygons_append(convex_hulls_other, p);
                 }
             }
@@ -565,7 +570,7 @@ std::string Print::validate() const
             // it will be printed as last one so its height doesn't matter.
             object_height.pop_back();
             if (! object_height.empty() && object_height.back() > scale_(this->config.extruder_clearance_height.value))
-                return "Some objects are too tall and cannot be printed without extruder collisions.";
+                return L("Some objects are too tall and cannot be printed without extruder collisions.");
         }
     } // end if (this->config.complete_objects)
 
@@ -575,27 +580,22 @@ std::string Print::validate() const
             total_copies_count += object->copies().size();
         // #4043
         if (total_copies_count > 1 && ! this->config.complete_objects.value)
-            return "The Spiral Vase option can only be used when printing a single object.";
+            return L("The Spiral Vase option can only be used when printing a single object.");
         if (this->regions.size() > 1)
-            return "The Spiral Vase option can only be used when printing single material objects.";
+            return L("The Spiral Vase option can only be used when printing single material objects.");
     }
 
     if (this->config.single_extruder_multi_material) {
         for (size_t i=1; i<this->config.nozzle_diameter.values.size(); ++i)
             if (this->config.nozzle_diameter.values[i] != this->config.nozzle_diameter.values[i-1])
-                return "All extruders must have the same diameter for single extruder multimaterial printer.";
+                return L("All extruders must have the same diameter for single extruder multimaterial printer.");
     }
 
     if (this->has_wipe_tower() && ! this->objects.empty()) {
-        #if 0
-        for (auto dmr : this->config.nozzle_diameter.values)
-            if (std::abs(dmr - 0.4) > EPSILON)
-                return "The Wipe Tower is currently only supported for the 0.4mm nozzle diameter.";
-        #endif
         if (this->config.gcode_flavor != gcfRepRap && this->config.gcode_flavor != gcfMarlin)
-            return "The Wipe Tower is currently only supported for the Marlin and RepRap/Sprinter G-code flavors.";
+            return L("The Wipe Tower is currently only supported for the Marlin and RepRap/Sprinter G-code flavors.");
         if (! this->config.use_relative_e_distances)
-            return "The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).";
+            return L("The Wipe Tower is currently only supported with the relative extruder addressing (use_relative_e_distances=1).");
         SlicingParameters slicing_params0 = this->objects.front()->slicing_parameters();
 
         const PrintObject* tallest_object = this->objects.front(); // let's find the tallest object
@@ -607,13 +607,13 @@ std::string Print::validate() const
             SlicingParameters slicing_params = object->slicing_parameters();
             if (std::abs(slicing_params.first_print_layer_height - slicing_params0.first_print_layer_height) > EPSILON ||
                 std::abs(slicing_params.layer_height             - slicing_params0.layer_height            ) > EPSILON)
-                return "The Wipe Tower is only supported for multiple objects if they have equal layer heigths";
+                return L("The Wipe Tower is only supported for multiple objects if they have equal layer heigths");
             if (slicing_params.raft_layers() != slicing_params0.raft_layers())
-                return "The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers";
+                return L("The Wipe Tower is only supported for multiple objects if they are printed over an equal number of raft layers");
             if (object->config.support_material_contact_distance != this->objects.front()->config.support_material_contact_distance)
-                return "The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance";
+                return L("The Wipe Tower is only supported for multiple objects if they are printed with the same support_material_contact_distance");
             if (! equal_layering(slicing_params, slicing_params0))
-                return "The Wipe Tower is only supported for multiple objects if they are sliced equally.";
+                return L("The Wipe Tower is only supported for multiple objects if they are sliced equally.");
             bool was_layer_height_profile_valid = object->layer_height_profile_valid;
             object->update_layer_height_profile();
             object->layer_height_profile_valid = was_layer_height_profile_valid;
@@ -637,13 +637,8 @@ std::string Print::validate() const
                     failed = true;
 
                 if (failed)
-                    return "The Wipe tower is only supported if all objects have the same layer height profile";
+                    return L("The Wipe tower is only supported if all objects have the same layer height profile");
             }
-
-            /*for (size_t i = 5; i < object->layer_height_profile.size(); i += 2)
-                if (object->layer_height_profile[i-1] > slicing_params.object_print_z_min + EPSILON &&
-                    std::abs(object->layer_height_profile[i] - object->config.layer_height) > EPSILON)
-                    return "The Wipe Tower is currently only supported with constant Z layer spacing. Layer editing is not allowed.";*/
         }
     }
     
@@ -651,7 +646,7 @@ std::string Print::validate() const
         // find the smallest nozzle diameter
         std::vector<unsigned int> extruders = this->extruders();
         if (extruders.empty())
-            return "The supplied settings will cause an empty print.";
+            return L("The supplied settings will cause an empty print.");
         
         std::vector<double> nozzle_diameters;
         for (unsigned int extruder_id : extruders)
@@ -661,7 +656,7 @@ std::string Print::validate() const
         unsigned int total_extruders_count = this->config.nozzle_diameter.size();
         for (const auto& extruder_idx : extruders)
             if ( extruder_idx >= total_extruders_count )
-                return "One or more object were assigned an extruder that the printer does not have.";
+                return L("One or more object were assigned an extruder that the printer does not have.");
 
         for (PrintObject *object : this->objects) {
             if ((object->config.support_material_extruder == -1 || object->config.support_material_interface_extruder == -1) &&
@@ -670,13 +665,13 @@ std::string Print::validate() const
                 // will be printed with the current tool without a forced tool change. Play safe, assert that all object nozzles
                 // are of the same diameter.
                 if (nozzle_diameters.size() > 1)
-                    return "Printing with multiple extruders of differing nozzle diameters. "
+                    return L("Printing with multiple extruders of differing nozzle diameters. "
                            "If support is to be printed with the current extruder (support_material_extruder == 0 or support_material_interface_extruder == 0), "
-                           "all nozzles have to be of the same diameter.";
+                           "all nozzles have to be of the same diameter.");
             }
             
             // validate first_layer_height
-            double first_layer_height = object->config.get_abs_value("first_layer_height");
+            double first_layer_height = object->config.get_abs_value(L("first_layer_height"));
             double first_layer_min_nozzle_diameter;
             if (object->config.raft_layers > 0) {
                 // if we have raft layers, only support material extruder is used on first layer
@@ -691,11 +686,11 @@ std::string Print::validate() const
                 first_layer_min_nozzle_diameter = min_nozzle_diameter;
             }
             if (first_layer_height > first_layer_min_nozzle_diameter)
-                return "First layer height can't be greater than nozzle diameter";
+                return L("First layer height can't be greater than nozzle diameter");
             
             // validate layer_height
             if (object->config.layer_height.value > min_nozzle_diameter)
-                return "Layer height can't be greater than nozzle diameter";
+                return L("Layer height can't be greater than nozzle diameter");
         }
     }
 
@@ -1212,7 +1207,7 @@ std::string Print::output_filename()
     try {
         return this->placeholder_parser.process(this->config.output_filename_format.value, 0);
     } catch (std::runtime_error &err) {
-        throw std::runtime_error(std::string("Failed processing of the output_filename_format template.\n") + err.what());
+        throw std::runtime_error(L("Failed processing of the output_filename_format template.") + "\n" + err.what());
     }
 }
 
