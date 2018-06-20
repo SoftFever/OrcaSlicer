@@ -1121,21 +1121,14 @@ void Print::_make_wipe_tower()
             this->config.filament_ramming_parameters.get_at(i),
             this->config.nozzle_diameter.get_at(i));
 
-    // When printing the first layer's wipe tower, the first extruder is expected to be active and primed.
-    // Therefore the number of wipe sections at the wipe tower will be (m_tool_ordering.front().extruders-1) at the 1st layer.
-    // The following variable is true if the last priming section cannot be squeezed inside the wipe tower.
-    bool last_priming_wipe_full = m_tool_ordering.front().extruders.size() > m_tool_ordering.front().wipe_tower_partitions;
-
     m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full));
-
-    reset_wiping_extrusions(); // if this is not the first time the wipe tower is generated, some extrusions might remember their last wiping status
+        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), false));
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
     {
         unsigned int current_extruder_id = m_tool_ordering.all_extruders().back();
-        for (const auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
+        for (auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_tool_ordering.front();
             wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id,false);
@@ -1180,111 +1173,100 @@ void Print::_make_wipe_tower()
 }
 
 
-
-void Print::reset_wiping_extrusions() {
-     for (size_t i = 0; i < objects.size(); ++ i) {
-        for (auto& this_layer : objects[i]->layers) {
-            for (size_t region_id = 0; region_id < objects[i]->print()->regions.size(); ++ region_id) {
-                for (unsigned int copy = 0; copy < objects[i]->_shifted_copies.size(); ++copy) {
-                    this_layer->regions[region_id]->fills.set_extruder_override(copy, -1);
-                    this_layer->regions[region_id]->perimeters.set_extruder_override(copy, -1);
-                }
-            }
-        }
-     }
-}
-
-
-
-// Strategy for  wiping (TODO):
-// if !infill_first
-//      start with dedicated objects
-//            print a perimeter and its corresponding infill immediately after
-//            repeat until there are no dedicated objects left
-//            if there are some left and this is the last toolchange on the layer, mark all remaining extrusions of the object (so we don't have to travel back to it later)
-//      move to normal objects
-//            start with one object and start assigning its infill, if their perimeters ARE ALREADY EXTRUDED
-//            never touch perimeters
-//
-// if infill first
-//        start with dedicated objects
-//            print an infill and its corresponding perimeter immediately after
-//            repeat until you run out of infills
-//        move to normal objects
-//            start assigning infills (one copy after another)
-//            repeat until you run out of infills, leave perimeters be
-
-
-float Print::mark_wiping_extrusions(const ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe)
+// Following function iterates through all extrusions on the layer, remembers those that could be used for wiping after toolchange
+// and returns volume that is left to be wiped on the wipe tower.
+float Print::mark_wiping_extrusions(ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe)
 {
+    // Strategy for  wiping (TODO):
+    // if !infill_first
+    //      start with dedicated objects
+    //            print a perimeter and its corresponding infill immediately after
+    //            repeat until there are no dedicated objects left
+    //            if there are some left and this is the last toolchange on the layer, mark all remaining extrusions of the object (so we don't have to travel back to it later)
+    //      move to normal objects
+    //            start with one object and start assigning its infill, if their perimeters ARE ALREADY EXTRUDED
+    //            never touch perimeters
+    //
+    // if infill first
+    //        start with dedicated objects
+    //            print an infill and its corresponding perimeter immediately after
+    //            repeat until you run out of infills
+    //        move to normal objects
+    //            start assigning infills (one copy after another)
+    //            repeat until you run out of infills, leave perimeters be
+
     const float min_infill_volume = 0.f; // ignore infill with smaller volume than this
 
-    if (!config.filament_soluble.get_at(new_extruder)) {                            // Soluble filament cannot be wiped in a random infill
-        for (size_t i = 0; i < objects.size(); ++ i) {                              // Let's iterate through all objects...
+    if (config.filament_soluble.get_at(new_extruder))
+        return volume_to_wipe;      // Soluble filament cannot be wiped in a random infill
 
-            if (!objects[i]->config.wipe_into_infill && !objects[i]->config.wipe_into_objects)
-                continue;
 
-            Layer* this_layer = nullptr;
-            for (unsigned int a = 0; a < objects[i]->layers.size(); ++a) // Finds this layer
-                if (std::abs(layer_tools.print_z - objects[i]->layers[a]->print_z) < EPSILON) {
-                    this_layer = objects[i]->layers[a];
-                    break;
-                }
-            if (this_layer == nullptr)
-                continue;
 
-            for (unsigned int copy = 0; copy < objects[i]->_shifted_copies.size(); ++copy) {    // iterate through copies first, so that we mark neighbouring infills
-                for (size_t region_id = 0; region_id < objects[i]->print()->regions.size(); ++ region_id) {
+    for (size_t i = 0; i < objects.size(); ++ i) {                              // Let's iterate through all objects...
+        if (!objects[i]->config.wipe_into_infill && !objects[i]->config.wipe_into_objects)
+            continue;
 
-                    unsigned int region_extruder = objects[i]->print()->regions[region_id]->config.infill_extruder - 1; // config value is 1-based
-                    if (config.filament_soluble.get_at(region_extruder)) // if this infill is meant to be soluble, keep it that way
+        Layer* this_layer = nullptr;
+        for (unsigned int a = 0; a < objects[i]->layers.size(); ++a) // Finds this layer
+            if (std::abs(layer_tools.print_z - objects[i]->layers[a]->print_z) < EPSILON) {
+                this_layer = objects[i]->layers[a];
+                break;
+            }
+        if (this_layer == nullptr)
+            continue;
+
+        unsigned int num_of_copies = objects[i]->_shifted_copies.size();
+
+        for (unsigned int copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
+
+            for (size_t region_id = 0; region_id < objects[i]->print()->regions.size(); ++ region_id) {
+                unsigned int region_extruder = objects[i]->print()->regions[region_id]->config.infill_extruder - 1; // config value is 1-based
+                if (config.filament_soluble.get_at(region_extruder)) // if this entity is meant to be soluble, keep it that way
+                    continue;
+
+                if (!config.infill_first) { // in this case we must verify that region_extruder was already used at this layer (and perimeters of the infill are therefore extruded)
+                    bool unused_yet = false;
+                    for (unsigned i = 0; i < layer_tools.extruders.size(); ++i) {
+                        if (layer_tools.extruders[i] == new_extruder)
+                            unused_yet = true;
+                        if (layer_tools.extruders[i] == region_extruder)
+                            break;
+                    }
+                    if (unused_yet)
                         continue;
+                }
 
-                    if (!config.infill_first) { // in this case we must verify that region_extruder was already used at this layer (and perimeters of the infill are therefore extruded)
-                        bool unused_yet = false;
-                        for (unsigned i = 0; i < layer_tools.extruders.size(); ++i) {
-                            if (layer_tools.extruders[i] == new_extruder)
-                                unused_yet = true;
-                            if (layer_tools.extruders[i] == region_extruder)
+                if (objects[i]->config.wipe_into_infill) {
+                    ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
+                    for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
+                        if (volume_to_wipe <= 0.f)
                                 break;
-                        }
-                        if (unused_yet)
+                        auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                        if (fill->role() == erTopSolidInfill || fill->role() == erGapFill)  // these cannot be changed - such infill is / may be visible
                             continue;
-                    }
-
-                    if (objects[i]->config.wipe_into_infill) {
-                        ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
-                        for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
-                            auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                            if (fill->role() == erTopSolidInfill || fill->role() == erGapFill) continue;         // these cannot be changed - it is / may be visible
-                                if (volume_to_wipe <= 0.f)
-                                    break;
-                                if (!fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
-                                    fill->set_extruder_override(copy, new_extruder);
-                                    volume_to_wipe -= fill->total_volume();
-                                }
+                        if (/*!fill->is_extruder_overridden(copy)*/ !layer_tools.wiping_extrusions.is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume) {     // this infill will be used to wipe this extruder
+                            layer_tools.wiping_extrusions.set_extruder_override(fill, copy, new_extruder, num_of_copies);
+                            volume_to_wipe -= fill->total_volume();
                         }
                     }
+                }
 
-                    if (objects[i]->config.wipe_into_objects)
-                    {
-                        ExtrusionEntityCollection& eec = this_layer->regions[region_id]->perimeters;
-                        for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all perimeter Collections
-                            auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
-                                if (volume_to_wipe <= 0.f)
-                                    break;
-                                if (!fill->is_extruder_overridden(copy) && fill->total_volume() > min_infill_volume) {
-                                    fill->set_extruder_override(copy, new_extruder);
-                                    volume_to_wipe -= fill->total_volume();
-                                }
+                if (objects[i]->config.wipe_into_objects)
+                {
+                    ExtrusionEntityCollection& eec = this_layer->regions[region_id]->perimeters;
+                    for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all perimeter Collections
+                        if (volume_to_wipe <= 0.f)
+                            break;
+                        auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
+                        if (/*!fill->is_extruder_overridden(copy)*/ !layer_tools.wiping_extrusions.is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume) {
+                            layer_tools.wiping_extrusions.set_extruder_override(fill, copy, new_extruder, num_of_copies);
+                            volume_to_wipe -= fill->total_volume();
                         }
                     }
                 }
             }
         }
     }
-
     return std::max(0.f, volume_to_wipe);
 }
 

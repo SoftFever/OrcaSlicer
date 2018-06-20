@@ -317,10 +317,7 @@ private:
 
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
-    float mark_wiping_extrusions(const ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe);
-
-    // A function to go through all entities and unsets their extruder_override flag
-    void reset_wiping_extrusions();
+    float mark_wiping_extrusions(ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe);
 
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;

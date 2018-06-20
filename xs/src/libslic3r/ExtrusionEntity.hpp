@@ -93,19 +93,6 @@ public:
     virtual Polyline as_polyline() const = 0;
     virtual double length() const = 0;
     virtual double total_volume() const = 0;
-
-    void set_entity_extruder_override(unsigned int copy, int extruder) {
-        if (copy+1 > extruder_override.size())
-            extruder_override.resize(copy+1, -1); // copy is zero-based index
-        extruder_override[copy] = extruder;
-    }
-    virtual int get_extruder_override(unsigned int copy) const   { try { return extruder_override.at(copy);       } catch (...) { return -1;    } }
-    virtual bool is_extruder_overridden(unsigned int copy) const { try { return extruder_override.at(copy) != -1; } catch (...) { return false; } }
-
-private:
-    // Set this variable to explicitly state you want to use specific extruder for thie EE (used for MM infill wiping)
-    // Each member of the vector corresponds to the respective copy of the object
-    std::vector<int> extruder_override;
 };
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;

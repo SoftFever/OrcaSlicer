@@ -10,6 +10,36 @@ namespace Slic3r {
 class Print;
 class PrintObject;
 
+
+
+// Object of this class holds information about whether an extrusion is printed immediately
+// after a toolchange (as part of infill/perimeter wiping) or not. One extrusion can be a part
+// of several copies - this has to be taken into account.
+class WipingExtrusions
+{
+    public:
+    bool is_anything_overridden() const {   // if there are no overrides, all the agenda can be skipped - this function can tell us if that's the case
+        return something_overridden;
+    }
+
+    // Returns true in case that entity is not printed with its usual extruder for a given copy:
+    bool is_entity_overridden(const ExtrusionEntity* entity, int copy_id) const {
+        return (entity_map.find(entity) == entity_map.end() ? false : entity_map.at(entity).at(copy_id) != -1);
+    }
+
+    // This function is called from Print::mark_wiping_extrusions and sets extruder that it should be printed with (-1 .. as usual)
+    void set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies);
+
+    // This is called from GCode::process_layer - see implementation for further comments:
+    const std::vector<int>* get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, int num_of_copies);
+
+private:
+    std::map<const ExtrusionEntity*, std::vector<int>> entity_map;  // to keep track of who prints what
+    bool something_overridden = false;
+};
+
+
+
 class ToolOrdering 
 {
 public:
@@ -39,6 +69,11 @@ public:
 		// and to support the wipe tower partitions above this one.
 	    size_t                      wipe_tower_partitions;
 	    coordf_t 					wipe_tower_layer_height;
+
+
+        // This holds list of extrusion that will be used for extruder wiping
+        WipingExtrusions wiping_extrusions;
+
 	};
 
 	ToolOrdering() {}
@@ -72,7 +107,7 @@ public:
 	std::vector<LayerTools>::const_iterator begin() const { return m_layer_tools.begin(); }
 	std::vector<LayerTools>::const_iterator end()   const { return m_layer_tools.end(); }
 	bool 				empty()       const { return m_layer_tools.empty(); }
-	const std::vector<LayerTools>& layer_tools() const { return m_layer_tools; }
+	std::vector<LayerTools>& layer_tools() { return m_layer_tools; }
 	bool 				has_wipe_tower() const { return ! m_layer_tools.empty() && m_first_printing_extruder != (unsigned int)-1 && m_layer_tools.front().wipe_tower_partitions > 0; }
 
 private:

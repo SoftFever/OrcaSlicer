@@ -90,13 +90,6 @@ public:
         CONFESS("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }
-
-    void set_extruder_override(unsigned int copy, int extruder) {
-        for (ExtrusionEntity* member : entities)
-            member->set_entity_extruder_override(copy, extruder);
-    }
-    virtual int get_extruder_override(unsigned int copy) const   { return entities.front()->get_extruder_override(copy);  }
-    virtual bool is_extruder_overridden(unsigned int copy) const { return entities.front()->is_extruder_overridden(copy); }
 };
 
 }
