@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include "I18N.hpp"
 
 #include <locale>
 #include <ctime>
@@ -122,6 +123,9 @@ const std::string& localization_dir()
 {
 	return g_local_dir;
 }
+
+// Translate function callback, to call wxWidgets translate function to convert non-localized UTF8 string to a localized one.
+translate_fn_type translate_fn = nullptr;
 
 static std::string g_data_dir;
 

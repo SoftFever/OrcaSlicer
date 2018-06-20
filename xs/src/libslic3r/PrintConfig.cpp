@@ -1,7 +1,10 @@
 #include "PrintConfig.hpp"
+#include "I18N.hpp"
 
 #include <set>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
+#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/thread.hpp>
 
@@ -11,7 +14,7 @@ namespace Slic3r {
 
 //! macro used to mark string used at localization, 
 //! return same string
-#define L(s) s
+#define L(s) translate(s)
 
 PrintConfigDef::PrintConfigDef()
 {
@@ -852,6 +855,85 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "layer-height=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
+
+	{
+		struct AxisDefault {
+			std::string         name;
+			std::vector<double> max_feedrate;
+			std::vector<double> max_acceleration;
+			std::vector<double> max_jerk;
+		};
+		std::vector<AxisDefault> axes {
+			// name, max_feedrate,  max_acceleration, max_jerk
+			{ "x", { 200., 200. }, { 1000., 1000. }, { 10., 10. } },
+			{ "y", { 200., 200. }, { 1000., 1000. }, { 10., 10. } },
+			{ "z", { 12., 12. }, { 200., 200. }, { 0.4, 0.4 } },
+			{ "e", { 120., 120. }, { 5000., 5000. }, { 2.5, 2.5 } }
+		};
+		for (const AxisDefault &axis : axes) {
+			std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
+			// Add the machine feedrate limits for XYZE axes. (M203)
+			def = this->add("machine_max_feedrate_" + axis.name, coFloats);
+			def->label = (boost::format(L("Maximum feedrate %1%")) % axis_upper).str();
+			def->category = L("Machine limits");
+			def->tooltip  = (boost::format(L("Maximum feedrate of the %1% axis")) % axis_upper).str();
+			def->sidetext = L("mm/s");
+			def->min = 0;
+			def->default_value = new ConfigOptionFloats(axis.max_feedrate);
+			// Add the machine acceleration limits for XYZE axes (M201)
+			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
+			def->label = (boost::format(L("Maximum acceleration %1%")) % axis_upper).str();
+			def->category = L("Machine limits");
+			def->tooltip  = (boost::format(L("Maximum acceleration of the %1% axis")) % axis_upper).str();
+			def->sidetext = L("mm/s²");
+			def->min = 0;
+			def->default_value = new ConfigOptionFloats(axis.max_acceleration);
+			// Add the machine jerk limits for XYZE axes (M205)
+			def = this->add("machine_max_jerk_" + axis.name, coFloats);
+			def->label = (boost::format(L("Maximum jerk %1%")) % axis_upper).str();
+			def->category = L("Machine limits");
+			def->tooltip  = (boost::format(L("Maximum jerk of the %1% axis")) % axis_upper).str();
+			def->sidetext = L("mm/s");
+			def->min = 0;
+			def->default_value = new ConfigOptionFloats(axis.max_jerk);
+		}
+	}
+
+    // M205 S... [mm/sec]
+    def = this->add("machine_min_extruding_rate", coFloats);
+    def->label = L("Minimum feedrate when extruding");
+    def->category = L("Machine limits");
+    def->tooltip = L("Minimum feedrate when extruding") + " (M205 S)";
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats(0., 0.);
+
+    // M205 T... [mm/sec]
+    def = this->add("machine_min_travel_rate", coFloats);
+    def->label = L("Minimum travel feedrate");
+    def->category = L("Machine limits");
+    def->tooltip = L("Minimum travel feedrate") + " (M205 T)";
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats(0., 0.);
+
+    // M204 S... [mm/sec^2]
+    def = this->add("machine_max_acceleration_extruding", coFloats);
+    def->label = L("Maximum acceleration when extruding");
+    def->category = L("Machine limits");
+    def->tooltip = L("Maximum acceleration when extruding") + " (M204 S)";
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats(1250., 1250.);
+
+    // M204 T... [mm/sec^2]
+    def = this->add("machine_max_acceleration_retracting", coFloats);
+    def->label = L("Maximum acceleration when retracting");
+    def->category = L("Machine limits");
+    def->tooltip = L("Maximum acceleration when retracting") + " (M204 T)";
+    def->sidetext = L("mm/s²");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats(1250., 1250.);
 
     def = this->add("max_fan_speed", coInts);
     def->label = L("Max");
@@ -2198,6 +2280,7 @@ std::string FullPrintConfig::validate()
 // Declare the static caches for each StaticPrintConfig derived class.
 StaticPrintConfig::StaticCache<class Slic3r::PrintObjectConfig> PrintObjectConfig::s_cache_PrintObjectConfig;
 StaticPrintConfig::StaticCache<class Slic3r::PrintRegionConfig> PrintRegionConfig::s_cache_PrintRegionConfig;
+StaticPrintConfig::StaticCache<class Slic3r::MachineEnvelopeConfig> MachineEnvelopeConfig::s_cache_MachineEnvelopeConfig;
 StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_cache_GCodeConfig;
 StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache_PrintConfig;
 StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache_HostConfig;

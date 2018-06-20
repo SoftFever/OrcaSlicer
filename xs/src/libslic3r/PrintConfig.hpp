@@ -455,6 +455,56 @@ protected:
     }
 };
 
+class MachineEnvelopeConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
+public:
+    // M201 X... Y... Z... E... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_x;
+    ConfigOptionFloats              machine_max_acceleration_y;
+    ConfigOptionFloats              machine_max_acceleration_z;
+    ConfigOptionFloats              machine_max_acceleration_e;
+    // M203 X... Y... Z... E... [mm/sec]
+    ConfigOptionFloats              machine_max_feedrate_x;
+    ConfigOptionFloats              machine_max_feedrate_y;
+    ConfigOptionFloats              machine_max_feedrate_z;
+    ConfigOptionFloats              machine_max_feedrate_e;
+    // M204 S... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_extruding;
+    // M204 T... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_retracting;
+    // M205 X... Y... Z... E... [mm/sec]
+    ConfigOptionFloats              machine_max_jerk_x;
+    ConfigOptionFloats              machine_max_jerk_y;
+    ConfigOptionFloats              machine_max_jerk_z;
+    ConfigOptionFloats              machine_max_jerk_e;
+    // M205 T... [mm/sec]
+    ConfigOptionFloats              machine_min_travel_rate;
+    // M205 S... [mm/sec]
+    ConfigOptionFloats              machine_min_extruding_rate;
+
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(machine_max_acceleration_x);
+        OPT_PTR(machine_max_acceleration_y);
+        OPT_PTR(machine_max_acceleration_z);
+        OPT_PTR(machine_max_acceleration_e);
+        OPT_PTR(machine_max_feedrate_x);
+        OPT_PTR(machine_max_feedrate_y);
+        OPT_PTR(machine_max_feedrate_z);
+        OPT_PTR(machine_max_feedrate_e);
+        OPT_PTR(machine_max_acceleration_extruding);
+        OPT_PTR(machine_max_acceleration_retracting);
+        OPT_PTR(machine_max_jerk_x);
+        OPT_PTR(machine_max_jerk_y);
+        OPT_PTR(machine_max_jerk_z);
+        OPT_PTR(machine_max_jerk_e);
+        OPT_PTR(machine_min_travel_rate);
+        OPT_PTR(machine_min_extruding_rate);
+    }
+};
+
 // This object is mapped to Perl as Slic3r::Config::GCode.
 class GCodeConfig : public StaticPrintConfig
 {
@@ -566,7 +616,7 @@ protected:
 };
 
 // This object is mapped to Perl as Slic3r::Config::Print.
-class PrintConfig : public GCodeConfig
+class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
     PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
@@ -642,6 +692,7 @@ protected:
     PrintConfig(int) : GCodeConfig(1) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+        this->MachineEnvelopeConfig::initialize(cache, base_ptr);
         this->GCodeConfig::initialize(cache, base_ptr);
         OPT_PTR(avoid_crossing_perimeters);
         OPT_PTR(bed_shape);
