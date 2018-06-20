@@ -99,7 +99,7 @@ static int prusa_init_external_flash(PROGRAMMER * pgm)
     avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer did not boot up on time or serial communication failed\n", progname);
     return -1;
   } else if (strncmp(buffer, entry_magic_send, recv_size) != 0) {
-    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer emitted incorrect start code\n", progname);
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer emitted incorrect start code: `%*s`\n", progname, recv_size, buffer);
     return -1;
   }
 
@@ -116,7 +116,7 @@ static int prusa_init_external_flash(PROGRAMMER * pgm)
     avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer did not boot up on time or serial communication failed\n", progname);
     return -1;
   } else if (strncmp(buffer, entry_magic_cfm, recv_size) != 0) {
-    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer emitted incorrect start code\n", progname);
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer emitted incorrect cfm code: `%*s`\n", progname, recv_size, buffer);
     return -1;
   }
 
@@ -139,6 +139,13 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
   /* Set DTR and RTS back to high */
   serial_set_dtr_rts(&pgm->fd, 1);
   usleep(50*1000);
+
+  // Sometimes there may be line noise generating input on the printer's USB-to-serial IC
+  // Here we try to clean its input buffer with a sequence of newlines (a minimum of 9 is needed):
+  const char cleanup_newlines[] = "\n\n\n\n\n\n\n\n\n\n";
+  if (serial_send(&pgm->fd, cleanup_newlines, sizeof(cleanup_newlines) - 1) < 0) {
+    return -1;
+  }
 
   /*
    * drain any extraneous input
