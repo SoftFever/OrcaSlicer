@@ -97,7 +97,7 @@ msgstr " jako:"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:226
 #, c-format
 msgid " at filament speed %3.2f mm/s."
-msgstr " z prędkocią filamentu %3.2f mm/s."
+msgstr " z prędkością filamentu %3.2f mm/s."
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:1035
 msgid " Browse "
@@ -574,7 +574,7 @@ msgstr "G-code wykonywany przy przejściach pomiędzy modelami (druk sekwencyjny
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:68
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:370
 msgid "Bottom"
-msgstr "Spód"
+msgstr "Dolne"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:72
 msgid "Bottom solid layers"
@@ -834,7 +834,7 @@ msgstr "Własne ustawienia"
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:205
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Cut…"
-msgstr "Tnij…"
+msgstr "Obcinanie..."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2027
 msgid "Decrease copies"
@@ -859,7 +859,7 @@ msgstr "Domyślny kąt linii wypełnienia. Mosty będą wypełniane z użyciem n
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:376
 msgid "Default extrusion width"
-msgstr "Domyślna szerokość ekstrudowanej linii"
+msgstr "Domyślna szerokość linii"
 
 #: xs/src/slic3r/GUI/Tab.cpp:767
 msgid "default filament profile"
@@ -1166,7 +1166,7 @@ msgstr "Funkcja eksperymentalna mająca zapobiegać tworzeniu podpór pod mostam
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:942
 msgid "Experimental option to adjust flow for overhangs (bridge flow will be used), to apply bridge speed to them and enable fan."
-msgstr "Opcja eksperymentalna dostosowująca przepływ przy zwisach (zostanie zastosowany przepływ taki jak dla mostów), zastosuje również prędkość taką jak dla mostów i chłodzenie."
+msgstr "Opcja eksperymentalna dostosowująca przepływ przy zwisach (zostanie zastosowany przepływ taki jak dla mostów), zastosuje również prędkość i chłodzenie takie jak dla mostów."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:263
 msgid "Export all presets to file"
@@ -1248,7 +1248,7 @@ msgstr "Obrysy zewnętrzne"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:151
 msgid "external perimeters"
-msgstr "obrysy zewnętrzne"
+msgstr "obrysów zewnętrznych"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:289
 msgid "External perimeters first"
@@ -1399,7 +1399,7 @@ msgstr "Właściwości filamentu"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.hpp:202
 msgid "Filament Settings"
-msgstr "Ustawienia filamentu"
+msgstr "Ustawienia Filamentu"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:450
 msgid "Filament type"
@@ -1478,7 +1478,7 @@ msgstr "Prędkość pierwszej warstwy"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:214
 msgid "First layer volumetric"
-msgstr "Objętościowa pierwszej warstwy"
+msgstr "Na pierwszej warstwie"
 
 #: xs/src/slic3r/GUI/GUI.cpp:326
 msgid "Flash printer firmware"
@@ -1651,7 +1651,7 @@ msgstr "Włączenie powoduje pobieranie wbudowanych systemowych zestawów ustawi
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:26
 #, c-format
 msgid "If estimated layer time is below ~%ds, fan will run at %d%% and print speed will be reduced so that no less than %ds are spent on that layer (however, speed will never be reduced below %dmm/s)."
-msgstr "Jeśli szacowany czas druku warstwy jest mniejszy niż ~%d s, wentylator będzie pracował na %d %% a prędkość druku zostanie obniżona tak, aby warstwa była drukowana przez nie mniej niż %d s  (jednakże prędkość nie zostanie obniżona poniżej %d mm/s)."
+msgstr "Jeśli szacowany czas druku warstwy jest niższy niż ~%d s, wentylator będzie pracował na %d %% a prędkość druku zostanie obniżona tak, aby warstwa była drukowana przez nie mniej niż %d s  (jednakże prędkość nie zejdzie poniżej %d mm/s)."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:616
 msgid "If expressed as absolute value in mm/s, this speed will be applied to all the print moves of the first layer, regardless of their type. If expressed as a percentage (for example: 40%) it will scale the default speeds."
@@ -1659,11 +1659,11 @@ msgstr "Jeśli ustawisz wartość bezwzględną wyrażoną w mm/s, taka prędko�
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:395
 msgid "If layer print time is estimated below this number of seconds, fan will be enabled and its speed will be calculated by interpolating the minimum and maximum speeds."
-msgstr "Jeśli szacowany czas druku warstwy będzie mniejszy niż ta wartość to wentylator będzie włączony a jego prędkość będzie interpolowana na podstawie górnego i dolnego limitu prędkości."
+msgstr "Jeśli szacowany czas druku warstwy będzie niższy niż ta wartość to wentylator będzie włączony a jego prędkość będzie interpolowana na podstawie górnego i dolnego limitu prędkości."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1240
 msgid "If layer print time is estimated below this number of seconds, print moves speed will be scaled down to extend duration to this value."
-msgstr "Jeśli szacowany czas druku warstwy będzie mniejszy niż ta wartość to prędkość ruchów drukujących będzie zmniejszona aby wydłużyć czas druku."
+msgstr "Jeśli szacowany czas druku warstwy będzie niższy niż ta wartość to prędkość ruchów drukujących będzie zmniejszona aby wydłużyć czas druku."
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:388
 msgid "If this is enabled, fan will never be disabled and will be kept running at least at its minimum speed. Useful for PLA, harmful for ABS."
@@ -1742,7 +1742,7 @@ msgstr "Wypełnienie"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:169
 msgid "infill"
-msgstr "wypełnienie"
+msgstr "wypełnienia"
 
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:720
 msgid "Infill before perimeters"
@@ -1987,7 +1987,7 @@ msgstr "Maksymalny objętościowo kąt pozytywny"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:421
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:817
 msgid "Max volumetric speed"
-msgstr "Maksymalna prędkość objętościowa"
+msgstr "Maksymalny przepływ"
 
 #: xs/src/libslic3r/PrintConfig.cpp:1854
 msgid "Maximal bridging distance"
@@ -2220,7 +2220,7 @@ msgstr "Nowa wersja:"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:469
 msgid "No previously sliced file."
-msgstr "Brak poprzednio pociętych pliku."
+msgstr "Brak poprzednio pociętych plików."
 
 #: xs/src/slic3r/GUI/RammingChart.cpp:28
 msgid "NO RAMMING AT ALL"
@@ -2325,7 +2325,7 @@ msgstr "Retrakcja tylko przy przechodzeniu nad obrysami"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:438
 msgid "Ooze prevention"
-msgstr "Zapobieganie wyciekom"
+msgstr "Zapobieganie wyciekom (ooze)"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:251
 msgid "Open a model"
@@ -2341,7 +2341,7 @@ msgstr "Otwórz plik STL/OBJ/AMF/3MF... \tCrtl+O"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2102
 msgid "Open the 3D cutting tool"
-msgstr "Otwórz narzędzie do przecinania 3D"
+msgstr "Otwórz narzędzie do wycinania 3D"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:2106
 msgid "Open the object editor dialog"
@@ -2463,7 +2463,7 @@ msgstr "Umieść jedną kopię zaznaczonego modelu"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:118
 msgid "Plater"
-msgstr "Zawartość stołu"
+msgstr "Zawartość Stołu"
 
 #: lib/Slic3r/GUI/Plater.pm:1897
 msgid "Please install the OpenGL modules to use this feature (see build instructions)."
@@ -2691,7 +2691,7 @@ msgstr "Widok z tyłu"
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:262
 #, c-format
 msgid "Recommended object thin wall thickness for layer height %.2f and "
-msgstr "Zalecana grubość ściany obiektu dla danej wysokości warstwy %.2f i "
+msgstr "Zalecana grubość ściany modelu dla wysokości warstwy %.2f i "
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:245
 msgid "Recommended object thin wall thickness: Not available due to invalid layer height."
@@ -3265,23 +3265,23 @@ msgstr "Slic3r nie będzie skalował prędkości poniżej tej wartości."
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:268
 msgid "Slice a file into a G-code"
-msgstr "Potnij plik jako G-code"
+msgstr "Cięcie jako G-code"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:274
 msgid "Slice a file into a G-code, save as"
-msgstr "Potnij plik jako G-code, zapisz jako"
+msgstr "Cięcie jako G-code, zapisz jako"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:287
 msgid "Slice file to a multi-layer SVG"
-msgstr "Potnij plik jako wielowarstwowy SVG"
+msgstr "Cięcie jako wielowarstwowy SVG"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:237
 msgid "Slice now"
-msgstr "Potnij teraz"
+msgstr "Cięcie"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:287
 msgid "Slice to SV&G…\tCtrl+G"
-msgstr "Tnij do SV&G...\tCtrl+G"
+msgstr "Cięcie do SV&G...\tCtrl+G"
 
 #: c:\src\Slic3r\lib\Slic3r\GUI\Plater.pm:438
 msgid "Sliced Info"
@@ -3485,7 +3485,7 @@ msgstr "podpora"
 
 #: xs/src/slic3r/GUI/GUI.cpp:879
 msgid "Support"
-msgstr "Wsparcie"
+msgstr "Podpory"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\Tab.cpp:620
 msgid "Support Generator"
@@ -4011,7 +4011,7 @@ msgstr "Parametry zmiany narzędzia dla drukarek MM z jednym ekstruderem"
 #: C:\src\Slic3r\xs\src\libslic3r\PrintConfig.cpp:1638
 #: c:\src\Slic3r\lib\Slic3r\GUI\MainFrame.pm:369
 msgid "Top"
-msgstr "Szczyt"
+msgstr "Górne"
 
 #: c:\src\Slic3r\xs\src\slic3r\GUI\PresetHints.cpp:187
 msgid "top solid infill"
