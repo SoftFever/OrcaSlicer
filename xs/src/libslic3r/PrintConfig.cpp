@@ -906,7 +906,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Minimum feedrate when extruding") + " (M205 S)";
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats(0., 0.);
+	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M205 T... [mm/sec]
     def = this->add("machine_min_travel_rate", coFloats);
@@ -915,7 +915,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Minimum travel feedrate") + " (M205 T)";
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats(0., 0.);
+	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M204 S... [mm/sec^2]
     def = this->add("machine_max_acceleration_extruding", coFloats);
@@ -1620,8 +1620,8 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.2");
-    def->enum_labels.push_back("0 (soluble)");
-    def->enum_labels.push_back("0.2 (detachable)");
+	def->enum_labels.push_back((boost::format("0 (%1%)") % L("soluble")).str());
+	def->enum_labels.push_back((boost::format("0.2 (%1%)") % L("detachable")).str());
     def->default_value = new ConfigOptionFloat(0.2);
 
     def = this->add("support_material_enforce_layers", coInt);
