@@ -79,7 +79,7 @@
 #define SERIAL_TIMEOUT 2
 
 // Retry count
-#define RETRIES 5
+#define RETRIES 0
 
 #if 0
 #define DEBUG(...) avrdude_message(MSG_INFO, __VA_ARGS__)
@@ -745,7 +745,7 @@ static int stk500v2_recv(PROGRAMMER * pgm, unsigned char *msg, size_t maxsize) {
 
 
 
-static int stk500v2_getsync_internal(PROGRAMMER * pgm, int retries) {
+int stk500v2_getsync(PROGRAMMER * pgm) {
   int tries = 0;
   unsigned char buf[1], resp[32];
   int status;
@@ -804,7 +804,7 @@ retry:
                         progname, pgmname[PDATA(pgm)->pgmtype]);
       return 0;
     } else {
-      if (tries > retries) {
+      if (tries > RETRIES) {
         avrdude_message(MSG_INFO, "%s: stk500v2_getsync(): can't communicate with device: resp=0x%02x\n",
                         progname, resp[0]);
         return -6;
@@ -814,7 +814,7 @@ retry:
 
   // or if we got a timeout
   } else if (status == -1) {
-    if (tries > retries) {
+    if (tries > RETRIES) {
       avrdude_message(MSG_INFO, "%s: stk500v2_getsync(): timeout communicating with programmer\n",
               progname);
       return -1;
@@ -823,7 +823,7 @@ retry:
 
   // or any other error
   } else {
-    if (tries > retries) {
+    if (tries > RETRIES) {
       avrdude_message(MSG_INFO, "%s: stk500v2_getsync(): error communicating with programmer: (%d)\n",
               progname,status);
     } else
@@ -831,11 +831,6 @@ retry:
   }
 
   return 0;
-}
-
-int stk500v2_getsync(PROGRAMMER * pgm) {
-  // This is to avoid applying RETRIES exponentially
-  return stk500v2_getsync_internal(pgm, RETRIES);
 }
 
 static int stk500v2_command(PROGRAMMER * pgm, unsigned char * buf,
@@ -947,7 +942,7 @@ retry:
   }
 
   // otherwise try to sync up again
-  status = stk500v2_getsync_internal(pgm, 1);
+  status = stk500v2_getsync(pgm);
   if (status != 0) {
     if (tries > RETRIES) {
       avrdude_message(MSG_INFO, "%s: stk500v2_command(): failed miserably to execute command 0x%02x\n",

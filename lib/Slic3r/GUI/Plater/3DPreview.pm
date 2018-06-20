@@ -24,7 +24,7 @@ sub new {
 
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
-    $canvas->use_plain_shader(1);
+    Slic3r::GUI::_3DScene::enable_shader($canvas, 1);
     $self->canvas($canvas);
     my $slider_low = Wx::Slider->new(
         $self, -1,
@@ -277,8 +277,8 @@ sub new {
 
 sub reload_print {
     my ($self, $force) = @_;
-    
-    $self->canvas->reset_objects;
+
+    Slic3r::GUI::_3DScene::reset_volumes($self->canvas);
     $self->_loaded(0);
 
     if (! $self->IsShown && ! $force) {
@@ -304,7 +304,7 @@ sub refresh_print {
 sub reset_gcode_preview_data {
     my ($self) = @_;
     $self->gcode_preview_data->reset;
-    $self->canvas->reset_legend_texture();
+    Slic3r::GUI::_3DScene::reset_legend_texture();
 }
 
 sub load_print {
@@ -329,7 +329,7 @@ sub load_print {
 
     if ($n_layers == 0) {
         $self->reset_sliders;
-        $self->canvas->reset_legend_texture();
+        Slic3r::GUI::_3DScene::reset_legend_texture();
         $self->canvas->Refresh;  # clears canvas
         return;
     }
@@ -364,23 +364,25 @@ sub load_print {
 
         if ($self->gcode_preview_data->empty) {
             # load skirt and brim
-            $self->canvas->load_print_toolpaths($self->print, \@colors);
-            $self->canvas->load_wipe_tower_toolpaths($self->print, \@colors);        
+            Slic3r::GUI::_3DScene::set_print($self->canvas, $self->print);
+            Slic3r::GUI::_3DScene::load_print_toolpaths($self->canvas);
+            Slic3r::GUI::_3DScene::load_wipe_tower_toolpaths($self->canvas, \@colors);
             foreach my $object (@{$self->print->objects}) {
-                $self->canvas->load_print_object_toolpaths($object, \@colors);            
+                Slic3r::GUI::_3DScene::load_print_object_toolpaths($self->canvas, $object, \@colors);
                 # Show the objects in very transparent color.
                 #my @volume_ids = $self->canvas->load_object($object->model_object);
                 #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
             }
             $self->show_hide_ui_elements('simple');
-            $self->canvas->reset_legend_texture();
+            Slic3r::GUI::_3DScene::reset_legend_texture();
         } else {
-            $self->{force_sliders_full_range} = (scalar(@{$self->canvas->volumes}) == 0);
-            $self->canvas->load_gcode_preview($self->print, $self->gcode_preview_data, \@colors);
+            $self->{force_sliders_full_range} = (Slic3r::GUI::_3DScene::get_volumes_count($self->canvas) == 0);
+            Slic3r::GUI::_3DScene::set_print($self->canvas, $self->print);
+            Slic3r::GUI::_3DScene::load_gcode_preview($self->canvas, $self->gcode_preview_data, \@colors);
             $self->show_hide_ui_elements('full');
 
             # recalculates zs and update sliders accordingly
-            $self->{layers_z} = $self->canvas->get_current_print_zs(1);
+            $self->{layers_z} = Slic3r::GUI::_3DScene::get_current_print_zs($self->canvas, 1);
             $n_layers = scalar(@{$self->{layers_z}});            
             if ($n_layers == 0) {
                 # all layers filtered out
@@ -466,7 +468,7 @@ sub set_z_range
     $self->{z_label_low}->SetLabel(sprintf '%.2f', $z_low);
     $self->{z_label_high}->SetLabel(sprintf '%.2f', $z_high);
     
-    my $layers_z = $self->canvas->get_current_print_zs(0);
+    my $layers_z = Slic3r::GUI::_3DScene::get_current_print_zs($self->canvas, 0);
     for (my $i = 0; $i < scalar(@{$layers_z}); $i += 1) {
         if (($z_low - 1e-6 < @{$layers_z}[$i]) && (@{$layers_z}[$i] < $z_low + 1e-6)) {
             $self->{z_label_low_idx}->SetLabel(sprintf '%d', $i + 1);
@@ -480,7 +482,7 @@ sub set_z_range
         }
     }
 
-    $self->canvas->set_toolpaths_range($z_low - 1e-6, $z_high + 1e-6);
+    Slic3r::GUI::_3DScene::set_toolpaths_range($self->canvas, $z_low - 1e-6, $z_high + 1e-6);
     $self->canvas->Refresh if $self->IsShown;
 }
 
@@ -508,11 +510,6 @@ sub set_z_idx_high
         }
         $self->set_z_range($self->{layers_z}[$idx_low], $self->{layers_z}[$idx_high]);
     }
-}
-
-sub set_bed_shape {
-    my ($self, $bed_shape) = @_;
-    $self->canvas->set_bed_shape($bed_shape);
 }
 
 sub set_number_extruders {

@@ -7,7 +7,6 @@ use File::Basename qw(basename);
 use FindBin;
 use List::Util qw(first);
 use Slic3r::GUI::2DBed;
-use Slic3r::GUI::BedShapeDialog;
 use Slic3r::GUI::Controller;
 use Slic3r::GUI::Controller::ManualControlDialog;
 use Slic3r::GUI::Controller::PrinterPanel;
@@ -223,8 +222,8 @@ sub system_info {
     my $opengl_info_txt = '';
     if (defined($self->{mainframe}) && defined($self->{mainframe}->{plater}) &&
         defined($self->{mainframe}->{plater}->{canvas3D})) {
-        $opengl_info = $self->{mainframe}->{plater}->{canvas3D}->opengl_info(format => 'html');
-        $opengl_info_txt = $self->{mainframe}->{plater}->{canvas3D}->opengl_info;
+        $opengl_info = Slic3r::GUI::_3DScene::get_gl_info(1, 1);
+        $opengl_info_txt = Slic3r::GUI::_3DScene::get_gl_info(0, 1);
     }
     my $about = Slic3r::GUI::SystemInfo->new(
         parent      => undef, 
