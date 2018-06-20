@@ -149,7 +149,7 @@ void update_label_colours_from_appconfig()
 	}
 }
 
-static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str(); }
+static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 void set_wxapp(wxApp *app)
 {
