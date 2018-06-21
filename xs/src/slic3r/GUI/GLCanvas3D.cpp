@@ -498,7 +498,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        ::glEnable(GL_TEXTURE_2D);
+//        ::glEnable(GL_TEXTURE_2D);
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
         ::glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -519,7 +519,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         ::glDisableClientState(GL_VERTEX_ARRAY);
 
-        ::glDisable(GL_TEXTURE_2D);
+//        ::glDisable(GL_TEXTURE_2D);
 
         ::glDisable(GL_BLEND);
     }
@@ -1067,7 +1067,7 @@ const Pointf3 GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MA
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
-    , move_with_ctrl(false)
+    , move_with_shift(false)
     , move_volume_idx(-1)
     , gizmo_volume_idx(-1)
 {
@@ -1554,6 +1554,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         return false;
+
+    ::glEnable(GL_TEXTURE_2D);
 
     m_initialized = true;
 
@@ -2840,7 +2842,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (volume_bbox.contains(pos3d))
                     {
                         // The dragging operation is initiated.
-                        m_mouse.drag.move_with_ctrl = evt.ControlDown();
+                        m_mouse.drag.move_with_shift = evt.ShiftDown();
                         m_mouse.drag.move_volume_idx = volume_idx;
                         m_mouse.drag.start_position_3D = pos3d;
                         // Remember the shift to to the object center.The object center will later be used
@@ -2883,7 +2885,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         GLVolume* volume = m_volumes.volumes[m_mouse.drag.move_volume_idx];
         // Get all volumes belonging to the same group, if any.
         std::vector<GLVolume*> volumes;
-        int group_id = m_mouse.drag.move_with_ctrl ? volume->select_group_id : volume->drag_group_id;
+        int group_id = m_mouse.drag.move_with_shift ? volume->select_group_id : volume->drag_group_id;
         if (group_id == -1)
             volumes.push_back(volume);
         else
@@ -2892,7 +2894,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 if (v != nullptr)
                 {
-                    if ((m_mouse.drag.move_with_ctrl && (v->select_group_id == group_id)) || (v->drag_group_id == group_id))
+                    if ((m_mouse.drag.move_with_shift && (v->select_group_id == group_id)) || (v->drag_group_id == group_id))
                         volumes.push_back(v);
                 }
             }
@@ -3021,14 +3023,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // get all volumes belonging to the same group, if any
             std::vector<int> volume_idxs;
             int vol_id = m_mouse.drag.move_volume_idx;
-            int group_id = m_mouse.drag.move_with_ctrl ? m_volumes.volumes[vol_id]->select_group_id : m_volumes.volumes[vol_id]->drag_group_id;
+            int group_id = m_mouse.drag.move_with_shift ? m_volumes.volumes[vol_id]->select_group_id : m_volumes.volumes[vol_id]->drag_group_id;
             if (group_id == -1)
                 volume_idxs.push_back(vol_id);
             else
             {
                 for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
                 {
-                    if ((m_mouse.drag.move_with_ctrl && (m_volumes.volumes[i]->select_group_id == group_id)) || (m_volumes.volumes[i]->drag_group_id == group_id))
+                    if ((m_mouse.drag.move_with_shift && (m_volumes.volumes[i]->select_group_id == group_id)) || (m_volumes.volumes[i]->drag_group_id == group_id))
                         volume_idxs.push_back(i);
                 }
             }

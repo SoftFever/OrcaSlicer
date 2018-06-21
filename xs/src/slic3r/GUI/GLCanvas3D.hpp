@@ -304,7 +304,7 @@ public:
             Pointf3 start_position_3D;
             Vectorf3 volume_center_offset;
 
-            bool move_with_ctrl;
+            bool move_with_shift;
             int move_volume_idx;
             int gizmo_volume_idx;
 

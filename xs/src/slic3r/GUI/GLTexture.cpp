@@ -132,7 +132,7 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
     ::glDisable(GL_LIGHTING);
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    ::glEnable(GL_TEXTURE_2D);
+//    ::glEnable(GL_TEXTURE_2D);
 
     ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
 
@@ -145,7 +145,7 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
-    ::glDisable(GL_TEXTURE_2D);
+//    ::glDisable(GL_TEXTURE_2D);
     ::glDisable(GL_BLEND);
     ::glEnable(GL_LIGHTING);
 }
