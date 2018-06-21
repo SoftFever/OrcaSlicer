@@ -41,7 +41,7 @@ struct Http::priv
 	std::string buffer;
 	// Used for storing file streams added as multipart form parts
 	// Using a deque here because unlike vector it doesn't ivalidate pointers on insertion
-	std::deque<std::ifstream> form_files;
+	std::deque<fs::ifstream> form_files;
 	size_t limit;
 	bool cancel;
 
@@ -168,19 +168,18 @@ void Http::priv::form_add_file(const char *name, const fs::path &path, const cha
 		filename = path.string().c_str();
 	}
 
-	fs::ifstream stream(path, std::ios::in | std::ios::binary);
+	form_files.emplace_back(path, std::ios::in | std::ios::binary);
+	auto &stream = form_files.back();
 	stream.seekg(0, std::ios::end);
 	size_t size = stream.tellg();
 	stream.seekg(0);
-	form_files.push_back(std::move(stream));
-	auto stream_ptr = &form_files.back();
 
 	if (filename != nullptr) {
 		::curl_formadd(&form, &form_end,
 			CURLFORM_COPYNAME, name,
 			CURLFORM_FILENAME, filename,
 			CURLFORM_CONTENTTYPE, "application/octet-stream",
-			CURLFORM_STREAM, static_cast<void*>(stream_ptr),
+			CURLFORM_STREAM, static_cast<void*>(&stream),
 			CURLFORM_CONTENTSLENGTH, static_cast<long>(size),
 			CURLFORM_END
 		);
