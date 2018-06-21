@@ -35,7 +35,7 @@ class GLCanvas3DManager
 
         GLInfo();
 
-        bool detect();
+        void detect();
         bool is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const;
 
         std::string to_string(bool format_as_html, bool extensions) const;
