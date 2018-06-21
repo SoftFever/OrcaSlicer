@@ -5,6 +5,9 @@
 #include <vector>
 #include "Config.hpp"
 
+#include <wx/intl.h>
+#include <wx/string.h>
+
 class wxApp;
 class wxWindow;
 class wxFrame;
@@ -29,6 +32,12 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+
+#define _(s)    Slic3r::translate((s))
+inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
+inline wxString translate(const wchar_t *s) 	 { return wxGetTranslation(s); }
+inline wxString translate(const std::string &s)  { return wxGetTranslation(wxString(s.c_str(), wxConvUTF8)); }
+inline wxString translate(const std::wstring &s) { return wxGetTranslation(s.c_str()); }
 
 // !!! If you needed to translate some wxString,
 // !!! please use _(L(string))
@@ -116,6 +125,9 @@ void add_created_tab(Tab* panel);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
+// Update UI / Tabs to reflect changes in the currently loaded presets
+void load_current_presets();
+
 void show_error(wxWindow* parent, const wxString& message);
 void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title);
@@ -156,6 +168,9 @@ wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
+
+// Returns the dimensions of the screen on which the main frame is displayed
+void get_current_screen_size(unsigned &width, unsigned &height);
 
 // Display an About dialog
 extern void about();

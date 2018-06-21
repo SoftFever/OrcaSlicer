@@ -101,6 +101,7 @@ PresetBundle::~PresetBundle()
 void PresetBundle::reset(bool delete_files)
 {
     // Clear the existing presets, delete their respective files.
+    this->vendors.clear();
     this->prints   .reset(delete_files);
     this->filaments.reset(delete_files);
     this->printers .reset(delete_files);
@@ -840,17 +841,13 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             // Load the print, filament or printer preset.
             const DynamicPrintConfig &default_config = presets->default_preset().config;
             DynamicPrintConfig config(default_config);
-            std::vector<std::string> config_keys = config.keys();
-            // The following two keys are valid, but they are not mandatory.
-            config_keys.emplace_back("compatible_printers");
-            config_keys.emplace_back("compatible_printers_condition");
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
             Preset::normalize(config);
             // Report configuration fields, which are misplaced into a wrong group.
             std::string incorrect_keys;
             size_t      n_incorrect_keys = 0;
-            for (const std::string &key : config_keys)
+            for (const std::string &key : config.keys())
                 if (! default_config.has(key)) {
                     if (incorrect_keys.empty())
                         incorrect_keys = key;

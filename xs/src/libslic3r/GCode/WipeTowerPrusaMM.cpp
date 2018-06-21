@@ -206,7 +206,7 @@ public:
         do {
             ++i;
             if (i==4) i=0;
-            extrude(corners[i]);
+            extrude(corners[i], f);
         } while (i != index_of_closest);
         return (*this);
     }
@@ -406,6 +406,7 @@ private:
 	float 		  m_wipe_tower_width = 0.f;
 	float		  m_wipe_tower_depth = 0.f;
 	float		  m_last_fan_speed = 0.f;
+    int           current_temp = -1;
     const float   m_default_analyzer_line_width;
 
 	std::string   set_format_X(float x)
@@ -1145,6 +1146,7 @@ void WipeTowerPrusaMM::save_on_last_wipe()
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
 {
 	if (m_plan.empty())
+
         return;
 
     m_extra_spacing = 1.f;
@@ -1159,6 +1161,7 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 			make_wipe_tower_square();
 
     m_layer_info = m_plan.begin();
+    m_current_tool = (unsigned int)(-2); // we don't know which extruder to start with - we'll set it according to the first toolchange
 
     std::vector<WipeTower::ToolChangeResult> layer_result;
 	for (auto layer : m_plan)
@@ -1172,8 +1175,11 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 		if (!m_peters_wipe_tower && m_layer_info->depth < m_wipe_tower_depth - m_perimeter_width)
 			m_y_shift = (m_wipe_tower_depth-m_layer_info->depth-m_perimeter_width)/2.f;
 
-		for (const auto &toolchange : layer.tool_changes)
+		for (const auto &toolchange : layer.tool_changes) {
+            if (m_current_tool == (unsigned int)(-2))
+                m_current_tool = toolchange.old_tool;
 			layer_result.emplace_back(tool_change(toolchange.new_tool, false));
+        }
 
 		if (! layer_finished()) {
             auto finish_layer_toolchange = finish_layer();

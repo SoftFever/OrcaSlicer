@@ -242,7 +242,6 @@ private:
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
 
-
 	// Calculates extrusion flow needed to produce required line width for given layer height
 	float extrusion_flow(float layer_height = -1.f) const	// negative layer_height - return current m_extrusion_flow
 	{
