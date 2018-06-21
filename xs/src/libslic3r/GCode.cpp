@@ -1239,7 +1239,7 @@ void GCode::process_layer(
                             continue;
 
                         // This extrusion is part of certain Region, which tells us which extruder should be used for it:
-                        int correct_extruder_id = entity_type=="infills" ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                        int correct_extruder_id = get_extruder(fill, region); entity_type=="infills" ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
                                                                            std::max<int>(region.config.perimeter_extruder.value - 1, 0);
 
                         // Let's recover vector of extruder overrides:

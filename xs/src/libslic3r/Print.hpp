@@ -24,6 +24,7 @@ class Print;
 class PrintObject;
 class ModelObject;
 
+
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, psBrim, psWipeTower, psCount,
@@ -322,6 +323,15 @@ private:
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;
 };
+
+
+// Returns extruder this eec should be printed with, according to PrintRegion config
+static int get_extruder(const ExtrusionEntityCollection* fill, const PrintRegion &region) {
+    return is_infill(fill->role()) ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                                     std::max<int>(region.config.perimeter_extruder.value - 1, 0);
+}
+
+
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)
 #define FOREACH_REGION(print, region)       FOREACH_BASE(PrintRegionPtrs, (print)->regions, region)

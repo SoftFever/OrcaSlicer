@@ -337,7 +337,6 @@ public:
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
     ConfigOptionBool                wipe_into_objects;
-    ConfigOptionBool                wipe_into_infill;
 
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -375,7 +374,6 @@ protected:
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
         OPT_PTR(wipe_into_objects);
-        OPT_PTR(wipe_into_infill);
     }
 };
 
@@ -418,6 +416,7 @@ public:
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
+    ConfigOptionBool                wipe_into_infill;
     
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
@@ -456,6 +455,7 @@ protected:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
+        OPT_PTR(wipe_into_infill);
     }
 };
 

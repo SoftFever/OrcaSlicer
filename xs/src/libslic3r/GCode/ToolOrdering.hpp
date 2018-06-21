@@ -11,7 +11,6 @@ class Print;
 class PrintObject;
 
 
-
 // Object of this class holds information about whether an extrusion is printed immediately
 // after a toolchange (as part of infill/perimeter wiping) or not. One extrusion can be a part
 // of several copies - this has to be taken into account.
