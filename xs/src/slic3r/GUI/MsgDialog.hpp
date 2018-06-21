@@ -28,6 +28,8 @@ struct MsgDialog : wxDialog
 	MsgDialog &operator=(const MsgDialog &) = delete;
 	virtual ~MsgDialog();
 
+	// TODO: refactor with CreateStdDialogButtonSizer usage
+
 protected:
 	enum {
 		CONTENT_WIDTH = 500,
