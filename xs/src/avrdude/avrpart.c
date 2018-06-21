@@ -378,7 +378,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
   char * optr;
 
   if (m == NULL) {
-      fprintf(f,
+      avrdude_message(MSG_INFO,
               "%s                       Block Poll               Page                       Polled\n"
               "%sMemory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
               "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
@@ -386,13 +386,13 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
   }
   else {
     if (verbose > 2) {
-      fprintf(f,
+      avrdude_message(MSG_INFO,
               "%s                       Block Poll               Page                       Polled\n"
               "%sMemory Type Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
               "%s----------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
               prefix, prefix, prefix);
     }
-    fprintf(f,
+    avrdude_message(MSG_INFO,
             "%s%-11s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
             prefix, m->desc, m->mode, m->delay, m->blocksize, m->pollindex,
             m->paged ? "yes" : "no",
@@ -415,7 +415,7 @@ void avr_mem_display(const char * prefix, FILE * f, AVRMEM * m, int type,
               optr = avr_op_str(i);
             else
               optr = " ";
-          fprintf(f,
+          avrdude_message(MSG_INFO,
                   "%s    %-11s  %8d  %8s  %5d  %5d\n",
                   prefix, optr, j,
                   bittype(m->op[i]->bit[j].type),
@@ -620,7 +620,7 @@ void avr_display(FILE * f, AVRPART * p, const char * prefix, int verbose)
   LNODEID ln;
   AVRMEM * m;
 
-  fprintf(f,
+  avrdude_message(MSG_INFO,
           "%sAVR Part                      : %s\n"
           "%sChip Erase delay              : %d us\n"
           "%sPAGEL                         : P%02X\n"

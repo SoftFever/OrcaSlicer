@@ -113,6 +113,11 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	sizer->Add(all_none_sizer, 0, wxEXPAND);
 
 	SetSizer(sizer);
+
+	if (cboxes.size() > 0) {
+		cboxes[0]->SetValue(true);
+		on_checkbox(cboxes[0], true);
+	}
 }
 
 void PrinterPicker::select_all(bool select)
@@ -598,10 +603,10 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
 static const std::unordered_map<std::string, std::pair<std::string, std::string>> legacy_preset_map {{
 	{ "Original Prusa i3 MK2.ini",                           std::make_pair("MK2S", "0.4") },
-	{ "Original Prusa i3 MK2 MM Single Mode.ini",            std::make_pair("MK2S", "0.4") },
-	{ "Original Prusa i3 MK2 MM Single Mode 0.6 nozzle.ini", std::make_pair("MK2S", "0.6") },
-	{ "Original Prusa i3 MK2 MultiMaterial.ini",             std::make_pair("MK2S", "0.4") },
-	{ "Original Prusa i3 MK2 MultiMaterial 0.6 nozzle.ini",  std::make_pair("MK2S", "0.6") },
+	{ "Original Prusa i3 MK2 MM Single Mode.ini",            std::make_pair("MK2SMM", "0.4") },
+	{ "Original Prusa i3 MK2 MM Single Mode 0.6 nozzle.ini", std::make_pair("MK2SMM", "0.6") },
+	{ "Original Prusa i3 MK2 MultiMaterial.ini",             std::make_pair("MK2SMM", "0.4") },
+	{ "Original Prusa i3 MK2 MultiMaterial 0.6 nozzle.ini",  std::make_pair("MK2SMM", "0.6") },
 	{ "Original Prusa i3 MK2 0.25 nozzle.ini",               std::make_pair("MK2S", "0.25") },
 	{ "Original Prusa i3 MK2 0.6 nozzle.ini",                std::make_pair("MK2S", "0.6") },
 	{ "Original Prusa i3 MK3.ini",                           std::make_pair("MK3",  "0.4") },
@@ -809,8 +814,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	topsizer->AddSpacer(INDEX_MARGIN);
 	topsizer->Add(p->hscroll, 1, wxEXPAND);
 
-	p->btn_prev = new wxButton(this, wxID_BACKWARD);
-	p->btn_next = new wxButton(this, wxID_FORWARD);
+	p->btn_prev = new wxButton(this, wxID_NONE, _(L("< &Back")));
+	p->btn_next = new wxButton(this, wxID_NONE, _(L("&Next >")));
 	p->btn_finish = new wxButton(this, wxID_APPLY, _(L("&Finish")));
 	p->btn_cancel = new wxButton(this, wxID_CANCEL);
 	p->btnsizer->AddStretchSpacer();

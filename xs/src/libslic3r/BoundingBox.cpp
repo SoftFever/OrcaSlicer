@@ -2,6 +2,8 @@
 #include <algorithm>
 #include <assert.h>
 
+#include <Eigen/Dense>
+
 namespace Slic3r {
 
 template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
@@ -249,6 +251,43 @@ void BoundingBox::align_to_grid(const coord_t cell_size)
         min.x = _align_to_grid(min.x, cell_size);
         min.y = _align_to_grid(min.y, cell_size);
     }
+}
+
+BoundingBoxf3 BoundingBoxf3::transformed(const std::vector<float>& matrix) const
+{
+    Eigen::Matrix<float, 3, 8> vertices;
+
+    vertices(0, 0) = (float)min.x; vertices(1, 0) = (float)min.y; vertices(2, 0) = (float)min.z;
+    vertices(0, 1) = (float)max.x; vertices(1, 1) = (float)min.y; vertices(2, 1) = (float)min.z;
+    vertices(0, 2) = (float)max.x; vertices(1, 2) = (float)max.y; vertices(2, 2) = (float)min.z;
+    vertices(0, 3) = (float)min.x; vertices(1, 3) = (float)max.y; vertices(2, 3) = (float)min.z;
+    vertices(0, 4) = (float)min.x; vertices(1, 4) = (float)min.y; vertices(2, 4) = (float)max.z;
+    vertices(0, 5) = (float)max.x; vertices(1, 5) = (float)min.y; vertices(2, 5) = (float)max.z;
+    vertices(0, 6) = (float)max.x; vertices(1, 6) = (float)max.y; vertices(2, 6) = (float)max.z;
+    vertices(0, 7) = (float)min.x; vertices(1, 7) = (float)max.y; vertices(2, 7) = (float)max.z;
+
+    Eigen::Transform<float, 3, Eigen::Affine> m;
+    ::memcpy((void*)m.data(), (const void*)matrix.data(), 16 * sizeof(float));
+    Eigen::Matrix<float, 3, 8> transf_vertices = m * vertices.colwise().homogeneous();
+
+    float min_x = transf_vertices(0, 0);
+    float max_x = transf_vertices(0, 0);
+    float min_y = transf_vertices(1, 0);
+    float max_y = transf_vertices(1, 0);
+    float min_z = transf_vertices(2, 0);
+    float max_z = transf_vertices(2, 0);
+
+    for (int i = 1; i < 8; ++i)
+    {
+        min_x = std::min(min_x, transf_vertices(0, i));
+        max_x = std::max(max_x, transf_vertices(0, i));
+        min_y = std::min(min_y, transf_vertices(1, i));
+        max_y = std::max(max_y, transf_vertices(1, i));
+        min_z = std::min(min_z, transf_vertices(2, i));
+        max_z = std::max(max_z, transf_vertices(2, i));
+    }
+
+    return BoundingBoxf3(Pointf3((coordf_t)min_x, (coordf_t)min_y, (coordf_t)min_z), Pointf3((coordf_t)max_x, (coordf_t)max_y, (coordf_t)max_z));
 }
 
 }

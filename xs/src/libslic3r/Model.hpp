@@ -103,10 +103,7 @@ public:
     // Returns the bounding box of the transformed instances.
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
-//========================================================================================================
     const BoundingBoxf3& bounding_box() const;
-//    const BoundingBoxf3& bounding_box();
-//========================================================================================================
     void invalidate_bounding_box() { m_bounding_box_valid = false; }
     // Returns a snug bounding box of the transformed instances.
     // This bounding box is not being cached.
@@ -148,10 +145,9 @@ private:
     // Parent object, owning this ModelObject.
     Model          *m_model;
     // Bounding box, cached.
-//========================================================================================================
+
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool          m_bounding_box_valid;
-//========================================================================================================
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.

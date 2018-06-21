@@ -1,5 +1,6 @@
 #include "GLCanvas3D.hpp"
 
+#include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
 #include "../../slic3r/GUI/GUI.hpp"
@@ -40,6 +41,11 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 
 static const float VARIABLE_LAYER_THICKNESS_BAR_WIDTH = 70.0f;
 static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
+
+static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
+                                     0.0f, 1.0f, 0.0f, 0.0f,
+                                     0.0f, 0.0f, 1.0f, 0.0f,
+                                     0.0f, 0.0f, 0.0f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -719,6 +725,12 @@ void GLCanvas3D::Shader::set_uniform(const std::string& name, float value) const
         m_shader->set_uniform(name.c_str(), value);
 }
 
+void GLCanvas3D::Shader::set_uniform(const std::string& name, const float* matrix) const
+{
+    if (m_shader != nullptr)
+        m_shader->set_uniform(name.c_str(), matrix);
+}
+
 const GLShader* GLCanvas3D::Shader::get_shader() const
 {
     return m_shader;
@@ -952,6 +964,8 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)volume.layer_height_texture_height());
     m_shader.set_uniform("z_cursor", max_z * get_cursor_z_relative(canvas));
     m_shader.set_uniform("z_cursor_band_width", band_width);
+    // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
+    m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
 
     GLsizei w = (GLsizei)volume.layer_height_texture_width();
     GLsizei h = (GLsizei)volume.layer_height_texture_height();
@@ -1042,7 +1056,9 @@ const Pointf3 GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MA
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
-    , volume_idx(-1)
+    , move_with_ctrl(false)
+    , move_volume_idx(-1)
+    , gizmo_volume_idx(-1)
 {
 }
 
@@ -2765,6 +2781,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             update_gizmos_data();
             m_gizmos.start_dragging();
+            m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id();
             m_dirty = true;
         }
         else
@@ -2812,7 +2829,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (volume_bbox.contains(pos3d))
                     {
                         // The dragging operation is initiated.
-                        m_mouse.drag.volume_idx = volume_idx;
+                        m_mouse.drag.move_with_ctrl = evt.ControlDown();
+                        m_mouse.drag.move_volume_idx = volume_idx;
                         m_mouse.drag.start_position_3D = pos3d;
                         // Remember the shift to to the object center.The object center will later be used
                         // to limit the object placement close to the bed.
@@ -2828,7 +2846,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.move_volume_idx != -1))
     {
         m_mouse.dragging = true;
 
@@ -2851,24 +2869,30 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Calculate the translation vector.
         Vectorf3 vector = m_mouse.drag.start_position_3D.vector_to(cur_pos);
         // Get the volume being dragged.
-        GLVolume* volume = m_volumes.volumes[m_mouse.drag.volume_idx];
+        GLVolume* volume = m_volumes.volumes[m_mouse.drag.move_volume_idx];
         // Get all volumes belonging to the same group, if any.
         std::vector<GLVolume*> volumes;
-        if (volume->drag_group_id == -1)
+        int group_id = m_mouse.drag.move_with_ctrl ? volume->select_group_id : volume->drag_group_id;
+        if (group_id == -1)
             volumes.push_back(volume);
         else
         {
             for (GLVolume* v : m_volumes.volumes)
             {
-                if ((v != nullptr) && (v->drag_group_id == volume->drag_group_id))
-                    volumes.push_back(v);
+                if (v != nullptr)
+                {
+                    if ((m_mouse.drag.move_with_ctrl && (v->select_group_id == group_id)) || (v->drag_group_id == group_id))
+                        volumes.push_back(v);
+                }
             }
         }
 
         // Apply new temporary volume origin and ignore Z.
         for (GLVolume* v : volumes)
         {
-            v->origin.translate(vector.x, vector.y, 0.0);
+            Pointf3 origin = v->get_origin();
+            origin.translate(vector.x, vector.y, 0.0);
+            v->set_origin(origin);
         }
 
         m_mouse.drag.start_position_3D = cur_pos;
@@ -2882,16 +2906,43 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         const Pointf3& cur_pos = _mouse_to_bed_3d(pos);
         m_gizmos.update(Pointf(cur_pos.x, cur_pos.y));
 
+        std::vector<GLVolume*> volumes;
+        if (m_mouse.drag.gizmo_volume_idx != -1)
+        {
+            GLVolume* volume = m_volumes.volumes[m_mouse.drag.gizmo_volume_idx];
+            // Get all volumes belonging to the same group, if any.
+            if (volume->select_group_id == -1)
+                volumes.push_back(volume);
+            else
+            {
+                for (GLVolume* v : m_volumes.volumes)
+                {
+                    if ((v != nullptr) && (v->select_group_id == volume->select_group_id))
+                        volumes.push_back(v);
+                }
+            }
+        }
+
         switch (m_gizmos.get_current_type())
         {
         case Gizmos::Scale:
         {
-            m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+            // Apply new temporary scale factor
+            float scale_factor = m_gizmos.get_scale();
+            for (GLVolume* v : volumes)
+            {
+                v->set_scale_factor(scale_factor);
+            }
             break;
         }
         case Gizmos::Rotate:
         {
-            m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+            // Apply new temporary angle_z
+            float angle_z = m_gizmos.get_angle_z();
+            for (GLVolume* v : volumes)
+            {
+                v->set_angle_z(angle_z);
+            }
             break;
         }
         default:
@@ -2954,19 +3005,19 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (layer_editing_object_idx != -1)
                 m_on_model_update_callback.call();
         }
-        else if ((m_mouse.drag.volume_idx != -1) && m_mouse.dragging)
+        else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
             // get all volumes belonging to the same group, if any
             std::vector<int> volume_idxs;
-            int vol_id = m_mouse.drag.volume_idx;
-            int group_id = m_volumes.volumes[vol_id]->drag_group_id;
+            int vol_id = m_mouse.drag.move_volume_idx;
+            int group_id = m_mouse.drag.move_with_ctrl ? m_volumes.volumes[vol_id]->select_group_id : m_volumes.volumes[vol_id]->drag_group_id;
             if (group_id == -1)
                 volume_idxs.push_back(vol_id);
             else
             {
                 for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
                 {
-                    if (m_volumes.volumes[i]->drag_group_id == group_id)
+                    if ((m_mouse.drag.move_with_ctrl && (m_volumes.volumes[i]->select_group_id == group_id)) || (m_volumes.volumes[i]->drag_group_id == group_id))
                         volume_idxs.push_back(i);
                 }
             }
@@ -2984,10 +3035,26 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {
+            switch (m_gizmos.get_current_type())
+            {
+            case Gizmos::Scale:
+            {
+                m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+                break;
+            }
+            case Gizmos::Rotate:
+            {
+                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+                break;
+            }
+            default:
+                break;
+            }
             m_gizmos.stop_dragging();
         }
 
-        m_mouse.drag.volume_idx = -1;
+        m_mouse.drag.move_volume_idx = -1;
+        m_mouse.drag.gizmo_volume_idx = -1;
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
@@ -3706,6 +3773,35 @@ int GLCanvas3D::_get_first_selected_object_id() const
     return -1;
 }
 
+int GLCanvas3D::_get_first_selected_volume_id() const
+{
+    if (m_print != nullptr)
+    {
+        int objects_count = (int)m_print->objects.size();
+
+        for (const GLVolume* vol : m_volumes.volumes)
+        {
+            if ((vol != nullptr) && vol->selected)
+            {
+                int object_id = vol->select_group_id / 1000000;
+                // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
+                if (object_id < 10000)
+                {
+                    int volume_id = 0;
+                    for (int i = 0; i < object_id; ++i)
+                    {
+                        const PrintObject* obj = m_print->objects[i];
+                        const ModelObject* model = obj->model_object();
+                        volume_id += model->instances.size();
+                    }
+                    return volume_id;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
 static inline int hex_digit_to_int(const char c)
 {
     return
@@ -4311,13 +4407,14 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         {
             // Move a regular object.
             ModelObject* model_object = m_model->objects[obj_idx];
-            model_object->instances[instance_idx]->offset.translate(volume->origin.x, volume->origin.y);
+            const Pointf3& origin = volume->get_origin();
+            model_object->instances[instance_idx]->offset = Pointf(origin.x, origin.y);
             model_object->invalidate_bounding_box();
             object_moved = true;
         }
         else if (obj_idx == 1000)
             // Move a wipe tower proxy.
-            wipe_tower_origin = volume->origin;
+            wipe_tower_origin = volume->get_origin();
     }
 
     if (object_moved)

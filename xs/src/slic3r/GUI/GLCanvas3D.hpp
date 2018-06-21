@@ -225,6 +225,7 @@ public:
         void stop_using() const;
 
         void set_uniform(const std::string& name, float value) const;
+        void set_uniform(const std::string& name, const float* matrix) const;
 
         const GLShader* get_shader() const;
 
@@ -302,7 +303,10 @@ public:
             Point start_position_2D;
             Pointf3 start_position_3D;
             Vectorf3 volume_center_offset;
-            int volume_idx;
+
+            bool move_with_ctrl;
+            int move_volume_idx;
+            int gizmo_volume_idx;
 
         public:
             Drag();
@@ -617,6 +621,7 @@ private:
     void _stop_timer();
 
     int _get_first_selected_object_id() const;
+    int _get_first_selected_volume_id() const;
 
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);

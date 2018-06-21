@@ -423,7 +423,7 @@ bool check_unsaved_changes()
 
 bool config_wizard_startup(bool app_config_exists)
 {
-	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
+	if (! app_config_exists || g_PresetBundle->printers.size() <= 1) {
 		config_wizard(ConfigWizard::RR_DATA_EMPTY);
 		return true;
 	} else if (g_AppConfig->legacy_datadir()) {

@@ -116,6 +116,8 @@ sub new {
 
         my $model_object = $self->{model}->objects->[$obj_idx];
         my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
         
         my $variation = $scale / $model_instance->scaling_factor;
         #FIXME Scale the layer height profile?
@@ -127,7 +129,6 @@ sub new {
         $object->transform_thumbnail($self->{model}, $obj_idx);
     
         #update print and start background processing
-        $self->stop_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
     
         $self->selection_changed(1);  # refresh info (size, volume etc.)

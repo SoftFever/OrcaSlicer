@@ -49,6 +49,22 @@ if(NOT DEFINED CMAKE_PREFIX_PATH)
 	endif()
 endif()
 
+# WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
+# We pick it from environment if it is not defined in another way
+if(WIN32)
+	if(NOT DEFINED WIN10SDK_PATH)
+		if(DEFINED ENV{WIN10SDK_PATH})
+			set(WIN10SDK_PATH "$ENV{WIN10SDK_PATH}")
+		endif()
+	endif()
+	if(DEFINED WIN10SDK_PATH AND NOT EXISTS "${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h")
+		message("WIN10SDK_PATH is invalid: ${WIN10SDK_PATH}")
+		message("${WIN10SDK_PATH}/include/winrt/windows.graphics.printing3d.h was not found")
+		message("STL fixing by the Netfabb service will not be compiled")
+		unset(WIN10SDK_PATH)
+	endif()
+endif()
+
 add_subdirectory(xs)
 
 get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)

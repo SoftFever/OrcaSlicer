@@ -45,6 +45,8 @@
 
 #define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
 
+#define MAX_MODE_LEN 32  // For fopen_and_seek()
+
 
 struct ihexrec {
   unsigned char    reclen;
@@ -96,8 +98,40 @@ static int fileio_num(struct fioparms * fio,
 		char * filename, FILE * f, AVRMEM * mem, int size,
 		FILEFMT fmt);
 
-static int fmt_autodetect(char * fname);
+static int fmt_autodetect(char * fname, size_t offset);
 
+
+
+static FILE *fopen_and_seek(const char *filename, const char *mode, size_t offset)
+{
+  FILE *file;
+  // On Windows we need to convert the filename to UTF-16
+#if defined(WIN32NATIVE)
+  static wchar_t fname_buffer[PATH_MAX];
+  static wchar_t mode_buffer[MAX_MODE_LEN];
+
+  if (MultiByteToWideChar(CP_UTF8, 0, filename, -1, fname_buffer, PATH_MAX) == 0) { return NULL; }
+  if (MultiByteToWideChar(CP_ACP, 0, mode, -1, mode_buffer, MAX_MODE_LEN) == 0) { return NULL; }
+
+  file = _wfopen(fname_buffer, mode_buffer);
+#else
+  file = fopen(filename, mode);
+#endif
+
+  if (file != NULL) {
+    // Some systems allow seeking past the end of file, so we need check for that first and disallow
+    if (fseek(file, 0, SEEK_END) != 0
+      || offset >= ftell(file)
+      || fseek(file, offset, SEEK_SET) != 0
+      ) {
+      fclose(file);
+      file = NULL;
+      errno = EINVAL;
+    }
+  }
+
+  return file;
+}
 
 
 char * fmtstr(FILEFMT format)
@@ -1358,7 +1392,7 @@ int fileio_setparms(int op, struct fioparms * fp,
 
 
 
-static int fmt_autodetect(char * fname)
+static int fmt_autodetect(char * fname, size_t offset)
 {
   FILE * f;
   unsigned char buf[MAX_LINE_LEN];
@@ -1368,10 +1402,11 @@ static int fmt_autodetect(char * fname)
   int first = 1;
 
 #if defined(WIN32NATIVE)
-  f = fopen(fname, "r");
+  f = fopen_and_seek(fname, "r", offset);
 #else
-  f = fopen(fname, "rb");
+  f = fopen_and_seek(fname, "rb", offset);
 #endif
+
   if (f == NULL) {
     avrdude_message(MSG_INFO, "%s: error opening %s: %s\n",
             progname, fname, strerror(errno));
@@ -1445,7 +1480,7 @@ static int fmt_autodetect(char * fname)
 
 
 int fileio(int op, char * filename, FILEFMT format, 
-             struct avrpart * p, char * memtype, int size)
+             struct avrpart * p, char * memtype, int size, size_t offset)
 {
   int rc;
   FILE * f;
@@ -1477,15 +1512,17 @@ int fileio(int op, char * filename, FILEFMT format,
   using_stdio = 0;
 
   if (strcmp(filename, "-")==0) {
-    if (fio.op == FIO_READ) {
-      fname = "<stdin>";
-      f = stdin;
-    }
-    else {
-      fname = "<stdout>";
-      f = stdout;
-    }
-    using_stdio = 1;
+    return -1;
+    // Note: we don't want to read stdin or write to stdout as part of Slic3r
+    // if (fio.op == FIO_READ) {
+    //   fname = "<stdin>";
+    //   f = stdin;
+    // }
+    // else {
+    //   fname = "<stdout>";
+    //   f = stdout;
+    // }
+    // using_stdio = 1;
   }
   else {
     fname = filename;
@@ -1502,7 +1539,7 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
     }
 
-    format_detect = fmt_autodetect(fname);
+    format_detect = fmt_autodetect(fname, offset);
     if (format_detect < 0) {
       avrdude_message(MSG_INFO, "%s: can't determine file format for %s, specify explicitly\n",
                       progname, fname);
@@ -1533,7 +1570,7 @@ int fileio(int op, char * filename, FILEFMT format,
 
   if (format != FMT_IMM) {
     if (!using_stdio) {
-      f = fopen(fname, fio.mode);
+      f = fopen_and_seek(fname, fio.mode, offset);
       if (f == NULL) {
         avrdude_message(MSG_INFO, "%s: can't open %s file %s: %s\n",
                 progname, fio.iodesc, fname, strerror(errno));

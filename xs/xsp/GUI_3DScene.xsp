@@ -56,9 +56,13 @@
     int                 volume_idx() const;
     int                 instance_idx() const;
     Clone<Pointf3>      origin() const
-        %code%{ RETVAL = THIS->origin; %};
+        %code%{ RETVAL = THIS->get_origin(); %};
     void                translate(double x, double y, double z)
-        %code%{ THIS->origin.translate(x, y, z); %};
+        %code%{
+                Pointf3 o = THIS->get_origin();
+                o.translate(x, y, z);
+                THIS->set_origin(o);
+             %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;
