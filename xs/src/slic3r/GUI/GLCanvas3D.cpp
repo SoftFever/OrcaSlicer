@@ -405,16 +405,27 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
     const PresetBundle* bundle = get_preset_bundle();
     if (bundle != nullptr)
     {
-        const Preset& curr = bundle->printers.get_selected_preset();
-        if (curr.config.has("bed_shape") && _are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr.config.option("bed_shape"))->values))
+        const Preset* curr = &bundle->printers.get_selected_preset();
+        while (curr != nullptr)
         {
-            if ((curr.vendor != nullptr) && (curr.vendor->name == "Prusa Research"))
+            if (curr->config.has("bed_shape") && _are_equal(m_shape, dynamic_cast<const ConfigOptionPoints*>(curr->config.option("bed_shape"))->values))
             {
-                if (boost::contains(curr.name, "MK2"))
-                    type = MK2;
-                else if (boost::contains(curr.name, "MK3"))
-                    type = MK3;
+                if ((curr->vendor != nullptr) && (curr->vendor->name == "Prusa Research"))
+                {
+                    if (boost::contains(curr->name, "MK2"))
+                    {
+                        type = MK2;
+                        break;
+                    }
+                    else if (boost::contains(curr->name, "MK3"))
+                    {
+                        type = MK3;
+                        break;
+                    }
+                }
             }
+
+            curr = bundle->printers.get_preset_parent(*curr);
         }
     }
 
