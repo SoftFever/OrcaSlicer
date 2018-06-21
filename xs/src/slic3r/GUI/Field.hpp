@@ -384,6 +384,34 @@ public:
 	wxSizer*		getSizer() override { return sizer; }
 };
 
+class StaticText : public Field {
+	using Field::Field;
+public:
+	StaticText(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	StaticText(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~StaticText() {}
+
+	wxWindow*		window{ nullptr };
+	void			BUILD()  override;
+
+	void			set_value(const std::string& value, bool change_event = false) {
+		m_disable_change_event = !change_event;
+		dynamic_cast<wxStaticText*>(window)->SetLabel(value);
+		m_disable_change_event = false;
+	}
+	void			set_value(const boost::any& value, bool change_event = false) {
+		m_disable_change_event = !change_event;
+		dynamic_cast<wxStaticText*>(window)->SetLabel(boost::any_cast<wxString>(value));
+		m_disable_change_event = false;
+	}
+
+	boost::any&		get_value()override { return m_value; }
+
+	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
+	wxWindow*		getWindow() override { return window; }
+};
+
 } // GUI
 } // Slic3r
 

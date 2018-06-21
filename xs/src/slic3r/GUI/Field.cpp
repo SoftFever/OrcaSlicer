@@ -665,6 +665,22 @@ boost::any& PointCtrl::get_value()
 	return m_value = ret_point;
 }
 
+void StaticText::BUILD()
+{
+	auto size = wxSize(wxDefaultSize);
+	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
+	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+
+	wxString legend(static_cast<ConfigOptionString*>(m_opt.default_value)->value);
+	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
+	temp->SetFont(bold_font());
+
+	// 	// recast as a wxWindow to fit the calling convention
+	window = dynamic_cast<wxWindow*>(temp);
+
+	temp->SetToolTip(get_tooltip_text(legend));
+}
+
 } // GUI
 } // Slic3r
 

@@ -31,6 +31,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
+    } else if (opt.gui_type.compare("legend") == 0) { // StaticText
+		m_fields.emplace(id, STDMOVE(StaticText::Create<StaticText>(parent(), opt, id)));
     } else { 
         switch (opt.type) {
             case coFloatOrPercent:
@@ -86,7 +88,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_sys_value(opt_id);
 	};
-	if (!m_is_tab_opt) {
+	if (!m_show_modified_btns) {
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 	}

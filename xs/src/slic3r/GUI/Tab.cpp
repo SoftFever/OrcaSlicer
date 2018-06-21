@@ -1718,73 +1718,63 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	on_value_change("extruders_count", extruders_count);
 }
 
+void append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
+{
+	auto option = optgroup->get_option(opt_key, 0);
+	auto line = Line{ option.opt.full_label, "" };
+	line.append_option(option);
+	line.append_option(optgroup->get_option(opt_key, 1));
+	optgroup->append_line(line);
+}
+
 PageShp TabPrinter::create_kinematics_page()
 {
 	auto page = add_options_page(_(L("Machine limits")), "cog.png", true);
-	auto optgroup = page->new_optgroup(_(L("Maximum accelerations")));
-	auto line = Line{ _(L("Standard/Silent mode")), "" };
-	line.append_option(optgroup->get_option("machine_max_acceleration_x", 0));
-	line.append_option(optgroup->get_option("machine_max_acceleration_x", 1));
+
+	// Legend for OptionsGroups
+	auto optgroup = page->new_optgroup(_(L("")));
+	optgroup->set_show_modified_btns_val(false);
+	optgroup->label_width = 230;
+	auto line = Line{ "", "" };
+
+	ConfigOptionDef def;
+	def.type = coString;
+	def.width = 150;
+	def.gui_type = "legend";
+ 	def.tooltip = L("Values in this column are for Full Power mode");
+	def.default_value = new ConfigOptionString{ L("Full Power")};
+
+	auto option = Option(def, "full_power_legend");
+	line.append_option(option);
+
+	def.tooltip = L("Values in this column are for Silent mode");
+	def.default_value = new ConfigOptionString{ L("Silent") };
+	option = Option(def, "silent_legend");
+	line.append_option(option);
+
 	optgroup->append_line(line);
-	line = Line{ "", "" };
-	line.append_option(optgroup->get_option("machine_max_acceleration_y", 0));
-	line.append_option(optgroup->get_option("machine_max_acceleration_y", 1));
-	optgroup->append_line(line);
-	line = Line{ _(L("Standard/Silent mode")), "" };
-	line.append_option(optgroup->get_option("machine_max_acceleration_z", 0));
-	line.append_option(optgroup->get_option("machine_max_acceleration_z", 1));
-	optgroup->append_line(line);
-	line = Line{ _(L("Standard/Silent mode")), "" };
-	line.append_option(optgroup->get_option("machine_max_acceleration_e", 0));
-	line.append_option(optgroup->get_option("machine_max_acceleration_e", 1));
-	optgroup->append_line(line);
-// 	optgroup->append_single_option_line("machine_max_acceleration_x", 0);
-// 	optgroup->append_single_option_line("machine_max_acceleration_y", 0);
-// 	optgroup->append_single_option_line("machine_max_acceleration_z", 0);
-// 	optgroup->append_single_option_line("machine_max_acceleration_e", 0);
+
+	std::vector<std::string> axes{ "x", "y", "z", "e" };
+	optgroup = page->new_optgroup(_(L("Maximum accelerations")));
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_acceleration_" + axis);
+		}
 
 	optgroup = page->new_optgroup(_(L("Maximum feedrates")));
-	optgroup->append_single_option_line("machine_max_feedrate_x", 0);
-	optgroup->append_single_option_line("machine_max_feedrate_y", 0);
-	optgroup->append_single_option_line("machine_max_feedrate_z", 0);
-	optgroup->append_single_option_line("machine_max_feedrate_e", 0);
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_feedrate_" + axis);
+		}
 
 	optgroup = page->new_optgroup(_(L("Starting Acceleration")));
-	optgroup->append_single_option_line("machine_max_acceleration_extruding", 0);
-	optgroup->append_single_option_line("machine_max_acceleration_retracting", 0);
+		append_option_line(optgroup, "machine_max_acceleration_extruding");
+		append_option_line(optgroup, "machine_max_acceleration_retracting");
 
 	optgroup = page->new_optgroup(_(L("Advanced")));
-	optgroup->append_single_option_line("machine_min_extruding_rate", 0);
- 	optgroup->append_single_option_line("machine_min_travel_rate", 0);
-	optgroup->append_single_option_line("machine_max_jerk_x", 0);
-	optgroup->append_single_option_line("machine_max_jerk_y", 0);
-	optgroup->append_single_option_line("machine_max_jerk_z", 0);
-	optgroup->append_single_option_line("machine_max_jerk_e", 0);
-
-	//for silent mode
-// 	optgroup = page->new_optgroup(_(L("Maximum accelerations")));
-// 	optgroup->append_single_option_line("machine_max_acceleration_x", 1);
-// 	optgroup->append_single_option_line("machine_max_acceleration_y", 1);
-// 	optgroup->append_single_option_line("machine_max_acceleration_z", 1);
-// 	optgroup->append_single_option_line("machine_max_acceleration_e", 1);
-
-	optgroup = page->new_optgroup(_(L("Maximum feedrates (Silent mode)")));
-	optgroup->append_single_option_line("machine_max_feedrate_x", 1);
-	optgroup->append_single_option_line("machine_max_feedrate_y", 1);
-	optgroup->append_single_option_line("machine_max_feedrate_z", 1);
-	optgroup->append_single_option_line("machine_max_feedrate_e", 1);
-
-	optgroup = page->new_optgroup(_(L("Starting Acceleration (Silent mode)")));
-	optgroup->append_single_option_line("machine_max_acceleration_extruding", 1);
-	optgroup->append_single_option_line("machine_max_acceleration_retracting", 1);
-
-	optgroup = page->new_optgroup(_(L("Advanced (Silent mode)")));
-	optgroup->append_single_option_line("machine_min_extruding_rate", 1);
-	optgroup->append_single_option_line("machine_min_travel_rate", 1);
-	optgroup->append_single_option_line("machine_max_jerk_x", 1);
-	optgroup->append_single_option_line("machine_max_jerk_y", 1);
-	optgroup->append_single_option_line("machine_max_jerk_z", 1);
-	optgroup->append_single_option_line("machine_max_jerk_e", 1);
+		append_option_line(optgroup, "machine_min_extruding_rate");
+		append_option_line(optgroup, "machine_min_travel_rate");
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_jerk_" + axis);
+		}
 
 	return page;
 }

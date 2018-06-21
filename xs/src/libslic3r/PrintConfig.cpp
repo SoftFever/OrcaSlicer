@@ -856,6 +856,12 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
 
+	def = this->add("silent_mode", coBool);
+	def->label = L("Support silent mode");
+	def->tooltip = L("Set silent mode for the G-code flavor");
+	def->default_value = new ConfigOptionBool(true);
+
+	const int machine_linits_opt_width = 70;
 	{
 		struct AxisDefault {
 			std::string         name;
@@ -874,65 +880,72 @@ PrintConfigDef::PrintConfigDef()
 			std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
 			// Add the machine feedrate limits for XYZE axes. (M203)
 			def = this->add("machine_max_feedrate_" + axis.name, coFloats);
-			def->label = (boost::format(L("Maximum feedrate %1%")) % axis_upper).str();
+			def->full_label = (boost::format(L("Maximum feedrate %1%")) % axis_upper).str();
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format(L("Maximum feedrate of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s");
 			def->min = 0;
+			def->width = machine_linits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_feedrate);
 			// Add the machine acceleration limits for XYZE axes (M201)
 			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
-			def->label = (boost::format(L("Maximum acceleration %1%")) % axis_upper).str();
+			def->full_label = (boost::format(L("Maximum acceleration %1%")) % axis_upper).str();
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format(L("Maximum acceleration of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s²");
 			def->min = 0;
+			def->width = machine_linits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_acceleration);
 			// Add the machine jerk limits for XYZE axes (M205)
 			def = this->add("machine_max_jerk_" + axis.name, coFloats);
-			def->label = (boost::format(L("Maximum jerk %1%")) % axis_upper).str();
+			def->full_label = (boost::format(L("Maximum jerk %1%")) % axis_upper).str();
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format(L("Maximum jerk of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s");
 			def->min = 0;
+			def->width = machine_linits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_jerk);
 		}
 	}
 
     // M205 S... [mm/sec]
     def = this->add("machine_min_extruding_rate", coFloats);
-    def->label = L("Minimum feedrate when extruding");
+    def->full_label = L("Minimum feedrate when extruding");
     def->category = L("Machine limits");
     def->tooltip = L("Minimum feedrate when extruding") + " (M205 S)";
     def->sidetext = L("mm/s");
     def->min = 0;
+	def->width = machine_linits_opt_width;
 	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M205 T... [mm/sec]
     def = this->add("machine_min_travel_rate", coFloats);
-    def->label = L("Minimum travel feedrate");
+    def->full_label = L("Minimum travel feedrate");
     def->category = L("Machine limits");
     def->tooltip = L("Minimum travel feedrate") + " (M205 T)";
     def->sidetext = L("mm/s");
     def->min = 0;
+	def->width = machine_linits_opt_width;
 	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M204 S... [mm/sec^2]
     def = this->add("machine_max_acceleration_extruding", coFloats);
-    def->label = L("Maximum acceleration when extruding");
+    def->full_label = L("Maximum acceleration when extruding");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration when extruding") + " (M204 S)";
     def->sidetext = L("mm/s²");
     def->min = 0;
+	def->width = machine_linits_opt_width;
     def->default_value = new ConfigOptionFloats(1250., 1250.);
 
     // M204 T... [mm/sec^2]
     def = this->add("machine_max_acceleration_retracting", coFloats);
-    def->label = L("Maximum acceleration when retracting");
+    def->full_label = L("Maximum acceleration when retracting");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration when retracting") + " (M204 T)";
     def->sidetext = L("mm/s²");
     def->min = 0;
+	def->width = machine_linits_opt_width;
     def->default_value = new ConfigOptionFloats(1250., 1250.);
 
     def = this->add("max_fan_speed", coInts);
@@ -1564,13 +1577,6 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("The printer multiplexes filaments into a single hot end.");
     def->cli = "single-extruder-multi-material!";
 	def->default_value = new ConfigOptionBool(false);
-
-	// -- ! Kinematics options
-	def = this->add("silent_mode", coBool);
-	def->label = L("Silent mode");
-	def->tooltip = L("Set silent mode for the G-code flavor");
-	def->default_value = new ConfigOptionBool(true);
-	// -- !
 
     def = this->add("support_material", coBool);
     def->label = L("Generate support material");
