@@ -72,6 +72,10 @@ bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmap
     }
 
     // sends data to gpu
+
+//#######################################################################################################################
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//#######################################################################################################################
     ::glGenTextures(1, &m_id);
     ::glBindTexture(GL_TEXTURE_2D, m_id);
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
@@ -132,7 +136,9 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
     ::glDisable(GL_LIGHTING);
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    ::glEnable(GL_TEXTURE_2D);
+//#######################################################################################################################
+    ::glEnable(GL_TEXTURE_2D);
+//#######################################################################################################################
 
     ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
 
@@ -145,7 +151,9 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 
     ::glBindTexture(GL_TEXTURE_2D, 0);
 
-//    ::glDisable(GL_TEXTURE_2D);
+//#######################################################################################################################
+    ::glDisable(GL_TEXTURE_2D);
+//#######################################################################################################################
     ::glDisable(GL_BLEND);
     ::glEnable(GL_LIGHTING);
 }

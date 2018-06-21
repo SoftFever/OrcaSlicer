@@ -498,7 +498,9 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//        ::glEnable(GL_TEXTURE_2D);
+//#######################################################################################################################
+        ::glEnable(GL_TEXTURE_2D);
+//#######################################################################################################################
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
         ::glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -519,7 +521,9 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         ::glDisableClientState(GL_VERTEX_ARRAY);
 
-//        ::glDisable(GL_TEXTURE_2D);
+//#######################################################################################################################
+        ::glDisable(GL_TEXTURE_2D);
+//#######################################################################################################################
 
         ::glDisable(GL_BLEND);
     }
@@ -983,6 +987,9 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     GLsizei half_w = w / 2;
     GLsizei half_h = h / 2;
 
+//#######################################################################################################################
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//#######################################################################################################################
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -1555,7 +1562,9 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         return false;
 
-    ::glEnable(GL_TEXTURE_2D);
+//#######################################################################################################################
+//    ::glEnable(GL_TEXTURE_2D);
+//#######################################################################################################################
 
     m_initialized = true;
 
