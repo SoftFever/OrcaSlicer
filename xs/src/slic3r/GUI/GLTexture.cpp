@@ -4,6 +4,8 @@
 
 #include <wx/image.h>
 
+#include <boost/filesystem.hpp>
+
 #include <vector>
 #include <algorithm>
 
@@ -26,6 +28,9 @@ GLTexture::~GLTexture()
 bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmaps)
 {
     reset();
+
+    if (!boost::filesystem::exists(filename))
+        return false;
 
     // Load a PNG with an alpha channel.
     wxImage image;
