@@ -500,6 +500,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
 
 //#######################################################################################################################
         ::glEnable(GL_TEXTURE_2D);
+        ::glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 //#######################################################################################################################
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
@@ -508,7 +509,9 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         if (theta > 90.0f)
             ::glFrontFace(GL_CW);
 
-        ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+//#######################################################################################################################
+//        ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+//#######################################################################################################################
         ::glBindTexture(GL_TEXTURE_2D, (theta <= 90.0f) ? (GLuint)m_top_texture.get_id() : (GLuint)m_bottom_texture.get_id());
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
         ::glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)m_triangles.get_tex_coords());
@@ -988,7 +991,7 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     GLsizei half_h = h / 2;
 
 //#######################################################################################################################
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);

@@ -74,7 +74,7 @@ bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmap
     // sends data to gpu
 
 //#######################################################################################################################
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
     ::glGenTextures(1, &m_id);
     ::glBindTexture(GL_TEXTURE_2D, m_id);
@@ -131,13 +131,16 @@ const std::string& GLTexture::get_source() const
 
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
 {
-    ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+//#######################################################################################################################
+//    ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+//#######################################################################################################################
 
     ::glDisable(GL_LIGHTING);
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //#######################################################################################################################
     ::glEnable(GL_TEXTURE_2D);
+    ::glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 //#######################################################################################################################
 
     ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);

@@ -397,7 +397,7 @@ void GLVolume::render_using_layer_height() const
     GLsizei half_h = h / 2;
 
 //#######################################################################################################################
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
     glBindTexture(GL_TEXTURE_2D, layer_height_texture_data.texture_id);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -1586,7 +1586,7 @@ unsigned int _3DScene::TextureBase::finalize()
     if (!m_data.empty()) {
         // sends buffer to gpu
 //#######################################################################################################################
-        ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//        ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
         ::glGenTextures(1, &m_tex_id);
         ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
