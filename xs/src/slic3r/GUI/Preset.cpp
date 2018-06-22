@@ -424,7 +424,50 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
 {
     DynamicPrintConfig cfg(this->default_preset().config);
     cfg.apply_only(config, cfg.keys(), true);
-    return this->load_preset(path, name, std::move(cfg));
+    return this->load_preset(path, name, std::move(cfg), select);
+}
+
+// Load a preset from an already parsed config file, insert it into the sorted sequence of presets
+// and select it, losing previous modifications.
+// In case 
+Preset& PresetCollection::load_external_preset(
+    // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
+    const std::string           &path,
+    // Name of the profile, derived from the source file name.
+    const std::string           &name,
+    // Original name of the profile, extracted from the loaded config. Empty, if the name has not been stored.
+    const std::string           &original_name,
+    // Config to initialize the preset from.
+    const DynamicPrintConfig    &config,
+    // Select the preset after loading?
+    bool                         select)
+{
+    // Load the preset over a default preset, so that the missing fields are filled in from the default preset.
+    DynamicPrintConfig cfg(this->default_preset().config);
+    cfg.apply_only(config, cfg.keys(), true);
+    // Is there a preset already loaded with the name stored inside the config?
+    std::deque<Preset>::iterator it = original_name.empty() ? m_presets.end() : this->find_preset_internal(original_name);
+    if (it != m_presets.end()) {
+        t_config_option_keys diff = it->config.diff(cfg);
+        //FIXME Following keys are either not updated in the preset (the *_settings_id),
+        // or not stored into the AMF/3MF/Config file, therefore they will most likely not match.
+        // Ignore these differences for now.
+        for (const char *key : { "compatible_printers", "compatible_printers_condition", "inherits", 
+                                 "print_settings_id", "filament_settings_id", "printer_settings_id",
+								 "printer_model", "printer_variant", "default_print_profile", "default_filament_profile" })
+            diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
+        // Preset with the same name as stored inside the config exists.
+		if (diff.empty()) {
+            // The preset exists and it matches the values stored inside config.
+            if (select)
+                this->select_preset(it - m_presets.begin());
+            return *it;
+        }
+    }
+    // The external preset does not match an internal preset, load the external preset.
+    Preset &preset = this->load_preset(path, name, std::move(cfg), select);
+    preset.is_external = true;
+    return preset;
 }
 
 Preset& PresetCollection::load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select)

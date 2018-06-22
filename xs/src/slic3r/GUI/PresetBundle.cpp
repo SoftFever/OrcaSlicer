@@ -416,6 +416,9 @@ DynamicPrintConfig PresetBundle::full_config() const
         opt->value = boost::algorithm::clamp<int>(opt->value, 0, int(num_extruders));
     }
 
+    out.option<ConfigOptionString >("print_settings_id",    true)->value  = this->prints.get_selected_preset().name;
+    out.option<ConfigOptionStrings>("filament_settings_id", true)->values = this->filament_presets;
+    out.option<ConfigOptionString >("printer_settings_id",  true)->value  = this->printers.get_selected_preset().name;
     return out;
 }
 
@@ -502,24 +505,25 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     // First load the print and printer presets.
     for (size_t i_group = 0; i_group < 2; ++ i_group) {
         PresetCollection &presets = (i_group == 0) ? this->prints : this->printers;
-		Preset &preset = presets.load_preset(is_external ? name_or_path : presets.path_from_name(name), name, config);
-        if (is_external)
-            preset.is_external = true;
+		if (is_external)
+            presets.load_external_preset(name_or_path, name,
+                config.opt_string((i_group == 0) ? "print_settings_id" : "printer_settings_id"), 
+                config);
         else
-            preset.save();
+            presets.load_preset(presets.path_from_name(name), name, config).save();
     }
 
     // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
     auto   *nozzle_diameter   = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
     auto   *filament_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("filament_diameter"));
     size_t  num_extruders     = std::min(nozzle_diameter->values.size(), filament_diameter->values.size());
+    const ConfigOptionStrings *old_filament_profile_names = config.option<ConfigOptionStrings>("filament_settings_id", false);
+    assert(old_filament_profile_names != nullptr);
     if (num_extruders <= 1) {
-        Preset &preset = this->filaments.load_preset(
-			is_external ? name_or_path : this->filaments.path_from_name(name), name, config);
         if (is_external)
-            preset.is_external = true;
+            this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
         else
-            preset.save();
+            this->filaments.load_preset(this->filaments.path_from_name(name), name, config).save();
         this->filament_presets.clear();
         this->filament_presets.emplace_back(name);
     } else {
@@ -548,13 +552,13 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
                 sprintf(suffix, " (%d)", i);
             std::string new_name = name + suffix;
             // Load all filament presets, but only select the first one in the preset dialog.
-            Preset &preset = this->filaments.load_preset(
-				is_external ? name_or_path : this->filaments.path_from_name(new_name),
-                new_name, std::move(configs[i]), i == 0);
             if (is_external)
-                preset.is_external = true;
+                this->filaments.load_external_preset(name_or_path, new_name,
+                    (i < old_filament_profile_names->values.size()) ? old_filament_profile_names->values[i] : "",
+                    std::move(configs[i]), i == 0);
             else
-                preset.save();
+                this->filaments.load_preset(this->filaments.path_from_name(new_name),
+                    new_name, std::move(configs[i]), i == 0).save();
             this->filament_presets.emplace_back(new_name);
         }
     }

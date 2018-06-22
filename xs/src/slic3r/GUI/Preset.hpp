@@ -200,6 +200,18 @@ public:
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true);
 
+    Preset&         load_external_preset(
+        // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
+        const std::string           &path,
+        // Name of the profile, derived from the source file name.
+        const std::string           &name,
+        // Original name of the profile, extracted from the loaded config. Empty, if the name has not been stored.
+        const std::string           &original_name,
+        // Config to initialize the preset from.
+        const DynamicPrintConfig    &config,
+        // Select the preset after loading?
+        bool                         select = true);
+
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
     // All presets are marked as not modified and the new preset is activated.
