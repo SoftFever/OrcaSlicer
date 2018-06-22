@@ -32,6 +32,7 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+class _3DScene;
 
 #define _(s)    Slic3r::translate((s))
 inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
@@ -87,6 +88,7 @@ void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
+void set_3DScene(_3DScene *scene);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();

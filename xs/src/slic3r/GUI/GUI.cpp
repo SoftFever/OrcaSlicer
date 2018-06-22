@@ -56,6 +56,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+#include "3DScene.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -109,6 +110,7 @@ wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 PresetUpdater *g_PresetUpdater = nullptr;
+_3DScene	*g_3DScene		= nullptr;
 wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
 wxColour    g_color_label_default;
@@ -192,6 +194,11 @@ void set_preset_bundle(PresetBundle *preset_bundle)
 void set_preset_updater(PresetUpdater *updater)
 {
 	g_PresetUpdater = updater;
+}
+
+void set_3DScene(_3DScene *scene)
+{
+	g_3DScene = scene;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -392,6 +399,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				save_language();
 				show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
 				if (event_language_change > 0) {
+					g_3DScene->remove_all_canvases();// remove all canvas before recreate GUI
 					wxCommandEvent event(event_language_change);
 					g_wxApp->ProcessEvent(event);
 				}
