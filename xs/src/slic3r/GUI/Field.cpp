@@ -67,7 +67,7 @@ namespace Slic3r { namespace GUI {
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{
 		wxString tooltip_text("");
-		wxString tooltip = L_str(m_opt.tooltip);
+		wxString tooltip = _(m_opt.tooltip);
 		if (tooltip.length() > 0)
 			tooltip_text = tooltip + "(" + _(L("default")) + ": " +
 							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 
@@ -355,7 +355,7 @@ void Choice::BUILD() {
 	}
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels){
-			const wxString& str = m_opt_id == "support" ? L_str(el) : el;
+			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
 			temp->Append(str);
 		}
 		set_selection();

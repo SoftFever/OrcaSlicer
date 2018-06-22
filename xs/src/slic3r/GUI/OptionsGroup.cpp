@@ -194,7 +194,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		ConfigOptionDef option = opt.opt;
 		// add label if any
 		if (option.label != "") {
-			wxString str_label = L_str(option.label);
+			wxString str_label = _(option.label);
 //!			To correct translation by context have to use wxGETTEXT_IN_CONTEXT macro from wxWidget 3.1.1
 // 			wxString str_label = (option.label == "Top" || option.label == "Bottom") ?
 // 								wxGETTEXT_IN_CONTEXT("Layers", wxString(option.label.c_str()):
@@ -215,7 +215,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, L_str(option.sidetext), wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, wxDefaultSize);
 			sidetext->SetFont(sidetext_font);
 			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 		}
@@ -237,7 +237,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 }
 
 Line OptionsGroup::create_single_option_line(const Option& option) const {
-	Line retval{ L_str(option.opt.label), L_str(option.opt.tooltip) };
+	Line retval{ _(option.opt.label), _(option.opt.tooltip) };
     Option tmp(option);
     tmp.opt.label = std::string("");
     retval.append_option(tmp);
