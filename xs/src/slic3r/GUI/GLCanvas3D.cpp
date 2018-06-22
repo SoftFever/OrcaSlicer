@@ -1109,8 +1109,9 @@ bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
     return (drag.start_position_3D != Drag::Invalid_3D_Point);
 }
 
-const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f;
-const float GLCanvas3D::Gizmos::OverlayGapY = 10.0f;
+const float GLCanvas3D::Gizmos::OverlayTexturesScale = 0.75f;
+const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;
+const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
 
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
@@ -1176,7 +1177,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Poin
         if (it->second == nullptr)
             continue;
 
-        float tex_size = (float)it->second->get_textures_size();
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
@@ -1202,7 +1203,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
         if (it->second == nullptr)
             continue;
 
-        float tex_size = (float)it->second->get_textures_size();
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
@@ -1268,7 +1269,7 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         if (it->second == nullptr)
             continue;
 
-        float tex_size = (float)it->second->get_textures_size();
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
@@ -1425,7 +1426,7 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        float tex_size = (float)it->second->get_textures_size() * inv_zoom;
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
         GLTexture::render_texture(it->second->get_textures_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
         top_y -= (tex_size + scaled_gap_y);
     }

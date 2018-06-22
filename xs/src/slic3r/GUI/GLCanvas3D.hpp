@@ -327,6 +327,7 @@ public:
 
     class Gizmos
     {
+        static const float OverlayTexturesScale;
         static const float OverlayOffsetX;
         static const float OverlayGapY;
 
