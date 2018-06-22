@@ -1583,14 +1583,26 @@ GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
 unsigned int _3DScene::TextureBase::finalize()
 {
-    if (!m_data.empty()) {
+//#######################################################################################################################
+    if ((m_tex_id == 0) && !m_data.empty()) {
+//    if (!m_data.empty()) {
+//#######################################################################################################################
         // sends buffer to gpu
 //#######################################################################################################################
 //        ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
         ::glGenTextures(1, &m_tex_id);
-        ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
-        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)m_data.data());
+//#######################################################################################################################
+        ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_tex_id);
+//        ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
+//#######################################################################################################################
+//#######################################################################################################################
+        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)m_data.data());
+
+        std::cout << "loaded texture: " << m_tex_width << ", " << m_tex_height << std::endl;
+
+//        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)m_data.data());
+//#######################################################################################################################
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);

@@ -3548,9 +3548,6 @@ void GLCanvas3D::_render_warning_texture() const
         unsigned int h = _3DScene::get_warning_texture_height();
         if ((w > 0) && (h > 0))
         {
-//###############################################################################################################################
-            ::glDisable(GL_LIGHTING);
-//###############################################################################################################################
             ::glDisable(GL_DEPTH_TEST);
             ::glPushMatrix();
             ::glLoadIdentity();
@@ -3584,9 +3581,6 @@ void GLCanvas3D::_render_legend_texture() const
         unsigned int h = _3DScene::get_legend_texture_height();
         if ((w > 0) && (h > 0))
         {
-//###############################################################################################################################
-            ::glDisable(GL_LIGHTING);
-//###############################################################################################################################
             ::glDisable(GL_DEPTH_TEST);
             ::glPushMatrix();
             ::glLoadIdentity();
