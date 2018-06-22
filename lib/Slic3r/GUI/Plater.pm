@@ -231,6 +231,8 @@ sub new {
             Slic3r::GUI::_3DScene::set_active($self->{canvas3D}, 0);
             Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
             $self->{preview3D}->load_print(1);
+            # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
+            Slic3r::GUI::_3DScene::set_as_dirty($self->{preview3D}->canvas);
         } else {
             Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 0);
         }
@@ -243,6 +245,8 @@ sub new {
                 Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
                 Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
             }            
+            # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
+            Slic3r::GUI::_3DScene::set_as_dirty($self->{canvas3D});
         } else {
             $preview->OnActivate if $preview->can('OnActivate');        
         }

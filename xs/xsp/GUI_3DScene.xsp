@@ -201,6 +201,12 @@ set_active(canvas, active)
     CODE:
         _3DScene::set_active((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active);
 
+void
+set_as_dirty(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::set_as_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
 unsigned int
 get_volumes_count(canvas)
         SV *canvas;

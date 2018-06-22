@@ -70,6 +70,7 @@ public:
     bool init(wxGLCanvas* canvas);
 
     void set_active(wxGLCanvas* canvas, bool active);
+    void set_as_dirty(wxGLCanvas* canvas);
 
     unsigned int get_volumes_count(wxGLCanvas* canvas) const;
     void reset_volumes(wxGLCanvas* canvas);

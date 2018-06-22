@@ -219,6 +219,13 @@ void GLCanvas3DManager::set_active(wxGLCanvas* canvas, bool active)
         it->second->set_active(active);
 }
 
+void GLCanvas3DManager::set_as_dirty(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_as_dirty();
+}
+
 unsigned int GLCanvas3DManager::get_volumes_count(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
