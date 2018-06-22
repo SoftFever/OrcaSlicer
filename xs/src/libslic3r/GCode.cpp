@@ -375,7 +375,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
     fclose(file);
 
-    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    if (m_silent_time_estimator_enabled)
         GCodeTimeEstimator::post_process_elapsed_times(path_tmp, m_default_time_estimator.get_time(), m_silent_time_estimator.get_time());
 
     if (! this->m_placeholder_parser_failed_templates.empty()) {
@@ -410,12 +410,45 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // resets time estimators
     m_default_time_estimator.reset();
     m_default_time_estimator.set_dialect(print.config.gcode_flavor);
-    if (print.config.gcode_flavor == gcfMarlin)
+    m_default_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
+    m_default_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[0]);
+    m_default_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[0]);
+    m_default_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[0]);
+    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[0]);
+    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[0]);
+    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[0]);
+    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[0]);
+    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[0]);
+    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[0]);
+    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[0]);
+    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[0]);
+    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[0]);
+    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[0]);
+    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[0]);
+    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[0]);
+
+    m_silent_time_estimator_enabled = (print.config.gcode_flavor == gcfMarlin) && print.config.silent_mode;
+    if (m_silent_time_estimator_enabled)
     {
         m_silent_time_estimator.reset();
         m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
+        m_silent_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[1]);
+        m_silent_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[1]);
+        m_silent_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[1]);
+        m_silent_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[1]);
+        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[1]);
+        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[1]);
+        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[1]);
+        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[1]);
+        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[1]);
+        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[1]);
+        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[1]);
+        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[1]);
+        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[1]);
+        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[1]);
+        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[1]);
+        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[1]);
     }
-
     // resets analyzer
     m_analyzer.reset();
     m_enable_analyzer = preview_data != nullptr;
@@ -606,7 +639,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     }
 
     // before start gcode time estimation
-    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    if (m_silent_time_estimator_enabled)
     {
         _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
         _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
@@ -817,7 +850,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front()), &config));
         }
         // before end gcode time estimation
-        if (m_default_time_estimator.get_dialect() == gcfMarlin)
+        if (m_silent_time_estimator_enabled)
         {
             _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
             _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
@@ -829,7 +862,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 
     // calculates estimated printing time
     m_default_time_estimator.calculate_time();
-    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    if (m_silent_time_estimator_enabled)
         m_silent_time_estimator.calculate_time();
 
     // Get filament stats.
@@ -839,7 +872,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     print.total_weight           = 0.;
     print.total_cost             = 0.;
     print.estimated_default_print_time = m_default_time_estimator.get_time_dhms();
-    print.estimated_silent_print_time = (m_default_time_estimator.get_dialect() == gcfMarlin) ? m_silent_time_estimator.get_time_dhms() : "N/A";
+    print.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
     for (const Extruder &extruder : m_writer.extruders()) {
         double used_filament   = extruder.used_filament();
         double extruded_volume = extruder.extruded_volume();
@@ -860,7 +893,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     }
     _write_format(file, "; total filament cost = %.1lf\n", print.total_cost);
     _write_format(file, "; estimated printing time (default mode) = %s\n", m_default_time_estimator.get_time_dhms().c_str());
-    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
 
     // Append full config.
@@ -1430,7 +1463,7 @@ void GCode::process_layer(
     _write(file, gcode);
 
     // after layer time estimation
-    if (m_default_time_estimator.get_dialect() == gcfMarlin)
+    if (m_silent_time_estimator_enabled)
     {
         _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
         _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
@@ -2094,7 +2127,7 @@ void GCode::_write(FILE* file, const char *what)
         fwrite(gcode, 1, ::strlen(gcode), file);
         // updates time estimator and gcode lines vector
         m_default_time_estimator.add_gcode_block(gcode);
-        if (m_default_time_estimator.get_dialect() == gcfMarlin)
+        if (m_silent_time_estimator_enabled)
             m_silent_time_estimator.add_gcode_block(gcode);
     }
 }

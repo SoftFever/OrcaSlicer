@@ -135,6 +135,7 @@ public:
         m_second_layer_things_done(false),
         m_default_time_estimator(GCodeTimeEstimator::Default),
         m_silent_time_estimator(GCodeTimeEstimator::Silent),
+        m_silent_time_estimator_enabled(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
         {}
     ~GCode() {}
@@ -294,6 +295,7 @@ protected:
     // Time estimators
     GCodeTimeEstimator m_default_time_estimator;
     GCodeTimeEstimator m_silent_time_estimator;
+    bool m_silent_time_estimator_enabled;
 
     // Analyzer
     GCodeAnalyzer m_analyzer;
