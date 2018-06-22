@@ -1631,8 +1631,14 @@ void TabPrinter::build()
 
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
 			wxTheApp->CallAfter([this, opt_key, value](){
-				if (opt_key.compare("gcode_flavor") == 0)
-					build_extruder_pages();
+				if (opt_key.compare("silent_mode") == 0) {
+					bool val = boost::any_cast<bool>(value);
+					if (m_use_silent_mode != val) {
+						m_rebuil_kinematics_page = true;
+						m_use_silent_mode = val;
+					}
+				}
+				build_extruder_pages();
 				update_dirty();
 				on_value_change(opt_key, value);
 			});
@@ -1718,12 +1724,13 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	on_value_change("extruders_count", extruders_count);
 }
 
-void append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
+void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
 {
 	auto option = optgroup->get_option(opt_key, 0);
 	auto line = Line{ option.opt.full_label, "" };
 	line.append_option(option);
-	line.append_option(optgroup->get_option(opt_key, 1));
+	if (m_use_silent_mode)
+		line.append_option(optgroup->get_option(opt_key, 1));
 	optgroup->append_line(line);
 }
 
@@ -1731,31 +1738,33 @@ PageShp TabPrinter::create_kinematics_page()
 {
 	auto page = add_options_page(_(L("Machine limits")), "cog.png", true);
 
-	// Legend for OptionsGroups
-	auto optgroup = page->new_optgroup(_(L("")));
-	optgroup->set_show_modified_btns_val(false);
-	optgroup->label_width = 230;
-	auto line = Line{ "", "" };
+	if (m_use_silent_mode)	{
+		// Legend for OptionsGroups
+		auto optgroup = page->new_optgroup(_(L("")));
+		optgroup->set_show_modified_btns_val(false);
+		optgroup->label_width = 230;
+		auto line = Line{ "", "" };
 
-	ConfigOptionDef def;
-	def.type = coString;
-	def.width = 150;
-	def.gui_type = "legend";
- 	def.tooltip = L("Values in this column are for Full Power mode");
-	def.default_value = new ConfigOptionString{ L("Full Power")};
+		ConfigOptionDef def;
+		def.type = coString;
+		def.width = 150;
+		def.gui_type = "legend";
+		def.tooltip = L("Values in this column are for Full Power mode");
+		def.default_value = new ConfigOptionString{ L("Full Power") };
 
-	auto option = Option(def, "full_power_legend");
-	line.append_option(option);
+		auto option = Option(def, "full_power_legend");
+		line.append_option(option);
 
-	def.tooltip = L("Values in this column are for Silent mode");
-	def.default_value = new ConfigOptionString{ L("Silent") };
-	option = Option(def, "silent_legend");
-	line.append_option(option);
+		def.tooltip = L("Values in this column are for Silent mode");
+		def.default_value = new ConfigOptionString{ L("Silent") };
+		option = Option(def, "silent_legend");
+		line.append_option(option);
 
-	optgroup->append_line(line);
+		optgroup->append_line(line);
+	}
 
 	std::vector<std::string> axes{ "x", "y", "z", "e" };
-	optgroup = page->new_optgroup(_(L("Maximum accelerations")));
+	auto optgroup = page->new_optgroup(_(L("Maximum accelerations")));
 		for (const std::string &axis : axes)	{
 			append_option_line(optgroup, "machine_max_acceleration_" + axis);
 		}
@@ -1789,7 +1798,7 @@ void TabPrinter::build_extruder_pages()
 	size_t existed_page = 0;
 	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
 		if (m_pages[i]->title().find(_(L("Machine limits"))) != std::string::npos) {
-			if (!is_marlin_flavor)
+			if (!is_marlin_flavor || m_rebuil_kinematics_page)
 				m_pages.erase(m_pages.begin() + i);
 			else
 				existed_page = i;
