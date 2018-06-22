@@ -57,7 +57,7 @@
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
 #include "3DScene.hpp"
-
+#include "libslic3r/I18N.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -164,9 +164,13 @@ static void init_fonts()
 #endif /*__WXMAC__*/
 }
 
+static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
+
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
+    // Let the libslic3r know the callback, which will translate messages on demand.
+	Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
     init_label_colours();
 	init_fonts();
 }
