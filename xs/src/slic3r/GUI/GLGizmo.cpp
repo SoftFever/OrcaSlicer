@@ -222,7 +222,6 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     const Pointf3& size = box.size();
@@ -244,7 +243,6 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     m_grabbers[0].color[0] = 1.0f;
@@ -413,7 +411,6 @@ void GLGizmoScale::on_update(const Pointf& mouse_pos)
 
 void GLGizmoScale::on_render(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     coordf_t min_x = box.min.x - (coordf_t)Offset;
@@ -452,7 +449,6 @@ void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < 4; ++i)

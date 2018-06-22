@@ -498,10 +498,8 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-//#######################################################################################################################
         ::glEnable(GL_TEXTURE_2D);
         ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-//#######################################################################################################################
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
         ::glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -509,9 +507,6 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         if (theta > 90.0f)
             ::glFrontFace(GL_CW);
 
-//#######################################################################################################################
-//        ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-//#######################################################################################################################
         ::glBindTexture(GL_TEXTURE_2D, (theta <= 90.0f) ? (GLuint)m_top_texture.get_id() : (GLuint)m_bottom_texture.get_id());
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
         ::glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)m_triangles.get_tex_coords());
@@ -524,9 +519,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         ::glDisableClientState(GL_VERTEX_ARRAY);
 
-//#######################################################################################################################
         ::glDisable(GL_TEXTURE_2D);
-//#######################################################################################################################
 
         ::glDisable(GL_BLEND);
     }
@@ -566,6 +559,7 @@ void GLCanvas3D::Bed::_render_custom() const
         ::glDisableClientState(GL_VERTEX_ARRAY);
 
         ::glDisable(GL_BLEND);
+        ::glDisable(GL_LIGHTING);
     }
 }
 
@@ -590,7 +584,6 @@ GLCanvas3D::Axes::Axes()
 
 void GLCanvas3D::Axes::render(bool depth_test) const
 {
-    ::glDisable(GL_LIGHTING);
     if (depth_test)
         ::glEnable(GL_DEPTH_TEST);
     else
@@ -636,7 +629,6 @@ bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
 
 void GLCanvas3D::CuttingPlane::render(const BoundingBoxf3& bb) const
 {
-    ::glDisable(GL_LIGHTING);
     _render_plane(bb);
     _render_contour();
 }
@@ -990,16 +982,10 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     GLsizei half_w = w / 2;
     GLsizei half_h = h / 2;
 
-//#######################################################################################################################
     ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//#######################################################################################################################
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
-//####################################################################################################################################################
     ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//####################################################################################################################################################
     ::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level0());
     ::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level1());
 
@@ -1569,10 +1555,6 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         return false;
-
-//#######################################################################################################################
-//    ::glEnable(GL_TEXTURE_2D);
-//#######################################################################################################################
 
     m_initialized = true;
 
@@ -3411,7 +3393,6 @@ void GLCanvas3D::_picking_pass() const
         if (m_multisample_allowed)
             ::glDisable(GL_MULTISAMPLE);
 
-        ::glDisable(GL_LIGHTING);
         ::glDisable(GL_BLEND);
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -3466,8 +3447,6 @@ void GLCanvas3D::_render_background() const
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
-
-    ::glDisable(GL_LIGHTING);
 
     ::glPushMatrix();
     ::glLoadIdentity();
@@ -3547,6 +3526,8 @@ void GLCanvas3D::_render_objects() const
         if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
     }
+
+    ::glDisable(GL_LIGHTING);
 }
 
 void GLCanvas3D::_render_cutting_plane() const
@@ -3655,9 +3636,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
-    if (fake_colors)
-        ::glDisable(GL_LIGHTING);
-    else
+    if (!fake_colors)
         ::glEnable(GL_LIGHTING);
 
     // do not cull backfaces to show broken geometry, if any
@@ -3695,6 +3674,9 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     ::glDisable(GL_BLEND);
 
     ::glEnable(GL_CULL_FACE);
+
+    if (!fake_colors)
+        ::glDisable(GL_LIGHTING);
 }
 
 void GLCanvas3D::_render_gizmo() const

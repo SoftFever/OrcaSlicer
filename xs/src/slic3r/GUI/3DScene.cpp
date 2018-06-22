@@ -396,16 +396,10 @@ void GLVolume::render_using_layer_height() const
     GLsizei half_w = w / 2;
     GLsizei half_h = h / 2;
 
-//#######################################################################################################################
     ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//#######################################################################################################################
     glBindTexture(GL_TEXTURE_2D, layer_height_texture_data.texture_id);
-//####################################################################################################################################################
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//    glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//####################################################################################################################################################
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level0());
     glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, layer_height_texture_data_ptr_level1());
 
@@ -1587,23 +1581,12 @@ GUI::GLCanvas3DManager _3DScene::s_canvas_mgr;
 
 unsigned int _3DScene::TextureBase::finalize()
 {
-//#######################################################################################################################
     if ((m_tex_id == 0) && !m_data.empty()) {
-//    if (!m_data.empty()) {
-//#######################################################################################################################
         // sends buffer to gpu
-//#######################################################################################################################
         ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-//#######################################################################################################################
         ::glGenTextures(1, &m_tex_id);
-//#######################################################################################################################
         ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_tex_id);
-//        ::glBindTexture(GL_TEXTURE_2D, m_tex_id);
-//#######################################################################################################################
-//#######################################################################################################################
         ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)m_data.data());
-//        ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_tex_width, (GLsizei)m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const GLvoid*)m_data.data());
-//#######################################################################################################################
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
