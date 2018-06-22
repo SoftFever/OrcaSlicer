@@ -1198,7 +1198,7 @@ float Print::mark_wiping_extrusions(ToolOrdering::LayerTools& layer_tools, unsig
     for (int i=0 ; i<(int)object_list.size() ; ++i) {                              // Let's iterate through all objects...
         const auto& object = object_list[i];
 
-        if (!perimeters_done && (i+1==objects.size() || !objects[i+1]->config.wipe_into_objects)) { // last dedicated object in list
+        if (!perimeters_done && (i+1==object_list.size() || !object_list[i]->config.wipe_into_objects)) { // we passed the last dedicated object in list
             perimeters_done = true;
             i=-1;   // let's go from the start again
             continue;
@@ -1224,7 +1224,7 @@ float Print::mark_wiping_extrusions(ToolOrdering::LayerTools& layer_tools, unsig
                     ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
                     for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
                         if (volume_to_wipe <= 0.f)
-                                break;
+                                return 0.f;
                         auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
                         if (fill->role() == erTopSolidInfill || fill->role() == erGapFill)  // these cannot be changed - such infill is / may be visible
                             continue;
@@ -1258,12 +1258,12 @@ float Print::mark_wiping_extrusions(ToolOrdering::LayerTools& layer_tools, unsig
                 }
 
 
-                if ((config.infill_first ? perimeters_done : !perimeters_done) && object->config.wipe_into_objects)
+                if (object->config.wipe_into_objects && (config.infill_first ? perimeters_done : !perimeters_done))
                 {
                     ExtrusionEntityCollection& eec = this_layer->regions[region_id]->perimeters;
                     for (ExtrusionEntity* ee : eec.entities) {                      // iterate through all perimeter Collections
                         if (volume_to_wipe <= 0.f)
-                            break;
+                            return 0.f;
                         auto* fill = dynamic_cast<ExtrusionEntityCollection*>(ee);
                         // What extruder would this normally be printed with?
                         unsigned int correct_extruder = get_extruder(fill, region);
