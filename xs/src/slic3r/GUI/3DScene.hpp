@@ -585,6 +585,7 @@ public:
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);

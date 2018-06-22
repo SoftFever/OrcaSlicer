@@ -74,11 +74,14 @@ bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmap
     // sends data to gpu
 
 //#######################################################################################################################
-//    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
     ::glGenTextures(1, &m_id);
     ::glBindTexture(GL_TEXTURE_2D, m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+//####################################################################################################################################################
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+//    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+//####################################################################################################################################################
     if (generate_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
@@ -135,21 +138,25 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 //    ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 //#######################################################################################################################
 
+//#######################################################################################################################
+    bool lighting_enabled = ::glIsEnabled(GL_LIGHTING);
+//#######################################################################################################################
+
     ::glDisable(GL_LIGHTING);
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 //#######################################################################################################################
     ::glEnable(GL_TEXTURE_2D);
-    ::glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+    ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 //#######################################################################################################################
 
     ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
 
     ::glBegin(GL_QUADS);
-    ::glTexCoord2d(0.0f, 1.0f); ::glVertex3f(left, bottom, 0.0f);
-    ::glTexCoord2d(1.0f, 1.0f); ::glVertex3f(right, bottom, 0.0f);
-    ::glTexCoord2d(1.0f, 0.0f); ::glVertex3f(right, top, 0.0f);
-    ::glTexCoord2d(0.0f, 0.0f); ::glVertex3f(left, top, 0.0f);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex3f(left, bottom, 0.0f);
+    ::glTexCoord2f(1.0f, 1.0f); ::glVertex3f(right, bottom, 0.0f);
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex3f(right, top, 0.0f);
+    ::glTexCoord2f(0.0f, 0.0f); ::glVertex3f(left, top, 0.0f);
     ::glEnd();
 
     ::glBindTexture(GL_TEXTURE_2D, 0);
@@ -158,6 +165,9 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
     ::glDisable(GL_TEXTURE_2D);
 //#######################################################################################################################
     ::glDisable(GL_BLEND);
+//#######################################################################################################################
+    if (lighting_enabled)
+//#######################################################################################################################
     ::glEnable(GL_LIGHTING);
 }
 
@@ -193,7 +203,10 @@ void GLTexture::_generate_mipmaps(wxImage& image)
             data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
         }
 
-        ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+//####################################################################################################################################################
+        ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+//        ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+//####################################################################################################################################################
     }
 }
 

@@ -685,6 +685,13 @@ void GLCanvas3DManager::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, vo
         it->second->register_on_gizmo_rotate_callback(callback);
 }
 
+void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_update_geometry_info_callback(callback);
+}
+
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);

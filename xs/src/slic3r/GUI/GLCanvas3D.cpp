@@ -500,7 +500,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
 
 //#######################################################################################################################
         ::glEnable(GL_TEXTURE_2D);
-        ::glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 //#######################################################################################################################
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
@@ -991,11 +991,15 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     GLsizei half_h = h / 2;
 
 //#######################################################################################################################
-//    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 //#######################################################################################################################
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//####################################################################################################################################################
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//####################################################################################################################################################
     ::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level0());
     ::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level1());
 
@@ -2582,6 +2586,12 @@ void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
         m_on_gizmo_rotate_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_update_geometry_info_callback.register_callback(callback);
+}
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -2974,6 +2984,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         default:
             break;
         }
+
+        if (!volumes.empty())
+        {
+            const BoundingBoxf3& bb = volumes[0]->transformed_bounding_box();
+            const Pointf3& size = bb.size();
+            m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
+        }
+
         m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
@@ -3333,6 +3351,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_enable_action_buttons_callback.deregister_callback();
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
     m_on_gizmo_rotate_callback.deregister_callback();
+    m_on_update_geometry_info_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const

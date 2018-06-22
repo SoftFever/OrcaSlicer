@@ -155,6 +155,7 @@ public:
     void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
     void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

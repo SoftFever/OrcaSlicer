@@ -454,6 +454,7 @@ private:
     PerlCallback m_on_enable_action_buttons_callback;
     PerlCallback m_on_gizmo_scale_uniformly_callback;
     PerlCallback m_on_gizmo_rotate_callback;
+    PerlCallback m_on_update_geometry_info_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
@@ -562,6 +563,7 @@ public:
     void register_on_enable_action_buttons_callback(void* callback);
     void register_on_gizmo_scale_uniformly_callback(void* callback);
     void register_on_gizmo_rotate_callback(void* callback);
+    void register_on_update_geometry_info_callback(void* callback);
 
     void bind_event_handlers();
     void unbind_event_handlers();
