@@ -113,11 +113,6 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	sizer->Add(all_none_sizer, 0, wxEXPAND);
 
 	SetSizer(sizer);
-
-	if (cboxes.size() > 0) {
-		cboxes[0]->SetValue(true);
-		on_checkbox(cboxes[0], true);
-	}
 }
 
 void PrinterPicker::select_all(bool select)
@@ -127,6 +122,14 @@ void PrinterPicker::select_all(bool select)
 			cb->SetValue(select);
 			on_checkbox(cb, select);
 		}
+	}
+}
+
+void PrinterPicker::select_one(size_t i, bool select)
+{
+	if (i < cboxes.size() && cboxes[i]->GetValue() != select) {
+		cboxes[i]->SetValue(select);
+		on_checkbox(cboxes[i], select);
 	}
 }
 
@@ -232,6 +235,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
 		printer_picker = new PrinterPicker(this, vendor_prusa->second, appconfig_vendors);
+		printer_picker->select_one(0, true);    // Select the default (first) model/variant on the Prusa vendor
 		printer_picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
 			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
 			this->on_variant_checked();

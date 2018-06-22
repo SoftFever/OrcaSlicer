@@ -56,6 +56,7 @@ struct PrinterPicker: wxPanel
 	PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors);
 
 	void select_all(bool select);
+	void select_one(size_t i, bool select);
 	void on_checkbox(const Checkbox *cbox, bool checked);
 };
 
