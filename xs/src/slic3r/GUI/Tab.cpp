@@ -1734,7 +1734,7 @@ void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::s
 	optgroup->append_line(line);
 }
 
-PageShp TabPrinter::create_kinematics_page()
+PageShp TabPrinter::build_kinematics_page()
 {
 	auto page = add_options_page(_(L("Machine limits")), "cog.png", true);
 
@@ -1806,7 +1806,7 @@ void TabPrinter::build_extruder_pages()
 		}
 
 	if (existed_page < n_before_extruders && is_marlin_flavor){
-		auto page = create_kinematics_page();
+		auto page = build_kinematics_page();
 		m_pages.insert(m_pages.begin() + n_before_extruders, page);
 	}
 
