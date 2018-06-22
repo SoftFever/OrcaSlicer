@@ -9,5 +9,5 @@
     OctoPrint(DynamicPrintConfig *config);
     ~OctoPrint();
 
-    bool send_gcode(std::string filename, bool print = false) const;
+    bool send_gcode(std::string filename) const;
 };
