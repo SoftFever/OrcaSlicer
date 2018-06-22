@@ -452,6 +452,7 @@ public:
     bool set_current();
 
     void set_active(bool active);
+    void set_as_dirty();
 
     unsigned int get_volumes_count() const;
     void reset_volumes();
