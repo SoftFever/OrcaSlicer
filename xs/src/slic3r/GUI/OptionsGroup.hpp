@@ -127,9 +127,15 @@ public:
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 
+	void set_show_modified_btns_val(bool show) {
+		m_show_modified_btns = show;
+    }
+
     OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false) : 
-		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!="") {
-        sizer = (staticbox ? new wxStaticBoxSizer(new wxStaticBox(_parent, wxID_ANY, title), wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+		m_parent(_parent), title(title), m_show_modified_btns(is_tab_opt), staticbox(title!="") {
+		auto stb = new wxStaticBox(_parent, wxID_ANY, title);
+		stb->SetFont(bold_font());
+		sizer = (staticbox ? new wxStaticBoxSizer(stb/*new wxStaticBox(_parent, wxID_ANY, title)*/, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
         if (extra_column != nullptr) num_columns++;
@@ -156,7 +162,7 @@ protected:
     bool					m_disabled {false};
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
-	bool					m_is_tab_opt{ false };
+	bool					m_show_modified_btns{ false };
 
 	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
 	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel 

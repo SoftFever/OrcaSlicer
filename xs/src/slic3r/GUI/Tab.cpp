@@ -1627,6 +1627,16 @@ void TabPrinter::build()
 
 		optgroup = page->new_optgroup(_(L("Firmware")));
 		optgroup->append_single_option_line("gcode_flavor");
+		optgroup->append_single_option_line("silent_mode");
+
+		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
+			wxTheApp->CallAfter([this, opt_key, value](){
+				if (opt_key.compare("gcode_flavor") == 0)
+					build_extruder_pages();
+				update_dirty();
+				on_value_change(opt_key, value);
+			});
+		};
 
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("use_relative_e_distances");
@@ -1708,8 +1718,91 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	on_value_change("extruders_count", extruders_count);
 }
 
-void TabPrinter::build_extruder_pages(){
+void append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
+{
+	auto option = optgroup->get_option(opt_key, 0);
+	auto line = Line{ option.opt.full_label, "" };
+	line.append_option(option);
+	line.append_option(optgroup->get_option(opt_key, 1));
+	optgroup->append_line(line);
+}
+
+PageShp TabPrinter::create_kinematics_page()
+{
+	auto page = add_options_page(_(L("Machine limits")), "cog.png", true);
+
+	// Legend for OptionsGroups
+	auto optgroup = page->new_optgroup(_(L("")));
+	optgroup->set_show_modified_btns_val(false);
+	optgroup->label_width = 230;
+	auto line = Line{ "", "" };
+
+	ConfigOptionDef def;
+	def.type = coString;
+	def.width = 150;
+	def.gui_type = "legend";
+ 	def.tooltip = L("Values in this column are for Full Power mode");
+	def.default_value = new ConfigOptionString{ L("Full Power")};
+
+	auto option = Option(def, "full_power_legend");
+	line.append_option(option);
+
+	def.tooltip = L("Values in this column are for Silent mode");
+	def.default_value = new ConfigOptionString{ L("Silent") };
+	option = Option(def, "silent_legend");
+	line.append_option(option);
+
+	optgroup->append_line(line);
+
+	std::vector<std::string> axes{ "x", "y", "z", "e" };
+	optgroup = page->new_optgroup(_(L("Maximum accelerations")));
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_acceleration_" + axis);
+		}
+
+	optgroup = page->new_optgroup(_(L("Maximum feedrates")));
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_feedrate_" + axis);
+		}
+
+	optgroup = page->new_optgroup(_(L("Starting Acceleration")));
+		append_option_line(optgroup, "machine_max_acceleration_extruding");
+		append_option_line(optgroup, "machine_max_acceleration_retracting");
+
+	optgroup = page->new_optgroup(_(L("Advanced")));
+		append_option_line(optgroup, "machine_min_extruding_rate");
+		append_option_line(optgroup, "machine_min_travel_rate");
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_jerk_" + axis);
+		}
+
+	return page;
+}
+
+
+void TabPrinter::build_extruder_pages()
+{
 	size_t		n_before_extruders = 2;			//	Count of pages before Extruder pages
+	bool		is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
+
+	// Add/delete Kinematics page according to is_marlin_flavor
+	size_t existed_page = 0;
+	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
+		if (m_pages[i]->title().find(_(L("Machine limits"))) != std::string::npos) {
+			if (!is_marlin_flavor)
+				m_pages.erase(m_pages.begin() + i);
+			else
+				existed_page = i;
+			break;
+		}
+
+	if (existed_page < n_before_extruders && is_marlin_flavor){
+		auto page = create_kinematics_page();
+		m_pages.insert(m_pages.begin() + n_before_extruders, page);
+	}
+
+	if (is_marlin_flavor) 
+		n_before_extruders++;
 	size_t		n_after_single_extruder_MM = 2; //	Count of pages after single_extruder_multi_material page
 
 	if (m_extruders_count_old == m_extruders_count || 
@@ -1817,6 +1910,9 @@ void TabPrinter::update(){
 	bool have_multiple_extruders = m_extruders_count > 1;
 	get_field("toolchange_gcode")->toggle(have_multiple_extruders);
 	get_field("single_extruder_multi_material")->toggle(have_multiple_extruders);
+
+	bool is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
+	get_field("silent_mode")->toggle(is_marlin_flavor);
 
 	for (size_t i = 0; i < m_extruders_count; ++i) {
 		bool have_retract_length = m_config->opt_float("retract_length", i) > 0;

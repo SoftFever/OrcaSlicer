@@ -67,7 +67,7 @@ namespace Slic3r { namespace GUI {
 	wxString Field::get_tooltip_text(const wxString& default_string)
 	{
 		wxString tooltip_text("");
-		wxString tooltip = L_str(m_opt.tooltip);
+		wxString tooltip = _(m_opt.tooltip);
 		if (tooltip.length() > 0)
 			tooltip_text = tooltip + "(" + _(L("default")) + ": " +
 							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 
@@ -355,7 +355,7 @@ void Choice::BUILD() {
 	}
 	else{
 		for (auto el : m_opt.enum_labels.empty() ? m_opt.enum_values : m_opt.enum_labels){
-			const wxString& str = m_opt_id == "support" ? L_str(el) : el;
+			const wxString& str = _(el);//m_opt_id == "support" ? _(el) : el;
 			temp->Append(str);
 		}
 		set_selection();
@@ -663,6 +663,22 @@ boost::any& PointCtrl::get_value()
 	y_textctrl->GetValue().ToDouble(&val);
 	ret_point.y = val;
 	return m_value = ret_point;
+}
+
+void StaticText::BUILD()
+{
+	auto size = wxSize(wxDefaultSize);
+	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
+	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+
+	wxString legend(static_cast<ConfigOptionString*>(m_opt.default_value)->value);
+	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
+	temp->SetFont(bold_font());
+
+	// 	// recast as a wxWindow to fit the calling convention
+	window = dynamic_cast<wxWindow*>(temp);
+
+	temp->SetToolTip(get_tooltip_text(legend));
 }
 
 } // GUI

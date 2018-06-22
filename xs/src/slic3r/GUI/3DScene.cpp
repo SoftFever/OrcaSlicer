@@ -1588,7 +1588,7 @@ bool _3DScene::LegendTexture::generate(const GCodePreviewData& preview_data, con
     m_data.clear();
 
     // collects items to render
-    auto title = GUI::L_str(preview_data.get_legend_title());
+    auto title = _(preview_data.get_legend_title());
     const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors);
 
     unsigned int items_count = (unsigned int)items.size();
