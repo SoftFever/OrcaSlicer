@@ -136,29 +136,11 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 
     ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
 
-//###############################################################################################################################
-    ::glBegin(GL_TRIANGLES);
-    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
-    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(right, bottom);
-    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
-
-    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
-    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(left, top);
-    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
-
-/*
     ::glBegin(GL_QUADS);
     ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
     ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(right, bottom);
     ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
     ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(left, top);
-*/
-
-//    ::glTexCoord2f(0.0f, 1.0f); ::glVertex3f(left, bottom, 0.0f);
-//    ::glTexCoord2f(1.0f, 1.0f); ::glVertex3f(right, bottom, 0.0f);
-//    ::glTexCoord2f(1.0f, 0.0f); ::glVertex3f(right, top, 0.0f);
-//    ::glTexCoord2f(0.0f, 0.0f); ::glVertex3f(left, top, 0.0f);
-//###############################################################################################################################
     ::glEnd();
 
     ::glBindTexture(GL_TEXTURE_2D, 0);

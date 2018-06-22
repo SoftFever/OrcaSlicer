@@ -1901,6 +1901,10 @@ void GLCanvas3D::update_gizmos_data()
                     m_gizmos.set_angle_z(model_instance->rotation);
                     break;
                 }
+                default:
+                {
+                    break;
+                }
                 }
             }
         }
@@ -3813,7 +3817,7 @@ int GLCanvas3D::_get_first_selected_volume_id() const
             {
                 int object_id = vol->select_group_id / 1000000;
                 // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
-                if (object_id < 10000)
+                if ((object_id < 10000) && (object_id < objects_count))
                 {
                     int volume_id = 0;
                     for (int i = 0; i < object_id; ++i)
