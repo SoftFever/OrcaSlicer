@@ -133,7 +133,7 @@ _constant()
     ~Print();
 
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = static_cast<GCodeConfig*>(&THIS->config); %};
     Ref<StaticPrintConfig> default_object_config()
         %code%{ RETVAL = &THIS->default_object_config; %};
     Ref<StaticPrintConfig> default_region_config()
