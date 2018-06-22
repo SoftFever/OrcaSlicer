@@ -92,7 +92,7 @@ void GLGizmoBase::set_state(GLGizmoBase::EState state)
     m_state = state;
 }
 
-unsigned int GLGizmoBase::get_textures_id() const
+unsigned int GLGizmoBase::get_texture_id() const
 {
     return m_textures[m_state].get_id();
 }

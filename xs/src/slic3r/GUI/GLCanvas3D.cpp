@@ -1417,7 +1417,7 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
-        GLTexture::render_texture(it->second->get_textures_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
+        GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
         top_y -= (tex_size + scaled_gap_y);
     }
 }
@@ -3592,6 +3592,7 @@ void GLCanvas3D::_render_legend_texture() const
             float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
+
             GLTexture::render_texture(tex_id, l, r, b, t);
 
             ::glPopMatrix();

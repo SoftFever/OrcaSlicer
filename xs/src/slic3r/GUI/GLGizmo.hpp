@@ -57,7 +57,7 @@ public:
     EState get_state() const;
     void set_state(EState state);
 
-    unsigned int get_textures_id() const;
+    unsigned int get_texture_id() const;
     int get_textures_size() const;
 
     int get_hover_id() const;

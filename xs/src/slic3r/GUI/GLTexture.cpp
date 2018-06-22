@@ -72,7 +72,6 @@ bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmap
     }
 
     // sends data to gpu
-
     ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     ::glGenTextures(1, &m_id);
     ::glBindTexture(GL_TEXTURE_2D, m_id);
@@ -131,16 +130,35 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
 {
     ::glEnable(GL_BLEND);
     ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     ::glEnable(GL_TEXTURE_2D);
     ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
     ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
 
+//###############################################################################################################################
+    ::glBegin(GL_TRIANGLES);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
+    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(right, bottom);
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
+
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
+    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(left, top);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
+
+/*
     ::glBegin(GL_QUADS);
-    ::glTexCoord2f(0.0f, 1.0f); ::glVertex3f(left, bottom, 0.0f);
-    ::glTexCoord2f(1.0f, 1.0f); ::glVertex3f(right, bottom, 0.0f);
-    ::glTexCoord2f(1.0f, 0.0f); ::glVertex3f(right, top, 0.0f);
-    ::glTexCoord2f(0.0f, 0.0f); ::glVertex3f(left, top, 0.0f);
+    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
+    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(right, bottom);
+    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
+    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(left, top);
+*/
+
+//    ::glTexCoord2f(0.0f, 1.0f); ::glVertex3f(left, bottom, 0.0f);
+//    ::glTexCoord2f(1.0f, 1.0f); ::glVertex3f(right, bottom, 0.0f);
+//    ::glTexCoord2f(1.0f, 0.0f); ::glVertex3f(right, top, 0.0f);
+//    ::glTexCoord2f(0.0f, 0.0f); ::glVertex3f(left, top, 0.0f);
+//###############################################################################################################################
     ::glEnd();
 
     ::glBindTexture(GL_TEXTURE_2D, 0);
