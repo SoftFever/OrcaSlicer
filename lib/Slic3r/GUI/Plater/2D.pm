@@ -231,8 +231,10 @@ sub mouse_event {
         }
         $self->Refresh;
     } elsif ($event->LeftUp) {
-        $self->{on_instances_moved}->()
-            if $self->{drag_object};
+        if ($self->{drag_object}) {
+            $self->{on_instances_moved}->();
+            Slic3r::GUI::_3DScene::reset_current_canvas();            
+        }
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);

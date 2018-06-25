@@ -433,6 +433,7 @@ std::vector<int> GLVolumeCollection::load_object(
                     v.extruder_id = extruder_id;
             }
             v.is_modifier = model_volume->modifier;
+            v.outside_printer_detection_enabled = !model_volume->modifier;
         }
     }
     
@@ -663,7 +664,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config)
     bool contained = true;
     for (GLVolume* volume : this->volumes)
     {
-        if (volume != nullptr)
+        if ((volume != nullptr) && !volume->is_modifier)
         {
             bool state = print_volume.contains(volume->transformed_bounding_box());
             contained &= state;
@@ -1753,9 +1754,24 @@ bool _3DScene::init(wxGLCanvas* canvas)
     return s_canvas_mgr.init(canvas);
 }
 
+bool _3DScene::set_current(wxGLCanvas* canvas, bool force)
+{
+    return s_canvas_mgr.set_current(canvas, force);
+}
+
+void _3DScene::reset_current_canvas()
+{
+    s_canvas_mgr.set_current(nullptr, false);
+}
+
 void _3DScene::set_active(wxGLCanvas* canvas, bool active)
 {
     s_canvas_mgr.set_active(canvas, active);
+}
+
+void _3DScene::set_as_dirty(wxGLCanvas* canvas)
+{
+    s_canvas_mgr.set_as_dirty(canvas);
 }
 
 unsigned int _3DScene::get_volumes_count(wxGLCanvas* canvas)

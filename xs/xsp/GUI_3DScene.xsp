@@ -191,11 +191,22 @@ remove_all_canvases()
         _3DScene::remove_all_canvases();
 
 void
+reset_current_canvas()
+    CODE:
+        _3DScene::reset_current_canvas();
+
+void
 set_active(canvas, active)
         SV   *canvas;
         bool active;
     CODE:
         _3DScene::set_active((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active);
+
+void
+set_as_dirty(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::set_as_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 unsigned int
 get_volumes_count(canvas)
