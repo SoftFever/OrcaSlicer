@@ -1,27 +1,46 @@
 #include "AppController.hpp"
 
 #include <future>
-#include <thread>
 #include <sstream>
 #include <cstdarg>
+#include <thread>
+#include <unordered_map>
 
-#include <slic3r/GUI/GUI.hpp>
+//#include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
-#include <slic3r/GUI/MsgDialog.hpp>
 
 #include <PrintConfig.hpp>
 #include <Print.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
 
-#include <wx/app.h>
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
-#include <wx/gauge.h>
-#include <wx/statusbr.h>
-
 namespace Slic3r {
+
+class AppControllerBoilerplate::PriMap {
+public:
+    using M = std::unordered_map<std::thread::id, ProgresIndicatorPtr>;
+    std::mutex m;
+    M store;
+    std::thread::id ui_thread;
+
+    inline explicit PriMap(std::thread::id uit): ui_thread(uit) {}
+};
+
+AppControllerBoilerplate::AppControllerBoilerplate()
+    :progressind_(new PriMap(std::this_thread::get_id())) {}
+
+AppControllerBoilerplate::~AppControllerBoilerplate() {
+    progressind_.reset();
+}
+
+bool AppControllerBoilerplate::is_main_thread() const
+{
+    return progressind_->ui_thread == std::this_thread::get_id();
+}
+
+namespace GUI {
+PresetBundle* get_preset_bundle();
+}
 
 static const PrintObjectStep STEP_SLICE                 = posSlice;
 static const PrintObjectStep STEP_PERIMETERS            = posPerimeters;
@@ -32,119 +51,39 @@ static const PrintStep STEP_SKIRT                       = psSkirt;
 static const PrintStep STEP_BRIM                        = psBrim;
 static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
 
-AppControllerBoilerplate::PathList
-AppControllerBoilerplate::query_destination_paths(
-        const std::string &title,
-        const std::string &extensions) const
-{
-
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), wxString(title) );
-    dlg.SetWildcard(extensions);
-
-    dlg.ShowModal();
-
-    wxArrayString paths;
-    dlg.GetFilenames(paths);
-
-    PathList ret(paths.size(), "");
-    for(auto& p : paths) ret.push_back(p.ToStdString());
-
-    return ret;
+void AppControllerBoilerplate::progress_indicator(
+        AppControllerBoilerplate::ProgresIndicatorPtr progrind) {
+    progressind_->m.lock();
+    progressind_->store[std::this_thread::get_id()] = progrind;
+    progressind_->m.unlock();
 }
 
-AppControllerBoilerplate::Path
-AppControllerBoilerplate::query_destination_path(
-        const std::string &title,
-        const std::string &extensions,
-        const std::string& hint) const
+void AppControllerBoilerplate::progress_indicator(unsigned statenum,
+                                                  const std::string &title,
+                                                  const std::string &firstmsg)
 {
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), title );
-    dlg.SetWildcard(extensions);
-
-    dlg.SetFilename(hint);
-
-    Path ret;
-
-    if(dlg.ShowModal() == wxID_OK) {
-        ret = Path(dlg.GetPath());
-
-        std::cout << "Filename: " << ret << std::endl;
-    }
-
-    return ret;
-}
-
-void AppControllerBoilerplate::report_issue(IssueType issuetype,
-                                 const std::string &description,
-                                 const std::string &brief)
-{
-    auto icon = wxICON_INFORMATION;
-    switch(issuetype) {
-    case IssueType::INFO:   break;
-    case IssueType::WARN:   icon = wxICON_WARNING; break;
-    case IssueType::ERR:
-    case IssueType::FATAL:  icon = wxICON_ERROR;
-    }
-
-    wxString str = _("Proba szoveg");
-    wxMessageBox(str + _(description), _(brief), icon);
+    progressind_->m.lock();
+    progressind_->store[std::this_thread::get_id()] =
+            create_progress_indicator(statenum, title, firstmsg);;
+    progressind_->m.unlock();
 }
 
 AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::createProgressIndicator(unsigned statenum,
-                                       const std::string& title,
-                                       const std::string& firstmsg) const
-{
-    class GuiProgressIndicator: public IProgressIndicator {
-        wxProgressDialog gauge_;
-        using Base = IProgressIndicator;
-        wxString message_;
-    public:
+AppControllerBoilerplate::progress_indicator() {
 
-        inline GuiProgressIndicator(int range, const std::string& title,
-                                    const std::string& firstmsg):
-            gauge_(_(title), _(firstmsg), range, wxTheApp->GetTopWindow())
-        {
-            gauge_.Show(false);
-            Base::max(static_cast<float>(range));
-            Base::states(static_cast<unsigned>(range));
-        }
+    PriMap::M::iterator pret;
+    ProgresIndicatorPtr ret;
 
-        virtual void state(float val) override {
-            if( val <= max() && val >= 1.0) {
-                Base::state(val);
-                gauge_.Update(static_cast<int>(val), message_);
-            }
-        }
+    progressind_->m.lock();
+    if( (pret = progressind_->store.find(std::this_thread::get_id()))
+            == progressind_->store.end())
+    {
+        progressind_->store[std::this_thread::get_id()] = ret =
+                global_progressind_;
+    } else ret = pret->second;
+    progressind_->m.unlock();
 
-        virtual void state(unsigned st) override {
-            if( st <= max() ) {
-                if(!gauge_.IsShown()) gauge_.ShowModal();
-                Base::state(st);
-                gauge_.Update(static_cast<int>(st), message_);
-            }
-        }
-
-        virtual void message(const std::string & msg) override {
-            message_ = _(msg);
-        }
-
-        virtual void message_fmt(const std::string& fmt, ...) {
-            va_list arglist;
-            va_start(arglist, fmt);
-            message_ = wxString::Format(_(fmt), arglist);
-            va_end(arglist);
-        }
-
-        virtual void title(const std::string & title) override {
-            gauge_.SetTitle(_(title));
-        }
-    };
-
-    auto pri =
-            std::make_shared<GuiProgressIndicator>(statenum, title, firstmsg);
-
-    return pri;
+    return ret;
 }
 
 void PrintController::make_skirt()
@@ -245,7 +184,7 @@ void PrintController::make_perimeters(PrintObject *pobj)
 
     slice(pobj);
 
-    auto&& prgind = progressIndicator();
+    auto&& prgind = progress_indicator();
 
     if (!pobj->state.is_done(STEP_PERIMETERS)) {
         pobj->_make_perimeters();
@@ -294,33 +233,33 @@ void PrintController::slice()
 {
     Slic3r::trace(3, "Starting the slicing process.");
 
-    progressIndicator()->update(20u, "Generating perimeters");
+    progress_indicator()->update(20u, "Generating perimeters");
     for(auto obj : print_->objects) make_perimeters(obj);
 
-    progressIndicator()->update(60u, "Infilling layers");
+    progress_indicator()->update(60u, "Infilling layers");
     for(auto obj : print_->objects) infill(obj);
 
-    progressIndicator()->update(70u, "Generating support material");
+    progress_indicator()->update(70u, "Generating support material");
     for(auto obj : print_->objects) gen_support_material(obj);
 
-    progressIndicator()->message_fmt("Weight: %.1fg, Cost: %.1f",
+    progress_indicator()->message_fmt("Weight: %.1fg, Cost: %.1f",
                                     print_->total_weight,
                                     print_->total_cost);
 
-    progressIndicator()->state(85u);
+    progress_indicator()->state(85u);
 
 
-    progressIndicator()->update(88u, "Generating skirt");
+    progress_indicator()->update(88u, "Generating skirt");
     make_skirt();
 
 
-    progressIndicator()->update(90u, "Generating brim");
+    progress_indicator()->update(90u, "Generating brim");
     make_brim();
 
-    progressIndicator()->update(95u, "Generating wipe tower");
+    progress_indicator()->update(95u, "Generating wipe tower");
     make_wipe_tower();
 
-    progressIndicator()->update(100u, "Done");
+    progress_indicator()->update(100u, "Done");
 
     // time to make some statistics..
 
@@ -330,16 +269,6 @@ void PrintController::slice()
 void PrintController::slice_to_png()
 {
     assert(model_ != nullptr);
-
-//    auto pri = globalProgressIndicator();
-
-//    pri->title("Operation");
-//    pri->message("...");
-
-//    for(unsigned i = 1; i <= 100; i++ ) {
-//        pri->state(i);
-//        wxMilliSleep(100);
-//    }
 
     auto zipfilepath = query_destination_path(  "Path to zip file...",
                                                 "*.zip");
@@ -361,92 +290,17 @@ void PrintController::slice_to_png()
         report_issue(IssueType::ERR, e.what(), "Error");
     }
 
-    auto bak = progressIndicator();
-    progressIndicator(100, "Slicing to zipped png files...");
-    std::async(std::launch::async, [this, bak, zipfilepath](){
+    std::async(std::launch::async, [this, zipfilepath]() {
+        progress_indicator(100, "Slicing to zipped png files...");
+        progress_indicator()->procedure_count(3);
         slice();
 
         auto pbak = print_->progressindicator;
-        print_->progressindicator = progressIndicator();
+        print_->progressindicator = progress_indicator();
         print_->print_to_png(zipfilepath);
         print_->progressindicator = pbak;
 
-        progressIndicator(bak);
     });
-
-}
-
-void AppController::set_global_progress_indicator_id(
-        unsigned gid,
-        unsigned sid)
-{
-
-    class Wrapper: public IProgressIndicator {
-        wxGauge *gauge_;
-        wxStatusBar *stbar_;
-        using Base = IProgressIndicator;
-        std::string message_;
-
-        void showProgress(bool show = true) {
-            gauge_->Show(show);
-            gauge_->Pulse();
-        }
-    public:
-
-        inline Wrapper(wxGauge *gauge, wxStatusBar *stbar):
-            gauge_(gauge), stbar_(stbar)
-        {
-            Base::max(static_cast<float>(gauge->GetRange()));
-            Base::states(static_cast<unsigned>(gauge->GetRange()));
-        }
-
-        virtual void state(float val) override {
-            if( val <= max() && val >= 1.0) {
-                Base::state(val);
-                stbar_->SetStatusText(message_);
-                gauge_->SetValue(static_cast<int>(val));
-            }
-        }
-
-        virtual void state(unsigned st) override {
-            if( st <= max() ) {
-                Base::state(st);
-
-                if(!gauge_->IsShown()) showProgress(true);
-
-                stbar_->SetStatusText(message_);
-                if(st == gauge_->GetRange()) {
-                    gauge_->SetValue(0);
-                    showProgress(false);
-                } else {
-                    gauge_->SetValue(static_cast<int>(st));
-                }
-            }
-        }
-
-        virtual void message(const std::string & msg) override {
-            message_ = msg;
-        }
-
-        virtual void message_fmt(const std::string& fmt, ...) {
-            va_list arglist;
-            va_start(arglist, fmt);
-            message_ = wxString::Format(_(fmt), arglist);
-            va_end(arglist);
-        }
-
-        virtual void title(const std::string & /*title*/) override {}
-
-    };
-
-    wxGauge* gauge = dynamic_cast<wxGauge*>(wxWindow::FindWindowById(gid));
-    wxStatusBar* sb = dynamic_cast<wxStatusBar*>(wxWindow::FindWindowById(sid));
-
-    if(gauge && sb) {
-        auto&& progind = std::make_shared<Wrapper>(gauge, sb);
-        progressIndicator(progind);
-        if(printctl) printctl->progressIndicator(progind);
-    }
 }
 
 void IProgressIndicator::message_fmt(

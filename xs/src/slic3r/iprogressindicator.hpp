@@ -13,7 +13,7 @@ public:
 private:
     float state_ = .0f, max_ = 1.f, step_;
     std::function<void(void)> cancelfunc_ = [](){};
-
+    unsigned proc_count_ = 1;
 public:
 
     inline virtual ~IProgressIndicator() {}
@@ -35,6 +35,9 @@ public:
 
     inline void on_cancel(CancelFn func) { cancelfunc_ = func; }
     inline void on_cancel() { cancelfunc_(); }
+
+    inline void procedure_count(unsigned pc) { proc_count_ = pc; }
+    inline unsigned procedure_count() const { return proc_count_; }
 
     template<class T> void update(T st, const std::string& msg) {
         message(msg); state(st);

@@ -1540,7 +1540,7 @@ void Print::print_to(std::string dirpath,
     // Save the print into the file system.
     set_status(0, "Writing layers to disk");
     printer.save(dir);
-    set_status(100, "Writing layers to disk");
+    set_status(100, "Writing layers completed");
 }
 
 void Print::print_to_png(std::string dirpath, long width_px, long height_px,

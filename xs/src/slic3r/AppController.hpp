@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <atomic>
+#include <iostream>
+
 #include "IProgressIndicator.hpp"
 
 namespace Slic3r {
@@ -13,7 +16,18 @@ class Print;
 class PrintObject;
 
 class AppControllerBoilerplate {
+    class PriMap;
+
 public:
+    using ProgresIndicatorPtr = std::shared_ptr<IProgressIndicator>;
+
+private:
+    std::unique_ptr<PriMap> progressind_;
+
+public:
+
+    AppControllerBoilerplate();
+    ~AppControllerBoilerplate();
 
     using Path = std::string;
     using PathList = std::vector<Path>;
@@ -41,35 +55,24 @@ public:
                       const std::string& description,
                       const std::string& brief = "");
 
-    using ProgresIndicatorPtr = std::shared_ptr<IProgressIndicator>;
+    void progress_indicator(ProgresIndicatorPtr progrind);
 
-
-    inline void progressIndicator(ProgresIndicatorPtr progrind) {
-        progressind_ = progrind;
-    }
-
-    inline void progressIndicator(unsigned statenum,
+    void progress_indicator(unsigned statenum,
                                   const std::string& title,
-                                  const std::string& firstmsg = "") {
-        progressind_ = createProgressIndicator(statenum, title, firstmsg);
-    }
+                                  const std::string& firstmsg = "");
 
-    inline ProgresIndicatorPtr progressIndicator() {
-        if(!progressind_)
-            progressind_ = createProgressIndicator(100, "Progress");
-
-        return progressind_;
-    }
+    ProgresIndicatorPtr progress_indicator();
 
 protected:
 
-    ProgresIndicatorPtr createProgressIndicator(
+    ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
             const std::string& title,
             const std::string& firstmsg = "") const;
 
-private:
-    ProgresIndicatorPtr progressind_;
+    bool is_main_thread() const;
+
+    ProgresIndicatorPtr global_progressind_;
 };
 
 class PrintController: public AppControllerBoilerplate {
@@ -79,6 +82,10 @@ protected:
     void make_skirt();
     void make_brim();
     void make_wipe_tower();
+
+    void make_perimeters(PrintObject *pobj);
+    void infill(PrintObject *pobj);
+    void gen_support_material(PrintObject *pobj);
 
 public:
 
@@ -91,13 +98,9 @@ public:
     }
 
     void slice(PrintObject *pobj);
-    void make_perimeters(PrintObject *pobj);
-    void infill(PrintObject *pobj);
-    void gen_support_material(PrintObject *pobj);
 
     void slice();
     void slice_to_png();
-
 };
 
 class AppController: protected AppControllerBoilerplate {
@@ -111,7 +114,7 @@ public:
 
     void set_print(Print *print) {
         printctl = PrintController::create(print);
-        printctl->progressIndicator(progressIndicator());
+        printctl->progress_indicator(progress_indicator());
     }
 
     void set_global_progress_indicator_id(unsigned gauge_id,
