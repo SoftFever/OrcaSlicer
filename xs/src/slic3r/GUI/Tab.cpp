@@ -1634,7 +1634,7 @@ void TabPrinter::build()
 				if (opt_key.compare("silent_mode") == 0) {
 					bool val = boost::any_cast<bool>(value);
 					if (m_use_silent_mode != val) {
-						m_rebuil_kinematics_page = true;
+						m_rebuild_kinematics_page = true;
 						m_use_silent_mode = val;
 					}
 				}
@@ -1798,7 +1798,7 @@ void TabPrinter::build_extruder_pages()
 	size_t existed_page = 0;
 	for (int i = n_before_extruders; i < m_pages.size(); ++i) // first make sure it's not there already
 		if (m_pages[i]->title().find(_(L("Machine limits"))) != std::string::npos) {
-			if (!is_marlin_flavor || m_rebuil_kinematics_page)
+			if (!is_marlin_flavor || m_rebuild_kinematics_page)
 				m_pages.erase(m_pages.begin() + i);
 			else
 				existed_page = i;
@@ -1922,6 +1922,10 @@ void TabPrinter::update(){
 
 	bool is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
 	get_field("silent_mode")->toggle(is_marlin_flavor);
+	if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
+		m_rebuild_kinematics_page = true;
+		m_use_silent_mode = m_config->opt_bool("silent_mode");
+	}
 
 	for (size_t i = 0; i < m_extruders_count; ++i) {
 		bool have_retract_length = m_config->opt_float("retract_length", i) > 0;
@@ -2039,7 +2043,8 @@ void Tab::rebuild_page_tree()
 		auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
 		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
 		if (p->title() == selected) {
-			m_disable_tree_sel_changed_event = 1;
+			if (!(p->title() == _(L("Machine limits")) || p->title() == _(L("Single extruder MM setup")))) // These Pages have to be updated inside OnTreeSelChange
+				m_disable_tree_sel_changed_event = 1;
 			m_treectrl->SelectItem(itemId);
 			m_disable_tree_sel_changed_event = 0;
 			have_selection = 1;
