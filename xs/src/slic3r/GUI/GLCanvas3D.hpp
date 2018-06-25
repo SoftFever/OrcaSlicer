@@ -462,7 +462,7 @@ public:
 
     bool init(bool useVBOs, bool use_legacy_opengl);
 
-    bool set_current();
+    bool set_current(bool force);
 
     void set_active(bool active);
     void set_as_dirty();

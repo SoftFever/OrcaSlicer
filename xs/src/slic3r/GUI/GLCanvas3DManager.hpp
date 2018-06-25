@@ -45,6 +45,7 @@ class GLCanvas3DManager
 
     wxGLContext* m_context;
     CanvasesMap m_canvases;
+    wxGLCanvas* m_current;
     GLInfo m_gl_info;
     bool m_gl_initialized;
     bool m_use_legacy_opengl;
@@ -69,6 +70,7 @@ public:
 
     bool init(wxGLCanvas* canvas);
 
+    bool set_current(wxGLCanvas* canvas, bool force);
     void set_active(wxGLCanvas* canvas, bool active);
     void set_as_dirty(wxGLCanvas* canvas);
 

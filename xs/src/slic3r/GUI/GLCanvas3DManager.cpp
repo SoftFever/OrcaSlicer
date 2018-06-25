@@ -115,6 +115,7 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
+    , m_current(nullptr)
     , m_gl_initialized(false)
     , m_use_legacy_opengl(false)
     , m_use_VBOs(false)
@@ -210,6 +211,34 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
         return (it->second != nullptr) ? _init(*it->second) : false;
     else
         return false;
+}
+
+bool GLCanvas3DManager::set_current(wxGLCanvas* canvas, bool force)
+{
+    // given canvas is already current, return
+    if (m_current == canvas)
+        return true;
+
+    if (canvas == nullptr)
+    {
+        m_current = nullptr;
+        return true;
+    }
+
+    // set given canvas as current
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+    {
+        bool res = it->second->set_current(force);
+        if (res)
+        {
+            m_current = canvas;
+            return true;
+        }
+    }
+
+    m_current = nullptr;
+    return false;
 }
 
 void GLCanvas3DManager::set_active(wxGLCanvas* canvas, bool active)
