@@ -2724,14 +2724,24 @@ void SavePresetWindow::accept()
 	if (!m_chosen_name.empty()) {
 		const char* unusable_symbols = "<>:/\\|?*\"";
 		bool is_unusable_symbol = false;
+		bool is_unusable_postfix = false;
+		const std::string unusable_postfix = "(modified)";
 		for (size_t i = 0; i < std::strlen(unusable_symbols); i++){
 			if (m_chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos){
 				is_unusable_symbol = true;
 				break;
 			}
 		}
+		if (m_chosen_name.find(unusable_postfix) != std::string::npos)
+			is_unusable_postfix = true;
+
 		if (is_unusable_symbol) {
-			show_error(this, _(L("The supplied name is not valid; the following characters are not allowed:"))+" <>:/\\|?*\"");
+			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
+							_(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
+		}
+		else if (is_unusable_postfix){
+			show_error(this,	_(L("The supplied name is not valid;")) + "\n" + 
+								_(L("the following postfix are not allowed:")) + "\n\t" + unusable_postfix);
 		}
 		else if (m_chosen_name.compare("- default -") == 0) {
 			show_error(this, _(L("The supplied name is not available.")));
