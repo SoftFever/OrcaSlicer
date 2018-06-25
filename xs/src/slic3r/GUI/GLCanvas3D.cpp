@@ -1536,6 +1536,11 @@ void GLCanvas3D::set_active(bool active)
     m_active = active;
 }
 
+void GLCanvas3D::set_as_dirty()
+{
+    m_dirty = true;
+}
+
 unsigned int GLCanvas3D::get_volumes_count() const
 {
     return (unsigned int)m_volumes.volumes.size();
