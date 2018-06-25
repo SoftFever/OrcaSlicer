@@ -95,7 +95,7 @@ struct FirmwareDialog::priv
 	void find_serial_ports();
 	void flashing_start(bool flashing_l10n);
 	void flashing_done(AvrDudeComplete complete);
-	size_t hex_lang_offset(const wxString &path);
+	size_t hex_num_sections(const wxString &path);
 	void perform_upload();
 	void cancel();
 	void on_avrdude(const wxCommandEvent &evt);
@@ -158,7 +158,7 @@ void FirmwareDialog::priv::flashing_done(AvrDudeComplete complete)
 	}
 }
 
-size_t FirmwareDialog::priv::hex_lang_offset(const wxString &path)
+size_t FirmwareDialog::priv::hex_num_sections(const wxString &path)
 {
 	fs::ifstream file(fs::path(path.wx_str()));
 	if (! file.good()) {
@@ -175,18 +175,11 @@ size_t FirmwareDialog::priv::hex_lang_offset(const wxString &path)
 		}
 
 		if (line == hex_terminator) {
-			if (res == 0) {
-				// This is the first terminator seen, save the position
-				res = file.tellg();
-			} else {
-				// We've found another terminator, return the offset just after the first one
-				// which is the start of the second 'section'.
-				return res;
-			}
+			res++;
 		}
 	}
 
-	return 0;
+	return res;
 }
 
 void FirmwareDialog::priv::perform_upload()
@@ -202,10 +195,10 @@ void FirmwareDialog::priv::perform_upload()
 	if (filename.IsEmpty() || port.empty()) { return; }
 
 	const bool extra_verbose = false;   // For debugging
-	const auto lang_offset = hex_lang_offset(filename);
+	const auto num_secions = hex_num_sections(filename);
 	const auto filename_utf8 = filename.utf8_str();
 
-	flashing_start(lang_offset > 0);
+	flashing_start(num_secions > 1);
 
 	// It is ok here to use the q-pointer to the FirmwareDialog
 	// because the dialog ensures it doesn't exit before the background thread is done.
@@ -236,7 +229,7 @@ void FirmwareDialog::priv::perform_upload()
 
 	avrdude.push_args(std::move(args));
 	
-	if (lang_offset > 0) {
+	if (num_secions > 1) {
 		// The hex file also contains another section with l10n data to be flashed into the external flash on MK3 (Einsy)
 		// This is done via another avrdude invocation, here we build arg list for that:
 		std::vector<std::string> args_l10n {{
@@ -249,7 +242,7 @@ void FirmwareDialog::priv::perform_upload()
 			"-b", "115200",
 			"-D",
 			"-u", // disable safe mode
-			"-U", (boost::format("flash:w:%1%:%2%:i") % lang_offset % filename_utf8.data()).str(),
+			"-U", (boost::format("flash:w:1:%1%:i") % filename_utf8.data()).str(),
 		}};
 
 		BOOST_LOG_TRIVIAL(info) << "Invoking avrdude for external flash flashing, arguments: "

@@ -98,11 +98,11 @@ static int fileio_num(struct fioparms * fio,
 		char * filename, FILE * f, AVRMEM * mem, int size,
 		FILEFMT fmt);
 
-static int fmt_autodetect(char * fname, size_t offset);
+static int fmt_autodetect(char * fname, unsigned section);
 
 
 
-static FILE *fopen_and_seek(const char *filename, const char *mode, size_t offset)
+static FILE *fopen_and_seek(const char *filename, const char *mode, unsigned section)
 {
   FILE *file;
   // On Windows we need to convert the filename to UTF-16
@@ -118,16 +118,38 @@ static FILE *fopen_and_seek(const char *filename, const char *mode, size_t offse
   file = fopen(filename, mode);
 #endif
 
-  if (file != NULL) {
-    // Some systems allow seeking past the end of file, so we need check for that first and disallow
-    if (fseek(file, 0, SEEK_END) != 0
-      || offset >= ftell(file)
-      || fseek(file, offset, SEEK_SET) != 0
-      ) {
-      fclose(file);
-      file = NULL;
-      errno = EINVAL;
+  if (file == NULL) {
+    return NULL;
+  }
+
+  // Seek to the specified 'section'
+  static const char *hex_terminator = ":00000001FF\r";
+  unsigned terms_seen = 0;
+  char buffer[MAX_LINE_LEN + 1];
+
+  while (terms_seen < section && fgets(buffer, MAX_LINE_LEN, file) != NULL) {
+    size_t len = strlen(buffer);
+
+    if (buffer[len - 1] == '\n') {
+      len--;
+      buffer[len] = 0;
     }
+    if (buffer[len - 1] != '\r') {
+      buffer[len] = '\r';
+      len++;
+      buffer[len] = 0;
+    }
+
+    if (strcmp(buffer, hex_terminator) == 0) {
+      // Found a section terminator
+      terms_seen++;
+    }
+  }
+
+  if (feof(file)) {
+    // Section not found
+    fclose(file);
+    return NULL;
   }
 
   return file;
@@ -1392,7 +1414,7 @@ int fileio_setparms(int op, struct fioparms * fp,
 
 
 
-static int fmt_autodetect(char * fname, size_t offset)
+static int fmt_autodetect(char * fname, unsigned section)
 {
   FILE * f;
   unsigned char buf[MAX_LINE_LEN];
@@ -1402,9 +1424,9 @@ static int fmt_autodetect(char * fname, size_t offset)
   int first = 1;
 
 #if defined(WIN32NATIVE)
-  f = fopen_and_seek(fname, "r", offset);
+  f = fopen_and_seek(fname, "r", section);
 #else
-  f = fopen_and_seek(fname, "rb", offset);
+  f = fopen_and_seek(fname, "rb", section);
 #endif
 
   if (f == NULL) {
@@ -1480,7 +1502,7 @@ static int fmt_autodetect(char * fname, size_t offset)
 
 
 int fileio(int op, char * filename, FILEFMT format, 
-             struct avrpart * p, char * memtype, int size, size_t offset)
+             struct avrpart * p, char * memtype, int size, unsigned section)
 {
   int rc;
   FILE * f;
@@ -1539,7 +1561,7 @@ int fileio(int op, char * filename, FILEFMT format,
       return -1;
     }
 
-    format_detect = fmt_autodetect(fname, offset);
+    format_detect = fmt_autodetect(fname, section);
     if (format_detect < 0) {
       avrdude_message(MSG_INFO, "%s: can't determine file format for %s, specify explicitly\n",
                       progname, fname);
@@ -1570,7 +1592,7 @@ int fileio(int op, char * filename, FILEFMT format,
 
   if (format != FMT_IMM) {
     if (!using_stdio) {
-      f = fopen_and_seek(fname, fio.mode, offset);
+      f = fopen_and_seek(fname, fio.mode, section);
       if (f == NULL) {
         avrdude_message(MSG_INFO, "%s: can't open %s file %s: %s\n",
                 progname, fio.iodesc, fname, strerror(errno));
