@@ -103,7 +103,7 @@ double Polygon::area() const
 
     double a = 0.;
     for (size_t i = 0, j = n - 1; i < n; ++i) {
-        a += double(points[j].x + points[i].x) * double(points[i].y - points[j].y);
+        a += ((double)points[j].x + (double)points[i].x) * ((double)points[i].y - (double)points[j].y);
         j = i;
     }
     return 0.5 * a;

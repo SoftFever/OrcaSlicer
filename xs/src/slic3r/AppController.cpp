@@ -55,14 +55,21 @@ AppControllerBoilerplate::query_destination_paths(
 AppControllerBoilerplate::Path
 AppControllerBoilerplate::query_destination_path(
         const std::string &title,
-        const std::string &extensions) const
+        const std::string &extensions,
+        const std::string& hint) const
 {
     wxFileDialog dlg(wxTheApp->GetTopWindow(), title );
     dlg.SetWildcard(extensions);
 
-    dlg.ShowModal();
+    dlg.SetFilename(hint);
 
-    Path ret(dlg.GetFilename());
+    Path ret;
+
+    if(dlg.ShowModal() == wxID_OK) {
+        ret = Path(dlg.GetPath());
+
+        std::cout << "Filename: " << ret << std::endl;
+    }
 
     return ret;
 }
@@ -88,9 +95,9 @@ AppControllerBoilerplate::createProgressIndicator(unsigned statenum,
                                        const std::string& title,
                                        const std::string& firstmsg) const
 {
-    class GuiProgressIndicator: public ProgressIndicator {
+    class GuiProgressIndicator: public IProgressIndicator {
         wxProgressDialog gauge_;
-        using Base = ProgressIndicator;
+        using Base = IProgressIndicator;
         wxString message_;
     public:
 
@@ -122,7 +129,7 @@ AppControllerBoilerplate::createProgressIndicator(unsigned statenum,
             message_ = _(msg);
         }
 
-        virtual void messageFmt(const std::string& fmt, ...) {
+        virtual void message_fmt(const std::string& fmt, ...) {
             va_list arglist;
             va_start(arglist, fmt);
             message_ = wxString::Format(_(fmt), arglist);
@@ -296,7 +303,7 @@ void PrintController::slice()
     progressIndicator()->update(70u, "Generating support material");
     for(auto obj : print_->objects) gen_support_material(obj);
 
-    progressIndicator()->messageFmt("Weight: %.1fg, Cost: %.1f",
+    progressIndicator()->message_fmt("Weight: %.1fg, Cost: %.1f",
                                     print_->total_weight,
                                     print_->total_cost);
 
@@ -334,8 +341,10 @@ void PrintController::slice_to_png()
 //        wxMilliSleep(100);
 //    }
 
-//    auto zipfilepath = query_destination_path(  "Path to zip file...",
-//                                                "*.zip");
+    auto zipfilepath = query_destination_path(  "Path to zip file...",
+                                                "*.zip");
+
+    if(zipfilepath.empty()) return;
 
     auto presetbundle = GUI::get_preset_bundle();
 
@@ -345,10 +354,23 @@ void PrintController::slice_to_png()
 
     conf.validate();
 
+    try {
+        print_->apply_config(conf);
+        print_->validate();
+    } catch(std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), "Error");
+    }
+
     auto bak = progressIndicator();
     progressIndicator(100, "Slicing to zipped png files...");
-    std::async(std::launch::async, [this, &bak](){
+    std::async(std::launch::async, [this, bak, zipfilepath](){
         slice();
+
+        auto pbak = print_->progressindicator;
+        print_->progressindicator = progressIndicator();
+        print_->print_to_png(zipfilepath);
+        print_->progressindicator = pbak;
+
         progressIndicator(bak);
     });
 
@@ -359,10 +381,10 @@ void AppController::set_global_progress_indicator_id(
         unsigned sid)
 {
 
-    class Wrapper: public ProgressIndicator {
+    class Wrapper: public IProgressIndicator {
         wxGauge *gauge_;
         wxStatusBar *stbar_;
-        using Base = ProgressIndicator;
+        using Base = IProgressIndicator;
         std::string message_;
 
         void showProgress(bool show = true) {
@@ -406,7 +428,7 @@ void AppController::set_global_progress_indicator_id(
             message_ = msg;
         }
 
-        virtual void messageFmt(const std::string& fmt, ...) {
+        virtual void message_fmt(const std::string& fmt, ...) {
             va_list arglist;
             va_start(arglist, fmt);
             message_ = wxString::Format(_(fmt), arglist);
@@ -427,7 +449,7 @@ void AppController::set_global_progress_indicator_id(
     }
 }
 
-void AppControllerBoilerplate::ProgressIndicator::messageFmt(
+void IProgressIndicator::message_fmt(
         const std::string &fmtstr, ...) {
     std::stringstream ss;
     va_list args;

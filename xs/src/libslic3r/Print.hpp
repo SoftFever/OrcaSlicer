@@ -184,6 +184,8 @@ public:
 
     void reset_layer_height_profile();
 
+    void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action);
+
     // Collect the slicing parameters, to be used by variable layer thickness algorithm,
     // by the interactive layer height editor and by the printing process itself.
     // The slicing parameters are dependent on various configuration values
@@ -222,6 +224,9 @@ private:
 typedef std::vector<PrintObject*> PrintObjectPtrs;
 typedef std::vector<PrintRegion*> PrintRegionPtrs;
 
+class IProgressIndicator;
+using ProgressIndicatorPtr = std::shared_ptr<IProgressIndicator>;
+
 // The complete print tray with possibly multiple objects.
 class Print
 {
@@ -232,7 +237,10 @@ public:
     PrintObjectPtrs objects;
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
+
     // TODO: status_cb
+    ProgressIndicatorPtr            progressindicator;
+
     std::string                     estimated_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t, float>         filament_stats;

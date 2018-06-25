@@ -24,6 +24,8 @@
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>//#include "tbb/mutex.h"
 
+#include "slic3r/IProgressIndicator.hpp"
+
 namespace Slic3r {
 
 template class PrintState<PrintStep, psCount>;
@@ -1254,8 +1256,11 @@ std::string Print::output_filepath(const std::string &path)
 
 void Print::set_status(int percent, const std::string &message)
 {
-    printf("Print::status %d => %s\n", percent, message.c_str());
-    std::cout.flush();
+    if(progressindicator) progressindicator->update(unsigned(percent), message);
+    else {
+        printf("Print::status %d => %s\n", percent, message.c_str());
+        std::cout.flush();
+    }
 }
 
 /*
@@ -1279,8 +1284,8 @@ public:
     // Get the number of layers in the print.
     unsigned layers() const;
 
-    /* Switch the a particular layer. If there where less layers then the
-     * specified layer number than an appripriate number of layers will be
+    /* Switch to a particular layer. If there where less layers then the
+     * specified layer number than an appropriate number of layers will be
      * allocated in the printer.
      */
     void beginLayer(unsigned layer);
@@ -1382,7 +1387,7 @@ public:
         wxFFileOutputStream zipfile(path);
 
         if(!zipfile.IsOk()) {
-            BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers!";
+            std::cout /*BOOST_LOG_TRIVIAL(error)*/ << "Can't create zip file for layers! " << path << std::endl;
             return;
         }
 

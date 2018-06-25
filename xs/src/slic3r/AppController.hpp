@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "IProgressIndicator.hpp"
 
 namespace Slic3r {
 
@@ -33,40 +34,14 @@ public:
 
     Path query_destination_path(
             const std::string& title,
-            const std::string& extensions) const;
+            const std::string& extensions,
+            const std::string& hint = "") const;
 
     void report_issue(IssueType issuetype,
                       const std::string& description,
                       const std::string& brief = "");
 
-    class ProgressIndicator {
-        float state_ = .0f, max_ = 1.f, step_;
-    public:
-
-        inline virtual ~ProgressIndicator() {}
-
-        float max() const { return max_; }
-        float state() const { return state_; }
-
-        virtual void max(float maxval) { max_ = maxval; }
-        virtual void state(float val)  { state_ = val; }
-        virtual void state(unsigned st) { state_ = st * step_; }
-        virtual void states(unsigned statenum) {
-            step_ = max_ / statenum;
-        }
-
-        virtual void message(const std::string&) = 0;
-        virtual void title(const std::string&) = 0;
-
-        virtual void messageFmt(const std::string& fmt, ...);
-
-        template<class T>
-        void update(T st, const std::string& msg) {
-            message(msg); state(st);
-        }
-    };
-
-    using ProgresIndicatorPtr = std::shared_ptr<ProgressIndicator>;
+    using ProgresIndicatorPtr = std::shared_ptr<IProgressIndicator>;
 
 
     inline void progressIndicator(ProgresIndicatorPtr progrind) {
