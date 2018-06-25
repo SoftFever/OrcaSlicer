@@ -56,6 +56,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+#include "3DScene.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -378,6 +379,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				save_language();
 				show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
 				if (event_language_change > 0) {
+					_3DScene::remove_all_canvases();// remove all canvas before recreate GUI
 					wxCommandEvent event(event_language_change);
 					g_wxApp->ProcessEvent(event);
 				}
