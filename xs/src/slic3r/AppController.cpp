@@ -5,23 +5,19 @@
 #include <sstream>
 #include <cstdarg>
 
-#include <slic3r/GUI/GUI.hpp>
+//#include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
-#include <slic3r/GUI/MsgDialog.hpp>
 
 #include <PrintConfig.hpp>
 #include <Print.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
 
-#include <wx/app.h>
-#include <wx/filedlg.h>
-#include <wx/msgdlg.h>
-#include <wx/progdlg.h>
-#include <wx/gauge.h>
-#include <wx/statusbr.h>
-
 namespace Slic3r {
+
+namespace GUI {
+PresetBundle* get_preset_bundle();
+}
 
 static const PrintObjectStep STEP_SLICE                 = posSlice;
 static const PrintObjectStep STEP_PERIMETERS            = posPerimeters;
@@ -31,114 +27,6 @@ static const PrintObjectStep STEP_SUPPORTMATERIAL       = posSupportMaterial;
 static const PrintStep STEP_SKIRT                       = psSkirt;
 static const PrintStep STEP_BRIM                        = psBrim;
 static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
-
-AppControllerBoilerplate::PathList
-AppControllerBoilerplate::query_destination_paths(
-        const std::string &title,
-        const std::string &extensions) const
-{
-
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), wxString(title) );
-    dlg.SetWildcard(extensions);
-
-    dlg.ShowModal();
-
-    wxArrayString paths;
-    dlg.GetFilenames(paths);
-
-    PathList ret(paths.size(), "");
-    for(auto& p : paths) ret.push_back(p.ToStdString());
-
-    return ret;
-}
-
-AppControllerBoilerplate::Path
-AppControllerBoilerplate::query_destination_path(
-        const std::string &title,
-        const std::string &extensions) const
-{
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), title );
-    dlg.SetWildcard(extensions);
-
-    dlg.ShowModal();
-
-    Path ret(dlg.GetFilename());
-
-    return ret;
-}
-
-void AppControllerBoilerplate::report_issue(IssueType issuetype,
-                                 const std::string &description,
-                                 const std::string &brief)
-{
-    auto icon = wxICON_INFORMATION;
-    switch(issuetype) {
-    case IssueType::INFO:   break;
-    case IssueType::WARN:   icon = wxICON_WARNING; break;
-    case IssueType::ERR:
-    case IssueType::FATAL:  icon = wxICON_ERROR;
-    }
-
-    wxString str = _("Proba szoveg");
-    wxMessageBox(str + _(description), _(brief), icon);
-}
-
-AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::createProgressIndicator(unsigned statenum,
-                                       const std::string& title,
-                                       const std::string& firstmsg) const
-{
-    class GuiProgressIndicator: public ProgressIndicator {
-        wxProgressDialog gauge_;
-        using Base = ProgressIndicator;
-        wxString message_;
-    public:
-
-        inline GuiProgressIndicator(int range, const std::string& title,
-                                    const std::string& firstmsg):
-            gauge_(_(title), _(firstmsg), range, wxTheApp->GetTopWindow())
-        {
-            gauge_.Show(false);
-            Base::max(static_cast<float>(range));
-            Base::states(static_cast<unsigned>(range));
-        }
-
-        virtual void state(float val) override {
-            if( val <= max() && val >= 1.0) {
-                Base::state(val);
-                gauge_.Update(static_cast<int>(val), message_);
-            }
-        }
-
-        virtual void state(unsigned st) override {
-            if( st <= max() ) {
-                if(!gauge_.IsShown()) gauge_.ShowModal();
-                Base::state(st);
-                gauge_.Update(static_cast<int>(st), message_);
-            }
-        }
-
-        virtual void message(const std::string & msg) override {
-            message_ = _(msg);
-        }
-
-        virtual void messageFmt(const std::string& fmt, ...) {
-            va_list arglist;
-            va_start(arglist, fmt);
-            message_ = wxString::Format(_(fmt), arglist);
-            va_end(arglist);
-        }
-
-        virtual void title(const std::string & title) override {
-            gauge_.SetTitle(_(title));
-        }
-    };
-
-    auto pri =
-            std::make_shared<GuiProgressIndicator>(statenum, title, firstmsg);
-
-    return pri;
-}
 
 void PrintController::make_skirt()
 {
@@ -345,86 +233,13 @@ void PrintController::slice_to_png()
 
     conf.validate();
 
-    auto bak = progressIndicator();
+//    auto bak = progressIndicator();
     progressIndicator(100, "Slicing to zipped png files...");
-    std::async(std::launch::async, [this, &bak](){
+//    std::async(std::launch::async, [this, bak](){
         slice();
-        progressIndicator(bak);
-    });
+//        progressIndicator(bak);
+//    });
 
-}
-
-void AppController::set_global_progress_indicator_id(
-        unsigned gid,
-        unsigned sid)
-{
-
-    class Wrapper: public ProgressIndicator {
-        wxGauge *gauge_;
-        wxStatusBar *stbar_;
-        using Base = ProgressIndicator;
-        std::string message_;
-
-        void showProgress(bool show = true) {
-            gauge_->Show(show);
-            gauge_->Pulse();
-        }
-    public:
-
-        inline Wrapper(wxGauge *gauge, wxStatusBar *stbar):
-            gauge_(gauge), stbar_(stbar)
-        {
-            Base::max(static_cast<float>(gauge->GetRange()));
-            Base::states(static_cast<unsigned>(gauge->GetRange()));
-        }
-
-        virtual void state(float val) override {
-            if( val <= max() && val >= 1.0) {
-                Base::state(val);
-                stbar_->SetStatusText(message_);
-                gauge_->SetValue(static_cast<int>(val));
-            }
-        }
-
-        virtual void state(unsigned st) override {
-            if( st <= max() ) {
-                Base::state(st);
-
-                if(!gauge_->IsShown()) showProgress(true);
-
-                stbar_->SetStatusText(message_);
-                if(st == gauge_->GetRange()) {
-                    gauge_->SetValue(0);
-                    showProgress(false);
-                } else {
-                    gauge_->SetValue(static_cast<int>(st));
-                }
-            }
-        }
-
-        virtual void message(const std::string & msg) override {
-            message_ = msg;
-        }
-
-        virtual void messageFmt(const std::string& fmt, ...) {
-            va_list arglist;
-            va_start(arglist, fmt);
-            message_ = wxString::Format(_(fmt), arglist);
-            va_end(arglist);
-        }
-
-        virtual void title(const std::string & /*title*/) override {}
-
-    };
-
-    wxGauge* gauge = dynamic_cast<wxGauge*>(wxWindow::FindWindowById(gid));
-    wxStatusBar* sb = dynamic_cast<wxStatusBar*>(wxWindow::FindWindowById(sid));
-
-    if(gauge && sb) {
-        auto&& progind = std::make_shared<Wrapper>(gauge, sb);
-        progressIndicator(progind);
-        if(printctl) printctl->progressIndicator(progind);
-    }
 }
 
 void AppControllerBoilerplate::ProgressIndicator::messageFmt(

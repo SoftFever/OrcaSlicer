@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <iostream>
+#include <thread>
+#include <unordered_map>
 
 namespace Slic3r {
 
@@ -68,22 +71,25 @@ public:
 
     using ProgresIndicatorPtr = std::shared_ptr<ProgressIndicator>;
 
-
     inline void progressIndicator(ProgresIndicatorPtr progrind) {
-        progressind_ = progrind;
+        progressind_[std::this_thread::get_id()] = progrind;
     }
 
     inline void progressIndicator(unsigned statenum,
                                   const std::string& title,
                                   const std::string& firstmsg = "") {
-        progressind_ = createProgressIndicator(statenum, title, firstmsg);
+        progressind_[std::this_thread::get_id()] =
+                createProgressIndicator(statenum, title, firstmsg);
     }
 
     inline ProgresIndicatorPtr progressIndicator() {
-        if(!progressind_)
-            progressind_ = createProgressIndicator(100, "Progress");
 
-        return progressind_;
+        ProgresIndicatorPtr ret;
+        if( progressind_.find(std::this_thread::get_id()) == progressind_.end())
+            progressind_[std::this_thread::get_id()] = ret =
+                    = createProgressIndicator(100, "Progress");
+
+        return ret;
     }
 
 protected:
@@ -94,7 +100,7 @@ protected:
             const std::string& firstmsg = "") const;
 
 private:
-    ProgresIndicatorPtr progressind_;
+    std::unordered_map<std::thread::id, ProgresIndicatorPtr> progressind_;
 };
 
 class PrintController: public AppControllerBoilerplate {
@@ -104,6 +110,10 @@ protected:
     void make_skirt();
     void make_brim();
     void make_wipe_tower();
+
+    void make_perimeters(PrintObject *pobj);
+    void infill(PrintObject *pobj);
+    void gen_support_material(PrintObject *pobj);
 
 public:
 
@@ -116,13 +126,9 @@ public:
     }
 
     void slice(PrintObject *pobj);
-    void make_perimeters(PrintObject *pobj);
-    void infill(PrintObject *pobj);
-    void gen_support_material(PrintObject *pobj);
 
     void slice();
     void slice_to_png();
-
 };
 
 class AppController: protected AppControllerBoilerplate {
