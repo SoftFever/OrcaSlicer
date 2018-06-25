@@ -1754,6 +1754,16 @@ bool _3DScene::init(wxGLCanvas* canvas)
     return s_canvas_mgr.init(canvas);
 }
 
+bool _3DScene::set_current(wxGLCanvas* canvas, bool force)
+{
+    return s_canvas_mgr.set_current(canvas, force);
+}
+
+void _3DScene::reset_current_canvas()
+{
+    s_canvas_mgr.set_current(nullptr, false);
+}
+
 void _3DScene::set_active(wxGLCanvas* canvas, bool active)
 {
     s_canvas_mgr.set_active(canvas, active);

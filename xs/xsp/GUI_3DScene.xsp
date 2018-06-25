@@ -191,6 +191,11 @@ remove_all_canvases()
         _3DScene::remove_all_canvases();
 
 void
+reset_current_canvas()
+    CODE:
+        _3DScene::reset_current_canvas();
+
+void
 set_active(canvas, active)
         SV   *canvas;
         bool active;
