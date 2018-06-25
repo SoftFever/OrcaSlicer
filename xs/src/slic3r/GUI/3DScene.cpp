@@ -638,6 +638,7 @@ std::vector<int> GLVolumeCollection::load_object(
                     v.extruder_id = extruder_id;
             }
             v.is_modifier = model_volume->modifier;
+            v.outside_printer_detection_enabled = !model_volume->modifier;
             v.set_origin(Pointf3(instance->offset.x, instance->offset.y, 0.0));
             v.set_angle_z(instance->rotation);
             v.set_scale_factor(instance->scaling_factor);
@@ -759,7 +760,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config)
     bool contained = true;
     for (GLVolume* volume : this->volumes)
     {
-        if (volume != nullptr)
+        if ((volume != nullptr) && !volume->is_modifier)
         {
             bool state = print_volume.contains(volume->transformed_bounding_box());
             contained &= state;
