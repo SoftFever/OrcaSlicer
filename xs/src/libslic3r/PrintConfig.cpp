@@ -861,7 +861,7 @@ PrintConfigDef::PrintConfigDef()
 	def->tooltip = L("Set silent mode for the G-code flavor");
 	def->default_value = new ConfigOptionBool(true);
 
-	const int machine_linits_opt_width = 70;
+	const int machine_limits_opt_width = 70;
 	{
 		struct AxisDefault {
 			std::string         name;
@@ -871,10 +871,10 @@ PrintConfigDef::PrintConfigDef()
 		};
 		std::vector<AxisDefault> axes {
 			// name, max_feedrate,  max_acceleration, max_jerk
-			{ "x", { 200., 200. }, { 1000., 1000. }, { 10., 10. } },
-			{ "y", { 200., 200. }, { 1000., 1000. }, { 10., 10. } },
-			{ "z", { 12., 12. }, { 200., 200. }, { 0.4, 0.4 } },
-			{ "e", { 120., 120. }, { 5000., 5000. }, { 2.5, 2.5 } }
+			{ "x", { 500., 200. }, { 9000., 1000. }, { 10., 10. } },
+			{ "y", { 500., 200. }, { 9000., 1000. }, { 10., 10. } },
+			{ "z", { 12., 12. }, { 500., 200. }, { 0.2, 0.4 } },
+			{ "e", { 120., 120. }, { 10000., 5000. }, { 2.5, 2.5 } }
 		};
 		for (const AxisDefault &axis : axes) {
 			std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
@@ -885,7 +885,7 @@ PrintConfigDef::PrintConfigDef()
 			def->tooltip  = (boost::format(L("Maximum feedrate of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s");
 			def->min = 0;
-			def->width = machine_linits_opt_width;
+			def->width = machine_limits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_feedrate);
 			// Add the machine acceleration limits for XYZE axes (M201)
 			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
@@ -894,7 +894,7 @@ PrintConfigDef::PrintConfigDef()
 			def->tooltip  = (boost::format(L("Maximum acceleration of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s²");
 			def->min = 0;
-			def->width = machine_linits_opt_width;
+			def->width = machine_limits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_acceleration);
 			// Add the machine jerk limits for XYZE axes (M205)
 			def = this->add("machine_max_jerk_" + axis.name, coFloats);
@@ -903,7 +903,7 @@ PrintConfigDef::PrintConfigDef()
 			def->tooltip  = (boost::format(L("Maximum jerk of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s");
 			def->min = 0;
-			def->width = machine_linits_opt_width;
+			def->width = machine_limits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_jerk);
 		}
 	}
@@ -915,7 +915,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Minimum feedrate when extruding") + " (M205 S)";
     def->sidetext = L("mm/s");
     def->min = 0;
-	def->width = machine_linits_opt_width;
+	def->width = machine_limits_opt_width;
 	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M205 T... [mm/sec]
@@ -925,7 +925,7 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Minimum travel feedrate") + " (M205 T)";
     def->sidetext = L("mm/s");
     def->min = 0;
-	def->width = machine_linits_opt_width;
+	def->width = machine_limits_opt_width;
 	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M204 S... [mm/sec^2]
@@ -935,8 +935,8 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Maximum acceleration when extruding") + " (M204 S)";
     def->sidetext = L("mm/s²");
     def->min = 0;
-	def->width = machine_linits_opt_width;
-    def->default_value = new ConfigOptionFloats(1250., 1250.);
+	def->width = machine_limits_opt_width;
+    def->default_value = new ConfigOptionFloats(1500., 1250.);
 
     // M204 T... [mm/sec^2]
     def = this->add("machine_max_acceleration_retracting", coFloats);
@@ -945,8 +945,8 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Maximum acceleration when retracting") + " (M204 T)";
     def->sidetext = L("mm/s²");
     def->min = 0;
-	def->width = machine_linits_opt_width;
-    def->default_value = new ConfigOptionFloats(1250., 1250.);
+	def->width = machine_limits_opt_width;
+    def->default_value = new ConfigOptionFloats(1500., 1250.);
 
     def = this->add("max_fan_speed", coInts);
     def->label = L("Max");

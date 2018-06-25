@@ -95,6 +95,7 @@ public:
     /// Copy of ConfigOption for deduction purposes
     const ConfigOptionDef			m_opt {ConfigOptionDef()};
 	const t_config_option_key		m_opt_id;//! {""};
+	int								m_opt_idx = 0;
 
     /// Sets a value for this control.
     /// subclasses should overload with a specific version
