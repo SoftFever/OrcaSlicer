@@ -396,7 +396,7 @@ void object_ctrl_selection_changed()
 
 	part_selection_changed();
 
-	if (m_selected_object_id < 0) return;
+// 	if (m_selected_object_id < 0) return;
 
 	if (m_event_object_selection_changed > 0) {
 		wxCommandEvent event(m_event_object_selection_changed);

@@ -1927,25 +1927,16 @@ sub on_config_change {
     $self->schedule_background_process;
 }
 
-sub list_item_deselected {
-    my ($self, $event) = @_;
-    return if $PreventListEvents;
-    $self->{_lecursor} = Wx::BusyCursor->new();
-    if ($self->{list}->GetFirstSelected == -1) {
-        $self->select_object(undef);
-        $self->{canvas}->Refresh;
-        Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D}) if $self->{canvas3D};
-        Slic3r::GUI::_3DScene::render($self->{canvas3D}) if $self->{canvas3D};
-    }
-    undef $self->{_lecursor};
-}
 sub item_changed_selection{
     my ($self, $obj_idx) = @_;
 
     $self->{canvas}->Refresh;
     if ($self->{canvas3D}) {
-        my $selections = $self->collect_selections;
-        Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+        Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+        if ($obj_idx >= 0){
+            my $selections = $self->collect_selections;
+            Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+        }
         Slic3r::GUI::_3DScene::render($self->{canvas3D});
     }
 }
@@ -2077,7 +2068,9 @@ sub changed_object_settings {
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
         $self->{canvas}->reload_scene if $self->{canvas};
-        $self->{canvas3D}->reload_scene if $self->{canvas3D};
+        my $selections = $self->collect_selections;
+        Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
     } else {
         $self->resume_background_process;
     }
