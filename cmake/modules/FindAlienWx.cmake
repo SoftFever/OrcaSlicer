@@ -49,6 +49,7 @@ my \$defines      = ' ' . Alien::wxWidgets->defines;
 my \$cflags       = Alien::wxWidgets->c_flags;
 my \$linkflags    = Alien::wxWidgets->link_flags;
 my \$libraries    = ' ' . Alien::wxWidgets->libraries(@components);
+my \$gui_toolkit  = Alien::wxWidgets->config->{toolkit};
 #my @libraries     = Alien::wxWidgets->link_libraries(@components);
 #my @implib        = Alien::wxWidgets->import_libraries(@components);
 #my @shrlib        = Alien::wxWidgets->shared_libraries(@components);
@@ -82,6 +83,7 @@ cmake_set_var('LIBRARIES', \$libraries);
 cmake_set_var('DEFINITIONS', \$defines);
 #cmake_set_var('DEFINITIONS_DEBUG', );
 cmake_set_var('CXX_FLAGS', \$cflags);
+cmake_set_var('GUI_TOOLKIT', \$gui_toolkit);
 close \$fh;
 ")
 include(${AlienWx_TEMP_INCLUDE})
@@ -96,6 +98,7 @@ if (AlienWx_DEBUG)
   message(STATUS "  AlienWx_DEFINITIONS       = ${AlienWx_DEFINITIONS}")
   message(STATUS "  AlienWx_DEFINITIONS_DEBUG = ${AlienWx_DEFINITIONS_DEBUG}")
   message(STATUS "  AlienWx_CXX_FLAGS         = ${AlienWx_CXX_FLAGS}")
+  message(STATUS "  AlienWx_GUI_TOOLKIT       = ${AlienWx_GUI_TOOLKIT}")
 endif()
 
 include(FindPackageHandleStandardArgs)
