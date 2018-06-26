@@ -6,6 +6,7 @@ xs/src/slic3r/GUI/ButtonsDescription.cpp
 xs/src/slic3r/GUI/ConfigSnapshotDialog.cpp
 xs/src/slic3r/GUI/ConfigWizard.cpp
 xs/src/slic3r/GUI/FirmwareDialog.cpp
+xs/src/slic3r/GUI/GLCanvas3D.cpp
 xs/src/slic3r/GUI/GUI.cpp
 xs/src/slic3r/GUI/MsgDialog.cpp
 xs/src/slic3r/GUI/Tab.cpp
