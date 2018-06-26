@@ -803,7 +803,7 @@ void Tab::reload_compatible_printers_widget()
 	bool has_any = !m_config->option<ConfigOptionStrings>("compatible_printers")->values.empty();
 	has_any ? m_compatible_printers_btn->Enable() : m_compatible_printers_btn->Disable();
 	m_compatible_printers_checkbox->SetValue(!has_any);
-	get_field("compatible_printers_condition")->toggle(!has_any);
+	get_field("compatible_printers_condition", 0)->toggle(!has_any);
 }
 
 void TabPrint::build()
@@ -1014,7 +1014,7 @@ void TabPrint::build()
 		};
 		optgroup->append_line(line, &m_colored_Label);
 
-		option = optgroup->get_option("compatible_printers_condition");
+		option = optgroup->get_option("compatible_printers_condition", 0);
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
 
@@ -1365,7 +1365,7 @@ void TabFilament::build()
 		};
 		optgroup->append_line(line, &m_colored_Label);
 
-		option = optgroup->get_option("compatible_printers_condition");
+		option = optgroup->get_option("compatible_printers_condition", 0);
 		option.opt.full_width = true;
 		optgroup->append_single_option_line(option);
 
@@ -2240,7 +2240,7 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		// All printers have been made compatible with this preset.
 		if ((*checkbox)->GetValue())
 			load_key_value("compatible_printers", std::vector<std::string> {});
-		get_field("compatible_printers_condition")->toggle((*checkbox)->GetValue());
+		get_field("compatible_printers_condition", 0)->toggle((*checkbox)->GetValue());
 		update_changed_ui();
 	}) );
 

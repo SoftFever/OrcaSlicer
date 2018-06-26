@@ -188,7 +188,10 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
             throw UnknownOptionException(opt_key);
         }
 		const ConfigOption *other_opt = other.option(opt_key);
-        if (other_opt != nullptr)
+		if (other_opt == nullptr) {
+            // The key was not found in the source config, therefore it will not be initialized!
+//			printf("Not found, therefore not initialized: %s\n", opt_key.c_str());
+		} else
             my_opt->set(other_opt);
     }
 }

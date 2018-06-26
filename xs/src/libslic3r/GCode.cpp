@@ -1419,7 +1419,10 @@ void GCode::append_full_config(const Print& print, std::string& str)
                 str += "; " + key + " = " + cfg->serialize(key) + "\n";
     }
     const DynamicConfig &full_config = print.placeholder_parser.config();
-    for (const char *key : { "print_settings_id", "filament_settings_id", "printer_settings_id" })
+    for (const char *key : { 
+        "print_settings_id", "filament_settings_id", "printer_settings_id", 
+        "printer_model", "printer_variant", "default_print_profile", "default_filament_profile",
+        "compatible_printers_condition", "inherits" })
         str += std::string("; ") + key + " = " + full_config.serialize(key) + "\n";
 }
 
