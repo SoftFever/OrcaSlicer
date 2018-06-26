@@ -94,7 +94,9 @@ protected:
         unsigned long height_px = 2560;
         double width_mm = 68.0, height_mm = 120.0;
         double corr = 1.0;
-    } query_png_export_data();
+    };
+
+    PngExportData query_png_export_data();
 
     PngExportData prev_expdata_;
 
@@ -105,7 +107,7 @@ public:
     explicit inline PrintController(Print *print): print_(print) {}
 
     inline static Ptr create(Print *print) {
-        return std::make_unique<PrintController>(print);
+        return PrintController::Ptr( new PrintController(print) );
     }
 
     void slice(PrintObject *pobj);

@@ -53,7 +53,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     wxBoxSizer* filepick_layout_;
     filepick_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
-    filepick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.zip"), wxDefaultPosition, wxSize( 308,-1 ), wxFLP_DEFAULT_STYLE, wxDefaultValidator, wxT("filepick_ctl") );
+    filepick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.zip"), wxDefaultPosition, wxSize( 308,-1 ), wxFLP_USE_TEXTCTRL | wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT, wxDefaultValidator, wxT("filepick_ctl") );
     filepick_layout_->Add( filepick_ctl_, 0, wxALIGN_CENTER|wxALIGN_LEFT|wxALL, 5 );
 
 
