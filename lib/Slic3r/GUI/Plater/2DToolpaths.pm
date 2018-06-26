@@ -199,11 +199,11 @@ sub new {
         my $old_zoom = $self->_zoom;
         
         # Calculate the zoom delta and apply it to the current zoom factor
-        my $zoom = $e->GetWheelRotation() / $e->GetWheelDelta();
+        my $zoom = -$e->GetWheelRotation() / $e->GetWheelDelta();
         $zoom = max(min($zoom, 4), -4);
         $zoom /= 10;
         $self->_zoom($self->_zoom / (1-$zoom));
-        $self->_zoom(1) if $self->_zoom > 1;  # prevent from zooming out too much
+        $self->_zoom(1.25) if $self->_zoom > 1.25;  # prevent from zooming out too much
         
         {
             # In order to zoom around the mouse point we need to translate
@@ -227,7 +227,6 @@ sub new {
         }
         
         $self->_dirty(1);
-        $self->Refresh;
     });
     EVT_MOUSE_EVENTS($self, \&mouse_event);
     
@@ -255,8 +254,8 @@ sub mouse_event {
     return if !$self->GetParent->enabled;
     
     my $pos = Slic3r::Pointf->new($e->GetPositionXY);
-    if ($e->Entering && &Wx::wxMSW) {
-        # wxMSW needs focus in order to catch mouse wheel events
+    if ($e->Entering && (&Wx::wxMSW || $^O eq 'linux')) {
+        # wxMSW and Linux needs focus in order to catch key events
         $self->SetFocus;
     } elsif ($e->Dragging) {
         if ($e->LeftIsDown || $e->MiddleIsDown || $e->RightIsDown) {
@@ -276,7 +275,6 @@ sub mouse_event {
                 );
                 
                 $self->_dirty(1);
-                $self->Refresh;
             }
             $self->_drag_start_xy($pos);
         }
@@ -631,6 +629,27 @@ sub Resize {
     glLoadIdentity();
     
     my $bb = $self->bb->clone;
+
+    # rescale in dependence of window aspect ratio
+    my $bb_size = $bb->size;    
+    my $ratio_x = ($x != 0.0) ? $bb_size->x / $x : 1.0;
+    my $ratio_y = ($y != 0.0) ? $bb_size->y / $y : 1.0;
+        
+    if ($ratio_y < $ratio_x) {
+        if ($ratio_y != 0.0) {
+            my $new_size_y = $bb_size->y * $ratio_x / $ratio_y;
+            my $half_delta_size_y = 0.5 * ($new_size_y - $bb_size->y);        
+            $bb->set_y_min($bb->y_min - $half_delta_size_y);
+            $bb->set_y_max($bb->y_max + $half_delta_size_y);
+        }
+    } elsif ($ratio_x < $ratio_y) {
+        if ($ratio_x != 0.0) {
+            my $new_size_x = $bb_size->x * $ratio_y / $ratio_x;
+            my $half_delta_size_x = 0.5 * ($new_size_x - $bb_size->x);        
+            $bb->set_x_min($bb->x_min - $half_delta_size_x);
+            $bb->set_x_max($bb->x_max + $half_delta_size_x);
+        }
+    }
     
     # center bounding box around origin before scaling it
     my $bb_center = $bb->center;
@@ -645,25 +664,25 @@ sub Resize {
     # translate camera
     $bb->translate(@{$self->_camera_target});
     
-    # keep camera_bb within total bb
-    # (i.e. prevent user from panning outside the bounding box)
-    {
-        my @translate = (0,0);
-        if ($bb->x_min < $self->bb->x_min) {
-            $translate[X] += $self->bb->x_min - $bb->x_min;
-        }
-        if ($bb->y_min < $self->bb->y_min) {
-            $translate[Y] += $self->bb->y_min - $bb->y_min;
-        }
-        if ($bb->x_max > $self->bb->x_max) {
-            $translate[X] -= $bb->x_max - $self->bb->x_max;
-        }
-        if ($bb->y_max > $self->bb->y_max) {
-            $translate[Y] -= $bb->y_max - $self->bb->y_max;
-        }
-        $self->_camera_target->translate(@translate);
-        $bb->translate(@translate);
-    }
+#    # keep camera_bb within total bb
+#    # (i.e. prevent user from panning outside the bounding box)
+#    {
+#        my @translate = (0,0);
+#        if ($bb->x_min < $self->bb->x_min) {
+#            $translate[X] += $self->bb->x_min - $bb->x_min;
+#        }
+#        if ($bb->y_min < $self->bb->y_min) {
+#            $translate[Y] += $self->bb->y_min - $bb->y_min;
+#        }
+#        if ($bb->x_max > $self->bb->x_max) {
+#            $translate[X] -= $bb->x_max - $self->bb->x_max;
+#        }
+#        if ($bb->y_max > $self->bb->y_max) {
+#            $translate[Y] -= $bb->y_max - $self->bb->y_max;
+#        }
+#        $self->_camera_target->translate(@translate);
+#        $bb->translate(@translate);
+#    }
     
     # save camera
     $self->_camera_bb($bb);
