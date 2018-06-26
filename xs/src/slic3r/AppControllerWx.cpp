@@ -133,7 +133,7 @@ public:
         if( val >= 1.0) state(static_cast<unsigned>(val));
     }
 
-    virtual void state(unsigned st) override {
+    void state(unsigned st) {
         // send status update event
         if(is_asynch_) {
             auto evt = new wxCommandEvent(PROGRESS_STATUS_UPDATE_EVENT, id_);
@@ -225,7 +225,7 @@ public:
         if(val >= 1.0) state(unsigned(val));
     }
 
-    virtual void state(unsigned st) override {
+    void state(unsigned st) {
         if(!ctl_.is_main_thread()) {
             auto evt = new wxCommandEvent(PROGRESS_STATUS_UPDATE_EVENT, id_);
             evt->SetInt(st);
@@ -249,7 +249,7 @@ public:
 };
 }
 
-void AppController::set_global_progress_indicator_id(
+void AppController::set_global_progress_indicator(
         unsigned gid,
         unsigned sid)
 {

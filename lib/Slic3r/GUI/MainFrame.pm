@@ -66,7 +66,7 @@ sub new {
     $self->SetStatusBar($self->{statusbar});
 
     # Make the global status bar and its progress indicator available in C++
-    $appController->set_global_progress_indicator_id(
+    $appController->set_global_progress_indicator(
         $self->{statusbar}->{prog}->GetId(),
         $self->{statusbar}->GetId(),
     );
