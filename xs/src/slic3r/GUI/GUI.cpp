@@ -59,6 +59,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+#include "3DScene.hpp"
 #include "Model.hpp"
 #include "LambdaObjectDialog.hpp"
 
@@ -459,6 +460,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				save_language();
 				show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
 				if (event_language_change > 0) {
+					_3DScene::remove_all_canvases();// remove all canvas before recreate GUI
 					wxCommandEvent event(event_language_change);
 					g_wxApp->ProcessEvent(event);
 				}
@@ -531,7 +533,7 @@ bool check_unsaved_changes()
 
 bool config_wizard_startup(bool app_config_exists)
 {
-	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
+	if (! app_config_exists || g_PresetBundle->printers.size() <= 1) {
 		config_wizard(ConfigWizard::RR_DATA_EMPTY);
 		return true;
 	} else if (g_AppConfig->legacy_datadir()) {

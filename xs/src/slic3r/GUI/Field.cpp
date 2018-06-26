@@ -12,10 +12,20 @@ namespace Slic3r { namespace GUI {
 
 	wxString double_to_string(double const value)
 	{
-		int precision = 10 * value - int(10 * value) == 0 ? 1 : 2;
-		return value - int(value) == 0 ?
-			wxString::Format(_T("%i"), int(value)) :
-			wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+		if (value - int(value) == 0)
+			return wxString::Format(_T("%i"), int(value));
+		else {
+			int precision = 4;
+			for (size_t p = 1; p < 4; p++)
+			{
+				double cur_val = pow(10, p)*value;
+				if (cur_val - int(cur_val) == 0) {
+					precision = p;
+					break;
+				}
+			}
+			return wxNumberFormatter::ToString(value, precision, wxNumberFormatter::Style_None);
+		}
 	}
 
 	void Field::PostInitialize(){

@@ -194,7 +194,7 @@ static void usage(void)
  "  -F                         Override invalid signature check.\n"
  "  -e                         Perform a chip erase.\n"
  "  -O                         Perform RC oscillator calibration (see AVR053). \n"
- "  -U <memtype>:r|w|v:<filename>[:format]\n"
+ "  -U <memtype>:r|w|v:<offset>:<filename>[:format]\n"
  "                             Memory operation specification.\n"
  "                             Multiple -U options are allowed, each request\n"
  "                             is performed in the order specified.\n"
@@ -374,7 +374,7 @@ static void list_parts(FILE * f, const char *prefix, LISTID avrparts)
 
 static int cleanup_main(int status)
 {
-    if (pgm_setup && pgm->teardown) {
+    if (pgm_setup && pgm != NULL && pgm->teardown) {
         pgm->teardown(pgm);
     }
 

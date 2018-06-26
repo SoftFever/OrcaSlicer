@@ -13,6 +13,9 @@
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
+//############################################################################################################################################
+#include <boost/nowide/fstream.hpp>
+//############################################################################################################################################
 #include <miniz/miniz_zip.h>
 
 #if 0
@@ -666,10 +669,21 @@ bool load_amf_archive(const char *path, PresetBundle* bundle, Model *model)
 // If bundle is not a null pointer, updates it if the amf file/archive contains config data
 bool load_amf(const char *path, PresetBundle* bundle, Model *model)
 {
-    if (boost::iends_with(path, ".zip.amf"))
-        return load_amf_archive(path, bundle, model);
-    else if (boost::iends_with(path, ".amf") || boost::iends_with(path, ".amf.xml"))
+    if (boost::iends_with(path, ".amf.xml"))
+        // backward compatibility with older slic3r output
         return load_amf_file(path, bundle, model);
+    else if (boost::iends_with(path, ".amf"))
+    {
+        boost::nowide::ifstream file(path, boost::nowide::ifstream::binary);
+        if (!file.good())
+            return false;
+
+        std::string zip_mask(2, '\0');
+        file.read(const_cast<char*>(zip_mask.data()), 2);
+        file.close();
+
+        return (zip_mask == "PK") ? load_amf_archive(path, bundle, model) : load_amf_file(path, bundle, model);
+    }
     else
         return false;
 }

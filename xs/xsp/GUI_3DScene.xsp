@@ -8,7 +8,8 @@
     GLShader();
     ~GLShader();
 
-    bool load(const char *fragment_shader, const char *vertex_shader);
+    bool load_from_text(const char *fragment_shader, const char *vertex_shader);
+    bool load_from_file(const char *fragment_shader, const char *vertex_shader);
     void release();
 
     int  get_attrib_location(const char *name) const;
@@ -92,9 +93,6 @@
     int count()
         %code{% RETVAL = THIS->volumes.size(); %};
         
-    std::vector<double> get_current_print_zs(bool active_only)
-        %code{% RETVAL = THIS->get_current_print_zs(active_only); %};
-
     void set_range(double low, double high);
 
     void render_VBOs() const;
@@ -155,11 +153,468 @@ GLVolumeCollection::arrayref()
 %package{Slic3r::GUI::_3DScene};
 %{
 
+std::string
+get_gl_info(format_as_html, extensions)
+        bool format_as_html;
+        bool extensions;
+    CODE:
+        RETVAL = _3DScene::get_gl_info(format_as_html, extensions);
+    OUTPUT:
+        RETVAL
+
+bool
+use_VBOs()
+    CODE:
+        RETVAL = _3DScene::use_VBOs();
+    OUTPUT:
+        RETVAL
+
+bool
+add_canvas(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::add_canvas((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+bool
+remove_canvas(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::remove_canvas((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
 
 void
-_glew_init()
+remove_all_canvases()
     CODE:
-        _3DScene::_glew_init();
+        _3DScene::remove_all_canvases();
+
+void
+reset_current_canvas()
+    CODE:
+        _3DScene::reset_current_canvas();
+
+void
+set_active(canvas, active)
+        SV   *canvas;
+        bool active;
+    CODE:
+        _3DScene::set_active((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active);
+
+void
+set_as_dirty(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::set_as_dirty((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+unsigned int
+get_volumes_count(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_volumes_count((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+reset_volumes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::reset_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+deselect_volumes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::deselect_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+select_volume(canvas, id)
+        SV           *canvas;
+        unsigned int id;
+    CODE:
+        _3DScene::select_volume((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+
+void
+update_volumes_selection(canvas, selections)
+        SV               *canvas;
+        std::vector<int> selections;
+    CODE:
+        _3DScene::update_volumes_selection((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
+
+bool
+check_volumes_outside_state(canvas, config)
+        SV                 *canvas;
+        DynamicPrintConfig *config;
+    CODE:
+        RETVAL = _3DScene::check_volumes_outside_state((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), config);
+    OUTPUT:
+        RETVAL
+
+bool
+move_volume_up(canvas, id)
+        SV           *canvas;
+        unsigned int id;
+    CODE:
+        RETVAL = _3DScene::move_volume_up((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+    OUTPUT:
+        RETVAL
+
+bool
+move_volume_down(canvas, id)
+        SV           *canvas;
+        unsigned int id;
+    CODE:
+        RETVAL = _3DScene::move_volume_down((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), id);
+    OUTPUT:
+        RETVAL
+
+void
+set_objects_selections(canvas, selections)
+        SV               *canvas;
+        std::vector<int> selections;
+    CODE:
+        _3DScene::set_objects_selections((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
+
+void
+set_config(canvas, config)
+        SV                 *canvas;
+        DynamicPrintConfig *config;
+    CODE:
+        _3DScene::set_config((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), config);
+
+void
+set_print(canvas, print)
+        SV    *canvas;
+        Print *print;
+    CODE:
+        _3DScene::set_print((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print);
+
+void
+set_model(canvas, model)
+        SV    *canvas;
+        Model *model;
+    CODE:
+        _3DScene::set_model((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model);
+
+void
+set_bed_shape(canvas, shape)
+        SV      *canvas;
+        Pointfs shape;
+    CODE:
+        _3DScene::set_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), shape);
+
+void
+set_auto_bed_shape(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::set_auto_bed_shape((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+Clone<BoundingBoxf3>
+get_volumes_bounding_box(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_volumes_bounding_box((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+set_axes_length(canvas, length)
+        SV    *canvas;
+        float length;
+    CODE:
+        _3DScene::set_axes_length((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), length);
+
+void
+set_cutting_plane(canvas, z, polygons)
+        SV         *canvas;
+        float      z;
+        ExPolygons polygons;
+    CODE:
+        _3DScene::set_cutting_plane((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), z, polygons);
+
+void
+set_color_by(canvas, value)
+        SV          *canvas;
+        std::string value;
+    CODE:
+        _3DScene::set_color_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
+void
+set_select_by(canvas, value)
+        SV          *canvas;
+        std::string value;
+    CODE:
+        _3DScene::set_select_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
+void
+set_drag_by(canvas, value)
+        SV          *canvas;
+        std::string value;
+    CODE:
+        _3DScene::set_drag_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
+bool
+is_layers_editing_enabled(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_layers_editing_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+bool
+is_layers_editing_allowed(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_layers_editing_allowed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+bool
+is_shader_enabled(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_shader_enabled((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+bool
+is_reload_delayed(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::is_reload_delayed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
+
+void
+enable_layers_editing(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_layers_editing((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+    
+void
+enable_warning_texture(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_warning_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+    
+void
+enable_legend_texture(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_legend_texture((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+enable_picking(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_picking((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+enable_moving(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_moving((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+enable_gizmos(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_gizmos((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+enable_shader(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+enable_force_zoom_to_bed(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_force_zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+allow_multisample(canvas, allow)
+        SV   *canvas;
+        bool allow;
+    CODE:
+        _3DScene::allow_multisample((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), allow);
+
+void
+zoom_to_bed(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+zoom_to_volumes(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::zoom_to_volumes((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    
+void
+select_view(canvas, direction)
+        SV          *canvas;
+        std::string direction;
+    CODE:
+        _3DScene::select_view((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), direction);
+
+void
+set_viewport_from_scene(canvas, other)
+        SV *canvas;
+        SV *other;
+    CODE:
+        _3DScene::set_viewport_from_scene((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (wxGLCanvas*)wxPli_sv_2_object(aTHX_ other, "Wx::GLCanvas"));
+
+void
+update_volumes_colors_by_extruder(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::update_volumes_colors_by_extruder((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
+render(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::render((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+std::vector<double>
+get_current_print_zs(canvas, active_only)
+        SV   *canvas;
+        bool active_only;
+    CODE:
+        RETVAL = _3DScene::get_current_print_zs((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active_only);
+    OUTPUT:
+        RETVAL
+
+void
+set_toolpaths_range(canvas, low, high)
+        SV *canvas;
+        double low;
+        double high;
+    CODE:
+        _3DScene::set_toolpaths_range((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), low, high);
+
+void
+register_on_viewport_changed_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_viewport_changed_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_double_click_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_double_click_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_right_click_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_right_click_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_select_object_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_select_object_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_model_update_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_model_update_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_remove_object_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_remove_object_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_arrange_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_arrange_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_rotate_object_left_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_rotate_object_left_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_rotate_object_right_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_rotate_object_right_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+        
+void
+register_on_scale_object_uniformly_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_scale_object_uniformly_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_increase_objects_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_increase_objects_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_decrease_objects_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_decrease_objects_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_instance_moved_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_instance_moved_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_wipe_tower_moved_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_wipe_tower_moved_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_enable_action_buttons_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_enable_action_buttons_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_gizmo_scale_uniformly_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_gizmo_scale_uniformly_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 unsigned int
 finalize_legend_texture()
@@ -218,41 +673,61 @@ reset_warning_texture()
     CODE:
         _3DScene::reset_warning_texture();
 
-void
-_load_print_toolpaths(print, volumes, tool_colors, use_VBOs)
-        Print               *print;
-        GLVolumeCollection  *volumes;
-        std::vector<std::string> tool_colors;
-        int                  use_VBOs;
+std::vector<int>
+load_model_object(canvas, model_object, obj_idx, instance_idxs)
+        SV               *canvas;
+        ModelObject      *model_object;
+        int              obj_idx;
+        std::vector<int> instance_idxs;
     CODE:
-        _3DScene::_load_print_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
+        RETVAL = _3DScene::load_object((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model_object, obj_idx, instance_idxs);
+    OUTPUT:
+        RETVAL
+
+std::vector<int>
+load_model(canvas, model, obj_idx)
+        SV               *canvas;
+        Model            *model;
+        int              obj_idx;
+    CODE:
+        RETVAL = _3DScene::load_object((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model, obj_idx);
+    OUTPUT:
+        RETVAL
+
+void
+reload_scene(canvas, force)
+        SV   *canvas;
+        bool force;
+    CODE:
+        _3DScene::reload_scene((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), force);
+
+void
+load_print_toolpaths(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::load_print_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void 
-_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs)
-        PrintObject        *print_object;
-        GLVolumeCollection *volumes;
+load_print_object_toolpaths(canvas, print_object, tool_colors)
+        SV                       *canvas;
+        PrintObject              *print_object;
         std::vector<std::string> tool_colors;
-        int                 use_VBOs;
     CODE:
-        _3DScene::_load_print_object_toolpaths(print_object, volumes, tool_colors, use_VBOs != 0);
+        _3DScene::load_print_object_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print_object, tool_colors);
 
 void
-_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs)
-        Print               *print;
-        GLVolumeCollection  *volumes;
+load_wipe_tower_toolpaths(canvas, tool_colors)
+        SV                       *canvas;
         std::vector<std::string> tool_colors;
-        int                  use_VBOs;
     CODE:
-        _3DScene::_load_wipe_tower_toolpaths(print, volumes, tool_colors, use_VBOs != 0);
+        _3DScene::load_wipe_tower_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tool_colors);
 
 void 
-load_gcode_preview(print, preview_data, volumes, str_tool_colors, use_VBOs)
-        Print                    *print;
+load_gcode_preview(canvas, preview_data, str_tool_colors)
+        SV                       *canvas;
         GCodePreviewData         *preview_data;
-        GLVolumeCollection       *volumes;
         std::vector<std::string> str_tool_colors;
-        int                      use_VBOs;
     CODE:
-        _3DScene::load_gcode_preview(print, preview_data, volumes, str_tool_colors, use_VBOs != 0);
+        _3DScene::load_gcode_preview((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), preview_data, str_tool_colors);
         
 %}

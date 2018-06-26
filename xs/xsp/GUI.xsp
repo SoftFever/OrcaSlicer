@@ -4,6 +4,7 @@
 #include <xsinit.h>
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/Utils/ASCIIFolding.hpp"
+#include "slic3r/Utils/FixModelByWin10.hpp"
 #include "slic3r/Utils/Serial.hpp"
 %}
 
@@ -27,6 +28,9 @@ bool debugged()
 
 void break_to_debugger()
     %code{% Slic3r::GUI::break_to_debugger(); %};
+
+bool is_windows10()
+    %code{% RETVAL=Slic3r::is_windows10(); %};
 
 void set_wxapp(SV *ui)
     %code%{ Slic3r::GUI::set_wxapp((wxApp*)wxPli_sv_2_object(aTHX_ ui, "Wx::App")); %};
@@ -156,3 +160,6 @@ int get_export_option(SV *ui)
     
 void desktop_open_datadir_folder()
     %code%{ Slic3r::GUI::desktop_open_datadir_folder(); %};
+
+void fix_model_by_win10_sdk_gui(ModelObject *model_object_src, Print *print, Model *model_dst)
+    %code%{ Slic3r::fix_model_by_win10_sdk_gui(*model_object_src, *print, *model_dst); %};
