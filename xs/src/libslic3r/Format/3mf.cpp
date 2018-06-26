@@ -1271,6 +1271,7 @@ namespace Slic3r {
         if ((std::abs(sx - sy) > 0.00001) || (std::abs(sx - sz) > 0.00001))
             return;
 
+#if 0 // use quaternions
         // rotations (extracted using quaternion)
         double inv_sx = 1.0 / sx;
         double inv_sy = 1.0 / sy;
@@ -1331,6 +1332,25 @@ namespace Slic3r {
             if (angle_z < 0.0)
                 angle_z += 2.0 * PI;
         }
+#else // use eigen library
+        double inv_sx = 1.0 / sx;
+        double inv_sy = 1.0 / sy;
+        double inv_sz = 1.0 / sz;
+
+        Eigen::Matrix3d m3x3;
+        m3x3 << (double)matrix(0, 0) * inv_sx, (double)matrix(0, 1) * inv_sy, (double)matrix(0, 2) * inv_sz,
+                (double)matrix(1, 0) * inv_sx, (double)matrix(1, 1) * inv_sy, (double)matrix(1, 2) * inv_sz,
+                (double)matrix(2, 0) * inv_sx, (double)matrix(2, 1) * inv_sy, (double)matrix(2, 2) * inv_sz;
+
+        Eigen::AngleAxisd rotation;
+        rotation.fromRotationMatrix(m3x3);
+
+        // invalid rotation axis, we currently handle only rotations around Z axis
+        if ((rotation.angle() != 0.0) && (rotation.axis() != Eigen::Vector3d::UnitZ()) && (rotation.axis() != -Eigen::Vector3d::UnitZ()))
+            return;
+
+        double angle_z = (rotation.axis() == Eigen::Vector3d::UnitZ()) ? rotation.angle() : -rotation.angle();
+#endif 
 
         instance.offset.x = offset_x;
         instance.offset.y = offset_y;
