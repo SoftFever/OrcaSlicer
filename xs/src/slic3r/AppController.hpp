@@ -58,10 +58,12 @@ public:
     void progress_indicator(ProgresIndicatorPtr progrind);
 
     void progress_indicator(unsigned statenum,
-                                  const std::string& title,
-                                  const std::string& firstmsg = "");
+                            const std::string& title,
+                            const std::string& firstmsg = "");
 
     ProgresIndicatorPtr progress_indicator();
+
+    bool is_main_thread() const;
 
 protected:
 
@@ -70,7 +72,6 @@ protected:
             const std::string& title,
             const std::string& firstmsg = "") const;
 
-    bool is_main_thread() const;
 
     ProgresIndicatorPtr global_progressind_;
 };
@@ -86,6 +87,16 @@ protected:
     void make_perimeters(PrintObject *pobj);
     void infill(PrintObject *pobj);
     void gen_support_material(PrintObject *pobj);
+
+    struct PngExportData {
+        std::string zippath;
+        unsigned long width_px = 1440;
+        unsigned long height_px = 2560;
+        double width_mm = 68.0, height_mm = 120.0;
+        double corr = 1.0;
+    } query_png_export_data();
+
+    PngExportData prev_expdata_;
 
 public:
 
@@ -103,7 +114,7 @@ public:
     void slice_to_png();
 };
 
-class AppController: protected AppControllerBoilerplate {
+class AppController: public AppControllerBoilerplate {
     Model *model_ = nullptr;
     PrintController::Ptr printctl;
 public:

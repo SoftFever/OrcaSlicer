@@ -6,7 +6,7 @@
 #include <thread>
 #include <unordered_map>
 
-//#include <slic3r/GUI/GUI.hpp>
+#include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
 #include <PrintConfig.hpp>
@@ -270,10 +270,9 @@ void PrintController::slice_to_png()
 {
     assert(model_ != nullptr);
 
-    auto zipfilepath = query_destination_path(  "Path to zip file...",
-                                                "*.zip");
+    auto exd = query_png_export_data();
 
-    if(zipfilepath.empty()) return;
+    if(exd.zippath.empty()) return;
 
     auto presetbundle = GUI::get_preset_bundle();
 
@@ -290,16 +289,42 @@ void PrintController::slice_to_png()
         report_issue(IssueType::ERR, e.what(), "Error");
     }
 
-    std::async(std::launch::async, [this, zipfilepath]() {
+    auto print_bb = print_->bounding_box();
+
+    // If the print does not fit into the print area we should cry about it.
+    if(unscale(print_bb.size().x) > exd.width_mm ||
+            unscale(print_bb.size().y) > exd.height_mm) {
+        std::stringstream ss;
+
+        ss << _("Print will not fit and will be truncated!") << "\n"
+           << _("Width needed: ") << unscale(print_bb.size().x) << " mm\n"
+           << _("Height needed: ") << unscale(print_bb.size().y) << " mm\n";
+
+        report_issue(IssueType::WARN, ss.str(), "Warning");
+    }
+
+    std::async(std::launch::async, [this, exd]() {
         progress_indicator(100, "Slicing to zipped png files...");
         progress_indicator()->procedure_count(3);
-        slice();
+
+        try {
+            slice();
+        } catch (std::exception& e) {
+            report_issue(IssueType::ERR, e.what(), "Exception");
+            return;
+        }
 
         auto pbak = print_->progressindicator;
         print_->progressindicator = progress_indicator();
-        print_->print_to_png(zipfilepath);
-        print_->progressindicator = pbak;
 
+        try {
+            print_->print_to_png(exd.zippath, exd.width_px, exd.height_px,
+                                 exd.width_mm, exd.height_mm);
+        } catch (std::exception& e) {
+            report_issue(IssueType::ERR, e.what(), "Exception");
+        }
+
+        print_->progressindicator = pbak;
     });
 }
 
