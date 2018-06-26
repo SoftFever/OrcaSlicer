@@ -1419,11 +1419,14 @@ void GCode::append_full_config(const Print& print, std::string& str)
                 str += "; " + key + " = " + cfg->serialize(key) + "\n";
     }
     const DynamicConfig &full_config = print.placeholder_parser.config();
-    for (const char *key : { 
-        "print_settings_id", "filament_settings_id", "printer_settings_id", 
-        "printer_model", "printer_variant", "default_print_profile", "default_filament_profile",
-        "compatible_printers_condition", "inherits" })
-        str += std::string("; ") + key + " = " + full_config.serialize(key) + "\n";
+	for (const char *key : {
+		"print_settings_id", "filament_settings_id", "printer_settings_id",
+		"printer_model", "printer_variant", "default_print_profile", "default_filament_profile",
+		"compatible_printers_condition", "inherits" }) {
+		const ConfigOption *opt = full_config.option(key);
+		if (opt != nullptr)
+			str += std::string("; ") + key + " = " + opt->serialize() + "\n";
+	}
 }
 
 void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
