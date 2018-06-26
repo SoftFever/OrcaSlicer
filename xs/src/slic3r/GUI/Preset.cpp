@@ -427,6 +427,19 @@ Preset& PresetCollection::load_preset(const std::string &path, const std::string
     return this->load_preset(path, name, std::move(cfg), select);
 }
 
+static bool profile_print_params_same(const DynamicPrintConfig &cfg1, const DynamicPrintConfig &cfg2)
+{
+    t_config_option_keys diff = cfg1.diff(cfg2);
+    // Following keys are used by the UI, not by the slicing core, therefore they are not important
+    // when comparing profiles for equality. Ignore them.
+    for (const char *key : { "compatible_printers", "compatible_printers_condition", "inherits", 
+                             "print_settings_id", "filament_settings_id", "printer_settings_id",
+                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile" })
+        diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
+    // Preset with the same name as stored inside the config exists.
+    return diff.empty();
+}
+
 // Load a preset from an already parsed config file, insert it into the sorted sequence of presets
 // and select it, losing previous modifications.
 // In case 
@@ -447,24 +460,40 @@ Preset& PresetCollection::load_external_preset(
     cfg.apply_only(config, cfg.keys(), true);
     // Is there a preset already loaded with the name stored inside the config?
     std::deque<Preset>::iterator it = original_name.empty() ? m_presets.end() : this->find_preset_internal(original_name);
-    if (it != m_presets.end()) {
-        t_config_option_keys diff = it->config.diff(cfg);
-        // Following keys are used by the UI, not by the slicing core, therefore they are not important
-        // when comparing profiles for equality. Ignore them.
-        for (const char *key : { "compatible_printers", "compatible_printers_condition", "inherits", 
-                                 "print_settings_id", "filament_settings_id", "printer_settings_id",
-								 "printer_model", "printer_variant", "default_print_profile", "default_filament_profile" })
-            diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
-        // Preset with the same name as stored inside the config exists.
-		if (diff.empty()) {
+    if (it != m_presets.end() && profile_print_params_same(it->config, cfg)) {
+        // The preset exists and it matches the values stored inside config.
+        if (select)
+            this->select_preset(it - m_presets.begin());
+        return *it;
+    }
+    // The external preset does not match an internal preset, load the external preset.
+    std::string new_name;
+    for (size_t idx = 0;; ++ idx) {
+        std::string suffix;
+        if (original_name.empty()) {
+            if (idx > 0)
+                suffix = " (" + std::to_string(idx) + ")";
+        } else {
+            if (idx == 0)
+                suffix = " (" + original_name + ")";            
+            else
+                suffix = " (" + original_name + "-" + std::to_string(idx) + ")";
+        }
+        new_name = name + suffix;
+        it = this->find_preset_internal(new_name);
+        if (it == m_presets.end())
+            // Unique profile name. Insert a new profile.
+            break;
+        if (profile_print_params_same(it->config, cfg)) {
             // The preset exists and it matches the values stored inside config.
             if (select)
                 this->select_preset(it - m_presets.begin());
             return *it;
         }
+        // Form another profile name.
     }
-    // The external preset does not match an internal preset, load the external preset.
-    Preset &preset = this->load_preset(path, name, std::move(cfg), select);
+    // Insert a new profile.
+    Preset &preset = this->load_preset(path, new_name, std::move(cfg), select);
     preset.is_external = true;
     return preset;
 }

@@ -618,21 +618,26 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         // Load the configs into this->filaments and make them active.
         this->filament_presets.clear();
         for (size_t i = 0; i < configs.size(); ++ i) {
-            char suffix[64];
-            if (i == 0)
-                suffix[0] = 0;
-            else
-                sprintf(suffix, " (%d)", i);
-            std::string new_name = name + suffix;
             // Load all filament presets, but only select the first one in the preset dialog.
+            Preset *loaded = nullptr;
             if (is_external)
-                this->filaments.load_external_preset(name_or_path, new_name,
+                loaded = &this->filaments.load_external_preset(name_or_path, name,
                     (i < old_filament_profile_names->values.size()) ? old_filament_profile_names->values[i] : "",
                     std::move(configs[i]), i == 0);
-            else
-                this->filaments.load_preset(this->filaments.path_from_name(new_name),
-                    new_name, std::move(configs[i]), i == 0).save();
-            this->filament_presets.emplace_back(new_name);
+            else {
+                // Used by the config wizard when creating a custom setup.
+                // Therefore this block should only be called for a single extruder.
+                char suffix[64];
+                if (i == 0)
+                    suffix[0] = 0;
+                else
+                    sprintf(suffix, "%d", i);
+                std::string new_name = name + suffix;
+                loaded = &this->filaments.load_preset(this->filaments.path_from_name(new_name),
+                    new_name, std::move(configs[i]), i == 0);
+                loaded->save();
+            }
+            this->filament_presets.emplace_back(loaded->name);
         }
     }
 
