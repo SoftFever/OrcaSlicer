@@ -1890,6 +1890,8 @@ sub on_config_change {
             $update_scheduled = 1;
         } elsif ($opt_key eq 'printer_model') {
             # update to force bed selection (for texturing)
+            Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
+            Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
             $update_scheduled = 1;
         }
     }
