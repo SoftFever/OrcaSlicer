@@ -764,7 +764,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         }
         // Extrude the layers.
         for (auto &layer : layers_to_print) {
-            const ToolOrdering::LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
+            const LayerTools &layer_tools = tool_ordering.tools_for_layer(layer.first);
             if (m_wipe_tower && layer_tools.has_wipe_tower)
                 m_wipe_tower->next_layer();
             this->process_layer(file, print, layer.second, layer_tools, size_t(-1));
@@ -1009,7 +1009,7 @@ void GCode::process_layer(
     const Print                     &print,
     // Set of object & print layers of the same PrintObject and with the same print_z.
     const std::vector<LayerToPrint> &layers,
-    const ToolOrdering::LayerTools  &layer_tools,
+    const LayerTools  &layer_tools,
     // If set to size_t(-1), then print all copies of all objects.
     // Otherwise print a single copy of a single object.
     const size_t                     single_object_idx)
@@ -1239,18 +1239,20 @@ void GCode::process_layer(
                             continue;
 
                         // This extrusion is part of certain Region, which tells us which extruder should be used for it:
-                        int correct_extruder_id = get_extruder(fill, region); entity_type=="infills" ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                        int correct_extruder_id = get_extruder(*fill, region); entity_type=="infills" ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
                                                                            std::max<int>(region.config.perimeter_extruder.value - 1, 0);
 
                         // Let's recover vector of extruder overrides:
-                        const ExtruderPerCopy* entity_overrides = const_cast<ToolOrdering::LayerTools&>(layer_tools).wiping_extrusions.get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->_shifted_copies.size());
+                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions.get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->_shifted_copies.size());
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : layer_tools.extruders)
                         {
                             // Init by_extruder item only if we actually use the extruder:
-                            if (std::find(entity_overrides->begin(), entity_overrides->end(), extruder) != entity_overrides->end() ||   // at least one copy is overridden to use this extruder
-                                std::find(entity_overrides->begin(), entity_overrides->end(), -extruder-1) != entity_overrides->end())  // at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
+                            if (std::find(entity_overrides->begin(), entity_overrides->end(), extruder) != entity_overrides->end() ||      // at least one copy is overridden to use this extruder
+                                std::find(entity_overrides->begin(), entity_overrides->end(), -extruder-1) != entity_overrides->end() ||   // at least one copy would normally be printed with this extruder (see get_extruder_overrides function for explanation)
+                                (std::find(layer_tools.extruders.begin(), layer_tools.extruders.end(), correct_extruder_id) == layer_tools.extruders.end() && extruder == layer_tools.extruders.back())) // this entity is not overridden, but its extruder is not in layer_tools - we'll print it
+                                                                                                                                            //by last extruder on this layer (could happen e.g. when a wiping object is taller than others - dontcare extruders are eradicated from layer_tools)
                             {
                                 std::vector<ObjectByExtruder::Island> &islands = object_islands_by_extruder(
                                     by_extruder,

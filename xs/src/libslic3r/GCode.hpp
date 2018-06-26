@@ -185,7 +185,7 @@ protected:
         const Print                     &print,
         // Set of object & print layers of the same PrintObject and with the same print_z.
         const std::vector<LayerToPrint> &layers,
-        const ToolOrdering::LayerTools  &layer_tools,
+        const LayerTools  &layer_tools,
         // If set to size_t(-1), then print all copies of all objects.
         // Otherwise print a single copy of a single object.
         const size_t                     single_object_idx = size_t(-1));

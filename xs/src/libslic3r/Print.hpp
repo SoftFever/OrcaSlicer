@@ -318,19 +318,15 @@ private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
 
-    // This function goes through all infill entities, decides which ones will be used for wiping and
-    // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
-    float mark_wiping_extrusions(ToolOrdering::LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe);
-
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;
 };
 
 
 // Returns extruder this eec should be printed with, according to PrintRegion config
-static int get_extruder(const ExtrusionEntityCollection* fill, const PrintRegion &region) {
-    return is_infill(fill->role()) ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
-                                     std::max<int>(region.config.perimeter_extruder.value - 1, 0);
+static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region) {
+    return is_infill(fill.role()) ? std::max<int>(0, (is_solid_infill(fill.entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                                    std::max<int>(region.config.perimeter_extruder.value - 1, 0);
 }
 
 
