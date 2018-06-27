@@ -1408,9 +1408,15 @@ GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
-GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
+//#################################################################################################################
+GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
+//GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
+//#################################################################################################################
     : m_canvas(canvas)
-    , m_context(context)
+//#################################################################################################################
+    , m_context(nullptr)
+//    , m_context(context)
+//#################################################################################################################
     , m_timer(nullptr)
     , m_config(nullptr)
     , m_print(nullptr)
@@ -1433,8 +1439,16 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_drag_by("instance")
     , m_reload_delayed(false)
 {
+//#################################################################################################################
     if (m_canvas != nullptr)
+    {
+        m_context = new wxGLContext(m_canvas);
         m_timer = new wxTimer(m_canvas);
+    }
+
+//    if (m_canvas != nullptr)
+//        m_timer = new wxTimer(m_canvas);
+//#################################################################################################################
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -1447,6 +1461,14 @@ GLCanvas3D::~GLCanvas3D()
         m_timer = nullptr;
     }
 
+//#################################################################################################################
+    if (m_context != nullptr)
+    {
+        delete m_context;
+        m_context = nullptr;
+    }
+//#################################################################################################################
+
     _deregister_callbacks();
 }
 
@@ -1454,6 +1476,11 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
     if (m_initialized)
         return true;
+
+//#################################################################################################################
+    if ((m_canvas == nullptr) || (m_context == nullptr))
+        return false;
+//#################################################################################################################
 
     ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     ::glClearDepth(1.0f);
@@ -1520,13 +1547,26 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     return true;
 }
 
-bool GLCanvas3D::set_current(bool force)
+//#################################################################################################################
+bool GLCanvas3D::set_current()
 {
-    if ((force || m_active) && (m_canvas != nullptr) && (m_context != nullptr))
+    if ((m_canvas != nullptr) && (m_context != nullptr))
+//    if (m_active && (m_canvas != nullptr) && (m_context != nullptr))
+    {
+        std::cout << "set_current: " << (void*)m_canvas << " - " << (void*)m_context << std::endl;
         return m_canvas->SetCurrent(*m_context);
-
+    }
     return false;
 }
+
+//bool GLCanvas3D::set_current(bool force)
+//{
+//    if ((force || m_active) && (m_canvas != nullptr) && (m_context != nullptr))
+//        return m_canvas->SetCurrent(*m_context);
+//
+//    return false;
+//}
+//#################################################################################################################
 
 void GLCanvas3D::set_active(bool active)
 {
@@ -1549,7 +1589,10 @@ void GLCanvas3D::reset_volumes()
     if (!m_volumes.empty())
     {
         // ensures this canvas is current
-        if ((m_canvas == nullptr) || !_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
+        if (!set_current())
+//        if ((m_canvas == nullptr) || !_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
             return;
 
         m_volumes.release_geometry();
@@ -1850,7 +1893,10 @@ void GLCanvas3D::render()
         return;
 
     // ensures this canvas is current and initialized
-    if (!_3DScene::set_current(m_canvas, false) || !_3DScene::init(m_canvas))
+//#################################################################################################################
+    if (!set_current() || !_3DScene::init(m_canvas))
+//    if (!_3DScene::set_current(m_canvas, false) || !_3DScene::init(m_canvas))
+//#################################################################################################################
         return;
 
     if (m_force_zoom_to_bed_enabled)
@@ -1933,7 +1979,10 @@ void GLCanvas3D::reload_scene(bool force)
     reset_volumes();
 
     // ensures this canvas is current
-    if (!_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
+    if (!set_current())
+//    if (!_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
         return;
 
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
@@ -2008,7 +2057,10 @@ void GLCanvas3D::reload_scene(bool force)
 void GLCanvas3D::load_print_toolpaths()
 {
     // ensures this canvas is current
-    if (!_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
+    if (!set_current())
+//    if (!_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
         return;
 
     if (m_print == nullptr)
@@ -2376,7 +2428,10 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     if ((m_canvas != nullptr) && (m_print != nullptr))
     {
         // ensures that this canvas is current
-        if (!_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
+        if (!set_current())
+//        if (!_3DScene::set_current(m_canvas, true))
+//#################################################################################################################
             return;
 
         if (m_volumes.empty())
@@ -3019,7 +3074,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         return;
 
     // ensures that this canvas is current
-    _3DScene::set_current(m_canvas, false);
+//#################################################################################################################
+    set_current();
+//    _3DScene::set_current(m_canvas, false);
+//#################################################################################################################
     ::glViewport(0, 0, w, h);
 
     ::glMatrixMode(GL_PROJECTION);

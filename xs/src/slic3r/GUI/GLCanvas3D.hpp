@@ -444,12 +444,18 @@ private:
     PerlCallback m_on_gizmo_scale_uniformly_callback;
 
 public:
-    GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
+//#################################################################################################################
+    GLCanvas3D(wxGLCanvas* canvas);
+//    GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
+//#################################################################################################################
     ~GLCanvas3D();
 
     bool init(bool useVBOs, bool use_legacy_opengl);
 
-    bool set_current(bool force);
+//#################################################################################################################
+    bool set_current();
+//    bool set_current(bool force);
+//#################################################################################################################
 
     void set_active(bool active);
     void set_as_dirty();

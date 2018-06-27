@@ -204,7 +204,9 @@ sub new {
         if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
             Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 0);
             Slic3r::GUI::_3DScene::set_active($self->{canvas3D}, 0);
-            Slic3r::GUI::_3DScene::reset_current_canvas();
+#==================================================================================================================    
+#            Slic3r::GUI::_3DScene::reset_current_canvas();
+#==================================================================================================================    
             $preview->OnActivate if $preview->can('OnActivate');        
         } elsif ($preview == $self->{preview3D}) {
             Slic3r::GUI::_3DScene::set_active($self->{preview3D}->canvas, 1);
