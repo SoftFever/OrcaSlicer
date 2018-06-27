@@ -150,8 +150,15 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {
+		long label_style = staticbox ? 0 : wxALIGN_RIGHT;
+#ifdef __WXGTK__
+		// workaround for correct text align of the StaticBox on Linux
+		// flags wxALIGN_RIGHT and wxALIGN_CENTRE don't work when Ellipsize flags are _not_ given.
+		// Text is properly aligned only when Ellipsize is checked.
+		label_style |= staticbox ? 0 : wxST_ELLIPSIZE_END;
+#endif /* __WXGTK__ */
 		label = new wxStaticText(parent(), wxID_ANY, line.label + (line.label.IsEmpty() ? "" : ":"), 
-							wxDefaultPosition, wxSize(label_width, -1), staticbox ? 0 : wxALIGN_RIGHT);
+							wxDefaultPosition, wxSize(label_width, -1), label_style);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
 		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
