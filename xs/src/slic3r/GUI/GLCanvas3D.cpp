@@ -1422,7 +1422,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_print(nullptr)
     , m_model(nullptr)
     , m_dirty(true)
-    , m_active(true)
+//#################################################################################################################
+//    , m_active(true)
+//#################################################################################################################
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_force_zoom_to_bed_enabled(false)
@@ -1552,10 +1554,8 @@ bool GLCanvas3D::set_current()
 {
     if ((m_canvas != nullptr) && (m_context != nullptr))
 //    if (m_active && (m_canvas != nullptr) && (m_context != nullptr))
-    {
-//        std::cout << "set_current: " << (void*)m_canvas << " - " << (void*)m_context << std::endl;
         return m_canvas->SetCurrent(*m_context);
-    }
+
     return false;
 }
 
@@ -1568,10 +1568,12 @@ bool GLCanvas3D::set_current()
 //}
 //#################################################################################################################
 
-void GLCanvas3D::set_active(bool active)
-{
-    m_active = active;
-}
+//#################################################################################################################
+//void GLCanvas3D::set_active(bool active)
+//{
+//    m_active = active;
+//}
+//#################################################################################################################
 
 void GLCanvas3D::set_as_dirty()
 {
@@ -2753,9 +2755,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     } 
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
     {
-        m_active = false;
+//#################################################################################################################
+//        m_active = false;
+//#################################################################################################################
         m_on_double_click_callback.call();
-        m_active = true;
+//#################################################################################################################
+//        m_active = true;
+//#################################################################################################################
     }
     else if (evt.LeftDown() || evt.RightDown())
     {
@@ -2853,9 +2859,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     // if right clicking on volume, propagate event through callback
                     if (m_volumes.volumes[volume_idx]->hover)
                     {
-                        m_active = false;
+//#################################################################################################################
+//                        m_active = false;
+//#################################################################################################################
                         m_on_right_click_callback.call(pos.x, pos.y);
-                        m_active = true;
+//#################################################################################################################
+//                        m_active = true;
+//#################################################################################################################
                     }
                 }
             }

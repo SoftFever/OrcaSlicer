@@ -251,14 +251,14 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
 //    m_current = nullptr;
 //    return false;
 //}
+//
+//void GLCanvas3DManager::set_active(wxGLCanvas* canvas, bool active)
+//{
+//    CanvasesMap::iterator it = _get_canvas(canvas);
+//    if (it != m_canvases.end())
+//        it->second->set_active(active);
+//}
 //#################################################################################################################
-
-void GLCanvas3DManager::set_active(wxGLCanvas* canvas, bool active)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->set_active(active);
-}
 
 void GLCanvas3DManager::set_as_dirty(wxGLCanvas* canvas)
 {

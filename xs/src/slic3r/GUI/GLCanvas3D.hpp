@@ -401,9 +401,11 @@ private:
     Model* m_model;
 
     bool m_dirty;
-    // the active member has been introduced to overcome a bug in wxWidgets method IsShownOnScreen() which always return true
-    // when a window is inside a wxNotebook
-    bool m_active;
+//#################################################################################################################
+//    // the active member has been introduced to overcome a bug in wxWidgets method IsShownOnScreen() which always return true
+//    // when a window is inside a wxNotebook
+//    bool m_active;
+//#################################################################################################################
     bool m_initialized;
     bool m_use_VBOs;
     bool m_force_zoom_to_bed_enabled;
@@ -457,7 +459,9 @@ public:
 //    bool set_current(bool force);
 //#################################################################################################################
 
-    void set_active(bool active);
+//#################################################################################################################
+//    void set_active(bool active);
+//#################################################################################################################
     void set_as_dirty();
 
     unsigned int get_volumes_count() const;

@@ -191,13 +191,6 @@ remove_all_canvases()
         _3DScene::remove_all_canvases();
 
 void
-set_active(canvas, active)
-        SV   *canvas;
-        bool active;
-    CODE:
-        _3DScene::set_active((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active);
-
-void
 set_as_dirty(canvas)
         SV *canvas;
     CODE:

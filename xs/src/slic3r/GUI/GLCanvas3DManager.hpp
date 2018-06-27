@@ -74,8 +74,8 @@ public:
 
 //#################################################################################################################
 //    bool set_current(wxGLCanvas* canvas, bool force);
+//    void set_active(wxGLCanvas* canvas, bool active);
 //#################################################################################################################
-    void set_active(wxGLCanvas* canvas, bool active);
     void set_as_dirty(wxGLCanvas* canvas);
 
     unsigned int get_volumes_count(wxGLCanvas* canvas) const;
