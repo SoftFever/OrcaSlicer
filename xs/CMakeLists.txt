@@ -159,6 +159,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/PolylineCollection.hpp
     ${LIBDIR}/libslic3r/Print.cpp
     ${LIBDIR}/libslic3r/Print.hpp
+    ${LIBDIR}/libslic3r/PrintExport.hpp
     ${LIBDIR}/libslic3r/PrintConfig.cpp
     ${LIBDIR}/libslic3r/PrintConfig.hpp
     ${LIBDIR}/libslic3r/PrintObject.cpp

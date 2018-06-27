@@ -208,7 +208,6 @@ _constant()
                 croak("%s\n", e.what());
             }
         %};
-
         
     void print_to_png(std::string dirpath);
     

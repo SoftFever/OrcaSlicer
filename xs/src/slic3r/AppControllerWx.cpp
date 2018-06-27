@@ -60,19 +60,22 @@ AppControllerBoilerplate::query_destination_path(
     return ret;
 }
 
-void AppControllerBoilerplate::report_issue(IssueType issuetype,
+bool AppControllerBoilerplate::report_issue(IssueType issuetype,
                                  const std::string &description,
                                  const std::string &brief)
 {
     auto icon = wxICON_INFORMATION;
+    auto style = wxOK|wxCENTRE;
     switch(issuetype) {
     case IssueType::INFO:   break;
     case IssueType::WARN:   icon = wxICON_WARNING; break;
+    case IssueType::WARN_Q: icon = wxICON_WARNING; style |= wxCANCEL; break;
     case IssueType::ERR:
     case IssueType::FATAL:  icon = wxICON_ERROR;
     }
 
-    wxMessageBox(description, brief, icon);
+    auto ret = wxMessageBox(description, brief, icon | style);
+    return ret != wxCANCEL;
 }
 
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
@@ -141,6 +144,11 @@ public:
         Bind(PROGRESS_STATUS_UPDATE_EVENT,
              &GuiProgressIndicator::_state,
              this, id_);
+    }
+
+    virtual void cancel() override {
+        update(max(), "Abort");
+        IProgressIndicator::cancel();
     }
 
     virtual void state(float val) override {
@@ -285,9 +293,12 @@ PrintController::PngExportData PrintController::query_png_export_data()
     // Implement the logic of the PngExportDialog
     class PngExportView: public PngExportDialog {
         double ratio_, bs_ratio_;
+        PrintController& ctl_;
     public:
 
-        PngExportView(): PngExportDialog(wxTheApp->GetTopWindow()) {
+        PngExportView(PrintController& ctl):
+            PngExportDialog(wxTheApp->GetTopWindow()), ctl_(ctl)
+        {
             ratio_ = double(spin_reso_width_->GetValue()) /
                     spin_reso_height_->GetValue();
 
@@ -302,7 +313,9 @@ PrintController::PngExportData PrintController::query_png_export_data()
             ret.height_px = spin_reso_height_->GetValue();
             ret.width_mm = bed_width_spin_->GetValue();
             ret.height_mm = bed_height_spin_->GetValue();
-            ret.corr = corr_spin_->GetValue();
+            ret.corr_x = corr_spin_x_->GetValue();
+            ret.corr_y = corr_spin_y_->GetValue();
+            ret.corr_z = corr_spin_z_->GetValue();
             return ret;
         }
 
@@ -312,7 +325,11 @@ PrintController::PngExportData PrintController::query_png_export_data()
             spin_reso_height_->SetValue(data.height_px);
             bed_width_spin_->SetValue(data.width_mm);
             bed_height_spin_->SetValue(data.height_mm);
-            corr_spin_->SetValue(data.corr);
+            corr_spin_x_->SetValue(data.corr_x);
+            corr_spin_y_->SetValue(data.corr_y);
+            corr_spin_z_->SetValue(data.corr_z);
+            if(data.zippath.empty()) export_btn_->Disable();
+            else export_btn_->Enable();
         }
 
         virtual void ResoLock( wxCommandEvent& /*event*/ ) override {
@@ -352,9 +369,24 @@ PrintController::PngExportData PrintController::query_png_export_data()
                 }
             }
         }
+
+        virtual void onFileChanged( wxFileDirPickerEvent& event ) {
+            if(filepick_ctl_->GetPath().IsEmpty()) export_btn_->Disable();
+            else export_btn_->Enable();
+        }
+
+        virtual void Close( wxCommandEvent& /*event*/ ) {
+            auto ret = wxID_OK;
+
+            if(wxFileName(filepick_ctl_->GetPath()).Exists())
+                if(!ctl_.report_issue(PrintController::IssueType::WARN_Q,
+                                  "File already exists. Overwrite?",
+                                  "Warning")) ret = wxID_CANCEL;
+            EndModal(ret);
+        }
     };
 
-    PngExportView exdlg;
+    PngExportView exdlg(*this);
 
     exdlg.prefill(prev_expdata_);
 

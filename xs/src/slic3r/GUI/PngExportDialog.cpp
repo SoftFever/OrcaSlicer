@@ -23,11 +23,15 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     bSizer16 = new wxBoxSizer( wxVERTICAL );
 
     wxGridSizer* gSizer2;
-    gSizer2 = new wxGridSizer( 4, 1, 0, 0 );
+    gSizer2 = new wxGridSizer( 5, 1, 0, 0 );
 
     filepick_text_ = new wxStaticText( this, wxID_ANY, _("Target zip file"), wxDefaultPosition, wxDefaultSize, 0 );
     filepick_text_->Wrap( -1 );
     gSizer2->Add( filepick_text_, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    auto confpick_text = new wxStaticText( this, wxID_ANY, _("Config file (optional)"), wxDefaultPosition, wxDefaultSize, 0 );
+    confpick_text->Wrap( -1 );
+    gSizer2->Add( confpick_text, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     resotext_ = new wxStaticText( this, wxID_ANY, _("Resolution (w, h) [px]"), wxDefaultPosition, wxDefaultSize, 0 );
     resotext_->Wrap( -1 );
@@ -37,7 +41,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     bed_size_text_->Wrap( -1 );
     gSizer2->Add( bed_size_text_, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    corr_text_ = new wxStaticText( this, wxID_ANY, _("Size correction"), wxDefaultPosition, wxDefaultSize, 0 );
+    corr_text_ = new wxStaticText( this, wxID_ANY, _("Scale (x, y, z)"), wxDefaultPosition, wxDefaultSize, 0 );
     corr_text_->Wrap( -1 );
     gSizer2->Add( corr_text_, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
@@ -52,12 +56,15 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
     wxBoxSizer* filepick_layout_;
     filepick_layout_ = new wxBoxSizer( wxHORIZONTAL );
-
-    filepick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.zip"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT, wxDefaultValidator, wxT("filepick_ctl") );
+    filepick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.zip"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_SAVE, wxDefaultValidator, wxT("filepick_ctl") );
     filepick_layout_->Add( filepick_ctl_, 2, wxALIGN_CENTER|wxALL, 5 );
-
-
     bSizer18->Add( filepick_layout_, 1, wxEXPAND, 5 );
+
+    wxBoxSizer* confpick_layout_;
+    confpick_layout_ = new wxBoxSizer( wxHORIZONTAL );
+    confpick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.json"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_DEFAULT_STYLE, wxDefaultValidator, wxT("filepick_ctl") );
+    confpick_layout_ ->Add( confpick_ctl_, 2, wxALIGN_CENTER|wxALL, 5 );
+    bSizer18->Add( confpick_layout_ , 1, wxEXPAND, 5 );
 
     wxBoxSizer* resolution_layout_;
     resolution_layout_ = new wxBoxSizer( wxHORIZONTAL );
@@ -104,9 +111,20 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     wxBoxSizer* corr_layout_;
     corr_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
-    corr_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 1, 0.1 );
-    corr_layout_->Add( corr_spin_, 0, wxALIGN_CENTER|wxALL, 5 );
+    corr_spin_x_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 1, 0.01 );
+    corr_spin_x_->SetDigits(3);
+    corr_spin_x_->SetMaxSize(wxSize(100, -1));
+    corr_layout_->Add( corr_spin_x_, 0, wxALIGN_CENTER|wxALL, 5 );
 
+    corr_spin_y_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 1, 0.01 );
+    corr_spin_y_->SetDigits(3);
+    corr_spin_y_->SetMaxSize(wxSize(100, -1));
+    corr_layout_->Add( corr_spin_y_, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    corr_spin_z_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 1, 0.01 );
+    corr_spin_z_->SetDigits(3);
+    corr_spin_z_->SetMaxSize(wxSize(100, -1));
+    corr_layout_->Add( corr_spin_z_, 0, wxALIGN_CENTER|wxALL, 5 );
 
     corr_layout_->Add( 0, 0, 1, wxEXPAND, 5 );
 
@@ -131,6 +149,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     this->Centre( wxBOTH );
 
     // Connect Events
+    filepick_ctl_->Connect( wxEVT_COMMAND_FILEPICKER_CHANGED, wxFileDirPickerEventHandler( PngExportDialog::onFileChanged ), NULL, this );
     spin_reso_width_->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PngExportDialog::EvalResoSpin ), NULL, this );
     spin_reso_height_->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PngExportDialog::EvalResoSpin ), NULL, this );
     reso_lock_btn_->Connect( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PngExportDialog::ResoLock ), NULL, this );
@@ -143,6 +162,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
 PngExportDialog::~PngExportDialog()
 {
     // Disconnect Events
+    filepick_ctl_->Disconnect( wxEVT_COMMAND_FILEPICKER_CHANGED, wxFileDirPickerEventHandler( PngExportDialog::onFileChanged ), NULL, this );
     spin_reso_width_->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PngExportDialog::EvalResoSpin ), NULL, this );
     spin_reso_height_->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( PngExportDialog::EvalResoSpin ), NULL, this );
     reso_lock_btn_->Disconnect( wxEVT_COMMAND_TOGGLEBUTTON_CLICKED, wxCommandEventHandler( PngExportDialog::ResoLock ), NULL, this );

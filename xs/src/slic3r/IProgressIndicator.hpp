@@ -15,7 +15,7 @@ public:
 
 private:
     float state_ = .0f, max_ = 1.f, step_;
-    std::function<void(void)> cancelfunc_ = [](){};
+    CancelFn cancelfunc_ = [](){};
     unsigned proc_count_ = 1;
 
 public:
@@ -54,8 +54,11 @@ public:
     /// Set up a cancel callback for the operation if feasible.
     inline void on_cancel(CancelFn func) { cancelfunc_ = func; }
 
-    /// Call a previously specified cancel callback.
-    inline void on_cancel() { cancelfunc_(); }
+    /**
+     * Explicitly shut down the progress indicator and call the associated
+     * callback.
+     */
+    virtual void cancel() { cancelfunc_(); }
 
     /**
      * \brief Set up how many subprocedures does the whole operation contain.

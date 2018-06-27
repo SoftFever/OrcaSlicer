@@ -11,6 +11,7 @@
 
 #include <PrintConfig.hpp>
 #include <Print.hpp>
+#include <PrintExport.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
 
@@ -172,7 +173,7 @@ void PrintController::slice(PrintObject *pobj)
     if(pobj->layers.empty())
         report_issue(IssueType::ERR,
                      "No layers were detected. You might want to repair your "
-                       "STL file(s) or check their size or thickness and retry"
+                     "STL file(s) or check their size or thickness and retry"
                      );
 
     pobj->state.set_done(STEP_SLICE);
@@ -268,8 +269,6 @@ void PrintController::slice()
 
 void PrintController::slice_to_png()
 {
-    assert(model_ != nullptr);
-
     auto exd = query_png_export_data();
 
     if(exd.zippath.empty()) return;
@@ -287,7 +286,23 @@ void PrintController::slice_to_png()
         print_->validate();
     } catch(std::exception& e) {
         report_issue(IssueType::ERR, e.what(), "Error");
+        return;
     }
+
+    // TODO
+    /*bool correction = false;
+    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
+        correction = true;
+        print_->invalidate_all_steps();
+
+        for(auto po : print_->objects) {
+            po->model_object()->scale(
+                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
+                        );
+            po->model_object()->invalidate_bounding_box();
+            po->reload_model_instances();
+        }
+    }*/
 
     auto print_bb = print_->bounding_box();
 
@@ -311,6 +326,7 @@ void PrintController::slice_to_png()
             slice();
         } catch (std::exception& e) {
             report_issue(IssueType::ERR, e.what(), "Exception");
+            progress_indicator()->cancel();
             return;
         }
 
@@ -318,11 +334,25 @@ void PrintController::slice_to_png()
         print_->progressindicator = progress_indicator();
 
         try {
-            print_->print_to_png(exd.zippath, exd.width_px, exd.height_px,
-                                 exd.width_mm, exd.height_mm);
+            print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
+                        exd.width_mm, exd.height_mm,
+                        exd.width_px, exd.height_px );
+
         } catch (std::exception& e) {
             report_issue(IssueType::ERR, e.what(), "Exception");
+            progress_indicator()->cancel();
         }
+
+        /*if(correction) { // scale the model back
+            print_->invalidate_all_steps();
+            for(auto po : print_->objects) {
+                po->model_object()->scale(
+                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+                );
+                po->model_object()->invalidate_bounding_box();
+                po->reload_model_instances();
+            }
+        }*/
 
         print_->progressindicator = pbak;
     });

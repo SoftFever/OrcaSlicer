@@ -51,6 +51,7 @@ public:
     enum class IssueType {
         INFO,
         WARN,
+        WARN_Q,     // Warning with a question to continue
         ERR,
         FATAL
     };
@@ -91,7 +92,7 @@ public:
      * @param brief A very brief description. Can be used for message dialog
      * title.
      */
-    void report_issue(IssueType issuetype,
+    bool report_issue(IssueType issuetype,
                       const std::string& description,
                       const std::string& brief = "");
 
@@ -170,7 +171,9 @@ protected:
         unsigned long width_px = 1440;              // resolution - rows
         unsigned long height_px = 2560;             // resolution columns
         double width_mm = 68.0, height_mm = 120.0;  // dimensions in mm
-        double corr = 1.0;                          // multiplies the dimensions
+        double corr_x = 1.0;                        // offsetting in x
+        double corr_y = 1.0;                        // offsetting in y
+        double corr_z = 1.0;                        // offsetting in y
     };
 
     // Should display a dialog with the input fields for printing to png
@@ -208,6 +211,9 @@ public:
      * @brief Slice the print into zipped png files.
      */
     void slice_to_png();
+
+
+    void slice_to_png(std::string dirpath);
 };
 
 /**

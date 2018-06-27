@@ -41,16 +41,20 @@ class PngExportDialog : public wxDialog
         wxStaticText* bed_size_text_;
         wxStaticText* corr_text_;
         wxFilePickerCtrl* filepick_ctl_;
+        wxFilePickerCtrl* confpick_ctl_;
         wxSpinCtrl* spin_reso_width_;
         wxSpinCtrl* spin_reso_height_;
         wxToggleButton* reso_lock_btn_;
         wxSpinCtrlDouble* bed_width_spin_;
         wxSpinCtrlDouble* bed_height_spin_;
         wxToggleButton* bedsize_lock_btn_;
-        wxSpinCtrlDouble* corr_spin_;
+        wxSpinCtrlDouble* corr_spin_x_;
+        wxSpinCtrlDouble* corr_spin_y_;
+        wxSpinCtrlDouble* corr_spin_z_;
         wxButton* export_btn_;
 
         // Virtual event handlers, overide them in your derived class
+        virtual void onFileChanged( wxFileDirPickerEvent& event ) { event.Skip(); }
         virtual void EvalResoSpin( wxCommandEvent& event ) { event.Skip(); }
         virtual void ResoLock( wxCommandEvent& event ) { event.Skip(); }
         virtual void EvalBedSpin( wxCommandEvent& event ) { event.Skip(); }

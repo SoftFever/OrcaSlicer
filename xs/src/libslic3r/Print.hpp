@@ -318,26 +318,10 @@ public:
     // Has the calculation been canceled?
     bool canceled() { return m_canceled; }
 
-    enum class FilePrinterFormat {
-        PNG,
-        SVG
-    };
-
-    template<FilePrinterFormat format, class...Args>
-    void print_to(std::string dirpath,
-                  double width_mm,
-                  double height_mm,
-                  Args...args);
-
-    void print_to_png(std::string dirpath, long width_px, long height_px,
-                      double width_mm, double height_mm);
-
-    void print_to_png(std::string dirpath) {
-        // Will need some GUI dialog perhaps for these to be specified.
-        print_to_png(dirpath, 1440, 2560, 68.0, 120.0);
-    }
+    void print_to_png(std::string dirpath);
 
 private:
+
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
 
