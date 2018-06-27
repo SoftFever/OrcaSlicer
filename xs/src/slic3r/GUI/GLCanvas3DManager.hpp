@@ -43,7 +43,6 @@ class GLCanvas3DManager
 
     typedef std::map<wxGLCanvas*, GLCanvas3D*> CanvasesMap;
 
-    wxGLContext* m_context;
     CanvasesMap m_canvases;
     wxGLCanvas* m_current;
     GLInfo m_gl_info;
@@ -53,7 +52,6 @@ class GLCanvas3DManager
 
 public:
     GLCanvas3DManager();
-    ~GLCanvas3DManager();
 
     bool add(wxGLCanvas* canvas);
     bool remove(wxGLCanvas* canvas);
@@ -70,8 +68,6 @@ public:
 
     bool init(wxGLCanvas* canvas);
 
-    bool set_current(wxGLCanvas* canvas, bool force);
-    void set_active(wxGLCanvas* canvas, bool active);
     void set_as_dirty(wxGLCanvas* canvas);
 
     unsigned int get_volumes_count(wxGLCanvas* canvas) const;
