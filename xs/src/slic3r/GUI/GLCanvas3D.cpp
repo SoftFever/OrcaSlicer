@@ -1553,7 +1553,7 @@ bool GLCanvas3D::set_current()
     if ((m_canvas != nullptr) && (m_context != nullptr))
 //    if (m_active && (m_canvas != nullptr) && (m_context != nullptr))
     {
-        std::cout << "set_current: " << (void*)m_canvas << " - " << (void*)m_context << std::endl;
+//        std::cout << "set_current: " << (void*)m_canvas << " - " << (void*)m_context << std::endl;
         return m_canvas->SetCurrent(*m_context);
     }
     return false;
@@ -1698,6 +1698,10 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
+
+//###########################################################################################################################
+    m_dirty = true;
+//###########################################################################################################################
 }
 
 void GLCanvas3D::set_auto_bed_shape()
@@ -3059,7 +3063,10 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
-    return (m_canvas != nullptr) ? m_active && m_canvas->IsShownOnScreen() : false;
+//#################################################################################################################
+    return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
+//    return (m_canvas != nullptr) ? m_active && m_canvas->IsShownOnScreen() : false;
+//#################################################################################################################
 }
 
 void GLCanvas3D::_force_zoom_to_bed()
