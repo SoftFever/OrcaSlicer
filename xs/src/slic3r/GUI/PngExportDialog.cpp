@@ -66,10 +66,10 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     resolution_spins_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
     spin_reso_width_ = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 1440 );
-    resolution_spins_layout_->Add( spin_reso_width_, 0, wxALIGN_CENTER|wxALL, 5 );
+    resolution_spins_layout_->Add( spin_reso_width_, 1, wxALIGN_CENTER|wxALL, 5 );
 
     spin_reso_height_ = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 2560 );
-    resolution_spins_layout_->Add( spin_reso_height_, 0, wxALIGN_CENTER|wxALL, 5 );
+    resolution_spins_layout_->Add( spin_reso_height_, 1, wxALIGN_CENTER|wxALL, 5 );
 
     reso_lock_btn_ = new wxToggleButton( this, wxID_ANY, _("Lock"), wxDefaultPosition, wxDefaultSize, 0 );
     reso_lock_btn_->SetValue(true);
@@ -88,10 +88,10 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     bedsize_spins_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
     bed_width_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1e6, 68.0 );
-    bedsize_spins_layout_->Add( bed_width_spin_, 0, wxALIGN_CENTER|wxALL, 5 );
+    bedsize_spins_layout_->Add( bed_width_spin_, 1, wxALIGN_CENTER|wxALL, 5 );
 
     bed_height_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1e6, 120.0 );
-    bedsize_spins_layout_->Add( bed_height_spin_, 0, wxALIGN_CENTER|wxALL, 5 );
+    bedsize_spins_layout_->Add( bed_height_spin_, 1, wxALIGN_CENTER|wxALL, 5 );
 
     bedsize_lock_btn_ = new wxToggleButton( this, wxID_ANY, _("Lock"), wxDefaultPosition, wxDefaultSize, 0 );
     bedsize_lock_btn_->SetValue(true);
