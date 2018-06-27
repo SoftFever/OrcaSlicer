@@ -131,6 +131,22 @@ public:
      */
     bool is_main_thread() const;
 
+    /**
+     * @brief The frontend supports asynch execution.
+     *
+     * A Graphic UI will support this, a CLI may not. This can be used in
+     * subclass methods to decide whether to start threads for block free UI.
+     *
+     * Note that even a progress indicator's update called regularly can solve
+     * the blocking UI problem in some cases even when an event loop is present.
+     * This is how wxWidgets gauge work but creating a separate thread will make
+     * the UI even more fluent.
+     *
+     * @return true if a job or method can be executed asynchronously, false
+     * otherwise.
+     */
+    bool supports_asynch() const;
+
 protected:
 
     /**

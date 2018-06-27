@@ -175,7 +175,7 @@ public:
 
         wxFFileOutputStream zipfile(path);
 
-        std::string project = filepath.GetName();
+        std::string project = filepath.GetName().ToStdString();
 
         if(!zipfile.IsOk()) {
             BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "

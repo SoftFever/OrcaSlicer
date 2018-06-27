@@ -318,7 +318,9 @@ void PrintController::slice_to_png()
         report_issue(IssueType::WARN, ss.str(), "Warning");
     }
 
-    std::async(std::launch::async, [this, exd]() {
+    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+               [this, exd]()
+    {
         progress_indicator(100, "Slicing to zipped png files...");
         progress_indicator()->procedure_count(3);
 

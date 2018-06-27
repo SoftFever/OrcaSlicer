@@ -1,6 +1,7 @@
 #include "AppController.hpp"
 
 #include <thread>
+#include <future>
 
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PngExportDialog.hpp>
@@ -19,6 +20,11 @@
 // implement everything.
 
 namespace Slic3r {
+
+bool AppControllerBoilerplate::supports_asynch() const
+{
+    return true;
+}
 
 AppControllerBoilerplate::PathList
 AppControllerBoilerplate::query_destination_paths(
