@@ -71,6 +71,7 @@ Http::priv::priv(const std::string &url) :
 	form(nullptr),
 	form_end(nullptr),
 	headerlist(nullptr),
+	limit(0),
 	cancel(false)
 {
 	if (curl == nullptr) {
