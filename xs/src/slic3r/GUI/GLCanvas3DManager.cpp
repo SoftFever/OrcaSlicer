@@ -26,33 +26,23 @@ GLCanvas3DManager::GLInfo::GLInfo()
 {
 }
 
-bool GLCanvas3DManager::GLInfo::detect()
+void GLCanvas3DManager::GLInfo::detect()
 {
     const char* data = (const char*)::glGetString(GL_VERSION);
-    if (data == nullptr)
-        return false;
-
-    version = data;
+    if (data != nullptr)
+        version = data;
 
     data = (const char*)::glGetString(GL_SHADING_LANGUAGE_VERSION);
-    if (data == nullptr)
-        return false;
-
-    glsl_version = data;
+    if (data != nullptr)
+        glsl_version = data;
 
     data = (const char*)::glGetString(GL_VENDOR);
-    if (data == nullptr)
-        return false;
-
-    vendor = data;
+    if (data != nullptr)
+        vendor = data;
 
     data = (const char*)::glGetString(GL_RENDERER);
-    if (data == nullptr)
-        return false;
-
-    renderer = data;
-
-    return true;
+    if (data != nullptr)
+        renderer = data;
 }
 
 bool GLCanvas3DManager::GLInfo::is_version_greater_or_equal_to(unsigned int major, unsigned int minor) const
@@ -94,10 +84,10 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     out << h2_start << "OpenGL installation" << h2_end << line_end;
-    out << b_start  << "GL version:   " << b_end << version << line_end;
-    out << b_start  << "Vendor:       " << b_end << vendor << line_end;
-    out << b_start  << "Renderer:     " << b_end << renderer << line_end;
-    out << b_start  << "GLSL version: " << b_end << glsl_version << line_end;
+    out << b_start  << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
+    out << b_start  << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
+    out << b_start  << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
+    out << b_start  << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
 
     if (extensions)
     {
@@ -125,6 +115,7 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
 
 GLCanvas3DManager::GLCanvas3DManager()
     : m_context(nullptr)
+    , m_current(nullptr)
     , m_gl_initialized(false)
     , m_use_legacy_opengl(false)
     , m_use_VBOs(false)
@@ -195,15 +186,11 @@ void GLCanvas3DManager::init_gl()
     if (!m_gl_initialized)
     {
         glewInit();
-        if (m_gl_info.detect())
-        {
-            const AppConfig* config = GUI::get_app_config();
-            m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
-            m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
-            m_gl_initialized = true;
-        }
-        else
-            throw std::runtime_error(std::string("Unable to initialize OpenGL driver\n"));
+        m_gl_info.detect();
+        const AppConfig* config = GUI::get_app_config();
+        m_use_legacy_opengl = (config == nullptr) || (config->get("use_legacy_opengl") == "1");
+        m_use_VBOs = !m_use_legacy_opengl && m_gl_info.is_version_greater_or_equal_to(2, 0);
+        m_gl_initialized = true;
     }
 }
 
@@ -226,11 +213,46 @@ bool GLCanvas3DManager::init(wxGLCanvas* canvas)
         return false;
 }
 
+bool GLCanvas3DManager::set_current(wxGLCanvas* canvas, bool force)
+{
+    // given canvas is already current, return
+    if (m_current == canvas)
+        return true;
+
+    if (canvas == nullptr)
+    {
+        m_current = nullptr;
+        return true;
+    }
+
+    // set given canvas as current
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+    {
+        bool res = it->second->set_current(force);
+        if (res)
+        {
+            m_current = canvas;
+            return true;
+        }
+    }
+
+    m_current = nullptr;
+    return false;
+}
+
 void GLCanvas3DManager::set_active(wxGLCanvas* canvas, bool active)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_active(active);
+}
+
+void GLCanvas3DManager::set_as_dirty(wxGLCanvas* canvas)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->set_as_dirty();
 }
 
 unsigned int GLCanvas3DManager::get_volumes_count(wxGLCanvas* canvas) const

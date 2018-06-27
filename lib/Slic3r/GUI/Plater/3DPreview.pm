@@ -279,6 +279,7 @@ sub reload_print {
     my ($self, $force) = @_;
 
     Slic3r::GUI::_3DScene::reset_volumes($self->canvas);
+    Slic3r::GUI::_3DScene::reset_current_canvas();            
     $self->_loaded(0);
 
     if (! $self->IsShown && ! $force) {
