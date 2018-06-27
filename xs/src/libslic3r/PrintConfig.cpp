@@ -1892,7 +1892,7 @@ PrintConfigDef::PrintConfigDef()
                      "This lowers the amount of waste but may result in longer print time "
                      " due to additional travel moves.");
     def->cli = "wipe-into-infill!";
-    def->default_value = new ConfigOptionBool(true);
+    def->default_value = new ConfigOptionBool(false);
 
     def = this->add("wipe_into_objects", coBool);
     def->category = L("Extruders");

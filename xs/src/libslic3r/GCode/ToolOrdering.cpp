@@ -453,7 +453,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                     for (const ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
                         auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
 
-                        if (fill->role() == erTopSolidInfill || fill->role() == erGapFill)  // these cannot be changed - such infill is / may be visible
+                        if (!is_overriddable(*fill, print.config, *object, region))
                             continue;
 
                         // What extruder would this normally be printed with?
@@ -465,9 +465,6 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                         if (last_nonsoluble && std::find(layer_tools.extruders.begin(), layer_tools.extruders.end(), correct_extruder) == layer_tools.extruders.end())
                             force_override = true;
                         if (!force_override && volume_to_wipe<=0)
-                            continue;
-
-                        if (!is_overriddable(*fill, print.config, *object, region))
                             continue;
 
                         if (!object->config.wipe_into_objects && !print.config.infill_first && !force_override) {
@@ -493,21 +490,21 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                     }
                 }
 
-
+                // Now the same for perimeters - see comments above for explanation:
                 if (object->config.wipe_into_objects && (print.config.infill_first ? perimeters_done : !perimeters_done))
                 {
                     const ExtrusionEntityCollection& eec = this_layer->regions[region_id]->perimeters;
                     for (const ExtrusionEntity* ee : eec.entities) {                      // iterate through all perimeter Collections
                         auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                        if (!is_overriddable(*fill, print.config, *object, region))
+                            continue;
+
                         // What extruder would this normally be printed with?
                         unsigned int correct_extruder = get_extruder(*fill, region);
                         bool force_override = false;
                         if (last_nonsoluble && std::find(layer_tools.extruders.begin(), layer_tools.extruders.end(), correct_extruder) == layer_tools.extruders.end())
                             force_override = true;
                         if (!force_override && volume_to_wipe<=0)
-                            continue;
-
-                        if (!is_overriddable(*fill, print.config, *object, region))
                             continue;
 
                         if (force_override || (!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {
