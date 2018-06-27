@@ -47,66 +47,32 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
-	/*
-	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
-	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
-	if (popup != nullptr)
-	{
-		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
-		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
-//		m_cc_presets_choice->UseAltPopupWindow();
-
-//		m_cc_presets_choice->EnablePopupAnimation(false);
-		m_cc_presets_choice->SetPopupControl(popup);
-		popup->SetStringValue(from_u8("Text1"));
-
-		popup->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this, popup](wxCommandEvent& evt)
-		{
-			auto selected = popup->GetItemText(popup->GetSelection());
-			if (selected != _(L("System presets")) && selected != _(L("Default presets")))
-			{
-				m_cc_presets_choice->SetText(selected);
-				std::string selected_string = selected.ToUTF8().data();
-#ifdef __APPLE__
-#else
- 				select_preset(selected_string);
-#endif
-			}				
-		});
-
-// 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-// 		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-
-		auto icons = new wxImageList(16, 16, true, 1);
-		popup->SetImageList(icons);
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
-	}
-*/
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
+	m_btn_panel = new wxPanel(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+	
 	wxBitmap bmpMenu;
 	bmpMenu = wxBitmap(from_u8(Slic3r::var("disk.png")), wxBITMAP_TYPE_PNG);
-	m_btn_save_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_btn_save_preset = new wxBitmapButton(m_btn_panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_save_preset->SetBackgroundColour(color);
 	bmpMenu = wxBitmap(from_u8(Slic3r::var("delete.png")), wxBITMAP_TYPE_PNG);
-	m_btn_delete_preset = new wxBitmapButton(panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_btn_delete_preset = new wxBitmapButton(m_btn_panel, wxID_ANY, bmpMenu, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_delete_preset->SetBackgroundColour(color);
 
 	m_show_incompatible_presets = false;
 	m_bmp_show_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG);
 	m_bmp_hide_incompatible_presets.LoadFile(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG);
-	m_btn_hide_incompatible_presets = new wxBitmapButton(panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+	m_btn_hide_incompatible_presets = new wxBitmapButton(m_btn_panel, wxID_ANY, m_bmp_hide_incompatible_presets, wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
 	if (wxMSW) m_btn_hide_incompatible_presets->SetBackgroundColour(color);
 
 	m_btn_save_preset->SetToolTip(_(L("Save current ")) + m_title);
 	m_btn_delete_preset->SetToolTip(_(L("Delete this preset")));
 	m_btn_delete_preset->Disable();
 
-	m_undo_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	m_undo_to_sys_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	m_question_btn = new wxButton(panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	m_undo_btn = new wxButton(m_btn_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	m_undo_to_sys_btn = new wxButton(m_btn_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
+	m_question_btn = new wxButton(m_btn_panel, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 	if (wxMSW) {
 		m_undo_btn->SetBackgroundColour(color);
 		m_undo_to_sys_btn->SetBackgroundColour(color);
@@ -153,56 +119,31 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_modified_label_clr	= get_label_clr_modified();
 	m_default_text_clr		= get_label_clr_default();
 
+	auto  btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+	m_btn_panel->SetSizer(btn_sizer);
+	m_btn_panel->Layout();
+
+	btn_sizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL);
+	btn_sizer->AddSpacer(4);
+	btn_sizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
+	btn_sizer->AddSpacer(16);
+	btn_sizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL);
+	btn_sizer->AddSpacer(64);
+	btn_sizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+	btn_sizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+	btn_sizer->AddSpacer(32);
+	btn_sizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
+
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
 	m_hsizer->Add(m_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 	m_hsizer->AddSpacer(4);
-	m_hsizer->Add(m_btn_save_preset, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(4);
-	m_hsizer->Add(m_btn_delete_preset, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(16);
-	m_hsizer->Add(m_btn_hide_incompatible_presets, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(64);
-	m_hsizer->Add(m_undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
-	m_hsizer->AddSpacer(32);
-	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
-// 	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
+	m_hsizer->Add(m_btn_panel, 0, wxALIGN_CENTER_VERTICAL);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 1, wxEXPAND, 0);
 
-
-/*
-
-
-	//temporary left vertical sizer
-	m_left_sizer = new wxBoxSizer(wxVERTICAL);
-	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
-
-	// tree
-	m_presetctrl = new wxDataViewTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxDV_NO_HEADER);
-	m_left_sizer->Add(m_presetctrl, 1, wxEXPAND);
-	m_preset_icons = new wxImageList(16, 16, true, 1);
-	m_presetctrl->SetImageList(m_preset_icons);
-	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
-
-	m_presetctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxCommandEvent& evt)
-	{
-		auto selected = m_presetctrl->GetItemText(m_presetctrl->GetSelection());
-		if (selected != _(L("System presets")) && selected != _(L("Default presets")))
-		{
-			std::string selected_string = selected.ToUTF8().data();
-#ifdef __APPLE__
-#else
-			select_preset(selected_string);
-#endif
-		}
-	});
-
-*/
 
 	//left vertical sizer
 	m_left_sizer = new wxBoxSizer(wxVERTICAL);
@@ -288,6 +229,28 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 	page->set_config(m_config);
 	return page;
+}
+
+void Tab::OnActivate()
+{
+#ifdef __WXOSX__	
+	wxWindowUpdateLocker noUpdates(this);
+
+	m_btn_panel->Fit();
+
+	Page* page = nullptr;
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	for (auto p : m_pages)
+		if (p->title() == selection)
+		{
+			page = p.get();
+			break;
+		}
+	if (page == nullptr) return;
+	page->Fit();
+	m_hsizer->Layout();
+	Refresh();
+#endif
 }
 
 void Tab::update_labels_colour()
@@ -1246,6 +1209,7 @@ void TabPrint::update()
 
 void TabPrint::OnActivate()
 {
+	Tab::OnActivate();
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
 }
@@ -1404,6 +1368,7 @@ void TabFilament::update()
 
 void TabFilament::OnActivate()
 {
+	Tab::OnActivate();
 	m_volumetric_speed_description_line->SetText(from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle)));
 }
 
@@ -2086,6 +2051,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #endif
 
 	page->Show();
+	page->Fit();
 	m_hsizer->Layout();
 	Refresh();
 

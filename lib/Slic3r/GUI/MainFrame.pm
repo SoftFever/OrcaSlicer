@@ -110,6 +110,10 @@ sub _init_tabpanel {
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{tabpanel}, sub {
         my $panel = $self->{tabpanel}->GetCurrentPage;
         $panel->OnActivate if $panel->can('OnActivate');
+
+        for my $tab_name (qw(print filament printer)) {
+            Slic3r::GUI::get_preset_tab("$tab_name")->OnActivate if ("$tab_name" eq $panel->GetName);
+        }
     });
     
     if (!$self->{no_plater}) {
