@@ -45,7 +45,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     bSizer16->Add( gSizer2, 1, wxEXPAND, 5 );
 
 
-    bSizer15->Add( bSizer16, 1, wxEXPAND, 5 );
+    bSizer15->Add( bSizer16, 0, wxEXPAND, 5 );
 
     wxBoxSizer* bSizer18;
     bSizer18 = new wxBoxSizer( wxVERTICAL );
@@ -53,8 +53,8 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     wxBoxSizer* filepick_layout_;
     filepick_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
-    filepick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.zip"), wxDefaultPosition, wxSize( 308,-1 ), wxFLP_USE_TEXTCTRL | wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT, wxDefaultValidator, wxT("filepick_ctl") );
-    filepick_layout_->Add( filepick_ctl_, 0, wxALIGN_CENTER|wxALIGN_LEFT|wxALL, 5 );
+    filepick_ctl_ = new wxFilePickerCtrl( this, wxID_ANY, wxEmptyString, _("Select a file"), wxT("*.zip"), wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_SAVE | wxFLP_OVERWRITE_PROMPT, wxDefaultValidator, wxT("filepick_ctl") );
+    filepick_layout_->Add( filepick_ctl_, 2, wxALIGN_CENTER|wxALL, 5 );
 
 
     bSizer18->Add( filepick_layout_, 1, wxEXPAND, 5 );
@@ -65,10 +65,10 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     wxBoxSizer* resolution_spins_layout_;
     resolution_spins_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
-    spin_reso_width_ = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 0, 10000, 1440 );
+    spin_reso_width_ = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 1440 );
     resolution_spins_layout_->Add( spin_reso_width_, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    spin_reso_height_ = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 0, 10000, 2560 );
+    spin_reso_height_ = new wxSpinCtrl( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 10000, 2560 );
     resolution_spins_layout_->Add( spin_reso_height_, 0, wxALIGN_CENTER|wxALL, 5 );
 
     reso_lock_btn_ = new wxToggleButton( this, wxID_ANY, _("Lock"), wxDefaultPosition, wxDefaultSize, 0 );
@@ -87,33 +87,31 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     wxBoxSizer* bedsize_spins_layout_;
     bedsize_spins_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
-    bed_width_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 0, 1e6, 68.0 );
+    bed_width_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1e6, 68.0 );
     bedsize_spins_layout_->Add( bed_width_spin_, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    bed_height_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 0, 1e6, 120.0 );
+    bed_height_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 1e6, 120.0 );
     bedsize_spins_layout_->Add( bed_height_spin_, 0, wxALIGN_CENTER|wxALL, 5 );
 
     bedsize_lock_btn_ = new wxToggleButton( this, wxID_ANY, _("Lock"), wxDefaultPosition, wxDefaultSize, 0 );
     bedsize_lock_btn_->SetValue(true);
     bedsize_spins_layout_->Add( bedsize_lock_btn_, 0, wxALIGN_CENTER|wxALL, 5 );
 
-
     bedsize_layout_->Add( bedsize_spins_layout_, 1, wxEXPAND, 5 );
-
 
     bSizer18->Add( bedsize_layout_, 1, wxEXPAND, 5 );
 
     wxBoxSizer* corr_layout_;
     corr_layout_ = new wxBoxSizer( wxHORIZONTAL );
 
-    corr_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( 100,-1 ), wxSP_ARROW_KEYS, 0, 100, 1, 0.1 );
+    corr_spin_ = new wxSpinCtrlDouble( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 100, 1, 0.1 );
     corr_layout_->Add( corr_spin_, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
     corr_layout_->Add( 0, 0, 1, wxEXPAND, 5 );
 
     export_btn_ = new wxButton( this, wxID_ANY, _("Export"), wxDefaultPosition, wxDefaultSize, 0, wxDefaultValidator, wxT("export_btn") );
-    corr_layout_->Add( export_btn_, 0, wxALL, 5 );
+    corr_layout_->Add( export_btn_, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
     bSizer18->Add( corr_layout_, 1, wxEXPAND, 5 );
@@ -128,6 +126,8 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
     this->SetSizer( top_layout_ );
     this->Layout();
 
+    this->Fit();
+    this->SetMinSize(this->GetSize());
     this->Centre( wxBOTH );
 
     // Connect Events
