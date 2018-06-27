@@ -17,14 +17,15 @@ class PrintObject;
 
 /**
  * @brief A boilerplate class for creating application logic. It should provide
- * features as issue reporting, gauge and progress indication, etc...
+ * features as issue reporting and progress indication, etc...
  *
- * The lower lever UI independent classes should be manipulated with a subclass
+ * The lower lever UI independent classes can be manipulated with a subclass
  * of this controller class. We can also catch any exceptions that lower level
  * methods could throw and display appropriate errors and warnings.
  *
- * Note that even the inner interface of this class free from any UI toolkit.
- * We can implement it with any UI framework or make it a cli client.
+ * Note that the outer and the inner interface of this class is free from any
+ * UI toolkit dependencies. We can implement it with any UI framework or make it
+ * a cli client.
  */
 class AppControllerBoilerplate {
     class PriMap;   // Some structure to store progress indication data
@@ -73,7 +74,7 @@ public:
             const std::string& title) const;
 
     /**
-     * @brief Same as query_destination_path but returns only one path.
+     * @brief Same as query_destination_paths but returns only one path.
      */
     Path query_destination_path(
             const std::string& title,
@@ -124,7 +125,7 @@ public:
      * created the AppConroller object itself. This probably means that the
      * execution is in the UI thread. Otherwise it returns false meaning that
      * some worker thread called this function.
-     * @return Return true if for the same caller thread that created this
+     * @return Return true for the same caller thread that created this
      * object and false for every other.
      */
     bool is_main_thread() const;
@@ -132,7 +133,7 @@ public:
 protected:
 
     /**
-     * @brief Create a new progress indicator and retirn a smart pointer to it.
+     * @brief Create a new progress indicator and return a smart pointer to it.
      * @param statenum The number of states for the given procedure.
      * @param title The title of the procedure.
      * @param firstmsg The message for the first subtask to be displayed.
@@ -143,7 +144,8 @@ protected:
             const std::string& title,
             const std::string& firstmsg = "") const;
 
-    // This is a global
+    // This is a global progress indicator placeholder. In the Slic3r UI it can
+    // contain the progress indicator on the statusbar.
     ProgresIndicatorPtr global_progressind_;
 };
 
@@ -162,16 +164,19 @@ protected:
     void infill(PrintObject *pobj);
     void gen_support_material(PrintObject *pobj);
 
+    // Data structure with the png export input data
     struct PngExportData {
-        std::string zippath;
-        unsigned long width_px = 1440;
-        unsigned long height_px = 2560;
-        double width_mm = 68.0, height_mm = 120.0;
-        double corr = 1.0;
+        std::string zippath;                        // output zip file
+        unsigned long width_px = 1440;              // resolution - rows
+        unsigned long height_px = 2560;             // resolution columns
+        double width_mm = 68.0, height_mm = 120.0;  // dimensions in mm
+        double corr = 1.0;                          // multiplies the dimensions
     };
 
+    // Should display a dialog with the input fields for printing to png
     PngExportData query_png_export_data();
 
+    // The previous export data, to pre-populate the dialog
     PngExportData prev_expdata_;
 
 public:

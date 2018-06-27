@@ -13,6 +13,11 @@
 #include <wx/statusbr.h>
 #include <wx/event.h>
 
+// This source file implements the UI dependent methods of the AppControllers.
+// It will be clear what is needed to be reimplemented in case of a UI framework
+// change or a CLI client creation. In this particular case we use wxWidgets to
+// implement everything.
+
 namespace Slic3r {
 
 AppControllerBoilerplate::PathList
@@ -73,6 +78,11 @@ void AppControllerBoilerplate::report_issue(IssueType issuetype,
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
 
 namespace  {
+
+/*
+ * A simple thread safe progress dialog implementation that can be used from
+ * the main thread as well.
+ */
 class GuiProgressIndicator:
         public IProgressIndicator, public wxEvtHandler {
 
@@ -91,6 +101,7 @@ class GuiProgressIndicator:
         _state(st);
     }
 
+    // Status update implementation
     void _state( unsigned st) {
         if(st < max()) {
             if(!gauge_) gauge_ = std::make_shared<wxProgressDialog>(
@@ -114,7 +125,10 @@ class GuiProgressIndicator:
 
 public:
 
+    /// Setting whether it will be used from the UI thread or some worker thread
     inline void asynch(bool is) { is_asynch_ = is; }
+
+    /// Get the mode of parallel operation.
     inline bool asynch() const { return is_asynch_; }
 
     inline GuiProgressIndicator(int range, const std::string& title,
@@ -167,12 +181,16 @@ AppControllerBoilerplate::create_progress_indicator(
     auto pri =
             std::make_shared<GuiProgressIndicator>(statenum, title, firstmsg);
 
+    // We set up the mode of operation depending of the creator thread's
+    // identity
     pri->asynch(!is_main_thread());
 
     return pri;
 }
 
 namespace {
+
+// A wrapper progress indicator class around the statusbar created in perl.
 class Wrapper: public IProgressIndicator, public wxEvtHandler {
     wxGauge *gauge_;
     wxStatusBar *stbar_;
@@ -264,6 +282,7 @@ void AppController::set_global_progress_indicator(
 PrintController::PngExportData PrintController::query_png_export_data()
 {
 
+    // Implement the logic of the PngExportDialog
     class PngExportView: public PngExportDialog {
         double ratio_, bs_ratio_;
     public:
@@ -308,26 +327,28 @@ PrintController::PngExportData PrintController::query_png_export_data()
 
         virtual void EvalResoSpin( wxCommandEvent& event ) override {
             if(reso_lock_btn_->GetValue()) {
-
                 if(event.GetId() == spin_reso_width_->GetId()) {
                     spin_reso_height_->SetValue(
                             std::round(spin_reso_width_->GetValue()/ratio_));
+                    spin_reso_height_->Update();
                 } else {
                     spin_reso_width_->SetValue(
                             std::round(spin_reso_height_->GetValue()*ratio_));
+                    spin_reso_width_->Update();
                 }
             }
         }
 
         virtual void EvalBedSpin( wxCommandEvent& event ) override {
             if(bedsize_lock_btn_->GetValue()) {
-
                 if(event.GetId() == bed_width_spin_->GetId()) {
                     bed_height_spin_->SetValue(
                             std::round(bed_width_spin_->GetValue()/bs_ratio_));
+                    bed_height_spin_->Update();
                 } else {
                     bed_width_spin_->SetValue(
                             std::round(bed_height_spin_->GetValue()*bs_ratio_));
+                    bed_width_spin_->Update();
                 }
             }
         }

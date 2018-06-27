@@ -73,7 +73,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
     reso_lock_btn_ = new wxToggleButton( this, wxID_ANY, _("Lock"), wxDefaultPosition, wxDefaultSize, 0 );
     reso_lock_btn_->SetValue(true);
-    resolution_spins_layout_->Add( reso_lock_btn_, 0, wxALL, 5 );
+    resolution_spins_layout_->Add( reso_lock_btn_, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
     resolution_layout_->Add( resolution_spins_layout_, 1, wxEXPAND, 5 );
@@ -95,7 +95,7 @@ PngExportDialog::PngExportDialog( wxWindow* parent, wxWindowID id, const wxStrin
 
     bedsize_lock_btn_ = new wxToggleButton( this, wxID_ANY, _("Lock"), wxDefaultPosition, wxDefaultSize, 0 );
     bedsize_lock_btn_->SetValue(true);
-    bedsize_spins_layout_->Add( bedsize_lock_btn_, 0, wxALL, 5 );
+    bedsize_spins_layout_->Add( bedsize_lock_btn_, 0, wxALIGN_CENTER|wxALL, 5 );
 
 
     bedsize_layout_->Add( bedsize_spins_layout_, 1, wxEXPAND, 5 );
