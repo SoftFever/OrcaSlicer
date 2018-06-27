@@ -31,7 +31,7 @@
             try {
                 THIS->do_export(print, path, preview_data);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
 
