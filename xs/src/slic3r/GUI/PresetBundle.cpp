@@ -65,12 +65,12 @@ PresetBundle::PresetBundle() :
 
     // Create the ID config keys, as they are not part of the Static print config classes.
     this->prints.default_preset().config.optptr("print_settings_id", true);
-    this->prints.default_preset().config.option<ConfigOptionStrings>("compatible_printers_condition", true)->values = { "" };
-    this->prints.default_preset().config.option<ConfigOptionStrings>("inherits", true)->values = { "" };
+    this->prints.default_preset().compatible_printers_condition();
+    this->prints.default_preset().inherits();
 
     this->filaments.default_preset().config.option<ConfigOptionStrings>("filament_settings_id", true)->values = { "" };
-    this->filaments.default_preset().config.option<ConfigOptionStrings>("compatible_printers_condition", true)->values = { "" };
-    this->filaments.default_preset().config.option<ConfigOptionStrings>("inherits", true)->values = { "" };
+    this->filaments.default_preset().compatible_printers_condition();
+    this->filaments.default_preset().inherits();
 
     this->printers.default_preset().config.optptr("printer_settings_id", true);
     this->printers.default_preset().config.optptr("printer_vendor", true);
@@ -78,7 +78,7 @@ PresetBundle::PresetBundle() :
     this->printers.default_preset().config.optptr("printer_variant", true);
     this->printers.default_preset().config.optptr("default_print_profile", true);
     this->printers.default_preset().config.optptr("default_filament_profile", true);
-	this->printers.default_preset().config.option<ConfigOptionStrings>("inherits", true)->values = { "" };
+	this->printers.default_preset().inherits();
 
 	// Load the default preset bitmaps.
     this->prints   .load_bitmap_default("cog.png");
@@ -387,17 +387,13 @@ DynamicPrintConfig PresetBundle::full_config() const
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (print, filaments, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> inherits;
-    auto                     append_config_string = [](const DynamicConfig &cfg, const std::string &key, std::vector<std::string> &dst) {
-        const ConfigOptionStrings *opt = cfg.opt<ConfigOptionStrings>(key);
-        dst.emplace_back((opt == nullptr || opt->values.empty()) ? "" : opt->values.front());
-    };
-    append_config_string(this->prints.get_edited_preset().config, "compatible_printers_condition", compatible_printers_condition);
-    append_config_string(this->prints.get_edited_preset().config, "inherits",                      inherits);
+    compatible_printers_condition.emplace_back(this->prints.get_edited_preset().compatible_printers_condition());
+    inherits                     .emplace_back(this->prints.get_edited_preset().inherits());
 
     if (num_extruders <= 1) {
         out.apply(this->filaments.get_edited_preset().config);
-        append_config_string(this->filaments.get_edited_preset().config, "compatible_printers_condition", compatible_printers_condition);
-        append_config_string(this->filaments.get_edited_preset().config, "inherits",                      inherits);
+        compatible_printers_condition.emplace_back(this->filaments.get_edited_preset().compatible_printers_condition());
+        inherits                     .emplace_back(this->filaments.get_edited_preset().inherits());
     } else {
         // Retrieve filament presets and build a single config object for them.
         // First collect the filament configurations based on the user selection of this->filament_presets.
@@ -408,8 +404,8 @@ DynamicPrintConfig PresetBundle::full_config() const
 		while (filament_configs.size() < num_extruders)
             filament_configs.emplace_back(&this->filaments.first_visible().config);
         for (const DynamicPrintConfig *cfg : filament_configs) {
-            append_config_string(*cfg, "compatible_printers_condition", compatible_printers_condition);
-            append_config_string(*cfg, "inherits",                      inherits);
+            compatible_printers_condition.emplace_back(Preset::compatible_printers_condition(*const_cast<DynamicPrintConfig*>(cfg)));
+            inherits                     .emplace_back(Preset::inherits(*const_cast<DynamicPrintConfig*>(cfg)));
         }
         // Option values to set a ConfigOptionVector from.
         std::vector<const ConfigOption*> filament_opts(num_extruders, nullptr);
@@ -434,7 +430,7 @@ DynamicPrintConfig PresetBundle::full_config() const
     }
 
 	// Don't store the "compatible_printers_condition" for the printer profile, there is none.
-    append_config_string(this->printers.get_edited_preset().config, "inherits", inherits);
+    inherits.emplace_back(this->printers.get_edited_preset().inherits());
 
     // These two value types clash between the print and filament profiles. They should be renamed.
     out.erase("compatible_printers");

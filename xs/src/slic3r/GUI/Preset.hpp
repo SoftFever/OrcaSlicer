@@ -113,9 +113,6 @@ public:
     // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external and possibly is_system will be true),
     // or it could be a G-code (again, is_external will be true).
     std::string         file;
-    // A user profile may inherit its settings either from a system profile, or from a user profile.
-    // A system profile shall never derive from any other profile, as the system profile hierarchy is being flattened during loading.
-    std::string         inherits;
     // If this is a system profile, then there should be a vendor data available to display at the UI.
     const VendorProfile *vendor      = nullptr;
 
@@ -141,6 +138,28 @@ public:
 
     bool                is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const;
     bool                is_compatible_with_printer(const Preset &active_printer) const;
+
+    // Returns the name of the preset, from which this preset inherits.
+    static std::string& inherits(DynamicPrintConfig &cfg)
+    {
+        auto option = cfg.option<ConfigOptionStrings>("inherits", true);
+        if (option->values.empty())
+            option->values.emplace_back(std::string());
+        return option->values.front();
+    }
+    std::string&        inherits() { return Preset::inherits(this->config); }
+    const std::string&  inherits() const { return Preset::inherits(const_cast<Preset*>(this)->config); }
+
+    // Returns the "compatible_printers_condition".
+    static std::string& compatible_printers_condition(DynamicPrintConfig &cfg)
+    {
+        auto option = cfg.option<ConfigOptionStrings>("compatible_printers_condition", true);
+        if (option->values.empty())
+            option->values.emplace_back(std::string());
+        return option->values.front();
+    }
+    std::string&        compatible_printers_condition() { return Preset::compatible_printers_condition(this->config); }
+    const std::string&  compatible_printers_condition() const { return Preset::compatible_printers_condition(const_cast<Preset*>(this)->config); }
 
     // Mark this preset as compatible if it is compatible with active_printer.
     bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);

@@ -234,12 +234,12 @@ std::string Preset::label() const
 
 bool Preset::is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const
 {
-    auto *condition               = dynamic_cast<const ConfigOptionStrings*>(this->config.option("compatible_printers_condition"));
+    auto &condition               = this->compatible_printers_condition();
     auto *compatible_printers     = dynamic_cast<const ConfigOptionStrings*>(this->config.option("compatible_printers"));
     bool  has_compatible_printers = compatible_printers != nullptr && ! compatible_printers->values.empty();
-    if (! has_compatible_printers && condition != nullptr && ! condition->values.empty() && ! condition->values.front().empty()) {
+    if (! has_compatible_printers && ! condition.empty()) {
         try {
-            return PlaceholderParser::evaluate_boolean_expression(condition->values.front(), active_printer.config, extra_config);
+            return PlaceholderParser::evaluate_boolean_expression(condition, active_printer.config, extra_config);
         } catch (const std::runtime_error &err) {
             //FIXME in case of an error, return "compatible with everything".
             printf("Preset::is_compatible_with_printer - parsing error of compatible_printers_condition %s:\n%s\n", active_printer.name.c_str(), err.what());
@@ -466,6 +466,15 @@ Preset& PresetCollection::load_external_preset(
             this->select_preset(it - m_presets.begin());
         return *it;
     }
+    // Update the "inherits" field.
+    std::string &inherits = Preset::inherits(cfg);
+    if (it != m_presets.end() && inherits.empty()) {
+        // There is a profile with the same name already loaded. Should we update the "inherits" field?
+        if (it->vendor == nullptr)
+            inherits = it->inherits();
+        else
+            inherits = it->name;
+    }
     // The external preset does not match an internal preset, load the external preset.
     std::string new_name;
     for (size_t idx = 0;; ++ idx) {
@@ -531,10 +540,7 @@ void PresetCollection::save_current_preset(const std::string &new_name)
     } else {
         // Creating a new preset.
 		Preset       &preset   = *m_presets.insert(it, m_edited_preset);
-        ConfigOptionStrings *opt_inherits = preset.config.option<ConfigOptionStrings>("inherits", true);
-        if (opt_inherits->values.empty())
-            opt_inherits->values.emplace_back(std::string());
-        std::string  &inherits = opt_inherits->values.front();
+        std::string  &inherits = preset.inherits();
         std::string   old_name = preset.name;
         preset.name = new_name;
 		preset.file = this->path_from_name(new_name);
@@ -549,7 +555,6 @@ void PresetCollection::save_current_preset(const std::string &new_name)
             // Inherited from a user preset. Just maintain the "inherited" flag, 
             // meaning it will inherit from either the system preset, or the inherited user preset.
         }
-        preset.inherits = inherits;
         preset.is_default  = false;
         preset.is_system   = false;
         preset.is_external = false;
@@ -587,20 +592,20 @@ bool PresetCollection::load_bitmap_default(const std::string &file_name)
 
 const Preset* PresetCollection::get_selected_preset_parent() const
 {
-    auto *inherits = dynamic_cast<const ConfigOptionStrings*>(this->get_edited_preset().config.option("inherits"));
-	if (inherits == nullptr || inherits->values.empty() || inherits->values.front().empty())
+    const std::string &inherits = this->get_edited_preset().inherits();
+    if (inherits.empty())
 		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
-    const Preset* preset = this->find_preset(inherits->values.front(), false);
+    const Preset* preset = this->find_preset(inherits, false);
     return (preset == nullptr || preset->is_default || preset->is_external) ? nullptr : preset;
 }
 
 const Preset* PresetCollection::get_preset_parent(const Preset& child) const
 {
-    auto *inherits = dynamic_cast<const ConfigOptionStrings*>(child.config.option("inherits"));
-    if (inherits == nullptr || inherits->values.empty() || inherits->values.front().empty())
+    const std::string &inherits = child.inherits();
+    if (inherits.empty())
 // 		return this->get_selected_preset().is_system ? &this->get_selected_preset() : nullptr; 
 		return nullptr; 
-    const Preset* preset = this->find_preset(inherits->values.front(), false);
+    const Preset* preset = this->find_preset(inherits, false);
     return (preset == nullptr/* || preset->is_default */|| preset->is_external) ? nullptr : preset;
 }
 
@@ -837,7 +842,7 @@ std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, c
         // The "compatible_printers" option key is handled differently from the others:
         // It is not mandatory. If the key is missing, it means it is compatible with any printer.
         // If the key exists and it is empty, it means it is compatible with no printer.
-        std::initializer_list<const char*> optional_keys { "compatible_printers", "compatible_printers_condition" };
+        std::initializer_list<const char*> optional_keys { "compatible_printers" };
         for (auto &opt_key : optional_keys) {
             if (reference->config.has(opt_key) != edited->config.has(opt_key))
                 changed.emplace_back(opt_key);
