@@ -138,15 +138,19 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
             const PrintRegion &region = *object.print()->regions[region_id];
 
             if (! layerm->perimeters.entities.empty()) {
-                bool something_nonoverriddable = false;
-                for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
-                    if (!layer_tools.wiping_extrusions.is_overriddable(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region)) {
-                        something_nonoverriddable = true;
-                        break;
-                    }
+                bool something_nonoverriddable = true;
+
+                if (m_print_config_ptr) { // in this case complete_objects is false (see ToolOrdering constructors)
+                    something_nonoverriddable = false;
+                    for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
+                        if (!layer_tools.wiping_extrusions.is_overriddable(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region)) {
+                            something_nonoverriddable = true;
+                            break;
+                        }
+                }
 
                 if (something_nonoverriddable)
-                    layer_tools.extruders.push_back(region.config.perimeter_extruder.value);
+                        layer_tools.extruders.push_back(region.config.perimeter_extruder.value);
 
                 layer_tools.has_object = true;
             }
@@ -164,10 +168,13 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
                 else if (role != erNone)
                     has_infill = true;
 
-                if (!something_nonoverriddable && !layer_tools.wiping_extrusions.is_overriddable(*fill, *m_print_config_ptr, object, region))
-                    something_nonoverriddable = true;
+                if (m_print_config_ptr) {
+                    if (!something_nonoverriddable && !layer_tools.wiping_extrusions.is_overriddable(*fill, *m_print_config_ptr, object, region))
+                        something_nonoverriddable = true;
+                }
             }
-            if (something_nonoverriddable)
+
+            if (something_nonoverriddable || !m_print_config_ptr)
             {
                 if (has_solid_infill)
                     layer_tools.extruders.push_back(region.config.solid_infill_extruder);
