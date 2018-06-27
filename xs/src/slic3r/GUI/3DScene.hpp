@@ -516,10 +516,6 @@ public:
 
     static bool init(wxGLCanvas* canvas);
 
-    static bool set_current(wxGLCanvas* canvas, bool force);
-    static void reset_current_canvas();
-
-    static void set_active(wxGLCanvas* canvas, bool active);
     static void set_as_dirty(wxGLCanvas* canvas);
 
     static unsigned int get_volumes_count(wxGLCanvas* canvas);
