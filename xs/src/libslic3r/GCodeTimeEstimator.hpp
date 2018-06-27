@@ -19,7 +19,10 @@ namespace Slic3r {
     public:
         enum EMode : unsigned char
         {
-            Default,
+//#######################################################################################################################################################################
+            Normal,
+//            Default,
+//#######################################################################################################################################################################
             Silent
         };
 
@@ -77,6 +80,10 @@ namespace Slic3r {
             float minimum_feedrate;             // mm/s
             float minimum_travel_feedrate;      // mm/s
             float extrude_factor_override_percentage; 
+//#################################################################################################################
+            bool remaining_times_enabled;
+            unsigned int g1_line_id;
+//#################################################################################################################
         };
 
     public:
@@ -127,6 +134,15 @@ namespace Slic3r {
                 bool nominal_length;
             };
 
+//#################################################################################################################
+            struct Time
+            {
+                float elapsed;
+                float remaining;
+
+                Time();
+            };
+//#################################################################################################################
 
 #if ENABLE_MOVE_STATS
             EMoveType move_type;
@@ -140,6 +156,10 @@ namespace Slic3r {
 
             FeedrateProfile feedrate;
             Trapezoid trapezoid;
+//#################################################################################################################
+            Time time;
+            unsigned int g1_line_id;
+//#################################################################################################################
 
             bool st_synchronized;
 
@@ -168,6 +188,10 @@ namespace Slic3r {
 
             // Calculates this block's trapezoid
             void calculate_trapezoid();
+
+//#################################################################################################################
+            void calculate_remaining_time(float final_time);
+//#################################################################################################################
 
             // Calculates the maximum allowable speed at this point when you must be able to reach target_velocity using the 
             // acceleration within the allotted distance.
@@ -231,12 +255,25 @@ namespace Slic3r {
         // Calculates the time estimate from the gcode contained in given list of gcode lines
         void calculate_time_from_lines(const std::vector<std::string>& gcode_lines);
 
-        // Calculates the time estimate from the gcode lines added using add_gcode_line() or add_gcode_block()
-        // and returns it in a formatted string
-        std::string get_elapsed_time_string();
+//############################################################################################################3
+//        // Calculates the time estimate from the gcode lines added using add_gcode_line() or add_gcode_block()
+//        // and returns it in a formatted string
+//        std::string get_elapsed_time_string();
+//############################################################################################################3
 
-        // Converts elapsed time lines, contained in the gcode saved with the given filename, into remaining time commands
-        static bool post_process_elapsed_times(const std::string& filename, float default_time, float silent_time);
+//############################################################################################################3
+//        // Converts elapsed time lines, contained in the gcode saved with the given filename, into remaining time commands
+//        static bool post_process_elapsed_times(const std::string& filename, float default_time, float silent_time);
+//############################################################################################################3
+
+//#################################################################################################################
+        // Process the gcode contained in the file with the given filename, 
+        // placing in it new lines (M73) containing the remaining time, at the given interval in seconds
+        // and saving the result back in the same file
+        // This time estimator should have been already used to calculate the time estimate for the gcode
+        // contained in the given file before to call this method
+        bool post_process_remaining_times(const std::string& filename, float interval_sec);
+//#################################################################################################################
 
         // Set current position on the given axis with the given value
         void set_axis_position(EAxis axis, float position);
@@ -282,6 +319,15 @@ namespace Slic3r {
         void set_e_local_positioning_type(EPositioningType type);
         EPositioningType get_e_local_positioning_type() const;
 
+//#################################################################################################################
+        bool are_remaining_times_enabled() const;
+        void set_remaining_times_enabled(bool enable);
+
+        int get_g1_line_id() const;
+        void increment_g1_line_id();
+        void reset_g1_line_id();
+//#################################################################################################################
+
         void add_additional_time(float timeSec);
         void set_additional_time(float timeSec);
         float get_additional_time() const;
@@ -305,13 +351,20 @@ namespace Slic3r {
         void _reset_time();
         void _reset_blocks();
 
-        void _set_default_as_default();
+//############################################################################################################3
+        void _set_default_as_normal();
+//        void _set_default_as_default();
+//############################################################################################################3
         void _set_default_as_silent();
 
         void _set_blocks_st_synchronize(bool state);
 
         // Calculates the time estimate
         void _calculate_time();
+
+//#################################################################################################################
+        void _calculate_remaining_times();
+//#################################################################################################################
 
         // Processes the given gcode line
         void _process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line);

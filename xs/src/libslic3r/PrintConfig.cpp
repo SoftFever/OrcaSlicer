@@ -936,7 +936,10 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("mm/s²");
     def->min = 0;
 	def->width = machine_limits_opt_width;
-    def->default_value = new ConfigOptionFloats(1500., 1250.);
+//##################################################################################################################################
+    def->default_value = new ConfigOptionFloats{ 1500., 1250. };
+//    def->default_value = new ConfigOptionFloats(1500., 1250.);
+//##################################################################################################################################
 
     // M204 T... [mm/sec^2]
     def = this->add("machine_max_acceleration_retracting", coFloats);
@@ -946,7 +949,10 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("mm/s²");
     def->min = 0;
 	def->width = machine_limits_opt_width;
-    def->default_value = new ConfigOptionFloats(1500., 1250.);
+//##################################################################################################################################
+    def->default_value = new ConfigOptionFloats{ 1500., 1250. };
+//    def->default_value = new ConfigOptionFloats(1500., 1250.);
+//##################################################################################################################################
 
     def = this->add("max_fan_speed", coInts);
     def->label = L("Max");

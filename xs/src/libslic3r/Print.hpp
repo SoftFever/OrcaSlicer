@@ -235,7 +235,10 @@ public:
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
     // TODO: status_cb
-    std::string                     estimated_default_print_time;
+//#######################################################################################################################################################################
+    std::string                     estimated_normal_print_time;
+//    std::string                     estimated_default_print_time;
+//#######################################################################################################################################################################
     std::string                     estimated_silent_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t, float>         filament_stats;
