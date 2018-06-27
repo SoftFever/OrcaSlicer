@@ -101,7 +101,12 @@ sub export_gcode {
                 die "The configured post-processing script is not executable: check permissions. ($script)\n";
             }
             if ($^O eq 'MSWin32' && $script =~ /\.[pP][lL]/) {
-                system($^X, $script, $output_file);
+                # The current process (^X) may be slic3r.exe or slic3r-console.exe.
+                # Replace it with the current perl interpreter.
+                my($filename, $directories, $suffix) = fileparse($^X);
+                $filename =~ s/^slic3r.*$/perl5\.24\.0\.exe/;
+                my $interpreter = $directories . $filename;
+                system($interpreter, $script, $output_file);
             } else {
                 system($script, $output_file);
             }

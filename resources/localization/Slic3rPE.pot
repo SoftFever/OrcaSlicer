@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-11 13:34+0200\n"
+"POT-Creation-Date: 2018-06-26 11:11+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -33,7 +33,7 @@ msgid "Rectangular"
 msgstr ""
 
 #: xs/src/slic3r/GUI/BedShapeDialog.cpp:50 xs/src/slic3r/GUI/Tab.cpp:1745
-#: lib/Slic3r/GUI/Plater.pm:432
+#: lib/Slic3r/GUI/Plater.pm:477
 msgid "Size"
 msgstr ""
 
@@ -56,8 +56,10 @@ msgid "Circular"
 msgstr ""
 
 #: xs/src/slic3r/GUI/BedShapeDialog.cpp:65
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:87 xs/src/slic3r/GUI/ConfigWizard.cpp:434
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:448 xs/src/slic3r/GUI/RammingChart.cpp:81
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:87
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:439
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:453
+#: xs/src/slic3r/GUI/RammingChart.cpp:81
 #: xs/src/slic3r/GUI/WipeTowerDialog.cpp:79
 #: xs/src/libslic3r/PrintConfig.cpp:130 xs/src/libslic3r/PrintConfig.cpp:173
 #: xs/src/libslic3r/PrintConfig.cpp:181 xs/src/libslic3r/PrintConfig.cpp:229
@@ -79,7 +81,8 @@ msgstr ""
 msgid "mm"
 msgstr ""
 
-#: xs/src/slic3r/GUI/BedShapeDialog.cpp:66 xs/src/libslic3r/PrintConfig.cpp:494
+#: xs/src/slic3r/GUI/BedShapeDialog.cpp:66
+#: xs/src/libslic3r/PrintConfig.cpp:494
 msgid "Diameter"
 msgstr ""
 
@@ -121,7 +124,7 @@ msgid ""
 msgstr ""
 
 #: xs/src/slic3r/GUI/BedShapeDialog.hpp:44
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:397
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:402
 msgid "Bed Shape"
 msgstr ""
 
@@ -239,7 +242,7 @@ msgstr ""
 msgid "Activate"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigSnapshotDialog.cpp:96 xs/src/slic3r/GUI/GUI.cpp:321
+#: xs/src/slic3r/GUI/ConfigSnapshotDialog.cpp:96 xs/src/slic3r/GUI/GUI.cpp:323
 msgid "Configuration Snapshots"
 msgstr ""
 
@@ -255,54 +258,54 @@ msgstr ""
 msgid "Select none"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:207
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:212
 #, possible-c-format
 msgid "Welcome to the Slic3r %s"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:207
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:212
 msgid "Welcome"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:213 xs/src/slic3r/GUI/GUI.cpp:318
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:218 xs/src/slic3r/GUI/GUI.cpp:320
 #, possible-c-format
 msgid "Run %s"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:215
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:220
 #, possible-c-format
 msgid ""
 "Hello, welcome to Slic3r Prusa Edition! This %s helps you with the initial "
 "configuration; just a few settings and you will be ready to print."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:219
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:224
 msgid ""
 "Remove user profiles - install from scratch (a snapshot will be taken "
 "beforehand)"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:240
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:245
 msgid "Other vendors"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:242
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:247
 msgid "Custom setup"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:266
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:271
 msgid "Automatic updates"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:266
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:271
 msgid "Updates"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:274 xs/src/slic3r/GUI/Preferences.cpp:59
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:279 xs/src/slic3r/GUI/Preferences.cpp:59
 msgid "Check for application updates"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:277 xs/src/slic3r/GUI/Preferences.cpp:61
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:282 xs/src/slic3r/GUI/Preferences.cpp:61
 msgid ""
 "If enabled, Slic3r checks for new versions of Slic3r PE online. When a new "
 "version becomes available a notification is displayed at the next "
@@ -310,11 +313,11 @@ msgid ""
 "notification mechanisms, no automatic installation is done."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:281 xs/src/slic3r/GUI/Preferences.cpp:67
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:286 xs/src/slic3r/GUI/Preferences.cpp:67
 msgid "Update built-in Presets automatically"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:284 xs/src/slic3r/GUI/Preferences.cpp:69
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:289 xs/src/slic3r/GUI/Preferences.cpp:69
 msgid ""
 "If enabled, Slic3r downloads updates of built-in system presets in the "
 "background. These updates are downloaded into a separate temporary location. "
@@ -322,327 +325,339 @@ msgid ""
 "startup."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:285
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:290
 msgid ""
 "Updates are never applied without user's consent and never overwrite user's "
 "customized settings."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:290
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:295
 msgid ""
 "Additionally a backup snapshot of the whole configuration is created before "
 "an update is applied."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:297
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:302
 msgid "Other Vendors"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:299
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:304
 msgid "Pick another vendor supported by Slic3r PE:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:358
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:363
 msgid "Firmware Type"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:358 xs/src/slic3r/GUI/Tab.cpp:1628
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:363 xs/src/slic3r/GUI/Tab.cpp:1628
 msgid "Firmware"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:362
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:367
 msgid "Choose the type of firmware used by your printer."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:397
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:402
 msgid "Bed Shape and Size"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:400
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:405
 msgid "Set the shape of your printer's bed."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:414
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:419
 msgid "Filament and Nozzle Diameters"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:414
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:419
 msgid "Print Diameters"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:430
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:435
 msgid "Enter the diameter of your printer's hot end nozzle."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:433
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:438
 msgid "Nozzle Diameter:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:443
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:448
 msgid "Enter the diameter of your filament."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:444
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:449
 msgid ""
 "Good precision is required, so use a caliper and do multiple measurements "
 "along the filament, then compute the average."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:447
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:452
 msgid "Filament Diameter:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:465
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:470
 msgid "Extruder and Bed Temperatures"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:465
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:470
 msgid "Temperatures"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:481
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:486
 msgid "Enter the temperature needed for extruding your filament."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:482
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:487
 msgid "A rule of thumb is 160 to 230 °C for PLA, and 215 to 250 °C for ABS."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:485
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:490
 msgid "Extrusion Temperature:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:486
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:500
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:491
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:505
 msgid "°C"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:495
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:500
 msgid ""
 "Enter the bed temperature needed for getting your filament to stick to your "
 "heated bed."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:496
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:501
 msgid ""
 "A rule of thumb is 60 °C for PLA and 110 °C for ABS. Leave zero if you have "
 "no heated bed."
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:499
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:504
 msgid "Bed Temperature:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:807
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:817
+msgid "< &Back"
+msgstr ""
+
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:818
+msgid "&Next >"
+msgstr ""
+
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:819
 msgid "&Finish"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:865
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:889
 msgid "Configuration Wizard"
 msgstr ""
 
-#: xs/src/slic3r/GUI/ConfigWizard.cpp:867
+#: xs/src/slic3r/GUI/ConfigWizard.cpp:891
 msgid "Configuration Assistant"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:84
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:87
 msgid "Flash!"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:85
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:88
 msgid "Cancel"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:123
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:128
 msgid "Flashing in progress. Please do not disconnect the printer!"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:145
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:155
 msgid "Flashing succeeded!"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:146
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:156
 msgid "Flashing failed. Please see the avrdude log below."
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:147
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:157
 msgid "Flashing cancelled."
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:213
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:294
 msgid "Cancelling..."
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:266
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:347
 msgid "Firmware flasher"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:286
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:367
 msgid "Serial port:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:288
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:369
 msgid "Rescan"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:293
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:374
 msgid "Firmware image:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:296
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:377
 msgid "Status:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:297
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:378
 msgid "Ready"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:300
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:381
 msgid "Progress:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:319
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:400
 msgid "Advanced: avrdude output log"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:365
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:446
 msgid ""
 "Are you sure you want to cancel firmware flashing?\n"
 "This could leave your printer in an unusable state!"
 msgstr ""
 
-#: xs/src/slic3r/GUI/FirmwareDialog.cpp:366
+#: xs/src/slic3r/GUI/FirmwareDialog.cpp:447
 msgid "Confirmation"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:206
+#: xs/src/slic3r/GUI/GLCanvas3D.cpp:1990
+msgid "Detected object outside print volume"
+msgstr ""
+
+#: xs/src/slic3r/GUI/GUI.cpp:208
 msgid "Array of language names and identifiers should have the same size."
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:217
+#: xs/src/slic3r/GUI/GUI.cpp:219
 msgid "Select the language"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:217
+#: xs/src/slic3r/GUI/GUI.cpp:219
 msgid "Language"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:279 xs/src/libslic3r/PrintConfig.cpp:187
+#: xs/src/slic3r/GUI/GUI.cpp:281 xs/src/libslic3r/PrintConfig.cpp:187
 msgid "Default"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:321
+#: xs/src/slic3r/GUI/GUI.cpp:323
 msgid "Inspect / activate configuration snapshots"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:322
+#: xs/src/slic3r/GUI/GUI.cpp:324
 msgid "Take Configuration Snapshot"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:322
+#: xs/src/slic3r/GUI/GUI.cpp:324
 msgid "Capture a configuration snapshot"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:325 xs/src/slic3r/GUI/Preferences.cpp:9
+#: xs/src/slic3r/GUI/GUI.cpp:327 xs/src/slic3r/GUI/Preferences.cpp:9
 msgid "Preferences"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:325
+#: xs/src/slic3r/GUI/GUI.cpp:327
 msgid "Application preferences"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:326
+#: xs/src/slic3r/GUI/GUI.cpp:328
 msgid "Change Application Language"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:328
+#: xs/src/slic3r/GUI/GUI.cpp:330
 msgid "Flash printer firmware"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:328
+#: xs/src/slic3r/GUI/GUI.cpp:330
 msgid "Upload a firmware image into an Arduino based printer"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:340
+#: xs/src/slic3r/GUI/GUI.cpp:342
 msgid "Taking configuration snapshot"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:340
+#: xs/src/slic3r/GUI/GUI.cpp:342
 msgid "Snapshot name"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:378
+#: xs/src/slic3r/GUI/GUI.cpp:380
 msgid "Application will be restarted"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:378
+#: xs/src/slic3r/GUI/GUI.cpp:380
 msgid "Attention!"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:393
+#: xs/src/slic3r/GUI/GUI.cpp:396
 msgid "&Configuration"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:417
+#: xs/src/slic3r/GUI/GUI.cpp:420
 msgid "You have unsaved changes "
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:417
+#: xs/src/slic3r/GUI/GUI.cpp:420
 msgid ". Discard changes and continue anyway?"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:418
+#: xs/src/slic3r/GUI/GUI.cpp:421
 msgid "Unsaved Presets"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:626
+#: xs/src/slic3r/GUI/GUI.cpp:629
 msgid "Notice"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:631
+#: xs/src/slic3r/GUI/GUI.cpp:634
 msgid "Attempt to free unreferenced scalar"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:633 xs/src/slic3r/GUI/WipeTowerDialog.cpp:39
+#: xs/src/slic3r/GUI/GUI.cpp:636 xs/src/slic3r/GUI/WipeTowerDialog.cpp:39
 #: xs/src/slic3r/GUI/WipeTowerDialog.cpp:321
 msgid "Warning"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:822
+#: xs/src/slic3r/GUI/GUI.cpp:825
 msgid "Support"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:825
+#: xs/src/slic3r/GUI/GUI.cpp:828
 msgid "Select what kind of support do you need"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:826 xs/src/libslic3r/GCode/PreviewData.cpp:157
+#: xs/src/slic3r/GUI/GUI.cpp:829 xs/src/libslic3r/GCode/PreviewData.cpp:157
 msgid "None"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:827 xs/src/libslic3r/PrintConfig.cpp:1516
+#: xs/src/slic3r/GUI/GUI.cpp:830 xs/src/libslic3r/PrintConfig.cpp:1516
 msgid "Support on build plate only"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:828
+#: xs/src/slic3r/GUI/GUI.cpp:831
 msgid "Everywhere"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:840 xs/src/slic3r/GUI/Tab.cpp:872
+#: xs/src/slic3r/GUI/GUI.cpp:843 xs/src/slic3r/GUI/Tab.cpp:872
 msgid "Brim"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:842
+#: xs/src/slic3r/GUI/GUI.cpp:845
 msgid ""
 "This flag enables the brim that will be printed around each object on the "
 "first layer."
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:851
+#: xs/src/slic3r/GUI/GUI.cpp:854
 msgid "Purging volumes"
 msgstr ""
 
-#: xs/src/slic3r/GUI/GUI.cpp:893
+#: xs/src/slic3r/GUI/GUI.cpp:896
 msgid "Export print config"
 msgstr ""
 
@@ -891,12 +906,12 @@ msgid "Profile dependencies"
 msgstr ""
 
 #: xs/src/slic3r/GUI/Tab.cpp:1011 xs/src/slic3r/GUI/Tab.cpp:1362
-#: xs/src/slic3r/GUI/Tab.cpp:2248 xs/src/libslic3r/PrintConfig.cpp:144
+#: xs/src/slic3r/GUI/Tab.cpp:2261 xs/src/libslic3r/PrintConfig.cpp:144
 msgid "Compatible printers"
 msgstr ""
 
 #: xs/src/slic3r/GUI/Tab.cpp:1044
-#, possible-c-format
+#, no-c-format
 msgid ""
 "The Spiral Vase mode requires:\n"
 "- one perimeter\n"
@@ -952,7 +967,7 @@ msgid "The "
 msgstr ""
 
 #: xs/src/slic3r/GUI/Tab.cpp:1153
-#, possible-c-format
+#, no-c-format
 msgid ""
 " infill pattern is not supposed to work at 100% density.\n"
 "\n"
@@ -960,7 +975,7 @@ msgid ""
 msgstr ""
 
 #: xs/src/slic3r/GUI/Tab.cpp:1258 xs/src/slic3r/GUI/Tab.cpp:1259
-#: lib/Slic3r/GUI/Plater.pm:388
+#: lib/Slic3r/GUI/Plater.pm:433
 msgid "Filament"
 msgstr ""
 
@@ -1043,7 +1058,7 @@ msgstr ""
 msgid "Bed shape"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:1446 xs/src/slic3r/GUI/Tab.cpp:2216
+#: xs/src/slic3r/GUI/Tab.cpp:1446 xs/src/slic3r/GUI/Tab.cpp:2229
 msgid " Set "
 msgstr ""
 
@@ -1083,7 +1098,7 @@ msgstr ""
 msgid "Connection failed."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:1542 xs/src/slic3r/Utils/OctoPrint.cpp:50
+#: xs/src/slic3r/GUI/Tab.cpp:1542 xs/src/slic3r/Utils/OctoPrint.cpp:110
 msgid "OctoPrint upload"
 msgstr ""
 
@@ -1168,8 +1183,8 @@ msgid ""
 "setups)"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:1776 lib/Slic3r/GUI/Plater.pm:160
-#: lib/Slic3r/GUI/Plater.pm:2189
+#: xs/src/slic3r/GUI/Tab.cpp:1776 lib/Slic3r/GUI/Plater.pm:192
+#: lib/Slic3r/GUI/Plater.pm:2283
 msgid "Preview"
 msgstr ""
 
@@ -1228,74 +1243,74 @@ msgstr ""
 msgid "Unsaved Changes"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2126
+#: xs/src/slic3r/GUI/Tab.cpp:2139
 msgid "The supplied name is empty. It can't be saved."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2131
+#: xs/src/slic3r/GUI/Tab.cpp:2144
 msgid "Cannot overwrite a system profile."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2135
+#: xs/src/slic3r/GUI/Tab.cpp:2148
 msgid "Cannot overwrite an external profile."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2159
+#: xs/src/slic3r/GUI/Tab.cpp:2172
 msgid "remove"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2159
+#: xs/src/slic3r/GUI/Tab.cpp:2172
 msgid "delete"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2160
+#: xs/src/slic3r/GUI/Tab.cpp:2173
 msgid "Are you sure you want to "
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2160
+#: xs/src/slic3r/GUI/Tab.cpp:2173
 msgid " the selected preset?"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2161
+#: xs/src/slic3r/GUI/Tab.cpp:2174
 msgid "Remove"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2161 lib/Slic3r/GUI/Plater.pm:188
-#: lib/Slic3r/GUI/Plater.pm:206 lib/Slic3r/GUI/Plater.pm:2085
+#: xs/src/slic3r/GUI/Tab.cpp:2174 lib/Slic3r/GUI/Plater.pm:233
+#: lib/Slic3r/GUI/Plater.pm:251 lib/Slic3r/GUI/Plater.pm:2174
 msgid "Delete"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2162
+#: xs/src/slic3r/GUI/Tab.cpp:2175
 msgid " Preset"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2215
+#: xs/src/slic3r/GUI/Tab.cpp:2228
 msgid "All"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2247
+#: xs/src/slic3r/GUI/Tab.cpp:2260
 msgid "Select the printers this profile is compatible with."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2293 xs/src/slic3r/GUI/Tab.cpp:2379
+#: xs/src/slic3r/GUI/Tab.cpp:2306 xs/src/slic3r/GUI/Tab.cpp:2392
 #: xs/src/slic3r/GUI/Preset.cpp:613 xs/src/slic3r/GUI/Preset.cpp:653
 #: xs/src/slic3r/GUI/Preset.cpp:678 xs/src/slic3r/GUI/Preset.cpp:710
 #: xs/src/slic3r/GUI/PresetBundle.cpp:1119
-#: xs/src/slic3r/GUI/PresetBundle.cpp:1172 lib/Slic3r/GUI/Plater.pm:573
+#: xs/src/slic3r/GUI/PresetBundle.cpp:1172 lib/Slic3r/GUI/Plater.pm:618
 msgid "System presets"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2294 xs/src/slic3r/GUI/Tab.cpp:2380
+#: xs/src/slic3r/GUI/Tab.cpp:2307 xs/src/slic3r/GUI/Tab.cpp:2393
 msgid "Default presets"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2449
+#: xs/src/slic3r/GUI/Tab.cpp:2462
 msgid ""
 "LOCKED LOCK;indicates that the settings are the same as the system values "
 "for the current option group"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2452
+#: xs/src/slic3r/GUI/Tab.cpp:2465
 msgid ""
 "UNLOCKED LOCK;indicates that some settings were changed and are not equal to "
 "the system values for the current option group.\n"
@@ -1303,13 +1318,13 @@ msgid ""
 "to the system values."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2458
+#: xs/src/slic3r/GUI/Tab.cpp:2471
 msgid ""
 "WHITE BULLET;for the left button: \tindicates a non-system preset,\n"
 "for the right button: \tindicates that the settings hasn't been modified."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2462
+#: xs/src/slic3r/GUI/Tab.cpp:2475
 msgid ""
 "BACK ARROW;indicates that the settings were changed and are not equal to the "
 "last saved preset for the current option group.\n"
@@ -1317,30 +1332,30 @@ msgid ""
 "to the last saved preset."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2488
+#: xs/src/slic3r/GUI/Tab.cpp:2501
 msgid ""
 "LOCKED LOCK icon indicates that the settings are the same as the system "
 "values for the current option group"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2490
+#: xs/src/slic3r/GUI/Tab.cpp:2503
 msgid ""
 "UNLOCKED LOCK icon indicates that some settings were changed and are not "
 "equal to the system values for the current option group.\n"
 "Click to reset all settings for current option group to the system values."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2493
+#: xs/src/slic3r/GUI/Tab.cpp:2506
 msgid "WHITE BULLET icon indicates a non system preset."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2496
+#: xs/src/slic3r/GUI/Tab.cpp:2509
 msgid ""
 "WHITE BULLET icon indicates that the settings are the same as in the last "
 "saved preset for the current option group."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2498
+#: xs/src/slic3r/GUI/Tab.cpp:2511
 msgid ""
 "BACK ARROW icon indicates that the settings were changed and are not equal "
 "to the last saved preset for the current option group.\n"
@@ -1348,46 +1363,53 @@ msgid ""
 "preset."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2504
+#: xs/src/slic3r/GUI/Tab.cpp:2517
 msgid ""
 "LOCKED LOCK icon indicates that the value is the same as the system value."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2505
+#: xs/src/slic3r/GUI/Tab.cpp:2518
 msgid ""
 "UNLOCKED LOCK icon indicates that the value was changed and is not equal to "
 "the system value.\n"
 "Click to reset current value to the system value."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2511
+#: xs/src/slic3r/GUI/Tab.cpp:2524
 msgid ""
 "WHITE BULLET icon indicates that the value is the same as in the last saved "
 "preset."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2512
+#: xs/src/slic3r/GUI/Tab.cpp:2525
 msgid ""
 "BACK ARROW icon indicates that the value was changed and is not equal to the "
 "last saved preset.\n"
 "Click to reset current value to the last saved preset."
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2582 lib/Slic3r/GUI/MainFrame.pm:448
-#: lib/Slic3r/GUI/Plater.pm:1685
+#: xs/src/slic3r/GUI/Tab.cpp:2595 lib/Slic3r/GUI/MainFrame.pm:450
+#: lib/Slic3r/GUI/Plater.pm:1756
 msgid "Save "
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2582
+#: xs/src/slic3r/GUI/Tab.cpp:2595
 msgid " as:"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2616
-msgid ""
-"The supplied name is not valid; the following characters are not allowed:"
+#: xs/src/slic3r/GUI/Tab.cpp:2634 xs/src/slic3r/GUI/Tab.cpp:2638
+msgid "The supplied name is not valid;"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Tab.cpp:2619
+#: xs/src/slic3r/GUI/Tab.cpp:2635
+msgid "the following characters are not allowed:"
+msgstr ""
+
+#: xs/src/slic3r/GUI/Tab.cpp:2639
+msgid "the following postfix are not allowed:"
+msgstr ""
+
+#: xs/src/slic3r/GUI/Tab.cpp:2642
 msgid "The supplied name is not available."
 msgstr ""
 
@@ -1407,21 +1429,21 @@ msgstr ""
 msgid "Save preset"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Field.cpp:72
+#: xs/src/slic3r/GUI/Field.cpp:82
 msgid "default"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Field.cpp:102
+#: xs/src/slic3r/GUI/Field.cpp:112
 #, possible-c-format
 msgid "%s doesn't support percentage"
 msgstr ""
 
-#: xs/src/slic3r/GUI/Field.cpp:111
+#: xs/src/slic3r/GUI/Field.cpp:121
 msgid "Input value is out of range"
 msgstr ""
 
 #: xs/src/slic3r/GUI/Preset.cpp:657 xs/src/slic3r/GUI/Preset.cpp:714
-#: xs/src/slic3r/GUI/PresetBundle.cpp:1177 lib/Slic3r/GUI/Plater.pm:574
+#: xs/src/slic3r/GUI/PresetBundle.cpp:1177 lib/Slic3r/GUI/Plater.pm:619
 msgid "User presets"
 msgstr ""
 
@@ -1834,19 +1856,35 @@ msgstr ""
 msgid "Show advanced settings"
 msgstr ""
 
-#: xs/src/slic3r/Utils/OctoPrint.cpp:47
+#: xs/src/slic3r/Utils/OctoPrint.cpp:33
+msgid "Send G-Code to printer"
+msgstr ""
+
+#: xs/src/slic3r/Utils/OctoPrint.cpp:33
+msgid "Upload to OctoPrint with the following filename:"
+msgstr ""
+
+#: xs/src/slic3r/Utils/OctoPrint.cpp:35
+msgid "Start printing after upload"
+msgstr ""
+
+#: xs/src/slic3r/Utils/OctoPrint.cpp:37
+msgid "Use forward slashes ( / ) as a directory separator if needed."
+msgstr ""
+
+#: xs/src/slic3r/Utils/OctoPrint.cpp:98
 msgid "Error while uploading to the OctoPrint server"
 msgstr ""
 
-#: xs/src/slic3r/Utils/OctoPrint.cpp:51 lib/Slic3r/GUI/Plater.pm:1516
+#: xs/src/slic3r/Utils/OctoPrint.cpp:111 lib/Slic3r/GUI/Plater.pm:1559
 msgid "Sending G-code file to the OctoPrint server..."
 msgstr ""
 
-#: xs/src/slic3r/Utils/OctoPrint.cpp:120
+#: xs/src/slic3r/Utils/OctoPrint.cpp:192
 msgid "Invalid API key"
 msgstr ""
 
-#: xs/src/slic3r/Utils/PresetUpdater.cpp:514
+#: xs/src/slic3r/Utils/PresetUpdater.cpp:533
 #, possible-c-format
 msgid "requires min. %s and max. %s"
 msgstr ""
@@ -1893,11 +1931,11 @@ msgid ""
 "default extruder and bed temperature are reset using non-wait command; "
 "however if M104, M109, M140 or M190 are detected in this custom code, Slic3r "
 "will not add temperature commands. Note that you can use placeholder "
-"variables for all Slic3r settings, so you can put a \"M109 "
-"S[first_layer_temperature]\" command wherever you want."
+"variables for all Slic3r settings, so you can put a \"M109 S"
+"[first_layer_temperature]\" command wherever you want."
 msgstr ""
 
-#: xs/src/libslic3r/PrintConfig.cpp:68 lib/Slic3r/GUI/MainFrame.pm:307
+#: xs/src/libslic3r/PrintConfig.cpp:68 lib/Slic3r/GUI/MainFrame.pm:309
 msgid "Bottom"
 msgstr ""
 
@@ -2226,7 +2264,7 @@ msgid "Extra perimeters if needed"
 msgstr ""
 
 #: xs/src/libslic3r/PrintConfig.cpp:328
-#, possible-c-format
+#, no-c-format
 msgid ""
 "Add more perimeters when needed for avoiding gaps in sloping walls. Slic3r "
 "keeps adding perimeters, until more than 70% of the loop immediately above "
@@ -2457,7 +2495,7 @@ msgstr ""
 msgid "Soluble material is most likely used for a soluble support."
 msgstr ""
 
-#: xs/src/libslic3r/PrintConfig.cpp:539 lib/Slic3r/GUI/Plater.pm:474
+#: xs/src/libslic3r/PrintConfig.cpp:539 lib/Slic3r/GUI/Plater.pm:519
 msgid "Cost"
 msgstr ""
 
@@ -2487,6 +2525,7 @@ msgid "Fill density"
 msgstr ""
 
 #: xs/src/libslic3r/PrintConfig.cpp:566
+#, no-c-format
 msgid "Density of internal infill, expressed in the range 0% - 100%."
 msgstr ""
 
@@ -2710,7 +2749,7 @@ msgid "This setting represents the maximum speed of your fan."
 msgstr ""
 
 #: xs/src/libslic3r/PrintConfig.cpp:867
-#, possible-c-format
+#, no-c-format
 msgid ""
 "This is the highest printable layer height for this extruder, used to cap "
 "the variable layer height and support layer height. Maximum recommended "
@@ -3324,8 +3363,8 @@ msgid ""
 "detects M104, M109, M140 or M190 in your custom codes, such commands will "
 "not be prepended automatically so you're free to customize the order of "
 "heating commands and other custom actions. Note that you can use placeholder "
-"variables for all Slic3r settings, so you can put a \"M109 "
-"S[first_layer_temperature]\" command wherever you want. If you have multiple "
+"variables for all Slic3r settings, so you can put a \"M109 S"
+"[first_layer_temperature]\" command wherever you want. If you have multiple "
 "extruders, the gcode is processed in extruder order."
 msgstr ""
 
@@ -3580,7 +3619,7 @@ msgid ""
 "for auto."
 msgstr ""
 
-#: xs/src/libslic3r/PrintConfig.cpp:1744 lib/Slic3r/GUI/MainFrame.pm:306
+#: xs/src/libslic3r/PrintConfig.cpp:1744 lib/Slic3r/GUI/MainFrame.pm:308
 msgid "Top"
 msgstr ""
 
@@ -3592,7 +3631,8 @@ msgstr ""
 msgid "Top solid layers"
 msgstr ""
 
-#: xs/src/libslic3r/PrintConfig.cpp:1753 lib/Slic3r/GUI/Plater/3DPreview.pm:105
+#: xs/src/libslic3r/PrintConfig.cpp:1753
+#: lib/Slic3r/GUI/Plater/3DPreview.pm:105
 msgid "Travel"
 msgstr ""
 
@@ -3803,7 +3843,7 @@ msgstr ""
 msgid "Tool"
 msgstr ""
 
-#: lib/Slic3r/GUI.pm:308
+#: lib/Slic3r/GUI.pm:307
 msgid "Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
 
@@ -3816,889 +3856,896 @@ msgid ""
 " - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:114
+#: lib/Slic3r/GUI/MainFrame.pm:116
 msgid "Plater"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:116
+#: lib/Slic3r/GUI/MainFrame.pm:118
 msgid "Controller"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:194
+#: lib/Slic3r/GUI/MainFrame.pm:196
 msgid "Open STL/OBJ/AMF/3MF…\tCtrl+O"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:194
+#: lib/Slic3r/GUI/MainFrame.pm:196
 msgid "Open a model"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:197
+#: lib/Slic3r/GUI/MainFrame.pm:199
 msgid "&Load Config…\tCtrl+L"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:197
+#: lib/Slic3r/GUI/MainFrame.pm:199
 msgid "Load exported configuration file"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:200
+#: lib/Slic3r/GUI/MainFrame.pm:202
 msgid "&Export Config…\tCtrl+E"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:200
+#: lib/Slic3r/GUI/MainFrame.pm:202
 msgid "Export current configuration to file"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:203
+#: lib/Slic3r/GUI/MainFrame.pm:205
 msgid "&Load Config Bundle…"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:203
+#: lib/Slic3r/GUI/MainFrame.pm:205
 msgid "Load presets from a bundle"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:206
+#: lib/Slic3r/GUI/MainFrame.pm:208
 msgid "&Export Config Bundle…"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:206
+#: lib/Slic3r/GUI/MainFrame.pm:208
 msgid "Export all presets to file"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:211
+#: lib/Slic3r/GUI/MainFrame.pm:213
 msgid "Q&uick Slice…\tCtrl+U"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:211
+#: lib/Slic3r/GUI/MainFrame.pm:213
 msgid "Slice a file into a G-code"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:217
+#: lib/Slic3r/GUI/MainFrame.pm:219
 msgid "Quick Slice and Save &As…\tCtrl+Alt+U"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:217
+#: lib/Slic3r/GUI/MainFrame.pm:219
 msgid "Slice a file into a G-code, save as"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:223
+#: lib/Slic3r/GUI/MainFrame.pm:225
 msgid "&Repeat Last Quick Slice\tCtrl+Shift+U"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:223
+#: lib/Slic3r/GUI/MainFrame.pm:225
 msgid "Repeat last quick slice"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:230
+#: lib/Slic3r/GUI/MainFrame.pm:232
 msgid "Slice to SV&G…\tCtrl+G"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:230
+#: lib/Slic3r/GUI/MainFrame.pm:232
 msgid "Slice file to a multi-layer SVG"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:234
+#: lib/Slic3r/GUI/MainFrame.pm:236
 msgid "(&Re)Slice Now\tCtrl+S"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:234
+#: lib/Slic3r/GUI/MainFrame.pm:236
 msgid "Start new slicing process"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:237
+#: lib/Slic3r/GUI/MainFrame.pm:239
 msgid "Repair STL file…"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:237
+#: lib/Slic3r/GUI/MainFrame.pm:239
 msgid "Automatically repair an STL file"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:241
+#: lib/Slic3r/GUI/MainFrame.pm:243
 msgid "&Quit"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:241
+#: lib/Slic3r/GUI/MainFrame.pm:243
 msgid "Quit Slic3r"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:251
+#: lib/Slic3r/GUI/MainFrame.pm:253
 msgid "Export G-code..."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:251
+#: lib/Slic3r/GUI/MainFrame.pm:253
 msgid "Export current plate as G-code"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:254
+#: lib/Slic3r/GUI/MainFrame.pm:256
 msgid "Export plate as STL..."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:254
+#: lib/Slic3r/GUI/MainFrame.pm:256
 msgid "Export current plate as STL"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:257
+#: lib/Slic3r/GUI/MainFrame.pm:259
 msgid "Export plate as AMF..."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:257
+#: lib/Slic3r/GUI/MainFrame.pm:259
 msgid "Export current plate as AMF"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:260
+#: lib/Slic3r/GUI/MainFrame.pm:262
 msgid "Export plate as 3MF..."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:260
+#: lib/Slic3r/GUI/MainFrame.pm:262
 msgid "Export current plate as 3MF"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:273
+#: lib/Slic3r/GUI/MainFrame.pm:275
 msgid "Select &Plater Tab\tCtrl+1"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:273
+#: lib/Slic3r/GUI/MainFrame.pm:275
 msgid "Show the plater"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:279
+#: lib/Slic3r/GUI/MainFrame.pm:281
 msgid "Select &Controller Tab\tCtrl+T"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:279
+#: lib/Slic3r/GUI/MainFrame.pm:281
 msgid "Show the printer controller"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:287
+#: lib/Slic3r/GUI/MainFrame.pm:289
 msgid "Select P&rint Settings Tab\tCtrl+2"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:287
+#: lib/Slic3r/GUI/MainFrame.pm:289
 msgid "Show the print settings"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:290
+#: lib/Slic3r/GUI/MainFrame.pm:292
 msgid "Select &Filament Settings Tab\tCtrl+3"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:290
+#: lib/Slic3r/GUI/MainFrame.pm:292
 msgid "Show the filament settings"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:293
+#: lib/Slic3r/GUI/MainFrame.pm:295
 msgid "Select Print&er Settings Tab\tCtrl+4"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:293
+#: lib/Slic3r/GUI/MainFrame.pm:295
 msgid "Show the printer settings"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:305
+#: lib/Slic3r/GUI/MainFrame.pm:307
 msgid "Iso"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:305
+#: lib/Slic3r/GUI/MainFrame.pm:307
 msgid "Iso View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:306
+#: lib/Slic3r/GUI/MainFrame.pm:308
 msgid "Top View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:307
+#: lib/Slic3r/GUI/MainFrame.pm:309
 msgid "Bottom View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:308
+#: lib/Slic3r/GUI/MainFrame.pm:310
 msgid "Front"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:308
+#: lib/Slic3r/GUI/MainFrame.pm:310
 msgid "Front View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:309
+#: lib/Slic3r/GUI/MainFrame.pm:311
 msgid "Rear"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:309
+#: lib/Slic3r/GUI/MainFrame.pm:311
 msgid "Rear View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:310
+#: lib/Slic3r/GUI/MainFrame.pm:312
 msgid "Left"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:310
+#: lib/Slic3r/GUI/MainFrame.pm:312
 msgid "Left View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:311
+#: lib/Slic3r/GUI/MainFrame.pm:313
 msgid "Right"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:311
+#: lib/Slic3r/GUI/MainFrame.pm:313
 msgid "Right View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:317
+#: lib/Slic3r/GUI/MainFrame.pm:319
 msgid "Prusa 3D Drivers"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:317
+#: lib/Slic3r/GUI/MainFrame.pm:319
 msgid "Open the Prusa3D drivers download page in your browser"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:320
+#: lib/Slic3r/GUI/MainFrame.pm:322
 msgid "Prusa Edition Releases"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:320
+#: lib/Slic3r/GUI/MainFrame.pm:322
 msgid "Open the Prusa Edition releases page in your browser"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:327
+#: lib/Slic3r/GUI/MainFrame.pm:329
 msgid "Slic3r &Website"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:327
+#: lib/Slic3r/GUI/MainFrame.pm:329
 msgid "Open the Slic3r website in your browser"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:330
+#: lib/Slic3r/GUI/MainFrame.pm:332
 msgid "Slic3r &Manual"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:330
+#: lib/Slic3r/GUI/MainFrame.pm:332
 msgid "Open the Slic3r manual in your browser"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:334
+#: lib/Slic3r/GUI/MainFrame.pm:336
 msgid "System Info"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:334
+#: lib/Slic3r/GUI/MainFrame.pm:336
 msgid "Show system information"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:337
+#: lib/Slic3r/GUI/MainFrame.pm:339
 msgid "Show &Configuration Folder"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:337
+#: lib/Slic3r/GUI/MainFrame.pm:339
 msgid "Show user configuration folder (datadir)"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:340
+#: lib/Slic3r/GUI/MainFrame.pm:342
 msgid "Report an Issue"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:340
+#: lib/Slic3r/GUI/MainFrame.pm:342
 msgid "Report an issue on the Slic3r Prusa Edition"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:343
+#: lib/Slic3r/GUI/MainFrame.pm:345
 msgid "&About Slic3r"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:343
+#: lib/Slic3r/GUI/MainFrame.pm:345
 msgid "Show about dialog"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:353
+#: lib/Slic3r/GUI/MainFrame.pm:355
 msgid "&File"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:354
+#: lib/Slic3r/GUI/MainFrame.pm:356
 msgid "&Plater"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:355
+#: lib/Slic3r/GUI/MainFrame.pm:357
 msgid "&Object"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:356
+#: lib/Slic3r/GUI/MainFrame.pm:358
 msgid "&Window"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:357
+#: lib/Slic3r/GUI/MainFrame.pm:359
 msgid "&View"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:360
+#: lib/Slic3r/GUI/MainFrame.pm:362
 msgid "&Help"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:391
+#: lib/Slic3r/GUI/MainFrame.pm:393
 msgid "Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:403
+#: lib/Slic3r/GUI/MainFrame.pm:405
 msgid "No previously sliced file."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:404 lib/Slic3r/GUI/Plater.pm:1363
+#: lib/Slic3r/GUI/MainFrame.pm:406 lib/Slic3r/GUI/Plater.pm:1406
 msgid "Error"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:408
+#: lib/Slic3r/GUI/MainFrame.pm:410
 msgid "Previously sliced file ("
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:408
+#: lib/Slic3r/GUI/MainFrame.pm:410
 msgid ") not found."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:409
+#: lib/Slic3r/GUI/MainFrame.pm:411
 msgid "File Not Found"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:448
+#: lib/Slic3r/GUI/MainFrame.pm:450
 msgid "SVG"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:448
+#: lib/Slic3r/GUI/MainFrame.pm:450
 msgid "G-code"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:448 lib/Slic3r/GUI/Plater.pm:1685
+#: lib/Slic3r/GUI/MainFrame.pm:450 lib/Slic3r/GUI/Plater.pm:1756
 msgid " file as:"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:462
+#: lib/Slic3r/GUI/MainFrame.pm:464
 msgid "Slicing…"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:462
+#: lib/Slic3r/GUI/MainFrame.pm:464
 msgid "Processing "
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:482
+#: lib/Slic3r/GUI/MainFrame.pm:484
 msgid " was successfully sliced."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:484
+#: lib/Slic3r/GUI/MainFrame.pm:486
 msgid "Slicing Done!"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:500
+#: lib/Slic3r/GUI/MainFrame.pm:502
 msgid "Select the STL file to repair:"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:514
+#: lib/Slic3r/GUI/MainFrame.pm:516
 msgid "Save OBJ file (less prone to coordinate errors than STL) as:"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:528
+#: lib/Slic3r/GUI/MainFrame.pm:530
 msgid "Your file was repaired."
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:528
+#: lib/Slic3r/GUI/MainFrame.pm:530
 msgid "Repair"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:539
+#: lib/Slic3r/GUI/MainFrame.pm:541
 msgid "Save configuration as:"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:557 lib/Slic3r/GUI/MainFrame.pm:601
+#: lib/Slic3r/GUI/MainFrame.pm:559 lib/Slic3r/GUI/MainFrame.pm:603
 msgid "Select configuration to load:"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:580
+#: lib/Slic3r/GUI/MainFrame.pm:582
 msgid "Save presets bundle as:"
 msgstr ""
 
-#: lib/Slic3r/GUI/MainFrame.pm:621
+#: lib/Slic3r/GUI/MainFrame.pm:623
 #, possible-perl-format
 msgid "%d presets successfully imported."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:112 lib/Slic3r/GUI/Plater.pm:2188
+#: lib/Slic3r/GUI/Plater.pm:140 lib/Slic3r/GUI/Plater.pm:2282
 msgid "3D"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:148
+#: lib/Slic3r/GUI/Plater.pm:180
 msgid "2D"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:167
+#: lib/Slic3r/GUI/Plater.pm:199
 msgid "Layers"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:187 lib/Slic3r/GUI/Plater.pm:205
+#: lib/Slic3r/GUI/Plater.pm:232 lib/Slic3r/GUI/Plater.pm:250
 msgid "Add…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:189 lib/Slic3r/GUI/Plater.pm:207
+#: lib/Slic3r/GUI/Plater.pm:234 lib/Slic3r/GUI/Plater.pm:252
 msgid "Delete All"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:190 lib/Slic3r/GUI/Plater.pm:208
+#: lib/Slic3r/GUI/Plater.pm:235 lib/Slic3r/GUI/Plater.pm:253
 msgid "Arrange"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:192
+#: lib/Slic3r/GUI/Plater.pm:237
 msgid "More"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:193
+#: lib/Slic3r/GUI/Plater.pm:238
 msgid "Fewer"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:195
+#: lib/Slic3r/GUI/Plater.pm:240
 msgid "45° ccw"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:196
+#: lib/Slic3r/GUI/Plater.pm:241
 msgid "45° cw"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:197 lib/Slic3r/GUI/Plater.pm:213
+#: lib/Slic3r/GUI/Plater.pm:242 lib/Slic3r/GUI/Plater.pm:258
 msgid "Scale…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:198 lib/Slic3r/GUI/Plater.pm:214
-#: lib/Slic3r/GUI/Plater.pm:2163
+#: lib/Slic3r/GUI/Plater.pm:243 lib/Slic3r/GUI/Plater.pm:259
+#: lib/Slic3r/GUI/Plater.pm:2252
 msgid "Split"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:199 lib/Slic3r/GUI/Plater.pm:215
-#: lib/Slic3r/GUI/Plater.pm:2166
+#: lib/Slic3r/GUI/Plater.pm:244 lib/Slic3r/GUI/Plater.pm:260
+#: lib/Slic3r/GUI/Plater.pm:2255
 msgid "Cut…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:201 lib/Slic3r/GUI/Plater.pm:216
-#: lib/Slic3r/GUI/Plater.pm:2170
+#: lib/Slic3r/GUI/Plater.pm:246 lib/Slic3r/GUI/Plater.pm:261
+#: lib/Slic3r/GUI/Plater.pm:2259
 msgid "Settings…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:202
+#: lib/Slic3r/GUI/Plater.pm:247
 msgid "Layer Editing"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:217
+#: lib/Slic3r/GUI/Plater.pm:262
 msgid "Layer editing"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:240
+#: lib/Slic3r/GUI/Plater.pm:285
 msgid "Name"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:241 lib/Slic3r/GUI/Plater.pm:963
+#: lib/Slic3r/GUI/Plater.pm:286 lib/Slic3r/GUI/Plater.pm:1007
 msgid "Copies"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:242 lib/Slic3r/GUI/Plater.pm:1119
-#: lib/Slic3r/GUI/Plater.pm:1124 lib/Slic3r/GUI/Plater.pm:2132
+#: lib/Slic3r/GUI/Plater.pm:287 lib/Slic3r/GUI/Plater.pm:1163
+#: lib/Slic3r/GUI/Plater.pm:1168 lib/Slic3r/GUI/Plater.pm:2221
 msgid "Scale"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:256
+#: lib/Slic3r/GUI/Plater.pm:301
 msgid "Export G-code…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:257
+#: lib/Slic3r/GUI/Plater.pm:302
 msgid "Slice now"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:258
+#: lib/Slic3r/GUI/Plater.pm:303
 msgid "Print…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:259
+#: lib/Slic3r/GUI/Plater.pm:304
 msgid "Send to printer"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:260
+#: lib/Slic3r/GUI/Plater.pm:305
 msgid "Export STL…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:387
+#: lib/Slic3r/GUI/Plater.pm:432
 msgid "Print settings"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:389
+#: lib/Slic3r/GUI/Plater.pm:434
 msgid "Printer"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:422
+#: lib/Slic3r/GUI/Plater.pm:467
 msgid "Info"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:433
+#: lib/Slic3r/GUI/Plater.pm:478
 msgid "Volume"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:434
+#: lib/Slic3r/GUI/Plater.pm:479
 msgid "Facets"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:435
+#: lib/Slic3r/GUI/Plater.pm:480
 msgid "Materials"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:436
+#: lib/Slic3r/GUI/Plater.pm:481
 msgid "Manifold"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:462
+#: lib/Slic3r/GUI/Plater.pm:507
 msgid "Sliced Info"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:471
+#: lib/Slic3r/GUI/Plater.pm:516
 msgid "Used Filament (m)"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:472
+#: lib/Slic3r/GUI/Plater.pm:517
 msgid "Used Filament (mm³)"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:473
+#: lib/Slic3r/GUI/Plater.pm:518
 msgid "Used Filament (g)"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:475
+#: lib/Slic3r/GUI/Plater.pm:520
 msgid "Estimated printing time"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:683
+#: lib/Slic3r/GUI/Plater.pm:728
 msgid "Loading…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:683 lib/Slic3r/GUI/Plater.pm:697
+#: lib/Slic3r/GUI/Plater.pm:728 lib/Slic3r/GUI/Plater.pm:742
 msgid "Processing input file\n"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:720
+#: lib/Slic3r/GUI/Plater.pm:765
 msgid ""
 "This file contains several objects positioned at multiple heights. Instead "
 "of considering them as multiple objects, should I consider\n"
 "this file as a single object having multiple parts?\n"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:723 lib/Slic3r/GUI/Plater.pm:740
+#: lib/Slic3r/GUI/Plater.pm:768 lib/Slic3r/GUI/Plater.pm:785
 msgid "Multi-part object detected"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:737
+#: lib/Slic3r/GUI/Plater.pm:782
 msgid ""
 "Multiple objects were loaded for a multi-material printer.\n"
 "Instead of considering them as multiple objects, should I consider\n"
 "these files to represent a single object having multiple parts?\n"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:749
+#: lib/Slic3r/GUI/Plater.pm:794
 msgid "Loaded "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:807
+#: lib/Slic3r/GUI/Plater.pm:852
 msgid ""
 "Your object appears to be too large, so it was automatically scaled down to "
 "fit your print bed."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:808
+#: lib/Slic3r/GUI/Plater.pm:853
 msgid "Object too large?"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:963
+#: lib/Slic3r/GUI/Plater.pm:1007
 msgid "Enter the number of copies of the selected object:"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:990
+#: lib/Slic3r/GUI/Plater.pm:1034
 msgid ""
 "\n"
 "Non-positive value."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:991
+#: lib/Slic3r/GUI/Plater.pm:1035
 msgid ""
 "\n"
 "Not a numeric value."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:992
+#: lib/Slic3r/GUI/Plater.pm:1036
 msgid "Slic3r Error"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1093
+#: lib/Slic3r/GUI/Plater.pm:1057
+msgid "Enter the rotation angle:"
+msgstr ""
+
+#: lib/Slic3r/GUI/Plater.pm:1057
+msgid "Rotate around "
+msgstr ""
+
+#: lib/Slic3r/GUI/Plater.pm:1057
+msgid "Invalid rotation angle entered"
+msgstr ""
+
+#: lib/Slic3r/GUI/Plater.pm:1137
 #, possible-perl-format
 msgid "Enter the new size for the selected object (print bed: %smm):"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1094 lib/Slic3r/GUI/Plater.pm:1098
+#: lib/Slic3r/GUI/Plater.pm:1138 lib/Slic3r/GUI/Plater.pm:1142
 msgid "Scale along "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1094 lib/Slic3r/GUI/Plater.pm:1098
-#: lib/Slic3r/GUI/Plater.pm:1119 lib/Slic3r/GUI/Plater.pm:1124
+#: lib/Slic3r/GUI/Plater.pm:1138 lib/Slic3r/GUI/Plater.pm:1142
+#: lib/Slic3r/GUI/Plater.pm:1163 lib/Slic3r/GUI/Plater.pm:1168
 msgid "Invalid scaling value entered"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1098 lib/Slic3r/GUI/Plater.pm:1124
-#, possible-perl-format
+#: lib/Slic3r/GUI/Plater.pm:1142 lib/Slic3r/GUI/Plater.pm:1168
+#, no-perl-format
 msgid "Enter the scale % for the selected object:"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1119
+#: lib/Slic3r/GUI/Plater.pm:1163
 msgid "Enter the new max size for the selected object:"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1175
+#: lib/Slic3r/GUI/Plater.pm:1219
 msgid ""
 "The selected object can't be split because it contains more than one volume/"
 "material."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1184
+#: lib/Slic3r/GUI/Plater.pm:1228
 msgid ""
 "The selected object couldn't be split because it contains only one part."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1349
+#: lib/Slic3r/GUI/Plater.pm:1392
 msgid "Slicing cancelled"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1363
+#: lib/Slic3r/GUI/Plater.pm:1406
 msgid "Another export job is currently running."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1399
-msgid "Save G-code file as:"
-msgstr ""
-
-#: lib/Slic3r/GUI/Plater.pm:1416
-msgid "Export cancelled"
-msgstr ""
-
-#: lib/Slic3r/GUI/Plater.pm:1513
+#: lib/Slic3r/GUI/Plater.pm:1556
 msgid "File added to print queue"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1519
+#: lib/Slic3r/GUI/Plater.pm:1562
 msgid "G-code file exported to "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1522
+#: lib/Slic3r/GUI/Plater.pm:1565
 msgid "Export failed"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1534
+#: lib/Slic3r/GUI/Plater.pm:1577
 msgid "OctoPrint upload finished."
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1577 lib/Slic3r/GUI/Plater.pm:1619
+#: lib/Slic3r/GUI/Plater.pm:1620 lib/Slic3r/GUI/Plater.pm:1662
 msgid "STL file exported to "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1630
+#: lib/Slic3r/GUI/Plater.pm:1701
 msgid "AMF file exported to "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1634
+#: lib/Slic3r/GUI/Plater.pm:1705
 msgid "Error exporting AMF file "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1646
+#: lib/Slic3r/GUI/Plater.pm:1717
 msgid "3MF file exported to "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1650
+#: lib/Slic3r/GUI/Plater.pm:1721
 msgid "Error exporting 3MF file "
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:1897
-msgid ""
-"Please install the OpenGL modules to use this feature (see build "
-"instructions)."
-msgstr ""
-
-#: lib/Slic3r/GUI/Plater.pm:2010
+#: lib/Slic3r/GUI/Plater.pm:2099
 #, possible-perl-format
 msgid "%d (%d shells)"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2012
+#: lib/Slic3r/GUI/Plater.pm:2101
 #, possible-perl-format
 msgid "Auto-repaired (%d errors)"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2017
+#: lib/Slic3r/GUI/Plater.pm:2106
 #, possible-perl-format
 msgid ""
 "%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d "
 "facets reversed, %d backwards edges"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2022
+#: lib/Slic3r/GUI/Plater.pm:2111
 msgid "Yes"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2085
+#: lib/Slic3r/GUI/Plater.pm:2174
 msgid "Remove the selected object"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2088
+#: lib/Slic3r/GUI/Plater.pm:2177
 msgid "Increase copies"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2088
+#: lib/Slic3r/GUI/Plater.pm:2177
 msgid "Place one more copy of the selected object"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2091
+#: lib/Slic3r/GUI/Plater.pm:2180
 msgid "Decrease copies"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2091
+#: lib/Slic3r/GUI/Plater.pm:2180
 msgid "Remove one copy of the selected object"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2094
+#: lib/Slic3r/GUI/Plater.pm:2183
 msgid "Set number of copies…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2094
+#: lib/Slic3r/GUI/Plater.pm:2183
 msgid "Change the number of copies of the selected object"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2098
+#: lib/Slic3r/GUI/Plater.pm:2187
 msgid "Rotate 45° clockwise"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2098
+#: lib/Slic3r/GUI/Plater.pm:2187
 msgid "Rotate the selected object by 45° clockwise"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2101
+#: lib/Slic3r/GUI/Plater.pm:2190
 msgid "Rotate 45° counter-clockwise"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2101
+#: lib/Slic3r/GUI/Plater.pm:2190
 msgid "Rotate the selected object by 45° counter-clockwise"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2106
+#: lib/Slic3r/GUI/Plater.pm:2195
 msgid "Rotate"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2106
+#: lib/Slic3r/GUI/Plater.pm:2195
 msgid "Rotate the selected object by an arbitrary angle"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2108
+#: lib/Slic3r/GUI/Plater.pm:2197
 msgid "Around X axis…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2108
+#: lib/Slic3r/GUI/Plater.pm:2197
 msgid "Rotate the selected object by an arbitrary angle around X axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2111
+#: lib/Slic3r/GUI/Plater.pm:2200
 msgid "Around Y axis…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2111
+#: lib/Slic3r/GUI/Plater.pm:2200
 msgid "Rotate the selected object by an arbitrary angle around Y axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2114
+#: lib/Slic3r/GUI/Plater.pm:2203
 msgid "Around Z axis…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2114
+#: lib/Slic3r/GUI/Plater.pm:2203
 msgid "Rotate the selected object by an arbitrary angle around Z axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2119
+#: lib/Slic3r/GUI/Plater.pm:2208
 msgid "Mirror"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2119
+#: lib/Slic3r/GUI/Plater.pm:2208
 msgid "Mirror the selected object"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2121 lib/Slic3r/GUI/Plater.pm:2137
-#: lib/Slic3r/GUI/Plater.pm:2153
+#: lib/Slic3r/GUI/Plater.pm:2210 lib/Slic3r/GUI/Plater.pm:2226
+#: lib/Slic3r/GUI/Plater.pm:2242
 msgid "Along X axis…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2121
+#: lib/Slic3r/GUI/Plater.pm:2210
 msgid "Mirror the selected object along the X axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2124 lib/Slic3r/GUI/Plater.pm:2140
-#: lib/Slic3r/GUI/Plater.pm:2156
+#: lib/Slic3r/GUI/Plater.pm:2213 lib/Slic3r/GUI/Plater.pm:2229
+#: lib/Slic3r/GUI/Plater.pm:2245
 msgid "Along Y axis…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2124
+#: lib/Slic3r/GUI/Plater.pm:2213
 msgid "Mirror the selected object along the Y axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2127 lib/Slic3r/GUI/Plater.pm:2143
-#: lib/Slic3r/GUI/Plater.pm:2159
+#: lib/Slic3r/GUI/Plater.pm:2216 lib/Slic3r/GUI/Plater.pm:2232
+#: lib/Slic3r/GUI/Plater.pm:2248
 msgid "Along Z axis…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2127
+#: lib/Slic3r/GUI/Plater.pm:2216
 msgid "Mirror the selected object along the Z axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2132 lib/Slic3r/GUI/Plater.pm:2148
+#: lib/Slic3r/GUI/Plater.pm:2221 lib/Slic3r/GUI/Plater.pm:2237
 msgid "Scale the selected object along a single axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2134 lib/Slic3r/GUI/Plater.pm:2150
+#: lib/Slic3r/GUI/Plater.pm:2223 lib/Slic3r/GUI/Plater.pm:2239
 msgid "Uniformly…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2134 lib/Slic3r/GUI/Plater.pm:2150
+#: lib/Slic3r/GUI/Plater.pm:2223 lib/Slic3r/GUI/Plater.pm:2239
 msgid "Scale the selected object along the XYZ axes"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2137 lib/Slic3r/GUI/Plater.pm:2153
+#: lib/Slic3r/GUI/Plater.pm:2226 lib/Slic3r/GUI/Plater.pm:2242
 msgid "Scale the selected object along the X axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2140 lib/Slic3r/GUI/Plater.pm:2156
+#: lib/Slic3r/GUI/Plater.pm:2229 lib/Slic3r/GUI/Plater.pm:2245
 msgid "Scale the selected object along the Y axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2143 lib/Slic3r/GUI/Plater.pm:2159
+#: lib/Slic3r/GUI/Plater.pm:2232 lib/Slic3r/GUI/Plater.pm:2248
 msgid "Scale the selected object along the Z axis"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2148
+#: lib/Slic3r/GUI/Plater.pm:2237
 msgid "Scale to size"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2163
+#: lib/Slic3r/GUI/Plater.pm:2252
 msgid "Split the selected object into individual parts"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2166
+#: lib/Slic3r/GUI/Plater.pm:2255
 msgid "Open the 3D cutting tool"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2170
+#: lib/Slic3r/GUI/Plater.pm:2259
 msgid "Open the object editor dialog"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2174
+#: lib/Slic3r/GUI/Plater.pm:2263
 msgid "Reload from Disk"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2174
+#: lib/Slic3r/GUI/Plater.pm:2263
 msgid "Reload the selected file from Disk"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2177
+#: lib/Slic3r/GUI/Plater.pm:2266
 msgid "Export object as STL…"
 msgstr ""
 
-#: lib/Slic3r/GUI/Plater.pm:2177
+#: lib/Slic3r/GUI/Plater.pm:2266
 msgid "Export this single object as STL file"
+msgstr ""
+
+#: lib/Slic3r/GUI/Plater.pm:2270
+msgid "Fix STL through Netfabb"
+msgstr ""
+
+#: lib/Slic3r/GUI/Plater.pm:2270
+msgid ""
+"Fix the model by sending it to a Netfabb cloud service through Windows 10 API"
 msgstr ""
 
 #: lib/Slic3r/GUI/Plater/2D.pm:131

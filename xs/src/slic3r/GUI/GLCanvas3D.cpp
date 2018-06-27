@@ -2376,7 +2376,7 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     if ((m_canvas != nullptr) && (m_print != nullptr))
     {
         // ensures that this canvas is current
-        if (!_3DScene::set_current(m_canvas, false))
+        if (!_3DScene::set_current(m_canvas, true))
             return;
 
         if (m_volumes.empty())
