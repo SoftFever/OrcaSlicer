@@ -179,15 +179,13 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
         }
     }
 
-    // Sort and remove duplicates, make sure that there are some tools for each object layer (e.g. tall wiping object will result in empty extruders vector)
-    for (auto lt_it=m_layer_tools.begin(); lt_it != m_layer_tools.end(); ++lt_it) {
-        sort_remove_duplicates(lt_it->extruders);
+    for (auto& layer : m_layer_tools) {
+        // Sort and remove duplicates
+        sort_remove_duplicates(layer.extruders);
 
-        if (lt_it->extruders.empty() && lt_it->has_object)
-            if (lt_it != m_layer_tools.begin())
-                lt_it->extruders.push_back(std::prev(lt_it)->extruders.back());
-            else
-                lt_it->extruders.push_back(1);
+        // make sure that there are some tools for each object layer (e.g. tall wiping object will result in empty extruders vector)
+        if (layer.extruders.empty() && layer.has_object)
+            layer.extruders.push_back(0); // 0="dontcare" extruder - it will be taken care of in reorder_extruders
     }
 }
 
@@ -360,7 +358,8 @@ void ToolOrdering::collect_extruder_statistics(bool prime_multi_material)
 
 
 // This function is called from Print::mark_wiping_extrusions and sets extruder this entity should be printed with (-1 .. as usual)
-void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies) {
+void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies)
+{
     something_overridden = true;
 
     auto entity_map_it = (entity_map.insert(std::make_pair(entity, std::vector<int>()))).first; // (add and) return iterator
@@ -376,7 +375,8 @@ void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsi
 
 
 // Finds last non-soluble extruder on the layer
-bool WipingExtrusions::is_last_nonsoluble_on_layer(const PrintConfig& print_config, const LayerTools& lt, unsigned int extruder) const {
+bool WipingExtrusions::is_last_nonsoluble_on_layer(const PrintConfig& print_config, const LayerTools& lt, unsigned int extruder) const
+{
     for (auto extruders_it = lt.extruders.rbegin(); extruders_it != lt.extruders.rend(); ++extruders_it)
         if (!print_config.filament_soluble.get_at(*extruders_it))
             return (*extruders_it == extruder);
@@ -385,12 +385,16 @@ bool WipingExtrusions::is_last_nonsoluble_on_layer(const PrintConfig& print_conf
 
 
 // Decides whether this entity could be overridden
-bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const {
-    if ((!is_infill(eec.role()) && !object.config.wipe_into_objects) ||
-        ((eec.role() == erTopSolidInfill || eec.role() == erGapFill) && !object.config.wipe_into_objects) ||
-        (is_infill(eec.role()) && !region.config.wipe_into_infill) ||
-        (print_config.filament_soluble.get_at(get_extruder(eec, region))) )
-            return false;
+bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const
+{
+    if (print_config.filament_soluble.get_at(get_extruder(eec, region)))
+        return false;
+
+    if (object.config.wipe_into_objects)
+        return true;
+
+    if (!region.config.wipe_into_infill || eec.role() != erInternalInfill)
+        return false;
 
     return true;
 }
@@ -527,7 +531,8 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
 // so -1 was used as "print as usual".
 // The resulting vector has to keep track of which extrusions are the ones that were overridden and which were not. In the extruder is used as overridden,
 // its number is saved as it is (zero-based index). Usual extrusions are saved as -number-1 (unfortunately there is no negative zero).
-const std::vector<int>* WipingExtrusions::get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, int num_of_copies) {
+const std::vector<int>* WipingExtrusions::get_extruder_overrides(const ExtrusionEntity* entity, int correct_extruder_id, int num_of_copies)
+{
     auto entity_map_it = entity_map.find(entity);
     if (entity_map_it == entity_map.end())
         entity_map_it = (entity_map.insert(std::make_pair(entity, std::vector<int>()))).first;
