@@ -296,14 +296,17 @@ void IProgressIndicator::message_fmt(
 void AppController::arrange_model()
 {
     std::async(supports_asynch()? std::launch::async : std::launch::deferred,
-               [this](){
-        auto pind = progress_indicator();
+               [this]()
+    {
+//        auto pind = progress_indicator();
 
     // my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
     // my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
-        double dist = GUI::get_preset_bundle()->full_config().option("min_object_distance")->getFloat();
+//        double dist = GUI::get_preset_bundle()->full_config().option("min_object_distance")->getFloat();
 
-        std::cout << dist << std::endl;
+//        std::cout << dist << std::endl;
+
+        std::cout << "ITTT vagyok" << std::endl;
     });
 }
 

@@ -409,6 +409,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/TriangleMesh.xsp
     ${XSP_DIR}/Utils_OctoPrint.xsp
     ${XSP_DIR}/Utils_PresetUpdater.xsp
+    ${XSP_DIR}/AppController.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})

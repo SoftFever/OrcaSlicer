@@ -75,6 +75,8 @@ sub new {
     $appController->set_model($self->{plater}->{model});
     $appController->set_print($self->{plater}->{print});
 
+    $self->{plater}->{appController} = $appController;
+
     $self->{loaded} = 1;
         
     # initialize layout
