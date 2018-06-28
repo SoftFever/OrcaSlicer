@@ -402,7 +402,8 @@ namespace Slic3r {
         }
 
         unsigned int g1_lines_count = 0;
-        float last_recorded_time = _time;
+        float last_recorded_time = 0.0f;
+        int last_recorded_id = -1;
         std::string gcode_line;
         while (std::getline(in, gcode_line))
         {
@@ -425,17 +426,21 @@ namespace Slic3r {
 
             // add remaining time lines where needed
             _parser.parse_line(gcode_line,
-                [this, &g1_lines_count, &last_recorded_time, &in, &out, &path_tmp, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
+                [this, &g1_lines_count, &last_recorded_time, &last_recorded_id, &in, &out, &path_tmp, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
             {
-                if (line.cmd_is("G1") && line.has_e())
+                if (line.cmd_is("G1"))
                 {
                     ++g1_lines_count;
-                    for (const Block& block : _blocks)
+                    if (!line.has_e())
+                        return;
+
+                    for (int i = last_recorded_id + 1; i < (int)_blocks.size(); ++i)
                     {
+                        const Block& block = _blocks[i];
                         if ((block.g1_line_id == g1_lines_count) && (block.elapsed_time != -1.0f))
                         {
                             float block_remaining_time = _time - block.elapsed_time;
-                            if ((last_recorded_time == _time) || (last_recorded_time - block_remaining_time > interval))
+                            if (std::abs(last_recorded_time - block_remaining_time) > interval)
                             {
                                 char buffer[1024];
                                 sprintf(buffer, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
@@ -450,7 +455,8 @@ namespace Slic3r {
                                 }
 
                                 last_recorded_time = block_remaining_time;
-                                break;
+                                last_recorded_id = i;
+                                return;
                             }
                         }
                     }
