@@ -102,10 +102,10 @@ using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
 {
 	wxNotebook*			m_parent;
-//#ifdef __WXOSX__
+#ifdef __WXOSX__
 	wxPanel*			m_tmp_panel;
 	int					m_size_move = -1;
-//#endif // __WXOSX__
+#endif // __WXOSX__
 protected:
 	std::string			m_name;
 	const wxString		m_title;
