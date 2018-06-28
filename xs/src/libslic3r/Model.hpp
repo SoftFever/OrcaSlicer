@@ -274,7 +274,8 @@ public:
     void center_instances_around_point(const Pointf &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
-    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL,
+                         std::function<void(unsigned)> progressind = [](unsigned){});
     // Croaks if the duplicated objects do not fit the print bed.
     void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);

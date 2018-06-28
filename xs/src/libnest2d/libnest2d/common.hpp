@@ -205,5 +205,36 @@ inline Radians::Radians(const Degrees &degs): Double( degs * Pi/180) {}
 
 inline double Radians::toDegrees() { return operator Degrees(); }
 
+enum class GeoErr : std::size_t {
+    OFFSET,
+    MERGE,
+    NFP
+};
+
+static const std::string ERROR_STR[] = {
+    "Offsetting could not be done! An invalid geometry may have been added."
+    "Error while merging geometries!"
+    "No fit polygon cannaot be calculated."
+};
+
+class GeometryException: public std::exception {
+
+    virtual const char * errorstr(GeoErr errcode) const {
+        return ERROR_STR[static_cast<std::size_t>(errcode)].c_str();
+    }
+
+    GeoErr errcode_;
+public:
+
+    GeometryException(GeoErr code): errcode_(code) {}
+
+    GeoErr errcode() const { return errcode_; }
+
+    virtual const char * what() const override {
+        return errorstr(errcode_);
+    }
+};
+
+
 }
 #endif // LIBNEST2D_CONFIG_HPP

@@ -377,7 +377,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
  * them).
  */
 bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
-             bool first_bin_only)
+             bool first_bin_only,
+             std::function<void(unsigned)> progressind)
 {
     using ArrangeResult = _IndexedPackGroup<PolygonImpl>;
 
@@ -435,7 +436,7 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
                 biggest = &item;
             }
         }
-        shapes.push_back(std::ref(it.second));
+        if(it.second.vertexCount() > 3) shapes.push_back(std::ref(it.second));
     });
 
     Box bin;
@@ -471,12 +472,19 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     Arranger arranger(bin, min_obj_distance, pcfg, scfg);
     arranger.useMinimumBoundigBoxRotation();
 
+    arranger.progressIndicator(progressind);
+
     std::cout << "Arranging model..." << std::endl;
     bench.start();
     // Arrange and return the items with their respective indices within the
     // input sequence.
-    ArrangeResult result =
-            arranger.arrangeIndexed(shapes.begin(), shapes.end());
+
+    ArrangeResult result;
+    try {
+        result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
+    } catch(std::exception& e) {
+        std::cerr << "An exception occured: " << e.what() << std::endl;
+    }
 
     bench.stop();
     std::cout << "Model arranged in " << bench.getElapsedSec()
@@ -543,12 +551,13 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
 /*  arrange objects preserving their instance count
     but altering their instance positions */
-bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
+bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
+                            std::function<void(unsigned)> progressind)
 {
     bool ret = false;
     if(bb != nullptr && bb->defined) {
         const bool FIRST_BIN_ONLY = false;
-        ret = arr::arrange(*this, dist, bb, FIRST_BIN_ONLY);
+        ret = arr::arrange(*this, dist, bb, FIRST_BIN_ONLY, progressind);
     } else {
         // get the (transformed) size of each instance so that we take
         // into account their different transformations when packing

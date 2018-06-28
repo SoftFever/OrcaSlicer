@@ -240,6 +240,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/PresetUpdater.hpp
     ${LIBDIR}/slic3r/Utils/Time.cpp
     ${LIBDIR}/slic3r/Utils/Time.hpp
+    ${LIBDIR}/slic3r/IProgressIndicator.hpp
+    ${LIBDIR}/slic3r/AppController.hpp
+    ${LIBDIR}/slic3r/AppController.cpp
+    ${LIBDIR}/slic3r/AppControllerWx.cpp
 )
 
 add_library(admesh STATIC

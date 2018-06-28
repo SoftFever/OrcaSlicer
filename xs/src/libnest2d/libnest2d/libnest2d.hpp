@@ -648,6 +648,8 @@ public:
 
     using IndexedPackGroup = _IndexedPackGroup<typename Item::ShapeType>;
     using PackGroup = _PackGroup<typename Item::ShapeType>;
+    using ResultType = PackGroup;
+    using ResultTypeIndexed = IndexedPackGroup;
 
 private:
     BinType bin_;
