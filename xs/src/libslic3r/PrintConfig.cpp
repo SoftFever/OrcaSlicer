@@ -147,15 +147,17 @@ PrintConfigDef::PrintConfigDef()
     def->label = L("Compatible printers");
     def->default_value = new ConfigOptionStrings();
 
-    // The following value is defined as a vector of strings, so it could
-    // collect the "inherits" values over the print and filaments profiles
-    // when storing into a project file (AMF, 3MF, Config ...)
-    def = this->add("compatible_printers_condition", coStrings);
+    def = this->add("compatible_printers_condition", coString);
     def->label = L("Compatible printers condition");
     def->tooltip = L("A boolean expression using the configuration values of an active printer profile. "
                    "If this expression evaluates to true, this profile is considered compatible "
                    "with the active printer profile.");
-    def->default_value = new ConfigOptionStrings { "" };
+    def->default_value = new ConfigOptionString();
+
+    // The following value is to be stored into the project file (AMF, 3MF, Config ...)
+    // and it contains a sum of "compatible_printers_condition" values over the print and filament profiles.
+    def = this->add("compatible_printers_condition_cummulative", coStrings);
+    def->default_value = new ConfigOptionStrings();
 
     def = this->add("complete_objects", coBool);
     def->label = L("Complete individual objects");
@@ -822,15 +824,17 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(80);
 
-    // The following value is defined as a vector of strings, so it could
-    // collect the "inherits" values over the print and filaments profiles
-    // when storing into a project file (AMF, 3MF, Config ...)
-    def = this->add("inherits", coStrings);
+    def = this->add("inherits", coString);
     def->label = L("Inherits profile");
     def->tooltip = L("Name of the profile, from which this profile inherits.");
     def->full_width = true;
     def->height = 50;
-    def->default_value = new ConfigOptionStrings { "" };
+    def->default_value = new ConfigOptionString();
+
+    // The following value is to be stored into the project file (AMF, 3MF, Config ...)
+    // and it contains a sum of "inherits" values over the print and filament profiles.
+    def = this->add("inherits_cummulative", coStrings);
+    def->default_value = new ConfigOptionStrings();
 
     def = this->add("interface_shells", coBool);
     def->label = L("Interface shells");

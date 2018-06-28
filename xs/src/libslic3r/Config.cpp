@@ -20,6 +20,7 @@
 
 namespace Slic3r {
 
+// Escape \n, \r and \\ 
 std::string escape_string_cstyle(const std::string &str)
 {
     // Allocate a buffer twice the input string length,
@@ -28,9 +29,15 @@ std::string escape_string_cstyle(const std::string &str)
     char *outptr = out.data();
     for (size_t i = 0; i < str.size(); ++ i) {
         char c = str[i];
-        if (c == '\n' || c == '\r') {
+        if (c == '\r') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = 'r';
+        } else if (c == '\n') {
             (*outptr ++) = '\\';
             (*outptr ++) = 'n';
+        } else if (c == '\\') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
         } else
             (*outptr ++) = c;
     }
@@ -69,7 +76,10 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
                 if (c == '\\' || c == '"') {
                     (*outptr ++) = '\\';
                     (*outptr ++) = c;
-                } else if (c == '\n' || c == '\r') {
+                } else if (c == '\r') {
+                    (*outptr ++) = '\\';
+                    (*outptr ++) = 'r';
+                } else if (c == '\n') {
                     (*outptr ++) = '\\';
                     (*outptr ++) = 'n';
                 } else
@@ -84,6 +94,7 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
     return std::string(out.data(), outptr - out.data());
 }
 
+// Unescape \n, \r and \\ 
 bool unescape_string_cstyle(const std::string &str, std::string &str_out)
 {
     std::vector<char> out(str.size(), 0);
@@ -94,8 +105,12 @@ bool unescape_string_cstyle(const std::string &str, std::string &str_out)
             if (++ i == str.size())
                 return false;
             c = str[i];
-            if (c == 'n')
+            if (c == 'r')
+                (*outptr ++) = '\r';
+            else if (c == 'n')
                 (*outptr ++) = '\n';
+            else
+                (*outptr ++) = c;
         } else
             (*outptr ++) = c;
     }
@@ -134,7 +149,9 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
                     if (++ i == str.size())
                         return false;
                     c = str[i];
-                    if (c == 'n')
+                    if (c == 'r')
+                        c = '\r';
+                    else if (c == 'n')
                         c = '\n';
                 }
                 buf.push_back(c);

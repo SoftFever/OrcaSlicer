@@ -180,7 +180,7 @@ void Preset::normalize(DynamicPrintConfig &config)
         size_t n = (nozzle_diameter == nullptr) ? 1 : nozzle_diameter->values.size();
         const auto &defaults = FullPrintConfig::defaults();
         for (const std::string &key : Preset::filament_options()) {
-			if (key == "compatible_printers" || key == "compatible_printers_condition" || key == "inherits")
+			if (key == "compatible_printers")
 				continue;
             auto *opt = config.option(key, false);
             assert(opt != nullptr);
@@ -459,8 +459,8 @@ Preset& PresetCollection::load_external_preset(
     DynamicPrintConfig cfg(this->default_preset().config);
     cfg.apply_only(config, cfg.keys(), true);
     // Is there a preset already loaded with the name stored inside the config?
-    std::deque<Preset>::iterator it = original_name.empty() ? m_presets.end() : this->find_preset_internal(original_name);
-    if (it != m_presets.end() && profile_print_params_same(it->config, cfg)) {
+    std::deque<Preset>::iterator it = this->find_preset_internal(original_name);
+    if (it != m_presets.end() && it->name == original_name && profile_print_params_same(it->config, cfg)) {
         // The preset exists and it matches the values stored inside config.
         if (select)
             this->select_preset(it - m_presets.begin());
@@ -490,7 +490,7 @@ Preset& PresetCollection::load_external_preset(
         }
         new_name = name + suffix;
         it = this->find_preset_internal(new_name);
-        if (it == m_presets.end())
+        if (it == m_presets.end() || it->name != new_name)
             // Unique profile name. Insert a new profile.
             break;
         if (profile_print_params_same(it->config, cfg)) {
@@ -849,17 +849,6 @@ std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, c
         }
     }
     return changed;
-}
-
-std::vector<std::string>    PresetCollection::system_equal_options() const
-{
-	const Preset *edited = &this->get_edited_preset();
-	const Preset *reference = this->get_selected_preset_parent();
-	std::vector<std::string> equal;
-	if (edited != nullptr && reference != nullptr) {
-		equal = reference->config.equal(edited->config);
-	}
-	return equal;
 }
 
 // Select a new preset. This resets all the edits done to the currently selected preset.

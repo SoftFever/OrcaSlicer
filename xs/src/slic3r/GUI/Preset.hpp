@@ -140,24 +140,12 @@ public:
     bool                is_compatible_with_printer(const Preset &active_printer) const;
 
     // Returns the name of the preset, from which this preset inherits.
-    static std::string& inherits(DynamicPrintConfig &cfg)
-    {
-        auto option = cfg.option<ConfigOptionStrings>("inherits", true);
-        if (option->values.empty())
-            option->values.emplace_back(std::string());
-        return option->values.front();
-    }
+    static std::string& inherits(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("inherits", true)->value; }
     std::string&        inherits() { return Preset::inherits(this->config); }
     const std::string&  inherits() const { return Preset::inherits(const_cast<Preset*>(this)->config); }
 
     // Returns the "compatible_printers_condition".
-    static std::string& compatible_printers_condition(DynamicPrintConfig &cfg)
-    {
-        auto option = cfg.option<ConfigOptionStrings>("compatible_printers_condition", true);
-        if (option->values.empty())
-            option->values.emplace_back(std::string());
-        return option->values.front();
-    }
+    static std::string& compatible_printers_condition(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("compatible_printers_condition", true)->value; }
     std::string&        compatible_printers_condition() { return Preset::compatible_printers_condition(this->config); }
     const std::string&  compatible_printers_condition() const { return Preset::compatible_printers_condition(const_cast<Preset*>(this)->config); }
 
@@ -343,8 +331,6 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
     std::vector<std::string>    current_different_from_parent_options(const bool is_printer_type = false) const
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), is_printer_type); }
-    // Compare the content of get_selected_preset() with get_selected_preset_parent() configs, return the list of keys where they equal.
-	std::vector<std::string>    system_equal_options() const;
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
@@ -380,9 +366,10 @@ private:
     PresetCollection(const PresetCollection &other);
     PresetCollection& operator=(const PresetCollection &other);
 
-    // Find a preset in the sorted list of presets.
+    // Find a preset position in the sorted list of presets.
     // The "-- default -- " preset is always the first, so it needs
     // to be handled differently.
+    // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
     std::deque<Preset>::iterator find_preset_internal(const std::string &name)
     {
         Preset key(m_type, name);
