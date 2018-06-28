@@ -436,23 +436,23 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[0]);
     m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[0]);
 
-    std::cout << "Normal" << std::endl;
-    std::cout << "set_acceleration            " << print.config.machine_max_acceleration_extruding.values[0] << std::endl;
-    std::cout << "set_retract_acceleration    " << print.config.machine_max_acceleration_retracting.values[0] << std::endl;
-    std::cout << "set_minimum_feedrate        " << print.config.machine_min_extruding_rate.values[0] << std::endl;
-    std::cout << "set_minimum_travel_feedrate " << print.config.machine_min_travel_rate.values[0] << std::endl;
-    std::cout << "set_axis_max_acceleration X " << print.config.machine_max_acceleration_x.values[0] << std::endl;
-    std::cout << "set_axis_max_acceleration Y " << print.config.machine_max_acceleration_y.values[0] << std::endl;
-    std::cout << "set_axis_max_acceleration Z " << print.config.machine_max_acceleration_z.values[0] << std::endl;
-    std::cout << "set_axis_max_acceleration E " << print.config.machine_max_acceleration_e.values[0] << std::endl;
-    std::cout << "set_axis_max_feedrate X     " << print.config.machine_max_feedrate_x.values[0] << std::endl;
-    std::cout << "set_axis_max_feedrate Y     " << print.config.machine_max_feedrate_y.values[0] << std::endl;
-    std::cout << "set_axis_max_feedrate Z     " << print.config.machine_max_feedrate_z.values[0] << std::endl;
-    std::cout << "set_axis_max_feedrate E     " << print.config.machine_max_feedrate_e.values[0] << std::endl;
-    std::cout << "set_axis_max_jerk X         " << print.config.machine_max_jerk_x.values[0] << std::endl;
-    std::cout << "set_axis_max_jerk Y         " << print.config.machine_max_jerk_y.values[0] << std::endl;
-    std::cout << "set_axis_max_jerk Z         " << print.config.machine_max_jerk_z.values[0] << std::endl;
-    std::cout << "set_axis_max_jerk E         " << print.config.machine_max_jerk_e.values[0] << std::endl;
+//    std::cout << "Normal" << std::endl;
+//    std::cout << "set_acceleration            " << print.config.machine_max_acceleration_extruding.values[0] << std::endl;
+//    std::cout << "set_retract_acceleration    " << print.config.machine_max_acceleration_retracting.values[0] << std::endl;
+//    std::cout << "set_minimum_feedrate        " << print.config.machine_min_extruding_rate.values[0] << std::endl;
+//    std::cout << "set_minimum_travel_feedrate " << print.config.machine_min_travel_rate.values[0] << std::endl;
+//    std::cout << "set_axis_max_acceleration X " << print.config.machine_max_acceleration_x.values[0] << std::endl;
+//    std::cout << "set_axis_max_acceleration Y " << print.config.machine_max_acceleration_y.values[0] << std::endl;
+//    std::cout << "set_axis_max_acceleration Z " << print.config.machine_max_acceleration_z.values[0] << std::endl;
+//    std::cout << "set_axis_max_acceleration E " << print.config.machine_max_acceleration_e.values[0] << std::endl;
+//    std::cout << "set_axis_max_feedrate X     " << print.config.machine_max_feedrate_x.values[0] << std::endl;
+//    std::cout << "set_axis_max_feedrate Y     " << print.config.machine_max_feedrate_y.values[0] << std::endl;
+//    std::cout << "set_axis_max_feedrate Z     " << print.config.machine_max_feedrate_z.values[0] << std::endl;
+//    std::cout << "set_axis_max_feedrate E     " << print.config.machine_max_feedrate_e.values[0] << std::endl;
+//    std::cout << "set_axis_max_jerk X         " << print.config.machine_max_jerk_x.values[0] << std::endl;
+//    std::cout << "set_axis_max_jerk Y         " << print.config.machine_max_jerk_y.values[0] << std::endl;
+//    std::cout << "set_axis_max_jerk Z         " << print.config.machine_max_jerk_z.values[0] << std::endl;
+//    std::cout << "set_axis_max_jerk E         " << print.config.machine_max_jerk_e.values[0] << std::endl;
 
 
 //    m_default_time_estimator.reset();
@@ -945,7 +945,10 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         double extruded_volume = extruder.extruded_volume();
         double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
         double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
-        print.filament_stats.insert(std::pair<size_t,float>(extruder.id(), used_filament));
+//#######################################################################################################################################################################
+        print.filament_stats.insert(std::pair<size_t, float>(extruder.id(), (float)used_filament));
+//        print.filament_stats.insert(std::pair<size_t, float>(extruder.id(), used_filament));
+//#######################################################################################################################################################################
         _write_format(file, "; filament used = %.1lfmm (%.1lfcm3)\n", used_filament, extruded_volume * 0.001);
         if (filament_weight > 0.) {
             print.total_weight = print.total_weight + filament_weight;

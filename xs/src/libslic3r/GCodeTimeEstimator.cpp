@@ -108,9 +108,6 @@ namespace Slic3r {
 
     GCodeTimeEstimator::Block::Block()
         : st_synchronized(false)
-//#################################################################################################################
-        , g1_line_id(0)
-//#################################################################################################################
     {
     }
 
@@ -403,8 +400,10 @@ namespace Slic3r {
 
         unsigned int g1_lines_count = 0;
         float last_recorded_time = 0.0f;
-        int last_recorded_id = -1;
         std::string gcode_line;
+        // buffer line to export only when greater than 64K to reduce writing calls
+        std::string export_line;
+        char time_line[64];
         while (std::getline(in, gcode_line))
         {
             if (!in.good())
@@ -413,9 +412,56 @@ namespace Slic3r {
                 throw std::runtime_error(std::string("Remaining times export failed.\nError while reading from file.\n"));
             }
 
-            // saves back the line
             gcode_line += "\n";
-            fwrite((const void*)gcode_line.c_str(), 1, gcode_line.length(), out);
+
+            // add remaining time lines where needed
+            _parser.parse_line(gcode_line,
+                [this, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
+            {
+                if (line.cmd_is("G1"))
+                {
+                    ++g1_lines_count;
+
+                    if (!line.has_e())
+                        return;
+
+                    G1LineIdToBlockIdMap::const_iterator it = _g1_line_ids.find(g1_lines_count);
+                    if ((it != _g1_line_ids.end()) && (it->second < (unsigned int)_blocks.size()))
+                    {
+                        const Block& block = _blocks[it->second];
+                        if (block.elapsed_time != -1.0f)
+                        {
+                            float block_remaining_time = _time - block.elapsed_time;
+                            if (std::abs(last_recorded_time - block_remaining_time) > interval)
+                            {
+                                sprintf(time_line, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
+                                gcode_line += time_line;
+
+                                last_recorded_time = block_remaining_time;
+                            }
+                        }
+                    }
+                }
+            });
+
+            export_line += gcode_line;
+            if (export_line.length() > 65535)
+            {
+                fwrite((const void*)export_line.c_str(), 1, export_line.length(), out);
+                if (ferror(out))
+                {
+                    in.close();
+                    fclose(out);
+                    boost::nowide::remove(path_tmp.c_str());
+                    throw std::runtime_error(std::string("Remaining times export failed.\nIs the disk full?\n"));
+                }
+                export_line.clear();
+            }
+        }
+
+        if (export_line.length() > 0)
+        {
+            fwrite((const void*)export_line.c_str(), 1, export_line.length(), out);
             if (ferror(out))
             {
                 in.close();
@@ -423,45 +469,6 @@ namespace Slic3r {
                 boost::nowide::remove(path_tmp.c_str());
                 throw std::runtime_error(std::string("Remaining times export failed.\nIs the disk full?\n"));
             }
-
-            // add remaining time lines where needed
-            _parser.parse_line(gcode_line,
-                [this, &g1_lines_count, &last_recorded_time, &last_recorded_id, &in, &out, &path_tmp, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
-            {
-                if (line.cmd_is("G1"))
-                {
-                    ++g1_lines_count;
-                    if (!line.has_e())
-                        return;
-
-                    for (int i = last_recorded_id + 1; i < (int)_blocks.size(); ++i)
-                    {
-                        const Block& block = _blocks[i];
-                        if ((block.g1_line_id == g1_lines_count) && (block.elapsed_time != -1.0f))
-                        {
-                            float block_remaining_time = _time - block.elapsed_time;
-                            if (std::abs(last_recorded_time - block_remaining_time) > interval)
-                            {
-                                char buffer[1024];
-                                sprintf(buffer, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
-
-                                fwrite((const void*)buffer, 1, ::strlen(buffer), out);
-                                if (ferror(out))
-                                {
-                                    in.close();
-                                    fclose(out);
-                                    boost::nowide::remove(path_tmp.c_str());
-                                    throw std::runtime_error(std::string("Remaining times export failed.\nIs the disk full?\n"));
-                                }
-
-                                last_recorded_time = block_remaining_time;
-                                last_recorded_id = i;
-                                return;
-                            }
-                        }
-                    }
-                }
-            });
         }
 
         fclose(out);
@@ -747,6 +754,7 @@ namespace Slic3r {
 
 //############################################################################################################3
         reset_g1_line_id();
+        _g1_line_ids.clear();
 //############################################################################################################3
     }
 
@@ -781,23 +789,23 @@ namespace Slic3r {
             set_axis_max_jerk(axis, NORMAL_AXIS_MAX_JERK[a]);
         }
 
-        std::cout << "Normal Default" << std::endl;
-        std::cout << "set_acceleration            " << NORMAL_ACCELERATION << std::endl;
-        std::cout << "set_retract_acceleration    " << NORMAL_RETRACT_ACCELERATION << std::endl;
-        std::cout << "set_minimum_feedrate        " << NORMAL_MINIMUM_FEEDRATE << std::endl;
-        std::cout << "set_minimum_travel_feedrate " << NORMAL_MINIMUM_TRAVEL_FEEDRATE << std::endl;
-        std::cout << "set_axis_max_acceleration X " << NORMAL_AXIS_MAX_ACCELERATION[X] << std::endl;
-        std::cout << "set_axis_max_acceleration Y " << NORMAL_AXIS_MAX_ACCELERATION[Y] << std::endl;
-        std::cout << "set_axis_max_acceleration Z " << NORMAL_AXIS_MAX_ACCELERATION[Z] << std::endl;
-        std::cout << "set_axis_max_acceleration E " << NORMAL_AXIS_MAX_ACCELERATION[E] << std::endl;
-        std::cout << "set_axis_max_feedrate X     " << NORMAL_AXIS_MAX_FEEDRATE[X] << std::endl;
-        std::cout << "set_axis_max_feedrate Y     " << NORMAL_AXIS_MAX_FEEDRATE[Y] << std::endl;
-        std::cout << "set_axis_max_feedrate Z     " << NORMAL_AXIS_MAX_FEEDRATE[Z] << std::endl;
-        std::cout << "set_axis_max_feedrate E     " << NORMAL_AXIS_MAX_FEEDRATE[E] << std::endl;
-        std::cout << "set_axis_max_jerk X         " << NORMAL_AXIS_MAX_JERK[X] << std::endl;
-        std::cout << "set_axis_max_jerk Y         " << NORMAL_AXIS_MAX_JERK[Y] << std::endl;
-        std::cout << "set_axis_max_jerk Z         " << NORMAL_AXIS_MAX_JERK[Z] << std::endl;
-        std::cout << "set_axis_max_jerk E         " << NORMAL_AXIS_MAX_JERK[E] << std::endl;
+//        std::cout << "Normal Default" << std::endl;
+//        std::cout << "set_acceleration            " << NORMAL_ACCELERATION << std::endl;
+//        std::cout << "set_retract_acceleration    " << NORMAL_RETRACT_ACCELERATION << std::endl;
+//        std::cout << "set_minimum_feedrate        " << NORMAL_MINIMUM_FEEDRATE << std::endl;
+//        std::cout << "set_minimum_travel_feedrate " << NORMAL_MINIMUM_TRAVEL_FEEDRATE << std::endl;
+//        std::cout << "set_axis_max_acceleration X " << NORMAL_AXIS_MAX_ACCELERATION[X] << std::endl;
+//        std::cout << "set_axis_max_acceleration Y " << NORMAL_AXIS_MAX_ACCELERATION[Y] << std::endl;
+//        std::cout << "set_axis_max_acceleration Z " << NORMAL_AXIS_MAX_ACCELERATION[Z] << std::endl;
+//        std::cout << "set_axis_max_acceleration E " << NORMAL_AXIS_MAX_ACCELERATION[E] << std::endl;
+//        std::cout << "set_axis_max_feedrate X     " << NORMAL_AXIS_MAX_FEEDRATE[X] << std::endl;
+//        std::cout << "set_axis_max_feedrate Y     " << NORMAL_AXIS_MAX_FEEDRATE[Y] << std::endl;
+//        std::cout << "set_axis_max_feedrate Z     " << NORMAL_AXIS_MAX_FEEDRATE[Z] << std::endl;
+//        std::cout << "set_axis_max_feedrate E     " << NORMAL_AXIS_MAX_FEEDRATE[E] << std::endl;
+//        std::cout << "set_axis_max_jerk X         " << NORMAL_AXIS_MAX_JERK[X] << std::endl;
+//        std::cout << "set_axis_max_jerk Y         " << NORMAL_AXIS_MAX_JERK[Y] << std::endl;
+//        std::cout << "set_axis_max_jerk Z         " << NORMAL_AXIS_MAX_JERK[Z] << std::endl;
+//        std::cout << "set_axis_max_jerk E         " << NORMAL_AXIS_MAX_JERK[E] << std::endl;
 
 
 //        set_feedrate(DEFAULT_FEEDRATE);
@@ -1041,9 +1049,6 @@ namespace Slic3r {
 
         // fills block data
         Block block;
-//############################################################################################################3
-        block.g1_line_id = get_g1_line_id();
-//############################################################################################################3
 
         // calculates block movement deltas
         float max_abs_delta = 0.0f;
@@ -1213,6 +1218,9 @@ namespace Slic3r {
 
         // adds block to blocks list
         _blocks.emplace_back(block);
+//############################################################################################################3
+        _g1_line_ids.insert(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
+//############################################################################################################3
     }
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)

@@ -148,7 +148,6 @@ namespace Slic3r {
             Trapezoid trapezoid;
 //#################################################################################################################
             float elapsed_time;
-            unsigned int g1_line_id;
 //#################################################################################################################
 
             bool st_synchronized;
@@ -207,6 +206,8 @@ namespace Slic3r {
         typedef std::map<Block::EMoveType, MoveStats> MovesStatsMap;
 #endif // ENABLE_MOVE_STATS
 
+        typedef std::map<unsigned int, unsigned int> G1LineIdToBlockIdMap;
+
     private:
         EMode _mode;
         GCodeReader _parser;
@@ -214,6 +215,8 @@ namespace Slic3r {
         Feedrates _curr;
         Feedrates _prev;
         BlocksList _blocks;
+        // Map between g1 line id and blocks id, used to speed up export of remaining times
+        G1LineIdToBlockIdMap _g1_line_ids;
         float _time; // s
 
 #if ENABLE_MOVE_STATS
