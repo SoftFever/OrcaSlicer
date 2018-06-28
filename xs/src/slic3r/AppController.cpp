@@ -289,8 +289,8 @@ void PrintController::slice_to_png()
         return;
     }
 
-    // TODO
-    /*bool correction = false;
+    // TODO: copy the model and work with the copy only
+    bool correction = false;
     if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
         correction = true;
         print_->invalidate_all_steps();
@@ -301,8 +301,9 @@ void PrintController::slice_to_png()
                         );
             po->model_object()->invalidate_bounding_box();
             po->reload_model_instances();
+            po->invalidate_all_steps();
         }
-    }*/
+    }
 
     auto print_bb = print_->bounding_box();
 
@@ -319,7 +320,7 @@ void PrintController::slice_to_png()
     }
 
     std::async(supports_asynch()? std::launch::async : std::launch::deferred,
-               [this, exd]()
+               [this, exd, correction]()
     {
         progress_indicator(100, "Slicing to zipped png files...");
         progress_indicator()->procedure_count(3);
@@ -338,14 +339,15 @@ void PrintController::slice_to_png()
         try {
             print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
                         exd.width_mm, exd.height_mm,
-                        exd.width_px, exd.height_px );
+                        exd.width_px, exd.height_px,
+                        exd.exp_time_s, exd.exp_time_first_s);
 
         } catch (std::exception& e) {
             report_issue(IssueType::ERR, e.what(), "Exception");
             progress_indicator()->cancel();
         }
 
-        /*if(correction) { // scale the model back
+        if(correction) { // scale the model back
             print_->invalidate_all_steps();
             for(auto po : print_->objects) {
                 po->model_object()->scale(
@@ -353,8 +355,9 @@ void PrintController::slice_to_png()
                 );
                 po->model_object()->invalidate_bounding_box();
                 po->reload_model_instances();
+                po->invalidate_all_steps();
             }
-        }*/
+        }
 
         print_->progressindicator = pbak;
     });

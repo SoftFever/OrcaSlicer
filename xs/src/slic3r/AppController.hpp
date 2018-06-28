@@ -187,6 +187,8 @@ protected:
         unsigned long width_px = 1440;              // resolution - rows
         unsigned long height_px = 2560;             // resolution columns
         double width_mm = 68.0, height_mm = 120.0;  // dimensions in mm
+        double exp_time_first_s = 35.0;             // first exposure time
+        double exp_time_s = 8.0;                    // global exposure time
         double corr_x = 1.0;                        // offsetting in x
         double corr_y = 1.0;                        // offsetting in y
         double corr_z = 1.0;                        // offsetting in y

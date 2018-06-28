@@ -1253,7 +1253,8 @@ void Print::set_status(int percent, const std::string &message)
 }
 
 void Print::print_to_png(std::string dirpath) {
-    print_to<FilePrinterFormat::PNG>(*this, dirpath, 68.0, 120.0, 1440, 2560);
+    print_to<FilePrinterFormat::PNG>(*this, dirpath, 68.0, 120.0, 1440, 2560,
+                                     8.0, 35.0);
 }
 
 }

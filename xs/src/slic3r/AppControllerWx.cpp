@@ -319,6 +319,8 @@ PrintController::PngExportData PrintController::query_png_export_data()
             ret.height_px = spin_reso_height_->GetValue();
             ret.width_mm = bed_width_spin_->GetValue();
             ret.height_mm = bed_height_spin_->GetValue();
+            ret.exp_time_s = exptime_spin_->GetValue();
+            ret.exp_time_first_s = exptime_first_spin_->GetValue();
             ret.corr_x = corr_spin_x_->GetValue();
             ret.corr_y = corr_spin_y_->GetValue();
             ret.corr_z = corr_spin_z_->GetValue();
@@ -331,6 +333,8 @@ PrintController::PngExportData PrintController::query_png_export_data()
             spin_reso_height_->SetValue(data.height_px);
             bed_width_spin_->SetValue(data.width_mm);
             bed_height_spin_->SetValue(data.height_mm);
+            exptime_spin_->SetValue(data.exp_time_s);
+            exptime_first_spin_->SetValue(data.exp_time_first_s);
             corr_spin_x_->SetValue(data.corr_x);
             corr_spin_y_->SetValue(data.corr_y);
             corr_spin_z_->SetValue(data.corr_z);

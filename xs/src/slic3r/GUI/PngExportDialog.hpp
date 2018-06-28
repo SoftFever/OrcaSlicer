@@ -1,12 +1,5 @@
-///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Jun 17 2015)
-// http://www.wxformbuilder.org/
-//
-// PLEASE DO "NOT" EDIT THIS FILE!
-///////////////////////////////////////////////////////////////////////////
-
-#ifndef __NONAME_H__
-#define __NONAME_H__
+#ifndef PNG_EXPORT_DIALOG_HPP
+#define PNG_EXPORT_DIALOG_HPP
 
 #include <wx/artprov.h>
 #include <wx/xrc/xmlres.h>
@@ -26,7 +19,7 @@
 
 #include "GUI.hpp"
 
-///////////////////////////////////////////////////////////////////////////
+namespace Slic3r {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// Class PngExportDialog
@@ -36,10 +29,6 @@ class PngExportDialog : public wxDialog
     private:
 
     protected:
-        wxStaticText* filepick_text_;
-        wxStaticText* resotext_;
-        wxStaticText* bed_size_text_;
-        wxStaticText* corr_text_;
         wxFilePickerCtrl* filepick_ctl_;
         wxFilePickerCtrl* confpick_ctl_;
         wxSpinCtrl* spin_reso_width_;
@@ -48,6 +37,8 @@ class PngExportDialog : public wxDialog
         wxSpinCtrlDouble* bed_width_spin_;
         wxSpinCtrlDouble* bed_height_spin_;
         wxToggleButton* bedsize_lock_btn_;
+        wxSpinCtrlDouble* exptime_spin_;
+        wxSpinCtrlDouble* exptime_first_spin_;
         wxSpinCtrlDouble* corr_spin_x_;
         wxSpinCtrlDouble* corr_spin_y_;
         wxSpinCtrlDouble* corr_spin_z_;
@@ -68,4 +59,5 @@ class PngExportDialog : public wxDialog
 
 };
 
-#endif //__NONAME_H__
+}
+#endif //PNG_EXPORT_DIALOG_HPP

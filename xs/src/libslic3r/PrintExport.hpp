@@ -75,7 +75,7 @@ public:
 
 // Implementation for PNG raster output
 // Be aware that if a large number of layers are allocated, it can very well
-// exhaust the available memory.especially on 32 bit platform.
+// exhaust the available memory especially on 32 bit platform.
 template<> class FilePrinter<FilePrinterFormat::PNG> {
 
     struct Layer {
@@ -97,35 +97,46 @@ template<> class FilePrinter<FilePrinterFormat::PNG> {
     Raster::Resolution res_;
     Raster::PixelDim pxdim_;
     const Print *print_ = nullptr;
+    double exp_time_s_ = .0, exp_time_first_s_ = .0;
 
     std::string createIniContent(const std::string& projectname) {
         double layer_height = print_?
                     print_->default_object_config.layer_height.getFloat() :
                     0.05;
 
-        return std::string(
+        using std::string;
+        using std::to_string;
+
+        auto expt_str = to_string(exp_time_s_);
+        auto expt_first_str = to_string(exp_time_first_s_);
+        auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
+        auto layerh_str = to_string(layer_height);
+
+        return string(
         "action = print\n"
         "jobDir = ") + projectname + "\n" +
-        "expTime = 8.0\n"
-        "expTimeFirst = 35\n"
-        "stepNum = 40\n"
+        "expTime = " + expt_str + "\n"
+        "expTimeFirst = " + expt_first_str + "\n"
+        "stepNum = " + stepnum_str + "\n"
         "wifiOn = 1\n"
         "tiltSlow = 60\n"
         "tiltFast = 15\n"
         "numFade = 10\n"
         "startdelay = 0\n"
-        "layerHeight = " + std::to_string(layer_height) + "\n"
+        "layerHeight = " + layerh_str + "\n"
         "noteInfo = "
-        "expTime=8.0+resinType=FTD-IB-Black+layerHeight=0.05+printer=DWARF3\n";
+        "expTime="+expt_str+"+resinType=FTD-IB-Black+layerHeight="
+                  +layerh_str+"+printer=DWARF3\n";
     }
 
 public:
     inline FilePrinter(double width_mm, double height_mm,
                        unsigned width_px, unsigned height_px,
-                       unsigned layer_cnt = 0):
-        res_(width_px, height_px),
-        pxdim_(width_mm/width_px, height_mm/height_px) {
-        layers(layer_cnt);
+                       double exp_time, double exp_time_first):
+        res_(width_px, height_px), exp_time_s_(exp_time),
+        exp_time_first_s_(exp_time_first),
+        pxdim_(width_mm/width_px, height_mm/height_px)
+    {
     }
 
     FilePrinter(const FilePrinter& ) = delete;
