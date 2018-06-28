@@ -40,10 +40,24 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_preset_bundle = preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
+#ifdef __WXOSX__
+	auto  *main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->SetSizeHints(this);
+	this->SetSizer(main_sizer);
+
+	m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+	auto panel = m_tmp_panel; 
+	auto  sizer = new wxBoxSizer(wxVERTICAL);
+	m_tmp_panel->SetSizer(sizer);
+	m_tmp_panel->Layout();
+
+	main_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
+#else
 	Tab *panel = this;
 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->SetSizeHints(panel);
 	panel->SetSizer(sizer);
+#endif //__WXOSX__
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
@@ -288,6 +302,28 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 	page->set_config(m_config);
 	return page;
+}
+
+void Tab::OnActivate()
+{
+#ifdef __WXOSX__	
+	wxWindowUpdateLocker noUpdates(this);
+
+	m_tmp_panel->Fit();
+
+	Page* page = nullptr;
+	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+	for (auto p : m_pages)
+		if (p->title() == selection)
+		{
+			page = p.get();
+			break;
+		}
+	if (page == nullptr) return;
+	page->Fit();
+	m_hsizer->Layout();
+	Refresh();
+#endif // __WXOSX__
 }
 
 void Tab::update_labels_colour()
@@ -1248,6 +1284,7 @@ void TabPrint::OnActivate()
 {
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+	Tab::OnActivate();
 }
 
 void TabFilament::build()
@@ -1405,6 +1442,7 @@ void TabFilament::update()
 void TabFilament::OnActivate()
 {
 	m_volumetric_speed_description_line->SetText(from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle)));
+	Tab::OnActivate();
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)

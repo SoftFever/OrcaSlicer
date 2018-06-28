@@ -118,7 +118,9 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
-
+#ifdef __WXOSX__
+	wxPanel*			m_tmp_panel;
+#endif // __WXOSX__
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
@@ -242,7 +244,7 @@ public:
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
-	virtual void	OnActivate(){}
+	virtual void	OnActivate();
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
