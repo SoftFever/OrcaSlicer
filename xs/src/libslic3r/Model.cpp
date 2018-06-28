@@ -864,7 +864,10 @@ void ModelObject::clear_instances()
 
 // Returns the bounding box of the transformed instances.
 // This bounding box is approximate and not snug.
-const BoundingBoxf3& ModelObject::bounding_box()
+//========================================================================================================
+const BoundingBoxf3& ModelObject::bounding_box() const
+//const BoundingBoxf3& ModelObject::bounding_box()
+//========================================================================================================
 {
     if (! m_bounding_box_valid) {
         BoundingBoxf3 raw_bbox;

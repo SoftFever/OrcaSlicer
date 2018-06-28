@@ -80,6 +80,49 @@ static int arduino_read_sig_bytes(PROGRAMMER * pgm, AVRPART * p, AVRMEM * m)
   return 3;
 }
 
+static int prusa_init_external_flash(PROGRAMMER * pgm)
+{
+  // Note: send/receive as in _the firmare_ send & receives
+  const char entry_magic_send   [] = "start\n";
+  const char entry_magic_receive[] = "w25x20cl_enter\n";
+  const char entry_magic_cfm    [] = "w25x20cl_cfm\n";
+  const size_t buffer_len = 32;     // Should be large enough for the above messages
+
+  int res;
+  size_t recv_size;
+  char *buffer = alloca(buffer_len);
+
+  // 1. receive the "start" command
+  recv_size = sizeof(entry_magic_send) - 1;
+  res = serial_recv(&pgm->fd, buffer, recv_size);
+  if (res < 0) {
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer did not boot up on time or serial communication failed\n", progname);
+    return -1;
+  } else if (strncmp(buffer, entry_magic_send, recv_size) != 0) {
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer emitted incorrect start code: `%*s`\n", progname, recv_size, buffer);
+    return -1;
+  }
+
+  // 2. Send the external flash programmer enter command
+  if (serial_send(&pgm->fd, entry_magic_receive, sizeof(entry_magic_receive) - 1) < 0) {
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): Failed to send command to the printer\n",progname);
+    return -1;
+  }
+
+  // 3. Receive the entry confirmation command
+  recv_size = sizeof(entry_magic_cfm) - 1;
+  res = serial_recv(&pgm->fd, buffer, recv_size);
+  if (res < 0) {
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer did not boot up on time or serial communication failed\n", progname);
+    return -1;
+  } else if (strncmp(buffer, entry_magic_cfm, recv_size) != 0) {
+    avrdude_message(MSG_INFO, "%s: prusa_init_external_flash(): MK3 printer emitted incorrect cfm code: `%*s`\n", progname, recv_size, buffer);
+    return -1;
+  }
+
+  return 0;
+}
+
 static int arduino_open(PROGRAMMER * pgm, char * port)
 {
   union pinfo pinfo;
@@ -97,10 +140,23 @@ static int arduino_open(PROGRAMMER * pgm, char * port)
   serial_set_dtr_rts(&pgm->fd, 1);
   usleep(50*1000);
 
+  // Sometimes there may be line noise generating input on the printer's USB-to-serial IC
+  // Here we try to clean its input buffer with a sequence of newlines (a minimum of 9 is needed):
+  const char cleanup_newlines[] = "\n\n\n\n\n\n\n\n\n\n";
+  if (serial_send(&pgm->fd, cleanup_newlines, sizeof(cleanup_newlines) - 1) < 0) {
+    return -1;
+  }
+
   /*
    * drain any extraneous input
    */
   stk500_drain(pgm, 0);
+
+  // Initialization sequence for programming the external FLASH on the Prusa MK3
+  if (prusa_init_external_flash(pgm) < 0) {
+    avrdude_message(MSG_INFO, "%s: arduino_open(): Failed to initialize MK3 external flash programming mode\n", progname);
+    return -1;
+  }
 
   if (stk500_getsync(pgm) < 0)
     return -1;

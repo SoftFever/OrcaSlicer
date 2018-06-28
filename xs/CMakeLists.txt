@@ -8,6 +8,7 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall" )
+    find_package(PkgConfig REQUIRED)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
@@ -27,6 +28,13 @@ if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
     add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB)
     # -D_ITERATOR_DEBUG_LEVEL)
+    if(WIN10SDK_PATH)
+        message("Building with Win10 Netfabb STL fixing service support")
+        add_definitions(-DHAS_WIN10SDK)
+        include_directories("${WIN10SDK_PATH}/Include")
+    else()
+        message("Building without Win10 Netfabb STL fixing service support")
+    endif()
 endif()
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
@@ -181,7 +189,15 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/3DScene.cpp
     ${LIBDIR}/slic3r/GUI/3DScene.hpp
     ${LIBDIR}/slic3r/GUI/GLShader.cpp
-    ${LIBDIR}/slic3r/GUI/GLShader.hpp
+    ${LIBDIR}/slic3r/GUI/GLShader.hpp    
+    ${LIBDIR}/slic3r/GUI/GLCanvas3D.hpp
+    ${LIBDIR}/slic3r/GUI/GLCanvas3D.cpp
+    ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.hpp
+    ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.cpp
+    ${LIBDIR}/slic3r/GUI/GLGizmo.hpp
+    ${LIBDIR}/slic3r/GUI/GLGizmo.cpp    
+    ${LIBDIR}/slic3r/GUI/GLTexture.hpp
+    ${LIBDIR}/slic3r/GUI/GLTexture.cpp    
     ${LIBDIR}/slic3r/GUI/Preferences.cpp
     ${LIBDIR}/slic3r/GUI/Preferences.hpp
     ${LIBDIR}/slic3r/GUI/Preset.cpp
@@ -232,6 +248,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
+    ${LIBDIR}/slic3r/Utils/FixModelByWin10.cpp
+    ${LIBDIR}/slic3r/Utils/FixModelByWin10.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
     ${LIBDIR}/slic3r/Utils/Bonjour.cpp
@@ -339,8 +357,6 @@ add_library(semver STATIC
     ${LIBDIR}/semver/semver.c
 )
 
-
-add_subdirectory(src/avrdude)
 
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
@@ -504,18 +520,20 @@ if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
     message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DNDEBUG")
-    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DNDEBUG")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DNDEBUG")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DNDEBUG")
-    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG")
-    set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
+    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DNDEBUG /DWIN32")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DNDEBUG /DWIN32")
+    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
+    set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG /DWIN32")
 endif()
 # The following line will add -fPIC on Linux to make the XS.so rellocable.
 add_definitions(${PerlEmbed_CCCDLFLAGS})
 if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
 endif()
+
+add_subdirectory(src/avrdude)
 
 ## REQUIRED packages
 
@@ -561,13 +579,22 @@ if (SLIC3R_PRUSACONTROL)
     set(wxWidgets_UseAlienWx 1)
     if (wxWidgets_UseAlienWx)
         set(AlienWx_DEBUG 1)
-        find_package(AlienWx REQUIRED COMPONENTS base core adv html)
+        find_package(AlienWx REQUIRED COMPONENTS base core adv html gl)
         include_directories(${AlienWx_INCLUDE_DIRS})
         #add_compile_options(${AlienWx_CXX_FLAGS})
         add_definitions(${AlienWx_DEFINITIONS})
         set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
+        # On Linux / gtk, we need to have a direct access to gtk+ for some workarounds.
+        if (AlienWx_GUI_TOOLKIT STREQUAL "gtk2")
+            pkg_check_modules(GTK2 gtk+-2.0)
+            include_directories(${GTK2_INCLUDE_DIRS})
+        endif()
+        if (AlienWx_GUI_TOOLKIT STREQUAL "gtk3")
+            pkg_check_modules(GTK3 gtk+-3.0)
+            include_directories(${GTK3_INCLUDE_DIRS})
+        endif()
     else ()
-        find_package(wxWidgets REQUIRED COMPONENTS base core adv html)
+        find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
         include(${wxWidgets_USE_FILE})
     endif ()
     add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)

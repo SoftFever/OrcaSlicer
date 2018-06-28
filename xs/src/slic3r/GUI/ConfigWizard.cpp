@@ -83,8 +83,11 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 
 		const auto model_id = model.id;
 
+		bool default_variant = true;   // Mark the first variant as default in the GUI
 		for (const auto &variant : model.variants) {
-			const auto label = wxString::Format("%s %s %s", variant.name, _(L("mm")), _(L("nozzle")));
+			const auto label = wxString::Format("%s %s %s %s", variant.name, _(L("mm")), _(L("nozzle")),
+				(default_variant ? _(L("(default)")) : wxString()));
+			default_variant = false;
 			auto *cbox = new Checkbox(panel, label, model_id, variant.name);
 			const size_t idx = cboxes.size();
 			cboxes.push_back(cbox);
@@ -122,6 +125,14 @@ void PrinterPicker::select_all(bool select)
 			cb->SetValue(select);
 			on_checkbox(cb, select);
 		}
+	}
+}
+
+void PrinterPicker::select_one(size_t i, bool select)
+{
+	if (i < cboxes.size() && cboxes[i]->GetValue() != select) {
+		cboxes[i]->SetValue(select);
+		on_checkbox(cboxes[i], select);
 	}
 }
 
@@ -227,6 +238,7 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
 		printer_picker = new PrinterPicker(this, vendor_prusa->second, appconfig_vendors);
+		printer_picker->select_one(0, true);    // Select the default (first) model/variant on the Prusa vendor
 		printer_picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
 			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
 			this->on_variant_checked();
@@ -598,10 +610,10 @@ void ConfigWizardIndex::on_paint(wxPaintEvent & evt)
 
 static const std::unordered_map<std::string, std::pair<std::string, std::string>> legacy_preset_map {{
 	{ "Original Prusa i3 MK2.ini",                           std::make_pair("MK2S", "0.4") },
-	{ "Original Prusa i3 MK2 MM Single Mode.ini",            std::make_pair("MK2S", "0.4") },
-	{ "Original Prusa i3 MK2 MM Single Mode 0.6 nozzle.ini", std::make_pair("MK2S", "0.6") },
-	{ "Original Prusa i3 MK2 MultiMaterial.ini",             std::make_pair("MK2S", "0.4") },
-	{ "Original Prusa i3 MK2 MultiMaterial 0.6 nozzle.ini",  std::make_pair("MK2S", "0.6") },
+	{ "Original Prusa i3 MK2 MM Single Mode.ini",            std::make_pair("MK2SMM", "0.4") },
+	{ "Original Prusa i3 MK2 MM Single Mode 0.6 nozzle.ini", std::make_pair("MK2SMM", "0.6") },
+	{ "Original Prusa i3 MK2 MultiMaterial.ini",             std::make_pair("MK2SMM", "0.4") },
+	{ "Original Prusa i3 MK2 MultiMaterial 0.6 nozzle.ini",  std::make_pair("MK2SMM", "0.6") },
 	{ "Original Prusa i3 MK2 0.25 nozzle.ini",               std::make_pair("MK2S", "0.25") },
 	{ "Original Prusa i3 MK2 0.6 nozzle.ini",                std::make_pair("MK2S", "0.6") },
 	{ "Original Prusa i3 MK3.ini",                           std::make_pair("MK3",  "0.4") },
@@ -809,8 +821,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	topsizer->AddSpacer(INDEX_MARGIN);
 	topsizer->Add(p->hscroll, 1, wxEXPAND);
 
-	p->btn_prev = new wxButton(this, wxID_BACKWARD);
-	p->btn_next = new wxButton(this, wxID_FORWARD);
+	p->btn_prev = new wxButton(this, wxID_NONE, _(L("< &Back")));
+	p->btn_next = new wxButton(this, wxID_NONE, _(L("&Next >")));
 	p->btn_finish = new wxButton(this, wxID_APPLY, _(L("&Finish")));
 	p->btn_cancel = new wxButton(this, wxID_CANCEL);
 	p->btnsizer->AddStretchSpacer();
@@ -881,9 +893,9 @@ const wxString& ConfigWizard::name()
 {
 	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.
 #if WIN32
-	static const wxString config_wizard_name = _(L("Configuration Wizard"));
+	static const wxString config_wizard_name = L("Configuration Wizard");
 #else
-	static const wxString config_wizard_name = _(L("Configuration Assistant"));
+	static const wxString config_wizard_name = L("Configuration Assistant");
 #endif
 	return config_wizard_name;
 }

@@ -259,7 +259,7 @@ void PresetUpdater::priv::sync_config(const std::set<VendorProfile> vendors) con
 		}
 		const auto recommended = recommended_it->config_version;
 
-		BOOST_LOG_TRIVIAL(debug) << boost::format("New index for vendor: %1%: current version: %2%, recommended version: %3%")
+		BOOST_LOG_TRIVIAL(debug) << boost::format("Got index for vendor: %1%: current version: %2%, recommended version: %3%")
 			% vendor.name
 			% vendor.config_version.to_string()
 			% recommended.to_string();
@@ -352,20 +352,25 @@ Updates PresetUpdater::priv::get_config_updates() const
 				continue;
 			}
 
-			auto path_in_cache = cache_path / (idx.vendor() + ".ini");
-			if (! fs::exists(path_in_cache)) {
-				BOOST_LOG_TRIVIAL(warning) << "Index indicates update, but new bundle not found in cache: " << path_in_cache.string();
-				continue;
+			auto path_src = cache_path / (idx.vendor() + ".ini");
+			if (! fs::exists(path_src)) {
+				auto path_in_rsrc = rsrc_path / (idx.vendor() + ".ini");
+				if (! fs::exists(path_in_rsrc)) {
+					BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update, but bundle found in neither cache nor resources")
+						% idx.vendor();;
+					continue;
+				} else {
+					path_src = std::move(path_in_rsrc);
+				}
 			}
 
-			const auto cached_vp = VendorProfile::from_ini(path_in_cache, false);
-			if (cached_vp.config_version == recommended->config_version) {
-				updates.updates.emplace_back(std::move(path_in_cache), std::move(bundle_path), *recommended);
+			const auto new_vp = VendorProfile::from_ini(path_src, false);
+			if (new_vp.config_version == recommended->config_version) {
+				updates.updates.emplace_back(std::move(path_src), std::move(bundle_path), *recommended);
 			} else {
-				BOOST_LOG_TRIVIAL(warning) << boost::format("Vendor: %1%: Index indicates update (%2%) but cached bundle has a different version: %3%")
+				BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update (%2%) but the new bundle was found neither in cache nor resources")
 					% idx.vendor()
-					% recommended->config_version.to_string()
-					% cached_vp.config_version.to_string();
+					% recommended->config_version.to_string();
 			}
 		}
 	}
@@ -532,15 +537,15 @@ bool PresetUpdater::config_update() const
 			incompats_map.emplace(std::make_pair(std::move(vendor), std::move(restrictions)));
 		}
 
+		p->had_config_update = true;   // This needs to be done before a dialog is shown because of OnIdle() + CallAfter() in Perl
+
 		GUI::MsgDataIncompatible dlg(std::move(incompats_map));
 		const auto res = dlg.ShowModal();
 		if (res == wxID_REPLACE) {
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 			p->perform_updates(std::move(updates));
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
-			if (wizard.run(GUI::get_preset_bundle(), this)) {
-				p->had_config_update = true;
-			} else {
+			if (! wizard.run(GUI::get_preset_bundle(), this)) {	
 				return false;
 			}
 		} else {
@@ -561,6 +566,8 @@ bool PresetUpdater::config_update() const
 			updates_map.emplace(std::make_pair(std::move(vendor), std::move(ver_str)));
 		}
 
+		p->had_config_update = true;   // Ditto, see above
+
 		GUI::MsgUpdateConfig dlg(std::move(updates_map));
 
 		const auto res = dlg.ShowModal();
@@ -576,8 +583,6 @@ bool PresetUpdater::config_update() const
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User refused the update";
 		}
-
-		p->had_config_update = true;
 	} else {
 		BOOST_LOG_TRIVIAL(info) << "No configuration updates available.";
 	}

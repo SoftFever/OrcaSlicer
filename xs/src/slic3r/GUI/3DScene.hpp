@@ -6,8 +6,10 @@
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "../../slic3r/GUI/GLCanvas3DManager.hpp"
 
 class wxBitmap;
+class wxWindow;
 
 namespace Slic3r {
 
@@ -17,6 +19,11 @@ class Model;
 class ModelObject;
 class GCodePreviewData;
 class DynamicPrintConfig;
+class ExtrusionPath;
+class ExtrusionMultiPath;
+class ExtrusionLoop;
+class ExtrusionEntity;
+class ExtrusionEntityCollection;
 
 // A container for interleaved arrays of 3D vertices and normals,
 // possibly indexed by triangles and / or quads.
@@ -305,9 +312,9 @@ public:
     // Boolean: Is mouse over this object?
     bool                hover;
     // Wheter or not this volume has been generated from a modifier
-    bool                 is_modifier;
+    bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower
-    bool                 is_wipe_tower;
+    bool                is_wipe_tower;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -437,35 +444,6 @@ private:
 
 class _3DScene
 {
-    struct GCodePreviewVolumeIndex
-    {
-        enum EType
-        {
-            Extrusion,
-            Travel,
-            Retraction,
-            Unretraction,
-            Shell,
-            Num_Geometry_Types
-        };
-
-        struct FirstVolume
-        {
-            EType type;
-            unsigned int flag;
-            // Index of the first volume in a GLVolumeCollection.
-            unsigned int id;
-
-            FirstVolume(EType type, unsigned int flag, unsigned int id) : type(type), flag(flag), id(id) {}
-        };
-
-        std::vector<FirstVolume> first_volumes;
-
-        void reset() { first_volumes.clear(); }
-    };
-
-    static GCodePreviewVolumeIndex s_gcode_preview_volume_index;
-
     class TextureBase
     {
     protected:
@@ -525,12 +503,106 @@ class _3DScene
 
     static LegendTexture s_legend_texture;
     static WarningTexture s_warning_texture;
+    static GUI::GLCanvas3DManager s_canvas_mgr;
 
 public:
-    static void _glew_init();
+    static void init_gl();
+    static std::string get_gl_info(bool format_as_html, bool extensions);
+    static bool use_VBOs();
 
-    static void load_gcode_preview(const Print* print, const GCodePreviewData* preview_data, GLVolumeCollection* volumes, const std::vector<std::string>& str_tool_colors, bool use_VBOs);
+    static bool add_canvas(wxGLCanvas* canvas);
+    static bool remove_canvas(wxGLCanvas* canvas);
+    static void remove_all_canvases();
 
+    static bool init(wxGLCanvas* canvas);
+
+    static void set_as_dirty(wxGLCanvas* canvas);
+
+    static unsigned int get_volumes_count(wxGLCanvas* canvas);
+    static void reset_volumes(wxGLCanvas* canvas);
+    static void deselect_volumes(wxGLCanvas* canvas);
+    static void select_volume(wxGLCanvas* canvas, unsigned int id);
+    static void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
+    static bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
+    static bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
+    static bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
+
+    static void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
+
+    static void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
+    static void set_print(wxGLCanvas* canvas, Print* print);
+    static void set_model(wxGLCanvas* canvas, Model* model);
+
+    static void set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape);
+    static void set_auto_bed_shape(wxGLCanvas* canvas);
+
+    static BoundingBoxf3 get_volumes_bounding_box(wxGLCanvas* canvas);
+
+    static void set_axes_length(wxGLCanvas* canvas, float length);
+
+    static void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
+
+    static void set_color_by(wxGLCanvas* canvas, const std::string& value);
+    static void set_select_by(wxGLCanvas* canvas, const std::string& value);
+    static void set_drag_by(wxGLCanvas* canvas, const std::string& value);
+
+    static bool is_layers_editing_enabled(wxGLCanvas* canvas);
+    static bool is_layers_editing_allowed(wxGLCanvas* canvas);
+    static bool is_shader_enabled(wxGLCanvas* canvas);
+
+    static bool is_reload_delayed(wxGLCanvas* canvas);
+
+    static void enable_layers_editing(wxGLCanvas* canvas, bool enable);
+    static void enable_warning_texture(wxGLCanvas* canvas, bool enable);
+    static void enable_legend_texture(wxGLCanvas* canvas, bool enable);
+    static void enable_picking(wxGLCanvas* canvas, bool enable);
+    static void enable_moving(wxGLCanvas* canvas, bool enable);
+    static void enable_gizmos(wxGLCanvas* canvas, bool enable);
+    static void enable_shader(wxGLCanvas* canvas, bool enable);
+    static void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
+    static void allow_multisample(wxGLCanvas* canvas, bool allow);
+
+    static void zoom_to_bed(wxGLCanvas* canvas);
+    static void zoom_to_volumes(wxGLCanvas* canvas);
+    static void select_view(wxGLCanvas* canvas, const std::string& direction);
+    static void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
+
+    static void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
+
+    static void render(wxGLCanvas* canvas);
+
+    static std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only);
+    static void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
+
+    static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_select_object_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_remove_object_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_arrange_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+
+    static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
+    static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
+
+    static void reload_scene(wxGLCanvas* canvas, bool force);
+
+    static void load_print_toolpaths(wxGLCanvas* canvas);
+    static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
+    static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
+    static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
+
+    // generates the legend texture in dependence of the current shown view type
+    static void generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     static unsigned int get_legend_texture_width();
     static unsigned int get_legend_texture_height();
 
@@ -545,42 +617,16 @@ public:
     static void reset_warning_texture();
     static unsigned int finalize_warning_texture();
 
-    static void _load_print_toolpaths(
-        const Print                     *print,
-        GLVolumeCollection              *volumes,
-        const std::vector<std::string>  &tool_colors,
-        bool                             use_VBOs);
-
-    static void _load_print_object_toolpaths(
-        const PrintObject               *print_object,
-        GLVolumeCollection              *volumes,
-        const std::vector<std::string>  &tool_colors,
-        bool                             use_VBOs);
-
-    static void _load_wipe_tower_toolpaths(
-        const Print                    *print,
-        GLVolumeCollection             *volumes,
-        const std::vector<std::string> &tool_colors_str,
-        bool                            use_VBOs);
-
-private:
-    // generates gcode extrusion paths geometry
-    static void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
-    // generates gcode travel paths geometry
-    static void _load_gcode_travel_paths(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors, bool use_VBOs);
-    static bool _travel_paths_by_type(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
-    static bool _travel_paths_by_feedrate(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
-    static bool _travel_paths_by_tool(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, const std::vector<float>& tool_colors);
-    // generates gcode retractions geometry
-    static void _load_gcode_retractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
-    // generates gcode unretractions geometry
-    static void _load_gcode_unretractions(const GCodePreviewData& preview_data, GLVolumeCollection& volumes, bool use_VBOs);
-    // sets gcode geometry visibility according to user selection
-    static void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data, GLVolumeCollection& volumes);
-    // generates the legend texture in dependence of the current shown view type
-    static void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    // generates objects and wipe tower geometry
-    static void _load_shells(const Print& print, GLVolumeCollection& volumes, bool use_VBOs);
+    static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
+    static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);
+    static void extrusionentity_to_verts(const ExtrusionPath& extrusion_path, float print_z, GLVolume& volume);
+    static void extrusionentity_to_verts(const ExtrusionPath& extrusion_path, float print_z, const Point& copy, GLVolume& volume);
+    static void extrusionentity_to_verts(const ExtrusionLoop& extrusion_loop, float print_z, const Point& copy, GLVolume& volume);
+    static void extrusionentity_to_verts(const ExtrusionMultiPath& extrusion_multi_path, float print_z, const Point& copy, GLVolume& volume);
+    static void extrusionentity_to_verts(const ExtrusionEntityCollection& extrusion_entity_collection, float print_z, const Point& copy, GLVolume& volume);
+    static void extrusionentity_to_verts(const ExtrusionEntity* extrusion_entity, float print_z, const Point& copy, GLVolume& volume);
+    static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume);
+    static void point3_to_verts(const Point3& point, double width, double height, GLVolume& volume);
 };
 
 }

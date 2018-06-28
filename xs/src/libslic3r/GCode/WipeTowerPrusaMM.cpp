@@ -142,24 +142,21 @@ public:
 		}
 
 		m_gcode += "G1";
-		if (rot.x != rotated_current_pos.x) {
-			m_gcode += set_format_X(rot.x);     // Transform current position back to wipe tower coordinates (was updated by set_format_X)
-            m_current_pos.x = x;
-        }
-		if (rot.y != rotated_current_pos.y) {
+		if (std::abs(rot.x - rotated_current_pos.x) > EPSILON)
+			m_gcode += set_format_X(rot.x);
+
+		if (std::abs(rot.y - rotated_current_pos.y) > EPSILON)
 			m_gcode += set_format_Y(rot.y);
-            m_current_pos.y = y;
-        }
 
 		if (e != 0.f)
 			m_gcode += set_format_E(e);
 
 		if (f != 0.f && f != m_current_feedrate)
 			m_gcode += set_format_F(f);
-		
-		
-		
-		
+
+        m_current_pos.x = x;
+        m_current_pos.y = y;
+
 		// Update the elapsed time with a rough estimate.
 		m_elapsed_time += ((len == 0) ? std::abs(e) : len) / m_current_feedrate * 60.f;
 		m_gcode += "\n";

@@ -29,6 +29,10 @@
     int x_max() %code{% RETVAL = THIS->max.x; %};
     int y_min() %code{% RETVAL = THIS->min.y; %};
     int y_max() %code{% RETVAL = THIS->max.y; %};
+    void set_x_min(double val) %code{% THIS->min.x = val; %};
+    void set_x_max(double val) %code{% THIS->max.x = val; %};
+    void set_y_min(double val) %code{% THIS->min.y = val; %};
+    void set_y_max(double val) %code{% THIS->max.y = val; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld;%ld,%ld", THIS->min.x, THIS->min.y, THIS->max.x, THIS->max.y); RETVAL = buf; %};
     bool defined() %code{% RETVAL = THIS->defined; %};
 

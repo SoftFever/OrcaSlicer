@@ -56,6 +56,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+#include "3DScene.hpp"
 
 
 namespace Slic3r { namespace GUI {
@@ -316,10 +317,11 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
+	auto config_wizard_name = _(ConfigWizard::name().wx_str());
+	const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + dots, 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,	_(L("Inspect / activate configuration snapshots")));
+	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_name + dots,					config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,		_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
@@ -378,6 +380,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 				save_language();
 				show_info(g_wxTabPanel, _(L("Application will be restarted")), _(L("Attention!")));
 				if (event_language_change > 0) {
+					_3DScene::remove_all_canvases();// remove all canvas before recreate GUI
 					wxCommandEvent event(event_language_change);
 					g_wxApp->ProcessEvent(event);
 				}
@@ -423,7 +426,7 @@ bool check_unsaved_changes()
 
 bool config_wizard_startup(bool app_config_exists)
 {
-	if (! app_config_exists || g_PresetBundle->has_defauls_only()) {
+	if (! app_config_exists || g_PresetBundle->printers.size() <= 1) {
 		config_wizard(ConfigWizard::RR_DATA_EMPTY);
 		return true;
 	} else if (g_AppConfig->legacy_datadir()) {

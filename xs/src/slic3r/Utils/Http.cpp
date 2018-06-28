@@ -3,12 +3,15 @@
 #include <cstdlib>
 #include <functional>
 #include <thread>
-#include <tuple>
+#include <deque>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 
 #include <curl/curl.h>
 
 #include "../../libslic3r/libslic3r.h"
+
+namespace fs = boost::filesystem;
 
 
 namespace Slic3r {
@@ -34,7 +37,11 @@ struct Http::priv
 	::curl_httppost *form;
 	::curl_httppost *form_end;
 	::curl_slist *headerlist;
+	// Used for reading the body
 	std::string buffer;
+	// Used for storing file streams added as multipart form parts
+	// Using a deque here because unlike vector it doesn't ivalidate pointers on insertion
+	std::deque<fs::ifstream> form_files;
 	size_t limit;
 	bool cancel;
 
@@ -50,6 +57,10 @@ struct Http::priv
 	static size_t writecb(void *data, size_t size, size_t nmemb, void *userp);
 	static int xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
 	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
+	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
+
+	void form_add_file(const char *name, const fs::path &path, const char* filename);
+
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
 	void http_perform();
@@ -60,6 +71,7 @@ Http::priv::priv(const std::string &url) :
 	form(nullptr),
 	form_end(nullptr),
 	headerlist(nullptr),
+	limit(0),
 	cancel(false)
 {
 	if (curl == nullptr) {
@@ -135,6 +147,46 @@ int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double 
 	return xfercb(userp, dltotal, dlnow, ultotal, ulnow);
 }
 
+size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp)
+{
+	auto stream = reinterpret_cast<fs::ifstream*>(userp);
+
+	try {
+		stream->read(buffer, size * nitems);
+	} catch (...) {
+		return CURL_READFUNC_ABORT;
+	}
+
+	return stream->gcount();
+}
+
+void Http::priv::form_add_file(const char *name, const fs::path &path, const char* filename)
+{
+	// We can't use CURLFORM_FILECONTENT, because curl doesn't support Unicode filenames on Windows
+	// and so we use CURLFORM_STREAM with boost ifstream to read the file.
+
+	if (filename == nullptr) {
+		filename = path.string().c_str();
+	}
+
+	form_files.emplace_back(path, std::ios::in | std::ios::binary);
+	auto &stream = form_files.back();
+	stream.seekg(0, std::ios::end);
+	size_t size = stream.tellg();
+	stream.seekg(0);
+
+	if (filename != nullptr) {
+		::curl_formadd(&form, &form_end,
+			CURLFORM_COPYNAME, name,
+			CURLFORM_FILENAME, filename,
+			CURLFORM_CONTENTTYPE, "application/octet-stream",
+			CURLFORM_STREAM, static_cast<void*>(&stream),
+			CURLFORM_CONTENTSLENGTH, static_cast<long>(size),
+			CURLFORM_END
+		);
+	}
+}
+
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
 	return (boost::format("%1% (%2%)")
@@ -150,10 +202,10 @@ std::string Http::priv::body_size_error()
 
 void Http::priv::http_perform()
 {
-	::curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 	::curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
 	::curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(this));
+	::curl_easy_setopt(curl, CURLOPT_READFUNCTION, form_file_read_cb);
 
 	::curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
 #if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 32
@@ -178,23 +230,32 @@ void Http::priv::http_perform()
 	}
 
 	CURLcode res = ::curl_easy_perform(curl);
-	long http_status = 0;
-	::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
 
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
-			Progress dummyprogress(0, 0, 0, 0);
-			bool cancel = true;
-			if (progressfn) { progressfn(dummyprogress, cancel); }
+			if (cancel) {
+				// The abort comes from the request being cancelled programatically
+				Progress dummyprogress(0, 0, 0, 0);
+				bool cancel = true;
+				if (progressfn) { progressfn(dummyprogress, cancel); }
+			} else {
+				// The abort comes from the CURLOPT_READFUNCTION callback, which means reading file failed
+				if (errorfn) { errorfn(std::move(buffer), "Error reading file for file upload", 0); }
+			}
 		}
 		else if (res == CURLE_WRITE_ERROR) {
-			if (errorfn) { errorfn(std::move(buffer), std::move(body_size_error()), http_status); }
+			if (errorfn) { errorfn(std::move(buffer), body_size_error(), 0); }
 		} else {
-			if (errorfn) { errorfn(std::move(buffer), std::move(curl_error(res)), http_status); }
+			if (errorfn) { errorfn(std::move(buffer), curl_error(res), 0); }
 		};
 	} else {
-		if (completefn) {
-			completefn(std::move(buffer), http_status);
+		long http_status = 0;
+		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
+		
+		if (http_status >= 400) {
+			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
+		} else {
+			if (completefn) { completefn(std::move(buffer), http_status); }
 		}
 	}
 }
@@ -265,17 +326,15 @@ Http& Http::form_add(const std::string &name, const std::string &contents)
 	return *this;
 }
 
-Http& Http::form_add_file(const std::string &name, const std::string &filename)
+Http& Http::form_add_file(const std::string &name, const fs::path &path)
 {
-	if (p) {
-		::curl_formadd(&p->form, &p->form_end,
-			CURLFORM_COPYNAME, name.c_str(),
-			CURLFORM_FILE, filename.c_str(),
-			CURLFORM_CONTENTTYPE, "application/octet-stream",
-			CURLFORM_END
-		);
-	}
+	if (p) { p->form_add_file(name.c_str(), path.c_str(), nullptr); }
+	return *this;
+}
 
+Http& Http::form_add_file(const std::string &name, const fs::path &path, const std::string &filename)
+{
+	if (p) { p->form_add_file(name.c_str(), path.c_str(), filename.c_str()); }
 	return *this;
 }
 

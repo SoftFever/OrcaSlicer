@@ -222,7 +222,7 @@ sub mouse_event {
                         ];
                         $self->{drag_object} = [ $obj_idx, $instance_idx ];
                     } elsif ($event->RightDown) {
-                        $self->{on_right_click}->($pos);
+                        $self->{on_right_click}->($pos->x, $pos->y);
                     }
                     
                     last OBJECTS;
@@ -231,8 +231,9 @@ sub mouse_event {
         }
         $self->Refresh;
     } elsif ($event->LeftUp) {
-        $self->{on_instances_moved}->()
-            if $self->{drag_object};
+        if ($self->{drag_object}) {
+            $self->{on_instances_moved}->();
+        }
         $self->{drag_start_pos} = undef;
         $self->{drag_object} = undef;
         $self->SetCursor(wxSTANDARD_CURSOR);

@@ -52,6 +52,8 @@ _constant()
     int region_count()
         %code%{ RETVAL = THIS->print()->regions.size(); %};
 
+    int region_volumes_count()
+        %code%{ RETVAL = THIS->region_volumes.size(); %};
     Ref<Print> print();
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
@@ -117,15 +119,6 @@ _constant()
             RETVAL.push_back(slicing_params.first_print_layer_height);
             RETVAL.push_back(slicing_params.first_object_layer_height);
             RETVAL.push_back(slicing_params.layer_height);
-        %};
-
-    void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
-        %code%{
-            THIS->update_layer_height_profile(THIS->model_object()->layer_height_profile);
-            adjust_layer_height_profile(
-                THIS->slicing_parameters(), THIS->model_object()->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
-            THIS->model_object()->layer_height_profile_valid = true;
-            THIS->layer_height_profile_valid = false;
         %};
 
     void reset_layer_height_profile();
