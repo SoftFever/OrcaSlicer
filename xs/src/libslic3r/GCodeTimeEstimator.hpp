@@ -134,16 +134,6 @@ namespace Slic3r {
                 bool nominal_length;
             };
 
-//#################################################################################################################
-            struct Time
-            {
-                float elapsed;
-                float remaining;
-
-                Time();
-            };
-//#################################################################################################################
-
 #if ENABLE_MOVE_STATS
             EMoveType move_type;
 #endif // ENABLE_MOVE_STATS
@@ -157,7 +147,7 @@ namespace Slic3r {
             FeedrateProfile feedrate;
             Trapezoid trapezoid;
 //#################################################################################################################
-            Time time;
+            float elapsed_time;
             unsigned int g1_line_id;
 //#################################################################################################################
 
@@ -188,10 +178,6 @@ namespace Slic3r {
 
             // Calculates this block's trapezoid
             void calculate_trapezoid();
-
-//#################################################################################################################
-            void calculate_remaining_time(float final_time);
-//#################################################################################################################
 
             // Calculates the maximum allowable speed at this point when you must be able to reach target_velocity using the 
             // acceleration within the allotted distance.
@@ -361,10 +347,6 @@ namespace Slic3r {
 
         // Calculates the time estimate
         void _calculate_time();
-
-//#################################################################################################################
-        void _calculate_remaining_times();
-//#################################################################################################################
 
         // Processes the given gcode line
         void _process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line);

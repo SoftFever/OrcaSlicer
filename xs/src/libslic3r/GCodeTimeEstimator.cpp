@@ -106,14 +106,6 @@ namespace Slic3r {
         return ::sqrt(value);
     }
 
-//#################################################################################################################
-    GCodeTimeEstimator::Block::Time::Time()
-        : elapsed(-1.0f)
-        , remaining(-1.0f)
-    {
-    }
-//#################################################################################################################
-
     GCodeTimeEstimator::Block::Block()
         : st_synchronized(false)
 //#################################################################################################################
@@ -183,13 +175,6 @@ namespace Slic3r {
         trapezoid.decelerate_after = accelerate_distance + cruise_distance;
     }
 
-//#################################################################################################################
-    void GCodeTimeEstimator::Block::calculate_remaining_time(float final_time)
-    {
-        time.remaining = (time.elapsed >= 0.0f) ? final_time - time.elapsed : -1.0f;
-    }
-//#################################################################################################################
-
     float GCodeTimeEstimator::Block::max_allowable_speed(float acceleration, float target_velocity, float distance)
     {
         // to avoid invalid negative numbers due to numerical imprecision 
@@ -248,10 +233,6 @@ namespace Slic3r {
         _reset_time();
         _set_blocks_st_synchronize(false);
         _calculate_time();
-//#################################################################################################################
-        if (are_remaining_times_enabled())
-            _calculate_remaining_times();
-//#################################################################################################################
 
 #if ENABLE_MOVE_STATS
         _log_moves_stats();
@@ -446,17 +427,18 @@ namespace Slic3r {
             _parser.parse_line(gcode_line,
                 [this, &g1_lines_count, &last_recorded_time, &in, &out, &path_tmp, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
             {
-                if (line.cmd_is("G1"))
+                if (line.cmd_is("G1") && line.has_e())
                 {
                     ++g1_lines_count;
                     for (const Block& block : _blocks)
                     {
-                        if (block.g1_line_id == g1_lines_count)
+                        if ((block.g1_line_id == g1_lines_count) && (block.elapsed_time != -1.0f))
                         {
-                            if ((last_recorded_time == _time) || (last_recorded_time - block.time.remaining > interval))
+                            float block_remaining_time = _time - block.elapsed_time;
+                            if ((last_recorded_time == _time) || (last_recorded_time - block_remaining_time > interval))
                             {
                                 char buffer[1024];
-                                sprintf(buffer, time_mask.c_str(), std::to_string((int)(100.0f * block.time.elapsed / _time)).c_str(), _get_time_minutes(block.time.remaining).c_str());
+                                sprintf(buffer, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
 
                                 fwrite((const void*)buffer, 1, ::strlen(buffer), out);
                                 if (ferror(out))
@@ -467,7 +449,7 @@ namespace Slic3r {
                                     throw std::runtime_error(std::string("Remaining times export failed.\nIs the disk full?\n"));
                                 }
 
-                                last_recorded_time = block.time.remaining;
+                                last_recorded_time = block_remaining_time;
                                 break;
                             }
                         }
@@ -878,7 +860,7 @@ namespace Slic3r {
             block_time += block.deceleration_time();
             _time += block_time;
 //##########################################################################################################################
-            block.time.elapsed = _time;
+            block.elapsed_time = are_remaining_times_enabled() ? _time : -1.0f;
 //##########################################################################################################################
 
             MovesStatsMap::iterator it = _moves_stats.find(block.move_type);
@@ -892,21 +874,11 @@ namespace Slic3r {
             _time += block.cruise_time();
             _time += block.deceleration_time();
 //##########################################################################################################################
-            block.time.elapsed = _time;
+            block.elapsed_time = are_remaining_times_enabled() ? _time : -1.0f;
 //##########################################################################################################################
 #endif // ENABLE_MOVE_STATS
         }
     }
-
-//#################################################################################################################
-    void GCodeTimeEstimator::_calculate_remaining_times()
-    {
-        for (Block& block : _blocks)
-        {
-            block.calculate_remaining_time(_time);
-        }
-    }
-//#################################################################################################################
 
     void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
     {
