@@ -40,49 +40,30 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_preset_bundle = preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
+#ifdef __WXOSX__
+	auto  *main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->SetSizeHints(this);
+	this->SetSizer(main_sizer);
+
+	// Create additional panel to Fit() it from OnActivate()
+	// It's needed for tooltip showing on OSX
+	m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+	auto panel = m_tmp_panel; 
+	auto  sizer = new wxBoxSizer(wxVERTICAL);
+	m_tmp_panel->SetSizer(sizer);
+	m_tmp_panel->Layout();
+
+	main_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
+#else
 	Tab *panel = this;
 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->SetSizeHints(panel);
 	panel->SetSizer(sizer);
+#endif //__WXOSX__
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
-	/*
-	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
-	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
-	if (popup != nullptr)
-	{
-		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
-		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
-//		m_cc_presets_choice->UseAltPopupWindow();
 
-//		m_cc_presets_choice->EnablePopupAnimation(false);
-		m_cc_presets_choice->SetPopupControl(popup);
-		popup->SetStringValue(from_u8("Text1"));
-
-		popup->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this, popup](wxCommandEvent& evt)
-		{
-			auto selected = popup->GetItemText(popup->GetSelection());
-			if (selected != _(L("System presets")) && selected != _(L("Default presets")))
-			{
-				m_cc_presets_choice->SetText(selected);
-				std::string selected_string = selected.ToUTF8().data();
-#ifdef __APPLE__
-#else
- 				select_preset(selected_string);
-#endif
-			}				
-		});
-
-// 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-// 		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-
-		auto icons = new wxImageList(16, 16, true, 1);
-		popup->SetImageList(icons);
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
-	}
-*/
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
@@ -173,37 +154,6 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 1, wxEXPAND, 0);
 
-
-/*
-
-
-	//temporary left vertical sizer
-	m_left_sizer = new wxBoxSizer(wxVERTICAL);
-	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
-
-	// tree
-	m_presetctrl = new wxDataViewTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxDV_NO_HEADER);
-	m_left_sizer->Add(m_presetctrl, 1, wxEXPAND);
-	m_preset_icons = new wxImageList(16, 16, true, 1);
-	m_presetctrl->SetImageList(m_preset_icons);
-	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
-
-	m_presetctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxCommandEvent& evt)
-	{
-		auto selected = m_presetctrl->GetItemText(m_presetctrl->GetSelection());
-		if (selected != _(L("System presets")) && selected != _(L("Default presets")))
-		{
-			std::string selected_string = selected.ToUTF8().data();
-#ifdef __APPLE__
-#else
-			select_preset(selected_string);
-#endif
-		}
-	});
-
-*/
-
 	//left vertical sizer
 	m_left_sizer = new wxBoxSizer(wxVERTICAL);
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
@@ -279,7 +229,12 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 		}
 	}
 	// Initialize the page.
-	PageShp page(new Page(this, title, icon_idx));
+#ifdef __WXOSX__
+	auto panel = m_tmp_panel;
+#else
+	auto panel = this;
+#endif
+	PageShp page(new Page(panel, title, icon_idx));
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
@@ -288,6 +243,18 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 	page->set_config(m_config);
 	return page;
+}
+
+void Tab::OnActivate()
+{
+#ifdef __WXOSX__	
+	wxWindowUpdateLocker noUpdates(this);
+
+	auto size = GetSizer()->GetSize();
+	m_tmp_panel->GetSizer()->SetMinSize(size.x + m_size_move, size.y);
+	Fit();
+	m_size_move *= -1;
+#endif // __WXOSX__
 }
 
 void Tab::update_labels_colour()
@@ -1248,6 +1215,7 @@ void TabPrint::OnActivate()
 {
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+	Tab::OnActivate();
 }
 
 void TabFilament::build()
@@ -1405,6 +1373,7 @@ void TabFilament::update()
 void TabFilament::OnActivate()
 {
 	m_volumetric_speed_description_line->SetText(from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle)));
+	Tab::OnActivate();
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)

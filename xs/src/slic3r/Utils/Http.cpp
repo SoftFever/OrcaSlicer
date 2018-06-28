@@ -71,6 +71,7 @@ Http::priv::priv(const std::string &url) :
 	form(nullptr),
 	form_end(nullptr),
 	headerlist(nullptr),
+	limit(0),
 	cancel(false)
 {
 	if (curl == nullptr) {
@@ -201,7 +202,6 @@ std::string Http::priv::body_size_error()
 
 void Http::priv::http_perform()
 {
-	::curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 	::curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
 	::curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(this));
@@ -230,8 +230,6 @@ void Http::priv::http_perform()
 	}
 
 	CURLcode res = ::curl_easy_perform(curl);
-	long http_status = 0;
-	::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
 
 	if (res != CURLE_OK) {
 		if (res == CURLE_ABORTED_BY_CALLBACK) {
@@ -242,17 +240,22 @@ void Http::priv::http_perform()
 				if (progressfn) { progressfn(dummyprogress, cancel); }
 			} else {
 				// The abort comes from the CURLOPT_READFUNCTION callback, which means reading file failed
-				if (errorfn) { errorfn(std::move(buffer), "Error reading file for file upload", http_status); }
+				if (errorfn) { errorfn(std::move(buffer), "Error reading file for file upload", 0); }
 			}
 		}
 		else if (res == CURLE_WRITE_ERROR) {
-			if (errorfn) { errorfn(std::move(buffer), body_size_error(), http_status); }
+			if (errorfn) { errorfn(std::move(buffer), body_size_error(), 0); }
 		} else {
-			if (errorfn) { errorfn(std::move(buffer), curl_error(res), http_status); }
+			if (errorfn) { errorfn(std::move(buffer), curl_error(res), 0); }
 		};
 	} else {
-		if (completefn) {
-			completefn(std::move(buffer), http_status);
+		long http_status = 0;
+		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
+		
+		if (http_status >= 400) {
+			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
+		} else {
+			if (completefn) { completefn(std::move(buffer), http_status); }
 		}
 	}
 }

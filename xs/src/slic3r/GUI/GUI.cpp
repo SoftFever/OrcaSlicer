@@ -321,10 +321,11 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
+	auto config_wizard_name = _(ConfigWizard::name().wx_str());
+	const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + dots, 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,	_(L("Inspect / activate configuration snapshots")));
+	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_name + dots,					config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,		_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();

@@ -102,6 +102,10 @@ using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
 {
 	wxNotebook*			m_parent;
+#ifdef __WXOSX__
+	wxPanel*			m_tmp_panel;
+	int					m_size_move = -1;
+#endif // __WXOSX__
 protected:
 	std::string			m_name;
 	const wxString		m_title;
@@ -118,7 +122,6 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
-
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
@@ -198,7 +201,7 @@ public:
 	Tab() {}
 	Tab(wxNotebook* parent, const wxString& title, const char* name, bool no_controller) : 
 		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
-		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
 		get_tabs_list().push_back(this);
 	}
 	~Tab(){
@@ -242,7 +245,7 @@ public:
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
-	virtual void	OnActivate(){}
+	virtual void	OnActivate();
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
