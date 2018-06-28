@@ -200,7 +200,7 @@ public:
 	Tab() {}
 	Tab(wxNotebook* parent, const wxString& title, const char* name, bool no_controller) : 
 		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
-		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
 		get_tabs_list().push_back(this);
 	}
 	~Tab(){

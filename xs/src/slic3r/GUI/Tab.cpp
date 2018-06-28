@@ -45,6 +45,8 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	main_sizer->SetSizeHints(this);
 	this->SetSizer(main_sizer);
 
+	// Create additional panel to Fit() it from OnActivate()
+	// It's needed for tooltip showing on OSX
 	m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
 	auto panel = m_tmp_panel; 
 	auto  sizer = new wxBoxSizer(wxVERTICAL);
@@ -293,7 +295,12 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 		}
 	}
 	// Initialize the page.
-	PageShp page(new Page(this, title, icon_idx));
+#ifdef __WXOSX__
+	auto panel = m_tmp_panel;
+#else
+	auto panel = this;
+#endif
+	PageShp page(new Page(panel, title, icon_idx));
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
@@ -309,20 +316,22 @@ void Tab::OnActivate()
 #ifdef __WXOSX__	
 	wxWindowUpdateLocker noUpdates(this);
 
+	auto sizer = GetSizer(); 
+	m_tmp_panel->GetSizer()->SetMinSize(sizer->GetSize());
 	m_tmp_panel->Fit();
 
-	Page* page = nullptr;
-	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
-	for (auto p : m_pages)
-		if (p->title() == selection)
-		{
-			page = p.get();
-			break;
-		}
-	if (page == nullptr) return;
-	page->Fit();
-	m_hsizer->Layout();
-	Refresh();
+// 	Page* page = nullptr;
+// 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+// 	for (auto p : m_pages)
+// 		if (p->title() == selection)
+// 		{
+// 			page = p.get();
+// 			break;
+// 		}
+// 	if (page == nullptr) return;
+// 	page->Fit();
+// 	m_hsizer->Layout();
+// 	Refresh();
 #endif // __WXOSX__
 }
 
@@ -2124,6 +2133,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #endif
 
 	page->Show();
+	page->Fit();
 	m_hsizer->Layout();
 	Refresh();
 
