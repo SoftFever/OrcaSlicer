@@ -40,7 +40,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_preset_bundle = preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
-#ifdef __WXOSX__
+//#ifdef __WXOSX__
 	auto  *main_sizer = new wxBoxSizer(wxVERTICAL);
 	main_sizer->SetSizeHints(this);
 	this->SetSizer(main_sizer);
@@ -54,12 +54,12 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_tmp_panel->Layout();
 
 	main_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
-#else
-	Tab *panel = this;
-	auto  *sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->SetSizeHints(panel);
-	panel->SetSizer(sizer);
-#endif //__WXOSX__
+// #else
+// 	Tab *panel = this;
+// 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
+// 	sizer->SetSizeHints(panel);
+// 	panel->SetSizer(sizer);
+// #endif //__WXOSX__
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
@@ -295,11 +295,11 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 		}
 	}
 	// Initialize the page.
-#ifdef __WXOSX__
+//#ifdef __WXOSX__
 	auto panel = m_tmp_panel;
-#else
-	auto panel = this;
-#endif
+// #else
+// 	auto panel = this;
+// #endif
 	PageShp page(new Page(panel, title, icon_idx));
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
@@ -313,12 +313,13 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 void Tab::OnActivate()
 {
-#ifdef __WXOSX__	
+// #ifdef __WXOSX__	
 	wxWindowUpdateLocker noUpdates(this);
 
-	auto sizer = GetSizer(); 
-	m_tmp_panel->GetSizer()->SetMinSize(sizer->GetSize());
-	/*m_tmp_panel->*/Fit();
+	auto size = GetSizer()->GetSize();
+	m_tmp_panel->GetSizer()->SetMinSize(size.x + m_size_move, size.y);
+	Fit();
+	m_size_move *= -1;
 
 // 	Page* page = nullptr;
 // 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
@@ -332,7 +333,7 @@ void Tab::OnActivate()
 // 	page->Fit();
 // 	m_hsizer->Layout();
 // 	Refresh();
-#endif // __WXOSX__
+// #endif // __WXOSX__
 }
 
 void Tab::update_labels_colour()
