@@ -444,7 +444,7 @@ bool Print::apply_config(DynamicPrintConfig config)
                         const ModelVolume &volume = *object->model_object()->volumes[volume_id];
                         if (this_region_config_set) {
                             // If the new config for this volume differs from the other
-                            // volume configs currently associated to this region, it means
+                            // volume configs currently associated to this region, it means
                             // the region subdivision does not make sense anymore.
                             if (! this_region_config.equals(this->_region_config_from_model_volume(volume))) {
                                 rearrange_regions = true;

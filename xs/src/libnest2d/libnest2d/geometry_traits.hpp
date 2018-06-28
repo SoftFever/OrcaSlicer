@@ -20,17 +20,17 @@ template<class GeomType>
 using TCoord = typename CoordType<remove_cvref_t<GeomType>>::Type;
 
 /// Getting the type of point structure used by a shape.
-template<class Shape> struct PointType { using Type = void; };
+template<class Shape> struct PointType { /*using Type = void;*/ };
 
 /// TPoint<ShapeClass> as shorthand for `typename PointType<ShapeClass>::Type`.
 template<class Shape>
 using TPoint = typename PointType<remove_cvref_t<Shape>>::Type;
 
 /// Getting the VertexIterator type of a shape class.
-template<class Shape> struct VertexIteratorType { using Type = void; };
+template<class Shape> struct VertexIteratorType { /*using Type = void;*/ };
 
 /// Getting the const vertex iterator for a shape class.
-template<class Shape> struct VertexConstIteratorType { using Type = void; };
+template<class Shape> struct VertexConstIteratorType {/* using Type = void;*/ };
 
 /**
  * TVertexIterator<Shape> as shorthand for
@@ -86,23 +86,47 @@ public:
     inline RawPoint center() const BP2D_NOEXCEPT;
 };
 
+/**
+ * \brief An abstraction of a directed line segment with two points.
+ */
 template<class RawPoint>
 class _Segment: PointPair<RawPoint> {
     using PointPair<RawPoint>::p1;
     using PointPair<RawPoint>::p2;
+    mutable Radians angletox_ = std::nan("");
 public:
 
     inline _Segment() {}
+
     inline _Segment(const RawPoint& p, const RawPoint& pp):
         PointPair<RawPoint>({p, pp}) {}
 
+    /**
+     * @brief Get the first point.
+     * @return Returns the starting point.
+     */
     inline const RawPoint& first() const BP2D_NOEXCEPT { return p1; }
+
+    /**
+     * @brief The end point.
+     * @return Returns the end point of the segment.
+     */
     inline const RawPoint& second() const BP2D_NOEXCEPT { return p2; }
 
-    inline RawPoint& first() BP2D_NOEXCEPT { return p1; }
-    inline RawPoint& second() BP2D_NOEXCEPT { return p2; }
+    inline void first(const RawPoint& p) BP2D_NOEXCEPT
+    {
+        angletox_ = std::nan(""); p1 = p;
+    }
 
+    inline void second(const RawPoint& p) BP2D_NOEXCEPT {
+        angletox_ = std::nan(""); p2 = p;
+    }
+
+    /// Returns the angle measured to the X (horizontal) axis.
     inline Radians angleToXaxis() const;
+
+    /// The length of the segment in the measure of the coordinate system.
+    inline double length();
 };
 
 // This struct serves as a namespace. The only difference is that is can be
@@ -204,13 +228,14 @@ struct PointLike {
 };
 
 template<class RawPoint>
-TCoord<RawPoint> _Box<RawPoint>::width() const BP2D_NOEXCEPT {
+TCoord<RawPoint> _Box<RawPoint>::width() const BP2D_NOEXCEPT
+{
     return PointLike::x(maxCorner()) - PointLike::x(minCorner());
 }
 
-
 template<class RawPoint>
-TCoord<RawPoint> _Box<RawPoint>::height() const BP2D_NOEXCEPT {
+TCoord<RawPoint> _Box<RawPoint>::height() const BP2D_NOEXCEPT
+{
     return PointLike::y(maxCorner()) - PointLike::y(minCorner());
 }
 
@@ -221,33 +246,37 @@ template<class RawPoint>
 TCoord<RawPoint> getY(const RawPoint& p) { return PointLike::y<RawPoint>(p); }
 
 template<class RawPoint>
-void setX(RawPoint& p, const TCoord<RawPoint>& val) {
+void setX(RawPoint& p, const TCoord<RawPoint>& val)
+{
     PointLike::x<RawPoint>(p) = val;
 }
 
 template<class RawPoint>
-void setY(RawPoint& p, const TCoord<RawPoint>& val) {
+void setY(RawPoint& p, const TCoord<RawPoint>& val)
+{
     PointLike::y<RawPoint>(p) = val;
 }
 
 template<class RawPoint>
 inline Radians _Segment<RawPoint>::angleToXaxis() const
 {
-    static const double Pi_2 = 2*Pi;
-    TCoord<RawPoint> dx = getX(second()) - getX(first());
-    TCoord<RawPoint> dy = getY(second()) - getY(first());
+    if(std::isnan(angletox_)) {
+        TCoord<RawPoint> dx = getX(second()) - getX(first());
+        TCoord<RawPoint> dy = getY(second()) - getY(first());
 
-    double a = std::atan2(dy, dx);
-//    if(dx == 0 && dy >= 0) return Pi/2;
-//    if(dx == 0 && dy < 0) return 3*Pi/2;
-//    if(dy == 0 && dx >= 0) return 0;
-//    if(dy == 0 && dx < 0) return Pi;
+        double a = std::atan2(dy, dx);
+        auto s = std::signbit(a);
 
-//    double ddx = static_cast<double>(dx);
-    auto s = std::signbit(a);
-//    double a = std::atan(ddx/dy);
-    if(s) a += Pi_2;
-    return a;
+        if(s) a += Pi_2;
+        angletox_ = a;
+    }
+    return angletox_;
+}
+
+template<class RawPoint>
+inline double _Segment<RawPoint>::length()
+{
+    return PointLike::distance(first(), second());
 }
 
 template<class RawPoint>
@@ -319,7 +348,7 @@ struct ShapeLike {
 
     // Optional, does nothing by default
     template<class RawShape>
-    static void reserve(RawShape& /*sh*/,  unsigned long /*vertex_capacity*/) {}
+    static void reserve(RawShape& /*sh*/,  size_t /*vertex_capacity*/) {}
 
     template<class RawShape, class...Args>
     static void addVertex(RawShape& sh, Args...args)
@@ -412,6 +441,15 @@ struct ShapeLike {
     {
         static_assert(always_false<RawShape>::value,
                       "ShapeLike::touches(shape, shape) unimplemented!");
+        return false;
+    }
+
+    template<class RawShape>
+    static bool touches( const TPoint<RawShape>& /*point*/,
+                         const RawShape& /*shape*/)
+    {
+        static_assert(always_false<RawShape>::value,
+                      "ShapeLike::touches(point, shape) unimplemented!");
         return false;
     }
 

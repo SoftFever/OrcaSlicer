@@ -35,6 +35,7 @@ set(LIBNEST2D_SRCFILES
     libnest2d/geometry_traits.hpp
     libnest2d/geometries_io.hpp
     libnest2d/common.hpp
+    libnest2d/optimizer.hpp
     libnest2d/placers/placer_boilerplate.hpp
     libnest2d/placers/bottomleftplacer.hpp
     libnest2d/placers/nfpplacer.hpp
@@ -43,6 +44,10 @@ set(LIBNEST2D_SRCFILES
     libnest2d/selections/filler.hpp
     libnest2d/selections/firstfit.hpp
     libnest2d/selections/djd_heuristic.hpp
+    libnest2d/optimizers/simplex.hpp
+    libnest2d/optimizers/subplex.hpp
+    libnest2d/optimizers/genetic.hpp
+    libnest2d/optimizers/nlopt_boilerplate.hpp
     )
 
 if((NOT LIBNEST2D_GEOMETRIES_TARGET) OR (LIBNEST2D_GEOMETRIES_TARGET STREQUAL ""))
@@ -68,17 +73,24 @@ else()
     message(STATUS "Libnest2D backend is: ${LIBNEST2D_GEOMETRIES_TARGET}")
 endif()
 
-message(STATUS "clipper lib is:  ${LIBNEST2D_GEOMETRIES_TARGET}")
+message(STATUS "clipper lib is: ${LIBNEST2D_GEOMETRIES_TARGET}")
+
+find_package(NLopt 1.4)
+if(NOT NLopt_FOUND)
+    message(STATUS "NLopt not found so downloading and automatic build is performed...")
+    include(DownloadNLopt)
+endif()
+find_package(Threads REQUIRED)
 
 add_library(libnest2d_static STATIC ${LIBNEST2D_SRCFILES} )
-target_link_libraries(libnest2d_static PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET})
-target_include_directories(libnest2d_static PUBLIC ${CMAKE_SOURCE_DIR})
+target_link_libraries(libnest2d_static PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET} ${NLopt_LIBS})
+target_include_directories(libnest2d_static PUBLIC ${CMAKE_SOURCE_DIR} ${NLopt_INCLUDE_DIR})
 set_target_properties(libnest2d_static PROPERTIES PREFIX "")
 
 if(LIBNEST2D_BUILD_SHARED_LIB)
     add_library(libnest2d SHARED ${LIBNEST2D_SRCFILES} )
-    target_link_libraries(libnest2d PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET})
-    target_include_directories(libnest2d PUBLIC ${CMAKE_SOURCE_DIR})
+    target_link_libraries(libnest2d PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET} ${NLopt_LIBS})
+    target_include_directories(libnest2d PUBLIC ${CMAKE_SOURCE_DIR}  ${NLopt_INCLUDE_DIR})
     set_target_properties(libnest2d PROPERTIES PREFIX "")
 endif()
 
@@ -98,6 +110,6 @@ if(LIBNEST2D_BUILD_EXAMPLES)
                            tests/svgtools.hpp
                            tests/printer_parts.cpp
                            tests/printer_parts.h)
-    target_link_libraries(example libnest2d_static)
+    target_link_libraries(example libnest2d_static Threads::Threads)
     target_include_directories(example PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 endif()

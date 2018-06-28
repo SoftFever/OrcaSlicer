@@ -348,8 +348,9 @@ protected:
         };*/
 
         auto reverseAddOthers = [&rsh, finish, start, &item](){
-            for(size_t i = finish-1; i > start; i--)
-                ShapeLike::addVertex(rsh, item.vertex(i));
+            for(auto i = finish-1; i > start; i--)
+                ShapeLike::addVertex(rsh, item.vertex(
+                                         static_cast<unsigned long>(i)));
         };
 
         // Final polygon construction...

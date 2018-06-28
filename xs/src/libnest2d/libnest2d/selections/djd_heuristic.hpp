@@ -2,6 +2,10 @@
 #define DJD_HEURISTIC_HPP
 
 #include <list>
+#include <future>
+#include <atomic>
+#include <functional>
+
 #include "selection_boilerplate.hpp"
 
 namespace libnest2d { namespace strategies {
@@ -13,6 +17,20 @@ namespace libnest2d { namespace strategies {
 template<class RawShape>
 class _DJDHeuristic: public SelectionBoilerplate<RawShape> {
     using Base = SelectionBoilerplate<RawShape>;
+
+    class SpinLock {
+        std::atomic_flag& lck_;
+    public:
+
+        inline SpinLock(std::atomic_flag& flg): lck_(flg) {}
+
+        inline void lock() {
+            while(lck_.test_and_set(std::memory_order_acquire)) {}
+        }
+
+        inline void unlock() { lck_.clear(std::memory_order_release); }
+    };
+
 public:
     using typename Base::Item;
     using typename Base::ItemRef;
@@ -21,27 +39,54 @@ public:
      * @brief The Config for DJD heuristic.
      */
     struct Config {
-        /// Max number of bins.
-        unsigned max_bins = 0;
 
         /**
          * If true, the algorithm will try to place pair and driplets in all
          * possible order.
          */
         bool try_reverse_order = true;
+
+        /**
+         * The initial fill proportion of the bin area that will be filled before
+         * trying items one by one, or pairs or triplets.
+         *
+         * The initial fill proportion suggested by
+         * [López-Camacho]\
+         * (http://www.cs.stir.ac.uk/~goc/papers/EffectiveHueristic2DAOR2013.pdf)
+         * is one third of the area of bin.
+         */
+        double initial_fill_proportion = 1.0/3.0;
+
+        /**
+         * @brief How much is the acceptable waste incremented at each iteration
+         */
+        double waste_increment = 0.1;
+
+        /**
+         * @brief Allow parallel jobs for filling multiple bins.
+         *
+         * This will decrease the soution quality but can greatly boost up
+         * performance for large number of items.
+         */
+        bool allow_parallel = true;
+
+        /**
+         * @brief Always use parallel processing if the items don't fit into
+         * one bin.
+         */
+        bool force_parallel = false;
     };
 
 private:
     using Base::packed_bins_;
     using ItemGroup = typename Base::ItemGroup;
 
-    using Container = ItemGroup;//typename std::vector<Item>;
+    using Container = ItemGroup;
     Container store_;
     Config config_;
 
-    // The initial fill proportion of the bin area that will be filled before
-    // trying items one by one, or pairs or triplets.
-    static const double INITIAL_FILL_PROPORTION;
+    static const unsigned MAX_ITEMS_SEQUENTIALLY = 30;
+    static const unsigned MAX_VERTICES_SEQUENTIALLY = MAX_ITEMS_SEQUENTIALLY*20;
 
 public:
 
@@ -61,7 +106,9 @@ public:
         using ItemList = std::list<ItemRef>;
 
         const double bin_area = ShapeLike::area<RawShape>(bin);
-        const double w = bin_area * 0.1;
+        const double w = bin_area * config_.waste_increment;
+
+        const double INITIAL_FILL_PROPORTION = config_.initial_fill_proportion;
         const double INITIAL_FILL_AREA = bin_area*INITIAL_FILL_PROPORTION;
 
         store_.clear();
@@ -74,24 +121,22 @@ public:
             return i1.area() > i2.area();
         });
 
-        ItemList not_packed(store_.begin(), store_.end());
+        size_t glob_vertex_count = 0;
+        std::for_each(store_.begin(), store_.end(),
+                      [&glob_vertex_count](const Item& item) {
+             glob_vertex_count += item.vertexCount();
+        });
 
         std::vector<Placer> placers;
 
-        double free_area = 0;
-        double filled_area = 0;
-        double waste = 0;
         bool try_reverse = config_.try_reverse_order;
 
         // Will use a subroutine to add a new bin
-        auto addBin = [this, &placers, &free_area,
-                       &filled_area, &bin, &pconfig]()
+        auto addBin = [this, &placers, &bin, &pconfig]()
         {
             placers.emplace_back(bin);
             packed_bins_.emplace_back();
             placers.back().configure(pconfig);
-            free_area = ShapeLike::area<RawShape>(bin);
-            filled_area = 0;
         };
 
         // Types for pairs and triplets
@@ -136,8 +181,11 @@ public:
         };
 
         auto tryOneByOne = // Subroutine to try adding items one by one.
-                [&not_packed,  &bin_area, &free_area, &filled_area]
-                (Placer& placer, double waste)
+                [&bin_area]
+                (Placer& placer, ItemList& not_packed,
+                double waste,
+                double& free_area,
+                double& filled_area)
         {
             double item_area = 0;
             bool ret = false;
@@ -160,9 +208,12 @@ public:
         };
 
         auto tryGroupsOfTwo = // Try adding groups of two items into the bin.
-                [&not_packed, &bin_area, &free_area, &filled_area, &check_pair,
+                [&bin_area, &check_pair,
                  try_reverse]
-                (Placer& placer, double waste)
+                (Placer& placer, ItemList& not_packed,
+                double waste,
+                double& free_area,
+                double& filled_area)
         {
             double item_area = 0, largest_area = 0, smallest_area = 0;
             double second_largest = 0, second_smallest = 0;
@@ -259,12 +310,15 @@ public:
         };
 
         auto tryGroupsOfThree = // Try adding groups of three items.
-                [&not_packed, &bin_area, &free_area, &filled_area,
+                [&bin_area,
                  &check_pair, &check_triplet, try_reverse]
-                (Placer& placer, double waste)
+                (Placer& placer, ItemList& not_packed,
+                double waste,
+                double& free_area,
+                double& filled_area)
         {
-
-            if(not_packed.size() < 3) return false;
+            auto np_size = not_packed.size();
+            if(np_size < 3) return false;
 
             auto it = not_packed.begin();           // from
             const auto endit = not_packed.end();    // to
@@ -274,6 +328,10 @@ public:
             // do not work.
             std::vector<TPair> wrong_pairs;
             std::vector<TTriplet> wrong_triplets;
+
+            auto cap = np_size*np_size / 2 ;
+            wrong_pairs.reserve(cap);
+            wrong_triplets.reserve(cap);
 
             // Will be true if a succesfull pack can be made.
             bool ret = false;
@@ -445,87 +503,171 @@ public:
             return ret;
         };
 
-        addBin();
-
         // Safety test: try to pack each item into an empty bin. If it fails
         // then it should be removed from the not_packed list
-        { auto it = not_packed.begin();
-            while (it != not_packed.end()) {
+        { auto it = store_.begin();
+            while (it != store_.end()) {
                 Placer p(bin);
                 if(!p.pack(*it)) {
                     auto itmp = it++;
-                    not_packed.erase(itmp);
+                    store_.erase(itmp);
                 } else it++;
             }
         }
 
-        auto makeProgress = [this, &not_packed](Placer& placer) {
-            packed_bins_.back() = placer.getItems();
+        int acounter = int(store_.size());
+        std::atomic_flag flg = ATOMIC_FLAG_INIT;
+        SpinLock slock(flg);
+
+        auto makeProgress = [this, &acounter, &slock]
+                (Placer& placer, size_t idx, int packednum)
+        {
+
+            packed_bins_[idx] = placer.getItems();
 #ifndef NDEBUG
-            packed_bins_.back().insert(packed_bins_.back().end(),
+            packed_bins_[idx].insert(packed_bins_[idx].end(),
                                        placer.getDebugItems().begin(),
                                        placer.getDebugItems().end());
 #endif
-            this->progress_(not_packed.size());
+            // TODO here should be a spinlock
+            slock.lock();
+            acounter -= packednum;
+            this->progress_(acounter);
+            slock.unlock();
         };
 
-        while(!not_packed.empty()) {
+        double items_area = 0;
+        for(Item& item : store_) items_area += item.area();
 
-            auto& placer = placers.back();
+        // Number of bins that will definitely be needed
+        auto bincount_guess = unsigned(std::ceil(items_area / bin_area));
 
-            {// Fill the bin up to INITIAL_FILL_PROPORTION of its capacity
-                auto it = not_packed.begin();
+        // Do parallel if feasible
+        bool do_parallel = config_.allow_parallel && bincount_guess > 1 &&
+                ((glob_vertex_count >  MAX_VERTICES_SEQUENTIALLY ||
+                 store_.size() > MAX_ITEMS_SEQUENTIALLY) ||
+                config_.force_parallel);
 
-                while(it != not_packed.end() &&
-                      filled_area < INITIAL_FILL_AREA)
-                {
-                    if(placer.pack(*it)) {
-                        filled_area += it->get().area();
-                        free_area = bin_area - filled_area;
-                        auto itmp = it++;
-                        not_packed.erase(itmp);
-                        makeProgress(placer);
-                    } else it++;
+        if(do_parallel) dout() << "Parallel execution..." << "\n";
+
+        // The DJD heuristic algorithm itself:
+        auto packjob = [INITIAL_FILL_AREA, bin_area, w,
+                        &tryOneByOne,
+                        &tryGroupsOfTwo,
+                        &tryGroupsOfThree,
+                        &makeProgress]
+                        (Placer& placer, ItemList& not_packed, size_t idx)
+        {
+            bool can_pack = true;
+
+            double filled_area = placer.filledArea();
+            double free_area = bin_area - filled_area;
+            double waste = .0;
+
+            while(!not_packed.empty() && can_pack) {
+
+                {// Fill the bin up to INITIAL_FILL_PROPORTION of its capacity
+                    auto it = not_packed.begin();
+
+                    while(it != not_packed.end() &&
+                          filled_area < INITIAL_FILL_AREA)
+                    {
+                        if(placer.pack(*it)) {
+                            filled_area += it->get().area();
+                            free_area = bin_area - filled_area;
+                            auto itmp = it++;
+                            not_packed.erase(itmp);
+                            makeProgress(placer, idx, 1);
+                        } else it++;
+                    }
+                }
+
+                // try pieses one by one
+                while(tryOneByOne(placer, not_packed, waste, free_area,
+                                  filled_area)) {
+                    waste = 0;
+                    makeProgress(placer, idx, 1);
+                }
+
+                // try groups of 2 pieses
+                while(tryGroupsOfTwo(placer, not_packed, waste, free_area,
+                                     filled_area)) {
+                    waste = 0;
+                    makeProgress(placer, idx, 2);
+                }
+
+                // try groups of 3 pieses
+                while(tryGroupsOfThree(placer, not_packed, waste, free_area,
+                                       filled_area)) {
+                    waste = 0;
+                    makeProgress(placer, idx, 3);
+                }
+
+                if(waste < free_area) waste += w;
+                else if(!not_packed.empty()) can_pack = false;
+            }
+
+            return can_pack;
+        };
+
+        size_t idx = 0;
+        ItemList remaining;
+
+        if(do_parallel) {
+            std::vector<ItemList> not_packeds(bincount_guess);
+
+            // Preallocating the bins
+            for(unsigned b = 0; b < bincount_guess; b++) {
+                addBin();
+                ItemList& not_packed = not_packeds[b];
+                for(unsigned idx = b; idx < store_.size(); idx+=bincount_guess) {
+                    not_packed.push_back(store_[idx]);
                 }
             }
 
-            // try pieses one by one
-            while(tryOneByOne(placer, waste)) {
-                waste = 0;
-                makeProgress(placer);
+            // The parallel job
+            auto job = [&placers, &not_packeds, &packjob](unsigned idx) {
+                Placer& placer = placers[idx];
+                ItemList& not_packed = not_packeds[idx];
+                return packjob(placer, not_packed, idx);
+            };
+
+            // We will create jobs for each bin
+            std::vector<std::future<bool>> rets(bincount_guess);
+
+            for(unsigned b = 0; b < bincount_guess; b++) { // launch the jobs
+                rets[b] = std::async(std::launch::async, job, b);
             }
 
-            // try groups of 2 pieses
-            while(tryGroupsOfTwo(placer, waste)) {
-                waste = 0;
-                makeProgress(placer);
+            for(unsigned fi = 0; fi < rets.size(); ++fi) {
+                rets[fi].wait();
+
+                // Collect remaining items while waiting for the running jobs
+                remaining.merge( not_packeds[fi], [](Item& i1, Item& i2) {
+                    return i1.area() > i2.area();
+                });
+
             }
 
-            // try groups of 3 pieses
-            while(tryGroupsOfThree(placer, waste)) {
-                waste = 0;
-                makeProgress(placer);
+            idx = placers.size();
+
+            // Try to put the remaining items into one of the packed bins
+            if(remaining.size() <= placers.size())
+            for(size_t j = 0; j < idx && !remaining.empty(); j++) {
+                packjob(placers[j], remaining, j);
             }
 
-            if(waste < free_area) waste += w;
-            else if(!not_packed.empty()) addBin();
+        } else {
+            remaining = ItemList(store_.begin(), store_.end());
         }
 
-//        std::for_each(placers.begin(), placers.end(),
-//                      [this](Placer& placer){
-//            packed_bins_.push_back(placer.getItems());
-//        });
+        while(!remaining.empty()) {
+            addBin();
+            packjob(placers[idx], remaining, idx); idx++;
+        }
+
     }
 };
-
-/*
- * The initial fill proportion suggested by
- * [López-Camacho]\
- * (http://www.cs.stir.ac.uk/~goc/papers/EffectiveHueristic2DAOR2013.pdf)
- * is one third of the area of bin.
- */
-template<class RawShape>
-const double _DJDHeuristic<RawShape>::INITIAL_FILL_PROPORTION = 1.0/3.0;
 
 }
 }

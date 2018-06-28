@@ -331,14 +331,20 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
             for(auto objinst : objptr->instances) {
                 if(objinst) {
                     Slic3r::TriangleMesh tmpmesh = rmesh;
-                    objinst->transform_mesh(&tmpmesh);
+//                    objinst->transform_mesh(&tmpmesh);
                     ClipperLib::PolyNode pn;
                     auto p = tmpmesh.convex_hull();
                     p.make_clockwise();
                     p.append(p.first_point());
                     pn.Contour = Slic3rMultiPoint_to_ClipperPath( p );
 
-                    ret.emplace_back(objinst, Item(std::move(pn)));
+                    Item item(std::move(pn));
+                    item.rotation(objinst->rotation);
+                    item.translation( {
+                        ClipperLib::cInt(objinst->offset.x/SCALING_FACTOR),
+                        ClipperLib::cInt(objinst->offset.y/SCALING_FACTOR)
+                    });
+                    ret.emplace_back(objinst, item);
                 }
             }
         }
@@ -407,7 +413,7 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 //    std::cout << "}" << std::endl;
 //    return true;
 
-    double area = 0;
+    bool hasbin = bb != nullptr && bb->defined;
     double area_max = 0;
     Item *biggest = nullptr;
 
@@ -416,24 +422,25 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     std::vector<std::reference_wrapper<Item>> shapes;
     shapes.reserve(shapemap.size());
     std::for_each(shapemap.begin(), shapemap.end(),
-                  [&shapes, &area, min_obj_distance, &area_max, &biggest]
+                  [&shapes, min_obj_distance, &area_max, &biggest,hasbin]
                   (ShapeData2D::value_type& it)
     {
-        Item& item = it.second;
-        item.addOffset(min_obj_distance);
-        auto b = ShapeLike::boundingBox(item.transformedShape());
-        auto a = b.width()*b.height();
-        if(area_max < a) {
-            area_max = static_cast<double>(a);
-            biggest = &item;
+        if(!hasbin) {
+            Item& item = it.second;
+            item.addOffset(min_obj_distance);
+            auto b = ShapeLike::boundingBox(item.transformedShape());
+            auto a = b.width()*b.height();
+            if(area_max < a) {
+                area_max = static_cast<double>(a);
+                biggest = &item;
+            }
         }
-        area += b.width()*b.height();
         shapes.push_back(std::ref(it.second));
     });
 
     Box bin;
 
-    if(bb != nullptr && bb->defined) {
+    if(hasbin) {
         // Scale up the bounding box to clipper scale.
         BoundingBoxf bbb = *bb;
         bbb.scale(1.0/SCALING_FACTOR);
@@ -456,8 +463,13 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     using Arranger = Arranger<NfpPlacer, DJDHeuristic>;
 
     Arranger::PlacementConfig pcfg;
-    pcfg.alignment = Arranger::PlacementConfig::Alignment::BOTTOM_LEFT;
-    Arranger arranger(bin, min_obj_distance, pcfg);
+    Arranger::SelectionConfig scfg;
+
+    scfg.try_reverse_order = false;
+    scfg.force_parallel = true;
+    pcfg.alignment = Arranger::PlacementConfig::Alignment::CENTER;
+    Arranger arranger(bin, min_obj_distance, pcfg, scfg);
+    arranger.useMinimumBoundigBoxRotation();
 
     std::cout << "Arranging model..." << std::endl;
     bench.start();
@@ -483,18 +495,15 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
             // Get the tranformation data from the item object and scale it
             // appropriately
-            Radians rot = item.rotation();
             auto off = item.translation();
-            Pointf foff(off.X*SCALING_FACTOR + batch_offset,
+            Radians rot = item.rotation();
+            Pointf foff(off.X*SCALING_FACTOR,
                         off.Y*SCALING_FACTOR);
 
             // write the tranformation data into the model instance
-            inst_ptr->rotation += rot;
-            inst_ptr->offset += foff;
-
-            // Debug
-            /*std::cout << "item " << idx << ": \n" << "\toffset_x: "
-             * << foff.x << "\n\toffset_y: " << foff.y << std::endl;*/
+            inst_ptr->rotation = rot;
+            inst_ptr->offset = foff;
+            inst_ptr->offset_z = -batch_offset;
         }
     };
 
@@ -503,14 +512,23 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     if(first_bin_only) {
         applyResult(result.front(), 0);
     } else {
+
+        const auto STRIDE_PADDING = 1.2;
+        const auto MIN_STRIDE = 100;
+
+        auto h = STRIDE_PADDING * model.bounding_box().size().z;
+        h = h < MIN_STRIDE ? MIN_STRIDE : h;
+        Coord stride = static_cast<Coord>(h);
+
         Coord batch_offset = 0;
+
         for(auto& group : result) {
             applyResult(group, batch_offset);
 
             // Only the first pack group can be placed onto the print bed. The
             // other objects which could not fit will be placed next to the
             // print bed
-            batch_offset += static_cast<Coord>(2*bin.width()*SCALING_FACTOR);
+            batch_offset += stride;
         }
     }
     bench.stop();
@@ -1236,7 +1254,7 @@ void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) cons
     mesh->rotate_z(this->rotation);                 // rotate around mesh origin
     mesh->scale(this->scaling_factor);              // scale around mesh origin
     if (!dont_translate)
-        mesh->translate(this->offset.x, this->offset.y, 0);
+        mesh->translate(this->offset.x, this->offset.y, this->offset_z);
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const

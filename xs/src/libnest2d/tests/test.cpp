@@ -253,7 +253,7 @@ TEST(GeometryAlgorithms, LeftAndDownPolygon)
     ASSERT_TRUE(ShapeLike::isValid(leftp.rawShape()).first);
     ASSERT_EQ(leftp.vertexCount(), leftControl.vertexCount());
 
-    for(size_t i = 0; i < leftControl.vertexCount(); i++) {
+    for(unsigned long i = 0; i < leftControl.vertexCount(); i++) {
         ASSERT_EQ(getX(leftp.vertex(i)), getX(leftControl.vertex(i)));
         ASSERT_EQ(getY(leftp.vertex(i)), getY(leftControl.vertex(i)));
     }
@@ -263,7 +263,7 @@ TEST(GeometryAlgorithms, LeftAndDownPolygon)
     ASSERT_TRUE(ShapeLike::isValid(downp.rawShape()).first);
     ASSERT_EQ(downp.vertexCount(), downControl.vertexCount());
 
-    for(size_t i = 0; i < downControl.vertexCount(); i++) {
+    for(unsigned long i = 0; i < downControl.vertexCount(); i++) {
         ASSERT_EQ(getX(downp.vertex(i)), getX(downControl.vertex(i)));
         ASSERT_EQ(getY(downp.vertex(i)), getY(downControl.vertex(i)));
     }
@@ -693,6 +693,27 @@ TEST(GeometryAlgorithms, nfpConvexConvex) {
         auto orbiter = td.stationary;
         auto stationary = td.orbiter;
         onetest(orbiter, stationary);
+    }
+}
+
+TEST(GeometryAlgorithms, pointOnPolygonContour) {
+    using namespace libnest2d;
+
+    Rectangle input(10, 10);
+
+    strategies::EdgeCache<PolygonImpl> ecache(input);
+
+    auto first = *input.begin();
+    ASSERT_TRUE(getX(first) == getX(ecache.coords(0)));
+    ASSERT_TRUE(getY(first) == getY(ecache.coords(0)));
+
+    auto last = *std::prev(input.end());
+    ASSERT_TRUE(getX(last) == getX(ecache.coords(1.0)));
+    ASSERT_TRUE(getY(last) == getY(ecache.coords(1.0)));
+
+    for(int i = 0; i <= 100; i++) {
+        auto v = ecache.coords(i*(0.01));
+        ASSERT_TRUE(ShapeLike::touches(v, input.transformedShape()));
     }
 }
 

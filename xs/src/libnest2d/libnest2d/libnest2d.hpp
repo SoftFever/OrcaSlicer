@@ -9,6 +9,9 @@
 #include <functional>
 
 #include "geometry_traits.hpp"
+//#include "optimizers/subplex.hpp"
+//#include "optimizers/simplex.hpp"
+#include "optimizers/genetic.hpp"
 
 namespace libnest2d {
 
@@ -48,6 +51,7 @@ class _Item {
     mutable bool area_cache_valid_ = false;
     mutable RawShape offset_cache_;
     mutable bool offset_cache_valid_ = false;
+
 public:
 
     /// The type of the shape which was handed over as the template argument.
@@ -188,7 +192,7 @@ public:
     }
 
     /// The number of the outer ring vertices.
-    inline unsigned long vertexCount() const {
+    inline size_t vertexCount() const {
         return ShapeLike::contourVertexCount(sh_);
     }
 
@@ -495,6 +499,8 @@ public:
     /// Clear the packed items so a new session can be started.
     inline void clearItems() { impl_.clearItems(); }
 
+    inline double filledArea() const { return impl_.filledArea(); }
+
 #ifndef NDEBUG
     inline auto getDebugItems() -> decltype(impl_.debug_items_)&
     {
@@ -629,7 +635,7 @@ template<class PlacementStrategy, class SelectionStrategy >
 class Arranger {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
-
+    bool use_min_bb_rotation_ = false;
 public:
     using Item = typename PlacementStrategy::Item;
     using ItemRef = std::reference_wrapper<Item>;
@@ -713,9 +719,9 @@ public:
     }
 
     /// Set a progress indicatior function object for the selector.
-    inline void progressIndicator(ProgressFunction func)
+    inline Arranger& progressIndicator(ProgressFunction func)
     {
-        selector_.progressIndicator(func);
+        selector_.progressIndicator(func); return *this;
     }
 
     inline PackGroup lastResult() {
@@ -725,6 +731,10 @@ public:
             ret.push_back(items);
         }
         return ret;
+    }
+
+    inline Arranger& useMinimumBoundigBoxRotation(bool s = true) {
+        use_min_bb_rotation_ = s; return *this;
     }
 
 private:
@@ -814,16 +824,42 @@ private:
         return pg;
     }
 
+    Radians findBestRotation(Item& item) {
+        opt::StopCriteria stopcr;
+        stopcr.stoplimit = 0.01;
+        stopcr.max_iterations = 10000;
+        stopcr.type = opt::StopLimitType::RELATIVE;
+        opt::TOptimizer<opt::Method::G_GENETIC> solver(stopcr);
+
+        auto orig_rot = item.rotation();
+
+        auto result = solver.optimize_min([&item, &orig_rot](Radians rot){
+            item.rotation(orig_rot + rot);
+            auto bb = item.boundingBox();
+            return std::sqrt(bb.height()*bb.width());
+        }, opt::initvals(Radians(0)), opt::bound<Radians>(-Pi/2, Pi/2));
+
+        item.rotation(orig_rot);
+
+        return std::get<0>(result.optimum);
+    }
+
     template<class TIter> inline void __arrange(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
             item.addOffset(static_cast<Unit>(std::ceil(min_obj_distance_/2.0)));
         });
 
+        if(use_min_bb_rotation_)
+            std::for_each(from, to, [this](Item& item){
+                Radians rot = findBestRotation(item);
+                item.rotate(rot);
+            });
+
         selector_.template packItems<PlacementStrategy>(
                     from, to, bin_, pconfig_);
 
-        if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
+        if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
             item.removeOffset();
         });
 

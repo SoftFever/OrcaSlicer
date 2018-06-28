@@ -33,7 +33,17 @@ public:
 
         store_.clear();
         store_.reserve(last-first);
-        packed_bins_.clear();
+        packed_bins_.emplace_back();
+
+        auto makeProgress = [this](PlacementStrategyLike<TPlacer>& placer) {
+            packed_bins_.back() = placer.getItems();
+#ifndef NDEBUG
+            packed_bins_.back().insert(packed_bins_.back().end(),
+                                       placer.getDebugItems().begin(),
+                                       placer.getDebugItems().end());
+#endif
+            this->progress_(packed_bins_.back().size());
+        };
 
         std::copy(first, last, std::back_inserter(store_));
 
@@ -50,18 +60,22 @@ public:
         PlacementStrategyLike<TPlacer> placer(bin);
         placer.configure(pconfig);
 
-        bool was_packed = false;
-        for(auto& item : store_ ) {
-            if(!placer.pack(item))  {
-                packed_bins_.push_back(placer.getItems());
+        auto it = store_.begin();
+        while(it != store_.end()) {
+            if(!placer.pack(*it))  {
+                if(packed_bins_.back().empty()) ++it;
+                makeProgress(placer);
                 placer.clearItems();
-                was_packed = placer.pack(item);
-            } else was_packed = true;
+                packed_bins_.emplace_back();
+            } else {
+                makeProgress(placer);
+                ++it;
+            }
         }
 
-        if(was_packed) {
-            packed_bins_.push_back(placer.getItems());
-        }
+//        if(was_packed) {
+//            packed_bins_.push_back(placer.getItems());
+//        }
     }
 };
 

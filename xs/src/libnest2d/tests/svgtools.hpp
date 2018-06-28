@@ -50,7 +50,9 @@ public:
         if(conf_.origo_location == BOTTOMLEFT)
         for(unsigned i = 0; i < tsh.vertexCount(); i++) {
             auto v = tsh.vertex(i);
-            setY(v, -getY(v) + conf_.height*conf_.mm_in_coord_units);
+            auto d = static_cast<Coord>(
+                        std::round(conf_.height*conf_.mm_in_coord_units) );
+            setY(v, -getY(v) + d);
             tsh.setVertex(i, v);
         }
         currentLayer() += ShapeLike::serialize<Formats::SVG>(tsh.rawShape(),
@@ -78,8 +80,8 @@ public:
     }
 
     void save(const std::string& filepath) {
-        unsigned lyrc = svg_layers_.size() > 1? 1 : 0;
-        unsigned last = svg_layers_.size() > 1? svg_layers_.size() : 0;
+        size_t lyrc = svg_layers_.size() > 1? 1 : 0;
+        size_t last = svg_layers_.size() > 1? svg_layers_.size() : 0;
 
         for(auto& lyr : svg_layers_) {
             std::fstream out(filepath + (lyrc > 0? std::to_string(lyrc) : "") +

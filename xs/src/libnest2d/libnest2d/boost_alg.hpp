@@ -5,6 +5,9 @@
     #include <sstream>
 #endif
 
+#ifdef __clang__
+#undef _MSC_EXTENSIONS
+#endif
 #include <boost/geometry.hpp>
 
 // this should be removed to not confuse the compiler
@@ -152,7 +155,7 @@ template<> struct indexed_access<bp2d::Segment, 0, 0> {
         return bp2d::getX(seg.first());
     }
     static inline void set(bp2d::Segment &seg, bp2d::Coord const& coord) {
-        bp2d::setX(seg.first(), coord);
+        auto p = seg.first(); bp2d::setX(p, coord); seg.first(p);
     }
 };
 
@@ -161,7 +164,7 @@ template<> struct indexed_access<bp2d::Segment, 0, 1> {
         return bp2d::getY(seg.first());
     }
     static inline void set(bp2d::Segment &seg, bp2d::Coord const& coord) {
-        bp2d::setY(seg.first(), coord);
+        auto p = seg.first(); bp2d::setY(p, coord); seg.first(p);
     }
 };
 
@@ -170,7 +173,7 @@ template<> struct indexed_access<bp2d::Segment, 1, 0> {
         return bp2d::getX(seg.second());
     }
     static inline void set(bp2d::Segment &seg, bp2d::Coord const& coord) {
-        bp2d::setX(seg.second(), coord);
+        auto p = seg.second();  bp2d::setX(p, coord); seg.second(p);
     }
 };
 
@@ -179,7 +182,7 @@ template<> struct indexed_access<bp2d::Segment, 1, 1> {
         return bp2d::getY(seg.second());
     }
     static inline void set(bp2d::Segment &seg, bp2d::Coord const& coord) {
-        bp2d::setY(seg.second(), coord);
+        auto p = seg.second(); bp2d::setY(p, coord); seg.second(p);
     }
 };
 
@@ -325,20 +328,23 @@ inline bool ShapeLike::intersects(const PathImpl& sh1,
 // Tell libnest2d how to make string out of a ClipperPolygon object
 template<>
 inline bool ShapeLike::intersects(const PolygonImpl& sh1,
-                                  const PolygonImpl& sh2) {
+                                  const PolygonImpl& sh2)
+{
     return boost::geometry::intersects(sh1, sh2);
 }
 
 // Tell libnest2d how to make string out of a ClipperPolygon object
 template<>
 inline bool ShapeLike::intersects(const bp2d::Segment& s1,
-                                  const bp2d::Segment& s2) {
+                                  const bp2d::Segment& s2)
+{
     return boost::geometry::intersects(s1, s2);
 }
 
 #ifndef DISABLE_BOOST_AREA
 template<>
-inline double ShapeLike::area(const PolygonImpl& shape) {
+inline double ShapeLike::area(const PolygonImpl& shape)
+{
     return boost::geometry::area(shape);
 }
 #endif
@@ -364,16 +370,25 @@ inline bool ShapeLike::touches( const PolygonImpl& sh1,
     return boost::geometry::touches(sh1, sh2);
 }
 
+template<>
+inline bool ShapeLike::touches( const PointImpl& point,
+                                const PolygonImpl& shape)
+{
+    return boost::geometry::touches(point, shape);
+}
+
 #ifndef DISABLE_BOOST_BOUNDING_BOX
 template<>
-inline bp2d::Box ShapeLike::boundingBox(const PolygonImpl& sh) {
+inline bp2d::Box ShapeLike::boundingBox(const PolygonImpl& sh)
+{
     bp2d::Box b;
     boost::geometry::envelope(sh, b);
     return b;
 }
 
 template<>
-inline bp2d::Box ShapeLike::boundingBox(const bp2d::Shapes& shapes) {
+inline bp2d::Box ShapeLike::boundingBox<PolygonImpl>(const bp2d::Shapes& shapes)
+{
     bp2d::Box b;
     boost::geometry::envelope(shapes, b);
     return b;
@@ -398,17 +413,19 @@ inline PolygonImpl ShapeLike::convexHull(const bp2d::Shapes& shapes)
 }
 #endif
 
+#ifndef DISABLE_BOOST_ROTATE
 template<>
 inline void ShapeLike::rotate(PolygonImpl& sh, const Radians& rads)
 {
     namespace trans = boost::geometry::strategy::transform;
 
     PolygonImpl cpy = sh;
-
     trans::rotate_transformer<boost::geometry::radian, Radians, 2, 2>
             rotate(rads);
+
     boost::geometry::transform(cpy, sh, rotate);
 }
+#endif
 
 #ifndef DISABLE_BOOST_TRANSLATE
 template<>
