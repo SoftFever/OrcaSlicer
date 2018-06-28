@@ -318,7 +318,7 @@ void Tab::OnActivate()
 
 	auto sizer = GetSizer(); 
 	m_tmp_panel->GetSizer()->SetMinSize(sizer->GetSize());
-	m_tmp_panel->Fit();
+	/*m_tmp_panel->*/Fit();
 
 // 	Page* page = nullptr;
 // 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
