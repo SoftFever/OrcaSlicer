@@ -25,6 +25,11 @@ bool AppControllerBoilerplate::supports_asynch() const
     return true;
 }
 
+void AppControllerBoilerplate::process_events()
+{
+    wxSafeYield();
+}
+
 AppControllerBoilerplate::PathList
 AppControllerBoilerplate::query_destination_paths(
         const std::string &title,
@@ -79,7 +84,7 @@ bool AppControllerBoilerplate::report_issue(IssueType issuetype,
     case IssueType::FATAL:  icon = wxICON_ERROR;
     }
 
-    auto ret = wxMessageBox(description, brief, icon | style);
+    auto ret = wxMessageBox(_(description), _(brief), icon | style);
     return ret != wxCANCEL;
 }
 
@@ -216,7 +221,7 @@ class Wrapper: public IProgressIndicator, public wxEvtHandler {
     }
 
     void _state(unsigned st) {
-        if( st <= max() ) {
+        if( st <= IProgressIndicator::max() ) {
             Base::state(st);
 
             if(!gauge_->IsShown()) showProgress(true);
@@ -253,7 +258,14 @@ public:
     }
 
     virtual void state(float val) override {
-        if(val >= 1.0) state(unsigned(val));
+        state(unsigned(val));
+    }
+
+    virtual void max(float val) override {
+        if(val > 1.0) {
+            gauge_->SetRange(static_cast<int>(val));
+            IProgressIndicator::max(val);
+        }
     }
 
     void state(unsigned st) {
@@ -261,7 +273,9 @@ public:
             auto evt = new wxCommandEvent(PROGRESS_STATUS_UPDATE_EVENT, id_);
             evt->SetInt(st);
             wxQueueEvent(this, evt);
-        } else _state(st);
+        } else {
+            _state(st);
+        }
     }
 
     virtual void message(const std::string & msg) override {

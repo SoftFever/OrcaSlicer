@@ -206,7 +206,6 @@ public:
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
-    double offset_z = 0;
     
     ModelObject* get_object() const { return this->object; }
 

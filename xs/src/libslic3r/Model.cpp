@@ -20,7 +20,7 @@
 #include <boost/nowide/iostream.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
-#include <benchmark.h>
+// #include <benchmark.h>
 
 namespace Slic3r {
 
@@ -387,17 +387,17 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // Create the arranger config
     auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
 
-    Benchmark bench;
+    // Benchmark bench;
 
-    std::cout << "Creating model siluett..." << std::endl;
+    // std::cout << "Creating model siluett..." << std::endl;
 
-    bench.start();
+    // bench.start();
     // Get the 2D projected shapes with their 3D model instance pointers
     auto shapemap = arr::projectModelFromTop(model);
-    bench.stop();
+    // bench.stop();
 
-    std::cout << "Model siluett created in " << bench.getElapsedSec()
-              << " seconds. " << "Min object distance = " << min_obj_distance << std::endl;
+    // std::cout << "Model siluett created in " << bench.getElapsedSec()
+    //          << " seconds. " << "Min object distance = " << min_obj_distance << std::endl;
 
 //    std::cout << "{" << std::endl;
 //    std::for_each(shapemap.begin(), shapemap.end(),
@@ -436,7 +436,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
                 biggest = &item;
             }
         }
-        if(it.second.vertexCount() > 3) shapes.push_back(std::ref(it.second));
+        /*if(it.second.vertexCount() > 3)*/
+        shapes.push_back(std::ref(it.second));
     });
 
     Box bin;
@@ -468,27 +469,27 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
     scfg.try_reverse_order = false;
     scfg.force_parallel = true;
+
     pcfg.alignment = Arranger::PlacementConfig::Alignment::CENTER;
+
+    // TODO cannot use rotations until multiple objects of same geometry can
+    // handle different rotations
+    // arranger.useMinimumBoundigBoxRotation();
+    pcfg.rotations = { 0.0 };
     Arranger arranger(bin, min_obj_distance, pcfg, scfg);
-    arranger.useMinimumBoundigBoxRotation();
 
     arranger.progressIndicator(progressind);
 
-    std::cout << "Arranging model..." << std::endl;
-    bench.start();
+    // std::cout << "Arranging model..." << std::endl;
+    // bench.start();
     // Arrange and return the items with their respective indices within the
     // input sequence.
 
-    ArrangeResult result;
-    try {
-        result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
-    } catch(std::exception& e) {
-        std::cerr << "An exception occured: " << e.what() << std::endl;
-    }
+    auto result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
 
-    bench.stop();
-    std::cout << "Model arranged in " << bench.getElapsedSec()
-              << " seconds." << std::endl;
+    // bench.stop();
+    // std::cout << "Model arranged in " << bench.getElapsedSec()
+    //           << " seconds." << std::endl;
 
 
     auto applyResult = [&shapemap](ArrangeResult::value_type& group,
@@ -505,29 +506,25 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
             // appropriately
             auto off = item.translation();
             Radians rot = item.rotation();
-            Pointf foff(off.X*SCALING_FACTOR,
+            Pointf foff(off.X*SCALING_FACTOR + batch_offset,
                         off.Y*SCALING_FACTOR);
 
             // write the tranformation data into the model instance
             inst_ptr->rotation = rot;
             inst_ptr->offset = foff;
-            inst_ptr->offset_z = -batch_offset;
         }
     };
 
-    std::cout << "Applying result..." << std::endl;
-    bench.start();
+    // std::cout << "Applying result..." << std::endl;
+    // bench.start();
     if(first_bin_only) {
         applyResult(result.front(), 0);
     } else {
 
         const auto STRIDE_PADDING = 1.2;
-        const auto MIN_STRIDE = 100;
 
-        auto h = STRIDE_PADDING * model.bounding_box().size().z;
-        h = h < MIN_STRIDE ? MIN_STRIDE : h;
-        Coord stride = static_cast<Coord>(h);
-
+        Coord stride = static_cast<Coord>(STRIDE_PADDING*
+                                          bin.width()*SCALING_FACTOR);
         Coord batch_offset = 0;
 
         for(auto& group : result) {
@@ -539,9 +536,9 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
             batch_offset += stride;
         }
     }
-    bench.stop();
-    std::cout << "Result applied in " << bench.getElapsedSec()
-              << " seconds." << std::endl;
+    // bench.stop();
+    // std::cout << "Result applied in " << bench.getElapsedSec()
+    //           << " seconds." << std::endl;
 
     for(auto objptr : model.objects) objptr->invalidate_bounding_box();
 
@@ -556,8 +553,7 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
 {
     bool ret = false;
     if(bb != nullptr && bb->defined) {
-        const bool FIRST_BIN_ONLY = false;
-        ret = arr::arrange(*this, dist, bb, FIRST_BIN_ONLY, progressind);
+        ret = arr::arrange(*this, dist, bb, false, progressind);
     } else {
         // get the (transformed) size of each instance so that we take
         // into account their different transformations when packing
@@ -1266,7 +1262,7 @@ void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) cons
     mesh->rotate_z(this->rotation);                 // rotate around mesh origin
     mesh->scale(this->scaling_factor);              // scale around mesh origin
     if (!dont_translate)
-        mesh->translate(this->offset.x, this->offset.y, this->offset_z);
+        mesh->translate(this->offset.x, this->offset.y, 0);
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const

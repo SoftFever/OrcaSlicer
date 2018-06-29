@@ -1,6 +1,7 @@
 #include "AppController.hpp"
 
 #include <future>
+#include <chrono>
 #include <sstream>
 #include <cstdarg>
 #include <thread>
@@ -9,6 +10,7 @@
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
+#include <Geometry.hpp>
 #include <PrintConfig.hpp>
 #include <Print.hpp>
 #include <Model.hpp>
@@ -58,14 +60,18 @@ void AppControllerBoilerplate::progress_indicator(
     progressind_->m.unlock();
 }
 
-void AppControllerBoilerplate::progress_indicator(unsigned statenum,
-                                                  const std::string &title,
-                                                  const std::string &firstmsg)
+AppControllerBoilerplate::ProgresIndicatorPtr
+AppControllerBoilerplate::progress_indicator(
+        unsigned statenum,
+        const std::string &title,
+        const std::string &firstmsg)
 {
     progressind_->m.lock();
-    progressind_->store[std::this_thread::get_id()] =
+    auto ret = progressind_->store[std::this_thread::get_id()] =
             create_progress_indicator(statenum, title, firstmsg);;
     progressind_->m.unlock();
+
+    return ret;
 }
 
 AppControllerBoilerplate::ProgresIndicatorPtr
@@ -266,6 +272,11 @@ void PrintController::slice()
     Slic3r::trace(3, "Slicing process finished.");
 }
 
+const PrintConfig &PrintController::config() const
+{
+    return print_->config;
+}
+
 void IProgressIndicator::message_fmt(
         const std::string &fmtstr, ...) {
     std::stringstream ss;
@@ -295,19 +306,46 @@ void IProgressIndicator::message_fmt(
 
 void AppController::arrange_model()
 {
-    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+    auto ftr = std::async(
+               supports_asynch()? std::launch::async : std::launch::deferred,
                [this]()
     {
-//        auto pind = progress_indicator();
+        unsigned count = 0;
+        for(auto obj : model_->objects) count += obj->instances.size();
 
-    // my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
-    // my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
-//        double dist = GUI::get_preset_bundle()->full_config().option("min_object_distance")->getFloat();
+        auto pind = progress_indicator();
+        auto pmax = pind->max();
 
-//        std::cout << dist << std::endl;
+        // Set the range of the progress to the object count
+        pind->max(count);
 
-        std::cout << "ITTT vagyok" << std::endl;
+        auto dist = print_ctl()->config().min_object_distance();
+
+        BoundingBoxf bb(print_ctl()->config().bed_shape.values);
+
+        pind->update(0, "Arranging objects...");
+
+        try {
+            model_->arrange_objects(dist, &bb, [pind, count](unsigned rem){
+                pind->update(count - rem, "Arranging objects...");
+            });
+        } catch(std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            report_issue(IssueType::ERR,
+                         "Could not arrange model objects! "
+                         "Some geometries may be invalid.",
+                         "Exception occurred");
+        }
+
+        // Restore previous max value
+        pind->max(pmax);
+        pind->update(0, "Arranging done.");
     });
+
+    while( ftr.wait_for(std::chrono::milliseconds(10))
+           != std::future_status::ready) {
+        process_events();
+    }
 }
 
 }

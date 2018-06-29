@@ -14,6 +14,7 @@ namespace Slic3r {
 class Model;
 class Print;
 class PrintObject;
+class PrintConfig;
 
 /**
  * @brief A boilerplate class for creating application logic. It should provide
@@ -108,9 +109,9 @@ public:
      * @param title The title of the procedure.
      * @param firstmsg The message for the first subtask to be displayed.
      */
-    void progress_indicator(unsigned statenum,
-                            const std::string& title,
-                            const std::string& firstmsg = "");
+    ProgresIndicatorPtr progress_indicator(unsigned statenum,
+                                           const std::string& title,
+                                           const std::string& firstmsg = "");
 
     /**
      * @brief Return the progress indicator set up for the current thread. This
@@ -146,6 +147,8 @@ public:
      * otherwise.
      */
     bool supports_asynch() const;
+
+    void process_events();
 
 protected:
 
@@ -205,6 +208,8 @@ public:
      * @brief Slice the loaded print scene.
      */
     void slice();
+
+    const PrintConfig& config() const;
 };
 
 /**
