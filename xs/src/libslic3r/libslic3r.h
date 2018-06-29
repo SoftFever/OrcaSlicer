@@ -14,7 +14,7 @@
 #include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
-#define SLIC3R_VERSION "1.40.0"
+#define SLIC3R_VERSION "1.40.1-rc"
 #define SLIC3R_BUILD "UNKNOWN"
 
 typedef int32_t coord_t;
