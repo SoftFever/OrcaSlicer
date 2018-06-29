@@ -1143,6 +1143,7 @@ void Print::_make_wipe_tower()
                     current_extruder_id = extruder_id;
                 }
             }
+            layer_tools.wiping_extrusions.ensure_perimeters_infills_order(*this, layer_tools);
             if (&layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
                 break;
         }

@@ -30,10 +30,13 @@ public:
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
     float mark_wiping_extrusions(const Print& print, const LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe);
 
+    void ensure_perimeters_infills_order(const Print& print, const LayerTools& layer_tools);
+
     bool is_overriddable(const ExtrusionEntityCollection& ee, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const;
 
 private:
-    bool is_last_nonsoluble_on_layer(const PrintConfig& print_config, const LayerTools& lt, unsigned int extruder) const;
+    int first_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const;
+    int last_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const;
 
     // This function is called from mark_wiping_extrusions and sets extruder that it should be printed with (-1 .. as usual)
     void set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies);

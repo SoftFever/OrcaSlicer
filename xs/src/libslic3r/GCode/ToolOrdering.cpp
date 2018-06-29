@@ -381,13 +381,24 @@ void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsi
 }
 
 
+// Finds first non-soluble extruder on the layer
+int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const
+{
+    for (auto extruders_it = lt.extruders.begin(); extruders_it != lt.extruders.end(); ++extruders_it)
+        if (!print_config.filament_soluble.get_at(*extruders_it))
+            return (*extruders_it);
+
+    return (-1);
+}
+
 // Finds last non-soluble extruder on the layer
-bool WipingExtrusions::is_last_nonsoluble_on_layer(const PrintConfig& print_config, const LayerTools& lt, unsigned int extruder) const
+int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const
 {
     for (auto extruders_it = lt.extruders.rbegin(); extruders_it != lt.extruders.rend(); ++extruders_it)
         if (!print_config.filament_soluble.get_at(*extruders_it))
-            return (*extruders_it == extruder);
-    return false;
+            return (*extruders_it);
+
+    return (-1);
 }
 
 
@@ -416,7 +427,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
     if (print.config.filament_soluble.get_at(new_extruder))
         return volume_to_wipe;      // Soluble filament cannot be wiped in a random infill
 
-    bool last_nonsoluble = is_last_nonsoluble_on_layer(print.config, layer_tools, new_extruder);
+    bool is_last_nonsoluble = ((int)new_extruder == last_nonsoluble_extruder_on_layer(print.config, layer_tools));
 
     // we will sort objects so that dedicated for wiping are at the beginning:
     PrintObjectPtrs object_list = print.objects;
@@ -430,14 +441,14 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
     // this is controlled by the following variable:
     bool perimeters_done = false;
 
-    for (int i=0 ; i<(int)object_list.size() ; ++i) {
-        const auto& object = object_list[i];
-
-        if (!perimeters_done && (i+1==(int)object_list.size() || !object_list[i]->config.wipe_into_objects)) { // we passed the last dedicated object in list
+    for (int i=0 ; i<(int)object_list.size() + (perimeters_done ? 0 : 1); ++i) {
+        if (!perimeters_done && (i==(int)object_list.size() || !object_list[i]->config.wipe_into_objects)) { // we passed the last dedicated object in list
             perimeters_done = true;
             i=-1;   // let's go from the start again
             continue;
         }
+
+        const auto& object = object_list[i];
 
         // Finds this layer:
         auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&layer_tools](const Layer* lay) { return std::abs(layer_tools.print_z - lay->print_z)<EPSILON; });
@@ -455,9 +466,8 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                     continue;
 
 
-                if (((!print.config.infill_first ? perimeters_done : !perimeters_done) || !object->config.wipe_into_objects) && region.config.wipe_into_infill) {
-                    const ExtrusionEntityCollection& eec = this_layer->regions[region_id]->fills;
-                    for (const ExtrusionEntity* ee : eec.entities) {                      // iterate through all infill Collections
+                if ((!print.config.infill_first ? perimeters_done : !perimeters_done) || (!object->config.wipe_into_objects && region.config.wipe_into_infill)) {
+                    for (const ExtrusionEntity* ee : this_layer->regions[region_id]->fills.entities) {                      // iterate through all infill Collections
                         auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
 
                         if (!is_overriddable(*fill, print.config, *object, region))
@@ -466,15 +476,10 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                         // What extruder would this normally be printed with?
                         unsigned int correct_extruder = get_extruder(*fill, region);
 
-                        bool force_override = false;
-                        // If the extruder is not in layer tools - we MUST override it. This happens whenever all extrusions, that would normally
-                        // be printed with this extruder on this layer are "dont care" (part of infill/perimeter wiping):
-                        if (last_nonsoluble && std::find(layer_tools.extruders.begin(), layer_tools.extruders.end(), correct_extruder) == layer_tools.extruders.end())
-                            force_override = true;
-                        if (!force_override && volume_to_wipe<=0)
+                        if (volume_to_wipe<=0)
                             continue;
 
-                        if (!object->config.wipe_into_objects && !print.config.infill_first && !force_override) {
+                        if (!object->config.wipe_into_objects && !print.config.infill_first) {
                             // In this case we must check that the original extruder is used on this layer before the one we are overridding
                             // (and the perimeters will be finished before the infill is printed):
                             if ((!print.config.infill_first && region.config.wipe_into_infill)) {
@@ -490,7 +495,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                             }
                         }
 
-                        if (force_override || (!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {     // this infill will be used to wipe this extruder
+                        if ((!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {     // this infill will be used to wipe this extruder
                             set_extruder_override(fill, copy, new_extruder, num_of_copies);
                             volume_to_wipe -= fill->total_volume();
                         }
@@ -500,21 +505,15 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                 // Now the same for perimeters - see comments above for explanation:
                 if (object->config.wipe_into_objects && (print.config.infill_first ? perimeters_done : !perimeters_done))
                 {
-                    const ExtrusionEntityCollection& eec = this_layer->regions[region_id]->perimeters;
-                    for (const ExtrusionEntity* ee : eec.entities) {                      // iterate through all perimeter Collections
+                    for (const ExtrusionEntity* ee : this_layer->regions[region_id]->perimeters.entities) {
                         auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
                         if (!is_overriddable(*fill, print.config, *object, region))
                             continue;
 
-                        // What extruder would this normally be printed with?
-                        unsigned int correct_extruder = get_extruder(*fill, region);
-                        bool force_override = false;
-                        if (last_nonsoluble && std::find(layer_tools.extruders.begin(), layer_tools.extruders.end(), correct_extruder) == layer_tools.extruders.end())
-                            force_override = true;
-                        if (!force_override && volume_to_wipe<=0)
+                        if (volume_to_wipe<=0)
                             continue;
 
-                        if (force_override || (!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {
+                        if ((!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {
                             set_extruder_override(fill, copy, new_extruder, num_of_copies);
                             volume_to_wipe -= fill->total_volume();
                         }
@@ -525,6 +524,63 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
     }
     return std::max(0.f, volume_to_wipe);
 }
+
+
+
+// Called after all toolchanges on a layer were mark_infill_overridden. There might still be overridable entities,
+// that were not actually overridden. If they are part of a dedicated object, printing them with the extruder
+// they were initially assigned to might mean violating the perimeter-infill order. We will therefore go through
+// them again and make sure we override it.
+void WipingExtrusions::ensure_perimeters_infills_order(const Print& print, const LayerTools& layer_tools)
+{
+    unsigned int first_nonsoluble_extruder = first_nonsoluble_extruder_on_layer(print.config, layer_tools);
+    unsigned int last_nonsoluble_extruder = last_nonsoluble_extruder_on_layer(print.config, layer_tools);
+
+    for (const PrintObject* object : print.objects) {
+        // Finds this layer:
+        auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&layer_tools](const Layer* lay) { return std::abs(layer_tools.print_z - lay->print_z)<EPSILON; });
+        if (this_layer_it == object->layers.end())
+            continue;
+        const Layer* this_layer = *this_layer_it;
+        unsigned int num_of_copies = object->_shifted_copies.size();
+
+        for (unsigned int copy = 0; copy < num_of_copies; ++copy) {    // iterate through copies first, so that we mark neighbouring infills to minimize travel moves
+            for (size_t region_id = 0; region_id < object->print()->regions.size(); ++ region_id) {
+                const auto& region = *object->print()->regions[region_id];
+
+                if (!region.config.wipe_into_infill && !object->config.wipe_into_objects)
+                    continue;
+
+                for (const ExtrusionEntity* ee : this_layer->regions[region_id]->fills.entities) {                      // iterate through all infill Collections
+                    auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+
+                    if (!is_overriddable(*fill, print.config, *object, region)
+                     || is_entity_overridden(fill, copy) )
+                        continue;
+
+                    // This infill could have been overridden but was not - unless we do somthing, it could be
+                    // printed before its perimeter, or not be printed at all (in case its original extruder has
+                    // not been added to LayerTools
+                    // Either way, we will now force-override it with something suitable:
+                    set_extruder_override(fill, copy, (print.config.infill_first ? first_nonsoluble_extruder : last_nonsoluble_extruder), num_of_copies);
+                }
+
+                // Now the same for perimeters - see comments above for explanation:
+                for (const ExtrusionEntity* ee : this_layer->regions[region_id]->perimeters.entities) {                      // iterate through all perimeter Collections
+                    auto* fill = dynamic_cast<const ExtrusionEntityCollection*>(ee);
+                    if (!is_overriddable(*fill, print.config, *object, region)
+                     || is_entity_overridden(fill, copy) )
+                        continue;
+
+                    set_extruder_override(fill, copy, (print.config.infill_first ? last_nonsoluble_extruder : first_nonsoluble_extruder), num_of_copies);
+                }
+            }
+        }
+    }
+}
+
+
+
 
 
 
