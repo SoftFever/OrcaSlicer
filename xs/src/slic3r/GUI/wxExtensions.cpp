@@ -194,6 +194,9 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 // ----------------------------------------------------------------------------
 void PrusaCollapsiblePane::OnStateChange(const wxSize& sz)
 {
+#ifndef __WXOSX__
+	wxCollapsiblePane::OnStateChange(sz);
+#else
 	SetSize(sz);
 
 	if (this->HasFlag(wxCP_NO_TLW_RESIZE))
@@ -219,6 +222,7 @@ void PrusaCollapsiblePane::OnStateChange(const wxSize& sz)
 	// 		top->SetClientSize(newBestSize);
 	top->GetParent()->Layout();
 	top->Refresh();
+#endif //__WXOSX__
 }
 
 // ----------------------------------------------------------------------------
