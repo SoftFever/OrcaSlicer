@@ -601,6 +601,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     // Otherwise fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
+	size_t selected_preset_item = 0;
 
 	const Preset &selected_preset = this->get_selected_preset();
 	// Show wide icons if the currently selected preset is not compatible with the current printer,
@@ -641,7 +642,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
 				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
 			if (i == m_idx_selected)
-				ui->SetSelection(ui->GetCount() - 1);
+				selected_preset_item = ui->GetCount() - 1;
 		}
 		else
 		{
@@ -658,10 +659,13 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected)
-				ui->SetSelection(ui->GetCount() - 1);
+				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
-    ui->Thaw();
+
+	ui->SetSelection(selected_preset_item);
+	ui->SetToolTip(ui->GetString(selected_preset_item));
+	ui->Thaw();
 }
 
 size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)
@@ -719,6 +723,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 		}
 	}
 	ui->SetSelection(selected_preset_item);
+	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->Thaw();
 	return selected_preset_item;
 }
