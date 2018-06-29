@@ -194,7 +194,7 @@ void wxDataViewTreeCtrlComboPopup::OnDataViewTreeCtrlSelection(wxCommandEvent& e
 // ----------------------------------------------------------------------------
 void PrusaCollapsiblePane::OnStateChange(const wxSize& sz)
 {
-#ifndef __WXOSX__
+#ifdef __WXOSX__
 	wxCollapsiblePane::OnStateChange(sz);
 #else
 	SetSize(sz);
