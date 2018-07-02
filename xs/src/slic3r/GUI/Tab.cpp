@@ -183,7 +183,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 			return;
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
-			if (selected_string.find_first_of("-------") == 0
+			if (selected_string.find("-------") == 0
 				/*selected_string == "------- System presets -------" ||
 				selected_string == "-------  User presets  -------"*/){
 				m_presets_choice->SetSelection(m_selected_preset_item);
@@ -454,8 +454,13 @@ void Tab::update_changed_tree_ui()
 					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
 				}
 			}
-			if (title == _("Dependencies") && name() != "printer"){
-				get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+			if (title == _("Dependencies")){
+				if (name() != "printer")
+					get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+				else {
+					sys_page = m_presets->get_selected_preset_parent() ? true:false;
+					modified_page = false;
+				}
 			}
 			for (auto group : page->m_optgroups)
 			{
@@ -1863,6 +1868,8 @@ void Tab::load_current_preset()
 	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
 	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
 
+	m_undo_to_sys_btn->Enable(!preset.is_default);
+
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
 	// preset dirty again
@@ -2529,28 +2536,33 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 	if (noncommon_label_width >= 0)
 		optgroup->label_width = noncommon_label_width;
 
-	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+#ifdef __WXOSX__
+		auto tab = GetParent()->GetParent();
+#else
+		auto tab = GetParent();
+#endif
+	optgroup->m_on_change = [this, tab](t_config_option_key opt_key, boost::any value){
 		//! This function will be called from OptionGroup.
 		//! Using of CallAfter is redundant.
 		//! And in some cases it causes update() function to be recalled again
 //!        wxTheApp->CallAfter([this, opt_key, value]() {
-			static_cast<Tab*>(GetParent())->update_dirty();
-			static_cast<Tab*>(GetParent())->on_value_change(opt_key, value);
+			static_cast<Tab*>(tab)->update_dirty();
+			static_cast<Tab*>(tab)->on_value_change(opt_key, value);
 //!        });
 	};
 
-	optgroup->m_get_initial_config = [this](){
-		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset().config;
+	optgroup->m_get_initial_config = [this, tab](){
+		DynamicPrintConfig config = static_cast<Tab*>(tab)->m_presets->get_selected_preset().config;
 		return config;
 	};
 
-	optgroup->m_get_sys_config = [this](){
-		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent()->config;
+	optgroup->m_get_sys_config = [this, tab](){
+		DynamicPrintConfig config = static_cast<Tab*>(tab)->m_presets->get_selected_preset_parent()->config;
 		return config;
 	};
 
-	optgroup->have_sys_config = [this](){
-		return static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent() != nullptr;
+	optgroup->have_sys_config = [this, tab](){
+		return static_cast<Tab*>(tab)->m_presets->get_selected_preset_parent() != nullptr;
 	};
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);
