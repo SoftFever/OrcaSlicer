@@ -212,6 +212,12 @@ protected:
     // The previous export data, to pre-populate the dialog
     PngExportData prev_expdata_;
 
+    /**
+     * @brief Slice one pront object.
+     * @param pobj The print object.
+     */
+    void slice(PrintObject *pobj);
+
     void slice(ProgresIndicatorPtr pri);
 
 public:
@@ -227,12 +233,6 @@ public:
     inline static Ptr create(Print *print) {
         return PrintController::Ptr( new PrintController(print) );
     }
-
-    /**
-     * @brief Slice one pront object.
-     * @param pobj The print object.
-     */
-    void slice(PrintObject *pobj);
 
     /**
      * @brief Slice the loaded print scene.

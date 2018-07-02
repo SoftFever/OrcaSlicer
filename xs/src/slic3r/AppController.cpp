@@ -322,6 +322,21 @@ void PrintController::slice_to_png()
         }
     }
 
+    // Turn back the correction scaling on the model.
+    auto scale_back = [&]() {
+        if(correction) { // scale the model back
+            print_->invalidate_all_steps();
+            for(auto po : print_->objects) {
+                po->model_object()->scale(
+                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+                );
+                po->model_object()->invalidate_bounding_box();
+                po->reload_model_instances();
+                po->invalidate_all_steps();
+            }
+        }
+    };
+
     auto print_bb = print_->bounding_box();
 
     // If the print does not fit into the print area we should cry about it.
@@ -333,7 +348,10 @@ void PrintController::slice_to_png()
            << _(L("Width needed: ")) << unscale(print_bb.size().x) << " mm\n"
            << _(L("Height needed: ")) << unscale(print_bb.size().y) << " mm\n";
 
-        report_issue(IssueType::WARN, ss.str(), "Warning");
+       if(!report_issue(IssueType::WARN_Q, ss.str(), _(L("Warning"))))  {
+           scale_back();
+           return;
+       }
     }
 
     auto pri = create_progress_indicator(
@@ -343,8 +361,9 @@ void PrintController::slice_to_png()
         pri->update(0, _(L("Slicing...")));
         slice(pri);
     } catch (std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
         pri->cancel();
+        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+        scale_back();
         return;
     }
 
@@ -358,24 +377,12 @@ void PrintController::slice_to_png()
                     exd.exp_time_s, exd.exp_time_first_s);
 
     } catch (std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
         pri->cancel();
+        print_->progressindicator = pbak;
+        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
     }
 
-    if(correction) { // scale the model back
-        print_->invalidate_all_steps();
-        for(auto po : print_->objects) {
-            po->model_object()->scale(
-                Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
-            );
-            po->model_object()->invalidate_bounding_box();
-            po->reload_model_instances();
-            po->invalidate_all_steps();
-        }
-    }
-
-    print_->progressindicator = pbak;
-
+    scale_back();
 }
 
 void IProgressIndicator::message_fmt(
