@@ -314,20 +314,26 @@ void AppController::arrange_model()
         for(auto obj : model_->objects) count += obj->instances.size();
 
         auto pind = progress_indicator();
-        auto pmax = pind->max();
 
-        // Set the range of the progress to the object count
-        pind->max(count);
+        float pmax = 1.0;
+
+        if(pind) {
+            pmax = pind->max();
+
+            // Set the range of the progress to the object count
+            pind->max(count);
+
+        }
 
         auto dist = print_ctl()->config().min_object_distance();
 
         BoundingBoxf bb(print_ctl()->config().bed_shape.values);
 
-        pind->update(0, "Arranging objects...");
+        if(pind) pind->update(0, "Arranging objects...");
 
         try {
             model_->arrange_objects(dist, &bb, [pind, count](unsigned rem){
-                pind->update(count - rem, "Arranging objects...");
+                if(pind) pind->update(count - rem, "Arranging objects...");
             });
         } catch(std::exception& e) {
             std::cerr << e.what() << std::endl;
@@ -338,8 +344,10 @@ void AppController::arrange_model()
         }
 
         // Restore previous max value
-        pind->max(pmax);
-        pind->update(0, "Arranging done.");
+        if(pind) {
+            pind->max(pmax);
+            pind->update(0, "Arranging done.");
+        }
     });
 
     while( ftr.wait_for(std::chrono::milliseconds(10))
