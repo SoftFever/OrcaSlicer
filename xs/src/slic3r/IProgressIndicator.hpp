@@ -16,7 +16,6 @@ public:
 private:
     float state_ = .0f, max_ = 1.f, step_;
     CancelFn cancelfunc_ = [](){};
-    unsigned proc_count_ = 1;
 
 public:
 
@@ -59,19 +58,6 @@ public:
      * callback.
      */
     virtual void cancel() { cancelfunc_(); }
-
-    /**
-     * \brief Set up how many subprocedures does the whole operation contain.
-     *
-     * This was neccesary from practical reasons. If the progress indicator is
-     * a dialog and we want to show the progress of a few sub operations than
-     * the dialog wont be closed and reopened each time a new sub operation is
-     * started. This is not a mandatory feature and can be ignored completely.
-     */
-    inline void procedure_count(unsigned pc) { proc_count_ = pc; }
-
-    /// Get the current procedure count
-    inline unsigned procedure_count() const { return proc_count_; }
 
     /// Convinience function to call message and status update in one function.
     void update(float st, const std::string& msg) {

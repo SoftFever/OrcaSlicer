@@ -289,16 +289,19 @@ void print_to(Print& print,
 
     int st_prev = 0;
     const std::string jobdesc = "Rasterizing and compressing sliced layers";
-    print.set_status(0, jobdesc);
     tbb::spin_mutex m;
 
     std::vector<long long> keys;
     keys.reserve(layers.size());
     for(auto& e : layers) keys.push_back(e.first);
 
+    int initstatus = print.progressindicator? print.progressindicator->state()
+                                            : 0;
+    print.set_status(initstatus, jobdesc);
+
     // Method that prints one layer
     auto process_layer = [&layers, &keys, &printer, &st_prev, &m,
-            &jobdesc, print_bb, dir, cx, cy, &print] (unsigned layer_id)
+            &jobdesc, print_bb, dir, cx, cy, &print, initstatus] (unsigned layer_id)
     {
         LayerPtrs lrange = layers[keys[layer_id]];
 
@@ -345,10 +348,10 @@ void print_to(Print& print,
 
         printer.finishLayer(layer_id);  // Finish the layer for later saving it.
 
-        auto st = static_cast<int>(layer_id*100.0/layers.size());
+        auto st = static_cast<int>(layer_id*80.0/layers.size());
         m.lock();
         if( st - st_prev > 10) {
-            print.set_status(st, jobdesc);
+            print.set_status(initstatus + st, jobdesc);
             st_prev = st;
         }
         m.unlock();
@@ -364,12 +367,12 @@ void print_to(Print& print,
     // Sequential version (for testing)
     // for(unsigned l = 0; l < layers.size(); ++l) process_layer(l);
 
-    print.set_status(100, jobdesc);
+//    print.set_status(100, jobdesc);
 
     // Save the print into the file system.
-    print.set_status(0, "Writing layers to disk");
+    print.set_status(initstatus + 90, "Writing layers to disk");
     printer.save(dir);
-    print.set_status(100, "Writing layers completed");
+    print.set_status(initstatus + 100, "Writing layers completed");
 }
 
 }

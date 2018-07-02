@@ -5,6 +5,7 @@
 #include <cstdarg>
 #include <thread>
 #include <unordered_map>
+#include <chrono>
 
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
@@ -230,41 +231,50 @@ void PrintController::gen_support_material(PrintObject *pobj)
     }
 }
 
-void PrintController::slice()
+void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 {
+    auto st = pri->state();
+
     Slic3r::trace(3, "Starting the slicing process.");
 
-    progress_indicator()->update(20u, "Generating perimeters");
+    pri->update(st+20, "Generating perimeters");
     for(auto obj : print_->objects) make_perimeters(obj);
 
-    progress_indicator()->update(60u, "Infilling layers");
+    pri->update(st+60, "Infilling layers");
     for(auto obj : print_->objects) infill(obj);
 
-    progress_indicator()->update(70u, "Generating support material");
+    pri->update(st+70, "Generating support material");
     for(auto obj : print_->objects) gen_support_material(obj);
 
-    progress_indicator()->message_fmt("Weight: %.1fg, Cost: %.1f",
+    pri->message_fmt("Weight: %.1fg, Cost: %.1f",
                                     print_->total_weight,
                                     print_->total_cost);
 
-    progress_indicator()->state(85u);
+    pri->state(st+85);
 
 
-    progress_indicator()->update(88u, "Generating skirt");
+    pri->update(st+88, "Generating skirt");
     make_skirt();
 
 
-    progress_indicator()->update(90u, "Generating brim");
+    pri->update(st+90, "Generating brim");
     make_brim();
 
-    progress_indicator()->update(95u, "Generating wipe tower");
+    pri->update(st+95, "Generating wipe tower");
     make_wipe_tower();
 
-    progress_indicator()->update(100u, "Done");
+    pri->update(st+100, "Done");
 
     // time to make some statistics..
 
     Slic3r::trace(3, "Slicing process finished.");
+}
+
+
+void PrintController::slice()
+{
+    auto pri = progress_indicator();
+    slice(pri);
 }
 
 void PrintController::slice_to_png()
@@ -319,22 +329,22 @@ void PrintController::slice_to_png()
         report_issue(IssueType::WARN, ss.str(), "Warning");
     }
 
-    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
-               [this, exd, correction]()
-    {
-        progress_indicator(100, "Slicing to zipped png files...");
-        progress_indicator()->procedure_count(3);
+//    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+//               [this, exd, correction]()
+//    {
+        auto pri = create_progress_indicator(200, "Slicing to zipped png files...");
 
         try {
-            slice();
+            pri->update(0, "Slicing...");
+            slice(pri);
         } catch (std::exception& e) {
             report_issue(IssueType::ERR, e.what(), "Exception");
-            progress_indicator()->cancel();
+            pri->cancel();
             return;
         }
 
         auto pbak = print_->progressindicator;
-        print_->progressindicator = progress_indicator();
+        print_->progressindicator = pri;
 
         try {
             print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
@@ -344,7 +354,7 @@ void PrintController::slice_to_png()
 
         } catch (std::exception& e) {
             report_issue(IssueType::ERR, e.what(), "Exception");
-            progress_indicator()->cancel();
+            pri->cancel();
         }
 
         if(correction) { // scale the model back
@@ -360,7 +370,8 @@ void PrintController::slice_to_png()
         }
 
         print_->progressindicator = pbak;
-    });
+//    });
+
 }
 
 void IProgressIndicator::message_fmt(

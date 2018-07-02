@@ -147,6 +147,8 @@ public:
      */
     bool supports_asynch() const;
 
+    void process_events();
+
 protected:
 
     /**
@@ -199,6 +201,8 @@ protected:
 
     // The previous export data, to pre-populate the dialog
     PngExportData prev_expdata_;
+
+    void slice(ProgresIndicatorPtr pri);
 
 public:
 

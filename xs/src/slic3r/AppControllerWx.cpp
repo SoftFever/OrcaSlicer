@@ -26,6 +26,11 @@ bool AppControllerBoilerplate::supports_asynch() const
     return true;
 }
 
+void AppControllerBoilerplate::process_events()
+{
+    wxSafeYield();
+}
+
 AppControllerBoilerplate::PathList
 AppControllerBoilerplate::query_destination_paths(
         const std::string &title,
@@ -95,11 +100,11 @@ namespace  {
 class GuiProgressIndicator:
         public IProgressIndicator, public wxEvtHandler {
 
-    std::shared_ptr<wxProgressDialog> gauge_;
+    wxProgressDialog gauge_;
     using Base = IProgressIndicator;
     wxString message_;
     int range_; wxString title_;
-    unsigned prc_ = 0;
+//    unsigned prc_ = 0;
     bool is_asynch_ = false;
 
     const int id_ = wxWindow::NewControlId();
@@ -107,29 +112,26 @@ class GuiProgressIndicator:
     // status update handler
     void _state( wxCommandEvent& evt) {
         unsigned st = evt.GetInt();
+        message_ = evt.GetString();
         _state(st);
     }
 
     // Status update implementation
     void _state( unsigned st) {
-        if(st < max()) {
-            if(!gauge_) gauge_ = std::make_shared<wxProgressDialog>(
-                    title_, message_, range_, wxTheApp->GetTopWindow(),
-                        wxPD_APP_MODAL | wxPD_AUTO_HIDE
-            );
-
-            if(!gauge_->IsShown()) gauge_->ShowModal();
+//        if(st < max()) {
+            if(!gauge_.IsShown()) gauge_.ShowModal();
             Base::state(st);
-            gauge_->Update(static_cast<int>(st), message_);
-        }
+            gauge_.Update(static_cast<int>(st), message_);
+//        }
 
-        if(st == max()) {
-            prc_++;
-            if(prc_ == Base::procedure_count())  {
-                gauge_.reset();
-                prc_ = 0;
-            }
-        }
+//        if(st == max()) {
+//            prc_++;
+//            if(prc_ == Base::procedure_count())  {
+//                //gauge_.reset();
+//                gauge_.Update(static_cast<int>(st), message_);
+//                prc_ = 0;
+//            }
+//        }
     }
 
 public:
@@ -142,7 +144,10 @@ public:
 
     inline GuiProgressIndicator(int range, const std::string& title,
                                 const std::string& firstmsg) :
-        range_(range), message_(_(firstmsg)), title_(_(title))
+        gauge_(title, firstmsg, range, wxTheApp->GetTopWindow(),
+               wxPD_APP_MODAL | wxPD_AUTO_HIDE),
+        message_(_(firstmsg)),
+        range_(range), title_(_(title))
     {
         Base::max(static_cast<float>(range));
         Base::states(static_cast<unsigned>(range));
@@ -158,7 +163,7 @@ public:
     }
 
     virtual void state(float val) override {
-        if( val >= 1.0) state(static_cast<unsigned>(val));
+        /*if( val >= 1.0) */state(static_cast<unsigned>(val));
     }
 
     void state(unsigned st) {
@@ -166,6 +171,7 @@ public:
         if(is_asynch_) {
             auto evt = new wxCommandEvent(PROGRESS_STATUS_UPDATE_EVENT, id_);
             evt->SetInt(st);
+            evt->SetString(message_);
             wxQueueEvent(this, evt);
         } else _state(st);
     }
@@ -223,7 +229,7 @@ class Wrapper: public IProgressIndicator, public wxEvtHandler {
             if(!gauge_->IsShown()) showProgress(true);
 
             stbar_->SetStatusText(message_);
-            if(st == gauge_->GetRange()) {
+            if(static_cast<long>(st) == gauge_->GetRange()) {
                 gauge_->SetValue(0);
                 showProgress(false);
             } else {
@@ -409,5 +415,4 @@ PrintController::PngExportData PrintController::query_png_export_data()
 
     return ret;
 }
-
 }
