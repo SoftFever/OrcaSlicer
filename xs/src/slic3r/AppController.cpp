@@ -61,12 +61,21 @@ void AppControllerBoilerplate::progress_indicator(
 }
 
 void AppControllerBoilerplate::progress_indicator(unsigned statenum,
-                                                  const std::string &title,
-                                                  const std::string &firstmsg)
+                                                  const string &title,
+                                                  const string &firstmsg)
 {
     progressind_->m.lock();
     progressind_->store[std::this_thread::get_id()] =
-            create_progress_indicator(statenum, title, firstmsg);;
+            create_progress_indicator(statenum, title, firstmsg);
+    progressind_->m.unlock();
+}
+
+void AppControllerBoilerplate::progress_indicator(unsigned statenum,
+                                                  const string &title)
+{
+    progressind_->m.lock();
+    progressind_->store[std::this_thread::get_id()] =
+            create_progress_indicator(statenum, title);
     progressind_->m.unlock();
 }
 
@@ -173,8 +182,8 @@ void PrintController::slice(PrintObject *pobj)
 
     if(pobj->layers.empty())
         report_issue(IssueType::ERR,
-                     "No layers were detected. You might want to repair your "
-                     "STL file(s) or check their size or thickness and retry"
+                     _(L("No layers were detected. You might want to repair your "
+                     "STL file(s) or check their size or thickness and retry"))
                      );
 
     pobj->state.set_done(STEP_SLICE);
@@ -237,37 +246,35 @@ void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 
     Slic3r::trace(3, "Starting the slicing process.");
 
-    pri->update(st+20, "Generating perimeters");
+    pri->update(st+20, _(L("Generating perimeters")));
     for(auto obj : print_->objects) make_perimeters(obj);
 
-    pri->update(st+60, "Infilling layers");
+    pri->update(st+60, _(L("Infilling layers")));
     for(auto obj : print_->objects) infill(obj);
 
-    pri->update(st+70, "Generating support material");
+    pri->update(st+70, _(L("Generating support material")));
     for(auto obj : print_->objects) gen_support_material(obj);
 
-    pri->message_fmt("Weight: %.1fg, Cost: %.1f",
-                                    print_->total_weight,
-                                    print_->total_cost);
-
+    pri->message_fmt(_(L("Weight: %.1fg, Cost: %.1f")),
+                     print_->total_weight, print_->total_cost);
     pri->state(st+85);
 
 
-    pri->update(st+88, "Generating skirt");
+    pri->update(st+88, _(L("Generating skirt")));
     make_skirt();
 
 
-    pri->update(st+90, "Generating brim");
+    pri->update(st+90, _(L("Generating brim")));
     make_brim();
 
-    pri->update(st+95, "Generating wipe tower");
+    pri->update(st+95, _(L("Generating wipe tower")));
     make_wipe_tower();
 
-    pri->update(st+100, "Done");
+    pri->update(st+100, _(L("Done")));
 
     // time to make some statistics..
 
-    Slic3r::trace(3, "Slicing process finished.");
+    Slic3r::trace(3, _(L("Slicing process finished.")));
 }
 
 
@@ -322,60 +329,57 @@ void PrintController::slice_to_png()
             unscale(print_bb.size().y) > exd.height_mm) {
         std::stringstream ss;
 
-        ss << _("Print will not fit and will be truncated!") << "\n"
-           << _("Width needed: ") << unscale(print_bb.size().x) << " mm\n"
-           << _("Height needed: ") << unscale(print_bb.size().y) << " mm\n";
+        ss << _(L("Print will not fit and will be truncated!")) << "\n"
+           << _(L("Width needed: ")) << unscale(print_bb.size().x) << " mm\n"
+           << _(L("Height needed: ")) << unscale(print_bb.size().y) << " mm\n";
 
         report_issue(IssueType::WARN, ss.str(), "Warning");
     }
 
-//    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
-//               [this, exd, correction]()
-//    {
-        auto pri = create_progress_indicator(200, "Slicing to zipped png files...");
+    auto pri = create_progress_indicator(
+                200, _(L("Slicing to zipped png files...")));
 
-        try {
-            pri->update(0, "Slicing...");
-            slice(pri);
-        } catch (std::exception& e) {
-            report_issue(IssueType::ERR, e.what(), "Exception");
-            pri->cancel();
-            return;
+    try {
+        pri->update(0, _(L("Slicing...")));
+        slice(pri);
+    } catch (std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+        pri->cancel();
+        return;
+    }
+
+    auto pbak = print_->progressindicator;
+    print_->progressindicator = pri;
+
+    try {
+        print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
+                    exd.width_mm, exd.height_mm,
+                    exd.width_px, exd.height_px,
+                    exd.exp_time_s, exd.exp_time_first_s);
+
+    } catch (std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+        pri->cancel();
+    }
+
+    if(correction) { // scale the model back
+        print_->invalidate_all_steps();
+        for(auto po : print_->objects) {
+            po->model_object()->scale(
+                Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+            );
+            po->model_object()->invalidate_bounding_box();
+            po->reload_model_instances();
+            po->invalidate_all_steps();
         }
+    }
 
-        auto pbak = print_->progressindicator;
-        print_->progressindicator = pri;
-
-        try {
-            print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
-                        exd.width_mm, exd.height_mm,
-                        exd.width_px, exd.height_px,
-                        exd.exp_time_s, exd.exp_time_first_s);
-
-        } catch (std::exception& e) {
-            report_issue(IssueType::ERR, e.what(), "Exception");
-            pri->cancel();
-        }
-
-        if(correction) { // scale the model back
-            print_->invalidate_all_steps();
-            for(auto po : print_->objects) {
-                po->model_object()->scale(
-                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
-                );
-                po->model_object()->invalidate_bounding_box();
-                po->reload_model_instances();
-                po->invalidate_all_steps();
-            }
-        }
-
-        print_->progressindicator = pbak;
-//    });
+    print_->progressindicator = pbak;
 
 }
 
 void IProgressIndicator::message_fmt(
-        const std::string &fmtstr, ...) {
+        const string &fmtstr, ...) {
     std::stringstream ss;
     va_list args;
     va_start(args, fmtstr);
