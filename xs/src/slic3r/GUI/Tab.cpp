@@ -1492,7 +1492,7 @@ void TabPrinter::build()
 				sizer->Add(btn);
 
 				btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
-					auto sender = new GCodeSender();					
+					auto sender = Slic3r::make_unique<GCodeSender>();
 					auto res = sender->connect(
 						m_config->opt_string("serial_port"), 
 						m_config->opt_int("serial_speed")
