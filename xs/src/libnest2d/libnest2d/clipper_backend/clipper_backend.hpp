@@ -143,7 +143,7 @@ inline void ShapeLike::offset(PolygonImpl& sh, TCoord<PointImpl> distance) {
     using ClipperLib::Paths;
 
     // If the input is not at least a triangle, we can not do this algorithm
-    if(sh.Contour.size() <= 3) throw GeometryException(GeoErr::OFFSET);
+    if(sh.Contour.size() <= 3) throw GeometryException(GeomErr::OFFSET);
 
     ClipperOffset offs;
     Paths result;
@@ -154,7 +154,7 @@ inline void ShapeLike::offset(PolygonImpl& sh, TCoord<PointImpl> distance) {
     // it removes the last vertex as well so boost will not have a closed
     // polygon
 
-    if(result.size() != 1) throw GeometryException(GeoErr::OFFSET);
+    if(result.size() != 1) throw GeometryException(GeomErr::OFFSET);
 
     sh.Contour = result.front();
 

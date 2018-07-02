@@ -467,7 +467,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     Arranger::PlacementConfig pcfg;
     Arranger::SelectionConfig scfg;
 
-    scfg.try_reverse_order = false;
+    scfg.try_reverse_order = true;
+    scfg.allow_parallel = true;
     scfg.force_parallel = true;
 
     pcfg.alignment = Arranger::PlacementConfig::Alignment::CENTER;

@@ -205,7 +205,7 @@ inline Radians::Radians(const Degrees &degs): Double( degs * Pi/180) {}
 
 inline double Radians::toDegrees() { return operator Degrees(); }
 
-enum class GeoErr : std::size_t {
+enum class GeomErr : std::size_t {
     OFFSET,
     MERGE,
     NFP
@@ -219,18 +219,18 @@ static const std::string ERROR_STR[] = {
 
 class GeometryException: public std::exception {
 
-    virtual const char * errorstr(GeoErr errcode) const {
+    virtual const char * errorstr(GeomErr errcode) const BP2D_NOEXCEPT {
         return ERROR_STR[static_cast<std::size_t>(errcode)].c_str();
     }
 
-    GeoErr errcode_;
+    GeomErr errcode_;
 public:
 
-    GeometryException(GeoErr code): errcode_(code) {}
+    GeometryException(GeomErr code): errcode_(code) {}
 
-    GeoErr errcode() const { return errcode_; }
+    GeomErr errcode() const { return errcode_; }
 
-    virtual const char * what() const override {
+    virtual const char * what() const BP2D_NOEXCEPT override {
         return errorstr(errcode_);
     }
 };
