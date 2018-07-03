@@ -18,26 +18,26 @@
 
 namespace Slic3r {
 
-class AppControllerBoilerplate::PriMap {
+class AppControllerBoilerplate::PriData {
 public:
-    using M = std::unordered_map<std::thread::id, ProgresIndicatorPtr>;
+//    using M = std::unordered_map<std::thread::id, ProgresIndicatorPtr>;
     std::mutex m;
-    M store;
+//    M store;
     std::thread::id ui_thread;
 
-    inline explicit PriMap(std::thread::id uit): ui_thread(uit) {}
+    inline explicit PriData(std::thread::id uit): ui_thread(uit) {}
 };
 
 AppControllerBoilerplate::AppControllerBoilerplate()
-    :progressind_(new PriMap(std::this_thread::get_id())) {}
+    :pri_data_(new PriData(std::this_thread::get_id())) {}
 
 AppControllerBoilerplate::~AppControllerBoilerplate() {
-    progressind_.reset();
+    pri_data_.reset();
 }
 
 bool AppControllerBoilerplate::is_main_thread() const
 {
-    return progressind_->ui_thread == std::this_thread::get_id();
+    return pri_data_->ui_thread == std::this_thread::get_id();
 }
 
 namespace GUI {
@@ -53,48 +53,23 @@ static const PrintStep STEP_SKIRT                       = psSkirt;
 static const PrintStep STEP_BRIM                        = psBrim;
 static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
 
-void AppControllerBoilerplate::progress_indicator(
-        AppControllerBoilerplate::ProgresIndicatorPtr progrind) {
-    progressind_->m.lock();
-    progressind_->store[std::this_thread::get_id()] = progrind;
-    progressind_->m.unlock();
-}
-
-void AppControllerBoilerplate::progress_indicator(unsigned statenum,
-                                                  const string &title,
-                                                  const string &firstmsg)
-{
-    progressind_->m.lock();
-    progressind_->store[std::this_thread::get_id()] =
-            create_progress_indicator(statenum, title, firstmsg);
-    progressind_->m.unlock();
-}
-
-void AppControllerBoilerplate::progress_indicator(unsigned statenum,
-                                                  const string &title)
-{
-    progressind_->m.lock();
-    progressind_->store[std::this_thread::get_id()] =
-            create_progress_indicator(statenum, title);
-    progressind_->m.unlock();
-}
-
 AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::progress_indicator() {
-
-    PriMap::M::iterator pret;
+AppControllerBoilerplate::global_progress_indicator() {
     ProgresIndicatorPtr ret;
 
-    progressind_->m.lock();
-    if( (pret = progressind_->store.find(std::this_thread::get_id()))
-            == progressind_->store.end())
-    {
-        progressind_->store[std::this_thread::get_id()] = ret =
-                global_progressind_;
-    } else ret = pret->second;
-    progressind_->m.unlock();
+    pri_data_->m.lock();
+    ret = global_progressind_;
+    pri_data_->m.unlock();
 
     return ret;
+}
+
+void AppControllerBoilerplate::global_progress_indicator(
+        AppControllerBoilerplate::ProgresIndicatorPtr gpri)
+{
+    pri_data_->m.lock();
+    global_progressind_ = gpri;
+    pri_data_->m.unlock();
 }
 
 void PrintController::make_skirt()
@@ -195,8 +170,6 @@ void PrintController::make_perimeters(PrintObject *pobj)
 
     slice(pobj);
 
-    auto&& prgind = progress_indicator();
-
     if (!pobj->state.is_done(STEP_PERIMETERS)) {
         pobj->_make_perimeters();
     }
@@ -280,7 +253,8 @@ void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 
 void PrintController::slice()
 {
-    auto pri = progress_indicator();
+    auto pri = global_progress_indicator();
+    if(!pri) pri = create_progress_indicator(100, L("Slicing"));
     slice(pri);
 }
 
@@ -323,7 +297,7 @@ void PrintController::slice_to_png()
     }
 
     // Turn back the correction scaling on the model.
-    auto scale_back = [&]() {
+    auto scale_back = [this, correction, exd]() {
         if(correction) { // scale the model back
             print_->invalidate_all_steps();
             for(auto po : print_->objects) {
@@ -354,35 +328,41 @@ void PrintController::slice_to_png()
        }
     }
 
-    auto pri = create_progress_indicator(
-                200, _(L("Slicing to zipped png files...")));
+    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+                   [this, exd, scale_back]()
+    {
 
-    try {
-        pri->update(0, _(L("Slicing...")));
-        slice(pri);
-    } catch (std::exception& e) {
-        pri->cancel();
-        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+        auto pri = create_progress_indicator(
+                    200, _(L("Slicing to zipped png files...")));
+
+        try {
+            pri->update(0, _(L("Slicing...")));
+            slice(pri);
+        } catch (std::exception& e) {
+            pri->cancel();
+            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+            scale_back();
+            return;
+        }
+
+        auto pbak = print_->progressindicator;
+        print_->progressindicator = pri;
+
+        try {
+            print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
+                        exd.width_mm, exd.height_mm,
+                        exd.width_px, exd.height_px,
+                        exd.exp_time_s, exd.exp_time_first_s);
+
+        } catch (std::exception& e) {
+            pri->cancel();
+            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+        }
+
+        print_->progressindicator = pbak;
         scale_back();
-        return;
-    }
 
-    auto pbak = print_->progressindicator;
-    print_->progressindicator = pri;
-
-    try {
-        print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
-                    exd.width_mm, exd.height_mm,
-                    exd.width_px, exd.height_px,
-                    exd.exp_time_s, exd.exp_time_first_s);
-
-    } catch (std::exception& e) {
-        pri->cancel();
-        report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
-    }
-
-    print_->progressindicator = pbak;
-    scale_back();
+    });
 }
 
 void IProgressIndicator::message_fmt(

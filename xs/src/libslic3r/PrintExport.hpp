@@ -301,7 +301,8 @@ void print_to(Print& print,
 
     // Method that prints one layer
     auto process_layer = [&layers, &keys, &printer, &st_prev, &m,
-            &jobdesc, print_bb, dir, cx, cy, &print, initstatus] (unsigned layer_id)
+            &jobdesc, print_bb, dir, cx, cy, &print, initstatus]
+            (unsigned layer_id)
     {
         LayerPtrs lrange = layers[keys[layer_id]];
 

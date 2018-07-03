@@ -296,7 +296,7 @@ void AppController::set_global_progress_indicator(
     wxStatusBar* sb = dynamic_cast<wxStatusBar*>(wxWindow::FindWindowById(sid));
 
     if(gauge && sb) {
-        global_progressind_ = std::make_shared<Wrapper>(gauge, sb, *this);
+        global_progress_indicator(std::make_shared<Wrapper>(gauge, sb, *this));
     }
 }
 
