@@ -20,9 +20,7 @@ namespace Slic3r {
 
 class AppControllerBoilerplate::PriData {
 public:
-//    using M = std::unordered_map<std::thread::id, ProgresIndicatorPtr>;
     std::mutex m;
-//    M store;
     std::thread::id ui_thread;
 
     inline explicit PriData(std::thread::id uit): ui_thread(uit) {}
@@ -328,9 +326,9 @@ void PrintController::slice_to_png()
        }
     }
 
-    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
-                   [this, exd, scale_back]()
-    {
+//    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+//                   [this, exd, scale_back]()
+//    {
 
         auto pri = create_progress_indicator(
                     200, _(L("Slicing to zipped png files...")));
@@ -362,7 +360,7 @@ void PrintController::slice_to_png()
         print_->progressindicator = pbak;
         scale_back();
 
-    });
+//    });
 }
 
 void IProgressIndicator::message_fmt(

@@ -398,6 +398,7 @@ sub on_plater_selection_changed {
 
 sub slice_to_png {
     my $self = shift;
+    $self->{plater}->stop_background_process;
     $self->{plater}->async_apply_config;
     $appController->print_ctl()->slice_to_png();
 }
