@@ -1253,8 +1253,14 @@ void Print::set_status(int percent, const std::string &message)
 }
 
 void Print::print_to_png(std::string dirpath) {
-    print_to<FilePrinterFormat::PNG>(*this, dirpath, 68.0, 120.0, 1440, 2560,
-                                     8.0, 35.0);
+    print_to<FilePrinterFormat::PNG>(*this,
+        dirpath,
+        float(this->config.bed_size_x.value),
+        float(this->config.bed_size_y.value),
+        int(this->config.pixel_width.value),
+        int(this->config.pixel_height.value),
+        float(this->config.exp_time.value),
+        float(this->config.exp_time_first.value));
 }
 
 }

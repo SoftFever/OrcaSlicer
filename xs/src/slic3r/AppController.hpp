@@ -261,7 +261,6 @@ public:
      */
     void set_print(Print *print) {
         printctl = PrintController::create(print);
-//        printctl->progress_indicator(progress_indicator());
     }
 
     /**

@@ -125,7 +125,7 @@ template<> class FilePrinter<FilePrinterFormat::PNG> {
         "startdelay = 0\n"
         "layerHeight = " + layerh_str + "\n"
         "noteInfo = "
-        "expTime="+expt_str+"+resinType=FTD-IB-Black+layerHeight="
+        "expTime="+expt_str+"+resinType=generic+layerHeight="
                   +layerh_str+"+printer=DWARF3\n";
     }
 

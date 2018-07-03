@@ -1877,6 +1877,52 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("mm");
     def->cli = "z-offset=f";
     def->default_value = new ConfigOptionFloat(0);
+
+    def = this->add("bed_size_x", coFloat);
+    def->label = L("Bed size X");
+    def->category = L("Dwarf");
+    def->sidetext = L("mm");
+    def->cli = "bed-size-x=f";
+    def->default_value = new ConfigOptionFloat(68.);
+
+    def = this->add("bed_size_y", coFloat);
+    def->label = L("Bed size Y");
+    def->category = L("Dwarf");
+    def->sidetext = L("mm");
+    def->cli = "bed-size-y=f";
+    def->default_value = new ConfigOptionFloat(120.);
+
+    def = this->add("pixel_width", coInt);
+    def->label = L("Picture resolution X");
+    def->category = L("Dwarf");
+    def->sidetext = L("px");
+    def->cli = "pixel-width=i";
+    def->min = 1;
+    def->default_value = new ConfigOptionInt(1440);
+
+    def = this->add("pixel_height", coInt);
+    def->label = L("Picture resolution Y");
+    def->category = L("Dwarf");
+    def->sidetext = L("px");
+    def->cli = "pixel-height=i";
+    def->min = 1;
+    def->default_value = new ConfigOptionInt(2560);
+
+    def = this->add("exp_time", coFloat);
+    def->label = L("Exposure time");
+    def->category = L("Dwarf");
+    def->sidetext = L("s");
+    def->cli = "exp-time=f";
+    def->min = 1;
+    def->default_value = new ConfigOptionFloat(8.);
+
+    def = this->add("exp_time_first", coFloat);
+    def->label = L("Exposure time first layers");
+    def->category = L("Dwarf");
+    def->sidetext = L("s");
+    def->cli = "exp-time-first=f";
+    def->min = 1;
+    def->default_value = new ConfigOptionFloat(35.);
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
