@@ -378,10 +378,10 @@ void PrintController::slice_to_png()
 
     } catch (std::exception& e) {
         pri->cancel();
-        print_->progressindicator = pbak;
         report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
     }
 
+    print_->progressindicator = pbak;
     scale_back();
 }
 
