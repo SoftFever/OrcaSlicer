@@ -436,8 +436,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
                 biggest = &item;
             }
         }
-        /*if(it.second.vertexCount() > 3)*/
-        shapes.push_back(std::ref(it.second));
+
+        if(it.second.vertexCount() > 3) shapes.push_back(std::ref(it.second));
     });
 
     Box bin;
