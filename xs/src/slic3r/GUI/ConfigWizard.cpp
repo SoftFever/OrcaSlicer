@@ -893,9 +893,9 @@ const wxString& ConfigWizard::name()
 {
 	// A different naming convention is used for the Wizard on Windows vs. OSX & GTK.
 #if WIN32
-	static const wxString config_wizard_name = _(L("Configuration Wizard"));
+	static const wxString config_wizard_name = L("Configuration Wizard");
 #else
-	static const wxString config_wizard_name = _(L("Configuration Assistant"));
+	static const wxString config_wizard_name = L("Configuration Assistant");
 #endif
 	return config_wizard_name;
 }
