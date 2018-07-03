@@ -60,18 +60,23 @@ void AppControllerBoilerplate::progress_indicator(
     progressind_->m.unlock();
 }
 
-AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::progress_indicator(
-        unsigned statenum,
-        const std::string &title,
-        const std::string &firstmsg)
+void AppControllerBoilerplate::progress_indicator(unsigned statenum,
+                                                  const string &title,
+                                                  const string &firstmsg)
 {
     progressind_->m.lock();
-    auto ret = progressind_->store[std::this_thread::get_id()] =
-            create_progress_indicator(statenum, title, firstmsg);;
+    progressind_->store[std::this_thread::get_id()] =
+            create_progress_indicator(statenum, title, firstmsg);
     progressind_->m.unlock();
+}
 
-    return ret;
+void AppControllerBoilerplate::progress_indicator(unsigned statenum,
+                                                  const string &title)
+{
+    progressind_->m.lock();
+    progressind_->store[std::this_thread::get_id()] =
+            create_progress_indicator(statenum, title);
+    progressind_->m.unlock();
 }
 
 AppControllerBoilerplate::ProgresIndicatorPtr
@@ -177,8 +182,8 @@ void PrintController::slice(PrintObject *pobj)
 
     if(pobj->layers.empty())
         report_issue(IssueType::ERR,
-                     "No layers were detected. You might want to repair your "
-                     "STL file(s) or check their size or thickness and retry"
+                     _(L("No layers were detected. You might want to repair your "
+                     "STL file(s) or check their size or thickness and retry"))
                      );
 
     pobj->state.set_done(STEP_SLICE);
@@ -235,50 +240,51 @@ void PrintController::gen_support_material(PrintObject *pobj)
     }
 }
 
-void PrintController::slice()
+void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 {
+    auto st = pri->state();
+
     Slic3r::trace(3, "Starting the slicing process.");
 
-    progress_indicator()->update(20u, "Generating perimeters");
+    pri->update(st+20, _(L("Generating perimeters")));
     for(auto obj : print_->objects) make_perimeters(obj);
 
-    progress_indicator()->update(60u, "Infilling layers");
+    pri->update(st+60, _(L("Infilling layers")));
     for(auto obj : print_->objects) infill(obj);
 
-    progress_indicator()->update(70u, "Generating support material");
+    pri->update(st+70, _(L("Generating support material")));
     for(auto obj : print_->objects) gen_support_material(obj);
 
-    progress_indicator()->message_fmt("Weight: %.1fg, Cost: %.1f",
-                                    print_->total_weight,
-                                    print_->total_cost);
-
-    progress_indicator()->state(85u);
+    pri->message_fmt(_(L("Weight: %.1fg, Cost: %.1f")),
+                     print_->total_weight, print_->total_cost);
+    pri->state(st+85);
 
 
-    progress_indicator()->update(88u, "Generating skirt");
+    pri->update(st+88, _(L("Generating skirt")));
     make_skirt();
 
 
-    progress_indicator()->update(90u, "Generating brim");
+    pri->update(st+90, _(L("Generating brim")));
     make_brim();
 
-    progress_indicator()->update(95u, "Generating wipe tower");
+    pri->update(st+95, _(L("Generating wipe tower")));
     make_wipe_tower();
 
-    progress_indicator()->update(100u, "Done");
+    pri->update(st+100, _(L("Done")));
 
     // time to make some statistics..
 
-    Slic3r::trace(3, "Slicing process finished.");
+    Slic3r::trace(3, _(L("Slicing process finished.")));
 }
 
-const PrintConfig &PrintController::config() const
+void PrintController::slice()
 {
-    return print_->config;
+    auto pri = progress_indicator();
+    slice(pri);
 }
 
 void IProgressIndicator::message_fmt(
-        const std::string &fmtstr, ...) {
+        const string &fmtstr, ...) {
     std::stringstream ss;
     va_list args;
     va_start(args, fmtstr);
@@ -302,6 +308,11 @@ void IProgressIndicator::message_fmt(
 
     va_end(args);
     message(ss.str());
+}
+
+const PrintConfig &PrintController::config() const
+{
+    return print_->config;
 }
 
 void AppController::arrange_model()
@@ -329,24 +340,24 @@ void AppController::arrange_model()
 
         BoundingBoxf bb(print_ctl()->config().bed_shape.values);
 
-        if(pind) pind->update(0, "Arranging objects...");
+        if(pind) pind->update(0, _(L("Arranging objects...")));
 
         try {
             model_->arrange_objects(dist, &bb, [pind, count](unsigned rem){
-                if(pind) pind->update(count - rem, "Arranging objects...");
+                if(pind) pind->update(count - rem, _(L("Arranging objects...")));
             });
         } catch(std::exception& e) {
             std::cerr << e.what() << std::endl;
             report_issue(IssueType::ERR,
-                         "Could not arrange model objects! "
-                         "Some geometries may be invalid.",
-                         "Exception occurred");
+                         _(L("Could not arrange model objects! "
+                         "Some geometries may be invalid.")),
+                         _(L("Exception occurred")));
         }
 
         // Restore previous max value
         if(pind) {
             pind->max(pmax);
-            pind->update(0, "Arranging done.");
+            pind->update(0, _(L("Arranging done.")));
         }
     });
 

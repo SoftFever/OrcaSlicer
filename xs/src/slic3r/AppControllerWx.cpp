@@ -32,11 +32,11 @@ void AppControllerBoilerplate::process_events()
 
 AppControllerBoilerplate::PathList
 AppControllerBoilerplate::query_destination_paths(
-        const std::string &title,
+        const string &title,
         const std::string &extensions) const
 {
 
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), wxString(title) );
+    wxFileDialog dlg(wxTheApp->GetTopWindow(), title );
     dlg.SetWildcard(extensions);
 
     dlg.ShowModal();
@@ -52,7 +52,7 @@ AppControllerBoilerplate::query_destination_paths(
 
 AppControllerBoilerplate::Path
 AppControllerBoilerplate::query_destination_path(
-        const std::string &title,
+        const string &title,
         const std::string &extensions,
         const std::string& hint) const
 {
@@ -71,8 +71,8 @@ AppControllerBoilerplate::query_destination_path(
 }
 
 bool AppControllerBoilerplate::report_issue(IssueType issuetype,
-                                 const std::string &description,
-                                 const std::string &brief)
+                                 const string &description,
+                                 const string &brief)
 {
     auto icon = wxICON_INFORMATION;
     auto style = wxOK|wxCENTRE;
@@ -84,8 +84,15 @@ bool AppControllerBoilerplate::report_issue(IssueType issuetype,
     case IssueType::FATAL:  icon = wxICON_ERROR;
     }
 
-    auto ret = wxMessageBox(_(description), _(brief), icon | style);
+    auto ret = wxMessageBox(description, brief, icon | style);
     return ret != wxCANCEL;
+}
+
+bool AppControllerBoilerplate::report_issue(
+        AppControllerBoilerplate::IssueType issuetype,
+        const string &description)
+{
+    return report_issue(issuetype, description, string());
 }
 
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
@@ -99,11 +106,10 @@ namespace  {
 class GuiProgressIndicator:
         public IProgressIndicator, public wxEvtHandler {
 
-    std::shared_ptr<wxProgressDialog> gauge_;
+    wxProgressDialog gauge_;
     using Base = IProgressIndicator;
     wxString message_;
     int range_; wxString title_;
-    unsigned prc_ = 0;
     bool is_asynch_ = false;
 
     const int id_ = wxWindow::NewControlId();
@@ -111,29 +117,15 @@ class GuiProgressIndicator:
     // status update handler
     void _state( wxCommandEvent& evt) {
         unsigned st = evt.GetInt();
+        message_ = evt.GetString();
         _state(st);
     }
 
     // Status update implementation
     void _state( unsigned st) {
-        if(st < max()) {
-            if(!gauge_) gauge_ = std::make_shared<wxProgressDialog>(
-                    title_, message_, range_, wxTheApp->GetTopWindow(),
-                        wxPD_APP_MODAL | wxPD_AUTO_HIDE
-            );
-
-            if(!gauge_->IsShown()) gauge_->ShowModal();
-            Base::state(st);
-            gauge_->Update(static_cast<int>(st), message_);
-        }
-
-        if(st == max()) {
-            prc_++;
-            if(prc_ == Base::procedure_count())  {
-                gauge_.reset();
-                prc_ = 0;
-            }
-        }
+        if(!gauge_.IsShown()) gauge_.ShowModal();
+        Base::state(st);
+        gauge_.Update(static_cast<int>(st), message_);
     }
 
 public:
@@ -144,9 +136,12 @@ public:
     /// Get the mode of parallel operation.
     inline bool asynch() const { return is_asynch_; }
 
-    inline GuiProgressIndicator(int range, const std::string& title,
-                                const std::string& firstmsg) :
-        range_(range), message_(_(firstmsg)), title_(_(title))
+    inline GuiProgressIndicator(int range, const string& title,
+                                const string& firstmsg) :
+        gauge_(title, firstmsg, range, wxTheApp->GetTopWindow(),
+               wxPD_APP_MODAL | wxPD_AUTO_HIDE),
+        message_(firstmsg),
+        range_(range), title_(title)
     {
         Base::max(static_cast<float>(range));
         Base::states(static_cast<unsigned>(range));
@@ -162,7 +157,7 @@ public:
     }
 
     virtual void state(float val) override {
-        if( val >= 1.0) state(static_cast<unsigned>(val));
+        state(static_cast<unsigned>(val));
     }
 
     void state(unsigned st) {
@@ -170,31 +165,31 @@ public:
         if(is_asynch_) {
             auto evt = new wxCommandEvent(PROGRESS_STATUS_UPDATE_EVENT, id_);
             evt->SetInt(st);
+            evt->SetString(message_);
             wxQueueEvent(this, evt);
         } else _state(st);
     }
 
-    virtual void message(const std::string & msg) override {
-        message_ = _(msg);
+    virtual void message(const string & msg) override {
+        message_ = msg;
     }
 
-    virtual void messageFmt(const std::string& fmt, ...) {
+    virtual void messageFmt(const string& fmt, ...) {
         va_list arglist;
         va_start(arglist, fmt);
-        message_ = wxString::Format(_(fmt), arglist);
+        message_ = wxString::Format(wxString(fmt), arglist);
         va_end(arglist);
     }
 
-    virtual void title(const std::string & title) override {
-        title_ = _(title);
+    virtual void title(const string & title) override {
+        title_ = title;
     }
 };
 }
 
 AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::create_progress_indicator(
-        unsigned statenum, const std::string& title,
-        const std::string& firstmsg) const
+        unsigned statenum, const string& title, const string& firstmsg) const
 {
     auto pri =
             std::make_shared<GuiProgressIndicator>(statenum, title, firstmsg);
@@ -204,6 +199,13 @@ AppControllerBoilerplate::create_progress_indicator(
     pri->asynch(!is_main_thread());
 
     return pri;
+}
+
+AppControllerBoilerplate::ProgresIndicatorPtr
+AppControllerBoilerplate::create_progress_indicator(unsigned statenum,
+                                                    const string &title) const
+{
+    return create_progress_indicator(statenum, title, string());
 }
 
 namespace {
@@ -278,18 +280,18 @@ public:
         }
     }
 
-    virtual void message(const std::string & msg) override {
+    virtual void message(const string & msg) override {
         message_ = msg;
     }
 
-    virtual void message_fmt(const std::string& fmt, ...) override {
+    virtual void message_fmt(const string& fmt, ...) override {
         va_list arglist;
         va_start(arglist, fmt);
-        message_ = wxString::Format(_(fmt), arglist);
+        message_ = wxString::Format(fmt, arglist);
         va_end(arglist);
     }
 
-    virtual void title(const std::string & /*title*/) override {}
+    virtual void title(const string & /*title*/) override {}
 
 };
 }
@@ -305,5 +307,4 @@ void AppController::set_global_progress_indicator(
         global_progressind_ = std::make_shared<Wrapper>(gauge, sb, *this);
     }
 }
-
 }

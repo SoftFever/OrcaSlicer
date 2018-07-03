@@ -16,6 +16,7 @@ class Print;
 class PrintObject;
 class PrintConfig;
 
+
 /**
  * @brief A boilerplate class for creating application logic. It should provide
  * features as issue reporting and progress indication, etc...
@@ -45,7 +46,7 @@ public:
     AppControllerBoilerplate();
     ~AppControllerBoilerplate();
 
-    using Path = std::string;
+    using Path = string;
     using PathList = std::vector<Path>;
 
     /// Common runtime issue types
@@ -66,20 +67,20 @@ public:
      * @return Returns a list of paths choosed by the user.
      */
     PathList query_destination_paths(
-            const std::string& title,
+            const string& title,
             const std::string& extensions) const;
 
     /**
      * @brief Same as query_destination_paths but works for directories only.
      */
     PathList query_destination_dirs(
-            const std::string& title) const;
+            const string& title) const;
 
     /**
      * @brief Same as query_destination_paths but returns only one path.
      */
     Path query_destination_path(
-            const std::string& title,
+            const string& title,
             const std::string& extensions,
             const std::string& hint = "") const;
 
@@ -94,8 +95,11 @@ public:
      * title.
      */
     bool report_issue(IssueType issuetype,
-                      const std::string& description,
-                      const std::string& brief = "");
+                      const string& description,
+                      const string& brief);
+
+    bool report_issue(IssueType issuetype,
+                      const string& description);
 
     /**
      * @brief Set up a progress indicator for the current thread.
@@ -109,9 +113,12 @@ public:
      * @param title The title of the procedure.
      * @param firstmsg The message for the first subtask to be displayed.
      */
-    ProgresIndicatorPtr progress_indicator(unsigned statenum,
-                                           const std::string& title,
-                                           const std::string& firstmsg = "");
+    void progress_indicator(unsigned statenum,
+                            const string& title,
+                            const string& firstmsg);
+
+    void progress_indicator(unsigned statenum,
+                            const string& title);
 
     /**
      * @brief Return the progress indicator set up for the current thread. This
@@ -161,8 +168,12 @@ protected:
      */
     ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
-            const std::string& title,
-            const std::string& firstmsg = "") const;
+            const string& title,
+            const string& firstmsg) const;
+
+    ProgresIndicatorPtr create_progress_indicator(
+            unsigned statenum,
+            const string& title) const;
 
     // This is a global progress indicator placeholder. In the Slic3r UI it can
     // contain the progress indicator on the statusbar.
@@ -184,6 +195,14 @@ protected:
     void infill(PrintObject *pobj);
     void gen_support_material(PrintObject *pobj);
 
+    /**
+     * @brief Slice one pront object.
+     * @param pobj The print object.
+     */
+    void slice(PrintObject *pobj);
+
+    void slice(ProgresIndicatorPtr pri);
+
 public:
 
     // Must be public for perl to use it
@@ -197,12 +216,6 @@ public:
     inline static Ptr create(Print *print) {
         return PrintController::Ptr( new PrintController(print) );
     }
-
-    /**
-     * @brief Slice one pront object.
-     * @param pobj The print object.
-     */
-    void slice(PrintObject *pobj);
 
     /**
      * @brief Slice the loaded print scene.

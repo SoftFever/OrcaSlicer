@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include "Strings.hpp"
 
 namespace Slic3r {
 
@@ -16,7 +17,6 @@ public:
 private:
     float state_ = .0f, max_ = 1.f, step_;
     CancelFn cancelfunc_ = [](){};
-    unsigned proc_count_ = 1;
 
 public:
 
@@ -43,13 +43,13 @@ public:
     }
 
     /// Message shown on the next status update.
-    virtual void message(const std::string&) = 0;
+    virtual void message(const string&) = 0;
 
     /// Title of the operaton.
-    virtual void title(const std::string&) = 0;
+    virtual void title(const string&) = 0;
 
     /// Formatted message for the next status update. Works just like sprinf.
-    virtual void message_fmt(const std::string& fmt, ...);
+    virtual void message_fmt(const string& fmt, ...);
 
     /// Set up a cancel callback for the operation if feasible.
     inline void on_cancel(CancelFn func) { cancelfunc_ = func; }
@@ -60,21 +60,8 @@ public:
      */
     virtual void cancel() { cancelfunc_(); }
 
-    /**
-     * \brief Set up how many subprocedures does the whole operation contain.
-     *
-     * This was neccesary from practical reasons. If the progress indicator is
-     * a dialog and we want to show the progress of a few sub operations than
-     * the dialog wont be closed and reopened each time a new sub operation is
-     * started. This is not a mandatory feature and can be ignored completely.
-     */
-    inline void procedure_count(unsigned pc) { proc_count_ = pc; }
-
-    /// Get the current procedure count
-    inline unsigned procedure_count() const { return proc_count_; }
-
     /// Convinience function to call message and status update in one function.
-    void update(float st, const std::string& msg) {
+    void update(float st, const string& msg) {
         message(msg); state(st);
     }
 };

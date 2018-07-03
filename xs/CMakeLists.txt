@@ -262,6 +262,7 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/AppController.hpp
     ${LIBDIR}/slic3r/AppController.cpp
     ${LIBDIR}/slic3r/AppControllerWx.cpp
+    ${LIBDIR}/slic3r/Strings.hpp
 )
 
 add_library(admesh STATIC
