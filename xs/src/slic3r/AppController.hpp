@@ -30,16 +30,16 @@ class PrintConfig;
  * a cli client.
  */
 class AppControllerBoilerplate {
-    class PriMap;   // Some structure to store progress indication data
 public:
 
     /// A Progress indicator object smart pointer
     using ProgresIndicatorPtr = std::shared_ptr<IProgressIndicator>;
 
 private:
+    class PriData;   // Some structure to store progress indication data
 
     // Pimpl data for thread safe progress indication features
-    std::unique_ptr<PriMap> progressind_;
+    std::unique_ptr<PriData> pri_data_;
 
 public:
 
@@ -102,32 +102,14 @@ public:
                       const string& description);
 
     /**
-     * @brief Set up a progress indicator for the current thread.
-     * @param progrind An already created progress indicator object.
+     * @brief Return the global progress indicator for the current controller.
+     * Can be empty as well.
+     *
+     * Only one thread should use the global indicator at a time.
      */
-    void progress_indicator(ProgresIndicatorPtr progrind);
+    ProgresIndicatorPtr global_progress_indicator();
 
-    /**
-     * @brief Create and set up a new progress indicator for the current thread.
-     * @param statenum The number of states for the given procedure.
-     * @param title The title of the procedure.
-     * @param firstmsg The message for the first subtask to be displayed.
-     */
-    void progress_indicator(unsigned statenum,
-                            const string& title,
-                            const string& firstmsg);
-
-    void progress_indicator(unsigned statenum,
-                            const string& title);
-
-    /**
-     * @brief Return the progress indicator set up for the current thread. This
-     * can be empty as well.
-     * @return A progress indicator object implementing IProgressIndicator. If
-     * a global progress indicator is available for the current implementation
-     * than this will be set up for the current thread and returned.
-     */
-    ProgresIndicatorPtr progress_indicator();
+    void global_progress_indicator(ProgresIndicatorPtr gpri);
 
     /**
      * @brief A predicate telling the caller whether it is the thread that
@@ -258,7 +240,6 @@ public:
      */
     void set_print(Print *print) {
         printctl = PrintController::create(print);
-        printctl->progress_indicator(progress_indicator());
     }
 
     /**
