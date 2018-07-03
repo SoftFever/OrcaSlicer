@@ -229,7 +229,7 @@ class Wrapper: public IProgressIndicator, public wxEvtHandler {
             if(!gauge_->IsShown()) showProgress(true);
 
             stbar_->SetStatusText(message_);
-            if(st == gauge_->GetRange()) {
+            if(static_cast<long>(st) == gauge_->GetRange()) {
                 gauge_->SetValue(0);
                 showProgress(false);
             } else {
