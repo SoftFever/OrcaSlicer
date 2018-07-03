@@ -12,12 +12,10 @@
 
 #include <clipper.hpp>
 
-namespace libnest2d {
-
-// Aliases for convinience
-using PointImpl = ClipperLib::IntPoint;
-using PolygonImpl = ClipperLib::PolyNode;
-using PathImpl = ClipperLib::Path;
+namespace ClipperLib {
+using PointImpl = IntPoint;
+using PolygonImpl = PolyNode;
+using PathImpl = Path;
 
 inline PointImpl& operator +=(PointImpl& p, const PointImpl& pa ) {
     // This could be done with SIMD
@@ -50,6 +48,14 @@ inline PointImpl operator-(const PointImpl& p1, const PointImpl& p2) {
     ret -= p2;
     return ret;
 }
+}
+
+namespace libnest2d {
+
+// Aliases for convinience
+using PointImpl = ClipperLib::IntPoint;
+using PolygonImpl = ClipperLib::PolyNode;
+using PathImpl = ClipperLib::Path;
 
 //extern HoleCache holeCache;
 

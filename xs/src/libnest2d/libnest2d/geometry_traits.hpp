@@ -7,6 +7,7 @@
 #include <vector>
 #include <numeric>
 #include <limits>
+#include <cmath>
 
 #include "common.hpp"
 
@@ -260,7 +261,7 @@ void setY(RawPoint& p, const TCoord<RawPoint>& val)
 template<class RawPoint>
 inline Radians _Segment<RawPoint>::angleToXaxis() const
 {
-    if(std::isnan(angletox_)) {
+    if(std::isnan(static_cast<double>(angletox_))) {
         TCoord<RawPoint> dx = getX(second()) - getX(first());
         TCoord<RawPoint> dy = getY(second()) - getY(first());
 
