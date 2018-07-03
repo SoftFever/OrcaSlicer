@@ -424,9 +424,10 @@ R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 TEST(GeometryAlgorithms, BottomLeftStressTest) {
     using namespace libnest2d;
 
+    const Coord SCALE = 1000000;
     auto& input = prusaParts();
 
-    Box bin(210, 250);
+    Box bin(210*SCALE, 250*SCALE);
     BottomLeftPlacer placer(bin);
 
     auto it = input.begin();
@@ -440,19 +441,19 @@ TEST(GeometryAlgorithms, BottomLeftStressTest) {
         bool valid = true;
 
         if(result.size() == 2) {
-        Item& r1 = result[0];
-        Item& r2 = result[1];
+            Item& r1 = result[0];
+            Item& r2 = result[1];
             valid = !Item::intersects(r1, r2) || Item::touches(r1, r2);
             valid = (valid && !r1.isInside(r2) && !r2.isInside(r1));
             if(!valid) {
                 std::cout << "error index: " << i << std::endl;
                 exportSVG(result, bin, i);
             }
-//                    ASSERT_TRUE(valid);
+            ASSERT_TRUE(valid);
         } else {
             std::cout << "something went terribly wrong!" << std::endl;
+            FAIL();
         }
-
 
         placer.clearItems();
         it++;
