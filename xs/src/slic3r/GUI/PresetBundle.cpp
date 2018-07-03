@@ -264,36 +264,38 @@ void PresetBundle::load_selections(const AppConfig &config)
 	this->load_installed_printers(config);
 
     // Parse the initial print / filament / printer profile names.
-    std::string                 initial_print_profile_name     = remove_ini_suffix(config.get("presets", "print"));
-    std::vector<std::string>    initial_filament_profile_names;
-    std::string                 initial_printer_profile_name   = remove_ini_suffix(config.get("presets", "printer"));
-
-    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
-    size_t  num_extruders   = nozzle_diameter->values.size();   
-    initial_filament_profile_names.emplace_back(remove_ini_suffix(config.get("presets", "filament")));
-    this->set_filament_preset(0, initial_filament_profile_names.back());
-    for (unsigned int i = 1; i < (unsigned int)num_extruders; ++ i) {
-        char name[64];
-        sprintf(name, "filament_%d", i);
-        if (! config.has("presets", name))
-            break;
-        initial_filament_profile_names.emplace_back(remove_ini_suffix(config.get("presets", name)));
-        this->set_filament_preset(i, initial_filament_profile_names.back());
-    }
+    std::string initial_print_profile_name    = remove_ini_suffix(config.get("presets", "print"));
+    std::string initial_filament_profile_name = remove_ini_suffix(config.get("presets", "filament"));
+	std::string initial_printer_profile_name  = remove_ini_suffix(config.get("presets", "printer"));
 
 	// Activate print / filament / printer profiles from the config.
 	// If the printer profile enumerated by the config are not visible, select an alternate preset.
     // Do not select alternate profiles for the print / filament profiles as those presets
     // will be selected by the following call of this->update_compatible_with_printer(true).
     prints.select_preset_by_name_strict(initial_print_profile_name);
-    filaments.select_preset_by_name_strict(initial_filament_profile_names.front());
+    filaments.select_preset_by_name_strict(initial_filament_profile_name);
     printers.select_preset_by_name(initial_printer_profile_name, true);
+
+    // Load the names of the other filament profiles selected for a multi-material printer.
+    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
+    size_t  num_extruders = nozzle_diameter->values.size();
+    this->filament_presets = { initial_filament_profile_name };
+    for (unsigned int i = 1; i < (unsigned int)num_extruders; ++ i) {
+        char name[64];
+        sprintf(name, "filament_%d", i);
+        if (! config.has("presets", name))
+            break;
+        this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
+    }
+    // Do not define the missing filaments, so that the update_compatible_with_printer() will use the preferred filaments.
+    this->filament_presets.resize(num_extruders, "");
 
     // Update visibility of presets based on their compatibility with the active printer.
     // Always try to select a compatible print and filament preset to the current printer preset,
     // as the application may have been closed with an active "external" preset, which does not
     // exist.
     this->update_compatible_with_printer(true);
+    this->update_multi_material_filament_presets();
 }
 
 // Export selections (current print, current filaments, current printer) into config.ini
@@ -946,9 +948,7 @@ void PresetBundle::update_multi_material_filament_presets()
     for (size_t i = 0; i < std::min(this->filament_presets.size(), num_extruders); ++ i)
         this->filament_presets[i] = this->filaments.find_preset(this->filament_presets[i], true)->name;
     // Append the rest of filament presets.
-//    if (this->filament_presets.size() < num_extruders)
-        this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
-
+    this->filament_presets.resize(num_extruders, this->filament_presets.empty() ? this->filaments.first_visible().name : this->filament_presets.back());
 
     // Now verify if wiping_volumes_matrix has proper size (it is used to deduce number of extruders in wipe tower generator):
     std::vector<double> old_matrix = this->project_config.option<ConfigOptionFloats>("wiping_volumes_matrix")->values;
