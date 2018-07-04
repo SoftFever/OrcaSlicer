@@ -331,20 +331,27 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
             for(auto objinst : objptr->instances) {
                 if(objinst) {
                     Slic3r::TriangleMesh tmpmesh = rmesh;
-//                    objinst->transform_mesh(&tmpmesh);
                     ClipperLib::PolyNode pn;
+
+                    // TODO export the exact 2D projection
                     auto p = tmpmesh.convex_hull();
+
                     p.make_clockwise();
                     p.append(p.first_point());
                     pn.Contour = Slic3rMultiPoint_to_ClipperPath( p );
 
+                    // Efficient conversion to item.
                     Item item(std::move(pn));
-                    item.rotation(objinst->rotation);
-                    item.translation( {
-                        ClipperLib::cInt(objinst->offset.x/SCALING_FACTOR),
-                        ClipperLib::cInt(objinst->offset.y/SCALING_FACTOR)
-                    });
-                    ret.emplace_back(objinst, item);
+
+                    // Invalid geometries would throw exceptions when arranging
+                    if(item.vertexCount() > 3) {
+                        item.rotation(objinst->rotation);
+                        item.translation( {
+                            ClipperLib::cInt(objinst->offset.x/SCALING_FACTOR),
+                            ClipperLib::cInt(objinst->offset.y/SCALING_FACTOR)
+                        });
+                        ret.emplace_back(objinst, item);
+                    }
                 }
             }
         }
@@ -437,7 +444,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
             }
         }
 
-        if(it.second.vertexCount() > 3) shapes.push_back(std::ref(it.second));
+        shapes.push_back(std::ref(it.second));
+
     });
 
     Box bin;
@@ -463,15 +471,17 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // Will use the DJD selection heuristic with the BottomLeft placement
     // strategy
     using Arranger = Arranger<NfpPlacer, DJDHeuristic>;
+    using PConf = Arranger::PlacementConfig;
+    using SConf = Arranger::SelectionConfig;
 
-    Arranger::PlacementConfig pcfg;
-    Arranger::SelectionConfig scfg;
+    PConf pcfg;
+    SConf scfg;
 
     scfg.try_reverse_order = true;
     scfg.allow_parallel = true;
     scfg.force_parallel = true;
 
-    pcfg.alignment = Arranger::PlacementConfig::Alignment::CENTER;
+    pcfg.alignment = PConf::Alignment::CENTER;
 
     // TODO cannot use rotations until multiple objects of same geometry can
     // handle different rotations
