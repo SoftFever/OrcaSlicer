@@ -2134,6 +2134,8 @@ void Tab::save_preset(std::string name /*= ""*/)
 	update_tab_ui();
 	// Update the selection boxes at the platter.
 	on_presets_changed();
+	// If current profile is saved, "delete preset" button have to be enabled
+	m_btn_delete_preset->Enable(true);
 
 	if (m_name == "printer")
 		static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
