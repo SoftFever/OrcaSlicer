@@ -480,8 +480,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     SConf scfg;
 
     scfg.try_reverse_order = true;
-    scfg.allow_parallel = true;
-    scfg.force_parallel = true;
+    scfg.allow_parallel = false;
+    scfg.force_parallel = false;
 
     pcfg.alignment = PConf::Alignment::CENTER;
 
@@ -489,6 +489,20 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // handle different rotations
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
+
+    pcfg.object_function = [&bin](
+            NfpPlacer::Pile pile, double /*area*/, double norm, double penality)
+    {
+        auto bb = ShapeLike::boundingBox(pile);
+
+        // We will optimize to the diameter of the circle around the bounding box
+        double score = PointLike::distance(bb.minCorner(), bb.maxCorner()) / norm;
+
+        if(!NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
+
+        return score;
+    };
+
     Arranger arranger(bin, min_obj_distance, pcfg, scfg);
 
     arranger.progressIndicator(progressind);

@@ -28,6 +28,9 @@ struct NfpPConfig {
     /// Where to align the resulting packed pile
     Alignment alignment;
 
+    std::function<double(const Nfp::Shapes<RawShape>&, double, double, double)>
+    object_function;
+
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER) {}
 };
@@ -213,7 +216,16 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
     const double norm_;
     const double penality_;
 
-    bool static wouldFit(const RawShape& chull, const RawShape& bin) {
+public:
+
+    using Pile = const Nfp::Shapes<RawShape>&;
+
+    inline explicit _NofitPolyPlacer(const BinType& bin):
+        Base(bin),
+        norm_(std::sqrt(ShapeLike::area<RawShape>(bin))),
+        penality_(1e6*norm_) {}
+
+    bool static inline wouldFit(const RawShape& chull, const RawShape& bin) {
         auto bbch = ShapeLike::boundingBox<RawShape>(chull);
         auto bbin = ShapeLike::boundingBox<RawShape>(bin);
         auto d = bbin.minCorner() - bbch.minCorner();
@@ -222,18 +234,16 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
         return ShapeLike::isInside<RawShape>(chullcpy, bbin);
     }
 
-    bool static wouldFit(const RawShape& chull, const Box& bin)
+    bool static inline wouldFit(const RawShape& chull, const Box& bin)
     {
         auto bbch = ShapeLike::boundingBox<RawShape>(chull);
-        return bbch.width() <= bin.width() && bbch.height() <= bin.height();
+        return wouldFit(bbch, bin);
     }
 
-public:
-
-    inline explicit _NofitPolyPlacer(const BinType& bin):
-        Base(bin),
-        norm_(std::sqrt(ShapeLike::area<RawShape>(bin))),
-        penality_(1e6*norm_) {}
+    bool static inline wouldFit(const Box& bb, const Box& bin)
+    {
+        return bb.width() <= bin.width() && bb.height() <= bin.height();
+    }
 
     PackResult trypack(Item& item) {
 
@@ -291,20 +301,12 @@ public:
                     pile_area += mitem.area();
                 }
 
-                // Our object function for placement
-                auto objfunc = [&] (double relpos)
+                auto _objfunc = config_.object_function?
+                            config_.object_function :
+                [this](const Nfp::Shapes<RawShape>& pile, double occupied_area,
+                            double /*norm*/, double penality)
                 {
-                    Vertex v = getNfpPoint(relpos);
-                    auto d = v - iv;
-                    d += startpos;
-                    item.translation(d);
-
-                    pile.emplace_back(item.transformedShape());
-
-                    double occupied_area = pile_area + item.area();
                     auto ch = ShapeLike::convexHull(pile);
-
-                    pile.pop_back();
 
                     // The pack ratio -- how much is the convex hull occupied
                     double pack_rate = occupied_area/ShapeLike::area(ch);
@@ -317,7 +319,27 @@ public:
                     // (larger) values.
                     auto score = std::sqrt(waste);
 
-                    if(!wouldFit(ch, bin_)) score = 2*penality_ - score;
+                    if(!wouldFit(ch, bin_)) score = 2*penality - score;
+
+                    return score;
+                };
+
+                // Our object function for placement
+                auto objfunc = [&] (double relpos)
+                {
+                    Vertex v = getNfpPoint(relpos);
+                    auto d = v - iv;
+                    d += startpos;
+                    item.translation(d);
+
+                    pile.emplace_back(item.transformedShape());
+
+                    double occupied_area = pile_area + item.area();
+
+                    double score = _objfunc(pile, occupied_area,
+                                            norm_, penality_);
+
+                    pile.pop_back();
 
                     return score;
                 };

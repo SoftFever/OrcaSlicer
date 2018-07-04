@@ -687,6 +687,17 @@ public:
         selector_.configure(std::forward<SelectionConfig>(sconfig));
     }
 
+    void configure(const PlacementConfig& pconf) { pconfig_ = pconf; }
+    void configure(const SelectionConfig& sconf) { selector_.configure(sconf); }
+    void configure(const PlacementConfig& pconf, const SelectionConfig& sconf) {
+        pconfig_ = pconf;
+        selector_.configure(sconf);
+    }
+    void configure(const SelectionConfig& sconf, const PlacementConfig& pconf) {
+        pconfig_ = pconf;
+        selector_.configure(sconf);
+    }
+
     /**
      * \brief Arrange an input sequence and return a PackGroup object with
      * the packed groups corresponding to the bins.
