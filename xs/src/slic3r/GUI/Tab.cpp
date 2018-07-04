@@ -1910,6 +1910,7 @@ void Tab::load_current_preset()
 			const Preset* parent_preset = m_presets->get_selected_preset_parent();
 			static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
 				static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
+			set_extruder_column_hidden(static_cast<TabPrinter*>(this)->m_sys_extruders_count <= 1);
 		}
 		m_opt_status_value = (m_presets->get_selected_preset_parent() ? osSystemValue : 0) | osInitValue;
 		init_options_list();

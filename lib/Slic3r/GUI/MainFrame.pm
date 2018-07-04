@@ -29,6 +29,8 @@ our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
 our $OBJECT_SELECTION_CHANGED_EVENT = Wx::NewEventType;
 # 4) To inform about a change of object settings
 our $OBJECT_SETTINGS_CHANGED_EVENT = Wx::NewEventType;
+# 5) To inform about a remove of object 
+our $OBJECT_REMOVE_EVENT = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -122,6 +124,7 @@ sub _init_tabpanel {
         $panel->AddPage($self->{plater} = Slic3r::GUI::Plater->new($panel,
             event_object_selection_changed   => $OBJECT_SELECTION_CHANGED_EVENT,
             event_object_settings_changed    => $OBJECT_SETTINGS_CHANGED_EVENT,
+            event_remove_object              => $OBJECT_REMOVE_EVENT,
             ), L("Plater"));
         if (!$self->{no_controller}) {
             $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
@@ -196,6 +199,12 @@ sub _init_tabpanel {
         my ($obj_idx, $parts_changed, $part_settings_changed) = split('',$line);
 
         $self->{plater}->changed_object_settings($obj_idx, $parts_changed, $part_settings_changed);
+    });
+
+    # The following event is emited by the C++ Tab implementation on object settings change.
+    EVT_COMMAND($self, -1, $OBJECT_REMOVE_EVENT, sub {
+        my ($self, $event) = @_;
+        $self->{plater}->remove();
     });
         
 

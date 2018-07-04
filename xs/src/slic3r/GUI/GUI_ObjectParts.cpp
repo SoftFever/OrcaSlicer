@@ -42,6 +42,7 @@ ModelObjectPtrs				m_objects;
 
 int			m_event_object_selection_changed = 0;
 int			m_event_object_settings_changed = 0;
+int			m_event_remove_object = 0;
 
 bool m_parts_changed = false;
 bool m_part_settings_changed = false;
@@ -51,6 +52,9 @@ void set_event_object_selection_changed(const int& event){
 }
 void set_event_object_settings_changed(const int& event){
 	m_event_object_settings_changed = event;
+}
+void set_event_remove_object(const int& event){
+	m_event_remove_object = event;
 }
 
 void init_mesh_icons(){
@@ -80,20 +84,42 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
 	// column 0(Icon+Text) of the view control:
-	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 150,
+	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 120,
 		wxALIGN_LEFT, /*wxDATAVIEW_COL_SORTABLE | */wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
-	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 65,
+	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 2 of the view control:
-	m_objects_ctrl->AppendTextColumn(_(L("Scale")), 2, wxDATAVIEW_CELL_INERT, 70,
+	m_objects_ctrl->AppendTextColumn(_(L("Scale")), 2, wxDATAVIEW_CELL_INERT, 55,
+		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+
+	// column 2 of the view control:
+	wxArrayString choices;
+	choices.Add("1");
+	choices.Add("2");
+	choices.Add("3");
+	choices.Add("4");
+	wxDataViewChoiceRenderer *c =
+		new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
+	wxDataViewColumn *column3 =
+		new wxDataViewColumn(_(L("Extruder")), c, 3, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+	m_objects_ctrl->AppendColumn(column3);
+
+	m_objects_ctrl->AppendBitmapColumn("", 4, wxDATAVIEW_CELL_INERT, 25,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
 		object_ctrl_selection_changed();
+	});
+
+	m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxEvent& event)
+	{
+		event.Skip();
+		object_ctrl_context_menu();
+		
 	});
 
 	m_objects_ctrl->Bind(wxEVT_KEY_DOWN, [](wxKeyEvent& event)
@@ -305,6 +331,11 @@ wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_pare
 	return collpane;
 }
 
+void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
+{
+	sizer->Add(content_objects_list(parent), 1, wxEXPAND | wxALL, 0);
+}
+
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer)
 {
 	// *** Objects List ***	
@@ -349,14 +380,14 @@ void delete_object_from_list()
 // 	m_objects_ctrl->Select(m_objects_model->Delete(item));
 	m_objects_model->Delete(item);
 
-	if (m_objects_model->IsEmpty())
-		m_collpane_settings->Show(false);
+// 	if (m_objects_model->IsEmpty())
+// 		m_collpane_settings->Show(false);
 }
 
 void delete_all_objects_from_list()
 {
 	m_objects_model->DeleteAll();
-	m_collpane_settings->Show(false);
+// 	m_collpane_settings->Show(false);
 }
 
 void set_object_count(int idx, int count)
@@ -375,6 +406,8 @@ void unselect_objects()
 {
 	m_objects_ctrl->UnselectAll();
 	part_selection_changed();
+
+	get_optgroup(ogFrequentlyObjectSettings)->disable();
 }
 
 void select_current_object(int idx)
@@ -388,6 +421,25 @@ void select_current_object(int idx)
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
 	part_selection_changed();
 	g_prevent_list_events = false;
+
+	get_optgroup(ogFrequentlyObjectSettings)->enable();
+}
+
+void remove()
+{
+	auto item = m_objects_ctrl->GetSelection();
+	if (!item)
+		return;
+	
+	if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+		if (m_event_remove_object > 0) {
+			wxCommandEvent event(m_event_remove_object);
+			get_main_frame()->ProcessWindowEvent(event);
+		}
+// 		delete_object_from_list();
+	}
+	else
+		on_btn_del();
 }
 
 void object_ctrl_selection_changed()
@@ -403,6 +455,59 @@ void object_ctrl_selection_changed()
 		event.SetInt(int(m_objects_model->GetParent(/*item*/ m_objects_ctrl->GetSelection()) != wxDataViewItem(0)));
 		event.SetId(m_selected_object_id);
 		get_main_frame()->ProcessWindowEvent(event);
+	}
+}
+
+wxMenu *CreateAddPartPopupMenu(){
+	wxMenu *menu = new wxMenu;
+	wxWindowID config_id_base = wxWindow::NewControlId(3);
+
+	menu->Append(config_id_base, _(L("Add part")));
+	menu->AppendSeparator();
+	menu->Append(config_id_base + 1, _(L("Add modifier")));
+	menu->AppendSeparator();
+	menu->AppendCheckItem(config_id_base + 2, _(L("Add generic")));
+
+	wxWindow* win = get_tab_panel()->GetPage(0);
+
+	menu->Bind(wxEVT_MENU, [config_id_base, win](wxEvent &event){
+		switch (event.GetId() - config_id_base) {
+		case 0:
+			on_btn_load(win);
+			break;
+		case 1:
+			on_btn_load(win, true);
+			break;
+		case 2:
+			on_btn_load(win, true, true);
+			break;
+		default:
+			break;
+		}
+	});
+	return menu;
+}
+
+void object_ctrl_context_menu()
+{
+// 	auto cur_column = m_objects_ctrl->GetCurrentColumn();
+// 	auto action_column = m_objects_ctrl->GetColumn(4);
+// 	if (cur_column == action_column)			
+	{
+		auto item = m_objects_ctrl->GetSelection();
+		if (item)
+		{
+			if (m_objects_model->GetParent(item) == wxDataViewItem(0))				{
+				auto menu = CreateAddPartPopupMenu();
+				get_tab_panel()->GetPage(0)->PopupMenu(menu);
+// 				wxMessageBox(m_objects_model->GetName(item));
+			}
+			// 				else {
+			// 					auto parent = m_objects_model->GetParent(item);
+			// 					// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
+			// 					obj_idx = m_objects_model->GetIdByItem(parent);
+			// 				}
+		}
 	}
 }
 
@@ -643,7 +748,7 @@ void part_selection_changed()
 	}
 	m_selected_object_id = obj_idx;
 
-	wxWindowUpdateLocker noUpdates(get_right_panel());
+/*	wxWindowUpdateLocker noUpdates(get_right_panel());
 
 	m_move_options = Point3(0, 0, 0);
 	m_last_coords = Point3(0, 0, 0);
@@ -653,7 +758,8 @@ void part_selection_changed()
 	for (auto opt_key: opt_keys)
 		og->set_value(opt_key, int(0));
 
-	if (/*!item || */m_selected_object_id < 0){
+// 	if (!item || m_selected_object_id < 0){
+	if (m_selected_object_id < 0){
 		m_sizer_object_buttons->Show(false);
 		m_sizer_part_buttons->Show(false);
 		m_sizer_object_movers->Show(false);
@@ -735,6 +841,11 @@ void part_selection_changed()
 	$self->{settings_panel}->enable;
 	}
 	 */
+}
+
+void set_extruder_column_hidden(bool hide)
+{
+	m_objects_ctrl->GetColumn(3)->SetHidden(hide);
 }
 
 } //namespace GUI

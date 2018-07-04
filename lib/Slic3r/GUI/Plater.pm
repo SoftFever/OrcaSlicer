@@ -57,6 +57,7 @@ sub new {
     # store input params
     $self->{event_object_selection_changed} = $params{event_object_selection_changed};
     $self->{event_object_settings_changed} = $params{event_object_settings_changed};
+    $self->{event_remove_object} = $params{event_remove_object};
 
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
@@ -151,6 +152,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_increase_objects_callback($self->{canvas3D}, sub { $self->increase() });
         Slic3r::GUI::_3DScene::register_on_decrease_objects_callback($self->{canvas3D}, sub { $self->decrease() });
         Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { $self->remove() });
+#        Slic3r::GUI::_3DScene::register_on_remove_object_callback($self->{canvas3D}, sub { Slic3r::GUI::remove_obj() });
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
@@ -328,7 +330,8 @@ sub new {
     
     if ($self->{htoolbar}) {
         EVT_TOOL($self, TB_ADD, sub { $self->add; });
-        EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
+#        EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
+        EVT_TOOL($self, TB_REMOVE, sub { Slic3r::GUI::remove_obj() }); # explicitly pass no argument to remove
         EVT_TOOL($self, TB_RESET, sub { $self->reset; });
         EVT_TOOL($self, TB_ARRANGE, sub { $self->arrange; });
         EVT_TOOL($self, TB_MORE, sub { $self->increase; });
@@ -346,7 +349,8 @@ sub new {
         });
     } else {
         EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
-        EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
+#        EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
+        EVT_BUTTON($self, $self->{btn_remove}, sub { Slic3r::GUI::remove_obj() }); # explicitly pass no argument to remove
         EVT_BUTTON($self, $self->{btn_reset}, sub { $self->reset; });
         EVT_BUTTON($self, $self->{btn_arrange}, sub { $self->arrange; });
         EVT_BUTTON($self, $self->{btn_increase}, sub { $self->increase; });
@@ -446,7 +450,8 @@ sub new {
         my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
         Slic3r::GUI::add_expert_mode_part(  $self->{right_panel}, $expert_mode_part_sizer, 
                                             $self->{event_object_selection_changed},
-                                            $self->{event_object_settings_changed});
+                                            $self->{event_object_settings_changed},
+                                            $self->{event_remove_object});
 #        if ($expert_mode_part_sizer->IsShown(2)==1) 
 #        { 
 #           $expert_mode_part_sizer->Layout;

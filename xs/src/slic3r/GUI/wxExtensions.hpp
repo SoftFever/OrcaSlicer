@@ -163,19 +163,21 @@ public:
 		m_scale		= wxString::Format("%d%%", scale);
 		m_type		= "object";
 		m_volume_id	= -1;
+		set_object_action_icon();
 	}
 
 	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
-									const wxString& sub_obj, 
+									const wxString& sub_obj_name, 
 									const wxIcon& icon, 
 									int volume_id=-1) {
 		m_parent	= parent;
-		m_name		= sub_obj;
+		m_name		= sub_obj_name;
 		m_copy		= wxEmptyString;
 		m_scale		= wxEmptyString;
 		m_icon		= icon;
 		m_type		= "volume";
-		m_volume_id	= volume_id;
+		m_volume_id = volume_id;
+		set_part_action_icon();
 	}
 
 	~PrusaObjectDataViewModelNode()
@@ -196,6 +198,8 @@ public:
 	std::string				m_type;
 	int						m_volume_id;
 	bool					m_container = false;
+	wxString				m_extruder = "default";
+	wxBitmap				m_action_icon;
 
 	bool IsContainer() const
 	{
@@ -259,6 +263,12 @@ public:
 		case 2:
 			m_scale = variant.GetString();
 			return true;
+		case 3:
+			m_extruder = variant.GetString();
+			return true;
+		case 4:
+			m_action_icon << variant;
+			return true;
 		default:
 			printf("MyObjectTreeModel::SetValue: wrong column");
 		}
@@ -290,6 +300,7 @@ public:
 		m_name = from_node.m_name;
 		m_icon = from_node.m_icon;
 		m_volume_id = from_node.m_volume_id;
+		m_extruder = from_node.m_extruder;
 	}
 
 	bool SwapChildrens(int frst_id, int scnd_id) {
@@ -309,6 +320,9 @@ public:
 		return true;
 	}
 
+	// Set action icons for node
+	void set_object_action_icon();
+	void set_part_action_icon();
 };
 
 // ----------------------------------------------------------------------------

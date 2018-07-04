@@ -345,6 +345,18 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 
 // *****************************************************************************
 // ----------------------------------------------------------------------------
+// PrusaObjectDataViewModelNode
+// ----------------------------------------------------------------------------
+
+void PrusaObjectDataViewModelNode::set_object_action_icon() {
+	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG);
+}
+void  PrusaObjectDataViewModelNode::set_part_action_icon() {
+	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
+}
+
+// *****************************************************************************
+// ----------------------------------------------------------------------------
 // PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
@@ -538,6 +550,12 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 		break;
 	case 2:
 		variant = node->m_scale;
+		break;
+	case 3:
+		variant = node->m_extruder;
+		break;
+	case 4:
+		variant << node->m_action_icon;
 		break;
 	default:
 		;

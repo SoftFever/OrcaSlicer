@@ -89,11 +89,13 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
 
 void add_expert_mode_part(  SV *ui_parent, SV *ui_sizer, 
                             int event_object_selection_changed,
-                            int event_object_settings_changed)
+                            int event_object_settings_changed,
+                            int event_remove_object)
     %code%{ Slic3r::GUI::add_expert_mode_part(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                                                 (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"), 
                                                 event_object_selection_changed,
-                                                event_object_settings_changed); %};
+                                                event_object_settings_changed,
+                                                event_remove_object); %};
 
 void set_objects_from_perl( SV *ui_parent, 
                             SV *frequently_changed_parameters_sizer,
@@ -148,6 +150,9 @@ void unselect_objects()
 
 void select_current_object(int idx)
     %code%{ Slic3r::GUI::select_current_object(idx); %};
+
+void remove_obj()
+    %code%{ Slic3r::GUI::remove(); %};
 
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};

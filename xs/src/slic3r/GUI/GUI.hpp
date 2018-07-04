@@ -106,6 +106,7 @@ AppConfig*		get_app_config();
 wxApp*			get_app();
 PresetBundle*	get_preset_bundle();
 wxFrame*		get_main_frame();
+wxNotebook *	get_tab_panel();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
@@ -187,7 +188,8 @@ wxString	from_u8(const std::string &str);
 
 void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
 							int event_object_selection_changed,
-							int event_object_settings_changed);
+							int event_object_settings_changed,
+							int event_remove_object);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 // Update view mode according to selected menu 
 void update_mode();

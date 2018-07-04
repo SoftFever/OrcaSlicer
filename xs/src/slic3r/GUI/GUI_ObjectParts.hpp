@@ -39,6 +39,7 @@ struct OBJECT_PARAMETERS
 };
 
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer);
+void add_objects_list(wxWindow* parent, wxBoxSizer* sizer);
 void show_collpane_settings(bool expert_mode);
 
 // Add object to the list
@@ -56,12 +57,16 @@ void set_object_scale(int idx, int scale);
 void unselect_objects();
 // Select current object in the list on c++ side
 void select_current_object(int idx);
+// Remove objects/sub-object from the list
+void remove();
 
 void object_ctrl_selection_changed();
+void object_ctrl_context_menu();
 
 void init_mesh_icons();
 void set_event_object_selection_changed(const int& event);
-void set_event_object_settings_changed (const int& event);
+void set_event_object_settings_changed(const int& event); 
+void set_event_remove_object(const int& event);
 
 bool is_parts_changed();
 bool is_part_settings_changed();
@@ -80,6 +85,9 @@ void on_btn_move_down();
 
 void parts_changed(int obj_idx);
 void part_selection_changed();
+
+// show/hide "Extruder" column for Objects List
+void set_extruder_column_hidden(bool hide);
 } //namespace GUI
 } //namespace Slic3r 
 #endif  //slic3r_GUI_ObjectParts_hpp_

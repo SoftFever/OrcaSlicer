@@ -811,6 +811,10 @@ wxFrame* get_main_frame() {
 	return g_wxMainFrame;
 }
 
+wxNotebook * get_tab_panel() {
+	return g_wxTabPanel;
+}
+
 const int& label_width(){
 	return m_label_width;
 }
@@ -885,15 +889,19 @@ wxString from_u8(const std::string &str)
 
 void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
 							int event_object_selection_changed,
-							int event_object_settings_changed)
+							int event_object_settings_changed,
+							int event_remove_object)
 {
 	set_event_object_selection_changed(event_object_selection_changed);
 	set_event_object_settings_changed(event_object_settings_changed);
+	set_event_remove_object(event_remove_object);
 	init_mesh_icons();
 
 	wxWindowUpdateLocker noUpdates(parent);
 
-	add_collapsible_panes(parent, sizer);
+	add_objects_list(parent, sizer);
+
+// 	add_collapsible_panes(parent, sizer);
 }
 
 Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value = 0)
@@ -1149,7 +1157,7 @@ void update_mode()
 
 	// TODO There is a not the best place of it!
 	// *** Update showing of the collpane_settings
-	show_collpane_settings(mode == ConfigMenuModeExpert);
+// 	show_collpane_settings(mode == ConfigMenuModeExpert);
 	// *************************
 	g_right_panel->GetParent()->Layout();
 	g_right_panel->Layout();
