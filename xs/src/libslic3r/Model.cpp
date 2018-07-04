@@ -333,6 +333,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     Slic3r::TriangleMesh tmpmesh = rmesh;
                     ClipperLib::PolyNode pn;
 
+                    tmpmesh.scale(objinst->scaling_factor);
+
                     // TODO export the exact 2D projection
                     auto p = tmpmesh.convex_hull();
 
