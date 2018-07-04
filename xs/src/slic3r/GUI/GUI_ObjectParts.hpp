@@ -40,6 +40,7 @@ struct OBJECT_PARAMETERS
 
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer);
 void add_objects_list(wxWindow* parent, wxBoxSizer* sizer);
+void add_object_settings(wxWindow* parent, wxBoxSizer* sizer);
 void show_collpane_settings(bool expert_mode);
 
 // Add object to the list

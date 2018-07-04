@@ -230,6 +230,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetFont(sidetext_font);
 			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, m_flag == ogSIDE_OPTIONS_VERTICAL ? 0 : 4);
+			field->set_side_text_ptr(sidetext);
 		}
 
 		// add side widget if any

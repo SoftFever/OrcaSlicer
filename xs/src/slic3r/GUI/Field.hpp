@@ -188,6 +188,10 @@ public:
 		return false;
 	}
 
+	void	set_side_text_ptr(wxStaticText* side_text) {
+		m_side_text = side_text;
+    }
+
 protected:
 	MyButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
@@ -201,6 +205,8 @@ protected:
 	wxStaticText*		m_Label = nullptr;
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
 	const wxColour*		m_label_color = nullptr;
+
+	wxStaticText*		m_side_text = nullptr;
 
 	// current value
 	boost::any			m_value;

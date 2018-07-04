@@ -547,8 +547,11 @@ boost::any& Choice::get_value()
 // 	boost::any m_value;
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
 
-	if (m_opt_id == "support")
-		return m_value = boost::any(ret_str);//ret_str;
+	// options from right panel
+	std::vector <std::string> right_panel_options{ "support", "scale_unit" };
+	for (auto rp_option: right_panel_options)
+		if (m_opt_id == rp_option)
+			return m_value = boost::any(ret_str);
 
 	if (m_opt.type != coEnum)
 		/*m_value = */get_value_by_opt_type(ret_str);

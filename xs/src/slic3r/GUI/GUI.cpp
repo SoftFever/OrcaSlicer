@@ -909,47 +909,6 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 // 	add_collapsible_panes(parent, sizer);
 }
 
-Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value = 0)
-{
-	Line line = { _(option_name), "" };
-	ConfigOptionDef def;
-
-	def.label = L("X");
-	def.type = coInt;
-	def.default_value = new ConfigOptionInt(def_value);
-	def.sidetext = sidetext;
-	def.width = 70;
-
-	const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
-
-	Option option = Option(def, lower_name + "_X");
-	option.opt.full_width = true;
-	line.append_option(option);
-
-	def.label = L("Y");
-	option = Option(def, lower_name + "_Y");
-	line.append_option(option);
-
-	def.label = L("Z");
-	option = Option(def, lower_name + "_Z");
-	line.append_option(option);
-
-	if (option_name == "Scale")
-	{
-		def.label = L("Units");
-		def.type = coStrings;
-		def.gui_type = "select_open";
-		def.enum_labels.push_back(L("%"));
-		def.enum_labels.push_back(L("mm"));
-		def.default_value = new ConfigOptionStrings{ "%" };
-		def.sidetext = " ";
-
-		option = Option(def, lower_name + "_unit");
-		line.append_option(option);
-	}
-	return line;
-}
-
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
@@ -1078,37 +1037,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	add_objects_list(parent, sizer);
 
 	// Frequently Object Settings
-	optgroup = std::make_shared<ConfigOptionsGroup>(parent, _(L("Object Settings")), config);
- 	optgroup->label_width = 100;
-	optgroup->set_grid_vgap(5);
-
-// 	def.label = L("Name");
-// 	def.type = coString;
-// 	def.tooltip = L("Object name");
-// 	def.full_width = true;
-// 	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
-// 	optgroup->append_single_option_line(Option(def, "object_name"));
-
-	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
-	optgroup->sidetext_width = 25;
-	
-	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
-	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°", 1));
-	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
-
-	optgroup->set_flag(ogDEFAULT);
-
-	def.label = L("Place on bed");
-	def.type = coBool;
-	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
-	def.gui_type = "";
-	def.sidetext = "";
-	def.default_value = new ConfigOptionBool{ false };
-	optgroup->append_single_option_line(Option(def, "place_on_bed"));
-
-	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP, 20);
-
-	m_optgroups.push_back(optgroup);  // ogFrequentlyObjectSettings
+	add_object_settings(parent, sizer);
 }
 
 void show_frequently_changed_parameters(bool show)

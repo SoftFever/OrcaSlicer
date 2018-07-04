@@ -65,7 +65,7 @@ void init_mesh_icons(){
 bool is_parts_changed(){return m_parts_changed;}
 bool is_part_settings_changed(){ return m_part_settings_changed; }
 
-static wxString dots("�", wxConvUTF8);
+static wxString dots("â€¦", wxConvUTF8);
 
 // ****** from GUI.cpp
 wxBoxSizer* content_objects_list(wxWindow *win)
@@ -308,6 +308,98 @@ wxBoxSizer* content_settings(wxWindow *win)
 	return sizer;
 }
 
+void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
+{
+	const auto ol_sizer = content_objects_list(parent);
+	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
+	set_objects_list_sizer(ol_sizer);
+}
+
+Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value = 0)
+{
+	Line line = { _(option_name), "" };
+
+	ConfigOptionDef def;
+	def.type = coInt;
+	def.default_value = new ConfigOptionInt(def_value);
+	def.sidetext = sidetext;
+	def.width = 70;
+
+	const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
+
+	std::vector<std::string> axes{ "x", "y", "z" };
+	for (auto axis : axes) {
+		def.label = boost::algorithm::to_upper_copy(axis);
+		Option option = Option(def, lower_name + "_" + axis);
+		option.opt.full_width = true;
+		line.append_option(option);
+	}
+
+	if (option_name == "Scale")
+	{
+		def.label = L("Units");
+		def.type = coStrings;
+		def.gui_type = "select_open";
+		def.enum_labels.push_back(L("%"));
+		def.enum_labels.push_back(L("mm"));
+		def.default_value = new ConfigOptionStrings{ "%" };
+		def.sidetext = " ";
+
+		Option option = Option(def, lower_name + "_unit");
+		line.append_option(option);
+	}
+	return line;
+}
+
+void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
+{
+	auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, _(L("Object Settings")));
+	optgroup->label_width = 100;
+	optgroup->set_grid_vgap(5);
+
+	optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
+		if (opt_key == "scale_unit"){
+			const wxString& selection = boost::any_cast<wxString>(value);
+			std::vector<std::string> axes{ "x", "y", "z" };
+			for (auto axis : axes) {
+				std::string key = "scale_" + axis;
+				get_optgroup(ogFrequentlyObjectSettings)->set_side_text(key, selection);
+			}
+		}
+	};
+
+// 	def.label = L("Name");
+// 	def.type = coString;
+// 	def.tooltip = L("Object name");
+// 	def.full_width = true;
+// 	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
+// 	optgroup->append_single_option_line(Option(def, "object_name"));
+
+	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
+	optgroup->sidetext_width = 25;
+
+	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
+	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°", 1));
+	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
+
+	optgroup->set_flag(ogDEFAULT);
+
+	ConfigOptionDef def;
+	def.label = L("Place on bed");
+	def.type = coBool;
+	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
+	def.gui_type = "";
+	def.sidetext = "";
+	def.default_value = new ConfigOptionBool{ false };
+	optgroup->append_single_option_line(Option(def, "place_on_bed"));
+
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP, 20);
+
+	optgroup->disable();
+
+	get_optgroups().push_back(optgroup);  // ogFrequentlyObjectSettings
+}
+
 
 // add Collapsible Pane to sizer
 wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
@@ -329,13 +421,6 @@ wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_pare
 	win->SetSizer(sizer_pane);
 	// 	sizer_pane->SetSizeHints(win);
 	return collpane;
-}
-
-void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
-{
-	const auto ol_sizer = content_objects_list(parent);
-	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
-	set_objects_list_sizer(ol_sizer);
 }
 
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer)

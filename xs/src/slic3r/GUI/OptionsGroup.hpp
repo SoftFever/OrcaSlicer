@@ -128,6 +128,14 @@ public:
 							return out;
     }
 
+	bool			set_side_text(const t_config_option_key& opt_key, const wxString& side_text) {
+							if (m_fields.find(opt_key) == m_fields.end()) return false;
+							auto st = m_fields.at(opt_key)->m_side_text;
+							if (!st) return false;
+							st->SetLabel(side_text);
+							return true;
+    }
+
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 	void			set_flag(ogDrawFlag flag) { m_flag = flag; }
