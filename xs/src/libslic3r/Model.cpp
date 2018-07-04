@@ -476,13 +476,20 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     using PConf = Arranger::PlacementConfig;
     using SConf = Arranger::SelectionConfig;
 
-    PConf pcfg;
-    SConf scfg;
+    PConf pcfg;     // Placement configuration
+    SConf scfg;     // Selection configuration
 
+    // Try inserting groups of 2, and 3 items in all possible order.
     scfg.try_reverse_order = true;
+
+    // If there are more items that could possibly fit into one bin,
+    // use multiple threads. (Potencially decreased pack efficiency)
     scfg.allow_parallel = false;
+
+    // Use multiple threads whenever possible
     scfg.force_parallel = false;
 
+    // Align the arranged pile into the center of the bin
     pcfg.alignment = PConf::Alignment::CENTER;
 
     // TODO cannot use rotations until multiple objects of same geometry can
@@ -490,28 +497,45 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
 
+    // Magic: we will specify what is the goal of arrangement...
+    // In this case we override the default object function because we
+    // (apparently) don't care about pack efficiency and all we care is that the
+    // larger items go into the center of the pile and smaller items orbit it
+    // so the resulting pile has a circle-like shape.
+    // This is good for the print bed's heat profile.
+    // As a side effect, the arrange procedure is a lot faster (we do not need
+    // to calculate the convex hulls)
     pcfg.object_function = [&bin](
-            NfpPlacer::Pile pile, double /*area*/, double norm, double penality)
+            NfpPlacer::Pile pile,   // The currently arranged pile
+            double /*area*/,        // Sum area of items (not needed)
+            double norm,            // A norming factor for physical dimensions
+            double penality)        // Min penality in case of bad arrangement
     {
         auto bb = ShapeLike::boundingBox(pile);
 
-        // We will optimize to the diameter of the circle around the bounding box
-        double score = PointLike::distance(bb.minCorner(), bb.maxCorner()) / norm;
+        // We will optimize to the diameter of the circle around the bounding
+        // box and use the norming factor to get rid of the physical dimensions
+        double score = PointLike::distance(bb.minCorner(),
+                                           bb.maxCorner()) / norm;
 
+        // If it does not fit into the print bed we will beat it
+        // with a large penality
         if(!NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
 
         return score;
     };
 
+    // Create the arranger object
     Arranger arranger(bin, min_obj_distance, pcfg, scfg);
 
+    // Set the progress indicator for the arranger.
     arranger.progressIndicator(progressind);
 
     // std::cout << "Arranging model..." << std::endl;
     // bench.start();
+
     // Arrange and return the items with their respective indices within the
     // input sequence.
-
     auto result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
 
     // bench.stop();
