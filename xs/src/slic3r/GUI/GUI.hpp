@@ -101,6 +101,7 @@ void set_objects_from_perl(	wxWindow* parent,
 							wxStaticBitmap *manifold_warning_icon);
 void set_show_print_info(bool show);
 void set_show_manifold_warning_icon(bool show);
+void set_objects_list_sizer(wxBoxSizer *objects_list_sizer);
 
 AppConfig*		get_app_config();
 wxApp*			get_app();
@@ -121,7 +122,7 @@ const wxFont& bold_font();
 void open_model(wxWindow *parent, wxArrayString& input_files);
 
 wxWindow*			get_right_panel();
-const int&			label_width();
+const size_t&		label_width();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 

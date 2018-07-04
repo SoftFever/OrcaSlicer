@@ -133,6 +133,7 @@ wxWindow	*g_right_panel = nullptr;
 wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
 wxBoxSizer	*g_expert_mode_part_sizer = nullptr;
 wxBoxSizer	*g_scrolled_window_sizer = nullptr;
+wxBoxSizer	*g_object_list_sizer = nullptr;
 wxButton	*g_btn_export_gcode = nullptr;
 wxButton	*g_btn_export_stl = nullptr;
 wxButton	*g_btn_reslice = nullptr;
@@ -242,6 +243,10 @@ void set_show_print_info(bool show)
 void set_show_manifold_warning_icon(bool show)
 {
 	g_show_manifold_warning_icon = show;
+}
+
+void set_objects_list_sizer(wxBoxSizer *objects_list_sizer){
+	g_object_list_sizer = objects_list_sizer;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -815,7 +820,7 @@ wxNotebook * get_tab_panel() {
 	return g_wxTabPanel;
 }
 
-const int& label_width(){
+const size_t& label_width(){
 	return m_label_width;
 }
 
@@ -899,7 +904,7 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 
 	wxWindowUpdateLocker noUpdates(parent);
 
-	add_objects_list(parent, sizer);
+// 	add_objects_list(parent, sizer);
 
 // 	add_collapsible_panes(parent, sizer);
 }
@@ -952,6 +957,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	const wxArrayInt& ar = preset_sizer->GetColWidths();
 	m_label_width = ar.IsEmpty() ? 100 : ar.front()-4;
 	optgroup->label_width = m_label_width;
+
+	//Frequently changed parameters
 	optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
@@ -1067,17 +1074,20 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
 	m_optgroups.push_back(optgroup);// ogFrequentlyChangingParameters
 
+	// Object List
+	add_objects_list(parent, sizer);
+
 	// Frequently Object Settings
 	optgroup = std::make_shared<ConfigOptionsGroup>(parent, _(L("Object Settings")), config);
  	optgroup->label_width = 100;
 	optgroup->set_grid_vgap(5);
 
-	def.label = L("Name");
-	def.type = coString;
-	def.tooltip = L("Object name");
-	def.full_width = true;
-	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
-	optgroup->append_single_option_line(Option(def, "object_name"));
+// 	def.label = L("Name");
+// 	def.type = coString;
+// 	def.tooltip = L("Object name");
+// 	def.full_width = true;
+// 	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
+// 	optgroup->append_single_option_line(Option(def, "object_name"));
 
 	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
 	optgroup->sidetext_width = 25;
@@ -1096,7 +1106,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.default_value = new ConfigOptionBool{ false };
 	optgroup->append_single_option_line(Option(def, "place_on_bed"));
 
-	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT, 20);
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
 	m_optgroups.push_back(optgroup);  // ogFrequentlyObjectSettings
 }
@@ -1151,7 +1161,8 @@ void update_mode()
 	ConfigMenuIDs mode = get_view_mode();
 
 // 	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
-	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
+// 	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
+	g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
 	show_info_sizer(mode == ConfigMenuModeExpert);
 	show_buttons(mode == ConfigMenuModeExpert);
 

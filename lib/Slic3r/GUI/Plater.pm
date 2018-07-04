@@ -519,7 +519,7 @@ sub new {
             my $box = Wx::StaticBox->new($self->{right_panel}, -1, L("Sliced Info"));
             $box->SetFont($Slic3r::GUI::small_bold_font);
             $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
-            $print_info_sizer->SetMinSize([300,-1]);
+            $print_info_sizer->SetMinSize([316,-1]);
             my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
             $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
             $grid_sizer->AddGrowableCol(1, 1);
@@ -555,7 +555,7 @@ sub new {
 
         ### Sizer for info boxes
         my $info_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $info_sizer->SetMinSize([310, -1]);        
+        $info_sizer->SetMinSize([318, -1]);        
         $info_sizer->Add($object_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $info_sizer->Add($print_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
 

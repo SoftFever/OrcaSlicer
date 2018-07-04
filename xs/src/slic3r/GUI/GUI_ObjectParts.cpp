@@ -333,7 +333,9 @@ wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_pare
 
 void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
 {
-	sizer->Add(content_objects_list(parent), 1, wxEXPAND | wxALL, 0);
+	const auto ol_sizer = content_objects_list(parent);
+	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
+	set_objects_list_sizer(ol_sizer);
 }
 
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer)
