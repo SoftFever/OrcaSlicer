@@ -25,6 +25,7 @@ wxCollapsiblePane			*m_collpane_settings = nullptr;
 
 wxIcon		m_icon_modifiermesh;
 wxIcon		m_icon_solidmesh;
+wxIcon		m_icon_manifold_warning;
 
 wxSlider*	m_mover_x = nullptr;
 wxSlider*	m_mover_y = nullptr;
@@ -60,6 +61,7 @@ void set_event_remove_object(const int& event){
 void init_mesh_icons(){
 	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
 	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
 }
 
 bool is_parts_changed(){return m_parts_changed;}
@@ -449,9 +451,22 @@ void show_collpane_settings(bool expert_mode)
 
 void add_object_to_list(const std::string &name, ModelObject* model_object)
 {
-	wxString item = name;
+	wxString item_name = name;
 	int scale = model_object->instances[0]->scaling_factor * 100;
-	m_objects_ctrl->Select(m_objects_model->Add(item, model_object->instances.size(), scale));
+	auto item = m_objects_model->Add(item_name, model_object->instances.size(), scale);
+	m_objects_ctrl->Select(item);
+
+	// Add error icon if detected auto-repaire
+	auto stats = model_object->volumes[0]->mesh.stl.stats;
+	int errors =	stats.degenerate_facets + stats.edges_fixed + stats.facets_removed + 
+					stats.facets_added + stats.facets_reversed + stats.backwards_edges;
+	if (errors > 0)		{
+		const wxDataViewIconText data(item_name, m_icon_manifold_warning);
+		wxVariant variant;
+		variant << data;
+		m_objects_model->SetValue(variant, item, 0);
+	}
+
 // 	part_selection_changed();
 #ifdef __WXMSW__
 	object_ctrl_selection_changed();
@@ -818,6 +833,21 @@ void parts_changed(int obj_idx)
 	e.SetString(event_str);
 	get_main_frame()->ProcessWindowEvent(e);
 }
+	
+void update_settings_value()
+{
+	auto og = get_optgroup(ogFrequentlyObjectSettings);
+	if (m_selected_object_id < 0 || m_objects.size() <= m_selected_object_id)		{
+		og->set_value("scale_x", 0);
+		og->set_value("scale_y", 0);
+		og->set_value("scale_z", 0);
+		return;
+	}
+	auto bb_size = m_objects[m_selected_object_id]->instance_bounding_box(0).size();
+	og->set_value("scale_x", int(bb_size.x+0.5));
+	og->set_value("scale_y", int(bb_size.y+0.5));
+	og->set_value("scale_z", int(bb_size.z+0.5));
+}
 
 void part_selection_changed()
 {
@@ -834,6 +864,8 @@ void part_selection_changed()
 		}
 	}
 	m_selected_object_id = obj_idx;
+
+	update_settings_value();
 
 /*	wxWindowUpdateLocker noUpdates(get_right_panel());
 
