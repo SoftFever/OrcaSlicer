@@ -73,6 +73,9 @@ public:
 	// Same as above except also override the file's filename with a custom one
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
+	// Add the file as POSTFIELD to the request, this can be used for hosts which do not support multipart requests
+	Http& postfield_add_file(const boost::filesystem::path &path);
+
 	// Callback called on HTTP request complete
 	Http& on_complete(CompleteFn fn);
 	// Callback called on an error occuring at any stage of the requests: Url parsing, DNS lookup,

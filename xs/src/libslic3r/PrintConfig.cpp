@@ -1137,24 +1137,36 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "nozzle-diameter=f@";
     def->default_value = new ConfigOptionFloats { 0.5 };
 
-    def = this->add("octoprint_apikey", coString);
-    def->label = L("API Key");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the API Key required for authentication.");
+    def = this->add("host_type", coEnum);
+    def->label = L("Host Type");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
+                   "the kind of the host.");
+    def->cli = "host-type=s";
+    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
+    def->enum_values.push_back("octoprint");
+    def->enum_values.push_back("duet");
+    def->enum_labels.push_back("OctoPrint");
+    def->enum_labels.push_back("Duet");
+    def->default_value = new ConfigOptionEnum<PrintHostType>(htOctoPrint);
+
+    def = this->add("printhost_apikey", coString);
+    def->label = L("API Key / Password");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the API Key or the password required for authentication.");
     def->cli = "octoprint-apikey=s";
     def->default_value = new ConfigOptionString("");
     
-    def = this->add("octoprint_cafile", coString);
+    def = this->add("printhost_cafile", coString);
     def->label = "HTTPS CA file";
     def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
                    "If left blank, the default OS CA certificate repository is used.";
     def->cli = "octoprint-cafile=s";
     def->default_value = new ConfigOptionString("");
 
-    def = this->add("octoprint_host", coString);
+    def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the hostname, IP address or URL of the OctoPrint instance.");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the hostname, IP address or URL of the printer host instance.");
     def->cli = "octoprint-host=s";
     def->default_value = new ConfigOptionString("");
 
@@ -2107,10 +2119,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         std::ostringstream oss;
         oss << "0x0," << p.value.x << "x0," << p.value.x << "x" << p.value.y << ",0x" << p.value.y;
         value = oss.str();
-// Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-// Commenting this out fixes github issue #869 for now.
-//    } else if (opt_key == "octoprint_host" && !value.empty()) {
-//        opt_key = "print_host";
     } else if ((opt_key == "perimeter_acceleration" && value == "25")
         || (opt_key == "infill_acceleration" && value == "50")) {
         /*  For historical reasons, the world's full of configs having these very low values;
