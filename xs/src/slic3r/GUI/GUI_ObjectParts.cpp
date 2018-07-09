@@ -48,6 +48,28 @@ int			m_event_remove_object = 0;
 bool m_parts_changed = false;
 bool m_part_settings_changed = false;
 
+// typedef std::map<std::string, std::string> t_category_icon;
+typedef std::map<std::string, wxBitmap> t_category_icon;
+inline t_category_icon& get_category_icon() {
+	static t_category_icon CATEGORY_ICON;
+	if (CATEGORY_ICON.empty()){
+		CATEGORY_ICON[L("Layers and Perimeters")]	= wxBitmap(from_u8(Slic3r::var("layers.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Infill")]					= wxBitmap(from_u8(Slic3r::var("infill.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Support material")]		= wxBitmap(from_u8(Slic3r::var("building.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Speed")]					= wxBitmap(from_u8(Slic3r::var("time.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Extruders")]				= wxBitmap(from_u8(Slic3r::var("funnel.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Extrusion Width")]			= wxBitmap(from_u8(Slic3r::var("funnel.png")), wxBITMAP_TYPE_PNG);
+// 		CATEGORY_ICON[L("Skirt and brim")]			= wxBitmap(from_u8(Slic3r::var("box.png")), wxBITMAP_TYPE_PNG);
+// 		CATEGORY_ICON[L("Speed > Acceleration")]	= wxBitmap(from_u8(Slic3r::var("time.png")), wxBITMAP_TYPE_PNG);
+		CATEGORY_ICON[L("Advanced")]				= wxBitmap(from_u8(Slic3r::var("wand.png")), wxBITMAP_TYPE_PNG);
+	}
+	return CATEGORY_ICON;
+}
+
+// C++ class Slic3r::DynamicPrintConfig, initially empty.
+std::shared_ptr<DynamicPrintConfig> default_config = std::make_shared<DynamicPrintConfig>();
+std::shared_ptr<DynamicPrintConfig> config = std::make_shared<DynamicPrintConfig>();
+
 void set_event_object_selection_changed(const int& event){
 	m_event_object_selection_changed = event;
 }
@@ -560,7 +582,7 @@ void object_ctrl_selection_changed()
 	}
 }
 
-wxMenu *CreateAddPartPopupMenu(){
+wxMenu *create_add_part_popupmenu(){
 	wxMenu *menu = new wxMenu;
 	wxWindowID config_id_base = wxWindow::NewControlId(3);
 
@@ -590,6 +612,35 @@ wxMenu *CreateAddPartPopupMenu(){
 	return menu;
 }
 
+wxMenu *create_add_settings_popupmenu()
+{
+	wxMenu *menu = new wxMenu;
+
+	auto categories = get_category_icon();
+	int category_cnt = categories.size();
+	wxWindowID config_id_base = wxWindow::NewControlId(category_cnt);
+
+	int inc = 0;
+	for (auto cat : categories)
+	{
+		auto menu_item = new wxMenuItem(menu, config_id_base + inc, _(cat.first));
+		menu_item->SetBitmap(cat.second);
+
+		auto sub_menu = new wxMenu;
+		sub_menu->AppendCheckItem(wxID_ANY, "Check#1");
+		sub_menu->AppendCheckItem(wxID_ANY, "Check#2");
+		sub_menu->AppendCheckItem(wxID_ANY, "Check#3");
+		sub_menu->AppendCheckItem(wxID_ANY, "Check#4");
+
+		menu_item->SetSubMenu(sub_menu);
+
+		menu->Append(menu_item);
+		inc++;
+	}
+
+	return menu;
+}
+
 void object_ctrl_context_menu()
 {
 // 	auto cur_column = m_objects_ctrl->GetCurrentColumn();
@@ -600,15 +651,18 @@ void object_ctrl_context_menu()
 		if (item)
 		{
 			if (m_objects_model->GetParent(item) == wxDataViewItem(0))				{
-				auto menu = CreateAddPartPopupMenu();
+				auto menu = create_add_part_popupmenu();
 				get_tab_panel()->GetPage(0)->PopupMenu(menu);
-// 				wxMessageBox(m_objects_model->GetName(item));
 			}
-			// 				else {
-			// 					auto parent = m_objects_model->GetParent(item);
-			// 					// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
-			// 					obj_idx = m_objects_model->GetIdByItem(parent);
-			// 				}
+			else {
+// 				auto parent = m_objects_model->GetParent(item);
+// 				// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
+// 				obj_idx = m_objects_model->GetIdByItem(parent);
+// 				auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+// 				if (volume_id < 0) return;
+				auto menu = create_add_settings_popupmenu();
+				get_tab_panel()->GetPage(0)->PopupMenu(menu);
+			}
 		}
 	}
 }
