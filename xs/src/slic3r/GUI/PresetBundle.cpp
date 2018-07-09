@@ -505,8 +505,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     for (size_t i_group = 0; i_group < 2; ++ i_group) {
         PresetCollection &presets = (i_group == 0) ? this->prints : this->printers;
 		Preset &preset = presets.load_preset(is_external ? name_or_path : presets.path_from_name(name), name, config);
-        if (is_external)
+        if (is_external) {
             preset.is_external = true;
+            presets.update_edited_preset_is_external(true);
+        }
         else
             preset.save();
     }
@@ -518,8 +520,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     if (num_extruders <= 1) {
         Preset &preset = this->filaments.load_preset(
 			is_external ? name_or_path : this->filaments.path_from_name(name), name, config);
-        if (is_external)
+        if (is_external) {
             preset.is_external = true;
+            this->filaments.update_edited_preset_is_external(true);
+        }
         else
             preset.save();
         this->filament_presets.clear();
@@ -553,8 +557,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             Preset &preset = this->filaments.load_preset(
 				is_external ? name_or_path : this->filaments.path_from_name(new_name),
                 new_name, std::move(configs[i]), i == 0);
-            if (is_external)
+            if (is_external) {
                 preset.is_external = true;
+                this->filaments.update_edited_preset_is_external(true);
+            }
             else
                 preset.save();
             this->filament_presets.emplace_back(new_name);
