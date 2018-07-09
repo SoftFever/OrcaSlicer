@@ -1408,15 +1408,14 @@ GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
-GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
+GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
-    , m_context(context)
+    , m_context(nullptr)
     , m_timer(nullptr)
     , m_config(nullptr)
     , m_print(nullptr)
     , m_model(nullptr)
     , m_dirty(true)
-    , m_active(true)
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_force_zoom_to_bed_enabled(false)
@@ -1434,7 +1433,10 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_reload_delayed(false)
 {
     if (m_canvas != nullptr)
+    {
+        m_context = new wxGLContext(m_canvas);
         m_timer = new wxTimer(m_canvas);
+    }
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -1447,6 +1449,12 @@ GLCanvas3D::~GLCanvas3D()
         m_timer = nullptr;
     }
 
+    if (m_context != nullptr)
+    {
+        delete m_context;
+        m_context = nullptr;
+    }
+
     _deregister_callbacks();
 }
 
@@ -1454,6 +1462,9 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
     if (m_initialized)
         return true;
+
+    if ((m_canvas == nullptr) || (m_context == nullptr))
+        return false;
 
     ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     ::glClearDepth(1.0f);
@@ -1520,17 +1531,12 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     return true;
 }
 
-bool GLCanvas3D::set_current(bool force)
+bool GLCanvas3D::set_current()
 {
-    if ((force || m_active) && (m_canvas != nullptr) && (m_context != nullptr))
+    if ((m_canvas != nullptr) && (m_context != nullptr))
         return m_canvas->SetCurrent(*m_context);
 
     return false;
-}
-
-void GLCanvas3D::set_active(bool active)
-{
-    m_active = active;
 }
 
 void GLCanvas3D::set_as_dirty()
@@ -1549,7 +1555,7 @@ void GLCanvas3D::reset_volumes()
     if (!m_volumes.empty())
     {
         // ensures this canvas is current
-        if ((m_canvas == nullptr) || !_3DScene::set_current(m_canvas, true))
+        if (!set_current())
             return;
 
         m_volumes.release_geometry();
@@ -1655,6 +1661,8 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
+
+    m_dirty = true;
 }
 
 void GLCanvas3D::set_auto_bed_shape()
@@ -1850,7 +1858,7 @@ void GLCanvas3D::render()
         return;
 
     // ensures this canvas is current and initialized
-    if (!_3DScene::set_current(m_canvas, false) || !_3DScene::init(m_canvas))
+    if (!set_current() || !_3DScene::init(m_canvas))
         return;
 
     if (m_force_zoom_to_bed_enabled)
@@ -1933,7 +1941,7 @@ void GLCanvas3D::reload_scene(bool force)
     reset_volumes();
 
     // ensures this canvas is current
-    if (!_3DScene::set_current(m_canvas, true))
+    if (!set_current())
         return;
 
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
@@ -2008,7 +2016,7 @@ void GLCanvas3D::reload_scene(bool force)
 void GLCanvas3D::load_print_toolpaths()
 {
     // ensures this canvas is current
-    if (!_3DScene::set_current(m_canvas, true))
+    if (!set_current())
         return;
 
     if (m_print == nullptr)
@@ -2376,7 +2384,7 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     if ((m_canvas != nullptr) && (m_print != nullptr))
     {
         // ensures that this canvas is current
-        if (!_3DScene::set_current(m_canvas, true))
+        if (!set_current())
             return;
 
         if (m_volumes.empty())
@@ -2693,11 +2701,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif
     } 
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
-    {
-        m_active = false;
         m_on_double_click_callback.call();
-        m_active = true;
-    }
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -2793,11 +2797,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // if right clicking on volume, propagate event through callback
                     if (m_volumes.volumes[volume_idx]->hover)
-                    {
-                        m_active = false;
                         m_on_right_click_callback.call(pos.x, pos.y);
-                        m_active = true;
-                    }
                 }
             }
         }
@@ -3004,7 +3004,7 @@ Point GLCanvas3D::get_local_mouse_position() const
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
-    return (m_canvas != nullptr) ? m_active && m_canvas->IsShownOnScreen() : false;
+    return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
 void GLCanvas3D::_force_zoom_to_bed()
@@ -3019,7 +3019,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         return;
 
     // ensures that this canvas is current
-    _3DScene::set_current(m_canvas, false);
+    set_current();
     ::glViewport(0, 0, w, h);
 
     ::glMatrixMode(GL_PROJECTION);

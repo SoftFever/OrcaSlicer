@@ -537,15 +537,15 @@ bool PresetUpdater::config_update() const
 			incompats_map.emplace(std::make_pair(std::move(vendor), std::move(restrictions)));
 		}
 
+		p->had_config_update = true;   // This needs to be done before a dialog is shown because of OnIdle() + CallAfter() in Perl
+
 		GUI::MsgDataIncompatible dlg(std::move(incompats_map));
 		const auto res = dlg.ShowModal();
 		if (res == wxID_REPLACE) {
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 			p->perform_updates(std::move(updates));
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
-			if (wizard.run(GUI::get_preset_bundle(), this)) {
-				p->had_config_update = true;
-			} else {
+			if (! wizard.run(GUI::get_preset_bundle(), this)) {	
 				return false;
 			}
 		} else {
@@ -566,6 +566,8 @@ bool PresetUpdater::config_update() const
 			updates_map.emplace(std::make_pair(std::move(vendor), std::move(ver_str)));
 		}
 
+		p->had_config_update = true;   // Ditto, see above
+
 		GUI::MsgUpdateConfig dlg(std::move(updates_map));
 
 		const auto res = dlg.ShowModal();
@@ -581,8 +583,6 @@ bool PresetUpdater::config_update() const
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User refused the update";
 		}
-
-		p->had_config_update = true;
 	} else {
 		BOOST_LOG_TRIVIAL(info) << "No configuration updates available.";
 	}
