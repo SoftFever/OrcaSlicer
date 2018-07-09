@@ -1334,8 +1334,11 @@ void GCode::process_layer(
         if (objects_by_extruder_it == by_extruder.end())
             continue;
 
-        // We are almost ready to print. However, we must go through all the object twice and only print the overridden extrusions first (infill/perimeter wiping feature):
+        // We are almost ready to print. However, we must go through all the objects twice to print the the overridden extrusions first (infill/perimeter wiping feature):
         for (int print_wipe_extrusions=layer_tools.wiping_extrusions.is_anything_overridden(); print_wipe_extrusions>=0; --print_wipe_extrusions) {
+            if (print_wipe_extrusions == 0)
+                gcode+="; PURGING FINISHED\n";
+
             for (ObjectByExtruder &object_by_extruder : objects_by_extruder_it->second) {
                 const size_t       layer_id     = &object_by_extruder - objects_by_extruder_it->second.data();
                 const PrintObject *print_object = layers[layer_id].object();

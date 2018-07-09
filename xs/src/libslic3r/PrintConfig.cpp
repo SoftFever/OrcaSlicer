@@ -344,6 +344,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("2");
     def->enum_labels.push_back("3");
     def->enum_labels.push_back("4");
+    def->enum_labels.push_back("5");
 
     def = this->add("extruder_clearance_height", coFloat);
     def->label = L("Height");
@@ -1887,7 +1888,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("wipe_into_infill", coBool);
     def->category = L("Extruders");
-    def->label = L("Wiping into infill");
+    def->label = L("Purging into infill");
     def->tooltip = L("Wiping after toolchange will be preferentially done inside infills. "
                      "This lowers the amount of waste but may result in longer print time "
                      " due to additional travel moves.");
@@ -1896,11 +1897,10 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("wipe_into_objects", coBool);
     def->category = L("Extruders");
-    def->label = L("Wiping into objects");
+    def->label = L("Purging into objects");
     def->tooltip = L("Objects will be used to wipe the nozzle after a toolchange to save material "
                      "that would otherwise end up in the wipe tower and decrease print time. "
-                     "Colours of the objects will be mixed as a result. (This setting is usually "
-                     "used on per-object basis.)");
+                     "Colours of the objects will be mixed as a result.");
     def->cli = "wipe-into-objects!";
     def->default_value = new ConfigOptionBool(false);
 

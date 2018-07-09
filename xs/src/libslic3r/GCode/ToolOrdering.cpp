@@ -427,8 +427,6 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
     if (print.config.filament_soluble.get_at(new_extruder))
         return volume_to_wipe;      // Soluble filament cannot be wiped in a random infill
 
-    bool is_last_nonsoluble = ((int)new_extruder == last_nonsoluble_extruder_on_layer(print.config, layer_tools));
-
     // we will sort objects so that dedicated for wiping are at the beginning:
     PrintObjectPtrs object_list = print.objects;
     std::sort(object_list.begin(), object_list.end(), [](const PrintObject* a, const PrintObject* b) { return a->config.wipe_into_objects; });
