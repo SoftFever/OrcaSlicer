@@ -1365,7 +1365,7 @@ void GCode::process_layer(
                         m_avoid_crossing_perimeters.use_external_mp_once = true;
                     m_last_obj_copy = this_object_copy;
                     this->set_origin(unscale(copy.x), unscale(copy.y));
-                    if (object_by_extruder.support != nullptr) {
+                    if (object_by_extruder.support != nullptr && !print_wipe_extrusions) {
                         m_layer = layers[layer_id].support_layer;
                         gcode += this->extrude_support(
                             // support_extrusion_role is erSupportMaterial, erSupportMaterialInterface or erMixed for all extrusion paths.
