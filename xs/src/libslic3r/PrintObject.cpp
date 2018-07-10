@@ -93,6 +93,7 @@ bool PrintObject::set_copies(const Points &points)
     
     bool invalidated = this->_print->invalidate_step(psSkirt);
     invalidated |= this->_print->invalidate_step(psBrim);
+    invalidated |= this->_print->invalidate_step(psWipeTower);
     return invalidated;
 }
 
