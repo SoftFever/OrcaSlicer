@@ -286,6 +286,9 @@ public:
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object) const;
 
+    // Returns extruder this eec should be printed with, according to PrintRegion config:
+    static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region);
+
     void _make_skirt();
     void _make_brim();
 
@@ -321,14 +324,6 @@ private:
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;
 };
-
-
-// Returns extruder this eec should be printed with, according to PrintRegion config
-static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region) {
-    return is_infill(fill.role()) ? std::max<int>(0, (is_solid_infill(fill.entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
-                                    std::max<int>(region.config.perimeter_extruder.value - 1, 0);
-}
-
 
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)

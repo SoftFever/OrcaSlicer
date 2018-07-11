@@ -143,7 +143,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
                 if (m_print_config_ptr) { // in this case complete_objects is false (see ToolOrdering constructors)
                     something_nonoverriddable = false;
                     for (const auto& eec : layerm->perimeters.entities) // let's check if there are nonoverriddable entities
-                        if (!layer_tools.wiping_extrusions.is_overriddable(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region)) {
+                        if (!layer_tools.wiping_extrusions().is_overriddable(dynamic_cast<const ExtrusionEntityCollection&>(*eec), *m_print_config_ptr, object, region)) {
                             something_nonoverriddable = true;
                             break;
                         }
@@ -169,7 +169,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
                     has_infill = true;
 
                 if (m_print_config_ptr) {
-                    if (!something_nonoverriddable && !layer_tools.wiping_extrusions.is_overriddable(*fill, *m_print_config_ptr, object, region))
+                    if (!something_nonoverriddable && !layer_tools.wiping_extrusions().is_overriddable(*fill, *m_print_config_ptr, object, region))
                         something_nonoverriddable = true;
                 }
             }
@@ -382,8 +382,9 @@ void WipingExtrusions::set_extruder_override(const ExtrusionEntity* entity, unsi
 
 
 // Finds first non-soluble extruder on the layer
-int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const
+int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const
 {
+    const LayerTools& lt = *m_layer_tools;
     for (auto extruders_it = lt.extruders.begin(); extruders_it != lt.extruders.end(); ++extruders_it)
         if (!print_config.filament_soluble.get_at(*extruders_it))
             return (*extruders_it);
@@ -392,8 +393,9 @@ int WipingExtrusions::first_nonsoluble_extruder_on_layer(const PrintConfig& prin
 }
 
 // Finds last non-soluble extruder on the layer
-int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const
+int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const
 {
+    const LayerTools& lt = *m_layer_tools;
     for (auto extruders_it = lt.extruders.rbegin(); extruders_it != lt.extruders.rend(); ++extruders_it)
         if (!print_config.filament_soluble.get_at(*extruders_it))
             return (*extruders_it);
@@ -405,7 +407,7 @@ int WipingExtrusions::last_nonsoluble_extruder_on_layer(const PrintConfig& print
 // Decides whether this entity could be overridden
 bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const
 {
-    if (print_config.filament_soluble.get_at(get_extruder(eec, region)))
+    if (print_config.filament_soluble.get_at(Print::get_extruder(eec, region)))
         return false;
 
     if (object.config.wipe_into_objects)
@@ -420,8 +422,9 @@ bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, con
 
 // Following function iterates through all extrusions on the layer, remembers those that could be used for wiping after toolchange
 // and returns volume that is left to be wiped on the wipe tower.
-float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe)
+float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int new_extruder, float volume_to_wipe)
 {
+    const LayerTools& layer_tools = *m_layer_tools;
     const float min_infill_volume = 0.f; // ignore infill with smaller volume than this
 
     if (print.config.filament_soluble.get_at(new_extruder))
@@ -472,7 +475,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
                             continue;
 
                         // What extruder would this normally be printed with?
-                        unsigned int correct_extruder = get_extruder(*fill, region);
+                        unsigned int correct_extruder = Print::get_extruder(*fill, region);
 
                         if (volume_to_wipe<=0)
                             continue;
@@ -529,10 +532,11 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, const LayerTo
 // that were not actually overridden. If they are part of a dedicated object, printing them with the extruder
 // they were initially assigned to might mean violating the perimeter-infill order. We will therefore go through
 // them again and make sure we override it.
-void WipingExtrusions::ensure_perimeters_infills_order(const Print& print, const LayerTools& layer_tools)
+void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
 {
-    unsigned int first_nonsoluble_extruder = first_nonsoluble_extruder_on_layer(print.config, layer_tools);
-    unsigned int last_nonsoluble_extruder = last_nonsoluble_extruder_on_layer(print.config, layer_tools);
+    const LayerTools& layer_tools = *m_layer_tools;
+    unsigned int first_nonsoluble_extruder = first_nonsoluble_extruder_on_layer(print.config);
+    unsigned int last_nonsoluble_extruder = last_nonsoluble_extruder_on_layer(print.config);
 
     for (const PrintObject* object : print.objects) {
         // Finds this layer:

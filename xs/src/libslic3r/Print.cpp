@@ -1137,13 +1137,13 @@ void Print::_make_wipe_tower()
                     float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];    // total volume to wipe after this toolchange
 
                     if (!first_layer)   // unless we're on the first layer, try to assign some infills/objects for the wiping:
-                        volume_to_wipe = layer_tools.wiping_extrusions.mark_wiping_extrusions(*this, layer_tools, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
+                        volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
 
                     wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
                 }
             }
-            layer_tools.wiping_extrusions.ensure_perimeters_infills_order(*this, layer_tools);
+            layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
             if (&layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
                 break;
         }
@@ -1214,5 +1214,14 @@ void Print::set_status(int percent, const std::string &message)
 {
     printf("Print::status %d => %s\n", percent, message.c_str());
 }
+
+
+// Returns extruder this eec should be printed with, according to PrintRegion config
+int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region)
+{
+    return is_infill(fill.role()) ? std::max<int>(0, (is_solid_infill(fill.entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                                    std::max<int>(region.config.perimeter_extruder.value - 1, 0);
+}
+
 
 }

@@ -28,15 +28,17 @@ public:
 
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
-    float mark_wiping_extrusions(const Print& print, const LayerTools& layer_tools, unsigned int new_extruder, float volume_to_wipe);
+    float mark_wiping_extrusions(const Print& print, unsigned int new_extruder, float volume_to_wipe);
 
-    void ensure_perimeters_infills_order(const Print& print, const LayerTools& layer_tools);
+    void ensure_perimeters_infills_order(const Print& print);
 
     bool is_overriddable(const ExtrusionEntityCollection& ee, const PrintConfig& print_config, const PrintObject& object, const PrintRegion& region) const;
 
+    void set_layer_tools_ptr(const LayerTools* lt) { m_layer_tools = lt; }
+
 private:
-    int first_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const;
-    int last_nonsoluble_extruder_on_layer(const PrintConfig& print_config, const LayerTools& lt) const;
+    int first_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const;
+    int last_nonsoluble_extruder_on_layer(const PrintConfig& print_config) const;
 
     // This function is called from mark_wiping_extrusions and sets extruder that it should be printed with (-1 .. as usual)
     void set_extruder_override(const ExtrusionEntity* entity, unsigned int copy_id, int extruder, unsigned int num_of_copies);
@@ -48,6 +50,7 @@ private:
 
     std::map<const ExtrusionEntity*, std::vector<int>> entity_map;  // to keep track of who prints what
     bool something_overridden = false;
+    const LayerTools* m_layer_tools;    // so we know which LayerTools object this belongs to
 };
 
 
@@ -80,8 +83,14 @@ public:
     size_t                      wipe_tower_partitions;
     coordf_t 					wipe_tower_layer_height;
 
+    WipingExtrusions& wiping_extrusions() {
+        m_wiping_extrusions.set_layer_tools_ptr(this);
+        return m_wiping_extrusions;
+    }
+
+private:
     // This object holds list of extrusion that will be used for extruder wiping
-    WipingExtrusions wiping_extrusions;
+    WipingExtrusions m_wiping_extrusions;
 };
 
 

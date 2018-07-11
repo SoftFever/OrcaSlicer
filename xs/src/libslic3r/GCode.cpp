@@ -1239,11 +1239,11 @@ void GCode::process_layer(
                             continue;
 
                         // This extrusion is part of certain Region, which tells us which extruder should be used for it:
-                        int correct_extruder_id = get_extruder(*fill, region); entity_type=="infills" ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                        int correct_extruder_id = Print::get_extruder(*fill, region); entity_type=="infills" ? std::max<int>(0, (is_solid_infill(fill->entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
                                                                            std::max<int>(region.config.perimeter_extruder.value - 1, 0);
 
                         // Let's recover vector of extruder overrides:
-                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions.get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->_shifted_copies.size());
+                        const ExtruderPerCopy* entity_overrides = const_cast<LayerTools&>(layer_tools).wiping_extrusions().get_extruder_overrides(fill, correct_extruder_id, layer_to_print.object()->_shifted_copies.size());
 
                         // Now we must add this extrusion into the by_extruder map, once for each extruder that will print it:
                         for (unsigned int extruder : layer_tools.extruders)
@@ -1335,7 +1335,7 @@ void GCode::process_layer(
             continue;
 
         // We are almost ready to print. However, we must go through all the objects twice to print the the overridden extrusions first (infill/perimeter wiping feature):
-        for (int print_wipe_extrusions=layer_tools.wiping_extrusions.is_anything_overridden(); print_wipe_extrusions>=0; --print_wipe_extrusions) {
+        for (int print_wipe_extrusions=const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden(); print_wipe_extrusions>=0; --print_wipe_extrusions) {
             if (print_wipe_extrusions == 0)
                 gcode+="; PURGING FINISHED\n";
 
@@ -1373,7 +1373,7 @@ void GCode::process_layer(
                         m_layer = layers[layer_id].layer();
                     }
                     for (ObjectByExtruder::Island &island : object_by_extruder.islands) {
-                        const auto& by_region_specific = layer_tools.wiping_extrusions.is_anything_overridden() ? island.by_region_per_copy(copy_id, extruder_id, print_wipe_extrusions) : island.by_region;
+                        const auto& by_region_specific = const_cast<LayerTools&>(layer_tools).wiping_extrusions().is_anything_overridden() ? island.by_region_per_copy(copy_id, extruder_id, print_wipe_extrusions) : island.by_region;
 
                         if (print.config.infill_first) {
                             gcode += this->extrude_infill(print, by_region_specific);
