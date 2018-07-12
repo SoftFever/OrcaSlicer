@@ -1895,8 +1895,12 @@ void TabPrinter::update(){
 	get_field("single_extruder_multi_material")->toggle(have_multiple_extruders);
 
 	bool is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
-	get_field("silent_mode")->toggle(is_marlin_flavor);
-	if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
+
+	const std::string &printer_model = m_config->opt_string("printer_model");
+	bool can_use_silent_mode = printer_model.empty() ? false : printer_model == "MK3"; // "true" only for MK3 printers
+
+	get_field("silent_mode")->toggle(can_use_silent_mode && is_marlin_flavor);
+	if (can_use_silent_mode && m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
 		m_rebuild_kinematics_page = true;
 		m_use_silent_mode = m_config->opt_bool("silent_mode");
 	}
