@@ -40,49 +40,30 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_preset_bundle = preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
+#ifdef __WXOSX__
+	auto  *main_sizer = new wxBoxSizer(wxVERTICAL);
+	main_sizer->SetSizeHints(this);
+	this->SetSizer(main_sizer);
+
+	// Create additional panel to Fit() it from OnActivate()
+	// It's needed for tooltip showing on OSX
+	m_tmp_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+	auto panel = m_tmp_panel; 
+	auto  sizer = new wxBoxSizer(wxVERTICAL);
+	m_tmp_panel->SetSizer(sizer);
+	m_tmp_panel->Layout();
+
+	main_sizer->Add(m_tmp_panel, 1, wxEXPAND | wxALL, 0);
+#else
 	Tab *panel = this;
 	auto  *sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->SetSizeHints(panel);
 	panel->SetSizer(sizer);
+#endif //__WXOSX__
 
 	// preset chooser
 	m_presets_choice = new wxBitmapComboBox(panel, wxID_ANY, "", wxDefaultPosition, wxSize(270, -1), 0, 0,wxCB_READONLY);
-	/*
-	m_cc_presets_choice = new wxComboCtrl(panel, wxID_ANY, L(""), wxDefaultPosition, wxDefaultSize, wxCB_READONLY);
-	wxDataViewTreeCtrlComboPopup* popup = new wxDataViewTreeCtrlComboPopup;
-	if (popup != nullptr)
-	{
-		// FIXME If the following line is removed, the combo box popup list will not react to mouse clicks.
-		//  On the other side, with this line the combo box popup cannot be closed by clicking on the combo button on Windows 10.
-//		m_cc_presets_choice->UseAltPopupWindow();
 
-//		m_cc_presets_choice->EnablePopupAnimation(false);
-		m_cc_presets_choice->SetPopupControl(popup);
-		popup->SetStringValue(from_u8("Text1"));
-
-		popup->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this, popup](wxCommandEvent& evt)
-		{
-			auto selected = popup->GetItemText(popup->GetSelection());
-			if (selected != _(L("System presets")) && selected != _(L("Default presets")))
-			{
-				m_cc_presets_choice->SetText(selected);
-				std::string selected_string = selected.ToUTF8().data();
-#ifdef __APPLE__
-#else
- 				select_preset(selected_string);
-#endif
-			}				
-		});
-
-// 		popup->Bind(wxEVT_KEY_DOWN, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-// 		popup->Bind(wxEVT_KEY_UP, [popup](wxKeyEvent& evt) { popup->OnKeyEvent(evt); });
-
-		auto icons = new wxImageList(16, 16, true, 1);
-		popup->SetImageList(icons);
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-		icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
-	}
-*/
 	auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 
 	//buttons
@@ -173,37 +154,6 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 1, wxEXPAND, 0);
 
-
-/*
-
-
-	//temporary left vertical sizer
-	m_left_sizer = new wxBoxSizer(wxVERTICAL);
-	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
-
-	// tree
-	m_presetctrl = new wxDataViewTreeCtrl(panel, wxID_ANY, wxDefaultPosition, wxSize(200, -1), wxDV_NO_HEADER);
-	m_left_sizer->Add(m_presetctrl, 1, wxEXPAND);
-	m_preset_icons = new wxImageList(16, 16, true, 1);
-	m_presetctrl->SetImageList(m_preset_icons);
-	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-green-icon.png")), wxBITMAP_TYPE_PNG));
-	m_preset_icons->Add(*new wxIcon(from_u8(Slic3r::var("flag-red-icon.png")), wxBITMAP_TYPE_PNG));
-
-	m_presetctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxCommandEvent& evt)
-	{
-		auto selected = m_presetctrl->GetItemText(m_presetctrl->GetSelection());
-		if (selected != _(L("System presets")) && selected != _(L("Default presets")))
-		{
-			std::string selected_string = selected.ToUTF8().data();
-#ifdef __APPLE__
-#else
-			select_preset(selected_string);
-#endif
-		}
-	});
-
-*/
-
 	//left vertical sizer
 	m_left_sizer = new wxBoxSizer(wxVERTICAL);
 	m_hsizer->Add(m_left_sizer, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 3);
@@ -233,7 +183,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 			return;
 		if (selected_item >= 0){
 			std::string selected_string = m_presets_choice->GetString(selected_item).ToUTF8().data();
-			if (selected_string.find_first_of("-------") == 0
+			if (selected_string.find("-------") == 0
 				/*selected_string == "------- System presets -------" ||
 				selected_string == "-------  User presets  -------"*/){
 				m_presets_choice->SetSelection(m_selected_preset_item);
@@ -279,7 +229,12 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 		}
 	}
 	// Initialize the page.
-	PageShp page(new Page(this, title, icon_idx));
+#ifdef __WXOSX__
+	auto panel = m_tmp_panel;
+#else
+	auto panel = this;
+#endif
+	PageShp page(new Page(panel, title, icon_idx));
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
@@ -288,6 +243,18 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 
 	page->set_config(m_config);
 	return page;
+}
+
+void Tab::OnActivate()
+{
+#ifdef __WXOSX__	
+	wxWindowUpdateLocker noUpdates(this);
+
+	auto size = GetSizer()->GetSize();
+	m_tmp_panel->GetSizer()->SetMinSize(size.x + m_size_move, size.y);
+	Fit();
+	m_size_move *= -1;
+#endif // __WXOSX__
 }
 
 void Tab::update_labels_colour()
@@ -487,8 +454,13 @@ void Tab::update_changed_tree_ui()
 					get_sys_and_mod_flags(opt_key, sys_page, modified_page);
 				}
 			}
-			if (title == _("Dependencies") && name() != "printer"){
-				get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+			if (title == _("Dependencies")){
+				if (name() != "printer")
+					get_sys_and_mod_flags("compatible_printers", sys_page, modified_page);
+				else {
+					sys_page = m_presets->get_selected_preset_parent() ? true:false;
+					modified_page = false;
+				}
 			}
 			for (auto group : page->m_optgroups)
 			{
@@ -1248,6 +1220,7 @@ void TabPrint::OnActivate()
 {
 	m_recommended_thin_wall_thickness_description_line->SetText(
 		from_u8(PresetHints::recommended_thin_wall_thickness(*m_preset_bundle)));
+	Tab::OnActivate();
 }
 
 void TabFilament::build()
@@ -1405,6 +1378,7 @@ void TabFilament::update()
 void TabFilament::OnActivate()
 {
 	m_volumetric_speed_description_line->SetText(from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle)));
+	Tab::OnActivate();
 }
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText)
@@ -1518,7 +1492,7 @@ void TabPrinter::build()
 				sizer->Add(btn);
 
 				btn->Bind(wxEVT_BUTTON, [this, parent](wxCommandEvent e){
-					auto sender = new GCodeSender();					
+					auto sender = Slic3r::make_unique<GCodeSender>();
 					auto res = sender->connect(
 						m_config->opt_string("serial_port"), 
 						m_config->opt_int("serial_speed")
@@ -2003,6 +1977,8 @@ void Tab::load_current_preset()
 	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
 	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
 
+	m_undo_to_sys_btn->Enable(!preset.is_default);
+
 	// use CallAfter because some field triggers schedule on_change calls using CallAfter,
 	// and we don't want them to be called after this update_dirty() as they would mark the 
 	// preset dirty again
@@ -2268,6 +2244,8 @@ void Tab::save_preset(std::string name /*= ""*/)
 	update_tab_ui();
 	// Update the selection boxes at the platter.
 	on_presets_changed();
+	// If current profile is saved, "delete preset" button have to be enabled
+	m_btn_delete_preset->Enable(true);
 
 	if (m_name == "printer")
 		static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
@@ -2670,28 +2648,33 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
 	if (noncommon_label_width >= 0)
 		optgroup->label_width = noncommon_label_width;
 
-	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+#ifdef __WXOSX__
+		auto tab = GetParent()->GetParent();
+#else
+		auto tab = GetParent();
+#endif
+	optgroup->m_on_change = [this, tab](t_config_option_key opt_key, boost::any value){
 		//! This function will be called from OptionGroup.
 		//! Using of CallAfter is redundant.
 		//! And in some cases it causes update() function to be recalled again
 //!        wxTheApp->CallAfter([this, opt_key, value]() {
-			static_cast<Tab*>(GetParent())->update_dirty();
-			static_cast<Tab*>(GetParent())->on_value_change(opt_key, value);
+			static_cast<Tab*>(tab)->update_dirty();
+			static_cast<Tab*>(tab)->on_value_change(opt_key, value);
 //!        });
 	};
 
-	optgroup->m_get_initial_config = [this](){
-		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset().config;
+	optgroup->m_get_initial_config = [this, tab](){
+		DynamicPrintConfig config = static_cast<Tab*>(tab)->m_presets->get_selected_preset().config;
 		return config;
 	};
 
-	optgroup->m_get_sys_config = [this](){
-		DynamicPrintConfig config = static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent()->config;
+	optgroup->m_get_sys_config = [this, tab](){
+		DynamicPrintConfig config = static_cast<Tab*>(tab)->m_presets->get_selected_preset_parent()->config;
 		return config;
 	};
 
-	optgroup->have_sys_config = [this](){
-		return static_cast<Tab*>(GetParent())->m_presets->get_selected_preset_parent() != nullptr;
+	optgroup->have_sys_config = [this, tab](){
+		return static_cast<Tab*>(tab)->m_presets->get_selected_preset_parent() != nullptr;
 	};
 
 	vsizer()->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 10);

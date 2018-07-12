@@ -29,7 +29,16 @@ public:
 
 	typedef std::shared_ptr<Http> Ptr;
 	typedef std::function<void(std::string /* body */, unsigned /* http_status */)> CompleteFn;
+	
+	// A HTTP request may fail at various stages of completeness (URL parsing, DNS lookup, TCP connection, ...).
+	// If the HTTP request could not be made or failed before completion, the `error` arg contains a description
+	// of the error and `http_status` is zero.
+	// If the HTTP request was completed but the response HTTP code is >= 400, `error` is empty and `http_status` contains the response code.
+	// In either case there may or may not be a body.
 	typedef std::function<void(std::string /* body */, std::string /* error */, unsigned /* http_status */)> ErrorFn;
+
+	// See the Progress struct above.
+	// Writing true to the `cancel` reference cancels the request in progress.
 	typedef std::function<void(Progress, bool& /* cancel */)> ProgressFn;
 
 	Http(Http &&other);
