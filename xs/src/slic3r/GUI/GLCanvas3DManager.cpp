@@ -78,81 +78,34 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     std::stringstream out;
 
     std::string h2_start = format_as_html ? "<b>" : "";
-    std::string h2_end   = format_as_html ? "</b>" : "";
-    std::string b_start  = format_as_html ? "<b>" : "";
-    std::string b_end    = format_as_html ? "</b>" : "";
+    std::string h2_end = format_as_html ? "</b>" : "";
+    std::string b_start = format_as_html ? "<b>" : "";
+    std::string b_end = format_as_html ? "</b>" : "";
     std::string line_end = format_as_html ? "<br>" : "\n";
 
-//################################################## DEbUG_OUTPUT ###################################################################
-    std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 1" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
-
     out << h2_start << "OpenGL installation" << h2_end << line_end;
-    out << b_start  << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
-    out << b_start  << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
-    out << b_start  << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
-    out << b_start  << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
-
-//################################################## DEbUG_OUTPUT ###################################################################
-    std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 2" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
+    out << b_start << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
+    out << b_start << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
+    out << b_start << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
+    out << b_start << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
 
     if (extensions)
     {
-//###################################################################################################################################
-//        out << h2_start << "Installed extensions:" << h2_end << line_end;
-//###################################################################################################################################
-
-//################################################## DEbUG_OUTPUT ###################################################################
-        std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 3" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
-
-//###################################################################################################################################
         std::vector<std::string> extensions_list;
         std::string extensions_str = (const char*)::glGetString(GL_EXTENSIONS);
         boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
 
-//        std::vector<std::string> extensions_list;
-//        GLint num_extensions;
-//        ::glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-//###################################################################################################################################
-
-//################################################## DEbUG_OUTPUT ###################################################################
-        std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 4" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
-
-//###################################################################################################################################
-//        for (GLint i = 0; i < num_extensions; ++i)
-//        {
-//            const char* e = (const char*)::glGetStringi(GL_EXTENSIONS, i);
-//            if (e != nullptr)
-//                extensions_list.push_back(e);
-//        }
-//###################################################################################################################################
-
-//################################################## DEbUG_OUTPUT ###################################################################
-        std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 5" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
-
-//###################################################################################################################################
         if (!extensions_list.empty())
         {
             out << h2_start << "Installed extensions:" << h2_end << line_end;
-//###################################################################################################################################
 
             std::sort(extensions_list.begin(), extensions_list.end());
             for (const std::string& ext : extensions_list)
             {
                 out << ext << line_end;
             }
-//###################################################################################################################################
         }
-//###################################################################################################################################
     }
-
-//################################################## DEbUG_OUTPUT ###################################################################
-    std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 6" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
 
     return out.str();
 }
@@ -215,9 +168,6 @@ void GLCanvas3DManager::init_gl()
 {
     if (!m_gl_initialized)
     {
-//################################################## DEbUG_OUTPUT ###################################################################
-        std::cout << ">>>>>>>>> glewInit()" << std::endl;
-//################################################## DEbUG_OUTPUT ###################################################################
         glewInit();
         m_gl_info.detect();
         const AppConfig* config = GUI::get_app_config();

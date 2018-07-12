@@ -3017,7 +3017,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
         }
 
-        if (volumes.size() > 1)
+        if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
             m_gizmos.refresh();
 
         m_dirty = true;
