@@ -90,6 +90,7 @@ GLGizmoBase::EState GLGizmoBase::get_state() const
 void GLGizmoBase::set_state(GLGizmoBase::EState state)
 {
     m_state = state;
+    on_set_state();
 }
 
 unsigned int GLGizmoBase::get_texture_id() const
@@ -118,10 +119,20 @@ void GLGizmoBase::start_dragging()
     on_start_dragging();
 }
 
+void GLGizmoBase::stop_dragging()
+{
+    on_stop_dragging();
+}
+
 void GLGizmoBase::update(const Pointf& mouse_pos)
 {
     if (m_hover_id != -1)
         on_update(mouse_pos);
+}
+
+void GLGizmoBase::refresh()
+{
+    on_refresh();
 }
 
 void GLGizmoBase::render(const BoundingBoxf3& box) const
@@ -134,8 +145,24 @@ void GLGizmoBase::render_for_picking(const BoundingBoxf3& box) const
     on_render_for_picking(box);
 }
 
+void GLGizmoBase::on_set_state()
+{
+    // do nothing
+}
+
 void GLGizmoBase::on_start_dragging()
 {
+    // do nothing
+}
+
+void GLGizmoBase::on_stop_dragging()
+{
+    // do nothing
+}
+
+void GLGizmoBase::on_refresh()
+{
+    // do nothing
 }
 
 void GLGizmoBase::render_grabbers() const
@@ -162,6 +189,7 @@ GLGizmoRotate::GLGizmoRotate()
     , m_angle_z(0.0f)
     , m_center(Pointf(0.0, 0.0))
     , m_radius(0.0f)
+    , m_keep_radius(false)
 {
 }
 
@@ -199,6 +227,11 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
+void GLGizmoRotate::on_set_state()
+{
+    m_keep_radius = (m_state == On) ? false : true;
+}
+
 void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 {
     Vectorf orig_dir(1.0, 0.0);
@@ -220,13 +253,22 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
     m_angle_z = (float)theta;
 }
 
+void GLGizmoRotate::on_refresh()
+{
+    m_keep_radius = false;
+}
+
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     const Pointf3& size = box.size();
     m_center = box.center();
-    m_radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y));
+    if (!m_keep_radius)
+    {
+        m_radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y));
+        m_keep_radius = true;
+    }
 
     ::glLineWidth(2.0f);
     ::glColor3fv(BaseColor);

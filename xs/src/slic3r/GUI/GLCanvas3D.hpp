@@ -365,6 +365,7 @@ public:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Pointf& mouse_pos);
+        void refresh();
 
         EType get_current_type() const;
 

@@ -64,15 +64,20 @@ public:
     void set_hover_id(int id);
 
     void start_dragging();
+    void stop_dragging();
     void update(const Pointf& mouse_pos);
+    void refresh();
 
     void render(const BoundingBoxf3& box) const;
     void render_for_picking(const BoundingBoxf3& box) const;
 
 protected:
     virtual bool on_init() = 0;
+    virtual void on_set_state();
     virtual void on_start_dragging();
+    virtual void on_stop_dragging();
     virtual void on_update(const Pointf& mouse_pos) = 0;
+    virtual void on_refresh();
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
@@ -96,6 +101,7 @@ class GLGizmoRotate : public GLGizmoBase
 
     mutable Pointf m_center;
     mutable float m_radius;
+    mutable bool m_keep_radius;
 
 public:
     GLGizmoRotate();
@@ -105,7 +111,9 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual void on_set_state();
     virtual void on_update(const Pointf& mouse_pos);
+    virtual void on_refresh();
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 

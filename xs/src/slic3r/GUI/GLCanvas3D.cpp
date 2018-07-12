@@ -1291,6 +1291,16 @@ void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
         curr->update(mouse_pos);
 }
 
+void GLCanvas3D::Gizmos::refresh()
+{
+    if (!m_enabled)
+        return;
+
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->refresh();
+}
+
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
     return m_current;
@@ -1321,6 +1331,9 @@ void GLCanvas3D::Gizmos::start_dragging()
 void GLCanvas3D::Gizmos::stop_dragging()
 {
     m_dragging = false;
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->stop_dragging();
 }
 
 float GLCanvas3D::Gizmos::get_scale() const
@@ -2853,6 +2866,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
 
                     update_gizmos_data();
+                    m_gizmos.refresh();
                     m_dirty = true;
                 }
             }
@@ -2942,6 +2956,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 
         m_mouse.drag.start_position_3D = cur_pos;
+        m_gizmos.refresh();
 
         m_dirty = true;
     }
@@ -3001,6 +3016,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const Pointf3& size = bb.size();
             m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
         }
+
+        if (volumes.size() > 1)
+            m_gizmos.refresh();
 
         m_dirty = true;
     }
