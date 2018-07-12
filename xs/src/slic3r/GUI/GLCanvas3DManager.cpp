@@ -107,20 +107,28 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
         std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 3" << std::endl;
 //################################################## DEbUG_OUTPUT ###################################################################
 
+//###################################################################################################################################
         std::vector<std::string> extensions_list;
-        GLint num_extensions;
-        ::glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+        std::string extensions_str = (const char*)::glGetString(GL_EXTENSIONS);
+        boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
+
+//        std::vector<std::string> extensions_list;
+//        GLint num_extensions;
+//        ::glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
+//###################################################################################################################################
 
 //################################################## DEbUG_OUTPUT ###################################################################
         std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 4" << std::endl;
 //################################################## DEbUG_OUTPUT ###################################################################
 
-        for (GLint i = 0; i < num_extensions; ++i)
-        {
-            const char* e = (const char*)::glGetStringi(GL_EXTENSIONS, i);
-            if (e != nullptr)
-                extensions_list.push_back(e);
-        }
+//###################################################################################################################################
+//        for (GLint i = 0; i < num_extensions; ++i)
+//        {
+//            const char* e = (const char*)::glGetStringi(GL_EXTENSIONS, i);
+//            if (e != nullptr)
+//                extensions_list.push_back(e);
+//        }
+//###################################################################################################################################
 
 //################################################## DEbUG_OUTPUT ###################################################################
         std::cout << ">>>>>>>>> GLCanvas3DManager::GLInfo::to_string() -> 5" << std::endl;
