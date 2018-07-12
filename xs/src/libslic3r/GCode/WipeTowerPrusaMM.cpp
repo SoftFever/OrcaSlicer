@@ -142,10 +142,10 @@ public:
 		}
 
 		m_gcode += "G1";
-		if (std::abs(dx) > EPSILON)
+		if (std::abs(rot.x - rotated_current_pos.x) > EPSILON)
 			m_gcode += set_format_X(rot.x);
 
-		if (std::abs(dy) > EPSILON)
+		if (std::abs(rot.y - rotated_current_pos.y) > EPSILON)
 			m_gcode += set_format_Y(rot.y);
 
 		if (e != 0.f)
