@@ -204,7 +204,7 @@ sub new {
         if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
             $preview->OnActivate if $preview->can('OnActivate');        
         } elsif ($preview == $self->{preview3D}) {
-            $self->{preview3D}->load_print;
+            $self->{preview3D}->reload_print;
             # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
             Slic3r::GUI::_3DScene::set_as_dirty($self->{preview3D}->canvas);
         } elsif ($preview == $self->{canvas3D}) {
