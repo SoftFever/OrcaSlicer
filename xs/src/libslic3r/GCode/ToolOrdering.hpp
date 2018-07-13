@@ -69,6 +69,8 @@ public:
     bool operator< (const LayerTools &rhs) const { return print_z - EPSILON <  rhs.print_z; }
     bool operator==(const LayerTools &rhs) const { return std::abs(print_z - rhs.print_z) < EPSILON; }
 
+    bool is_extruder_order(unsigned int a, unsigned int b) const;
+
     coordf_t 					print_z;
     bool 						has_object;
     bool						has_support;

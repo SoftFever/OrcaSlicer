@@ -15,6 +15,24 @@
 
 namespace Slic3r {
 
+
+// Returns true in case that extruder a comes before b (b does not have to be present). False otherwise.
+bool LayerTools::is_extruder_order(unsigned int a, unsigned int b) const
+{
+    if (a==b)
+        return false;
+
+    for (auto extruder : extruders) {
+        if (extruder == a)
+            return true;
+        if (extruder == b)
+            return false;
+    }
+
+    return false;
+}
+
+
 // For the use case when each object is printed separately
 // (print.config.complete_objects is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
@@ -424,7 +442,7 @@ bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, con
 // and returns volume that is left to be wiped on the wipe tower.
 float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int new_extruder, float volume_to_wipe)
 {
-    const LayerTools& layer_tools = *m_layer_tools;
+    const LayerTools& lt = *m_layer_tools;
     const float min_infill_volume = 0.f; // ignore infill with smaller volume than this
 
     if (print.config.filament_soluble.get_at(new_extruder))
@@ -452,7 +470,7 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
         const auto& object = object_list[i];
 
         // Finds this layer:
-        auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&layer_tools](const Layer* lay) { return std::abs(layer_tools.print_z - lay->print_z)<EPSILON; });
+        auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&lt](const Layer* lay) { return std::abs(lt.print_z - lay->print_z)<EPSILON; });
         if (this_layer_it == object->layers.end())
             continue;
         const Layer* this_layer = *this_layer_it;
@@ -480,21 +498,11 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
                         if (volume_to_wipe<=0)
                             continue;
 
-                        if (!object->config.wipe_into_objects && !print.config.infill_first) {
+                        if (!object->config.wipe_into_objects && !print.config.infill_first && region.config.wipe_into_infill)
                             // In this case we must check that the original extruder is used on this layer before the one we are overridding
                             // (and the perimeters will be finished before the infill is printed):
-                            if ((!print.config.infill_first && region.config.wipe_into_infill)) {
-                                bool unused_yet = false;
-                                for (unsigned i = 0; i < layer_tools.extruders.size(); ++i) {
-                                    if (layer_tools.extruders[i] == new_extruder)
-                                        unused_yet = true;
-                                    if (layer_tools.extruders[i] == correct_extruder)
-                                        break;
-                                }
-                                if (unused_yet)
-                                    continue;
-                            }
-                        }
+                            if (!lt.is_extruder_order(region.config.perimeter_extruder - 1, new_extruder))
+                                continue;
 
                         if ((!is_entity_overridden(fill, copy) && fill->total_volume() > min_infill_volume)) {     // this infill will be used to wipe this extruder
                             set_extruder_override(fill, copy, new_extruder, num_of_copies);
@@ -534,13 +542,13 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
 // them again and make sure we override it.
 void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
 {
-    const LayerTools& layer_tools = *m_layer_tools;
+    const LayerTools& lt = *m_layer_tools;
     unsigned int first_nonsoluble_extruder = first_nonsoluble_extruder_on_layer(print.config);
     unsigned int last_nonsoluble_extruder = last_nonsoluble_extruder_on_layer(print.config);
 
     for (const PrintObject* object : print.objects) {
         // Finds this layer:
-        auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&layer_tools](const Layer* lay) { return std::abs(layer_tools.print_z - lay->print_z)<EPSILON; });
+        auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&lt](const Layer* lay) { return std::abs(lt.print_z - lay->print_z)<EPSILON; });
         if (this_layer_it == object->layers.end())
             continue;
         const Layer* this_layer = *this_layer_it;
@@ -560,11 +568,19 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                      || is_entity_overridden(fill, copy) )
                         continue;
 
-                    // This infill could have been overridden but was not - unless we do somthing, it could be
+                    // This infill could have been overridden but was not - unless we do something, it could be
                     // printed before its perimeter, or not be printed at all (in case its original extruder has
                     // not been added to LayerTools
                     // Either way, we will now force-override it with something suitable:
-                    set_extruder_override(fill, copy, (print.config.infill_first ? first_nonsoluble_extruder : last_nonsoluble_extruder), num_of_copies);
+                    if (print.config.infill_first
+                    || lt.is_extruder_order(region.config.perimeter_extruder - 1, last_nonsoluble_extruder    // !infill_first, but perimeter is already printed when last extruder prints
+                    || std::find(lt.extruders.begin(), lt.extruders.end(), region.config.infill_extruder - 1) == lt.extruders.end()) // we have to force override - this could violate infill_first (FIXME)
+                      )
+                        set_extruder_override(fill, copy, (print.config.infill_first ? first_nonsoluble_extruder : last_nonsoluble_extruder), num_of_copies);
+                    else {
+                        // In this case we can (and should) leave it to be printed normally.
+                        // Force overriding would mean it gets printed before its perimeter.
+                    }
                 }
 
                 // Now the same for perimeters - see comments above for explanation:
