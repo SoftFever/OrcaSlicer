@@ -133,10 +133,7 @@ public:
         m_last_height(GCodeAnalyzer::Default_Height),
         m_brim_done(false),
         m_second_layer_things_done(false),
-//############################################################################################################3
         m_normal_time_estimator(GCodeTimeEstimator::Normal),
-//        m_default_time_estimator(GCodeTimeEstimator::Default),
-//############################################################################################################3
         m_silent_time_estimator(GCodeTimeEstimator::Silent),
         m_silent_time_estimator_enabled(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
@@ -296,10 +293,7 @@ protected:
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
     // Time estimators
-//############################################################################################################3
     GCodeTimeEstimator m_normal_time_estimator;
-//    GCodeTimeEstimator m_default_time_estimator;
-//############################################################################################################3
     GCodeTimeEstimator m_silent_time_estimator;
     bool m_silent_time_estimator_enabled;
 

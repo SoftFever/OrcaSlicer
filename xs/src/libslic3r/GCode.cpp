@@ -375,15 +375,10 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
     fclose(file);
 
-//#################################################################################################################
     m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
-//#################################################################################################################
 
     if (m_silent_time_estimator_enabled)
-//############################################################################################################3
         m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
-//        GCodeTimeEstimator::post_process_elapsed_times(path_tmp, m_default_time_estimator.get_time(), m_silent_time_estimator.get_time());
-//############################################################################################################3
 
     if (! this->m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
@@ -415,10 +410,8 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     PROFILE_FUNC();
 
     // resets time estimators
-//#######################################################################################################################################################################
     m_normal_time_estimator.reset();
     m_normal_time_estimator.set_dialect(print.config.gcode_flavor);
-    m_normal_time_estimator.set_remaining_times_enabled(false);
     m_normal_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
     m_normal_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[0]);
     m_normal_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[0]);
@@ -436,51 +429,11 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[0]);
     m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[0]);
 
-//    std::cout << "Normal" << std::endl;
-//    std::cout << "set_acceleration            " << print.config.machine_max_acceleration_extruding.values[0] << std::endl;
-//    std::cout << "set_retract_acceleration    " << print.config.machine_max_acceleration_retracting.values[0] << std::endl;
-//    std::cout << "set_minimum_feedrate        " << print.config.machine_min_extruding_rate.values[0] << std::endl;
-//    std::cout << "set_minimum_travel_feedrate " << print.config.machine_min_travel_rate.values[0] << std::endl;
-//    std::cout << "set_axis_max_acceleration X " << print.config.machine_max_acceleration_x.values[0] << std::endl;
-//    std::cout << "set_axis_max_acceleration Y " << print.config.machine_max_acceleration_y.values[0] << std::endl;
-//    std::cout << "set_axis_max_acceleration Z " << print.config.machine_max_acceleration_z.values[0] << std::endl;
-//    std::cout << "set_axis_max_acceleration E " << print.config.machine_max_acceleration_e.values[0] << std::endl;
-//    std::cout << "set_axis_max_feedrate X     " << print.config.machine_max_feedrate_x.values[0] << std::endl;
-//    std::cout << "set_axis_max_feedrate Y     " << print.config.machine_max_feedrate_y.values[0] << std::endl;
-//    std::cout << "set_axis_max_feedrate Z     " << print.config.machine_max_feedrate_z.values[0] << std::endl;
-//    std::cout << "set_axis_max_feedrate E     " << print.config.machine_max_feedrate_e.values[0] << std::endl;
-//    std::cout << "set_axis_max_jerk X         " << print.config.machine_max_jerk_x.values[0] << std::endl;
-//    std::cout << "set_axis_max_jerk Y         " << print.config.machine_max_jerk_y.values[0] << std::endl;
-//    std::cout << "set_axis_max_jerk Z         " << print.config.machine_max_jerk_z.values[0] << std::endl;
-//    std::cout << "set_axis_max_jerk E         " << print.config.machine_max_jerk_e.values[0] << std::endl;
-
-
-//    m_default_time_estimator.reset();
-//    m_default_time_estimator.set_dialect(print.config.gcode_flavor);
-//    m_default_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
-//    m_default_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[0]);
-//    m_default_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[0]);
-//    m_default_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[0]);
-//    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[0]);
-//    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[0]);
-//    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[0]);
-//    m_default_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[0]);
-//    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[0]);
-//    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[0]);
-//    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[0]);
-//    m_default_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[0]);
-//    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[0]);
-//    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[0]);
-//    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[0]);
-//    m_default_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[0]);
-//#######################################################################################################################################################################
-
-    m_silent_time_estimator_enabled = (print.config.gcode_flavor == gcfMarlin) && print.config.silent_mode;
+    m_silent_time_estimator_enabled = (print.config.gcode_flavor == gcfMarlin) && print.config.silent_mode && boost::starts_with(print.config.printer_model.value, "MK3");
     if (m_silent_time_estimator_enabled)
     {
         m_silent_time_estimator.reset();
         m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
-        m_silent_time_estimator.set_remaining_times_enabled(false);
         m_silent_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[1]);
         m_silent_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[1]);
         m_silent_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[1]);
@@ -687,15 +640,6 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         _writeln(file, buf);
     }
 
-//#######################################################################################################################################################################
-//    // before start gcode time estimation
-//    if (m_silent_time_estimator_enabled)
-//    {
-//        _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
-//        _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
-//    }
-//#######################################################################################################################################################################
-
     // Write the custom start G-code
     _writeln(file, start_gcode);
     // Process filament-specific gcode in extruder order.
@@ -900,34 +844,15 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             for (const std::string &end_gcode : print.config.end_filament_gcode.values)
                 _writeln(file, this->placeholder_parser_process("end_filament_gcode", end_gcode, (unsigned int)(&end_gcode - &print.config.end_filament_gcode.values.front()), &config));
         }
-//#######################################################################################################################################################################
-//        // before end gcode time estimation
-//        if (m_silent_time_estimator_enabled)
-//        {
-//            _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
-//            _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
-//        }
-//#######################################################################################################################################################################
         _writeln(file, this->placeholder_parser_process("end_gcode", print.config.end_gcode, m_writer.extruder()->id(), &config));
     }
     _write(file, m_writer.update_progress(m_layer_count, m_layer_count, true)); // 100%
     _write(file, m_writer.postamble());
 
     // calculates estimated printing time
-//#######################################################################################################################################################################
-    m_normal_time_estimator.set_remaining_times_enabled(true);
     m_normal_time_estimator.calculate_time();
-//    m_default_time_estimator.calculate_time();
-//#######################################################################################################################################################################
     if (m_silent_time_estimator_enabled)
-//#######################################################################################################################################################################
-    {
-        m_silent_time_estimator.set_remaining_times_enabled(true);
-//#######################################################################################################################################################################
         m_silent_time_estimator.calculate_time();
-//#######################################################################################################################################################################
-    }
-//#######################################################################################################################################################################
 
     // Get filament stats.
     print.filament_stats.clear();
@@ -935,20 +860,14 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     print.total_extruded_volume  = 0.;
     print.total_weight           = 0.;
     print.total_cost             = 0.;
-//#######################################################################################################################################################################
     print.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
-//    print.estimated_default_print_time = m_default_time_estimator.get_time_dhms();
-//#######################################################################################################################################################################
     print.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
     for (const Extruder &extruder : m_writer.extruders()) {
         double used_filament   = extruder.used_filament();
         double extruded_volume = extruder.extruded_volume();
         double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
         double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
-//#######################################################################################################################################################################
         print.filament_stats.insert(std::pair<size_t, float>(extruder.id(), (float)used_filament));
-//        print.filament_stats.insert(std::pair<size_t, float>(extruder.id(), used_filament));
-//#######################################################################################################################################################################
         _write_format(file, "; filament used = %.1lfmm (%.1lfcm3)\n", used_filament, extruded_volume * 0.001);
         if (filament_weight > 0.) {
             print.total_weight = print.total_weight + filament_weight;
@@ -962,10 +881,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         print.total_extruded_volume = print.total_extruded_volume + extruded_volume;
     }
     _write_format(file, "; total filament cost = %.1lf\n", print.total_cost);
-//#######################################################################################################################################################################
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());
-//    _write_format(file, "; estimated printing time (default mode) = %s\n", m_default_time_estimator.get_time_dhms().c_str());
-//#######################################################################################################################################################################
     if (m_silent_time_estimator_enabled)
         _write_format(file, "; estimated printing time (silent mode) = %s\n", m_silent_time_estimator.get_time_dhms().c_str());
 
@@ -1534,15 +1450,6 @@ void GCode::process_layer(
     // printf("G-code after filter:\n%s\n", out.c_str());
     
     _write(file, gcode);
-
-//#######################################################################################################################################################################
-//    // after layer time estimation
-//    if (m_silent_time_estimator_enabled)
-//    {
-//        _write(file, m_default_time_estimator.get_elapsed_time_string().c_str());
-//        _write(file, m_silent_time_estimator.get_elapsed_time_string().c_str());
-//    }
-//#######################################################################################################################################################################
 }
 
 void GCode::apply_print_config(const PrintConfig &print_config)
@@ -2201,10 +2108,7 @@ void GCode::_write(FILE* file, const char *what)
         // writes string to file
         fwrite(gcode, 1, ::strlen(gcode), file);
         // updates time estimator and gcode lines vector
-//#######################################################################################################################################################################
         m_normal_time_estimator.add_gcode_block(gcode);
-//        m_default_time_estimator.add_gcode_block(gcode);
-//#######################################################################################################################################################################
         if (m_silent_time_estimator_enabled)
             m_silent_time_estimator.add_gcode_block(gcode);
     }

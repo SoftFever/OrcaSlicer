@@ -12,7 +12,6 @@ static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
 static const float INCHES_TO_MM = 25.4f;
 
-//#######################################################################################################################################################################
 static const float NORMAL_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
 static const float NORMAL_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 static const float NORMAL_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
@@ -22,16 +21,6 @@ static const float NORMAL_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.4f, 2.5f }; // fro
 static const float NORMAL_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 static const float NORMAL_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 static const float NORMAL_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
-//static const float DEFAULT_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
-//static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
-//static const float DEFAULT_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
-//static const float DEFAULT_AXIS_MAX_FEEDRATE[] = { 500.0f, 500.0f, 12.0f, 120.0f }; // Prusa Firmware 1_75mm_MK2
-//static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 500.0f, 10000.0f }; // Prusa Firmware 1_75mm_MK2
-//static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from Prusa Firmware (Configuration.h)
-//static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
-//static const float DEFAULT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
-//static const float DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
-//#######################################################################################################################################################################
 
 static const float SILENT_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
 static const float SILENT_ACCELERATION = 1250.0f; // Prusa Firmware 1_75mm_MK25-RAMBo13a-E3Dv6full
@@ -44,13 +33,6 @@ static const float SILENT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware
 static const float SILENT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
 
 static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
-
-//############################################################################################################3
-//static const std::string ELAPSED_TIME_TAG_DEFAULT = ";_ELAPSED_TIME_DEFAULT: ";
-//static const std::string ELAPSED_TIME_TAG_SILENT = ";_ELAPSED_TIME_SILENT: ";
-//
-//static const std::string REMAINING_TIME_CMD = "M73";
-//############################################################################################################3
 
 #if ENABLE_MOVE_STATS
 static const std::string MOVE_TYPE_STR[Slic3r::GCodeTimeEstimator::Block::Num_Types] =
@@ -278,98 +260,6 @@ namespace Slic3r {
 #endif // ENABLE_MOVE_STATS
     }
 
-//############################################################################################################3
-//    std::string GCodeTimeEstimator::get_elapsed_time_string()
-//    {
-//        calculate_time();
-//        switch (_mode)
-//        {
-//        default:
-//        case Default:
-//            return ELAPSED_TIME_TAG_DEFAULT + std::to_string(get_time()) + "\n";
-//        case Silent:
-//            return ELAPSED_TIME_TAG_SILENT + std::to_string(get_time()) + "\n";
-//        }
-//    }
-//
-//    bool GCodeTimeEstimator::post_process_elapsed_times(const std::string& filename, float default_time, float silent_time)
-//    {
-//        boost::nowide::ifstream in(filename);
-//        if (!in.good())
-//            throw std::runtime_error(std::string("Remaining times estimation failed.\nCannot open file for reading.\n"));
-//
-//        std::string path_tmp = filename + ".times";
-//
-//        FILE* out = boost::nowide::fopen(path_tmp.c_str(), "wb");
-//        if (out == nullptr)
-//            throw std::runtime_error(std::string("Remaining times estimation failed.\nCannot open file for writing.\n"));
-//
-//        std::string line;
-//        while (std::getline(in, line))
-//        {
-//            if (!in.good())
-//            {
-//                fclose(out);
-//                throw std::runtime_error(std::string("Remaining times estimation failed.\nError while reading from file.\n"));
-//            }
-//
-//            // this function expects elapsed time for default and silent mode to be into two consecutive lines inside the gcode
-//            if (boost::contains(line, ELAPSED_TIME_TAG_DEFAULT))
-//            {
-//                std::string default_elapsed_time_str = line.substr(ELAPSED_TIME_TAG_DEFAULT.length());
-//                float elapsed_time = (float)atof(default_elapsed_time_str.c_str());
-//                float remaining_time = default_time - elapsed_time;
-//                line = REMAINING_TIME_CMD + " P" + std::to_string((int)(100.0f * elapsed_time / default_time));
-//                line += " R" + _get_time_minutes(remaining_time);
-//
-//                std::string next_line;
-//                std::getline(in, next_line);
-//                if (!in.good())
-//                {
-//                    fclose(out);
-//                    throw std::runtime_error(std::string("Remaining times estimation failed.\nError while reading from file.\n"));
-//                }
-//
-//                if (boost::contains(next_line, ELAPSED_TIME_TAG_SILENT))
-//                {
-//                    std::string silent_elapsed_time_str = next_line.substr(ELAPSED_TIME_TAG_SILENT.length());
-//                    float elapsed_time = (float)atof(silent_elapsed_time_str.c_str());
-//                    float remaining_time = silent_time - elapsed_time;
-//                    line += " Q" + std::to_string((int)(100.0f * elapsed_time / silent_time));
-//                    line += " S" + _get_time_minutes(remaining_time);
-//                }
-//                else
-//                    // found horphaned default elapsed time, skip the remaining time line output
-//                    line = next_line;
-//            }
-//            else if (boost::contains(line, ELAPSED_TIME_TAG_SILENT))
-//                // found horphaned silent elapsed time, skip the remaining time line output
-//                continue;
-//
-//            line += "\n";
-//            fwrite((const void*)line.c_str(), 1, line.length(), out);
-//            if (ferror(out))
-//            {
-//                in.close();
-//                fclose(out);
-//                boost::nowide::remove(path_tmp.c_str());
-//                throw std::runtime_error(std::string("Remaining times estimation failed.\nIs the disk full?\n"));
-//            }
-//        }
-//
-//        fclose(out);
-//        in.close();
-//
-//        boost::nowide::remove(filename.c_str());
-//        if (boost::nowide::rename(path_tmp.c_str(), filename.c_str()) != 0)
-//            throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + filename + '\n' +
-//            "Is " + path_tmp + " locked?" + '\n');
-//
-//        return true;
-//    }
-//############################################################################################################3
-
-//#################################################################################################################
     bool GCodeTimeEstimator::post_process_remaining_times(const std::string& filename, float interval)
     {
         boost::nowide::ifstream in(filename);
@@ -481,7 +371,6 @@ namespace Slic3r {
 
         return true;
     }
-//#################################################################################################################
 
     void GCodeTimeEstimator::set_axis_position(EAxis axis, float position)
     {
@@ -500,7 +389,6 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::set_axis_max_jerk(EAxis axis, float jerk)
     {
-//############################################################################################################3
         if ((axis == X) || (axis == Y))
         {
             switch (_mode)
@@ -518,7 +406,7 @@ namespace Slic3r {
             }
             }
         }
-//############################################################################################################3
+
         _state.axis[axis].max_jerk = jerk;
     }
 
@@ -642,17 +530,6 @@ namespace Slic3r {
         return _state.e_local_positioning_type;
     }
 
-//#################################################################################################################
-    bool GCodeTimeEstimator::are_remaining_times_enabled() const
-    {
-        return _state.remaining_times_enabled;
-    }
-
-    void GCodeTimeEstimator::set_remaining_times_enabled(bool enable)
-    {
-        _state.remaining_times_enabled = enable;
-    }
-
     int GCodeTimeEstimator::get_g1_line_id() const
     {
         return _state.g1_line_id;
@@ -667,7 +544,6 @@ namespace Slic3r {
     {
         _state.g1_line_id = 0;
     }
-//#################################################################################################################
 
     void GCodeTimeEstimator::add_additional_time(float timeSec)
     {
@@ -690,22 +566,13 @@ namespace Slic3r {
         set_dialect(gcfRepRap);
         set_global_positioning_type(Absolute);
         set_e_local_positioning_type(Absolute);
-//#################################################################################################################
-        set_remaining_times_enabled(false);
-//#################################################################################################################
 
         switch (_mode)
         {
         default:
-//############################################################################################################3
         case Normal:
-//        case Default:
-//############################################################################################################3
             {
-//############################################################################################################3
                 _set_default_as_normal();
-//                _set_default_as_default();
-//############################################################################################################3
                 break;
             }
         case Silent:
@@ -752,10 +619,8 @@ namespace Slic3r {
 
         set_additional_time(0.0f);
 
-//############################################################################################################3
         reset_g1_line_id();
         _g1_line_ids.clear();
-//############################################################################################################3
     }
 
     void GCodeTimeEstimator::_reset_time()
@@ -768,12 +633,8 @@ namespace Slic3r {
         _blocks.clear();
     }
 
-//############################################################################################################3
     void GCodeTimeEstimator::_set_default_as_normal()
-//    void GCodeTimeEstimator::_set_default_as_default()
-//############################################################################################################3
     {
-//############################################################################################################3
         set_feedrate(NORMAL_FEEDRATE);
         set_acceleration(NORMAL_ACCELERATION);
         set_retract_acceleration(NORMAL_RETRACT_ACCELERATION);
@@ -788,41 +649,6 @@ namespace Slic3r {
             set_axis_max_acceleration(axis, NORMAL_AXIS_MAX_ACCELERATION[a]);
             set_axis_max_jerk(axis, NORMAL_AXIS_MAX_JERK[a]);
         }
-
-//        std::cout << "Normal Default" << std::endl;
-//        std::cout << "set_acceleration            " << NORMAL_ACCELERATION << std::endl;
-//        std::cout << "set_retract_acceleration    " << NORMAL_RETRACT_ACCELERATION << std::endl;
-//        std::cout << "set_minimum_feedrate        " << NORMAL_MINIMUM_FEEDRATE << std::endl;
-//        std::cout << "set_minimum_travel_feedrate " << NORMAL_MINIMUM_TRAVEL_FEEDRATE << std::endl;
-//        std::cout << "set_axis_max_acceleration X " << NORMAL_AXIS_MAX_ACCELERATION[X] << std::endl;
-//        std::cout << "set_axis_max_acceleration Y " << NORMAL_AXIS_MAX_ACCELERATION[Y] << std::endl;
-//        std::cout << "set_axis_max_acceleration Z " << NORMAL_AXIS_MAX_ACCELERATION[Z] << std::endl;
-//        std::cout << "set_axis_max_acceleration E " << NORMAL_AXIS_MAX_ACCELERATION[E] << std::endl;
-//        std::cout << "set_axis_max_feedrate X     " << NORMAL_AXIS_MAX_FEEDRATE[X] << std::endl;
-//        std::cout << "set_axis_max_feedrate Y     " << NORMAL_AXIS_MAX_FEEDRATE[Y] << std::endl;
-//        std::cout << "set_axis_max_feedrate Z     " << NORMAL_AXIS_MAX_FEEDRATE[Z] << std::endl;
-//        std::cout << "set_axis_max_feedrate E     " << NORMAL_AXIS_MAX_FEEDRATE[E] << std::endl;
-//        std::cout << "set_axis_max_jerk X         " << NORMAL_AXIS_MAX_JERK[X] << std::endl;
-//        std::cout << "set_axis_max_jerk Y         " << NORMAL_AXIS_MAX_JERK[Y] << std::endl;
-//        std::cout << "set_axis_max_jerk Z         " << NORMAL_AXIS_MAX_JERK[Z] << std::endl;
-//        std::cout << "set_axis_max_jerk E         " << NORMAL_AXIS_MAX_JERK[E] << std::endl;
-
-
-//        set_feedrate(DEFAULT_FEEDRATE);
-//        set_acceleration(DEFAULT_ACCELERATION);
-//        set_retract_acceleration(DEFAULT_RETRACT_ACCELERATION);
-//        set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
-//        set_minimum_travel_feedrate(DEFAULT_MINIMUM_TRAVEL_FEEDRATE);
-//        set_extrude_factor_override_percentage(DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE);
-//
-//        for (unsigned char a = X; a < Num_Axis; ++a)
-//        {
-//            EAxis axis = (EAxis)a;
-//            set_axis_max_feedrate(axis, DEFAULT_AXIS_MAX_FEEDRATE[a]);
-//            set_axis_max_acceleration(axis, DEFAULT_AXIS_MAX_ACCELERATION[a]);
-//            set_axis_max_jerk(axis, DEFAULT_AXIS_MAX_JERK[a]);
-//        }
-//############################################################################################################3
     }
 
     void GCodeTimeEstimator::_set_default_as_silent()
@@ -859,10 +685,7 @@ namespace Slic3r {
 
         _time += get_additional_time();
 
-//##########################################################################################################################
         for (Block& block : _blocks)
-//        for (const Block& block : _blocks)
-//##########################################################################################################################
         {
             if (block.st_synchronized)
                 continue;
@@ -873,9 +696,7 @@ namespace Slic3r {
             block_time += block.cruise_time();
             block_time += block.deceleration_time();
             _time += block_time;
-//##########################################################################################################################
-            block.elapsed_time = are_remaining_times_enabled() ? _time : -1.0f;
-//##########################################################################################################################
+            block.elapsed_time = _time;
 
             MovesStatsMap::iterator it = _moves_stats.find(block.move_type);
             if (it == _moves_stats.end())
@@ -887,9 +708,7 @@ namespace Slic3r {
             _time += block.acceleration_time();
             _time += block.cruise_time();
             _time += block.deceleration_time();
-//##########################################################################################################################
-            block.elapsed_time = are_remaining_times_enabled() ? _time : -1.0f;
-//##########################################################################################################################
+            block.elapsed_time = _time;
 #endif // ENABLE_MOVE_STATS
         }
     }
@@ -1027,9 +846,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
     {
-//############################################################################################################3
         increment_g1_line_id();
-//############################################################################################################3
 
         // updates axes positions from line
         EUnits units = get_units();
@@ -1218,9 +1035,7 @@ namespace Slic3r {
 
         // adds block to blocks list
         _blocks.emplace_back(block);
-//############################################################################################################3
         _g1_line_ids.insert(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
-//############################################################################################################3
     }
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
