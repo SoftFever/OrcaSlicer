@@ -21,6 +21,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 // #include <benchmark.h>
+#include "SVG.hpp"
 
 namespace Slic3r {
 
@@ -308,6 +309,86 @@ namespace arr {
 
 using namespace libnest2d;
 
+std::string toString(const Model& model) {
+    std::stringstream  ss;
+
+    ss << "{\n";
+
+    for(auto objptr : model.objects) {
+        if(!objptr) continue;
+
+        auto rmesh = objptr->raw_mesh();
+
+        for(auto objinst : objptr->instances) {
+            if(!objinst) continue;
+
+            Slic3r::TriangleMesh tmpmesh = rmesh;
+            tmpmesh.scale(objinst->scaling_factor);
+            objinst->transform_mesh(&tmpmesh);
+            ExPolygons expolys = tmpmesh.horizontal_projection();
+            for(auto& expoly_complex : expolys) {
+
+                auto tmp = expoly_complex.simplify(1.0/SCALING_FACTOR);
+                if(tmp.empty()) continue;
+                auto expoly = tmp.front();
+                expoly.contour.make_clockwise();
+                for(auto& h : expoly.holes) h.make_counter_clockwise();
+
+                ss << "\t{\n";
+                ss << "\t\t{\n";
+
+                for(auto v : expoly.contour.points) ss << "\t\t\t{"
+                                                    << v.x << ", "
+                                                    << v.y << "},\n";
+                {
+                    auto v = expoly.contour.points.front();
+                    ss << "\t\t\t{" << v.x << ", " << v.y << "},\n";
+                }
+                ss << "\t\t},\n";
+
+                // Holes:
+                ss << "\t\t{\n";
+//                for(auto h : expoly.holes) {
+//                    ss << "\t\t\t{\n";
+//                    for(auto v : h.points) ss << "\t\t\t\t{"
+//                                           << v.x << ", "
+//                                           << v.y << "},\n";
+//                    {
+//                        auto v = h.points.front();
+//                        ss << "\t\t\t\t{" << v.x << ", " << v.y << "},\n";
+//                    }
+//                    ss << "\t\t\t},\n";
+//                }
+                ss << "\t\t},\n";
+
+                ss << "\t},\n";
+            }
+        }
+    }
+
+    ss << "}\n";
+
+    return ss.str();
+}
+
+void toSVG(SVG& svg, const Model& model) {
+    for(auto objptr : model.objects) {
+        if(!objptr) continue;
+
+        auto rmesh = objptr->raw_mesh();
+
+        for(auto objinst : objptr->instances) {
+            if(!objinst) continue;
+
+            Slic3r::TriangleMesh tmpmesh = rmesh;
+            tmpmesh.scale(objinst->scaling_factor);
+            objinst->transform_mesh(&tmpmesh);
+            ExPolygons expolys = tmpmesh.horizontal_projection();
+            svg.draw(expolys);
+        }
+    }
+}
+
 // A container which stores a pointer to the 3D object and its projected
 // 2D shape from top view.
 using ShapeData2D =
@@ -480,14 +561,16 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     SConf scfg;     // Selection configuration
 
     // Try inserting groups of 2, and 3 items in all possible order.
-    scfg.try_reverse_order = true;
+    scfg.try_reverse_order = false;
 
     // If there are more items that could possibly fit into one bin,
     // use multiple threads. (Potencially decreased pack efficiency)
-    scfg.allow_parallel = false;
+    scfg.allow_parallel = true;
 
     // Use multiple threads whenever possible
     scfg.force_parallel = false;
+
+    scfg.waste_increment = 0.01;
 
     // Align the arranged pile into the center of the bin
     pcfg.alignment = PConf::Alignment::CENTER;
@@ -605,6 +688,15 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
     bool ret = false;
     if(bb != nullptr && bb->defined) {
         ret = arr::arrange(*this, dist, bb, false, progressind);
+//        std::fstream out("out.cpp", std::fstream::out);
+//        if(out.good()) {
+//            out << "const TestData OBJECTS = \n";
+//            out << arr::toString(*this);
+//        }
+//        out.close();
+//        SVG svg("out.svg");
+//        arr::toSVG(svg, *this);
+//        svg.Close();
     } else {
         // get the (transformed) size of each instance so that we take
         // into account their different transformations when packing
