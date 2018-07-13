@@ -552,8 +552,9 @@ sub BUILD {
     $sizer->Add($textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
     
     EVT_SLIDER($self->parent, $slider, sub {
-        if (! $self->disable_change_event) {
-            $self->textctrl->SetLabel($self->get_value);
+        if (! $self->disable_change_event) {    
+            # wxTextCtrl::SetLabel() does not work on Linux, use wxTextCtrl::SetValue() instead
+            $self->textctrl->SetValue($self->get_value);
             $self->_on_change($self->option->opt_id);
         }
     });
