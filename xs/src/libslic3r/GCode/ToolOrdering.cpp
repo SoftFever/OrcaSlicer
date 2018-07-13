@@ -573,6 +573,7 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
                     // not been added to LayerTools
                     // Either way, we will now force-override it with something suitable:
                     if (print.config.infill_first
+                    || object->config.wipe_into_objects  // in this case the perimeter is overridden, so we can override by the last one safely
                     || lt.is_extruder_order(region.config.perimeter_extruder - 1, last_nonsoluble_extruder    // !infill_first, but perimeter is already printed when last extruder prints
                     || std::find(lt.extruders.begin(), lt.extruders.end(), region.config.infill_extruder - 1) == lt.extruders.end()) // we have to force override - this could violate infill_first (FIXME)
                       )
