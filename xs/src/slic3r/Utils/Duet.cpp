@@ -82,7 +82,6 @@ bool Duet::send_gcode(const std::string &filename) const
 
 	bool res = true;
 
-
 	auto upload_cmd = get_upload_url(upload_filepath.string());
 	BOOST_LOG_TRIVIAL(info) << boost::format("Duet: Uploading file %1%, filename: %2%, path: %3%, print: %4%, command: %5%")
 		% filepath.string()
@@ -196,7 +195,6 @@ void Duet::disconnect() const
 		BOOST_LOG_TRIVIAL(error) << boost::format("Duet: Error disconnecting: %1%, HTTP %2%, body: `%3%`") % error % status % body;
 	})
 	.perform_sync();
-
 }
 
 std::string Duet::get_upload_url(const std::string &filename) const
@@ -231,8 +229,8 @@ std::string Duet::get_base_url() const
 std::string Duet::timestamp_str() const
 {
 	auto t = std::time(nullptr);
-    auto tm = *std::localtime(&t);
-    std::stringstream ss;
+	auto tm = *std::localtime(&t);
+	std::stringstream ss;
 	ss << "time=" << std::put_time(&tm, "%Y-%d-%mT%H:%M:%S");
 
 	return ss.str();
@@ -248,7 +246,8 @@ wxString Duet::format_error(const std::string &body, const std::string &error, u
 	}
 }
 
-bool Duet::start_print(wxString &msg, const std::string &filename) const {
+bool Duet::start_print(wxString &msg, const std::string &filename) const 
+{
 	bool res = false;
 	auto url = (boost::format("%1%rr_gcode?gcode=M32%%20\"%2%\"")
 			% get_base_url()
