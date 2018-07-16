@@ -9,7 +9,6 @@
 
 #include <numeric>
 #include <libnest2d.h>
-#include <libnest2d/geometries_io.hpp>
 #include <ClipperUtils.hpp>
 #include "slic3r/GUI/GUI.hpp"
 
@@ -412,7 +411,7 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
             for(auto objinst : objptr->instances) {
                 if(objinst) {
                     Slic3r::TriangleMesh tmpmesh = rmesh;
-                    ClipperLib::PolyNode pn;
+                    ClipperLib::PolygonImpl pn;
 
                     tmpmesh.scale(objinst->scaling_factor);
 
@@ -553,24 +552,12 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
     // Will use the DJD selection heuristic with the BottomLeft placement
     // strategy
-    using Arranger = Arranger<NfpPlacer, DJDHeuristic>;
+    using Arranger = Arranger<NfpPlacer, FirstFitSelection>;
     using PConf = Arranger::PlacementConfig;
     using SConf = Arranger::SelectionConfig;
 
     PConf pcfg;     // Placement configuration
     SConf scfg;     // Selection configuration
-
-    // Try inserting groups of 2, and 3 items in all possible order.
-    scfg.try_reverse_order = false;
-
-    // If there are more items that could possibly fit into one bin,
-    // use multiple threads. (Potencially decreased pack efficiency)
-    scfg.allow_parallel = true;
-
-    // Use multiple threads whenever possible
-    scfg.force_parallel = false;
-
-    scfg.waste_increment = 0.01;
 
     // Align the arranged pile into the center of the bin
     pcfg.alignment = PConf::Alignment::CENTER;

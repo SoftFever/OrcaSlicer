@@ -5,13 +5,11 @@
 //#define DEBUG_EXPORT_NFP
 
 #include <libnest2d.h>
-#include <libnest2d/geometries_io.hpp>
 
-#include "printer_parts.h"
-#include "benchmark.h"
-#include "svgtools.hpp"
-//#include <libnest2d/optimizer.hpp>
-//#include <libnest2d/optimizers/simplex.hpp>
+#include "tests/printer_parts.h"
+#include "tools/benchmark.h"
+#include "tools/svgtools.hpp"
+//#include "tools/libnfpglue.hpp"
 
 using namespace libnest2d;
 using ItemGroup = std::vector<std::reference_wrapper<Item>>;
@@ -37,10 +35,22 @@ std::vector<Item>& stegoParts() {
     return _parts(ret, STEGOSAUR_POLYGONS);
 }
 
+std::vector<Item>& prusaExParts() {
+    static std::vector<Item> ret;
+    if(ret.empty()) {
+        ret.reserve(PRINTER_PART_POLYGONS_EX.size());
+        for(auto& p : PRINTER_PART_POLYGONS_EX) {
+            ret.emplace_back(p.Contour, p.Holes);
+        }
+    }
+    return ret;
+}
+
 void arrangeRectangles() {
     using namespace libnest2d;
 
     const int SCALE = 1000000;
+//    const int SCALE = 1;
     std::vector<Rectangle> rects = {
         {80*SCALE, 80*SCALE},
         {60*SCALE, 90*SCALE},
@@ -506,38 +516,59 @@ void arrangeRectangles() {
         },
     };
 
+    std::vector<Item> proba = {
+        {
+            { {0, 0}, {20, 20}, {40, 0}, {0, 0} }
+        },
+        {
+            { {0, 100}, {50, 60}, {100, 100}, {50, 0}, {0, 100} }
+
+        },
+    };
+
     std::vector<Item> input;
 //    input.insert(input.end(), prusaParts().begin(), prusaParts().end());
+//    input.insert(input.end(), prusaExParts().begin(), prusaExParts().end());
 //    input.insert(input.end(), stegoParts().begin(), stegoParts().end());
 //    input.insert(input.end(), rects.begin(), rects.end());
+//    input.insert(input.end(), proba.begin(), proba.end());
     input.insert(input.end(), crasher.begin(), crasher.end());
 
     Box bin(250*SCALE, 210*SCALE);
 
     Coord min_obj_distance = 6*SCALE;
 
-    using Packer = Arranger<NfpPlacer, DJDHeuristic>;
+    using Placer = NfpPlacer;
+    using Packer = Arranger<Placer, FirstFitSelection>;
 
     Packer arrange(bin, min_obj_distance);
 
     Packer::PlacementConfig pconf;
-    pconf.alignment = NfpPlacer::Config::Alignment::CENTER;
+    pconf.alignment = Placer::Config::Alignment::CENTER;
     pconf.rotations = {0.0/*, Pi/2.0, Pi, 3*Pi/2*/};
-    pconf.object_function = [&bin](NfpPlacer::Pile pile, double area,
+    pconf.object_function = [&bin](Placer::Pile pile, double area,
                                double norm, double penality) {
 
         auto bb = ShapeLike::boundingBox(pile);
-        double score = (2*bb.width() + 2*bb.height()) / norm;
 
+        double diameter = PointLike::distance(bb.minCorner(),
+                                              bb.maxCorner());
+
+        // We will optimize to the diameter of the circle around the bounding
+        // box and use the norming factor to get rid of the physical dimensions
+        double score = diameter / norm;
+
+        // If it does not fit into the print bed we will beat it
+        // with a large penality
         if(!NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
 
         return score;
     };
 
     Packer::SelectionConfig sconf;
-    sconf.allow_parallel = true;
-    sconf.force_parallel = true;
-    sconf.try_reverse_order = true;
+//    sconf.allow_parallel = false;
+//    sconf.force_parallel = false;
+//    sconf.try_reverse_order = true;
 
     arrange.configure(pconf, sconf);
 
@@ -610,10 +641,9 @@ void arrangeRectangles() {
     svgw.save("out");
 }
 
-
-
 int main(void /*int argc, char **argv*/) {
     arrangeRectangles();
 //    findDegenerateCase();
+
     return EXIT_SUCCESS;
 }

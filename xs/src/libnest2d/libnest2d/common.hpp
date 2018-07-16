@@ -18,7 +18,6 @@
     #define BP2D_CONSTEXPR constexpr
 #endif
 
-
 /*
  * Debugging output dout and derr definition
  */
@@ -211,16 +210,16 @@ enum class GeomErr : std::size_t {
     NFP
 };
 
-static const std::string ERROR_STR[] = {
-    "Offsetting could not be done! An invalid geometry may have been added."
-    "Error while merging geometries!"
-    "No fit polygon cannaot be calculated."
+const std::string ERROR_STR[] = {
+    "Offsetting could not be done! An invalid geometry may have been added.",
+    "Error while merging geometries!",
+    "No fit polygon cannot be calculated."
 };
 
 class GeometryException: public std::exception {
 
-    virtual const char * errorstr(GeomErr errcode) const BP2D_NOEXCEPT {
-        return ERROR_STR[static_cast<std::size_t>(errcode)].c_str();
+    virtual const std::string& errorstr(GeomErr errcode) const BP2D_NOEXCEPT {
+        return ERROR_STR[static_cast<std::size_t>(errcode)];
     }
 
     GeomErr errcode_;
@@ -231,7 +230,7 @@ public:
     GeomErr errcode() const { return errcode_; }
 
     virtual const char * what() const BP2D_NOEXCEPT override {
-        return errorstr(errcode_);
+        return errorstr(errcode_).c_str();
     }
 };
 

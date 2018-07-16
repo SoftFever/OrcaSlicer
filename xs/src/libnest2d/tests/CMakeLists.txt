@@ -35,13 +35,17 @@ else()
     set(GTEST_LIBS_TO_LINK  ${GTEST_BOTH_LIBRARIES}  Threads::Threads)
 endif()
 
-add_executable(bp2d_tests test.cpp svgtools.hpp printer_parts.h printer_parts.cpp)
-target_link_libraries(bp2d_tests libnest2d_static ${GTEST_LIBS_TO_LINK} )
+add_executable(bp2d_tests   test.cpp
+                            ../tools/svgtools.hpp
+#                            ../tools/libnfpglue.hpp
+#                            ../tools/libnfpglue.cpp
+                            printer_parts.h
+                            printer_parts.cpp
+                            ${LIBNEST2D_SRCFILES}
+                            )
+target_link_libraries(bp2d_tests ${LIBNEST2D_LIBRARIES} ${GTEST_LIBS_TO_LINK} )
+
 target_include_directories(bp2d_tests PRIVATE BEFORE ${LIBNEST2D_HEADERS}
                                                      ${GTEST_INCLUDE_DIRS})
-
-if(DEFINED LIBNEST2D_TEST_LIBRARIES)
-    target_link_libraries(bp2d_tests ${LIBNEST2D_TEST_LIBRARIES})
-endif()
 
 add_test(libnest2d_tests bp2d_tests)

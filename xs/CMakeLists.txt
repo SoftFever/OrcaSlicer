@@ -724,29 +724,12 @@ add_custom_target(pot
 # ##############################################################################
 
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
-set(LIBNEST2D_BUILD_SHARED_LIB OFF CACHE BOOL "Disable build of shared lib.")
-
-if(LIBNEST2D_UNITTESTS)
-   # If we want the libnest2d unit tests we need to build and executable with
-   # all the libslic3r dependencies. This is needed because the clipper library
-   # in the slic3r project is hacked so that it depends on the slic3r sources.
-   # Unfortunately, this implies that the test executable is also dependent on 
-   # the libslic3r target.
-
-#   add_library(libslic3r_standalone STATIC ${LIBDIR}/libslic3r/utils.cpp)
-#   set(LIBNEST2D_TEST_LIBRARIES
-#       libslic3r libslic3r_standalone nowide libslic3r_gui admesh miniz
-#       ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES}
-#       polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES}
-#       ${CURL_LIBRARIES}
-#   )
-endif()
 
 add_subdirectory(${LIBDIR}/libnest2d)
 target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
 
-# Add the binpack2d main sources and link them to libslic3r
-target_link_libraries(libslic3r libnest2d_static)
+message(STATUS "Libnest2D Libraries: ${LIBNEST2D_LIBRARIES}")
+target_link_libraries(libslic3r ${LIBNEST2D_LIBRARIES})
 # ##############################################################################
 
 # Installation

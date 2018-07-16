@@ -180,6 +180,29 @@ public:
             });
         };
 
+        using ItemListIt = typename ItemList::iterator;
+
+        auto largestPiece = [](ItemListIt it, ItemList& not_packed) {
+            return it == not_packed.begin()? std::next(it) : not_packed.begin();
+        };
+
+        auto secondLargestPiece = [&largestPiece](ItemListIt it,
+                ItemList& not_packed) {
+            auto ret = std::next(largestPiece(it, not_packed));
+            return ret == it? std::next(ret) : ret;
+        };
+
+        auto smallestPiece = [](ItemListIt it, ItemList& not_packed) {
+            auto last = std::prev(not_packed.end());
+            return it == last? std::prev(it) : last;
+        };
+
+        auto secondSmallestPiece = [&smallestPiece](ItemListIt it,
+                ItemList& not_packed) {
+            auto ret = std::prev(smallestPiece(it, not_packed));
+            return ret == it? std::prev(ret) : ret;
+        };
+
         auto tryOneByOne = // Subroutine to try adding items one by one.
                 [&bin_area]
                 (Placer& placer, ItemList& not_packed,
@@ -208,31 +231,25 @@ public:
         };
 
         auto tryGroupsOfTwo = // Try adding groups of two items into the bin.
-                [&bin_area, &check_pair,
+                [&bin_area, &check_pair, &largestPiece, &smallestPiece,
                  try_reverse]
                 (Placer& placer, ItemList& not_packed,
                 double waste,
                 double& free_area,
                 double& filled_area)
         {
-            double item_area = 0, largest_area = 0, smallest_area = 0;
-            double second_largest = 0, second_smallest = 0;
-
+            double item_area = 0;
             const auto endit = not_packed.end();
 
             if(not_packed.size() < 2)
                 return false; // No group of two items
             else {
-                largest_area = not_packed.front().get().area();
+                double largest_area = not_packed.front().get().area();
                 auto itmp = not_packed.begin(); itmp++;
-                second_largest = itmp->get().area();
+                double second_largest = itmp->get().area();
                 if( free_area - second_largest - largest_area > waste)
                     return false; // If even the largest two items do not fill
                     // the bin to the desired waste than we can end here.
-
-                smallest_area = not_packed.back().get().area();
-                itmp = endit; std::advance(itmp, -2);
-                second_smallest = itmp->get().area();
             }
 
             bool ret = false;
@@ -241,17 +258,12 @@ public:
 
             std::vector<TPair> wrong_pairs;
 
-            double largest = second_largest;
-            double smallest= smallest_area;
-            while(it != endit && !ret && free_area -
-                  (item_area = it->get().area()) - largest <= waste )
+            while(it != endit && !ret &&
+                  free_area - (item_area = it->get().area()) -
+                  largestPiece(it, not_packed)->get().area() <= waste)
             {
-                // if this is the last element, the next smallest is the
-                // previous item
-                auto itmp = it; std::advance(itmp, 1);
-                if(itmp == endit) smallest = second_smallest;
-
-                if(item_area + smallest > free_area ) { it++; continue; }
+                if(item_area + smallestPiece(it, not_packed)->get().area() >
+                        free_area ) { it++; continue; }
 
                 auto pr = placer.trypack(*it);
 
@@ -300,8 +312,6 @@ public:
                 }
 
                 if(!ret) it++;
-
-                largest = largest_area;
             }
 
             if(ret) { not_packed.erase(it); not_packed.erase(it2); }
@@ -311,6 +321,8 @@ public:
 
         auto tryGroupsOfThree = // Try adding groups of three items.
                 [&bin_area,
+                 &smallestPiece, &largestPiece,
+                 &secondSmallestPiece, &secondLargestPiece,
                  &check_pair, &check_triplet, try_reverse]
                 (Placer& placer, ItemList& not_packed,
                 double waste,
@@ -341,11 +353,8 @@ public:
                 // We need to determine in each iteration the largest, second
                 // largest, smallest and second smallest item in terms of area.
 
-                auto first = not_packed.begin();
-                Item& largest = it == first? *std::next(it) : *first;
-
-                auto second = std::next(first);
-                Item& second_largest = it == second ? *std::next(it) : *second;
+                Item& largest = *largestPiece(it, not_packed);
+                Item& second_largest = *secondLargestPiece(it, not_packed);
 
                 double area_of_two_largest =
                         largest.area() + second_largest.area();
@@ -356,23 +365,22 @@ public:
                     break;
 
                 // Determine the area of the two smallest item.
-                auto last = std::prev(endit);
-                Item& smallest = it == last? *std::prev(it) : *last;
-                auto second_last = std::prev(last);
-                Item& second_smallest = it == second_last? *std::prev(it) :
-                                                           *second_last;
+                Item& smallest = *smallestPiece(it, not_packed);
+                Item& second_smallest = *secondSmallestPiece(it, not_packed);
 
                 // Check if there is enough free area for the item and the two
                 // smallest item.
                 double area_of_two_smallest =
                         smallest.area() + second_smallest.area();
 
+                if(it->get().area() + area_of_two_smallest > free_area) {
+                    it++; continue;
+                }
+
                 auto pr = placer.trypack(*it);
 
                 // Check for free area and try to pack the 1st item...
-                if(!pr || it->get().area() + area_of_two_smallest > free_area) {
-                    it++; continue;
-                }
+                if(!pr) { it++; continue; }
 
                 it2 = not_packed.begin();
                 double rem2_area = free_area - largest.area();
@@ -433,6 +441,8 @@ public:
                         if(it3 == it || it3 == it2 ||
                                 check_triplet(wrong_triplets, *it, *it2, *it3))
                         { it3++; continue; }
+
+                        if(a3_sum > free_area) { it3++; continue; }
 
                         placer.accept(pr12); placer.accept(pr2);
                         bool can_pack3 = placer.pack(*it3);
@@ -558,13 +568,12 @@ public:
                         &makeProgress]
                         (Placer& placer, ItemList& not_packed, size_t idx)
         {
-            bool can_pack = true;
-
             double filled_area = placer.filledArea();
             double free_area = bin_area - filled_area;
             double waste = .0;
+            bool lasttry = false;
 
-            while(!not_packed.empty() && can_pack) {
+            while(!not_packed.empty() ) {
 
                 {// Fill the bin up to INITIAL_FILL_PROPORTION of its capacity
                     auto it = not_packed.begin();
@@ -585,29 +594,31 @@ public:
                 // try pieses one by one
                 while(tryOneByOne(placer, not_packed, waste, free_area,
                                   filled_area)) {
-                    waste = 0;
+                    if(lasttry) std::cout << "Lasttry monopack" << std::endl;
+                    waste = 0; lasttry = false;
                     makeProgress(placer, idx, 1);
                 }
 
                 // try groups of 2 pieses
                 while(tryGroupsOfTwo(placer, not_packed, waste, free_area,
                                      filled_area)) {
-                    waste = 0;
+                    if(lasttry) std::cout << "Lasttry bipack" << std::endl;
+                    waste = 0; lasttry = false;
                     makeProgress(placer, idx, 2);
                 }
 
-                // try groups of 3 pieses
-                while(tryGroupsOfThree(placer, not_packed, waste, free_area,
-                                       filled_area)) {
-                    waste = 0;
-                    makeProgress(placer, idx, 3);
-                }
+//                // try groups of 3 pieses
+//                while(tryGroupsOfThree(placer, not_packed, waste, free_area,
+//                                       filled_area)) {
+//                    if(lasttry) std::cout << "Lasttry tripack" << std::endl;
+//                    waste = 0; lasttry = false;
+//                    makeProgress(placer, idx, 3);
+//                }
 
-                if(waste < free_area) waste += w;
-                else if(!not_packed.empty()) can_pack = false;
+                waste += w;
+                if(!lasttry && waste > free_area) lasttry = true;
+                else if(lasttry) break;
             }
-
-            return can_pack;
         };
 
         size_t idx = 0;
@@ -633,7 +644,7 @@ public:
             };
 
             // We will create jobs for each bin
-            std::vector<std::future<bool>> rets(bincount_guess);
+            std::vector<std::future<void>> rets(bincount_guess);
 
             for(unsigned b = 0; b < bincount_guess; b++) { // launch the jobs
                 rets[b] = std::async(std::launch::async, job, b);

@@ -5,9 +5,7 @@
 #include <iostream>
 #endif
 #include "placer_boilerplate.hpp"
-#include "../geometries_nfp.hpp"
-#include <libnest2d/optimizers/subplex.hpp>
-//#include <libnest2d/optimizers/genetic.hpp>
+#include "../geometry_traits_nfp.hpp"
 
 namespace libnest2d { namespace strategies {
 
@@ -41,13 +39,13 @@ template<class RawShape> class EdgeCache {
     using Coord = TCoord<Vertex>;
     using Edge = _Segment<Vertex>;
 
-    enum Corners {
-        BOTTOM,
-        LEFT,
-        RIGHT,
-        TOP,
-        NUM_CORNERS
-    };
+//    enum Corners {
+//        BOTTOM,
+//        LEFT,
+//        RIGHT,
+//        TOP,
+//        NUM_CORNERS
+//    };
 
     mutable std::vector<double> corners_;
 
@@ -72,43 +70,49 @@ template<class RawShape> class EdgeCache {
     void fetchCorners() const {
         if(!corners_.empty()) return;
 
-        corners_ = std::vector<double>(NUM_CORNERS, 0.0);
+        corners_ = distances_;
+        for(auto& d : corners_) {
+            d /= full_distance_;
+        }
 
-        std::vector<unsigned> idx_ud(emap_.size(), 0);
-        std::vector<unsigned> idx_lr(emap_.size(), 0);
+//        corners_ = std::vector<double>(NUM_CORNERS, 0.0);
 
-        std::iota(idx_ud.begin(), idx_ud.end(), 0);
-        std::iota(idx_lr.begin(), idx_lr.end(), 0);
+//        std::vector<unsigned> idx_ud(emap_.size(), 0);
+//        std::vector<unsigned> idx_lr(emap_.size(), 0);
 
-        std::sort(idx_ud.begin(), idx_ud.end(),
-                  [this](unsigned idx1, unsigned idx2)
-        {
-            const Vertex& v1 = emap_[idx1].first();
-            const Vertex& v2 = emap_[idx2].first();
-            auto diff = getY(v1) - getY(v2);
-            if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
-              return getX(v1) < getX(v2);
+//        std::iota(idx_ud.begin(), idx_ud.end(), 0);
+//        std::iota(idx_lr.begin(), idx_lr.end(), 0);
 
-            return diff < 0;
-        });
+//        std::sort(idx_ud.begin(), idx_ud.end(),
+//                  [this](unsigned idx1, unsigned idx2)
+//        {
+//            const Vertex& v1 = emap_[idx1].first();
+//            const Vertex& v2 = emap_[idx2].first();
 
-        std::sort(idx_lr.begin(), idx_lr.end(),
-                  [this](unsigned idx1, unsigned idx2)
-        {
-            const Vertex& v1 = emap_[idx1].first();
-            const Vertex& v2 = emap_[idx2].first();
+//            auto diff = getY(v1) - getY(v2);
+//            if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
+//              return getX(v1) < getX(v2);
 
-            auto diff = getX(v1) - getX(v2);
-            if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
-                return getY(v1) < getY(v2);
+//            return diff < 0;
+//        });
 
-            return diff < 0;
-        });
+//        std::sort(idx_lr.begin(), idx_lr.end(),
+//                  [this](unsigned idx1, unsigned idx2)
+//        {
+//            const Vertex& v1 = emap_[idx1].first();
+//            const Vertex& v2 = emap_[idx2].first();
 
-        corners_[BOTTOM] = distances_[idx_ud.front()]/full_distance_;
-        corners_[TOP] = distances_[idx_ud.back()]/full_distance_;
-        corners_[LEFT] = distances_[idx_lr.front()]/full_distance_;
-        corners_[RIGHT] = distances_[idx_lr.back()]/full_distance_;
+//            auto diff = getX(v1) - getX(v2);
+//            if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
+//                return getY(v1) < getY(v2);
+
+//            return diff < 0;
+//        });
+
+//        corners_[BOTTOM] = distances_[idx_ud.front()]/full_distance_;
+//        corners_[TOP] = distances_[idx_ud.back()]/full_distance_;
+//        corners_[LEFT] = distances_[idx_lr.front()]/full_distance_;
+//        corners_[RIGHT] = distances_[idx_lr.back()]/full_distance_;
     }
 
 public:
@@ -163,11 +167,11 @@ public:
 
     inline double circumference() const BP2D_NOEXCEPT { return full_distance_; }
 
-    inline double corner(Corners c) const BP2D_NOEXCEPT {
-        assert(c < NUM_CORNERS);
-        fetchCorners();
-        return corners_[c];
-    }
+//    inline double corner(Corners c) const BP2D_NOEXCEPT {
+//        assert(c < NUM_CORNERS);
+//        fetchCorners();
+//        return corners_[c];
+//    }
 
     inline const std::vector<double>& corners() const BP2D_NOEXCEPT {
         fetchCorners();
@@ -176,18 +180,21 @@ public:
 
 };
 
-// Nfp for a bunch of polygons. If the polygons are convex, the nfp calculated
-// for trsh can be the union of nfp-s calculated with each polygon
+template<NfpLevel lvl>
+struct Lvl { static const NfpLevel value = lvl; };
+
 template<class RawShape, class Container>
-Nfp::Shapes<RawShape> nfp(const Container& polygons, const RawShape& trsh )
+Nfp::Shapes<RawShape> nfp( const Container& polygons,
+                           const _Item<RawShape>& trsh,
+                           Lvl<NfpLevel::CONVEX_ONLY>)
 {
     using Item = _Item<RawShape>;
 
     Nfp::Shapes<RawShape> nfps;
 
     for(Item& sh : polygons) {
-        auto subnfp = Nfp::noFitPolygon(sh.transformedShape(),
-                                        trsh);
+        auto subnfp = Nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(
+                    sh.transformedShape(), trsh.transformedShape());
         #ifndef NDEBUG
             auto vv = ShapeLike::isValid(sh.transformedShape());
             assert(vv.first);
@@ -195,6 +202,51 @@ Nfp::Shapes<RawShape> nfp(const Container& polygons, const RawShape& trsh )
             auto vnfp = ShapeLike::isValid(subnfp);
             assert(vnfp.first);
         #endif
+
+        nfps = Nfp::merge(nfps, subnfp);
+    }
+
+    return nfps;
+}
+
+template<class RawShape, class Container, class Level>
+Nfp::Shapes<RawShape> nfp( const Container& polygons,
+                           const _Item<RawShape>& trsh,
+                           Level)
+{
+    using Item = _Item<RawShape>;
+
+    Nfp::Shapes<RawShape> nfps, stationary;
+
+    for(Item& sh : polygons) {
+        stationary = Nfp::merge(stationary, sh.transformedShape());
+    }
+
+    std::cout << "pile size: " << stationary.size() << std::endl;
+    for(RawShape& sh : stationary) {
+
+        RawShape subnfp;
+//        if(sh.isContourConvex() && trsh.isContourConvex()) {
+//            subnfp = Nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(
+//                        sh.transformedShape(), trsh.transformedShape());
+//        } else {
+            subnfp = Nfp::noFitPolygon<Level::value>( sh/*.transformedShape()*/,
+                                                      trsh.transformedShape());
+//        }
+
+//        #ifndef NDEBUG
+//            auto vv = ShapeLike::isValid(sh.transformedShape());
+//            assert(vv.first);
+
+//            auto vnfp = ShapeLike::isValid(subnfp);
+//            assert(vnfp.first);
+//        #endif
+
+//            auto vnfp = ShapeLike::isValid(subnfp);
+//            if(!vnfp.first) {
+//                std::cout << vnfp.second << std::endl;
+//                std::cout << ShapeLike::toString(subnfp) << std::endl;
+//            }
 
         nfps = Nfp::merge(nfps, subnfp);
     }
@@ -215,6 +267,8 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
 
     const double norm_;
     const double penality_;
+
+    using MaxNfpLevel = Nfp::MaxNfpLevel<RawShape>;
 
 public:
 
@@ -275,7 +329,7 @@ public:
 
                 auto trsh = item.transformedShape();
 
-                nfps = nfp(items_, trsh);
+                nfps = nfp(items_, item, Lvl<MaxNfpLevel::value>());
                 auto iv = Nfp::referenceVertex(trsh);
 
                 auto startpos = item.translation();
@@ -348,7 +402,7 @@ public:
                 stopcr.max_iterations = 1000;
                 stopcr.stoplimit = 0.01;
                 stopcr.type = opt::StopLimitType::RELATIVE;
-                opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
+                opt::TOptimizer<opt::Method::L_SIMPLEX> solver(stopcr);
 
                 double optimum = 0;
                 double best_score = penality_;
@@ -386,14 +440,8 @@ public:
                                 best_score = result.score;
                                 optimum = std::get<0>(result.optimum);
                             }
-                        } catch(std::exception&
-                        #ifndef NDEBUG
-                                e
-                        #endif
-                                ) {
-                        #ifndef NDEBUG
-                            std::cerr << "ERROR " << e.what() << std::endl;
-                        #endif
+                        } catch(std::exception& e) {
+                            derr() << "ERROR: " << e.what() << "\n";
                         }
                     });
                 }
@@ -420,6 +468,10 @@ public:
     }
 
     ~_NofitPolyPlacer() {
+        clearItems();
+    }
+
+    inline void clearItems() {
         Nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
 
@@ -458,6 +510,8 @@ public:
 
         auto d = cb - ci;
         for(Item& item : items_) item.translate(d);
+
+        Base::clearItems();
     }
 
 private:

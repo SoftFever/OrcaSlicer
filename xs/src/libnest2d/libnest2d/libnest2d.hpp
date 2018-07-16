@@ -9,9 +9,6 @@
 #include <functional>
 
 #include "geometry_traits.hpp"
-//#include "optimizers/subplex.hpp"
-//#include "optimizers/simplex.hpp"
-#include "optimizers/genetic.hpp"
 
 namespace libnest2d {
 
@@ -51,6 +48,14 @@ class _Item {
     mutable bool area_cache_valid_ = false;
     mutable RawShape offset_cache_;
     mutable bool offset_cache_valid_ = false;
+
+    enum class Convexity: char {
+        UNCHECKED,
+        TRUE,
+        FALSE
+    };
+
+    mutable Convexity convexity_ = Convexity::UNCHECKED;
 
 public:
 
@@ -101,11 +106,14 @@ public:
     inline _Item(const std::initializer_list< Vertex >& il):
         sh_(ShapeLike::create<RawShape>(il)) {}
 
-    inline _Item(const TContour<RawShape>& contour):
-        sh_(ShapeLike::create<RawShape>(contour)) {}
+    inline _Item(const TContour<RawShape>& contour,
+                 const THolesContainer<RawShape>& holes = {}):
+        sh_(ShapeLike::create<RawShape>(contour, holes)) {}
 
-    inline _Item(TContour<RawShape>&& contour):
-        sh_(ShapeLike::create<RawShape>(std::move(contour))) {}
+    inline _Item(TContour<RawShape>&& contour,
+                 THolesContainer<RawShape>&& holes):
+        sh_(ShapeLike::create<RawShape>(std::move(contour),
+                                        std::move(holes))) {}
 
     /**
      * @brief Convert the polygon to string representation. The format depends
@@ -117,7 +125,7 @@ public:
         return ShapeLike::toString(sh_);
     }
 
-    /// Iterator tho the first vertex in the polygon.
+    /// Iterator tho the first contour vertex in the polygon.
     inline Iterator begin() const
     {
         return ShapeLike::cbegin(sh_);
@@ -129,7 +137,7 @@ public:
         return ShapeLike::cbegin(sh_);
     }
 
-    /// Iterator to the last element.
+    /// Iterator to the last contour vertex.
     inline Iterator end() const
     {
         return ShapeLike::cend(sh_);
@@ -165,8 +173,7 @@ public:
      * @param idx The index of the requested vertex.
      * @param v The new vertex data.
      */
-    inline void setVertex(unsigned long idx,
-                          const Vertex& v )
+    inline void setVertex(unsigned long idx, const Vertex& v )
     {
         invalidateCache();
         ShapeLike::vertex(sh_, idx) = v;
@@ -191,9 +198,36 @@ public:
         return ret;
     }
 
+    inline bool isContourConvex() const {
+        bool ret = false;
+
+        switch(convexity_) {
+        case Convexity::UNCHECKED:
+            ret = ShapeLike::isConvex<RawShape>(ShapeLike::getContour(transformedShape()));
+            convexity_ = ret? Convexity::TRUE : Convexity::FALSE;
+            break;
+        case Convexity::TRUE: ret = true; break;
+        case Convexity::FALSE:;
+        }
+
+        return ret;
+    }
+
+    inline bool isHoleConvex(unsigned holeidx) const {
+        return false;
+    }
+
+    inline bool areHolesConvex() const {
+        return false;
+    }
+
     /// The number of the outer ring vertices.
     inline size_t vertexCount() const {
         return ShapeLike::contourVertexCount(sh_);
+    }
+
+    inline size_t holeCount() const {
+        return ShapeLike::holeCount(sh_);
     }
 
     /**
@@ -262,7 +296,7 @@ public:
         }
     }
 
-    inline RawShape transformedShape() const
+    inline const RawShape& transformedShape() const
     {
         if(tr_cache_valid_) return tr_cache_;
 
@@ -271,7 +305,7 @@ public:
         if(has_translation_) ShapeLike::translate(cpy, translation_);
         tr_cache_ = cpy; tr_cache_valid_ = true;
 
-        return cpy;
+        return tr_cache_;
     }
 
     inline operator RawShape() const
@@ -327,6 +361,7 @@ private:
         tr_cache_valid_ = false;
         area_cache_valid_ = false;
         offset_cache_valid_ = false;
+        convexity_ = Convexity::UNCHECKED;
     }
 };
 

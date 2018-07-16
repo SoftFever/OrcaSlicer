@@ -5,6 +5,10 @@
 // for now we set it statically to clipper backend
 #include <libnest2d/clipper_backend/clipper_backend.hpp>
 
+// We include the stock optimizers for local and global optimization
+#include <libnest2d/optimizers/simplex.hpp>     // Local subplex for NfpPlacer
+#include <libnest2d/optimizers/genetic.hpp>     // Genetic for min. bounding box
+
 #include <libnest2d/libnest2d.hpp>
 #include <libnest2d/placers/bottomleftplacer.hpp>
 #include <libnest2d/placers/nfpplacer.hpp>
@@ -31,7 +35,9 @@ using DJDHeuristic  = strategies::_DJDHeuristic<PolygonImpl>;
 
 using NfpPlacer = strategies::_NofitPolyPlacer<PolygonImpl>;
 using BottomLeftPlacer = strategies::_BottomLeftPlacer<PolygonImpl>;
-using NofitPolyPlacer = strategies::_NofitPolyPlacer<PolygonImpl>;
+
+//template<NfpLevel lvl = NfpLevel::BOTH_CONCAVE_WITH_HOLES>
+//using NofitPolyPlacer = strategies::_NofitPolyPlacer<PolygonImpl, lvl>;
 
 }
 

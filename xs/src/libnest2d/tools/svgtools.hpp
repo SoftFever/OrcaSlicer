@@ -6,7 +6,6 @@
 #include <string>
 
 #include <libnest2d.h>
-#include <libnest2d/geometries_io.hpp>
 
 namespace libnest2d { namespace svg {
 
@@ -46,16 +45,19 @@ public:
 
     void writeItem(const Item& item) {
         if(svg_layers_.empty()) addLayer();
-        Item tsh(item.transformedShape());
-        if(conf_.origo_location == BOTTOMLEFT)
-        for(unsigned i = 0; i < tsh.vertexCount(); i++) {
-            auto v = tsh.vertex(i);
+        auto tsh = item.transformedShape();
+        if(conf_.origo_location == BOTTOMLEFT) {
             auto d = static_cast<Coord>(
                         std::round(conf_.height*conf_.mm_in_coord_units) );
-            setY(v, -getY(v) + d);
-            tsh.setVertex(i, v);
+
+            auto& contour = ShapeLike::getContour(tsh);
+            for(auto& v : contour) setY(v, -getY(v) + d);
+
+            auto& holes = ShapeLike::holes(tsh);
+            for(auto& h : holes) for(auto& v : h) setY(v, -getY(v) + d);
+
         }
-        currentLayer() += ShapeLike::serialize<Formats::SVG>(tsh.rawShape(),
+        currentLayer() += ShapeLike::serialize<Formats::SVG>(tsh,
                                             1.0/conf_.mm_in_coord_units) + "\n";
     }
 

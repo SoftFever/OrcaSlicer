@@ -3,8 +3,8 @@
 
 #include <libnest2d.h>
 #include "printer_parts.h"
-#include <libnest2d/geometries_io.hpp>
-#include <libnest2d/geometries_nfp.hpp>
+#include <libnest2d/geometry_traits_nfp.hpp>
+//#include "../tools/libnfpglue.hpp"
 
 std::vector<libnest2d::Item>& prusaParts() {
     static std::vector<libnest2d::Item> ret;
@@ -622,26 +622,65 @@ std::vector<ItemPair> nfp_testdata = {
     }
 };
 
-}
+std::vector<ItemPair> nfp_concave_testdata = {
+    { // ItemPair
+      {
+          {
+              {533726, 142141},
+              {532359, 143386},
+              {530141, 142155},
+              {528649, 160091},
+              {533659, 157607},
+              {538669, 160091},
+              {537178, 142155},
+              {534959, 143386},
+              {533726, 142141},
+          }
+      },
+      {
+          {
+              {118305, 11603},
+              {118311, 26616},
+              {113311, 26611},
+              {109311, 29604},
+              {109300, 44608},
+              {109311, 49631},
+              {113300, 52636},
+              {118311, 52636},
+              {118308, 103636},
+              {223830, 103636},
+              {236845, 90642},
+              {236832, 11630},
+              {232825, 11616},
+              {210149, 11616},
+              {211308, 13625},
+              {209315, 17080},
+              {205326, 17080},
+              {203334, 13629},
+              {204493, 11616},
+              {118305, 11603},
+          }
+      },
+    }
+};
 
-TEST(GeometryAlgorithms, nfpConvexConvex) {
+template<NfpLevel lvl, Coord SCALE>
+void testNfp(const std::vector<ItemPair>& testdata) {
     using namespace libnest2d;
-
-    const Coord SCALE = 1000000;
 
     Box bin(210*SCALE, 250*SCALE);
 
     int testcase = 0;
 
-    auto& exportfun = exportSVG<1, Box>;
+    auto& exportfun = exportSVG<SCALE, Box>;
 
     auto onetest = [&](Item& orbiter, Item& stationary){
         testcase++;
 
         orbiter.translate({210*SCALE, 0});
 
-        auto&& nfp = Nfp::noFitPolygon(stationary.rawShape(),
-                                       orbiter.transformedShape());
+        auto&& nfp = Nfp::noFitPolygon<lvl>(stationary.rawShape(),
+                                            orbiter.transformedShape());
 
         auto v = ShapeLike::isValid(nfp);
 
@@ -667,11 +706,9 @@ TEST(GeometryAlgorithms, nfpConvexConvex) {
 
             tmp.translate({dx, dy});
 
-            bool notinside = !tmp.isInside(stationary);
-            bool notintersecting = !Item::intersects(tmp, stationary) ||
-                                    Item::touches(tmp, stationary);
+            bool touching = Item::touches(tmp, stationary);
 
-            if(!(notinside && notintersecting)) {
+            if(!touching) {
                 std::vector<std::reference_wrapper<Item>> inp = {
                     std::ref(stationary), std::ref(tmp), std::ref(infp)
                 };
@@ -679,23 +716,31 @@ TEST(GeometryAlgorithms, nfpConvexConvex) {
                 exportfun(inp, bin, testcase*i++);
             }
 
-            ASSERT_TRUE(notintersecting);
-            ASSERT_TRUE(notinside);
+            ASSERT_TRUE(touching);
         }
     };
 
-    for(auto& td : nfp_testdata) {
+    for(auto& td : testdata) {
         auto orbiter = td.orbiter;
         auto stationary = td.stationary;
         onetest(orbiter, stationary);
     }
 
-    for(auto& td : nfp_testdata) {
+    for(auto& td : testdata) {
         auto orbiter = td.stationary;
         auto stationary = td.orbiter;
         onetest(orbiter, stationary);
     }
 }
+}
+
+TEST(GeometryAlgorithms, nfpConvexConvex) {
+    testNfp<NfpLevel::CONVEX_ONLY, 1>(nfp_testdata);
+}
+
+//TEST(GeometryAlgorithms, nfpConcaveConcave) {
+//    testNfp<NfpLevel::BOTH_CONCAVE, 1000>(nfp_concave_testdata);
+//}
 
 TEST(GeometryAlgorithms, pointOnPolygonContour) {
     using namespace libnest2d;
@@ -716,6 +761,29 @@ TEST(GeometryAlgorithms, pointOnPolygonContour) {
         auto v = ecache.coords(i*(0.01));
         ASSERT_TRUE(ShapeLike::touches(v, input.transformedShape()));
     }
+}
+
+TEST(GeometryAlgorithms, mergePileWithPolygon) {
+    using namespace libnest2d;
+
+    Rectangle rect1(10, 15);
+    Rectangle rect2(15, 15);
+    Rectangle rect3(20, 15);
+
+    rect2.translate({10, 0});
+    rect3.translate({25, 0});
+
+    ShapeLike::Shapes<PolygonImpl> pile;
+    pile.push_back(rect1.transformedShape());
+    pile.push_back(rect2.transformedShape());
+
+    auto result = Nfp::merge(pile, rect3.transformedShape());
+
+    ASSERT_EQ(result.size(), 1);
+
+    Rectangle ref(45, 15);
+
+    ASSERT_EQ(ShapeLike::area(result.front()), ref.area());
 }
 
 int main(int argc, char **argv) {

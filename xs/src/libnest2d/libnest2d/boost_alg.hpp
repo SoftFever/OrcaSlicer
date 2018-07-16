@@ -139,7 +139,7 @@ template<> struct indexed_access<bp2d::Box, max_corner, 1> {
 };
 
 /* ************************************************************************** */
-/* Segement concept adaptaion *********************************************** */
+/* Segment concept adaptaion ************************************************ */
 /* ************************************************************************** */
 
 template<> struct tag<bp2d::Segment> {
@@ -461,21 +461,19 @@ inline bp2d::Shapes Nfp::merge(const bp2d::Shapes& shapes,
 }
 #endif
 
-#ifndef DISABLE_BOOST_MINKOWSKI_ADD
-template<>
-inline PolygonImpl& Nfp::minkowskiAdd(PolygonImpl& sh,
-                                      const PolygonImpl& /*other*/)
-{
-    return sh;
-}
-#endif
+//#ifndef DISABLE_BOOST_MINKOWSKI_ADD
+//template<>
+//inline PolygonImpl& Nfp::minkowskiAdd(PolygonImpl& sh,
+//                                      const PolygonImpl& /*other*/)
+//{
+//    return sh;
+//}
+//#endif
 
 #ifndef DISABLE_BOOST_SERIALIZE
-template<>
-inline std::string ShapeLike::serialize<libnest2d::Formats::SVG>(
+template<> inline std::string ShapeLike::serialize<libnest2d::Formats::SVG>(
         const PolygonImpl& sh, double scale)
 {
-
     std::stringstream ss;
     std::string style = "fill: none; stroke: black; stroke-width: 1px;";
 
@@ -484,14 +482,27 @@ inline std::string ShapeLike::serialize<libnest2d::Formats::SVG>(
     using Polygonf = model::polygon<Pointf>;
 
     Polygonf::ring_type ring;
+    Polygonf::inner_container_type holes;
     ring.reserve(ShapeLike::contourVertexCount(sh));
 
     for(auto it = ShapeLike::cbegin(sh); it != ShapeLike::cend(sh); it++) {
         auto& v = *it;
         ring.emplace_back(getX(v)*scale, getY(v)*scale);
     };
+
+    auto H = ShapeLike::holes(sh);
+    for(PathImpl& h : H ) {
+        Polygonf::ring_type hf;
+        for(auto it = h.begin(); it != h.end(); it++) {
+            auto& v = *it;
+            hf.emplace_back(getX(v)*scale, getY(v)*scale);
+        };
+        holes.push_back(hf);
+    }
+
     Polygonf poly;
     poly.outer() = ring;
+    poly.inners() = holes;
     auto svg_data = boost::geometry::svg(poly, style);
 
     ss << svg_data << std::endl;

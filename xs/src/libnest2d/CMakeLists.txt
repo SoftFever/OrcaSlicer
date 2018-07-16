@@ -5,8 +5,7 @@ project(Libnest2D)
 enable_testing()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-  # Update if necessary
-#  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+    # Update if necessary
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long ")
 endif()
 
@@ -20,39 +19,37 @@ option(LIBNEST2D_UNITTESTS "If enabled, googletest framework will be downloaded
     and the provided unit tests will be included in the build." OFF)
 
 option(LIBNEST2D_BUILD_EXAMPLES "If enabled, examples will be built." OFF)
-option(LIBNEST2D_BUILD_SHARED_LIB "Build shared library." ON)
 
-#set(LIBNEST2D_GEOMETRIES_TARGET "" CACHE STRING
-#    "Build libnest2d with geometry classes implemented by the chosen target.")
+set(LIBNEST2D_GEOMETRIES_BACKEND "clipper" CACHE STRING
+    "Build libnest2d with geometry classes implemented by the chosen backend.")
 
-#set(libnest2D_TEST_LIBRARIES "" CACHE STRING
-#    "Libraries needed to compile the test executable for libnest2d.")
-
+set(LIBNEST2D_OPTIMIZER_BACKEND "nlopt" CACHE STRING
+    "Build libnest2d with optimization features implemented by the chosen backend.")
 
 set(LIBNEST2D_SRCFILES
-    libnest2d/libnest2d.hpp       # Templates only
-    libnest2d.h         # Exports ready made types using template arguments
-    libnest2d/geometry_traits.hpp
-    libnest2d/geometries_io.hpp
-    libnest2d/common.hpp
-    libnest2d/optimizer.hpp
-    libnest2d/placers/placer_boilerplate.hpp
-    libnest2d/placers/bottomleftplacer.hpp
-    libnest2d/placers/nfpplacer.hpp
-    libnest2d/geometries_nfp.hpp
-    libnest2d/selections/selection_boilerplate.hpp
-    libnest2d/selections/filler.hpp
-    libnest2d/selections/firstfit.hpp
-    libnest2d/selections/djd_heuristic.hpp
-    libnest2d/optimizers/simplex.hpp
-    libnest2d/optimizers/subplex.hpp
-    libnest2d/optimizers/genetic.hpp
-    libnest2d/optimizers/nlopt_boilerplate.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/libnest2d.hpp         # Templates only
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d.h                     # Exports ready made types using template arguments
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/geometry_traits.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/common.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/placer_boilerplate.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/bottomleftplacer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/nfpplacer.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/geometry_traits_nfp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/selection_boilerplate.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/filler.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/firstfit.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/djd_heuristic.hpp
     )
 
-if((NOT LIBNEST2D_GEOMETRIES_TARGET) OR (LIBNEST2D_GEOMETRIES_TARGET STREQUAL ""))
-    message(STATUS "libnest2D backend is default")
+set(LIBNEST2D_LIBRARIES "")
 
+set(LIBNEST2D_HEADERS ${CMAKE_CURRENT_SOURCE_DIR})
+
+if(LIBNEST2D_GEOMETRIES_BACKEND STREQUAL "clipper")
+
+    # Clipper backend is not enough on its own, it still needs some functions
+    # from Boost geometry
     if(NOT Boost_INCLUDE_DIRS_FOUND)
         find_package(Boost 1.58 REQUIRED)
         # TODO automatic download of boost geometry headers
@@ -60,56 +57,63 @@ if((NOT LIBNEST2D_GEOMETRIES_TARGET) OR (LIBNEST2D_GEOMETRIES_TARGET STREQUAL ""
 
     add_subdirectory(libnest2d/clipper_backend)
 
-    set(LIBNEST2D_GEOMETRIES_TARGET ${CLIPPER_LIBRARIES})
-
     include_directories(BEFORE ${CLIPPER_INCLUDE_DIRS})
     include_directories(${Boost_INCLUDE_DIRS})
 
-    list(APPEND LIBNEST2D_SRCFILES libnest2d/clipper_backend/clipper_backend.cpp
-                                   libnest2d/clipper_backend/clipper_backend.hpp
-                                   libnest2d/boost_alg.hpp)
-
-else()
-    message(STATUS "Libnest2D backend is: ${LIBNEST2D_GEOMETRIES_TARGET}")
+    list(APPEND LIBNEST2D_SRCFILES ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/clipper_backend/clipper_backend.cpp
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/clipper_backend/clipper_backend.hpp
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/boost_alg.hpp)
+    list(APPEND LIBNEST2D_LIBRARIES ${CLIPPER_LIBRARIES})
+    list(APPEND LIBNEST2D_HEADERS ${CLIPPER_INCLUDE_DIRS}
+                                  ${Boost_INCLUDE_DIRS_FOUND})
 endif()
 
-message(STATUS "clipper lib is: ${LIBNEST2D_GEOMETRIES_TARGET}")
+if(LIBNEST2D_OPTIMIZER_BACKEND STREQUAL "nlopt")
+    find_package(NLopt 1.4)
+    if(NOT NLopt_FOUND)
+        message(STATUS  "NLopt not found so downloading "
+                        "and automatic build is performed...")
+        include(DownloadNLopt)
+    endif()
+    find_package(Threads REQUIRED)
 
-find_package(NLopt 1.4)
-if(NOT NLopt_FOUND)
-    message(STATUS "NLopt not found so downloading and automatic build is performed...")
-    include(DownloadNLopt)
-endif()
-find_package(Threads REQUIRED)
-
-add_library(libnest2d_static STATIC ${LIBNEST2D_SRCFILES} )
-target_link_libraries(libnest2d_static PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET} ${NLopt_LIBS})
-target_include_directories(libnest2d_static PUBLIC ${CMAKE_SOURCE_DIR} ${NLopt_INCLUDE_DIR})
-set_target_properties(libnest2d_static PROPERTIES PREFIX "")
-
-if(LIBNEST2D_BUILD_SHARED_LIB)
-    add_library(libnest2d SHARED ${LIBNEST2D_SRCFILES} )
-    target_link_libraries(libnest2d PRIVATE ${LIBNEST2D_GEOMETRIES_TARGET} ${NLopt_LIBS})
-    target_include_directories(libnest2d PUBLIC ${CMAKE_SOURCE_DIR}  ${NLopt_INCLUDE_DIR})
-    set_target_properties(libnest2d PROPERTIES PREFIX "")
+    list(APPEND LIBNEST2D_SRCFILES  ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/simplex.hpp
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/subplex.hpp
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/genetic.hpp
+                                    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/nlopt_boilerplate.hpp)
+    list(APPEND LIBNEST2D_LIBRARIES ${NLopt_LIBS} Threads::Threads)
+    list(APPEND LIBNEST2D_HEADERS ${NLopt_INCLUDE_DIR})
 endif()
 
-set(LIBNEST2D_HEADERS ${CMAKE_CURRENT_SOURCE_DIR})
-
-get_directory_property(hasParent PARENT_DIRECTORY)
-if(hasParent)
-    set(LIBNEST2D_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR} PARENT_SCOPE)
-endif()
+# Currently we are outsourcing the non-convex NFP implementation from
+# libnfporb and it needs libgmp to work
+#find_package(GMP)
+#if(GMP_FOUND)
+#    list(APPEND LIBNEST2D_LIBRARIES ${GMP_LIBRARIES})
+#    list(APPEND LIBNEST2D_HEADERS ${GMP_INCLUDE_DIR})
+#    add_definitions(-DLIBNFP_USE_RATIONAL)
+#endif()
 
 if(LIBNEST2D_UNITTESTS)
     add_subdirectory(tests)
 endif()
 
 if(LIBNEST2D_BUILD_EXAMPLES)
-    add_executable(example tests/main.cpp
-                           tests/svgtools.hpp
+    add_executable(example examples/main.cpp
+#                           tools/libnfpglue.hpp
+#                           tools/libnfpglue.cpp
+                           tools/svgtools.hpp
                            tests/printer_parts.cpp
-                           tests/printer_parts.h)
-    target_link_libraries(example libnest2d_static Threads::Threads)
-    target_include_directories(example PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+                           tests/printer_parts.h
+                           ${LIBNEST2D_SRCFILES})
+
+
+    target_link_libraries(example ${LIBNEST2D_LIBRARIES})
+    target_include_directories(example PUBLIC ${LIBNEST2D_HEADERS})
+endif()
+
+get_directory_property(hasParent PARENT_DIRECTORY)
+if(hasParent)
+    set(LIBNEST2D_INCLUDES ${LIBNEST2D_HEADERS} PARENT_SCOPE)
+    set(LIBNEST2D_LIBRARIES ${LIBNEST2D_LIBRARIES} PARENT_SCOPE)
 endif()

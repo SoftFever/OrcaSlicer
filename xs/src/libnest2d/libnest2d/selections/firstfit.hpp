@@ -49,24 +49,28 @@ public:
 
         std::sort(store_.begin(), store_.end(), sortfunc);
 
+        auto total = last-first;
+        auto makeProgress = [this, &total](Placer& placer, size_t idx) {
+            packed_bins_[idx] = placer.getItems();
+            this->progress_(--total);
+        };
+
         for(auto& item : store_ ) {
             bool was_packed = false;
             while(!was_packed) {
 
-                for(size_t j = 0; j < placers.size() && !was_packed; j++)
-                    was_packed = placers[j].pack(item);
+                for(size_t j = 0; j < placers.size() && !was_packed; j++) {
+                    if(was_packed = placers[j].pack(item))
+                        makeProgress(placers[j], j);
+                }
 
                 if(!was_packed) {
                     placers.emplace_back(bin);
                     placers.back().configure(pconfig);
+                    packed_bins_.emplace_back();
                 }
             }
         }
-
-        std::for_each(placers.begin(), placers.end(),
-                      [this](Placer& placer){
-            packed_bins_.push_back(placer.getItems());
-        });
     }
 
 };

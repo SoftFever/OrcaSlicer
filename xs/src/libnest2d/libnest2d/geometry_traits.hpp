@@ -328,7 +328,7 @@ enum class Formats {
     SVG
 };
 
-// This struct serves as a namespace. The only difference is that is can be
+// This struct serves as a namespace. The only difference is that it can be
 // used in friend declarations.
 struct ShapeLike {
 
@@ -336,15 +336,29 @@ struct ShapeLike {
     using Shapes = std::vector<RawShape>;
 
     template<class RawShape>
+    static RawShape create(const TContour<RawShape>& contour,
+                           const THolesContainer<RawShape>& holes)
+    {
+        return RawShape(contour, holes);
+    }
+
+    template<class RawShape>
+    static RawShape create(TContour<RawShape>&& contour,
+                           THolesContainer<RawShape>&& holes)
+    {
+        return RawShape(contour, holes);
+    }
+
+    template<class RawShape>
     static RawShape create(const TContour<RawShape>& contour)
     {
-        return RawShape(contour);
+        return create<RawShape>(contour, {});
     }
 
     template<class RawShape>
     static RawShape create(TContour<RawShape>&& contour)
     {
-        return RawShape(contour);
+        return create<RawShape>(contour, {});
     }
 
     // Optional, does nothing by default
@@ -551,8 +565,42 @@ struct ShapeLike {
     }
 
     template<class RawShape>
-    static std::pair<bool, std::string> isValid(const RawShape& /*sh*/) {
+    static std::pair<bool, std::string> isValid(const RawShape& /*sh*/)
+    {
         return {false, "ShapeLike::isValid() unimplemented!"};
+    }
+
+    template<class RawShape>
+    static inline bool isConvex(const TContour<RawShape>& sh)
+    {
+        using Vertex = TPoint<RawShape>;
+        auto first = sh.begin();
+        auto middle = std::next(first);
+        auto last = std::next(middle);
+        using CVrRef = const Vertex&;
+
+        auto zcrossproduct = [](CVrRef k, CVrRef k1, CVrRef k2) {
+            auto dx1 = getX(k1) - getX(k);
+            auto dy1 = getY(k1) - getY(k);
+            auto dx2 = getX(k2) - getX(k1);
+            auto dy2 = getY(k2) - getY(k1);
+            return dx1*dy2 - dy1*dx2;
+        };
+
+        auto firstprod = zcrossproduct( *(std::prev(std::prev(sh.end()))),
+                                        *first,
+                                        *middle );
+
+        bool ret = true;
+        bool frsign = firstprod > 0;
+        while(last != sh.end()) {
+            auto &k = *first, &k1 = *middle, &k2 = *last;
+            auto zc = zcrossproduct(k, k1, k2);
+            ret &= frsign == (zc > 0);
+            ++first; ++middle; ++last;
+        }
+
+        return ret;
     }
 
     // *************************************************************************
