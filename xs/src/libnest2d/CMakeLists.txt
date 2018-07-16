@@ -81,7 +81,9 @@ if(LIBNEST2D_OPTIMIZER_BACKEND STREQUAL "nlopt")
                                     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/subplex.hpp
                                     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/genetic.hpp
                                     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/nlopt_boilerplate.hpp)
-    list(APPEND LIBNEST2D_LIBRARIES ${NLopt_LIBS} Threads::Threads)
+    list(APPEND LIBNEST2D_LIBRARIES ${NLopt_LIBS}
+                                    # Threads::Threads
+        )
     list(APPEND LIBNEST2D_HEADERS ${NLopt_INCLUDE_DIR})
 endif()
 
