@@ -12,25 +12,15 @@ static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
 static const float INCHES_TO_MM = 25.4f;
 
-static const float NORMAL_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
-static const float NORMAL_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
-static const float NORMAL_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
-static const float NORMAL_AXIS_MAX_FEEDRATE[] = { 500.0f, 500.0f, 12.0f, 120.0f }; // Prusa Firmware 1_75mm_MK2
-static const float NORMAL_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 500.0f, 10000.0f }; // Prusa Firmware 1_75mm_MK2
-static const float NORMAL_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.4f, 2.5f }; // from Prusa Firmware (Configuration.h)
-static const float NORMAL_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
-static const float NORMAL_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
-static const float NORMAL_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
-
-static const float SILENT_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
-static const float SILENT_ACCELERATION = 1250.0f; // Prusa Firmware 1_75mm_MK25-RAMBo13a-E3Dv6full
-static const float SILENT_RETRACT_ACCELERATION = 1250.0f; // Prusa Firmware 1_75mm_MK25-RAMBo13a-E3Dv6full
-static const float SILENT_AXIS_MAX_FEEDRATE[] = { 200.0f, 200.0f, 12.0f, 120.0f }; // Prusa Firmware 1_75mm_MK25-RAMBo13a-E3Dv6full
-static const float SILENT_AXIS_MAX_ACCELERATION[] = { 1000.0f, 1000.0f, 200.0f, 5000.0f }; // Prusa Firmware 1_75mm_MK25-RAMBo13a-E3Dv6full
-static const float SILENT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.4f, 2.5f }; // from Prusa Firmware (Configuration.h)
-static const float SILENT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
-static const float SILENT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
-static const float SILENT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
+static const float DEFAULT_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
+static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_AXIS_MAX_FEEDRATE[] = { 500.0f, 500.0f, 12.0f, 120.0f }; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 500.0f, 10000.0f }; // Prusa Firmware 1_75mm_MK2
+static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.4f, 2.5f }; // from Prusa Firmware (Configuration.h)
+static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
+static const float DEFAULT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
+static const float DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
 
 static const float PREVIOUS_FEEDRATE_THRESHOLD = 0.0001f;
 
@@ -389,24 +379,6 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::set_axis_max_jerk(EAxis axis, float jerk)
     {
-        if ((axis == X) || (axis == Y))
-        {
-            switch (_mode)
-            {
-            default:
-            case Normal:
-            {
-                jerk = std::min(jerk, NORMAL_AXIS_MAX_JERK[axis]);
-                break;
-            }
-            case Silent:
-            {
-                jerk = std::min(jerk, SILENT_AXIS_MAX_JERK[axis]);
-                break;
-            }
-            }
-        }
-
         _state.axis[axis].max_jerk = jerk;
     }
 
@@ -567,19 +539,19 @@ namespace Slic3r {
         set_global_positioning_type(Absolute);
         set_e_local_positioning_type(Absolute);
 
-        switch (_mode)
+        set_feedrate(DEFAULT_FEEDRATE);
+        set_acceleration(DEFAULT_ACCELERATION);
+        set_retract_acceleration(DEFAULT_RETRACT_ACCELERATION);
+        set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
+        set_minimum_travel_feedrate(DEFAULT_MINIMUM_TRAVEL_FEEDRATE);
+        set_extrude_factor_override_percentage(DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE);
+        
+        for (unsigned char a = X; a < Num_Axis; ++a)
         {
-        default:
-        case Normal:
-            {
-                _set_default_as_normal();
-                break;
-            }
-        case Silent:
-            {
-                _set_default_as_silent();
-                break;
-            }
+            EAxis axis = (EAxis)a;
+            set_axis_max_feedrate(axis, DEFAULT_AXIS_MAX_FEEDRATE[a]);
+            set_axis_max_acceleration(axis, DEFAULT_AXIS_MAX_ACCELERATION[a]);
+            set_axis_max_jerk(axis, DEFAULT_AXIS_MAX_JERK[a]);
         }
     }
 
@@ -631,42 +603,6 @@ namespace Slic3r {
     void GCodeTimeEstimator::_reset_blocks()
     {
         _blocks.clear();
-    }
-
-    void GCodeTimeEstimator::_set_default_as_normal()
-    {
-        set_feedrate(NORMAL_FEEDRATE);
-        set_acceleration(NORMAL_ACCELERATION);
-        set_retract_acceleration(NORMAL_RETRACT_ACCELERATION);
-        set_minimum_feedrate(NORMAL_MINIMUM_FEEDRATE);
-        set_minimum_travel_feedrate(NORMAL_MINIMUM_TRAVEL_FEEDRATE);
-        set_extrude_factor_override_percentage(NORMAL_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE);
-
-        for (unsigned char a = X; a < Num_Axis; ++a)
-        {
-            EAxis axis = (EAxis)a;
-            set_axis_max_feedrate(axis, NORMAL_AXIS_MAX_FEEDRATE[a]);
-            set_axis_max_acceleration(axis, NORMAL_AXIS_MAX_ACCELERATION[a]);
-            set_axis_max_jerk(axis, NORMAL_AXIS_MAX_JERK[a]);
-        }
-    }
-
-    void GCodeTimeEstimator::_set_default_as_silent()
-    {
-        set_feedrate(SILENT_FEEDRATE);
-        set_acceleration(SILENT_ACCELERATION);
-        set_retract_acceleration(SILENT_RETRACT_ACCELERATION);
-        set_minimum_feedrate(SILENT_MINIMUM_FEEDRATE);
-        set_minimum_travel_feedrate(SILENT_MINIMUM_TRAVEL_FEEDRATE);
-        set_extrude_factor_override_percentage(SILENT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE);
-
-        for (unsigned char a = X; a < Num_Axis; ++a)
-        {
-            EAxis axis = (EAxis)a;
-            set_axis_max_feedrate(axis, SILENT_AXIS_MAX_FEEDRATE[a]);
-            set_axis_max_acceleration(axis, SILENT_AXIS_MAX_ACCELERATION[a]);
-            set_axis_max_jerk(axis, SILENT_AXIS_MAX_JERK[a]);
-        }
     }
 
     void GCodeTimeEstimator::_set_blocks_st_synchronize(bool state)
@@ -896,13 +832,16 @@ namespace Slic3r {
             if (_curr.abs_axis_feedrate[a] > 0.0f)
                 min_feedrate_factor = std::min(min_feedrate_factor, get_axis_max_feedrate((EAxis)a) / _curr.abs_axis_feedrate[a]);
         }
-    
+        
         block.feedrate.cruise = min_feedrate_factor * _curr.feedrate;
 
-        for (unsigned char a = X; a < Num_Axis; ++a)
+        if (min_feedrate_factor < 1.0f)
         {
-            _curr.axis_feedrate[a] *= min_feedrate_factor;
-            _curr.abs_axis_feedrate[a] *= min_feedrate_factor;
+            for (unsigned char a = X; a < Num_Axis; ++a)
+            {
+                _curr.axis_feedrate[a] *= min_feedrate_factor;
+                _curr.abs_axis_feedrate[a] *= min_feedrate_factor;
+            }
         }
 
         // calculates block acceleration

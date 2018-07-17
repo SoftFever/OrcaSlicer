@@ -314,9 +314,6 @@ namespace Slic3r {
         void _reset_time();
         void _reset_blocks();
 
-        void _set_default_as_normal();
-        void _set_default_as_silent();
-
         void _set_blocks_st_synchronize(bool state);
 
         // Calculates the time estimate
