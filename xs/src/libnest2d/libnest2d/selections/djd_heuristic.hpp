@@ -41,10 +41,23 @@ public:
     struct Config {
 
         /**
-         * If true, the algorithm will try to place pair and driplets in all
-         * possible order.
+         * If true, the algorithm will try to place pair and triplets in all
+         * possible order. It will have a hugely negative impact on performance.
          */
         bool try_reverse_order = true;
+
+        /**
+         * @brief try_pairs Whether to try pairs of items to pack. It will add
+         * a quadratic component to the complexity.
+         */
+        bool try_pairs = true;
+
+        /**
+         * @brief Whether to try groups of 3 items to pack. This could be very
+         * slow for large number of items (>100) as it adds a cubic component
+         * to the complexity.
+         */
+        bool try_triplets = false;
 
         /**
          * The initial fill proportion of the bin area that will be filled before
@@ -151,8 +164,8 @@ public:
             return std::any_of(wrong_pairs.begin(), wrong_pairs.end(),
                                [&i1, &i2](const TPair& pair)
             {
-                Item& pi1 = std::get<0>(pair), pi2 = std::get<1>(pair);
-                Item& ri1 = i1, ri2 = i2;
+                Item& pi1 = std::get<0>(pair), &pi2 = std::get<1>(pair);
+                Item& ri1 = i1, &ri2 = i2;
                 return (&pi1 == &ri1 && &pi2 == &ri2) ||
                        (&pi1 == &ri2 && &pi2 == &ri1);
             });
@@ -172,7 +185,7 @@ public:
                 Item& pi1 = std::get<0>(tripl);
                 Item& pi2 = std::get<1>(tripl);
                 Item& pi3 = std::get<2>(tripl);
-                Item& ri1 = i1, ri2 = i2, ri3 = i3;
+                Item& ri1 = i1, &ri2 = i2, &ri3 = i3;
                 return  (&pi1 == &ri1 && &pi2 == &ri2 && &pi3 == &ri3) ||
                         (&pi1 == &ri1 && &pi2 == &ri3 && &pi3 == &ri2) ||
                         (&pi1 == &ri2 && &pi2 == &ri1 && &pi3 == &ri3) ||
@@ -348,6 +361,10 @@ public:
             // Will be true if a succesfull pack can be made.
             bool ret = false;
 
+            auto area = [](const ItemListIt& it) {
+                return it->get().area();
+            };
+
             while (it != endit && !ret) { // drill down 1st level
 
                 // We need to determine in each iteration the largest, second
@@ -361,7 +378,7 @@ public:
 
                 // Check if there is enough free area for the item and the two
                 // largest item
-                if(free_area - it->get().area() - area_of_two_largest > waste)
+                if(free_area - area(it) - area_of_two_largest > waste)
                     break;
 
                 // Determine the area of the two smallest item.
@@ -373,7 +390,7 @@ public:
                 double area_of_two_smallest =
                         smallest.area() + second_smallest.area();
 
-                if(it->get().area() + area_of_two_smallest > free_area) {
+                if(area(it) + area_of_two_smallest > free_area) {
                     it++; continue;
                 }
 
@@ -384,16 +401,18 @@ public:
 
                 it2 = not_packed.begin();
                 double rem2_area = free_area - largest.area();
-                double a2_sum = it->get().area() + it2->get().area();
+                double a2_sum = 0;
 
                 while(it2 != endit && !ret &&
-                      rem2_area - a2_sum <= waste) {  // Drill down level 2
+                      rem2_area - (a2_sum = area(it) + area(it2)) <= waste) {
+                    // Drill down level 2
+
+                    if(a2_sum != area(it) + area(it2)) throw -1;
 
                     if(it == it2 || check_pair(wrong_pairs, *it, *it2)) {
                         it2++; continue;
                     }
 
-                    a2_sum = it->get().area() + it2->get().area();
                     if(a2_sum + smallest.area() > free_area) {
                         it2++; continue;
                     }
@@ -429,14 +448,13 @@ public:
                     // The 'smallest' variable now could be identical with
                     // it2 but we don't bother with that
 
-                    if(!can_pack2) { it2++; continue; }
-
                     it3 = not_packed.begin();
 
-                    double a3_sum = a2_sum + it3->get().area();
+                    double a3_sum = 0;
 
                     while(it3 != endit && !ret &&
-                          free_area - a3_sum <= waste) { // 3rd level
+                          free_area - (a3_sum = a2_sum + area(it3)) <= waste) {
+                        // 3rd level
 
                         if(it3 == it || it3 == it2 ||
                                 check_triplet(wrong_triplets, *it, *it2, *it3))
@@ -560,8 +578,11 @@ public:
 
         if(do_parallel) dout() << "Parallel execution..." << "\n";
 
+        bool do_pairs = config_.try_pairs;
+        bool do_triplets = config_.try_triplets;
+
         // The DJD heuristic algorithm itself:
-        auto packjob = [INITIAL_FILL_AREA, bin_area, w,
+        auto packjob = [INITIAL_FILL_AREA, bin_area, w, do_triplets, do_pairs,
                         &tryOneByOne,
                         &tryGroupsOfTwo,
                         &tryGroupsOfThree,
@@ -573,7 +594,7 @@ public:
             double waste = .0;
             bool lasttry = false;
 
-            while(!not_packed.empty() ) {
+            while(!not_packed.empty()) {
 
                 {// Fill the bin up to INITIAL_FILL_PROPORTION of its capacity
                     auto it = not_packed.begin();
@@ -594,26 +615,25 @@ public:
                 // try pieses one by one
                 while(tryOneByOne(placer, not_packed, waste, free_area,
                                   filled_area)) {
-                    if(lasttry) std::cout << "Lasttry monopack" << std::endl;
                     waste = 0; lasttry = false;
                     makeProgress(placer, idx, 1);
                 }
 
                 // try groups of 2 pieses
-                while(tryGroupsOfTwo(placer, not_packed, waste, free_area,
+                while(do_pairs &&
+                      tryGroupsOfTwo(placer, not_packed, waste, free_area,
                                      filled_area)) {
-                    if(lasttry) std::cout << "Lasttry bipack" << std::endl;
                     waste = 0; lasttry = false;
                     makeProgress(placer, idx, 2);
                 }
 
-//                // try groups of 3 pieses
-//                while(tryGroupsOfThree(placer, not_packed, waste, free_area,
-//                                       filled_area)) {
-//                    if(lasttry) std::cout << "Lasttry tripack" << std::endl;
-//                    waste = 0; lasttry = false;
-//                    makeProgress(placer, idx, 3);
-//                }
+                // try groups of 3 pieses
+                while(do_triplets &&
+                      tryGroupsOfThree(placer, not_packed, waste, free_area,
+                                       filled_area)) {
+                    waste = 0; lasttry = false;
+                    makeProgress(placer, idx, 3);
+                }
 
                 waste += w;
                 if(!lasttry && waste > free_area) lasttry = true;

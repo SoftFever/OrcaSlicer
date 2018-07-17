@@ -19,7 +19,6 @@
 #include <boost/nowide/iostream.hpp>
 #include <boost/algorithm/string/replace.hpp>
 
-// #include <benchmark.h>
 #include "SVG.hpp"
 
 namespace Slic3r {
@@ -308,7 +307,7 @@ namespace arr {
 
 using namespace libnest2d;
 
-std::string toString(const Model& model) {
+std::string toString(const Model& model, bool holes = true) {
     std::stringstream  ss;
 
     ss << "{\n";
@@ -347,17 +346,17 @@ std::string toString(const Model& model) {
 
                 // Holes:
                 ss << "\t\t{\n";
-//                for(auto h : expoly.holes) {
-//                    ss << "\t\t\t{\n";
-//                    for(auto v : h.points) ss << "\t\t\t\t{"
-//                                           << v.x << ", "
-//                                           << v.y << "},\n";
-//                    {
-//                        auto v = h.points.front();
-//                        ss << "\t\t\t\t{" << v.x << ", " << v.y << "},\n";
-//                    }
-//                    ss << "\t\t\t},\n";
-//                }
+                if(holes) for(auto h : expoly.holes) {
+                    ss << "\t\t\t{\n";
+                    for(auto v : h.points) ss << "\t\t\t\t{"
+                                           << v.x << ", "
+                                           << v.y << "},\n";
+                    {
+                        auto v = h.points.front();
+                        ss << "\t\t\t\t{" << v.x << ", " << v.y << "},\n";
+                    }
+                    ss << "\t\t\t},\n";
+                }
                 ss << "\t\t},\n";
 
                 ss << "\t},\n";
@@ -476,58 +475,21 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // Create the arranger config
     auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
 
-    // Benchmark bench;
-
-    // std::cout << "Creating model siluett..." << std::endl;
-
-    // bench.start();
     // Get the 2D projected shapes with their 3D model instance pointers
     auto shapemap = arr::projectModelFromTop(model);
-    // bench.stop();
-
-    // std::cout << "Model siluett created in " << bench.getElapsedSec()
-    //          << " seconds. " << "Min object distance = " << min_obj_distance << std::endl;
-
-//    std::cout << "{" << std::endl;
-//    std::for_each(shapemap.begin(), shapemap.end(),
-//                  [] (ShapeData2D::value_type& it)
-//    {
-//        std::cout << "\t{" << std::endl;
-//        Item& item = it.second;
-//        for(auto& v : item) {
-//            std::cout << "\t\t" << "{" << getX(v)
-//                      << ", " << getY(v) << "},\n";
-//        }
-//        std::cout << "\t}," << std::endl;
-//    });
-//    std::cout << "}" << std::endl;
-//    return true;
 
     bool hasbin = bb != nullptr && bb->defined;
     double area_max = 0;
-    Item *biggest = nullptr;
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
     std::vector<std::reference_wrapper<Item>> shapes;
     shapes.reserve(shapemap.size());
     std::for_each(shapemap.begin(), shapemap.end(),
-                  [&shapes, min_obj_distance, &area_max, &biggest,hasbin]
+                  [&shapes, min_obj_distance, &area_max, hasbin]
                   (ShapeData2D::value_type& it)
     {
-        if(!hasbin) {
-            Item& item = it.second;
-            item.addOffset(min_obj_distance);
-            auto b = ShapeLike::boundingBox(item.transformedShape());
-            auto a = b.width()*b.height();
-            if(area_max < a) {
-                area_max = static_cast<double>(a);
-                biggest = &item;
-            }
-        }
-
         shapes.push_back(std::ref(it.second));
-
     });
 
     Box bin;
@@ -545,9 +507,6 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
                     static_cast<libnest2d::Coord>(bbb.max.x),
                     static_cast<libnest2d::Coord>(bbb.max.y)
                 });
-    } else {
-        // Just take the biggest item as bin... ?
-        bin = ShapeLike::boundingBox(biggest->transformedShape());
     }
 
     // Will use the DJD selection heuristic with the BottomLeft placement
@@ -562,20 +521,22 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // Align the arranged pile into the center of the bin
     pcfg.alignment = PConf::Alignment::CENTER;
 
+    // Start placing the items from the center of the print bed
+    pcfg.starting_point = PConf::Alignment::CENTER;
+
     // TODO cannot use rotations until multiple objects of same geometry can
     // handle different rotations
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
 
     // Magic: we will specify what is the goal of arrangement...
-    // In this case we override the default object function because we
-    // (apparently) don't care about pack efficiency and all we care is that the
-    // larger items go into the center of the pile and smaller items orbit it
-    // so the resulting pile has a circle-like shape.
-    // This is good for the print bed's heat profile.
-    // As a side effect, the arrange procedure is a lot faster (we do not need
-    // to calculate the convex hulls)
-    pcfg.object_function = [&bin](
+    // In this case we override the default object to make the larger items go
+    // into the center of the pile and smaller items orbit it so the resulting
+    // pile has a circle-like shape. This is good for the print bed's heat
+    // profile. We alse sacrafice a bit of pack efficiency for this to work. As
+    // a side effect, the arrange procedure is a lot faster (we do not need to
+    // calculate the convex hulls)
+    pcfg.object_function = [bin, hasbin](
             NfpPlacer::Pile pile,   // The currently arranged pile
             double /*area*/,        // Sum area of items (not needed)
             double norm,            // A norming factor for physical dimensions
@@ -583,14 +544,25 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     {
         auto bb = ShapeLike::boundingBox(pile);
 
-        // We will optimize to the diameter of the circle around the bounding
-        // box and use the norming factor to get rid of the physical dimensions
-        double score = PointLike::distance(bb.minCorner(),
-                                           bb.maxCorner()) / norm;
+        // We get the current item that's being evaluated.
+        auto& sh = pile.back();
+
+        // We retrieve the reference point of this item
+        auto rv = Nfp::referenceVertex(sh);
+
+        // We get the distance of the reference point from the center of the
+        // heat bed
+        auto c = bin.center();
+        auto d = PointLike::distance(rv, c);
+
+        // The score will be the normalized distance which will be minimized,
+        // effectively creating a circle shaped pile of items
+        double score = double(d)/norm;
 
         // If it does not fit into the print bed we will beat it
-        // with a large penality
-        if(!NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
+        // with a large penality. If we would not do this, there would be only
+        // one big pile that doesn't care whether it fits onto the print bed.
+        if(hasbin && !NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
 
         return score;
     };
@@ -601,17 +573,9 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // Set the progress indicator for the arranger.
     arranger.progressIndicator(progressind);
 
-    // std::cout << "Arranging model..." << std::endl;
-    // bench.start();
-
     // Arrange and return the items with their respective indices within the
     // input sequence.
     auto result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
-
-    // bench.stop();
-    // std::cout << "Model arranged in " << bench.getElapsedSec()
-    //           << " seconds." << std::endl;
-
 
     auto applyResult = [&shapemap](ArrangeResult::value_type& group,
             Coord batch_offset)
@@ -636,8 +600,6 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
         }
     };
 
-    // std::cout << "Applying result..." << std::endl;
-    // bench.start();
     if(first_bin_only) {
         applyResult(result.front(), 0);
     } else {
@@ -657,9 +619,6 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
             batch_offset += stride;
         }
     }
-    // bench.stop();
-    // std::cout << "Result applied in " << bench.getElapsedSec()
-    //           << " seconds." << std::endl;
 
     for(auto objptr : model.objects) objptr->invalidate_bounding_box();
 
@@ -674,16 +633,11 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
 {
     bool ret = false;
     if(bb != nullptr && bb->defined) {
+        // Despite the new arrange is able to run without a specified bin,
+        // the perl testsuit still fails for this case. For now the safest
+        // thing to do is to use the new arrange only when a proper bin is
+        // specified.
         ret = arr::arrange(*this, dist, bb, false, progressind);
-//        std::fstream out("out.cpp", std::fstream::out);
-//        if(out.good()) {
-//            out << "const TestData OBJECTS = \n";
-//            out << arr::toString(*this);
-//        }
-//        out.close();
-//        SVG svg("out.svg");
-//        arr::toSVG(svg, *this);
-//        svg.Close();
     } else {
         // get the (transformed) size of each instance so that we take
         // into account their different transformations when packing
