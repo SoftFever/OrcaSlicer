@@ -1,3 +1,5 @@
+min_slic3r_version = 1.41.0-alpha
+0.2.0-alpha
 min_slic3r_version = 1.40.0
 0.1.6 Split the MK2.5 profile from the MK2S
 min_slic3r_version = 1.40.0-beta

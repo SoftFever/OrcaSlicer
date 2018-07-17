@@ -907,10 +907,10 @@ PrintConfigDef::PrintConfigDef()
 		};
 		std::vector<AxisDefault> axes {
 			// name, max_feedrate,  max_acceleration, max_jerk
-			{ "x", { 500., 200. }, { 9000., 1000. }, { 10., 10. } },
-			{ "y", { 500., 200. }, { 9000., 1000. }, { 10., 10. } },
-			{ "z", { 12., 12. }, { 500., 200. }, { 0.2, 0.4 } },
-			{ "e", { 120., 120. }, { 10000., 5000. }, { 2.5, 2.5 } }
+			{ "x", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
+			{ "y", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
+			{ "z", {  12.,  12. }, {   500.,  200. }, {  0.2,  0.4 } },
+			{ "e", { 120., 120. }, { 10000., 5000. }, {  2.5,  2.5 } }
 		};
 		for (const AxisDefault &axis : axes) {
 			std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);

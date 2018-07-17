@@ -1900,11 +1900,18 @@ void TabPrinter::update(){
 
 	bool is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
 
-	const std::string &printer_model = m_config->opt_string("printer_model");
-	bool can_use_silent_mode = printer_model.empty() ? false : printer_model == "MK3"; // "true" only for MK3 printers
+	{
+		Field *sm = get_field("silent_mode");
+		if (! is_marlin_flavor)
+			// Disable silent mode for non-marlin firmwares.
+			get_field("silent_mode")->toggle(false);
+		if (is_marlin_flavor)
+			sm->enable();
+		else
+			sm->disable();
+	}
 
-	get_field("silent_mode")->toggle(can_use_silent_mode && is_marlin_flavor);
-	if (can_use_silent_mode && m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
+	if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
 		m_rebuild_kinematics_page = true;
 		m_use_silent_mode = m_config->opt_bool("silent_mode");
 	}

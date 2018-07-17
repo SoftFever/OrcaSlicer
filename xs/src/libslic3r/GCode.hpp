@@ -327,6 +327,7 @@ protected:
     void _write_format(FILE* file, const char* format, ...);
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
+    void print_machine_envelope(FILE *file, Print &print);
     void _print_first_layer_bed_temperature(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // this flag triggers first layer speeds
