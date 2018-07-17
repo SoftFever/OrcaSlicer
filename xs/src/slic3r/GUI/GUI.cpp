@@ -321,7 +321,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-	auto config_wizard_name = _(ConfigWizard::name().wx_str());
+	const auto config_wizard_name = _(ConfigWizard::name().wx_str());
 	const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
 	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_name + dots,					config_wizard_tooltip);

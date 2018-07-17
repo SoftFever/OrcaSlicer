@@ -353,6 +353,10 @@ public:
     // Generate a file path from a profile name. Add the ".ini" suffix if it is missing.
     std::string     path_from_name(const std::string &new_name) const;
 
+	// update m_edited_preset.is_external value after loading preset for .ini, .gcode, .amf, .3mf
+	void			update_edited_preset_is_external(bool is_external) {
+						m_edited_preset.is_external = is_external; }
+
 protected:
     // Select a preset, if it exists. If it does not exist, select an invalid (-1) index.
     // This is a temporary state, which shall be fixed immediately by the following step.

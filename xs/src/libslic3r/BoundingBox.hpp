@@ -148,6 +148,8 @@ public:
     BoundingBoxf3() : BoundingBox3Base<Pointf3>() {};
     BoundingBoxf3(const Pointf3 &pmin, const Pointf3 &pmax) : BoundingBox3Base<Pointf3>(pmin, pmax) {};
     BoundingBoxf3(const std::vector<Pointf3> &points) : BoundingBox3Base<Pointf3>(points) {};
+
+    BoundingBoxf3 transformed(const std::vector<float>& matrix) const;
 };
 
 template<typename VT>

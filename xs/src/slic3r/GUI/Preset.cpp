@@ -298,7 +298,8 @@ const std::vector<std::string>& Preset::print_options()
         "perimeter_extrusion_width", "external_perimeter_extrusion_width", "infill_extrusion_width", "solid_infill_extrusion_width", 
         "top_infill_extrusion_width", "support_material_extrusion_width", "infill_overlap", "bridge_flow_ratio", "clip_multipart_objects", 
         "elefant_foot_compensation", "xy_size_compensation", "threads", "resolution", "wipe_tower", "wipe_tower_x", "wipe_tower_y",
-        "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "compatible_printers", "compatible_printers_condition","inherits"
+        "wipe_tower_width", "wipe_tower_rotation_angle", "wipe_tower_bridging", "compatible_printers",
+        "compatible_printers_condition","inherits"
     };
     return s_opts;
 }
@@ -308,10 +309,10 @@ const std::vector<std::string>& Preset::filament_options()
     static std::vector<std::string> s_opts {
         "filament_colour", "filament_diameter", "filament_type", "filament_soluble", "filament_notes", "filament_max_volumetric_speed",
         "extrusion_multiplier", "filament_density", "filament_cost", "filament_loading_speed", "filament_unloading_speed", "filament_toolchange_delay",
-        "filament_ramming_parameters", "temperature", "first_layer_temperature", "bed_temperature",
-        "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed", "bridge_fan_speed", "disable_fan_first_layers",
-        "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed", "start_filament_gcode", "end_filament_gcode","compatible_printers",
-        "compatible_printers_condition", "inherits"
+        "filament_cooling_moves", "filament_cooling_initial_speed", "filament_cooling_final_speed", "filament_ramming_parameters", "temperature",
+        "first_layer_temperature", "bed_temperature", "first_layer_bed_temperature", "fan_always_on", "cooling", "min_fan_speed", "max_fan_speed",
+        "bridge_fan_speed", "disable_fan_first_layers", "fan_below_layer_time", "slowdown_below_layer_time", "min_print_speed",
+        "start_filament_gcode", "end_filament_gcode","compatible_printers", "compatible_printers_condition", "inherits"
     };
     return s_opts;
 }
@@ -325,7 +326,7 @@ const std::vector<std::string>& Preset::printer_options()
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
             "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "cooling_tube_retraction",
-            "cooling_tube_length", "parking_pos_retraction", "max_print_height", "default_print_profile", "inherits",
+            "cooling_tube_length", "parking_pos_retraction", "extra_loading_move", "max_print_height", "default_print_profile", "inherits",
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
@@ -680,6 +681,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     // Otherwise fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
+	size_t selected_preset_item = 0;
 
 	const Preset &selected_preset = this->get_selected_preset();
 	// Show wide icons if the currently selected preset is not compatible with the current printer,
@@ -720,7 +722,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
 				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
 			if (i == m_idx_selected)
-				ui->SetSelection(ui->GetCount() - 1);
+				selected_preset_item = ui->GetCount() - 1;
 		}
 		else
 		{
@@ -737,10 +739,13 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected)
-				ui->SetSelection(ui->GetCount() - 1);
+				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
-    ui->Thaw();
+
+	ui->SetSelection(selected_preset_item);
+	ui->SetToolTip(ui->GetString(selected_preset_item));
+	ui->Thaw();
 }
 
 size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatible)
@@ -798,6 +803,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 		}
 	}
 	ui->SetSelection(selected_preset_item);
+	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->Thaw();
 	return selected_preset_item;
 }

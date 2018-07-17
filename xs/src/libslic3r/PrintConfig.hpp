@@ -336,7 +336,8 @@ public:
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
-    
+    ConfigOptionBool                wipe_into_objects;
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -372,6 +373,7 @@ protected:
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
+        OPT_PTR(wipe_into_objects);
     }
 };
 
@@ -414,7 +416,8 @@ public:
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
-
+    ConfigOptionBool                wipe_into_infill;
+    
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -452,6 +455,7 @@ protected:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
+        OPT_PTR(wipe_into_infill);
     }
 };
 
@@ -526,6 +530,9 @@ public:
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
+    ConfigOptionInts                filament_cooling_moves;
+    ConfigOptionFloats              filament_cooling_initial_speed;
+    ConfigOptionFloats              filament_cooling_final_speed;
     ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
@@ -555,6 +562,7 @@ public:
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
     ConfigOptionFloat               parking_pos_retraction;
+    ConfigOptionFloat               extra_loading_move;
 
 
     std::string get_extrusion_axis() const
@@ -583,6 +591,9 @@ protected:
         OPT_PTR(filament_loading_speed);
         OPT_PTR(filament_unloading_speed);
         OPT_PTR(filament_toolchange_delay);
+        OPT_PTR(filament_cooling_moves);
+        OPT_PTR(filament_cooling_initial_speed);
+        OPT_PTR(filament_cooling_final_speed);
         OPT_PTR(filament_ramming_parameters);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
@@ -612,6 +623,7 @@ protected:
         OPT_PTR(cooling_tube_retraction);
         OPT_PTR(cooling_tube_length);
         OPT_PTR(parking_pos_retraction);
+        OPT_PTR(extra_loading_move);
     }
 };
 
