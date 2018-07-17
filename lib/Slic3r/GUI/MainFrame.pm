@@ -19,6 +19,7 @@ use Wx::Locale gettext => 'L';
 our $qs_last_input_file;
 our $qs_last_output_file;
 our $last_config;
+our $appController;
 
 # Events to be sent from a C++ Tab implementation:
 # 1) To inform about a change of a configuration value.
@@ -31,6 +32,9 @@ sub new {
         
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
         Slic3r::GUI::set_main_frame($self);
+    
+    $appController = Slic3r::AppController->new();
+
     if ($^O eq 'MSWin32') {
         # Load the icon either from the exe, or from the ico file.
         my $iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
@@ -58,10 +62,21 @@ sub new {
     eval { Wx::ToolTip::SetAutoPop(32767) };
     
     # initialize status bar
-    $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, -1);
+    $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, Wx::NewId);
     $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
     $self->SetStatusBar($self->{statusbar});
     
+    # Make the global status bar and its progress indicator available in C++
+    $appController->set_global_progress_indicator(
+        $self->{statusbar}->{prog}->GetId(),
+        $self->{statusbar}->GetId(),
+    );
+
+    $appController->set_model($self->{plater}->{model});
+    $appController->set_print($self->{plater}->{print});
+
+    $self->{plater}->{appController} = $appController;
+
     $self->{loaded} = 1;
         
     # initialize layout

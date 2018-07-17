@@ -154,6 +154,11 @@ PrintConfigDef::PrintConfigDef()
                    "with the active printer profile.");
     def->default_value = new ConfigOptionString();
 
+    // The following value is to be stored into the project file (AMF, 3MF, Config ...)
+    // and it contains a sum of "compatible_printers_condition" values over the print and filament profiles.
+    def = this->add("compatible_printers_condition_cummulative", coStrings);
+    def->default_value = new ConfigOptionStrings();
+
     def = this->add("complete_objects", coBool);
     def->label = L("Complete individual objects");
     def->tooltip = L("When printing multiple objects or copies, this feature will complete "
@@ -824,7 +829,12 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("Name of the profile, from which this profile inherits.");
     def->full_width = true;
     def->height = 50;
-    def->default_value = new ConfigOptionString("");
+    def->default_value = new ConfigOptionString();
+
+    // The following value is to be stored into the project file (AMF, 3MF, Config ...)
+    // and it contains a sum of "inherits" values over the print and filament profiles.
+    def = this->add("inherits_cummulative", coStrings);
+    def->default_value = new ConfigOptionStrings();
 
     def = this->add("interface_shells", coBool);
     def->label = L("Interface shells");

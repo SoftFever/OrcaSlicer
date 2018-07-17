@@ -56,6 +56,7 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+
 #include "3DScene.hpp"
 #include "libslic3r/I18N.hpp"
 

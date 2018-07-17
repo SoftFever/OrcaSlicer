@@ -1464,11 +1464,18 @@ void GCode::append_full_config(const Print& print, std::string& str)
     for (size_t i = 0; i < sizeof(configs) / sizeof(configs[0]); ++i) {
         const StaticPrintConfig *cfg = configs[i];
         for (const std::string &key : cfg->keys())
-        {
             if (key != "compatible_printers")
                 str += "; " + key + " = " + cfg->serialize(key) + "\n";
-        }
     }
+    const DynamicConfig &full_config = print.placeholder_parser.config();
+	for (const char *key : {
+		"print_settings_id", "filament_settings_id", "printer_settings_id",
+		"printer_model", "printer_variant", "default_print_profile", "default_filament_profile",
+		"compatible_printers_condition_cummulative", "inherits_cummulative" }) {
+		const ConfigOption *opt = full_config.option(key);
+		if (opt != nullptr)
+			str += std::string("; ") + key + " = " + opt->serialize() + "\n";
+	}
 }
 
 void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)

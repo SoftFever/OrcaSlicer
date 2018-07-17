@@ -45,6 +45,7 @@ use constant FILAMENT_CHOOSERS_SPACING => 0;
 use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
 
 my $PreventListEvents = 0;
+our $appController;
 
 sub new {
     my ($class, $parent) = @_;
@@ -1192,13 +1193,17 @@ sub arrange {
     
     $self->pause_background_process;
     
-    my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
-    my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
+    # my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
+    # my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
+    
+    # Update is not implemented in C++ so we cannot call this for now
+    $self->{appController}->arrange_model;
+
     # ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     # when parts don't fit in print bed
     
     # Force auto center of the aligned grid of of objects on the print bed.
-    $self->update(1);
+    $self->update(0);
 }
 
 sub split_object {

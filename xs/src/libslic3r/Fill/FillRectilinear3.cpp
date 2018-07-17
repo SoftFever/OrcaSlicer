@@ -470,9 +470,9 @@ static bool prepare_infill_hatching_segments(
 			int ir = std::min<int>(int(out.segs.size()) - 1, (r - x0) / line_spacing);
             // The previous tests were done with floating point arithmetics over an epsilon-extended interval.
             // Now do the same tests with exact arithmetics over the exact interval.
-            while (il <= ir && Int128::orient(out.segs[il].pos, out.segs[il].pos + out.direction, *pl) < 0)
+            while (il <= ir && int128::orient(out.segs[il].pos, out.segs[il].pos + out.direction, *pl) < 0)
                 ++ il;
-            while (il <= ir && Int128::orient(out.segs[ir].pos, out.segs[ir].pos + out.direction, *pr) > 0)
+            while (il <= ir && int128::orient(out.segs[ir].pos, out.segs[ir].pos + out.direction, *pr) > 0)
                 -- ir;
             // Here it is ensured, that
             // 1) out.seg is not parallel to (pl, pr)
@@ -489,8 +489,8 @@ static bool prepare_infill_hatching_segments(
 				is.iSegment = iSegment;
                 // Test whether the calculated intersection point falls into the bounding box of the input segment.
                 // +-1 to take rounding into account.
-				assert(Int128::orient(out.segs[i].pos, out.segs[i].pos + out.direction, *pl) >= 0);
-				assert(Int128::orient(out.segs[i].pos, out.segs[i].pos + out.direction, *pr) <= 0);
+                assert(int128::orient(out.segs[i].pos, out.segs[i].pos + out.direction, *pl) >= 0);
+                assert(int128::orient(out.segs[i].pos, out.segs[i].pos + out.direction, *pr) <= 0);
                 assert(is.pos().x + 1 >= std::min(pl->x, pr->x));
                 assert(is.pos().y + 1 >= std::min(pl->y, pr->y));
                 assert(is.pos().x     <= std::max(pl->x, pr->x) + 1);
@@ -527,7 +527,7 @@ static bool prepare_infill_hatching_segments(
             const Points &contour = poly_with_offset.contour(iContour).points;
             size_t iSegment = sil.intersections[i].iSegment;
             size_t iPrev    = ((iSegment == 0) ? contour.size() : iSegment) - 1;
-			int    dir      = Int128::cross(contour[iSegment] - contour[iPrev], sil.dir);
+            int    dir      = int128::cross(contour[iSegment] - contour[iPrev], sil.dir);
             bool low = dir > 0;
             sil.intersections[i].type = poly_with_offset.is_contour_outer(iContour) ? 
                 (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
