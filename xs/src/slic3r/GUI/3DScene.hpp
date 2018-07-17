@@ -240,7 +240,7 @@ class GLVolume {
             edit_band_width = 0.0f;
         }
 
-        bool can_use() { return (texture_id > 0) && (shader_id > 0) && (print_object != nullptr); }
+        bool can_use() const { return (texture_id > 0) && (shader_id > 0) && (print_object != nullptr); }
     };
 
 public:
@@ -249,44 +249,27 @@ public:
     static const float OUTSIDE_COLOR[4];
     static const float SELECTED_OUTSIDE_COLOR[4];
 
-    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f) :
-        composite_id(-1),
-        select_group_id(-1),
-        drag_group_id(-1),
-        extruder_id(0),
-        selected(false),
-        is_active(true),
-        zoom_to_volumes(true),
-        outside_printer_detection_enabled(true),
-        is_outside(false),
-        hover(false),
-        is_modifier(false),
-        is_wipe_tower(false),
-        tverts_range(0, size_t(-1)),
-        qverts_range(0, size_t(-1))
-    {
-        color[0] = r;
-        color[1] = g;
-        color[2] = b;
-        color[3] = a;
-        set_render_color(r, g, b, a);
-    }
+    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
 
-    std::vector<int> load_object(
-        const ModelObject        *model_object, 
-        const std::vector<int>   &instance_idxs,
-        const std::string        &color_by,
-        const std::string        &select_by,
-        const std::string        &drag_by);
+private:
+    // Offset of the volume to be rendered.
+    Pointf3               m_origin;
+    // Rotation around Z axis of the volume to be rendered.
+    float                 m_angle_z;
+    // Scale factor of the volume to be rendered.
+    float                 m_scale_factor;
+    // World matrix of the volume to be rendered.
+    std::vector<float>    m_world_mat;
+    // Bounding box of this volume, in unscaled coordinates.
+    mutable BoundingBoxf3 m_transformed_bounding_box;
+    // Whether or not is needed to recalculate the world matrix.
+    mutable bool          m_dirty;
 
-    int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
+public:
 
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3       bounding_box;
-    // Offset of the volume to be rendered.
-    Pointf3             origin;
     // Color of the triangles / quads held by this volume.
     float               color[4];
     // Color used to render this volume.
@@ -333,10 +316,17 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
+    const Pointf3& get_origin() const;
+    void set_origin(const Pointf3& origin);
+    void set_angle_z(float angle_z);
+    void set_scale_factor(float scale_factor);
+
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
-    BoundingBoxf3       transformed_bounding_box() const { BoundingBoxf3 bb = this->bounding_box; bb.translate(this->origin); return bb; }
+
+    const std::vector<float>& world_matrix() const;
+    BoundingBoxf3       transformed_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
     bool                indexed() const { return this->indexed_vertex_array.indexed(); }
@@ -344,6 +334,9 @@ public:
     void                set_range(coordf_t low, coordf_t high);
     void                render() const;
     void                render_using_layer_height() const;
+    void                render_VBOs(int color_id, int detection_id, int worldmatrix_id) const;
+    void                render_legacy() const;
+
     void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
@@ -568,6 +561,7 @@ public:
     static void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     static void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
+    static void update_gizmos_data(wxGLCanvas* canvas);
 
     static void render(wxGLCanvas* canvas);
 
@@ -590,6 +584,8 @@ public:
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
