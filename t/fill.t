@@ -201,6 +201,7 @@ for my $pattern (qw(rectilinear honeycomb hilbertcurve concentric)) {
     $config->set('bottom_solid_layers', 0);
     $config->set('infill_extruder', 2);
     $config->set('infill_extrusion_width', 0.5);
+    $config->set('wipe_into_infill', 0);
     $config->set('fill_density', 40);
     $config->set('cooling', [ 0 ]);             # for preventing speeds from being altered
     $config->set('first_layer_speed', '100%');  # for preventing speeds from being altered

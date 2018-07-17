@@ -96,7 +96,8 @@ public:
     void call(int i, int j) const;
     void call(const std::vector<int>& ints) const;
     void call(double d) const;
-    void call(double x, double y) const;
+    void call(double a, double b) const;
+    void call(double a, double b, double c, double d) const;
     void call(bool b) const;
 private:
     void *m_callback;

@@ -352,6 +352,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("2");
     def->enum_labels.push_back("3");
     def->enum_labels.push_back("4");
+    def->enum_labels.push_back("5");
 
     def = this->add("extruder_clearance_height", coFloat);
     def->label = L("Height");
@@ -490,6 +491,31 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-toolchange-delay=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
+
+    def = this->add("filament_cooling_moves", coInts);
+    def->label = L("Number of cooling moves");
+    def->tooltip = L("Filament is cooled by being moved back and forth in the "
+                   "cooling tubes. Specify desired number of these moves ");
+    def->cli = "filament-cooling-moves=i@";
+    def->max = 0;
+    def->max = 20;
+    def->default_value = new ConfigOptionInts { 4 };
+
+    def = this->add("filament_cooling_initial_speed", coFloats);
+    def->label = L("Speed of the first cooling move");
+    def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed. ");
+    def->cli = "filament-cooling-initial-speed=i@";
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 2.2f };
+
+    def = this->add("filament_cooling_final_speed", coFloats);
+    def->label = L("Speed of the last cooling move");
+    def->tooltip = L("Cooling moves are gradually accelerating towards this speed. ");
+    def->cli = "filament-cooling-final-speed=i@";
+    def->sidetext = L("mm/s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 3.4f };
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
@@ -1141,6 +1167,15 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "parking_pos_retraction=f";
     def->min = 0;
     def->default_value = new ConfigOptionFloat(92.f);
+
+    def = this->add("extra_loading_move", coFloat);
+    def->label = L("Extra loading distance");
+    def->tooltip = L("When set to zero, the distance the filament is moved from parking position during load "
+                      "is exactly the same as it was moved back during unload. When positive, it is loaded further, "
+                      " if negative, the loading move is shorter than unloading. ");
+    def->sidetext = L("mm");
+    def->cli = "extra_loading_move=f";
+    def->default_value = new ConfigOptionFloat(-2.f);
 
     def = this->add("perimeter_acceleration", coFloat);
     def->label = L("Perimeters");
@@ -1955,7 +1990,25 @@ PrintConfigDef::PrintConfigDef()
     def->sidetext = L("degrees");
     def->cli = "wipe-tower-rotation-angle=f";
     def->default_value = new ConfigOptionFloat(0.);
-    
+
+    def = this->add("wipe_into_infill", coBool);
+    def->category = L("Extruders");
+    def->label = L("Purging into infill");
+    def->tooltip = L("Wiping after toolchange will be preferentially done inside infills. "
+                     "This lowers the amount of waste but may result in longer print time "
+                     " due to additional travel moves.");
+    def->cli = "wipe-into-infill!";
+    def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("wipe_into_objects", coBool);
+    def->category = L("Extruders");
+    def->label = L("Purging into objects");
+    def->tooltip = L("Objects will be used to wipe the nozzle after a toolchange to save material "
+                     "that would otherwise end up in the wipe tower and decrease print time. "
+                     "Colours of the objects will be mixed as a result.");
+    def->cli = "wipe-into-objects!";
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("wipe_tower_bridging", coFloat);
     def->label = L("Maximal bridging distance");
     def->tooltip = L("Maximal distance between supports on sparse infill sections. ");

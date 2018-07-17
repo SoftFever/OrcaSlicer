@@ -565,11 +565,12 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         size_t idx = (i_group == 0) ? 0 : num_extruders + 1;
         inherits                      = inherits_values[idx];
         compatible_printers_condition = compatible_printers_condition_values[idx];
-		if (is_external)
+		if (is_external) {
             presets.load_external_preset(name_or_path, name,
                 config.opt_string((i_group == 0) ? "print_settings_id" : "printer_settings_id", true), 
                 config);
-        else
+            presets.update_edited_preset_is_external(true);
+        } else
             presets.load_preset(presets.path_from_name(name), name, config).save();
     }
 
@@ -582,9 +583,10 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
         inherits                      = inherits_values[1];
         compatible_printers_condition = compatible_printers_condition_values[1];
-        if (is_external)
+        if (is_external) {
             this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
-        else
+            this->filaments.update_edited_preset_is_external(true);
+        } else
             this->filaments.load_preset(this->filaments.path_from_name(name), name, config).save();
         this->filament_presets.clear();
         this->filament_presets.emplace_back(name);
@@ -613,11 +615,12 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             cfg.opt_string("inherits", true)                      = inherits_values[i + 1];
             // Load all filament presets, but only select the first one in the preset dialog.
             Preset *loaded = nullptr;
-            if (is_external)
+            if (is_external) {
                 loaded = &this->filaments.load_external_preset(name_or_path, name,
                     (i < old_filament_profile_names->values.size()) ? old_filament_profile_names->values[i] : "",
                     std::move(cfg), i == 0);
-            else {
+                this->filaments.update_edited_preset_is_external(true);
+            } else {
                 // Used by the config wizard when creating a custom setup.
                 // Therefore this block should only be called for a single extruder.
                 char suffix[64];
@@ -1181,6 +1184,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
     // Fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
+	size_t selected_preset_item = 0;
     const Preset *selected_preset = this->filaments.find_preset(this->filament_presets[idx_extruder]);
     // Show wide icons if the currently selected preset is not compatible with the current printer,
     // and draw a red flag in front of the selected preset.
@@ -1232,7 +1236,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
 				(bitmap == 0) ? wxNullBitmap : *bitmap);
 			if (selected)
-				ui->SetSelection(ui->GetCount() - 1);
+				selected_preset_item = ui->GetCount() - 1;
 		}
 		else
 		{
@@ -1251,9 +1255,11 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected_str)
-				ui->SetSelection(ui->GetCount() - 1);
+				selected_preset_item = ui->GetCount() - 1;
 		}
 	}
+	ui->SetSelection(selected_preset_item);
+	ui->SetToolTip(ui->GetString(selected_preset_item));
     ui->Thaw();
 }
 

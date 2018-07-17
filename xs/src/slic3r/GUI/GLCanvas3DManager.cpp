@@ -464,6 +464,13 @@ void GLCanvas3DManager::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
         it->second->update_volumes_colors_by_extruder();
 }
 
+void GLCanvas3DManager::update_gizmos_data(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->update_gizmos_data();
+}
+
 void GLCanvas3DManager::render(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -653,6 +660,20 @@ void GLCanvas3DManager::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* c
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_gizmo_scale_uniformly_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_gizmo_rotate_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_update_geometry_info_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

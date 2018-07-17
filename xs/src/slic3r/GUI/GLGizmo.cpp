@@ -90,9 +90,10 @@ GLGizmoBase::EState GLGizmoBase::get_state() const
 void GLGizmoBase::set_state(GLGizmoBase::EState state)
 {
     m_state = state;
+    on_set_state();
 }
 
-unsigned int GLGizmoBase::get_textures_id() const
+unsigned int GLGizmoBase::get_texture_id() const
 {
     return m_textures[m_state].get_id();
 }
@@ -118,10 +119,20 @@ void GLGizmoBase::start_dragging()
     on_start_dragging();
 }
 
+void GLGizmoBase::stop_dragging()
+{
+    on_stop_dragging();
+}
+
 void GLGizmoBase::update(const Pointf& mouse_pos)
 {
     if (m_hover_id != -1)
         on_update(mouse_pos);
+}
+
+void GLGizmoBase::refresh()
+{
+    on_refresh();
 }
 
 void GLGizmoBase::render(const BoundingBoxf3& box) const
@@ -134,13 +145,29 @@ void GLGizmoBase::render_for_picking(const BoundingBoxf3& box) const
     on_render_for_picking(box);
 }
 
+void GLGizmoBase::on_set_state()
+{
+    // do nothing
+}
+
 void GLGizmoBase::on_start_dragging()
 {
+    // do nothing
+}
+
+void GLGizmoBase::on_stop_dragging()
+{
+    // do nothing
+}
+
+void GLGizmoBase::on_refresh()
+{
+    // do nothing
 }
 
 void GLGizmoBase::render_grabbers() const
 {
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
+    for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         m_grabbers[i].render(m_hover_id == i);
     }
@@ -162,7 +189,21 @@ GLGizmoRotate::GLGizmoRotate()
     , m_angle_z(0.0f)
     , m_center(Pointf(0.0, 0.0))
     , m_radius(0.0f)
+    , m_keep_radius(false)
 {
+}
+
+float GLGizmoRotate::get_angle_z() const
+{
+    return m_angle_z;
+}
+
+void GLGizmoRotate::set_angle_z(float angle_z)
+{
+    if (std::abs(angle_z - 2.0f * PI) < EPSILON)
+        angle_z = 0.0f;
+
+    m_angle_z = angle_z;
 }
 
 bool GLGizmoRotate::on_init()
@@ -186,6 +227,11 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
+void GLGizmoRotate::on_set_state()
+{
+    m_keep_radius = (m_state == On) ? false : true;
+}
+
 void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 {
     Vectorf orig_dir(1.0, 0.0);
@@ -194,6 +240,7 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
     if (cross(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (coordf_t)PI - theta;
 
+    // snap
     if (length(m_center.vector_to(mouse_pos)) < 2.0 * (double)m_radius / 3.0)
     {
         coordf_t step = 2.0 * (coordf_t)PI / (coordf_t)SnapRegionsCount;
@@ -202,18 +249,26 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 
     if (theta == 2.0 * (coordf_t)PI)
         theta = 0.0;
-    
+
     m_angle_z = (float)theta;
+}
+
+void GLGizmoRotate::on_refresh()
+{
+    m_keep_radius = false;
 }
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     const Pointf3& size = box.size();
     m_center = box.center();
-    m_radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y));
+    if (!m_keep_radius)
+    {
+        m_radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y));
+        m_keep_radius = true;
+    }
 
     ::glLineWidth(2.0f);
     ::glColor3fv(BaseColor);
@@ -230,7 +285,6 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     m_grabbers[0].color[0] = 1.0f;
@@ -399,7 +453,6 @@ void GLGizmoScale::on_update(const Pointf& mouse_pos)
 
 void GLGizmoScale::on_render(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     coordf_t min_x = box.min.x - (coordf_t)Offset;
@@ -438,7 +491,6 @@ void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
-    ::glDisable(GL_LIGHTING);
     ::glDisable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < 4; ++i)
