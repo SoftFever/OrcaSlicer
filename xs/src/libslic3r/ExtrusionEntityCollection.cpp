@@ -125,6 +125,7 @@ void ExtrusionEntityCollection::chained_path_from(Point start_near, ExtrusionEnt
                 continue;
             }
         }
+
         ExtrusionEntity* entity = (*it)->clone();
         my_paths.push_back(entity);
         if (orig_indices != NULL) indices_map[entity] = it - this->entities.begin();

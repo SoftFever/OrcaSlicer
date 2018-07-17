@@ -165,6 +165,11 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
     std::vector<PrintStep> steps;
     std::vector<PrintObjectStep> osteps;
     bool invalidated = false;
+
+    // Always invalidate the wipe tower. This is probably necessary because of the wipe_into_infill / wipe_into_objects
+    // features - nearly anything can influence what should (and could) be wiped into.
+    steps.emplace_back(psWipeTower);
+
     for (const t_config_option_key &opt_key : opt_keys) {
         if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These options only affect G-code export or they are just notes without influence on the generated G-code,
@@ -191,6 +196,9 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_loading_speed"
             || opt_key == "filament_unloading_speed"
             || opt_key == "filament_toolchange_delay"
+            || opt_key == "filament_cooling_moves"
+            || opt_key == "filament_cooling_initial_speed"
+            || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
             || opt_key == "gcode_flavor"
             || opt_key == "single_extruder_multi_material"
@@ -206,6 +214,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "parking_pos_retraction"
             || opt_key == "cooling_tube_retraction"
             || opt_key == "cooling_tube_length"
+            || opt_key == "extra_loading_move"
             || opt_key == "z_offset") {
             steps.emplace_back(psWipeTower);
         } else if (
@@ -217,7 +226,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             osteps.emplace_back(posSupportMaterial);
             steps.emplace_back(psSkirt);
             steps.emplace_back(psBrim);
-            steps.emplace_back(psWipeTower);
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
             //FIXME invalidate all steps of all objects as well?
@@ -1028,6 +1036,14 @@ void Print::_make_wipe_tower()
     if (! this->has_wipe_tower())
         return;
 
+    // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
+    std::vector<float> wiping_matrix((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end());
+    // Extract purging volumes for each extruder pair:
+    std::vector<std::vector<float>> wipe_volumes;
+    const unsigned int number_of_extruders = (unsigned int)(sqrt(wiping_matrix.size())+EPSILON);
+    for (unsigned int i = 0; i<number_of_extruders; ++i)
+        wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders, wiping_matrix.begin()+(i+1)*number_of_extruders));
+
     // Let the ToolOrdering class know there will be initial priming extrusions at the start of the print.
     m_tool_ordering = ToolOrdering(*this, (unsigned int)-1, true);
     if (! m_tool_ordering.has_wipe_tower())
@@ -1043,7 +1059,7 @@ void Print::_make_wipe_tower()
         size_t idx_end   = m_tool_ordering.layer_tools().size();
         // Find the first wipe tower layer, which does not have a counterpart in an object or a support layer.
         for (size_t i = 0; i < idx_end; ++ i) {
-            const ToolOrdering::LayerTools &lt = m_tool_ordering.layer_tools()[i];
+            const LayerTools &lt = m_tool_ordering.layer_tools()[i];
             if (lt.has_wipe_tower && ! lt.has_object && ! lt.has_support) {
                 idx_begin = i;
                 break;
@@ -1057,7 +1073,7 @@ void Print::_make_wipe_tower()
             for (; it_layer != it_end && (*it_layer)->print_z - EPSILON < wipe_tower_new_layer_print_z_first; ++ it_layer);
             // Find the stopper of the sequence of wipe tower layers, which do not have a counterpart in an object or a support layer.
             for (size_t i = idx_begin; i < idx_end; ++ i) {
-                ToolOrdering::LayerTools &lt = const_cast<ToolOrdering::LayerTools&>(m_tool_ordering.layer_tools()[i]);
+                LayerTools &lt = const_cast<LayerTools&>(m_tool_ordering.layer_tools()[i]);
                 if (! (lt.has_wipe_tower && ! lt.has_object && ! lt.has_support))
                     break;
                 lt.has_support = true;
@@ -1072,22 +1088,20 @@ void Print::_make_wipe_tower()
         }
     }
 
-    // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
-    std::vector<float> wiping_volumes((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end());
-
     // Initialize the wipe tower.
     WipeTowerPrusaMM wipe_tower(
         float(this->config.wipe_tower_x.value),     float(this->config.wipe_tower_y.value), 
         float(this->config.wipe_tower_width.value),
         float(this->config.wipe_tower_rotation_angle.value), float(this->config.cooling_tube_retraction.value),
         float(this->config.cooling_tube_length.value), float(this->config.parking_pos_retraction.value),
-        float(this->config.wipe_tower_bridging), wiping_volumes, m_tool_ordering.first_extruder());
+        float(this->config.extra_loading_move.value), float(this->config.wipe_tower_bridging), wipe_volumes,
+        m_tool_ordering.first_extruder());
 
     //wipe_tower.set_retract();
     //wipe_tower.set_zhop();
 
     // Set the extruder & material properties at the wipe tower object.
-    for (size_t i = 0; i < (int)(sqrt(wiping_volumes.size())+EPSILON); ++ i)
+    for (size_t i = 0; i < number_of_extruders; ++ i)
         wipe_tower.set_extruder(
             i, 
             WipeTowerPrusaMM::parse_material(this->config.filament_type.get_at(i).c_str()),
@@ -1096,90 +1110,43 @@ void Print::_make_wipe_tower()
             this->config.filament_loading_speed.get_at(i),
             this->config.filament_unloading_speed.get_at(i),
             this->config.filament_toolchange_delay.get_at(i),
+            this->config.filament_cooling_moves.get_at(i),
+            this->config.filament_cooling_initial_speed.get_at(i),
+            this->config.filament_cooling_final_speed.get_at(i),
             this->config.filament_ramming_parameters.get_at(i),
             this->config.nozzle_diameter.get_at(i));
 
-    // When printing the first layer's wipe tower, the first extruder is expected to be active and primed.
-    // Therefore the number of wipe sections at the wipe tower will be (m_tool_ordering.front().extruders-1) at the 1st layer.
-    // The following variable is true if the last priming section cannot be squeezed inside the wipe tower.
-    bool last_priming_wipe_full = m_tool_ordering.front().extruders.size() > m_tool_ordering.front().wipe_tower_partitions;
-
     m_wipe_tower_priming = Slic3r::make_unique<WipeTower::ToolChangeResult>(
-        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), ! last_priming_wipe_full));
-
+        wipe_tower.prime(this->skirt_first_layer_height(), m_tool_ordering.all_extruders(), false));
 
     // Lets go through the wipe tower layers and determine pairs of extruder changes for each
     // to pass to wipe_tower (so that it can use it for planning the layout of the tower)
     {
         unsigned int current_extruder_id = m_tool_ordering.all_extruders().back();
-        for (const auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
+        for (auto &layer_tools : m_tool_ordering.layer_tools()) { // for all layers
             if (!layer_tools.has_wipe_tower) continue;
             bool first_layer = &layer_tools == &m_tool_ordering.front();
             wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id,false);
             for (const auto extruder_id : layer_tools.extruders) {
                 if ((first_layer && extruder_id == m_tool_ordering.all_extruders().back()) || extruder_id != current_extruder_id) {
-                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back());
+                    float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];    // total volume to wipe after this toolchange
+
+                    // try to assign some infills/objects for the wiping:
+                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
+
+                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
                 }
             }
+            layer_tools.wiping_extrusions().ensure_perimeters_infills_order(*this);
             if (&layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0)
                 break;
         }
     }
 
-    
-
     // Generate the wipe tower layers.
     m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());
     wipe_tower.generate(m_wipe_tower_tool_changes);
-    
-    // Set current_extruder_id to the last extruder primed.
-    /*unsigned int current_extruder_id = m_tool_ordering.all_extruders().back();
-
-    for (const ToolOrdering::LayerTools &layer_tools : m_tool_ordering.layer_tools()) {
-        if (! layer_tools.has_wipe_tower)
-            // This is a support only layer, or the wipe tower does not reach to this height.
-            continue;
-        bool first_layer = &layer_tools == &m_tool_ordering.front();
-        bool last_layer  = &layer_tools == &m_tool_ordering.back() || (&layer_tools + 1)->wipe_tower_partitions == 0;
-        wipe_tower.set_layer(
-            float(layer_tools.print_z), 
-            float(layer_tools.wipe_tower_layer_height),
-            layer_tools.wipe_tower_partitions,
-            first_layer,
-            last_layer);
-        std::vector<WipeTower::ToolChangeResult> tool_changes;
-        for (unsigned int extruder_id : layer_tools.extruders)
-            // Call the wipe_tower.tool_change() at the first layer for the initial extruder 
-            // to extrude the wipe tower brim,
-            if ((first_layer && extruder_id == m_tool_ordering.all_extruders().back()) || 
-            // or when an extruder shall be switched.
-                extruder_id != current_extruder_id) {
-                tool_changes.emplace_back(wipe_tower.tool_change(extruder_id, extruder_id == layer_tools.extruders.back(), WipeTower::PURPOSE_EXTRUDE));
-                current_extruder_id = extruder_id;
-            }
-        if (! wipe_tower.layer_finished()) {
-            tool_changes.emplace_back(wipe_tower.finish_layer(WipeTower::PURPOSE_EXTRUDE));
-            if (tool_changes.size() > 1) {
-                // Merge the two last tool changes into one.
-                WipeTower::ToolChangeResult &tc1 = tool_changes[tool_changes.size() - 2];
-                WipeTower::ToolChangeResult &tc2 = tool_changes.back();
-                if (tc1.end_pos != tc2.start_pos) {
-                    // Add a travel move from tc1.end_pos to tc2.start_pos.
-                    char buf[2048];
-                    sprintf(buf, "G1 X%.3f Y%.3f F7200\n", tc2.start_pos.x, tc2.start_pos.y);
-                    tc1.gcode += buf;
-                }
-                tc1.gcode += tc2.gcode;
-                append(tc1.extrusions, tc2.extrusions);
-                tc1.end_pos = tc2.end_pos;
-                tool_changes.pop_back();
-            }
-        }
-        m_wipe_tower_tool_changes.emplace_back(std::move(tool_changes));
-        if (last_layer)
-            break;
-    }*/
     
     // Unload the current filament over the purge tower.
     coordf_t layer_height = this->objects.front()->config.layer_height.value;
@@ -1200,6 +1167,10 @@ void Print::_make_wipe_tower()
     m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
 		wipe_tower.tool_change((unsigned int)-1, false));
 }
+
+
+
+
 
 std::string Print::output_filename()
 {
@@ -1238,5 +1209,14 @@ void Print::set_status(int percent, const std::string &message)
 {
     printf("Print::status %d => %s\n", percent, message.c_str());
 }
+
+
+// Returns extruder this eec should be printed with, according to PrintRegion config
+int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region)
+{
+    return is_infill(fill.role()) ? std::max<int>(0, (is_solid_infill(fill.entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
+                                    std::max<int>(region.config.perimeter_extruder.value - 1, 0);
+}
+
 
 }
