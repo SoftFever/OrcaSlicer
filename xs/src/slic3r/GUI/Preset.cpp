@@ -510,6 +510,9 @@ Preset& PresetCollection::load_external_preset(
     // Insert a new profile.
     Preset &preset = this->load_preset(path, new_name, std::move(cfg), select);
     preset.is_external = true;
+    if (&this->get_selected_preset() == &preset)
+        this->get_edited_preset().is_external = true;
+
     return preset;
 }
 

@@ -565,12 +565,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         size_t idx = (i_group == 0) ? 0 : num_extruders + 1;
         inherits                      = inherits_values[idx];
         compatible_printers_condition = compatible_printers_condition_values[idx];
-		if (is_external) {
+		if (is_external)
             presets.load_external_preset(name_or_path, name,
                 config.opt_string((i_group == 0) ? "print_settings_id" : "printer_settings_id", true), 
                 config);
-            presets.update_edited_preset_is_external(true);
-        } else
+        else
             presets.load_preset(presets.path_from_name(name), name, config).save();
     }
 
@@ -583,10 +582,9 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
         // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
         inherits                      = inherits_values[1];
         compatible_printers_condition = compatible_printers_condition_values[1];
-        if (is_external) {
+        if (is_external)
             this->filaments.load_external_preset(name_or_path, name, old_filament_profile_names->values.front(), config);
-            this->filaments.update_edited_preset_is_external(true);
-        } else
+        else
             this->filaments.load_preset(this->filaments.path_from_name(name), name, config).save();
         this->filament_presets.clear();
         this->filament_presets.emplace_back(name);
@@ -615,12 +613,11 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
             cfg.opt_string("inherits", true)                      = inherits_values[i + 1];
             // Load all filament presets, but only select the first one in the preset dialog.
             Preset *loaded = nullptr;
-            if (is_external) {
+            if (is_external)
                 loaded = &this->filaments.load_external_preset(name_or_path, name,
                     (i < old_filament_profile_names->values.size()) ? old_filament_profile_names->values[i] : "",
                     std::move(cfg), i == 0);
-                this->filaments.update_edited_preset_is_external(true);
-            } else {
+            else {
                 // Used by the config wizard when creating a custom setup.
                 // Therefore this block should only be called for a single extruder.
                 char suffix[64];
