@@ -55,6 +55,18 @@ public:
             this->progress_(--total);
         };
 
+        // Safety test: try to pack each item into an empty bin. If it fails
+        // then it should be removed from the not_packed list
+        { auto it = store_.begin();
+            while (it != store_.end()) {
+                Placer p(bin);
+                if(!p.pack(*it)) {
+                    auto itmp = it++;
+                    store_.erase(itmp);
+                } else it++;
+            }
+        }
+
         for(auto& item : store_ ) {
             bool was_packed = false;
             while(!was_packed) {
