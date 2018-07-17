@@ -336,7 +336,8 @@ public:
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
-    
+    ConfigOptionBool                wipe_into_objects;
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -372,6 +373,7 @@ protected:
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
+        OPT_PTR(wipe_into_objects);
     }
 };
 
@@ -414,7 +416,8 @@ public:
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
-
+    ConfigOptionBool                wipe_into_infill;
+    
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -452,6 +455,57 @@ protected:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
+        OPT_PTR(wipe_into_infill);
+    }
+};
+
+class MachineEnvelopeConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
+public:
+    // M201 X... Y... Z... E... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_x;
+    ConfigOptionFloats              machine_max_acceleration_y;
+    ConfigOptionFloats              machine_max_acceleration_z;
+    ConfigOptionFloats              machine_max_acceleration_e;
+    // M203 X... Y... Z... E... [mm/sec]
+    ConfigOptionFloats              machine_max_feedrate_x;
+    ConfigOptionFloats              machine_max_feedrate_y;
+    ConfigOptionFloats              machine_max_feedrate_z;
+    ConfigOptionFloats              machine_max_feedrate_e;
+    // M204 S... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_extruding;
+    // M204 T... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_retracting;
+    // M205 X... Y... Z... E... [mm/sec]
+    ConfigOptionFloats              machine_max_jerk_x;
+    ConfigOptionFloats              machine_max_jerk_y;
+    ConfigOptionFloats              machine_max_jerk_z;
+    ConfigOptionFloats              machine_max_jerk_e;
+    // M205 T... [mm/sec]
+    ConfigOptionFloats              machine_min_travel_rate;
+    // M205 S... [mm/sec]
+    ConfigOptionFloats              machine_min_extruding_rate;
+
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(machine_max_acceleration_x);
+        OPT_PTR(machine_max_acceleration_y);
+        OPT_PTR(machine_max_acceleration_z);
+        OPT_PTR(machine_max_acceleration_e);
+        OPT_PTR(machine_max_feedrate_x);
+        OPT_PTR(machine_max_feedrate_y);
+        OPT_PTR(machine_max_feedrate_z);
+        OPT_PTR(machine_max_feedrate_e);
+        OPT_PTR(machine_max_acceleration_extruding);
+        OPT_PTR(machine_max_acceleration_retracting);
+        OPT_PTR(machine_max_jerk_x);
+        OPT_PTR(machine_max_jerk_y);
+        OPT_PTR(machine_max_jerk_z);
+        OPT_PTR(machine_max_jerk_e);
+        OPT_PTR(machine_min_travel_rate);
+        OPT_PTR(machine_min_extruding_rate);
     }
 };
 
@@ -476,6 +530,9 @@ public:
     ConfigOptionFloats              filament_loading_speed;
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
+    ConfigOptionInts                filament_cooling_moves;
+    ConfigOptionFloats              filament_cooling_initial_speed;
+    ConfigOptionFloats              filament_cooling_final_speed;
     ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
@@ -505,7 +562,8 @@ public:
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
     ConfigOptionFloat               parking_pos_retraction;
-
+    ConfigOptionBool                silent_mode;
+    ConfigOptionFloat               extra_loading_move;
 
     std::string get_extrusion_axis() const
     {
@@ -533,6 +591,9 @@ protected:
         OPT_PTR(filament_loading_speed);
         OPT_PTR(filament_unloading_speed);
         OPT_PTR(filament_toolchange_delay);
+        OPT_PTR(filament_cooling_moves);
+        OPT_PTR(filament_cooling_initial_speed);
+        OPT_PTR(filament_cooling_final_speed);
         OPT_PTR(filament_ramming_parameters);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
@@ -562,11 +623,13 @@ protected:
         OPT_PTR(cooling_tube_retraction);
         OPT_PTR(cooling_tube_length);
         OPT_PTR(parking_pos_retraction);
+        OPT_PTR(silent_mode);
+        OPT_PTR(extra_loading_move);
     }
 };
 
 // This object is mapped to Perl as Slic3r::Config::Print.
-class PrintConfig : public GCodeConfig
+class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
     PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
@@ -614,6 +677,7 @@ public:
     ConfigOptionString              output_filename_format;
     ConfigOptionFloat               perimeter_acceleration;
     ConfigOptionStrings             post_process;
+    ConfigOptionString              printer_model;
     ConfigOptionString              printer_notes;
     ConfigOptionFloat               resolution;
     ConfigOptionFloats              retract_before_travel;
@@ -642,6 +706,7 @@ protected:
     PrintConfig(int) : GCodeConfig(1) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+        this->MachineEnvelopeConfig::initialize(cache, base_ptr);
         this->GCodeConfig::initialize(cache, base_ptr);
         OPT_PTR(avoid_crossing_perimeters);
         OPT_PTR(bed_shape);
@@ -683,6 +748,7 @@ protected:
         OPT_PTR(output_filename_format);
         OPT_PTR(perimeter_acceleration);
         OPT_PTR(post_process);
+        OPT_PTR(printer_model);
         OPT_PTR(printer_notes);
         OPT_PTR(resolution);
         OPT_PTR(retract_before_travel);

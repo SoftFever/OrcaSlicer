@@ -175,7 +175,7 @@ protected:
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
-	int							m_opt_status_value;
+	int							m_opt_status_value = 0;
 
 	t_icon_descriptions	m_icon_descriptions = {};
 
@@ -316,6 +316,9 @@ public:
 class TabPrinter : public Tab
 {
 	bool		m_has_single_extruder_MM_page = false;
+	bool		m_use_silent_mode = false;
+	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
+	bool		m_rebuild_kinematics_page = false;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
@@ -333,6 +336,7 @@ public:
 	void		update() override;
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
+	PageShp		build_kinematics_page();
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;

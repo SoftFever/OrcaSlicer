@@ -20,6 +20,7 @@
 #include <boost/algorithm/string/replace.hpp>
 
 #include "SVG.hpp"
+#include <Eigen/Dense>
 
 namespace Slic3r {
 
@@ -944,10 +945,7 @@ void ModelObject::clear_instances()
 
 // Returns the bounding box of the transformed instances.
 // This bounding box is approximate and not snug.
-//========================================================================================================
 const BoundingBoxf3& ModelObject::bounding_box() const
-//const BoundingBoxf3& ModelObject::bounding_box()
-//========================================================================================================
 {
     if (! m_bounding_box_valid) {
         BoundingBoxf3 raw_bbox;
@@ -1389,32 +1387,16 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    // rotate around mesh origin
-    double c = cos(this->rotation);
-    double s = sin(this->rotation);
-    Pointf3 pts[4] = {
-        bbox.min,
-        bbox.max,
-        Pointf3(bbox.min.x, bbox.max.y, bbox.min.z),
-        Pointf3(bbox.max.x, bbox.min.y, bbox.max.z)
-    };
-    BoundingBoxf3 out;
-    for (int i = 0; i < 4; ++ i) {
-        Pointf3 &v = pts[i];
-        double xold = v.x;
-        double yold = v.y;
-        v.x = float(c * xold - s * yold);
-        v.y = float(s * xold + c * yold);
-        v.x *= this->scaling_factor;
-        v.y *= this->scaling_factor;
-        v.z *= this->scaling_factor;
-        if (! dont_translate) {
-            v.x += this->offset.x;
-            v.y += this->offset.y;
-        }
-        out.merge(v);
-    }
-    return out;
+    Eigen::Transform<float, 3, Eigen::Affine> matrix = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    if (!dont_translate)
+        matrix.translate(Eigen::Vector3f((float)offset.x, (float)offset.y, 0.0f));
+
+    matrix.rotate(Eigen::AngleAxisf(rotation, Eigen::Vector3f::UnitZ()));
+    matrix.scale(scaling_factor);
+
+    std::vector<float> m(16, 0.0f);
+    ::memcpy((void*)m.data(), (const void*)matrix.data(), 16 * sizeof(float));
+    return bbox.transformed(m);
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const

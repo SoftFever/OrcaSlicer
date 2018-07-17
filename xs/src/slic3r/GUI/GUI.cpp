@@ -56,8 +56,9 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
-#include "3DScene.hpp"
 
+#include "3DScene.hpp"
+#include "libslic3r/I18N.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -110,6 +111,7 @@ wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 PresetUpdater *g_PresetUpdater = nullptr;
+_3DScene	*g_3DScene		= nullptr;
 wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
 wxColour    g_color_label_default;
@@ -117,6 +119,9 @@ wxColour    g_color_label_default;
 std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale;
+
+wxFont		g_small_font;
+wxFont		g_bold_font;
 
 std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 double m_brim_width = 0.0;
@@ -150,10 +155,25 @@ void update_label_colours_from_appconfig()
 	}
 }
 
+static void init_fonts()
+{
+	g_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+	g_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+#ifdef __WXMAC__
+	g_small_font.SetPointSize(11);
+	g_bold_font.SetPointSize(13);
+#endif /*__WXMAC__*/
+}
+
+static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
+
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
+    // Let the libslic3r know the callback, which will translate messages on demand.
+	Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
     init_label_colours();
+	init_fonts();
 }
 
 void set_main_frame(wxFrame *main_frame)
@@ -179,6 +199,11 @@ void set_preset_bundle(PresetBundle *preset_bundle)
 void set_preset_updater(PresetUpdater *updater)
 {
 	g_PresetUpdater = updater;
+}
+
+void set_3DScene(_3DScene *scene)
+{
+	g_3DScene = scene;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -317,7 +342,7 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-	auto config_wizard_name = _(ConfigWizard::name().wx_str());
+	const auto config_wizard_name = _(ConfigWizard::name().wx_str());
 	const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
 	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_name + dots,					config_wizard_tooltip);
@@ -669,6 +694,14 @@ void set_label_clr_sys(const wxColour& clr) {
 	std::string str = clr_str.ToStdString();
 	g_AppConfig->set("label_clr_sys", str);
 	g_AppConfig->save();
+}
+
+const wxFont& small_font(){
+	return g_small_font;
+}
+
+const wxFont& bold_font(){
+	return g_bold_font;
 }
 
 const wxColour& get_label_clr_default() {

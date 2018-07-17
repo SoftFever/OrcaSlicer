@@ -11,7 +11,7 @@
 class wxApp;
 class wxWindow;
 class wxFrame;
-class wxWindow;
+class wxFont;
 class wxMenuBar;
 class wxNotebook;
 class wxComboCtrl;
@@ -32,12 +32,16 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+class _3DScene;
 
-#define _(s)    Slic3r::translate((s))
-inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
-inline wxString translate(const wchar_t *s) 	 { return wxGetTranslation(s); }
-inline wxString translate(const std::string &s)  { return wxGetTranslation(wxString(s.c_str(), wxConvUTF8)); }
-inline wxString translate(const std::wstring &s) { return wxGetTranslation(s.c_str()); }
+#define _(s)    Slic3r::GUI::I18N::translate((s))
+
+namespace GUI { namespace I18N {
+	inline wxString translate(const char *s)    	 { return wxGetTranslation(wxString(s, wxConvUTF8)); }
+	inline wxString translate(const wchar_t *s) 	 { return wxGetTranslation(s); }
+	inline wxString translate(const std::string &s)  { return wxGetTranslation(wxString(s.c_str(), wxConvUTF8)); }
+	inline wxString translate(const std::wstring &s) { return wxGetTranslation(s.c_str()); }
+} }
 
 // !!! If you needed to translate some wxString,
 // !!! please use _(L(string))
@@ -87,6 +91,7 @@ void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
+void set_3DScene(_3DScene *scene);
 
 AppConfig*	get_app_config();
 wxApp*		get_app();
@@ -98,6 +103,9 @@ const wxColour& get_label_clr_default();
 unsigned get_colour_approx_luma(const wxColour &colour);
 void set_label_clr_modified(const wxColour& clr);
 void set_label_clr_sys(const wxColour& clr);
+
+const wxFont& small_font();
+const wxFont& bold_font();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 

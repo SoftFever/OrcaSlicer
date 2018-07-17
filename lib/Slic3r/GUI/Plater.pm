@@ -14,6 +14,7 @@ use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :
 use Wx::Event qw(EVT_BUTTON EVT_TOGGLEBUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
     EVT_LIST_ITEM_DESELECTED EVT_LIST_ITEM_SELECTED EVT_LEFT_DOWN EVT_MOUSE_EVENTS EVT_PAINT EVT_TOOL 
     EVT_CHOICE EVT_COMBOBOX EVT_TIMER EVT_NOTEBOOK_PAGE_CHANGED);
+use Slic3r::Geometry qw(PI);
 use base 'Wx::Panel';
 
 use constant TB_ADD             => &Wx::NewId;
@@ -116,6 +117,8 @@ sub new {
 
         my $model_object = $self->{model}->objects->[$obj_idx];
         my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
         
         my $variation = $scale / $model_instance->scaling_factor;
         #FIXME Scale the layer height profile?
@@ -127,12 +130,32 @@ sub new {
         $object->transform_thumbnail($self->{model}, $obj_idx);
     
         #update print and start background processing
-        $self->stop_background_process;
         $self->{print}->add_model_object($model_object, $obj_idx);
     
         $self->selection_changed(1);  # refresh info (size, volume etc.)
         $self->update;
         $self->schedule_background_process;
+    };
+    
+    # callback to react to gizmo rotate
+    my $on_gizmo_rotate = sub {
+        my ($angle_z) = @_;
+        $self->rotate(rad2deg($angle_z), Z, 'absolute');
+    };
+    
+    # callback to update object's geometry info while using gizmos
+    my $on_update_geometry_info = sub {
+        my ($size_x, $size_y, $size_z, $scale_factor) = @_;
+    
+        my ($obj_idx, $object) = $self->selected_object;
+    
+        if ((defined $obj_idx) && ($self->{object_info_size})) { # have we already loaded the info pane?
+            $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", $size_x, $size_y, $size_z));
+            my $model_object = $self->{model}->objects->[$obj_idx];
+            if (my $stats = $model_object->mesh_stats) {
+                $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * $scale_factor**3));
+            }
+        }
     };
     
     # Initialize 3D plater
@@ -152,7 +175,9 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
-#        Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
+        Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
+        Slic3r::GUI::_3DScene::register_on_update_geometry_info_callback($self->{canvas3D}, $on_update_geometry_info);
+        Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
 
@@ -510,7 +535,11 @@ sub new {
                 fil_mm3 => L("Used Filament (mm³)"),
                 fil_g   => L("Used Filament (g)"),
                 cost    => L("Cost"),
-                time    => L("Estimated printing time"),
+#==========================================================================================================================================
+                normal_time => L("Estimated printing time (normal mode)"),
+#                default_time => L("Estimated printing time (default mode)"),
+#==========================================================================================================================================
+                silent_time  => L("Estimated printing time (silent mode)"),
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -1055,7 +1084,17 @@ sub rotate {
     
     if ($axis == Z) {
         my $new_angle = deg2rad($angle);
-        $_->set_rotation(($relative ? $_->rotation : 0.) + $new_angle) for @{ $model_object->instances };
+        foreach my $inst (@{ $model_object->instances }) {
+            my $rotation = ($relative ? $inst->rotation : 0.) + $new_angle;
+            while ($rotation > 2.0 * PI) {
+                $rotation -= 2.0 * PI;
+            }
+            while ($rotation < 0.0) {
+                $rotation += 2.0 * PI;
+            }
+            $inst->set_rotation($rotation);
+            Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});            
+        }
         $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
         # rotation around X and Y needs to be performed on mesh
@@ -1582,7 +1621,11 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
-    $self->{"print_info_time"}->SetLabel($self->{print}->estimated_print_time);
+#==========================================================================================================================================
+    $self->{"print_info_normal_time"}->SetLabel($self->{print}->estimated_normal_print_time);
+#    $self->{"print_info_default_time"}->SetLabel($self->{print}->estimated_default_print_time);
+#==========================================================================================================================================
+    $self->{"print_info_silent_time"}->SetLabel($self->{print}->estimated_silent_print_time);
     $self->{"print_info_fil_m"}->SetLabel(sprintf("%.2f" , $self->{print}->total_used_filament / 1000));
     $self->{"print_info_box_show"}->(1);
 
@@ -1657,34 +1700,6 @@ sub export_object_stl {
     my $output_file = $self->_get_export_file('STL') or return;
     $model_object->mesh->write_binary($output_file);
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
-}
-
-sub fix_through_netfabb {
-    my ($self) = @_;
-    my ($obj_idx, $object) = $self->selected_object;
-    return if !defined $obj_idx;
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    my $model_fixed = Slic3r::Model->new;
-    Slic3r::GUI::fix_model_by_win10_sdk_gui($model_object, $self->{print}, $model_fixed);
-
-    my @new_obj_idx = $self->load_model_objects(@{$model_fixed->objects});
-    return if !@new_obj_idx;
-    
-    foreach my $new_obj_idx (@new_obj_idx) {
-        my $o = $self->{model}->objects->[$new_obj_idx];
-        $o->clear_instances;
-        $o->add_instance($_) for @{$model_object->instances};
-        #$o->invalidate_bounding_box;
-        
-        if ($o->volumes_count == $model_object->volumes_count) {
-            for my $i (0..($o->volumes_count-1)) {
-                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
-            }
-        }
-        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
-    }
-    
-    $self->remove($obj_idx);
 }
 
 sub export_amf {
@@ -2265,11 +2280,6 @@ sub object_menu {
     $frame->_append_menu_item($menu, L("Export object as STL…"), L('Export this single object as STL file'), sub {
         $self->export_object_stl;
     }, undef, 'brick_go.png');
-    if (Slic3r::GUI::is_windows10) {
-        $frame->_append_menu_item($menu, L("Fix STL through Netfabb"), L('Fix the model by sending it to a Netfabb cloud service through Windows 10 API'), sub {
-            $self->fix_through_netfabb;
-        }, undef, 'brick_go.png');
-    }
     
     return $menu;
 }

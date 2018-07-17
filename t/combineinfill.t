@@ -61,6 +61,7 @@ plan tests => 8;
     $config->set('infill_every_layers', 2);
     $config->set('perimeter_extruder', 1);
     $config->set('infill_extruder', 2);
+    $config->set('wipe_into_infill', 0);
     $config->set('support_material_extruder', 3);
     $config->set('support_material_interface_extruder', 3);
     $config->set('top_solid_layers', 0);
