@@ -772,7 +772,7 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Machinekit");
     def->enum_labels.push_back("Smoothie");
     def->enum_labels.push_back(L("No extrusion"));
-    def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfMarlin);
+    def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfRepRap);
 
     def = this->add("infill_acceleration", coFloat);
     def->label = L("Infill");
