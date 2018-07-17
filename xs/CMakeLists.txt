@@ -258,6 +258,11 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/PresetUpdater.hpp
     ${LIBDIR}/slic3r/Utils/Time.cpp
     ${LIBDIR}/slic3r/Utils/Time.hpp
+    ${LIBDIR}/slic3r/IProgressIndicator.hpp
+    ${LIBDIR}/slic3r/AppController.hpp
+    ${LIBDIR}/slic3r/AppController.cpp
+    ${LIBDIR}/slic3r/AppControllerWx.cpp
+    ${LIBDIR}/slic3r/Strings.hpp
 )
 
 add_library(admesh STATIC
@@ -405,6 +410,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/TriangleMesh.xsp
     ${XSP_DIR}/Utils_OctoPrint.xsp
     ${XSP_DIR}/Utils_PresetUpdater.xsp
+    ${XSP_DIR}/AppController.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})
@@ -712,6 +718,19 @@ add_custom_target(pot
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Generate pot file from strings in the source tree"
 )
+
+# ##############################################################################
+# Adding libnest2d project for bin packing...
+# ##############################################################################
+
+set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
+
+add_subdirectory(${LIBDIR}/libnest2d)
+target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
+
+message(STATUS "Libnest2D Libraries: ${LIBNEST2D_LIBRARIES}")
+target_link_libraries(libslic3r ${LIBNEST2D_LIBRARIES})
+# ##############################################################################
 
 # Installation
 install(TARGETS XS DESTINATION ${PERL_VENDORARCH}/auto/Slic3r/XS)

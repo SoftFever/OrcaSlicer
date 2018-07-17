@@ -113,9 +113,6 @@ public:
     // or a Configuration file bundling the Print + Filament + Printer presets (in that case is_external and possibly is_system will be true),
     // or it could be a G-code (again, is_external will be true).
     std::string         file;
-    // A user profile may inherit its settings either from a system profile, or from a user profile.
-    // A system profile shall never derive from any other profile, as the system profile hierarchy is being flattened during loading.
-    std::string         inherits;
     // If this is a system profile, then there should be a vendor data available to display at the UI.
     const VendorProfile *vendor      = nullptr;
 
@@ -141,6 +138,16 @@ public:
 
     bool                is_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config) const;
     bool                is_compatible_with_printer(const Preset &active_printer) const;
+
+    // Returns the name of the preset, from which this preset inherits.
+    static std::string& inherits(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("inherits", true)->value; }
+    std::string&        inherits() { return Preset::inherits(this->config); }
+    const std::string&  inherits() const { return Preset::inherits(const_cast<Preset*>(this)->config); }
+
+    // Returns the "compatible_printers_condition".
+    static std::string& compatible_printers_condition(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionString>("compatible_printers_condition", true)->value; }
+    std::string&        compatible_printers_condition() { return Preset::compatible_printers_condition(this->config); }
+    const std::string&  compatible_printers_condition() const { return Preset::compatible_printers_condition(const_cast<Preset*>(this)->config); }
 
     // Mark this preset as compatible if it is compatible with active_printer.
     bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
@@ -199,6 +206,18 @@ public:
     // and select it, losing previous modifications.
     Preset&         load_preset(const std::string &path, const std::string &name, const DynamicPrintConfig &config, bool select = true);
     Preset&         load_preset(const std::string &path, const std::string &name, DynamicPrintConfig &&config, bool select = true);
+
+    Preset&         load_external_preset(
+        // Path to the profile source file (a G-code, an AMF or 3MF file, a config file)
+        const std::string           &path,
+        // Name of the profile, derived from the source file name.
+        const std::string           &name,
+        // Original name of the profile, extracted from the loaded config. Empty, if the name has not been stored.
+        const std::string           &original_name,
+        // Config to initialize the preset from.
+        const DynamicPrintConfig    &config,
+        // Select the preset after loading?
+        bool                         select = true);
 
     // Save the preset under a new name. If the name is different from the old one,
     // a new preset is stored into the list of presets.
@@ -312,8 +331,6 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
     std::vector<std::string>    current_different_from_parent_options(const bool is_printer_type = false) const
         { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), is_printer_type); }
-    // Compare the content of get_selected_preset() with get_selected_preset_parent() configs, return the list of keys where they equal.
-	std::vector<std::string>    system_equal_options() const;
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
@@ -349,9 +366,10 @@ private:
     PresetCollection(const PresetCollection &other);
     PresetCollection& operator=(const PresetCollection &other);
 
-    // Find a preset in the sorted list of presets.
+    // Find a preset position in the sorted list of presets.
     // The "-- default -- " preset is always the first, so it needs
     // to be handled differently.
+    // If a preset does not exist, an iterator is returned indicating where to insert a preset with the same name.
     std::deque<Preset>::iterator find_preset_internal(const std::string &name)
     {
         Preset key(m_type, name);

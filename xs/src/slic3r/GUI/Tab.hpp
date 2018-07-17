@@ -175,7 +175,7 @@ protected:
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
-	int							m_opt_status_value;
+	int							m_opt_status_value = 0;
 
 	t_icon_descriptions	m_icon_descriptions = {};
 
