@@ -412,45 +412,54 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // resets time estimators
     m_normal_time_estimator.reset();
     m_normal_time_estimator.set_dialect(print.config.gcode_flavor);
-    m_normal_time_estimator.set_max_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
-    m_normal_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[0]);
-    m_normal_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[0]);
-    m_normal_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[0]);
-    m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[0]);
-    m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[0]);
-    m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[0]);
-    m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[0]);
-    m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[0]);
-    m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[0]);
-    m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[0]);
-    m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[0]);
-    m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[0]);
-    m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[0]);
-    m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[0]);
-    m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[0]);
+    m_silent_time_estimator_enabled = (print.config.gcode_flavor == gcfMarlin) && print.config.silent_mode;
 
-    m_silent_time_estimator_enabled = (print.config.gcode_flavor == gcfMarlin) && print.config.silent_mode && boost::starts_with(print.config.printer_model.value, "MK3");
-    if (m_silent_time_estimator_enabled)
-    {
-        m_silent_time_estimator.reset();
-        m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
-        m_silent_time_estimator.set_max_acceleration(print.config.machine_max_acceleration_extruding.values[1]);
-        m_silent_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[1]);
-        m_silent_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[1]);
-        m_silent_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[1]);
-        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[1]);
-        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[1]);
-        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[1]);
-        m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[1]);
-        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[1]);
-        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[1]);
-        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[1]);
-        m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[1]);
-        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[1]);
-        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[1]);
-        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[1]);
-        m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[1]);
+    // Until we have a UI support for the other firmwares than the Marlin, use the hardcoded default values
+    // and let the user to enter the G-code limits into the start G-code.
+    // If the following block is enabled for other firmwares than the Marlin, then the function
+    // this->print_machine_envelope(file, print);
+    // shall be adjusted as well to produce a G-code block compatible with the particular firmware flavor.
+    if (print.config.gcode_flavor.value == gcfMarlin) {
+        m_normal_time_estimator.set_max_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
+        m_normal_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[0]);
+        m_normal_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[0]);
+        m_normal_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[0]);
+        m_normal_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[0]);
+        m_normal_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[0]);
+        m_normal_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[0]);
+
+        if (m_silent_time_estimator_enabled)
+        {
+            m_silent_time_estimator.reset();
+            m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
+            m_silent_time_estimator.set_max_acceleration(print.config.machine_max_acceleration_extruding.values[1]);
+            m_silent_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[1]);
+            m_silent_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[1]);
+            m_silent_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[1]);
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::X, print.config.machine_max_acceleration_x.values[1]);
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Y, print.config.machine_max_acceleration_y.values[1]);
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::Z, print.config.machine_max_acceleration_z.values[1]);
+            m_silent_time_estimator.set_axis_max_acceleration(GCodeTimeEstimator::E, print.config.machine_max_acceleration_e.values[1]);
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::X, print.config.machine_max_feedrate_x.values[1]);
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Y, print.config.machine_max_feedrate_y.values[1]);
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::Z, print.config.machine_max_feedrate_z.values[1]);
+            m_silent_time_estimator.set_axis_max_feedrate(GCodeTimeEstimator::E, print.config.machine_max_feedrate_e.values[1]);
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::X, print.config.machine_max_jerk_x.values[1]);
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[1]);
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[1]);
+            m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[1]);
+        }
     }
+
     // resets analyzer
     m_analyzer.reset();
     m_enable_analyzer = preview_data != nullptr;
