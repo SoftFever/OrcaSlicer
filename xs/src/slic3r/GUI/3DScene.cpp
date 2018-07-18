@@ -749,7 +749,7 @@ void GLVolumeCollection::render_legacy() const
     glDisable(GL_BLEND);
 }
 
-bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config)
+bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state)
 {
     if (config == nullptr)
         return false;
@@ -763,18 +763,31 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config)
     // Allow the objects to protrude below the print bed
     print_volume.min.z = -1e10;
 
-    bool contained = true;
+    ModelInstance::EPrintVolumeState state = ModelInstance::PVS_Inside;
+    bool all_contained = true;
+
     for (GLVolume* volume : this->volumes)
     {
         if ((volume != nullptr) && !volume->is_modifier)
         {
-            bool state = print_volume.contains(volume->transformed_bounding_box());
-            contained &= state;
-            volume->is_outside = !state;
+            const BoundingBoxf3& bb = volume->transformed_bounding_box();
+            bool contained = print_volume.contains(bb);
+            all_contained &= contained;
+
+            volume->is_outside = !contained;
+
+            if ((state == ModelInstance::PVS_Inside) && volume->is_outside)
+                state = ModelInstance::PVS_Fully_Outside;
+
+            if ((state == ModelInstance::PVS_Fully_Outside) && volume->is_outside && print_volume.intersects(bb))
+                state = ModelInstance::PVS_Partly_Outside;
         }
     }
 
-    return contained;
+    if (out_state != nullptr)
+        *out_state = state;
+
+    return all_contained;
 }
 
 void GLVolumeCollection::reset_outside_state()

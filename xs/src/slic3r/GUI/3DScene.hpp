@@ -6,6 +6,7 @@
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "../../libslic3r/Model.hpp"
 #include "../../slic3r/GUI/GLCanvas3DManager.hpp"
 //#################################################################################################################################
 #include "../../slic3r/GUI/GLTexture.hpp"
@@ -434,7 +435,9 @@ public:
         print_box_max[0] = max_x; print_box_max[1] = max_y; print_box_max[2] = max_z;
     }
 
-    bool check_outside_state(const DynamicPrintConfig* config);
+    // returns true if all the volumes are completely contained in the print volume
+    // returns the containment state in the given out_state, if non-null
+    bool check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state);
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);

@@ -543,7 +543,7 @@ std::string Print::validate() const
     print_volume.min.z = -1e10;
     unsigned int printable_count = 0;
     for (PrintObject *po : this->objects) {
-        po->model_object()->check_instances_printability(print_volume);
+        po->model_object()->check_instances_print_volume_state(print_volume);
         po->reload_model_instances();
         if (po->is_printable())
             ++printable_count;

@@ -103,7 +103,7 @@ bool PrintObject::reload_model_instances()
     copies.reserve(this->_model_object->instances.size());
     for (const ModelInstance *mi : this->_model_object->instances)
     {
-        if (mi->is_printable)
+        if (mi->is_printable())
             copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
     }
     return this->set_copies(copies);

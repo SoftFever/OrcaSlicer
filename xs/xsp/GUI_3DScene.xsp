@@ -105,10 +105,6 @@
     void release_geometry();
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
-    bool check_outside_state(DynamicPrintConfig* config)
-        %code%{ 
-                RETVAL = THIS->check_outside_state(config);
-        %};
     
     void reset_outside_state();    
     void update_colors_by_extruder(DynamicPrintConfig* config);
