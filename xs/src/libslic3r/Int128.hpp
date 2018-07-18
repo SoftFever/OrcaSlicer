@@ -48,7 +48,6 @@
 #endif
 
 #include <cassert>
-#include "Point.hpp"
 
 #if ! defined(_MSC_VER) && defined(__SIZEOF_INT128__)
 	#define HAS_INTRINSIC_128_TYPE
@@ -287,21 +286,5 @@ public:
 				return ((det > 0) ? 1 : -1) * invert;
 		}
 		return sign_determinant_2x2(p1, q1, p2, q2) * invert;
-	}
-
-	// Exact orientation predicate,
-	// returns +1: CCW, 0: collinear, -1: CW.
-	static int orient(const Slic3r::Point &p1, const Slic3r::Point &p2, const Slic3r::Point &p3)
-	{
-		Slic3r::Vector v1(p2 - p1);
-		Slic3r::Vector v2(p3 - p1);
-		return sign_determinant_2x2_filtered(v1.x, v1.y, v2.x, v2.y);
-	}
-
-	// Exact orientation predicate,
-	// returns +1: CCW, 0: collinear, -1: CW.
-	static int cross(const Slic3r::Point &v1, const Slic3r::Point &v2)
-	{
-		return sign_determinant_2x2_filtered(v1.x, v1.y, v2.x, v2.y);
 	}
 };

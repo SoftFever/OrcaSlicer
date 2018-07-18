@@ -102,6 +102,10 @@ using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
 {
 	wxNotebook*			m_parent;
+#ifdef __WXOSX__
+	wxPanel*			m_tmp_panel;
+	int					m_size_move = -1;
+#endif // __WXOSX__
 protected:
 	std::string			m_name;
 	const wxString		m_title;
@@ -118,7 +122,6 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
-
 	wxComboCtrl*		m_cc_presets_choice;
 	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
@@ -172,7 +175,7 @@ protected:
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
 	std::map<std::string, int>	m_options_list;
-	int							m_opt_status_value;
+	int							m_opt_status_value = 0;
 
 	t_icon_descriptions	m_icon_descriptions = {};
 
@@ -198,7 +201,7 @@ public:
 	Tab() {}
 	Tab(wxNotebook* parent, const wxString& title, const char* name, bool no_controller) : 
 		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
-		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL);
+		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
 		get_tabs_list().push_back(this);
 	}
 	~Tab(){
@@ -242,7 +245,7 @@ public:
 
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
-	virtual void	OnActivate(){}
+	virtual void	OnActivate();
 	virtual void	on_preset_loaded(){}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
@@ -313,6 +316,9 @@ public:
 class TabPrinter : public Tab
 {
 	bool		m_has_single_extruder_MM_page = false;
+	bool		m_use_silent_mode = false;
+	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
+	bool		m_rebuild_kinematics_page = false;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
@@ -330,6 +336,7 @@ public:
 	void		update() override;
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
+	PageShp		build_kinematics_page();
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;

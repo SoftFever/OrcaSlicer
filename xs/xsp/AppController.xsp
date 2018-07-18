@@ -1,0 +1,27 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/AppController.hpp"
+#include "libslic3r/Model.hpp"
+#include "libslic3r/Print.hpp"
+%}
+
+%name{Slic3r::PrintController} class PrintController {
+
+    PrintController(Print *print);
+
+    void slice();
+};
+
+%name{Slic3r::AppController} class AppController {
+
+    AppController();
+
+    PrintController *print_ctl();
+    void set_model(Model *model);
+    void set_print(Print *print);
+    void set_global_progress_indicator(unsigned gauge_id, unsigned statusbar_id);
+
+    void arrange_model();
+};

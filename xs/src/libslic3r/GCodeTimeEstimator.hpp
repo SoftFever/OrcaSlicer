@@ -17,6 +17,12 @@ namespace Slic3r {
     class GCodeTimeEstimator
     {
     public:
+        enum EMode : unsigned char
+        {
+            Normal,
+            Silent
+        };
+
         enum EUnits : unsigned char
         {
             Millimeters,
@@ -70,7 +76,8 @@ namespace Slic3r {
             float additional_time;              // s
             float minimum_feedrate;             // mm/s
             float minimum_travel_feedrate;      // mm/s
-            float extrude_factor_override_percentage; 
+            float extrude_factor_override_percentage;
+            unsigned int g1_line_id;
         };
 
     public:
@@ -121,7 +128,6 @@ namespace Slic3r {
                 bool nominal_length;
             };
 
-
 #if ENABLE_MOVE_STATS
             EMoveType move_type;
 #endif // ENABLE_MOVE_STATS
@@ -134,6 +140,11 @@ namespace Slic3r {
 
             FeedrateProfile feedrate;
             Trapezoid trapezoid;
+            float elapsed_time;
+
+            bool st_synchronized;
+
+            Block();
 
             // Returns the length of the move covered by this block, in mm
             float move_length() const;
@@ -187,19 +198,34 @@ namespace Slic3r {
         typedef std::map<Block::EMoveType, MoveStats> MovesStatsMap;
 #endif // ENABLE_MOVE_STATS
 
+        typedef std::map<unsigned int, unsigned int> G1LineIdToBlockIdMap;
+
     private:
+        EMode _mode;
         GCodeReader _parser;
         State _state;
         Feedrates _curr;
         Feedrates _prev;
         BlocksList _blocks;
+        // Map between g1 line id and blocks id, used to speed up export of remaining times
+        G1LineIdToBlockIdMap _g1_line_ids;
         float _time; // s
+
 #if ENABLE_MOVE_STATS
         MovesStatsMap _moves_stats;
 #endif // ENABLE_MOVE_STATS
 
     public:
-        GCodeTimeEstimator();
+        explicit GCodeTimeEstimator(EMode mode);
+
+        // Adds the given gcode line
+        void add_gcode_line(const std::string& gcode_line);
+
+        void add_gcode_block(const char *ptr);
+        void add_gcode_block(const std::string &str) { this->add_gcode_block(str.c_str()); }
+
+        // Calculates the time estimate from the gcode lines added using add_gcode_line() or add_gcode_block()
+        void calculate_time();
 
         // Calculates the time estimate from the given gcode in string format
         void calculate_time_from_text(const std::string& gcode);
@@ -210,14 +236,12 @@ namespace Slic3r {
         // Calculates the time estimate from the gcode contained in given list of gcode lines
         void calculate_time_from_lines(const std::vector<std::string>& gcode_lines);
 
-        // Adds the given gcode line
-        void add_gcode_line(const std::string& gcode_line);
-
-        void add_gcode_block(const char *ptr);
-        void add_gcode_block(const std::string &str) { this->add_gcode_block(str.c_str()); }
-
-        // Calculates the time estimate from the gcode lines added using add_gcode_line()
-        void calculate_time();
+        // Process the gcode contained in the file with the given filename, 
+        // placing in it new lines (M73) containing the remaining time, at the given interval in seconds
+        // and saving the result back in the same file
+        // This time estimator should have been already used to calculate the time estimate for the gcode
+        // contained in the given file before to call this method
+        bool post_process_remaining_times(const std::string& filename, float interval_sec);
 
         // Set current position on the given axis with the given value
         void set_axis_position(EAxis axis, float position);
@@ -263,6 +287,10 @@ namespace Slic3r {
         void set_e_local_positioning_type(EPositioningType type);
         EPositioningType get_e_local_positioning_type() const;
 
+        int get_g1_line_id() const;
+        void increment_g1_line_id();
+        void reset_g1_line_id();
+
         void add_additional_time(float timeSec);
         void set_additional_time(float timeSec);
         float get_additional_time() const;
@@ -275,12 +303,18 @@ namespace Slic3r {
         // Returns the estimated time, in seconds
         float get_time() const;
 
-        // Returns the estimated time, in format HHh MMm SSs
-        std::string get_time_hms() const;
+        // Returns the estimated time, in format DDd HHh MMm SSs
+        std::string get_time_dhms() const;
+
+        // Returns the estimated time, in minutes (integer)
+        std::string get_time_minutes() const;
 
     private:
         void _reset();
+        void _reset_time();
         void _reset_blocks();
+
+        void _set_blocks_st_synchronize(bool state);
 
         // Calculates the time estimate
         void _calculate_time();
@@ -352,6 +386,12 @@ namespace Slic3r {
         void _planner_reverse_pass_kernel(Block& curr, Block& next);
 
         void _recalculate_trapezoids();
+
+        // Returns the given time is seconds in format DDd HHh MMm SSs
+        static std::string _get_time_dhms(float time_in_secs);
+
+        // Returns the given, in minutes (integer)
+        static std::string _get_time_minutes(float time_in_secs);
 
 #if ENABLE_MOVE_STATS
         void _log_moves_stats() const;
