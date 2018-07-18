@@ -27,6 +27,11 @@ public:
         PNG     //!> PNG compression
     };
 
+    enum class Origin {
+        TOP_LEFT,
+        BOTTOM_LEFT
+    };
+
     /// Type that represents a resolution in pixels.
     struct Resolution {
         unsigned width_px;
@@ -46,7 +51,8 @@ public:
     };
 
     /// Constructor taking the resolution and the pixel dimension.
-    explicit Raster(const Resolution& r, const PixelDim& pd );
+    explicit Raster(const Resolution& r, const PixelDim& pd,
+                    Origin o = Origin::TOP_LEFT );
     Raster();
     Raster(const Raster& cpy) = delete;
     Raster& operator=(const Raster& cpy) = delete;

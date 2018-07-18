@@ -34,6 +34,8 @@ public:
     static const TPixel ColorWhite;
     static const TPixel ColorBlack;
 
+    using Origin = Raster::Origin;
+
 private:
     Raster::Resolution resolution_;
     Raster::PixelDim pxdim_;
@@ -42,8 +44,10 @@ private:
     TPixelRenderer pixfmt_;
     TRawRenderer raw_renderer_;
     TRendererAA renderer_;
+    Origin o_;
 public:
-    inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd):
+    inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd,
+                Origin o = Origin::TOP_LEFT):
         resolution_(res), pxdim_(pd),
         buf_(res.pixels()),
         rbuf_(reinterpret_cast<TPixelRenderer::value_type*>(buf_.data()),
@@ -51,7 +55,8 @@ public:
               res.width_px*TPixelRenderer::num_components),
         pixfmt_(rbuf_),
         raw_renderer_(pixfmt_),
-        renderer_(raw_renderer_)
+        renderer_(raw_renderer_),
+        o_(o)
     {
         renderer_.color(ColorWhite);
 
@@ -66,10 +71,13 @@ public:
         agg::scanline_p8 scanlines;
 
         auto&& path = to_path(poly.contour);
+        if(o_ == Origin::TOP_LEFT) path.flip_y(0, resolution_.height_px);
         ras.add_path(path);
 
         for(auto h : poly.holes) {
             auto&& holepath = to_path(h);
+            if(o_ == Origin::TOP_LEFT)
+                holepath.flip_y(0, resolution_.height_px);
             ras.add_path(holepath);
         }
 
@@ -109,8 +117,8 @@ private:
 const Raster::Impl::TPixel Raster::Impl::ColorWhite = Raster::Impl::TPixel(255);
 const Raster::Impl::TPixel Raster::Impl::ColorBlack = Raster::Impl::TPixel(0);
 
-Raster::Raster(const Resolution &r, const PixelDim &pd):
-    impl_(new Impl(r, pd)) {}
+Raster::Raster(const Resolution &r, const PixelDim &pd, Origin o):
+    impl_(new Impl(r, pd, o)) {}
 
 Raster::Raster() {}
 
