@@ -442,13 +442,13 @@ bool WipingExtrusions::is_overriddable(const ExtrusionEntityCollection& eec, con
 
 // Following function iterates through all extrusions on the layer, remembers those that could be used for wiping after toolchange
 // and returns volume that is left to be wiped on the wipe tower.
-float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int new_extruder, float volume_to_wipe)
+float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int old_extruder, unsigned int new_extruder, float volume_to_wipe)
 {
     const LayerTools& lt = *m_layer_tools;
     const float min_infill_volume = 0.f; // ignore infill with smaller volume than this
 
-    if (print.config.filament_soluble.get_at(new_extruder))
-        return volume_to_wipe;      // Soluble filament cannot be wiped in a random infill
+    if (print.config.filament_soluble.get_at(old_extruder) || print.config.filament_soluble.get_at(new_extruder))
+        return volume_to_wipe;      // Soluble filament cannot be wiped in a random infill, neither the filament after it
 
     // we will sort objects so that dedicated for wiping are at the beginning:
     PrintObjectPtrs object_list = print.objects;
