@@ -1147,7 +1147,7 @@ void Print::_make_wipe_tower()
                     float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];    // total volume to wipe after this toolchange
 
                     // try to assign some infills/objects for the wiping:
-                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
+                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
 
                     wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
