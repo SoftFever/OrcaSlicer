@@ -519,20 +519,28 @@ void arrangeRectangles() {
 
     std::vector<Item> proba = {
         {
-            { {0, 0}, {20, 20}, {40, 0}, {0, 0} }
+            Rectangle(100, 2)
         },
         {
-            { {0, 100}, {50, 60}, {100, 100}, {50, 0}, {0, 100} }
-
+            Rectangle(100, 2)
+        },
+        {
+            Rectangle(100, 2)
+        },
+        {
+            Rectangle(10, 10)
         },
     };
+
+    proba[0].rotate(Pi/3);
+    proba[1].rotate(Pi-Pi/3);
 
     std::vector<Item> input;
     input.insert(input.end(), prusaParts().begin(), prusaParts().end());
 //    input.insert(input.end(), prusaExParts().begin(), prusaExParts().end());
-//    input.insert(input.end(), stegoParts().begin(), stegoParts().end());
+    input.insert(input.end(), stegoParts().begin(), stegoParts().end());
 //    input.insert(input.end(), rects.begin(), rects.end());
-//    input.insert(input.end(), proba.begin(), proba.end());
+    input.insert(input.end(), proba.begin(), proba.end());
 //    input.insert(input.end(), crasher.begin(), crasher.end());
 
     Box bin(250*SCALE, 210*SCALE);
@@ -569,9 +577,9 @@ void arrangeRectangles() {
     Packer::SelectionConfig sconf;
 //    sconf.allow_parallel = false;
 //    sconf.force_parallel = false;
-//    sconf.try_triplets = true;
+//    sconf.try_triplets = false;
 //    sconf.try_reverse_order = true;
-//    sconf.waste_increment = 0.1;
+//    sconf.waste_increment = 0.005;
 
     arrange.configure(pconf, sconf);
 

@@ -25,9 +25,60 @@ using Shapes = typename ShapeLike::Shapes<RawShape>;
 
 /// Minkowski addition (not used yet)
 template<class RawShape>
-static RawShape minkowskiDiff(const RawShape& sh, const RawShape& /*other*/)
+static RawShape minkowskiDiff(const RawShape& sh, const RawShape& cother)
 {
+    using Vertex = TPoint<RawShape>;
+    //using Coord = TCoord<Vertex>;
+    using Edge = _Segment<Vertex>;
+    using sl = ShapeLike;
+    using std::signbit;
 
+    // Copy the orbiter (controur only), we will have to work on it
+    RawShape orbiter = sl::create(sl::getContour(cother));
+
+    // Make the orbiter reverse oriented
+    for(auto &v : sl::getContour(orbiter)) v = -v;
+
+    // An egde with additional data for marking it
+    struct MarkedEdge { Edge e; Radians turn_angle; bool is_turning_point; };
+
+    // Container for marked edges
+    using EdgeList = std::vector<MarkedEdge>;
+
+    EdgeList A, B;
+
+    auto fillEdgeList = [](EdgeList& L, const RawShape& poly) {
+        L.reserve(sl::contourVertexCount(poly));
+
+        auto it = sl::cbegin(poly);
+        auto nextit = std::next(it);
+
+        L.emplace_back({Edge(*it, *nextit), 0, false});
+        it++; nextit++;
+
+        while(nextit != sl::cend(poly)) {
+            Edge e(*it, *nextit);
+            auto& L_prev = L.back();
+            auto phi = L_prev.e.angleToXaxis();
+            auto phi_prev = e.angleToXaxis();
+            auto turn_angle = phi-phi_prev;
+            if(turn_angle > Pi) turn_angle -= 2*Pi;
+            L.emplace_back({
+                              e,
+                              turn_angle,
+                              signbit(turn_angle) != signbit(L_prev.turn_angle)
+                           });
+            it++; nextit++;
+        }
+
+        L.front().turn_angle = L.front().e.angleToXaxis() -
+                               L.back().e.angleToXaxis();
+
+        if(L.front().turn_angle > Pi) L.front().turn_angle -= 2*Pi;
+    };
+
+    fillEdgeList(A, sh);
+    fillEdgeList(B, orbiter);
 
     return sh;
 }
@@ -192,6 +243,9 @@ static RawShape nfpConvexOnly(const RawShape& sh, const RawShape& cother)
     // rightmost upper vertex of the nfp. No proof provided other than Jonas
     // Lindmark's reasoning about the reference vertex of nfp in his thesis
     // ("No fit polygon problem" - section 2.1.9)
+
+    // TODO: dont do this here. Cache the rmu and lmd in Item and get translate
+    // the nfp after this call
 
     auto csh = sh;  // Copy sh, we will sort the verices in the copy
     auto& cmp = _vsort<RawShape>;

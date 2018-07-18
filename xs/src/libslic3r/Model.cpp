@@ -530,12 +530,12 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
 
-    // Magic: we will specify what is the goal of arrangement...
-    // In this case we override the default object to make the larger items go
-    // into the center of the pile and smaller items orbit it so the resulting
-    // pile has a circle-like shape. This is good for the print bed's heat
-    // profile. We alse sacrafice a bit of pack efficiency for this to work. As
-    // a side effect, the arrange procedure is a lot faster (we do not need to
+    // Magic: we will specify what is the goal of arrangement... In this case
+    // we override the default object function to make the larger items go into
+    // the center of the pile and smaller items orbit it so the resulting pile
+    // has a circle-like shape. This is good for the print bed's heat profile.
+    // We alse sacrafice a bit of pack efficiency for this to work. As a side
+    // effect, the arrange procedure is a lot faster (we do not need to
     // calculate the convex hulls)
     pcfg.object_function = [bin, hasbin](
             NfpPlacer::Pile pile,   // The currently arranged pile
