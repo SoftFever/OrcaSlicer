@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <utility>
+#include <algorithm>
 
 #include "WipeTower.hpp"
 
@@ -43,8 +44,8 @@ public:
 	// width		-- width of wipe tower in mm ( default 60 mm - leave as it is )
 	// wipe_area	-- space available for one toolchange in mm
 	WipeTowerPrusaMM(float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
-                     float cooling_tube_length, float parking_pos_retraction, float bridging, const std::vector<float>& wiping_matrix,
-                     unsigned int initial_tool) :
+                     float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, float bridging,
+                     const std::vector<std::vector<float>>& wiping_matrix, unsigned int initial_tool) :
 		m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_tower_rotation_angle(rotation_angle),
@@ -54,20 +55,19 @@ public:
         m_cooling_tube_retraction(cooling_tube_retraction),
         m_cooling_tube_length(cooling_tube_length),
         m_parking_pos_retraction(parking_pos_retraction),
+        m_extra_loading_move(extra_loading_move),
 		m_bridging(bridging),
-        m_current_tool(initial_tool)
- 	{
-        unsigned int number_of_extruders = (unsigned int)(sqrt(wiping_matrix.size())+WT_EPSILON);
-        for (unsigned int i = 0; i<number_of_extruders; ++i)
-            wipe_volumes.push_back(std::vector<float>(wiping_matrix.begin()+i*number_of_extruders,wiping_matrix.begin()+(i+1)*number_of_extruders));
-	}
+        m_current_tool(initial_tool),
+        wipe_volumes(wiping_matrix)
+        {}
 
 	virtual ~WipeTowerPrusaMM() {}
 
 
 	// Set the extruder properties.
 	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, std::string ramming_parameters, float nozzle_diameter)
+                      float unloading_speed, float delay, int cooling_moves, float cooling_initial_speed,
+                      float cooling_final_speed, std::string ramming_parameters, float nozzle_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -78,7 +78,9 @@ public:
         m_filpar[idx].loading_speed = loading_speed;
         m_filpar[idx].unloading_speed = unloading_speed;
         m_filpar[idx].delay = delay;
-        m_filpar[idx].cooling_time = 14.f; // let's fix it for now, cooling moves will be reworked for 1.41 anyway
+        m_filpar[idx].cooling_moves = cooling_moves;
+        m_filpar[idx].cooling_initial_speed = cooling_initial_speed;
+        m_filpar[idx].cooling_final_speed = cooling_final_speed;
         m_filpar[idx].nozzle_diameter = nozzle_diameter; // to be used in future with (non-single) multiextruder MM
 
         m_perimeter_width = nozzle_diameter * Width_To_Nozzle_Ratio; // all extruders are now assumed to have the same diameter
@@ -95,7 +97,7 @@ public:
 
 	// Appends into internal structure m_plan containing info about the future wipe tower
 	// to be used before building begins. The entries must be added ordered in z.
-	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim);
+	void plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wipe_volume = 0.f);
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
@@ -192,11 +194,13 @@ private:
 	float  m_layer_height 		= 0.f; 	// Current layer height.
 	size_t m_max_color_changes 	= 0; 	// Maximum number of color changes per layer.
 	bool   m_is_first_layer 	= false;// Is this the 1st layer of the print? If so, print the brim around the waste tower.
+    int    m_old_temperature    = -1;   // To keep track of what was the last temp that we set (so we don't issue the command when not neccessary)
 
 	// G-code generator parameters.
     float           m_cooling_tube_retraction   = 0.f;
     float           m_cooling_tube_length       = 0.f;
     float           m_parking_pos_retraction    = 0.f;
+    float           m_extra_loading_move        = 0.f;
     float           m_bridging                  = 0.f;
     bool            m_adhesion                  = true;
 
@@ -211,7 +215,9 @@ private:
         float               loading_speed = 0.f;
         float               unloading_speed = 0.f;
         float               delay = 0.f ;
-        float               cooling_time = 0.f;
+        int                 cooling_moves = 0;
+        float               cooling_initial_speed = 0.f;
+        float               cooling_final_speed = 0.f;
         float               ramming_line_width_multiplicator = 0.f;
         float               ramming_step_multiplicator = 0.f;
         std::vector<float>  ramming_speed;
@@ -229,13 +235,12 @@ private:
 	bool m_print_brim = true;
 	// A fill-in direction (positive Y, negative Y) alternates with each layer.
 	wipe_shape   	m_current_shape = SHAPE_NORMAL;
-	unsigned int 	m_current_tool;
-    std::vector<std::vector<float>> wipe_volumes;
+	unsigned int 	m_current_tool  = 0;
+    const std::vector<std::vector<float>> wipe_volumes;
 
 	float           m_depth_traversed = 0.f; // Current y position at the wipe tower.
 	bool 			m_left_to_right   = true;
 	float			m_extra_spacing   = 1.f;
-
 
 	// Calculates extrusion flow needed to produce required line width for given layer height
 	float extrusion_flow(float layer_height = -1.f) const	// negative layer_height - return current m_extrusion_flow
@@ -247,7 +252,7 @@ private:
 
 	// Calculates length of extrusion line to extrude given volume
 	float volume_to_length(float volume, float line_width, float layer_height) const {
-		return volume / (layer_height * (line_width - layer_height * (1. - M_PI / 4.)));
+		return std::max(0., volume / (layer_height * (line_width - layer_height * (1. - M_PI / 4.))));
 	}
 
 	// Calculates depth for all layers and propagates them downwards
@@ -300,8 +305,9 @@ private:
 			float required_depth;
             float ramming_depth;
             float first_wipe_line;
-			ToolChange(unsigned int old,unsigned int newtool,float depth=0.f,float ramming_depth=0.f,float fwl=0.f)
-            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth},first_wipe_line{fwl} {}
+            float wipe_volume;
+			ToolChange(unsigned int old, unsigned int newtool, float depth=0.f, float ramming_depth=0.f, float fwl=0.f, float wv=0.f)
+            : old_tool{old}, new_tool{newtool}, required_depth{depth}, ramming_depth{ramming_depth}, first_wipe_line{fwl}, wipe_volume{wv} {}
 		};
 		float z;		// z position of the layer
 		float height;	// layer height

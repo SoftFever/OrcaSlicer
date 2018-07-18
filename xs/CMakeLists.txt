@@ -770,6 +770,19 @@ add_custom_target(pot
     COMMENT "Generate pot file from strings in the source tree"
 )
 
+# ##############################################################################
+# Adding libnest2d project for bin packing...
+# ##############################################################################
+
+set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
+
+add_subdirectory(${LIBDIR}/libnest2d)
+target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
+
+message(STATUS "Libnest2D Libraries: ${LIBNEST2D_LIBRARIES}")
+target_link_libraries(libslic3r ${LIBNEST2D_LIBRARIES})
+# ##############################################################################
+
 # Installation
 install(TARGETS XS DESTINATION ${PERL_VENDORARCH}/auto/Slic3r/XS)
 install(FILES lib/Slic3r/XS.pm DESTINATION ${PERL_VENDORLIB}/Slic3r)

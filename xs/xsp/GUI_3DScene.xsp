@@ -56,9 +56,13 @@
     int                 volume_idx() const;
     int                 instance_idx() const;
     Clone<Pointf3>      origin() const
-        %code%{ RETVAL = THIS->origin; %};
+        %code%{ RETVAL = THIS->get_origin(); %};
     void                translate(double x, double y, double z)
-        %code%{ THIS->origin.translate(x, y, z); %};
+        %code%{
+                Pointf3 o = THIS->get_origin();
+                o.translate(x, y, z);
+                THIS->set_origin(o);
+             %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;
@@ -470,6 +474,12 @@ update_volumes_colors_by_extruder(canvas)
         _3DScene::update_volumes_colors_by_extruder((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
+update_gizmos_data(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::update_gizmos_data((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
 render(canvas)
         SV *canvas;
     CODE:
@@ -603,6 +613,20 @@ register_on_gizmo_scale_uniformly_callback(canvas, callback)
         SV *callback;
     CODE:
         _3DScene::register_on_gizmo_scale_uniformly_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_gizmo_rotate_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_gizmo_rotate_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+
+void
+register_on_update_geometry_info_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_on_update_geometry_info_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 unsigned int
 finalize_legend_texture()

@@ -120,6 +120,7 @@ public:
     void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
+    void update_gizmos_data(wxGLCanvas* canvas);
 
     void render(wxGLCanvas* canvas) const;
 
@@ -152,6 +153,8 @@ public:
     void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

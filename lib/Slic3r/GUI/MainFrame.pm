@@ -32,6 +32,7 @@ sub new {
         
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
         Slic3r::GUI::set_main_frame($self);
+        
     $appController = Slic3r::AppController->new();
 
     if ($^O eq 'MSWin32') {
@@ -74,6 +75,17 @@ sub new {
     $appController->set_model($self->{plater}->{model});
     $appController->set_print($self->{plater}->{print});
     
+    # Make the global status bar and its progress indicator available in C++
+    $appController->set_global_progress_indicator(
+        $self->{statusbar}->{prog}->GetId(),
+        $self->{statusbar}->GetId(),
+    );
+
+    $appController->set_model($self->{plater}->{model});
+    $appController->set_print($self->{plater}->{print});
+
+    $self->{plater}->{appController} = $appController;
+
     $self->{loaded} = 1;
         
     # initialize layout

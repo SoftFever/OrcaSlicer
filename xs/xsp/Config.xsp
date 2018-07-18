@@ -74,13 +74,13 @@
     static StaticPrintConfig* new_GCodeConfig()
         %code{% RETVAL = new GCodeConfig(); %};
     static StaticPrintConfig* new_PrintConfig()
-        %code{% RETVAL = new PrintConfig(); %};
+        %code{% RETVAL = static_cast<GCodeConfig*>(new PrintConfig()); %};
     static StaticPrintConfig* new_PrintObjectConfig()
         %code{% RETVAL = new PrintObjectConfig(); %};
     static StaticPrintConfig* new_PrintRegionConfig()
         %code{% RETVAL = new PrintRegionConfig(); %};
     static StaticPrintConfig* new_FullPrintConfig()
-        %code{% RETVAL = static_cast<PrintObjectConfig*>(new FullPrintConfig()); %};
+        %code{% RETVAL = static_cast<GCodeConfig*>(new FullPrintConfig()); %};
     ~StaticPrintConfig();
     bool has(t_config_option_key opt_key);
     SV* as_hash()
@@ -119,7 +119,7 @@
             auto config = new FullPrintConfig();
             try {
                 config->load(path);
-                RETVAL = static_cast<PrintObjectConfig*>(config);
+                RETVAL = static_cast<GCodeConfig*>(config);
             } catch (std::exception& e) {
                 delete config;
                 croak("Error extracting configuration from %s:\n%s\n", path, e.what());

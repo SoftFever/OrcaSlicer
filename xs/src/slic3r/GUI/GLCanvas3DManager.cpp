@@ -78,35 +78,32 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     std::stringstream out;
 
     std::string h2_start = format_as_html ? "<b>" : "";
-    std::string h2_end   = format_as_html ? "</b>" : "";
-    std::string b_start  = format_as_html ? "<b>" : "";
-    std::string b_end    = format_as_html ? "</b>" : "";
+    std::string h2_end = format_as_html ? "</b>" : "";
+    std::string b_start = format_as_html ? "<b>" : "";
+    std::string b_end = format_as_html ? "</b>" : "";
     std::string line_end = format_as_html ? "<br>" : "\n";
 
     out << h2_start << "OpenGL installation" << h2_end << line_end;
-    out << b_start  << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
-    out << b_start  << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
-    out << b_start  << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
-    out << b_start  << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
+    out << b_start << "GL version:   " << b_end << (version.empty() ? "N/A" : version) << line_end;
+    out << b_start << "Vendor:       " << b_end << (vendor.empty() ? "N/A" : vendor) << line_end;
+    out << b_start << "Renderer:     " << b_end << (renderer.empty() ? "N/A" : renderer) << line_end;
+    out << b_start << "GLSL version: " << b_end << (glsl_version.empty() ? "N/A" : glsl_version) << line_end;
 
     if (extensions)
     {
-        out << h2_start << "Installed extensions:" << h2_end << line_end;
-
         std::vector<std::string> extensions_list;
-        GLint num_extensions;
-        ::glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-         
-        for (GLint i = 0; i < num_extensions; ++i)
-        {
-            const char* e = (const char*)::glGetStringi(GL_EXTENSIONS, i);
-            extensions_list.push_back(e);
-        }
+        std::string extensions_str = (const char*)::glGetString(GL_EXTENSIONS);
+        boost::split(extensions_list, extensions_str, boost::is_any_of(" "), boost::token_compress_off);
 
-        std::sort(extensions_list.begin(), extensions_list.end());
-        for (const std::string& ext : extensions_list)
+        if (!extensions_list.empty())
         {
-            out << ext << line_end;
+            out << h2_start << "Installed extensions:" << h2_end << line_end;
+
+            std::sort(extensions_list.begin(), extensions_list.end());
+            for (const std::string& ext : extensions_list)
+            {
+                out << ext << line_end;
+            }
         }
     }
 
@@ -467,6 +464,13 @@ void GLCanvas3DManager::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
         it->second->update_volumes_colors_by_extruder();
 }
 
+void GLCanvas3DManager::update_gizmos_data(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->update_gizmos_data();
+}
+
 void GLCanvas3DManager::render(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -656,6 +660,20 @@ void GLCanvas3DManager::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* c
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_gizmo_scale_uniformly_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_gizmo_rotate_callback(callback);
+}
+
+void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_update_geometry_info_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

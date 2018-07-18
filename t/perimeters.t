@@ -175,7 +175,7 @@ use Slic3r::Test;
             if ($info->{extruding} && $info->{dist_XY} > 0) {
                 $cur_loop ||= [ [$self->X, $self->Y] ];
                 push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
-            } else {
+            } elsif ($cmd ne 'M73') { # skips remaining time lines (M73)
                 if ($cur_loop) {
                     $has_cw_loops = 1 if Slic3r::Polygon->new(@$cur_loop)->is_clockwise;
                     $cur_loop = undef;
@@ -201,7 +201,7 @@ use Slic3r::Test;
             if ($info->{extruding} && $info->{dist_XY} > 0) {
                 $cur_loop ||= [ [$self->X, $self->Y] ];
                 push @$cur_loop, [ @$info{qw(new_X new_Y)} ];
-            } else {
+            } elsif ($cmd ne 'M73') { # skips remaining time lines (M73)
                 if ($cur_loop) {
                     $has_cw_loops = 1 if Slic3r::Polygon->new_scale(@$cur_loop)->is_clockwise;
                     if ($self->F == $config->external_perimeter_speed*60) {
@@ -306,7 +306,7 @@ use Slic3r::Test;
         if ($info->{extruding} && $info->{dist_XY} > 0 && ($args->{F} // $self->F) == $config->perimeter_speed*60) {
             $perimeters{$self->Z}++ if !$in_loop;
             $in_loop = 1;
-        } else {
+        } elsif ($cmd ne 'M73') { # skips remaining time lines (M73)
             $in_loop = 0;
         }
     });
@@ -430,7 +430,7 @@ use Slic3r::Test;
                     push @seam_points, Slic3r::Point->new_scale($self->X, $self->Y);
                 }
                 $was_extruding = 1;
-            } else {
+            } elsif ($cmd ne 'M73') { # skips remaining time lines (M73)
                 $was_extruding = 0;
             }
         });

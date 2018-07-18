@@ -1,11 +1,11 @@
 #include "AppController.hpp"
 
 #include <future>
+#include <chrono>
 #include <sstream>
 #include <cstdarg>
 #include <thread>
 #include <unordered_map>
-#include <chrono>
 
 #include <slic3r/GUI/GUI.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
@@ -13,6 +13,7 @@
 #include <PrintConfig.hpp>
 #include <Print.hpp>
 #include <PrintExport.hpp>
+#include <Geometry.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
 
@@ -248,7 +249,6 @@ void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
     Slic3r::trace(3, _(L("Slicing process finished.")));
 }
 
-
 void PrintController::slice()
 {
     auto pri = global_progress_indicator();
@@ -388,6 +388,63 @@ void IProgressIndicator::message_fmt(
 
     va_end(args);
     message(ss.str());
+}
+
+const PrintConfig &PrintController::config() const
+{
+    return print_->config;
+}
+
+void AppController::arrange_model()
+{
+    auto ftr = std::async(
+               supports_asynch()? std::launch::async : std::launch::deferred,
+               [this]()
+    {
+        unsigned count = 0;
+        for(auto obj : model_->objects) count += obj->instances.size();
+
+        auto pind = global_progress_indicator();
+
+        float pmax = 1.0;
+
+        if(pind) {
+            pmax = pind->max();
+
+            // Set the range of the progress to the object count
+            pind->max(count);
+
+        }
+
+        auto dist = print_ctl()->config().min_object_distance();
+
+        BoundingBoxf bb(print_ctl()->config().bed_shape.values);
+
+        if(pind) pind->update(0, _(L("Arranging objects...")));
+
+        try {
+            model_->arrange_objects(dist, &bb, [pind, count](unsigned rem){
+                if(pind) pind->update(count - rem, _(L("Arranging objects...")));
+            });
+        } catch(std::exception& e) {
+            std::cerr << e.what() << std::endl;
+            report_issue(IssueType::ERR,
+                         _(L("Could not arrange model objects! "
+                         "Some geometries may be invalid.")),
+                         _(L("Exception occurred")));
+        }
+
+        // Restore previous max value
+        if(pind) {
+            pind->max(pmax);
+            pind->update(0, _(L("Arranging done.")));
+        }
+    });
+
+    while( ftr.wait_for(std::chrono::milliseconds(10))
+           != std::future_status::ready) {
+        process_events();
+    }
 }
 
 }

@@ -23,4 +23,6 @@
     void set_model(Model *model);
     void set_print(Print *print);
     void set_global_progress_indicator(unsigned gauge_id, unsigned statusbar_id);
+
+    void arrange_model();
 };

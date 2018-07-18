@@ -14,6 +14,7 @@ namespace Slic3r {
 class Model;
 class Print;
 class PrintObject;
+class PrintConfig;
 
 /**
  * @brief A boilerplate class for creating application logic. It should provide
@@ -226,6 +227,7 @@ public:
      */
     void slice_to_png();
 
+    const PrintConfig& config() const;
 };
 
 /**
@@ -278,6 +280,8 @@ public:
      */
     void set_global_progress_indicator(unsigned gauge_id,
                                           unsigned statusbar_id);
+
+    void arrange_model();
 };
 
 }

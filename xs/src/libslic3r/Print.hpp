@@ -24,6 +24,7 @@ class Print;
 class PrintObject;
 class ModelObject;
 
+
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, psBrim, psWipeTower, psCount,
@@ -241,7 +242,8 @@ public:
     // TODO: status_cb
     ProgressIndicatorPtr            progressindicator;
 
-    std::string                     estimated_print_time;
+    std::string                     estimated_normal_print_time;
+    std::string                     estimated_silent_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t, float>         filament_stats;
     PrintState<PrintStep, psCount>  state;
@@ -291,6 +293,9 @@ public:
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object) const;
 
+    // Returns extruder this eec should be printed with, according to PrintRegion config:
+    static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region);
+
     void _make_skirt();
     void _make_brim();
 
@@ -328,6 +333,7 @@ private:
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;
 };
+
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)
 #define FOREACH_REGION(print, region)       FOREACH_BASE(PrintRegionPtrs, (print)->regions, region)

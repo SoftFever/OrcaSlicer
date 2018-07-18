@@ -25,6 +25,7 @@ public:
     int  get_uniform_location(const char *name) const;
 
     bool set_uniform(const char *name, float value) const;
+    bool set_uniform(const char* name, const float* matrix) const;
 
     void enable() const;
     void disable() const;

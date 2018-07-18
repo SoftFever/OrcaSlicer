@@ -103,10 +103,7 @@ public:
     // Returns the bounding box of the transformed instances.
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
-//========================================================================================================
     const BoundingBoxf3& bounding_box() const;
-//    const BoundingBoxf3& bounding_box();
-//========================================================================================================
     void invalidate_bounding_box() { m_bounding_box_valid = false; }
     // Returns a snug bounding box of the transformed instances.
     // This bounding box is not being cached.
@@ -148,10 +145,9 @@ private:
     // Parent object, owning this ModelObject.
     Model          *m_model;
     // Bounding box, cached.
-//========================================================================================================
+
     mutable BoundingBoxf3 m_bounding_box;
     mutable bool          m_bounding_box_valid;
-//========================================================================================================
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -207,7 +203,7 @@ public:
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
     
-    ModelObject* get_object() const { return this->object; };
+    ModelObject* get_object() const { return this->object; }
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -278,7 +274,8 @@ public:
     void center_instances_around_point(const Pointf &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
-    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
+    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL,
+                         std::function<void(unsigned)> progressind = [](unsigned){});
     // Croaks if the duplicated objects do not fit the print bed.
     void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);

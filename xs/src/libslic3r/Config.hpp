@@ -291,6 +291,8 @@ public:
     ConfigOptionFloats() : ConfigOptionVector<double>() {}
     explicit ConfigOptionFloats(size_t n, double value) : ConfigOptionVector<double>(n, value) {}
     explicit ConfigOptionFloats(std::initializer_list<double> il) : ConfigOptionVector<double>(std::move(il)) {}
+    explicit ConfigOptionFloats(const std::vector<double> &vec) : ConfigOptionVector<double>(vec) {}
+    explicit ConfigOptionFloats(std::vector<double> &&vec) : ConfigOptionVector<double>(std::move(vec)) {}
 
     static ConfigOptionType static_type() { return coFloats; }
     ConfigOptionType        type()  const override { return static_type(); }
