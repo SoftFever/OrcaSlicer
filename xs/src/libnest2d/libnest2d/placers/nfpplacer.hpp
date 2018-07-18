@@ -48,32 +48,89 @@ template<class RawShape> class EdgeCache {
     using Coord = TCoord<Vertex>;
     using Edge = _Segment<Vertex>;
 
-    mutable std::vector<double> corners_;
+    struct ContourCache {
+        mutable std::vector<double> corners;
+        std::vector<Edge> emap;
+        std::vector<double> distances;
+        double full_distance = 0;
+    } contour_;
 
-    std::vector<Edge> emap_;
-    std::vector<double> distances_;
-    double full_distance_ = 0;
+    std::vector<ContourCache> holes_;
 
     void createCache(const RawShape& sh) {
-        auto first = ShapeLike::cbegin(sh);
-        auto next = first + 1;
-        auto endit = ShapeLike::cend(sh);
+        {   // For the contour
+            auto first = ShapeLike::cbegin(sh);
+            auto next = std::next(first);
+            auto endit = ShapeLike::cend(sh);
 
-        distances_.reserve(ShapeLike::contourVertexCount(sh));
+            contour_.distances.reserve(ShapeLike::contourVertexCount(sh));
 
-        while(next != endit) {
-            emap_.emplace_back(*(first++), *(next++));
-            full_distance_ += emap_.back().length();
-            distances_.push_back(full_distance_);
+            while(next != endit) {
+                contour_.emap.emplace_back(*(first++), *(next++));
+                contour_.full_distance += contour_.emap.back().length();
+                contour_.distances.push_back(contour_.full_distance);
+            }
+        }
+
+        for(auto& h : ShapeLike::holes(sh)) { // For the holes
+            auto first = h.begin();
+            auto next = std::next(first);
+            auto endit = h.end();
+
+            ContourCache hc;
+            hc.distances.reserve(endit - first);
+
+            while(next != endit) {
+                hc.emap.emplace_back(*(first++), *(next++));
+                hc.full_distance += hc.emap.back().length();
+                hc.distances.push_back(hc.full_distance);
+            }
+
+            holes_.push_back(hc);
         }
     }
 
     void fetchCorners() const {
-        if(!corners_.empty()) return;
+        if(!contour_.corners.empty()) return;
 
         // TODO Accuracy
-        corners_ = distances_;
-        for(auto& d : corners_) d /= full_distance_;
+        contour_.corners = contour_.distances;
+        for(auto& d : contour_.corners) d /= contour_.full_distance;
+    }
+
+    void fetchHoleCorners(unsigned hidx) const {
+        auto& hc = holes_[hidx];
+        if(!hc.corners.empty()) return;
+
+        // TODO Accuracy
+        hc.corners = hc.distances;
+        for(auto& d : hc.corners) d /= hc.full_distance;
+    }
+
+    inline Vertex coords(const ContourCache& cache, double distance) const {
+        assert(distance >= .0 && distance <= 1.0);
+
+        // distance is from 0.0 to 1.0, we scale it up to the full length of
+        // the circumference
+        double d = distance*cache.full_distance;
+
+        auto& distances = cache.distances;
+
+        // Magic: we find the right edge in log time
+        auto it = std::lower_bound(distances.begin(), distances.end(), d);
+        auto idx = it - distances.begin();      // get the index of the edge
+        auto edge = cache.emap[idx];         // extrac the edge
+
+        // Get the remaining distance on the target edge
+        auto ed = d - (idx > 0 ? *std::prev(it) : 0 );
+        auto angle = edge.angleToXaxis();
+        Vertex ret = edge.first();
+
+        // Get the point on the edge which lies in ed distance from the start
+        ret += { static_cast<Coord>(std::round(ed*std::cos(angle))),
+                 static_cast<Coord>(std::round(ed*std::sin(angle))) };
+
+        return ret;
     }
 
 public:
@@ -102,36 +159,35 @@ public:
      * @return Returns the coordinates of the point lying on the polygon
      * circumference.
      */
-    inline Vertex coords(double distance) {
-        assert(distance >= .0 && distance <= 1.0);
-
-        // distance is from 0.0 to 1.0, we scale it up to the full length of
-        // the circumference
-        double d = distance*full_distance_;
-
-        // Magic: we find the right edge in log time
-        auto it = std::lower_bound(distances_.begin(), distances_.end(), d);
-        auto idx = it - distances_.begin();     // get the index of the edge
-        auto edge = emap_[idx];   // extrac the edge
-
-        // Get the remaining distance on the target edge
-        auto ed = d - (idx > 0 ? *std::prev(it) : 0 );
-        auto angle = edge.angleToXaxis();
-        Vertex ret = edge.first();
-
-        // Get the point on the edge which lies in ed distance from the start
-        ret += { static_cast<Coord>(std::round(ed*std::cos(angle))),
-                 static_cast<Coord>(std::round(ed*std::sin(angle))) };
-
-        return ret;
+    inline Vertex coords(double distance) const {
+        return coords(contour_, distance);
     }
 
-    inline double circumference() const BP2D_NOEXCEPT { return full_distance_; }
+    inline Vertex coords(unsigned hidx, double distance) const {
+        assert(hidx < holes_.size());
+        return coords(holes_[hidx], distance);
+    }
+
+    inline double circumference() const BP2D_NOEXCEPT {
+        return contour_.full_distance;
+    }
+
+    inline double circumference(unsigned hidx) const BP2D_NOEXCEPT {
+        return holes_[hidx].full_distance;
+    }
 
     inline const std::vector<double>& corners() const BP2D_NOEXCEPT {
         fetchCorners();
-        return corners_;
+        return contour_.corners;
     }
+
+    inline const std::vector<double>&
+    corners(unsigned holeidx) const BP2D_NOEXCEPT {
+        fetchHoleCorners(holeidx);
+        return holes_[holeidx].corners;
+    }
+
+    inline unsigned holeCount() const BP2D_NOEXCEPT { return holes_.size(); }
 
 };
 
@@ -294,12 +350,20 @@ public:
 
                 for(auto& nfp : nfps ) ecache.emplace_back(nfp);
 
-                auto getNfpPoint = [&ecache](double relpos) {
-                    auto relpfloor = std::floor(relpos);
-                    auto nfp_idx = static_cast<unsigned>(relpfloor);
-                    if(nfp_idx >= ecache.size()) nfp_idx--;
-                    auto p = relpos - relpfloor;
-                    return ecache[nfp_idx].coords(p);
+                struct Optimum {
+                    double relpos;
+                    unsigned nfpidx;
+                    int hidx;
+                    Optimum(double pos, unsigned nidx):
+                        relpos(pos), nfpidx(nidx), hidx(-1) {}
+                    Optimum(double pos, unsigned nidx, int holeidx):
+                        relpos(pos), nfpidx(nidx), hidx(holeidx) {}
+                };
+
+                auto getNfpPoint = [&ecache](const Optimum& opt)
+                {
+                    return opt.hidx < 0? ecache[opt.nfpidx].coords(opt.relpos) :
+                            ecache[opt.nfpidx].coords(opt.nfpidx, opt.relpos);
                 };
 
                 Nfp::Shapes<RawShape> pile;
@@ -310,6 +374,8 @@ public:
                     pile_area += mitem.area();
                 }
 
+                // This is the kernel part of the object function that is
+                // customizable by the library client
                 auto _objfunc = config_.object_function?
                             config_.object_function :
                 [this](const Nfp::Shapes<RawShape>& pile, double occupied_area,
@@ -334,9 +400,8 @@ public:
                 };
 
                 // Our object function for placement
-                auto objfunc = [&] (double relpos)
+                auto rawobjfunc = [&] (Vertex v)
                 {
-                    Vertex v = getNfpPoint(relpos);
                     auto d = v - iv;
                     d += startpos;
                     item.translation(d);
@@ -359,46 +424,74 @@ public:
                 stopcr.type = opt::StopLimitType::RELATIVE;
                 opt::TOptimizer<opt::Method::L_SIMPLEX> solver(stopcr);
 
-                double optimum = 0;
+                Optimum optimum(0, 0);
                 double best_score = penality_;
-
-                // double max_bound = 1.0*nfps.size();
-                // Genetic should look like this:
-                /*auto result = solver.optimize_min(objfunc,
-                                opt::initvals<double>(0.0),
-                                opt::bound(0.0, max_bound)
-                                );
-
-                if(result.score < penality_) {
-                    best_score = result.score;
-                    optimum = std::get<0>(result.optimum);
-                }*/
 
                 // Local optimization with the four polygon corners as
                 // starting points
                 for(unsigned ch = 0; ch < ecache.size(); ch++) {
                     auto& cache = ecache[ch];
 
+                    auto contour_ofn = [&rawobjfunc, &getNfpPoint, ch]
+                            (double relpos)
+                    {
+                        return rawobjfunc(getNfpPoint(Optimum(relpos, ch)));
+                    };
+
                     std::for_each(cache.corners().begin(),
                                   cache.corners().end(),
-                                  [ch, &solver, &objfunc,
-                                  &best_score, &optimum]
-                                  (double pos)
+                                  [ch, &contour_ofn, &solver, &best_score,
+                                  &optimum] (double pos)
                     {
                         try {
-                            auto result = solver.optimize_min(objfunc,
-                                            opt::initvals<double>(ch+pos),
-                                            opt::bound<double>(ch, 1.0 + ch)
+                            auto result = solver.optimize_min(contour_ofn,
+                                            opt::initvals<double>(pos),
+                                            opt::bound<double>(0, 1.0)
                                             );
 
                             if(result.score < best_score) {
                                 best_score = result.score;
-                                optimum = std::get<0>(result.optimum);
+                                optimum.relpos = std::get<0>(result.optimum);
+                                optimum.nfpidx = ch;
+                                optimum.hidx = -1;
                             }
                         } catch(std::exception& e) {
                             derr() << "ERROR: " << e.what() << "\n";
                         }
                     });
+
+                    for(unsigned hidx = 0; hidx < cache.holeCount(); ++hidx) {
+                        auto hole_ofn =
+                                [&rawobjfunc, &getNfpPoint, ch, hidx]
+                                (double pos)
+                        {
+                            Optimum opt(pos, ch, hidx);
+                            return rawobjfunc(getNfpPoint(opt));
+                        };
+
+                        std::for_each(cache.corners(hidx).begin(),
+                                      cache.corners(hidx).end(),
+                                      [&hole_ofn, &solver, &best_score,
+                                       &optimum, ch, hidx]
+                                      (double pos)
+                        {
+                            try {
+                                auto result = solver.optimize_min(hole_ofn,
+                                                opt::initvals<double>(pos),
+                                                opt::bound<double>(0, 1.0)
+                                                );
+
+                                if(result.score < best_score) {
+                                    best_score = result.score;
+                                    Optimum o(std::get<0>(result.optimum),
+                                              ch, hidx);
+                                    optimum = o;
+                                }
+                            } catch(std::exception& e) {
+                                derr() << "ERROR: " << e.what() << "\n";
+                            }
+                        });
+                    }
                 }
 
                 if( best_score < global_score ) {
