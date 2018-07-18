@@ -105,7 +105,7 @@ public:
     }
 
     bool intersects(const BoundingBox3Base<PointClass>& other) const {
-        return (min.x < other.max.x) && (max.x > other.min.x) && (min.y < other.max.y) && (max.y > other.min.y) && (min.z < other.max.z) && (max.z > other.min.z);
+        return (this->min.x < other.max.x) && (this->max.x > other.min.x) && (this->min.y < other.max.y) && (this->max.y > other.min.y) && (this->min.z < other.max.z) && (this->max.z > other.min.z);
     }
 };
 
