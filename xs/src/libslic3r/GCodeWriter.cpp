@@ -18,7 +18,9 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
     m_extrusion_axis = this->config.get_extrusion_axis();
-    this->m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
+    m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
+    m_max_acceleration = (print_config.gcode_flavor.value == gcfMarlin) ?
+        print_config.machine_max_acceleration_extruding.values.front() : 0;
 }
 
 void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
@@ -85,7 +87,7 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     }
     gcode << temperature;
     if (tool != -1 && 
-        ( (this->multiple_extruders && ! this->m_single_extruder_multi_material) ||
+        ( (this->multiple_extruders && ! m_single_extruder_multi_material) ||
           FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) ) {
         gcode << " T" << tool;
     }
@@ -170,6 +172,10 @@ std::string GCodeWriter::set_fan(unsigned int speed, bool dont_save)
 
 std::string GCodeWriter::set_acceleration(unsigned int acceleration)
 {
+    // Clamp the acceleration to the allowed maximum.
+    if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
+        acceleration = m_max_acceleration;
+
     if (acceleration == 0 || acceleration == m_last_acceleration)
         return std::string();
     

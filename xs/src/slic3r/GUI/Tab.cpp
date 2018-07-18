@@ -1742,26 +1742,26 @@ PageShp TabPrinter::build_kinematics_page()
 	}
 
 	std::vector<std::string> axes{ "x", "y", "z", "e" };
-	auto optgroup = page->new_optgroup(_(L("Maximum accelerations")));
-		for (const std::string &axis : axes)	{
-			append_option_line(optgroup, "machine_max_acceleration_" + axis);
-		}
-
-	optgroup = page->new_optgroup(_(L("Maximum feedrates")));
+	auto optgroup = page->new_optgroup(_(L("Maximum feedrates")));
 		for (const std::string &axis : axes)	{
 			append_option_line(optgroup, "machine_max_feedrate_" + axis);
 		}
 
-	optgroup = page->new_optgroup(_(L("Starting Acceleration")));
+	optgroup = page->new_optgroup(_(L("Maximum accelerations")));
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_acceleration_" + axis);
+		}
 		append_option_line(optgroup, "machine_max_acceleration_extruding");
 		append_option_line(optgroup, "machine_max_acceleration_retracting");
 
-	optgroup = page->new_optgroup(_(L("Advanced")));
-		append_option_line(optgroup, "machine_min_extruding_rate");
-		append_option_line(optgroup, "machine_min_travel_rate");
+	optgroup = page->new_optgroup(_(L("Jerk limits")));
 		for (const std::string &axis : axes)	{
 			append_option_line(optgroup, "machine_max_jerk_" + axis);
 		}
+
+	optgroup = page->new_optgroup(_(L("Minimum feedrates")));
+		append_option_line(optgroup, "machine_min_extruding_rate");
+		append_option_line(optgroup, "machine_min_travel_rate");
 
 	return page;
 }
@@ -1900,11 +1900,18 @@ void TabPrinter::update(){
 
 	bool is_marlin_flavor = m_config->option<ConfigOptionEnum<GCodeFlavor>>("gcode_flavor")->value == gcfMarlin;
 
-	const std::string &printer_model = m_config->opt_string("printer_model");
-	bool can_use_silent_mode = printer_model.empty() ? false : printer_model == "MK3"; // "true" only for MK3 printers
+	{
+		Field *sm = get_field("silent_mode");
+		if (! is_marlin_flavor)
+			// Disable silent mode for non-marlin firmwares.
+			get_field("silent_mode")->toggle(false);
+		if (is_marlin_flavor)
+			sm->enable();
+		else
+			sm->disable();
+	}
 
-	get_field("silent_mode")->toggle(can_use_silent_mode && is_marlin_flavor);
-	if (can_use_silent_mode && m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
+	if (m_use_silent_mode != m_config->opt_bool("silent_mode"))	{
 		m_rebuild_kinematics_page = true;
 		m_use_silent_mode = m_config->opt_bool("silent_mode");
 	}

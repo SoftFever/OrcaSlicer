@@ -194,7 +194,7 @@ sub new {
                 $self->schedule_background_process;
             } else {
                 # Hide the print info box, it is no more valid.
-                $self->{"print_info_box_show"}->(0);
+                $self->print_info_box_show(0);
             }
         });
 
@@ -292,9 +292,9 @@ sub new {
     $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     
     ### Scrolled Window for info boxes
-    my $scrolled_window_sizer = Wx::BoxSizer->new(wxVERTICAL);
+    my $scrolled_window_sizer = $self->{scrolled_window_sizer} = Wx::BoxSizer->new(wxVERTICAL);
     $scrolled_window_sizer->SetMinSize([310, -1]);
-    my $scrolled_window_panel = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    my $scrolled_window_panel = $self->{scrolled_window_panel} = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
     $scrolled_window_panel->SetSizer($scrolled_window_sizer);
     $scrolled_window_panel->SetScrollbars(1, 1, 1, 1);    
 
@@ -520,38 +520,9 @@ sub new {
             }
         }
 
-        my $print_info_sizer;
-        {
-            my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Sliced Info"));
-            $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
-            $print_info_sizer->SetMinSize([300,-1]);
-            my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
-            $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-            $grid_sizer->AddGrowableCol(1, 1);
-            $grid_sizer->AddGrowableCol(3, 1);
-            $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
-            my @info = (
-                fil_m   => L("Used Filament (m)"),
-                fil_mm3 => L("Used Filament (mm³)"),
-                fil_g   => L("Used Filament (g)"),
-                cost    => L("Cost"),
-#==========================================================================================================================================
-                normal_time => L("Estimated printing time (normal mode)"),
-#                default_time => L("Estimated printing time (default mode)"),
-#==========================================================================================================================================
-                silent_time  => L("Estimated printing time (silent mode)"),
-            );
-            while (my $field = shift @info) {
-                my $label = shift @info;
-                my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-                $text->SetFont($Slic3r::GUI::small_font);
-                $grid_sizer->Add($text, 0);
-                
-                $self->{"print_info_$field"} = Wx::StaticText->new($scrolled_window_panel, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-                $self->{"print_info_$field"}->SetFont($Slic3r::GUI::small_font);
-                $grid_sizer->Add($self->{"print_info_$field"}, 0);
-            }
-        }
+        my $print_info_sizer = $self->{print_info_sizer} = Wx::StaticBoxSizer->new(
+                Wx::StaticBox->new($scrolled_window_panel, -1, L("Sliced Info")), wxVERTICAL);
+        $print_info_sizer->SetMinSize([300,-1]);
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $self->{buttons_sizer} = $buttons_sizer;
@@ -572,19 +543,8 @@ sub new {
         $right_sizer->Add($frequently_changed_parameters_sizer, 0, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $right_sizer->Add($scrolled_window_panel, 1, wxEXPAND | wxALL, 1);
-        # Callback for showing / hiding the print info box.
-        $self->{"print_info_box_show"} = sub {
-#            if ($right_sizer->IsShown(5) != $_[0]) { 
-#                $right_sizer->Show(5, $_[0]); 
-#                $self->Layout
-#            }
-            if ($scrolled_window_sizer->IsShown(2) != $_[0]) { 
-                $scrolled_window_sizer->Show(2, $_[0]); 
-                $scrolled_window_panel->Layout
-            }
-        };
         # Show the box initially, let it be shown after the slicing is finished.
-        $self->{"print_info_box_show"}->(0);
+        $self->print_info_box_show(0);
 
         $self->{right_panel}->SetSizer($right_sizer);
 
@@ -1300,7 +1260,7 @@ sub async_apply_config {
     $self->{canvas3D}->Refresh if Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
 
     # Hide the slicing results if the current slicing status is no more valid.    
-    $self->{"print_info_box_show"}->(0) if $invalidated;
+    $self->print_info_box_show(0) if $invalidated;
 
     if (wxTheApp->{app_config}->get("background_processing")) {    
         if ($invalidated) {
@@ -1618,16 +1578,7 @@ sub on_export_completed {
 
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
-    $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
-    $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
-    $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
-#==========================================================================================================================================
-    $self->{"print_info_normal_time"}->SetLabel($self->{print}->estimated_normal_print_time);
-#    $self->{"print_info_default_time"}->SetLabel($self->{print}->estimated_default_print_time);
-#==========================================================================================================================================
-    $self->{"print_info_silent_time"}->SetLabel($self->{print}->estimated_silent_print_time);
-    $self->{"print_info_fil_m"}->SetLabel(sprintf("%.2f" , $self->{print}->total_used_filament / 1000));
-    $self->{"print_info_box_show"}->(1);
+    $self->print_info_box_show(1);
 
     # this updates buttons status
     $self->object_list_changed;
@@ -1635,6 +1586,51 @@ sub on_export_completed {
     # refresh preview
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+}
+
+# Fill in the "Sliced info" box with the result of the G-code generator.
+sub print_info_box_show {
+    my ($self, $show) = @_;
+    my $scrolled_window_panel = $self->{scrolled_window_panel}; 
+    my $scrolled_window_sizer = $self->{scrolled_window_sizer};
+    return if $scrolled_window_sizer->IsShown(2) == $show;
+
+    if ($show) {
+        my $print_info_sizer = $self->{print_info_sizer};
+        $print_info_sizer->Clear(1);
+        my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
+        $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
+        $grid_sizer->AddGrowableCol(1, 1);
+        $grid_sizer->AddGrowableCol(3, 1);
+        $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
+        my @info = (
+            L("Used Filament (m)")
+                => sprintf("%.2f" , $self->{print}->total_cost),
+            L("Used Filament (mm³)")
+                => sprintf("%.2f" , $self->{print}->total_weight),
+            L("Used Filament (g)"),
+                => sprintf("%.2f" , $self->{print}->total_extruded_volume),
+            L("Cost"),
+                => $self->{print}->estimated_normal_print_time,
+            L("Estimated printing time (normal mode)")
+                => $self->{print}->estimated_silent_print_time,
+            L("Estimated printing time (silent mode)")
+                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000)
+        );
+        while ( my $label = shift @info) {
+            my $value = shift @info;
+            next if $value eq "N/A";
+            my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+            $text->SetFont($Slic3r::GUI::small_font);
+            $grid_sizer->Add($text, 0);            
+            my $field = Wx::StaticText->new($scrolled_window_panel, -1, $value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+            $field->SetFont($Slic3r::GUI::small_font);
+            $grid_sizer->Add($field, 0);
+        }
+    }
+
+    $scrolled_window_sizer->Show(2, $show);
+    $scrolled_window_panel->Layout;
 }
 
 sub do_print {
@@ -1700,6 +1696,34 @@ sub export_object_stl {
     my $output_file = $self->_get_export_file('STL') or return;
     $model_object->mesh->write_binary($output_file);
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
+}
+
+sub fix_through_netfabb {
+    my ($self) = @_;
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    my $model_fixed = Slic3r::Model->new;
+    Slic3r::GUI::fix_model_by_win10_sdk_gui($model_object, $self->{print}, $model_fixed);
+
+    my @new_obj_idx = $self->load_model_objects(@{$model_fixed->objects});
+    return if !@new_obj_idx;
+    
+    foreach my $new_obj_idx (@new_obj_idx) {
+        my $o = $self->{model}->objects->[$new_obj_idx];
+        $o->clear_instances;
+        $o->add_instance($_) for @{$model_object->instances};
+        #$o->invalidate_bounding_box;
+        
+        if ($o->volumes_count == $model_object->volumes_count) {
+            for my $i (0..($o->volumes_count-1)) {
+                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
+            }
+        }
+        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+    }
+    
+    $self->remove($obj_idx);
 }
 
 sub export_amf {
@@ -2280,6 +2304,11 @@ sub object_menu {
     $frame->_append_menu_item($menu, L("Export object as STL…"), L('Export this single object as STL file'), sub {
         $self->export_object_stl;
     }, undef, 'brick_go.png');
+    if (Slic3r::GUI::is_windows10) {
+        $frame->_append_menu_item($menu, L("Fix STL through Netfabb"), L('Fix the model by sending it to a Netfabb cloud service through Windows 10 API'), sub {
+            $self->fix_through_netfabb;
+        }, undef, 'brick_go.png');
+    }
     
     return $menu;
 }
