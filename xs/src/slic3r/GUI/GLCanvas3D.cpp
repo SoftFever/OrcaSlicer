@@ -2087,20 +2087,20 @@ void GLCanvas3D::reload_scene(bool force)
         {
             enable_warning_texture(true);
             _3DScene::generate_warning_texture(L("Detected object outside print volume"));
-            m_on_enable_action_buttons_callback.call(false);
         }
         else
         {
             enable_warning_texture(false);
             m_volumes.reset_outside_state();
             _3DScene::reset_warning_texture();
-            m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
         }
+        m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
     }
     else
     {
         enable_warning_texture(false);
         _3DScene::reset_warning_texture();
+        m_on_enable_action_buttons_callback.call(false);
     }
 }
 

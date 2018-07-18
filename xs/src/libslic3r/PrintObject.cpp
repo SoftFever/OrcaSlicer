@@ -102,7 +102,10 @@ bool PrintObject::reload_model_instances()
     Points copies;
     copies.reserve(this->_model_object->instances.size());
     for (const ModelInstance *mi : this->_model_object->instances)
-        copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
+    {
+        if (mi->is_printable)
+            copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
+    }
     return this->set_copies(copies);
 }
 
@@ -291,6 +294,9 @@ bool PrintObject::has_support_material() const
 
 void PrintObject::_prepare_infill()
 {
+    if (!this->is_printable())
+        return;
+
     // This will assign a type (top/bottom/internal) to $layerm->slices.
     // Then the classifcation of $layerm->slices is transfered onto 
     // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
@@ -1442,6 +1448,9 @@ void PrintObject::_simplify_slices(double distance)
 
 void PrintObject::_make_perimeters()
 {
+    if (!this->is_printable())
+        return;
+
     if (this->state.is_done(posPerimeters)) return;
     this->state.set_started(posPerimeters);
 
@@ -1550,6 +1559,9 @@ void PrintObject::_make_perimeters()
 
 void PrintObject::_infill()
 {
+    if (!this->is_printable())
+        return;
+
     if (this->state.is_done(posInfill)) return;
     this->state.set_started(posInfill);
     
@@ -1954,6 +1966,9 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
+    if (!this->is_printable())
+        return;
+
     PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
     support_material.generate(*this);
 }

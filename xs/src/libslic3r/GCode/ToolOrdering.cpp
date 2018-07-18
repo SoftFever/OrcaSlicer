@@ -67,11 +67,13 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
 ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
     m_print_config_ptr = &print.config;
+
+    PrintObjectPtrs objects = print.get_printable_objects();
     // Initialize the print layers for all objects and all layers.
     coordf_t object_bottom_z = 0.;
     {
         std::vector<coordf_t> zs;
-        for (auto object : print.objects) {
+        for (auto object : objects) {
             zs.reserve(zs.size() + object->layers.size() + object->support_layers.size());
             for (auto layer : object->layers)
                 zs.emplace_back(layer->print_z);
@@ -84,7 +86,7 @@ ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool
     }
 
     // Collect extruders reuqired to print the layers.
-    for (auto object : print.objects)
+    for (auto object : objects)
         this->collect_extruders(*object);
 
     // Reorder the extruders to minimize tool switches.

@@ -71,6 +71,13 @@ bool Print::reload_model_instances()
     return invalidated;
 }
 
+PrintObjectPtrs Print::get_printable_objects() const
+{
+    PrintObjectPtrs printable_objects(this->objects);
+    printable_objects.erase(std::remove_if(printable_objects.begin(), printable_objects.end(), [](PrintObject* o) { return !o->is_printable(); }), printable_objects.end());
+    return printable_objects;
+}
+
 PrintRegion* Print::add_region()
 {
     regions.push_back(new PrintRegion(this));
@@ -534,10 +541,16 @@ std::string Print::validate() const
     BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config.max_print_height));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
     print_volume.min.z = -1e10;
+    unsigned int printable_count = 0;
     for (PrintObject *po : this->objects) {
-        if (!print_volume.contains(po->model_object()->tight_bounding_box(false)))
-            return L("Some objects are outside of the print volume.");
+        po->model_object()->check_instances_printability(print_volume);
+        po->reload_model_instances();
+        if (po->is_printable())
+            ++printable_count;
     }
+
+    if (printable_count == 0)
+        return L("All objects are outside of the print volume.");
 
     if (this->config.complete_objects) {
         // Check horizontal clearance.
@@ -858,8 +871,9 @@ void Print::_make_skirt()
     // prepended to the first 'n' layers (with 'n' = skirt_height).
     // $skirt_height_z in this case is the highest possible skirt height for safety.
     coordf_t skirt_height_z = 0.;
-    for (const PrintObject *object : this->objects) {
-        size_t skirt_layers = this->has_infinite_skirt() ? 
+    PrintObjectPtrs printable_objects = get_printable_objects();
+    for (const PrintObject *object : printable_objects) {
+        size_t skirt_layers = this->has_infinite_skirt() ?
             object->layer_count() : 
             std::min(size_t(this->config.skirt_height.value), object->layer_count());
         skirt_height_z = std::max(skirt_height_z, object->layers[skirt_layers-1]->print_z);
@@ -867,7 +881,7 @@ void Print::_make_skirt()
     
     // Collect points from all layers contained in skirt height.
     Points points;
-    for (const PrintObject *object : this->objects) {
+    for (const PrintObject *object : printable_objects) {
         Points object_points;
         // Get object layers up to skirt_height_z.
         for (const Layer *layer : object->layers) {
@@ -980,7 +994,8 @@ void Print::_make_brim()
     // Brim is only printed on first layer and uses perimeter extruder.
     Flow        flow = this->brim_flow();
     Polygons    islands;
-    for (PrintObject *object : this->objects) {
+    PrintObjectPtrs printable_objects = get_printable_objects();
+    for (PrintObject *object : printable_objects) {
         Polygons object_islands;
         for (ExPolygon &expoly : object->layers.front()->slices.expolygons)
             object_islands.push_back(expoly.contour);

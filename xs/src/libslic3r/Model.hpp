@@ -131,6 +131,7 @@ public:
     bool needed_repair() const;
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
+    void check_instances_printability(const BoundingBoxf3& print_volume);
 
     // Print object statistics to console.
     void print_info() const;
@@ -203,6 +204,9 @@ public:
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
     
+    // whether or not this instance is contained in the print volume (set by Print::validate() using ModelObject::check_instances_printability())
+    bool is_printable;
+
     ModelObject* get_object() const { return this->object; }
 
     // To be called on an external mesh
@@ -218,9 +222,9 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object) {}
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object), is_printable(false) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
-        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object) {}
+        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), is_printable(false) {}
 };
 
 
