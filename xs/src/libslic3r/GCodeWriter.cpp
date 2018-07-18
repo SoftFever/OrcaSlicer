@@ -20,7 +20,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     m_extrusion_axis = this->config.get_extrusion_axis();
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
     m_max_acceleration = (print_config.gcode_flavor.value == gcfMarlin) ?
-        print_config.machine_max_acceleration_extruding.value : 0;
+        print_config.machine_max_acceleration_extruding.values.front() : 0;
 }
 
 void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
