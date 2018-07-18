@@ -1702,6 +1702,34 @@ sub export_object_stl {
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
 }
 
+sub fix_through_netfabb {
+    my ($self) = @_;
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    my $model_fixed = Slic3r::Model->new;
+    Slic3r::GUI::fix_model_by_win10_sdk_gui($model_object, $self->{print}, $model_fixed);
+
+    my @new_obj_idx = $self->load_model_objects(@{$model_fixed->objects});
+    return if !@new_obj_idx;
+    
+    foreach my $new_obj_idx (@new_obj_idx) {
+        my $o = $self->{model}->objects->[$new_obj_idx];
+        $o->clear_instances;
+        $o->add_instance($_) for @{$model_object->instances};
+        #$o->invalidate_bounding_box;
+        
+        if ($o->volumes_count == $model_object->volumes_count) {
+            for my $i (0..($o->volumes_count-1)) {
+                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
+            }
+        }
+        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+    }
+    
+    $self->remove($obj_idx);
+}
+
 sub export_amf {
     my ($self) = @_;
     return if !@{$self->{objects}};
@@ -2280,6 +2308,11 @@ sub object_menu {
     $frame->_append_menu_item($menu, L("Export object as STL…"), L('Export this single object as STL file'), sub {
         $self->export_object_stl;
     }, undef, 'brick_go.png');
+    if (Slic3r::GUI::is_windows10) {
+        $frame->_append_menu_item($menu, L("Fix STL through Netfabb"), L('Fix the model by sending it to a Netfabb cloud service through Windows 10 API'), sub {
+            $self->fix_through_netfabb;
+        }, undef, 'brick_go.png');
+    }
     
     return $menu;
 }
