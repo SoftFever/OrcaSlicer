@@ -3594,7 +3594,7 @@ void GLCanvas3D::_render_warning_texture() const
         return;
 
     // If the warning texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::finalize_warning_texture();
+    unsigned int tex_id = _3DScene::get_warning_texture_id();
     if (tex_id > 0)
     {
         unsigned int w = _3DScene::get_warning_texture_width();
@@ -3627,7 +3627,7 @@ void GLCanvas3D::_render_legend_texture() const
         return;
 
     // If the legend texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::finalize_legend_texture();
+    unsigned int tex_id = _3DScene::get_legend_texture_id();
     if (tex_id > 0)
     {
         unsigned int w = _3DScene::get_legend_texture_width();
