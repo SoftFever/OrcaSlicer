@@ -291,11 +291,11 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
-    def->enum_labels.push_back("Rectilinear");
-    def->enum_labels.push_back("Concentric");
-    def->enum_labels.push_back("Hilbert Curve");
-    def->enum_labels.push_back("Archimedean Chords");
-    def->enum_labels.push_back("Octagram Spiral");
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
     // solid_fill_pattern is an obsolete equivalent to external_fill_pattern.
     def->aliases.push_back("solid_fill_pattern");
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipRectilinear);
@@ -651,19 +651,19 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("hilbertcurve");
     def->enum_values.push_back("archimedeanchords");
     def->enum_values.push_back("octagramspiral");
-    def->enum_labels.push_back("Rectilinear");
-    def->enum_labels.push_back("Grid");
-    def->enum_labels.push_back("Triangles");
-    def->enum_labels.push_back("Stars");
-    def->enum_labels.push_back("Cubic");
-    def->enum_labels.push_back("Line");
-    def->enum_labels.push_back("Concentric");
-    def->enum_labels.push_back("Honeycomb");
-    def->enum_labels.push_back("3D Honeycomb");
-    def->enum_labels.push_back("Gyroid");
-    def->enum_labels.push_back("Hilbert Curve");
-    def->enum_labels.push_back("Archimedean Chords");
-    def->enum_labels.push_back("Octagram Spiral");
+    def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Grid"));
+    def->enum_labels.push_back(L("Triangles"));
+    def->enum_labels.push_back(L("Stars"));
+    def->enum_labels.push_back(L("Cubic"));
+    def->enum_labels.push_back(L("Line"));
+    def->enum_labels.push_back(L("Concentric"));
+    def->enum_labels.push_back(L("Honeycomb"));
+    def->enum_labels.push_back(L("3D Honeycomb"));
+    def->enum_labels.push_back(L("Gyroid"));
+    def->enum_labels.push_back(L("Hilbert Curve"));
+    def->enum_labels.push_back(L("Archimedean Chords"));
+    def->enum_labels.push_back(L("Octagram Spiral"));
     def->default_value = new ConfigOptionEnum<InfillPattern>(ipStars);
 
     def = this->add("first_layer_acceleration", coFloat);
@@ -771,8 +771,8 @@ PrintConfigDef::PrintConfigDef()
     def->enum_labels.push_back("Mach3/LinuxCNC");
     def->enum_labels.push_back("Machinekit");
     def->enum_labels.push_back("Smoothie");
-    def->enum_labels.push_back("No extrusion");
-    def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfMarlin);
+    def->enum_labels.push_back(L("No extrusion"));
+    def->default_value = new ConfigOptionEnum<GCodeFlavor>(gcfRepRap);
 
     def = this->add("infill_acceleration", coFloat);
     def->label = L("Infill");
@@ -892,6 +892,12 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
 
+	def = this->add("silent_mode", coBool);
+	def->label = L("Support silent mode");
+	def->tooltip = L("Set silent mode for the G-code flavor");
+	def->default_value = new ConfigOptionBool(true);
+
+	const int machine_limits_opt_width = 70;
 	{
 		struct AxisDefault {
 			std::string         name;
@@ -901,75 +907,82 @@ PrintConfigDef::PrintConfigDef()
 		};
 		std::vector<AxisDefault> axes {
 			// name, max_feedrate,  max_acceleration, max_jerk
-			{ "x", { 200., 200. }, { 1000., 1000. }, { 10., 10. } },
-			{ "y", { 200., 200. }, { 1000., 1000. }, { 10., 10. } },
-			{ "z", { 12., 12. }, { 200., 200. }, { 0.4, 0.4 } },
-			{ "e", { 120., 120. }, { 5000., 5000. }, { 2.5, 2.5 } }
+			{ "x", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
+			{ "y", { 500., 200. }, {  9000., 1000. }, { 10. , 10.  } },
+			{ "z", {  12.,  12. }, {   500.,  200. }, {  0.2,  0.4 } },
+			{ "e", { 120., 120. }, { 10000., 5000. }, {  2.5,  2.5 } }
 		};
 		for (const AxisDefault &axis : axes) {
 			std::string axis_upper = boost::to_upper_copy<std::string>(axis.name);
 			// Add the machine feedrate limits for XYZE axes. (M203)
 			def = this->add("machine_max_feedrate_" + axis.name, coFloats);
-			def->label = (boost::format(L("Maximum feedrate %1%")) % axis_upper).str();
+			def->full_label = (boost::format(L("Maximum feedrate %1%")) % axis_upper).str();
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format(L("Maximum feedrate of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s");
 			def->min = 0;
+			def->width = machine_limits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_feedrate);
 			// Add the machine acceleration limits for XYZE axes (M201)
 			def = this->add("machine_max_acceleration_" + axis.name, coFloats);
-			def->label = (boost::format(L("Maximum acceleration %1%")) % axis_upper).str();
+			def->full_label = (boost::format(L("Maximum acceleration %1%")) % axis_upper).str();
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format(L("Maximum acceleration of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s²");
 			def->min = 0;
+			def->width = machine_limits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_acceleration);
 			// Add the machine jerk limits for XYZE axes (M205)
 			def = this->add("machine_max_jerk_" + axis.name, coFloats);
-			def->label = (boost::format(L("Maximum jerk %1%")) % axis_upper).str();
+			def->full_label = (boost::format(L("Maximum jerk %1%")) % axis_upper).str();
 			def->category = L("Machine limits");
 			def->tooltip  = (boost::format(L("Maximum jerk of the %1% axis")) % axis_upper).str();
 			def->sidetext = L("mm/s");
 			def->min = 0;
+			def->width = machine_limits_opt_width;
 			def->default_value = new ConfigOptionFloats(axis.max_jerk);
 		}
 	}
 
     // M205 S... [mm/sec]
     def = this->add("machine_min_extruding_rate", coFloats);
-    def->label = L("Minimum feedrate when extruding");
+    def->full_label = L("Minimum feedrate when extruding");
     def->category = L("Machine limits");
     def->tooltip = L("Minimum feedrate when extruding") + " (M205 S)";
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats(0., 0.);
+	def->width = machine_limits_opt_width;
+	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M205 T... [mm/sec]
     def = this->add("machine_min_travel_rate", coFloats);
-    def->label = L("Minimum travel feedrate");
+    def->full_label = L("Minimum travel feedrate");
     def->category = L("Machine limits");
     def->tooltip = L("Minimum travel feedrate") + " (M205 T)";
     def->sidetext = L("mm/s");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats(0., 0.);
+	def->width = machine_limits_opt_width;
+	def->default_value = new ConfigOptionFloats{ 0., 0. };
 
     // M204 S... [mm/sec^2]
     def = this->add("machine_max_acceleration_extruding", coFloats);
-    def->label = L("Maximum acceleration when extruding");
+    def->full_label = L("Maximum acceleration when extruding");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration when extruding") + " (M204 S)";
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats(1250., 1250.);
+	def->width = machine_limits_opt_width;
+    def->default_value = new ConfigOptionFloats{ 1500., 1250. };
 
     // M204 T... [mm/sec^2]
     def = this->add("machine_max_acceleration_retracting", coFloats);
-    def->label = L("Maximum acceleration when retracting");
+    def->full_label = L("Maximum acceleration when retracting");
     def->category = L("Machine limits");
     def->tooltip = L("Maximum acceleration when retracting") + " (M204 T)";
     def->sidetext = L("mm/s²");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats(1250., 1250.);
+	def->width = machine_limits_opt_width;
+    def->default_value = new ConfigOptionFloats{ 1500., 1250. };
 
     def = this->add("max_fan_speed", coInts);
     def->label = L("Max");
@@ -1392,10 +1405,10 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("nearest");
     def->enum_values.push_back("aligned");
     def->enum_values.push_back("rear");
-    def->enum_labels.push_back("Random");
-    def->enum_labels.push_back("Nearest");
-    def->enum_labels.push_back("Aligned");
-    def->enum_labels.push_back("Rear"); 
+    def->enum_labels.push_back(L("Random"));
+    def->enum_labels.push_back(L("Nearest"));
+    def->enum_labels.push_back(L("Aligned"));
+    def->enum_labels.push_back(L("Rear")); 
     def->default_value = new ConfigOptionEnum<SeamPosition>(spAligned);
 
 #if 0
@@ -1608,7 +1621,7 @@ PrintConfigDef::PrintConfigDef()
     def->label = L("Single Extruder Multi Material");
     def->tooltip = L("The printer multiplexes filaments into a single hot end.");
     def->cli = "single-extruder-multi-material!";
-    def->default_value = new ConfigOptionBool(false);
+	def->default_value = new ConfigOptionBool(false);
 
     def = this->add("support_material", coBool);
     def->label = L("Generate support material");
@@ -1658,8 +1671,8 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.2");
-    def->enum_labels.push_back("0 (soluble)");
-    def->enum_labels.push_back("0.2 (detachable)");
+	def->enum_labels.push_back((boost::format("0 (%1%)") % L("soluble")).str());
+	def->enum_labels.push_back((boost::format("0.2 (%1%)") % L("detachable")).str());
     def->default_value = new ConfigOptionFloat(0.2);
 
     def = this->add("support_material_enforce_layers", coInt);
@@ -1748,9 +1761,9 @@ PrintConfigDef::PrintConfigDef()
     def->enum_values.push_back("rectilinear");
     def->enum_values.push_back("rectilinear-grid");
     def->enum_values.push_back("honeycomb");
-    def->enum_labels.push_back("rectilinear");
-    def->enum_labels.push_back("rectilinear grid");
-    def->enum_labels.push_back("honeycomb");
+	def->enum_labels.push_back(L("Rectilinear"));
+    def->enum_labels.push_back(L("Rectilinear grid"));
+    def->enum_labels.push_back(L("Honeycomb"));
     def->default_value = new ConfigOptionEnum<SupportMaterialPattern>(smpRectilinear);
 
     def = this->add("support_material_spacing", coFloat);

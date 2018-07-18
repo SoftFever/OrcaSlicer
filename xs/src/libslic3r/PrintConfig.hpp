@@ -562,8 +562,8 @@ public:
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
     ConfigOptionFloat               parking_pos_retraction;
+    ConfigOptionBool                silent_mode;
     ConfigOptionFloat               extra_loading_move;
-
 
     std::string get_extrusion_axis() const
     {
@@ -623,6 +623,7 @@ protected:
         OPT_PTR(cooling_tube_retraction);
         OPT_PTR(cooling_tube_length);
         OPT_PTR(parking_pos_retraction);
+        OPT_PTR(silent_mode);
         OPT_PTR(extra_loading_move);
     }
 };
@@ -676,6 +677,7 @@ public:
     ConfigOptionString              output_filename_format;
     ConfigOptionFloat               perimeter_acceleration;
     ConfigOptionStrings             post_process;
+    ConfigOptionString              printer_model;
     ConfigOptionString              printer_notes;
     ConfigOptionFloat               resolution;
     ConfigOptionFloats              retract_before_travel;
@@ -746,6 +748,7 @@ protected:
         OPT_PTR(output_filename_format);
         OPT_PTR(perimeter_acceleration);
         OPT_PTR(post_process);
+        OPT_PTR(printer_model);
         OPT_PTR(printer_notes);
         OPT_PTR(resolution);
         OPT_PTR(retract_before_travel);

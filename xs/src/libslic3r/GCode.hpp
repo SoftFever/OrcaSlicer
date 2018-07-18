@@ -133,6 +133,9 @@ public:
         m_last_height(GCodeAnalyzer::Default_Height),
         m_brim_done(false),
         m_second_layer_things_done(false),
+        m_normal_time_estimator(GCodeTimeEstimator::Normal),
+        m_silent_time_estimator(GCodeTimeEstimator::Silent),
+        m_silent_time_estimator_enabled(false),
         m_last_obj_copy(nullptr, Point(std::numeric_limits<coord_t>::max(), std::numeric_limits<coord_t>::max()))
         {}
     ~GCode() {}
@@ -303,8 +306,10 @@ protected:
     // Index of a last object copy extruded.
     std::pair<const PrintObject*, Point> m_last_obj_copy;
 
-    // Time estimator
-    GCodeTimeEstimator m_time_estimator;
+    // Time estimators
+    GCodeTimeEstimator m_normal_time_estimator;
+    GCodeTimeEstimator m_silent_time_estimator;
+    bool m_silent_time_estimator_enabled;
 
     // Analyzer
     GCodeAnalyzer m_analyzer;
@@ -322,6 +327,7 @@ protected:
     void _write_format(FILE* file, const char* format, ...);
 
     std::string _extrude(const ExtrusionPath &path, std::string description = "", double speed = -1);
+    void print_machine_envelope(FILE *file, Print &print);
     void _print_first_layer_bed_temperature(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     void _print_first_layer_extruder_temperatures(FILE *file, Print &print, const std::string &gcode, unsigned int first_printing_extruder_id, bool wait);
     // this flag triggers first layer speeds

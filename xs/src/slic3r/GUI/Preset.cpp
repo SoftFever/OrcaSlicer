@@ -327,6 +327,11 @@ const std::vector<std::string>& Preset::printer_options()
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
             "between_objects_gcode", "printer_vendor", "printer_model", "printer_variant", "printer_notes", "cooling_tube_retraction",
             "cooling_tube_length", "parking_pos_retraction", "extra_loading_move", "max_print_height", "default_print_profile", "inherits",
+            "silent_mode", "machine_max_acceleration_extruding", "machine_max_acceleration_retracting",
+			"machine_max_acceleration_x", "machine_max_acceleration_y", "machine_max_acceleration_z", "machine_max_acceleration_e",
+        	"machine_max_feedrate_x", "machine_max_feedrate_y", "machine_max_feedrate_z", "machine_max_feedrate_e",
+        	"machine_min_extruding_rate", "machine_min_travel_rate",
+        	"machine_max_jerk_x", "machine_max_jerk_y", "machine_max_jerk_z", "machine_max_jerk_e"
         };
         s_opts.insert(s_opts.end(), Preset::nozzle_options().begin(), Preset::nozzle_options().end());
     }
@@ -505,6 +510,9 @@ Preset& PresetCollection::load_external_preset(
     // Insert a new profile.
     Preset &preset = this->load_preset(path, new_name, std::move(cfg), select);
     preset.is_external = true;
+    if (&this->get_selected_preset() == &preset)
+        this->get_edited_preset().is_external = true;
+
     return preset;
 }
 

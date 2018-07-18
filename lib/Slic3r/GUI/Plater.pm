@@ -535,7 +535,11 @@ sub new {
                 fil_mm3 => L("Used Filament (mm³)"),
                 fil_g   => L("Used Filament (g)"),
                 cost    => L("Cost"),
-                time    => L("Estimated printing time"),
+#==========================================================================================================================================
+                normal_time => L("Estimated printing time (normal mode)"),
+#                default_time => L("Estimated printing time (default mode)"),
+#==========================================================================================================================================
+                silent_time  => L("Estimated printing time (silent mode)"),
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
@@ -1617,7 +1621,11 @@ sub on_export_completed {
     $self->{"print_info_cost"}->SetLabel(sprintf("%.2f" , $self->{print}->total_cost));
     $self->{"print_info_fil_g"}->SetLabel(sprintf("%.2f" , $self->{print}->total_weight));
     $self->{"print_info_fil_mm3"}->SetLabel(sprintf("%.2f" , $self->{print}->total_extruded_volume));
-    $self->{"print_info_time"}->SetLabel($self->{print}->estimated_print_time);
+#==========================================================================================================================================
+    $self->{"print_info_normal_time"}->SetLabel($self->{print}->estimated_normal_print_time);
+#    $self->{"print_info_default_time"}->SetLabel($self->{print}->estimated_default_print_time);
+#==========================================================================================================================================
+    $self->{"print_info_silent_time"}->SetLabel($self->{print}->estimated_silent_print_time);
     $self->{"print_info_fil_m"}->SetLabel(sprintf("%.2f" , $self->{print}->total_used_filament / 1000));
     $self->{"print_info_box_show"}->(1);
 
@@ -1692,6 +1700,34 @@ sub export_object_stl {
     my $output_file = $self->_get_export_file('STL') or return;
     $model_object->mesh->write_binary($output_file);
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
+}
+
+sub fix_through_netfabb {
+    my ($self) = @_;
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    my $model_fixed = Slic3r::Model->new;
+    Slic3r::GUI::fix_model_by_win10_sdk_gui($model_object, $self->{print}, $model_fixed);
+
+    my @new_obj_idx = $self->load_model_objects(@{$model_fixed->objects});
+    return if !@new_obj_idx;
+    
+    foreach my $new_obj_idx (@new_obj_idx) {
+        my $o = $self->{model}->objects->[$new_obj_idx];
+        $o->clear_instances;
+        $o->add_instance($_) for @{$model_object->instances};
+        #$o->invalidate_bounding_box;
+        
+        if ($o->volumes_count == $model_object->volumes_count) {
+            for my $i (0..($o->volumes_count-1)) {
+                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
+            }
+        }
+        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+    }
+    
+    $self->remove($obj_idx);
 }
 
 sub export_amf {
@@ -2272,6 +2308,11 @@ sub object_menu {
     $frame->_append_menu_item($menu, L("Export object as STL…"), L('Export this single object as STL file'), sub {
         $self->export_object_stl;
     }, undef, 'brick_go.png');
+    if (Slic3r::GUI::is_windows10) {
+        $frame->_append_menu_item($menu, L("Fix STL through Netfabb"), L('Fix the model by sending it to a Netfabb cloud service through Windows 10 API'), sub {
+            $self->fix_through_netfabb;
+        }, undef, 'brick_go.png');
+    }
     
     return $menu;
 }

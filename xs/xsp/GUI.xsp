@@ -101,3 +101,6 @@ void desktop_open_datadir_folder()
 
 void fix_model_by_win10_sdk_gui(ModelObject *model_object_src, Print *print, Model *model_dst)
     %code%{ Slic3r::fix_model_by_win10_sdk_gui(*model_object_src, *print, *model_dst); %};
+
+void set_3DScene(SV *scene)
+    %code%{ Slic3r::GUI::set_3DScene((_3DScene *)wxPli_sv_2_object(aTHX_ scene, "Slic3r::Model::3DScene") ); %};
