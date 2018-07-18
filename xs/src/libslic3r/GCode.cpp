@@ -412,7 +412,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // resets time estimators
     m_normal_time_estimator.reset();
     m_normal_time_estimator.set_dialect(print.config.gcode_flavor);
-    m_normal_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
+    m_normal_time_estimator.set_max_acceleration(print.config.machine_max_acceleration_extruding.values[0]);
     m_normal_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[0]);
     m_normal_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[0]);
     m_normal_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[0]);
@@ -434,7 +434,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     {
         m_silent_time_estimator.reset();
         m_silent_time_estimator.set_dialect(print.config.gcode_flavor);
-        m_silent_time_estimator.set_acceleration(print.config.machine_max_acceleration_extruding.values[1]);
+        m_silent_time_estimator.set_max_acceleration(print.config.machine_max_acceleration_extruding.values[1]);
         m_silent_time_estimator.set_retract_acceleration(print.config.machine_max_acceleration_retracting.values[1]);
         m_silent_time_estimator.set_minimum_feedrate(print.config.machine_min_extruding_rate.values[1]);
         m_silent_time_estimator.set_minimum_travel_feedrate(print.config.machine_min_travel_rate.values[1]);

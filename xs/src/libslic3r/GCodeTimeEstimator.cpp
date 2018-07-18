@@ -414,12 +414,23 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::set_acceleration(float acceleration_mm_sec2)
     {
-        _state.acceleration = acceleration_mm_sec2;
+        _state.acceleration = std::min(_state.max_acceleration, acceleration_mm_sec2);
     }
 
     float GCodeTimeEstimator::get_acceleration() const
     {
         return _state.acceleration;
+    }
+
+    void GCodeTimeEstimator::set_max_acceleration(float acceleration_mm_sec2)
+    {
+        _state.max_acceleration = acceleration_mm_sec2;
+        _state.acceleration = acceleration_mm_sec2;
+    }
+
+    float GCodeTimeEstimator::get_max_acceleration() const
+    {
+        return _state.max_acceleration;
     }
 
     void GCodeTimeEstimator::set_retract_acceleration(float acceleration_mm_sec2)
@@ -540,7 +551,7 @@ namespace Slic3r {
         set_e_local_positioning_type(Absolute);
 
         set_feedrate(DEFAULT_FEEDRATE);
-        set_acceleration(DEFAULT_ACCELERATION);
+        set_max_acceleration(DEFAULT_ACCELERATION);
         set_retract_acceleration(DEFAULT_RETRACT_ACCELERATION);
         set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
         set_minimum_travel_feedrate(DEFAULT_MINIMUM_TRAVEL_FEEDRATE);
