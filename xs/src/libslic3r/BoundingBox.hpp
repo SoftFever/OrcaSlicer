@@ -103,6 +103,10 @@ public:
     bool contains(const BoundingBox3Base<PointClass>& other) const {
         return contains(other.min) && contains(other.max);
     }
+
+    bool intersects(const BoundingBox3Base<PointClass>& other) const {
+        return (min.x < other.max.x) && (max.x > other.min.x) && (min.y < other.max.y) && (max.y > other.min.y) && (min.z < other.max.z) && (max.z > other.min.z);
+    }
 };
 
 class BoundingBox : public BoundingBoxBase<Point>

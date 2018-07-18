@@ -1381,7 +1381,8 @@ void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& b
 
     ::glDisable(GL_DEPTH_TEST);
 
-    _render_current_gizmo(box);
+    if (box.radius() > 0.0)
+        _render_current_gizmo(box);
 
     ::glPushMatrix();
     ::glLoadIdentity();
@@ -1657,7 +1658,7 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
 
 bool GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
-    return m_volumes.check_outside_state(config);
+    return m_volumes.check_outside_state(config, nullptr);
 }
 
 bool GLCanvas3D::move_volume_up(unsigned int id)
@@ -2082,19 +2083,22 @@ void GLCanvas3D::reload_scene(bool force)
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty())
     {
-        bool contained = m_volumes.check_outside_state(m_config);
+        ModelInstance::EPrintVolumeState state;
+        bool contained = m_volumes.check_outside_state(m_config, &state);
+
         if (!contained)
         {
             enable_warning_texture(true);
             _3DScene::generate_warning_texture(L("Detected object outside print volume"));
+            m_on_enable_action_buttons_callback.call(state == ModelInstance::PVS_Fully_Outside);
         }
         else
         {
             enable_warning_texture(false);
             m_volumes.reset_outside_state();
             _3DScene::reset_warning_texture();
+            m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
         }
-        m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
     }
     else
     {
@@ -3130,6 +3134,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_dirty = true;
     }
     else if (evt.Moving())
     {
@@ -3272,7 +3277,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
     BoundingBoxf3 bb;
     for (const GLVolume* volume : m_volumes.volumes)
     {
-        if ((volume != nullptr) && volume->selected)
+        if ((volume != nullptr) && !volume->is_wipe_tower && volume->selected)
             bb.merge(volume->transformed_bounding_box());
     }
     return bb;
@@ -3549,7 +3554,7 @@ void GLCanvas3D::_render_objects() const
             {
                 const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
                 m_volumes.set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
-                m_volumes.check_outside_state(m_config);
+                m_volumes.check_outside_state(m_config, nullptr);
             }
             // do not cull backfaces to show broken geometry, if any
             ::glDisable(GL_CULL_FACE);

@@ -1235,7 +1235,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     return;
 }
 
-void ModelObject::check_instances_printability(const BoundingBoxf3& print_volume)
+void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
 {
     for (ModelVolume* vol : this->volumes)
     {
@@ -1274,10 +1274,15 @@ void ModelObject::check_instances_printability(const BoundingBoxf3& print_volume
                         p.y += inst->offset.y;
 
                         bb.merge(p);
-
-                        inst->is_printable = print_volume.contains(bb);
                     }
                 }
+
+                if (print_volume.contains(bb))
+                    inst->print_volume_state = ModelInstance::PVS_Inside;
+                else if (print_volume.intersects(bb))
+                    inst->print_volume_state = ModelInstance::PVS_Partly_Outside;
+                else
+                    inst->print_volume_state = ModelInstance::PVS_Fully_Outside;
             }
         }
     }
