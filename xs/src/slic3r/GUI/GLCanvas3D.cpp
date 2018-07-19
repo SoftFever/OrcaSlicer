@@ -2264,8 +2264,12 @@ void GLCanvas3D::reload_scene(bool force)
         m_objects_volumes_idxs.push_back(load_object(*m_model, obj_idx));
     }
 
+    // 1st call to reset if no objects left
     update_gizmos_data();
     update_volumes_selection(m_objects_selections);
+    // 2nd call to restore if something selected
+    if (!m_objects_selections.empty())
+        update_gizmos_data();
 
     if (m_config->has("nozzle_diameter"))
     {
