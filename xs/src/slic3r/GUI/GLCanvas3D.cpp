@@ -2128,7 +2128,7 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
 
 void GLCanvas3D::update_gizmos_data()
 {
-    if (!m_gizmos.is_running())
+    if (!m_gizmos.is_enabled())
         return;
 
     int id = _get_first_selected_object_id();
@@ -3323,6 +3323,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 deselect_volumes();
                 _on_select(-1);
+                update_gizmos_data();
             }
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
