@@ -1742,26 +1742,26 @@ PageShp TabPrinter::build_kinematics_page()
 	}
 
 	std::vector<std::string> axes{ "x", "y", "z", "e" };
-	auto optgroup = page->new_optgroup(_(L("Maximum accelerations")));
-		for (const std::string &axis : axes)	{
-			append_option_line(optgroup, "machine_max_acceleration_" + axis);
-		}
-
-	optgroup = page->new_optgroup(_(L("Maximum feedrates")));
+	auto optgroup = page->new_optgroup(_(L("Maximum feedrates")));
 		for (const std::string &axis : axes)	{
 			append_option_line(optgroup, "machine_max_feedrate_" + axis);
 		}
 
-	optgroup = page->new_optgroup(_(L("Starting Acceleration")));
+	optgroup = page->new_optgroup(_(L("Maximum accelerations")));
+		for (const std::string &axis : axes)	{
+			append_option_line(optgroup, "machine_max_acceleration_" + axis);
+		}
 		append_option_line(optgroup, "machine_max_acceleration_extruding");
 		append_option_line(optgroup, "machine_max_acceleration_retracting");
 
-	optgroup = page->new_optgroup(_(L("Advanced")));
-		append_option_line(optgroup, "machine_min_extruding_rate");
-		append_option_line(optgroup, "machine_min_travel_rate");
+	optgroup = page->new_optgroup(_(L("Jerk limits")));
 		for (const std::string &axis : axes)	{
 			append_option_line(optgroup, "machine_max_jerk_" + axis);
 		}
+
+	optgroup = page->new_optgroup(_(L("Minimum feedrates")));
+		append_option_line(optgroup, "machine_min_extruding_rate");
+		append_option_line(optgroup, "machine_min_travel_rate");
 
 	return page;
 }
