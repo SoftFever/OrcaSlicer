@@ -1918,23 +1918,8 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
-                switch (m_gizmos.get_current_type())
-                {
-                case Gizmos::Scale:
-                {
-                    m_gizmos.set_scale(model_instance->scaling_factor);
-                    break;
-                }
-                case Gizmos::Rotate:
-                {
-                    m_gizmos.set_angle_z(model_instance->rotation);
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
-                }
+                m_gizmos.set_scale(model_instance->scaling_factor);
+                m_gizmos.set_angle_z(model_instance->rotation);
             }
         }
     }
