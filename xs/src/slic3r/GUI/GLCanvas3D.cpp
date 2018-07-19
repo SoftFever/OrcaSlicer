@@ -1923,6 +1923,11 @@ void GLCanvas3D::update_gizmos_data()
             }
         }
     }
+    else
+    {
+        m_gizmos.set_scale(1.0f);
+        m_gizmos.set_angle_z(0.0f);
+    }
 }
 
 void GLCanvas3D::render()
