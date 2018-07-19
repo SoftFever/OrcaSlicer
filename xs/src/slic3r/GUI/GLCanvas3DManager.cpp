@@ -550,6 +550,15 @@ void GLCanvas3DManager::load_gcode_preview(wxGLCanvas* canvas, const GCodePrevie
         it->second->load_gcode_preview(*preview_data, str_tool_colors);
 }
 
+void GLCanvas3DManager::reset_legend_texture()
+{
+    for (CanvasesMap::value_type& canvas : m_canvases)
+    {
+        if (canvas.second != nullptr)
+            canvas.second->reset_legend_texture();
+    }
+}
+
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);

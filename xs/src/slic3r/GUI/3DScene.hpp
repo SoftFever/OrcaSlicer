@@ -8,7 +8,6 @@
 #include "../../libslic3r/Utils.hpp"
 #include "../../libslic3r/Model.hpp"
 #include "../../slic3r/GUI/GLCanvas3DManager.hpp"
-#include "../../slic3r/GUI/GLTexture.hpp"
 
 class wxBitmap;
 class wxWindow;
@@ -441,32 +440,6 @@ private:
 
 class _3DScene
 {
-    class WarningTexture : public GUI::GLTexture
-    {
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-    public:
-        bool generate(const std::string& msg);
-    };
-
-    class LegendTexture : public GUI::GLTexture
-    {
-        static const int Px_Title_Offset = 5;
-        static const int Px_Text_Offset = 5;
-        static const int Px_Square = 20;
-        static const int Px_Square_Contour = 1;
-        static const int Px_Border = Px_Square / 2;
-        static const unsigned char Squares_Border_Color[3];
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-    public:
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    };
-    
-    static LegendTexture s_legend_texture;
-    static WarningTexture s_warning_texture;
     static GUI::GLCanvas3DManager s_canvas_mgr;
 
 public:
@@ -568,21 +541,7 @@ public:
     static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
 
-    // generates the legend texture in dependence of the current shown view type
-    static void generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     static void reset_legend_texture();
-
-    static unsigned int get_legend_texture_id();
-    static int get_legend_texture_width();
-    static int get_legend_texture_height();
-
-    // generates a warning texture containing the given message
-    static void generate_warning_texture(const std::string& msg);
-    static void reset_warning_texture();
-
-    static unsigned int get_warning_texture_id();
-    static int get_warning_texture_width();
-    static int get_warning_texture_height();
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);

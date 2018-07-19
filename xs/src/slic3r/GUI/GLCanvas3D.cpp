@@ -15,6 +15,10 @@
 
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
+#include <wx/bitmap.h>
+#include <wx/dcmemory.h>
+#include <wx/image.h>
+#include <wx/settings.h>
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
@@ -1457,6 +1461,224 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     return height;
 }
 
+const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
+
+bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
+{
+    reset();
+
+    if (msg.empty())
+        return false;
+
+    wxMemoryDC memDC;
+    // select default font
+    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+
+    // calculates texture size
+    wxCoord w, h;
+    memDC.GetTextExtent(msg, &w, &h);
+    m_width = (int)w;
+    m_height = (int)h;
+
+    // generates bitmap
+    wxBitmap bitmap(m_width, m_height);
+
+#if defined(__APPLE__) || defined(_MSC_VER)
+    bitmap.UseAlpha();
+#endif
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.Clear();
+
+    memDC.SetTextForeground(*wxWHITE);
+
+    // draw message
+    memDC.DrawText(msg, 0, 0);
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
+    wxImage image = bitmap.ConvertToImage();
+    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+    // prepare buffer
+    std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    for (int h = 0; h < m_height; ++h)
+    {
+        int hh = h * m_width;
+        unsigned char* px_ptr = data.data() + 4 * hh;
+        for (int w = 0; w < m_width; ++w)
+        {
+            *px_ptr++ = image.GetRed(w, h);
+            *px_ptr++ = image.GetGreen(w, h);
+            *px_ptr++ = image.GetBlue(w, h);
+            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+        }
+    }
+
+    // sends buffer to gpu
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
+const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
+const unsigned char GLCanvas3D::LegendTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::LegendTexture::Opacity = 255;
+
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
+{
+    reset();
+
+    // collects items to render
+    auto title = _(preview_data.get_legend_title());
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors);
+
+    unsigned int items_count = (unsigned int)items.size();
+    if (items_count == 0)
+        // nothing to render, return
+        return false;
+
+    wxMemoryDC memDC;
+    // select default font
+    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+
+    // calculates texture size
+    wxCoord w, h;
+    memDC.GetTextExtent(title, &w, &h);
+    int title_width = (int)w;
+    int title_height = (int)h;
+
+    int max_text_width = 0;
+    int max_text_height = 0;
+    for (const GCodePreviewData::LegendItem& item : items)
+    {
+        memDC.GetTextExtent(GUI::from_u8(item.text), &w, &h);
+        max_text_width = std::max(max_text_width, (int)w);
+        max_text_height = std::max(max_text_height, (int)h);
+    }
+
+    m_width = std::max(2 * Px_Border + title_width, 2 * (Px_Border + Px_Square_Contour) + Px_Square + Px_Text_Offset + max_text_width);
+    m_height = 2 * (Px_Border + Px_Square_Contour) + title_height + Px_Title_Offset + items_count * Px_Square;
+    if (items_count > 1)
+        m_height += (items_count - 1) * Px_Square_Contour;
+
+    // generates bitmap
+    wxBitmap bitmap(m_width, m_height);
+
+#if defined(__APPLE__) || defined(_MSC_VER)
+    bitmap.UseAlpha();
+#endif
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.Clear();
+
+    memDC.SetTextForeground(*wxWHITE);
+
+    // draw title
+    int title_x = Px_Border;
+    int title_y = Px_Border;
+    memDC.DrawText(title, title_x, title_y);
+
+    // draw icons contours as background
+    int squares_contour_x = Px_Border;
+    int squares_contour_y = Px_Border + title_height + Px_Title_Offset;
+    int squares_contour_width = Px_Square + 2 * Px_Square_Contour;
+    int squares_contour_height = items_count * Px_Square + 2 * Px_Square_Contour;
+    if (items_count > 1)
+        squares_contour_height += (items_count - 1) * Px_Square_Contour;
+
+    wxColour color(Squares_Border_Color[0], Squares_Border_Color[1], Squares_Border_Color[2]);
+    wxPen pen(color);
+    wxBrush brush(color);
+    memDC.SetPen(pen);
+    memDC.SetBrush(brush);
+    memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
+
+    // draw items (colored icon + text)
+    int icon_x = squares_contour_x + Px_Square_Contour;
+    int icon_x_inner = icon_x + 1;
+    int icon_y = squares_contour_y + Px_Square_Contour;
+    int icon_y_step = Px_Square + Px_Square_Contour;
+
+    int text_x = icon_x + Px_Square + Px_Text_Offset;
+    int text_y_offset = (Px_Square - max_text_height) / 2;
+
+    int px_inner_square = Px_Square - 2;
+
+    for (const GCodePreviewData::LegendItem& item : items)
+    {
+        // draw darker icon perimeter
+        const std::vector<unsigned char>& item_color_bytes = item.color.as_bytes();
+        wxImage::HSVValue dark_hsv = wxImage::RGBtoHSV(wxImage::RGBValue(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2]));
+        dark_hsv.value *= 0.75;
+        wxImage::RGBValue dark_rgb = wxImage::HSVtoRGB(dark_hsv);
+        color.Set(dark_rgb.red, dark_rgb.green, dark_rgb.blue, item_color_bytes[3]);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        memDC.SetPen(pen);
+        memDC.SetBrush(brush);
+        memDC.DrawRectangle(wxRect(icon_x, icon_y, Px_Square, Px_Square));
+
+        // draw icon interior
+        color.Set(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2], item_color_bytes[3]);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        memDC.SetPen(pen);
+        memDC.SetBrush(brush);
+        memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
+
+        // draw text
+        memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
+
+        // update y
+        icon_y += icon_y_step;
+    }
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
+    wxImage image = bitmap.ConvertToImage();
+    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+    // prepare buffer
+    std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    for (int h = 0; h < m_height; ++h)
+    {
+        int hh = h * m_width;
+        unsigned char* px_ptr = data.data() + 4 * hh;
+        for (int w = 0; w < m_width; ++w)
+        {
+            *px_ptr++ = image.GetRed(w, h);
+            *px_ptr++ = image.GetGreen(w, h);
+            *px_ptr++ = image.GetBlue(w, h);
+            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+        }
+    }
+
+    // sends buffer to gpu
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
 GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
 {
     GizmosMap::const_iterator it = m_gizmos.find(m_current);
@@ -2079,21 +2301,21 @@ void GLCanvas3D::reload_scene(bool force)
         if (!contained)
         {
             enable_warning_texture(true);
-            _3DScene::generate_warning_texture(L("Detected object outside print volume"));
+            _generate_warning_texture(L("Detected object outside print volume"));
             m_on_enable_action_buttons_callback.call(state == ModelInstance::PVS_Fully_Outside);
         }
         else
         {
             enable_warning_texture(false);
             m_volumes.reset_outside_state();
-            _3DScene::reset_warning_texture();
+            _reset_warning_texture();
             m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
         }
     }
     else
     {
         enable_warning_texture(false);
-        _3DScene::reset_warning_texture();
+        _reset_warning_texture();
         m_on_enable_action_buttons_callback.call(false);
     }
 }
@@ -2484,11 +2706,11 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _load_gcode_unretractions(preview_data);
             
             if (m_volumes.empty())
-                _3DScene::reset_legend_texture();
+                reset_legend_texture();
             else
             {
-                _3DScene::generate_legend_texture(preview_data, tool_colors);
-                
+                _generate_legend_texture(preview_data, tool_colors);
+
                 // removes empty volumes
                 m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
                     [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
@@ -3176,6 +3398,14 @@ Point GLCanvas3D::get_local_mouse_position() const
     return Point(mouse_pos.x, mouse_pos.y);
 }
 
+void GLCanvas3D::reset_legend_texture()
+{
+    if (!set_current())
+        return;
+
+    m_legend_texture.reset();
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
@@ -3584,11 +3814,11 @@ void GLCanvas3D::_render_warning_texture() const
         return;
 
     // If the warning texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::get_warning_texture_id();
+    unsigned int tex_id = m_warning_texture.get_id();
     if (tex_id > 0)
     {
-        unsigned int w = _3DScene::get_warning_texture_width();
-        unsigned int h = _3DScene::get_warning_texture_height();
+        int w = m_warning_texture.get_width();
+        int h = m_warning_texture.get_height();
         if ((w > 0) && (h > 0))
         {
             ::glDisable(GL_DEPTH_TEST);
@@ -3617,11 +3847,11 @@ void GLCanvas3D::_render_legend_texture() const
         return;
 
     // If the legend texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::get_legend_texture_id();
+    unsigned int tex_id = m_legend_texture.get_id();
     if (tex_id > 0)
     {
-        unsigned int w = _3DScene::get_legend_texture_width();
-        unsigned int h = _3DScene::get_legend_texture_height();
+        int w = m_legend_texture.get_width();
+        int h = m_legend_texture.get_height();
         if ((w > 0) && (h > 0))
         {
             ::glDisable(GL_DEPTH_TEST);
@@ -4533,6 +4763,30 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
         }
     }
     return output;
+}
+
+void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
+{
+    if (!set_current())
+        return;
+
+    m_legend_texture.generate(preview_data, tool_colors);
+}
+
+void GLCanvas3D::_generate_warning_texture(const std::string& msg)
+{
+    if (!set_current())
+        return;
+
+    m_warning_texture.generate(msg);
+}
+
+void GLCanvas3D::_reset_warning_texture()
+{
+    if (!set_current())
+        return;
+
+    m_warning_texture.reset();
 }
 
 } // namespace GUI
