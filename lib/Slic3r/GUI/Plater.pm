@@ -1605,17 +1605,17 @@ sub print_info_box_show {
         $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
         my @info = (
             L("Used Filament (m)")
-                => sprintf("%.2f" , $self->{print}->total_cost),
+                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000),
             L("Used Filament (mm³)")
-                => sprintf("%.2f" , $self->{print}->total_weight),
-            L("Used Filament (g)"),
                 => sprintf("%.2f" , $self->{print}->total_extruded_volume),
+            L("Used Filament (g)"),
+                => sprintf("%.2f" , $self->{print}->total_weight),
             L("Cost"),
-                => $self->{print}->estimated_normal_print_time,
+                => sprintf("%.2f" , $self->{print}->total_cost),
             L("Estimated printing time (normal mode)")
-                => $self->{print}->estimated_silent_print_time,
+                => $self->{print}->estimated_normal_print_time,
             L("Estimated printing time (silent mode)")
-                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000)
+                => $self->{print}->estimated_silent_print_time
         );
         while ( my $label = shift @info) {
             my $value = shift @info;
