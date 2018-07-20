@@ -785,9 +785,10 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         // Order objects using a nearest neighbor search.
         std::vector<size_t> object_indices;
         Points object_reference_points;
-        for (PrintObject *object : print.objects)
+        PrintObjectPtrs printable_objects = print.get_printable_objects();
+        for (PrintObject *object : printable_objects)
             object_reference_points.push_back(object->_shifted_copies.front());
-        Slic3r::Geometry::chained_path(object_reference_points, object_indices);
+            Slic3r::Geometry::chained_path(object_reference_points, object_indices);
         // Sort layers by Z.
         // All extrusion moves with the same top layer height are extruded uninterrupted.
         std::vector<std::pair<coordf_t, std::vector<LayerToPrint>>> layers_to_print = collect_layers_to_print(print);
@@ -799,7 +800,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             // Verify, whether the print overaps the priming extrusions.
             BoundingBoxf bbox_print(get_print_extrusions_extents(print));
             coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
-            for (const PrintObject *print_object : print.objects)
+            for (const PrintObject *print_object : printable_objects)
                 bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
             bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
             BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));

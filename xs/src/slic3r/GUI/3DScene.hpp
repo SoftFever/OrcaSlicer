@@ -6,6 +6,7 @@
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "../../libslic3r/Model.hpp"
 #include "../../slic3r/GUI/GLCanvas3DManager.hpp"
 
 class wxBitmap;
@@ -199,10 +200,10 @@ private:
     }
 };
 
-class GLTexture
+class LayersTexture
 {
 public:
-    GLTexture() : width(0), height(0), levels(0), cells(0) {}
+    LayersTexture() : width(0), height(0), levels(0), cells(0) {}
 
     // Texture data
     std::vector<char>   data;
@@ -341,7 +342,7 @@ public:
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     /************************************************ Layer height texture ****************************************************/
-    std::shared_ptr<GLTexture>  layer_height_texture;
+    std::shared_ptr<LayersTexture>  layer_height_texture;
     // Data to render this volume using the layer height texture
     LayerHeightTextureData layer_height_texture_data;
 
@@ -422,7 +423,9 @@ public:
         print_box_max[0] = max_x; print_box_max[1] = max_y; print_box_max[2] = max_z;
     }
 
-    bool check_outside_state(const DynamicPrintConfig* config);
+    // returns true if all the volumes are completely contained in the print volume
+    // returns the containment state in the given out_state, if non-null
+    bool check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state);
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);
@@ -437,65 +440,6 @@ private:
 
 class _3DScene
 {
-    class TextureBase
-    {
-    protected:
-        unsigned int m_tex_id;
-        unsigned int m_tex_width;
-        unsigned int m_tex_height;
-
-        // generate() fills in m_data with the pixels, while finalize() moves the data to the GPU before rendering.
-        std::vector<unsigned char> m_data;
-
-    public:
-        TextureBase() : m_tex_id(0), m_tex_width(0), m_tex_height(0) {}
-        virtual ~TextureBase() { _destroy_texture(); }
-
-        // If not loaded, load the texture data into the GPU. Return a texture ID or 0 if the texture has zero size.
-        unsigned int finalize();
-
-        unsigned int get_texture_id() const { return m_tex_id; }
-        unsigned int get_texture_width() const { return m_tex_width; }
-        unsigned int get_texture_height() const { return m_tex_height; }
-
-        void reset_texture() { _destroy_texture(); }
-
-    private:
-        void _destroy_texture();
-    };
-
-    class WarningTexture : public TextureBase
-    {
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-    public:
-        WarningTexture() : TextureBase() {}
-
-        // Generate a texture data, but don't load it into the GPU yet, as the glcontext may not be valid yet.
-        bool generate(const std::string& msg);
-    };
-
-    class LegendTexture : public TextureBase
-    {
-        static const unsigned int Px_Title_Offset = 5;
-        static const unsigned int Px_Text_Offset = 5;
-        static const unsigned int Px_Square = 20;
-        static const unsigned int Px_Square_Contour = 1;
-        static const unsigned int Px_Border = Px_Square / 2;
-        static const unsigned char Squares_Border_Color[3];
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-    public:
-        LegendTexture() : TextureBase() {}
-
-        // Generate a texture data, but don't load it into the GPU yet, as the glcontext may not be valid yet.
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    };
-
-    static LegendTexture s_legend_texture;
-    static WarningTexture s_warning_texture;
     static GUI::GLCanvas3DManager s_canvas_mgr;
 
 public:
@@ -597,21 +541,7 @@ public:
     static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
 
-    // generates the legend texture in dependence of the current shown view type
-    static void generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    static unsigned int get_legend_texture_width();
-    static unsigned int get_legend_texture_height();
-
     static void reset_legend_texture();
-    static unsigned int finalize_legend_texture();
-
-    static unsigned int get_warning_texture_width();
-    static unsigned int get_warning_texture_height();
-
-    // generates a warning texture containing the given message
-    static void generate_warning_texture(const std::string& msg);
-    static void reset_warning_texture();
-    static unsigned int finalize_warning_texture();
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);

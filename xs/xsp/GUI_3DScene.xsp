@@ -105,10 +105,6 @@
     void release_geometry();
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
-    bool check_outside_state(DynamicPrintConfig* config)
-        %code%{ 
-                RETVAL = THIS->check_outside_state(config);
-        %};
     
     void reset_outside_state();    
     void update_colors_by_extruder(DynamicPrintConfig* config);
@@ -627,63 +623,11 @@ register_on_update_geometry_info_callback(canvas, callback)
         SV *callback;
     CODE:
         _3DScene::register_on_update_geometry_info_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-
-unsigned int
-finalize_legend_texture()
-    CODE:
-        RETVAL = _3DScene::finalize_legend_texture();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_legend_texture_width()
-    CODE:
-        RETVAL = _3DScene::get_legend_texture_width();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_legend_texture_height()
-    CODE:
-        RETVAL = _3DScene::get_legend_texture_height();
-    OUTPUT:
-        RETVAL
              
 void
 reset_legend_texture()
     CODE:
         _3DScene::reset_legend_texture();
-
-void
-generate_warning_texture(std::string msg)
-    CODE:
-        _3DScene::generate_warning_texture(msg);
-
-unsigned int
-finalize_warning_texture()
-    CODE:
-        RETVAL = _3DScene::finalize_warning_texture();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_warning_texture_width()
-    CODE:
-        RETVAL = _3DScene::get_warning_texture_width();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_warning_texture_height()
-    CODE:
-        RETVAL = _3DScene::get_warning_texture_height();
-    OUTPUT:
-        RETVAL
-
-void
-reset_warning_texture()
-    CODE:
-        _3DScene::reset_warning_texture();
 
 std::vector<int>
 load_model_object(canvas, model_object, obj_idx, instance_idxs)
