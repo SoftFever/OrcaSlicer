@@ -144,8 +144,6 @@ namespace Slic3r {
             Trapezoid trapezoid;
             float elapsed_time;
 
-            bool st_synchronized;
-
             Block();
 
             // Returns the length of the move covered by this block, in mm
@@ -211,6 +209,8 @@ namespace Slic3r {
         BlocksList _blocks;
         // Map between g1 line id and blocks id, used to speed up export of remaining times
         G1LineIdToBlockIdMap _g1_line_ids;
+        // Index of the last block already st_synchronized
+        int _last_st_synchronized_block_id;
         float _time; // s
 
 #if ENABLE_MOVE_STATS
@@ -322,8 +322,6 @@ namespace Slic3r {
         void _reset();
         void _reset_time();
         void _reset_blocks();
-
-        void _set_blocks_st_synchronize(bool state);
 
         // Calculates the time estimate
         void _calculate_time();

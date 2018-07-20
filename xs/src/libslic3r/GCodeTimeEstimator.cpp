@@ -79,7 +79,6 @@ namespace Slic3r {
     }
 
     GCodeTimeEstimator::Block::Block()
-        : st_synchronized(false)
     {
     }
 
@@ -202,7 +201,7 @@ namespace Slic3r {
         if (start_from_beginning)
         {
             _reset_time();
-            _set_blocks_st_synchronize(false);
+            _last_st_synchronized_block_id = -1;
         }
         _calculate_time();
 
@@ -614,6 +613,8 @@ namespace Slic3r {
 
         reset_g1_line_id();
         _g1_line_ids.clear();
+
+        _last_st_synchronized_block_id = -1;
     }
 
     void GCodeTimeEstimator::_reset_time()
@@ -626,14 +627,6 @@ namespace Slic3r {
         _blocks.clear();
     }
 
-    void GCodeTimeEstimator::_set_blocks_st_synchronize(bool state)
-    {
-        for (Block& block : _blocks)
-        {
-            block.st_synchronized = state;
-        }
-    }
-
     void GCodeTimeEstimator::_calculate_time()
     {
         _forward_pass();
@@ -642,10 +635,9 @@ namespace Slic3r {
 
         _time += get_additional_time();
 
-        for (Block& block : _blocks)
+        for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size(); ++i)
         {
-            if (block.st_synchronized)
-                continue;
+            Block& block = _blocks[i];
 
 #if ENABLE_MOVE_STATS
             float block_time = 0.0f;
@@ -668,6 +660,8 @@ namespace Slic3r {
             block.elapsed_time = _time;
 #endif // ENABLE_MOVE_STATS
         }
+
+        _last_st_synchronized_block_id = _blocks.size() - 1;
     }
 
     void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
@@ -1210,18 +1204,14 @@ namespace Slic3r {
     void GCodeTimeEstimator::_simulate_st_synchronize()
     {
         _calculate_time();
-        _set_blocks_st_synchronize(true);
     }
 
     void GCodeTimeEstimator::_forward_pass()
     {
         if (_blocks.size() > 1)
         {
-            for (unsigned int i = 0; i < (unsigned int)_blocks.size() - 1; ++i)
-            { 
-                if (_blocks[i].st_synchronized || _blocks[i + 1].st_synchronized)
-                    continue;
-
+            for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size() - 1; ++i)
+            {
                 _planner_forward_pass_kernel(_blocks[i], _blocks[i + 1]);
             }
         }
@@ -1231,11 +1221,8 @@ namespace Slic3r {
     {
         if (_blocks.size() > 1)
         {
-            for (int i = (int)_blocks.size() - 1; i >= 1;  --i)
+            for (int i = (int)_blocks.size() - 1; i >= _last_st_synchronized_block_id + 2; --i)
             {
-                if (_blocks[i - 1].st_synchronized || _blocks[i].st_synchronized)
-                    continue;
-
                 _planner_reverse_pass_kernel(_blocks[i - 1], _blocks[i]);
             }
         }
@@ -1286,10 +1273,9 @@ namespace Slic3r {
         Block* curr = nullptr;
         Block* next = nullptr;
 
-        for (Block& b : _blocks)
+        for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size(); ++i)
         {
-            if (b.st_synchronized)
-                continue;
+            Block& b = _blocks[i];
 
             curr = next;
             next = &b;
