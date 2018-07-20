@@ -863,9 +863,9 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     _write(file, m_writer.postamble());
 
     // calculates estimated printing time
-    m_normal_time_estimator.calculate_time();
+    m_normal_time_estimator.calculate_time(false);
     if (m_silent_time_estimator_enabled)
-        m_silent_time_estimator.calculate_time();
+        m_silent_time_estimator.calculate_time(false);
 
     // Get filament stats.
     print.filament_stats.clear();

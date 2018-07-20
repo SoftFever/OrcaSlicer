@@ -196,11 +196,14 @@ namespace Slic3r {
         }
     }
 
-    void GCodeTimeEstimator::calculate_time()
+    void GCodeTimeEstimator::calculate_time(bool start_from_beginning)
     {
         PROFILE_FUNC();
-        _reset_time();
-        _set_blocks_st_synchronize(false);
+        if (start_from_beginning)
+        {
+            _reset_time();
+            _set_blocks_st_synchronize(false);
+        }
         _calculate_time();
 
 #if ENABLE_MOVE_STATS

@@ -227,7 +227,10 @@ namespace Slic3r {
         void add_gcode_block(const std::string &str) { this->add_gcode_block(str.c_str()); }
 
         // Calculates the time estimate from the gcode lines added using add_gcode_line() or add_gcode_block()
-        void calculate_time();
+        // start_from_beginning:
+        // if set to true all blocks will be used to calculate the time estimate,
+        // if set to false only the blocks not yet processed will be used and the calculated time will be added to the current calculated time
+        void calculate_time(bool start_from_beginning);
 
         // Calculates the time estimate from the given gcode in string format
         void calculate_time_from_text(const std::string& gcode);
