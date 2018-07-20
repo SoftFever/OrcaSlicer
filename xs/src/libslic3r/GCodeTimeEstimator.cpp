@@ -486,6 +486,7 @@ namespace Slic3r {
 
     GCodeFlavor GCodeTimeEstimator::get_dialect() const
     {
+        PROFILE_FUNC();
         return _state.dialect;
     }
 
@@ -536,6 +537,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::add_additional_time(float timeSec)
     {
+        PROFILE_FUNC();
         _state.additional_time += timeSec;
     }
 
@@ -627,8 +629,10 @@ namespace Slic3r {
         _blocks.clear();
     }
 
+
     void GCodeTimeEstimator::_calculate_time()
     {
+        PROFILE_FUNC();
         _forward_pass();
         _reverse_pass();
         _recalculate_trapezoids();
@@ -797,6 +801,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         increment_g1_line_id();
 
         // updates axes positions from line
@@ -994,6 +999,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         GCodeFlavor dialect = get_dialect();
 
         float value;
@@ -1015,31 +1021,37 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG20(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_units(Inches);
     }
 
     void GCodeTimeEstimator::_processG21(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_units(Millimeters);
     }
 
     void GCodeTimeEstimator::_processG28(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         // TODO
     }
 
     void GCodeTimeEstimator::_processG90(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_global_positioning_type(Absolute);
     }
 
     void GCodeTimeEstimator::_processG91(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_global_positioning_type(Relative);
     }
 
     void GCodeTimeEstimator::_processG92(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         float lengthsScaleFactor = (get_units() == Inches) ? INCHES_TO_MM : 1.0f;
         bool anyFound = false;
 
@@ -1080,26 +1092,31 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM1(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         _simulate_st_synchronize();
     }
 
     void GCodeTimeEstimator::_processM82(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_e_local_positioning_type(Absolute);
     }
 
     void GCodeTimeEstimator::_processM83(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_e_local_positioning_type(Relative);
     }
 
     void GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         // TODO
     }
 
     void GCodeTimeEstimator::_processM201(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         GCodeFlavor dialect = get_dialect();
 
         // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
@@ -1120,6 +1137,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         GCodeFlavor dialect = get_dialect();
 
         // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
@@ -1144,6 +1162,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM204(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         float value;
         if (line.has_value('S', value))
             set_acceleration(value);
@@ -1154,6 +1173,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM205(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         if (line.has_x())
         {
             float max_jerk = line.x();
@@ -1180,6 +1200,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM221(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         float value_s;
         float value_t;
         if (line.has_value('S', value_s) && !line.has_value('T', value_t))
@@ -1188,6 +1209,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         if (line.has_x())
             set_axis_max_jerk(X, line.x() * MMMIN_TO_MMSEC);
 
@@ -1203,11 +1225,13 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_simulate_st_synchronize()
     {
+        PROFILE_FUNC();
         _calculate_time();
     }
 
     void GCodeTimeEstimator::_forward_pass()
     {
+        PROFILE_FUNC();
         if (_blocks.size() > 1)
         {
             for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size() - 1; ++i)
@@ -1219,6 +1243,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_reverse_pass()
     {
+        PROFILE_FUNC();
         if (_blocks.size() > 1)
         {
             for (int i = (int)_blocks.size() - 1; i >= _last_st_synchronized_block_id + 2; --i)
@@ -1230,6 +1255,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_planner_forward_pass_kernel(Block& prev, Block& curr)
     {
+        PROFILE_FUNC();
         // If the previous block is an acceleration block, but it is not long enough to complete the
         // full speed change within the block, we need to adjust the entry speed accordingly. Entry
         // speeds have already been reset, maximized, and reverse planned by reverse planner.
@@ -1270,6 +1296,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_recalculate_trapezoids()
     {
+        PROFILE_FUNC();
         Block* curr = nullptr;
         Block* next = nullptr;
 
