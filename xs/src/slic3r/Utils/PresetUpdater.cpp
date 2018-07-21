@@ -326,6 +326,8 @@ Updates PresetUpdater::priv::get_config_updates() const
 			continue;
 		}
 
+		// Getting a recommended version from the latest index, wich may have been downloaded
+		// from the internet, or installed / updated from the installation resources.
 		const auto recommended = idx.recommended();
 		if (recommended == idx.end()) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % idx.vendor();
@@ -353,25 +355,34 @@ Updates PresetUpdater::priv::get_config_updates() const
 			}
 
 			auto path_src = cache_path / (idx.vendor() + ".ini");
+			auto path_in_rsrc = rsrc_path / (idx.vendor() + ".ini");
 			if (! fs::exists(path_src)) {
-				auto path_in_rsrc = rsrc_path / (idx.vendor() + ".ini");
 				if (! fs::exists(path_in_rsrc)) {
 					BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update, but bundle found in neither cache nor resources")
-						% idx.vendor();;
+						% idx.vendor();
 					continue;
 				} else {
 					path_src = std::move(path_in_rsrc);
+					path_in_rsrc.clear();
 				}
 			}
 
-			const auto new_vp = VendorProfile::from_ini(path_src, false);
+			auto new_vp = VendorProfile::from_ini(path_src, false);
+			bool found = false;
 			if (new_vp.config_version == recommended->config_version) {
 				updates.updates.emplace_back(std::move(path_src), std::move(bundle_path), *recommended);
-			} else {
+				found = true;
+			} else if (! path_in_rsrc.empty() && fs::exists(path_in_rsrc)) {
+				new_vp = VendorProfile::from_ini(path_in_rsrc, false);
+				if (new_vp.config_version == recommended->config_version) {
+					updates.updates.emplace_back(std::move(path_in_rsrc), std::move(bundle_path), *recommended);
+					found = true;
+				}
+			}
+			if (! found)
 				BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update (%2%) but the new bundle was found neither in cache nor resources")
 					% idx.vendor()
 					% recommended->config_version.to_string();
-			}
 		}
 	}
 
