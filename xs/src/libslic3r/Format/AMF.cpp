@@ -8,6 +8,7 @@
 #include "../libslic3r.h"
 #include "../Model.hpp"
 #include "../GCode.hpp"
+#include "../Utils.hpp"
 #include "../slic3r/GUI/PresetBundle.hpp"
 #include "AMF.hpp"
 
@@ -684,33 +685,6 @@ bool load_amf(const char *path, PresetBundle* bundle, Model *model)
     }
     else
         return false;
-}
-
-std::string xml_escape(std::string text)
-{
-    std::string::size_type pos = 0;
-    for (;;)
-    {
-        pos = text.find_first_of("\"\'&<>", pos);
-        if (pos == std::string::npos)
-            break;
-
-        std::string replacement;
-        switch (text[pos])
-        {
-        case '\"': replacement = "&quot;"; break;
-        case '\'': replacement = "&apos;"; break;
-        case '&':  replacement = "&amp;";  break;
-        case '<':  replacement = "&lt;";   break;
-        case '>':  replacement = "&gt;";   break;
-        default: break;
-        }
-
-        text.replace(pos, 1, replacement);
-        pos += replacement.size();
-    }
-
-    return text;
 }
 
 bool store_amf(const char *path, Model *model, Print* print, bool export_print_config)
