@@ -230,7 +230,7 @@ update_volumes_selection(canvas, selections)
     CODE:
         _3DScene::update_volumes_selection((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
 
-bool
+int
 check_volumes_outside_state(canvas, config)
         SV                 *canvas;
         DynamicPrintConfig *config;

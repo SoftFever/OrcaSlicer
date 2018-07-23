@@ -495,7 +495,7 @@ public:
     void deselect_volumes();
     void select_volume(unsigned int id);
     void update_volumes_selection(const std::vector<int>& selections);
-    bool check_volumes_outside_state(const DynamicPrintConfig* config) const;
+    int check_volumes_outside_state(const DynamicPrintConfig* config) const;
     bool move_volume_up(unsigned int id);
     bool move_volume_down(unsigned int id);
 

@@ -1878,9 +1878,11 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
     }
 }
 
-bool GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
+int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
-    return m_volumes.check_outside_state(config, nullptr);
+    ModelInstance::EPrintVolumeState state;
+    m_volumes.check_outside_state(config, &state);
+    return (int)state;
 }
 
 bool GLCanvas3D::move_volume_up(unsigned int id)
