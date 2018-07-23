@@ -424,6 +424,13 @@ enable_shader(canvas, enable)
         _3DScene::enable_shader((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
 void
+enable_toolbar(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_toolbar((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
 enable_force_zoom_to_bed(canvas, enable)
         SV   *canvas;
         bool enable;
@@ -436,6 +443,14 @@ allow_multisample(canvas, allow)
         bool allow;
     CODE:
         _3DScene::allow_multisample((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), allow);
+
+void
+enable_toolbar_item(canvas, item, enable)
+        SV          *canvas;
+        std::string item;
+        bool        enable;
+    CODE:
+        _3DScene::enable_toolbar_item((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), item, enable);
 
 void
 zoom_to_bed(canvas)

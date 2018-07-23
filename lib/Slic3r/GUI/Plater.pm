@@ -178,6 +178,9 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
         Slic3r::GUI::_3DScene::register_on_update_geometry_info_callback($self->{canvas3D}, $on_update_geometry_info);
         Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
+#======================================================================================================================================================        
+        Slic3r::GUI::_3DScene::enable_toolbar($self->{canvas3D}, 1);
+#======================================================================================================================================================        
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($self->{canvas3D}, 1);
 
@@ -627,6 +630,9 @@ sub on_layer_editing_toggled {
             $self->{"btn_layer_editing"}->Disable;
             $self->{"btn_layer_editing"}->SetValue(0);
         }
+#===================================================================================================================================================
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 0);
+#===================================================================================================================================================
     }
     $self->{canvas3D}->Refresh;
     $self->{canvas3D}->Update;
@@ -1907,6 +1913,9 @@ sub on_config_change {
                     $self->{"btn_layer_editing"}->Disable;
                     $self->{"btn_layer_editing"}->SetValue(0);
                 }
+#===================================================================================================================================================
+                Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 0);
+#===================================================================================================================================================
                 Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, 0);
                 $self->{canvas3D}->Refresh;
                 $self->{canvas3D}->Update;
@@ -1917,6 +1926,9 @@ sub on_config_change {
                 } else {
                     $self->{"btn_layer_editing"}->Enable;
                 }
+#===================================================================================================================================================
+                Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 1);
+#===================================================================================================================================================
             }
         } elsif ($opt_key eq 'extruder_colour') {
             $update_scheduled = 1;
@@ -2098,6 +2110,13 @@ sub object_list_changed {
         $self->{"btn_layer_editing"}->Disable if (! $variable_layer_height_allowed);
     }
 
+#===================================================================================================================================================
+    for my $toolbar_item (qw(deleteall arrange layersediting)) {
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, $toolbar_item, $have_objects);
+    }
+    Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 0) if (! $variable_layer_height_allowed);
+#===================================================================================================================================================
+    
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
     my $model_fits = $self->{canvas3D} ? Slic3r::GUI::_3DScene::check_volumes_outside_state($self->{canvas3D}, $self->{config}) : 1;
     my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
@@ -2122,6 +2141,12 @@ sub selection_changed {
         $self->{"btn_$_"}->$method
             for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw changescale split cut settings);
     }
+    
+#===================================================================================================================================================
+    for my $toolbar_item (qw(delete more fewer ccw45 cw45 scale split cut settings)) {
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, $toolbar_item, $have_sel);
+    }
+#===================================================================================================================================================
     
     if ($self->{object_info_size}) { # have we already loaded the info pane?
         if ($have_sel) {

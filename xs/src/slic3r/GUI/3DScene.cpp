@@ -1776,6 +1776,13 @@ void _3DScene::enable_gizmos(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_gizmos(canvas, enable);
 }
 
+//###################################################################################################################################
+void _3DScene::enable_toolbar(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_toolbar(canvas, enable);
+}
+//###################################################################################################################################
+
 void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_shader(canvas, enable);
@@ -1790,6 +1797,13 @@ void _3DScene::allow_multisample(wxGLCanvas* canvas, bool allow)
 {
     s_canvas_mgr.allow_multisample(canvas, allow);
 }
+
+//###################################################################################################################################
+void _3DScene::enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable)
+{
+    s_canvas_mgr.enable_toolbar_item(canvas, name, enable);
+}
+//###################################################################################################################################
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
 {

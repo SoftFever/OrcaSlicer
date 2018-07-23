@@ -195,9 +195,11 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.hpp
     ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.cpp
     ${LIBDIR}/slic3r/GUI/GLGizmo.hpp
-    ${LIBDIR}/slic3r/GUI/GLGizmo.cpp    
+    ${LIBDIR}/slic3r/GUI/GLGizmo.cpp
     ${LIBDIR}/slic3r/GUI/GLTexture.hpp
-    ${LIBDIR}/slic3r/GUI/GLTexture.cpp    
+    ${LIBDIR}/slic3r/GUI/GLTexture.cpp
+    ${LIBDIR}/slic3r/GUI/GLToolbar.hpp
+    ${LIBDIR}/slic3r/GUI/GLToolbar.cpp
     ${LIBDIR}/slic3r/GUI/Preferences.cpp
     ${LIBDIR}/slic3r/GUI/Preferences.hpp
     ${LIBDIR}/slic3r/GUI/Preset.cpp

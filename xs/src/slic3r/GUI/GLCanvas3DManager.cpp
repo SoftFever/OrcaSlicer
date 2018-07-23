@@ -404,6 +404,15 @@ void GLCanvas3DManager::enable_gizmos(wxGLCanvas* canvas, bool enable)
         it->second->enable_gizmos(enable);
 }
 
+//###################################################################################################################################
+void GLCanvas3DManager::enable_toolbar(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_toolbar(enable);
+}
+//###################################################################################################################################
+
 void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -424,6 +433,15 @@ void GLCanvas3DManager::allow_multisample(wxGLCanvas* canvas, bool allow)
     if (it != m_canvases.end())
         it->second->allow_multisample(allow);
 }
+
+//###################################################################################################################################
+void GLCanvas3DManager::enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_toolbar_item(name, enable);
+}
+//###################################################################################################################################
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {

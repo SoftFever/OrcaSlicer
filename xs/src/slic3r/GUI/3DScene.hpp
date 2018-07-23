@@ -495,9 +495,16 @@ public:
     static void enable_picking(wxGLCanvas* canvas, bool enable);
     static void enable_moving(wxGLCanvas* canvas, bool enable);
     static void enable_gizmos(wxGLCanvas* canvas, bool enable);
+//###################################################################################################################################
+    static void enable_toolbar(wxGLCanvas* canvas, bool enable);
+//###################################################################################################################################
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
+
+//###################################################################################################################################
+    static void enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable);
+//###################################################################################################################################
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);

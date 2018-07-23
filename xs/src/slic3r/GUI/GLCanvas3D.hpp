@@ -2,7 +2,10 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include "../../slic3r/GUI/3DScene.hpp"
-#include "../../slic3r/GUI/GLTexture.hpp"
+//###################################################################################################################################
+#include "../../slic3r/GUI/GLToolbar.hpp"
+//#include "../../slic3r/GUI/GLTexture.hpp"
+//###################################################################################################################################
 
 class wxTimer;
 class wxSizeEvent;
@@ -432,6 +435,9 @@ private:
     Shader m_shader;
     Mouse m_mouse;
     mutable Gizmos m_gizmos;
+//###################################################################################################################################
+    mutable GLToolbar m_toolbar;
+//###################################################################################################################################
 
     mutable GLVolumeCollection m_volumes;
     DynamicPrintConfig* m_config;
@@ -537,9 +543,16 @@ public:
     void enable_picking(bool enable);
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
+//###################################################################################################################################
+    void enable_toolbar(bool enable);
+//###################################################################################################################################
     void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
     void allow_multisample(bool allow);
+
+//###################################################################################################################################
+    void enable_toolbar_item(const std::string& name, bool enable);
+//###################################################################################################################################
 
     void zoom_to_bed();
     void zoom_to_volumes();
@@ -610,6 +623,10 @@ private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();
 
+//###################################################################################################################################
+    bool _init_toolbar();
+//###################################################################################################################################
+
     void _resize(unsigned int w, unsigned int h);
 
     BoundingBoxf3 _max_bounding_box() const;
@@ -635,6 +652,9 @@ private:
     void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
     void _render_gizmo() const;
+//###################################################################################################################################
+    void _render_toolbar() const;
+//###################################################################################################################################
 
     float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
