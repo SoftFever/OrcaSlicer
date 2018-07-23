@@ -104,7 +104,7 @@ struct PageWelcome: ConfigWizardPage
 	wxPanel *others_buttons;
 	wxCheckBox *cbox_reset;
 
-	PageWelcome(ConfigWizard *parent);
+	PageWelcome(ConfigWizard *parent, bool check_first_variant);
 
 	virtual wxPanel* extra_buttons() { return others_buttons; }
 	virtual void on_page_set();
