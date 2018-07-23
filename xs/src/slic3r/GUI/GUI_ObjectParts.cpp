@@ -26,6 +26,7 @@ wxCollapsiblePane			*m_collpane_settings = nullptr;
 wxIcon		m_icon_modifiermesh;
 wxIcon		m_icon_solidmesh;
 wxIcon		m_icon_manifold_warning;
+wxBitmap	m_bmp_cog;
 
 wxSlider*	m_mover_x = nullptr;
 wxSlider*	m_mover_y = nullptr;
@@ -66,6 +67,49 @@ inline t_category_icon& get_category_icon() {
 	return CATEGORY_ICON;
 }
 
+void get_part_options(std::vector<std::string>& part_options)
+{
+	PrintRegionConfig config;
+	part_options = config.keys();
+}
+
+void get_object_options(std::vector<std::string>& object_options)
+{
+	PrintRegionConfig reg_config;
+	object_options = reg_config.keys();
+	PrintObjectConfig obj_config;
+	std::vector<std::string> obj_options = obj_config.keys();
+	object_options.insert(object_options.end(), obj_options.begin(), obj_options.end());
+}
+
+//				  category ->		vector 			 ( option	;  label )
+typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
+void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
+{
+	PrintRegionConfig reg_config;
+	auto options = reg_config.keys();
+	if (!is_part) {
+		PrintObjectConfig obj_config;
+		std::vector<std::string> obj_options = obj_config.keys();
+		options.insert(options.end(), obj_options.begin(), obj_options.end());
+	}
+
+	DynamicPrintConfig config;
+	for (auto& option : options)
+	{
+		auto const opt = config.def()->get(option);
+		auto category = opt->category;
+		if (category.empty()) continue;
+
+		std::pair<std::string, std::string> option_label(option, opt->label);
+		std::vector< std::pair<std::string, std::string> > new_category;
+		auto& cat_opt_label = settings_menu.find(category) == settings_menu.end() ? new_category : settings_menu.at(category);
+		cat_opt_label.push_back(option_label);
+		if (cat_opt_label.size() == 1)
+			settings_menu[category] = cat_opt_label;
+	}
+}
+
 // C++ class Slic3r::DynamicPrintConfig, initially empty.
 std::shared_ptr<DynamicPrintConfig> default_config = std::make_shared<DynamicPrintConfig>();
 std::shared_ptr<DynamicPrintConfig> config = std::make_shared<DynamicPrintConfig>();
@@ -83,7 +127,12 @@ void set_event_remove_object(const int& event){
 void init_mesh_icons(){
 	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
 	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+
+	// init icon for manifold warning
 	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+
+	// init bitmap for "Add Settings" context menu
+	m_bmp_cog = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
 }
 
 bool is_parts_changed(){return m_parts_changed;}
@@ -146,11 +195,17 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		
 	});
 
-	m_objects_ctrl->Bind(wxEVT_KEY_DOWN, [](wxKeyEvent& event)
+	m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event)
 	{
 		if (event.GetKeyCode() == WXK_TAB)
 			m_objects_ctrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
-		else
+		else if (event.GetKeyCode() == WXK_DELETE
+#ifdef __WXOSX__
+			|| event.GetKeyCode() == WXK_BACK
+#endif //__WXOSX__
+			)
+			remove();
+		else 
 			event.Skip();
 	});
 
@@ -422,6 +477,8 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 	optgroup->disable();
 
 	get_optgroups().push_back(optgroup);  // ogFrequentlyObjectSettings
+
+// 	add_current_settings();
 }
 
 
@@ -582,19 +639,39 @@ void object_ctrl_selection_changed()
 	}
 }
 
-wxMenu *create_add_part_popupmenu(){
+void get_settings_choice(wxMenu *menu, int id, bool is_part)
+{
+	auto category_name = menu->GetLabel(id);
+
+	wxArrayString names;
+
+	settings_menu_hierarchy settings_menu;
+	get_options_menu(settings_menu, is_part);
+	for (auto cat : settings_menu)
+	{
+		if (_(cat.first) == category_name)				{
+			for (auto& pair : cat.second)
+				names.Add(_(pair.second));
+			break;
+		}
+	}
+
+	wxArrayInt selections;
+	auto index = wxGetMultipleChoices(selections, _(L("Select showing settings")), category_name, names);
+}
+
+wxMenu *create_add_part_popupmenu()
+{
 	wxMenu *menu = new wxMenu;
-	wxWindowID config_id_base = wxWindow::NewControlId(3);
+	wxWindowID config_id_base = wxWindow::NewControlId(4);
 
 	menu->Append(config_id_base, _(L("Add part")));
-	menu->AppendSeparator();
 	menu->Append(config_id_base + 1, _(L("Add modifier")));
-	menu->AppendSeparator();
-	menu->AppendCheckItem(config_id_base + 2, _(L("Add generic")));
+	menu->Append(config_id_base + 2, _(L("Add generic")));
 
 	wxWindow* win = get_tab_panel()->GetPage(0);
 
-	menu->Bind(wxEVT_MENU, [config_id_base, win](wxEvent &event){
+	menu->Bind(wxEVT_MENU, [config_id_base, win, menu](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case 0:
 			on_btn_load(win);
@@ -605,38 +682,45 @@ wxMenu *create_add_part_popupmenu(){
 		case 2:
 			on_btn_load(win, true, true);
 			break;
-		default:
-			break;
+		default:{
+			get_settings_choice(menu, event.GetId(), false);
+			break;}
 		}
 	});
+
+	menu->AppendSeparator();
+	// Append settings popupmenu
+	auto menu_item = new wxMenuItem(menu, config_id_base + 3, _(L("Add settings")));
+	menu_item->SetBitmap(m_bmp_cog);
+
+	auto sub_menu = create_add_settings_popupmenu(false);
+
+	menu_item->SetSubMenu(sub_menu);
+	menu->Append(menu_item);
+
 	return menu;
 }
 
-wxMenu *create_add_settings_popupmenu()
+wxMenu *create_add_settings_popupmenu(bool is_part)
 {
 	wxMenu *menu = new wxMenu;
 
-	auto categories = get_category_icon();
-	int category_cnt = categories.size();
-	wxWindowID config_id_base = wxWindow::NewControlId(category_cnt);
+ 	auto categories = get_category_icon();
 
-	int inc = 0;
-	for (auto cat : categories)
+	settings_menu_hierarchy settings_menu;
+	get_options_menu(settings_menu, is_part);
+
+	for (auto cat : settings_menu)
 	{
-		auto menu_item = new wxMenuItem(menu, config_id_base + inc, _(cat.first));
-		menu_item->SetBitmap(cat.second);
-
-		auto sub_menu = new wxMenu;
-		sub_menu->AppendCheckItem(wxID_ANY, "Check#1");
-		sub_menu->AppendCheckItem(wxID_ANY, "Check#2");
-		sub_menu->AppendCheckItem(wxID_ANY, "Check#3");
-		sub_menu->AppendCheckItem(wxID_ANY, "Check#4");
-
-		menu_item->SetSubMenu(sub_menu);
-
+		auto menu_item = new wxMenuItem(menu, wxID_ANY/*config_id_base + inc*/, _(cat.first));
+		menu_item->SetBitmap(categories.find(cat.first) == categories.end() ? 
+								wxNullBitmap : categories.at(cat.first));
 		menu->Append(menu_item);
-		inc++;
 	}
+
+	menu->Bind(wxEVT_MENU, [menu](wxEvent &event) {
+		get_settings_choice(menu, event.GetId(), true);
+	});
 
 	return menu;
 }
@@ -660,7 +744,7 @@ void object_ctrl_context_menu()
 // 				obj_idx = m_objects_model->GetIdByItem(parent);
 // 				auto volume_id = m_objects_model->GetVolumeIdByItem(item);
 // 				if (volume_id < 0) return;
-				auto menu = create_add_settings_popupmenu();
+				auto menu = create_add_settings_popupmenu(true);
 				get_tab_panel()->GetPage(0)->PopupMenu(menu);
 			}
 		}

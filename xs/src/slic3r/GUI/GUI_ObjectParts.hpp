@@ -6,6 +6,7 @@ class wxSizer;
 class wxBoxSizer;
 class wxString;
 class wxArrayString;
+class wxMenu;
 
 namespace Slic3r {
 class ModelObject;
@@ -15,9 +16,10 @@ namespace GUI {
 enum ogGroup{
 	ogFrequentlyChangingParameters,
 	ogFrequentlyObjectSettings,
-	ogObjectSettings,
-	ogObjectMovers,
-	ogPartSettings
+	ogCurrentSettings
+// 	ogObjectSettings,
+// 	ogObjectMovers,
+// 	ogPartSettings
 };
 
 enum LambdaTypeIDs{
@@ -42,6 +44,9 @@ void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer);
 void add_objects_list(wxWindow* parent, wxBoxSizer* sizer);
 void add_object_settings(wxWindow* parent, wxBoxSizer* sizer);
 void show_collpane_settings(bool expert_mode);
+
+wxMenu *create_add_settings_popupmenu(bool is_part);
+wxMenu *create_add_part_popupmenu();
 
 // Add object to the list
 //void add_object(const std::string &name);

@@ -902,7 +902,7 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 	set_event_remove_object(event_remove_object);
 	init_mesh_icons();
 
-	wxWindowUpdateLocker noUpdates(parent);
+// 	wxWindowUpdateLocker noUpdates(parent);
 
 // 	add_objects_list(parent, sizer);
 
