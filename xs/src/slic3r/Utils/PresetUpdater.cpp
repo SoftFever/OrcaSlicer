@@ -541,10 +541,21 @@ bool PresetUpdater::config_update() const
 		std::unordered_map<std::string, wxString> incompats_map;
 		for (const auto &incompat : updates.incompats) {
 			auto vendor = incompat.name();
-			auto restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
-				incompat.version.min_slic3r_version.to_string(),
-				incompat.version.max_slic3r_version.to_string()
-			);
+
+			const auto min_slic3r = incompat.version.min_slic3r_version;
+			const auto max_slic3r = incompat.version.max_slic3r_version;
+			wxString restrictions;
+			if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
+				restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
+					min_slic3r.to_string(),
+					max_slic3r.to_string()
+				);
+			} else if (min_slic3r != Semver::zero()) {
+				restrictions = wxString::Format(_(L("requires min. %s")), min_slic3r.to_string());
+			} else {
+				restrictions = wxString::Format(_(L("requires max. %s")), max_slic3r.to_string());
+			}
+
 			incompats_map.emplace(std::make_pair(std::move(vendor), std::move(restrictions)));
 		}
 
@@ -556,7 +567,7 @@ bool PresetUpdater::config_update() const
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 			p->perform_updates(std::move(updates));
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
-			if (! wizard.run(GUI::get_preset_bundle(), this)) {	
+			if (! wizard.run(GUI::get_preset_bundle(), this)) {
 				return false;
 			}
 		} else {
