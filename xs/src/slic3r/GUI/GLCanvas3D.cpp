@@ -3379,7 +3379,13 @@ void GLCanvas3D::on_key_down(wxKeyEvent& evt)
         if (key == WXK_DELETE)
             m_on_remove_object_callback.call();
         else
-            evt.Skip();
+		{
+#ifdef __WXOSX__
+			if (key == WXK_BACK)
+				m_on_remove_object_callback.call();
+#endif
+			evt.Skip();
+		}
     }
 }
 
