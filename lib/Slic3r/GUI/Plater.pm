@@ -310,6 +310,9 @@ sub new {
         my ($list, $event) = @_;
         if ($event->GetKeyCode == WXK_TAB) {
             $list->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
+        } elsif ($event->GetKeyCode == WXK_DELETE ||
+                ($event->GetKeyCode == WXK_BACK && &Wx::wxMAC) ) {
+            $self->remove;
         } else {
             $event->Skip;
         }
