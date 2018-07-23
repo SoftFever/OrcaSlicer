@@ -79,7 +79,8 @@ bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmap
     if (generate_mipmaps)
     {
         // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
-        _generate_mipmaps(image);
+        unsigned int levels_count = _generate_mipmaps(image);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + levels_count);
         ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     }
     else
@@ -149,14 +150,14 @@ void GLTexture::render_texture(unsigned int tex_id, float left, float right, flo
     ::glDisable(GL_BLEND);
 }
 
-void GLTexture::_generate_mipmaps(wxImage& image)
+unsigned int GLTexture::_generate_mipmaps(wxImage& image)
 {
     int w = image.GetWidth();
     int h = image.GetHeight();
     GLint level = 0;
     std::vector<unsigned char> data(w * h * 4, 0);
 
-    while ((w > 1) && (h > 1))
+    while ((w > 1) || (h > 1))
     {
         ++level;
 
@@ -183,6 +184,8 @@ void GLTexture::_generate_mipmaps(wxImage& image)
 
         ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
     }
+
+    return (unsigned int)level;
 }
 
 } // namespace GUI
