@@ -146,6 +146,11 @@ const std::string& Preset::suffix_modified()
 {
     return g_suffix_modified;
 }
+
+void Preset::update_suffix_modified()
+{
+	g_suffix_modified = (" (" + _(L("modified")) + ")").ToUTF8().data();
+}
 // Remove an optional "(modified)" suffix from a name.
 // This converts a UI name to a unique preset identifier.
 std::string Preset::remove_suffix_modified(const std::string &name)
