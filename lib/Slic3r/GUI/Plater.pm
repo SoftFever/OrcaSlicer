@@ -127,6 +127,8 @@ sub new {
             $range->[1] *= $variation;
         }
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
+        
+        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");        
         $object->transform_thumbnail($self->{model}, $obj_idx);
     
         #update print and start background processing
