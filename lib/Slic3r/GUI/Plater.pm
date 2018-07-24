@@ -1665,7 +1665,7 @@ sub reload_from_disk {
     my $model_object = $self->{model}->objects->[$obj_idx];
     #FIXME convert to local file encoding
     return if !$model_object->input_file
-        || !-e $model_object->input_file;
+        || !-e Slic3r::encode_path($model_object->input_file);
     
     my @new_obj_idx = $self->load_files([$model_object->input_file]);
     return if !@new_obj_idx;
