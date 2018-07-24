@@ -141,7 +141,7 @@ sub OnInit {
     $self->CallAfter(sub {
         eval {
             if (! $self->{preset_updater}->config_update()) {
-                exit 0;
+                $self->{mainframe}->Close;
             }
         };
         if ($@) {
