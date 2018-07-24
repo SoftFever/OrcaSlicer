@@ -642,7 +642,7 @@ private:
     void _stop_timer();
 
     int _get_first_selected_object_id() const;
-    int _get_first_selected_volume_id() const;
+    int _get_first_selected_volume_id(int object_id) const;
 
     // Create 3D thick extrusion lines for a skirt and brim.
     // Adds a new Slic3r::GUI::3DScene::Volume to volumes.

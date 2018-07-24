@@ -2715,7 +2715,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             update_gizmos_data();
             m_gizmos.start_dragging();
-            m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id();
+            m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
             m_dirty = true;
         }
         else
@@ -3736,32 +3736,17 @@ int GLCanvas3D::_get_first_selected_object_id() const
     return -1;
 }
 
-int GLCanvas3D::_get_first_selected_volume_id() const
+int GLCanvas3D::_get_first_selected_volume_id(int object_id) const
 {
-    if (m_print != nullptr)
-    {
-        int objects_count = (int)m_print->objects.size();
+    int volume_id = -1;
 
-        for (const GLVolume* vol : m_volumes.volumes)
-        {
-            if ((vol != nullptr) && vol->selected)
-            {
-                int object_id = vol->select_group_id / 1000000;
-                // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
-                if ((object_id < 10000) && (object_id < objects_count))
-                {
-                    int volume_id = 0;
-                    for (int i = 0; i < object_id; ++i)
-                    {
-                        const PrintObject* obj = m_print->objects[i];
-                        const ModelObject* model = obj->model_object();
-                        volume_id += model->instances.size();
-                    }
-                    return volume_id;
-                }
-            }
-        }
+    for (const GLVolume* vol : m_volumes.volumes)
+    {
+        ++volume_id;
+        if ((vol != nullptr) && vol->selected && (object_id == vol->select_group_id / 1000000))
+            return volume_id;
     }
+
     return -1;
 }
 
