@@ -460,7 +460,7 @@ public:
     static void deselect_volumes(wxGLCanvas* canvas);
     static void select_volume(wxGLCanvas* canvas, unsigned int id);
     static void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
-    static bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
+    static int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
     static bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     static bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 

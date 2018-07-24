@@ -1651,7 +1651,7 @@ void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<in
     s_canvas_mgr.update_volumes_selection(canvas, selections);
 }
 
-bool _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
+int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
 {
     return s_canvas_mgr.check_volumes_outside_state(canvas, config);
 }

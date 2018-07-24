@@ -32,7 +32,7 @@ namespace GUI {
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
 
     protected:
-        void _generate_mipmaps(wxImage& image);
+        unsigned int _generate_mipmaps(wxImage& image);
     };
 
 } // namespace GUI
