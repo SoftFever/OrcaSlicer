@@ -188,6 +188,7 @@ wxString	L_str(const std::string &str);
 wxString	from_u8(const std::string &str);
 
 void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
+							Model &model,
 							int event_object_selection_changed,
 							int event_object_settings_changed,
 							int event_remove_object);

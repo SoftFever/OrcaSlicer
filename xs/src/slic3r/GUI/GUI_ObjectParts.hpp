@@ -10,6 +10,7 @@ class wxMenu;
 
 namespace Slic3r {
 class ModelObject;
+class Model;
 
 namespace GUI {
 
@@ -73,6 +74,7 @@ void init_mesh_icons();
 void set_event_object_selection_changed(const int& event);
 void set_event_object_settings_changed(const int& event); 
 void set_event_remove_object(const int& event);
+void set_objects_from_model(Model &model);
 
 bool is_parts_changed();
 bool is_part_settings_changed();

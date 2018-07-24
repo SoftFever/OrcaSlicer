@@ -88,11 +88,13 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
                                                            (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};
 
 void add_expert_mode_part(  SV *ui_parent, SV *ui_sizer, 
+                            Model *model,
                             int event_object_selection_changed,
                             int event_object_settings_changed,
                             int event_remove_object)
     %code%{ Slic3r::GUI::add_expert_mode_part(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                                                 (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"), 
+                                                *model,  
                                                 event_object_selection_changed,
                                                 event_object_settings_changed,
                                                 event_remove_object); %};

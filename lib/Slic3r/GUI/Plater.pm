@@ -449,6 +449,7 @@ sub new {
 
         my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
         Slic3r::GUI::add_expert_mode_part(  $self->{right_panel}, $expert_mode_part_sizer, 
+                                            $self->{model},
                                             $self->{event_object_selection_changed},
                                             $self->{event_object_settings_changed},
                                             $self->{event_remove_object});

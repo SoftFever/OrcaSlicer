@@ -40,7 +40,7 @@ int			m_selected_object_id = -1;
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
-ModelObjectPtrs				m_objects;
+ModelObjectPtrs*				m_objects;
 
 int			m_event_object_selection_changed = 0;
 int			m_event_object_settings_changed = 0;
@@ -122,6 +122,10 @@ void set_event_object_settings_changed(const int& event){
 }
 void set_event_remove_object(const int& event){
 	m_event_remove_object = event;
+}
+
+void set_objects_from_model(Model &model) {
+	m_objects = &(model.objects);
 }
 
 void init_mesh_icons(){
@@ -297,7 +301,7 @@ void update_after_moving()
 	Point3 l = m_last_coords;
 
 	auto d = Pointf3(m.x - l.x, m.y - l.y, m.z - l.z);
-	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
 	volume->mesh.translate(d.x,d.y,d.z);
 	m_last_coords = m;
 
@@ -546,11 +550,11 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 		m_objects_model->SetValue(variant, item, 0);
 	}
 
+	ModelObjectPtrs* objects = m_objects;
 // 	part_selection_changed();
 #ifdef __WXMSW__
 	object_ctrl_selection_changed();
 #endif //__WXMSW__
-	m_objects.push_back(model_object);
 }
 
 void delete_object_from_list()
@@ -856,9 +860,9 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 	if (obj_idx < 0) return;
 	wxArrayString part_names;
 	if (is_lambda)
-		load_lambda(parent, m_objects[obj_idx], part_names, is_modifier);
+		load_lambda(parent, (*m_objects)[obj_idx], part_names, is_modifier);
 	else
-		load_part(parent, m_objects[obj_idx], part_names, is_modifier);
+		load_part(parent, (*m_objects)[obj_idx], part_names, is_modifier);
 
 	parts_changed(obj_idx);
 
@@ -879,11 +883,11 @@ void on_btn_del()
 	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
 	if (volume_id < 0)
 		return;
-	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
 
 	// if user is deleting the last solid part, throw error
 	int solid_cnt = 0;
-	for (auto vol : m_objects[m_selected_object_id]->volumes)
+	for (auto vol : (*m_objects)[m_selected_object_id]->volumes)
 		if (!vol->modifier)
 			++solid_cnt;
 	if (!volume->modifier && solid_cnt == 1) {
@@ -891,7 +895,7 @@ void on_btn_del()
 		return;
 	}
 
-	m_objects[m_selected_object_id]->delete_volume(volume_id);
+	(*m_objects)[m_selected_object_id]->delete_volume(volume_id);
 	m_parts_changed = true;
 
 	parts_changed(m_selected_object_id);
@@ -912,7 +916,7 @@ void on_btn_split()
 	if (volume_id < 0)
 		return;
 
-	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
+	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
 	DynamicPrintConfig&	config = get_preset_bundle()->prints.get_edited_preset().config;
 	auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 	if (volume->split(nozzle_dmrs_cnt) > 1)	{
@@ -929,7 +933,7 @@ void on_btn_move_up(){
 	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
 	if (volume_id < 0)
 		return;
-	auto& volumes = m_objects[m_selected_object_id]->volumes;
+	auto& volumes = (*m_objects)[m_selected_object_id]->volumes;
 	if (0 < volume_id && volume_id < volumes.size()) {
 		std::swap(volumes[volume_id - 1], volumes[volume_id]);
 		m_parts_changed = true;
@@ -948,7 +952,7 @@ void on_btn_move_down(){
 	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
 	if (volume_id < 0)
 		return;
-	auto& volumes = m_objects[m_selected_object_id]->volumes;
+	auto& volumes = (*m_objects)[m_selected_object_id]->volumes;
 	if (0 <= volume_id && volume_id+1 < volumes.size()) {
 		std::swap(volumes[volume_id + 1], volumes[volume_id]);
 		m_parts_changed = true;
@@ -975,13 +979,13 @@ void parts_changed(int obj_idx)
 void update_settings_value()
 {
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
-	if (m_selected_object_id < 0 || m_objects.size() <= m_selected_object_id)		{
+	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id)		{
 		og->set_value("scale_x", 0);
 		og->set_value("scale_y", 0);
 		og->set_value("scale_z", 0);
 		return;
 	}
-	auto bb_size = m_objects[m_selected_object_id]->instance_bounding_box(0).size();
+	auto bb_size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
 	og->set_value("scale_x", int(bb_size.x+0.5));
 	og->set_value("scale_y", int(bb_size.y+0.5));
 	og->set_value("scale_z", int(bb_size.z+0.5));
