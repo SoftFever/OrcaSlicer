@@ -2,6 +2,7 @@
 #include <iostream>
 #include <istream>
 #include <string>
+#include <thread>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/trim.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -568,16 +569,12 @@ GCodeSender::set_DTR(bool on)
 void
 GCodeSender::reset()
 {
-    this->set_DTR(false);
-    boost::this_thread::sleep(boost::posix_time::milliseconds(200));
-    this->set_DTR(true);
-    boost::this_thread::sleep(boost::posix_time::milliseconds(200));
-    this->set_DTR(false);
-    boost::this_thread::sleep(boost::posix_time::milliseconds(1000));
-    {
-        boost::lock_guard<boost::mutex> l(this->queue_mutex);
-        this->can_send = true;
-    }
+    set_DTR(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    set_DTR(true);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    set_DTR(false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
 
 } // namespace Slic3r

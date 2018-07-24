@@ -3,7 +3,10 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <thread>
 #include <fstream>
+#include <stdexcept>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
@@ -33,6 +36,21 @@
 	#include <IOKit/serial/ioss.h>
 	#include <sys/syslimits.h>
 #endif
+
+#ifndef _WIN32
+	#include <sys/ioctl.h>
+	#include <sys/time.h>
+	#include <sys/unistd.h>
+	#include <sys/select.h>
+#endif
+
+#if defined(__APPLE__) || defined(__OpenBSD__)
+	#include <termios.h>
+#elif defined __linux__
+	#include <fcntl.h>
+	#include <asm-generic/ioctls.h>
+#endif
+
 
 namespace Slic3r {
 namespace Utils {
@@ -188,6 +206,226 @@ std::vector<std::string> scan_serial_ports()
 		output.emplace_back(std::move(spi.port));
 	return output;
 }
+
+
+
+// Class Serial
+
+namespace asio = boost::asio;
+using boost::system::error_code;
+
+Serial::Serial(asio::io_service& io_service) :
+	asio::serial_port(io_service)
+{}
+
+Serial::Serial(asio::io_service& io_service, const std::string &name, unsigned baud_rate) :
+	asio::serial_port(io_service, name)
+{
+	printer_setup(baud_rate);
+}
+
+Serial::~Serial() {}
+
+void Serial::set_baud_rate(unsigned baud_rate)
+{
+	try {
+		// This does not support speeds > 115200
+		set_option(boost::asio::serial_port_base::baud_rate(baud_rate));
+	} catch (boost::system::system_error &) {
+		auto handle = native_handle();
+
+		auto handle_errno = [](int retval) {
+			if (retval != 0) {
+				throw std::runtime_error(
+					(boost::format("Could not set baud rate: %1%") % strerror(errno)).str()
+				);
+			}
+		};
+
+#if __APPLE__
+		termios ios;
+		handle_errno(::tcgetattr(handle, &ios));
+		handle_errno(::cfsetspeed(&ios, baud_rate));
+		speed_t newSpeed = baud_rate;
+		handle_errno(::ioctl(handle, IOSSIOSPEED, &newSpeed));
+		handle_errno(::tcsetattr(handle, TCSANOW, &ios));
+#elif __linux
+
+		/* The following definitions are kindly borrowed from:
+			/usr/include/asm-generic/termbits.h
+			Unfortunately we cannot just include that one because
+			it would redefine the "struct termios" already defined
+			the <termios.h> already included by Boost.ASIO. */
+#define K_NCCS 19
+		struct termios2 {
+			tcflag_t c_iflag;
+			tcflag_t c_oflag;
+			tcflag_t c_cflag;
+			tcflag_t c_lflag;
+			cc_t c_line;
+			cc_t c_cc[K_NCCS];
+			speed_t c_ispeed;
+			speed_t c_ospeed;
+		};
+#define BOTHER CBAUDEX
+
+		termios2 ios;
+		handle_errno(::ioctl(handle, TCGETS2, &ios));
+		ios.c_ispeed = ios.c_ospeed = baud_rate;
+		ios.c_cflag &= ~CBAUD;
+		ios.c_cflag |= BOTHER | CLOCAL | CREAD;
+		ios.c_cc[VMIN] = 1; // Minimum of characters to read, prevents eof errors when 0 bytes are read
+		ios.c_cc[VTIME] = 1;
+		handle_errno(::ioctl(handle, TCSETS2, &ios));
+
+#elif __OpenBSD__
+		struct termios ios;
+		handle_errno(::tcgetattr(handle, &ios));
+		handle_errno(::cfsetspeed(&ios, baud_rate));
+		handle_errno(::tcsetattr(handle, TCSAFLUSH, &ios));
+#else
+		throw std::runtime_error("Custom baud rates are not currently supported on this OS");
+#endif
+	}
+}
+
+void Serial::set_DTR(bool on)
+{
+	auto handle = native_handle();
+#if defined(_WIN32) && !defined(__SYMBIAN32__)
+	if (! EscapeCommFunction(handle, on ? SETDTR : CLRDTR)) {
+		throw std::runtime_error("Could not set serial port DTR");
+	}
+#else
+	int status;
+	if (::ioctl(handle, TIOCMGET, &status) == 0) {
+		on ? status |= TIOCM_DTR : status &= ~TIOCM_DTR;
+		if (::ioctl(handle, TIOCMSET, &status) == 0) {
+			return;
+		}
+	}
+
+	throw std::runtime_error(
+		(boost::format("Could not set serial port DTR: %1%") % strerror(errno)).str()
+	);
+#endif
+}
+
+void Serial::reset_line_num()
+{
+	// See https://github.com/MarlinFirmware/Marlin/wiki/M110
+	printer_write_line("M110 N0", 0);
+	m_line_num = 0;
+}
+
+bool Serial::read_line(unsigned timeout, std::string &line, error_code &ec)
+{
+	auto &io_service = get_io_service();
+	asio::deadline_timer timer(io_service);
+	char c = 0;
+	bool fail = false;
+
+	while (true) {
+		io_service.reset();
+
+		asio::async_read(*this, boost::asio::buffer(&c, 1), [&](const error_code &read_ec, size_t size) {
+			if (ec || size == 0) {
+				fail = true;
+				ec = read_ec;
+			}
+			timer.cancel();
+		});
+
+		if (timeout > 0) {
+			timer.expires_from_now(boost::posix_time::milliseconds(timeout));
+			timer.async_wait([&](const error_code &ec) {
+				// Ignore timer aborts
+				if (!ec) {
+					fail = true;
+					this->cancel();
+				}
+			});
+		}
+
+		io_service.run();
+
+		if (fail) {
+			return false;
+		} else if (c != '\n') {
+			line += c;
+		} else {
+			return true;
+		}
+	}
+}
+
+void Serial::printer_setup(unsigned baud_rate)
+{
+	set_baud_rate(baud_rate);
+	printer_reset();
+	write_string("\r\r\r\r\r\r\r\r\r\r");    // Gets rid of line noise, if any
+}
+
+size_t Serial::write_string(const std::string &str)
+{
+	// TODO: might be wise to timeout here as well
+	return asio::write(*this, asio::buffer(str));
+}
+
+bool Serial::printer_ready_wait(unsigned retries, unsigned timeout)
+{
+	std::string line;
+	error_code ec;
+
+	for (; retries > 0; retries--) {
+		reset_line_num();
+
+		while (read_line(timeout, line, ec)) {
+			if (line == "ok") {
+				return true;
+			}
+			line.clear();
+		}
+		line.clear();
+	}
+
+	return false;
+}
+
+size_t Serial::printer_write_line(const std::string &line, unsigned line_num)
+{
+	const auto formatted_line = Utils::Serial::printer_format_line(line, line_num);
+	return write_string(formatted_line);
+}
+
+size_t Serial::printer_write_line(const std::string &line)
+{
+	m_line_num++;
+	return printer_write_line(line, m_line_num);
+}
+
+void Serial::printer_reset()
+{
+	this->set_DTR(false);
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	this->set_DTR(true);
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	this->set_DTR(false);
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+}
+
+std::string Serial::printer_format_line(const std::string &line, unsigned line_num)
+{
+	const auto line_num_str = std::to_string(line_num);
+
+	unsigned checksum = 'N';
+	for (auto c : line_num_str) { checksum ^= c; }
+	checksum ^= ' ';
+	for (auto c : line) { checksum ^= c; }
+
+	return (boost::format("N%1% %2%*%3%\n") % line_num_str % line % checksum).str();
+}
+
 
 } // namespace Utils
 } // namespace Slic3r
