@@ -12,16 +12,21 @@ namespace Utils {
 
 struct SerialPortInfo {
 	std::string port;
-	std::string hardware_id;
+	unsigned    id_vendor = -1;
+	unsigned    id_product = -1;
 	std::string friendly_name;
-	bool 		is_printer = false;
+	bool        is_printer = false;
+
+	bool id_match(unsigned id_vendor, unsigned id_product) const { return id_vendor == this->id_vendor && id_product == this->id_product; }
 };
 
 inline bool operator==(const SerialPortInfo &sp1, const SerialPortInfo &sp2)
 {
-	return sp1.port 	   == sp2.port 	      &&
-		   sp1.hardware_id == sp2.hardware_id &&
-		   sp1.is_printer  == sp2.is_printer;
+	return
+		sp1.port       == sp2.port       &&
+		sp1.id_vendor  == sp2.id_vendor  &&
+		sp1.id_product == sp2.id_product &&
+		sp1.is_printer == sp2.is_printer;
 }
 
 extern std::vector<std::string> 	scan_serial_ports();
@@ -32,7 +37,6 @@ class Serial : public boost::asio::serial_port
 {
 public:
 	Serial(boost::asio::io_service &io_service);
-	// This c-tor opens the port for communication with a printer - it sets a baud rate and calls printer_reset()
 	Serial(boost::asio::io_service &io_service, const std::string &name, unsigned baud_rate);
 	Serial(const Serial &) = delete;
 	Serial &operator=(const Serial &) = delete;
@@ -48,8 +52,7 @@ public:
 	bool read_line(unsigned timeout, std::string &line, boost::system::error_code &ec);
 
 	// Perform setup for communicating with a printer
-	// Sets a baud rate and calls printer_reset()
-	void printer_setup(unsigned baud_rate);
+	void printer_setup();
 
 	// Write data from a string
 	size_t write_string(const std::string &str);
