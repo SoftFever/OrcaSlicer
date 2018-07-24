@@ -33,7 +33,6 @@ enum ogDrawFlag{
 
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
-using column_t = std::function<wxSizer*(const Line&)>;
 
 //auto default_label_clr = wxSystemSettings::GetColour(wxSYS_COLOUR_3DLIGHT); //GetSystemColour
 //auto modified_label_clr = *new wxColour(254, 189, 101);
@@ -76,10 +75,13 @@ private:
     std::vector<widget_t>	m_extra_widgets;//! {std::vector<widget_t>()};
 };
 
+using column_t = std::function<wxWindow*(const Line&)>;//std::function<wxSizer*(const Line&)>;
+
 using t_optionfield_map = std::map<t_config_option_key, t_field>;
 using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
 
 class OptionsGroup {
+	wxStaticBox*	stb;
 public:
     const bool		staticbox {true};
     const wxString	title {wxString("")};
@@ -136,14 +138,20 @@ public:
 							return true;
     }
 
+	void			set_name(const wxString& new_name) {
+							stb->SetLabel(new_name);
+    }
+
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
 	void			set_flag(ogDrawFlag flag) { m_flag = flag; }
 	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
-    OptionsGroup(wxWindow* _parent, const wxString& title, bool is_tab_opt=false, ogDrawFlag flag = ogDEFAULT) : 
-		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), staticbox(title!=""), m_flag(flag) {
-		auto stb = new wxStaticBox(_parent, wxID_ANY, title);
+	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
+					ogDrawFlag flag = ogDEFAULT, column_t extra_clmn = nullptr) :
+		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), 
+		staticbox(title!=""), m_flag(flag), extra_column(extra_clmn){
+		stb = new wxStaticBox(_parent, wxID_ANY, title);
 		stb->SetFont(bold_font());
         sizer = (staticbox ? new wxStaticBoxSizer(stb/*new wxStaticBox(_parent, wxID_ANY, title)*/, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
@@ -199,8 +207,9 @@ protected:
 
 class ConfigOptionsGroup: public OptionsGroup {
 public:
-	ConfigOptionsGroup(wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, bool is_tab_opt = false, ogDrawFlag flag = ogDEFAULT) :
-		OptionsGroup(parent, title, is_tab_opt, flag), m_config(_config) {}
+	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, 
+						bool is_tab_opt = false, ogDrawFlag flag = ogDEFAULT, column_t extra_clmn = nullptr) :
+		OptionsGroup(parent, title, is_tab_opt, flag, extra_clmn), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};

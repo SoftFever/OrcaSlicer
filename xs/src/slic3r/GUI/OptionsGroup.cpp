@@ -153,6 +153,18 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
         m_panel->Layout();
 #endif /* __WXGTK__ */
 
+	// if we have an extra column, build it
+	if (extra_column) {
+		if (extra_column) {
+			grid_sizer->Add(extra_column(line), 0, wxALIGN_CENTER_VERTICAL, 0);
+		}
+		else {
+			// if the callback provides no sizer for the extra cell, put a spacer
+			grid_sizer->AddSpacer(1);
+		}
+	}
+
+
     // Build a label if we have it
 	wxStaticText* label=nullptr;
     if (label_width != 0) {

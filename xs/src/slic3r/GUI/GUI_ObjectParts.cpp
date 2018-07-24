@@ -40,7 +40,10 @@ int			m_selected_object_id = -1;
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
-ModelObjectPtrs*				m_objects;
+ModelObjectPtrs*			m_objects;
+std::shared_ptr<DynamicPrintConfig> m_config;
+std::shared_ptr<DynamicPrintConfig> m_default_config;
+wxBoxSizer*					m_option_sizer = nullptr;
 
 int			m_event_object_selection_changed = 0;
 int			m_event_object_settings_changed = 0;
@@ -67,24 +70,7 @@ inline t_category_icon& get_category_icon() {
 	return CATEGORY_ICON;
 }
 
-void get_part_options(std::vector<std::string>& part_options)
-{
-	PrintRegionConfig config;
-	part_options = config.keys();
-}
-
-void get_object_options(std::vector<std::string>& object_options)
-{
-	PrintRegionConfig reg_config;
-	object_options = reg_config.keys();
-	PrintObjectConfig obj_config;
-	std::vector<std::string> obj_options = obj_config.keys();
-	object_options.insert(object_options.end(), obj_options.begin(), obj_options.end());
-}
-
-//				  category ->		vector 			 ( option	;  label )
-typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
-void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
+std::vector<std::string> get_options(const bool is_part)
 {
 	PrintRegionConfig reg_config;
 	auto options = reg_config.keys();
@@ -93,6 +79,14 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
 		std::vector<std::string> obj_options = obj_config.keys();
 		options.insert(options.end(), obj_options.begin(), obj_options.end());
 	}
+	return options;
+}
+
+//				  category ->		vector 			 ( option	;  label )
+typedef std::map< std::string, std::vector< std::pair<std::string, std::string> > > settings_menu_hierarchy;
+void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
+{
+	auto options = get_options(is_part);
 
 	DynamicPrintConfig config;
 	for (auto& option : options)
@@ -109,10 +103,6 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
 			settings_menu[category] = cat_opt_label;
 	}
 }
-
-// C++ class Slic3r::DynamicPrintConfig, initially empty.
-std::shared_ptr<DynamicPrintConfig> default_config = std::make_shared<DynamicPrintConfig>();
-std::shared_ptr<DynamicPrintConfig> config = std::make_shared<DynamicPrintConfig>();
 
 void set_event_object_selection_changed(const int& event){
 	m_event_object_selection_changed = event;
@@ -476,6 +466,9 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 	def.default_value = new ConfigOptionBool{ false };
 	optgroup->append_single_option_line(Option(def, "place_on_bed"));
 
+	m_option_sizer = new wxBoxSizer(wxVERTICAL);
+	optgroup->sizer->Add(m_option_sizer, 1, wxEXPAND | wxLEFT, 5);
+
 	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
 	optgroup->disable();
@@ -651,17 +644,55 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 
 	settings_menu_hierarchy settings_menu;
 	get_options_menu(settings_menu, is_part);
-	for (auto cat : settings_menu)
+	std::vector< std::pair<std::string, std::string> > *settings_list = nullptr;
+	for (auto& cat : settings_menu)
 	{
-		if (_(cat.first) == category_name)				{
+		if (_(cat.first) == category_name) {
 			for (auto& pair : cat.second)
 				names.Add(_(pair.second));
+			settings_list = &cat.second;
 			break;
 		}
 	}
+	if (!settings_list)
+		return;
 
 	wxArrayInt selections;
 	auto index = wxGetMultipleChoices(selections, _(L("Select showing settings")), category_name, names);
+
+	auto szr = m_option_sizer;
+	szr->Clear(true);
+	auto parent = get_optgroup(ogFrequentlyObjectSettings)->parent();
+	auto config = m_config;
+	auto extra_column = [parent](const Line& line)
+	{
+		auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
+
+		auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("erase.png")), wxBITMAP_TYPE_PNG),
+			wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+// 		EVT_BUTTON($self, $btn, sub{
+// 			$self->{config}->erase($opt_key);
+// 			$self->{on_change}->() if $self->{on_change};
+// 			wxTheApp->CallAfter(sub{ $self->update_optgroup });
+// 		});
+		return btn;
+	};
+	
+	auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, category_name, m_default_config.get(), false, ogDEFAULT, extra_column);
+	
+	optgroup->label_width = 180;
+
+	for (auto sel : selections)
+	{
+		Option option = optgroup->get_option((*settings_list)[sel].first);
+		option.opt.width = 70;
+		optgroup->append_single_option_line(option);
+// 		auto str = new wxStaticText(parent, wxID_ANY, "la-la");
+// 		m_option_sizer->Add(str, /*0*/1, wxEXPAND | wxALL, 10);
+	}
+	m_option_sizer->Add(optgroup->sizer, /*0*/1, wxEXPAND | wxALL, 0);
+	get_right_panel()->Refresh();
+	get_right_panel()->GetParent()->Layout();// Refresh();
 }
 
 wxMenu *create_add_part_popupmenu()
@@ -997,13 +1028,25 @@ void part_selection_changed()
 	int obj_idx = -1;
 	if (item)
 	{
-		if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+		auto og = get_optgroup(ogFrequentlyObjectSettings);
+		bool is_part = false;
+		if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
 			obj_idx = m_objects_model->GetIdByItem(item);
+			og->set_name(" "+ _(L("Object Settings")) + " ");
+			m_config = std::make_shared<DynamicPrintConfig>((*m_objects)[obj_idx]->config);
+		}
 		else {
 			auto parent = m_objects_model->GetParent(item);
 			// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
 			obj_idx = m_objects_model->GetIdByItem(parent);
+			og->set_name(" "+ _(L("Part Settings")) + " ");
+			is_part = true;
+			auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+			m_config = std::make_shared<DynamicPrintConfig>((*m_objects)[obj_idx]->volumes[volume_id]->config);
 		}
+
+		auto config = m_config;
+		m_default_config = std::make_shared<DynamicPrintConfig>(*DynamicPrintConfig::new_from_defaults_keys(get_options(is_part)));
 	}
 	m_selected_object_id = obj_idx;
 
