@@ -223,7 +223,7 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 
 // Wizard pages
 
-PageWelcome::PageWelcome(ConfigWizard *parent) :
+PageWelcome::PageWelcome(ConfigWizard *parent, bool check_first_variant) :
 	ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome"))),
 	printer_picker(nullptr),
 	others_buttons(new wxPanel(parent)),
@@ -247,7 +247,10 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
 		printer_picker = new PrinterPicker(this, vendor_prusa->second, appconfig_vendors);
-		printer_picker->select_one(0, true);    // Select the default (first) model/variant on the Prusa vendor
+		if (check_first_variant) {
+			// Select the default (first) model/variant on the Prusa vendor
+			printer_picker->select_one(0, true);
+		}
 		printer_picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
 			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
 			this->on_variant_checked();
@@ -788,7 +791,6 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
 		app_config->reset_selections();
-		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
 		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {
@@ -840,7 +842,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	p->btnsizer->Add(p->btn_finish, 0, wxLEFT, BTN_SPACING);
 	p->btnsizer->Add(p->btn_cancel, 0, wxLEFT, BTN_SPACING);
 
-	p->add_page(p->page_welcome  = new PageWelcome(this));
+	p->add_page(p->page_welcome  = new PageWelcome(this, reason == RR_DATA_EMPTY || reason == RR_DATA_LEGACY));
 	p->add_page(p->page_update   = new PageUpdate(this));
 	p->add_page(p->page_vendors  = new PageVendors(this));
 	p->add_page(p->page_firmware = new PageFirmware(this));

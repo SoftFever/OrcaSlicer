@@ -570,6 +570,7 @@ bool PresetUpdater::config_update() const
 			if (! wizard.run(GUI::get_preset_bundle(), this)) {
 				return false;
 			}
+			GUI::load_current_presets();
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
 			return false;
@@ -599,7 +600,6 @@ bool PresetUpdater::config_update() const
 
 			// Reload global configuration
 			auto *app_config = GUI::get_app_config();
-			app_config->reset_selections();
 			GUI::get_preset_bundle()->load_presets(*app_config);
 			GUI::load_current_presets();
 		} else {

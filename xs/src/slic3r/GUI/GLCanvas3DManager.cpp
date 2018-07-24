@@ -237,7 +237,7 @@ void GLCanvas3DManager::update_volumes_selection(wxGLCanvas* canvas, const std::
         it->second->update_volumes_selection(selections);
 }
 
-bool GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
+int GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->check_volumes_outside_state(config) : false;
