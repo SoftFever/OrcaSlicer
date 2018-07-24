@@ -250,7 +250,7 @@ void GLVolume::set_render_color()
         set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
     else if (hover)
         set_render_color(HOVER_COLOR, 4);
-    else if (is_outside)
+    else if (is_outside && outside_printer_detection_enabled)
         set_render_color(OUTSIDE_COLOR, 4);
     else
         set_render_color(color, 4);
@@ -1968,24 +1968,14 @@ void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
     s_canvas_mgr.reload_scene(canvas, force);
 }
 
-void _3DScene::load_print_toolpaths(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.load_print_toolpaths(canvas);
-}
-
-void _3DScene::load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors)
-{
-    s_canvas_mgr.load_print_object_toolpaths(canvas, print_object, str_tool_colors);
-}
-
-void _3DScene::load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
-{
-    s_canvas_mgr.load_wipe_tower_toolpaths(canvas, str_tool_colors);
-}
-
 void _3DScene::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)
 {
     s_canvas_mgr.load_gcode_preview(canvas, preview_data, str_tool_colors);
+}
+
+void _3DScene::load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
+{
+    s_canvas_mgr.load_preview(canvas, str_tool_colors);
 }
 
 void _3DScene::reset_legend_texture()

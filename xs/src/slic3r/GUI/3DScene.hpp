@@ -536,10 +536,8 @@ public:
 
     static void reload_scene(wxGLCanvas* canvas, bool force);
 
-    static void load_print_toolpaths(wxGLCanvas* canvas);
-    static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
-    static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
+    static void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
     static void reset_legend_texture();
 

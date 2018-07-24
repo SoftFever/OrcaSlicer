@@ -559,16 +559,8 @@ public:
 
     void reload_scene(bool force);
 
-    // Create 3D thick extrusion lines for a skirt and brim.
-    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
-    void load_print_toolpaths();
-    // Create 3D thick extrusion lines for object forming extrusions.
-    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
-    // one for perimeters, one for infill and one for supports.
-    void load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors);
-    // Create 3D thick extrusion lines for wipe tower extrusions
-    void load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
+    void load_preview(const std::vector<std::string>& str_tool_colors);
 
     void register_on_viewport_changed_callback(void* callback);
     void register_on_double_click_callback(void* callback);
@@ -652,6 +644,16 @@ private:
     int _get_first_selected_object_id() const;
     int _get_first_selected_volume_id() const;
 
+    // Create 3D thick extrusion lines for a skirt and brim.
+    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
+    void _load_print_toolpaths();
+    // Create 3D thick extrusion lines for object forming extrusions.
+    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
+    // one for perimeters, one for infill and one for supports.
+    void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors);
+    // Create 3D thick extrusion lines for wipe tower extrusions
+    void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
+
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
     // generates gcode travel paths geometry
@@ -667,6 +669,8 @@ private:
     void _load_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
+    void _update_toolpath_volumes_outside_state();
+    void _show_warning_texture_if_needed();
 
     void _on_move(const std::vector<int>& volume_idxs);
     void _on_select(int volume_idx);
