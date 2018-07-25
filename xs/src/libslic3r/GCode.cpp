@@ -377,10 +377,13 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
     fclose(file);
 
-    m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+    if (print->config.gcode_flavor.value == gcfMarlin)
+    {
+        m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
 
-    if (m_silent_time_estimator_enabled)
-        m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+        if (m_silent_time_estimator_enabled)
+            m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+    }
 
     if (! this->m_placeholder_parser_failed_templates.empty()) {
         // G-code export proceeded, but some of the PlaceholderParser substitutions failed.
