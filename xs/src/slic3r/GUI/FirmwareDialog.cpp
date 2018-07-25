@@ -114,10 +114,10 @@ struct FirmwareDialog::priv
 	void flashing_done(AvrDudeComplete complete);
 	void check_model_id(const HexFile &metadata, const SerialPortInfo &port);
 
-	void prepare_common(AvrDude &, const SerialPortInfo &port);
-	void prepare_mk2(AvrDude &, const SerialPortInfo &port);
-	void prepare_mk3(AvrDude &, const SerialPortInfo &port);
-	void prepare_mm_control(AvrDude &, const SerialPortInfo &port);
+	void prepare_common(AvrDude &, const SerialPortInfo &port, const std::string &filename);
+	void prepare_mk2(AvrDude &, const SerialPortInfo &port, const std::string &filename);
+	void prepare_mk3(AvrDude &, const SerialPortInfo &port, const std::string &filename);
+	void prepare_mm_control(AvrDude &, const SerialPortInfo &port, const std::string &filename);
 	void perform_upload();
 
 	void cancel();
@@ -224,10 +224,8 @@ void FirmwareDialog::priv::check_model_id(const HexFile &metadata, const SerialP
 	}
 }
 
-void FirmwareDialog::priv::prepare_common(AvrDude &avrdude, const SerialPortInfo &port)
+void FirmwareDialog::priv::prepare_common(AvrDude &avrdude, const SerialPortInfo &port, const std::string &filename)
 {
-	auto filename = hex_picker->GetPath();
-
 	std::vector<std::string> args {{
 		extra_verbose ? "-vvvvv" : "-v",
 		"-p", "atmega2560",
@@ -238,7 +236,7 @@ void FirmwareDialog::priv::prepare_common(AvrDude &avrdude, const SerialPortInfo
 		"-P", port.port,
 		"-b", "115200",   // TODO: Allow other rates? Ditto below.
 		"-D",
-		"-U", (boost::format("flash:w:0:%1%:i") % filename.utf8_str().data()).str(),
+		"-U", (boost::format("flash:w:0:%1%:i") % filename).str(),
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
@@ -249,18 +247,14 @@ void FirmwareDialog::priv::prepare_common(AvrDude &avrdude, const SerialPortInfo
 	avrdude.push_args(std::move(args));
 }
 
-void FirmwareDialog::priv::prepare_mk2(AvrDude &avrdude, const SerialPortInfo &port)
+void FirmwareDialog::priv::prepare_mk2(AvrDude &avrdude, const SerialPortInfo &port, const std::string &filename)
 {
-	flashing_start(1);
-	prepare_common(avrdude, port);
+	prepare_common(avrdude, port, filename);
 }
 
-void FirmwareDialog::priv::prepare_mk3(AvrDude &avrdude, const SerialPortInfo &port)
+void FirmwareDialog::priv::prepare_mk3(AvrDude &avrdude, const SerialPortInfo &port, const std::string &filename)
 {
-	flashing_start(2);
-	prepare_common(avrdude, port);
-
-	auto filename = hex_picker->GetPath();
+	prepare_common(avrdude, port, filename);
 
 	// The hex file also contains another section with l10n data to be flashed into the external flash on MK3 (Einsy)
 	// This is done via another avrdude invocation, here we build arg list for that:
@@ -274,7 +268,7 @@ void FirmwareDialog::priv::prepare_mk3(AvrDude &avrdude, const SerialPortInfo &p
 		"-b", "115200",
 		"-D",
 		"-u", // disable safe mode
-		"-U", (boost::format("flash:w:1:%1%:i") % filename.utf8_str().data()).str(),
+		"-U", (boost::format("flash:w:1:%1%:i") % filename).str(),
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude for external flash flashing, arguments: "
@@ -285,7 +279,7 @@ void FirmwareDialog::priv::prepare_mk3(AvrDude &avrdude, const SerialPortInfo &p
 	avrdude.push_args(std::move(args_l10n));
 }
 
-void FirmwareDialog::priv::prepare_mm_control(AvrDude &avrdude, const SerialPortInfo &port_in)
+void FirmwareDialog::priv::prepare_mm_control(AvrDude &avrdude, const SerialPortInfo &port_in, const std::string &filename)
 {
 	// Check if the port has the PID/VID of 0x2c99/3
 	// If not, check if it is the MMU (0x2c99/4) and reboot the by opening @ 1200 bauds
@@ -333,8 +327,6 @@ void FirmwareDialog::priv::prepare_mm_control(AvrDude &avrdude, const SerialPort
 
 	BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/3 at `%1%`, flashing ...") % port.port;
 
-	auto filename = hex_picker->GetPath();
-
 	std::vector<std::string> args {{
 		extra_verbose ? "-vvvvv" : "-v",
 		"-p", "atmega32u4",
@@ -342,7 +334,7 @@ void FirmwareDialog::priv::prepare_mm_control(AvrDude &avrdude, const SerialPort
 		"-P", port.port,
 		"-b", "57600",
 		"-D",
-		"-U", (boost::format("flash:w:0:%1%:i") % filename.utf8_str().data()).str(),
+		"-U", (boost::format("flash:w:0:%1%:i") % filename).str(),
 	}};
 
 	BOOST_LOG_TRIVIAL(info) << "Invoking avrdude, arguments: "
@@ -369,7 +361,7 @@ void FirmwareDialog::priv::perform_upload()
 
 	const bool extra_verbose = false;   // For debugging
 	HexFile metadata(filename.wx_str());
-	// const auto filename_utf8 = filename.utf8_str();
+	const std::string filename_utf8(filename.utf8_str().data());
 
 	flashing_start(metadata.device == HexFile::DEV_MK3 ? 2 : 1);
 
@@ -381,7 +373,7 @@ void FirmwareDialog::priv::perform_upload()
 	auto q = this->q;
 
 	this->avrdude = avrdude
-		.on_run([this, metadata, port](AvrDude &avrdude) {
+		.on_run([=](AvrDude &avrdude) {
 			auto queue_error = [&](wxString message) {
 				avrdude.cancel();
 
@@ -395,16 +387,16 @@ void FirmwareDialog::priv::perform_upload()
 				switch (metadata.device) {
 				case HexFile::DEV_MK3:
 					this->check_model_id(metadata, port);
-					this->prepare_mk3(avrdude, port);
+					this->prepare_mk3(avrdude, port, filename_utf8);
 					break;
 
 				case HexFile::DEV_MM_CONTROL:
 					this->check_model_id(metadata, port);
-					this->prepare_mm_control(avrdude, port);
+					this->prepare_mm_control(avrdude, port, filename_utf8);
 					break;
 
 				default:
-					this->prepare_mk2(avrdude, port);
+					this->prepare_mk2(avrdude, port, filename_utf8);
 					break;
 				}
 			} catch (const wxString &message) {
