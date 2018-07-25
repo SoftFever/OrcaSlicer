@@ -322,8 +322,9 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 		const auto ver_current = idx.find(vp.config_version);
 		if (ver_current == idx.end()) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Preset bundle (`%1%`) version not found in index: %2%") % idx.vendor() % vp.config_version.to_string();
-			continue;
+			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
+			BOOST_LOG_TRIVIAL(error) << message;
+			throw std::runtime_error(message);
 		}
 
 		// Getting a recommended version from the latest index, wich may have been downloaded

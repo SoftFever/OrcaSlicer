@@ -145,8 +145,8 @@ sub OnInit {
             }
         };
         if ($@) {
-            warn $@ . "\n";
-            fatal_error(undef, $@);
+            show_error(undef, $@);
+            $self->{mainframe}->Close;
         }
     });
 
