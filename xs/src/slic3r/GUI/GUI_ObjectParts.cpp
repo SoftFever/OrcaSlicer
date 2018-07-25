@@ -165,8 +165,9 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	m_objects_ctrl->AppendTextColumn(_(L("Scale")), 2, wxDATAVIEW_CELL_INERT, 55,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
-	// column 2 of the view control:
+	// column 3 of the view control:
 	wxArrayString choices;
+	choices.Add("default");
 	choices.Add("1");
 	choices.Add("2");
 	choices.Add("3");
@@ -177,6 +178,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 		new wxDataViewColumn(_(L("Extruder")), c, 3, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 	m_objects_ctrl->AppendColumn(column3);
 
+	// column 4 of the view control:
 	m_objects_ctrl->AppendBitmapColumn("", 4, wxDATAVIEW_CELL_INERT, 25,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
@@ -204,6 +206,23 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 			remove();
 		else 
 			event.Skip();
+	});
+
+	m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
+	{
+		if (event.GetColumn() == 3)
+		{
+			if (!*m_config)
+				return;
+			wxVariant variant;
+			m_objects_model->GetValue(variant, event.GetItem(), 3);
+			auto str = variant.GetString();
+			int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
+
+// 			if ((*m_config)->has("extruder"))
+			auto config = m_config;
+			(*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));			
+		}
 	});
 
 	return objects_sz;
