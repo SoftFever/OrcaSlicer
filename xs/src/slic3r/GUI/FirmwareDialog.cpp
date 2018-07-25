@@ -132,7 +132,7 @@ void FirmwareDialog::priv::find_serial_ports()
 		this->ports = new_ports;
 		port_picker->Clear();
 		for (const auto &port : this->ports)
-			port_picker->Append(port.friendly_name);
+			port_picker->Append(wxString::FromUTF8(port.friendly_name.data()));
 		if (ports.size() > 0) {
 			int idx = port_picker->GetValue().IsEmpty() ? 0 : -1;
 			for (int i = 0; i < (int)this->ports.size(); ++ i)
@@ -354,10 +354,11 @@ void FirmwareDialog::priv::perform_upload()
 	int selection = port_picker->GetSelection();
 	if (selection == wxNOT_FOUND) { return; }
 
-	std::string port_selected = port_picker->GetValue().ToStdString();
 	const SerialPortInfo &port = this->ports[selection];
 	// Verify whether the combo box list selection equals to the combo box edit value.
-	if (this->ports[selection].friendly_name != port_selected) { return; }
+	if (wxString::FromUTF8(this->ports[selection].friendly_name.data()) != port_picker->GetValue()) { 
+		return; 
+	}
 
 	const bool extra_verbose = false;   // For debugging
 	HexFile metadata(filename.wx_str());
