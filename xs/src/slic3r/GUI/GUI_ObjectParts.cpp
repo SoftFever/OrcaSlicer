@@ -41,9 +41,12 @@ bool		g_prevent_list_events = false;		// We use this flag to avoid circular even
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
 ModelObjectPtrs*			m_objects;
-std::shared_ptr<DynamicPrintConfig> m_config;
+std::shared_ptr<DynamicPrintConfig*> m_config;
 std::shared_ptr<DynamicPrintConfig> m_default_config;
 wxBoxSizer*					m_option_sizer = nullptr;
+
+// option groups for settings
+std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 
 int			m_event_object_selection_changed = 0;
 int			m_event_object_settings_changed = 0;
@@ -119,8 +122,8 @@ void set_objects_from_model(Model &model) {
 }
 
 void init_mesh_icons(){
-	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
-	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("lambda_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
 	// init icon for manifold warning
 	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
@@ -636,63 +639,136 @@ void object_ctrl_selection_changed()
 	}
 }
 
+//update_optgroup
+void update_settings_list()
+{
+	auto parent = get_optgroup(ogFrequentlyObjectSettings)->parent();
+// There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
+// The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
+// we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
+#ifdef __linux__	
+	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
+#else
+	wxWindowUpdateLocker noUpdates(parent);
+#endif
+
+	m_option_sizer->Clear(true);
+
+	if (m_config) 
+	{
+		auto extra_column = [parent](const Line& line)
+		{
+			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
+
+			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("erase.png")), wxBITMAP_TYPE_PNG),
+				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+			btn->Bind(wxEVT_BUTTON, [opt_key](wxEvent &event){
+				(*m_config)->erase(opt_key);
+				wxTheApp->CallAfter([]() { update_settings_list(); });
+			});
+			return btn;
+		};
+
+		std::map<std::string, std::vector<std::string>> cat_options;
+		auto opt_keys = (*m_config)->keys();
+		if (opt_keys.size() == 1 && opt_keys[0] == "extruder")
+			return;
+
+		for (auto& opt_key : opt_keys) {
+			auto category = (*m_config)->def()->get(opt_key)->category;
+			if (category.empty()) continue;
+
+			std::vector< std::string > new_category;
+
+			auto& cat_opt = cat_options.find(category) == cat_options.end() ? new_category : cat_options.at(category);
+			cat_opt.push_back(opt_key);
+			if (cat_opt.size() == 1)
+				cat_options[category] = cat_opt;
+		}
+
+
+		m_og_settings.resize(0);
+		for (auto& cat : cat_options) {
+			if (cat.second.size() == 1 && cat.second[0] == "extruder")
+				continue;
+
+			auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, cat.first, *m_config, false, ogDEFAULT, extra_column);
+			optgroup->label_width = 100;
+			optgroup->sidetext_width = 70;
+
+			for (auto& opt : cat.second)
+			{
+				if (opt == "extruder")
+					continue;
+				Option option = optgroup->get_option(opt);
+				option.opt.width = 70;
+				optgroup->append_single_option_line(option);
+			}
+			optgroup->reload_config();
+			m_option_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
+			m_og_settings.push_back(optgroup);
+		}
+	}
+
+#ifdef __linux__
+	no_updates.reset(nullptr);
+#endif
+
+	get_right_panel()->Refresh();
+	get_right_panel()->GetParent()->Layout();;
+}
+
 void get_settings_choice(wxMenu *menu, int id, bool is_part)
 {
 	auto category_name = menu->GetLabel(id);
 
 	wxArrayString names;
+	wxArrayInt selections;
 
 	settings_menu_hierarchy settings_menu;
 	get_options_menu(settings_menu, is_part);
 	std::vector< std::pair<std::string, std::string> > *settings_list = nullptr;
+
+	auto opt_keys = (*m_config)->keys();
+
 	for (auto& cat : settings_menu)
 	{
 		if (_(cat.first) == category_name) {
-			for (auto& pair : cat.second)
+			int sel = 0;
+			for (auto& pair : cat.second) {
 				names.Add(_(pair.second));
+				if (find(opt_keys.begin(), opt_keys.end(), pair.first) != opt_keys.end())
+					selections.Add(sel);
+				sel++;
+			}
 			settings_list = &cat.second;
 			break;
 		}
-	}
+	} 
+
 	if (!settings_list)
 		return;
 
-	wxArrayInt selections;
-	auto index = wxGetMultipleChoices(selections, _(L("Select showing settings")), category_name, names);
+	if (wxGetMultipleChoices(selections, _(L("Select showing settings")), category_name, names) ==0 )
+		return;
 
-	auto szr = m_option_sizer;
-	szr->Clear(true);
-	auto parent = get_optgroup(ogFrequentlyObjectSettings)->parent();
-	auto config = m_config;
-	auto extra_column = [parent](const Line& line)
-	{
-		auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
-
-		auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("erase.png")), wxBITMAP_TYPE_PNG),
-			wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
-// 		EVT_BUTTON($self, $btn, sub{
-// 			$self->{config}->erase($opt_key);
-// 			$self->{on_change}->() if $self->{on_change};
-// 			wxTheApp->CallAfter(sub{ $self->update_optgroup });
-// 		});
-		return btn;
-	};
-	
-	auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, category_name, m_default_config.get(), false, ogDEFAULT, extra_column);
-	
-	optgroup->label_width = 180;
-
+	std::vector <std::string> selected_options;
 	for (auto sel : selections)
+		selected_options.push_back((*settings_list)[sel].first);
+
+	for (auto& setting:(*settings_list) )
 	{
-		Option option = optgroup->get_option((*settings_list)[sel].first);
-		option.opt.width = 70;
-		optgroup->append_single_option_line(option);
-// 		auto str = new wxStaticText(parent, wxID_ANY, "la-la");
-// 		m_option_sizer->Add(str, /*0*/1, wxEXPAND | wxALL, 10);
+		auto& opt_key = setting.first;
+		if (find(opt_keys.begin(), opt_keys.end(), opt_key) != opt_keys.end() &&
+			find(selected_options.begin(), selected_options.end(), opt_key) == selected_options.end())
+			(*m_config)->erase(opt_key);
+		
+		if(find(opt_keys.begin(), opt_keys.end(), opt_key) == opt_keys.end() &&
+				find(selected_options.begin(), selected_options.end(), opt_key) != selected_options.end())
+			(*m_config)->set_key_value(opt_key, m_default_config.get()->option(opt_key)->clone());
 	}
-	m_option_sizer->Add(optgroup->sizer, /*0*/1, wxEXPAND | wxALL, 0);
-	get_right_panel()->Refresh();
-	get_right_panel()->GetParent()->Layout();// Refresh();
+
+	update_settings_list();
 }
 
 wxMenu *create_add_part_popupmenu()
@@ -700,9 +776,14 @@ wxMenu *create_add_part_popupmenu()
 	wxMenu *menu = new wxMenu;
 	wxWindowID config_id_base = wxWindow::NewControlId(4);
 
-	menu->Append(config_id_base, _(L("Add part")));
-	menu->Append(config_id_base + 1, _(L("Add modifier")));
-	menu->Append(config_id_base + 2, _(L("Add generic")));
+	std::vector<std::string> menu_items = { L("Add part"), L("Add modifier"), L("Add generic") };
+	int i = 0;
+	for (auto& item : menu_items) {
+		auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
+		menu_item->SetBitmap(i == 0 ? m_icon_solidmesh : m_icon_modifiermesh);
+		menu->Append(menu_item);
+		i++;
+	}
 
 	wxWindow* win = get_tab_panel()->GetPage(0);
 
@@ -1032,22 +1113,27 @@ void part_selection_changed()
 		bool is_part = false;
 		if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
 			obj_idx = m_objects_model->GetIdByItem(item);
-			og->set_name(" "+ _(L("Object Settings")) + " ");
-			m_config = std::make_shared<DynamicPrintConfig>((*m_objects)[obj_idx]->config);
+			og->set_name(" " + _(L("Object Settings")) + " ");
+			m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->config);
 		}
 		else {
 			auto parent = m_objects_model->GetParent(item);
 			// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
 			obj_idx = m_objects_model->GetIdByItem(parent);
-			og->set_name(" "+ _(L("Part Settings")) + " ");
+			og->set_name(" " + _(L("Part Settings")) + " ");
 			is_part = true;
 			auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-			m_config = std::make_shared<DynamicPrintConfig>((*m_objects)[obj_idx]->volumes[volume_id]->config);
+			m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->volumes[volume_id]->config);
 		}
 
 		auto config = m_config;
 		m_default_config = std::make_shared<DynamicPrintConfig>(*DynamicPrintConfig::new_from_defaults_keys(get_options(is_part)));
 	}
+	else
+		m_config = nullptr;
+
+	update_settings_list();
+
 	m_selected_object_id = obj_idx;
 
 	update_settings_value();

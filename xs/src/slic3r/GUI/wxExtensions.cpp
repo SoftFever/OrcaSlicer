@@ -349,7 +349,7 @@ void PrusaCollapsiblePaneMSW::Collapse(bool collapse)
 // ----------------------------------------------------------------------------
 
 void PrusaObjectDataViewModelNode::set_object_action_icon() {
-	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG);
+	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("add_object.png")), wxBITMAP_TYPE_PNG);
 }
 void  PrusaObjectDataViewModelNode::set_part_action_icon() {
 	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
@@ -391,7 +391,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_
 
 	if (root->GetChildren().Count() == 0)
 	{
-		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, 0);
 		root->Append(node);
 		// notify control
