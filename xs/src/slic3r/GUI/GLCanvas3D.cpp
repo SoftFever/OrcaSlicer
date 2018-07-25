@@ -2816,7 +2816,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 if (v != nullptr)
                 {
-                    if ((m_mouse.drag.move_with_shift && (v->select_group_id == group_id)) || (v->drag_group_id == group_id))
+                    if ((m_mouse.drag.move_with_shift && (v->select_group_id == group_id)) || (!m_mouse.drag.move_with_shift && (v->drag_group_id == group_id)))
                         volumes.push_back(v);
                 }
             }
