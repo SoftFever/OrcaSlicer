@@ -33,27 +33,15 @@ public:
         Num_States
     };
 
-    class TooltipTexture : public GLTexture
-    {
-        static const unsigned char Border_Color[3];
-        static const int Border_Offset;
-
-    public:
-        bool generate(const std::string& text);
-    };
-
 private:
     // icon textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_icon_textures[Num_States];
-    TooltipTexture m_tooltip_texture;
 
     EType m_type;
     EState m_state;
 
     std::string m_name;
     std::string m_tooltip;
-
-    bool m_tooltip_shown;
 
 public:
     GLToolbarItem(EType type, const std::string& name, const std::string& tooltip);
@@ -65,17 +53,10 @@ public:
 
     const std::string& get_name() const;
 
-    void show_tooltip();
-    void hide_tooltip();
-
-    bool is_tooltip_shown() const;
+    const std::string& get_tooltip() const;
 
     unsigned int get_icon_texture_id() const;
     int get_icon_textures_size() const;
-
-    unsigned int get_tooltip_texture_id() const;
-    int get_tooltip_texture_width() const;
-    int get_tooltip_texture_height() const;
 
     bool is_separator() const;
 };
@@ -118,7 +99,7 @@ public:
     void enable_item(const std::string& name);
     void disable_item(const std::string& name);
 
-    void update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
+    void update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos);
 
     void render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
 

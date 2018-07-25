@@ -3438,6 +3438,14 @@ void GLCanvas3D::reset_legend_texture()
     m_legend_texture.reset();
 }
 
+//###################################################################################################################################
+void GLCanvas3D::set_tooltip(const std::string& tooltip)
+{
+    if (m_canvas != nullptr)
+        m_canvas->SetToolTip(tooltip);
+}
+//###################################################################################################################################
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
@@ -3518,7 +3526,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "ccw45";
-    item.tooltip = GUI::L_str("Rotate CCW 45°");
+    item.tooltip = GUI::L_str("Rotate CCW 45 degrees");
     item.textures[GLToolbarItem::Normal] = "arrow_rotate_anticlockwise_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "arrow_rotate_anticlockwise_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "arrow_rotate_anticlockwise_pressed_36.png";
@@ -3527,7 +3535,7 @@ bool GLCanvas3D::_init_toolbar()
         return false;
 
     item.name = "cw45";
-    item.tooltip = GUI::L_str("Rotate CW 45°");
+    item.tooltip = GUI::L_str("Rotate CW 45 degrees");
     item.textures[GLToolbarItem::Normal] = "arrow_rotate_clockwise_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "arrow_rotate_clockwise_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "arrow_rotate_clockwise_pressed_36.png";
@@ -3886,7 +3894,7 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.reset_all_states();
 
 //###################################################################################################################################
-        m_toolbar.update_hover_state(*this, pos);
+        m_toolbar.update_hover_state(const_cast<GLCanvas3D&>(*this), pos);
 //###################################################################################################################################
     }
 }

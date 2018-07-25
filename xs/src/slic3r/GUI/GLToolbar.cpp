@@ -12,85 +12,11 @@
 namespace Slic3r {
 namespace GUI {
 
-const unsigned char GLToolbarItem::TooltipTexture::Border_Color[3] = { 0, 0, 0 };
-const int GLToolbarItem::TooltipTexture::Border_Offset = 5;
-
-bool GLToolbarItem::TooltipTexture::generate(const std::string& text)
-{
-    reset();
-
-    if (text.empty())
-        return false;
-
-    wxMemoryDC memDC;
-    // select default font
-    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
-
-    // calculates texture size
-    wxCoord w, h;
-    memDC.GetTextExtent(text, &w, &h);
-    m_width = (int)w + 2 * Border_Offset;
-    m_height = (int)h + 2 * Border_Offset;
-
-    // generates bitmap
-    wxBitmap bitmap(m_width, m_height);
-
-    memDC.SelectObject(bitmap);
-    memDC.SetBackground(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOBK));
-    memDC.Clear();
-
-    // draw message
-    memDC.SetTextForeground(wxSystemSettings::GetColour(wxSYS_COLOUR_INFOTEXT));
-    memDC.DrawText(text, (wxCoord)Border_Offset, (wxCoord)Border_Offset);
-
-    wxPen pen(wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVEBORDER));
-    memDC.SetPen(pen);
-    wxCoord ww = (wxCoord)m_width - 1;
-    wxCoord hh = (wxCoord)m_height - 1;
-    memDC.DrawLine(0, 0, ww, 0);
-    memDC.DrawLine(ww, 0, ww, hh);
-    memDC.DrawLine(ww, hh, 0, hh);
-    memDC.DrawLine(0, hh, 0, 0);
-
-    memDC.SelectObject(wxNullBitmap);
-
-    // Convert the bitmap into a linear data ready to be loaded into the GPU.
-    wxImage image = bitmap.ConvertToImage();
-
-    // prepare buffer
-    std::vector<unsigned char> data(4 * m_width * m_height, 0);
-    for (int h = 0; h < m_height; ++h)
-    {
-        int hh = h * m_width;
-        unsigned char* px_ptr = data.data() + 4 * hh;
-        for (int w = 0; w < m_width; ++w)
-        {
-            *px_ptr++ = image.GetRed(w, h);
-            *px_ptr++ = image.GetGreen(w, h);
-            *px_ptr++ = image.GetBlue(w, h);
-            *px_ptr++ = 255;
-        }
-    }
-
-    // sends buffer to gpu
-    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    ::glGenTextures(1, &m_id);
-    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
-    ::glBindTexture(GL_TEXTURE_2D, 0);
-
-    return true;
-}
-
 GLToolbarItem::GLToolbarItem(EType type, const std::string& name, const std::string& tooltip)
     : m_type(type)
     , m_state(Disabled)
     , m_name(name)
     , m_tooltip(tooltip)
-    , m_tooltip_shown(false)
 {
 }
 
@@ -105,12 +31,6 @@ bool GLToolbarItem::load_textures(const std::string* filenames)
     {
         std::string filename = path + filenames[i];
         if (!m_icon_textures[i].load_from_file(filename, false))
-            return false;
-    }
-
-    if ((m_type == Action) && !m_tooltip.empty())
-    {
-        if (!m_tooltip_texture.generate(m_tooltip))
             return false;
     }
 
@@ -132,19 +52,9 @@ const std::string& GLToolbarItem::get_name() const
     return m_name;
 }
 
-void GLToolbarItem::show_tooltip()
+const std::string& GLToolbarItem::get_tooltip() const
 {
-    m_tooltip_shown = true;
-}
-
-void GLToolbarItem::hide_tooltip()
-{
-    m_tooltip_shown = false;
-}
-
-bool GLToolbarItem::is_tooltip_shown() const
-{
-    return m_tooltip_shown && (m_tooltip_texture.get_id() > 0);
+    return m_tooltip;
 }
 
 unsigned int GLToolbarItem::get_icon_texture_id() const
@@ -155,21 +65,6 @@ unsigned int GLToolbarItem::get_icon_texture_id() const
 int GLToolbarItem::get_icon_textures_size() const
 {
     return m_icon_textures[Normal].get_width();
-}
-
-unsigned int GLToolbarItem::get_tooltip_texture_id() const
-{
-    return m_tooltip_texture.get_id();
-}
-
-int GLToolbarItem::get_tooltip_texture_width() const
-{
-    return m_tooltip_texture.get_width();
-}
-
-int GLToolbarItem::get_tooltip_texture_height() const
-{
-    return m_tooltip_texture.get_height();
 }
 
 bool GLToolbarItem::is_separator() const
@@ -224,9 +119,6 @@ bool GLToolbar::add_item(const GLToolbar::ItemCreationData& data)
 
     m_items.push_back(item);
 
-    if (data.name == "add")
-        item->show_tooltip();
-
     return true;
 }
 
@@ -264,7 +156,7 @@ void GLToolbar::disable_item(const std::string& name)
     }
 }
 
-void GLToolbar::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+void GLToolbar::update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -273,6 +165,8 @@ void GLToolbar::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse
     float width = _get_total_width();
     float left = 0.5f * (cnv_w - width);
     float top = m_offset_y;
+
+    std::string tooltip = "";
 
     for (GLToolbarItem* item : m_items)
     {
@@ -297,6 +191,14 @@ void GLToolbar::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse
                 break;
             }
             case GLToolbarItem::Hover:
+            {
+                if (inside)
+                    tooltip = item->get_tooltip();
+                else
+                    item->set_state(GLToolbarItem::Normal);
+
+                break;
+            }
             case GLToolbarItem::Pressed:
             {
                 if (!inside)
@@ -313,6 +215,8 @@ void GLToolbar::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse
             left += (tex_size + m_gap_x);
         }
     }
+
+    canvas.set_tooltip(tooltip);
 }
 
 void GLToolbar::render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
@@ -346,20 +250,6 @@ void GLToolbar::render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
             float tex_size = (float)item->get_icon_textures_size() * m_textures_scale * inv_zoom;
             GLTexture::render_texture(item->get_icon_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
             top_x += (tex_size + scaled_gap_x);
-        }
-    }
-
-    // renders tooltip
-    for (const GLToolbarItem* item : m_items)
-    {
-        if (!item->is_separator() && item->is_tooltip_shown())
-        {
-            float l = (-0.5f * cnv_w + (float)mouse_pos.x) * inv_zoom;
-            float r = l + (float)item->get_tooltip_texture_width() * inv_zoom;
-            float t = (0.5f * cnv_h - (float)mouse_pos.y) * inv_zoom;
-            float b = t - (float)item->get_tooltip_texture_height() * inv_zoom;
-            GLTexture::render_texture(item->get_tooltip_texture_id(), l, r, b, t);
-            break;
         }
     }
 
