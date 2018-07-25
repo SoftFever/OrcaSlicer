@@ -80,7 +80,10 @@ public:
 
     Print* print() { return this->_print; }
     Flow flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const;
+    // Average diameter of nozzles participating on extruding this region.
     coordf_t nozzle_dmr_avg(const PrintConfig &print_config) const;
+    // Average diameter of nozzles participating on extruding this region.
+    coordf_t bridging_height_avg(const PrintConfig &print_config) const;
 
 private:
     Print* _print;

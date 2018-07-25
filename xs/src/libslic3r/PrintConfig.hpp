@@ -310,6 +310,7 @@ public:
     ConfigOptionFloatOrPercent      extrusion_width;
     ConfigOptionFloatOrPercent      first_layer_height;
     ConfigOptionBool                infill_only_where_needed;
+    // Force the generation of solid shells between adjacent materials/volumes.
     ConfigOptionBool                interface_shells;
     ConfigOptionFloat               layer_height;
     ConfigOptionInt                 raft_layers;
@@ -317,6 +318,7 @@ public:
 //    ConfigOptionFloat               seam_preferred_direction;
 //    ConfigOptionFloat               seam_preferred_direction_jitter;
     ConfigOptionBool                support_material;
+    // Direction of the support pattern (in XY plane).
     ConfigOptionFloat               support_material_angle;
     ConfigOptionBool                support_material_buildplate_only;
     ConfigOptionFloat               support_material_contact_distance;
@@ -326,12 +328,15 @@ public:
     ConfigOptionBool                support_material_interface_contact_loops;
     ConfigOptionInt                 support_material_interface_extruder;
     ConfigOptionInt                 support_material_interface_layers;
+    // Spacing between interface lines (the hatching distance). Set zero to get a solid interface.
     ConfigOptionFloat               support_material_interface_spacing;
     ConfigOptionFloatOrPercent      support_material_interface_speed;
     ConfigOptionEnum<SupportMaterialPattern> support_material_pattern;
+    // Spacing between support material lines (the hatching distance).
     ConfigOptionFloat               support_material_spacing;
     ConfigOptionFloat               support_material_speed;
     ConfigOptionBool                support_material_synchronize_layers;
+    // Overhang angle threshold.
     ConfigOptionInt                 support_material_threshold;
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
@@ -401,10 +406,12 @@ public:
     ConfigOptionInt                 infill_every_layers;
     ConfigOptionFloatOrPercent      infill_overlap;
     ConfigOptionFloat               infill_speed;
+    // Detect bridging perimeters
     ConfigOptionBool                overhangs;
     ConfigOptionInt                 perimeter_extruder;
     ConfigOptionFloatOrPercent      perimeter_extrusion_width;
     ConfigOptionFloat               perimeter_speed;
+    // Total number of perimeters.
     ConfigOptionInt                 perimeters;
     ConfigOptionFloatOrPercent      small_perimeter_speed;
     ConfigOptionFloat               solid_infill_below_area;
@@ -412,6 +419,7 @@ public:
     ConfigOptionFloatOrPercent      solid_infill_extrusion_width;
     ConfigOptionInt                 solid_infill_every_layers;
     ConfigOptionFloatOrPercent      solid_infill_speed;
+    // Detect thin walls.
     ConfigOptionBool                thin_walls;
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
