@@ -248,10 +248,10 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
 #ifdef SLIC3R_DEBUG
     static int iRun = 0;
     iRun ++;
-    for (MyLayersPtr::const_iterator it = top_contacts.begin(); it != top_contacts.end(); ++ it)
+    for (const MyLayer *layer : top_contacts)
         Slic3r::SVG::export_expolygons(
-            debug_out_path("support-top-contacts-%d-%lf.svg", iRun, (*it)->print_z), 
-            union_ex((*it)->polygons, false));
+            debug_out_path("support-top-contacts-%d-%lf.svg", iRun, layer->print_z), 
+            union_ex(layer->polygons, false));
 #endif /* SLIC3R_DEBUG */
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating bottom contacts";
@@ -282,7 +282,15 @@ void PrintObjectSupportMaterial::generate(PrintObject &object)
     MyLayersPtr intermediate_layers = this->raft_and_intermediate_support_layers(
         object, bottom_contacts, top_contacts, layer_storage);
 
-    this->trim_support_layers_by_object(object, top_contacts, m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, 0., m_gap_xy);
+//    this->trim_support_layers_by_object(object, top_contacts, m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, 0., m_gap_xy);
+    this->trim_support_layers_by_object(object, top_contacts, 0., 0., m_gap_xy);
+
+#ifdef SLIC3R_DEBUG
+    for (const MyLayer *layer : top_contacts)
+        Slic3r::SVG::export_expolygons(
+            debug_out_path("support-top-contacts-trimmed-by-object-%d-%lf.svg", iRun, layer->print_z), 
+            union_ex(layer->polygons, false));
+#endif
 
     BOOST_LOG_TRIVIAL(info) << "Support generator - Creating base layers";
 
@@ -632,6 +640,69 @@ private:
     Points                  m_island_samples;
 };
 
+namespace SupportMaterialInternal {
+    static inline bool has_bridging_perimeters(const ExtrusionLoop &loop)
+    {
+        for (const ExtrusionPath &ep : loop.paths)
+            if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty())
+                return ep.size() >= (ep.is_closed() ? 3 : 2);
+            return false;
+    }
+    static bool has_bridging_perimeters(const ExtrusionEntityCollection &perimeters)
+    {
+        for (const ExtrusionEntity *ee : perimeters.entities) {
+            if (ee->is_collection()) {
+                for (const ExtrusionEntity *ee2 : static_cast<const ExtrusionEntityCollection*>(ee)->entities) {
+                    assert(! ee2->is_collection());
+                    if (ee2->is_loop())
+                        if (has_bridging_perimeters(*static_cast<const ExtrusionLoop*>(ee2)))
+                            return true;
+                }
+            } else if (ee->is_loop() && has_bridging_perimeters(*static_cast<const ExtrusionLoop*>(ee)))
+                return true;
+        }
+        return false;
+    }
+
+    static inline void collect_bridging_perimeter_areas(const ExtrusionLoop &loop, const float expansion_scaled, Polygons &out)
+    {
+        assert(expansion_scaled >= 0.f);
+        for (const ExtrusionPath &ep : loop.paths)
+            if (ep.role() == erOverhangPerimeter && ! ep.polyline.empty()) {
+                float exp = 0.5f * scale_(ep.width) + expansion_scaled;
+                if (ep.is_closed()) {
+                    if (ep.size() >= 3) {
+                        // This is a complete loop.
+                        // Add the outer contour first.
+                        Polygon poly;
+                        poly.points = ep.polyline.points;
+                        poly.points.pop_back();
+                        polygons_append(out, offset(poly, exp, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                        Polygons holes = offset(poly, - exp, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                        polygons_reverse(holes);
+                        polygons_append(out, holes);
+                    }
+                } else if (ep.size() >= 2) {
+                    // Offset the polyline.
+                    offset(ep.polyline, exp, SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                }
+            }
+    }
+    static void collect_bridging_perimeter_areas(const ExtrusionEntityCollection &perimeters, const float expansion_scaled, Polygons &out)
+    {
+        for (const ExtrusionEntity *ee : perimeters.entities) {
+            if (ee->is_collection()) {
+                for (const ExtrusionEntity *ee2 : static_cast<const ExtrusionEntityCollection*>(ee)->entities) {
+                    assert(! ee2->is_collection());
+                    if (ee2->is_loop())
+                        collect_bridging_perimeter_areas(*static_cast<const ExtrusionLoop*>(ee2), expansion_scaled, out);
+                }
+            } else if (ee->is_loop())
+                collect_bridging_perimeter_areas(*static_cast<const ExtrusionLoop*>(ee), expansion_scaled, out);
+        }
+    }
+}
+
 // Generate top contact layers supporting overhangs.
 // For a soluble interface material synchronize the layer heights with the object, otherwise leave the layer height undefined.
 // If supports over bed surface only are requested, don't generate contact layers over an object.
@@ -764,70 +835,60 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
 
                         if (this->m_object_config->dont_support_bridges) {
                             // compute the area of bridging perimeters
-                            // Note: this is duplicate code from GCode.pm, we need to refactor
-                            if (true) {
-                                Polygons bridged_perimeters;
-                                {
-                                    Flow bridge_flow = layerm->flow(frPerimeter, true);
-                                    coordf_t nozzle_diameter = m_print_config->nozzle_diameter.get_at(layerm->region()->config.perimeter_extruder-1);
-                                    Polygons lower_grown_slices = offset(lower_layer_polygons, 0.5f*float(scale_(nozzle_diameter)), SUPPORT_SURFACES_OFFSET_PARAMETERS);
-                                    
-                                    // Collect perimeters of this layer.
-                                    // TODO: split_at_first_point() could split a bridge mid-way
-                                    Polylines overhang_perimeters;
-                                    for (ExtrusionEntity* extrusion_entity : layerm->perimeters.entities) {
-                                        const ExtrusionEntityCollection *island = dynamic_cast<ExtrusionEntityCollection*>(extrusion_entity);
-                                        assert(island != NULL);
-                                        for (size_t i = 0; i < island->entities.size(); ++ i) {
-                                            ExtrusionEntity *entity = island->entities[i];
-                                            ExtrusionLoop *loop = dynamic_cast<Slic3r::ExtrusionLoop*>(entity);
-                                            overhang_perimeters.push_back(loop ? 
-                                                loop->as_polyline() :
-                                                dynamic_cast<const Slic3r::ExtrusionPath*>(entity)->polyline);
-                                        }
+                            Polygons bridges;
+                            {
+                                // Surface supporting this layer, expanded by 0.5 * nozzle_diameter, as we consider this kind of overhang to be sufficiently supported.
+                                Polygons lower_grown_slices = offset(lower_layer_polygons, 
+                                    //FIXME to mimic the decision in the perimeter generator, we should use half the external perimeter width.
+                                    0.5f * float(scale_(m_print_config->nozzle_diameter.get_at(layerm->region()->config.perimeter_extruder-1))),
+                                    SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                                // Collect perimeters of this layer.
+                                //FIXME split_at_first_point() could split a bridge mid-way
+                            #if 0
+                                Polylines overhang_perimeters = layerm->perimeters.as_polylines();
+                                // workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
+                                for (Polyline &polyline : overhang_perimeters)
+                                    polyline.points[0].x += 1;
+                                // Trim the perimeters of this layer by the lower layer to get the unsupported pieces of perimeters.
+                                overhang_perimeters = diff_pl(overhang_perimeters, lower_grown_slices);
+                            #else
+                                Polylines overhang_perimeters = diff_pl(layerm->perimeters.as_polylines(), lower_grown_slices);
+                            #endif
+                                
+                                // only consider straight overhangs
+                                // only consider overhangs having endpoints inside layer's slices
+                                // convert bridging polylines into polygons by inflating them with their thickness
+                                // since we're dealing with bridges, we can't assume width is larger than spacing,
+                                // so we take the largest value and also apply safety offset to be ensure no gaps
+                                // are left in between
+                                Flow bridge_flow = layerm->flow(frPerimeter, true);
+                                float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
+                                for (Polyline &polyline : overhang_perimeters)
+                                    if (polyline.is_straight()) {
+                                        // This is a bridge 
+                                        polyline.extend_start(fw);
+                                        polyline.extend_end(fw);
+                                        // Is the straight perimeter segment supported at both sides?
+                                        if (lower_layer.slices.contains(polyline.first_point()) && lower_layer.slices.contains(polyline.last_point()))
+                                            // Offset a polyline into a thick line.
+                                            polygons_append(bridges, offset(polyline, 0.5f * w + 10.f));
                                     }
-                                    
-                                    // workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
-                                    for (Polyline &polyline : overhang_perimeters)
-                                        polyline.points[0].x += 1;
-                                    // Trim the perimeters of this layer by the lower layer to get the unsupported pieces of perimeters.
-                                    overhang_perimeters = diff_pl(overhang_perimeters, lower_grown_slices);
-                                    
-                                    // only consider straight overhangs
-                                    // only consider overhangs having endpoints inside layer's slices
-                                    // convert bridging polylines into polygons by inflating them with their thickness
-                                    // since we're dealing with bridges, we can't assume width is larger than spacing,
-                                    // so we take the largest value and also apply safety offset to be ensure no gaps
-                                    // are left in between
-                                    float w = float(std::max(bridge_flow.scaled_width(), bridge_flow.scaled_spacing()));
-                                    for (Polyline &polyline : overhang_perimeters)
-                                        if (polyline.is_straight()) {
-                                            // This is a bridge 
-                                            polyline.extend_start(fw);
-                                            polyline.extend_end(fw);
-                                            // Is the straight perimeter segment supported at both sides?
-                                            if (layer.slices.contains(polyline.first_point()) && layer.slices.contains(polyline.last_point()))
-                                                // Offset a polyline into a thick line.
-                                                polygons_append(bridged_perimeters, offset(polyline, 0.5f * w + 10.f));
-                                        }
-                                    bridged_perimeters = union_(bridged_perimeters);
-                                }
-                                // remove the entire bridges and only support the unsupported edges
-                                Polygons bridges;
-                                for (const Surface &surface : layerm->fill_surfaces.surfaces)
-                                    if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
-                                        polygons_append(bridges, surface.expolygon);
-                                diff_polygons = diff(diff_polygons, bridges, true);
-                                polygons_append(bridges, bridged_perimeters);
-                                polygons_append(diff_polygons, 
-                                    intersection(
-                                        // Offset unsupported edges into polygons.
-                                        offset(layerm->unsupported_bridge_edges.polylines, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS),
-                                        bridges));
-                            } else {
-                                // just remove bridged areas
-                                diff_polygons = diff(diff_polygons, layerm->bridged, true);
+                                bridges = union_(bridges);
                             }
+                            // remove the entire bridges and only support the unsupported edges
+                            //FIXME the brided regions are already collected as layerm->bridged. Use it?
+                            for (const Surface &surface : layerm->fill_surfaces.surfaces)
+                                if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
+                                    polygons_append(bridges, surface.expolygon);
+                            //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
+                            diff_polygons = diff(diff_polygons, bridges, true);
+                            // Add the bridge anchors into the region.
+                            //FIXME add supports at regular intervals to support long bridges!
+                            polygons_append(diff_polygons,
+                                intersection(
+                                    // Offset unsupported edges into polygons.
+                                    offset(layerm->unsupported_bridge_edges.polylines, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS),
+                                    bridges));
                         } // if (m_objconfig->dont_support_bridges)
 
                         if (diff_polygons.empty())
@@ -879,9 +940,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     } // for each layer.region
                 } // end of Generate overhang/contact_polygons for non-raft layers.
                 
-                // now apply the contact areas to the layer were they need to be made
+                // Now apply the contact areas to the layer where they need to be made.
                 if (! contact_polygons.empty()) {
-                    // get the average nozzle diameter used on this layer
                     MyLayer     &new_layer = layer_allocate(layer_storage, layer_storage_mutex, sltTopContact);
                     new_layer.idx_object_layer_above = layer_id;
                     if (m_slicing_params.soluble_interface) {
@@ -903,11 +963,11 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         //FIXME Probably printing with the bridge flow? How about the unsupported perimeters? Are they printed with the bridging flow?
                         // In the future we may switch to a normal extrusion flow for the supported bridges.
                         // Get the average nozzle diameter used on this layer.
-                        coordf_t nozzle_dmr = 0.;
+                        coordf_t bridging_height = 0.;
                         for (const LayerRegion *region : layer.regions)
-                            nozzle_dmr += region->region()->nozzle_dmr_avg(*m_print_config);
-                        nozzle_dmr /= coordf_t(layer.regions.size());
-                        new_layer.print_z  = layer.print_z - nozzle_dmr - m_object_config->support_material_contact_distance;
+                            bridging_height += region->region()->bridging_height_avg(*m_print_config);
+                        bridging_height /= coordf_t(layer.regions.size());
+                        new_layer.print_z  = layer.print_z - bridging_height - m_object_config->support_material_contact_distance;
                         new_layer.bottom_z = new_layer.print_z;
                         new_layer.height   = 0.;
                         if (layer_id == 0) {
@@ -996,7 +1056,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             BOOST_LOG_TRIVIAL(trace) << "Support generator - bottom_contact_layers - layer " << layer_id;
             const Layer &layer = *object.get_layer(layer_id);
             // Collect projections of all contact areas above or at the same level as this top surface.
-            for (; contact_idx >= 0 && top_contacts[contact_idx]->print_z >= layer.print_z; -- contact_idx) {
+            for (; contact_idx >= 0 && top_contacts[contact_idx]->print_z > layer.print_z - EPSILON; -- contact_idx) {
+                auto *l = top_contacts[contact_idx];
                 Polygons polygons_new;
                 // Contact surfaces are expanded away from the object, trimmed by the object.
                 // Use a slight positive offset to overlap the touching regions.
@@ -1046,10 +1107,14 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                             // Grow top surfaces so that interface and support generation are generated
                             // with some spacing from object - it looks we don't need the actual
                             // top shapes so this can be done here
+                            //FIXME calculate layer height based on the actual thickness of the layer:
+                            // If the layer is extruded with no bridging flow, support just the normal extrusions.
                             layer_new.height  = m_slicing_params.soluble_interface ? 
                                 // Align the interface layer with the object's layer height.
                                 object.layers[layer_id + 1]->height :
                                 // Place a bridge flow interface layer over the top surface.
+                                //FIXME Check whether the bottom bridging surfaces are extruded correctly (no bridging flow correction applied?)
+                                // According to Jindrich the bottom surfaces work well.
                                 m_support_material_interface_flow.nozzle_diameter;
                             layer_new.print_z = m_slicing_params.soluble_interface ? object.layers[layer_id + 1]->print_z :
                                 layer.print_z + layer_new.height + m_object_config->support_material_contact_distance.value;
@@ -1185,7 +1250,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
             task_group.wait();
         }
         std::reverse(bottom_contacts.begin(), bottom_contacts.end());
-        trim_support_layers_by_object(object, bottom_contacts, m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, 0., m_gap_xy);
+        trim_support_layers_by_object(object, bottom_contacts, 0., 0., m_gap_xy);
     } // ! top_contacts.empty()
 
     return bottom_contacts;
@@ -1608,7 +1673,7 @@ void PrintObjectSupportMaterial::generate_base_layers(
     ++ iRun;
 #endif /* SLIC3R_DEBUG */
 
-    trim_support_layers_by_object(object, intermediate_layers,  m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min,  m_slicing_params.soluble_interface ? 0. : m_support_layer_height_min, m_gap_xy);
+    trim_support_layers_by_object(object, intermediate_layers, 0., 0., m_gap_xy);
 }
 
 void PrintObjectSupportMaterial::trim_support_layers_by_object(
@@ -1660,12 +1725,16 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                     for (; i < object.layers.size(); ++ i) {
                         const Layer &object_layer = *object.layers[i];
                         bool some_region_overlaps = false;
-                        for (LayerRegion* region : object_layer.regions) {
-                            coordf_t nozzle_dmr = region->region()->nozzle_dmr_avg(*this->m_print_config);
-                            if (object_layer.print_z - nozzle_dmr > support_layer.print_z + gap_extra_above - EPSILON)
+                        for (LayerRegion *region : object_layer.regions) {
+                            coordf_t bridging_height = region->region()->bridging_height_avg(*this->m_print_config);
+                            if (object_layer.print_z - bridging_height > support_layer.print_z + gap_extra_above - EPSILON)
                                 break;
                             some_region_overlaps = true;
-                            polygons_append(polygons_trimming, to_polygons(region->slices.filter_by_type(stBottomBridge)));
+                            polygons_append(polygons_trimming, 
+                                offset(to_expolygons(region->slices.filter_by_type(stBottomBridge)), 
+                                       gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                            if (region->region()->config.overhangs.value)
+                                SupportMaterialInternal::collect_bridging_perimeter_areas(region->perimeters, gap_xy_scaled, polygons_trimming);
                         }
                         if (! some_region_overlaps)
                             break;
@@ -1675,9 +1744,7 @@ void PrintObjectSupportMaterial::trim_support_layers_by_object(
                 // perimeter's width. $support contains the full shape of support
                 // material, thus including the width of its foremost extrusion.
                 // We leave a gap equal to a full extrusion width.
-                support_layer.polygons = diff(
-                    support_layer.polygons,
-                    offset(polygons_trimming, gap_xy_scaled, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                support_layer.polygons = diff(support_layer.polygons, polygons_trimming);
             }
         });
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::trim_support_layers_by_object() in parallel - end";
@@ -1861,8 +1928,8 @@ static inline void fill_expolygons_generate_paths(
     fill_params.density = density;
     fill_params.complete = true;
     fill_params.dont_adjust = true;
-    for (ExPolygons::const_iterator it_expolygon = expolygons.begin(); it_expolygon != expolygons.end(); ++ it_expolygon) {
-        Surface surface(stInternal, *it_expolygon);
+    for (const ExPolygon &expoly : expolygons) {
+        Surface surface(stInternal, expoly);
         extrusion_entities_append_paths(
             dst,
             filler->fill_surface(&surface, fill_params),
@@ -1883,8 +1950,8 @@ static inline void fill_expolygons_generate_paths(
     fill_params.density = density;
     fill_params.complete = true;
     fill_params.dont_adjust = true;
-    for (ExPolygons::iterator it_expolygon = expolygons.begin(); it_expolygon != expolygons.end(); ++ it_expolygon) {
-        Surface surface(stInternal, std::move(*it_expolygon));
+    for (ExPolygon &expoly : expolygons) {
+        Surface surface(stInternal, std::move(expoly));
         extrusion_entities_append_paths(
             dst,
             filler->fill_surface(&surface, fill_params),
@@ -2711,6 +2778,8 @@ void PrintObjectSupportMaterial::generate_toolpaths(
                     continue;
                 //FIXME When paralellizing, each thread shall have its own copy of the fillers.
                 bool interface_as_base = (&layer_ex == &interface_layer) && m_object_config->support_material_interface_layers.value == 0;
+                //FIXME Bottom interfaces are extruded with the briding flow. Some bridging layers have its height slightly reduced, therefore
+                // the bridging flow does not quite apply. Reduce the flow to area of an ellipse? (A = pi * a * b)
                 Flow interface_flow(
                     float(layer_ex.layer->bridging ? layer_ex.layer->height : (interface_as_base ? m_support_material_flow.width : m_support_material_interface_flow.width)),
                     float(layer_ex.layer->height),
