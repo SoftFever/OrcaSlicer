@@ -65,22 +65,27 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 	auto namefont = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
 	namefont.SetWeight(wxFONTWEIGHT_BOLD);
 
+	// wxGrid appends widgets by rows, but we need to construct them in columns.
+	// These vectors are used to hold the elements so that they can be appended in the right order.
+	std::vector<wxStaticText*> titles;
+	std::vector<wxStaticBitmap*> bitmaps;
+	std::vector<wxPanel*> variants_panels;
+
 	for (const auto &model : models) {
-		auto *panel = new wxPanel(this);
-		auto *col_sizer = new wxBoxSizer(wxVERTICAL);
-		panel->SetSizer(col_sizer);
-
-		auto *title = new wxStaticText(panel, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-		title->SetFont(namefont);
-		col_sizer->Add(title, 0, wxBOTTOM, 3);
-
 		auto bitmap_file = wxString::Format("printers/%s_%s.png", vendor.id, model.id);
 		wxBitmap bitmap(GUI::from_u8(Slic3r::var(bitmap_file.ToStdString())), wxBITMAP_TYPE_PNG);
-		auto *bitmap_widget = new wxStaticBitmap(panel, wxID_ANY, bitmap);
-		col_sizer->Add(bitmap_widget, 0, wxBOTTOM, 3);
 
-		col_sizer->AddSpacer(20);
+		auto *title = new wxStaticText(this, wxID_ANY, model.name, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+		title->SetFont(namefont);
+		title->Wrap(std::max((int)MODEL_MIN_WRAP, bitmap.GetWidth()));
+		titles.push_back(title);
 
+		auto *bitmap_widget = new wxStaticBitmap(this, wxID_ANY, bitmap);
+		bitmaps.push_back(bitmap_widget);
+
+		auto *variants_panel = new wxPanel(this);
+		auto *variants_sizer = new wxBoxSizer(wxVERTICAL);
+		variants_panel->SetSizer(variants_sizer);
 		const auto model_id = model.id;
 
 		bool default_variant = true;   // Mark the first variant as default in the GUI
@@ -88,21 +93,25 @@ PrinterPicker::PrinterPicker(wxWindow *parent, const VendorProfile &vendor, cons
 			const auto label = wxString::Format("%s %s %s %s", variant.name, _(L("mm")), _(L("nozzle")),
 				(default_variant ? _(L("(default)")) : wxString()));
 			default_variant = false;
-			auto *cbox = new Checkbox(panel, label, model_id, variant.name);
+			auto *cbox = new Checkbox(variants_panel, label, model_id, variant.name);
 			const size_t idx = cboxes.size();
 			cboxes.push_back(cbox);
 			bool enabled = appconfig_vendors.get_variant("PrusaResearch", model_id, variant.name);
 			variants_checked += enabled;
 			cbox->SetValue(enabled);
-			col_sizer->Add(cbox, 0, wxBOTTOM, 3);
+			variants_sizer->Add(cbox, 0, wxBOTTOM, 3);
 			cbox->Bind(wxEVT_CHECKBOX, [this, idx](wxCommandEvent &event) {
 				if (idx >= this->cboxes.size()) { return; }
 				this->on_checkbox(this->cboxes[idx], event.IsChecked());
 			});
 		}
 
-		printer_grid->Add(panel);
+		variants_panels.push_back(variants_panel);
 	}
+
+	for (auto title : titles)       { printer_grid->Add(title, 0, wxBOTTOM, 3); }
+	for (auto bitmap : bitmaps)     { printer_grid->Add(bitmap, 0, wxBOTTOM, 20); }
+	for (auto vp : variants_panels) { printer_grid->Add(vp); }
 
 	auto *all_none_sizer = new wxBoxSizer(wxHORIZONTAL);
 	auto *sel_all = new wxButton(this, wxID_ANY, _(L("Select all")));
@@ -214,7 +223,7 @@ void ConfigWizardPage::enable_next(bool enable) { parent->p->enable_next(enable)
 
 // Wizard pages
 
-PageWelcome::PageWelcome(ConfigWizard *parent) :
+PageWelcome::PageWelcome(ConfigWizard *parent, bool check_first_variant) :
 	ConfigWizardPage(parent, wxString::Format(_(L("Welcome to the Slic3r %s")), ConfigWizard::name()), _(L("Welcome"))),
 	printer_picker(nullptr),
 	others_buttons(new wxPanel(parent)),
@@ -238,7 +247,10 @@ PageWelcome::PageWelcome(ConfigWizard *parent) :
 		AppConfig &appconfig_vendors = this->wizard_p()->appconfig_vendors;
 
 		printer_picker = new PrinterPicker(this, vendor_prusa->second, appconfig_vendors);
-		printer_picker->select_one(0, true);    // Select the default (first) model/variant on the Prusa vendor
+		if (check_first_variant) {
+			// Select the default (first) model/variant on the Prusa vendor
+			printer_picker->select_one(0, true);
+		}
 		printer_picker->Bind(EVT_PRINTER_PICK, [this, &appconfig_vendors](const PrinterPickerEvent &evt) {
 			appconfig_vendors.set_variant(evt.vendor_id, evt.model_id, evt.variant_name, evt.enable);
 			this->on_variant_checked();
@@ -779,7 +791,6 @@ void ConfigWizard::priv::apply_config(AppConfig *app_config, PresetBundle *prese
 		app_config->set("version_check", page_update->version_check ? "1" : "0");
 		app_config->set("preset_update", page_update->preset_update ? "1" : "0");
 		app_config->reset_selections();
-		// ^ TODO: replace with appropriate printer selection
 		preset_bundle->load_presets(*app_config);
 	} else {
 		for (ConfigWizardPage *page = page_firmware; page != nullptr; page = page->page_next()) {
@@ -831,7 +842,7 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	p->btnsizer->Add(p->btn_finish, 0, wxLEFT, BTN_SPACING);
 	p->btnsizer->Add(p->btn_cancel, 0, wxLEFT, BTN_SPACING);
 
-	p->add_page(p->page_welcome  = new PageWelcome(this));
+	p->add_page(p->page_welcome  = new PageWelcome(this, reason == RR_DATA_EMPTY || reason == RR_DATA_LEGACY));
 	p->add_page(p->page_update   = new PageUpdate(this));
 	p->add_page(p->page_vendors  = new PageVendors(this));
 	p->add_page(p->page_firmware = new PageFirmware(this));

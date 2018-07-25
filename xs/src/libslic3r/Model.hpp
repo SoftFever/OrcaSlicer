@@ -132,6 +132,8 @@ public:
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
 
+    void check_instances_print_volume_state(const BoundingBoxf3& print_volume);
+
     // Print object statistics to console.
     void print_info() const;
     
@@ -197,12 +199,24 @@ private:
 // Knows the affine transformation of an object.
 class ModelInstance
 {
-    friend class ModelObject;
 public:
+    enum EPrintVolumeState : unsigned char
+    {
+        PVS_Inside,
+        PVS_Partly_Outside,
+        PVS_Fully_Outside,
+        Num_BedStates
+    };
+
+    friend class ModelObject;
+
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates
     
+    // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
+    EPrintVolumeState print_volume_state;
+
     ModelObject* get_object() const { return this->object; }
 
     // To be called on an external mesh
@@ -213,14 +227,16 @@ public:
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
-    
+
+    bool is_printable() const { return print_volume_state == PVS_Inside; }
+
 private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object) {}
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
-        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object) {}
+        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), print_volume_state(PVS_Inside) {}
 };
 
 

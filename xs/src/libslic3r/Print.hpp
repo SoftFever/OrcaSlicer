@@ -209,6 +209,8 @@ public:
     void combine_infill();
     void _generate_support_material();
 
+    bool is_printable() const { return !this->_shifted_copies.empty(); }
+
 private:
     Print* _print;
     ModelObject* _model_object;
@@ -262,6 +264,8 @@ public:
     void delete_object(size_t idx);
     void reload_object(size_t idx);
     bool reload_model_instances();
+
+    PrintObjectPtrs get_printable_objects() const;
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx) { return regions.at(idx); }

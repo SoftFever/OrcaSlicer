@@ -237,7 +237,7 @@ void GLCanvas3DManager::update_volumes_selection(wxGLCanvas* canvas, const std::
         it->second->update_volumes_selection(selections);
 }
 
-bool GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
+int GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->check_volumes_outside_state(config) : false;
@@ -548,6 +548,15 @@ void GLCanvas3DManager::load_gcode_preview(wxGLCanvas* canvas, const GCodePrevie
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->load_gcode_preview(*preview_data, str_tool_colors);
+}
+
+void GLCanvas3DManager::reset_legend_texture()
+{
+    for (CanvasesMap::value_type& canvas : m_canvases)
+    {
+        if (canvas.second != nullptr)
+            canvas.second->reset_legend_texture();
+    }
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

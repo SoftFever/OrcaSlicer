@@ -56,7 +56,7 @@ public:
         };
 
         // Safety test: try to pack each item into an empty bin. If it fails
-        // then it should be removed from the not_packed list
+        // then it should be removed from the list
         { auto it = store_.begin();
             while (it != store_.end()) {
                 Placer p(bin);
@@ -72,7 +72,7 @@ public:
             while(!was_packed) {
 
                 for(size_t j = 0; j < placers.size() && !was_packed; j++) {
-                    if(was_packed = placers[j].pack(item))
+                    if((was_packed = placers[j].pack(item)))
                         makeProgress(placers[j], j);
                 }
 

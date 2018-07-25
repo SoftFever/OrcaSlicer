@@ -10,7 +10,7 @@ namespace GUI {
 
     class GLTexture
     {
-    private:
+    protected:
         unsigned int m_id;
         int m_width;
         int m_height;
@@ -18,7 +18,7 @@ namespace GUI {
 
     public:
         GLTexture();
-        ~GLTexture();
+        virtual ~GLTexture();
 
         bool load_from_file(const std::string& filename, bool generate_mipmaps);
         void reset();
@@ -26,12 +26,13 @@ namespace GUI {
         unsigned int get_id() const;
         int get_width() const;
         int get_height() const;
+
         const std::string& get_source() const;
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
 
-    private:
-        void _generate_mipmaps(wxImage& image);
+    protected:
+        unsigned int _generate_mipmaps(wxImage& image);
     };
 
 } // namespace GUI

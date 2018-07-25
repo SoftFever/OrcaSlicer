@@ -45,9 +45,10 @@ private:
     TRawRenderer raw_renderer_;
     TRendererAA renderer_;
     Origin o_;
+    std::function<void(agg::path_storage&)> flipy_ = [](agg::path_storage&) {};
 public:
     inline Impl(const Raster::Resolution& res, const Raster::PixelDim &pd,
-                Origin o = Origin::TOP_LEFT):
+                Origin o):
         resolution_(res), pxdim_(pd),
         buf_(res.pixels()),
         rbuf_(reinterpret_cast<TPixelRenderer::value_type*>(buf_.data()),
@@ -64,6 +65,10 @@ public:
         // ras.gamma(agg::gamma_power(1.0));
 
         clear();
+
+        if(o_ == Origin::TOP_LEFT) flipy_ = [this](agg::path_storage& path) {
+            path.flip_y(0, resolution_.height_px);
+        };
     }
 
     void draw(const ExPolygon &poly) {
@@ -71,13 +76,12 @@ public:
         agg::scanline_p8 scanlines;
 
         auto&& path = to_path(poly.contour);
-        if(o_ == Origin::TOP_LEFT) path.flip_y(0, resolution_.height_px);
+        flipy_(path);
         ras.add_path(path);
 
         for(auto h : poly.holes) {
             auto&& holepath = to_path(h);
-            if(o_ == Origin::TOP_LEFT)
-                holepath.flip_y(0, resolution_.height_px);
+            flipy_(holepath);
             ras.add_path(holepath);
         }
 
@@ -91,6 +95,8 @@ public:
     inline TBuffer& buffer()  { return buf_; }
 
     inline const Raster::Resolution resolution() { return resolution_; }
+
+    inline Origin origin() const /*noexcept*/ { return o_; }
 
 private:
     double getPx(const Point& p) {
@@ -131,9 +137,15 @@ void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd)
 {
     // Free up the unneccessary memory and make sure it stays clear after
     // an exception
-    impl_.reset();
+    auto o = impl_? impl_->origin() : Origin::TOP_LEFT;
+    reset(r, pd, o);
+}
 
-    impl_.reset(new Impl(r, pd));
+void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd,
+                   Raster::Origin o)
+{
+    impl_.reset();
+    impl_.reset(new Impl(r, pd, o));
 }
 
 void Raster::reset()

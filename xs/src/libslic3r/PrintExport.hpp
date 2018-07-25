@@ -83,8 +83,6 @@ template<> class FilePrinter<FilePrinterFormat::PNG> {
         std::stringstream second;
 
         Layer() {}
-        Layer(const Raster::Resolution& res, const Raster::PixelDim& pd):
-            first(res, pd) {}
 
         Layer(const Layer&) = delete;
         Layer(Layer&& m):
@@ -129,13 +127,17 @@ template<> class FilePrinter<FilePrinterFormat::PNG> {
                   +layerh_str+"+printer=DWARF3\n";
     }
 
+    // Change this to TOP_LEFT if you want correct PNG orientation
+    static const Raster::Origin ORIGIN = Raster::Origin::BOTTOM_LEFT;
+
 public:
     inline FilePrinter(double width_mm, double height_mm,
                        unsigned width_px, unsigned height_px,
                        double exp_time, double exp_time_first):
-        res_(width_px, height_px), exp_time_s_(exp_time),
-        exp_time_first_s_(exp_time_first),
-        pxdim_(width_mm/width_px, height_mm/height_px)
+        res_(width_px, height_px),
+        pxdim_(width_mm/width_px, height_mm/height_px),
+        exp_time_s_(exp_time),
+        exp_time_first_s_(exp_time_first)
     {
     }
 
@@ -157,12 +159,12 @@ public:
 
     inline void beginLayer(unsigned lyr) {
         if(layers_rst_.size() <= lyr) layers_rst_.resize(lyr+1);
-        layers_rst_[lyr].first.reset(res_, pxdim_);
+        layers_rst_[lyr].first.reset(res_, pxdim_, ORIGIN);
     }
 
     inline void beginLayer() {
         layers_rst_.emplace_back();
-        layers_rst_.front().first.reset(res_, pxdim_);
+        layers_rst_.front().first.reset(res_, pxdim_, ORIGIN);
     }
 
     inline void finishLayer(unsigned lyr_id) {
@@ -337,13 +339,13 @@ void print_to(Print& print,
                 });
             });
 
-            if(print.has_support_material() && layer_id > 0) {
+            /*if(print.has_support_material() && layer_id > 0) {
                 BOOST_LOG_TRIVIAL(warning) << "support material for layer "
                                            << layer_id
                                            << " defined but export is "
                                               "not yet implemented.";
 
-            }
+            }*/
 
         }
 

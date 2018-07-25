@@ -322,10 +322,13 @@ Updates PresetUpdater::priv::get_config_updates() const
 
 		const auto ver_current = idx.find(vp.config_version);
 		if (ver_current == idx.end()) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Preset bundle (`%1%`) version not found in index: %2%") % idx.vendor() % vp.config_version.to_string();
-			continue;
+			auto message = (boost::format("Preset bundle `%1%` version not found in index: %2%") % idx.vendor() % vp.config_version.to_string()).str();
+			BOOST_LOG_TRIVIAL(error) << message;
+			throw std::runtime_error(message);
 		}
 
+		// Getting a recommended version from the latest index, wich may have been downloaded
+		// from the internet, or installed / updated from the installation resources.
 		const auto recommended = idx.recommended();
 		if (recommended == idx.end()) {
 			BOOST_LOG_TRIVIAL(error) << boost::format("No recommended version for vendor: %1%, invalid index?") % idx.vendor();
@@ -353,25 +356,34 @@ Updates PresetUpdater::priv::get_config_updates() const
 			}
 
 			auto path_src = cache_path / (idx.vendor() + ".ini");
+			auto path_in_rsrc = rsrc_path / (idx.vendor() + ".ini");
 			if (! fs::exists(path_src)) {
-				auto path_in_rsrc = rsrc_path / (idx.vendor() + ".ini");
 				if (! fs::exists(path_in_rsrc)) {
 					BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update, but bundle found in neither cache nor resources")
-						% idx.vendor();;
+						% idx.vendor();
 					continue;
 				} else {
 					path_src = std::move(path_in_rsrc);
+					path_in_rsrc.clear();
 				}
 			}
 
-			const auto new_vp = VendorProfile::from_ini(path_src, false);
+			auto new_vp = VendorProfile::from_ini(path_src, false);
+			bool found = false;
 			if (new_vp.config_version == recommended->config_version) {
 				updates.updates.emplace_back(std::move(path_src), std::move(bundle_path), *recommended);
-			} else {
+				found = true;
+			} else if (! path_in_rsrc.empty() && fs::exists(path_in_rsrc)) {
+				new_vp = VendorProfile::from_ini(path_in_rsrc, false);
+				if (new_vp.config_version == recommended->config_version) {
+					updates.updates.emplace_back(std::move(path_in_rsrc), std::move(bundle_path), *recommended);
+					found = true;
+				}
+			}
+			if (! found)
 				BOOST_LOG_TRIVIAL(warning) << boost::format("Index for vendor %1% indicates update (%2%) but the new bundle was found neither in cache nor resources")
 					% idx.vendor()
 					% recommended->config_version.to_string();
-			}
 		}
 	}
 
@@ -530,10 +542,21 @@ bool PresetUpdater::config_update() const
 		std::unordered_map<std::string, wxString> incompats_map;
 		for (const auto &incompat : updates.incompats) {
 			auto vendor = incompat.name();
-			auto restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
-				incompat.version.min_slic3r_version.to_string(),
-				incompat.version.max_slic3r_version.to_string()
-			);
+
+			const auto min_slic3r = incompat.version.min_slic3r_version;
+			const auto max_slic3r = incompat.version.max_slic3r_version;
+			wxString restrictions;
+			if (min_slic3r != Semver::zero() && max_slic3r != Semver::inf()) {
+				restrictions = wxString::Format(_(L("requires min. %s and max. %s")),
+					min_slic3r.to_string(),
+					max_slic3r.to_string()
+				);
+			} else if (min_slic3r != Semver::zero()) {
+				restrictions = wxString::Format(_(L("requires min. %s")), min_slic3r.to_string());
+			} else {
+				restrictions = wxString::Format(_(L("requires max. %s")), max_slic3r.to_string());
+			}
+
 			incompats_map.emplace(std::make_pair(std::move(vendor), std::move(restrictions)));
 		}
 
@@ -545,9 +568,10 @@ bool PresetUpdater::config_update() const
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 			p->perform_updates(std::move(updates));
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
-			if (! wizard.run(GUI::get_preset_bundle(), this)) {	
+			if (! wizard.run(GUI::get_preset_bundle(), this)) {
 				return false;
 			}
+			GUI::load_current_presets();
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
 			return false;
@@ -577,7 +601,6 @@ bool PresetUpdater::config_update() const
 
 			// Reload global configuration
 			auto *app_config = GUI::get_app_config();
-			app_config->reset_selections();
 			GUI::get_preset_bundle()->load_presets(*app_config);
 			GUI::load_current_presets();
 		} else {

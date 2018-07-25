@@ -28,7 +28,7 @@ public:
 
     // This function goes through all infill entities, decides which ones will be used for wiping and
     // marks them by the extruder id. Returns volume that remains to be wiped on the wipe tower:
-    float mark_wiping_extrusions(const Print& print, unsigned int new_extruder, float volume_to_wipe);
+    float mark_wiping_extrusions(const Print& print, unsigned int old_extruder, unsigned int new_extruder, float volume_to_wipe);
 
     void ensure_perimeters_infills_order(const Print& print);
 
@@ -66,8 +66,10 @@ public:
         wipe_tower_partitions(0),
         wipe_tower_layer_height(0.) {}
 
-    bool operator< (const LayerTools &rhs) const { return print_z - EPSILON <  rhs.print_z; }
-    bool operator==(const LayerTools &rhs) const { return std::abs(print_z - rhs.print_z) < EPSILON; }
+    // Changing these operators to epsilon version can make a problem in cases where support and object layers get close to each other.
+    // In case someone tries to do it, make sure you know what you're doing and test it properly (slice multiple objects at once with supports).
+    bool operator< (const LayerTools &rhs) const { return print_z < rhs.print_z; }
+    bool operator==(const LayerTools &rhs) const { return print_z == rhs.print_z; }
 
     bool is_extruder_order(unsigned int a, unsigned int b) const;
 

@@ -141,12 +141,12 @@ sub OnInit {
     $self->CallAfter(sub {
         eval {
             if (! $self->{preset_updater}->config_update()) {
-                exit 0;
+                $self->{mainframe}->Close;
             }
         };
         if ($@) {
-            warn $@ . "\n";
-            fatal_error(undef, $@);
+            show_error(undef, $@);
+            $self->{mainframe}->Close;
         }
     });
 
@@ -169,7 +169,8 @@ sub OnInit {
         $self->update_ui_from_settings;
     });
     
-    # The following event is emited by PresetUpdater (C++)
+    # The following event is emited by PresetUpdater (C++) to inform about
+    # the newer Slic3r application version avaiable online.
     EVT_COMMAND($self, -1, $VERSION_ONLINE_EVENT, sub {
         my ($self, $event) = @_;
         my $version = $event->GetString;

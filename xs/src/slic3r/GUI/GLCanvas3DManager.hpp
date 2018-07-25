@@ -75,7 +75,7 @@ public:
     void deselect_volumes(wxGLCanvas* canvas);
     void select_volume(wxGLCanvas* canvas, unsigned int id);
     void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
-    bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const;
+    int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const;
     bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
@@ -136,6 +136,8 @@ public:
     void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& tool_colors);
     void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
+
+    void reset_legend_texture();
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);

@@ -25,6 +25,9 @@ THE SOFTWARE.
 #ifndef SHINY_PREREQS_H
 #define SHINY_PREREQS_H
 
+
+#include <stdint.h>
+
 /*---------------------------------------------------------------------------*/
 
 #ifndef FALSE

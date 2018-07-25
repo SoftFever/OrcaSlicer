@@ -530,12 +530,12 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
 
-    // Magic: we will specify what is the goal of arrangement...
-    // In this case we override the default object to make the larger items go
-    // into the center of the pile and smaller items orbit it so the resulting
-    // pile has a circle-like shape. This is good for the print bed's heat
-    // profile. We alse sacrafice a bit of pack efficiency for this to work. As
-    // a side effect, the arrange procedure is a lot faster (we do not need to
+    // Magic: we will specify what is the goal of arrangement... In this case
+    // we override the default object function to make the larger items go into
+    // the center of the pile and smaller items orbit it so the resulting pile
+    // has a circle-like shape. This is good for the print bed's heat profile.
+    // We alse sacrafice a bit of pack efficiency for this to work. As a side
+    // effect, the arrange procedure is a lot faster (we do not need to
     // calculate the convex hulls)
     pcfg.object_function = [bin, hasbin](
             NfpPlacer::Pile pile,   // The currently arranged pile
@@ -1233,6 +1233,59 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     }
     
     return;
+}
+
+void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
+{
+    for (ModelVolume* vol : this->volumes)
+    {
+        if (!vol->modifier)
+        {
+            for (ModelInstance* inst : this->instances)
+            {
+                BoundingBoxf3 bb;
+
+                double c = cos(inst->rotation);
+                double s = sin(inst->rotation);
+
+                for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
+                {
+                    const stl_facet& facet = vol->mesh.stl.facet_start[f];
+
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        // original point
+                        const stl_vertex& v = facet.vertex[i];
+                        Pointf3 p((double)v.x, (double)v.y, (double)v.z);
+
+                        // scale
+                        p.x *= inst->scaling_factor;
+                        p.y *= inst->scaling_factor;
+                        p.z *= inst->scaling_factor;
+
+                        // rotate Z
+                        double x = p.x;
+                        double y = p.y;
+                        p.x = c * x - s * y;
+                        p.y = s * x + c * y;
+
+                        // translate
+                        p.x += inst->offset.x;
+                        p.y += inst->offset.y;
+
+                        bb.merge(p);
+                    }
+                }
+
+                if (print_volume.contains(bb))
+                    inst->print_volume_state = ModelInstance::PVS_Inside;
+                else if (print_volume.intersects(bb))
+                    inst->print_volume_state = ModelInstance::PVS_Partly_Outside;
+                else
+                    inst->print_volume_state = ModelInstance::PVS_Fully_Outside;
+            }
+        }
+    }
 }
 
 void ModelObject::print_info() const
