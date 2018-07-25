@@ -2887,7 +2887,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         if (!volumes.empty())
         {
-            const BoundingBoxf3& bb = volumes[0]->transformed_bounding_box();
+            BoundingBoxf3 bb;
+            for (const GLVolume* volume : volumes)
+            {
+                bb.merge(volume->transformed_bounding_box());
+            }
             const Pointf3& size = bb.size();
             m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
         }
@@ -3155,11 +3159,45 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
 BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
 {
     BoundingBoxf3 bb;
+
+    std::vector<const GLVolume*> selected_volumes;
     for (const GLVolume* volume : m_volumes.volumes)
     {
         if ((volume != nullptr) && !volume->is_wipe_tower && volume->selected)
-            bb.merge(volume->transformed_bounding_box());
+            selected_volumes.push_back(volume);
     }
+
+    bool use_drag_group_id = selected_volumes.size() > 1;
+    if (use_drag_group_id)
+    {
+        int drag_group_id = selected_volumes[0]->drag_group_id;
+        for (const GLVolume* volume : selected_volumes)
+        {
+            if (drag_group_id != volume->drag_group_id)
+            {
+                use_drag_group_id = false;
+                break;
+            }
+        }
+    }
+
+    if (use_drag_group_id)
+    {
+        for (const GLVolume* volume : selected_volumes)
+        {
+            bb.merge(volume->bounding_box);
+        }
+
+        bb = bb.transformed(selected_volumes[0]->world_matrix());
+    }
+    else
+    {
+        for (const GLVolume* volume : selected_volumes)
+        {
+            bb.merge(volume->transformed_bounding_box());
+        }
+    }
+
     return bb;
 }
 
