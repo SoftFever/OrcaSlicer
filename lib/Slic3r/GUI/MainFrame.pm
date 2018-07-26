@@ -31,6 +31,8 @@ our $OBJECT_SELECTION_CHANGED_EVENT = Wx::NewEventType;
 our $OBJECT_SETTINGS_CHANGED_EVENT = Wx::NewEventType;
 # 5) To inform about a remove of object 
 our $OBJECT_REMOVE_EVENT = Wx::NewEventType;
+# 6) To inform about a update of the scene 
+our $UPDATE_SCENE_EVENT = Wx::NewEventType;
 
 sub new {
     my ($class, %params) = @_;
@@ -125,6 +127,7 @@ sub _init_tabpanel {
             event_object_selection_changed   => $OBJECT_SELECTION_CHANGED_EVENT,
             event_object_settings_changed    => $OBJECT_SETTINGS_CHANGED_EVENT,
             event_remove_object              => $OBJECT_REMOVE_EVENT,
+            event_update_scene               => $UPDATE_SCENE_EVENT,
             ), L("Plater"));
         if (!$self->{no_controller}) {
             $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
@@ -191,7 +194,7 @@ sub _init_tabpanel {
         $self->{plater}->item_changed_selection($obj_idx);
     });
 
-    # The following event is emited by the C++ Tab implementation on object settings change.
+    # The following event is emited by the C++ GUI implementation on object settings change.
     EVT_COMMAND($self, -1, $OBJECT_SETTINGS_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
 
@@ -201,10 +204,16 @@ sub _init_tabpanel {
         $self->{plater}->changed_object_settings($obj_idx, $parts_changed, $part_settings_changed);
     });
 
-    # The following event is emited by the C++ Tab implementation on object settings change.
+    # The following event is emited by the C++ GUI implementation on object remove.
     EVT_COMMAND($self, -1, $OBJECT_REMOVE_EVENT, sub {
         my ($self, $event) = @_;
         $self->{plater}->remove();
+    });
+
+    # The following event is emited by the C++ GUI implementation on extruder change for object.
+    EVT_COMMAND($self, -1, $UPDATE_SCENE_EVENT, sub {
+        my ($self, $event) = @_;
+        $self->{plater}->update();
     });
         
 

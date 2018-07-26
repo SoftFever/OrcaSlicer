@@ -51,6 +51,7 @@ std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 int			m_event_object_selection_changed = 0;
 int			m_event_object_settings_changed = 0;
 int			m_event_remove_object = 0;
+int			m_event_update_scene = 0;
 
 bool m_parts_changed = false;
 bool m_part_settings_changed = false;
@@ -116,6 +117,9 @@ void set_event_object_settings_changed(const int& event){
 void set_event_remove_object(const int& event){
 	m_event_remove_object = event;
 }
+void set_event_update_scene(const int& event){
+	m_event_update_scene = event;
+}
 
 void set_objects_from_model(Model &model) {
 	m_objects = &(model.objects);
@@ -126,7 +130,7 @@ void init_mesh_icons(){
 	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
 	// init icon for manifold warning
-	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
 
 	// init bitmap for "Add Settings" context menu
 	m_bmp_cog = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
@@ -208,20 +212,19 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 			event.Skip();
 	});
 
-	m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
+	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event)
 	{
-		if (event.GetColumn() == 3)
-		{
-			if (!*m_config)
-				return;
-			wxVariant variant;
-			m_objects_model->GetValue(variant, event.GetItem(), 3);
-			auto str = variant.GetString();
-			int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
+		if (!*m_config)
+			return;
+		auto config = m_config;
 
-// 			if ((*m_config)->has("extruder"))
-			auto config = m_config;
-			(*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));			
+		wxString str = event.GetString();
+		int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
+		(*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));
+
+		if (m_event_update_scene > 0) {
+			wxCommandEvent e(m_event_update_scene);
+			get_main_frame()->ProcessWindowEvent(e);
 		}
 	});
 
@@ -666,7 +669,7 @@ void update_settings_list()
 // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
 // we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
 #ifdef __linux__	
-	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(this));
+	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(parent));
 #else
 	wxWindowUpdateLocker noUpdates(parent);
 #endif

@@ -191,7 +191,8 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 							Model &model,
 							int event_object_selection_changed,
 							int event_object_settings_changed,
-							int event_remove_object);
+							int event_remove_object, 
+							int event_update_scene);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 // Update view mode according to selected menu 
 void update_mode();

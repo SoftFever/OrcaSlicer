@@ -58,6 +58,7 @@ sub new {
     $self->{event_object_selection_changed} = $params{event_object_selection_changed};
     $self->{event_object_settings_changed} = $params{event_object_settings_changed};
     $self->{event_remove_object} = $params{event_remove_object};
+    $self->{event_update_scene} = $params{event_update_scene};
 
     # C++ Slic3r::Model with Perl extensions in Slic3r/Model.pm
     $self->{model} = Slic3r::Model->new;
@@ -452,7 +453,8 @@ sub new {
                                             $self->{model},
                                             $self->{event_object_selection_changed},
                                             $self->{event_object_settings_changed},
-                                            $self->{event_remove_object});
+                                            $self->{event_remove_object},
+                                            $self->{event_update_scene});
 #        if ($expert_mode_part_sizer->IsShown(2)==1) 
 #        { 
 #           $expert_mode_part_sizer->Layout;

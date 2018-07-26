@@ -896,11 +896,13 @@ void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer,
 							Model &model,
 							int event_object_selection_changed,
 							int event_object_settings_changed,
-							int event_remove_object)
+							int event_remove_object, 
+							int event_update_scene)
 {
 	set_event_object_selection_changed(event_object_selection_changed);
 	set_event_object_settings_changed(event_object_settings_changed);
 	set_event_remove_object(event_remove_object);
+	set_event_update_scene(event_update_scene);
 	set_objects_from_model(model);
 	init_mesh_icons();
 
