@@ -61,8 +61,7 @@ public:
             while (it != store_.end()) {
                 Placer p(bin);
                 if(!p.pack(*it)) {
-                    auto itmp = it++;
-                    store_.erase(itmp);
+                    it = store_.erase(it);
                 } else it++;
             }
         }

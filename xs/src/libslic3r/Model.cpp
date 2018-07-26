@@ -549,7 +549,7 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
         auto& sh = pile.back();
 
         // We retrieve the reference point of this item
-        auto rv = Nfp::referenceVertex(sh);
+        auto rv = ShapeLike::boundingBox(sh).center();
 
         // We get the distance of the reference point from the center of the
         // heat bed
@@ -558,7 +558,7 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
         // The score will be the normalized distance which will be minimized,
         // effectively creating a circle shaped pile of items
-        double score = double(d)/norm;
+        double score = d/norm;
 
         // If it does not fit into the print bed we will beat it
         // with a large penality. If we would not do this, there would be only
