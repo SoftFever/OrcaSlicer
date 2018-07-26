@@ -394,9 +394,35 @@ public:
         GLGizmoBase* _get_current() const;
     };
 
+    class WarningTexture : public GUI::GLTexture
+    {
+        static const unsigned char Background_Color[3];
+        static const unsigned char Opacity;
+
+    public:
+        bool generate(const std::string& msg);
+    };
+
+    class LegendTexture : public GUI::GLTexture
+    {
+        static const int Px_Title_Offset = 5;
+        static const int Px_Text_Offset = 5;
+        static const int Px_Square = 20;
+        static const int Px_Square_Contour = 1;
+        static const int Px_Border = Px_Square / 2;
+        static const unsigned char Squares_Border_Color[3];
+        static const unsigned char Background_Color[3];
+        static const unsigned char Opacity;
+
+    public:
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    LegendTexture m_legend_texture;
+    WarningTexture m_warning_texture;
     wxTimer* m_timer;
     Camera m_camera;
     Bed m_bed;
@@ -469,7 +495,7 @@ public:
     void deselect_volumes();
     void select_volume(unsigned int id);
     void update_volumes_selection(const std::vector<int>& selections);
-    bool check_volumes_outside_state(const DynamicPrintConfig* config) const;
+    int check_volumes_outside_state(const DynamicPrintConfig* config) const;
     bool move_volume_up(unsigned int id);
     bool move_volume_down(unsigned int id);
 
@@ -578,6 +604,8 @@ public:
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;
 
+    void reset_legend_texture();
+
 private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();
@@ -642,6 +670,13 @@ private:
 
     void _on_move(const std::vector<int>& volume_idxs);
     void _on_select(int volume_idx);
+
+    // generates the legend texture in dependence of the current shown view type
+    void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+
+    // generates a warning texture containing the given message
+    void _generate_warning_texture(const std::string& msg);
+    void _reset_warning_texture();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

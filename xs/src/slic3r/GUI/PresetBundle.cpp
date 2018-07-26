@@ -268,7 +268,7 @@ void PresetBundle::load_installed_printers(const AppConfig &config)
 }
 
 // Load selections (current print, current filaments, current printer) from config.ini
-// This is done just once on application start up.
+// This is done on application start up or after updates are applied.
 void PresetBundle::load_selections(const AppConfig &config)
 {
 	// Update visibility of presets based on application vendor / model / variant configuration.

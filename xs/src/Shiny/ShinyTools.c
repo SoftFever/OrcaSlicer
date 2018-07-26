@@ -93,8 +93,11 @@ float ShinyGetTickInvFreq(void) {
 
 #elif SHINY_PLATFORM == SHINY_PLATFORM_POSIX
 
+//#include <time.h>
+//#include <sys/time.h>
+
 void ShinyGetTicks(shinytick_t *p) {
-	timeval time;
+	struct timeval time;
 	gettimeofday(&time, NULL);
 
 	*p = time.tv_sec * 1000000 + time.tv_usec;

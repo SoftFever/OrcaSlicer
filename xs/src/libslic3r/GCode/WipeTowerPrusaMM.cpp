@@ -490,7 +490,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 //	box_coordinates cleaning_box(xy(0.5f, - 1.5f), m_wipe_tower_width, wipe_area);
 
 	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
-	box_coordinates cleaning_box(xy(5.f, 0.f), prime_section_width, 100.f);
+	box_coordinates cleaning_box(xy(5.f, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
 
 	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
 	writer.set_extrusion_flow(m_extrusion_flow)

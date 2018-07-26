@@ -127,6 +127,8 @@ sub new {
             $range->[1] *= $variation;
         }
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
+        
+        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");        
         $object->transform_thumbnail($self->{model}, $obj_idx);
     
         #update print and start background processing
@@ -1605,17 +1607,17 @@ sub print_info_box_show {
         $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
         my @info = (
             L("Used Filament (m)")
-                => sprintf("%.2f" , $self->{print}->total_cost),
+                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000),
             L("Used Filament (mm³)")
-                => sprintf("%.2f" , $self->{print}->total_weight),
-            L("Used Filament (g)"),
                 => sprintf("%.2f" , $self->{print}->total_extruded_volume),
+            L("Used Filament (g)"),
+                => sprintf("%.2f" , $self->{print}->total_weight),
             L("Cost"),
-                => $self->{print}->estimated_normal_print_time,
+                => sprintf("%.2f" , $self->{print}->total_cost),
             L("Estimated printing time (normal mode)")
-                => $self->{print}->estimated_silent_print_time,
+                => $self->{print}->estimated_normal_print_time,
             L("Estimated printing time (silent mode)")
-                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000)
+                => $self->{print}->estimated_silent_print_time
         );
         while ( my $label = shift @info) {
             my $value = shift @info;
@@ -1665,7 +1667,7 @@ sub reload_from_disk {
     my $model_object = $self->{model}->objects->[$obj_idx];
     #FIXME convert to local file encoding
     return if !$model_object->input_file
-        || !-e $model_object->input_file;
+        || !-e Slic3r::encode_path($model_object->input_file);
     
     my @new_obj_idx = $self->load_files([$model_object->input_file]);
     return if !@new_obj_idx;
@@ -2100,7 +2102,8 @@ sub object_list_changed {
 
     my $export_in_progress = $self->{export_gcode_output_file} || $self->{send_gcode_file};
     my $model_fits = $self->{canvas3D} ? Slic3r::GUI::_3DScene::check_volumes_outside_state($self->{canvas3D}, $self->{config}) : 1;
-    my $method = ($have_objects && ! $export_in_progress && $model_fits) ? 'Enable' : 'Disable';
+    # $model_fits == 1 -> ModelInstance::PVS_Partly_Outside
+    my $method = ($have_objects && ! $export_in_progress && ($model_fits != 1)) ? 'Enable' : 'Disable';
     $self->{"btn_$_"}->$method
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
 }
