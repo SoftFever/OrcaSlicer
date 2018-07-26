@@ -1108,6 +1108,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                 contact_out[k] = contact_out[i];
             i = j;
         }
+        if (k < contact_out.size())
+            contact_out.erase(contact_out.begin() + k, contact_out.end());
     }
 
     BOOST_LOG_TRIVIAL(debug) << "PrintObjectSupportMaterial::top_contact_layers() in parallel - end";
