@@ -232,7 +232,6 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 #ifndef __WXMSW__
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
     {
-        wxMessageBox("DATAVIEW_ITEM_VALUE_CHANGED");
         if (!*m_config)
             return;
         if (event.GetColumn() == 3)
