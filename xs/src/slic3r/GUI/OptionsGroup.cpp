@@ -96,7 +96,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 
 void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field)
 {
-	if (!m_is_tab_opt) {
+	if (!m_show_modified_btns) {
 		field->m_Undo_btn->Hide();
 		field->m_Undo_to_sys_btn->Hide();
 		return;

@@ -135,7 +135,9 @@ sub new {
         }
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
         
-        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");        
+        # Set object scale on c++ side
+        Slic3r::GUI::set_object_scale($obj_idx, $model_object->instances->[0]->scaling_factor * 100); 
+
         $object->transform_thumbnail($self->{model}, $obj_idx);
     
         #update print and start background processing
@@ -539,35 +541,9 @@ sub new {
             }
         }
 
-        my $print_info_sizer;
-        {
-            my $box = Wx::StaticBox->new($self->{right_panel}, -1, L("Sliced Info"));
-            $box->SetFont($Slic3r::GUI::small_bold_font);
-            $print_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
-            $print_info_sizer->SetMinSize([316,-1]);
-            my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
-            $grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
-            $grid_sizer->AddGrowableCol(1, 1);
-            $grid_sizer->AddGrowableCol(3, 1);
-            $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
-            my @info = (
-                fil_m   => L("Used Filament (m)"),
-                fil_mm3 => L("Used Filament (mm³)"),
-                fil_g   => L("Used Filament (g)"),
-                cost    => L("Cost"),
-                time    => L("Estimated printing time"),
-            );
-            while (my $field = shift @info) {
-                my $label = shift @info;
-                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
-                $text->SetFont($Slic3r::GUI::small_font);
-                $grid_sizer->Add($text, 0);
-                
-                $self->{"print_info_$field"} = Wx::StaticText->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-                $self->{"print_info_$field"}->SetFont($Slic3r::GUI::small_font);
-                $grid_sizer->Add($self->{"print_info_$field"}, 0);
-            }
-        }
+        my $print_info_sizer = $self->{print_info_sizer} = Wx::StaticBoxSizer->new(
+                Wx::StaticBox->new($self->{right_panel}, -1, L("Sliced Info")), wxVERTICAL);
+        $print_info_sizer->SetMinSize([300,-1]);
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $self->{buttons_sizer} = $buttons_sizer;
@@ -579,7 +555,7 @@ sub new {
         #$buttons_sizer->Add($self->{btn_export_gcode}, 0, wxALIGN_RIGHT, 0);
 
         ### Sizer for info boxes
-        my $info_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        my $info_sizer = $self->{info_sizer} = Wx::BoxSizer->new(wxVERTICAL);
         $info_sizer->SetMinSize([318, -1]);        
         $info_sizer->Add($object_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
         $info_sizer->Add($print_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
@@ -593,18 +569,6 @@ sub new {
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM | wxTOP, 10);
         $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
         $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
-        # Callback for showing / hiding the print info box.
-        $self->{"print_info_box_show"} = sub {
-            if ($info_sizer->IsShown(1) != $_[0]) {
-                Slic3r::GUI::set_show_print_info($_[0]);
-                return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
-                $info_sizer->Show(1, $_[0]);
-                $self->Layout;
-                $self->{right_panel}->Refresh;
-            }
-        };
-        # Show the box initially, let it be shown after the slicing is finished.
-        #$self->{"print_info_box_show"}->(0);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
@@ -963,9 +927,6 @@ sub remove {
     $self->select_object(undef);
     $self->update;
     $self->schedule_background_process;
-
-    # Hide the slicing results if the current slicing status is no more valid.
-    $self->{"print_info_box_show"}->(0);
 }
 
 sub reset {
@@ -986,9 +947,6 @@ sub reset {
     
     $self->select_object(undef);
     $self->update;
-
-    # Hide the slicing results if the current slicing status is no more valid.
-    $self->{"print_info_box_show"}->(0);
 }
 
 sub increase {
@@ -1664,9 +1622,15 @@ sub on_export_completed {
 # Fill in the "Sliced info" box with the result of the G-code generator.
 sub print_info_box_show {
     my ($self, $show) = @_;
-    my $scrolled_window_panel = $self->{scrolled_window_panel}; 
-    my $scrolled_window_sizer = $self->{scrolled_window_sizer};
-    return if $scrolled_window_sizer->IsShown(2) == $show;
+#    my $scrolled_window_panel = $self->{scrolled_window_panel}; 
+#    my $scrolled_window_sizer = $self->{scrolled_window_sizer};
+#    return if $scrolled_window_sizer->IsShown(2) == $show;
+    my $panel = $self->{right_panel};
+    my $sizer = $self->{info_sizer};
+    return if $sizer->IsShown(1) == $show;
+
+    Slic3r::GUI::set_show_print_info($show);
+    return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
 
     if ($show) {
         my $print_info_sizer = $self->{print_info_sizer};
@@ -1693,17 +1657,23 @@ sub print_info_box_show {
         while ( my $label = shift @info) {
             my $value = shift @info;
             next if $value eq "N/A";
-            my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+#            my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+            my $text = Wx::StaticText->new($panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
             $text->SetFont($Slic3r::GUI::small_font);
             $grid_sizer->Add($text, 0);            
-            my $field = Wx::StaticText->new($scrolled_window_panel, -1, $value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+#            my $field = Wx::StaticText->new($scrolled_window_panel, -1, $value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+            my $field = Wx::StaticText->new($panel, -1, $value, wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
             $field->SetFont($Slic3r::GUI::small_font);
             $grid_sizer->Add($field, 0);
         }
     }
 
-    $scrolled_window_sizer->Show(2, $show);
-    $scrolled_window_panel->Layout;
+#    $scrolled_window_sizer->Show(2, $show);
+#    $scrolled_window_panel->Layout;
+    $sizer->Show(1, $show);
+
+    $self->Layout;
+    $panel->Refresh;
 }
 
 sub do_print {

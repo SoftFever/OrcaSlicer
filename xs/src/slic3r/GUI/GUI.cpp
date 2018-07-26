@@ -148,9 +148,6 @@ wxStaticBitmap	*g_manifold_warning_icon = nullptr;
 bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
 
-wxFont		g_small_font;
-wxFont		g_bold_font;
-
 static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
