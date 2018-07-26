@@ -214,6 +214,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event)
 	{
+        wxMessageBox("Ku-ku");
 		if (!*m_config)
 			return;
 		auto config = m_config;
@@ -227,6 +228,29 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 			get_main_frame()->ProcessWindowEvent(e);
 		}
 	});
+
+#ifndef __WXMSW__
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
+    {
+        wxMessageBox("DATAVIEW_ITEM_VALUE_CHANGED");
+        if (!*m_config)
+            return;
+        if (event.GetColumn() == 3)
+        {
+        	wxVariant variant;
+        	m_objects_model->GetValue(variant, event.GetItem(), 3);
+        	auto str = variant.GetString();
+        	int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
+        
+        	(*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));
+
+            if (m_event_update_scene > 0) {
+                wxCommandEvent e(m_event_update_scene);
+                get_main_frame()->ProcessWindowEvent(e);
+            }			
+        }
+    });
+#endif //__WXMSW__
 
 	return objects_sz;
 }
