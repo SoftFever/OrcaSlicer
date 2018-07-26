@@ -22,8 +22,8 @@ struct PrintBoxDetection
 {
     vec3 min;
     vec3 max;
-    // xyz contains the offset, if w == 1.0 detection needs to be performed
-    vec4 volume_origin;
+    bool volume_detection;
+    mat4 volume_world_matrix;
 };
 
 uniform PrintBoxDetection print_box;
@@ -54,9 +54,9 @@ void main()
     intensity.x += NdotL * LIGHT_FRONT_DIFFUSE;
 
     // compute deltas for out of print volume detection (world coordinates)
-    if (print_box.volume_origin.w == 1.0)
+    if (print_box.volume_detection)
     {
-        vec3 v = gl_Vertex.xyz + print_box.volume_origin.xyz;
+        vec3 v = (print_box.volume_world_matrix * gl_Vertex).xyz;
         delta_box_min = v - print_box.min;
         delta_box_max = v - print_box.max;
     }

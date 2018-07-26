@@ -59,10 +59,11 @@
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
+
 #include "3DScene.hpp"
+#include "libslic3r/I18N.hpp"
 #include "Model.hpp"
 #include "LambdaObjectDialog.hpp"
-
 
 namespace Slic3r { namespace GUI {
 
@@ -115,6 +116,7 @@ wxNotebook  *g_wxTabPanel   = nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 PresetUpdater *g_PresetUpdater = nullptr;
+_3DScene	*g_3DScene		= nullptr;
 wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
 wxColour    g_color_label_default;
@@ -122,6 +124,9 @@ wxColour    g_color_label_default;
 std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale;
+
+wxFont		g_small_font;
+wxFont		g_bold_font;
 
 std::vector <std::shared_ptr<ConfigOptionsGroup>> m_optgroups;
 double		m_brim_width = 0.0;
@@ -180,13 +185,17 @@ static void init_fonts()
 	g_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
 #ifdef __WXMAC__
 	g_small_font.SetPointSize(11);
-	g_bold_font.SetPointSize(11);
+	g_bold_font.SetPointSize(13);
 #endif /*__WXMAC__*/
 }
+
+static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
+    // Let the libslic3r know the callback, which will translate messages on demand.
+	Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
     init_label_colours();
 	init_fonts();
 }
@@ -214,6 +223,11 @@ void set_preset_bundle(PresetBundle *preset_bundle)
 void set_preset_updater(PresetUpdater *updater)
 {
 	g_PresetUpdater = updater;
+}
+
+void set_3DScene(_3DScene *scene)
+{
+	g_3DScene = scene;
 }
 
 void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_parameters_sizer,
@@ -396,10 +410,11 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
     auto local_menu = new wxMenu();
     wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
 
-    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), ConfigWizard::name());
+	const auto config_wizard_name = _(ConfigWizard::name().wx_str());
+	const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
     // Cmd+, is standard on OS X - what about other operating systems?
-   	local_menu->Append(config_id_base + ConfigMenuWizard, 		ConfigWizard::name() + dots, 			config_wizard_tooltip);
-   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,	_(L("Inspect / activate configuration snapshots")));
+	local_menu->Append(config_id_base + ConfigMenuWizard, 		config_wizard_name + dots,					config_wizard_tooltip);
+   	local_menu->Append(config_id_base + ConfigMenuSnapshots, 	_(L("Configuration Snapshots"))+dots,		_(L("Inspect / activate configuration snapshots")));
    	local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), 		_(L("Capture a configuration snapshot")));
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();

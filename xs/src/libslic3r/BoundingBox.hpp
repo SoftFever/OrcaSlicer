@@ -103,6 +103,10 @@ public:
     bool contains(const BoundingBox3Base<PointClass>& other) const {
         return contains(other.min) && contains(other.max);
     }
+
+    bool intersects(const BoundingBox3Base<PointClass>& other) const {
+        return (this->min.x < other.max.x) && (this->max.x > other.min.x) && (this->min.y < other.max.y) && (this->max.y > other.min.y) && (this->min.z < other.max.z) && (this->max.z > other.min.z);
+    }
 };
 
 class BoundingBox : public BoundingBoxBase<Point>
@@ -148,6 +152,8 @@ public:
     BoundingBoxf3() : BoundingBox3Base<Pointf3>() {};
     BoundingBoxf3(const Pointf3 &pmin, const Pointf3 &pmax) : BoundingBox3Base<Pointf3>(pmin, pmax) {};
     BoundingBoxf3(const std::vector<Pointf3> &points) : BoundingBox3Base<Pointf3>(points) {};
+
+    BoundingBoxf3 transformed(const std::vector<float>& matrix) const;
 };
 
 template<typename VT>

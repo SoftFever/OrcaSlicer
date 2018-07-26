@@ -24,6 +24,7 @@ class Print;
 class PrintObject;
 class ModelObject;
 
+
 // Print step IDs for keeping track of the print state.
 enum PrintStep {
     psSkirt, psBrim, psWipeTower, psCount,
@@ -208,6 +209,8 @@ public:
     void combine_infill();
     void _generate_support_material();
 
+    bool is_printable() const { return !this->_shifted_copies.empty(); }
+
 private:
     Print* _print;
     ModelObject* _model_object;
@@ -235,7 +238,8 @@ public:
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
     // TODO: status_cb
-    std::string                     estimated_print_time;
+    std::string                     estimated_normal_print_time;
+    std::string                     estimated_silent_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
     std::map<size_t, float>         filament_stats;
     PrintState<PrintStep, psCount>  state;
@@ -254,6 +258,8 @@ public:
     void delete_object(size_t idx);
     void reload_object(size_t idx);
     bool reload_model_instances();
+
+    PrintObjectPtrs get_printable_objects() const;
 
     // methods for handling regions
     PrintRegion* get_region(size_t idx) { return regions.at(idx); }
@@ -285,6 +291,9 @@ public:
     bool has_support_material() const;
     void auto_assign_extruders(ModelObject* model_object) const;
 
+    // Returns extruder this eec should be printed with, according to PrintRegion config:
+    static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region);
+
     void _make_skirt();
     void _make_brim();
 
@@ -311,7 +320,8 @@ public:
     void restart() { m_canceled = false; }
     // Has the calculation been canceled?
     bool canceled() { return m_canceled; }
-    
+
+
 private:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
@@ -319,6 +329,7 @@ private:
     // Has the calculation been canceled?
     tbb::atomic<bool>   m_canceled;
 };
+
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)
 #define FOREACH_REGION(print, region)       FOREACH_BASE(PrintRegionPtrs, (print)->regions, region)

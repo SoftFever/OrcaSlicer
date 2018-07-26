@@ -147,6 +147,10 @@ public:
 	void			set_flag(ogDrawFlag flag) { m_flag = flag; }
 	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
+	void set_show_modified_btns_val(bool show) {
+		m_show_modified_btns = show;
+    }
+
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
 					ogDrawFlag flag = ogDEFAULT, column_t extra_clmn = nullptr) :
 		m_parent(_parent), title(title), m_is_tab_opt(is_tab_opt), 
@@ -180,7 +184,7 @@ protected:
     bool					m_disabled {false};
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
-	bool					m_is_tab_opt{ false };
+	bool					m_show_modified_btns{ false };
 
 	ogDrawFlag				m_flag{ ogDEFAULT };
 

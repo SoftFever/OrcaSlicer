@@ -84,6 +84,8 @@ inline T next_highest_power_of_2(T v)
     return ++ v;
 }
 
+extern std::string xml_escape(std::string text);
+
 class PerlCallback {
 public:
     PerlCallback(void *sv) : m_callback(nullptr) { this->register_callback(sv); }
@@ -96,7 +98,8 @@ public:
     void call(int i, int j) const;
     void call(const std::vector<int>& ints) const;
     void call(double d) const;
-    void call(double x, double y) const;
+    void call(double a, double b) const;
+    void call(double a, double b, double c, double d) const;
     void call(bool b) const;
 private:
     void *m_callback;

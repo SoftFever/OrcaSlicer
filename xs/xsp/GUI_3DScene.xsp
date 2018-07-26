@@ -56,9 +56,13 @@
     int                 volume_idx() const;
     int                 instance_idx() const;
     Clone<Pointf3>      origin() const
-        %code%{ RETVAL = THIS->origin; %};
+        %code%{ RETVAL = THIS->get_origin(); %};
     void                translate(double x, double y, double z)
-        %code%{ THIS->origin.translate(x, y, z); %};
+        %code%{
+                Pointf3 o = THIS->get_origin();
+                o.translate(x, y, z);
+                THIS->set_origin(o);
+             %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;
@@ -101,10 +105,6 @@
     void release_geometry();
 
     void set_print_box(float min_x, float min_y, float min_z, float max_x, float max_y, float max_z);
-    bool check_outside_state(DynamicPrintConfig* config)
-        %code%{ 
-                RETVAL = THIS->check_outside_state(config);
-        %};
     
     void reset_outside_state();    
     void update_colors_by_extruder(DynamicPrintConfig* config);
@@ -191,18 +191,6 @@ remove_all_canvases()
         _3DScene::remove_all_canvases();
 
 void
-reset_current_canvas()
-    CODE:
-        _3DScene::reset_current_canvas();
-
-void
-set_active(canvas, active)
-        SV   *canvas;
-        bool active;
-    CODE:
-        _3DScene::set_active((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), active);
-
-void
 set_as_dirty(canvas)
         SV *canvas;
     CODE:
@@ -242,7 +230,7 @@ update_volumes_selection(canvas, selections)
     CODE:
         _3DScene::update_volumes_selection((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
 
-bool
+int
 check_volumes_outside_state(canvas, config)
         SV                 *canvas;
         DynamicPrintConfig *config;
@@ -482,6 +470,12 @@ update_volumes_colors_by_extruder(canvas)
         _3DScene::update_volumes_colors_by_extruder((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
 
 void
+update_gizmos_data(canvas)
+        SV *canvas;
+    CODE:
+        _3DScene::update_gizmos_data((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+
+void
 render(canvas)
         SV *canvas;
     CODE:
@@ -616,62 +610,24 @@ register_on_gizmo_scale_uniformly_callback(canvas, callback)
     CODE:
         _3DScene::register_on_gizmo_scale_uniformly_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
-unsigned int
-finalize_legend_texture()
+void
+register_on_gizmo_rotate_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
     CODE:
-        RETVAL = _3DScene::finalize_legend_texture();
-    OUTPUT:
-        RETVAL
+        _3DScene::register_on_gizmo_rotate_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
-unsigned int
-get_legend_texture_width()
+void
+register_on_update_geometry_info_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
     CODE:
-        RETVAL = _3DScene::get_legend_texture_width();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_legend_texture_height()
-    CODE:
-        RETVAL = _3DScene::get_legend_texture_height();
-    OUTPUT:
-        RETVAL
+        _3DScene::register_on_update_geometry_info_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
              
 void
 reset_legend_texture()
     CODE:
         _3DScene::reset_legend_texture();
-
-void
-generate_warning_texture(std::string msg)
-    CODE:
-        _3DScene::generate_warning_texture(msg);
-
-unsigned int
-finalize_warning_texture()
-    CODE:
-        RETVAL = _3DScene::finalize_warning_texture();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_warning_texture_width()
-    CODE:
-        RETVAL = _3DScene::get_warning_texture_width();
-    OUTPUT:
-        RETVAL
-
-unsigned int
-get_warning_texture_height()
-    CODE:
-        RETVAL = _3DScene::get_warning_texture_height();
-    OUTPUT:
-        RETVAL
-
-void
-reset_warning_texture()
-    CODE:
-        _3DScene::reset_warning_texture();
 
 std::vector<int>
 load_model_object(canvas, model_object, obj_idx, instance_idxs)

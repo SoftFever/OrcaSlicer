@@ -27,6 +27,7 @@ namespace GUI {
 
 enum {
 	WRAP_WIDTH = 500,
+	MODEL_MIN_WRAP = 150,
 
 	DIALOG_MARGIN = 15,
 	INDEX_MARGIN = 40,
@@ -56,6 +57,7 @@ struct PrinterPicker: wxPanel
 	PrinterPicker(wxWindow *parent, const VendorProfile &vendor, const AppConfig &appconfig_vendors);
 
 	void select_all(bool select);
+	void select_one(size_t i, bool select);
 	void on_checkbox(const Checkbox *cbox, bool checked);
 };
 
@@ -102,7 +104,7 @@ struct PageWelcome: ConfigWizardPage
 	wxPanel *others_buttons;
 	wxCheckBox *cbox_reset;
 
-	PageWelcome(ConfigWizard *parent);
+	PageWelcome(ConfigWizard *parent, bool check_first_variant);
 
 	virtual wxPanel* extra_buttons() { return others_buttons; }
 	virtual void on_page_set();

@@ -78,10 +78,10 @@ bool OctoPrint::test(wxString &msg) const
 
 	auto http = Http::get(std::move(url));
 	set_auth(http);
-	http.on_error([&](std::string, std::string error, unsigned status) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error getting version: %1% (HTTP %2%)") % error % status;
+	http.on_error([&](std::string body, std::string error, unsigned status) {
+			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error getting version: %1%, HTTP %2%, body: `%3%`") % error % status % body;
 			res = false;
-			msg = format_error(error, status);
+			msg = format_error(body, error, status);
 		})
 		.on_complete([&](std::string body, unsigned) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Octoprint: Got version: %1%") % body;
@@ -140,8 +140,8 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 			progress_dialog.Update(PROGRESS_RANGE);
 		})
 		.on_error([&](std::string body, std::string error, unsigned status) {
-			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1% (HTTP %2%)") % error % status;
-			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(error, status));
+			BOOST_LOG_TRIVIAL(error) << boost::format("Octoprint: Error uploading file: %1%, HTTP %2%, body: `%3%`") % error % status % body;
+			auto errormsg = wxString::Format("%s: %s", errortitle, format_error(body, error, status));
 			GUI::show_error(&progress_dialog, std::move(errormsg));
 			res = false;
 		})
@@ -183,15 +183,13 @@ std::string OctoPrint::make_url(const std::string &path) const
 	}
 }
 
-wxString OctoPrint::format_error(const std::string &error, unsigned status)
+wxString OctoPrint::format_error(const std::string &body, const std::string &error, unsigned status)
 {
-	auto wxerror = wxString::FromUTF8(error.data());
-
 	if (status != 0) {
-		return wxString::Format("HTTP %u: %s", status,
-			(status == 401 ? _(L("Invalid API key")) : wxerror));
+		auto wxbody = wxString::FromUTF8(body.data());
+		return wxString::Format("HTTP %u: %s", status, wxbody);
 	} else {
-		return wxerror;
+		return wxString::FromUTF8(error.data());
 	}
 }
 

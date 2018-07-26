@@ -21,7 +21,6 @@ TODO LIST
 #include <iostream>
 #include <vector>
 #include <numeric>
-#include <algorithm>
 
 #include "Analyzer.hpp"
 
@@ -138,14 +137,14 @@ public:
 			width += m_layer_height * float(1. - M_PI / 4.);
 			if (m_extrusions.empty() || m_extrusions.back().pos != rotated_current_pos)
 				m_extrusions.emplace_back(WipeTower::Extrusion(rotated_current_pos, 0, m_current_tool));
-			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));			
+			m_extrusions.emplace_back(WipeTower::Extrusion(WipeTower::xy(rot.x, rot.y), width, m_current_tool));
 		}
 
 		m_gcode += "G1";
-		if (std::abs(dx) > EPSILON)
+		if (std::abs(rot.x - rotated_current_pos.x) > EPSILON)
 			m_gcode += set_format_X(rot.x);
 
-		if (std::abs(dy) > EPSILON)
+		if (std::abs(rot.y - rotated_current_pos.y) > EPSILON)
 			m_gcode += set_format_Y(rot.y);
 
 		if (e != 0.f)
@@ -231,6 +230,17 @@ public:
 	Writer& retract(float e, float f = 0.f)
 		{ return load(-e, f); }
 
+// Loads filament while also moving towards given points in x-axis (x feedrate is limited by cutting the distance short if necessary)
+    Writer& load_move_x_advanced(float farthest_x, float loading_dist, float loading_speed, float max_x_speed = 50.f)
+    {
+        float time = std::abs(loading_dist / loading_speed);
+        float x_speed = std::min(max_x_speed, std::abs(farthest_x - x()) / time);
+        float feedrate = 60.f * std::hypot(x_speed, loading_speed);
+
+        float end_point = x() + (farthest_x > x() ? 1.f : -1.f) * x_speed * time;
+        return extrude_explicit(end_point, y(), loading_dist, feedrate);
+    }
+
 	// Elevate the extruder head above the current print_z position.
 	Writer& z_hop(float hop, float f = 0.f)
 	{ 
@@ -276,12 +286,9 @@ public:
 	// Set extruder temperature, don't wait by default.
 	Writer& set_extruder_temp(int temperature, bool wait = false)
 	{
-        if (temperature != current_temp) {
-            char buf[128];
-            sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
-            m_gcode += buf;
-            current_temp = temperature;
-        }
+        char buf[128];
+        sprintf(buf, "M%d S%d\n", wait ? 109 : 104, temperature);
+        m_gcode += buf;
         return *this;
 	};
 
@@ -399,8 +406,7 @@ private:
     int           current_temp = -1;
     const float   m_default_analyzer_line_width;
 
-		std::string
-		set_format_X(float x)
+	std::string   set_format_X(float x)
 	{
 		char buf[64];
 		sprintf(buf, " X%.3f", x);
@@ -475,7 +481,6 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
 	bool 						last_wipe_inside_wipe_tower)
 {
-
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
 	this->m_current_tool 		= tools.front();
     
@@ -485,7 +490,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 //	box_coordinates cleaning_box(xy(0.5f, - 1.5f), m_wipe_tower_width, wipe_area);
 
 	const float prime_section_width = std::min(240.f / tools.size(), 60.f);
-	box_coordinates cleaning_box(xy(5.f, 0.f), prime_section_width, 100.f);
+	box_coordinates cleaning_box(xy(5.f, 0.01f + m_perimeter_width/2.f), prime_section_width, 100.f);
 
 	PrusaMultiMaterial::Writer writer(m_layer_height, m_perimeter_width);
 	writer.set_extrusion_flow(m_extrusion_flow)
@@ -558,7 +563,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	{
 		for (const auto &b : m_layer_info->tool_changes)
 			if ( b.new_tool == tool ) {
-				wipe_volume = wipe_volumes[b.old_tool][b.new_tool];
+				wipe_volume = b.wipe_volume;
 				if (tool == m_layer_info->tool_changes.back().new_tool)
 					last_change_in_layer = true;
 				wipe_area = b.required_depth * m_layer_info->extra_spacing;
@@ -783,51 +788,44 @@ void WipeTowerPrusaMM::toolchange_Unload(
 	WipeTower::xy end_of_ramming(writer.x(),writer.y());
     writer.change_analyzer_line_width(m_perimeter_width);   // so the next lines are not affected by ramming_line_width_multiplier
 
-    // Pull the filament end to the BEGINNING of the cooling tube while still moving the print head
-    float oldx = writer.x();
-    float turning_point = (!m_left_to_right ? std::max(xl,oldx-15.f) : std::min(xr,oldx+15.f) ); // so it's not too far
-    float xdist = std::abs(oldx-turning_point);
-    float edist = -(m_cooling_tube_retraction+m_cooling_tube_length/2.f-42);
-
+    // Retraction:
+    float old_x = writer.x();
+    float turning_point = (!m_left_to_right ? xl : xr );
+    float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
     writer.suppress_preview()
-          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15 * 83 )    // fixed speed after ramming
-          .load_move_x(oldx         ,edist  , 60.f * std::hypot(xdist,edist)/std::abs(edist) * m_filpar[m_current_tool].unloading_speed )
-          .load_move_x(turning_point,-15    , 60.f * std::hypot(xdist,15)/15       * m_filpar[m_current_tool].unloading_speed*0.55f )
-          .load_move_x(oldx         ,-12    , 60.f * std::hypot(xdist,12)/12       * m_filpar[m_current_tool].unloading_speed*0.35f )
+          .load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
+          .load_move_x_advanced(old_x,         -0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed)
+          .load_move_x_advanced(turning_point, -0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed)
+          .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
+          .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate
           .resume_preview();
 
-	if (new_temperature != 0) 	// Set the extruder temperature, but don't wait.
+    if (new_temperature != 0 && new_temperature != m_old_temperature ) { 	// Set the extruder temperature, but don't wait.
 		writer.set_extruder_temp(new_temperature, false);
+        m_old_temperature = new_temperature;
+    }
 
-// cooling:
-	writer.suppress_preview();
-	writer.travel(writer.x(), writer.y() + y_step);
-	const float start_x = writer.x();
-	turning_point = ( xr-start_x > start_x-xl ? xr : xl );
-	const float max_x_dist = 2*std::abs(start_x-turning_point);
-	const unsigned int N = 4 + std::max(0.f, (m_filpar[m_current_tool].cooling_time-14)/3);
-	float time = m_filpar[m_current_tool].cooling_time / float(N);
+    // Cooling:
+    const int& number_of_moves = m_filpar[m_current_tool].cooling_moves;
+    if (number_of_moves > 0) {
+        const float& initial_speed = m_filpar[m_current_tool].cooling_initial_speed;
+        const float& final_speed   = m_filpar[m_current_tool].cooling_final_speed;
 
-	i = 0;
-	while (i<N) {
-		const float speed = std::min(3.4,2.2 + i*0.3 + (i==0 ? 0 : 0.3)); // mm per second: 2.2, 2.8, 3.1, 3.4, 3.4, 3.4, ...		
-		const float e_dist = std::min(speed * time,2*m_cooling_tube_length); // distance to travel
-		
-		// this move is the last one at this speed or someone set tube_length to zero
-        if (speed * time < 2*m_cooling_tube_length || m_cooling_tube_length<WT_EPSILON) {
-            ++i;
-			time = m_filpar[m_current_tool].cooling_time / float(N);
-		}
-		else
-			time -= e_dist / speed; // subtract time this part will really take
+        float speed_inc = (final_speed - initial_speed) / (2.f * number_of_moves - 1.f);
 
-		// as for x, we will make sure the feedrate is at most 2000
-		float x_dist = (turning_point - WT_EPSILON < xl ? -1.f : 1.f) * std::min(e_dist * (float)sqrt(pow(2000 / (60 * speed), 2) - 1),max_x_dist);
-		const float feedrate = std::hypot(e_dist, x_dist) / ((e_dist / speed) / 60.f);
-		writer.cool(start_x+x_dist/2.f,start_x,e_dist/2.f,-e_dist/2.f, feedrate);
-	}
+        writer.suppress_preview()
+              .travel(writer.x(), writer.y() + y_step);
+        old_x = writer.x();
+        turning_point = xr-old_x > old_x-xl ? xr : xl;
+        for (int i=0; i<number_of_moves; ++i) {
+            float speed = initial_speed + speed_inc * 2*i;
+            writer.load_move_x_advanced(turning_point, m_cooling_tube_length, speed);
+            speed += speed_inc;
+            writer.load_move_x_advanced(old_x, -m_cooling_tube_length, speed);
+        }
+    }
 
-    // let's wait is necessary
+    // let's wait is necessary:
     writer.wait(m_filpar[m_current_tool].delay);
     // we should be at the beginning of the cooling tube again - let's move to parking position:
     writer.retract(-m_cooling_tube_length/2.f+m_parking_pos_retraction-m_cooling_tube_retraction, 2000);
@@ -871,16 +869,16 @@ void WipeTowerPrusaMM::toolchange_Load(
 	float oldx = writer.x();	// the nozzle is in place to do the first wiping moves, we will remember the position
 
     // Load the filament while moving left / right, so the excess material will not create a blob at a single position.
-    float loading_speed = m_filpar[m_current_tool].loading_speed; // mm/s in e axis
     float turning_point = ( oldx-xl < xr-oldx ? xr : xl );
-    float dist = std::abs(oldx-turning_point);
-    float edist = m_parking_pos_retraction-50-2; // loading is 2mm shorter that previous retraction, 50mm reserved for acceleration/deceleration
-	writer.append("; CP TOOLCHANGE LOAD\n")
+    float edist = m_parking_pos_retraction+m_extra_loading_move;
+
+    writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
-		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Acceleration
-		  .load_move_x(oldx,edist,60*std::hypot(dist,edist)/edist * loading_speed)             // Fast phase
-		  .load_move_x(turning_point, 20, 60*std::hypot(dist,20.f)/20.f * loading_speed*0.3f)  // Slowing down
-		  .load_move_x(oldx, 10, 60*std::hypot(dist,10.f)/10.f * loading_speed*0.1f)           // Super slow
+		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
+		  .load_move_x_advanced(oldx,          0.5f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
+		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Slowing down
+		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow
+          .travel(oldx, writer.y()) // in case last move was shortened to limit x feedrate
 		  .resume_preview();
 
 	// Reset the extruder current to the normal value.
@@ -1057,7 +1055,7 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 }
 
 // Appends a toolchange into m_plan and calculates neccessary depth of the corresponding box
-void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool,bool brim)
+void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsigned int old_tool, unsigned int new_tool, bool brim, float wipe_volume)
 {
 	assert(m_plan.back().z <= z_par + WT_EPSILON );	// refuses to add a layer below the last one
 
@@ -1082,13 +1080,13 @@ void WipeTowerPrusaMM::plan_toolchange(float z_par, float layer_height_par, unsi
     float ramming_depth = depth;
     length_to_extrude = width*((length_to_extrude / width)-int(length_to_extrude / width)) - width;
     float first_wipe_line = -length_to_extrude;
-    length_to_extrude += volume_to_length(wipe_volumes[old_tool][new_tool], m_perimeter_width, layer_height_par);
+    length_to_extrude += volume_to_length(wipe_volume, m_perimeter_width, layer_height_par);
     length_to_extrude = std::max(length_to_extrude,0.f);
 
 	depth += (int(length_to_extrude / width) + 1) * m_perimeter_width;
 	depth *= m_extra_spacing;
 
-	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, ramming_depth,first_wipe_line));
+	m_plan.back().tool_changes.push_back(WipeTowerInfo::ToolChange(old_tool, new_tool, depth, ramming_depth, first_wipe_line, wipe_volume));
 }
 
 
@@ -1128,7 +1126,7 @@ void WipeTowerPrusaMM::save_on_last_wipe()
 
         float width = m_wipe_tower_width - 3*m_perimeter_width; // width we draw into
         float length_to_save = 2*(m_wipe_tower_width+m_wipe_tower_depth) + (!layer_finished() ? finish_layer().total_extrusion_length_in_plane() : 0.f);
-        float length_to_wipe = volume_to_length(wipe_volumes[m_layer_info->tool_changes.back().old_tool][m_layer_info->tool_changes.back().new_tool],
+        float length_to_wipe = volume_to_length(m_layer_info->tool_changes.back().wipe_volume,
                               m_perimeter_width,m_layer_info->height)  - m_layer_info->tool_changes.back().first_wipe_line - length_to_save;
 
         length_to_wipe = std::max(length_to_wipe,0.f);
@@ -1145,7 +1143,8 @@ void WipeTowerPrusaMM::save_on_last_wipe()
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
 {
 	if (m_plan.empty())
-            return;
+
+        return;
 
     m_extra_spacing = 1.f;
 
@@ -1165,8 +1164,6 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 	for (auto layer : m_plan)
 	{
 		set_layer(layer.z,layer.height,0,layer.z == m_plan.front().z,layer.z == m_plan.back().z);
-
-
 		if (m_peters_wipe_tower)
 			m_wipe_tower_rotation_angle += 90.f;
 		else

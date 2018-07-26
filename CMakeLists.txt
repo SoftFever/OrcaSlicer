@@ -49,6 +49,8 @@ if(NOT DEFINED CMAKE_PREFIX_PATH)
 	endif()
 endif()
 
+enable_testing ()
+
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
 if(WIN32)
@@ -79,7 +81,6 @@ else ()
 	set(PERL_PROVE "${PERL_BIN_PATH}/prove")
 endif ()
 
-enable_testing ()
 add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/xs)
 add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 

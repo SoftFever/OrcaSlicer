@@ -7,12 +7,20 @@
 #include "Format/STL.hpp"
 #include "Format/3mf.hpp"
 
+#include <numeric>
+#include <libnest2d.h>
+#include <ClipperUtils.hpp>
+#include "slic3r/GUI/GUI.hpp"
+
 #include <float.h>
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/iostream.hpp>
 #include <boost/algorithm/string/replace.hpp>
+
+#include "SVG.hpp"
+#include <Eigen/Dense>
 
 namespace Slic3r {
 
@@ -296,35 +304,369 @@ static bool _arrange(const Pointfs &sizes, coordf_t dist, const BoundingBoxf* bb
     return result;
 }
 
+namespace arr {
+
+using namespace libnest2d;
+
+std::string toString(const Model& model, bool holes = true) {
+    std::stringstream  ss;
+
+    ss << "{\n";
+
+    for(auto objptr : model.objects) {
+        if(!objptr) continue;
+
+        auto rmesh = objptr->raw_mesh();
+
+        for(auto objinst : objptr->instances) {
+            if(!objinst) continue;
+
+            Slic3r::TriangleMesh tmpmesh = rmesh;
+            tmpmesh.scale(objinst->scaling_factor);
+            objinst->transform_mesh(&tmpmesh);
+            ExPolygons expolys = tmpmesh.horizontal_projection();
+            for(auto& expoly_complex : expolys) {
+
+                auto tmp = expoly_complex.simplify(1.0/SCALING_FACTOR);
+                if(tmp.empty()) continue;
+                auto expoly = tmp.front();
+                expoly.contour.make_clockwise();
+                for(auto& h : expoly.holes) h.make_counter_clockwise();
+
+                ss << "\t{\n";
+                ss << "\t\t{\n";
+
+                for(auto v : expoly.contour.points) ss << "\t\t\t{"
+                                                    << v.x << ", "
+                                                    << v.y << "},\n";
+                {
+                    auto v = expoly.contour.points.front();
+                    ss << "\t\t\t{" << v.x << ", " << v.y << "},\n";
+                }
+                ss << "\t\t},\n";
+
+                // Holes:
+                ss << "\t\t{\n";
+                if(holes) for(auto h : expoly.holes) {
+                    ss << "\t\t\t{\n";
+                    for(auto v : h.points) ss << "\t\t\t\t{"
+                                           << v.x << ", "
+                                           << v.y << "},\n";
+                    {
+                        auto v = h.points.front();
+                        ss << "\t\t\t\t{" << v.x << ", " << v.y << "},\n";
+                    }
+                    ss << "\t\t\t},\n";
+                }
+                ss << "\t\t},\n";
+
+                ss << "\t},\n";
+            }
+        }
+    }
+
+    ss << "}\n";
+
+    return ss.str();
+}
+
+void toSVG(SVG& svg, const Model& model) {
+    for(auto objptr : model.objects) {
+        if(!objptr) continue;
+
+        auto rmesh = objptr->raw_mesh();
+
+        for(auto objinst : objptr->instances) {
+            if(!objinst) continue;
+
+            Slic3r::TriangleMesh tmpmesh = rmesh;
+            tmpmesh.scale(objinst->scaling_factor);
+            objinst->transform_mesh(&tmpmesh);
+            ExPolygons expolys = tmpmesh.horizontal_projection();
+            svg.draw(expolys);
+        }
+    }
+}
+
+// A container which stores a pointer to the 3D object and its projected
+// 2D shape from top view.
+using ShapeData2D =
+    std::vector<std::pair<Slic3r::ModelInstance*, Item>>;
+
+ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
+    ShapeData2D ret;
+
+    auto s = std::accumulate(model.objects.begin(), model.objects.end(), 0,
+                    [](size_t s, ModelObject* o){
+        return s + o->instances.size();
+    });
+
+    ret.reserve(s);
+
+    for(auto objptr : model.objects) {
+        if(objptr) {
+
+            auto rmesh = objptr->raw_mesh();
+
+            for(auto objinst : objptr->instances) {
+                if(objinst) {
+                    Slic3r::TriangleMesh tmpmesh = rmesh;
+                    ClipperLib::PolygonImpl pn;
+
+                    tmpmesh.scale(objinst->scaling_factor);
+
+                    // TODO export the exact 2D projection
+                    auto p = tmpmesh.convex_hull();
+
+                    p.make_clockwise();
+                    p.append(p.first_point());
+                    pn.Contour = Slic3rMultiPoint_to_ClipperPath( p );
+
+                    // Efficient conversion to item.
+                    Item item(std::move(pn));
+
+                    // Invalid geometries would throw exceptions when arranging
+                    if(item.vertexCount() > 3) {
+                        item.rotation(objinst->rotation);
+                        item.translation( {
+                            ClipperLib::cInt(objinst->offset.x/SCALING_FACTOR),
+                            ClipperLib::cInt(objinst->offset.y/SCALING_FACTOR)
+                        });
+                        ret.emplace_back(objinst, item);
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * \brief Arranges the model objects on the screen.
+ *
+ * The arrangement considers multiple bins (aka. print beds) for placing all
+ * the items provided in the model argument. If the items don't fit on one
+ * print bed, the remaining will be placed onto newly created print beds.
+ * The first_bin_only parameter, if set to true, disables this behaviour and
+ * makes sure that only one print bed is filled and the remaining items will be
+ * untouched. When set to false, the items which could not fit onto the
+ * print bed will be placed next to the print bed so the user should see a
+ * pile of items on the print bed and some other piles outside the print
+ * area that can be dragged later onto the print bed as a group.
+ *
+ * \param model The model object with the 3D content.
+ * \param dist The minimum distance which is allowed for any pair of items
+ * on the print bed  in any direction.
+ * \param bb The bounding box of the print bed. It corresponds to the 'bin'
+ * for bin packing.
+ * \param first_bin_only This parameter controls whether to place the
+ * remaining items which do not fit onto the print area next to the print
+ * bed or leave them untouched (let the user arrange them by hand or remove
+ * them).
+ */
+bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
+             bool first_bin_only,
+             std::function<void(unsigned)> progressind)
+{
+    using ArrangeResult = _IndexedPackGroup<PolygonImpl>;
+
+    bool ret = true;
+
+    // Create the arranger config
+    auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
+
+    // Get the 2D projected shapes with their 3D model instance pointers
+    auto shapemap = arr::projectModelFromTop(model);
+
+    bool hasbin = bb != nullptr && bb->defined;
+    double area_max = 0;
+
+    // Copy the references for the shapes only as the arranger expects a
+    // sequence of objects convertible to Item or ClipperPolygon
+    std::vector<std::reference_wrapper<Item>> shapes;
+    shapes.reserve(shapemap.size());
+    std::for_each(shapemap.begin(), shapemap.end(),
+                  [&shapes, min_obj_distance, &area_max, hasbin]
+                  (ShapeData2D::value_type& it)
+    {
+        shapes.push_back(std::ref(it.second));
+    });
+
+    Box bin;
+
+    if(hasbin) {
+        // Scale up the bounding box to clipper scale.
+        BoundingBoxf bbb = *bb;
+        bbb.scale(1.0/SCALING_FACTOR);
+
+        bin = Box({
+                    static_cast<libnest2d::Coord>(bbb.min.x),
+                    static_cast<libnest2d::Coord>(bbb.min.y)
+                },
+                {
+                    static_cast<libnest2d::Coord>(bbb.max.x),
+                    static_cast<libnest2d::Coord>(bbb.max.y)
+                });
+    }
+
+    // Will use the DJD selection heuristic with the BottomLeft placement
+    // strategy
+    using Arranger = Arranger<NfpPlacer, FirstFitSelection>;
+    using PConf = Arranger::PlacementConfig;
+    using SConf = Arranger::SelectionConfig;
+
+    PConf pcfg;     // Placement configuration
+    SConf scfg;     // Selection configuration
+
+    // Align the arranged pile into the center of the bin
+    pcfg.alignment = PConf::Alignment::CENTER;
+
+    // Start placing the items from the center of the print bed
+    pcfg.starting_point = PConf::Alignment::CENTER;
+
+    // TODO cannot use rotations until multiple objects of same geometry can
+    // handle different rotations
+    // arranger.useMinimumBoundigBoxRotation();
+    pcfg.rotations = { 0.0 };
+
+    // Magic: we will specify what is the goal of arrangement... In this case
+    // we override the default object function to make the larger items go into
+    // the center of the pile and smaller items orbit it so the resulting pile
+    // has a circle-like shape. This is good for the print bed's heat profile.
+    // We alse sacrafice a bit of pack efficiency for this to work. As a side
+    // effect, the arrange procedure is a lot faster (we do not need to
+    // calculate the convex hulls)
+    pcfg.object_function = [bin, hasbin](
+            NfpPlacer::Pile pile,   // The currently arranged pile
+            double /*area*/,        // Sum area of items (not needed)
+            double norm,            // A norming factor for physical dimensions
+            double penality)        // Min penality in case of bad arrangement
+    {
+        auto bb = ShapeLike::boundingBox(pile);
+
+        // We get the current item that's being evaluated.
+        auto& sh = pile.back();
+
+        // We retrieve the reference point of this item
+        auto rv = Nfp::referenceVertex(sh);
+
+        // We get the distance of the reference point from the center of the
+        // heat bed
+        auto c = bin.center();
+        auto d = PointLike::distance(rv, c);
+
+        // The score will be the normalized distance which will be minimized,
+        // effectively creating a circle shaped pile of items
+        double score = double(d)/norm;
+
+        // If it does not fit into the print bed we will beat it
+        // with a large penality. If we would not do this, there would be only
+        // one big pile that doesn't care whether it fits onto the print bed.
+        if(hasbin && !NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
+
+        return score;
+    };
+
+    // Create the arranger object
+    Arranger arranger(bin, min_obj_distance, pcfg, scfg);
+
+    // Set the progress indicator for the arranger.
+    arranger.progressIndicator(progressind);
+
+    // Arrange and return the items with their respective indices within the
+    // input sequence.
+    auto result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
+
+    auto applyResult = [&shapemap](ArrangeResult::value_type& group,
+            Coord batch_offset)
+    {
+        for(auto& r : group) {
+            auto idx = r.first;     // get the original item index
+            Item& item = r.second;  // get the item itself
+
+            // Get the model instance from the shapemap using the index
+            ModelInstance *inst_ptr = shapemap[idx].first;
+
+            // Get the tranformation data from the item object and scale it
+            // appropriately
+            auto off = item.translation();
+            Radians rot = item.rotation();
+            Pointf foff(off.X*SCALING_FACTOR + batch_offset,
+                        off.Y*SCALING_FACTOR);
+
+            // write the tranformation data into the model instance
+            inst_ptr->rotation = rot;
+            inst_ptr->offset = foff;
+        }
+    };
+
+    if(first_bin_only) {
+        applyResult(result.front(), 0);
+    } else {
+
+        const auto STRIDE_PADDING = 1.2;
+
+        Coord stride = static_cast<Coord>(STRIDE_PADDING*
+                                          bin.width()*SCALING_FACTOR);
+        Coord batch_offset = 0;
+
+        for(auto& group : result) {
+            applyResult(group, batch_offset);
+
+            // Only the first pack group can be placed onto the print bed. The
+            // other objects which could not fit will be placed next to the
+            // print bed
+            batch_offset += stride;
+        }
+    }
+
+    for(auto objptr : model.objects) objptr->invalidate_bounding_box();
+
+    return ret && result.size() == 1;
+}
+}
+
 /*  arrange objects preserving their instance count
     but altering their instance positions */
-bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
+bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
+                            std::function<void(unsigned)> progressind)
 {
-    // get the (transformed) size of each instance so that we take
-    // into account their different transformations when packing
-    Pointfs instance_sizes;
-    Pointfs instance_centers;
-    for (const ModelObject *o : this->objects)
-        for (size_t i = 0; i < o->instances.size(); ++ i) {
-            // an accurate snug bounding box around the transformed mesh.
-            BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
-            instance_sizes.push_back(bbox.size());
-            instance_centers.push_back(bbox.center());
-        }
+    bool ret = false;
+    if(bb != nullptr && bb->defined) {
+        // Despite the new arrange is able to run without a specified bin,
+        // the perl testsuit still fails for this case. For now the safest
+        // thing to do is to use the new arrange only when a proper bin is
+        // specified.
+        ret = arr::arrange(*this, dist, bb, false, progressind);
+    } else {
+        // get the (transformed) size of each instance so that we take
+        // into account their different transformations when packing
+        Pointfs instance_sizes;
+        Pointfs instance_centers;
+        for (const ModelObject *o : this->objects)
+            for (size_t i = 0; i < o->instances.size(); ++ i) {
+                // an accurate snug bounding box around the transformed mesh.
+                BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
+                instance_sizes.push_back(bbox.size());
+                instance_centers.push_back(bbox.center());
+            }
 
-    Pointfs positions;
-    if (! _arrange(instance_sizes, dist, bb, positions))
-        return false;
-    
-	size_t idx = 0;
-	for (ModelObject *o : this->objects) {
-        for (ModelInstance *i : o->instances) {
-            i->offset = positions[idx] - instance_centers[idx];
-            ++ idx;
+        Pointfs positions;
+        if (! _arrange(instance_sizes, dist, bb, positions))
+            return false;
+
+        size_t idx = 0;
+        for (ModelObject *o : this->objects) {
+            for (ModelInstance *i : o->instances) {
+                i->offset = positions[idx] - instance_centers[idx];
+                ++ idx;
+            }
+            o->invalidate_bounding_box();
         }
-        o->invalidate_bounding_box();
     }
-    return true;
+
+    return ret;
 }
 
 // Duplicate the entire model preserving instance relative positions.
@@ -603,10 +945,7 @@ void ModelObject::clear_instances()
 
 // Returns the bounding box of the transformed instances.
 // This bounding box is approximate and not snug.
-//========================================================================================================
 const BoundingBoxf3& ModelObject::bounding_box() const
-//const BoundingBoxf3& ModelObject::bounding_box()
-//========================================================================================================
 {
     if (! m_bounding_box_valid) {
         BoundingBoxf3 raw_bbox;
@@ -896,6 +1235,59 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     return;
 }
 
+void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
+{
+    for (ModelVolume* vol : this->volumes)
+    {
+        if (!vol->modifier)
+        {
+            for (ModelInstance* inst : this->instances)
+            {
+                BoundingBoxf3 bb;
+
+                double c = cos(inst->rotation);
+                double s = sin(inst->rotation);
+
+                for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
+                {
+                    const stl_facet& facet = vol->mesh.stl.facet_start[f];
+
+                    for (int i = 0; i < 3; ++i)
+                    {
+                        // original point
+                        const stl_vertex& v = facet.vertex[i];
+                        Pointf3 p((double)v.x, (double)v.y, (double)v.z);
+
+                        // scale
+                        p.x *= inst->scaling_factor;
+                        p.y *= inst->scaling_factor;
+                        p.z *= inst->scaling_factor;
+
+                        // rotate Z
+                        double x = p.x;
+                        double y = p.y;
+                        p.x = c * x - s * y;
+                        p.y = s * x + c * y;
+
+                        // translate
+                        p.x += inst->offset.x;
+                        p.y += inst->offset.y;
+
+                        bb.merge(p);
+                    }
+                }
+
+                if (print_volume.contains(bb))
+                    inst->print_volume_state = ModelInstance::PVS_Inside;
+                else if (print_volume.intersects(bb))
+                    inst->print_volume_state = ModelInstance::PVS_Partly_Outside;
+                else
+                    inst->print_volume_state = ModelInstance::PVS_Fully_Outside;
+            }
+        }
+    }
+}
+
 void ModelObject::print_info() const
 {
     using namespace std;
@@ -1048,32 +1440,16 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    // rotate around mesh origin
-    double c = cos(this->rotation);
-    double s = sin(this->rotation);
-    Pointf3 pts[4] = {
-        bbox.min,
-        bbox.max,
-        Pointf3(bbox.min.x, bbox.max.y, bbox.min.z),
-        Pointf3(bbox.max.x, bbox.min.y, bbox.max.z)
-    };
-    BoundingBoxf3 out;
-    for (int i = 0; i < 4; ++ i) {
-        Pointf3 &v = pts[i];
-        double xold = v.x;
-        double yold = v.y;
-        v.x = float(c * xold - s * yold);
-        v.y = float(s * xold + c * yold);
-        v.x *= this->scaling_factor;
-        v.y *= this->scaling_factor;
-        v.z *= this->scaling_factor;
-        if (! dont_translate) {
-            v.x += this->offset.x;
-            v.y += this->offset.y;
-        }
-        out.merge(v);
-    }
-    return out;
+    Eigen::Transform<float, 3, Eigen::Affine> matrix = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    if (!dont_translate)
+        matrix.translate(Eigen::Vector3f((float)offset.x, (float)offset.y, 0.0f));
+
+    matrix.rotate(Eigen::AngleAxisf(rotation, Eigen::Vector3f::UnitZ()));
+    matrix.scale(scaling_factor);
+
+    std::vector<float> m(16, 0.0f);
+    ::memcpy((void*)m.data(), (const void*)matrix.data(), 16 * sizeof(float));
+    return bbox.transformed(m);
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const

@@ -1,4 +1,5 @@
 #include "Utils.hpp"
+#include "I18N.hpp"
 
 #include <locale>
 #include <ctime>
@@ -122,6 +123,9 @@ const std::string& localization_dir()
 {
 	return g_local_dir;
 }
+
+// Translate function callback, to call wxWidgets translate function to convert non-localized UTF8 string to a localized one.
+Slic3r::I18N::translate_fn_type Slic3r::I18N::translate_fn = nullptr;
 
 static std::string g_data_dir;
 
@@ -262,7 +266,7 @@ void PerlCallback::call(double d) const
     LEAVE;
 }
 
-void PerlCallback::call(double x, double y) const
+void PerlCallback::call(double a, double b) const
 {
     if (!m_callback)
         return;
@@ -270,8 +274,26 @@ void PerlCallback::call(double x, double y) const
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVnv(x)));
-    XPUSHs(sv_2mortal(newSVnv(y)));
+    XPUSHs(sv_2mortal(newSVnv(a)));
+    XPUSHs(sv_2mortal(newSVnv(b)));
+    PUTBACK;
+    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
+    FREETMPS;
+    LEAVE;
+}
+
+void PerlCallback::call(double a, double b, double c, double d) const
+{
+    if (!m_callback)
+        return;
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVnv(a)));
+    XPUSHs(sv_2mortal(newSVnv(b)));
+    XPUSHs(sv_2mortal(newSVnv(c)));
+    XPUSHs(sv_2mortal(newSVnv(d)));
     PUTBACK;
     perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
     FREETMPS;
@@ -363,6 +385,33 @@ unsigned get_current_pid()
 #else
     return ::getpid();
 #endif
+}
+
+std::string xml_escape(std::string text)
+{
+    std::string::size_type pos = 0;
+    for (;;)
+    {
+        pos = text.find_first_of("\"\'&<>", pos);
+        if (pos == std::string::npos)
+            break;
+
+        std::string replacement;
+        switch (text[pos])
+        {
+        case '\"': replacement = "&quot;"; break;
+        case '\'': replacement = "&apos;"; break;
+        case '&':  replacement = "&amp;";  break;
+        case '<':  replacement = "&lt;";   break;
+        case '>':  replacement = "&gt;";   break;
+        default: break;
+        }
+
+        text.replace(pos, 1, replacement);
+        pos += replacement.size();
+    }
+
+    return text;
 }
 
 }; // namespace Slic3r

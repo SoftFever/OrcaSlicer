@@ -93,6 +93,7 @@ bool PrintObject::set_copies(const Points &points)
     
     bool invalidated = this->_print->invalidate_step(psSkirt);
     invalidated |= this->_print->invalidate_step(psBrim);
+    invalidated |= this->_print->invalidate_step(psWipeTower);
     return invalidated;
 }
 
@@ -101,7 +102,10 @@ bool PrintObject::reload_model_instances()
     Points copies;
     copies.reserve(this->_model_object->instances.size());
     for (const ModelInstance *mi : this->_model_object->instances)
-        copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
+    {
+        if (mi->is_printable())
+            copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
+    }
     return this->set_copies(copies);
 }
 
@@ -232,7 +236,10 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "perimeter_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "solid_infill_speed"
-            || opt_key == "top_solid_infill_speed") {
+            || opt_key == "top_solid_infill_speed"
+            || opt_key == "wipe_into_infill"    // when these these two are changed, we only need to invalidate the wipe tower,
+            || opt_key == "wipe_into_objects"   // which we already did at the very beginning - nothing more to be done
+            ) {
             // these options only affect G-code export, so nothing to invalidate
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
@@ -272,6 +279,8 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
+    // It also decides about what the wipe_into_infill / wipe_into_object features will do,
+    // and that too depends on many of the settings.
     invalidated |= this->_print->invalidate_step(psWipeTower);
     return invalidated;
 }
@@ -285,6 +294,9 @@ bool PrintObject::has_support_material() const
 
 void PrintObject::_prepare_infill()
 {
+    if (!this->is_printable())
+        return;
+
     // This will assign a type (top/bottom/internal) to $layerm->slices.
     // Then the classifcation of $layerm->slices is transfered onto 
     // the $layerm->fill_surfaces by clipping $layerm->fill_surfaces
@@ -1171,8 +1183,8 @@ void PrintObject::_slice()
 
     this->typed_slices = false;
 
-#if 0
-    // Disable parallelization for debugging purposes.
+#ifdef SLIC3R_PROFILE
+    // Disable parallelization so the Shiny profiler works
     static tbb::task_scheduler_init *tbb_init = nullptr;
     tbb_init = new tbb::task_scheduler_init(1);
 #endif
@@ -1436,6 +1448,9 @@ void PrintObject::_simplify_slices(double distance)
 
 void PrintObject::_make_perimeters()
 {
+    if (!this->is_printable())
+        return;
+
     if (this->state.is_done(posPerimeters)) return;
     this->state.set_started(posPerimeters);
 
@@ -1544,6 +1559,9 @@ void PrintObject::_make_perimeters()
 
 void PrintObject::_infill()
 {
+    if (!this->is_printable())
+        return;
+
     if (this->state.is_done(posInfill)) return;
     this->state.set_started(posInfill);
     
@@ -1948,6 +1966,9 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
+    if (!this->is_printable())
+        return;
+
     PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
     support_material.generate(*this);
 }

@@ -8,14 +8,13 @@
 #include "../libslic3r.h"
 #include "../Model.hpp"
 #include "../GCode.hpp"
+#include "../Utils.hpp"
 #include "../slic3r/GUI/PresetBundle.hpp"
 #include "AMF.hpp"
 
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string.hpp>
-//############################################################################################################################################
 #include <boost/nowide/fstream.hpp>
-//############################################################################################################################################
 #include <miniz/miniz_zip.h>
 
 #if 0
@@ -688,33 +687,6 @@ bool load_amf(const char *path, PresetBundle* bundle, Model *model)
         return false;
 }
 
-std::string xml_escape(std::string text)
-{
-    std::string::size_type pos = 0;
-    for (;;)
-    {
-        pos = text.find_first_of("\"\'&<>", pos);
-        if (pos == std::string::npos)
-            break;
-
-        std::string replacement;
-        switch (text[pos])
-        {
-        case '\"': replacement = "&quot;"; break;
-        case '\'': replacement = "&apos;"; break;
-        case '&':  replacement = "&amp;";  break;
-        case '<':  replacement = "&lt;";   break;
-        case '>':  replacement = "&gt;";   break;
-        default: break;
-        }
-
-        text.replace(pos, 1, replacement);
-        pos += replacement.size();
-    }
-
-    return text;
-}
-
 bool store_amf(const char *path, Model *model, Print* print, bool export_print_config)
 {
     if ((path == nullptr) || (model == nullptr) || (print == nullptr))
@@ -763,7 +735,7 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
         for (const std::string &key : object->config.keys())
             stream << "    <metadata type=\"slic3r." << key << "\">" << object->config.serialize(key) << "</metadata>\n";
         if (!object->name.empty())
-            stream << "    <metadata type=\"name\">" << object->name << "</metadata>\n";
+            stream << "    <metadata type=\"name\">" << xml_escape(object->name) << "</metadata>\n";
         std::vector<double> layer_height_profile = object->layer_height_profile_valid ? object->layer_height_profile : std::vector<double>();
         if (layer_height_profile.size() >= 4 && (layer_height_profile.size() % 2) == 0) {
             // Store the layer height profile as a single semicolon separated list.
@@ -807,7 +779,7 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
             for (const std::string &key : volume->config.keys())
                 stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.serialize(key) << "</metadata>\n";
             if (!volume->name.empty())
-                stream << "        <metadata type=\"name\">" << volume->name << "</metadata>\n";
+                stream << "        <metadata type=\"name\">" << xml_escape(volume->name) << "</metadata>\n";
             if (volume->modifier)
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             for (int i = 0; i < volume->mesh.stl.stats.number_of_facets; ++i) {

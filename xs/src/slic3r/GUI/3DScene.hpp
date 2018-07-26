@@ -6,6 +6,7 @@
 #include "../../libslic3r/Line.hpp"
 #include "../../libslic3r/TriangleMesh.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "../../libslic3r/Model.hpp"
 #include "../../slic3r/GUI/GLCanvas3DManager.hpp"
 
 class wxBitmap;
@@ -199,10 +200,10 @@ private:
     }
 };
 
-class GLTexture
+class LayersTexture
 {
 public:
-    GLTexture() : width(0), height(0), levels(0), cells(0) {}
+    LayersTexture() : width(0), height(0), levels(0), cells(0) {}
 
     // Texture data
     std::vector<char>   data;
@@ -240,7 +241,7 @@ class GLVolume {
             edit_band_width = 0.0f;
         }
 
-        bool can_use() { return (texture_id > 0) && (shader_id > 0) && (print_object != nullptr); }
+        bool can_use() const { return (texture_id > 0) && (shader_id > 0) && (print_object != nullptr); }
     };
 
 public:
@@ -249,44 +250,27 @@ public:
     static const float OUTSIDE_COLOR[4];
     static const float SELECTED_OUTSIDE_COLOR[4];
 
-    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f) :
-        composite_id(-1),
-        select_group_id(-1),
-        drag_group_id(-1),
-        extruder_id(0),
-        selected(false),
-        is_active(true),
-        zoom_to_volumes(true),
-        outside_printer_detection_enabled(true),
-        is_outside(false),
-        hover(false),
-        is_modifier(false),
-        is_wipe_tower(false),
-        tverts_range(0, size_t(-1)),
-        qverts_range(0, size_t(-1))
-    {
-        color[0] = r;
-        color[1] = g;
-        color[2] = b;
-        color[3] = a;
-        set_render_color(r, g, b, a);
-    }
+    GLVolume(float r = 1.f, float g = 1.f, float b = 1.f, float a = 1.f);
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
 
-    std::vector<int> load_object(
-        const ModelObject        *model_object, 
-        const std::vector<int>   &instance_idxs,
-        const std::string        &color_by,
-        const std::string        &select_by,
-        const std::string        &drag_by);
+private:
+    // Offset of the volume to be rendered.
+    Pointf3               m_origin;
+    // Rotation around Z axis of the volume to be rendered.
+    float                 m_angle_z;
+    // Scale factor of the volume to be rendered.
+    float                 m_scale_factor;
+    // World matrix of the volume to be rendered.
+    std::vector<float>    m_world_mat;
+    // Bounding box of this volume, in unscaled coordinates.
+    mutable BoundingBoxf3 m_transformed_bounding_box;
+    // Whether or not is needed to recalculate the world matrix.
+    mutable bool          m_dirty;
 
-    int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
+public:
 
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3       bounding_box;
-    // Offset of the volume to be rendered.
-    Pointf3             origin;
     // Color of the triangles / quads held by this volume.
     float               color[4];
     // Color used to render this volume.
@@ -333,10 +317,17 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
+    const Pointf3& get_origin() const;
+    void set_origin(const Pointf3& origin);
+    void set_angle_z(float angle_z);
+    void set_scale_factor(float scale_factor);
+
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
-    BoundingBoxf3       transformed_bounding_box() const { BoundingBoxf3 bb = this->bounding_box; bb.translate(this->origin); return bb; }
+
+    const std::vector<float>& world_matrix() const;
+    BoundingBoxf3       transformed_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
     bool                indexed() const { return this->indexed_vertex_array.indexed(); }
@@ -344,11 +335,14 @@ public:
     void                set_range(coordf_t low, coordf_t high);
     void                render() const;
     void                render_using_layer_height() const;
+    void                render_VBOs(int color_id, int detection_id, int worldmatrix_id) const;
+    void                render_legacy() const;
+
     void                finalize_geometry(bool use_VBOs) { this->indexed_vertex_array.finalize_geometry(use_VBOs); }
     void                release_geometry() { this->indexed_vertex_array.release_geometry(); }
 
     /************************************************ Layer height texture ****************************************************/
-    std::shared_ptr<GLTexture>  layer_height_texture;
+    std::shared_ptr<LayersTexture>  layer_height_texture;
     // Data to render this volume using the layer height texture
     LayerHeightTextureData layer_height_texture_data;
 
@@ -429,7 +423,9 @@ public:
         print_box_max[0] = max_x; print_box_max[1] = max_y; print_box_max[2] = max_z;
     }
 
-    bool check_outside_state(const DynamicPrintConfig* config);
+    // returns true if all the volumes are completely contained in the print volume
+    // returns the containment state in the given out_state, if non-null
+    bool check_outside_state(const DynamicPrintConfig* config, ModelInstance::EPrintVolumeState* out_state);
     void reset_outside_state();
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);
@@ -444,65 +440,6 @@ private:
 
 class _3DScene
 {
-    class TextureBase
-    {
-    protected:
-        unsigned int m_tex_id;
-        unsigned int m_tex_width;
-        unsigned int m_tex_height;
-
-        // generate() fills in m_data with the pixels, while finalize() moves the data to the GPU before rendering.
-        std::vector<unsigned char> m_data;
-
-    public:
-        TextureBase() : m_tex_id(0), m_tex_width(0), m_tex_height(0) {}
-        virtual ~TextureBase() { _destroy_texture(); }
-
-        // If not loaded, load the texture data into the GPU. Return a texture ID or 0 if the texture has zero size.
-        unsigned int finalize();
-
-        unsigned int get_texture_id() const { return m_tex_id; }
-        unsigned int get_texture_width() const { return m_tex_width; }
-        unsigned int get_texture_height() const { return m_tex_height; }
-
-        void reset_texture() { _destroy_texture(); }
-
-    private:
-        void _destroy_texture();
-    };
-
-    class WarningTexture : public TextureBase
-    {
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-    public:
-        WarningTexture() : TextureBase() {}
-
-        // Generate a texture data, but don't load it into the GPU yet, as the glcontext may not be valid yet.
-        bool generate(const std::string& msg);
-    };
-
-    class LegendTexture : public TextureBase
-    {
-        static const unsigned int Px_Title_Offset = 5;
-        static const unsigned int Px_Text_Offset = 5;
-        static const unsigned int Px_Square = 20;
-        static const unsigned int Px_Square_Contour = 1;
-        static const unsigned int Px_Border = Px_Square / 2;
-        static const unsigned char Squares_Border_Color[3];
-        static const unsigned char Background_Color[3];
-        static const unsigned char Opacity;
-
-    public:
-        LegendTexture() : TextureBase() {}
-
-        // Generate a texture data, but don't load it into the GPU yet, as the glcontext may not be valid yet.
-        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    };
-
-    static LegendTexture s_legend_texture;
-    static WarningTexture s_warning_texture;
     static GUI::GLCanvas3DManager s_canvas_mgr;
 
 public:
@@ -516,10 +453,6 @@ public:
 
     static bool init(wxGLCanvas* canvas);
 
-    static bool set_current(wxGLCanvas* canvas, bool force);
-    static void reset_current_canvas();
-
-    static void set_active(wxGLCanvas* canvas, bool active);
     static void set_as_dirty(wxGLCanvas* canvas);
 
     static unsigned int get_volumes_count(wxGLCanvas* canvas);
@@ -527,7 +460,7 @@ public:
     static void deselect_volumes(wxGLCanvas* canvas);
     static void select_volume(wxGLCanvas* canvas, unsigned int id);
     static void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
-    static bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
+    static int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
     static bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     static bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
@@ -572,6 +505,7 @@ public:
     static void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     static void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
+    static void update_gizmos_data(wxGLCanvas* canvas);
 
     static void render(wxGLCanvas* canvas);
 
@@ -594,6 +528,8 @@ public:
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
@@ -605,21 +541,7 @@ public:
     static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
 
-    // generates the legend texture in dependence of the current shown view type
-    static void generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
-    static unsigned int get_legend_texture_width();
-    static unsigned int get_legend_texture_height();
-
     static void reset_legend_texture();
-    static unsigned int finalize_legend_texture();
-
-    static unsigned int get_warning_texture_width();
-    static unsigned int get_warning_texture_height();
-
-    // generates a warning texture containing the given message
-    static void generate_warning_texture(const std::string& msg);
-    static void reset_warning_texture();
-    static unsigned int finalize_warning_texture();
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);

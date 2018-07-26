@@ -322,7 +322,13 @@ sub selection_changed {
         }
         # get default values
         my $default_config = Slic3r::Config::new_from_defaults_keys(\@opt_keys);
-        
+
+       # decide which settings will be shown by default
+        if ($itemData->{type} eq 'object') {
+            $config->set_ifndef('wipe_into_objects', 0);
+            $config->set_ifndef('wipe_into_infill', 0);
+        }
+
         # append default extruder
         push @opt_keys, 'extruder';
         $default_config->set('extruder', 0);
@@ -330,7 +336,14 @@ sub selection_changed {
         $self->{settings_panel}->set_default_config($default_config);
         $self->{settings_panel}->set_config($config);
         $self->{settings_panel}->set_opt_keys(\@opt_keys);
-        $self->{settings_panel}->set_fixed_options([qw(extruder)]);
+
+        # disable minus icon to remove the settings
+        if ($itemData->{type} eq 'object') {
+            $self->{settings_panel}->set_fixed_options([qw(extruder), qw(wipe_into_infill), qw(wipe_into_objects)]);
+	} else {
+            $self->{settings_panel}->set_fixed_options([qw(extruder)]);
+        }
+
         $self->{settings_panel}->enable;
     }
     

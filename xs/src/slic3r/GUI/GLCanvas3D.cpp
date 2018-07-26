@@ -1,5 +1,6 @@
 #include "GLCanvas3D.hpp"
 
+#include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
 #include "../../slic3r/GUI/GUI.hpp"
@@ -14,6 +15,10 @@
 
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
+#include <wx/bitmap.h>
+#include <wx/dcmemory.h>
+#include <wx/image.h>
+#include <wx/settings.h>
 
 #include <tbb/parallel_for.h>
 #include <tbb/spin_mutex.h>
@@ -40,6 +45,11 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 
 static const float VARIABLE_LAYER_THICKNESS_BAR_WIDTH = 70.0f;
 static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
+
+static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
+                                     0.0f, 1.0f, 0.0f, 0.0f,
+                                     0.0f, 0.0f, 1.0f, 0.0f,
+                                     0.0f, 0.0f, 0.0f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -493,6 +503,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         ::glEnable(GL_TEXTURE_2D);
+        ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
         ::glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -500,7 +511,6 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         if (theta > 90.0f)
             ::glFrontFace(GL_CW);
 
-        ::glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
         ::glBindTexture(GL_TEXTURE_2D, (theta <= 90.0f) ? (GLuint)m_top_texture.get_id() : (GLuint)m_bottom_texture.get_id());
         ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_triangles.get_vertices());
         ::glTexCoordPointer(2, GL_FLOAT, 0, (GLvoid*)m_triangles.get_tex_coords());
@@ -553,6 +563,7 @@ void GLCanvas3D::Bed::_render_custom() const
         ::glDisableClientState(GL_VERTEX_ARRAY);
 
         ::glDisable(GL_BLEND);
+        ::glDisable(GL_LIGHTING);
     }
 }
 
@@ -577,7 +588,6 @@ GLCanvas3D::Axes::Axes()
 
 void GLCanvas3D::Axes::render(bool depth_test) const
 {
-    ::glDisable(GL_LIGHTING);
     if (depth_test)
         ::glEnable(GL_DEPTH_TEST);
     else
@@ -623,7 +633,6 @@ bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
 
 void GLCanvas3D::CuttingPlane::render(const BoundingBoxf3& bb) const
 {
-    ::glDisable(GL_LIGHTING);
     _render_plane(bb);
     _render_contour();
 }
@@ -728,6 +737,12 @@ void GLCanvas3D::Shader::set_uniform(const std::string& name, float value) const
 {
     if (m_shader != nullptr)
         m_shader->set_uniform(name.c_str(), value);
+}
+
+void GLCanvas3D::Shader::set_uniform(const std::string& name, const float* matrix) const
+{
+    if (m_shader != nullptr)
+        m_shader->set_uniform(name.c_str(), matrix);
 }
 
 const GLShader* GLCanvas3D::Shader::get_shader() const
@@ -963,15 +978,18 @@ void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas
     m_shader.set_uniform("z_texture_row_to_normalized", 1.0f / (float)volume.layer_height_texture_height());
     m_shader.set_uniform("z_cursor", max_z * get_cursor_z_relative(canvas));
     m_shader.set_uniform("z_cursor_band_width", band_width);
+    // The shader requires the original model coordinates when rendering to the texture, so we pass it the unit matrix
+    m_shader.set_uniform("volume_world_matrix", UNIT_MATRIX);
 
     GLsizei w = (GLsizei)volume.layer_height_texture_width();
     GLsizei h = (GLsizei)volume.layer_height_texture_height();
     GLsizei half_w = w / 2;
     GLsizei half_h = h / 2;
 
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     ::glBindTexture(GL_TEXTURE_2D, m_z_texture_id);
-    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    ::glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA, half_w, half_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     ::glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level0());
     ::glTexSubImage2D(GL_TEXTURE_2D, 1, 0, 0, half_w, half_h, GL_RGBA, GL_UNSIGNED_BYTE, volume.layer_height_texture_data_ptr_level1());
 
@@ -1053,7 +1071,9 @@ const Pointf3 GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MA
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
-    , volume_idx(-1)
+    , move_with_shift(false)
+    , move_volume_idx(-1)
+    , gizmo_volume_idx(-1)
 {
 }
 
@@ -1083,8 +1103,9 @@ bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
     return (drag.start_position_3D != Drag::Invalid_3D_Point);
 }
 
-const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f;
-const float GLCanvas3D::Gizmos::OverlayGapY = 10.0f;
+const float GLCanvas3D::Gizmos::OverlayTexturesScale = 0.75f;
+const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;
+const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
 
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
@@ -1150,7 +1171,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Poin
         if (it->second == nullptr)
             continue;
 
-        float tex_size = (float)it->second->get_textures_size();
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
@@ -1176,7 +1197,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
         if (it->second == nullptr)
             continue;
 
-        float tex_size = (float)it->second->get_textures_size();
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
@@ -1242,7 +1263,7 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         if (it->second == nullptr)
             continue;
 
-        float tex_size = (float)it->second->get_textures_size();
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale;
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
@@ -1274,14 +1295,19 @@ void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
         curr->update(mouse_pos);
 }
 
-void GLCanvas3D::Gizmos::update_data(float scale)
+void GLCanvas3D::Gizmos::refresh()
 {
     if (!m_enabled)
         return;
 
-    GizmosMap::const_iterator it = m_gizmos.find(Scale);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoScale*>(it->second)->set_scale(scale);
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->refresh();
+}
+
+GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
+{
+    return m_current;
 }
 
 bool GLCanvas3D::Gizmos::is_running() const
@@ -1309,6 +1335,9 @@ void GLCanvas3D::Gizmos::start_dragging()
 void GLCanvas3D::Gizmos::stop_dragging()
 {
     m_dragging = false;
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->stop_dragging();
 }
 
 float GLCanvas3D::Gizmos::get_scale() const
@@ -1320,6 +1349,35 @@ float GLCanvas3D::Gizmos::get_scale() const
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale*>(it->second)->get_scale() : 1.0f;
 }
 
+void GLCanvas3D::Gizmos::set_scale(float scale)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Scale);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoScale*>(it->second)->set_scale(scale);
+}
+
+float GLCanvas3D::Gizmos::get_angle_z() const
+{
+    if (!m_enabled)
+        return 0.0f;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate*>(it->second)->get_angle_z() : 0.0f;
+}
+
+void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle_z(angle_z);
+}
+
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
 {
     if (!m_enabled)
@@ -1327,7 +1385,8 @@ void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& b
 
     ::glDisable(GL_DEPTH_TEST);
 
-    _render_current_gizmo(box);
+    if (box.radius() > 0.0)
+        _render_current_gizmo(box);
 
     ::glPushMatrix();
     ::glLoadIdentity();
@@ -1375,8 +1434,8 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        float tex_size = (float)it->second->get_textures_size() * inv_zoom;
-        GLTexture::render_texture(it->second->get_textures_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
+        float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
+        GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
         top_y -= (tex_size + scaled_gap_y);
     }
 }
@@ -1402,21 +1461,238 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     return height;
 }
 
+const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
+
+bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
+{
+    reset();
+
+    if (msg.empty())
+        return false;
+
+    wxMemoryDC memDC;
+    // select default font
+    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+
+    // calculates texture size
+    wxCoord w, h;
+    memDC.GetTextExtent(msg, &w, &h);
+    m_width = (int)w;
+    m_height = (int)h;
+
+    // generates bitmap
+    wxBitmap bitmap(m_width, m_height);
+
+#if defined(__APPLE__) || defined(_MSC_VER)
+    bitmap.UseAlpha();
+#endif
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.Clear();
+
+    memDC.SetTextForeground(*wxWHITE);
+
+    // draw message
+    memDC.DrawText(msg, 0, 0);
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
+    wxImage image = bitmap.ConvertToImage();
+    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+    // prepare buffer
+    std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    for (int h = 0; h < m_height; ++h)
+    {
+        int hh = h * m_width;
+        unsigned char* px_ptr = data.data() + 4 * hh;
+        for (int w = 0; w < m_width; ++w)
+        {
+            *px_ptr++ = image.GetRed(w, h);
+            *px_ptr++ = image.GetGreen(w, h);
+            *px_ptr++ = image.GetBlue(w, h);
+            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+        }
+    }
+
+    // sends buffer to gpu
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
+const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
+const unsigned char GLCanvas3D::LegendTexture::Background_Color[3] = { 9, 91, 134 };
+const unsigned char GLCanvas3D::LegendTexture::Opacity = 255;
+
+bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
+{
+    reset();
+
+    // collects items to render
+    auto title = _(preview_data.get_legend_title());
+    const GCodePreviewData::LegendItemsList& items = preview_data.get_legend_items(tool_colors);
+
+    unsigned int items_count = (unsigned int)items.size();
+    if (items_count == 0)
+        // nothing to render, return
+        return false;
+
+    wxMemoryDC memDC;
+    // select default font
+    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+
+    // calculates texture size
+    wxCoord w, h;
+    memDC.GetTextExtent(title, &w, &h);
+    int title_width = (int)w;
+    int title_height = (int)h;
+
+    int max_text_width = 0;
+    int max_text_height = 0;
+    for (const GCodePreviewData::LegendItem& item : items)
+    {
+        memDC.GetTextExtent(GUI::from_u8(item.text), &w, &h);
+        max_text_width = std::max(max_text_width, (int)w);
+        max_text_height = std::max(max_text_height, (int)h);
+    }
+
+    m_width = std::max(2 * Px_Border + title_width, 2 * (Px_Border + Px_Square_Contour) + Px_Square + Px_Text_Offset + max_text_width);
+    m_height = 2 * (Px_Border + Px_Square_Contour) + title_height + Px_Title_Offset + items_count * Px_Square;
+    if (items_count > 1)
+        m_height += (items_count - 1) * Px_Square_Contour;
+
+    // generates bitmap
+    wxBitmap bitmap(m_width, m_height);
+
+#if defined(__APPLE__) || defined(_MSC_VER)
+    bitmap.UseAlpha();
+#endif
+
+    memDC.SelectObject(bitmap);
+    memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
+    memDC.Clear();
+
+    memDC.SetTextForeground(*wxWHITE);
+
+    // draw title
+    int title_x = Px_Border;
+    int title_y = Px_Border;
+    memDC.DrawText(title, title_x, title_y);
+
+    // draw icons contours as background
+    int squares_contour_x = Px_Border;
+    int squares_contour_y = Px_Border + title_height + Px_Title_Offset;
+    int squares_contour_width = Px_Square + 2 * Px_Square_Contour;
+    int squares_contour_height = items_count * Px_Square + 2 * Px_Square_Contour;
+    if (items_count > 1)
+        squares_contour_height += (items_count - 1) * Px_Square_Contour;
+
+    wxColour color(Squares_Border_Color[0], Squares_Border_Color[1], Squares_Border_Color[2]);
+    wxPen pen(color);
+    wxBrush brush(color);
+    memDC.SetPen(pen);
+    memDC.SetBrush(brush);
+    memDC.DrawRectangle(wxRect(squares_contour_x, squares_contour_y, squares_contour_width, squares_contour_height));
+
+    // draw items (colored icon + text)
+    int icon_x = squares_contour_x + Px_Square_Contour;
+    int icon_x_inner = icon_x + 1;
+    int icon_y = squares_contour_y + Px_Square_Contour;
+    int icon_y_step = Px_Square + Px_Square_Contour;
+
+    int text_x = icon_x + Px_Square + Px_Text_Offset;
+    int text_y_offset = (Px_Square - max_text_height) / 2;
+
+    int px_inner_square = Px_Square - 2;
+
+    for (const GCodePreviewData::LegendItem& item : items)
+    {
+        // draw darker icon perimeter
+        const std::vector<unsigned char>& item_color_bytes = item.color.as_bytes();
+        wxImage::HSVValue dark_hsv = wxImage::RGBtoHSV(wxImage::RGBValue(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2]));
+        dark_hsv.value *= 0.75;
+        wxImage::RGBValue dark_rgb = wxImage::HSVtoRGB(dark_hsv);
+        color.Set(dark_rgb.red, dark_rgb.green, dark_rgb.blue, item_color_bytes[3]);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        memDC.SetPen(pen);
+        memDC.SetBrush(brush);
+        memDC.DrawRectangle(wxRect(icon_x, icon_y, Px_Square, Px_Square));
+
+        // draw icon interior
+        color.Set(item_color_bytes[0], item_color_bytes[1], item_color_bytes[2], item_color_bytes[3]);
+        pen.SetColour(color);
+        brush.SetColour(color);
+        memDC.SetPen(pen);
+        memDC.SetBrush(brush);
+        memDC.DrawRectangle(wxRect(icon_x_inner, icon_y + 1, px_inner_square, px_inner_square));
+
+        // draw text
+        memDC.DrawText(GUI::from_u8(item.text), text_x, icon_y + text_y_offset);
+
+        // update y
+        icon_y += icon_y_step;
+    }
+
+    memDC.SelectObject(wxNullBitmap);
+
+    // Convert the bitmap into a linear data ready to be loaded into the GPU.
+    wxImage image = bitmap.ConvertToImage();
+    image.SetMaskColour(Background_Color[0], Background_Color[1], Background_Color[2]);
+
+    // prepare buffer
+    std::vector<unsigned char> data(4 * m_width * m_height, 0);
+    for (int h = 0; h < m_height; ++h)
+    {
+        int hh = h * m_width;
+        unsigned char* px_ptr = data.data() + 4 * hh;
+        for (int w = 0; w < m_width; ++w)
+        {
+            *px_ptr++ = image.GetRed(w, h);
+            *px_ptr++ = image.GetGreen(w, h);
+            *px_ptr++ = image.GetBlue(w, h);
+            *px_ptr++ = image.IsTransparent(w, h) ? 0 : Opacity;
+        }
+    }
+
+    // sends buffer to gpu
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, (GLuint)m_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
 GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
 {
     GizmosMap::const_iterator it = m_gizmos.find(m_current);
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
-GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
+GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
-    , m_context(context)
+    , m_context(nullptr)
     , m_timer(nullptr)
     , m_config(nullptr)
     , m_print(nullptr)
     , m_model(nullptr)
     , m_dirty(true)
-    , m_active(true)
     , m_initialized(false)
     , m_use_VBOs(false)
     , m_force_zoom_to_bed_enabled(false)
@@ -1434,7 +1710,10 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context)
     , m_reload_delayed(false)
 {
     if (m_canvas != nullptr)
+    {
+        m_context = new wxGLContext(m_canvas);
         m_timer = new wxTimer(m_canvas);
+    }
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -1447,6 +1726,12 @@ GLCanvas3D::~GLCanvas3D()
         m_timer = nullptr;
     }
 
+    if (m_context != nullptr)
+    {
+        delete m_context;
+        m_context = nullptr;
+    }
+
     _deregister_callbacks();
 }
 
@@ -1454,6 +1739,9 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
 {
     if (m_initialized)
         return true;
+
+    if ((m_canvas == nullptr) || (m_context == nullptr))
+        return false;
 
     ::glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     ::glClearDepth(1.0f);
@@ -1520,17 +1808,12 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     return true;
 }
 
-bool GLCanvas3D::set_current(bool force)
+bool GLCanvas3D::set_current()
 {
-    if ((force || m_active) && (m_canvas != nullptr) && (m_context != nullptr))
+    if ((m_canvas != nullptr) && (m_context != nullptr))
         return m_canvas->SetCurrent(*m_context);
 
     return false;
-}
-
-void GLCanvas3D::set_active(bool active)
-{
-    m_active = active;
 }
 
 void GLCanvas3D::set_as_dirty()
@@ -1549,7 +1832,7 @@ void GLCanvas3D::reset_volumes()
     if (!m_volumes.empty())
     {
         // ensures this canvas is current
-        if ((m_canvas == nullptr) || !_3DScene::set_current(m_canvas, true))
+        if (!set_current())
             return;
 
         m_volumes.release_geometry();
@@ -1595,9 +1878,11 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
     }
 }
 
-bool GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
+int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
-    return m_volumes.check_outside_state(config);
+    ModelInstance::EPrintVolumeState state;
+    m_volumes.check_outside_state(config, &state);
+    return (int)state;
 }
 
 bool GLCanvas3D::move_volume_up(unsigned int id)
@@ -1655,6 +1940,8 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
+
+    m_dirty = true;
 }
 
 void GLCanvas3D::set_auto_bed_shape()
@@ -1841,6 +2128,32 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
+void GLCanvas3D::update_gizmos_data()
+{
+    if (!m_gizmos.is_enabled())
+        return;
+
+    int id = _get_first_selected_object_id();
+    if ((id != -1) && (m_model != nullptr))
+    {
+        ModelObject* model_object = m_model->objects[id];
+        if (model_object != nullptr)
+        {
+            ModelInstance* model_instance = model_object->instances[0];
+            if (model_instance != nullptr)
+            {
+                m_gizmos.set_scale(model_instance->scaling_factor);
+                m_gizmos.set_angle_z(model_instance->rotation);
+            }
+        }
+    }
+    else
+    {
+        m_gizmos.set_scale(1.0f);
+        m_gizmos.set_angle_z(0.0f);
+    }
+}
+
 void GLCanvas3D::render()
 {
     if (m_canvas == nullptr)
@@ -1850,7 +2163,7 @@ void GLCanvas3D::render()
         return;
 
     // ensures this canvas is current and initialized
-    if (!_3DScene::set_current(m_canvas, false) || !_3DScene::init(m_canvas))
+    if (!set_current() || !_3DScene::init(m_canvas))
         return;
 
     if (m_force_zoom_to_bed_enabled)
@@ -1933,7 +2246,7 @@ void GLCanvas3D::reload_scene(bool force)
     reset_volumes();
 
     // ensures this canvas is current
-    if (!_3DScene::set_current(m_canvas, true))
+    if (!set_current())
         return;
 
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
@@ -1953,7 +2266,12 @@ void GLCanvas3D::reload_scene(bool force)
         m_objects_volumes_idxs.push_back(load_object(*m_model, obj_idx));
     }
 
+    // 1st call to reset if no objects left
+    update_gizmos_data();
     update_volumes_selection(m_objects_selections);
+    // 2nd call to restore if something selected
+    if (!m_objects_selections.empty())
+        update_gizmos_data();
 
     if (m_config->has("nozzle_diameter"))
     {
@@ -1983,32 +2301,35 @@ void GLCanvas3D::reload_scene(bool force)
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty())
     {
-        bool contained = m_volumes.check_outside_state(m_config);
+        ModelInstance::EPrintVolumeState state;
+        bool contained = m_volumes.check_outside_state(m_config, &state);
+
         if (!contained)
         {
             enable_warning_texture(true);
-            _3DScene::generate_warning_texture(L("Detected object outside print volume"));
-            m_on_enable_action_buttons_callback.call(false);
+            _generate_warning_texture(L("Detected object outside print volume"));
+            m_on_enable_action_buttons_callback.call(state == ModelInstance::PVS_Fully_Outside);
         }
         else
         {
             enable_warning_texture(false);
             m_volumes.reset_outside_state();
-            _3DScene::reset_warning_texture();
+            _reset_warning_texture();
             m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
         }
     }
     else
     {
         enable_warning_texture(false);
-        _3DScene::reset_warning_texture();
+        _reset_warning_texture();
+        m_on_enable_action_buttons_callback.call(false);
     }
 }
 
 void GLCanvas3D::load_print_toolpaths()
 {
     // ensures this canvas is current
-    if (!_3DScene::set_current(m_canvas, true))
+    if (!set_current())
         return;
 
     if (m_print == nullptr)
@@ -2376,7 +2697,7 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
     if ((m_canvas != nullptr) && (m_print != nullptr))
     {
         // ensures that this canvas is current
-        if (!_3DScene::set_current(m_canvas, false))
+        if (!set_current())
             return;
 
         if (m_volumes.empty())
@@ -2391,11 +2712,11 @@ void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const 
             _load_gcode_unretractions(preview_data);
             
             if (m_volumes.empty())
-                _3DScene::reset_legend_texture();
+                reset_legend_texture();
             else
             {
-                _3DScene::generate_legend_texture(preview_data, tool_colors);
-                
+                _generate_legend_texture(preview_data, tool_colors);
+
                 // removes empty volumes
                 m_volumes.volumes.erase(std::remove_if(m_volumes.volumes.begin(), m_volumes.volumes.end(),
                     [](const GLVolume* volume) { return volume->print_zs.empty(); }), m_volumes.volumes.end());
@@ -2502,6 +2823,18 @@ void GLCanvas3D::register_on_gizmo_scale_uniformly_callback(void* callback)
 {
     if (callback != nullptr)
         m_on_gizmo_scale_uniformly_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_rotate_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_update_geometry_info_callback.register_callback(callback);
 }
 
 void GLCanvas3D::bind_event_handlers()
@@ -2693,11 +3026,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif
     } 
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
-    {
-        m_active = false;
         m_on_double_click_callback.call();
-        m_active = true;
-    }
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -2725,14 +3054,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if ((selected_object_idx != -1) && gizmos_overlay_contains_mouse)
         {
+            update_gizmos_data();
             m_gizmos.update_on_off_state(*this, m_mouse.position);
-            _update_gizmos_data();
             m_dirty = true;
         }
         else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
-        {            
-            _update_gizmos_data();
+        {
+            update_gizmos_data();
             m_gizmos.start_dragging();
+            m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id();
             m_dirty = true;
         }
         else
@@ -2757,9 +3087,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         }
                     }
 
-                    if (m_gizmos.is_running())
-                        _update_gizmos_data();
-
+                    update_gizmos_data();
+                    m_gizmos.refresh();
                     m_dirty = true;
                 }
             }
@@ -2782,7 +3111,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (volume_bbox.contains(pos3d))
                     {
                         // The dragging operation is initiated.
-                        m_mouse.drag.volume_idx = volume_idx;
+                        m_mouse.drag.move_with_shift = evt.ShiftDown();
+                        m_mouse.drag.move_volume_idx = volume_idx;
                         m_mouse.drag.start_position_3D = pos3d;
                         // Remember the shift to to the object center.The object center will later be used
                         // to limit the object placement close to the bed.
@@ -2793,16 +3123,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // if right clicking on volume, propagate event through callback
                     if (m_volumes.volumes[volume_idx]->hover)
-                    {
-                        m_active = false;
                         m_on_right_click_callback.call(pos.x, pos.y);
-                        m_active = true;
-                    }
                 }
             }
         }
     }
-    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.volume_idx != -1))
+    else if (evt.Dragging() && evt.LeftIsDown() && !gizmos_overlay_contains_mouse && (m_layers_editing.state == LayersEditing::Unknown) && (m_mouse.drag.move_volume_idx != -1))
     {
         m_mouse.dragging = true;
 
@@ -2825,27 +3151,34 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Calculate the translation vector.
         Vectorf3 vector = m_mouse.drag.start_position_3D.vector_to(cur_pos);
         // Get the volume being dragged.
-        GLVolume* volume = m_volumes.volumes[m_mouse.drag.volume_idx];
+        GLVolume* volume = m_volumes.volumes[m_mouse.drag.move_volume_idx];
         // Get all volumes belonging to the same group, if any.
         std::vector<GLVolume*> volumes;
-        if (volume->drag_group_id == -1)
+        int group_id = m_mouse.drag.move_with_shift ? volume->select_group_id : volume->drag_group_id;
+        if (group_id == -1)
             volumes.push_back(volume);
         else
         {
             for (GLVolume* v : m_volumes.volumes)
             {
-                if ((v != nullptr) && (v->drag_group_id == volume->drag_group_id))
-                    volumes.push_back(v);
+                if (v != nullptr)
+                {
+                    if ((m_mouse.drag.move_with_shift && (v->select_group_id == group_id)) || (v->drag_group_id == group_id))
+                        volumes.push_back(v);
+                }
             }
         }
 
         // Apply new temporary volume origin and ignore Z.
         for (GLVolume* v : volumes)
         {
-            v->origin.translate(vector.x, vector.y, 0.0);
+            Pointf3 origin = v->get_origin();
+            origin.translate(vector.x, vector.y, 0.0);
+            v->set_origin(origin);
         }
 
         m_mouse.drag.start_position_3D = cur_pos;
+        m_gizmos.refresh();
 
         m_dirty = true;
     }
@@ -2856,7 +3189,59 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         const Pointf3& cur_pos = _mouse_to_bed_3d(pos);
         m_gizmos.update(Pointf(cur_pos.x, cur_pos.y));
 
-        m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+        std::vector<GLVolume*> volumes;
+        if (m_mouse.drag.gizmo_volume_idx != -1)
+        {
+            GLVolume* volume = m_volumes.volumes[m_mouse.drag.gizmo_volume_idx];
+            // Get all volumes belonging to the same group, if any.
+            if (volume->select_group_id == -1)
+                volumes.push_back(volume);
+            else
+            {
+                for (GLVolume* v : m_volumes.volumes)
+                {
+                    if ((v != nullptr) && (v->select_group_id == volume->select_group_id))
+                        volumes.push_back(v);
+                }
+            }
+        }
+
+        switch (m_gizmos.get_current_type())
+        {
+        case Gizmos::Scale:
+        {
+            // Apply new temporary scale factor
+            float scale_factor = m_gizmos.get_scale();
+            for (GLVolume* v : volumes)
+            {
+                v->set_scale_factor(scale_factor);
+            }
+            break;
+        }
+        case Gizmos::Rotate:
+        {
+            // Apply new temporary angle_z
+            float angle_z = m_gizmos.get_angle_z();
+            for (GLVolume* v : volumes)
+            {
+                v->set_angle_z(angle_z);
+            }
+            break;
+        }
+        default:
+            break;
+        }
+
+        if (!volumes.empty())
+        {
+            const BoundingBoxf3& bb = volumes[0]->transformed_bounding_box();
+            const Pointf3& size = bb.size();
+            m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
+        }
+
+        if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
+            m_gizmos.refresh();
+
         m_dirty = true;
     }
     else if (evt.Dragging() && !gizmos_overlay_contains_mouse)
@@ -2914,19 +3299,19 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (layer_editing_object_idx != -1)
                 m_on_model_update_callback.call();
         }
-        else if ((m_mouse.drag.volume_idx != -1) && m_mouse.dragging)
+        else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
             // get all volumes belonging to the same group, if any
             std::vector<int> volume_idxs;
-            int vol_id = m_mouse.drag.volume_idx;
-            int group_id = m_volumes.volumes[vol_id]->drag_group_id;
+            int vol_id = m_mouse.drag.move_volume_idx;
+            int group_id = m_mouse.drag.move_with_shift ? m_volumes.volumes[vol_id]->select_group_id : m_volumes.volumes[vol_id]->drag_group_id;
             if (group_id == -1)
                 volume_idxs.push_back(vol_id);
             else
             {
                 for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
                 {
-                    if (m_volumes.volumes[i]->drag_group_id == group_id)
+                    if ((m_mouse.drag.move_with_shift && (m_volumes.volumes[i]->select_group_id == group_id)) || (m_volumes.volumes[i]->drag_group_id == group_id))
                         volume_idxs.push_back(i);
                 }
             }
@@ -2940,17 +3325,35 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 deselect_volumes();
                 _on_select(-1);
+                update_gizmos_data();
             }
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {
+            switch (m_gizmos.get_current_type())
+            {
+            case Gizmos::Scale:
+            {
+                m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+                break;
+            }
+            case Gizmos::Rotate:
+            {
+                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+                break;
+            }
+            default:
+                break;
+            }
             m_gizmos.stop_dragging();
         }
 
-        m_mouse.drag.volume_idx = -1;
+        m_mouse.drag.move_volume_idx = -1;
+        m_mouse.drag.gizmo_volume_idx = -1;
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_dirty = true;
     }
     else if (evt.Moving())
     {
@@ -3002,9 +3405,17 @@ Point GLCanvas3D::get_local_mouse_position() const
     return Point(mouse_pos.x, mouse_pos.y);
 }
 
+void GLCanvas3D::reset_legend_texture()
+{
+    if (!set_current())
+        return;
+
+    m_legend_texture.reset();
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
-    return (m_canvas != nullptr) ? m_active && m_canvas->IsShownOnScreen() : false;
+    return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
 }
 
 void GLCanvas3D::_force_zoom_to_bed()
@@ -3019,7 +3430,7 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
         return;
 
     // ensures that this canvas is current
-    _3DScene::set_current(m_canvas, false);
+    set_current();
     ::glViewport(0, 0, w, h);
 
     ::glMatrixMode(GL_PROJECTION);
@@ -3093,7 +3504,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
     BoundingBoxf3 bb;
     for (const GLVolume* volume : m_volumes.volumes)
     {
-        if ((volume != nullptr) && volume->selected)
+        if ((volume != nullptr) && !volume->is_wipe_tower && volume->selected)
             bb.merge(volume->transformed_bounding_box());
     }
     return bb;
@@ -3200,6 +3611,8 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_wipe_tower_moved_callback.deregister_callback();
     m_on_enable_action_buttons_callback.deregister_callback();
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
+    m_on_gizmo_rotate_callback.deregister_callback();
+    m_on_update_geometry_info_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -3259,8 +3672,8 @@ void GLCanvas3D::_picking_pass() const
         if (m_multisample_allowed)
             ::glDisable(GL_MULTISAMPLE);
 
-        ::glDisable(GL_LIGHTING);
         ::glDisable(GL_BLEND);
+        ::glEnable(GL_DEPTH_TEST);
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -3314,8 +3727,6 @@ void GLCanvas3D::_render_background() const
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
-
-    ::glDisable(GL_LIGHTING);
 
     ::glPushMatrix();
     ::glLoadIdentity();
@@ -3371,7 +3782,7 @@ void GLCanvas3D::_render_objects() const
             {
                 const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
                 m_volumes.set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
-                m_volumes.check_outside_state(m_config);
+                m_volumes.check_outside_state(m_config, nullptr);
             }
             // do not cull backfaces to show broken geometry, if any
             ::glDisable(GL_CULL_FACE);
@@ -3395,6 +3806,8 @@ void GLCanvas3D::_render_objects() const
         if (m_picking_enabled)
             ::glEnable(GL_CULL_FACE);
     }
+
+    ::glDisable(GL_LIGHTING);
 }
 
 void GLCanvas3D::_render_cutting_plane() const
@@ -3408,11 +3821,11 @@ void GLCanvas3D::_render_warning_texture() const
         return;
 
     // If the warning texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::finalize_warning_texture();
+    unsigned int tex_id = m_warning_texture.get_id();
     if (tex_id > 0)
     {
-        unsigned int w = _3DScene::get_warning_texture_width();
-        unsigned int h = _3DScene::get_warning_texture_height();
+        int w = m_warning_texture.get_width();
+        int h = m_warning_texture.get_height();
         if ((w > 0) && (h > 0))
         {
             ::glDisable(GL_DEPTH_TEST);
@@ -3441,11 +3854,11 @@ void GLCanvas3D::_render_legend_texture() const
         return;
 
     // If the legend texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = _3DScene::finalize_legend_texture();
+    unsigned int tex_id = m_legend_texture.get_id();
     if (tex_id > 0)
     {
-        unsigned int w = _3DScene::get_legend_texture_width();
-        unsigned int h = _3DScene::get_legend_texture_height();
+        int w = m_legend_texture.get_width();
+        int h = m_legend_texture.get_height();
         if ((w > 0) && (h > 0))
         {
             ::glDisable(GL_DEPTH_TEST);
@@ -3459,6 +3872,7 @@ void GLCanvas3D::_render_legend_texture() const
             float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
             float r = l + (float)w * inv_zoom;
             float b = t - (float)h * inv_zoom;
+
             GLTexture::render_texture(tex_id, l, r, b, t);
 
             ::glPopMatrix();
@@ -3503,9 +3917,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 {
     static const GLfloat INV_255 = 1.0f / 255.0f;
 
-    if (fake_colors)
-        ::glDisable(GL_LIGHTING);
-    else
+    if (!fake_colors)
         ::glEnable(GL_LIGHTING);
 
     // do not cull backfaces to show broken geometry, if any
@@ -3543,6 +3955,9 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
     ::glDisable(GL_BLEND);
 
     ::glEnable(GL_CULL_FACE);
+
+    if (!fake_colors)
+        ::glDisable(GL_LIGHTING);
 }
 
 void GLCanvas3D::_render_gizmo() const
@@ -3662,6 +4077,35 @@ int GLCanvas3D::_get_first_selected_object_id() const
                 // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
                 if (object_id < 10000)
                     return (object_id >= objects_count) ? -1 : object_id;
+            }
+        }
+    }
+    return -1;
+}
+
+int GLCanvas3D::_get_first_selected_volume_id() const
+{
+    if (m_print != nullptr)
+    {
+        int objects_count = (int)m_print->objects.size();
+
+        for (const GLVolume* vol : m_volumes.volumes)
+        {
+            if ((vol != nullptr) && vol->selected)
+            {
+                int object_id = vol->select_group_id / 1000000;
+                // Objects with object_id >= 1000 have a specific meaning, for example the wipe tower proxy.
+                if ((object_id < 10000) && (object_id < objects_count))
+                {
+                    int volume_id = 0;
+                    for (int i = 0; i < object_id; ++i)
+                    {
+                        const PrintObject* obj = m_print->objects[i];
+                        const ModelObject* model = obj->model_object();
+                        volume_id += model->instances.size();
+                    }
+                    return volume_id;
+                }
             }
         }
     }
@@ -4273,13 +4717,14 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         {
             // Move a regular object.
             ModelObject* model_object = m_model->objects[obj_idx];
-            model_object->instances[instance_idx]->offset.translate(volume->origin.x, volume->origin.y);
+            const Pointf3& origin = volume->get_origin();
+            model_object->instances[instance_idx]->offset = Pointf(origin.x, origin.y);
             model_object->invalidate_bounding_box();
             object_moved = true;
         }
         else if (obj_idx == 1000)
             // Move a wipe tower proxy.
-            wipe_tower_origin = volume->origin;
+            wipe_tower_origin = volume->get_origin();
     }
 
     if (object_moved)
@@ -4300,21 +4745,6 @@ void GLCanvas3D::_on_select(int volume_idx)
             id = m_volumes.volumes[volume_idx]->object_idx();
     }
     m_on_select_object_callback.call(id);
-}
-
-void GLCanvas3D::_update_gizmos_data()
-{
-    int id = _get_first_selected_object_id();
-    if ((id != -1) && (m_model != nullptr))
-    {
-        ModelObject* model_object = m_model->objects[id];
-        if (model_object != nullptr)
-        {
-            ModelInstance* model_instance = model_object->instances[0];
-            if (model_instance != nullptr)
-                m_gizmos.update_data(model_instance->scaling_factor);
-        }
-    }
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
@@ -4340,6 +4770,30 @@ std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& col
         }
     }
     return output;
+}
+
+void GLCanvas3D::_generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
+{
+    if (!set_current())
+        return;
+
+    m_legend_texture.generate(preview_data, tool_colors);
+}
+
+void GLCanvas3D::_generate_warning_texture(const std::string& msg)
+{
+    if (!set_current())
+        return;
+
+    m_warning_texture.generate(msg);
+}
+
+void GLCanvas3D::_reset_warning_texture()
+{
+    if (!set_current())
+        return;
+
+    m_warning_texture.reset();
 }
 
 } // namespace GUI

@@ -81,6 +81,17 @@ inline Point operator*(double scalar, const Point& point2) { return Point(scalar
 inline int64_t cross(const Point &v1, const Point &v2) { return int64_t(v1.x) * int64_t(v2.y) - int64_t(v1.y) * int64_t(v2.x); }
 inline int64_t dot(const Point &v1, const Point &v2) { return int64_t(v1.x) * int64_t(v2.x) + int64_t(v1.y) * int64_t(v2.y); }
 
+namespace int128 {
+
+// Exact orientation predicate,
+// returns +1: CCW, 0: collinear, -1: CW.
+int orient(const Point &p1, const Point &p2, const Point &p3);
+
+// Exact orientation predicate,
+// returns +1: CCW, 0: collinear, -1: CW.
+int cross(const Point &v1, const Slic3r::Point &v2);
+}
+
 // To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
     size_t operator()(const Point &pt) const {

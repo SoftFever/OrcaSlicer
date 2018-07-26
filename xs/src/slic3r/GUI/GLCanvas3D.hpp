@@ -225,6 +225,7 @@ public:
         void stop_using() const;
 
         void set_uniform(const std::string& name, float value) const;
+        void set_uniform(const std::string& name, const float* matrix) const;
 
         const GLShader* get_shader() const;
 
@@ -302,7 +303,10 @@ public:
             Point start_position_2D;
             Pointf3 start_position_3D;
             Vectorf3 volume_center_offset;
-            int volume_idx;
+
+            bool move_with_shift;
+            int move_volume_idx;
+            int gizmo_volume_idx;
 
         public:
             Drag();
@@ -323,6 +327,7 @@ public:
 
     class Gizmos
     {
+        static const float OverlayTexturesScale;
         static const float OverlayOffsetX;
         static const float OverlayGapY;
 
@@ -360,14 +365,21 @@ public:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Pointf& mouse_pos);
-        void update_data(float scale);
+        void refresh();
+
+        EType get_current_type() const;
 
         bool is_running() const;
+
         bool is_dragging() const;
         void start_dragging();
         void stop_dragging();
 
         float get_scale() const;
+        void set_scale(float scale);
+
+        float get_angle_z() const;
+        void set_angle_z(float angle_z);
 
         void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
@@ -382,9 +394,35 @@ public:
         GLGizmoBase* _get_current() const;
     };
 
+    class WarningTexture : public GUI::GLTexture
+    {
+        static const unsigned char Background_Color[3];
+        static const unsigned char Opacity;
+
+    public:
+        bool generate(const std::string& msg);
+    };
+
+    class LegendTexture : public GUI::GLTexture
+    {
+        static const int Px_Title_Offset = 5;
+        static const int Px_Text_Offset = 5;
+        static const int Px_Square = 20;
+        static const int Px_Square_Contour = 1;
+        static const int Px_Border = Px_Square / 2;
+        static const unsigned char Squares_Border_Color[3];
+        static const unsigned char Background_Color[3];
+        static const unsigned char Opacity;
+
+    public:
+        bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+    };
+
 private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
+    LegendTexture m_legend_texture;
+    WarningTexture m_warning_texture;
     wxTimer* m_timer;
     Camera m_camera;
     Bed m_bed;
@@ -401,9 +439,6 @@ private:
     Model* m_model;
 
     bool m_dirty;
-    // the active member has been introduced to overcome a bug in wxWidgets method IsShownOnScreen() which always return true
-    // when a window is inside a wxNotebook
-    bool m_active;
     bool m_initialized;
     bool m_use_VBOs;
     bool m_force_zoom_to_bed_enabled;
@@ -442,16 +477,17 @@ private:
     PerlCallback m_on_wipe_tower_moved_callback;
     PerlCallback m_on_enable_action_buttons_callback;
     PerlCallback m_on_gizmo_scale_uniformly_callback;
+    PerlCallback m_on_gizmo_rotate_callback;
+    PerlCallback m_on_update_geometry_info_callback;
 
 public:
-    GLCanvas3D(wxGLCanvas* canvas, wxGLContext* context);
+    GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
 
     bool init(bool useVBOs, bool use_legacy_opengl);
 
-    bool set_current(bool force);
+    bool set_current();
 
-    void set_active(bool active);
     void set_as_dirty();
 
     unsigned int get_volumes_count() const;
@@ -459,7 +495,7 @@ public:
     void deselect_volumes();
     void select_volume(unsigned int id);
     void update_volumes_selection(const std::vector<int>& selections);
-    bool check_volumes_outside_state(const DynamicPrintConfig* config) const;
+    int check_volumes_outside_state(const DynamicPrintConfig* config) const;
     bool move_volume_up(unsigned int id);
     bool move_volume_down(unsigned int id);
 
@@ -511,6 +547,7 @@ public:
     void set_viewport_from_scene(const GLCanvas3D& other);
 
     void update_volumes_colors_by_extruder();
+    void update_gizmos_data();
 
     void render();
 
@@ -549,6 +586,8 @@ public:
     void register_on_wipe_tower_moved_callback(void* callback);
     void register_on_enable_action_buttons_callback(void* callback);
     void register_on_gizmo_scale_uniformly_callback(void* callback);
+    void register_on_gizmo_rotate_callback(void* callback);
+    void register_on_update_geometry_info_callback(void* callback);
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -564,6 +603,8 @@ public:
 
     Size get_canvas_size() const;
     Point get_local_mouse_position() const;
+
+    void reset_legend_texture();
 
 private:
     bool _is_shown_on_screen() const;
@@ -609,6 +650,7 @@ private:
     void _stop_timer();
 
     int _get_first_selected_object_id() const;
+    int _get_first_selected_volume_id() const;
 
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
@@ -629,7 +671,12 @@ private:
     void _on_move(const std::vector<int>& volume_idxs);
     void _on_select(int volume_idx);
 
-    void _update_gizmos_data();
+    // generates the legend texture in dependence of the current shown view type
+    void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+
+    // generates a warning texture containing the given message
+    void _generate_warning_texture(const std::string& msg);
+    void _reset_warning_texture();
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

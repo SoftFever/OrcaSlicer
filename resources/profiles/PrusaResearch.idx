@@ -1,4 +1,13 @@
+min_slic3r_version = 1.41.0-alpha
+0.2.0-alpha2 Renamed the key MK3SMMU to MK3MMU2, added a generic PLA MMU2 material
+0.2.0-alpha1 added initial profiles for the i3 MK3 Multi Material Upgrade 2.0
+0.2.0-alpha moved machine limits from the start G-code to the new print profile parameters
 min_slic3r_version = 1.40.0
+0.1.11 fw version changed to 3.3.1
+0.1.10 MK3 jerk and acceleration update
+0.1.9 edited support extrusion width for 0.25 and 0.6 nozzles
+0.1.8 extrusion width for 0,25, 0.6 and variable layer height fixes
+0.1.7 Fixed errors in 0.25mm and 0.6mm profiles
 0.1.6 Split the MK2.5 profile from the MK2S
 min_slic3r_version = 1.40.0-beta
 0.1.5 fixed printer_variant fields for the i3 MK3 0.25 and 0.6mm nozzles
