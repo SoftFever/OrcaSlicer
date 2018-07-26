@@ -71,6 +71,21 @@ public:
 			overhang_polygons = nullptr;
 		}
 
+		void reset() {
+			layer_type  			= sltUnknown;
+			print_z 				= 0.;
+			bottom_z 				= 0.;
+			height 					= 0.;
+			idx_object_layer_above  = size_t(-1);
+			idx_object_layer_below  = size_t(-1);
+			bridging 				= false;
+			polygons.clear();
+			delete contact_polygons;
+			contact_polygons 		= nullptr;
+			delete overhang_polygons;
+			overhang_polygons 		= nullptr;
+		}
+
 		bool operator==(const MyLayer &layer2) const {
 			return print_z == layer2.print_z && height == layer2.height && bridging == layer2.bridging;
 		}
