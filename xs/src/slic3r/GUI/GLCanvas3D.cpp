@@ -2678,6 +2678,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_2D_as_invalid();
 #endif
     } 
+    else if (evt.Leaving())
+    {
+        // to remove hover when mouse goes out of this canvas
+        m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
+        render();
+    }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
         m_on_double_click_callback.call();
     else if (evt.LeftDown() || evt.RightDown())
