@@ -289,8 +289,8 @@ public:
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()
     bool                zoom_to_volumes;
-    // Wheter or not this volume is enabled for outside print volume detection.
-    bool                outside_printer_detection_enabled;
+    // Wheter or not this volume is enabled for outside print volume detection in shader.
+    bool                shader_outside_printer_detection_enabled;
     // Wheter or not this volume is outside print volume.
     bool                is_outside;
     // Boolean: Is mouse over this object?

@@ -210,7 +210,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , selected(false)
     , is_active(true)
     , zoom_to_volumes(true)
-    , outside_printer_detection_enabled(true)
+    , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
     , hover(false)
     , is_modifier(false)
@@ -250,7 +250,7 @@ void GLVolume::set_render_color()
         set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
     else if (hover)
         set_render_color(HOVER_COLOR, 4);
-    else if (is_outside && outside_printer_detection_enabled)
+    else if (is_outside && shader_outside_printer_detection_enabled)
         set_render_color(OUTSIDE_COLOR, 4);
     else
         set_render_color(color, 4);
@@ -441,7 +441,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
             ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
 
         if (detection_id != -1)
-            ::glUniform1i(detection_id, outside_printer_detection_enabled ? 1 : 0);
+            ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
         if (worldmatrix_id != -1)
             ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
@@ -460,7 +460,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
         ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
 
     if (detection_id != -1)
-        ::glUniform1i(detection_id, outside_printer_detection_enabled ? 1 : 0);
+        ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
     if (worldmatrix_id != -1)
         ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
@@ -633,7 +633,7 @@ std::vector<int> GLVolumeCollection::load_object(
                     v.extruder_id = extruder_id;
             }
             v.is_modifier = model_volume->modifier;
-            v.outside_printer_detection_enabled = !model_volume->modifier;
+            v.shader_outside_printer_detection_enabled = !model_volume->modifier;
             v.set_origin(Pointf3(instance->offset.x, instance->offset.y, 0.0));
             v.set_angle_z(instance->rotation);
             v.set_scale_factor(instance->scaling_factor);

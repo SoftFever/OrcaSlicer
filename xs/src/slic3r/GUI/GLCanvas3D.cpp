@@ -3910,7 +3910,6 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     auto            new_volume = [this, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
         new_volume_mutex.lock();
-        volume->outside_printer_detection_enabled = false;
         m_volumes.volumes.emplace_back(volume);
         new_volume_mutex.unlock();
         return volume;
@@ -4063,7 +4062,6 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     auto            new_volume = [this, &new_volume_mutex](const float *color) -> GLVolume* {
         auto *volume = new GLVolume(color);
         new_volume_mutex.lock();
-        volume->outside_printer_detection_enabled = false;
         m_volumes.volumes.emplace_back(volume);
         new_volume_mutex.unlock();
         return volume;
@@ -4691,8 +4689,6 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
         for (std::vector<GLVolume*>::iterator it = begin; it != end; ++it)
         {
             GLVolume* volume = *it;
-            // to avoid the shader to change the color of this volume if outside the print volume
-            volume->outside_printer_detection_enabled = false;
 
             switch (m_gcode_preview_volume_index.first_volumes[i].type)
             {
