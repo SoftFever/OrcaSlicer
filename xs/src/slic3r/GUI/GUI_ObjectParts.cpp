@@ -56,6 +56,10 @@ int			m_event_update_scene = 0;
 bool m_parts_changed = false;
 bool m_part_settings_changed = false;
 
+#ifdef __WXOSX__
+    wxString g_selected_extruder = "";
+#endif //__WXOSX__
+
 // typedef std::map<std::string, std::string> t_category_icon;
 typedef std::map<std::string, wxBitmap> t_category_icon;
 inline t_category_icon& get_category_icon() {
@@ -188,10 +192,10 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
-#ifdef __WXOSX__
-        wxMessageBox("DATAVIEW_SELECTION_CHANGED");
-#endif //__WXOSX__        
 		object_ctrl_selection_changed();
+#ifdef __WXOSX__
+        update_extruder_in_config(g_selected_extruder);
+#endif //__WXOSX__        
 	});
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxEvent& event)
@@ -218,39 +222,20 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 #ifdef __WXMSW__
 	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event)
 	{
-        if (!*m_config)
-			return;
-
-		wxString str = event.GetString();
-		int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
-		(*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));
-
-		if (m_event_update_scene > 0) {
-			wxCommandEvent e(m_event_update_scene);
-			get_main_frame()->ProcessWindowEvent(e);
-		}
+        update_extruder_in_config(event.GetString());
 	});
 #else
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
     {
-#ifdef __WXOSX__
-        wxMessageBox("DATAVIEW_ITEM_VALUE_CHANGED");
-#endif //__WXOSX__  
-        if (!*m_config)
-            return;
         if (event.GetColumn() == 3)
         {
         	wxVariant variant;
         	m_objects_model->GetValue(variant, event.GetItem(), 3);
-        	auto str = variant.GetString();
-        	int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
-        
-        	(*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));
-
-            if (m_event_update_scene > 0) {
-                wxCommandEvent e(m_event_update_scene);
-                get_main_frame()->ProcessWindowEvent(e);
-            }			
+#ifdef __WXOSX__
+            g_selected_extruder = variant.GetString();
+#else // --> for Linux
+        	update_extruder_in_config(variant.GetString());
+#endif //__WXOSX__  
         }
     });
 #endif //__WXMSW__
@@ -1290,6 +1275,20 @@ void part_selection_changed()
 void set_extruder_column_hidden(bool hide)
 {
 	m_objects_ctrl->GetColumn(3)->SetHidden(hide);
+}
+
+void update_extruder_in_config(const wxString& selection)
+{
+    if (!*m_config || selection.empty())
+        return;
+
+    int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
+    (*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));
+
+    if (m_event_update_scene > 0) {
+        wxCommandEvent e(m_event_update_scene);
+        get_main_frame()->ProcessWindowEvent(e);
+    }
 }
 
 } //namespace GUI

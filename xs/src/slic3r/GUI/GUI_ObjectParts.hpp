@@ -97,6 +97,8 @@ void part_selection_changed();
 
 // show/hide "Extruder" column for Objects List
 void set_extruder_column_hidden(bool hide);
+// update extruder in current config
+void update_extruder_in_config(const wxString& selection);
 } //namespace GUI
 } //namespace Slic3r 
 #endif  //slic3r_GUI_ObjectParts_hpp_
