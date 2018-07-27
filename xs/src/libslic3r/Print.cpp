@@ -155,6 +155,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "retract_restart_extra",
         "retract_restart_extra_toolchange",
         "retract_speed",
+        "single_extruder_multi_material_priming",
         "slowdown_below_layer_time",
         "standby_temperature_delta",
         "start_gcode",
@@ -1183,10 +1184,6 @@ void Print::_make_wipe_tower()
 		wipe_tower.tool_change((unsigned int)-1, false));
 }
 
-
-
-
-
 std::string Print::output_filename()
 {
     this->placeholder_parser.update_timestamp();
@@ -1225,13 +1222,11 @@ void Print::set_status(int percent, const std::string &message)
     printf("Print::status %d => %s\n", percent, message.c_str());
 }
 
-
 // Returns extruder this eec should be printed with, according to PrintRegion config
 int Print::get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region)
 {
     return is_infill(fill.role()) ? std::max<int>(0, (is_solid_infill(fill.entities.front()->role()) ? region.config.solid_infill_extruder : region.config.infill_extruder) - 1) :
                                     std::max<int>(region.config.perimeter_extruder.value - 1, 0);
 }
-
 
 }
