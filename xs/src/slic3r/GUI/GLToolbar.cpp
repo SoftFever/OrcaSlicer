@@ -11,7 +11,7 @@
 namespace Slic3r {
 namespace GUI {
 
-    GLToolbarItem::GLToolbarItem(EType type, const std::string& name, const std::string& tooltip, bool is_toggable, PerlCallback* action_callback)
+GLToolbarItem::GLToolbarItem(EType type, const std::string& name, const std::string& tooltip, bool is_toggable, PerlCallback* action_callback)
     : m_type(type)
     , m_state(Disabled)
     , m_name(name)
@@ -82,6 +82,16 @@ bool GLToolbarItem::is_enabled() const
     return m_state != Disabled;
 }
 
+bool GLToolbarItem::is_hovered() const
+{
+    return (m_state == Hover) || (m_state == HoverPressed);
+}
+
+bool GLToolbarItem::is_pressed() const
+{
+    return (m_state == Pressed) || (m_state == HoverPressed);
+}
+
 bool GLToolbarItem::is_toggable() const
 {
     return m_is_toggable;
@@ -92,8 +102,9 @@ bool GLToolbarItem::is_separator() const
     return m_type == Separator;
 }
 
-GLToolbar::GLToolbar()
-    : m_enabled(false)
+GLToolbar::GLToolbar(GLCanvas3D& parent)
+    : m_parent(parent)
+    , m_enabled(false)
     , m_textures_scale(1.0f)
     , m_offset_y(5.0f)
     , m_gap_x(2.0f)
@@ -156,7 +167,7 @@ void GLToolbar::enable_item(const std::string& name)
 {
     for (GLToolbarItem* item : m_items)
     {
-        if (item->get_name() == name)
+        if ((item->get_name() == name) && (item->get_state() == GLToolbarItem::Disabled))
         {
             item->set_state(GLToolbarItem::Normal);
             return;
@@ -181,18 +192,18 @@ bool GLToolbar::is_item_pressed(const std::string& name) const
     for (GLToolbarItem* item : m_items)
     {
         if (item->get_name() == name)
-            return (item->get_state() == GLToolbarItem::Pressed) || (item->get_state() == GLToolbarItem::HoverPressed);
+            return item->is_pressed();
     }
 
     return false;
 }
 
-void GLToolbar::update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos)
+void GLToolbar::update_hover_state(const Pointf& mouse_pos)
 {
     if (!m_enabled)
         return;
 
-    float cnv_w = (float)canvas.get_canvas_size().get_width();
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
     float width = _get_total_width();
     float left = 0.5f * (cnv_w - width);
     float top = m_offset_y;
@@ -256,15 +267,15 @@ void GLToolbar::update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos)
         }
     }
 
-    canvas.set_tooltip(tooltip);
+    m_parent.set_tooltip(tooltip);
 }
 
-int GLToolbar::contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
+int GLToolbar::contains_mouse(const Pointf& mouse_pos) const
 {
     if (!m_enabled)
         return -1;
 
-    float cnv_w = (float)canvas.get_canvas_size().get_width();
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
     float width = _get_total_width();
     float left = 0.5f * (cnv_w - width);
     float top = m_offset_y;
@@ -293,12 +304,12 @@ int GLToolbar::contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos)
     return -1;
 }
 
-void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& canvas)
+void GLToolbar::do_action(unsigned int item_id)
 {
     if (item_id < (unsigned int)m_items.size())
     {
         GLToolbarItem* item = m_items[item_id];
-        if ((item != nullptr) && !item->is_separator() && item->is_enabled())
+        if ((item != nullptr) && !item->is_separator() && item->is_hovered())
         {
             if (item->is_toggable())
             {
@@ -308,26 +319,26 @@ void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& canvas)
                 else if (state == GLToolbarItem::HoverPressed)
                     item->set_state(GLToolbarItem::Hover);
 
-                canvas.render();
+                m_parent.render();
                 item->do_action();
             }
             else
             {
                 item->set_state(GLToolbarItem::HoverPressed);
-                canvas.render();
+                m_parent.render();
                 item->do_action();
                 if (item->get_state() != GLToolbarItem::Disabled)
                 {
-                    // the item may get disabled during the action, if not, set it to normal state
+                    // the item may get disabled during the action, if not, set it back to hover state
                     item->set_state(GLToolbarItem::Hover);
-                    canvas.render();
+                    m_parent.render();
                 }
             }
         }
     }
 }
 
-void GLToolbar::render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
+void GLToolbar::render(const Pointf& mouse_pos) const
 {
     if (!m_enabled || m_items.empty())
         return;
@@ -337,9 +348,9 @@ void GLToolbar::render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
     ::glPushMatrix();
     ::glLoadIdentity();
 
-    float cnv_w = (float)canvas.get_canvas_size().get_width();
-    float cnv_h = (float)canvas.get_canvas_size().get_height();
-    float zoom = canvas.get_camera_zoom();
+    float cnv_w = (float)m_parent.get_canvas_size().get_width();
+    float cnv_h = (float)m_parent.get_canvas_size().get_height();
+    float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     float width = _get_total_width();

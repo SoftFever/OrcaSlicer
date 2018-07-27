@@ -1025,6 +1025,10 @@ sub increase {
     } else {
         $self->update;
     }
+
+#========================================================================================================================    
+    $self->selection_changed;  # refresh info (size, volume etc.)
+#========================================================================================================================        
     $self->schedule_background_process;
 }
 
@@ -2223,23 +2227,47 @@ sub selection_changed {
     if ($self->{htoolbar}) {
         # On OSX or Linux
         $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_CUT, TB_SETTINGS);
+#===================================================================================================================================================            
+            for (TB_REMOVE, TB_MORE, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_CUT, TB_SETTINGS);
+#            for (TB_REMOVE, TB_MORE, TB_FEWER, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_CUT, TB_SETTINGS);
+#===================================================================================================================================================            
             
 #===================================================================================================================================================            
         $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, $layers_height_allowed);
+
+        if ($have_sel) {
+            my $model_object = $self->{model}->objects->[$obj_idx];
+            $self->{htoolbar}->EnableTool(TB_FEWER, $model_object->instances_count > 1);
+        } else {
+            $self->{htoolbar}->EnableTool(TB_FEWER, 0);
+        }
 #===================================================================================================================================================
             
     } else {
         # On MSW
         my $method = $have_sel ? 'Enable' : 'Disable';
         $self->{"btn_$_"}->$method
-            for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw changescale split cut settings);
+#===================================================================================================================================================
+            for grep $self->{"btn_$_"}, qw(remove increase rotate45cw rotate45ccw changescale split cut settings);
+#            for grep $self->{"btn_$_"}, qw(remove increase decrease rotate45cw rotate45ccw changescale split cut settings);
+#===================================================================================================================================================
             
 #===================================================================================================================================================
         if ($layers_height_allowed) {
             $self->{"btn_layer_editing"}->Enable;
         } else {
             $self->{"btn_layer_editing"}->Disable;
+        }
+
+        if ($have_sel) {
+            my $model_object = $self->{model}->objects->[$obj_idx];
+            if ($model_object->instances_count > 1) {
+                $self->{"btn_decrease"}->Enable;
+            } else {
+                $self->{"btn_decrease"}->Disable;
+            }            
+        } else {
+            $self->{"btn_decrease"}->Disable;
         }
 #===================================================================================================================================================
     }
@@ -2250,6 +2278,11 @@ sub selection_changed {
     }
     
     Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", $layers_height_allowed);
+    
+    if ($have_sel) {
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "fewer", $model_object->instances_count > 1);
+    }
 #===================================================================================================================================================
     
     if ($self->{object_info_size}) { # have we already loaded the info pane?

@@ -1692,6 +1692,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
     , m_timer(nullptr)
+//###################################################################################################################################
+    , m_toolbar(*this)
+//###################################################################################################################################
     , m_config(nullptr)
     , m_print(nullptr)
     , m_model(nullptr)
@@ -2798,7 +2801,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
 //###################################################################################################################################
-    int toolbar_contains_mouse = m_toolbar.contains_mouse(*this, m_mouse.position);
+    int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position);
 //###################################################################################################################################
 
     if (evt.Entering())
@@ -2823,7 +2826,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
-        m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
+        m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
 //###################################################################################################################################
     else if (evt.LeftDown() || evt.RightDown())
@@ -2868,7 +2871,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (toolbar_contains_mouse != -1)
         {
             m_toolbar_action_running = true;
-            m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
+            m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
         }
 //###################################################################################################################################
         else
@@ -2927,9 +2930,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
                 else if (evt.RightDown())
                 {
-                    // if right clicking on volume, propagate event through callback
-                    if (m_volumes.volumes[volume_idx]->hover)
-                        m_on_right_click_callback.call(pos.x, pos.y);
+//###################################################################################################################################
+                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+                    // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
+                    m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
+                    render();
+                    if (m_hover_volume_id != -1)
+                    {
+//###################################################################################################################################
+                        // if right clicking on volume, propagate event through callback (shows context menu)
+                        if (m_volumes.volumes[volume_idx]->hover)
+                            m_on_right_click_callback.call(pos.x, pos.y);
+//###################################################################################################################################
+                    }
+//###################################################################################################################################
                 }
             }
         }
@@ -3128,7 +3142,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             
             _on_move(volume_idxs);
         }
-        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
+//#############################################################################################################################################################################
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
+//        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
+//#############################################################################################################################################################################
         {
             // deselect and propagate event through callback
 //###################################################################################################################################
@@ -3780,7 +3797,7 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.reset_all_states();
 
 //###################################################################################################################################
-        m_toolbar.update_hover_state(const_cast<GLCanvas3D&>(*this), pos);
+        m_toolbar.update_hover_state(pos);
 //###################################################################################################################################
     }
 }
@@ -4034,7 +4051,7 @@ void GLCanvas3D::_render_gizmo() const
 //###################################################################################################################################
 void GLCanvas3D::_render_toolbar() const
 {
-    m_toolbar.render(*this, m_mouse.position);
+    m_toolbar.render(m_mouse.position);
 }
 //###################################################################################################################################
 

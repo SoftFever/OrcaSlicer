@@ -66,6 +66,9 @@ public:
     void do_action();
 
     bool is_enabled() const;
+    bool is_hovered() const;
+    bool is_pressed() const;
+
     bool is_toggable() const;
     bool is_separator() const;
 };
@@ -85,6 +88,7 @@ public:
 private:
     typedef std::vector<GLToolbarItem*> ItemsList;
 
+    GLCanvas3D& m_parent;
     bool m_enabled;
     ItemsList m_items;
 
@@ -94,7 +98,7 @@ private:
     float m_separator_x;
 
 public:
-    GLToolbar();
+    explicit GLToolbar(GLCanvas3D& parent);
 
     bool is_enabled() const;
     void set_enabled(bool enable);
@@ -112,14 +116,14 @@ public:
 
     bool is_item_pressed(const std::string& name) const;
 
-    void update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos);
+    void update_hover_state(const Pointf& mouse_pos);
 
     // returns the id of the item under the given mouse position or -1 if none
-    int contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
+    int contains_mouse(const Pointf& mouse_pos) const;
 
-    void do_action(unsigned int item_id, GLCanvas3D& canvas);
+    void do_action(unsigned int item_id);
 
-    void render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
+    void render(const Pointf& mouse_pos) const;
 
 private:
     float _get_total_width() const;
