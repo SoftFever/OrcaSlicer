@@ -693,6 +693,8 @@ void update_settings_list()
 
 	m_option_sizer->Clear(true);
 
+    printf("update_settings_list\n");
+
 	if (m_config) 
 	{
 		auto extra_column = [](wxWindow* parent, const Line& line)
@@ -1129,6 +1131,7 @@ void parts_changed(int obj_idx)
 	
 void update_settings_value()
 {
+    printf("update_settings_value\n");
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
 	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id)		{
 		og->set_value("scale_x", 0);
@@ -1144,6 +1147,7 @@ void update_settings_value()
 
 void part_selection_changed()
 {
+    printf("part_selection_changed\n");
 	auto item = m_objects_ctrl->GetSelection();
 	int obj_idx = -1;
 	if (item)
