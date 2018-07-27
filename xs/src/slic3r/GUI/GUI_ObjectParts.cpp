@@ -188,6 +188,9 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
+#ifdef __WXOSX__
+        wxMessageBox("DATAVIEW_SELECTION_CHANGED");
+#endif //__WXOSX__        
 		object_ctrl_selection_changed();
 	});
 
@@ -212,12 +215,11 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 			event.Skip();
 	});
 
+#ifdef __WXMSW__
 	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event)
 	{
-        wxMessageBox("Ku-ku");
-		if (!*m_config)
+        if (!*m_config)
 			return;
-		auto config = m_config;
 
 		wxString str = event.GetString();
 		int extruder = str.size() > 1 ? 0 : atoi(str.c_str());
@@ -228,10 +230,12 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 			get_main_frame()->ProcessWindowEvent(e);
 		}
 	});
-
-#ifndef __WXMSW__
+#else
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
     {
+#ifdef __WXOSX__
+        wxMessageBox("DATAVIEW_ITEM_VALUE_CHANGED");
+#endif //__WXOSX__  
         if (!*m_config)
             return;
         if (event.GetColumn() == 3)
