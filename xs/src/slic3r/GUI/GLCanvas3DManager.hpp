@@ -112,6 +112,7 @@ public:
     void enable_gizmos(wxGLCanvas* canvas, bool enable);
     void enable_shader(wxGLCanvas* canvas, bool enable);
     void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
+    void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
     void allow_multisample(wxGLCanvas* canvas, bool allow);
 
     void zoom_to_bed(wxGLCanvas* canvas);

@@ -449,6 +449,7 @@ private:
     bool m_picking_enabled;
     bool m_moving_enabled;
     bool m_shader_enabled;
+    bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
 
     std::string m_color_by;
@@ -539,6 +540,7 @@ public:
     void enable_gizmos(bool enable);
     void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
+    void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -681,6 +683,8 @@ private:
     // generates a warning texture containing the given message
     void _generate_warning_texture(const std::string& msg);
     void _reset_warning_texture();
+
+    bool _is_any_volume_outside() const;
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

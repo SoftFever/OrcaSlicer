@@ -51,6 +51,9 @@ static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
                                      0.0f, 0.0f, 1.0f, 0.0f,
                                      0.0f, 0.0f, 0.0f, 1.0f };
 
+static const float DEFAULT_BG_COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
+static const float ERROR_BG_COLOR[3] = { 144.0f / 255.0f, 49.0f / 255.0f, 10.0f / 255.0f };
+
 namespace Slic3r {
 namespace GUI {
 
@@ -1703,6 +1706,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_picking_enabled(false)
     , m_moving_enabled(false)
     , m_shader_enabled(false)
+    , m_dynamic_background_enabled(false)
     , m_multisample_allowed(false)
     , m_color_by("volume")
     , m_select_by("object")
@@ -2065,6 +2069,11 @@ void GLCanvas3D::enable_shader(bool enable)
 void GLCanvas3D::enable_force_zoom_to_bed(bool enable)
 {
     m_force_zoom_to_bed_enabled = enable;
+}
+
+void GLCanvas3D::enable_dynamic_background(bool enable)
+{
+    m_dynamic_background_enabled = enable;
 }
 
 void GLCanvas3D::allow_multisample(bool allow)
@@ -3431,8 +3440,6 @@ void GLCanvas3D::_render_background() const
 {
     ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    static const float COLOR[3] = { 10.0f / 255.0f, 98.0f / 255.0f, 144.0f / 255.0f };
-
     ::glPushMatrix();
     ::glLoadIdentity();
     ::glMatrixMode(GL_PROJECTION);
@@ -3444,11 +3451,16 @@ void GLCanvas3D::_render_background() const
 
     ::glBegin(GL_QUADS);
     ::glColor3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f(-1.0f, -1.0f, 1.0f);
-    ::glVertex3f(1.0f, -1.0f, 1.0f);
-    ::glColor3f(COLOR[0], COLOR[1], COLOR[2]);
-    ::glVertex3f(1.0f, 1.0f, 1.0f);
-    ::glVertex3f(-1.0f, 1.0f, 1.0f);
+    ::glVertex2f(-1.0f, -1.0f);
+    ::glVertex2f(1.0f, -1.0f);
+
+    if (m_dynamic_background_enabled && _is_any_volume_outside())
+        ::glColor3f(ERROR_BG_COLOR[0], ERROR_BG_COLOR[1], ERROR_BG_COLOR[2]);
+    else
+        ::glColor3f(DEFAULT_BG_COLOR[0], DEFAULT_BG_COLOR[1], DEFAULT_BG_COLOR[2]);
+
+    ::glVertex2f(1.0f, 1.0f);
+    ::glVertex2f(-1.0f, 1.0f);
     ::glEnd();
 
     ::glEnable(GL_DEPTH_TEST);
@@ -4772,17 +4784,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
 void GLCanvas3D::_show_warning_texture_if_needed()
 {
-    bool detected_outside = false;
-    for (const GLVolume* volume : m_volumes.volumes)
-    {
-        if ((volume != nullptr) && volume->is_outside)
-        {
-            detected_outside = true;
-            break;
-        }
-    }
-
-    if (detected_outside)
+    if (_is_any_volume_outside())
     {
         enable_warning_texture(true);
         _generate_warning_texture(L("Detected toolpath outside print volume"));
@@ -4897,6 +4899,17 @@ void GLCanvas3D::_reset_warning_texture()
         return;
 
     m_warning_texture.reset();
+}
+
+bool GLCanvas3D::_is_any_volume_outside() const
+{
+    for (const GLVolume* volume : m_volumes.volumes)
+    {
+        if ((volume != nullptr) && volume->is_outside)
+            return true;
+    }
+
+    return false;
 }
 
 } // namespace GUI

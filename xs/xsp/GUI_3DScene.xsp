@@ -431,6 +431,13 @@ enable_force_zoom_to_bed(canvas, enable)
         _3DScene::enable_force_zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
 void
+enable_dynamic_background(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_dynamic_background((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
 allow_multisample(canvas, allow)
         SV   *canvas;
         bool allow;

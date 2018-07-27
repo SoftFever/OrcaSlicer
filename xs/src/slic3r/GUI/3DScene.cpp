@@ -1787,6 +1787,11 @@ void _3DScene::enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_force_zoom_to_bed(canvas, enable);
 }
 
+void _3DScene::enable_dynamic_background(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_dynamic_background(canvas, enable);
+}
+
 void _3DScene::allow_multisample(wxGLCanvas* canvas, bool allow)
 {
     s_canvas_mgr.allow_multisample(canvas, allow);

@@ -418,6 +418,13 @@ void GLCanvas3DManager::enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable
         it->second->enable_force_zoom_to_bed(enable);
 }
 
+void GLCanvas3DManager::enable_dynamic_background(wxGLCanvas* canvas, bool enable)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->enable_dynamic_background(enable);
+}
+
 void GLCanvas3DManager::allow_multisample(wxGLCanvas* canvas, bool allow)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
