@@ -128,8 +128,8 @@ sub new {
         }
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
         
-        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");        
-        $object->transform_thumbnail($self->{model}, $obj_idx);
+        $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");
+#        $object->transform_thumbnail($self->{model}, $obj_idx);
     
         #update print and start background processing
         $self->{print}->add_model_object($model_object, $obj_idx);
@@ -203,18 +203,19 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
     }
     
-    # Initialize 2D preview canvas
-    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
-    $self->{preview_notebook}->AddPage($self->{canvas}, L('2D'));
-    $self->{canvas}->on_select_object($on_select_object);
-    $self->{canvas}->on_double_click($on_double_click);
-    $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
-    $self->{canvas}->on_instances_moved($on_instances_moved);
+#    # Initialize 2D preview canvas
+#    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
+#    $self->{preview_notebook}->AddPage($self->{canvas}, L('2D'));
+#    $self->{canvas}->on_select_object($on_select_object);
+#    $self->{canvas}->on_double_click($on_double_click);
+#    $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
+#    $self->{canvas}->on_instances_moved($on_instances_moved);
     
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
         Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
+        Slic3r::GUI::_3DScene::enable_dynamic_background($self->{preview3D}->canvas, 1);
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
         $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
@@ -312,6 +313,9 @@ sub new {
         my ($list, $event) = @_;
         if ($event->GetKeyCode == WXK_TAB) {
             $list->Navigate($event->ShiftDown ? &Wx::wxNavigateBackward : &Wx::wxNavigateForward);
+        } elsif ($event->GetKeyCode == WXK_DELETE ||
+                ($event->GetKeyCode == WXK_BACK && &Wx::wxMAC) ) {
+            $self->remove;
         } else {
             $event->Skip;
         }
@@ -401,7 +405,8 @@ sub new {
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for grep defined($_),
-            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D}, $self->{list};
+            $self, $self->{canvas3D}, $self->{preview3D}, $self->{list};
+#            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D}, $self->{list};
     
     EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
         my ($self, $event) = @_;
@@ -432,7 +437,7 @@ sub new {
         });
     }
     
-    $self->{canvas}->update_bed_size;
+#    $self->{canvas}->update_bed_size;
     if ($self->{canvas3D}) {
         Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape);
         Slic3r::GUI::_3DScene::zoom_to_bed($self->{canvas3D});
@@ -847,8 +852,8 @@ sub load_model_objects {
     
         $self->{list}->SetItem($obj_idx, 1, $model_object->instances_count);
         $self->{list}->SetItem($obj_idx, 2, ($model_object->instances->[0]->scaling_factor * 100) . "%");
-    
-        $self->reset_thumbnail($obj_idx);
+
+#        $self->reset_thumbnail($obj_idx);
     }
     $self->arrange if $need_arrange;
     $self->update;
@@ -1057,7 +1062,7 @@ sub rotate {
             $inst->set_rotation($rotation);
             Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});            
         }
-        $object->transform_thumbnail($self->{model}, $obj_idx);
+#        $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
         # rotation around X and Y needs to be performed on mesh
         # so we first apply any Z rotation
@@ -1067,9 +1072,9 @@ sub rotate {
         }
         $model_object->rotate(deg2rad($angle), $axis);
         
-        # realign object to Z = 0
-        $model_object->center_around_origin;
-        $self->reset_thumbnail($obj_idx);
+#        # realign object to Z = 0
+#        $model_object->center_around_origin;
+#        $self->reset_thumbnail($obj_idx);
     }
     
     # update print and start background processing
@@ -1097,9 +1102,9 @@ sub mirror {
     
     $model_object->mirror($axis);
     
-    # realign object to Z = 0
-    $model_object->center_around_origin;
-    $self->reset_thumbnail($obj_idx);
+#    # realign object to Z = 0
+#    $model_object->center_around_origin;
+#    $self->reset_thumbnail($obj_idx);
         
     # update print and start background processing
     $self->stop_background_process;
@@ -1149,7 +1154,7 @@ sub changescale {
         #FIXME Scale the layer height profile when $axis == Z?
         #FIXME Scale the layer height ranges $axis == Z?
         # object was already aligned to Z = 0, so no need to realign it
-        $self->reset_thumbnail($obj_idx);
+#        $self->reset_thumbnail($obj_idx);
     } else {
         my $scale;
         if ($tosize) {
@@ -1173,7 +1178,7 @@ sub changescale {
             $range->[1] *= $variation;
         }
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
-        $object->transform_thumbnail($self->{model}, $obj_idx);
+#        $object->transform_thumbnail($self->{model}, $obj_idx);
     }
     
     # update print and start background processing
@@ -1804,10 +1809,10 @@ sub _get_export_file {
     return $output_file;
 }
 
-sub reset_thumbnail {
-    my ($self, $obj_idx) = @_;
-    $self->{objects}[$obj_idx]->thumbnail(undef);
-}
+#sub reset_thumbnail {
+#    my ($self, $obj_idx) = @_;
+#    $self->{objects}[$obj_idx]->thumbnail(undef);
+#}
 
 # this method gets called whenever print center is changed or the objects' bounding box changes
 # (i.e. when an object is added/removed/moved/rotated/scaled)
@@ -1831,7 +1836,7 @@ sub update {
         $self->resume_background_process;
     }
 
-    $self->{canvas}->reload_scene if $self->{canvas};
+#    $self->{canvas}->reload_scene if $self->{canvas};
     my $selections = $self->collect_selections;
     Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
@@ -1888,7 +1893,7 @@ sub on_config_change {
     foreach my $opt_key (@{$self->{config}->diff($config)}) {
         $self->{config}->set($opt_key, $config->get($opt_key));
         if ($opt_key eq 'bed_shape') {
-            $self->{canvas}->update_bed_size;
+#            $self->{canvas}->update_bed_size;
             Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
             Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
             $update_scheduled = 1;
@@ -1948,7 +1953,7 @@ sub list_item_deselected {
     $self->{_lecursor} = Wx::BusyCursor->new();
     if ($self->{list}->GetFirstSelected == -1) {
         $self->select_object(undef);
-        $self->{canvas}->Refresh;
+#        $self->{canvas}->Refresh;
         Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D}) if $self->{canvas3D};
         Slic3r::GUI::_3DScene::render($self->{canvas3D}) if $self->{canvas3D};
     }
@@ -1961,7 +1966,7 @@ sub list_item_selected {
     $self->{_lecursor} = Wx::BusyCursor->new();
     my $obj_idx = $event->GetIndex;
     $self->select_object($obj_idx);
-    $self->{canvas}->Refresh;
+#    $self->{canvas}->Refresh;
     if ($self->{canvas3D}) {
         my $selections = $self->collect_selections;
         Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
@@ -2058,19 +2063,19 @@ sub object_settings_dialog {
 	$self->pause_background_process;
 	$dlg->ShowModal;
 	
-    # update thumbnail since parts may have changed
-    if ($dlg->PartsChanged) {
-	    # recenter and re-align to Z = 0
-	    $model_object->center_around_origin;
-        $self->reset_thumbnail($obj_idx);
-    }
+#    # update thumbnail since parts may have changed
+#    if ($dlg->PartsChanged) {
+#	    # recenter and re-align to Z = 0
+#	    $model_object->center_around_origin;
+#        $self->reset_thumbnail($obj_idx);
+#    }
 	
 	# update print
 	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
 	    $self->stop_background_process;
         $self->{print}->reload_object($obj_idx);
         $self->schedule_background_process;
-        $self->{canvas}->reload_scene if $self->{canvas};
+#        $self->{canvas}->reload_scene if $self->{canvas};
         my $selections = $self->collect_selections;
         Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
         Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
@@ -2356,48 +2361,48 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 has 'name'                  => (is => 'rw', required => 1);
-has 'thumbnail'             => (is => 'rw'); # ExPolygon::Collection in scaled model units with no transforms
-has 'transformed_thumbnail' => (is => 'rw');
-has 'instance_thumbnails'   => (is => 'ro', default => sub { [] });  # array of ExPolygon::Collection objects, each one representing the actual placed thumbnail of each instance in pixel units
+#has 'thumbnail'             => (is => 'rw'); # ExPolygon::Collection in scaled model units with no transforms
+#has 'transformed_thumbnail' => (is => 'rw');
+#has 'instance_thumbnails'   => (is => 'ro', default => sub { [] });  # array of ExPolygon::Collection objects, each one representing the actual placed thumbnail of each instance in pixel units
 has 'selected'              => (is => 'rw', default => sub { 0 });
 
-sub make_thumbnail {
-    my ($self, $model, $obj_idx) = @_;
-    # make method idempotent
-    $self->thumbnail->clear;
-    # raw_mesh is the non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-    my $mesh = $model->objects->[$obj_idx]->raw_mesh;
-#FIXME The "correct" variant could be extremely slow.
-#    if ($mesh->facets_count <= 5000) {
-#        # remove polygons with area <= 1mm
-#        my $area_threshold = Slic3r::Geometry::scale 1;
-#        $self->thumbnail->append(
-#            grep $_->area >= $area_threshold,
-#            @{ $mesh->horizontal_projection },   # horizontal_projection returns scaled expolygons
-#        );
-#        $self->thumbnail->simplify(0.5);
-#    } else {
-        my $convex_hull = Slic3r::ExPolygon->new($mesh->convex_hull);
-        $self->thumbnail->append($convex_hull);
-#    }
-    return $self->thumbnail;
-}
-
-sub transform_thumbnail {
-    my ($self, $model, $obj_idx) = @_;
-    
-    return unless defined $self->thumbnail;
-    
-    my $model_object = $model->objects->[$obj_idx];
-    my $model_instance = $model_object->instances->[0];
-    
-    # the order of these transformations MUST be the same everywhere, including
-    # in Slic3r::Print->add_model_object()
-    my $t = $self->thumbnail->clone;
-    $t->rotate($model_instance->rotation, Slic3r::Point->new(0,0));
-    $t->scale($model_instance->scaling_factor);
-    
-    $self->transformed_thumbnail($t);
-}
+#sub make_thumbnail {
+#    my ($self, $model, $obj_idx) = @_;
+#    # make method idempotent
+#    $self->thumbnail->clear;
+#    # raw_mesh is the non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
+#    my $mesh = $model->objects->[$obj_idx]->raw_mesh;
+##FIXME The "correct" variant could be extremely slow.
+##    if ($mesh->facets_count <= 5000) {
+##        # remove polygons with area <= 1mm
+##        my $area_threshold = Slic3r::Geometry::scale 1;
+##        $self->thumbnail->append(
+##            grep $_->area >= $area_threshold,
+##            @{ $mesh->horizontal_projection },   # horizontal_projection returns scaled expolygons
+##        );
+##        $self->thumbnail->simplify(0.5);
+##    } else {
+#        my $convex_hull = Slic3r::ExPolygon->new($mesh->convex_hull);
+#        $self->thumbnail->append($convex_hull);
+##    }
+#    return $self->thumbnail;
+#}
+#
+#sub transform_thumbnail {
+#    my ($self, $model, $obj_idx) = @_;
+#    
+#    return unless defined $self->thumbnail;
+#    
+#    my $model_object = $model->objects->[$obj_idx];
+#    my $model_instance = $model_object->instances->[0];
+#    
+#    # the order of these transformations MUST be the same everywhere, including
+#    # in Slic3r::Print->add_model_object()
+#    my $t = $self->thumbnail->clone;
+#    $t->rotate($model_instance->rotation, Slic3r::Point->new(0,0));
+#    $t->scale($model_instance->scaling_factor);
+#    
+#    $self->transformed_thumbnail($t);
+#}
 
 1;

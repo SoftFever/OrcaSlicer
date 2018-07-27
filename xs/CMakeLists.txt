@@ -26,7 +26,7 @@ include_directories(${LIBDIR}/libslic3r)
 
 if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB)
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601)
     # -D_ITERATOR_DEBUG_LEVEL)
     if(WIN10SDK_PATH)
         message("Building with Win10 Netfabb STL fixing service support")
@@ -258,6 +258,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/PresetUpdater.hpp
     ${LIBDIR}/slic3r/Utils/Time.cpp
     ${LIBDIR}/slic3r/Utils/Time.hpp
+    ${LIBDIR}/slic3r/Utils/HexFile.cpp
+    ${LIBDIR}/slic3r/Utils/HexFile.hpp
     ${LIBDIR}/slic3r/IProgressIndicator.hpp
     ${LIBDIR}/slic3r/AppController.hpp
     ${LIBDIR}/slic3r/AppController.cpp

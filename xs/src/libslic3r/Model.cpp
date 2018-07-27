@@ -611,14 +611,13 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
             // The score is a weighted sum of the distance from pile center
             // and the pile size
             score = GRAVITY_RATIO * dist + DENSITY_RATIO * density;
-            std::cout << "big " << std::endl;
 
         } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
             // If there are no big items, only small, we should consider the
             // density here as well to not get silly results
             auto bindist = pl::distance(ibb.center(), bin.center()) / norm;
             auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
-            score = GRAVITY_RATIO* bindist  + DENSITY_RATIO * density;
+            score = GRAVITY_RATIO * bindist + DENSITY_RATIO * density;
         } else {
             // Here there are the small items that should be placed around the
             // already processed bigger items.
