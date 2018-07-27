@@ -210,11 +210,12 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , selected(false)
     , is_active(true)
     , zoom_to_volumes(true)
-    , outside_printer_detection_enabled(true)
+    , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
     , hover(false)
     , is_modifier(false)
     , is_wipe_tower(false)
+    , is_extrusion_path(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -250,7 +251,7 @@ void GLVolume::set_render_color()
         set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
     else if (hover)
         set_render_color(HOVER_COLOR, 4);
-    else if (is_outside)
+    else if (is_outside && shader_outside_printer_detection_enabled)
         set_render_color(OUTSIDE_COLOR, 4);
     else
         set_render_color(color, 4);
@@ -441,7 +442,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
             ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
 
         if (detection_id != -1)
-            ::glUniform1i(detection_id, outside_printer_detection_enabled ? 1 : 0);
+            ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
         if (worldmatrix_id != -1)
             ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
@@ -460,7 +461,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
         ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
 
     if (detection_id != -1)
-        ::glUniform1i(detection_id, outside_printer_detection_enabled ? 1 : 0);
+        ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
     if (worldmatrix_id != -1)
         ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
@@ -633,7 +634,7 @@ std::vector<int> GLVolumeCollection::load_object(
                     v.extruder_id = extruder_id;
             }
             v.is_modifier = model_volume->modifier;
-            v.outside_printer_detection_enabled = !model_volume->modifier;
+            v.shader_outside_printer_detection_enabled = !model_volume->modifier;
             v.set_origin(Pointf3(instance->offset.x, instance->offset.y, 0.0));
             v.set_angle_z(instance->rotation);
             v.set_scale_factor(instance->scaling_factor);
@@ -1786,6 +1787,11 @@ void _3DScene::enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_force_zoom_to_bed(canvas, enable);
 }
 
+void _3DScene::enable_dynamic_background(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_dynamic_background(canvas, enable);
+}
+
 void _3DScene::allow_multisample(wxGLCanvas* canvas, bool allow)
 {
     s_canvas_mgr.allow_multisample(canvas, allow);
@@ -1968,24 +1974,14 @@ void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
     s_canvas_mgr.reload_scene(canvas, force);
 }
 
-void _3DScene::load_print_toolpaths(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.load_print_toolpaths(canvas);
-}
-
-void _3DScene::load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors)
-{
-    s_canvas_mgr.load_print_object_toolpaths(canvas, print_object, str_tool_colors);
-}
-
-void _3DScene::load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
-{
-    s_canvas_mgr.load_wipe_tower_toolpaths(canvas, str_tool_colors);
-}
-
 void _3DScene::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)
 {
     s_canvas_mgr.load_gcode_preview(canvas, preview_data, str_tool_colors);
+}
+
+void _3DScene::load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
+{
+    s_canvas_mgr.load_preview(canvas, str_tool_colors);
 }
 
 void _3DScene::reset_legend_texture()

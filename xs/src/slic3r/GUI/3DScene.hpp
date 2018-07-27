@@ -289,8 +289,8 @@ public:
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()
     bool                zoom_to_volumes;
-    // Wheter or not this volume is enabled for outside print volume detection.
-    bool                outside_printer_detection_enabled;
+    // Wheter or not this volume is enabled for outside print volume detection in shader.
+    bool                shader_outside_printer_detection_enabled;
     // Wheter or not this volume is outside print volume.
     bool                is_outside;
     // Boolean: Is mouse over this object?
@@ -299,6 +299,8 @@ public:
     bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower
     bool                is_wipe_tower;
+    // Wheter or not this volume has been generated from an extrusion path
+    bool                is_extrusion_path;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -497,6 +499,7 @@ public:
     static void enable_gizmos(wxGLCanvas* canvas, bool enable);
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
+    static void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
@@ -536,10 +539,8 @@ public:
 
     static void reload_scene(wxGLCanvas* canvas, bool force);
 
-    static void load_print_toolpaths(wxGLCanvas* canvas);
-    static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
-    static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
+    static void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
     static void reset_legend_texture();
 
