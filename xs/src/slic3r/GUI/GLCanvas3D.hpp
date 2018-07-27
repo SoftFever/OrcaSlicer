@@ -450,6 +450,9 @@ private:
     bool m_force_zoom_to_bed_enabled;
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
+//###################################################################################################################################
+    bool m_toolbar_action_running;
+//###################################################################################################################################
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
@@ -485,6 +488,22 @@ private:
     PerlCallback m_on_gizmo_scale_uniformly_callback;
     PerlCallback m_on_gizmo_rotate_callback;
     PerlCallback m_on_update_geometry_info_callback;
+
+//###################################################################################################################################
+    PerlCallback m_action_add_callback;
+    PerlCallback m_action_delete_callback;
+    PerlCallback m_action_deleteall_callback;
+    PerlCallback m_action_arrange_callback;
+    PerlCallback m_action_more_callback;
+    PerlCallback m_action_fewer_callback;
+    PerlCallback m_action_ccw45_callback;
+    PerlCallback m_action_cw45_callback;
+    PerlCallback m_action_scale_callback;
+    PerlCallback m_action_split_callback;
+    PerlCallback m_action_cut_callback;
+    PerlCallback m_action_settings_callback;
+    PerlCallback m_action_layersediting_callback;
+//###################################################################################################################################
 
 public:
     GLCanvas3D(wxGLCanvas* canvas);
@@ -552,6 +571,7 @@ public:
 
 //###################################################################################################################################
     void enable_toolbar_item(const std::string& name, bool enable);
+    bool is_toolbar_item_pressed(const std::string& name) const;
 //###################################################################################################################################
 
     void zoom_to_bed();
@@ -601,6 +621,22 @@ public:
     void register_on_gizmo_scale_uniformly_callback(void* callback);
     void register_on_gizmo_rotate_callback(void* callback);
     void register_on_update_geometry_info_callback(void* callback);
+
+//###################################################################################################################################
+    void register_action_add_callback(void* callback);
+    void register_action_delete_callback(void* callback);
+    void register_action_deleteall_callback(void* callback);
+    void register_action_arrange_callback(void* callback);
+    void register_action_more_callback(void* callback);
+    void register_action_fewer_callback(void* callback);
+    void register_action_ccw45_callback(void* callback);
+    void register_action_cw45_callback(void* callback);
+    void register_action_scale_callback(void* callback);
+    void register_action_split_callback(void* callback);
+    void register_action_cut_callback(void* callback);
+    void register_action_settings_callback(void* callback);
+    void register_action_layersediting_callback(void* callback);
+//###################################################################################################################################
 
     void bind_event_handlers();
     void unbind_event_handlers();

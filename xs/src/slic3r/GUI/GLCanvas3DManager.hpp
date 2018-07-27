@@ -119,6 +119,7 @@ public:
 
 //###################################################################################################################################
     void enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable);
+    bool is_toolbar_item_pressed(wxGLCanvas* canvas, const std::string& name) const;
 //###################################################################################################################################
 
     void zoom_to_bed(wxGLCanvas* canvas);
@@ -164,6 +165,22 @@ public:
     void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
     void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
+
+//###################################################################################################################################
+    void register_action_add_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_delete_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_deleteall_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_arrange_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_more_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_fewer_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_ccw45_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_cw45_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_scale_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_split_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
+//###################################################################################################################################
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

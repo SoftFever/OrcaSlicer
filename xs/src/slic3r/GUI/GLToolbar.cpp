@@ -1,6 +1,5 @@
 #include "GLToolbar.hpp"
 
-#include "../../libslic3r/Utils.hpp"
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
@@ -12,11 +11,13 @@
 namespace Slic3r {
 namespace GUI {
 
-GLToolbarItem::GLToolbarItem(EType type, const std::string& name, const std::string& tooltip)
+    GLToolbarItem::GLToolbarItem(EType type, const std::string& name, const std::string& tooltip, bool is_toggable, PerlCallback* action_callback)
     : m_type(type)
     , m_state(Disabled)
     , m_name(name)
     , m_tooltip(tooltip)
+    , m_is_toggable(is_toggable)
+    , m_action_callback(action_callback)
 {
 }
 
@@ -29,9 +30,12 @@ bool GLToolbarItem::load_textures(const std::string* filenames)
 
     for (unsigned int i = (unsigned int)Normal; i < (unsigned int)Num_States; ++i)
     {
-        std::string filename = path + filenames[i];
-        if (!m_icon_textures[i].load_from_file(filename, false))
-            return false;
+        if (!filenames[i].empty())
+        {
+            std::string filename = path + filenames[i];
+            if (!m_icon_textures[i].load_from_file(filename, false))
+                return false;
+        }
     }
 
     return true;
@@ -65,6 +69,22 @@ unsigned int GLToolbarItem::get_icon_texture_id() const
 int GLToolbarItem::get_icon_textures_size() const
 {
     return m_icon_textures[Normal].get_width();
+}
+
+void GLToolbarItem::do_action()
+{
+    if (m_action_callback != nullptr)
+        m_action_callback->call();
+}
+
+bool GLToolbarItem::is_enabled() const
+{
+    return m_state != Disabled;
+}
+
+bool GLToolbarItem::is_toggable() const
+{
+    return m_is_toggable;
 }
 
 bool GLToolbarItem::is_separator() const
@@ -113,7 +133,7 @@ void GLToolbar::set_separator_x(float separator)
 
 bool GLToolbar::add_item(const GLToolbar::ItemCreationData& data)
 {
-    GLToolbarItem* item = new GLToolbarItem(GLToolbarItem::Action, data.name, data.tooltip);
+    GLToolbarItem* item = new GLToolbarItem(GLToolbarItem::Action, data.name, data.tooltip, data.is_toggable, data.action_callback);
     if ((item == nullptr) || !item->load_textures(data.textures))
         return false;
 
@@ -124,7 +144,7 @@ bool GLToolbar::add_item(const GLToolbar::ItemCreationData& data)
 
 bool GLToolbar::add_separator()
 {
-    GLToolbarItem* item = new GLToolbarItem(GLToolbarItem::Separator, "", "");
+    GLToolbarItem* item = new GLToolbarItem(GLToolbarItem::Separator, "", "", false, nullptr);
     if (item == nullptr)
         return false;
 
@@ -154,6 +174,17 @@ void GLToolbar::disable_item(const std::string& name)
             return;
         }
     }
+}
+
+bool GLToolbar::is_item_pressed(const std::string& name) const
+{
+    for (GLToolbarItem* item : m_items)
+    {
+        if (item->get_name() == name)
+            return (item->get_state() == GLToolbarItem::Pressed) || (item->get_state() == GLToolbarItem::HoverPressed);
+    }
+
+    return false;
 }
 
 void GLToolbar::update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos)
@@ -201,8 +232,17 @@ void GLToolbar::update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos)
             }
             case GLToolbarItem::Pressed:
             {
-                if (!inside)
-                    item->set_state(GLToolbarItem::Normal);
+                if (inside)
+                    item->set_state(GLToolbarItem::HoverPressed);
+
+                break;
+            }
+            case GLToolbarItem::HoverPressed:
+            {
+                if (inside)
+                    tooltip = item->get_tooltip();
+                else
+                    item->set_state(GLToolbarItem::Pressed);
 
                 break;
             }
@@ -219,9 +259,77 @@ void GLToolbar::update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos)
     canvas.set_tooltip(tooltip);
 }
 
+int GLToolbar::contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
+{
+    if (!m_enabled)
+        return -1;
+
+    float cnv_w = (float)canvas.get_canvas_size().get_width();
+    float width = _get_total_width();
+    float left = 0.5f * (cnv_w - width);
+    float top = m_offset_y;
+
+    int id = -1;
+
+    for (GLToolbarItem* item : m_items)
+    {
+        ++id;
+
+        if (item->is_separator())
+            left += (m_separator_x + m_gap_x);
+        else
+        {
+            float tex_size = (float)item->get_icon_textures_size() * m_textures_scale;
+            float right = left + tex_size;
+            float bottom = top + tex_size;
+
+            if ((left <= mouse_pos.x) && (mouse_pos.x <= right) && (top <= mouse_pos.y) && (mouse_pos.y <= bottom))
+                return id;
+
+            left += (tex_size + m_gap_x);
+        }
+    }
+
+    return -1;
+}
+
+void GLToolbar::do_action(unsigned int item_id, GLCanvas3D& canvas)
+{
+    if (item_id < (unsigned int)m_items.size())
+    {
+        GLToolbarItem* item = m_items[item_id];
+        if ((item != nullptr) && !item->is_separator() && item->is_enabled())
+        {
+            if (item->is_toggable())
+            {
+                GLToolbarItem::EState state = item->get_state();
+                if (state == GLToolbarItem::Hover)
+                    item->set_state(GLToolbarItem::HoverPressed);
+                else if (state == GLToolbarItem::HoverPressed)
+                    item->set_state(GLToolbarItem::Hover);
+
+                canvas.render();
+                item->do_action();
+            }
+            else
+            {
+                item->set_state(GLToolbarItem::HoverPressed);
+                canvas.render();
+                item->do_action();
+                if (item->get_state() != GLToolbarItem::Disabled)
+                {
+                    // the item may get disabled during the action, if not, set it to normal state
+                    item->set_state(GLToolbarItem::Hover);
+                    canvas.render();
+                }
+            }
+        }
+    }
+}
+
 void GLToolbar::render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
 {
-    if (m_items.empty())
+    if (!m_enabled || m_items.empty())
         return;
 
     ::glDisable(GL_DEPTH_TEST);

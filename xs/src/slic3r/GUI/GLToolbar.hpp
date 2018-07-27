@@ -2,6 +2,7 @@
 #define slic3r_GLToolbar_hpp_
 
 #include "../../slic3r/GUI/GLTexture.hpp"
+#include "../../libslic3r/Utils.hpp"
 
 #include <string>
 #include <vector>
@@ -29,6 +30,7 @@ public:
         Normal,
         Hover,
         Pressed,
+        HoverPressed,
         Disabled,
         Num_States
     };
@@ -43,8 +45,11 @@ private:
     std::string m_name;
     std::string m_tooltip;
 
+    bool m_is_toggable;
+    PerlCallback* m_action_callback;
+
 public:
-    GLToolbarItem(EType type, const std::string& name, const std::string& tooltip);
+    GLToolbarItem(EType type, const std::string& name, const std::string& tooltip, bool is_toggable, PerlCallback* action_callback);
 
     bool load_textures(const std::string* filenames);
 
@@ -58,6 +63,10 @@ public:
     unsigned int get_icon_texture_id() const;
     int get_icon_textures_size() const;
 
+    void do_action();
+
+    bool is_enabled() const;
+    bool is_toggable() const;
     bool is_separator() const;
 };
 
@@ -68,6 +77,8 @@ public:
     {
         std::string name;
         std::string tooltip;
+        bool is_toggable;
+        PerlCallback* action_callback;
         std::string textures[GLToolbarItem::Num_States];
     };
 
@@ -99,7 +110,14 @@ public:
     void enable_item(const std::string& name);
     void disable_item(const std::string& name);
 
+    bool is_item_pressed(const std::string& name) const;
+
     void update_hover_state(GLCanvas3D& canvas, const Pointf& mouse_pos);
+
+    // returns the id of the item under the given mouse position or -1 if none
+    int contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
+
+    void do_action(unsigned int item_id, GLCanvas3D& canvas);
 
     void render(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
 

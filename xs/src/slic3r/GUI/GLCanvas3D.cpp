@@ -1698,6 +1698,9 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_force_zoom_to_bed_enabled(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
+//###################################################################################################################################
+    , m_toolbar_action_running(false)
+//###################################################################################################################################
     , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
@@ -2089,6 +2092,11 @@ void GLCanvas3D::enable_toolbar_item(const std::string& name, bool enable)
         m_toolbar.enable_item(name);
     else
         m_toolbar.disable_item(name);
+}
+
+bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
+{
+    return m_toolbar.is_item_pressed(name);
 }
 //###################################################################################################################################
 
@@ -2862,6 +2870,86 @@ void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
         m_on_update_geometry_info_callback.register_callback(callback);
 }
 
+//###################################################################################################################################
+void GLCanvas3D::register_action_add_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_add_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_delete_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_delete_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_deleteall_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_deleteall_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_arrange_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_arrange_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_more_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_more_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_fewer_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_fewer_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_ccw45_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_ccw45_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_cw45_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_cw45_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_scale_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_scale_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_split_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_split_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_cut_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_cut_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_settings_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_settings_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_layersediting_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_layersediting_callback.register_callback(callback);
+}
+//###################################################################################################################################
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -3039,6 +3127,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
+//###################################################################################################################################
+    int toolbar_contains_mouse = m_toolbar.contains_mouse(*this, m_mouse.position);
+//###################################################################################################################################
 
     if (evt.Entering())
     {
@@ -3052,6 +3143,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     } 
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
         m_on_double_click_callback.call();
+//###################################################################################################################################
+    else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
+    {
+        m_toolbar_action_running = true;
+        m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
+    }
+//###################################################################################################################################
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -3090,6 +3188,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id();
             m_dirty = true;
         }
+//###################################################################################################################################
+        else if (toolbar_contains_mouse != -1)
+        {
+            m_toolbar_action_running = true;
+            m_toolbar.do_action((unsigned int)toolbar_contains_mouse, *this);
+        }
+//###################################################################################################################################
         else
         {
             // Select volume in this 3D canvas.
@@ -3346,7 +3451,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
-            if (m_picking_enabled)
+//###################################################################################################################################
+            if (m_picking_enabled && !m_toolbar_action_running)
+//            if (m_picking_enabled)
+//###################################################################################################################################
             {
                 deselect_volumes();
                 _on_select(-1);
@@ -3378,6 +3486,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+//###################################################################################################################################
+        m_toolbar_action_running = false;
+//###################################################################################################################################
         m_dirty = true;
     }
     else if (evt.Moving())
@@ -3467,36 +3578,48 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "add";
     item.tooltip = GUI::L_str("Add...");
+    item.is_toggable = false;
+    item.action_callback = &m_action_add_callback;
     item.textures[GLToolbarItem::Normal] = "brick_add_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "brick_add_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "brick_add_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "brick_add_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "brick_add_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "delete";
     item.tooltip = GUI::L_str("Delete");
+    item.is_toggable = false;
+    item.action_callback = &m_action_delete_callback;
     item.textures[GLToolbarItem::Normal] = "brick_delete_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "brick_delete_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "brick_delete_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "brick_delete_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "brick_delete_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "deleteall";
     item.tooltip = GUI::L_str("Delete all");
+    item.is_toggable = false;
+    item.action_callback = &m_action_deleteall_callback;
     item.textures[GLToolbarItem::Normal] = "cross_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "cross_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "cross_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "cross_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "cross_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "arrange";
     item.tooltip = GUI::L_str("Arrange");
+    item.is_toggable = false;
+    item.action_callback = &m_action_arrange_callback;
     item.textures[GLToolbarItem::Normal] = "bricks_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "bricks_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "bricks_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "bricks_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "bricks_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
@@ -3506,18 +3629,24 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "more";
     item.tooltip = GUI::L_str("Add instance");
+    item.is_toggable = false;
+    item.action_callback = &m_action_more_callback;
     item.textures[GLToolbarItem::Normal] = "add_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "add_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "add_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "add_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "add_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "fewer";
     item.tooltip = GUI::L_str("Remove instance");
+    item.is_toggable = false;
+    item.action_callback = &m_action_fewer_callback;
     item.textures[GLToolbarItem::Normal] = "delete_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "delete_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "delete_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "delete_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "delete_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
@@ -3527,45 +3656,60 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "ccw45";
     item.tooltip = GUI::L_str("Rotate CCW 45 degrees");
+    item.is_toggable = false;
+    item.action_callback = &m_action_ccw45_callback;
     item.textures[GLToolbarItem::Normal] = "arrow_rotate_anticlockwise_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "arrow_rotate_anticlockwise_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "arrow_rotate_anticlockwise_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "arrow_rotate_anticlockwise_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "arrow_rotate_anticlockwise_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "cw45";
     item.tooltip = GUI::L_str("Rotate CW 45 degrees");
+    item.is_toggable = false;
+    item.action_callback = &m_action_cw45_callback;
     item.textures[GLToolbarItem::Normal] = "arrow_rotate_clockwise_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "arrow_rotate_clockwise_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "arrow_rotate_clockwise_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "arrow_rotate_clockwise_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "arrow_rotate_clockwise_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "scale";
     item.tooltip = GUI::L_str("Scale...");
+    item.is_toggable = false;
+    item.action_callback = &m_action_scale_callback;
     item.textures[GLToolbarItem::Normal] = "arrow_out_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "arrow_out_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "arrow_out_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "arrow_out_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "arrow_out_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "split";
     item.tooltip = GUI::L_str("Split");
+    item.is_toggable = false;
+    item.action_callback = &m_action_split_callback;
     item.textures[GLToolbarItem::Normal] = "shape_ungroup_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "shape_ungroup_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "shape_ungroup_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "shape_ungroup_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "shape_ungroup_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "cut";
     item.tooltip = GUI::L_str("Cut...");
+    item.is_toggable = false;
+    item.action_callback = &m_action_cut_callback;
     item.textures[GLToolbarItem::Normal] = "package_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "package_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "package_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "package_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "package_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
@@ -3575,18 +3719,24 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "settings";
     item.tooltip = GUI::L_str("Settings...");
+    item.is_toggable = false;
+    item.action_callback = &m_action_settings_callback;
     item.textures[GLToolbarItem::Normal] = "cog_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "cog_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "cog_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "cog_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "cog_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "layersediting";
     item.tooltip = GUI::L_str("Layers editing");
+    item.is_toggable = true;
+    item.action_callback = &m_action_layersediting_callback;
     item.textures[GLToolbarItem::Normal] = "variable_layer_height_normal_36.png";
     item.textures[GLToolbarItem::Hover] = "variable_layer_height_hover_36.png";
     item.textures[GLToolbarItem::Pressed] = "variable_layer_height_pressed_36.png";
+    item.textures[GLToolbarItem::HoverPressed] = "variable_layer_height_hover_pressed_36.png";
     item.textures[GLToolbarItem::Disabled] = "variable_layer_height_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
@@ -3786,6 +3936,22 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
     m_on_gizmo_rotate_callback.deregister_callback();
     m_on_update_geometry_info_callback.deregister_callback();
+
+//###################################################################################################################################
+    m_action_add_callback.deregister_callback();
+    m_action_delete_callback.deregister_callback();
+    m_action_deleteall_callback.deregister_callback();
+    m_action_arrange_callback.deregister_callback();
+    m_action_more_callback.deregister_callback();
+    m_action_fewer_callback.deregister_callback();
+    m_action_ccw45_callback.deregister_callback();
+    m_action_cw45_callback.deregister_callback();
+    m_action_scale_callback.deregister_callback();
+    m_action_split_callback.deregister_callback();
+    m_action_cut_callback.deregister_callback();
+    m_action_settings_callback.deregister_callback();
+    m_action_layersediting_callback.deregister_callback();
+//###################################################################################################################################
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
