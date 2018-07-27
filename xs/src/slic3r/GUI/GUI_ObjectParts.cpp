@@ -619,6 +619,7 @@ void set_object_scale(int idx, int scale)
 
 void unselect_objects()
 {
+    printf("UNSELECT OBJECTS\n");
 	m_objects_ctrl->UnselectAll();
 	part_selection_changed();
 
@@ -1133,10 +1134,12 @@ void update_settings_value()
 {
     printf("update_settings_value\n");
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
-	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id)		{
+    printf("selected_object_id = %d\n", m_selected_object_id);
+	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id) {
 		og->set_value("scale_x", 0);
 		og->set_value("scale_y", 0);
 		og->set_value("scale_z", 0);
+        printf("return because of unselect\n");
 		return;
 	}
 	auto bb_size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
