@@ -52,7 +52,7 @@ public:
         auto total = last-first;
         auto makeProgress = [this, &total](Placer& placer, size_t idx) {
             packed_bins_[idx] = placer.getItems();
-            this->progress_(--total);
+            this->progress_(static_cast<unsigned>(--total));
         };
 
         // Safety test: try to pack each item into an empty bin. If it fails

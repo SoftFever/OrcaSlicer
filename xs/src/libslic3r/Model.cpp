@@ -529,6 +529,7 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // handle different rotations
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
+    double norm_2 = std::nan("");
 
     // Magic: we will specify what is the goal of arrangement... In this case
     // we override the default object function to make the larger items go into
@@ -537,33 +538,46 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // We alse sacrafice a bit of pack efficiency for this to work. As a side
     // effect, the arrange procedure is a lot faster (we do not need to
     // calculate the convex hulls)
-    pcfg.object_function = [bin, hasbin](
+    pcfg.object_function = [bin, hasbin, &norm_2](
             NfpPlacer::Pile pile,   // The currently arranged pile
+            Item item,
             double /*area*/,        // Sum area of items (not needed)
             double norm,            // A norming factor for physical dimensions
             double penality)        // Min penality in case of bad arrangement
     {
+        using pl = PointLike;
+
         auto bb = ShapeLike::boundingBox(pile);
+        auto ibb = item.boundingBox();
+        auto minc = ibb.minCorner();
+        auto maxc = ibb.maxCorner();
 
-        // We get the current item that's being evaluated.
-        auto& sh = pile.back();
-
-        // We retrieve the reference point of this item
-        auto rv = ShapeLike::boundingBox(sh).center();
+        if(std::isnan(norm_2)) norm_2 = pow(norm, 2);
 
         // We get the distance of the reference point from the center of the
         // heat bed
-        auto c = bin.center();
-        auto d = PointLike::distance(rv, c);
+        auto cc = bb.center();
+        auto top_left = PointImpl{getX(minc), getY(maxc)};
+        auto bottom_right = PointImpl{getX(maxc), getY(minc)};
+
+        auto a = pl::distance(ibb.maxCorner(), cc);
+        auto b = pl::distance(ibb.minCorner(), cc);
+        auto c = pl::distance(ibb.center(), cc);
+        auto d = pl::distance(top_left, cc);
+        auto e = pl::distance(bottom_right, cc);
+
+        auto area = bb.width() * bb.height() / norm_2;
+
+        auto min_dist = std::min({a, b, c, d, e}) / norm;
 
         // The score will be the normalized distance which will be minimized,
         // effectively creating a circle shaped pile of items
-        double score = d/norm;
+        double score = 0.8*min_dist  + 0.2*area;
 
         // If it does not fit into the print bed we will beat it
         // with a large penality. If we would not do this, there would be only
         // one big pile that doesn't care whether it fits onto the print bed.
-        if(hasbin && !NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
+        if(!NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
 
         return score;
     };
