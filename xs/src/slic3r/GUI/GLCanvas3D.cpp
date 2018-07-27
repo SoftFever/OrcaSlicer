@@ -1828,7 +1828,6 @@ unsigned int GLCanvas3D::get_volumes_count() const
 
 void GLCanvas3D::reset_volumes()
 {
-
     if (!m_volumes.empty())
     {
         // ensures this canvas is current
@@ -1839,6 +1838,9 @@ void GLCanvas3D::reset_volumes()
         m_volumes.clear();
         m_dirty = true;
     }
+
+    enable_warning_texture(false);
+    _reset_warning_texture();
 }
 
 void GLCanvas3D::deselect_volumes()
@@ -2377,6 +2379,12 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors)
         if (object != nullptr)
             _load_print_object_toolpaths(*object, str_tool_colors);
     }
+
+    for (GLVolume* volume : m_volumes.volumes)
+    {
+        volume->is_extrusion_path = true;
+    }
+
     _update_toolpath_volumes_outside_state();
     _show_warning_texture_if_needed();
     reset_legend_texture();
@@ -4276,6 +4284,7 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
         if (volume != nullptr)
         {
             filter.volume = volume;
+            volume->is_extrusion_path = true;
             m_volumes.volumes.emplace_back(volume);
         }
         else
@@ -4757,7 +4766,7 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
 
     for (GLVolume* volume : m_volumes.volumes)
     {
-        volume->is_outside = (print_volume.radius() > 0.0) ? !print_volume.contains(volume->transformed_bounding_box()) : false;
+        volume->is_outside = ((print_volume.radius() > 0.0) && volume->is_extrusion_path) ? !print_volume.contains(volume->bounding_box) : false;
     }
 }
 

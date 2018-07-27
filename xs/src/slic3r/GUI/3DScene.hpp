@@ -299,6 +299,8 @@ public:
     bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower
     bool                is_wipe_tower;
+    // Wheter or not this volume has been generated from an extrusion path
+    bool                is_extrusion_path;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;

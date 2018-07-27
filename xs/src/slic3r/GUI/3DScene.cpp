@@ -215,6 +215,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , hover(false)
     , is_modifier(false)
     , is_wipe_tower(false)
+    , is_extrusion_path(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
