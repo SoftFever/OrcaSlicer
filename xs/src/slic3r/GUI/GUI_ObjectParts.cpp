@@ -687,11 +687,16 @@ void object_ctrl_selection_changed()
 //update_optgroup
 void update_settings_list()
 {
-	auto parent = get_optgroup(ogFrequentlyObjectSettings)->parent();
+#ifdef __WXGTK__
+    auto parent = get_optgroup(ogFrequentlyObjectSettings)->get_parent();
+#else
+    auto parent = get_optgroup(ogFrequentlyObjectSettings)->parent();
+#endif /* __WXGTK__ */
+    
 // There is a bug related to Ubuntu overlay scrollbars, see https://github.com/prusa3d/Slic3r/issues/898 and https://github.com/prusa3d/Slic3r/issues/952.
 // The issue apparently manifests when Show()ing a window with overlay scrollbars while the UI is frozen. For this reason,
 // we will Thaw the UI prematurely on Linux. This means destroing the no_updates object prematurely.
-#ifdef __linux__	
+#ifdef __linux__
 	std::unique_ptr<wxWindowUpdateLocker> no_updates(new wxWindowUpdateLocker(parent));
 #else
 	wxWindowUpdateLocker noUpdates(parent);
@@ -701,7 +706,7 @@ void update_settings_list()
 
 	if (m_config) 
 	{
-		auto extra_column = [parent](const Line& line)
+		auto extra_column = [](wxWindow* parent, const Line& line)
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
@@ -759,8 +764,8 @@ void update_settings_list()
 	no_updates.reset(nullptr);
 #endif
 
-	get_right_panel()->Refresh();
-	get_right_panel()->GetParent()->Layout();;
+    get_right_panel()->Layout();
+	get_right_panel()->GetParent()->Layout();
 }
 
 void get_settings_choice(wxMenu *menu, int id, bool is_part)

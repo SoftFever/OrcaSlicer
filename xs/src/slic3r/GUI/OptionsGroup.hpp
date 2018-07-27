@@ -75,7 +75,7 @@ private:
     std::vector<widget_t>	m_extra_widgets;//! {std::vector<widget_t>()};
 };
 
-using column_t = std::function<wxWindow*(const Line&)>;//std::function<wxSizer*(const Line&)>;
+using column_t = std::function<wxWindow*(wxWindow* parent, const Line&)>;//std::function<wxSizer*(const Line&)>;
 
 using t_optionfield_map = std::map<t_config_option_key, t_field>;
 using t_opt_map = std::map< std::string, std::pair<std::string, int> >;
@@ -107,6 +107,11 @@ public:
 		return m_parent;
 #endif /* __WXGTK__ */
     }
+#ifdef __WXGTK__
+    wxWindow* get_parent() const {
+        return m_parent;
+    }
+#endif /* __WXGTK__ */
 
 	void		append_line(const Line& line, wxStaticText** colored_Label = nullptr);
     Line		create_single_option_line(const Option& option) const;
@@ -157,7 +162,7 @@ public:
 					staticbox(title!=""), m_flag(flag), extra_column(extra_clmn){
 		stb = new wxStaticBox(_parent, wxID_ANY, title);
 		stb->SetFont(bold_font());
-        sizer = (staticbox ? new wxStaticBoxSizer(stb/*new wxStaticBox(_parent, wxID_ANY, title)*/, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
+        sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;
         if (extra_column != nullptr) num_columns++;

@@ -158,7 +158,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	// if we have an extra column, build it
 	if (extra_column) {
 		if (extra_column) {
-			grid_sizer->Add(extra_column(line), 0, wxALIGN_CENTER_VERTICAL, 0);
+			grid_sizer->Add(extra_column(parent(), line), 0, wxALIGN_CENTER_VERTICAL, 0);
 		}
 		else {
 			// if the callback provides no sizer for the extra cell, put a spacer
