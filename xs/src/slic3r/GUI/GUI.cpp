@@ -250,6 +250,7 @@ bool select_language(wxArrayString & names,
 		g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 		g_wxLocale->AddCatalog(g_wxApp->GetAppName());
 		wxSetlocale(LC_NUMERIC, "C");
+		Preset::update_suffix_modified();
 		return true;
 	}
 	return false;
@@ -275,6 +276,7 @@ bool load_language()
 			g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 			g_wxLocale->AddCatalog(g_wxApp->GetAppName());
 			wxSetlocale(LC_NUMERIC, "C");
+			Preset::update_suffix_modified();
 			return true;
 		}
 	}

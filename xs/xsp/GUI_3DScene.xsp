@@ -438,6 +438,13 @@ enable_force_zoom_to_bed(canvas, enable)
         _3DScene::enable_force_zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
 void
+enable_dynamic_background(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_dynamic_background((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
 allow_multisample(canvas, allow)
         SV   *canvas;
         bool allow;
@@ -772,27 +779,6 @@ reload_scene(canvas, force)
     CODE:
         _3DScene::reload_scene((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), force);
 
-void
-load_print_toolpaths(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::load_print_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void 
-load_print_object_toolpaths(canvas, print_object, tool_colors)
-        SV                       *canvas;
-        PrintObject              *print_object;
-        std::vector<std::string> tool_colors;
-    CODE:
-        _3DScene::load_print_object_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print_object, tool_colors);
-
-void
-load_wipe_tower_toolpaths(canvas, tool_colors)
-        SV                       *canvas;
-        std::vector<std::string> tool_colors;
-    CODE:
-        _3DScene::load_wipe_tower_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tool_colors);
-
 void 
 load_gcode_preview(canvas, preview_data, str_tool_colors)
         SV                       *canvas;
@@ -800,5 +786,12 @@ load_gcode_preview(canvas, preview_data, str_tool_colors)
         std::vector<std::string> str_tool_colors;
     CODE:
         _3DScene::load_gcode_preview((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), preview_data, str_tool_colors);
-        
+
+void
+load_preview(canvas, str_tool_colors)
+        SV                       *canvas;
+        std::vector<std::string> str_tool_colors;
+    CODE:
+        _3DScene::load_preview((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), str_tool_colors);
+
 %}
