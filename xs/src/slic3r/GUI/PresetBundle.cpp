@@ -552,6 +552,8 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     std::string &inherits                       = Preset::inherits(config);
     compatible_printers_condition_values.resize(num_extruders + 2, std::string());
     inherits_values.resize(num_extruders + 2, std::string());
+    // The "default_filament_profile" will be later extracted into the printer profile.
+    config.option<ConfigOptionStrings>("default_filament_profile", true)->values.resize(num_extruders, std::string());
 
     // 1) Create a name from the file name.
     // Keep the suffix (.ini, .gcode, .amf, .3mf etc) to differentiate it from the normal profiles.
@@ -576,7 +578,6 @@ void PresetBundle::load_config_file_config(const std::string &name_or_path, bool
     // 3) Now load the filaments. If there are multiple filament presets, split them and load them.
     auto old_filament_profile_names = config.option<ConfigOptionStrings>("filament_settings_id", true);
 	old_filament_profile_names->values.resize(num_extruders, std::string());
-    config.option<ConfigOptionStrings>("default_filament_profile", true)->values.resize(num_extruders, std::string());
 
     if (num_extruders <= 1) {
         // Split the "compatible_printers_condition" and "inherits" from the cummulative vectors to separate filament presets.
