@@ -78,7 +78,7 @@ struct NfpPConfig {
      * into the bin.
      *
      */
-    std::function<double(const Nfp::Shapes<RawShape>&, const _Item<RawShape>&,
+    std::function<double(Nfp::Shapes<RawShape>&, const _Item<RawShape>&,
                          double, double, double)>
     object_function;
 
@@ -163,18 +163,22 @@ template<class RawShape> class EdgeCache {
     void fetchCorners() const {
         if(!contour_.corners.empty()) return;
 
-        // TODO Accuracy
-        contour_.corners = contour_.distances;
-        for(auto& d : contour_.corners) d /= contour_.full_distance;
+        contour_.corners.reserve(contour_.distances.size() / 3 + 1);
+        for(size_t i = 0; i < contour_.distances.size() - 1; i += 3) {
+            contour_.corners.emplace_back(
+                    contour_.distances.at(i) / contour_.full_distance);
+        }
     }
 
     void fetchHoleCorners(unsigned hidx) const {
         auto& hc = holes_[hidx];
         if(!hc.corners.empty()) return;
 
-        // TODO Accuracy
-        hc.corners = hc.distances;
-        for(auto& d : hc.corners) d /= hc.full_distance;
+        hc.corners.reserve(hc.distances.size() / 3 + 1);
+        for(size_t i = 0; i < hc.distances.size() - 1; i += 3) {
+            hc.corners.emplace_back(
+                    hc.distances.at(i) / hc.full_distance);
+        }
     }
 
     inline Vertex coords(const ContourCache& cache, double distance) const {
@@ -433,7 +437,7 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
 
 public:
 
-    using Pile = const Nfp::Shapes<RawShape>&;
+    using Pile = Nfp::Shapes<RawShape>;
 
     inline explicit _NofitPolyPlacer(const BinType& bin):
         Base(bin),
@@ -536,7 +540,7 @@ public:
                 // customizable by the library client
                 auto _objfunc = config_.object_function?
                             config_.object_function :
-                [this](const Nfp::Shapes<RawShape>& pile, Item,
+                [this](Nfp::Shapes<RawShape>& pile, Item,
                             double occupied_area, double /*norm*/,
                             double penality)
                 {
@@ -565,14 +569,14 @@ public:
                     d += startpos;
                     item.translation(d);
 
-                    pile.emplace_back(item.transformedShape());
+//                    pile.emplace_back(item.transformedShape());
 
                     double occupied_area = pile_area + item.area();
 
                     double score = _objfunc(pile, item, occupied_area,
                                             norm_, penality_);
 
-                    pile.pop_back();
+//                    pile.pop_back();
 
                     return score;
                 };

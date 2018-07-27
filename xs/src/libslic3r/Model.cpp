@@ -529,7 +529,6 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // handle different rotations
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
-    double norm_2 = std::nan("");
 
     // Magic: we will specify what is the goal of arrangement... In this case
     // we override the default object function to make the larger items go into
@@ -538,8 +537,8 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // We alse sacrafice a bit of pack efficiency for this to work. As a side
     // effect, the arrange procedure is a lot faster (we do not need to
     // calculate the convex hulls)
-    pcfg.object_function = [bin, hasbin, &norm_2](
-            NfpPlacer::Pile pile,   // The currently arranged pile
+    pcfg.object_function = [bin, hasbin](
+            NfpPlacer::Pile& pile,   // The currently arranged pile
             Item item,
             double /*area*/,        // Sum area of items (not needed)
             double norm,            // A norming factor for physical dimensions
@@ -547,37 +546,91 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     {
         using pl = PointLike;
 
-        auto bb = ShapeLike::boundingBox(pile);
+        static const double BIG_ITEM_TRESHOLD = 0.2;
+        static const double GRAVITY_RATIO = 0.5;
+        static const double DENSITY_RATIO = 1.0 - GRAVITY_RATIO;
+
+        // We will treat big items (compared to the print bed) differently
+        NfpPlacer::Pile bigs;
+        bigs.reserve(pile.size());
+        for(auto& p : pile) {
+            auto pbb = ShapeLike::boundingBox(p);
+            auto na = std::sqrt(pbb.width()*pbb.height())/norm;
+            if(na > BIG_ITEM_TRESHOLD) bigs.emplace_back(p);
+        }
+
+        // Candidate item bounding box
         auto ibb = item.boundingBox();
-        auto minc = ibb.minCorner();
-        auto maxc = ibb.maxCorner();
 
-        if(std::isnan(norm_2)) norm_2 = pow(norm, 2);
+        // Calculate the full bounding box of the pile with the candidate item
+        pile.emplace_back(item.transformedShape());
+        auto fullbb = ShapeLike::boundingBox(pile);
+        pile.pop_back();
 
-        // We get the distance of the reference point from the center of the
-        // heat bed
-        auto cc = bb.center();
-        auto top_left = PointImpl{getX(minc), getY(maxc)};
-        auto bottom_right = PointImpl{getX(maxc), getY(minc)};
+        // The bounding box of the big items (they will accumulate in the center
+        // of the pile
+        auto bigbb = bigs.empty()? fullbb : ShapeLike::boundingBox(bigs);
 
-        auto a = pl::distance(ibb.maxCorner(), cc);
-        auto b = pl::distance(ibb.minCorner(), cc);
-        auto c = pl::distance(ibb.center(), cc);
-        auto d = pl::distance(top_left, cc);
-        auto e = pl::distance(bottom_right, cc);
+        // The size indicator of the candidate item. This is not the area,
+        // but almost...
+        auto itemnormarea = std::sqrt(ibb.width()*ibb.height())/norm;
 
-        auto area = bb.width() * bb.height() / norm_2;
+        // Will hold the resulting score
+        double score = 0;
 
-        auto min_dist = std::min({a, b, c, d, e}) / norm;
+        if(itemnormarea > BIG_ITEM_TRESHOLD) {
+            // This branch is for the bigger items..
+            // Here we will use the closest point of the item bounding box to
+            // the already arranged pile. So not the bb center nor the a choosen
+            // corner but whichever is the closest to the center. This will
+            // prevent unwanted strange arrangements.
 
-        // The score will be the normalized distance which will be minimized,
-        // effectively creating a circle shaped pile of items
-        double score = 0.8*min_dist  + 0.2*area;
+            auto minc = ibb.minCorner(); // bottom left corner
+            auto maxc = ibb.maxCorner(); // top right corner
+
+            // top left and bottom right corners
+            auto top_left = PointImpl{getX(minc), getY(maxc)};
+            auto bottom_right = PointImpl{getX(maxc), getY(minc)};
+
+            auto cc = fullbb.center(); // The gravity center
+
+            // Now the distnce of the gravity center will be calculated to the
+            // five anchor points and the smallest will be chosen.
+            std::array<double, 5> dists;
+            dists[0] = pl::distance(minc, cc);
+            dists[1] = pl::distance(maxc, cc);
+            dists[2] = pl::distance(ibb.center(), cc);
+            dists[3] = pl::distance(top_left, cc);
+            dists[4] = pl::distance(bottom_right, cc);
+
+            auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
+
+            // Density is the pack density: how big is the arranged pile
+            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+
+            // The score is a weighted sum of the distance from pile center
+            // and the pile size
+            score = GRAVITY_RATIO * dist + DENSITY_RATIO * density;
+            std::cout << "big " << std::endl;
+
+        } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
+            // If there are no big items, only small, we should consider the
+            // density here as well to not get silly results
+            auto bindist = pl::distance(ibb.center(), bin.center()) / norm;
+            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+            score = GRAVITY_RATIO* bindist  + DENSITY_RATIO * density;
+        } else {
+            // Here there are the small items that should be placed around the
+            // already processed bigger items.
+            // No need to play around with the anchor points, the center will be
+            // just fine for small items
+            score = pl::distance(ibb.center(), bigbb.center()) / norm;
+        }
 
         // If it does not fit into the print bed we will beat it
         // with a large penality. If we would not do this, there would be only
         // one big pile that doesn't care whether it fits onto the print bed.
-        if(!NfpPlacer::wouldFit(bb, bin)) score = 2*penality - score;
+        if(!NfpPlacer::wouldFit(fullbb, bin)) score = 2*penality - score;
 
         return score;
     };
