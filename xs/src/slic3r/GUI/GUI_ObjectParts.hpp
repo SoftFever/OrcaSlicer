@@ -95,10 +95,16 @@ void on_btn_move_down();
 void parts_changed(int obj_idx);
 void part_selection_changed();
 
+void update_settings_value();
 // show/hide "Extruder" column for Objects List
 void set_extruder_column_hidden(bool hide);
 // update extruder in current config
 void update_extruder_in_config(const wxString& selection);
+// update scale values after scale unit changing or "gizmos"
+void update_scale_values();
+void update_scale_values(const Pointf3& size, float scale);
+// update rotation values after "gizmos"
+void update_rotation_value(const double angle, const std::string& axis);
 } //namespace GUI
 } //namespace Slic3r 
 #endif  //slic3r_GUI_ObjectParts_hpp_

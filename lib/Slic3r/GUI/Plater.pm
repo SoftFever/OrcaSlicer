@@ -1099,6 +1099,7 @@ sub rotate {
         $model_object->center_around_origin;
         $self->reset_thumbnail($obj_idx);
     }
+    Slic3r::GUI::update_rotation_value(deg2rad($angle), $axis == X ? "x" : ($axis == Y ? "y" : "z"));
     
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);

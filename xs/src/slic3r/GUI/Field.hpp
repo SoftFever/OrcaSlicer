@@ -414,8 +414,8 @@ public:
 
 	boost::any&		get_value()override { return m_value; }
 
-	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
+	void			enable() override { dynamic_cast<wxStaticText*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxStaticText*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
 };
 

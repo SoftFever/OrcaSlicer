@@ -3243,6 +3243,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const BoundingBoxf3& bb = volumes[0]->transformed_bounding_box();
             const Pointf3& size = bb.size();
             m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
+            update_scale_values(size, m_gizmos.get_scale());
+            update_rotation_value(volumes[0]->get_angle_z(), "z");
         }
 
         if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
@@ -3341,6 +3343,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Scale:
             {
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+                Slic3r::GUI::update_settings_value();
                 break;
             }
             case Gizmos::Rotate:
@@ -3387,7 +3390,13 @@ void GLCanvas3D::on_key_down(wxKeyEvent& evt)
         if (key == WXK_DELETE)
             m_on_remove_object_callback.call();
         else
+        {
+#ifdef __WXOSX__
+            if (key == WXK_BACK)
+                m_on_remove_object_callback.call();
+#endif
             evt.Skip();
+        }
     }
 }
 

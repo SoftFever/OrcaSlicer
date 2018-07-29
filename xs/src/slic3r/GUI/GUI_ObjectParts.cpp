@@ -11,6 +11,7 @@
 #include <wx/frame.h>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include "Geometry.hpp"
 
 namespace Slic3r
 {
@@ -40,6 +41,9 @@ int			m_selected_object_id = -1;
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
+bool        g_is_percent_scale = false;         // It indicates if scale unit is percentage
+int         g_rotation_x = 0;                   // Last value of the rotation around the X axis
+int         g_rotation_y = 0;                   // Last value of the rotation around the Y axis
 ModelObjectPtrs*			m_objects;
 std::shared_ptr<DynamicPrintConfig*> m_config;
 std::shared_ptr<DynamicPrintConfig> m_default_config;
@@ -435,6 +439,9 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 	def.sidetext = sidetext;
 	def.width = 70;
 
+    if (option_name == "Rotation")
+        def.min = -360;
+
 	const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
 
 	std::vector<std::string> axes{ "x", "y", "z" };
@@ -458,6 +465,7 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 		Option option = Option(def, lower_name + "_unit");
 		line.append_option(option);
 	}
+
 	return line;
 }
 
@@ -475,6 +483,9 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 				std::string key = "scale_" + axis;
 				get_optgroup(ogFrequentlyObjectSettings)->set_side_text(key, selection);
 			}
+
+            g_is_percent_scale = selection == _("%");
+            update_scale_values();
 		}
 	};
 
@@ -485,16 +496,25 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 // 	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
 // 	optgroup->append_single_option_line(Option(def, "object_name"));
 
+	ConfigOptionDef def;
+
+	def.label = L("Name");
+// 	def.type = coString;
+    def.gui_type = "legend";
+	def.tooltip = L("Object name");
+	def.full_width = true;
+	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
+	optgroup->append_single_option_line(Option(def, "object_name"));
+
 	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
 	optgroup->sidetext_width = 25;
 
 	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
-	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°", 1));
-	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%", 2));
+	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°"));
+	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%"));
 
 	optgroup->set_flag(ogDEFAULT);
 
-	ConfigOptionDef def;
 	def.label = L("Place on bed");
 	def.type = coBool;
 	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
@@ -1142,10 +1162,8 @@ void update_settings_value()
         printf("return because of unselect\n");
 		return;
 	}
-	auto bb_size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
-	og->set_value("scale_x", int(bb_size.x+0.5));
-	og->set_value("scale_y", int(bb_size.y+0.5));
-	og->set_value("scale_z", int(bb_size.z+0.5));
+    g_is_percent_scale = boost::any_cast<wxString>(og->get_value("scale_unit")) == _("%");
+    update_scale_values();
 }
 
 void part_selection_changed()
@@ -1153,9 +1171,9 @@ void part_selection_changed()
     printf("part_selection_changed\n");
 	auto item = m_objects_ctrl->GetSelection();
 	int obj_idx = -1;
+	auto og = get_optgroup(ogFrequentlyObjectSettings);
 	if (item)
 	{
-		auto og = get_optgroup(ogFrequentlyObjectSettings);
 		bool is_part = false;
 		if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
 			obj_idx = m_objects_model->GetIdByItem(item);
@@ -1173,10 +1191,14 @@ void part_selection_changed()
 		}
 
 		auto config = m_config;
+        og->set_value("object_name", m_objects_model->GetName(item));
 		m_default_config = std::make_shared<DynamicPrintConfig>(*DynamicPrintConfig::new_from_defaults_keys(get_options(is_part)));
 	}
-	else
-		m_config = nullptr;
+    else {
+        wxString empty_str = wxEmptyString;
+        og->set_value("object_name", empty_str);
+        m_config = nullptr;
+    }
 
 	update_settings_list();
 
@@ -1296,6 +1318,44 @@ void update_extruder_in_config(const wxString& selection)
         wxCommandEvent e(m_event_update_scene);
         get_main_frame()->ProcessWindowEvent(e);
     }
+}
+
+void update_scale_values()
+{
+    update_scale_values((*m_objects)[m_selected_object_id]->instance_bounding_box(0).size(),
+                        (*m_objects)[m_selected_object_id]->instances[0]->scaling_factor);
+}
+
+void update_scale_values(const Pointf3& size, float scaling_factor)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+
+    if (g_is_percent_scale) {
+        auto scale = scaling_factor * 100;
+        og->set_value("scale_x", int(scale));
+        og->set_value("scale_y", int(scale));
+        og->set_value("scale_z", int(scale));
+    }
+    else {
+        og->set_value("scale_x", int(size.x + 0.5));
+        og->set_value("scale_y", int(size.y + 0.5));
+        og->set_value("scale_z", int(size.z + 0.5));
+    }
+}
+
+void update_rotation_value()
+{
+//     update_rotation_values(0, 0, (*m_objects)[m_selected_object_id]->volumes[0]->get_angle_z());
+}
+
+void update_rotation_value(const double angle, const std::string& axis)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+    
+    int deg = int(Geometry::rad2deg(angle));
+    if (deg>180) deg -= 360;
+
+    og->set_value("rotation_"+axis, deg);
 }
 
 } //namespace GUI

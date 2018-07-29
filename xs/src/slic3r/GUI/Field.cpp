@@ -333,9 +333,7 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-	const int min_val = m_opt_id == "standby_temperature_delta" ? 
-						-500 : m_opt.min > 0 ? 
-						m_opt.min : 0;
+    const int min_val = m_opt.min == INT_MIN ? 0: m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,

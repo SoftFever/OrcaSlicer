@@ -318,6 +318,7 @@ public:
     void set_render_color();
 
     const Pointf3& get_origin() const;
+    float get_angle_z();
     void set_origin(const Pointf3& origin);
     void set_angle_z(float angle_z);
     void set_scale_factor(float scale_factor);

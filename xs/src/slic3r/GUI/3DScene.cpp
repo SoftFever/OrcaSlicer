@@ -261,6 +261,11 @@ const Pointf3& GLVolume::get_origin() const
     return m_origin;
 }
 
+float GLVolume::get_angle_z()
+{
+    return m_angle_z;
+}
+
 void GLVolume::set_origin(const Pointf3& origin)
 {
     m_origin = origin;
