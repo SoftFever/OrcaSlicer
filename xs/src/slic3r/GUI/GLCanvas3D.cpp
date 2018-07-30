@@ -2816,9 +2816,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     } 
     else if (evt.Leaving())
     {
-        // to remove hover when mouse goes out of this canvas
-        m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
-        render();
+        // to remove hover on objects when the mouse goes out of this canvas
+        m_mouse.position = Pointf(-1.0, -1.0);
+        m_dirty = true;
     }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
         m_on_double_click_callback.call();
@@ -3759,20 +3759,22 @@ void GLCanvas3D::_picking_pass() const
         if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
 
-        const Size& cnv_size = get_canvas_size();
-
-        GLubyte color[4];
-        ::glReadPixels(pos.x, cnv_size.get_height() - pos.y - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
-        int volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
-
-        m_hover_volume_id = -1;
-
+        int volume_id = -1;
         for (GLVolume* vol : m_volumes.volumes)
         {
             vol->hover = false;
         }
 
-        if (volume_id < (int)m_volumes.volumes.size())
+        GLubyte color[4] = { 0, 0, 0, 0 };
+        const Size& cnv_size = get_canvas_size();
+        bool inside = (0 <= pos.x) && (pos.x < cnv_size.get_width()) && (0 <= pos.y) && (pos.y < cnv_size.get_height());
+        if (inside)
+        {
+            ::glReadPixels(pos.x, cnv_size.get_height() - pos.y - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+            volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
+        }
+
+        if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
             m_hover_volume_id = volume_id;
             m_volumes.volumes[volume_id]->hover = true;
@@ -3788,7 +3790,10 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.set_hover_id(-1);
         }
         else
-            m_gizmos.set_hover_id(254 - (int)color[2]);
+        {
+            m_hover_volume_id = -1;
+            m_gizmos.set_hover_id(inside ? (254 - (int)color[2]) : -1);
+        }
 
         // updates gizmos overlay
         if (_get_first_selected_object_id() != -1)
