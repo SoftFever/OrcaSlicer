@@ -190,11 +190,13 @@ void FirmwareDialog::priv::find_serial_ports()
 void FirmwareDialog::priv::fit_no_shrink()
 {
 	// Ensure content fits into window and window is not shrinked
-	auto old_size = q->GetSize();
+	const auto old_size = q->GetSize();
 	q->Layout();
 	q->Fit();
-	auto new_size = q->GetSize();
-	q->SetSize(std::max(old_size.GetWidth(), new_size.GetWidth()), std::max(old_size.GetHeight(), new_size.GetHeight()));
+	const auto new_size = q->GetSize();
+	const auto new_width = std::max(old_size.GetWidth(), new_size.GetWidth());
+	const auto new_height = std::max(old_size.GetHeight(), new_size.GetHeight());
+	q->SetSize(new_width, new_height);
 }
 
 void FirmwareDialog::priv::set_txt_status(const wxString &label)
@@ -734,7 +736,7 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 
 	vsizer->Add(grid, 0, wxEXPAND | wxTOP | wxBOTTOM, SPACING);
 
-	p->spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: avrdude output log")));
+	p->spoiler = new wxCollapsiblePane(panel, wxID_ANY, _(L("Advanced: avrdude output log")), wxDefaultPosition, wxDefaultSize, wxCP_DEFAULT_STYLE | wxCP_NO_TLW_RESIZE);
 	auto *spoiler_pane = p->spoiler->GetPane();
 	auto *spoiler_sizer = new wxBoxSizer(wxVERTICAL);
 	p->txt_stdout = new wxTextCtrl(spoiler_pane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
@@ -772,14 +774,16 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	});
 
 	p->spoiler->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, [this](wxCollapsiblePaneEvent &evt) {
-		// Dialog size gets screwed up by wxCollapsiblePane, we need to fix it here
 		if (evt.GetCollapsed()) {
 			this->SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT));
+			const auto new_height = this->GetSize().GetHeight() - this->p->txt_stdout->GetSize().GetHeight();
+			this->SetSize(this->GetSize().GetWidth(), new_height);
 		} else {
 			this->SetMinSize(wxSize(MIN_WIDTH, MIN_HEIGHT_EXPANDED));
 		}
 
 		this->Layout();
+		this->p->fit_no_shrink();
 	});
 
 	p->btn_close->Bind(wxEVT_BUTTON, [this](wxCommandEvent &) { this->Close(); });
@@ -793,10 +797,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 				_(L("Confirmation")),
 				wxYES_NO | wxNO_DEFAULT | wxICON_QUESTION);
 			if (dlg.ShowModal() == wxID_YES) {
-				if (this->p->avrdude) {
-					this->p->set_txt_status(_(L("Cancelling...")));
-					this->p->user_cancel();
-				}
+				this->p->set_txt_status(_(L("Cancelling...")));
+				this->p->user_cancel();
 			}
 		} else {
 			// Start a flashing task
