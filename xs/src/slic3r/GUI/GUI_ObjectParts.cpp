@@ -427,8 +427,6 @@ void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
 	const auto ol_sizer = content_objects_list(parent);
 	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
 	set_objects_list_sizer(ol_sizer);
-
-    sizer->Add(get_experimental_sizer(parent), 0, wxEXPAND | wxTOP, 20);
 }
 
 Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value = 0)
@@ -1369,121 +1367,6 @@ void update_rotation_value(const double angle, const std::string& axis)
 
     og->set_value("rotation_"+axis, deg);
 }
-
-
-// **************************************** EXPERIMENRS ****************************************
-// wxDataViewCtrl		*tmp_ctrl = nullptr;
-// MyMusicTreeModel    *m_music_model = nullptr;
-
-wxSizer* get_experimental_sizer(wxWindow* parent)
-{
-    auto tmp_ctrl = new wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-    tmp_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
-//     tmp_ctrl->Connect(wxEVT_CHAR,
-//         wxKeyEventHandler(MyFrame::OnDataViewChar),
-//         NULL, this);
-
-    auto m_music_model = new MyMusicTreeModel;
-    tmp_ctrl->AssociateModel(m_music_model);
-
-#if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
-    tmp_ctrl->EnableDragSource(wxDF_UNICODETEXT);
-    tmp_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
-#endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
-
-    // column 0 of the view control:
-
-    wxDataViewTextRenderer *tr =
-        new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_INERT);
-    wxDataViewColumn *column0 =
-        new wxDataViewColumn("title", tr, 0, 200, wxALIGN_LEFT,
-        wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_RESIZABLE);
-    tmp_ctrl->AppendColumn(column0);
-#if 0
-    // Call this and sorting is enabled
-    // immediately upon start up.
-    column0->SetAsSortKey();
-#endif
-
-    // column 1 of the view control:
-
-    tr = new wxDataViewTextRenderer("string", wxDATAVIEW_CELL_EDITABLE);
-    wxDataViewColumn *column1 =
-        new wxDataViewColumn("artist", tr, 1, 150, wxALIGN_LEFT,
-        wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_REORDERABLE |
-        wxDATAVIEW_COL_RESIZABLE);
-    column1->SetMinWidth(150); // this column can't be resized to be smaller
-    tmp_ctrl->AppendColumn(column1);
-
-    // column 2 of the view control:
-
-    wxDataViewSpinRenderer *sr =
-        new wxDataViewSpinRenderer(0, 2010, wxDATAVIEW_CELL_EDITABLE,
-        wxALIGN_RIGHT | wxALIGN_CENTRE_VERTICAL);
-    wxDataViewColumn *column2 =
-        new wxDataViewColumn("year", sr, 2, 60, wxALIGN_LEFT,
-        wxDATAVIEW_COL_SORTABLE | wxDATAVIEW_COL_REORDERABLE);
-    tmp_ctrl->AppendColumn(column2);
-
-    // column 3 of the view control:
-
-    wxArrayString choices;
-    choices.Add("good");
-    choices.Add("bad");
-    choices.Add("lousy");
-    wxDataViewChoiceRenderer *c =
-        new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE,
-        wxALIGN_RIGHT | wxALIGN_CENTRE_VERTICAL);
-    wxDataViewColumn *column3 =
-        new wxDataViewColumn("rating", c, 3, 100, wxALIGN_LEFT,
-        wxDATAVIEW_COL_REORDERABLE | wxDATAVIEW_COL_RESIZABLE);
-    tmp_ctrl->AppendColumn(column3);
-
-    // column 4 of the view control:
-
-    tmp_ctrl->AppendProgressColumn("popularity", 4, wxDATAVIEW_CELL_INERT, 80);
-
-    // column 5 of the view control:
-
-    MyCustomRenderer *cr = new MyCustomRenderer(wxDATAVIEW_CELL_ACTIVATABLE);
-    wxDataViewColumn *column5 =
-        new wxDataViewColumn("custom", cr, 5, -1, wxALIGN_LEFT,
-        wxDATAVIEW_COL_RESIZABLE);
-    tmp_ctrl->AppendColumn(column5);
-
-
-    // select initially the ninth symphony:
-    tmp_ctrl->Select(m_music_model->GetNinthItem());
-
-
-    const wxSizerFlags border = wxSizerFlags().DoubleBorder();
-
-    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto add_btn = new wxButton(parent, wxID_ANY, "Add Mozart");
-    auto del_btn = new wxButton(parent, wxID_ANY, "Delete selected");
-    button_sizer->Add(add_btn, border);
-    button_sizer->Add(del_btn, border);
-
-    add_btn->Bind(wxEVT_BUTTON, [m_music_model](wxCommandEvent&)
-    {
-        m_music_model->AddToClassical("Eine kleine Nachtmusik", "Wolfgang Mozart", 1787);
-    });
-
-    del_btn->Bind(wxEVT_BUTTON, [tmp_ctrl, m_music_model](wxCommandEvent&){
-        wxDataViewItemArray items;
-        int len = tmp_ctrl->GetSelections(items);
-        for (int i = 0; i < len; i++)
-            if (items[i].IsOk())
-                m_music_model->Delete(items[i]);
-    });
-
-    auto sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(tmp_ctrl, 0, wxEXPAND | wxLEFT, 20);
-    sizer->Add(button_sizer);
-    return sizer;
-}
-
-// **************************************** EXPERIMENRS ****************************************
 
 } //namespace GUI
 } //namespace Slic3r 
