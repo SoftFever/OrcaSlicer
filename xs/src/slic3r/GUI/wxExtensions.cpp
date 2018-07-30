@@ -692,21 +692,21 @@ MyMusicTreeModel::MyMusicTreeModel()
     m_root = new MyMusicTreeModelNode(NULL, "My Music");
 
     // setup pop music
-    m_pop = new MyMusicTreeModelNode(m_root, "Pop music");
-    m_pop->Append(
-        new MyMusicTreeModelNode(m_pop, "You are not alone", "Michael Jackson", 1995));
-    m_pop->Append(
-        new MyMusicTreeModelNode(m_pop, "Take a bow", "Madonna", 1994));
-    m_root->Append(m_pop);
-
-    // setup classical music
-    m_classical = new MyMusicTreeModelNode(m_root, "Classical music");
-    m_ninth = new MyMusicTreeModelNode(m_classical, "Ninth symphony",
-        "Ludwig van Beethoven", 1824);
-    m_classical->Append(m_ninth);
-    m_classical->Append(new MyMusicTreeModelNode(m_classical, "German Requiem",
-        "Johannes Brahms", 1868));
-    m_root->Append(m_classical);
+//     m_pop = new MyMusicTreeModelNode(m_root, "Pop music");
+//     m_pop->Append(
+//         new MyMusicTreeModelNode(m_pop, "You are not alone", "Michael Jackson", 1995));
+//     m_pop->Append(
+//         new MyMusicTreeModelNode(m_pop, "Take a bow", "Madonna", 1994));
+//     m_root->Append(m_pop);
+// 
+//     // setup classical music
+//     m_classical = new MyMusicTreeModelNode(m_root, "Classical music");
+//     m_ninth = new MyMusicTreeModelNode(m_classical, "Ninth symphony",
+//         "Ludwig van Beethoven", 1824);
+//     m_classical->Append(m_ninth);
+//     m_classical->Append(new MyMusicTreeModelNode(m_classical, "German Requiem",
+//         "Johannes Brahms", 1868));
+//     m_root->Append(m_classical);
 
     m_classicalMusicIsKnownToControl = false;
 }
