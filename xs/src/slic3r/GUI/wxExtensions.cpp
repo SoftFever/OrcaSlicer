@@ -384,12 +384,13 @@ wxDataViewItem PrusaObjectDataViewModel::Add(wxString &name, int instances_count
 
 wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_item,
 													const wxString &name,
-													const wxIcon& icon)
+													const wxIcon& icon,
+                                                    bool  create_frst_child/* = true*/)
 {
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
 
-	if (root->GetChildren().Count() == 0)
+    if (root->GetChildren().Count() == 0 && create_frst_child)
 	{
 		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, 0);

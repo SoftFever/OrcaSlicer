@@ -350,7 +350,8 @@ public:
 	wxDataViewItem Add(wxString &name, int instances_count, int scale);
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
-							const wxIcon& icon);
+                            const wxIcon& icon,
+                            bool  create_frst_child = true);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	void DeleteAll();
 	wxDataViewItem GetItemById(int obj_idx);

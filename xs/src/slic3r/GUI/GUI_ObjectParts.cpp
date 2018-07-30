@@ -28,6 +28,7 @@ wxIcon		m_icon_modifiermesh;
 wxIcon		m_icon_solidmesh;
 wxIcon		m_icon_manifold_warning;
 wxBitmap	m_bmp_cog;
+wxBitmap	m_bmp_split;
 
 wxSlider*	m_mover_x = nullptr;
 wxSlider*	m_mover_y = nullptr;
@@ -139,6 +140,9 @@ void init_mesh_icons(){
 
 	// init icon for manifold warning
 	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+
+	// init bitmap for "Split to sub-objects" context menu
+    m_bmp_split = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("split.png")), wxBITMAP_TYPE_PNG);
 
 	// init bitmap for "Add Settings" context menu
 	m_bmp_cog = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
@@ -600,6 +604,10 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 		m_objects_model->SetValue(variant, item, 0);
 	}
 
+    if (model_object->volumes.size() > 1)
+        for (auto id = 0; id < model_object->volumes.size(); id++)
+            m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
+
 	ModelObjectPtrs* objects = m_objects;
 // 	part_selection_changed();
 #ifdef __WXMSW__
@@ -836,16 +844,22 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 wxMenu *create_add_part_popupmenu()
 {
 	wxMenu *menu = new wxMenu;
-	wxWindowID config_id_base = wxWindow::NewControlId(4);
-
 	std::vector<std::string> menu_items = { L("Add part"), L("Add modifier"), L("Add generic") };
+
+	wxWindowID config_id_base = wxWindow::NewControlId(menu_items.size()+2);
+
 	int i = 0;
 	for (auto& item : menu_items) {
 		auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
 		menu_item->SetBitmap(i == 0 ? m_icon_solidmesh : m_icon_modifiermesh);
 		menu->Append(menu_item);
 		i++;
-	}
+    }
+
+    menu->AppendSeparator();
+    auto menu_item = new wxMenuItem(menu, config_id_base + 3, _(L("Split to sub-objects")));
+    menu_item->SetBitmap(m_bmp_split);
+    menu->Append(menu_item);
 
 	wxWindow* win = get_tab_panel()->GetPage(0);
 
@@ -860,6 +874,9 @@ wxMenu *create_add_part_popupmenu()
 		case 2:
 			on_btn_load(win, true, true);
 			break;
+		case 3:
+			on_btn_split();
+			break;
 		default:{
 			get_settings_choice(menu, event.GetId(), false);
 			break;}
@@ -868,7 +885,7 @@ wxMenu *create_add_part_popupmenu()
 
 	menu->AppendSeparator();
 	// Append settings popupmenu
-	auto menu_item = new wxMenuItem(menu, config_id_base + 3, _(L("Add settings")));
+	menu_item = new wxMenuItem(menu, config_id_base + 4, _(L("Add settings")));
 	menu_item->SetBitmap(m_bmp_cog);
 
 	auto sub_menu = create_add_settings_popupmenu(false);
@@ -1087,16 +1104,17 @@ void on_btn_split()
 	if (!item)
 		return;
 	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+    ModelVolume* volume;
 	if (volume_id < 0)
-		return;
-
-	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
-	DynamicPrintConfig&	config = get_preset_bundle()->prints.get_edited_preset().config;
-	auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+		volume = (*m_objects)[m_selected_object_id]->volumes[0];//return;
+    else
+	    volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+ 	DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
+    auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 	if (volume->split(nozzle_dmrs_cnt) > 1)	{
-		// TODO update model
-		m_parts_changed = true;
-		parts_changed(m_selected_object_id);
+        auto model_object = (*m_objects)[m_selected_object_id];
+        for (auto id = 0; id < model_object->volumes.size(); id++)
+            m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
 	}
 }
 
