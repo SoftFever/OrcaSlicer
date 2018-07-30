@@ -80,6 +80,7 @@ namespace Slic3r {
             float minimum_travel_feedrate;      // mm/s
             float extrude_factor_override_percentage;
             unsigned int g1_line_id;
+            unsigned int extruder_id;
         };
 
     public:
@@ -300,6 +301,10 @@ namespace Slic3r {
         void increment_g1_line_id();
         void reset_g1_line_id();
 
+        void set_extruder_id(unsigned int id);
+        unsigned int get_extruder_id() const;
+        void reset_extruder_id();
+
         void add_additional_time(float timeSec);
         void set_additional_time(float timeSec);
         float get_additional_time() const;
@@ -382,6 +387,9 @@ namespace Slic3r {
 
         // Set allowable instantaneous speed change
         void _processM566(const GCodeReader::GCodeLine& line);
+
+        // Processes T line (Select Tool)
+        void _processT(const GCodeReader::GCodeLine& line);
 
         // Simulates firmware st_synchronize() call
         void _simulate_st_synchronize();

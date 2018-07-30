@@ -535,6 +535,21 @@ namespace Slic3r {
         _state.g1_line_id = 0;
     }
 
+    void GCodeTimeEstimator::set_extruder_id(unsigned int id)
+    {
+        _state.extruder_id = id;
+    }
+
+    unsigned int GCodeTimeEstimator::get_extruder_id() const
+    {
+        return _state.extruder_id;
+    }
+
+    void GCodeTimeEstimator::reset_extruder_id()
+    {
+        _state.extruder_id = 0;
+    }
+
     void GCodeTimeEstimator::add_additional_time(float timeSec)
     {
         PROFILE_FUNC();
@@ -613,6 +628,7 @@ namespace Slic3r {
 
         set_additional_time(0.0f);
 
+        reset_extruder_id();
         reset_g1_line_id();
         _g1_line_ids.clear();
 
@@ -780,6 +796,11 @@ namespace Slic3r {
                         }
                     }
 
+                    break;
+                }
+            case 'T': // Select Tools
+                {
+                    _processT(line);
                     break;
                 }
             }
@@ -1221,6 +1242,21 @@ namespace Slic3r {
 
         if (line.has_e())
             set_axis_max_jerk(E, line.e() * MMMIN_TO_MMSEC);
+    }
+
+    void GCodeTimeEstimator::_processT(const GCodeReader::GCodeLine& line)
+    {
+        std::string cmd = line.cmd();
+        if (cmd.length() > 1)
+        {
+            unsigned int id = (unsigned int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
+            if (get_extruder_id() != id)
+            {
+                set_extruder_id(id);
+
+                // ADD PROCESSING HERE
+            }
+        }
     }
 
     void GCodeTimeEstimator::_simulate_st_synchronize()
