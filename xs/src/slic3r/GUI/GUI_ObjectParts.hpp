@@ -107,6 +107,10 @@ void update_scale_values(const Pointf3& size, float scale);
 void update_rotation_values();
 // update rotation value after "gizmos"
 void update_rotation_value(const double angle, const std::string& axis);
+
+
+wxSizer* get_experimental_sizer(wxWindow* parent);
+
 } //namespace GUI
 } //namespace Slic3r 
 #endif  //slic3r_GUI_ObjectParts_hpp_
