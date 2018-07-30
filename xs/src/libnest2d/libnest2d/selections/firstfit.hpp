@@ -59,7 +59,7 @@ public:
         // then it should be removed from the list
         { auto it = store_.begin();
             while (it != store_.end()) {
-                Placer p(bin);
+                Placer p(bin); p.configure(pconfig);
                 if(!p.pack(*it)) {
                     it = store_.erase(it);
                 } else it++;

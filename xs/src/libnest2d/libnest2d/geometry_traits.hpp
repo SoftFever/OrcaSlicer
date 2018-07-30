@@ -3,6 +3,7 @@
 
 #include <string>
 #include <type_traits>
+#include <algorithm>
 #include <array>
 #include <vector>
 #include <numeric>
@@ -85,6 +86,31 @@ public:
     inline TCoord<RawPoint> height() const BP2D_NOEXCEPT;
 
     inline RawPoint center() const BP2D_NOEXCEPT;
+
+    inline double area() const BP2D_NOEXCEPT {
+        return double(width()*height());
+    }
+};
+
+template<class RawPoint>
+class _Circle {
+    RawPoint center_;
+    double radius_ = 0;
+public:
+
+    _Circle() = default;
+
+    _Circle(const RawPoint& center, double r): center_(center), radius_(r) {}
+
+    inline const RawPoint& center() const BP2D_NOEXCEPT { return center_; }
+    inline const void center(const RawPoint& c) { center_ = c; }
+
+    inline double radius() const BP2D_NOEXCEPT { return radius_; }
+    inline void radius(double r) { radius_ = r; }
+
+    inline double area() const BP2D_NOEXCEPT {
+        return 2.0*Pi*radius_;
+    }
 };
 
 /**
@@ -288,8 +314,8 @@ inline RawPoint _Box<RawPoint>::center() const BP2D_NOEXCEPT {
     using Coord = TCoord<RawPoint>;
 
     RawPoint ret =  {
-        static_cast<Coord>( std::round((getX(minc) + getX(maxc))/2.0) ),
-        static_cast<Coord>( std::round((getY(minc) + getY(maxc))/2.0) )
+        static_cast<Coord>( (getX(minc) + getX(maxc))/2.0 ),
+        static_cast<Coord>( (getY(minc) + getY(maxc))/2.0 )
     };
 
     return ret;
@@ -615,9 +641,31 @@ struct ShapeLike {
     }
 
     template<class RawShape>
+    static inline _Box<TPoint<RawShape>> boundingBox(
+            const _Circle<TPoint<RawShape>>& circ)
+    {
+        using Coord = TCoord<TPoint<RawShape>>;
+        TPoint<RawShape> pmin = {
+            static_cast<Coord>(getX(circ.center()) - circ.radius()),
+            static_cast<Coord>(getY(circ.center()) - circ.radius()) };
+
+        TPoint<RawShape> pmax = {
+            static_cast<Coord>(getX(circ.center()) + circ.radius()),
+            static_cast<Coord>(getY(circ.center()) + circ.radius()) };
+
+        return {pmin, pmax};
+    }
+
+    template<class RawShape>
     static inline double area(const _Box<TPoint<RawShape>>& box)
     {
         return static_cast<double>(box.width() * box.height());
+    }
+
+    template<class RawShape>
+    static inline double area(const _Circle<TPoint<RawShape>>& circ)
+    {
+        return circ.area();
     }
 
     template<class RawShape>
@@ -627,6 +675,31 @@ struct ShapeLike {
                         [](double a, const RawShape& b) {
             return a += area(b);
         });
+    }
+
+    template<class RawShape>
+    static bool isInside(const TPoint<RawShape>& point,
+                         const _Circle<TPoint<RawShape>>& circ)
+    {
+        return PointLike::distance(point, circ.center()) < circ.radius();
+    }
+
+    template<class RawShape>
+    static bool isInside(const RawShape& sh,
+                         const _Circle<TPoint<RawShape>>& circ)
+    {
+        return std::all_of(cbegin(sh), cend(sh),
+                           [&circ](const TPoint<RawShape>& p){
+            return isInside<RawShape>(p, circ);
+        });
+    }
+
+    template<class RawShape>
+    static bool isInside(const _Box<TPoint<RawShape>>& box,
+                         const _Circle<TPoint<RawShape>>& circ)
+    {
+        return isInside<RawShape>(box.minCorner(), circ) &&
+                isInside<RawShape>(box.maxCorner(), circ);
     }
 
     template<class RawShape> // Potential O(1) implementation may exist

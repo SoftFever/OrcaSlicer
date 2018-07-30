@@ -46,14 +46,12 @@ struct NfpPConfig {
      * function you can e.g. influence the shape of the arranged pile.
      *
      * \param shapes The first parameter is a container with all the placed
-     * polygons including the current candidate. You can calculate a bounding
-     * box or convex hull on this pile of polygons.
+     * polygons excluding the current candidate. You can calculate a bounding
+     * box or convex hull on this pile of polygons without the candidate item
+     * or push back the candidate item into the container and then calculate
+     * some features.
      *
-     * \param item The second parameter is the candidate item. Note that
-     * calling transformedShape() on this second argument returns an identical
-     * shape as calling shapes.back(). These would not be the same objects only
-     * identical shapes! Using the second parameter is a lot faster due to
-     * caching some properties of the polygon (area, etc...)
+     * \param item The second parameter is the candidate item.
      *
      * \param occupied_area The third parameter is the sum of areas of the
      * items in the first parameter so you don't have to iterate through them
@@ -127,6 +125,8 @@ template<class RawShape> class EdgeCache {
 
     std::vector<ContourCache> holes_;
 
+    double accuracy_ = 1.0;
+
     void createCache(const RawShape& sh) {
         {   // For the contour
             auto first = ShapeLike::cbegin(sh);
@@ -160,11 +160,25 @@ template<class RawShape> class EdgeCache {
         }
     }
 
+    size_t stride(const size_t N) const {
+        using std::ceil;
+        using std::round;
+        using std::pow;
+
+        return static_cast<Coord>(
+                    round( N/(ceil(pow(accuracy_, 2)*(N-1)) + 1) )
+                );
+    }
+
     void fetchCorners() const {
         if(!contour_.corners.empty()) return;
 
-        contour_.corners.reserve(contour_.distances.size() / 3 + 1);
-        for(size_t i = 0; i < contour_.distances.size() - 1; i += 3) {
+        const auto N = contour_.distances.size();
+        const auto S = stride(N);
+
+        contour_.corners.reserve(N / S + 1);
+        auto N_1 = N-1;
+        for(size_t i = 0; i < N_1; i += S) {
             contour_.corners.emplace_back(
                     contour_.distances.at(i) / contour_.full_distance);
         }
@@ -174,8 +188,11 @@ template<class RawShape> class EdgeCache {
         auto& hc = holes_[hidx];
         if(!hc.corners.empty()) return;
 
-        hc.corners.reserve(hc.distances.size() / 3 + 1);
-        for(size_t i = 0; i < hc.distances.size() - 1; i += 3) {
+        const auto N = hc.distances.size();
+        const auto S = stride(N);
+        auto N_1 = N-1;
+        hc.corners.reserve(N / S + 1);
+        for(size_t i = 0; i < N_1; i += S) {
             hc.corners.emplace_back(
                     hc.distances.at(i) / hc.full_distance);
         }
@@ -223,6 +240,9 @@ public:
     {
         createCache(sh);
     }
+
+    /// Resolution of returned corners. The stride is derived from this value.
+    void accuracy(double a /* within <0.0, 1.0>*/) { accuracy_ = a; }
 
     /**
      * @brief Get a point on the circumference of a polygon.
@@ -419,12 +439,12 @@ Nfp::Shapes<RawShape> nfp( const Container& polygons,
 //    return nfps;
 }
 
-template<class RawShape>
-class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
-        RawShape, _Box<TPoint<RawShape>>, NfpPConfig<RawShape>> {
+template<class RawShape, class TBin = _Box<TPoint<RawShape>>>
+class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin>,
+        RawShape, TBin, NfpPConfig<RawShape>> {
 
-    using Base = PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
-    RawShape, _Box<TPoint<RawShape>>, NfpPConfig<RawShape>>;
+    using Base = PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin>,
+    RawShape, TBin, NfpPConfig<RawShape>>;
 
     DECLARE_PLACER(Base)
 
@@ -434,6 +454,7 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape>,
     const double penality_;
 
     using MaxNfpLevel = Nfp::MaxNfpLevel<RawShape>;
+    using sl = ShapeLike;
 
 public:
 
@@ -441,7 +462,7 @@ public:
 
     inline explicit _NofitPolyPlacer(const BinType& bin):
         Base(bin),
-        norm_(std::sqrt(ShapeLike::area<RawShape>(bin))),
+        norm_(std::sqrt(sl::area<RawShape>(bin))),
         penality_(1e6*norm_) {}
 
     _NofitPolyPlacer(const _NofitPolyPlacer&) = default;
@@ -452,24 +473,43 @@ public:
     _NofitPolyPlacer& operator=(_NofitPolyPlacer&&) BP2D_NOEXCEPT = default;
 #endif
 
+    bool static inline wouldFit(const Box& bb, const RawShape& bin) {
+        auto bbin = sl::boundingBox<RawShape>(bin);
+        auto d = bbin.center() - bb.center();
+        _Rectangle<RawShape> rect(bb.width(), bb.height());
+        rect.translate(bb.minCorner() + d);
+        return sl::isInside<RawShape>(rect.transformedShape(), bin);
+    }
+
     bool static inline wouldFit(const RawShape& chull, const RawShape& bin) {
-        auto bbch = ShapeLike::boundingBox<RawShape>(chull);
-        auto bbin = ShapeLike::boundingBox<RawShape>(bin);
-        auto d = bbin.minCorner() - bbch.minCorner();
+        auto bbch = sl::boundingBox<RawShape>(chull);
+        auto bbin = sl::boundingBox<RawShape>(bin);
+        auto d = bbin.center() - bbch.center();
         auto chullcpy = chull;
-        ShapeLike::translate(chullcpy, d);
-        return ShapeLike::isInside<RawShape>(chullcpy, bbin);
+        sl::translate(chullcpy, d);
+        return sl::isInside<RawShape>(chullcpy, bin);
     }
 
     bool static inline wouldFit(const RawShape& chull, const Box& bin)
     {
-        auto bbch = ShapeLike::boundingBox<RawShape>(chull);
+        auto bbch = sl::boundingBox<RawShape>(chull);
         return wouldFit(bbch, bin);
     }
 
     bool static inline wouldFit(const Box& bb, const Box& bin)
     {
         return bb.width() <= bin.width() && bb.height() <= bin.height();
+    }
+
+    bool static inline wouldFit(const Box& bb, const _Circle<Vertex>& bin)
+    {
+        return sl::isInside<RawShape>(bb, bin);
+    }
+
+    bool static inline wouldFit(const RawShape& chull,
+                                const _Circle<Vertex>& bin)
+    {
+        return sl::isInside<RawShape>(chull, bin);
     }
 
     PackResult trypack(Item& item) {
@@ -510,7 +550,10 @@ public:
                 std::vector<EdgeCache<RawShape>> ecache;
                 ecache.reserve(nfps.size());
 
-                for(auto& nfp : nfps ) ecache.emplace_back(nfp);
+                for(auto& nfp : nfps ) {
+                    ecache.emplace_back(nfp);
+                    ecache.back().accuracy(config_.accuracy);
+                }
 
                 struct Optimum {
                     double relpos;
@@ -540,14 +583,16 @@ public:
                 // customizable by the library client
                 auto _objfunc = config_.object_function?
                             config_.object_function :
-                [this](Nfp::Shapes<RawShape>& pile, Item,
+                [this](Nfp::Shapes<RawShape>& pile, const Item& item,
                             double occupied_area, double /*norm*/,
                             double penality)
                 {
-                    auto ch = ShapeLike::convexHull(pile);
+                    pile.emplace_back(item.transformedShape());
+                    auto ch = sl::convexHull(pile);
+                    pile.pop_back();
 
                     // The pack ratio -- how much is the convex hull occupied
-                    double pack_rate = occupied_area/ShapeLike::area(ch);
+                    double pack_rate = occupied_area/sl::area(ch);
 
                     // ratio of waste
                     double waste = 1.0 - pack_rate;
@@ -569,14 +614,10 @@ public:
                     d += startpos;
                     item.translation(d);
 
-//                    pile.emplace_back(item.transformedShape());
-
                     double occupied_area = pile_area + item.area();
 
                     double score = _objfunc(pile, item, occupied_area,
                                             norm_, penality_);
-
-//                    pile.pop_back();
 
                     return score;
                 };
@@ -584,7 +625,6 @@ public:
                 opt::StopCriteria stopcr;
                 stopcr.max_iterations = 1000;
                 stopcr.absolute_score_difference = 1e-20*norm_;
-//                stopcr.relative_score_difference = 1e-20;
                 opt::TOptimizer<opt::Method::L_SIMPLEX> solver(stopcr);
 
                 Optimum optimum(0, 0);
@@ -702,34 +742,35 @@ public:
         m.reserve(items_.size());
 
         for(Item& item : items_) m.emplace_back(item.transformedShape());
-        auto&& bb = ShapeLike::boundingBox<RawShape>(m);
+        auto&& bb = sl::boundingBox<RawShape>(m);
 
         Vertex ci, cb;
+        auto bbin = sl::boundingBox<RawShape>(bin_);
 
         switch(config_.alignment) {
         case Config::Alignment::CENTER: {
             ci = bb.center();
-            cb = bin_.center();
+            cb = bbin.center();
             break;
         }
         case Config::Alignment::BOTTOM_LEFT: {
             ci = bb.minCorner();
-            cb = bin_.minCorner();
+            cb = bbin.minCorner();
             break;
         }
         case Config::Alignment::BOTTOM_RIGHT: {
             ci = {getX(bb.maxCorner()), getY(bb.minCorner())};
-            cb = {getX(bin_.maxCorner()), getY(bin_.minCorner())};
+            cb = {getX(bbin.maxCorner()), getY(bbin.minCorner())};
             break;
         }
         case Config::Alignment::TOP_LEFT: {
             ci = {getX(bb.minCorner()), getY(bb.maxCorner())};
-            cb = {getX(bin_.minCorner()), getY(bin_.maxCorner())};
+            cb = {getX(bbin.minCorner()), getY(bbin.maxCorner())};
             break;
         }
         case Config::Alignment::TOP_RIGHT: {
             ci = bb.maxCorner();
-            cb = bin_.maxCorner();
+            cb = bbin.maxCorner();
             break;
         }
         }
@@ -745,31 +786,32 @@ private:
     void setInitialPosition(Item& item) {
         Box&& bb = item.boundingBox();
         Vertex ci, cb;
+        auto bbin = sl::boundingBox<RawShape>(bin_);
 
         switch(config_.starting_point) {
         case Config::Alignment::CENTER: {
             ci = bb.center();
-            cb = bin_.center();
+            cb = bbin.center();
             break;
         }
         case Config::Alignment::BOTTOM_LEFT: {
             ci = bb.minCorner();
-            cb = bin_.minCorner();
+            cb = bbin.minCorner();
             break;
         }
         case Config::Alignment::BOTTOM_RIGHT: {
             ci = {getX(bb.maxCorner()), getY(bb.minCorner())};
-            cb = {getX(bin_.maxCorner()), getY(bin_.minCorner())};
+            cb = {getX(bbin.maxCorner()), getY(bbin.minCorner())};
             break;
         }
         case Config::Alignment::TOP_LEFT: {
             ci = {getX(bb.minCorner()), getY(bb.maxCorner())};
-            cb = {getX(bin_.minCorner()), getY(bin_.maxCorner())};
+            cb = {getX(bbin.minCorner()), getY(bbin.maxCorner())};
             break;
         }
         case Config::Alignment::TOP_RIGHT: {
             ci = bb.maxCorner();
-            cb = bin_.maxCorner();
+            cb = bbin.maxCorner();
             break;
         }
         }
@@ -780,7 +822,7 @@ private:
 
     void placeOutsideOfBin(Item& item) {
         auto&& bb = item.boundingBox();
-        Box binbb = ShapeLike::boundingBox<RawShape>(bin_);
+        Box binbb = sl::boundingBox<RawShape>(bin_);
 
         Vertex v = { getX(bb.maxCorner()), getY(bb.minCorner()) };
 

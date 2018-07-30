@@ -254,7 +254,13 @@ public:
         return sl::isInside(transformedShape(), sh.transformedShape());
     }
 
+    inline bool isInside(const RawShape& sh) const
+    {
+        return sl::isInside(transformedShape(), sh);
+    }
+
     inline bool isInside(const _Box<TPoint<RawShape>>& box) const;
+    inline bool isInside(const _Circle<TPoint<RawShape>>& box) const;
 
     inline void translate(const Vertex& d) BP2D_NOEXCEPT
     {
@@ -469,6 +475,11 @@ template<class RawShape>
 inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
     _Rectangle<RawShape> rect(box.width(), box.height());
     return _Item<RawShape>::isInside(rect);
+}
+
+template<class RawShape> inline bool
+_Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
+    return ShapeLike::isInside<RawShape>(transformedShape(), circ);
 }
 
 /**

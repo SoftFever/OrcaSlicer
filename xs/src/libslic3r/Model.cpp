@@ -530,6 +530,9 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // arranger.useMinimumBoundigBoxRotation();
     pcfg.rotations = { 0.0 };
 
+    // The accuracy of optimization. Goes from 0.0 to 1.0 and scales performance
+    pcfg.accuracy = 0.8;
+
     // Magic: we will specify what is the goal of arrangement... In this case
     // we override the default object function to make the larger items go into
     // the center of the pile and smaller items orbit it so the resulting pile
@@ -539,7 +542,7 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
     // calculate the convex hulls)
     pcfg.object_function = [bin, hasbin](
             NfpPlacer::Pile& pile,   // The currently arranged pile
-            Item item,
+            const Item &item,
             double /*area*/,        // Sum area of items (not needed)
             double norm,            // A norming factor for physical dimensions
             double penality)        // Min penality in case of bad arrangement
