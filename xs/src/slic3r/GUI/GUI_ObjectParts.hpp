@@ -103,7 +103,9 @@ void update_extruder_in_config(const wxString& selection);
 // update scale values after scale unit changing or "gizmos"
 void update_scale_values();
 void update_scale_values(const Pointf3& size, float scale);
-// update rotation values after "gizmos"
+// update rotation values object selection changing
+void update_rotation_values();
+// update rotation value after "gizmos"
 void update_rotation_value(const double angle, const std::string& axis);
 } //namespace GUI
 } //namespace Slic3r 

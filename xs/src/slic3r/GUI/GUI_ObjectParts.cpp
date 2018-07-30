@@ -503,7 +503,7 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
     def.gui_type = "legend";
 	def.tooltip = L("Object name");
 	def.full_width = true;
-	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
+	def.default_value = new ConfigOptionString{ " " };
 	optgroup->append_single_option_line(Option(def, "object_name"));
 
 	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
@@ -1164,6 +1164,7 @@ void update_settings_value()
 	}
     g_is_percent_scale = boost::any_cast<wxString>(og->get_value("scale_unit")) == _("%");
     update_scale_values();
+    update_rotation_values();
 }
 
 void part_selection_changed()
@@ -1343,9 +1344,18 @@ void update_scale_values(const Pointf3& size, float scaling_factor)
     }
 }
 
-void update_rotation_value()
+void update_rotation_values()
 {
-//     update_rotation_values(0, 0, (*m_objects)[m_selected_object_id]->volumes[0]->get_angle_z());
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+
+    og->set_value("rotation_x", 0);
+    og->set_value("rotation_y", 0);
+
+    auto rotation_z = (*m_objects)[m_selected_object_id]->instances[0]->rotation;
+    auto deg = int(Geometry::rad2deg(rotation_z));
+    if (deg > 180) deg -= 360;
+
+    og->set_value("rotation_z", deg);
 }
 
 void update_rotation_value(const double angle, const std::string& axis)
