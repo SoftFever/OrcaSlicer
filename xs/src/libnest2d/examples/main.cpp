@@ -544,25 +544,25 @@ void arrangeRectangles() {
 //    input.insert(input.end(), proba.begin(), proba.end());
 //    input.insert(input.end(), crasher.begin(), crasher.end());
 
-//    Box bin(250*SCALE, 210*SCALE);
-    PolygonImpl bin = {
-        {
-            {25*SCALE, 0},
-            {0, 25*SCALE},
-            {0, 225*SCALE},
-            {25*SCALE, 250*SCALE},
-            {225*SCALE, 250*SCALE},
-            {250*SCALE, 225*SCALE},
-            {250*SCALE, 25*SCALE},
-            {225*SCALE, 0},
-            {25*SCALE, 0}
-        },
-        {}
-    };
+    Box bin(250*SCALE, 210*SCALE);
+//    PolygonImpl bin = {
+//        {
+//            {25*SCALE, 0},
+//            {0, 25*SCALE},
+//            {0, 225*SCALE},
+//            {25*SCALE, 250*SCALE},
+//            {225*SCALE, 250*SCALE},
+//            {250*SCALE, 225*SCALE},
+//            {250*SCALE, 25*SCALE},
+//            {225*SCALE, 0},
+//            {25*SCALE, 0}
+//        },
+//        {}
+//    };
 
     auto min_obj_distance = static_cast<Coord>(0*SCALE);
 
-    using Placer = strategies::_NofitPolyPlacer<PolygonImpl, PolygonImpl>;
+    using Placer = strategies::_NofitPolyPlacer<PolygonImpl, Box>;
     using Packer = Arranger<Placer, FirstFitSelection>;
 
     Packer arrange(bin, min_obj_distance);
@@ -571,102 +571,102 @@ void arrangeRectangles() {
     pconf.alignment = Placer::Config::Alignment::CENTER;
     pconf.starting_point = Placer::Config::Alignment::CENTER;
     pconf.rotations = {0.0/*, Pi/2.0, Pi, 3*Pi/2*/};
-    pconf.accuracy = 1.0;
+    pconf.accuracy = 0.5f;
 
-    auto bincenter = ShapeLike::boundingBox(bin).center();
-    pconf.object_function = [&bin, bincenter](
-            Placer::Pile pile, const Item& item,
-            double /*area*/, double norm, double penality) {
+//    auto bincenter = ShapeLike::boundingBox(bin).center();
+//    pconf.object_function = [&bin, bincenter](
+//            Placer::Pile pile, const Item& item,
+//            double /*area*/, double norm, double penality) {
 
-        using pl = PointLike;
+//        using pl = PointLike;
 
-        static const double BIG_ITEM_TRESHOLD = 0.2;
-        static const double GRAVITY_RATIO = 0.5;
-        static const double DENSITY_RATIO = 1.0 - GRAVITY_RATIO;
+//        static const double BIG_ITEM_TRESHOLD = 0.2;
+//        static const double GRAVITY_RATIO = 0.5;
+//        static const double DENSITY_RATIO = 1.0 - GRAVITY_RATIO;
 
-        // We will treat big items (compared to the print bed) differently
-        NfpPlacer::Pile bigs;
-        bigs.reserve(pile.size());
-        for(auto& p : pile) {
-            auto pbb = ShapeLike::boundingBox(p);
-            auto na = std::sqrt(pbb.width()*pbb.height())/norm;
-            if(na > BIG_ITEM_TRESHOLD) bigs.emplace_back(p);
-        }
+//        // We will treat big items (compared to the print bed) differently
+//        NfpPlacer::Pile bigs;
+//        bigs.reserve(pile.size());
+//        for(auto& p : pile) {
+//            auto pbb = ShapeLike::boundingBox(p);
+//            auto na = std::sqrt(pbb.width()*pbb.height())/norm;
+//            if(na > BIG_ITEM_TRESHOLD) bigs.emplace_back(p);
+//        }
 
-        // Candidate item bounding box
-        auto ibb = item.boundingBox();
+//        // Candidate item bounding box
+//        auto ibb = item.boundingBox();
 
-        // Calculate the full bounding box of the pile with the candidate item
-        pile.emplace_back(item.transformedShape());
-        auto fullbb = ShapeLike::boundingBox(pile);
-        pile.pop_back();
+//        // Calculate the full bounding box of the pile with the candidate item
+//        pile.emplace_back(item.transformedShape());
+//        auto fullbb = ShapeLike::boundingBox(pile);
+//        pile.pop_back();
 
-        // The bounding box of the big items (they will accumulate in the center
-        // of the pile
-        auto bigbb = bigs.empty()? fullbb : ShapeLike::boundingBox(bigs);
+//        // The bounding box of the big items (they will accumulate in the center
+//        // of the pile
+//        auto bigbb = bigs.empty()? fullbb : ShapeLike::boundingBox(bigs);
 
-        // The size indicator of the candidate item. This is not the area,
-        // but almost...
-        auto itemnormarea = std::sqrt(ibb.width()*ibb.height())/norm;
+//        // The size indicator of the candidate item. This is not the area,
+//        // but almost...
+//        auto itemnormarea = std::sqrt(ibb.width()*ibb.height())/norm;
 
-        // Will hold the resulting score
-        double score = 0;
+//        // Will hold the resulting score
+//        double score = 0;
 
-        if(itemnormarea > BIG_ITEM_TRESHOLD) {
-            // This branch is for the bigger items..
-            // Here we will use the closest point of the item bounding box to
-            // the already arranged pile. So not the bb center nor the a choosen
-            // corner but whichever is the closest to the center. This will
-            // prevent unwanted strange arrangements.
+//        if(itemnormarea > BIG_ITEM_TRESHOLD) {
+//            // This branch is for the bigger items..
+//            // Here we will use the closest point of the item bounding box to
+//            // the already arranged pile. So not the bb center nor the a choosen
+//            // corner but whichever is the closest to the center. This will
+//            // prevent unwanted strange arrangements.
 
-            auto minc = ibb.minCorner(); // bottom left corner
-            auto maxc = ibb.maxCorner(); // top right corner
+//            auto minc = ibb.minCorner(); // bottom left corner
+//            auto maxc = ibb.maxCorner(); // top right corner
 
-            // top left and bottom right corners
-            auto top_left = PointImpl{getX(minc), getY(maxc)};
-            auto bottom_right = PointImpl{getX(maxc), getY(minc)};
+//            // top left and bottom right corners
+//            auto top_left = PointImpl{getX(minc), getY(maxc)};
+//            auto bottom_right = PointImpl{getX(maxc), getY(minc)};
 
-            auto cc = fullbb.center(); // The gravity center
+//            auto cc = fullbb.center(); // The gravity center
 
-            // Now the distnce of the gravity center will be calculated to the
-            // five anchor points and the smallest will be chosen.
-            std::array<double, 5> dists;
-            dists[0] = pl::distance(minc, cc);
-            dists[1] = pl::distance(maxc, cc);
-            dists[2] = pl::distance(ibb.center(), cc);
-            dists[3] = pl::distance(top_left, cc);
-            dists[4] = pl::distance(bottom_right, cc);
+//            // Now the distnce of the gravity center will be calculated to the
+//            // five anchor points and the smallest will be chosen.
+//            std::array<double, 5> dists;
+//            dists[0] = pl::distance(minc, cc);
+//            dists[1] = pl::distance(maxc, cc);
+//            dists[2] = pl::distance(ibb.center(), cc);
+//            dists[3] = pl::distance(top_left, cc);
+//            dists[4] = pl::distance(bottom_right, cc);
 
-            auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
+//            auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
 
-            // Density is the pack density: how big is the arranged pile
-            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+//            // Density is the pack density: how big is the arranged pile
+//            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
 
-            // The score is a weighted sum of the distance from pile center
-            // and the pile size
-            score = GRAVITY_RATIO * dist + DENSITY_RATIO * density;
+//            // The score is a weighted sum of the distance from pile center
+//            // and the pile size
+//            score = GRAVITY_RATIO * dist + DENSITY_RATIO * density;
 
-        } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
-            // If there are no big items, only small, we should consider the
-            // density here as well to not get silly results
-            auto bindist = pl::distance(ibb.center(), bincenter) / norm;
-            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
-            score = GRAVITY_RATIO * bindist + DENSITY_RATIO * density;
-        } else {
-            // Here there are the small items that should be placed around the
-            // already processed bigger items.
-            // No need to play around with the anchor points, the center will be
-            // just fine for small items
-            score = pl::distance(ibb.center(), bigbb.center()) / norm;
-        }
+//        } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
+//            // If there are no big items, only small, we should consider the
+//            // density here as well to not get silly results
+//            auto bindist = pl::distance(ibb.center(), bincenter) / norm;
+//            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+//            score = GRAVITY_RATIO * bindist + DENSITY_RATIO * density;
+//        } else {
+//            // Here there are the small items that should be placed around the
+//            // already processed bigger items.
+//            // No need to play around with the anchor points, the center will be
+//            // just fine for small items
+//            score = pl::distance(ibb.center(), bigbb.center()) / norm;
+//        }
 
-        // If it does not fit into the print bed we will beat it
-        // with a large penality. If we would not do this, there would be only
-        // one big pile that doesn't care whether it fits onto the print bed.
-        if(!NfpPlacer::wouldFit(fullbb, bin)) score = 2*penality - score;
+//        // If it does not fit into the print bed we will beat it
+//        // with a large penality. If we would not do this, there would be only
+//        // one big pile that doesn't care whether it fits onto the print bed.
+//        if(!NfpPlacer::wouldFit(fullbb, bin)) score = 2*penality - score;
 
-        return score;
-    };
+//        return score;
+//    };
 
     Packer::SelectionConfig sconf;
 //    sconf.allow_parallel = false;
@@ -707,7 +707,7 @@ void arrangeRectangles() {
     std::vector<double> eff;
     eff.reserve(result.size());
 
-    auto bin_area = ShapeLike::area(bin);
+    auto bin_area = ShapeLike::area<PolygonImpl>(bin);
     for(auto& r : result) {
         double a = 0;
         std::for_each(r.begin(), r.end(), [&a] (Item& e ){ a += e.area(); });

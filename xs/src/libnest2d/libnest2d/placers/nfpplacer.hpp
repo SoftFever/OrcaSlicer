@@ -625,7 +625,7 @@ public:
                 opt::StopCriteria stopcr;
                 stopcr.max_iterations = 1000;
                 stopcr.absolute_score_difference = 1e-20*norm_;
-                opt::TOptimizer<opt::Method::L_SIMPLEX> solver(stopcr);
+                opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
 
                 Optimum optimum(0, 0);
                 double best_score = penality_;

@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include <slic3r/GUI/GUI.hpp>
+#include <ModelArrange.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
 #include <Geometry.hpp>
@@ -310,12 +311,13 @@ void AppController::arrange_model()
 
         auto dist = print_ctl()->config().min_object_distance();
 
+
         BoundingBoxf bb(print_ctl()->config().bed_shape.values);
 
         if(pind) pind->update(0, _(L("Arranging objects...")));
 
         try {
-            model_->arrange_objects(dist, &bb, [pind, count](unsigned rem){
+            arr::arrange(*model_, dist, &bb, false, [pind, count](unsigned rem){
                 if(pind) pind->update(count - rem, _(L("Arranging objects...")));
             });
         } catch(std::exception& e) {

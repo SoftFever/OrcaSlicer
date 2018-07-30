@@ -53,8 +53,8 @@ class _Item {
 
     enum class Convexity: char {
         UNCHECKED,
-        TRUE,
-        FALSE
+        C_TRUE,
+        C_FALSE
     };
 
     mutable Convexity convexity_ = Convexity::UNCHECKED;
@@ -213,10 +213,10 @@ public:
         switch(convexity_) {
         case Convexity::UNCHECKED:
             ret = sl::isConvex<RawShape>(sl::getContour(transformedShape()));
-            convexity_ = ret? Convexity::TRUE : Convexity::FALSE;
+            convexity_ = ret? Convexity::C_TRUE : Convexity::C_FALSE;
             break;
-        case Convexity::TRUE: ret = true; break;
-        case Convexity::FALSE:;
+        case Convexity::C_TRUE: ret = true; break;
+        case Convexity::C_FALSE:;
         }
 
         return ret;
