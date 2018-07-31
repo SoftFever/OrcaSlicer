@@ -3288,53 +3288,49 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.is_enabled())
         return true;
 
-    GLToolbar::ItemCreationData item;
+    if (!m_toolbar.init("toolbar.png", 36, 1, 1))
+    {
+        // unable to init the toolbar texture, disable it
+        m_toolbar.set_enabled(false);
+        return true;
+    }
+
+//    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_toolbar.set_separator_size(5);
+    m_toolbar.set_gap_size(2);
+
+    GLToolbarItem::Data item;
 
     item.name = "add";
     item.tooltip = GUI::L_str("Add...");
+    item.sprite_id = 0;
     item.is_toggable = false;
     item.action_callback = &m_action_add_callback;
-    item.textures[GLToolbarItem::Normal] = "brick_add_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "brick_add_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "brick_add_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "brick_add_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "brick_add_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "delete";
     item.tooltip = GUI::L_str("Delete");
+    item.sprite_id = 1;
     item.is_toggable = false;
     item.action_callback = &m_action_delete_callback;
-    item.textures[GLToolbarItem::Normal] = "brick_delete_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "brick_delete_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "brick_delete_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "brick_delete_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "brick_delete_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "deleteall";
     item.tooltip = GUI::L_str("Delete all");
+    item.sprite_id = 2;
     item.is_toggable = false;
     item.action_callback = &m_action_deleteall_callback;
-    item.textures[GLToolbarItem::Normal] = "cross_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "cross_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "cross_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "cross_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "cross_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "arrange";
     item.tooltip = GUI::L_str("Arrange");
+    item.sprite_id = 3;
     item.is_toggable = false;
     item.action_callback = &m_action_arrange_callback;
-    item.textures[GLToolbarItem::Normal] = "bricks_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "bricks_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "bricks_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "bricks_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "bricks_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3343,25 +3339,17 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "more";
     item.tooltip = GUI::L_str("Add instance");
+    item.sprite_id = 4;
     item.is_toggable = false;
     item.action_callback = &m_action_more_callback;
-    item.textures[GLToolbarItem::Normal] = "add_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "add_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "add_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "add_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "add_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "fewer";
     item.tooltip = GUI::L_str("Remove instance");
+    item.sprite_id = 5;
     item.is_toggable = false;
     item.action_callback = &m_action_fewer_callback;
-    item.textures[GLToolbarItem::Normal] = "delete_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "delete_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "delete_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "delete_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "delete_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3370,61 +3358,41 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "ccw45";
     item.tooltip = GUI::L_str("Rotate CCW 45 degrees");
+    item.sprite_id = 6;
     item.is_toggable = false;
     item.action_callback = &m_action_ccw45_callback;
-    item.textures[GLToolbarItem::Normal] = "arrow_rotate_anticlockwise_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "arrow_rotate_anticlockwise_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "arrow_rotate_anticlockwise_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "arrow_rotate_anticlockwise_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "arrow_rotate_anticlockwise_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "cw45";
     item.tooltip = GUI::L_str("Rotate CW 45 degrees");
+    item.sprite_id = 7;
     item.is_toggable = false;
     item.action_callback = &m_action_cw45_callback;
-    item.textures[GLToolbarItem::Normal] = "arrow_rotate_clockwise_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "arrow_rotate_clockwise_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "arrow_rotate_clockwise_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "arrow_rotate_clockwise_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "arrow_rotate_clockwise_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "scale";
     item.tooltip = GUI::L_str("Scale...");
+    item.sprite_id = 8;
     item.is_toggable = false;
     item.action_callback = &m_action_scale_callback;
-    item.textures[GLToolbarItem::Normal] = "arrow_out_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "arrow_out_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "arrow_out_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "arrow_out_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "arrow_out_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "split";
     item.tooltip = GUI::L_str("Split");
+    item.sprite_id = 9;
     item.is_toggable = false;
     item.action_callback = &m_action_split_callback;
-    item.textures[GLToolbarItem::Normal] = "shape_ungroup_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "shape_ungroup_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "shape_ungroup_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "shape_ungroup_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "shape_ungroup_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "cut";
     item.tooltip = GUI::L_str("Cut...");
+    item.sprite_id = 10;
     item.is_toggable = false;
     item.action_callback = &m_action_cut_callback;
-    item.textures[GLToolbarItem::Normal] = "package_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "package_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "package_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "package_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "package_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3433,25 +3401,17 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "settings";
     item.tooltip = GUI::L_str("Settings...");
+    item.sprite_id = 11;
     item.is_toggable = false;
     item.action_callback = &m_action_settings_callback;
-    item.textures[GLToolbarItem::Normal] = "cog_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "cog_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "cog_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "cog_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "cog_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
     item.name = "layersediting";
     item.tooltip = GUI::L_str("Layers editing");
+    item.sprite_id = 12;
     item.is_toggable = true;
     item.action_callback = &m_action_layersediting_callback;
-    item.textures[GLToolbarItem::Normal] = "variable_layer_height_normal_36.png";
-    item.textures[GLToolbarItem::Hover] = "variable_layer_height_hover_36.png";
-    item.textures[GLToolbarItem::Pressed] = "variable_layer_height_pressed_36.png";
-    item.textures[GLToolbarItem::HoverPressed] = "variable_layer_height_hover_pressed_36.png";
-    item.textures[GLToolbarItem::Disabled] = "variable_layer_height_disabled_36.png";
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -4067,7 +4027,8 @@ void GLCanvas3D::_render_gizmo() const
 //###################################################################################################################################
 void GLCanvas3D::_render_toolbar() const
 {
-    m_toolbar.render(m_mouse.position);
+    _resize_toolbar();
+    m_toolbar.render();
 }
 //###################################################################################################################################
 
@@ -5300,6 +5261,39 @@ bool GLCanvas3D::_is_any_volume_outside() const
 
     return false;
 }
+
+//###################################################################################################################################
+void GLCanvas3D::_resize_toolbar() const
+{
+    Size cnv_size = get_canvas_size();
+    float zoom = get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    switch (m_toolbar.get_layout_type())
+    {
+    default:
+    case GLToolbar::Layout::Horizontal:
+    {
+        // centers the toolbar on the top edge of the 3d scene
+        unsigned int toolbar_width = m_toolbar.get_width();
+        float top = (0.5f * (float)cnv_size.get_height() - 2.0f) * inv_zoom;
+        float left = -0.5f * (float)toolbar_width * inv_zoom;
+        m_toolbar.set_position(top, left);
+        break;
+    }
+    case GLToolbar::Layout::Vertical:
+    {
+        // centers the toolbar on the right edge of the 3d scene
+        unsigned int toolbar_width = m_toolbar.get_width();
+        unsigned int toolbar_height = m_toolbar.get_height();
+        float top = 0.5f * (float)toolbar_height * inv_zoom;
+        float left = (0.5f * (float)cnv_size.get_width() - toolbar_width - 2.0f) * inv_zoom;
+        m_toolbar.set_position(top, left);
+        break;
+    }
+    }
+}
+//###################################################################################################################################
 
 } // namespace GUI
 } // namespace Slic3r

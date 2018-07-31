@@ -10,6 +10,25 @@ namespace GUI {
 
     class GLTexture
     {
+//###################################################################################################################################
+    public:
+        struct UV
+        {
+            float u;
+            float v;
+        };
+
+        struct Quad_UVs
+        {
+            UV left_bottom;
+            UV right_bottom;
+            UV right_top;
+            UV left_top;
+        };
+
+        static Quad_UVs FullTextureUVs;
+//###################################################################################################################################
+
     protected:
         unsigned int m_id;
         int m_width;
@@ -30,6 +49,9 @@ namespace GUI {
         const std::string& get_source() const;
 
         static void render_texture(unsigned int tex_id, float left, float right, float bottom, float top);
+//###################################################################################################################################
+        static void render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const Quad_UVs& uvs);
+//###################################################################################################################################
 
     protected:
         unsigned int _generate_mipmaps(wxImage& image);
