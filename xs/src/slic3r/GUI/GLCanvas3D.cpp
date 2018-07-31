@@ -1485,6 +1485,7 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
     // select default font
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
     font.MakeLarger();
+    font.MakeBold();
     memDC.SetFont(font);
 
     // calculates texture size
