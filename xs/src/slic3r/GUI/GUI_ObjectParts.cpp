@@ -608,7 +608,6 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
 
-	ModelObjectPtrs* objects = m_objects;
 // 	part_selection_changed();
 #ifdef __WXMSW__
 	object_ctrl_selection_changed();
@@ -841,6 +840,14 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 	update_settings_list();
 }
 
+bool cur_item_hase_children()
+{
+    wxDataViewItemArray children;
+    if (m_objects_model->GetChildren(m_objects_ctrl->GetSelection(), children) > 0)
+        return true;
+    return false;
+}
+
 wxMenu *create_add_part_popupmenu()
 {
 	wxMenu *menu = new wxMenu;
@@ -860,6 +867,7 @@ wxMenu *create_add_part_popupmenu()
     auto menu_item = new wxMenuItem(menu, config_id_base + 3, _(L("Split to sub-objects")));
     menu_item->SetBitmap(m_bmp_split);
     menu->Append(menu_item);
+    menu_item->Enable(!cur_item_hase_children());
 
 	wxWindow* win = get_tab_panel()->GetPage(0);
 
@@ -1111,11 +1119,15 @@ void on_btn_split()
 	    volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
  	DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
     auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-	if (volume->split(nozzle_dmrs_cnt) > 1)	{
-        auto model_object = (*m_objects)[m_selected_object_id];
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
-	}
+    auto split_rez = volume->split(nozzle_dmrs_cnt);
+    if (split_rez == 1) {
+        wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
+        return;
+    }
+
+    auto model_object = (*m_objects)[m_selected_object_id];
+    for (auto id = 0; id < model_object->volumes.size(); id++)
+        m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
 }
 
 void on_btn_move_up(){
