@@ -523,7 +523,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-load-time=i@";
     def->sidetext = L("s");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats { 12.0f };
+    def->default_value = new ConfigOptionFloats { 0.0f };
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
@@ -538,7 +538,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-unload-time=i@";
     def->sidetext = L("s");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats { 11.0f };
+    def->default_value = new ConfigOptionFloats { 0.0f };
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
