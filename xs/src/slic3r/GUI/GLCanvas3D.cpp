@@ -1467,6 +1467,25 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
 const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
 
+//############################################################################################################################################
+GLCanvas3D::WarningTexture::WarningTexture()
+    : GUI::GLTexture()
+    , m_original_width(0)
+    , m_original_height(0)
+{
+}
+
+int GLCanvas3D::WarningTexture::get_original_width() const
+{
+    return m_original_width;
+}
+
+int GLCanvas3D::WarningTexture::get_original_height() const
+{
+    return m_original_height;
+}
+//############################################################################################################################################
+
 bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
 {
     reset();
@@ -1476,13 +1495,30 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
 
     wxMemoryDC memDC;
     // select default font
-    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+//############################################################################################################################################
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    font.MakeLarger();
+    memDC.SetFont(font);
+
+//    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+//############################################################################################################################################
 
     // calculates texture size
     wxCoord w, h;
     memDC.GetTextExtent(msg, &w, &h);
-    m_width = (int)w;
-    m_height = (int)h;
+
+//############################################################################################################################################
+    int pow_of_two_size = next_highest_power_of_2((int)std::max(w, h));
+//############################################################################################################################################
+
+//############################################################################################################################################
+    m_original_width = (int)w;
+    m_original_height = (int)h;
+    m_width = pow_of_two_size;
+    m_height = pow_of_two_size;
+//    m_width = (int)w;
+//    m_height = (int)h;
+//############################################################################################################################################
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -1533,6 +1569,42 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
 
     return true;
 }
+
+//############################################################################################################################################
+void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
+{
+    if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0))
+    {
+        ::glDisable(GL_DEPTH_TEST);
+        ::glPushMatrix();
+        ::glLoadIdentity();
+
+        const Size& cnv_size = canvas.get_canvas_size();
+        float zoom = canvas.get_camera_zoom();
+        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+        float left = (-0.5f * (float)m_original_width) * inv_zoom;
+        float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
+        float right = left + (float)m_original_width * inv_zoom;
+        float bottom = top - (float)m_original_height * inv_zoom;
+
+        float uv_left = 0.0f;
+        float uv_top = 0.0f;
+        float uv_right = (float)m_original_width / (float)m_width;
+        float uv_bottom = (float)m_original_height / (float)m_height;
+
+        GLTexture::Quad_UVs uvs;
+        uvs.left_top = { uv_left, uv_top };
+        uvs.left_bottom = { uv_left, uv_bottom };
+        uvs.right_bottom = { uv_right, uv_bottom };
+        uvs.right_top = { uv_right, uv_top };
+
+        GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
+
+        ::glPopMatrix();
+        ::glEnable(GL_DEPTH_TEST);
+    }
+}
+//############################################################################################################################################
 
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
 const unsigned char GLCanvas3D::LegendTexture::Background_Color[3] = { 9, 91, 134 };
@@ -3879,32 +3951,36 @@ void GLCanvas3D::_render_warning_texture() const
     if (!m_warning_texture_enabled)
         return;
 
-    // If the warning texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = m_warning_texture.get_id();
-    if (tex_id > 0)
-    {
-        int w = m_warning_texture.get_width();
-        int h = m_warning_texture.get_height();
-        if ((w > 0) && (h > 0))
-        {
-            ::glDisable(GL_DEPTH_TEST);
-            ::glPushMatrix();
-            ::glLoadIdentity();
+//############################################################################################################################################
+    m_warning_texture.render(*this);
 
-            const Size& cnv_size = get_canvas_size();
-            float zoom = get_camera_zoom();
-            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-            float l = (-0.5f * (float)w) * inv_zoom;
-            float t = (-0.5f * (float)cnv_size.get_height() + (float)h) * inv_zoom;
-            float r = l + (float)w * inv_zoom;
-            float b = t - (float)h * inv_zoom;
-
-            GLTexture::render_texture(tex_id, l, r, b, t);
-
-            ::glPopMatrix();
-            ::glEnable(GL_DEPTH_TEST);
-        }
-    }
+//    // If the warning texture has not been loaded into the GPU, do it now.
+//    unsigned int tex_id = m_warning_texture.get_id();
+//    if (tex_id > 0)
+//    {
+//        int w = m_warning_texture.get_width();
+//        int h = m_warning_texture.get_height();
+//        if ((w > 0) && (h > 0))
+//        {
+//            ::glDisable(GL_DEPTH_TEST);
+//            ::glPushMatrix();
+//            ::glLoadIdentity();
+//
+//            const Size& cnv_size = get_canvas_size();
+//            float zoom = get_camera_zoom();
+//            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+//            float l = (-0.5f * (float)w) * inv_zoom;
+//            float t = (-0.5f * (float)cnv_size.get_height() + (float)h) * inv_zoom;
+//            float r = l + (float)w * inv_zoom;
+//            float b = t - (float)h * inv_zoom;
+//
+//            GLTexture::render_texture(tex_id, l, r, b, t);
+//
+//            ::glPopMatrix();
+//            ::glEnable(GL_DEPTH_TEST);
+//        }
+//    }
+//############################################################################################################################################
 }
 
 void GLCanvas3D::_render_legend_texture() const
