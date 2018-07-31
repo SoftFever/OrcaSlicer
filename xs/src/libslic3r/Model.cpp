@@ -1109,9 +1109,23 @@ void ModelObject::scale(const Pointf3 &versor)
 
 void ModelObject::rotate(float angle, const Axis &axis)
 {
+    float min_z = FLT_MAX;
     for (ModelVolume *v : this->volumes)
+    {
         v->mesh.rotate(angle, axis);
-    this->origin_translation = Pointf3(0,0,0);
+        min_z = std::min(min_z, v->mesh.stl.stats.min.z);
+    }
+
+    if (min_z != 0.0f)
+    {
+        // translate the object so that its minimum z lays on the bed
+        for (ModelVolume *v : this->volumes)
+        {
+            v->mesh.translate(0.0f, 0.0f, -min_z);
+        }
+    }
+
+    this->origin_translation = Pointf3(0, 0, 0);
     this->invalidate_bounding_box();
 }
 

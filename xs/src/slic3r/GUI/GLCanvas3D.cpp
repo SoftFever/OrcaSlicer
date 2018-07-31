@@ -1952,11 +1952,22 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
-    m_bed.set_shape(shape);
+    bool new_shape = (shape != m_bed.get_shape());
+    if (new_shape)
+        m_bed.set_shape(shape);
 
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
+
+    if (new_shape)
+    {
+        // forces the selection of the proper camera target
+        if (m_volumes.volumes.empty())
+            zoom_to_bed();
+        else
+            zoom_to_volumes();
+    }
 
     m_dirty = true;
 }

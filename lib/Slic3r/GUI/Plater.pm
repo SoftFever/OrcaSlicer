@@ -1681,7 +1681,7 @@ sub print_info_box_show {
     my ($self, $show) = @_;
     my $scrolled_window_panel = $self->{scrolled_window_panel}; 
     my $scrolled_window_sizer = $self->{scrolled_window_sizer};
-    return if $scrolled_window_sizer->IsShown(2) == $show;
+    return if (!$show && ($scrolled_window_sizer->IsShown(2) == $show));
 
     if ($show) {
         my $print_info_sizer = $self->{print_info_sizer};
@@ -1917,6 +1917,8 @@ sub update {
         $self->resume_background_process;
     }
 
+    $self->print_info_box_show(0);
+    
 #    $self->{canvas}->reload_scene if $self->{canvas};
     my $selections = $self->collect_selections;
     Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
