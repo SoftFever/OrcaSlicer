@@ -52,6 +52,7 @@ public:
         PrinterModel() {}
         std::string                 id;
         std::string                 name;
+        PrinterTechnology           technology;
         std::vector<PrinterVariant> variants;
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -83,6 +84,7 @@ public:
         TYPE_INVALID,
         TYPE_PRINT,
         TYPE_FILAMENT,
+        TYPE_SLA_MATERIAL,
         TYPE_PRINTER,
     };
 
@@ -149,6 +151,10 @@ public:
     std::string&        compatible_printers_condition() { return Preset::compatible_printers_condition(this->config); }
     const std::string&  compatible_printers_condition() const { return Preset::compatible_printers_condition(const_cast<Preset*>(this)->config); }
 
+    static PrinterTechnology& printer_technology(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology", true)->value; }
+    PrinterTechnology&        printer_technology() { return Preset::printer_technology(this->config); }
+    const PrinterTechnology&  printer_technology() const { return Preset::printer_technology(const_cast<Preset*>(this)->config); }
+
     // Mark this preset as compatible if it is compatible with active_printer.
     bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
 
@@ -167,6 +173,10 @@ public:
     static const std::vector<std::string>&  printer_options();
     // Nozzle options of the printer options.
     static const std::vector<std::string>&  nozzle_options();
+
+    static const std::vector<std::string>&  sla_printer_options();
+    static const std::vector<std::string>&  sla_material_options();
+
 	static void update_suffix_modified();
 
 protected:
@@ -247,6 +257,8 @@ public:
     Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
     int             get_selected_idx()    const { return m_idx_selected; }
+    // Returns the name of the selected preset, or an empty string if no preset is selected.
+    std::string     get_selected_preset_name() const { return (m_idx_selected == -1) ? std::string() : this->get_selected_preset().name; }
     // For the current edited preset, return the parent preset if there is one.
     // If there is no parent preset, nullptr is returned.
     // The parent preset may be a system preset or a user preset, which will be

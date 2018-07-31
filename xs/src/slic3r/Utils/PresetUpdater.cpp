@@ -447,6 +447,7 @@ void PresetUpdater::priv::perform_updates(Updates &&updates, bool snapshot) cons
 
 			for (const auto &name : bundle.obsolete_presets.prints)    { obsolete_remover("print", name); }
 			for (const auto &name : bundle.obsolete_presets.filaments) { obsolete_remover("filament", name); }
+			for (const auto &name : bundle.obsolete_presets.filaments) { obsolete_remover("sla_material", name); }
 			for (const auto &name : bundle.obsolete_presets.printers)  { obsolete_remover("printer", name); }
 		}
 	}

@@ -18,8 +18,50 @@ namespace Slic3r {
 
 PrintConfigDef::PrintConfigDef()
 {
+    this->init_common_params();
+    this->init_fff_params();
+    this->init_sla_params();
+}
+
+void PrintConfigDef::init_common_params()
+{
     t_optiondef_map &Options = this->options;
+    ConfigOptionDef* def;
+
+    def = this->add("printer_technology", coEnum);
+    def->label = L("Printer technology");
+    def->tooltip = L("Printer technology");
+    def->cli = "printer-technology=s";
+    def->enum_keys_map = &ConfigOptionEnum<PrinterTechnology>::get_enum_values();
+    def->enum_values.push_back("FFF");
+    def->enum_values.push_back("SLA");
+    def->default_value = new ConfigOptionEnum<PrinterTechnology>(ptFFF);
+
+    def = this->add("bed_shape", coPoints);
+    def->label = L("Bed shape");
+    def->default_value = new ConfigOptionPoints { Pointf(0,0), Pointf(200,0), Pointf(200,200), Pointf(0,200) };
     
+    def = this->add("layer_height", coFloat);
+    def->label = L("Layer height");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("This setting controls the height (and thus the total number) of the slices/layers. "
+                   "Thinner layers give better accuracy but take more time to print.");
+    def->sidetext = L("mm");
+    def->cli = "layer-height=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.3);
+
+    def = this->add("max_print_height", coFloat);
+    def->label = L("Max print height");
+    def->tooltip = L("Set this to the maximum height that can be reached by your extruder while printing.");
+    def->sidetext = L("mm");
+    def->cli = "max-print-height=f";
+    def->default_value = new ConfigOptionFloat(200.0);
+}
+
+void PrintConfigDef::init_fff_params()
+{
+    t_optiondef_map &Options = this->options;
     ConfigOptionDef* def;
 
     // Maximum extruder temperature, bumped to 1500 to support printing of glass.
@@ -33,10 +75,6 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "avoid-crossing-perimeters!";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("bed_shape", coPoints);
-	def->label = L("Bed shape");
-    def->default_value = new ConfigOptionPoints { Pointf(0,0), Pointf(200,0), Pointf(200,200), Pointf(0,200) };
-    
     def = this->add("bed_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers after the first one. "
@@ -882,16 +920,6 @@ PrintConfigDef::PrintConfigDef()
     def->height = 50;
     def->default_value = new ConfigOptionString("");
 
-    def = this->add("layer_height", coFloat);
-    def->label = L("Layer height");
-    def->category = L("Layers and Perimeters");
-    def->tooltip = L("This setting controls the height (and thus the total number) of the slices/layers. "
-                   "Thinner layers give better accuracy but take more time to print.");
-    def->sidetext = L("mm");
-    def->cli = "layer-height=f";
-    def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.3);
-
 	def = this->add("silent_mode", coBool);
 	def->label = L("Support silent mode");
 	def->tooltip = L("Set silent mode for the G-code flavor");
@@ -1003,13 +1031,6 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "max-layer-height=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
-
-    def = this->add("max_print_height", coFloat);
-    def->label = L("Max print height");
-    def->tooltip = L("Set this to the maximum height that can be reached by your extruder while printing.");
-    def->sidetext = L("mm");
-    def->cli = "max-print-height=f";
-    def->default_value = new ConfigOptionFloat(200.0);
 
     def = this->add("max_print_speed", coFloat);
     def->label = L("Max print speed");
@@ -2037,6 +2058,90 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(0);
 }
 
+void PrintConfigDef::init_sla_params()
+{
+    t_optiondef_map &Options = this->options;    
+    ConfigOptionDef* def;
+
+    // SLA Printer settings
+    def = this->add("display_width", coFloat);
+    def->label = L("Display width");
+    def->tooltip = L("Width of the display");
+    def->cli = "display-width=f";
+    def->min = 1;
+    def->default_value = new ConfigOptionFloat(150.);
+
+    def = this->add("display_height", coFloat);
+    def->label = L("Display height");
+    def->tooltip = L("Height of the display");
+    def->cli = "display-height=f";
+    def->min = 1;
+    def->default_value = new ConfigOptionFloat(100.);
+
+    def = this->add("display_pixels_x", coInt);
+    def->label = L("Number of pixels in X");
+    def->tooltip = L("Number of pixels in X");
+    def->cli = "display-pixels-x=i";
+    def->min = 100;
+    def->default_value = new ConfigOptionInt(2000);
+
+    def = this->add("display_pixels_y", coInt);
+    def->label = L("Number of pixels in Y");
+    def->tooltip = L("Number of pixels in Y");
+    def->cli = "display-pixels-y=i";
+    def->min = 100;
+    def->default_value = new ConfigOptionInt(1000);
+
+    def = this->add("printer_correction", coFloats);
+    def->label = L("Printer scaling correction");
+    def->tooltip  = L("Printer scaling correction");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );
+
+    // SLA Material settings.
+    def = this->add("initial_layer_height", coFloat);
+    def->label = L("Initial layer height");
+    def->tooltip = L("Initial layer height");
+    def->sidetext = L("mm");
+    def->cli = "initial-layer-height=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.3);
+
+    def = this->add("exposure_time", coFloat);
+    def->label = L("Exposure time");
+    def->tooltip = L("Exposure time");
+    def->sidetext = L("s");
+    def->cli = "exposure-time=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(10);
+
+    def = this->add("initial_exposure_time", coFloat);
+    def->label = L("Initial exposure time");
+    def->tooltip = L("Initial exposure time");
+    def->sidetext = L("s");
+    def->cli = "initial-exposure-time=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(15);
+
+    def = this->add("material_correction_printing", coFloats);
+    def->label = L("Correction for expansion when printing");
+    def->tooltip  = L("Correction for expansion when printing");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
+
+    def = this->add("material_correction_curing", coFloats);
+    def->label = L("Correction for expansion after curing");
+    def->tooltip  = L("Correction for expansion after curing");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
+
+    def = this->add("default_sla_material_profile", coString);
+    def->label = L("Default SLA material profile");
+    def->tooltip = L("Default print profile associated with the current printer profile. "
+                   "On selection of the current printer profile, this print profile will be activated.");
+    def->default_value = new ConfigOptionString();
+}
+
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
 {
     // handle legacy options
@@ -2361,5 +2466,9 @@ StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_c
 StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache_PrintConfig;
 StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache_HostConfig;
 StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache_FullPrintConfig;
+
+StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>  SLAMaterialConfig::s_cache_SLAMaterialConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>   SLAPrinterConfig::s_cache_SLAPrinterConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig> SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
 
 }

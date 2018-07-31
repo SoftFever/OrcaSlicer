@@ -120,6 +120,11 @@ VendorProfile VendorProfile::from_ini(const ptree &tree, const boost::filesystem
             VendorProfile::PrinterModel model;
             model.id = section.first.substr(printer_model_key.size());
             model.name = section.second.get<std::string>("name", model.id);
+            auto technology_field = section.second.get<std::string>("technology", "FFF");
+            if (! ConfigOptionEnum<PrinterTechnology>::from_string(technology_field, model.technology)) {
+                BOOST_LOG_TRIVIAL(error) << boost::format("Vendor bundle: `%1%`: Invalid printer technology field: `%2%`") % id % technology_field;
+                model.technology = ptFFF;
+            }
             section.second.get<std::string>("variants", "");
             const auto variants_field = section.second.get<std::string>("variants", "");
             std::vector<std::string> variants;
@@ -177,7 +182,7 @@ void Preset::normalize(DynamicPrintConfig &config)
 {
     auto *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
     if (nozzle_diameter != nullptr)
-        // Loaded the Printer settings. Verify, that all extruder dependent values have enough values.
+        // Loaded the FFF Printer settings. Verify, that all extruder dependent values have enough values.
         set_num_extruders(config, (unsigned int)nozzle_diameter->values.size());
     if (config.option("filament_diameter") != nullptr) {
         // This config contains single or multiple filament presets.
@@ -327,6 +332,7 @@ const std::vector<std::string>& Preset::printer_options()
     static std::vector<std::string> s_opts;
     if (s_opts.empty()) {
         s_opts = {
+            "printer_technology",
             "bed_shape", "z_offset", "gcode_flavor", "use_relative_e_distances", "serial_port", "serial_speed", 
             "octoprint_host", "octoprint_apikey", "octoprint_cafile", "use_firmware_retraction", "use_volumetric_e", "variable_layer_height",
             "single_extruder_multi_material", "start_gcode", "end_gcode", "before_layer_gcode", "layer_gcode", "toolchange_gcode",
@@ -355,6 +361,35 @@ const std::vector<std::string>& Preset::nozzle_options()
         "retract_layer_change", "retract_length_toolchange", "retract_restart_extra_toolchange", "extruder_colour", 
         "default_filament_profile"
     };
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::sla_printer_options()
+{    
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "printer_technology",
+            "bed_shape", "max_print_height",
+            "display_width", "display_height", "display_pixels_x", "display_pixels_y",
+            "printer_correction",
+            "inherits"
+        };
+    }
+    return s_opts;
+}
+
+const std::vector<std::string>& Preset::sla_material_options()
+{    
+    static std::vector<std::string> s_opts;
+    if (s_opts.empty()) {
+        s_opts = {
+            "layer_height", "initial_layer_height",
+            "exposure_time", "initial_exposure_time",
+            "material_correction_printing", "material_correction_curing",
+            "compatible_printers_condition", "inherits"
+        };
+    }
     return s_opts;
 }
 
