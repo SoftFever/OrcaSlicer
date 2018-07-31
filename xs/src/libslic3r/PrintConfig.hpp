@@ -528,8 +528,10 @@ public:
     ConfigOptionFloats              filament_cost;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionFloats              filament_loading_speed;
+    ConfigOptionFloats              filament_load_time;
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
+    ConfigOptionFloats              filament_unload_time;
     ConfigOptionInts                filament_cooling_moves;
     ConfigOptionFloats              filament_cooling_initial_speed;
     ConfigOptionFloats              filament_cooling_final_speed;
@@ -589,7 +591,9 @@ protected:
         OPT_PTR(filament_cost);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(filament_loading_speed);
+        OPT_PTR(filament_load_time);
         OPT_PTR(filament_unloading_speed);
+        OPT_PTR(filament_unload_time);
         OPT_PTR(filament_toolchange_delay);
         OPT_PTR(filament_cooling_moves);
         OPT_PTR(filament_cooling_initial_speed);
