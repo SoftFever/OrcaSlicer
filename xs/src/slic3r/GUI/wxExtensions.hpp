@@ -354,6 +354,7 @@ public:
                             bool  create_frst_child = true);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	void DeleteAll();
+    void DeleteChildren(wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
 	int GetIdByItem(wxDataViewItem& item);
 	int GetVolumeIdByItem(wxDataViewItem& item);

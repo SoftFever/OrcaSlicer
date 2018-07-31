@@ -48,6 +48,7 @@ void show_collpane_settings(bool expert_mode);
 
 wxMenu *create_add_settings_popupmenu(bool is_part);
 wxMenu *create_add_part_popupmenu();
+wxMenu *create_part_settings_popupmenu();
 
 // Add object to the list
 //void add_object(const std::string &name);
@@ -88,7 +89,7 @@ void load_lambda(wxWindow* parent, ModelObject* model_object,
 
 void on_btn_load(wxWindow* parent, bool is_modifier = false, bool is_lambda = false);
 void on_btn_del();
-void on_btn_split();
+void on_btn_split(const bool split_part);
 void on_btn_move_up();
 void on_btn_move_down();
 

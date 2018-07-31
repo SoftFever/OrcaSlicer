@@ -456,7 +456,9 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 
 	// set m_containet to FALSE if parent has no child
 	if (node_parent && node_parent->GetChildCount() == 0){
+#ifndef __WXGTK__
 		node_parent->m_container = false;
+#endif //__WXGTK__
 		ret_item = parent;
 	}
 
@@ -473,6 +475,35 @@ void PrusaObjectDataViewModel::DeleteAll()
 // 		object->RemoveAllChildren();
 		Delete(wxDataViewItem(object));	
 	}
+}
+
+void PrusaObjectDataViewModel::DeleteChildren(wxDataViewItem& parent)
+{
+    PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent.GetID();
+    if (!root)      // happens if item.IsOk()==false
+        return;
+
+    // first remove the node from the parent's array of children;
+    // NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
+    //       thus removing the node from it doesn't result in freeing it
+    auto& children = root->GetChildren();
+    for (int id = root->GetChildCount() - 1; id >= 0; --id)
+    {
+        auto node = children[id];
+        auto item = wxDataViewItem(node);
+        children.RemoveAt(id);
+
+        // free the node
+        delete node;
+
+        // notify control
+        ItemDeleted(parent, item);
+    }
+
+    // set m_containet to FALSE if parent has no child
+#ifndef __WXGTK__
+        root->m_container = false;
+#endif //__WXGTK__
 }
 
 wxDataViewItem PrusaObjectDataViewModel::GetItemById(int obj_idx)

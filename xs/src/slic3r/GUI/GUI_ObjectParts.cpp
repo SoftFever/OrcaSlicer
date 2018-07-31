@@ -277,7 +277,7 @@ wxBoxSizer* content_edit_object_buttons(wxWindow* win)
 	});
 
 	btn_delete		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_del(); });
-	btn_split		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_split(); });
+	btn_split		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_split(true); });
 	m_btn_move_up	->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_move_up(); });
 	m_btn_move_down	->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_move_down(); });
 	//***
@@ -721,11 +721,9 @@ void update_settings_list()
 
 	m_option_sizer->Clear(true);
 
-    printf("update_settings_list\n");
-
 	if (m_config) 
 	{
-		auto extra_column = [](wxWindow* parent, const Line& line)
+        auto extra_column = [](wxWindow* parent, const Line& line)
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
@@ -848,6 +846,21 @@ bool cur_item_hase_children()
     return false;
 }
 
+wxMenuItem* menu_item_split(wxMenu* menu, int id) {
+    auto menu_item = new wxMenuItem(menu, id, _(L("Split to parts")));
+    menu_item->SetBitmap(m_bmp_split);
+    return menu_item;
+}
+
+wxMenuItem* menu_item_settings(wxMenu* menu, int id) {
+    auto  menu_item = new wxMenuItem(menu, id, _(L("Add settings")));
+    menu_item->SetBitmap(m_bmp_cog);
+
+    auto sub_menu = create_add_settings_popupmenu(false);
+    menu_item->SetSubMenu(sub_menu);
+    return menu_item;
+}
+
 wxMenu *create_add_part_popupmenu()
 {
 	wxMenu *menu = new wxMenu;
@@ -864,10 +877,13 @@ wxMenu *create_add_part_popupmenu()
     }
 
     menu->AppendSeparator();
-    auto menu_item = new wxMenuItem(menu, config_id_base + 3, _(L("Split to sub-objects")));
-    menu_item->SetBitmap(m_bmp_split);
+    auto menu_item = menu_item_split(menu, config_id_base + i);
     menu->Append(menu_item);
     menu_item->Enable(!cur_item_hase_children());
+
+    menu->AppendSeparator();
+    // Append settings popupmenu
+    menu->Append(menu_item_settings(menu, config_id_base + i + 1));
 
 	wxWindow* win = get_tab_panel()->GetPage(0);
 
@@ -883,7 +899,7 @@ wxMenu *create_add_part_popupmenu()
 			on_btn_load(win, true, true);
 			break;
 		case 3:
-			on_btn_split();
+			on_btn_split(false);
 			break;
 		default:{
 			get_settings_choice(menu, event.GetId(), false);
@@ -891,17 +907,32 @@ wxMenu *create_add_part_popupmenu()
 		}
 	});
 
-	menu->AppendSeparator();
-	// Append settings popupmenu
-	menu_item = new wxMenuItem(menu, config_id_base + 4, _(L("Add settings")));
-	menu_item->SetBitmap(m_bmp_cog);
-
-	auto sub_menu = create_add_settings_popupmenu(false);
-
-	menu_item->SetSubMenu(sub_menu);
-	menu->Append(menu_item);
-
 	return menu;
+}
+
+wxMenu *create_part_settings_popupmenu()
+{
+    wxMenu *menu = new wxMenu;
+    wxWindowID config_id_base = wxWindow::NewControlId(2);
+
+    menu->Append(menu_item_split(menu, config_id_base));
+
+    menu->AppendSeparator();
+    // Append settings popupmenu
+    menu->Append(menu_item_settings(menu, config_id_base + 1));
+
+    menu->Bind(wxEVT_MENU, [config_id_base, menu](wxEvent &event){
+        switch (event.GetId() - config_id_base) {
+        case 0:
+            on_btn_split(true);
+            break;
+        default:{
+            get_settings_choice(menu, event.GetId(), true);
+            break; }
+        }
+    });
+
+    return menu;
 }
 
 wxMenu *create_add_settings_popupmenu(bool is_part)
@@ -915,7 +946,7 @@ wxMenu *create_add_settings_popupmenu(bool is_part)
 
 	for (auto cat : settings_menu)
 	{
-		auto menu_item = new wxMenuItem(menu, wxID_ANY/*config_id_base + inc*/, _(cat.first));
+		auto menu_item = new wxMenuItem(menu, wxID_ANY, _(cat.first));
 		menu_item->SetBitmap(categories.find(cat.first) == categories.end() ? 
 								wxNullBitmap : categories.at(cat.first));
 		menu->Append(menu_item);
@@ -947,7 +978,7 @@ void object_ctrl_context_menu()
 // 				obj_idx = m_objects_model->GetIdByItem(parent);
 // 				auto volume_id = m_objects_model->GetVolumeIdByItem(item);
 // 				if (volume_id < 0) return;
-				auto menu = create_add_settings_popupmenu(true);
+				auto menu = create_part_settings_popupmenu();
 				get_tab_panel()->GetPage(0)->PopupMenu(menu);
 			}
 		}
@@ -1106,15 +1137,17 @@ void on_btn_del()
 // #endif //__WXMSW__
 }
 
-void on_btn_split()
+void on_btn_split(const bool split_part)
 {
 	auto item = m_objects_ctrl->GetSelection();
 	if (!item)
 		return;
 	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
     ModelVolume* volume;
-	if (volume_id < 0)
-		volume = (*m_objects)[m_selected_object_id]->volumes[0];//return;
+    if (volume_id < 0) {
+        if (split_part) return;
+        else
+            volume = (*m_objects)[m_selected_object_id]->volumes[0]; }
     else
 	    volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
  	DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
@@ -1126,8 +1159,22 @@ void on_btn_split()
     }
 
     auto model_object = (*m_objects)[m_selected_object_id];
-    for (auto id = 0; id < model_object->volumes.size(); id++)
-        m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
+
+    if (split_part) {
+        auto parent = m_objects_model->GetParent(item);
+        m_objects_model->DeleteChildren(parent);
+
+        for (auto id = 0; id < model_object->volumes.size(); id++)
+            m_objects_model->AddChild(parent, model_object->volumes[id]->name,
+            model_object->volumes[id]->modifier ? m_icon_modifiermesh : m_icon_solidmesh, false);
+
+        m_objects_ctrl->Expand(parent);
+    }
+    else {
+        for (auto id = 0; id < model_object->volumes.size(); id++)
+            m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
+        m_objects_ctrl->Expand(item);
+    }
 }
 
 void on_btn_move_up(){
