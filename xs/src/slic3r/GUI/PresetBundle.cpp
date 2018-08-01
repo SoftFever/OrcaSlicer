@@ -43,7 +43,7 @@ PresetBundle::PresetBundle() :
     prints(Preset::TYPE_PRINT, Preset::print_options()), 
     filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
     sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options()), 
-    printers(Preset::TYPE_PRINTER, Preset::printer_options()),
+    printers(Preset::TYPE_PRINTER, Preset::printer_options(), "- default FFF -"),
     m_bitmapCompatible(new wxBitmap),
     m_bitmapIncompatible(new wxBitmap),
     m_bitmapLock(new wxBitmap),
@@ -74,13 +74,18 @@ PresetBundle::PresetBundle() :
     this->sla_materials.default_preset().compatible_printers_condition();
     this->sla_materials.default_preset().inherits();
 
-    this->printers.default_preset().config.optptr("printer_settings_id", true);
-    this->printers.default_preset().config.optptr("printer_vendor", true);
-    this->printers.default_preset().config.optptr("printer_model", true);
-    this->printers.default_preset().config.optptr("printer_variant", true);
-    this->printers.default_preset().config.optptr("default_print_profile", true);
-    this->printers.default_preset().config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
-	this->printers.default_preset().inherits();
+    this->printers.add_default_preset(Preset::sla_printer_options(), "- default SLA -");
+    this->printers.preset(1).printer_technology() = ptSLA;
+    for (size_t i = 0; i < 2; ++ i) {
+        Preset &preset = this->printers.preset(i);
+        preset.config.optptr("printer_settings_id", true);
+        preset.config.optptr("printer_vendor", true);
+        preset.config.optptr("printer_model", true);
+        preset.config.optptr("printer_variant", true);
+        preset.config.optptr("default_print_profile", true);
+        preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
+        preset.inherits();
+    }
 
 	// Load the default preset bitmaps.
     this->prints       .load_bitmap_default("cog.png");
@@ -1118,6 +1123,9 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
 
 void PresetBundle::update_multi_material_filament_presets()
 {
+    if (printers.get_edited_preset().printer_technology() != ptFFF)
+        return;
+
     // Verify and select the filament presets.
     auto   *nozzle_diameter = static_cast<const ConfigOptionFloats*>(printers.get_edited_preset().config.option("nozzle_diameter"));
     size_t  num_extruders   = nozzle_diameter->values.size();
@@ -1158,35 +1166,50 @@ void PresetBundle::update_multi_material_filament_presets()
 void PresetBundle::update_compatible_with_printer(bool select_other_if_incompatible)
 {
     const Preset                   &printer_preset             = this->printers.get_edited_preset();
-    const std::string              &prefered_print_profile     = printer_preset.config.opt_string("default_print_profile");
-    const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
-    prefered_print_profile.empty() ?
-        this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
-        this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
-            [&prefered_print_profile](const std::string& profile_name){ return profile_name == prefered_print_profile; });
-    prefered_filament_profiles.empty() ?
-        this->filaments.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
-        this->filaments.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
-            [&prefered_filament_profiles](const std::string& profile_name)
-                { return std::find(prefered_filament_profiles.begin(), prefered_filament_profiles.end(), profile_name) != prefered_filament_profiles.end(); });
-    if (select_other_if_incompatible) {
-        // Verify validity of the current filament presets.
-        this->filament_presets.front() = this->filaments.get_edited_preset().name;
-        for (size_t idx = 1; idx < this->filament_presets.size(); ++ idx) {
-            std::string &filament_name = this->filament_presets[idx];
-            Preset      *preset        = this->filaments.find_preset(filament_name, false);
-            if (preset == nullptr || ! preset->is_compatible) {
-                // Pick a compatible profile. If there are prefered_filament_profiles, use them.
-                if (prefered_filament_profiles.empty())
-                    filament_name = this->filaments.first_compatible().name;
-                else {
-                    const std::string &preferred = (idx < prefered_filament_profiles.size()) ? 
-                        prefered_filament_profiles[idx] : prefered_filament_profiles.front();
-                    filament_name = this->filaments.first_compatible(
-                        [&preferred](const std::string& profile_name){ return profile_name == preferred; }).name;
+
+    switch (printers.get_edited_preset().printer_technology()) {
+    case ptFFF:
+    {
+        const std::string              &prefered_print_profile     = printer_preset.config.opt_string("default_print_profile");
+        const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+        prefered_print_profile.empty() ?
+            this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
+            this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
+                [&prefered_print_profile](const std::string& profile_name){ return profile_name == prefered_print_profile; });
+        prefered_filament_profiles.empty() ?
+            this->filaments.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
+            this->filaments.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
+                [&prefered_filament_profiles](const std::string& profile_name)
+                    { return std::find(prefered_filament_profiles.begin(), prefered_filament_profiles.end(), profile_name) != prefered_filament_profiles.end(); });
+        if (select_other_if_incompatible) {
+            // Verify validity of the current filament presets.
+            this->filament_presets.front() = this->filaments.get_edited_preset().name;
+            for (size_t idx = 1; idx < this->filament_presets.size(); ++ idx) {
+                std::string &filament_name = this->filament_presets[idx];
+                Preset      *preset        = this->filaments.find_preset(filament_name, false);
+                if (preset == nullptr || ! preset->is_compatible) {
+                    // Pick a compatible profile. If there are prefered_filament_profiles, use them.
+                    if (prefered_filament_profiles.empty())
+                        filament_name = this->filaments.first_compatible().name;
+                    else {
+                        const std::string &preferred = (idx < prefered_filament_profiles.size()) ? 
+                            prefered_filament_profiles[idx] : prefered_filament_profiles.front();
+                        filament_name = this->filaments.first_compatible(
+                            [&preferred](const std::string& profile_name){ return profile_name == preferred; }).name;
+                    }
                 }
             }
         }
+    }
+    case ptSLA:
+    {
+        const std::string              &prefered_print_profile     = printer_preset.config.opt_string("default_print_profile");
+        const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+        prefered_print_profile.empty() ?
+            this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
+			this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
+                [&prefered_print_profile](const std::string& profile_name){ return profile_name == prefered_print_profile; });        
+    }
     }
 }
 

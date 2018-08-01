@@ -32,7 +32,6 @@
 %name{Slic3r::GUI::PresetCollection} class PresetCollection {
 
     Ref<Preset>             preset(size_t idx) %code%{ RETVAL = &THIS->preset(idx); %};
-    Ref<Preset>             default_preset() %code%{ RETVAL = &THIS->default_preset(); %};
     size_t                  size() const;
     size_t                  num_visible() const;
     std::string             name() const;

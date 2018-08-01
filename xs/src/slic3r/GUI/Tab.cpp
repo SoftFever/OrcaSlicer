@@ -2052,48 +2052,52 @@ void Tab::rebuild_page_tree()
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
-void Tab::select_preset(const std::string& preset_name /*= ""*/)
+void Tab::select_preset(std::string preset_name /*= ""*/)
 {
-	std::string name = preset_name;
-	auto force = false;
-	auto presets = m_presets;
 	// If no name is provided, select the "-- default --" preset.
-	if (name.empty())
-		name= presets->default_preset().name;
-	auto current_dirty = presets->current_is_dirty();
-	auto canceled = false;
-	auto printer_tab = presets->name().compare("printer")==0;
+	if (preset_name.empty())
+		preset_name = m_presets->default_preset().name;
+	auto current_dirty = m_presets->current_is_dirty();
+	auto printer_tab   = m_presets->name() == "printer";
+	auto canceled      = false;
 	m_reload_dependent_tabs = {};
-	if (!force && current_dirty && !may_discard_current_dirty_preset()) {
+	if (!current_dirty && !may_discard_current_dirty_preset()) {
 		canceled = true;
-	} else if(printer_tab) {
+	} else if (printer_tab) {
 		// Before switching the printer to a new one, verify, whether the currently active print and filament
 		// are compatible with the new printer.
 		// If they are not compatible and the current print or filament are dirty, let user decide
 		// whether to discard the changes or keep the current printer selection.
-		auto new_printer_preset = presets->find_preset(name, true);
-		auto print_presets = &m_preset_bundle->prints;
-		bool print_preset_dirty = print_presets->current_is_dirty();
-		bool print_preset_compatible = print_presets->get_edited_preset().is_compatible_with_printer(*new_printer_preset);
-		canceled = !force && print_preset_dirty && !print_preset_compatible &&
-			!may_discard_current_dirty_preset(print_presets, name);
-		auto filament_presets = &m_preset_bundle->filaments;
-		bool filament_preset_dirty = filament_presets->current_is_dirty();
-		bool filament_preset_compatible = filament_presets->get_edited_preset().is_compatible_with_printer(*new_printer_preset);
-		if (!canceled && !force) {
-			canceled = filament_preset_dirty && !filament_preset_compatible &&
-				!may_discard_current_dirty_preset(filament_presets, name);
+		//
+		// With the introduction of the SLA printer types, we need to support switching between
+		// the FFF and SLA printers.
+		const Preset 		&new_printer_preset     = *m_presets->find_preset(preset_name, true);
+		PrinterTechnology    old_printer_technology = m_presets->get_edited_preset().printer_technology();
+		PrinterTechnology    new_printer_technology = new_printer_preset.printer_technology();
+		struct PresetUpdate {
+			std::string          name;
+			PresetCollection 	*presets;
+			PrinterTechnology    technology;
+			bool    	         old_preset_dirty;
+			bool         	     new_preset_compatible;
+		};
+		std::vector<PresetUpdate> updates = {
+			{ "print",			&m_preset_bundle->prints,			ptFFF },
+			{ "filament",		&m_preset_bundle->filaments,		ptFFF },
+			{ "sla_materials",	&m_preset_bundle->sla_materials,	ptSLA }
+		};
+		for (PresetUpdate &pu : updates) {
+			pu.old_preset_dirty      = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
+			pu.new_preset_compatible = (new_printer_technology == pu.technology) && pu.presets->get_edited_preset().is_compatible_with_printer(new_printer_preset);
+			if (! canceled)
+				canceled = pu.old_preset_dirty && ! pu.new_preset_compatible && ! may_discard_current_dirty_preset(pu.presets, preset_name);
 		}
-		if (!canceled) {
-			if (!print_preset_compatible) {
+		if (! canceled) {
+			for (PresetUpdate &pu : updates) {
 				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-				m_reload_dependent_tabs.push_back("print");
-				if (print_preset_dirty) print_presets->discard_current_changes();
-			}
-			if (!filament_preset_compatible) {
-				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-				m_reload_dependent_tabs.push_back("filament");
-				if (filament_preset_dirty) filament_presets->discard_current_changes();
+				m_reload_dependent_tabs.emplace_back(pu.name);
+				if (pu.old_preset_dirty)
+					pu.presets->discard_current_changes();
 			}
 		}
 	}
@@ -2102,10 +2106,10 @@ void Tab::select_preset(const std::string& preset_name /*= ""*/)
 		// Trigger the on_presets_changed event so that we also restore the previous value in the plater selector,
 		// if this action was initiated from the platter.
 		on_presets_changed();
-	}
-	else {
-		if (current_dirty) presets->discard_current_changes() ;
-		presets->select_preset_by_name(name, force);
+	} else {
+		if (current_dirty)
+			m_presets->discard_current_changes() ;
+		m_presets->select_preset_by_name(preset_name, false);
 		// Mark the print & filament enabled if they are compatible with the currently selected preset.
 		// The following method should not discard changes of current print or filament presets on change of a printer profile,
 		// if they are compatible with the current printer.
@@ -2114,7 +2118,6 @@ void Tab::select_preset(const std::string& preset_name /*= ""*/)
 		// Initialize the UI from the current preset.
 		load_current_preset();
 	}
-
 }
 
 // If the current preset is dirty, the user is asked whether the changes may be discarded.

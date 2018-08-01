@@ -219,7 +219,7 @@ public:
 	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		load_current_preset();
 	void		rebuild_page_tree();
-	void		select_preset(const std::string& preset_name = "");
+	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 

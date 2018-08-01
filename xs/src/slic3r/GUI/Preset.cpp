@@ -265,8 +265,9 @@ bool Preset::is_compatible_with_printer(const Preset &active_printer) const
 {
     DynamicPrintConfig config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.name));
-    config.set_key_value("num_extruders", new ConfigOptionInt(
-        (int)static_cast<const ConfigOptionFloats*>(active_printer.config.option("nozzle_diameter"))->values.size()));
+	const ConfigOption *opt = active_printer.config.option("nozzle_diameter");
+	if (opt)
+		config.set_key_value("num_extruders", new ConfigOptionInt((int)static_cast<const ConfigOptionFloats*>(opt)->values.size()));
     return this->is_compatible_with_printer(active_printer, &config);
 }
 
@@ -373,6 +374,7 @@ const std::vector<std::string>& Preset::sla_printer_options()
             "bed_shape", "max_print_height",
             "display_width", "display_height", "display_pixels_x", "display_pixels_y",
             "printer_correction",
+            "printer_notes",
             "inherits"
         };
     }
@@ -387,13 +389,14 @@ const std::vector<std::string>& Preset::sla_material_options()
             "layer_height", "initial_layer_height",
             "exposure_time", "initial_exposure_time",
             "material_correction_printing", "material_correction_curing",
+            "material_notes",
             "compatible_printers_condition", "inherits"
         };
     }
     return s_opts;
 }
 
-PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys) :
+PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const std::string &default_name) :
     m_type(type),
     m_edited_preset(type, "", false),
     m_idx_selected(0),
@@ -401,7 +404,7 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
 	m_bitmap_cache(new GUI::BitmapCache)
 {
     // Insert just the default preset.
-    m_presets.emplace_back(Preset(type, "- default -", true));
+    this->add_default_preset(keys, default_name);
     m_presets.front().load(keys);
     m_edited_preset.config.apply(m_presets.front().config);
 }
@@ -416,7 +419,7 @@ PresetCollection::~PresetCollection()
 
 void PresetCollection::reset(bool delete_files)
 {
-    if (m_presets.size() > 1) {
+    if (m_presets.size() > m_num_default_presets) {
         if (delete_files) {
             // Erase the preset files.
             for (Preset &preset : m_presets)
@@ -424,9 +427,17 @@ void PresetCollection::reset(bool delete_files)
                     boost::nowide::remove(preset.file.c_str());
         }
         // Don't use m_presets.resize() here as it requires a default constructor for Preset.
-        m_presets.erase(m_presets.begin() + 1, m_presets.end());
+        m_presets.erase(m_presets.begin() + m_num_default_presets, m_presets.end());
         this->select_preset(0);
     }
+}
+
+void PresetCollection::add_default_preset(const std::vector<std::string> &keys, const std::string &preset_name)
+{
+    // Insert just the default preset.
+    m_presets.emplace_back(Preset(this->type(), preset_name, true));
+    m_presets.back().load(keys);
+    ++ m_num_default_presets;
 }
 
 // Load all presets found in dir_path.
@@ -458,7 +469,7 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
                 errors_cummulative += "\n";
 			}
         }
-    std::sort(m_presets.begin() + 1, m_presets.end());
+    std::sort(m_presets.begin() + m_num_default_presets, m_presets.end());
     this->select_preset(first_visible_idx());
     if (! errors_cummulative.empty())
         throw std::runtime_error(errors_cummulative);
@@ -676,7 +687,7 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
 // Return index of the first visible preset. Certainly at least the '- default -' preset shall be visible.
 size_t PresetCollection::first_visible_idx() const
 {
-    size_t idx = m_default_suppressed ? 1 : 0;
+    size_t idx = m_default_suppressed ? m_num_default_presets : 0;
     for (; idx < this->m_presets.size(); ++ idx)
         if (m_presets[idx].is_visible)
             break;
@@ -689,7 +700,7 @@ void PresetCollection::set_default_suppressed(bool default_suppressed)
 {
     if (m_default_suppressed != default_suppressed) {
         m_default_suppressed = default_suppressed;
-        m_presets.front().is_visible = ! default_suppressed || (m_presets.size() > 1 && m_idx_selected > 0);
+        m_presets.front().is_visible = ! default_suppressed || (m_presets.size() > m_num_default_presets && m_idx_selected > 0);
     }
 }
 
@@ -697,9 +708,10 @@ size_t PresetCollection::update_compatible_with_printer_internal(const Preset &a
 {
     DynamicPrintConfig config;
     config.set_key_value("printer_preset", new ConfigOptionString(active_printer.name));
-    config.set_key_value("num_extruders", new ConfigOptionInt(
-        (int)static_cast<const ConfigOptionFloats*>(active_printer.config.option("nozzle_diameter"))->values.size()));
-    for (size_t idx_preset = 1; idx_preset < m_presets.size(); ++ idx_preset) {
+    const ConfigOption *opt = active_printer.config.option("nozzle_diameter");
+    if (opt)
+        config.set_key_value("num_extruders", new ConfigOptionInt((int)static_cast<const ConfigOptionFloats*>(opt)->values.size()));
+    for (size_t idx_preset = m_num_default_presets; idx_preset < m_presets.size(); ++ idx_preset) {
         bool    selected        = idx_preset == m_idx_selected;
         Preset &preset_selected = m_presets[idx_preset];
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
@@ -740,7 +752,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
 		ui->Append("------- " +_(L("System presets")) + " -------", wxNullBitmap);
-	for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++i) {
+	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
             continue;
@@ -778,7 +790,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 			if (i == m_idx_selected)
 				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
 		}
-		if (preset.is_default)
+		if (i + 1 == m_num_default_presets)
 			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
 	}
 	if (!nonsys_presets.empty())
@@ -808,7 +820,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
 		ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
-	for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++i) {
+	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
             continue;
@@ -838,7 +850,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 			if (i == m_idx_selected)
 				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
 		}
-		if (preset.is_default)
+        if (i + 1 == m_num_default_presets)
 			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
     }
 	if (!nonsys_presets.empty())
@@ -930,7 +942,7 @@ bool PresetCollection::select_preset_by_name(const std::string &name_w_suffix, b
         idx = it - m_presets.begin();
     else {
         // Find the first visible preset.
-        for (size_t i = m_default_suppressed ? 1 : 0; i < m_presets.size(); ++ i)
+        for (size_t i = m_default_suppressed ? m_num_default_presets : 0; i < m_presets.size(); ++ i)
             if (m_presets[i].is_visible) {
                 idx = i;
                 break;
@@ -972,7 +984,7 @@ std::vector<std::string> PresetCollection::merge_presets(PresetCollection &&othe
         if (preset.is_default || preset.is_external)
             continue;
         Preset key(m_type, preset.name);
-        auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
+        auto it = std::lower_bound(m_presets.begin() + m_num_default_presets, m_presets.end(), key);
         if (it == m_presets.end() || it->name != preset.name) {
             if (preset.vendor != nullptr) {
                 // Re-assign a pointer to the vendor structure in the new PresetBundle.

@@ -194,21 +194,24 @@ class PresetCollection
 {
 public:
     // Initialize the PresetCollection with the "- default -" preset.
-    PresetCollection(Preset::Type type, const std::vector<std::string> &keys);
+    PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const std::string &default_name = "- default -");
     ~PresetCollection();
 
     typedef std::deque<Preset>::iterator Iterator;
     typedef std::deque<Preset>::const_iterator ConstIterator;
-    Iterator begin() { return m_presets.begin() + 1; }
-    ConstIterator begin() const { return m_presets.begin() + 1; }
-    Iterator end() { return m_presets.end(); }
-    ConstIterator end() const { return m_presets.end(); }
+    Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
+    ConstIterator   begin() const { return m_presets.begin() + m_num_default_presets; }
+    Iterator        end() { return m_presets.end(); }
+    ConstIterator   end() const { return m_presets.end(); }
 
     void            reset(bool delete_files);
 
     Preset::Type    type() const { return m_type; }
     std::string     name() const;
     const std::deque<Preset>& operator()() const { return m_presets; }
+
+    // Add default preset at the start of the collection, increment the m_default_preset counter.
+    void            add_default_preset(const std::vector<std::string> &keys, const std::string &preset_name);
 
     // Load ini files of the particular type from the provided directory path.
     void            load_presets(const std::string &dir_path, const std::string &subdir);
@@ -295,7 +298,7 @@ public:
     template<typename PreferedCondition>
     size_t          first_compatible_idx(PreferedCondition prefered_condition) const
     {
-        size_t i = m_default_suppressed ? 1 : 0;
+        size_t i = m_default_suppressed ? m_num_default_presets : 0;
         size_t n = this->m_presets.size();
         size_t i_compatible = n;
         for (; i < n; ++ i)
@@ -321,7 +324,8 @@ public:
     const Preset&   first_compatible() const    { return this->preset(this->first_compatible_idx()); }
 
     // Return number of presets including the "- default -" preset.
-    size_t          size() const                { return this->m_presets.size(); }
+    size_t          size() const                { return m_presets.size(); }
+    bool            has_defaults_only() const   { return m_presets.size() <= m_num_default_presets; }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
     template<typename PreferedCondition>
@@ -386,8 +390,16 @@ private:
     std::deque<Preset>::iterator find_preset_internal(const std::string &name)
     {
         Preset key(m_type, name);
-        auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
-        return ((it == m_presets.end() || it->name != name) && m_presets.front().name == name) ? m_presets.begin() : it;
+        auto it = std::lower_bound(m_presets.begin() + m_num_default_presets, m_presets.end(), key);
+        if (it == m_presets.end() || it->name != name) {
+            // Preset has not been not found in the sorted list of non-default presets. Try the defaults.
+            for (size_t i = 0; i < m_num_default_presets; ++ i)
+                if (m_presets[i].name == name) {
+                    it = m_presets.begin() + i;
+                    break;
+                }
+        }
+        return it;
     }
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
@@ -407,7 +419,8 @@ private:
     // Selected preset.
     int                     m_idx_selected;
     // Is the "- default -" preset suppressed?
-    bool                    m_default_suppressed = true;
+    bool                    m_default_suppressed  = true;
+    size_t                  m_num_default_presets = 0;
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Platter.
     // These bitmaps are not owned by PresetCollection, but by a PresetBundle.
     const wxBitmap         *m_bitmap_compatible   = nullptr;

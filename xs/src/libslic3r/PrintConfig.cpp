@@ -2135,6 +2135,15 @@ void PrintConfigDef::init_sla_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
 
+    def = this->add("material_notes", coString);
+    def->label = L("SLA print material notes");
+    def->tooltip = L("You can put your notes regarding the SLA print material here.");
+    def->cli = "material-notes=s";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 130;
+    def->default_value = new ConfigOptionString("");
+
     def = this->add("default_sla_material_profile", coString);
     def->label = L("Default SLA material profile");
     def->tooltip = L("Default print profile associated with the current printer profile. "

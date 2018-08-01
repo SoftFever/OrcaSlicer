@@ -64,7 +64,7 @@ public:
     ObsoletePresets             obsolete_presets;
 
     bool                        has_defauls_only() const 
-        { return prints.size() <= 1 && filaments.size() <= 1 && printers.size() <= 1; }
+        { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
     DynamicPrintConfig          full_config() const;
 
