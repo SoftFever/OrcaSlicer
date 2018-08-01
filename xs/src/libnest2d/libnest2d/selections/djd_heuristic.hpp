@@ -256,14 +256,14 @@ public:
 
             if(not_packed.size() < 2)
                 return false; // No group of two items
-            else {
-                double largest_area = not_packed.front().get().area();
-                auto itmp = not_packed.begin(); itmp++;
-                double second_largest = itmp->get().area();
-                if( free_area - second_largest - largest_area > waste)
-                    return false; // If even the largest two items do not fill
-                    // the bin to the desired waste than we can end here.
-            }
+
+            double largest_area = not_packed.front().get().area();
+            auto itmp = not_packed.begin(); itmp++;
+            double second_largest = itmp->get().area();
+            if( free_area - second_largest - largest_area > waste)
+                return false; // If even the largest two items do not fill
+                // the bin to the desired waste than we can end here.
+
 
             bool ret = false;
             auto it = not_packed.begin();
@@ -481,7 +481,7 @@ public:
                             {
                                 std::array<bool, 3> packed = {false};
 
-                                for(auto id : idx) packed[id] =
+                                for(auto id : idx) packed.at(id) =
                                         placer.pack(candidates[id]);
 
                                 bool check =
@@ -537,8 +537,7 @@ public:
             while (it != store_.end()) {
                 Placer p(bin);
                 if(!p.pack(*it)) {
-                    auto itmp = it++;
-                    store_.erase(itmp);
+                    it = store_.erase(it);
                 } else it++;
             }
         }
@@ -605,8 +604,7 @@ public:
                         if(placer.pack(*it)) {
                             filled_area += it->get().area();
                             free_area = bin_area - filled_area;
-                            auto itmp = it++;
-                            not_packed.erase(itmp);
+                            it = not_packed.erase(it);
                             makeProgress(placer, idx, 1);
                         } else it++;
                     }

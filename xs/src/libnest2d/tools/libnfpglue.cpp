@@ -49,18 +49,18 @@ libnfporb::point_t scale(const libnfporb::point_t& p, long double factor) {
     long double px = p.x_.val();
     long double py = p.y_.val();
 #endif
-    return libnfporb::point_t(px*factor, py*factor);
+    return {px*factor, py*factor};
 }
 
 }
 
-PolygonImpl _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
+NfpR _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
 {
     using Vertex = PointImpl;
 
-    PolygonImpl ret;
+    NfpR ret;
 
-//    try {
+    try {
         libnfporb::polygon_t pstat, porb;
 
         boost::geometry::convert(sh, pstat);
@@ -85,7 +85,7 @@ PolygonImpl _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
         // this can throw
         auto nfp = libnfporb::generateNFP(pstat, porb, true);
 
-        auto &ct = ShapeLike::getContour(ret);
+        auto &ct = ShapeLike::getContour(ret.first);
         ct.reserve(nfp.front().size()+1);
         for(auto v : nfp.front()) {
             v = scale(v, refactor);
@@ -94,10 +94,10 @@ PolygonImpl _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
         ct.push_back(ct.front());
         std::reverse(ct.begin(), ct.end());
 
-        auto &rholes = ShapeLike::holes(ret);
+        auto &rholes = ShapeLike::holes(ret.first);
         for(size_t hidx = 1; hidx < nfp.size(); ++hidx) {
             if(nfp[hidx].size() >= 3) {
-                rholes.push_back({});
+                rholes.emplace_back();
                 auto& h = rholes.back();
                 h.reserve(nfp[hidx].size()+1);
 
@@ -110,73 +110,48 @@ PolygonImpl _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
             }
         }
 
-        auto& cmp = vsort;
-        std::sort(pstat.outer().begin(), pstat.outer().end(), cmp);
-        std::sort(porb.outer().begin(), porb.outer().end(), cmp);
+        ret.second = Nfp::referenceVertex(ret.first);
 
-        // leftmost lower vertex of the stationary polygon
-        auto& touch_sh = scale(pstat.outer().back(), refactor);
-        // rightmost upper vertex of the orbiting polygon
-        auto& touch_other = scale(porb.outer().front(), refactor);
-
-        // Calculate the difference and move the orbiter to the touch position.
-        auto dtouch = touch_sh - touch_other;
-        auto _top_other = scale(porb.outer().back(), refactor) + dtouch;
-
-        Vertex top_other(getX(_top_other), getY(_top_other));
-
-        // Get the righmost upper vertex of the nfp and move it to the RMU of
-        // the orbiter because they should coincide.
-        auto&& top_nfp = Nfp::rightmostUpVertex(ret);
-        auto dnfp = top_other - top_nfp;
-
-        std::for_each(ShapeLike::begin(ret), ShapeLike::end(ret),
-                      [&dnfp](Vertex& v) { v+= dnfp; } );
-
-        for(auto& h : ShapeLike::holes(ret))
-            std::for_each( h.begin(), h.end(),
-                           [&dnfp](Vertex& v) { v += dnfp; } );
-
-//    } catch(std::exception& e) {
-//        std::cout << "Error: " << e.what() << "\nTrying with convex hull..." << std::endl;
+    } catch(std::exception& e) {
+        std::cout << "Error: " << e.what() << "\nTrying with convex hull..." << std::endl;
 //        auto ch_stat = ShapeLike::convexHull(sh);
 //        auto ch_orb = ShapeLike::convexHull(cother);
-//        ret = Nfp::nfpConvexOnly(ch_stat, ch_orb);
-//    }
+        ret = Nfp::nfpConvexOnly(sh, cother);
+    }
 
     return ret;
 }
 
-PolygonImpl Nfp::NfpImpl<PolygonImpl, NfpLevel::CONVEX_ONLY>::operator()(
+NfpR Nfp::NfpImpl<PolygonImpl, NfpLevel::CONVEX_ONLY>::operator()(
         const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
 {
     return _nfp(sh, cother);//nfpConvexOnly(sh, cother);
 }
 
-PolygonImpl Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX>::operator()(
+NfpR Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX>::operator()(
         const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
 {
     return _nfp(sh, cother);
 }
 
-PolygonImpl Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE>::operator()(
+NfpR Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE>::operator()(
         const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
 {
     return _nfp(sh, cother);
 }
 
-PolygonImpl
-Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX_WITH_HOLES>::operator()(
-        const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
-{
-    return _nfp(sh, cother);
-}
+//PolygonImpl
+//Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX_WITH_HOLES>::operator()(
+//        const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
+//{
+//    return _nfp(sh, cother);
+//}
 
-PolygonImpl
-Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE_WITH_HOLES>::operator()(
-        const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
-{
-    return _nfp(sh, cother);
-}
+//PolygonImpl
+//Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE_WITH_HOLES>::operator()(
+//        const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
+//{
+//    return _nfp(sh, cother);
+//}
 
 }

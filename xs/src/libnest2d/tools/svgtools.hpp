@@ -5,11 +5,17 @@
 #include <fstream>
 #include <string>
 
-#include <libnest2d.h>
+#include <libnest2d/libnest2d.hpp>
 
 namespace libnest2d { namespace svg {
 
+template<class RawShape>
 class SVGWriter {
+    using Item = _Item<RawShape>;
+    using Coord = TCoord<TPoint<RawShape>>;
+    using Box = _Box<TPoint<RawShape>>;
+    using PackGroup = _PackGroup<RawShape>;
+
 public:
 
     enum OrigoLocation {
