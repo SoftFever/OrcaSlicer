@@ -101,12 +101,15 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
 {
 	auto options = get_options(is_part);
 
+    auto extruders_cnt = get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
 	DynamicPrintConfig config;
 	for (auto& option : options)
 	{
 		auto const opt = config.def()->get(option);
 		auto category = opt->category;
-		if (category.empty()) continue;
+        if (category.empty() ||
+            (category == "Extruders" && extruders_cnt == 1)) continue;
 
 		std::pair<std::string, std::string> option_label(option, opt->label);
 		std::vector< std::pair<std::string, std::string> > new_category;
@@ -135,7 +138,7 @@ void set_objects_from_model(Model &model) {
 }
 
 void init_mesh_icons(){
-	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("lambda_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
 	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
 	// init icon for manifold warning
@@ -195,7 +198,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	m_objects_ctrl->AppendColumn(column3);
 
 	// column 4 of the view control:
-	m_objects_ctrl->AppendBitmapColumn("", 4, wxDATAVIEW_CELL_INERT, 25,
+	m_objects_ctrl->AppendBitmapColumn(" ", 4, wxDATAVIEW_CELL_INERT, 25,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
@@ -247,6 +250,19 @@ wxBoxSizer* content_objects_list(wxWindow *win)
         }
     });
 #endif //__WXMSW__
+
+    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
+        wxPoint pt = event.GetPosition();
+        wxDataViewItem item;
+        wxDataViewColumn* col;
+        m_objects_ctrl->HitTest(pt, item, col);
+        if (col->GetTitle() == " " && item)
+            m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("For object settings changing click a right button on icon")));
+        else
+            m_objects_ctrl->GetMainWindow()->SetToolTip("");
+//         if (m_objects_model->GetIcon(item) == m_icon_manifold_warning)
+//             m_objects_ctrl->GetMainWindow()->SetToolTip("Tru-lala");
+    });
 
 	return objects_sz;
 }
@@ -604,9 +620,11 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 		m_objects_model->SetValue(variant, item, 0);
 	}
 
-    if (model_object->volumes.size() > 1)
+    if (model_object->volumes.size() > 1) {
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
+        m_objects_ctrl->Expand(item);
+    }
 
 // 	part_selection_changed();
 #ifdef __WXMSW__
@@ -741,9 +759,12 @@ void update_settings_list()
 		if (opt_keys.size() == 1 && opt_keys[0] == "extruder")
 			return;
 
+        auto extruders_cnt = get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+
 		for (auto& opt_key : opt_keys) {
 			auto category = (*m_config)->def()->get(opt_key)->category;
-			if (category.empty()) continue;
+			if (category.empty() ||
+                (category == "Extruders" && extruders_cnt==1)) continue;
 
 			std::vector< std::string > new_category;
 

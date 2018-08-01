@@ -365,6 +365,7 @@ public:
 	wxString GetName(const wxDataViewItem &item) const;
 	wxString GetCopy(const wxDataViewItem &item) const;
 	wxString GetScale(const wxDataViewItem &item) const;
+	wxIcon   GetIcon(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
 
