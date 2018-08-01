@@ -204,16 +204,35 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
 		object_ctrl_selection_changed();
-#ifdef __WXOSX__
-        update_extruder_in_config(g_selected_extruder);
-#endif //__WXOSX__        
+// #ifdef __WXOSX__
+//         update_extruder_in_config(g_selected_extruder);
+// #endif //__WXOSX__        
 	});
 
-	m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxEvent& event)
-	{
+//    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event)
+    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& event) {
+        wxPoint pt = event.GetPosition();
+        wxDataViewItem item;
+        wxDataViewColumn* col;
+        m_objects_ctrl->HitTest(pt, item, col);
+        wxString title = col->GetTitle();
+        if (item && (title==" " || title == _("Name"))) {
+            if (item != m_objects_ctrl->GetSelection()) {
+                m_objects_ctrl->Select(item);
+                object_ctrl_selection_changed();
+                g_prevent_list_events = false;
+            }
+
+            if (title == " ")
+                object_ctrl_context_menu();
+            else if (title == _("Name") && pt.x >15 &&
+                     m_objects_model->GetParent(item) == wxDataViewItem(0))
+            {
+//                 auto menu = create_add_settings_popupmenu(true);// create_correction_stl_menu !!!
+//                 get_tab_panel()->GetPage(0)->PopupMenu(menu);
+            }
+        }
 		event.Skip();
-		object_ctrl_context_menu();
-		
 	});
 
 	m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event)
@@ -257,11 +276,11 @@ wxBoxSizer* content_objects_list(wxWindow *win)
         wxDataViewColumn* col;
         m_objects_ctrl->HitTest(pt, item, col);
         if (col->GetTitle() == " " && item)
-            m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("For object settings changing click a right button on icon")));
+            m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("For object settings changing click on icon")));
+//         else if (col->GetTitle() == _("Name") && item && m_objects_model->GetIcon(item) == m_icon_manifold_warning )
+//             m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("Information about auto-repaired errors\n To fix errors, click on the icon")));
         else
             m_objects_ctrl->GetMainWindow()->SetToolTip("");
-//         if (m_objects_model->GetIcon(item) == m_icon_manifold_warning)
-//             m_objects_ctrl->GetMainWindow()->SetToolTip("Tru-lala");
     });
 
 	return objects_sz;
@@ -717,6 +736,10 @@ void object_ctrl_selection_changed()
 		event.SetId(m_selected_object_id);
 		get_main_frame()->ProcessWindowEvent(event);
 	}
+
+#ifdef __WXOSX__
+    update_extruder_in_config(g_selected_extruder);
+#endif //__WXOSX__        
 }
 
 //update_optgroup
