@@ -144,6 +144,11 @@ sub new {
         my ($angle_z) = @_;
         $self->rotate(rad2deg($angle_z), Z, 'absolute');
     };
+
+    # callback to call schedule_background_process
+    my $on_request_update = sub {
+        $self->schedule_background_process;
+    };
     
     # callback to update object's geometry info while using gizmos
     my $on_update_geometry_info = sub {
@@ -202,6 +207,8 @@ sub new {
 
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
     }
+
+    Slic3r::_GUI::register_on_request_update_callback($on_request_update);
     
     # Initialize 2D preview canvas
     $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});

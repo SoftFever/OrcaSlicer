@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include "Config.hpp"
+#include "../../libslic3r/Utils.hpp"
 
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -171,6 +172,9 @@ wxString	from_u8(const std::string &str);
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 
+static PerlCallback g_on_request_update_callback;
+void register_on_request_update_callback(void* callback);
+ 
 ConfigOptionsGroup* get_optgroup();
 wxButton*			get_wiping_dialog_button();
 
