@@ -5,37 +5,39 @@
 
 namespace libnest2d {
 
-PolygonImpl _nfp(const PolygonImpl& sh, const PolygonImpl& cother);
+using NfpR = Nfp::NfpResult<PolygonImpl>;
+
+NfpR _nfp(const PolygonImpl& sh, const PolygonImpl& cother);
 
 template<>
 struct Nfp::NfpImpl<PolygonImpl, NfpLevel::CONVEX_ONLY> {
-    PolygonImpl operator()(const PolygonImpl& sh, const PolygonImpl& cother);
+    NfpR operator()(const PolygonImpl& sh, const PolygonImpl& cother);
 };
 
 template<>
 struct Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX> {
-    PolygonImpl operator()(const PolygonImpl& sh, const PolygonImpl& cother);
+    NfpR operator()(const PolygonImpl& sh, const PolygonImpl& cother);
 };
 
 template<>
 struct Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE> {
-    PolygonImpl operator()(const PolygonImpl& sh, const PolygonImpl& cother);
+    NfpR operator()(const PolygonImpl& sh, const PolygonImpl& cother);
 };
 
-template<>
-struct Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX_WITH_HOLES> {
-    PolygonImpl operator()(const PolygonImpl& sh, const PolygonImpl& cother);
-};
+//template<>
+//struct Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX_WITH_HOLES> {
+//    NfpResult operator()(const PolygonImpl& sh, const PolygonImpl& cother);
+//};
 
-template<>
-struct Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE_WITH_HOLES> {
-    PolygonImpl operator()(const PolygonImpl& sh, const PolygonImpl& cother);
-};
+//template<>
+//struct Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE_WITH_HOLES> {
+//    NfpResult operator()(const PolygonImpl& sh, const PolygonImpl& cother);
+//};
 
 template<> struct Nfp::MaxNfpLevel<PolygonImpl> {
     static const BP2D_CONSTEXPR NfpLevel value =
 //            NfpLevel::CONVEX_ONLY;
-            NfpLevel::BOTH_CONCAVE_WITH_HOLES;
+            NfpLevel::BOTH_CONCAVE;
 };
 
 }
