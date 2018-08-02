@@ -234,7 +234,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 1.0f;
+    pcfg.accuracy = 0.5f;
 }
 
 template<class TBin>
