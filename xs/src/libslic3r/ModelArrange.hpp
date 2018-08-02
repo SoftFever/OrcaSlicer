@@ -95,9 +95,9 @@ void toSVG(SVG& svg, const Model& model) {
 
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
-        double bin_area,
+        double /*bin_area*/,
         ShapeLike::Shapes<PolygonImpl>& pile,   // The currently arranged pile
-        double pile_area,
+        double /*pile_area*/,
         const Item &item,
         double norm,            // A norming factor for physical dimensions
         std::vector<double>& areacache
@@ -114,11 +114,14 @@ objfunc(const PointImpl& bincenter,
     NfpPlacer::Pile bigs;
     bigs.reserve(pile.size());
 
-    int idx = 0;
     if(pile.size() < areacache.size()) areacache.clear();
+
+    auto normarea = [norm](double area) { return std::sqrt(area)/norm; };
+
+    int idx = 0;
     for(auto& p : pile) {
         if(idx == areacache.size()) areacache.emplace_back(sl::area(p));
-        if(std::sqrt(areacache[idx])/norm > BIG_ITEM_TRESHOLD)
+        if( normarea(areacache[idx]) > BIG_ITEM_TRESHOLD)
             bigs.emplace_back(p);
         idx++;
     }
@@ -137,12 +140,13 @@ objfunc(const PointImpl& bincenter,
 
     // The size indicator of the candidate item. This is not the area,
     // but almost...
-    auto itemnormarea = std::sqrt(ibb.width()*ibb.height())/norm;
 
     // Will hold the resulting score
     double score = 0;
 
-    if(itemnormarea > BIG_ITEM_TRESHOLD) {
+    double item_normarea = normarea(item.area());
+
+    if(item_normarea > BIG_ITEM_TRESHOLD) {
         // This branch is for the bigger items..
         // Here we will use the closest point of the item bounding box to
         // the already arranged pile. So not the bb center nor the a choosen
@@ -182,7 +186,7 @@ objfunc(const PointImpl& bincenter,
         for(auto& p : pile) {
 
             auto parea = areacache[idx];
-            if(std::sqrt(parea)/norm > BIG_ITEM_TRESHOLD) {
+            if(normarea(areacache[idx]) > BIG_ITEM_TRESHOLD) {
                 auto chull = sl::convexHull(sl::Shapes<PolygonImpl>{p, trsh});
                 auto carea = sl::area(chull);
 
@@ -197,7 +201,7 @@ objfunc(const PointImpl& bincenter,
         auto C = 0.33;
         score = C * dist +  C * density + C * alignment_score;
 
-    } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
+    } else if( item_normarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
         // If there are no big items, only small, we should consider the
         // density here as well to not get silly results
         auto bindist = pl::distance(ibb.center(), bincenter) / norm;
@@ -230,7 +234,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.4f;
+    pcfg.accuracy = 1.0f;
 }
 
 template<class TBin>
