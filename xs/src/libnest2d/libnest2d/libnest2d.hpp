@@ -473,8 +473,7 @@ public:
 
 template<class RawShape>
 inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
-    _Rectangle<RawShape> rect(box.width(), box.height());
-    return _Item<RawShape>::isInside(rect);
+    return ShapeLike::isInside<RawShape>(boundingBox(), box);
 }
 
 template<class RawShape> inline bool

@@ -685,6 +685,20 @@ struct ShapeLike {
     }
 
     template<class RawShape>
+    static bool isInside(const TPoint<RawShape>& point,
+                         const _Box<TPoint<RawShape>>& box)
+    {
+        auto px = getX(point);
+        auto py = getY(point);
+        auto minx = getX(box.minCorner());
+        auto miny = getY(box.minCorner());
+        auto maxx = getX(box.maxCorner());
+        auto maxy = getY(box.maxCorner());
+
+        return px > minx && px < maxx && py > miny && py < maxy;
+    }
+
+    template<class RawShape>
     static bool isInside(const RawShape& sh,
                          const _Circle<TPoint<RawShape>>& circ)
     {
@@ -700,6 +714,23 @@ struct ShapeLike {
     {
         return isInside<RawShape>(box.minCorner(), circ) &&
                 isInside<RawShape>(box.maxCorner(), circ);
+    }
+
+    template<class RawShape>
+    static bool isInside(const _Box<TPoint<RawShape>>& ibb,
+                         const _Box<TPoint<RawShape>>& box)
+    {
+        auto iminX = getX(ibb.minCorner());
+        auto imaxX = getX(ibb.maxCorner());
+        auto iminY = getY(ibb.minCorner());
+        auto imaxY = getY(ibb.maxCorner());
+
+        auto minX = getX(box.minCorner());
+        auto maxX = getX(box.maxCorner());
+        auto minY = getY(box.minCorner());
+        auto maxY = getY(box.maxCorner());
+
+        return iminX > minX && imaxX < maxX && iminY > minY && imaxY < maxY;
     }
 
     template<class RawShape> // Potential O(1) implementation may exist

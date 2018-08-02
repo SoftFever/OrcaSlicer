@@ -166,7 +166,7 @@ template<class RawShape> class EdgeCache {
         using std::pow;
 
         return static_cast<Coord>(
-                    round( N/(ceil(pow(accuracy_, 2)*(N-1)) + 1) )
+                    std::round(N/std::pow(N, std::pow(accuracy_, 1.0/3.0)))
                 );
     }
 
@@ -178,6 +178,7 @@ template<class RawShape> class EdgeCache {
 
         contour_.corners.reserve(N / S + 1);
         auto N_1 = N-1;
+        contour_.corners.emplace_back(0.0);
         for(size_t i = 0; i < N_1; i += S) {
             contour_.corners.emplace_back(
                     contour_.distances.at(i) / contour_.full_distance);
@@ -192,6 +193,7 @@ template<class RawShape> class EdgeCache {
         const auto S = stride(N);
         auto N_1 = N-1;
         hc.corners.reserve(N / S + 1);
+        hc.corners.emplace_back(0.0);
         for(size_t i = 0; i < N_1; i += S) {
             hc.corners.emplace_back(
                     hc.distances.at(i) / hc.full_distance);
@@ -484,7 +486,7 @@ public:
     bool static inline wouldFit(const RawShape& chull, const RawShape& bin) {
         auto bbch = sl::boundingBox<RawShape>(chull);
         auto bbin = sl::boundingBox<RawShape>(bin);
-        auto d = bbin.center() - bbch.center();
+        auto d =  bbch.center() - bbin.center();
         auto chullcpy = chull;
         sl::translate(chullcpy, d);
         return sl::isInside<RawShape>(chullcpy, bin);
@@ -579,17 +581,21 @@ public:
                     pile_area += mitem.area();
                 }
 
+                auto merged_pile = Nfp::merge(pile);
+
                 // This is the kernel part of the object function that is
                 // customizable by the library client
                 auto _objfunc = config_.object_function?
                             config_.object_function :
-                [this](Nfp::Shapes<RawShape>& pile, const Item& item,
-                            double occupied_area, double /*norm*/,
-                            double penality)
+                [this, &merged_pile](
+                            Nfp::Shapes<RawShape>& /*pile*/,
+                            const Item& item,
+                            double occupied_area, double norm,
+                            double /*penality*/)
                 {
-                    pile.emplace_back(item.transformedShape());
-                    auto ch = sl::convexHull(pile);
-                    pile.pop_back();
+                    merged_pile.emplace_back(item.transformedShape());
+                    auto ch = sl::convexHull(merged_pile);
+                    merged_pile.pop_back();
 
                     // The pack ratio -- how much is the convex hull occupied
                     double pack_rate = occupied_area/sl::area(ch);
@@ -602,7 +608,7 @@ public:
                     // (larger) values.
                     auto score = std::sqrt(waste);
 
-                    if(!wouldFit(ch, bin_)) score = 2*penality - score;
+                    if(!wouldFit(ch, bin_)) score += norm;
 
                     return score;
                 };
@@ -622,9 +628,22 @@ public:
                     return score;
                 };
 
+                auto boundaryCheck = [&](const Optimum& o) {
+                    auto v = getNfpPoint(o);
+                    auto d = v - iv;
+                    d += startpos;
+                    item.translation(d);
+
+                    merged_pile.emplace_back(item.transformedShape());
+                    auto chull = sl::convexHull(merged_pile);
+                    merged_pile.pop_back();
+
+                    return wouldFit(chull, bin_);
+                };
+
                 opt::StopCriteria stopcr;
-                stopcr.max_iterations = 1000;
-                stopcr.absolute_score_difference = 1e-20*norm_;
+                stopcr.max_iterations = 100;
+                stopcr.relative_score_difference = 1e-6;
                 opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
 
                 Optimum optimum(0, 0);
@@ -644,7 +663,7 @@ public:
                     std::for_each(cache.corners().begin(),
                                   cache.corners().end(),
                                   [ch, &contour_ofn, &solver, &best_score,
-                                  &optimum] (double pos)
+                                  &optimum, &boundaryCheck] (double pos)
                     {
                         try {
                             auto result = solver.optimize_min(contour_ofn,
@@ -653,22 +672,15 @@ public:
                                             );
 
                             if(result.score < best_score) {
-                                best_score = result.score;
-                                optimum.relpos = std::get<0>(result.optimum);
-                                optimum.nfpidx = ch;
-                                optimum.hidx = -1;
+                                Optimum o(std::get<0>(result.optimum), ch, -1);
+                                if(boundaryCheck(o)) {
+                                    best_score = result.score;
+                                    optimum = o;
+                                }
                             }
                         } catch(std::exception& e) {
                             derr() << "ERROR: " << e.what() << "\n";
                         }
-
-//                        auto sc = contour_ofn(pos);
-//                        if(sc < best_score) {
-//                            best_score = sc;
-//                            optimum.relpos = pos;
-//                            optimum.nfpidx = ch;
-//                            optimum.hidx = -1;
-//                        }
                     });
 
                     for(unsigned hidx = 0; hidx < cache.holeCount(); ++hidx) {
@@ -683,7 +695,7 @@ public:
                         std::for_each(cache.corners(hidx).begin(),
                                       cache.corners(hidx).end(),
                                       [&hole_ofn, &solver, &best_score,
-                                       &optimum, ch, hidx]
+                                       &optimum, ch, hidx, &boundaryCheck]
                                       (double pos)
                         {
                             try {
@@ -693,21 +705,16 @@ public:
                                                 );
 
                                 if(result.score < best_score) {
-                                    best_score = result.score;
                                     Optimum o(std::get<0>(result.optimum),
                                               ch, hidx);
-                                    optimum = o;
+                                    if(boundaryCheck(o)) {
+                                        best_score = result.score;
+                                        optimum = o;
+                                    }
                                 }
                             } catch(std::exception& e) {
                                 derr() << "ERROR: " << e.what() << "\n";
                             }
-//                            auto sc = hole_ofn(pos);
-//                            if(sc < best_score) {
-//                                best_score = sc;
-//                                optimum.relpos = pos;
-//                                optimum.nfpidx = ch;
-//                                optimum.hidx = hidx;
-//                            }
                         });
                     }
                 }

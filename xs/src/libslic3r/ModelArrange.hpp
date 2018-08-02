@@ -93,6 +93,237 @@ void toSVG(SVG& svg, const Model& model) {
     }
 }
 
+std::tuple<double /*score*/, Box /*farthest point from bin center*/>
+objfunc(const PointImpl& bincenter,
+        ShapeLike::Shapes<PolygonImpl>& pile,   // The currently arranged pile
+        const Item &item,
+        double norm            // A norming factor for physical dimensions
+        )
+{
+    using pl = PointLike;
+
+    static const double BIG_ITEM_TRESHOLD = 0.2;
+    static const double ROUNDNESS_RATIO = 0.5;
+    static const double DENSITY_RATIO = 1.0 - ROUNDNESS_RATIO;
+
+    // We will treat big items (compared to the print bed) differently
+    NfpPlacer::Pile bigs;
+    bigs.reserve(pile.size());
+    for(auto& p : pile) {
+        auto pbb = ShapeLike::boundingBox(p);
+        auto na = std::sqrt(pbb.width()*pbb.height())/norm;
+        if(na > BIG_ITEM_TRESHOLD) bigs.emplace_back(p);
+    }
+
+    // Candidate item bounding box
+    auto ibb = item.boundingBox();
+
+    // Calculate the full bounding box of the pile with the candidate item
+    pile.emplace_back(item.transformedShape());
+    auto fullbb = ShapeLike::boundingBox(pile);
+    pile.pop_back();
+
+    // The bounding box of the big items (they will accumulate in the center
+    // of the pile
+    auto bigbb = bigs.empty()? fullbb : ShapeLike::boundingBox(bigs);
+
+    // The size indicator of the candidate item. This is not the area,
+    // but almost...
+    auto itemnormarea = std::sqrt(ibb.width()*ibb.height())/norm;
+
+    // Will hold the resulting score
+    double score = 0;
+
+    if(itemnormarea > BIG_ITEM_TRESHOLD) {
+        // This branch is for the bigger items..
+        // Here we will use the closest point of the item bounding box to
+        // the already arranged pile. So not the bb center nor the a choosen
+        // corner but whichever is the closest to the center. This will
+        // prevent unwanted strange arrangements.
+
+        // Now the distance of the gravity center will be calculated to the
+        // five anchor points and the smallest will be chosen.
+
+        auto minc = ibb.minCorner(); // bottom left corner
+        auto maxc = ibb.maxCorner(); // top right corner
+
+        // top left and bottom right corners
+        auto top_left = PointImpl{getX(minc), getY(maxc)};
+        auto bottom_right = PointImpl{getX(maxc), getY(minc)};
+
+        // Now the distnce of the gravity center will be calculated to the
+        // five anchor points and the smallest will be chosen.
+        std::array<double, 5> dists;
+        auto cc = fullbb.center(); // The gravity center
+        dists[0] = pl::distance(minc, cc);
+        dists[1] = pl::distance(maxc, cc);
+        dists[2] = pl::distance(ibb.center(), cc);
+        dists[3] = pl::distance(top_left, cc);
+        dists[4] = pl::distance(bottom_right, cc);
+
+        auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
+
+        // Density is the pack density: how big is the arranged pile
+        auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+
+        // The score is a weighted sum of the distance from pile center
+        // and the pile size
+        score = ROUNDNESS_RATIO * dist + DENSITY_RATIO * density;
+
+    } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
+        // If there are no big items, only small, we should consider the
+        // density here as well to not get silly results
+        auto bindist = pl::distance(ibb.center(), bincenter) / norm;
+        auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+        score = ROUNDNESS_RATIO * bindist + DENSITY_RATIO * density;
+    } else {
+        // Here there are the small items that should be placed around the
+        // already processed bigger items.
+        // No need to play around with the anchor points, the center will be
+        // just fine for small items
+        score = pl::distance(ibb.center(), bigbb.center()) / norm;
+    }
+
+    return std::make_tuple(score, fullbb);
+}
+
+template<class PConf>
+void fillConfig(PConf& pcfg) {
+
+    // Align the arranged pile into the center of the bin
+    pcfg.alignment = PConf::Alignment::CENTER;
+
+    // Start placing the items from the center of the print bed
+    pcfg.starting_point = PConf::Alignment::CENTER;
+
+    // TODO cannot use rotations until multiple objects of same geometry can
+    // handle different rotations
+    // arranger.useMinimumBoundigBoxRotation();
+    pcfg.rotations = { 0.0 };
+
+    // The accuracy of optimization.
+    // Goes from 0.0 to 1.0 and scales performance as well
+    pcfg.accuracy = 0.35f;
+}
+
+template<class TBin>
+class AutoArranger {};
+
+template<class TBin>
+class _ArrBase {
+protected:
+    using Placer = strategies::_NofitPolyPlacer<PolygonImpl, TBin>;
+    using Selector = FirstFitSelection;
+    using Packer = Arranger<Placer, Selector>;
+    using PConfig = typename Packer::PlacementConfig;
+    using Distance = TCoord<PointImpl>;
+    using Pile = ShapeLike::Shapes<PolygonImpl>;
+
+    Packer pck_;
+    PConfig pconf_; // Placement configuration
+
+public:
+
+    _ArrBase(const TBin& bin, Distance dist,
+             std::function<void(unsigned)> progressind):
+       pck_(bin, dist)
+    {
+        fillConfig(pconf_);
+        pck_.progressIndicator(progressind);
+    }
+
+    template<class...Args> inline IndexedPackGroup operator()(Args&&...args) {
+        return pck_.arrangeIndexed(std::forward<Args>(args)...);
+    }
+};
+
+template<>
+class AutoArranger<Box>: public _ArrBase<Box> {
+public:
+
+    AutoArranger(const Box& bin, Distance dist,
+                 std::function<void(unsigned)> progressind):
+        _ArrBase<Box>(bin, dist, progressind)
+    {
+        pconf_.object_function = [bin] (
+                    Pile& pile,
+                    const Item &item,
+                    double /*occupied_area*/,
+                    double norm,
+                    double penality) {
+
+            auto result = objfunc(bin.center(), pile, item, norm);
+            double score = std::get<0>(result);
+            auto& fullbb = std::get<1>(result);
+
+            auto wdiff = fullbb.width() - bin.width();
+            auto hdiff = fullbb.height() - bin.height();
+            if(wdiff > 0) score += std::pow(wdiff, 2) / norm;
+            if(hdiff > 0) score += std::pow(hdiff, 2) / norm;
+
+            return score;
+        };
+
+        pck_.configure(pconf_);
+    }
+};
+
+template<>
+class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
+public:
+    AutoArranger(const PolygonImpl& bin, Distance dist,
+                 std::function<void(unsigned)> progressind):
+        _ArrBase<PolygonImpl>(bin, dist, progressind)
+    {
+        pconf_.object_function = [&bin] (
+                    Pile& pile,
+                    const Item &item,
+                    double /*area*/,
+                    double norm,
+                    double /*penality*/) {
+
+            auto binbb = ShapeLike::boundingBox(bin);
+            auto result = objfunc(binbb.center(), pile, item, norm);
+            double score = std::get<0>(result);
+
+            pile.emplace_back(item.transformedShape());
+            auto chull = ShapeLike::convexHull(pile);
+            pile.pop_back();
+
+            // If it does not fit into the print bed we will beat it with a
+            // large penality. If we would not do this, there would be only one
+            // big pile that doesn't care whether it fits onto the print bed.
+            if(!Placer::wouldFit(chull, bin)) score += norm;
+
+            return score;
+        };
+
+        pck_.configure(pconf_);
+    }
+};
+
+template<> // Specialization with no bin
+class AutoArranger<bool>: public _ArrBase<Box> {
+public:
+
+    AutoArranger(Distance dist, std::function<void(unsigned)> progressind):
+        _ArrBase<Box>(Box(0, 0), dist, progressind)
+    {
+        this->pconf_.object_function = [] (
+                    Pile& pile,
+                    const Item &item,
+                    double /*area*/,
+                    double norm,
+                    double /*penality*/) {
+
+            auto result = objfunc({0, 0}, pile, item, norm);
+            return std::get<0>(result);
+        };
+
+        this->pck_.configure(pconf_);
+    }
+};
+
 // A container which stores a pointer to the 3D object and its projected
 // 2D shape from top view.
 using ShapeData2D =
@@ -147,6 +378,44 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
     return ret;
 }
 
+enum BedShapeHint {
+    BOX,
+    CIRCLE,
+    IRREGULAR,
+    WHO_KNOWS
+};
+
+BedShapeHint bedShape(const Slic3r::Polyline& /*bed*/) {
+    // Determine the bed shape by hand
+    return BOX;
+}
+
+void applyResult(
+        IndexedPackGroup::value_type& group,
+        Coord batch_offset,
+        ShapeData2D& shapemap)
+{
+    for(auto& r : group) {
+        auto idx = r.first;     // get the original item index
+        Item& item = r.second;  // get the item itself
+
+        // Get the model instance from the shapemap using the index
+        ModelInstance *inst_ptr = shapemap[idx].first;
+
+        // Get the tranformation data from the item object and scale it
+        // appropriately
+        auto off = item.translation();
+        Radians rot = item.rotation();
+        Pointf foff(off.X*SCALING_FACTOR + batch_offset,
+                    off.Y*SCALING_FACTOR);
+
+        // write the tranformation data into the model instance
+        inst_ptr->rotation = rot;
+        inst_ptr->offset = foff;
+    }
+}
+
+
 /**
  * \brief Arranges the model objects on the screen.
  *
@@ -170,7 +439,9 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
  * bed or leave them untouched (let the user arrange them by hand or remove
  * them).
  */
-bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
+bool arrange(Model &model, coordf_t min_obj_distance,
+             const Slic3r::Polyline& bed,
+             BedShapeHint bedhint,
              bool first_bin_only,
              std::function<void(unsigned)> progressind)
 {
@@ -178,215 +449,74 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
 
     bool ret = true;
 
-    // Create the arranger config
-    auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
-
     // Get the 2D projected shapes with their 3D model instance pointers
     auto shapemap = arr::projectModelFromTop(model);
-
-    bool hasbin = bb != nullptr && bb->defined;
-    double area_max = 0;
 
     // Copy the references for the shapes only as the arranger expects a
     // sequence of objects convertible to Item or ClipperPolygon
     std::vector<std::reference_wrapper<Item>> shapes;
     shapes.reserve(shapemap.size());
     std::for_each(shapemap.begin(), shapemap.end(),
-                  [&shapes, min_obj_distance, &area_max, hasbin]
-                  (ShapeData2D::value_type& it)
+                  [&shapes] (ShapeData2D::value_type& it)
     {
         shapes.push_back(std::ref(it.second));
     });
 
-    Box bin;
+    IndexedPackGroup result;
+    BoundingBox bbb(bed.points);
 
-    if(hasbin) {
-        // Scale up the bounding box to clipper scale.
-        BoundingBoxf bbb = *bb;
-        bbb.scale(1.0/SCALING_FACTOR);
+    auto binbb = Box({
+                         static_cast<libnest2d::Coord>(bbb.min.x),
+                         static_cast<libnest2d::Coord>(bbb.min.y)
+                     },
+                     {
+                         static_cast<libnest2d::Coord>(bbb.max.x),
+                         static_cast<libnest2d::Coord>(bbb.max.y)
+                     });
 
-        bin = Box({
-                    static_cast<libnest2d::Coord>(bbb.min.x),
-                    static_cast<libnest2d::Coord>(bbb.min.y)
-                },
-                {
-                    static_cast<libnest2d::Coord>(bbb.max.x),
-                    static_cast<libnest2d::Coord>(bbb.max.y)
-                });
+    switch(bedhint) {
+    case BOX: {
+
+        // Create the arranger for the box shaped bed
+        AutoArranger<Box> arrange(binbb, min_obj_distance, progressind);
+
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
+        break;
     }
+    case CIRCLE:
+        break;
+    case IRREGULAR:
+    case WHO_KNOWS: {
+        using P = libnest2d::PolygonImpl;
 
-    // Will use the DJD selection heuristic with the BottomLeft placement
-    // strategy
-    using Arranger = Arranger<NfpPlacer, FirstFitSelection>;
-    using PConf = Arranger::PlacementConfig;
-    using SConf = Arranger::SelectionConfig;
+        auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
+        P irrbed = ShapeLike::create<PolygonImpl>(std::move(ctour));
 
-    PConf pcfg;     // Placement configuration
-    SConf scfg;     // Selection configuration
+        std::cout << ShapeLike::toString(irrbed) << std::endl;
 
-    // Align the arranged pile into the center of the bin
-    pcfg.alignment = PConf::Alignment::CENTER;
+        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind);
 
-    // Start placing the items from the center of the print bed
-    pcfg.starting_point = PConf::Alignment::CENTER;
-
-    // TODO cannot use rotations until multiple objects of same geometry can
-    // handle different rotations
-    // arranger.useMinimumBoundigBoxRotation();
-    pcfg.rotations = { 0.0 };
-
-    // The accuracy of optimization. Goes from 0.0 to 1.0 and scales performance
-    pcfg.accuracy = 0.4f;
-
-    // Magic: we will specify what is the goal of arrangement... In this case
-    // we override the default object function to make the larger items go into
-    // the center of the pile and smaller items orbit it so the resulting pile
-    // has a circle-like shape. This is good for the print bed's heat profile.
-    // We alse sacrafice a bit of pack efficiency for this to work. As a side
-    // effect, the arrange procedure is a lot faster (we do not need to
-    // calculate the convex hulls)
-    pcfg.object_function = [bin, hasbin](
-            NfpPlacer::Pile& pile,   // The currently arranged pile
-            const Item &item,
-            double /*area*/,        // Sum area of items (not needed)
-            double norm,            // A norming factor for physical dimensions
-            double penality)        // Min penality in case of bad arrangement
-    {
-        using pl = PointLike;
-
-        static const double BIG_ITEM_TRESHOLD = 0.2;
-        static const double GRAVITY_RATIO = 0.5;
-        static const double DENSITY_RATIO = 1.0 - GRAVITY_RATIO;
-
-        // We will treat big items (compared to the print bed) differently
-        NfpPlacer::Pile bigs;
-        bigs.reserve(pile.size());
-        for(auto& p : pile) {
-            auto pbb = ShapeLike::boundingBox(p);
-            auto na = std::sqrt(pbb.width()*pbb.height())/norm;
-            if(na > BIG_ITEM_TRESHOLD) bigs.emplace_back(p);
-        }
-
-        // Candidate item bounding box
-        auto ibb = item.boundingBox();
-
-        // Calculate the full bounding box of the pile with the candidate item
-        pile.emplace_back(item.transformedShape());
-        auto fullbb = ShapeLike::boundingBox(pile);
-        pile.pop_back();
-
-        // The bounding box of the big items (they will accumulate in the center
-        // of the pile
-        auto bigbb = bigs.empty()? fullbb : ShapeLike::boundingBox(bigs);
-
-        // The size indicator of the candidate item. This is not the area,
-        // but almost...
-        auto itemnormarea = std::sqrt(ibb.width()*ibb.height())/norm;
-
-        // Will hold the resulting score
-        double score = 0;
-
-        if(itemnormarea > BIG_ITEM_TRESHOLD) {
-            // This branch is for the bigger items..
-            // Here we will use the closest point of the item bounding box to
-            // the already arranged pile. So not the bb center nor the a choosen
-            // corner but whichever is the closest to the center. This will
-            // prevent unwanted strange arrangements.
-
-            auto minc = ibb.minCorner(); // bottom left corner
-            auto maxc = ibb.maxCorner(); // top right corner
-
-            // top left and bottom right corners
-            auto top_left = PointImpl{getX(minc), getY(maxc)};
-            auto bottom_right = PointImpl{getX(maxc), getY(minc)};
-
-            auto cc = fullbb.center(); // The gravity center
-
-            // Now the distnce of the gravity center will be calculated to the
-            // five anchor points and the smallest will be chosen.
-            std::array<double, 5> dists;
-            dists[0] = pl::distance(minc, cc);
-            dists[1] = pl::distance(maxc, cc);
-            dists[2] = pl::distance(ibb.center(), cc);
-            dists[3] = pl::distance(top_left, cc);
-            dists[4] = pl::distance(bottom_right, cc);
-
-            auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
-
-            // Density is the pack density: how big is the arranged pile
-            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
-
-            // The score is a weighted sum of the distance from pile center
-            // and the pile size
-            score = GRAVITY_RATIO * dist + DENSITY_RATIO * density;
-
-        } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
-            // If there are no big items, only small, we should consider the
-            // density here as well to not get silly results
-            auto bindist = pl::distance(ibb.center(), bin.center()) / norm;
-            auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
-            score = GRAVITY_RATIO * bindist + DENSITY_RATIO * density;
-        } else {
-            // Here there are the small items that should be placed around the
-            // already processed bigger items.
-            // No need to play around with the anchor points, the center will be
-            // just fine for small items
-            score = pl::distance(ibb.center(), bigbb.center()) / norm;
-        }
-
-        // If it does not fit into the print bed we will beat it
-        // with a large penality. If we would not do this, there would be only
-        // one big pile that doesn't care whether it fits onto the print bed.
-        if(!NfpPlacer::wouldFit(fullbb, bin)) score = 2*penality - score;
-
-        return score;
-    };
-
-    // Create the arranger object
-    Arranger arranger(bin, min_obj_distance, pcfg, scfg);
-
-    // Set the progress indicator for the arranger.
-    arranger.progressIndicator(progressind);
-
-    // Arrange and return the items with their respective indices within the
-    // input sequence.
-    auto result = arranger.arrangeIndexed(shapes.begin(), shapes.end());
-
-    auto applyResult = [&shapemap](ArrangeResult::value_type& group,
-            Coord batch_offset)
-    {
-        for(auto& r : group) {
-            auto idx = r.first;     // get the original item index
-            Item& item = r.second;  // get the item itself
-
-            // Get the model instance from the shapemap using the index
-            ModelInstance *inst_ptr = shapemap[idx].first;
-
-            // Get the tranformation data from the item object and scale it
-            // appropriately
-            auto off = item.translation();
-            Radians rot = item.rotation();
-            Pointf foff(off.X*SCALING_FACTOR + batch_offset,
-                        off.Y*SCALING_FACTOR);
-
-            // write the tranformation data into the model instance
-            inst_ptr->rotation = rot;
-            inst_ptr->offset = foff;
-        }
+        // Arrange and return the items with their respective indices within the
+        // input sequence.
+        result = arrange(shapes.begin(), shapes.end());
+        break;
+    }
     };
 
     if(first_bin_only) {
-        applyResult(result.front(), 0);
+        applyResult(result.front(), 0, shapemap);
     } else {
 
         const auto STRIDE_PADDING = 1.2;
 
         Coord stride = static_cast<Coord>(STRIDE_PADDING*
-                                          bin.width()*SCALING_FACTOR);
+                                          binbb.width()*SCALING_FACTOR);
         Coord batch_offset = 0;
 
         for(auto& group : result) {
-            applyResult(group, batch_offset);
+            applyResult(group, batch_offset, shapemap);
 
             // Only the first pack group can be placed onto the print bed. The
             // other objects which could not fit will be placed next to the
