@@ -95,12 +95,16 @@ void toSVG(SVG& svg, const Model& model) {
 
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
+        double bin_area,
         ShapeLike::Shapes<PolygonImpl>& pile,   // The currently arranged pile
+        double pile_area,
         const Item &item,
-        double norm            // A norming factor for physical dimensions
+        double norm,            // A norming factor for physical dimensions
+        std::vector<double>& areacache
         )
 {
     using pl = PointLike;
+    using sl = ShapeLike;
 
     static const double BIG_ITEM_TRESHOLD = 0.2;
     static const double ROUNDNESS_RATIO = 0.5;
@@ -109,10 +113,14 @@ objfunc(const PointImpl& bincenter,
     // We will treat big items (compared to the print bed) differently
     NfpPlacer::Pile bigs;
     bigs.reserve(pile.size());
+
+    int idx = 0;
+    if(pile.size() < areacache.size()) areacache.clear();
     for(auto& p : pile) {
-        auto pbb = ShapeLike::boundingBox(p);
-        auto na = std::sqrt(pbb.width()*pbb.height())/norm;
-        if(na > BIG_ITEM_TRESHOLD) bigs.emplace_back(p);
+        if(idx == areacache.size()) areacache.emplace_back(sl::area(p));
+        if(std::sqrt(areacache[idx])/norm > BIG_ITEM_TRESHOLD)
+            bigs.emplace_back(p);
+        idx++;
     }
 
     // Candidate item bounding box
@@ -166,9 +174,28 @@ objfunc(const PointImpl& bincenter,
         // Density is the pack density: how big is the arranged pile
         auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
 
-        // The score is a weighted sum of the distance from pile center
-        // and the pile size
-        score = ROUNDNESS_RATIO * dist + DENSITY_RATIO * density;
+        auto alignment_score = std::numeric_limits<double>::max();
+
+        auto& trsh =  item.transformedShape();
+
+        idx = 0;
+        for(auto& p : pile) {
+
+            auto parea = areacache[idx];
+            if(std::sqrt(parea)/norm > BIG_ITEM_TRESHOLD) {
+                auto chull = sl::convexHull(sl::Shapes<PolygonImpl>{p, trsh});
+                auto carea = sl::area(chull);
+
+                auto ascore = carea - (item.area() + parea);
+                ascore = std::sqrt(ascore) / norm;
+
+                if(ascore < alignment_score) alignment_score = ascore;
+            }
+            idx++;
+        }
+
+        auto C = 0.33;
+        score = C * dist +  C * density + C * alignment_score;
 
     } else if(itemnormarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
         // If there are no big items, only small, we should consider the
@@ -203,7 +230,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.35f;
+    pcfg.accuracy = 0.4f;
 }
 
 template<class TBin>
@@ -221,18 +248,20 @@ protected:
 
     Packer pck_;
     PConfig pconf_; // Placement configuration
-
+    double bin_area_;
+    std::vector<double> areacache_;
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
              std::function<void(unsigned)> progressind):
-       pck_(bin, dist)
+       pck_(bin, dist), bin_area_(ShapeLike::area<PolygonImpl>(bin))
     {
         fillConfig(pconf_);
         pck_.progressIndicator(progressind);
     }
 
     template<class...Args> inline IndexedPackGroup operator()(Args&&...args) {
+        areacache_.clear();
         return pck_.arrangeIndexed(std::forward<Args>(args)...);
     }
 };
@@ -245,14 +274,15 @@ public:
                  std::function<void(unsigned)> progressind):
         _ArrBase<Box>(bin, dist, progressind)
     {
-        pconf_.object_function = [bin] (
+        pconf_.object_function = [this, bin] (
                     Pile& pile,
                     const Item &item,
-                    double /*occupied_area*/,
+                    double pile_area,
                     double norm,
-                    double penality) {
+                    double /*penality*/) {
 
-            auto result = objfunc(bin.center(), pile, item, norm);
+            auto result = objfunc(bin.center(), bin_area_, pile,
+                                  pile_area, item, norm, areacache_);
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
 
@@ -275,15 +305,16 @@ public:
                  std::function<void(unsigned)> progressind):
         _ArrBase<PolygonImpl>(bin, dist, progressind)
     {
-        pconf_.object_function = [&bin] (
+        pconf_.object_function = [this, &bin] (
                     Pile& pile,
                     const Item &item,
-                    double /*area*/,
+                    double pile_area,
                     double norm,
                     double /*penality*/) {
 
             auto binbb = ShapeLike::boundingBox(bin);
-            auto result = objfunc(binbb.center(), pile, item, norm);
+            auto result = objfunc(binbb.center(), bin_area_, pile,
+                                  pile_area, item, norm, areacache_);
             double score = std::get<0>(result);
 
             pile.emplace_back(item.transformedShape());
@@ -309,14 +340,15 @@ public:
     AutoArranger(Distance dist, std::function<void(unsigned)> progressind):
         _ArrBase<Box>(Box(0, 0), dist, progressind)
     {
-        this->pconf_.object_function = [] (
+        this->pconf_.object_function = [this] (
                     Pile& pile,
                     const Item &item,
-                    double /*area*/,
+                    double pile_area,
                     double norm,
                     double /*penality*/) {
 
-            auto result = objfunc({0, 0}, pile, item, norm);
+            auto result = objfunc({0, 0}, 0, pile, pile_area,
+                                  item, norm, areacache_);
             return std::get<0>(result);
         };
 

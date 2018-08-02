@@ -590,7 +590,8 @@ public:
                 [this, &merged_pile](
                             Nfp::Shapes<RawShape>& /*pile*/,
                             const Item& item,
-                            double occupied_area, double norm,
+                            double occupied_area,
+                            double norm,
                             double /*penality*/)
                 {
                     merged_pile.emplace_back(item.transformedShape());

@@ -314,8 +314,8 @@ inline RawPoint _Box<RawPoint>::center() const BP2D_NOEXCEPT {
     using Coord = TCoord<RawPoint>;
 
     RawPoint ret =  {
-        static_cast<Coord>( (getX(minc) + getX(maxc))/2.0 ),
-        static_cast<Coord>( (getY(minc) + getY(maxc))/2.0 )
+        static_cast<Coord>( std::round((getX(minc) + getX(maxc))/2.0) ),
+        static_cast<Coord>( std::round((getY(minc) + getY(maxc))/2.0) )
     };
 
     return ret;
