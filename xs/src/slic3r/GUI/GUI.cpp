@@ -903,6 +903,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
                     std::vector<float> extruders = dlg.get_extruders();
                     (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
                     (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
+                    g_on_request_update_callback.call();
                 }
 			}));
 			return sizer;
@@ -919,6 +920,10 @@ ConfigOptionsGroup* get_optgroup()
 	return m_optgroup.get();
 }
 
+void register_on_request_update_callback(void* callback) {
+    if (callback != nullptr)
+        g_on_request_update_callback.register_callback(callback);
+}
 
 wxButton* get_wiping_dialog_button()
 {
