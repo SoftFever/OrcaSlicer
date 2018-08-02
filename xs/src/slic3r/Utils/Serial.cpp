@@ -373,7 +373,7 @@ void Serial::set_DTR(bool on)
 void Serial::reset_line_num()
 {
 	// See https://github.com/MarlinFirmware/Marlin/wiki/M110
-	printer_write_line("M110 N0", 0);
+	write_string("M110 N0\n");
 	m_line_num = 0;
 }
 
@@ -390,9 +390,9 @@ bool Serial::read_line(unsigned timeout, std::string &line, error_code &ec)
 		asio::async_read(*this, boost::asio::buffer(&c, 1), [&](const error_code &read_ec, size_t size) {
 			if (ec || size == 0) {
 				fail = true;
-				ec = read_ec;
+				ec = read_ec;   // FIXME: only if operation not aborted
 			}
-			timer.cancel();
+			timer.cancel();   // FIXME: ditto
 		});
 
 		if (timeout > 0) {
@@ -444,6 +444,7 @@ bool Serial::printer_ready_wait(unsigned retries, unsigned timeout)
 			}
 			line.clear();
 		}
+
 		line.clear();
 	}
 
@@ -469,7 +470,7 @@ void Serial::printer_reset()
 	this->set_DTR(true);
 	std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	this->set_DTR(false);
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
 std::string Serial::printer_format_line(const std::string &line, unsigned line_num)

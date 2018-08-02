@@ -35,8 +35,9 @@ struct AvrDude::priv
 {
 	std::string sys_config;
 	std::deque<std::vector<std::string>> args;
-	size_t current_args_set = 0;
 	bool cancelled = false;
+	int exit_code = 0;
+	size_t current_args_set = 0;
 	RunFn run_fn;
 	MessageFn message_fn;
 	ProgressFn progress_fn;
@@ -146,15 +147,15 @@ AvrDude::Ptr AvrDude::run()
 			int res = -1;
 
 			if (self->p->run_fn) {
-				self->p->run_fn(*self);
+				self->p->run_fn();
 			}
 
 			if (! self->p->cancelled) {
-				res = self->p->run();
+				self->p->exit_code = self->p->run();
 			}
 
 			if (self->p->complete_fn) {
-				self->p->complete_fn(res, self->p->current_args_set);
+				self->p->complete_fn();
 			}
 		});
 
@@ -177,6 +178,21 @@ void AvrDude::join()
 	if (p && p->avrdude_thread.joinable()) {
 		p->avrdude_thread.join();
 	}
+}
+
+bool AvrDude::cancelled()
+{
+	return p ? p->cancelled : false;
+}
+
+int AvrDude::exit_code()
+{
+	return p ? p->exit_code : 0;
+}
+
+size_t AvrDude::last_args_set()
+{
+	return p ? p->current_args_set : 0;
 }
 
 

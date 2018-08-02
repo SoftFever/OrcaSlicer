@@ -1623,6 +1623,12 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "single-extruder-multi-material!";
 	def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("single_extruder_multi_material_priming", coBool);
+    def->label = L("Prime all printing extruders");
+    def->tooltip = L("If enabled, all printing extruders will be primed at the front edge of the print bed at the start of the print.");
+    def->cli = "single-extruder-multi-material-priming!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("support_material", coBool);
     def->label = L("Generate support material");
     def->category = L("Support material");
