@@ -532,6 +532,7 @@ public:
     ConfigOptionFloats              filament_toolchange_delay;
     ConfigOptionInts                filament_cooling_moves;
     ConfigOptionFloats              filament_cooling_initial_speed;
+    ConfigOptionFloats              filament_minimal_purge_on_wipe_tower;
     ConfigOptionFloats              filament_cooling_final_speed;
     ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
@@ -594,6 +595,7 @@ protected:
         OPT_PTR(filament_toolchange_delay);
         OPT_PTR(filament_cooling_moves);
         OPT_PTR(filament_cooling_initial_speed);
+        OPT_PTR(filament_minimal_purge_on_wipe_tower);
         OPT_PTR(filament_cooling_final_speed);
         OPT_PTR(filament_ramming_parameters);
         OPT_PTR(gcode_comments);
