@@ -209,19 +209,10 @@ void Preset::normalize(DynamicPrintConfig &config)
     }
 }
 
-// Load a config file, return a C++ class Slic3r::DynamicPrintConfig with $keys initialized from the config file.
-// In case of a "default" config item, return the default values.
-DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys, Preset::Type& type)
+DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys, const StaticPrintConfig &defaults)
 {
     // Set the configuration from the defaults.
-    if (type == TYPE_SLA_MATERIAL) {
-        Slic3r::SLAFullPrintConfig defaults;
-        this->config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
-    }
-    else {
-        Slic3r::FullPrintConfig defaults;
-        this->config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
-    }
+    this->config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
     if (! this->is_default) {
         // Load the preset file, apply preset values on top of defaults.
         try {
@@ -402,7 +393,7 @@ const std::vector<std::string>& Preset::sla_material_options()
     return s_opts;
 }
 
-PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const std::string &default_name) :
+PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name) :
     m_type(type),
     m_edited_preset(type, "", false),
     m_idx_selected(0),
@@ -410,8 +401,7 @@ PresetCollection::PresetCollection(Preset::Type type, const std::vector<std::str
 	m_bitmap_cache(new GUI::BitmapCache)
 {
     // Insert just the default preset.
-    this->add_default_preset(keys, default_name);
-    m_presets.front().load(keys, m_type);
+    this->add_default_preset(keys, defaults, default_name);
     m_edited_preset.config.apply(m_presets.front().config);
 }
 
@@ -438,11 +428,11 @@ void PresetCollection::reset(bool delete_files)
     }
 }
 
-void PresetCollection::add_default_preset(const std::vector<std::string> &keys, const std::string &preset_name)
+void PresetCollection::add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name)
 {
     // Insert just the default preset.
     m_presets.emplace_back(Preset(this->type(), preset_name, true));
-    m_presets.back().load(keys, m_type);
+    m_presets.back().load(keys, defaults);
     ++ m_num_default_presets;
 }
 
@@ -468,7 +458,8 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             try {
                 Preset preset(m_type, name, false);
                 preset.file = dir_entry.path().string();
-                preset.load(keys, m_type);
+                //FIXME One should initialize with SLAFullPrintConfig for the SLA profiles!
+                preset.load(keys, static_cast<const HostConfig&>(FullPrintConfig::defaults()));
                 m_presets.emplace_back(preset);
             } catch (const std::runtime_error &err) {
                 errors_cummulative += err.what();

@@ -125,8 +125,7 @@ public:
     DynamicPrintConfig  config;
 
     // Load this profile for the following keys only.
-    // Throws std::runtime_error in case the file cannot be read.
-    DynamicPrintConfig& load(const std::vector<std::string> &keys, Preset::Type& type);
+    DynamicPrintConfig& load(const std::vector<std::string> &keys, const StaticPrintConfig &defaults);
 
     void                save();
 
@@ -194,7 +193,7 @@ class PresetCollection
 {
 public:
     // Initialize the PresetCollection with the "- default -" preset.
-    PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const std::string &default_name = "- default -");
+    PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name = "- default -");
     ~PresetCollection();
 
     typedef std::deque<Preset>::iterator Iterator;
@@ -211,7 +210,7 @@ public:
     const std::deque<Preset>& operator()() const { return m_presets; }
 
     // Add default preset at the start of the collection, increment the m_default_preset counter.
-    void            add_default_preset(const std::vector<std::string> &keys, const std::string &preset_name);
+    void            add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name);
 
     // Load ini files of the particular type from the provided directory path.
     void            load_presets(const std::string &dir_path, const std::string &subdir);

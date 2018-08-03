@@ -40,10 +40,10 @@ static std::vector<std::string> s_project_options {
 };
 
 PresetBundle::PresetBundle() :
-    prints(Preset::TYPE_PRINT, Preset::print_options()), 
-    filaments(Preset::TYPE_FILAMENT, Preset::filament_options()), 
-    sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options()), 
-    printers(Preset::TYPE_PRINTER, Preset::printer_options(), "- default FFF -"),
+    prints(Preset::TYPE_PRINT, Preset::print_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
+    filaments(Preset::TYPE_FILAMENT, Preset::filament_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults())), 
+    sla_materials(Preset::TYPE_SLA_MATERIAL, Preset::sla_material_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults())), 
+    printers(Preset::TYPE_PRINTER, Preset::printer_options(), static_cast<const HostConfig&>(FullPrintConfig::defaults()), "- default FFF -"),
     m_bitmapCompatible(new wxBitmap),
     m_bitmapIncompatible(new wxBitmap),
     m_bitmapLock(new wxBitmap),
@@ -74,7 +74,7 @@ PresetBundle::PresetBundle() :
     this->sla_materials.default_preset().compatible_printers_condition();
     this->sla_materials.default_preset().inherits();
 
-    this->printers.add_default_preset(Preset::sla_printer_options(), "- default SLA -");
+    this->printers.add_default_preset(Preset::sla_printer_options(), static_cast<const SLAMaterialConfig&>(SLAFullPrintConfig::defaults()), "- default SLA -");
     this->printers.preset(1).printer_technology() = ptSLA;
     for (size_t i = 0; i < 2; ++ i) {
         Preset &preset = this->printers.preset(i);
@@ -419,7 +419,7 @@ DynamicPrintConfig PresetBundle::full_config() const
 DynamicPrintConfig PresetBundle::full_fff_config() const
 {    
     DynamicPrintConfig out;
-    out.apply(FullPrintConfig());
+    out.apply(FullPrintConfig::defaults());
     out.apply(this->prints.get_edited_preset().config);
     // Add the default filament preset to have the "filament_preset_id" defined.
 	out.apply(this->filaments.default_preset().config);
@@ -514,7 +514,7 @@ DynamicPrintConfig PresetBundle::full_fff_config() const
 DynamicPrintConfig PresetBundle::full_sla_config() const
 {    
     DynamicPrintConfig out;
-    out.apply(SLAFullPrintConfig());
+    out.apply(SLAFullPrintConfig::defaults());
     out.apply(this->sla_materials.get_edited_preset().config);
     out.apply(this->printers.get_edited_preset().config);
     // There are no project configuration values as of now, the project_config is reserved for FFF printers.
