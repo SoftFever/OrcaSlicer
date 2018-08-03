@@ -658,8 +658,8 @@ int GLVolumeCollection::load_wipe_tower_preview(
 
     // In case we don't know precise dimensions of the wipe tower yet, we'll draw the box with different color with one side jagged:
     if (size_unknown) {
-        color[0] = 1.f;
-        color[1] = 0.f;
+        color[0] = 0.9f;
+        color[1] = 0.6f;
 
         depth = std::max(depth, 10.f); // Too narrow tower would interfere with the teeth. The estimate is not precise anyway.
         float min_width = 30.f;
