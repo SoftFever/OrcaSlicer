@@ -102,6 +102,8 @@ public:
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
 
+    float get_depth() const { return m_wipe_tower_depth; }
+
 
 
 	// Switch to a next layer.
@@ -189,6 +191,7 @@ private:
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
 	float  m_wipe_tower_rotation_angle = 0.f; // Wipe tower rotation angle in degrees (with respect to x axis)
+    float  m_internal_rotation  = 0.f;
 	float  m_y_shift			= 0.f;  // y shift passed to writer
 	float  m_z_pos 				= 0.f;  // Current Z position.
 	float  m_layer_height 		= 0.f; 	// Current layer height.
