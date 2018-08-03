@@ -213,6 +213,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_unloading_speed"
             || opt_key == "filament_toolchange_delay"
             || opt_key == "filament_cooling_moves"
+            || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_cooling_initial_speed"
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
@@ -1152,12 +1153,19 @@ void Print::_make_wipe_tower()
             wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id,false);
             for (const auto extruder_id : layer_tools.extruders) {
                 if ((first_layer && extruder_id == m_tool_ordering.all_extruders().back()) || extruder_id != current_extruder_id) {
-                    float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];    // total volume to wipe after this toolchange
+                    float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];             // total volume to wipe after this toolchange
+                    // Not all of that can be used for infill purging:
+                    volume_to_wipe -= config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
                     // try to assign some infills/objects for the wiping:
-                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
+                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_wipe);
 
-                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
+                    // add back the minimal amount toforce on the wipe tower:
+                    volume_to_wipe += config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+
+                    // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
+                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id,
+                                               first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
                 }
             }

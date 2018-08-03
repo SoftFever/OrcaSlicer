@@ -1296,6 +1296,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_moves");
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
+        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
