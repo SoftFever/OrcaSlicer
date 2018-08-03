@@ -288,6 +288,7 @@ const PrintConfig &PrintController::config() const
     return print_->config;
 }
 
+
 void AppController::arrange_model()
 {
     auto ftr = std::async(
@@ -324,10 +325,14 @@ void AppController::arrange_model()
         if(pind) pind->update(0, _(L("Arranging objects...")));
 
         try {
+            arr::BedShapeHint hint;
+            // TODO: from Sasha from GUI
+            hint.type = arr::BedShapeType::WHO_KNOWS;
+
             arr::arrange(*model_,
                          min_obj_distance,
                          bed,
-                         arr::BOX,
+                         hint,
                          false, // create many piles not just one pile
                          [pind, count](unsigned rem) {
                 if(pind)
