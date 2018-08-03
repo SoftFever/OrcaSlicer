@@ -214,7 +214,7 @@ void Tab::load_initial_data()
 	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
 }
 
-PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages/* = false*/)
+Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages /*= false*/)
 {
 	// Index of icon in an icon list $self->{icons}.
 	auto icon_idx = 0;
@@ -238,8 +238,10 @@ PageShp Tab::add_options_page(const wxString& title, const std::string& icon, bo
 	page->SetScrollbars(1, 1, 1, 1);
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
+
+    std::vector<PageShp> & pages = name() != "printer" ? m_pages : *static_cast<TabPrinter*>(this)->m_current_pages;
 	if (!is_extruder_pages) 
-		m_pages.push_back(page);
+		pages.push_back(page);
 
 	page->set_config(m_config);
 	return page;
@@ -677,6 +679,36 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 	update();
 }
 
+
+void Tab::add_xyz_options_with_legend(ConfigOptionsGroupShp& optgroup, std::vector<std::string>& options)
+{
+    // Legend for OptionsGroups
+    optgroup->set_show_modified_btns_val(false);
+    optgroup->label_width = 230;
+    auto line = Line{ "", "" };
+
+    ConfigOptionDef def;
+    def.type = coString;
+    def.width = 150;
+    def.gui_type = "legend";
+
+    std::vector<std::string> axes{ "X", "Y", "Z" };
+    for (auto& axis : axes)		{
+        def.tooltip = L("Values in this column are for ") + axis + L(" axis");
+        def.default_value = new ConfigOptionString{ axis };
+        std::string opt_key = axis + "_power_legend";
+        auto option = Option(def, opt_key);
+        line.append_option(option);
+    }
+    optgroup->append_line(line);
+
+    for (auto& opt_key : options){
+        line = Line{ m_config->def()->get(opt_key)->full_label, "" };
+        for (int id = 0; id < 3; ++id)
+            line.append_option(optgroup->get_option(opt_key, id));
+        optgroup->append_line(line);
+    }
+}
 
 // Show/hide the 'purging volumes' button
 void Tab::update_wiping_button_visibility() {
@@ -1407,6 +1439,8 @@ void TabPrinter::build()
 	m_presets = &m_preset_bundle->printers;
 	load_initial_data();
 
+    m_current_pages = &m_pages;
+
 	// to avoid redundant memory allocation / deallocation during extruders count changing
 	m_pages.reserve(30);
 
@@ -1685,6 +1719,72 @@ void TabPrinter::build()
 
 	if (!m_no_controller)
 		update_serial_ports();
+
+//     build_sla();
+}
+
+void TabPrinter::build_sla()
+{
+    m_presets = &m_preset_bundle->printers;
+    load_initial_data();
+
+    m_current_pages = &m_sla_pages;
+
+    auto page = add_options_page(_(L("General")), "printer_empty.png");
+    auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
+
+    Line line{ _(L("Bed shape")), "" };
+    line.widget = [this](wxWindow* parent){
+        auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
+        //			btn->SetFont(Slic3r::GUI::small_font);
+        btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
+
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(btn);
+
+        btn->Bind(wxEVT_BUTTON, ([this](wxCommandEvent e)
+        {
+            auto dlg = new BedShapeDialog(this);
+            dlg->build_dialog(m_config->option<ConfigOptionPoints>("bed_shape"));
+            if (dlg->ShowModal() == wxID_OK){
+                load_key_value("bed_shape", dlg->GetValue());
+                update_changed_ui();
+            }
+        }));
+
+        return sizer;
+    };
+    optgroup->append_line(line, &m_colored_Label);
+    optgroup->append_single_option_line("max_print_height");
+
+    optgroup = page->new_optgroup(_(L("Display")));
+    optgroup->append_single_option_line("display_width");
+    optgroup->append_single_option_line("display_height");
+
+    line = { _(L("Number of pixels in axes")), "" };
+    line.append_option(optgroup->get_option("display_pixels_x"));
+    line.append_option(optgroup->get_option("display_pixels_y"));
+    optgroup->append_line(line);
+
+    optgroup = page->new_optgroup(_(L("Corrections")));
+    std::vector<std::string> corrections = { "printer_correction" };
+    add_xyz_options_with_legend(optgroup, corrections);
+
+    page = add_options_page(_(L("Notes")), "note.png");
+    optgroup = page->new_optgroup(_(L("Notes")), 0);
+    auto option = optgroup->get_option("printer_notes");
+    option.opt.full_width = true;
+    option.opt.height = 250;
+    optgroup->append_single_option_line(option);
+
+    page = add_options_page(_(L("Dependencies")), "wrench.png");
+    optgroup = page->new_optgroup(_(L("Profile dependencies")));
+    line = Line{ "", "" };
+    line.full_width = 1;
+    line.widget = [this](wxWindow* parent) {
+        return description_line_widget(parent, &m_parent_preset_description_line);
+    };
+    optgroup->append_line(line);
 }
 
 void TabPrinter::update_serial_ports(){
@@ -2170,9 +2270,11 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	wxWindowUpdateLocker noUpdates(this);
 #endif
 
+    std::vector<PageShp> & pages = name() != "printer" ? m_pages : *static_cast<TabPrinter*>(this)->m_current_pages;
+
 	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
-	for (auto p : m_pages)
+	for (auto p : pages)
 		if (p->title() == selection)
 		{
 			page = p.get();
@@ -2182,7 +2284,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 		}
 	if (page == nullptr) return;
 
-	for (auto& el : m_pages)
+	for (auto& el : pages)
 		el.get()->Hide();
 
 #ifdef __linux__
@@ -2766,15 +2868,6 @@ void TabSLAMaterial::build()
 
     auto page = add_options_page(_(L("General")), "spool.png");
 
-/*    auto optgroup = page->new_optgroup(_(L("Display")));
-    optgroup->append_single_option_line("display_width");
-    optgroup->append_single_option_line("display_height");
-
-	Line line = { _(L("Number of pixels in axes")), "" };
-	line.append_option(optgroup->get_option("display_pixels_x"));
-	line.append_option(optgroup->get_option("display_pixels_y"));
-	optgroup->append_line(line);
-*/
     auto optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("layer_height");
     optgroup->append_single_option_line("initial_layer_height");
@@ -2784,33 +2877,8 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    // Legend for OptionsGroups
-    optgroup->set_show_modified_btns_val(false);
-    optgroup->label_width = 230;
-    auto line = Line{ "", "" };
-
-    ConfigOptionDef def;
-    def.type = coString;
-    def.width = 150;
-    def.gui_type = "legend";
-
-    std::vector<std::string> axes{ "X", "Y", "Z" };
-    for (auto& axis : axes)		{
-        def.tooltip = L("Values in this column are for ") + axis + L(" axis");
-        def.default_value = new ConfigOptionString{ axis };
-        std::string opt_key = axis + "power_legend";
-        auto option = Option(def, opt_key);
-        line.append_option(option);
-    }
-    optgroup->append_line(line);
-
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
-    for (auto& opt_key : corrections){
-        line = Line{ m_config->def()->get(opt_key)->full_label, "" };
-        for( int id = 0; id < 3; ++id)
-            line.append_option(optgroup->get_option(opt_key, id));
-        optgroup->append_line(line);
-    }
+    add_xyz_options_with_legend(optgroup, corrections);
 
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
@@ -2822,7 +2890,7 @@ void TabSLAMaterial::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    line = { _(L("Compatible printers")), "" };
+    auto line = Line { _(L("Compatible printers")), "" };
     line.widget = [this](wxWindow* parent){
         return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
     };

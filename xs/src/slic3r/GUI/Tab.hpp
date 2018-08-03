@@ -267,6 +267,9 @@ public:
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
+    void            add_xyz_options_with_legend(ConfigOptionsGroupShp& optgroup, 
+                                                std::vector<std::string>& options);
+
 protected:
 	void			on_presets_changed();
 	void			update_preset_description_line();
@@ -319,6 +322,8 @@ class TabPrinter : public Tab
 	bool		m_use_silent_mode = false;
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
 	bool		m_rebuild_kinematics_page = false;
+
+    std::vector<PageShp>			m_sla_pages;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
@@ -328,12 +333,15 @@ public:
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
 
+    std::vector<PageShp>			*m_current_pages;
+
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
 	~TabPrinter(){}
 
 	void		build() override;
-	void		update() override;
+    void		build_sla() ;
+    void		update() override;
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
