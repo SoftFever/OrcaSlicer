@@ -8,6 +8,8 @@
 #include <numeric>
 #include <ClipperUtils.hpp>
 
+#include <boost/geometry/index/rtree.hpp>
+
 namespace Slic3r {
 namespace arr {
 
@@ -93,6 +95,11 @@ void toSVG(SVG& svg, const Model& model) {
     }
 }
 
+namespace bgi = boost::geometry::index;
+
+using SpatElement = std::pair<Box, unsigned>;
+using SpatIndex = bgi::rtree< SpatElement, bgi::rstar<16, 4> >;
+
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
         double /*bin_area*/,
@@ -100,7 +107,9 @@ objfunc(const PointImpl& bincenter,
         double /*pile_area*/,
         const Item &item,
         double norm,            // A norming factor for physical dimensions
-        std::vector<double>& areacache
+        std::vector<double>& areacache, // pile item areas will be cached
+        // a spatial index to quickly get neighbors of the candidate item
+        SpatIndex& spatindex
         )
 {
     using pl = PointLike;
@@ -111,18 +120,23 @@ objfunc(const PointImpl& bincenter,
     static const double DENSITY_RATIO = 1.0 - ROUNDNESS_RATIO;
 
     // We will treat big items (compared to the print bed) differently
-    NfpPlacer::Pile bigs;
-    bigs.reserve(pile.size());
-
-    if(pile.size() < areacache.size()) areacache.clear();
-
     auto normarea = [norm](double area) { return std::sqrt(area)/norm; };
 
+    // If a new bin has been created:
+    if(pile.size() < areacache.size()) {
+        areacache.clear();
+        spatindex.clear();
+    }
+
+    // We must fill the caches:
     int idx = 0;
     for(auto& p : pile) {
-        if(idx == areacache.size()) areacache.emplace_back(sl::area(p));
-        if( normarea(areacache[idx]) > BIG_ITEM_TRESHOLD)
-            bigs.emplace_back(p);
+        if(idx == areacache.size()) {
+            areacache.emplace_back(sl::area(p));
+            if(normarea(areacache[idx]) > BIG_ITEM_TRESHOLD)
+                spatindex.insert({sl::boundingBox(p), idx});
+        }
+
         idx++;
     }
 
@@ -136,25 +150,26 @@ objfunc(const PointImpl& bincenter,
 
     // The bounding box of the big items (they will accumulate in the center
     // of the pile
-    auto bigbb = bigs.empty()? fullbb : ShapeLike::boundingBox(bigs);
+    Box bigbb;
+    if(spatindex.empty()) bigbb = fullbb;
+    else {
+        auto boostbb = spatindex.bounds();
+        boost::geometry::convert(boostbb, bigbb);
+    }
 
     // The size indicator of the candidate item. This is not the area,
     // but almost...
+    double item_normarea = normarea(item.area());
 
     // Will hold the resulting score
     double score = 0;
-
-    double item_normarea = normarea(item.area());
 
     if(item_normarea > BIG_ITEM_TRESHOLD) {
         // This branch is for the bigger items..
         // Here we will use the closest point of the item bounding box to
         // the already arranged pile. So not the bb center nor the a choosen
         // corner but whichever is the closest to the center. This will
-        // prevent unwanted strange arrangements.
-
-        // Now the distance of the gravity center will be calculated to the
-        // five anchor points and the smallest will be chosen.
+        // prevent some unwanted strange arrangements.
 
         auto minc = ibb.minCorner(); // bottom left corner
         auto maxc = ibb.maxCorner(); // top right corner
@@ -163,7 +178,7 @@ objfunc(const PointImpl& bincenter,
         auto top_left = PointImpl{getX(minc), getY(maxc)};
         auto bottom_right = PointImpl{getX(maxc), getY(minc)};
 
-        // Now the distnce of the gravity center will be calculated to the
+        // Now the distance of the gravity center will be calculated to the
         // five anchor points and the smallest will be chosen.
         std::array<double, 5> dists;
         auto cc = fullbb.center(); // The gravity center
@@ -173,35 +188,45 @@ objfunc(const PointImpl& bincenter,
         dists[3] = pl::distance(top_left, cc);
         dists[4] = pl::distance(bottom_right, cc);
 
+        // The smalles distance from the arranged pile center:
         auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
 
         // Density is the pack density: how big is the arranged pile
         auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
 
+        // Prepare a variable for the alignment score.
+        // This will indicate: how well is the candidate item aligned with
+        // its neighbors. We will check the aligment with all neighbors and
+        // return the score for the best alignment. So it is enough for the
+        // candidate to be aligned with only one item.
         auto alignment_score = std::numeric_limits<double>::max();
 
         auto& trsh =  item.transformedShape();
 
-        idx = 0;
-        for(auto& p : pile) {
+        auto querybb = item.boundingBox();
 
+        // Query the spatial index for the neigbours
+        std::vector<SpatElement> result;
+        spatindex.query(bgi::intersects(querybb), std::back_inserter(result));
+
+        for(auto& e : result) { // now get the score for the best alignment
+            auto idx = e.second;
+            auto& p = pile[idx];
             auto parea = areacache[idx];
-            if(normarea(areacache[idx]) > BIG_ITEM_TRESHOLD) {
-                auto chull = sl::convexHull(sl::Shapes<PolygonImpl>{p, trsh});
-                auto carea = sl::area(chull);
+            auto bb = sl::boundingBox(sl::Shapes<PolygonImpl>{p, trsh});
+            auto bbarea = bb.area();
+            auto ascore = 1.0 - (item.area() + parea)/bbarea;
 
-                auto ascore = carea - (item.area() + parea);
-                ascore = std::sqrt(ascore) / norm;
-
-                if(ascore < alignment_score) alignment_score = ascore;
-            }
-            idx++;
+            if(ascore < alignment_score) alignment_score = ascore;
         }
 
+        // The final mix of the score is the balance between the distance
+        // from the full pile center, the pack density and the
+        // alignment with the neigbours
         auto C = 0.33;
         score = C * dist +  C * density + C * alignment_score;
 
-    } else if( item_normarea < BIG_ITEM_TRESHOLD && bigs.empty()) {
+    } else if( item_normarea < BIG_ITEM_TRESHOLD && spatindex.empty()) {
         // If there are no big items, only small, we should consider the
         // density here as well to not get silly results
         auto bindist = pl::distance(ibb.center(), bincenter) / norm;
@@ -234,7 +259,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.5f;
+    pcfg.accuracy = 0.6f;
 }
 
 template<class TBin>
@@ -254,6 +279,7 @@ protected:
     PConfig pconf_; // Placement configuration
     double bin_area_;
     std::vector<double> areacache_;
+    SpatIndex rtree_;
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
@@ -286,7 +312,7 @@ public:
                     double /*penality*/) {
 
             auto result = objfunc(bin.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_);
+                                  pile_area, item, norm, areacache_, rtree_);
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
 
@@ -318,7 +344,7 @@ public:
 
             auto binbb = ShapeLike::boundingBox(bin);
             auto result = objfunc(binbb.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_);
+                                  pile_area, item, norm, areacache_, rtree_);
             double score = std::get<0>(result);
 
             pile.emplace_back(item.transformedShape());
@@ -352,7 +378,7 @@ public:
                     double /*penality*/) {
 
             auto result = objfunc({0, 0}, 0, pile, pile_area,
-                                  item, norm, areacache_);
+                                  item, norm, areacache_, rtree_);
             return std::get<0>(result);
         };
 
@@ -530,7 +556,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
         P irrbed = ShapeLike::create<PolygonImpl>(std::move(ctour));
 
-        std::cout << ShapeLike::toString(irrbed) << std::endl;
+//        std::cout << ShapeLike::toString(irrbed) << std::endl;
 
         AutoArranger<P> arrange(irrbed, min_obj_distance, progressind);
 
