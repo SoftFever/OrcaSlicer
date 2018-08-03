@@ -8,8 +8,16 @@
 #ifdef __clang__
 #undef _MSC_EXTENSIONS
 #endif
-#include <boost/geometry.hpp>
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#endif
+#include <boost/geometry.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 // this should be removed to not confuse the compiler
 // #include <libnest2d.h>
 
@@ -350,7 +358,7 @@ inline double ShapeLike::area(const PolygonImpl& shape)
 #endif
 
 template<>
-inline bool ShapeLike::isInside(const PointImpl& point,
+inline bool ShapeLike::isInside<PolygonImpl>(const PointImpl& point,
                                 const PolygonImpl& shape)
 {
     return boost::geometry::within(point, shape);
@@ -460,15 +468,6 @@ inline bp2d::Shapes Nfp::merge(const bp2d::Shapes& shapes,
     return retv;
 }
 #endif
-
-//#ifndef DISABLE_BOOST_MINKOWSKI_ADD
-//template<>
-//inline PolygonImpl& Nfp::minkowskiAdd(PolygonImpl& sh,
-//                                      const PolygonImpl& /*other*/)
-//{
-//    return sh;
-//}
-//#endif
 
 #ifndef DISABLE_BOOST_SERIALIZE
 template<> inline std::string ShapeLike::serialize<libnest2d::Formats::SVG>(

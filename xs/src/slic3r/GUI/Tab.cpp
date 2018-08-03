@@ -919,6 +919,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_bridging");
+        optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("interface_shells");
@@ -1297,6 +1298,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_moves");
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
+        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){

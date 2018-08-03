@@ -51,12 +51,13 @@ public:
 	// Reads a line or times out, the timeout is in milliseconds
 	bool read_line(unsigned timeout, std::string &line, boost::system::error_code &ec);
 
-	// Perform setup for communicating with a printer
+	// Perform an initial setup for communicating with a printer
 	void printer_setup();
 
 	// Write data from a string
 	size_t write_string(const std::string &str);
-	
+
+	// Attempts to reset the line numer and waits until the printer says "ok"
 	bool printer_ready_wait(unsigned retries, unsigned timeout);
 
 	// Write Marlin-formatted line, with a line number and a checksum

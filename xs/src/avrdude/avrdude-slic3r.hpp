@@ -12,10 +12,10 @@ class AvrDude
 {
 public:
 	typedef std::shared_ptr<AvrDude> Ptr;
-	typedef std::function<void(AvrDude&)> RunFn;
+	typedef std::function<void()> RunFn;
 	typedef std::function<void(const char * /* msg */, unsigned /* size */)> MessageFn;
 	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
-	typedef std::function<void(int /* exit status */, size_t /* args_id */)> CompleteFn;
+	typedef std::function<void()> CompleteFn;
 
 	// Main c-tor, sys_config is the location of avrdude's main configuration file
 	AvrDude(std::string sys_config);
@@ -54,6 +54,10 @@ public:
 
 	void cancel();
 	void join();
+
+	bool cancelled();          // Whether avrdude run was cancelled
+	int exit_code();           // The exit code of the last invocation
+	size_t last_args_set();    // Index of the last argument set that was processsed
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

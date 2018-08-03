@@ -144,6 +144,11 @@ sub new {
         my ($angle_z) = @_;
         $self->rotate(rad2deg($angle_z), Z, 'absolute');
     };
+
+    # callback to call schedule_background_process
+    my $on_request_update = sub {
+        $self->schedule_background_process;
+    };
     
     # callback to update object's geometry info while using gizmos
     my $on_update_geometry_info = sub {
@@ -202,6 +207,8 @@ sub new {
 
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
     }
+
+    Slic3r::_GUI::register_on_request_update_callback($on_request_update);
     
 #    # Initialize 2D preview canvas
 #    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
@@ -1286,6 +1293,11 @@ sub async_apply_config {
         $self->{gcode_preview_data}->reset;
         $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
         $self->{preview3D}->reload_print if $self->{preview3D};
+
+        # We also need to reload 3D scene because of the wipe tower preview box
+        if ($self->{config}->wipe_tower) {
+	    Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
+        }
     }
 }
 
@@ -1498,6 +1510,9 @@ sub on_process_completed {
     return if $error;
     $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+
+    # in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
+    Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
     
     # if we have an export filename, start a new thread for exporting G-code
     if ($self->{export_gcode_output_file}) {
@@ -1600,7 +1615,7 @@ sub print_info_box_show {
     my ($self, $show) = @_;
     my $scrolled_window_panel = $self->{scrolled_window_panel}; 
     my $scrolled_window_sizer = $self->{scrolled_window_sizer};
-    return if $scrolled_window_sizer->IsShown(2) == $show;
+    return if (!$show && ($scrolled_window_sizer->IsShown(2) == $show));
 
     if ($show) {
         my $print_info_sizer = $self->{print_info_sizer};
@@ -1836,6 +1851,8 @@ sub update {
         $self->resume_background_process;
     }
 
+    $self->print_info_box_show(0);
+    
 #    $self->{canvas}->reload_scene if $self->{canvas};
     my $selections = $self->collect_selections;
     Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);

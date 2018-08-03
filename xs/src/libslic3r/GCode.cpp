@@ -167,6 +167,18 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
 {
     std::string gcode;
 
+    // Toolchangeresult.gcode assumes the wipe tower corner is at the origin
+    // We want to rotate and shift all extrusions (gcode postprocessing) and starting and ending position
+    float alpha = m_wipe_tower_rotation/180.f * M_PI;
+    WipeTower::xy start_pos = tcr.start_pos;
+    WipeTower::xy end_pos = tcr.end_pos;
+    start_pos.rotate(alpha);
+    start_pos.translate(m_wipe_tower_pos);
+    end_pos.rotate(alpha);
+    end_pos.translate(m_wipe_tower_pos);
+    std::string tcr_rotated_gcode = rotate_wipe_tower_moves(tcr.gcode, tcr.start_pos, m_wipe_tower_pos, alpha);
+    
+
     // Disable linear advance for the wipe tower operations.
     gcode += "M900 K0\n";
     // Move over the wipe tower.
@@ -174,14 +186,14 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
     gcode += gcodegen.retract(true);
     gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
     gcode += gcodegen.travel_to(
-        wipe_tower_point_to_object_point(gcodegen, tcr.start_pos),
+        wipe_tower_point_to_object_point(gcodegen, start_pos),
         erMixed,
         "Travel to a Wipe Tower");
     gcode += gcodegen.unretract();
 
     // Let the tool change be executed by the wipe tower class.
     // Inform the G-code writer about the changes done behind its back.
-    gcode += tcr.gcode;
+    gcode += tcr_rotated_gcode;
     // Let the m_writer know the current extruder_id, but ignore the generated G-code.
 	if (new_extruder_id >= 0 && gcodegen.writer().need_toolchange(new_extruder_id))
         gcodegen.writer().toolchange(new_extruder_id);
@@ -195,24 +207,75 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         check_add_eol(gcode);
     }
     // A phony move to the end position at the wipe tower.
-    gcodegen.writer().travel_to_xy(Pointf(tcr.end_pos.x, tcr.end_pos.y));
-    gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
+    gcodegen.writer().travel_to_xy(Pointf(end_pos.x, end_pos.y));
+    gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
 
     // Prepare a future wipe.
     gcodegen.m_wipe.path.points.clear();
     if (new_extruder_id >= 0) {
         // Start the wipe at the current position.
-        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, tcr.end_pos));
+        gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, end_pos));
         // Wipe end point: Wipe direction away from the closer tower edge to the further tower edge.
         gcodegen.m_wipe.path.points.emplace_back(wipe_tower_point_to_object_point(gcodegen, 
-            WipeTower::xy((std::abs(m_left - tcr.end_pos.x) < std::abs(m_right - tcr.end_pos.x)) ? m_right : m_left,
-            tcr.end_pos.y)));
+            WipeTower::xy((std::abs(m_left - end_pos.x) < std::abs(m_right - end_pos.x)) ? m_right : m_left,
+            end_pos.y)));
     }
 
     // Let the planner know we are traveling between objects.
     gcodegen.m_avoid_crossing_perimeters.use_external_mp_once = true;
     return gcode;
 }
+
+// This function postprocesses gcode_original, rotates and moves all G1 extrusions and returns resulting gcode
+// Starting position has to be supplied explicitely (otherwise it would fail in case first G1 command only contained one coordinate)
+std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gcode_original, const WipeTower::xy& start_pos, const WipeTower::xy& translation, float angle) const
+{
+    std::istringstream gcode_str(gcode_original);
+    std::string gcode_out;
+    std::string line;
+    WipeTower::xy pos = start_pos;
+    WipeTower::xy transformed_pos;
+    WipeTower::xy old_pos(-1000.1f, -1000.1f);
+
+    while (gcode_str) {
+        std::getline(gcode_str, line);  // we read the gcode line by line
+        if (line.find("G1 ") == 0) {
+            std::ostringstream line_out;
+            std::istringstream line_str(line);
+            line_str >> std::noskipws;  // don't skip whitespace
+            char ch = 0;
+            while (line_str >> ch) {
+                if (ch == 'X')
+                    line_str >> pos.x;
+                else
+                    if (ch == 'Y')
+                        line_str >> pos.y;
+                    else
+                        line_out << ch;
+            }
+
+            transformed_pos = pos;
+            transformed_pos.rotate(angle);
+            transformed_pos.translate(translation);
+
+            if (transformed_pos != old_pos) {
+                line = line_out.str();
+                char buf[2048] = "G1";
+                if (transformed_pos.x != old_pos.x)
+                    sprintf(buf + strlen(buf), " X%.3f", transformed_pos.x);
+                if (transformed_pos.y != old_pos.y)
+                    sprintf(buf + strlen(buf), " Y%.3f", transformed_pos.y);
+
+                line.replace(line.find("G1 "), 3, buf);
+                old_pos = transformed_pos;
+            }
+        }
+        gcode_out += line + "\n";
+    }
+    return gcode_out;
+}
+
+
 
 std::string WipeTowerIntegration::prime(GCode &gcodegen)
 {
@@ -608,15 +671,18 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             if ((initial_extruder_id = tool_ordering.first_extruder()) != (unsigned int)-1)
                 break;
         }
-    }
-    else {
+    } else {
 		// Find tool ordering for all the objects at once, and the initial extruder ID.
         // If the tool ordering has been pre-calculated by Print class for wipe tower already, reuse it.
 		tool_ordering = print.m_tool_ordering.empty() ?
             ToolOrdering(print, initial_extruder_id) :
             print.m_tool_ordering;
-		initial_extruder_id = tool_ordering.first_extruder();
         has_wipe_tower = print.has_wipe_tower() && tool_ordering.has_wipe_tower();
+        initial_extruder_id = (has_wipe_tower && ! print.config.single_extruder_multi_material_priming) ? 
+            // The priming towers will be skipped.
+            tool_ordering.all_extruders().back() :
+            // Don't skip the priming towers. 
+            tool_ordering.first_extruder();
     }
     if (initial_extruder_id == (unsigned int)-1) {
         // Nothing to print!
@@ -644,6 +710,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     m_placeholder_parser.set("current_object_idx", 0);
     // For the start / end G-code to do the priming and final filament pull in case there is no wipe tower provided.
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
+    m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config.single_extruder_multi_material_priming);
     std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config.start_gcode.value, initial_extruder_id);
     
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
@@ -724,8 +791,11 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         }
     }
     
-    // Set initial extruder only after custom start G-code.
-    _write(file, this->set_extruder(initial_extruder_id));
+    if (! (has_wipe_tower && print.config.single_extruder_multi_material_priming)) {
+        // Set initial extruder only after custom start G-code.
+        // Ugly hack: Do not set the initial extruder if the extruder is primed using the MMU priming towers at the edge of the print bed.
+        _write(file, this->set_extruder(initial_extruder_id));
+    }
 
     // Do all objects for each layer.
     if (print.config.complete_objects.value) {
@@ -803,27 +873,29 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         if (has_wipe_tower && ! layers_to_print.empty()) {
             m_wipe_tower.reset(new WipeTowerIntegration(print.config, *print.m_wipe_tower_priming.get(), print.m_wipe_tower_tool_changes, *print.m_wipe_tower_final_purge.get()));
             _write(file, m_writer.travel_to_z(first_layer_height + m_config.z_offset.value, "Move to the first layer height"));
-		    _write(file, m_wipe_tower->prime(*this));
-            // Verify, whether the print overaps the priming extrusions.
-            BoundingBoxf bbox_print(get_print_extrusions_extents(print));
-            coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
-            for (const PrintObject *print_object : printable_objects)
-                bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
-            bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
-            BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
-            bbox_prime.offset(0.5f);
-            // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
-            _write(file, this->retract());
-            _write(file, "M300 S800 P500\n");
-            if (bbox_prime.overlap(bbox_print)) {
-                // Wait for the user to remove the priming extrusions, otherwise they would
-                // get covered by the print.
-                _write(file, "M1 Remove priming towers and click button.\n");
-            }
-            else {
-                // Just wait for a bit to let the user check, that the priming succeeded.
-                //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
-                _write(file, "M1 S10\n");
+            if (print.config.single_extruder_multi_material_priming) {
+    		    _write(file, m_wipe_tower->prime(*this));
+                // Verify, whether the print overaps the priming extrusions.
+                BoundingBoxf bbox_print(get_print_extrusions_extents(print));
+                coordf_t twolayers_printz = ((layers_to_print.size() == 1) ? layers_to_print.front() : layers_to_print[1]).first + EPSILON;
+                for (const PrintObject *print_object : printable_objects)
+                    bbox_print.merge(get_print_object_extrusions_extents(*print_object, twolayers_printz));
+                bbox_print.merge(get_wipe_tower_extrusions_extents(print, twolayers_printz));
+                BoundingBoxf bbox_prime(get_wipe_tower_priming_extrusions_extents(print));
+                bbox_prime.offset(0.5f);
+                // Beep for 500ms, tone 800Hz. Yet better, play some Morse.
+                _write(file, this->retract());
+                _write(file, "M300 S800 P500\n");
+                if (bbox_prime.overlap(bbox_print)) {
+                    // Wait for the user to remove the priming extrusions, otherwise they would
+                    // get covered by the print.
+                    _write(file, "M1 Remove priming towers and click button.\n");
+                }
+                else {
+                    // Just wait for a bit to let the user check, that the priming succeeded.
+                    //TODO Add a message explaining what the printer is waiting for. This needs a firmware fix.
+                    _write(file, "M1 S10\n");
+                }
             }
         }
         // Extrude the layers.
@@ -1003,9 +1075,10 @@ void GCode::print_machine_envelope(FILE *file, Print &print)
             int(print.config.machine_max_feedrate_y.values.front() + 0.5),
             int(print.config.machine_max_feedrate_z.values.front() + 0.5),
             int(print.config.machine_max_feedrate_e.values.front() + 0.5));
-        fprintf(file, "M204 S%d T%d ; sets acceleration (S) and retract acceleration (T), mm/sec^2\n",
+        fprintf(file, "M204 P%d R%d T%d ; sets acceleration (P, T) and retract acceleration (R), mm/sec^2\n",
             int(print.config.machine_max_acceleration_extruding.values.front() + 0.5),
-            int(print.config.machine_max_acceleration_retracting.values.front() + 0.5));
+            int(print.config.machine_max_acceleration_retracting.values.front() + 0.5),
+            int(print.config.machine_max_acceleration_extruding.values.front() + 0.5));
         fprintf(file, "M205 X%.2lf Y%.2lf Z%.2lf E%.2lf ; sets the jerk limits, mm/sec\n",
             print.config.machine_max_jerk_x.values.front(),
             print.config.machine_max_jerk_y.values.front(),

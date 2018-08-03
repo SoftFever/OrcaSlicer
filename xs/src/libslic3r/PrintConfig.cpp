@@ -504,15 +504,27 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("filament_cooling_initial_speed", coFloats);
     def->label = L("Speed of the first cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed. ");
-    def->cli = "filament-cooling-initial-speed=i@";
+    def->cli = "filament-cooling-initial-speed=f@";
     def->sidetext = L("mm/s");
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 2.2f };
 
+    def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
+    def->label = L("Minimal purge on wipe tower");
+    def->tooltip = L("After a toolchange, certain amount of filament is used for purging. This "
+                     "can end up on the wipe tower, infill or sacrificial object. If there was "
+                     "enough infill etc. available, this could result in bad quality at the beginning "
+                     "of purging. This is a minimum that must be wiped on the wipe tower before "
+                     "Slic3r considers moving elsewhere. ");
+    def->cli = "filament-minimal-purge-on-wipe-tower=f@";
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 5.f };
+
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating towards this speed. ");
-    def->cli = "filament-cooling-final-speed=i@";
+    def->cli = "filament-cooling-final-speed=f@";
     def->sidetext = L("mm/s");
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 3.4f };
@@ -1638,6 +1650,12 @@ PrintConfigDef::PrintConfigDef()
     def->tooltip = L("The printer multiplexes filaments into a single hot end.");
     def->cli = "single-extruder-multi-material!";
 	def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("single_extruder_multi_material_priming", coBool);
+    def->label = L("Prime all printing extruders");
+    def->tooltip = L("If enabled, all printing extruders will be primed at the front edge of the print bed at the start of the print.");
+    def->cli = "single-extruder-multi-material-priming!";
+    def->default_value = new ConfigOptionBool(true);
 
     def = this->add("support_material", coBool);
     def->label = L("Generate support material");
