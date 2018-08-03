@@ -2124,13 +2124,13 @@ void PrintConfigDef::init_sla_params()
     def->default_value = new ConfigOptionFloat(15);
 
     def = this->add("material_correction_printing", coFloats);
-    def->label = L("Correction for expansion when printing");
+    def->full_label = L("Correction for expansion when printing");
     def->tooltip  = L("Correction for expansion when printing");
     def->min = 0;
     def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
 
     def = this->add("material_correction_curing", coFloats);
-    def->label = L("Correction for expansion after curing");
+    def->full_label = L("Correction for expansion after curing");
     def->tooltip  = L("Correction for expansion after curing");
     def->min = 0;
     def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );

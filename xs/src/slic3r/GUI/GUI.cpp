@@ -496,12 +496,13 @@ void open_preferences_dialog(int event_preferences)
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
 	update_label_colours_from_appconfig();
-	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
-	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
-	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
+	add_created_tab(new TabPrint	    (g_wxTabPanel, no_controller));
+	add_created_tab(new TabFilament	    (g_wxTabPanel, no_controller));
+	add_created_tab(new TabSLAMaterial  (g_wxTabPanel, no_controller));
+	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller));
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
-		if (! tab)
+		if (! tab || tab->GetName()=="sla_material")
 			continue;
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));

@@ -342,6 +342,18 @@ public:
 	void		init_options_list() override;
 };
 
+class TabSLAMaterial : public Tab
+{
+public:
+    TabSLAMaterial() {}
+    TabSLAMaterial(wxNotebook* parent, bool no_controller) :
+		Tab(parent, _(L("SLA Material Settings")), "sla_material", no_controller) {}
+    ~TabSLAMaterial(){}
+
+	void		build() override;
+	void		update() override;
+};
+
 class SavePresetWindow :public wxDialog
 {
 public:

@@ -2759,5 +2759,91 @@ void SavePresetWindow::accept()
 	}
 }
 
+void TabSLAMaterial::build()
+{
+    m_presets = &m_preset_bundle->sla_materials;
+    load_initial_data();
+
+    auto page = add_options_page(_(L("General")), "spool.png");
+
+/*    auto optgroup = page->new_optgroup(_(L("Display")));
+    optgroup->append_single_option_line("display_width");
+    optgroup->append_single_option_line("display_height");
+
+	Line line = { _(L("Number of pixels in axes")), "" };
+	line.append_option(optgroup->get_option("display_pixels_x"));
+	line.append_option(optgroup->get_option("display_pixels_y"));
+	optgroup->append_line(line);
+*/
+    auto optgroup = page->new_optgroup(_(L("Layers")));
+    optgroup->append_single_option_line("layer_height");
+    optgroup->append_single_option_line("initial_layer_height");
+
+    optgroup = page->new_optgroup(_(L("Exposure")));
+    optgroup->append_single_option_line("exposure_time");
+    optgroup->append_single_option_line("initial_exposure_time");
+
+    optgroup = page->new_optgroup(_(L("Corrections")));
+    // Legend for OptionsGroups
+    optgroup->set_show_modified_btns_val(false);
+    optgroup->label_width = 230;
+    auto line = Line{ "", "" };
+
+    ConfigOptionDef def;
+    def.type = coString;
+    def.width = 150;
+    def.gui_type = "legend";
+
+    std::vector<std::string> axes{ "X", "Y", "Z" };
+    for (auto& axis : axes)		{
+        def.tooltip = L("Values in this column are for ") + axis + L(" axis");
+        def.default_value = new ConfigOptionString{ axis };
+        std::string opt_key = axis + "power_legend";
+        auto option = Option(def, opt_key);
+        line.append_option(option);
+    }
+    optgroup->append_line(line);
+
+    std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
+    for (auto& opt_key : corrections){
+        line = Line{ m_config->def()->get(opt_key)->full_label, "" };
+        for( int id = 0; id < 3; ++id)
+            line.append_option(optgroup->get_option(opt_key, id));
+        optgroup->append_line(line);
+    }
+
+    page = add_options_page(_(L("Notes")), "note.png");
+    optgroup = page->new_optgroup(_(L("Notes")), 0);
+    optgroup->label_width = 0;
+    Option option = optgroup->get_option("material_notes");
+    option.opt.full_width = true;
+    option.opt.height = 250;
+    optgroup->append_single_option_line(option);
+
+    page = add_options_page(_(L("Dependencies")), "wrench.png");
+    optgroup = page->new_optgroup(_(L("Profile dependencies")));
+    line = { _(L("Compatible printers")), "" };
+    line.widget = [this](wxWindow* parent){
+        return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
+    };
+    optgroup->append_line(line, &m_colored_Label);
+
+    option = optgroup->get_option("compatible_printers_condition");
+    option.opt.full_width = true;
+    optgroup->append_single_option_line(option);
+
+    line = Line{ "", "" };
+    line.full_width = 1;
+    line.widget = [this](wxWindow* parent) {
+        return description_line_widget(parent, &m_parent_preset_description_line);
+    };
+    optgroup->append_line(line);
+}
+
+void TabSLAMaterial::update()
+{
+
+}
+
 } // GUI
 } // Slic3r

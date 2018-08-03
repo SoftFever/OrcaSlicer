@@ -126,7 +126,7 @@ public:
 
     // Load this profile for the following keys only.
     // Throws std::runtime_error in case the file cannot be read.
-    DynamicPrintConfig& load(const std::vector<std::string> &keys);
+    DynamicPrintConfig& load(const std::vector<std::string> &keys, Preset::Type& type);
 
     void                save();
 
