@@ -2093,7 +2093,7 @@ void PrintConfigDef::init_sla_params()
     def->default_value = new ConfigOptionInt(1000);
 
     def = this->add("printer_correction", coFloats);
-    def->label = L("Printer scaling correction");
+    def->full_label = L("Printer scaling correction");
     def->tooltip  = L("Printer scaling correction");
     def->min = 0;
     def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );

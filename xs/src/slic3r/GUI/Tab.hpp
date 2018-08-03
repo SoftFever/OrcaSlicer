@@ -267,9 +267,6 @@ public:
 
 	void			on_value_change(const std::string& opt_key, const boost::any& value);
 
-    void            add_xyz_options_with_legend(ConfigOptionsGroupShp& optgroup, 
-                                                std::vector<std::string>& options);
-
 protected:
 	void			on_presets_changed();
 	void			update_preset_description_line();

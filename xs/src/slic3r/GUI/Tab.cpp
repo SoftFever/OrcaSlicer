@@ -679,37 +679,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 	update();
 }
 
-
-void Tab::add_xyz_options_with_legend(ConfigOptionsGroupShp& optgroup, std::vector<std::string>& options)
-{
-    // Legend for OptionsGroups
-    optgroup->set_show_modified_btns_val(false);
-    optgroup->label_width = 230;
-    auto line = Line{ "", "" };
-
-    ConfigOptionDef def;
-    def.type = coString;
-    def.width = 150;
-    def.gui_type = "legend";
-
-    std::vector<std::string> axes{ "X", "Y", "Z" };
-    for (auto& axis : axes)		{
-        def.tooltip = L("Values in this column are for ") + axis + L(" axis");
-        def.default_value = new ConfigOptionString{ axis };
-        std::string opt_key = axis + "_power_legend";
-        auto option = Option(def, opt_key);
-        line.append_option(option);
-    }
-    optgroup->append_line(line);
-
-    for (auto& opt_key : options){
-        line = Line{ m_config->def()->get(opt_key)->full_label, "" };
-        for (int id = 0; id < 3; ++id)
-            line.append_option(optgroup->get_option(opt_key, id));
-        optgroup->append_line(line);
-    }
-}
-
 // Show/hide the 'purging volumes' button
 void Tab::update_wiping_button_visibility() {
     bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
@@ -1720,13 +1689,13 @@ void TabPrinter::build()
 	if (!m_no_controller)
 		update_serial_ports();
 
-//     build_sla();
+     build_sla();
 }
 
 void TabPrinter::build_sla()
 {
-    m_presets = &m_preset_bundle->printers;
-    load_initial_data();
+//     m_presets = &m_preset_bundle->printers;
+//     load_initial_data();
 
     m_current_pages = &m_sla_pages;
 
@@ -1767,8 +1736,16 @@ void TabPrinter::build_sla()
     optgroup->append_line(line);
 
     optgroup = page->new_optgroup(_(L("Corrections")));
-    std::vector<std::string> corrections = { "printer_correction" };
-    add_xyz_options_with_legend(optgroup, corrections);
+    line = Line{ m_config->def()->get("printer_correction")->full_label, "" };
+    std::vector<std::string> axes{ "X", "Y", "Z" };
+    int id = 0;
+    for (auto& axis : axes) {
+        auto opt = optgroup->get_option("printer_correction", id);
+        opt.opt.label = axis;
+        line.append_option(opt);
+        ++id;
+    }
+    optgroup->append_line(line);
 
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
@@ -2878,7 +2855,19 @@ void TabSLAMaterial::build()
 
     optgroup = page->new_optgroup(_(L("Corrections")));
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
-    add_xyz_options_with_legend(optgroup, corrections);
+    std::vector<std::string> axes{ "X", "Y", "Z" };
+    for (auto& opt_key : corrections){
+        auto line = Line{ m_config->def()->get(opt_key)->full_label, "" };
+        int id = 0;
+        for (auto& axis : axes) {
+            auto opt = optgroup->get_option(opt_key, id);
+            opt.opt.label = axis;
+            opt.opt.width = 60;
+            line.append_option(opt);
+            ++id;
+        }
+        optgroup->append_line(line);
+    }
 
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
