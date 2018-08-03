@@ -358,7 +358,7 @@ inline double ShapeLike::area(const PolygonImpl& shape)
 #endif
 
 template<>
-inline bool ShapeLike::isInside(const PointImpl& point,
+inline bool ShapeLike::isInside<PolygonImpl>(const PointImpl& point,
                                 const PolygonImpl& shape)
 {
     return boost::geometry::within(point, shape);

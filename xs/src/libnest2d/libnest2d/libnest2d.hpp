@@ -53,8 +53,8 @@ class _Item {
 
     enum class Convexity: char {
         UNCHECKED,
-        TRUE,
-        FALSE
+        C_TRUE,
+        C_FALSE
     };
 
     mutable Convexity convexity_ = Convexity::UNCHECKED;
@@ -213,10 +213,10 @@ public:
         switch(convexity_) {
         case Convexity::UNCHECKED:
             ret = sl::isConvex<RawShape>(sl::getContour(transformedShape()));
-            convexity_ = ret? Convexity::TRUE : Convexity::FALSE;
+            convexity_ = ret? Convexity::C_TRUE : Convexity::C_FALSE;
             break;
-        case Convexity::TRUE: ret = true; break;
-        case Convexity::FALSE:;
+        case Convexity::C_TRUE: ret = true; break;
+        case Convexity::C_FALSE:;
         }
 
         return ret;
@@ -254,7 +254,13 @@ public:
         return sl::isInside(transformedShape(), sh.transformedShape());
     }
 
+    inline bool isInside(const RawShape& sh) const
+    {
+        return sl::isInside(transformedShape(), sh);
+    }
+
     inline bool isInside(const _Box<TPoint<RawShape>>& box) const;
+    inline bool isInside(const _Circle<TPoint<RawShape>>& box) const;
 
     inline void translate(const Vertex& d) BP2D_NOEXCEPT
     {
@@ -467,8 +473,12 @@ public:
 
 template<class RawShape>
 inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
-    _Rectangle<RawShape> rect(box.width(), box.height());
-    return _Item<RawShape>::isInside(rect);
+    return ShapeLike::isInside<RawShape>(boundingBox(), box);
+}
+
+template<class RawShape> inline bool
+_Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
+    return ShapeLike::isInside<RawShape>(transformedShape(), circ);
 }
 
 /**
