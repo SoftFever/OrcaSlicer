@@ -79,7 +79,14 @@ namespace Slic3r {
             float minimum_feedrate;             // mm/s
             float minimum_travel_feedrate;      // mm/s
             float extrude_factor_override_percentage;
+            // Additional load / unload times for a filament exchange sequence.
+            std::vector<float> filament_load_times;
+            std::vector<float> filament_unload_times;
             unsigned int g1_line_id;
+            // extruder_id is currently used to correctly calculate filament load / unload times 
+            // into the total print time. This is currently only really used by the MK3 MMU2:
+            // Extruder id (-1) means no filament is loaded yet, all the filaments are parked in the MK3 MMU2 unit.
+            static const unsigned int extruder_id_unloaded = (unsigned int)-1;
             unsigned int extruder_id;
         };
 
@@ -282,6 +289,11 @@ namespace Slic3r {
         void set_minimum_travel_feedrate(float feedrate_mm_sec);
         float get_minimum_travel_feedrate() const;
 
+        void set_filament_load_times(const std::vector<double> &filament_load_times);
+        void set_filament_unload_times(const std::vector<double> &filament_unload_times);
+        float get_filament_load_time(unsigned int id_extruder);
+        float get_filament_unload_time(unsigned int id_extruder);
+
         void set_extrude_factor_override_percentage(float percentage);
         float get_extrude_factor_override_percentage() const;
 
@@ -387,6 +399,9 @@ namespace Slic3r {
 
         // Set allowable instantaneous speed change
         void _processM566(const GCodeReader::GCodeLine& line);
+
+        // Unload the current filament into the MK3 MMU2 unit at the end of print.
+        void _processM702(const GCodeReader::GCodeLine& line);
 
         // Processes T line (Select Tool)
         void _processT(const GCodeReader::GCodeLine& line);

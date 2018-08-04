@@ -469,6 +469,40 @@ namespace Slic3r {
         return _state.minimum_travel_feedrate;
     }
 
+    void GCodeTimeEstimator::set_filament_load_times(const std::vector<double> &filament_load_times)
+    {
+        _state.filament_load_times.clear();
+        for (double t : filament_load_times)
+            _state.filament_load_times.push_back(t);
+    }
+
+    void GCodeTimeEstimator::set_filament_unload_times(const std::vector<double> &filament_unload_times)
+    {
+        _state.filament_unload_times.clear();
+        for (double t : filament_unload_times)
+            _state.filament_unload_times.push_back(t);
+    }
+
+    float GCodeTimeEstimator::get_filament_load_time(unsigned int id_extruder)
+    {
+        return
+            (_state.filament_load_times.empty() || id_extruder == _state.extruder_id_unloaded) ? 
+                0 :
+                (_state.filament_load_times.size() <= id_extruder) ?
+                    _state.filament_load_times.front() : 
+                    _state.filament_load_times[id_extruder];
+    }
+
+    float GCodeTimeEstimator::get_filament_unload_time(unsigned int id_extruder)
+    {
+        return
+            (_state.filament_unload_times.empty() || id_extruder == _state.extruder_id_unloaded) ? 
+                0 :
+                (_state.filament_unload_times.size() <= id_extruder) ?
+                    _state.filament_unload_times.front() : 
+                    _state.filament_unload_times[id_extruder];
+    }
+
     void GCodeTimeEstimator::set_extrude_factor_override_percentage(float percentage)
     {
         _state.extrude_factor_override_percentage = percentage;
@@ -547,7 +581,9 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::reset_extruder_id()
     {
-        _state.extruder_id = 0;
+        // Set the initial extruder ID to unknown. For the multi-material setup it means
+        // that all the filaments are parked in the MMU and no filament is loaded yet.
+        _state.extruder_id = _state.extruder_id_unloaded;
     }
 
     void GCodeTimeEstimator::add_additional_time(float timeSec)
@@ -590,6 +626,9 @@ namespace Slic3r {
             set_axis_max_acceleration(axis, DEFAULT_AXIS_MAX_ACCELERATION[a]);
             set_axis_max_jerk(axis, DEFAULT_AXIS_MAX_JERK[a]);
         }
+
+        _state.filament_load_times.clear();
+        _state.filament_unload_times.clear();
     }
 
     void GCodeTimeEstimator::reset()
@@ -792,6 +831,11 @@ namespace Slic3r {
                     case 566: // Set allowable instantaneous speed change
                         {
                             _processM566(line);
+                            break;
+                        }
+                    case 702: // MK3 MMU2: Process the final filament unload.
+                        {
+                            _processM702(line);
                             break;
                         }
                     }
@@ -1258,6 +1302,19 @@ namespace Slic3r {
             set_axis_max_jerk(E, line.e() * MMMIN_TO_MMSEC);
     }
 
+    void GCodeTimeEstimator::_processM702(const GCodeReader::GCodeLine& line)
+    {
+        PROFILE_FUNC();
+        if (line.has('C')) {
+            // MK3 MMU2 specific M code:
+            // M702 C is expected to be sent by the custom end G-code when finalizing a print.
+            // The MK3 unit shall unload and park the active filament into the MMU2 unit.
+            add_additional_time(get_filament_unload_time(get_extruder_id()));
+            reset_extruder_id();
+            _simulate_st_synchronize();
+        }
+    }
+
     void GCodeTimeEstimator::_processT(const GCodeReader::GCodeLine& line)
     {
         std::string cmd = line.cmd();
@@ -1266,9 +1323,12 @@ namespace Slic3r {
             unsigned int id = (unsigned int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
             if (get_extruder_id() != id)
             {
+                // Specific to the MK3 MMU2: The initial extruder ID is set to -1 indicating
+                // that the filament is parked in the MMU2 unit and there is nothing to be unloaded yet.
+                add_additional_time(get_filament_unload_time(get_extruder_id()));
                 set_extruder_id(id);
-
-                // ADD PROCESSING HERE
+                add_additional_time(get_filament_load_time(get_extruder_id()));
+                _simulate_st_synchronize();
             }
         }
     }

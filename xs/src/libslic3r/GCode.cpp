@@ -440,10 +440,9 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     }
     fclose(file);
 
-    if (print->config.gcode_flavor.value == gcfMarlin)
+    if (print->config.remaining_times.value)
     {
         m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
-
         if (m_silent_time_estimator_enabled)
             m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
     }
@@ -525,8 +524,13 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[1]);
             m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[1]);
             m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[1]);
+            m_silent_time_estimator.set_filament_load_times(print.config.filament_load_time.values);
+            m_silent_time_estimator.set_filament_unload_times(print.config.filament_unload_time.values);
         }
     }
+    // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
+    m_normal_time_estimator.set_filament_load_times(print.config.filament_load_time.values);
+    m_normal_time_estimator.set_filament_unload_times(print.config.filament_unload_time.values);
 
     // resets analyzer
     m_analyzer.reset();

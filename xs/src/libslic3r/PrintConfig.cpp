@@ -920,8 +920,16 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
 
+    def = this->add("remaining_times", coBool);
+    def->label = L("Supports remaining times");
+    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in seconds] at 1 minute"
+                     " intervals into the G-code to let the firmware show accurate remaining time."
+                     " As of now only the Prusa i3 MK3 firmware recognizes M73."
+                     " Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode.");
+    def->default_value = new ConfigOptionBool(false);
+
 	def = this->add("silent_mode", coBool);
-	def->label = L("Support silent mode");
+	def->label = L("Supports silent mode");
 	def->tooltip = L("Set silent mode for the G-code flavor");
 	def->default_value = new ConfigOptionBool(true);
 
