@@ -172,8 +172,8 @@ wxString	from_u8(const std::string &str);
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 
+// Callback to trigger a configuration update timer on the Plater.
 static PerlCallback g_on_request_update_callback;
-void register_on_request_update_callback(void* callback);
  
 ConfigOptionsGroup* get_optgroup();
 wxButton*			get_wiping_dialog_button();

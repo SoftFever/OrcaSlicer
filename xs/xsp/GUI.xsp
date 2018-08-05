@@ -105,11 +105,9 @@ void fix_model_by_win10_sdk_gui(ModelObject *model_object_src, Print *print, Mod
 void set_3DScene(SV *scene)
     %code%{ Slic3r::GUI::set_3DScene((_3DScene *)wxPli_sv_2_object(aTHX_ scene, "Slic3r::Model::3DScene") ); %};
 
-%package{Slic3r::_GUI};
-%{
-void
-register_on_request_update_callback(callback)
-        SV *callback;
-    CODE:
-        Slic3r::GUI::register_on_request_update_callback((void*)callback);
-%}
+void register_on_request_update_callback(SV* callback)
+    %code%{ Slic3r::GUI::g_on_request_update_callback.register_callback(callback); %};
+
+void deregister_on_request_update_callback()
+    %code%{ Slic3r::GUI::g_on_request_update_callback.deregister_callback(); %};
+

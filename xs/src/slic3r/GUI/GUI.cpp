@@ -920,11 +920,6 @@ ConfigOptionsGroup* get_optgroup()
 	return m_optgroup.get();
 }
 
-void register_on_request_update_callback(void* callback) {
-    if (callback != nullptr)
-        g_on_request_update_callback.register_callback(callback);
-}
-
 wxButton* get_wiping_dialog_button()
 {
 	return g_wiping_dialog_button;
