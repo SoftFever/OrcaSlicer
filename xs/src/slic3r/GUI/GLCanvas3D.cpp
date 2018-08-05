@@ -305,10 +305,14 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
     return m_shape;
 }
 
-void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
+bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
+    EType new_type = _detect_type();
+    if (m_shape == shape && m_type == new_type)
+        // No change, no need to update the UI.
+        return false;
     m_shape = shape;
-    m_type = _detect_type();
+    m_type = new_type;
 
     _calc_bounding_box();
 
@@ -324,6 +328,8 @@ void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     _calc_gridlines(poly, bed_bbox);
 
     m_polygon = offset_ex(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0].contour;
+    // Let the calee to update the UI.
+    return true;
 }
 
 const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
@@ -1941,9 +1947,7 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
-    bool new_shape = (shape != m_bed.get_shape());
-    if (new_shape)
-        m_bed.set_shape(shape);
+    bool new_shape = m_bed.set_shape(shape);
 
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
