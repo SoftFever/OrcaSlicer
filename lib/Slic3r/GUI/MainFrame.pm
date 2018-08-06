@@ -201,6 +201,8 @@ sub _init_tabpanel {
         # load initial config
         my $full_config = wxTheApp->{preset_bundle}->full_config;
         $self->{plater}->on_config_change($full_config);
+        #return if $num_extruders is undefined because of SLA printer is selected
+        return if (!defined $full_config->nozzle_diameter); # ys_FIXME
         # Show a correct number of filament fields.
         $self->{plater}->on_extruders_change(int(@{$full_config->nozzle_diameter}));
     }

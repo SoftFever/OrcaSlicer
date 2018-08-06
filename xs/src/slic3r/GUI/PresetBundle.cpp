@@ -313,19 +313,21 @@ void PresetBundle::load_selections(const AppConfig &config)
     sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
     printers.select_preset_by_name(initial_printer_profile_name, true);
 
-    // Load the names of the other filament profiles selected for a multi-material printer.
-    auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
-    size_t  num_extruders = nozzle_diameter->values.size();
-    this->filament_presets = { initial_filament_profile_name };
-    for (unsigned int i = 1; i < (unsigned int)num_extruders; ++ i) {
-        char name[64];
-        sprintf(name, "filament_%d", i);
-        if (! config.has("presets", name))
-            break;
-        this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
+    if (printers.get_selected_preset().printer_technology() == ptFFF){
+        // Load the names of the other filament profiles selected for a multi-material printer.
+        auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
+        size_t  num_extruders = nozzle_diameter->values.size();
+        this->filament_presets = { initial_filament_profile_name };
+        for (unsigned int i = 1; i < (unsigned int)num_extruders; ++i) {
+            char name[64];
+            sprintf(name, "filament_%d", i);
+            if (!config.has("presets", name))
+                break;
+            this->filament_presets.emplace_back(remove_ini_suffix(config.get("presets", name)));
+        }
+        // Do not define the missing filaments, so that the update_compatible_with_printer() will use the preferred filaments.
+        this->filament_presets.resize(num_extruders, "");
     }
-    // Do not define the missing filaments, so that the update_compatible_with_printer() will use the preferred filaments.
-    this->filament_presets.resize(num_extruders, "");
 
     // Update visibility of presets based on their compatibility with the active printer.
     // Always try to select a compatible print and filament preset to the current printer preset,
@@ -523,8 +525,8 @@ DynamicPrintConfig PresetBundle::full_sla_config() const
     // Collect the "compatible_printers_condition" and "inherits" values over all presets (sla_materials, printers) into a single vector.
     std::vector<std::string> compatible_printers_condition;
     std::vector<std::string> inherits;
-    compatible_printers_condition.emplace_back(this->prints.get_edited_preset().compatible_printers_condition());
-    inherits                     .emplace_back(this->prints.get_edited_preset().inherits());
+    compatible_printers_condition.emplace_back(this->/*prints*/sla_materials.get_edited_preset().compatible_printers_condition());
+    inherits                     .emplace_back(this->/*prints*/sla_materials.get_edited_preset().inherits());
     inherits                     .emplace_back(this->printers.get_edited_preset().inherits());
 
     // These two value types clash between the print and filament profiles. They should be renamed.

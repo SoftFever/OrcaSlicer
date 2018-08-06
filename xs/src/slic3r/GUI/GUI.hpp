@@ -96,6 +96,7 @@ void set_3DScene(_3DScene *scene);
 AppConfig*	get_app_config();
 wxApp*		get_app();
 PresetBundle* get_preset_bundle();
+wxNotebook* get_tab_panel();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
@@ -106,6 +107,10 @@ void set_label_clr_sys(const wxColour& clr);
 
 const wxFont& small_font();
 const wxFont& bold_font();
+
+wxWindow*    get_print_tab();
+wxWindow*    get_filament_tab();
+wxWindow*    get_material_tab();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 

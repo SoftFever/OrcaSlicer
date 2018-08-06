@@ -681,6 +681,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
 // Show/hide the 'purging volumes' button
 void Tab::update_wiping_button_visibility() {
+    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+        return; // ys_FIXME
     bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
     bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
@@ -700,6 +702,8 @@ void Tab::update_wiping_button_visibility() {
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
+    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+        return; // ys_FIXME
 	if (m_event_presets_changed > 0) {
 		wxCommandEvent event(m_event_presets_changed);
 		event.SetString(m_name);
@@ -1007,6 +1011,9 @@ void TabPrint::reload_config(){
 
 void TabPrint::update()
 {
+    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+        return; // ys_FIXME
+
 	Freeze();
 
 	double fill_density = m_config->option<ConfigOptionPercent>("fill_density")->value;
@@ -1363,6 +1370,9 @@ void TabFilament::reload_config(){
 
 void TabFilament::update()
 {
+    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+        return; // ys_FIXME
+
 	Freeze();
 	wxString text = from_u8(PresetHints::cooling_description(m_presets->get_edited_preset()));
 	m_cooling_description_line->SetText(text);
@@ -1407,6 +1417,13 @@ void TabPrinter::build()
 {
 	m_presets = &m_preset_bundle->printers;
 	load_initial_data();
+
+    m_printer_technology_old = m_presets->get_selected_preset().printer_technology();
+
+    if (m_presets->get_selected_preset().printer_technology() == ptSLA){
+        build_sla();
+        return;
+    }
 
     m_current_pages = &m_pages;
 
@@ -1688,8 +1705,6 @@ void TabPrinter::build()
 
 	if (!m_no_controller)
 		update_serial_ports();
-
-     build_sla();
 }
 
 void TabPrinter::build_sla()
@@ -1947,6 +1962,7 @@ void TabPrinter::build_extruder_pages()
 // this gets executed after preset is loaded and before GUI fields are updated
 void TabPrinter::on_preset_loaded()
 {
+    return; // ys_FIXME
 	// update the extruders count field
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	int extruders_count = nozzle_diameter->values.size();
@@ -1956,6 +1972,7 @@ void TabPrinter::on_preset_loaded()
 }
 
 void TabPrinter::update(){
+    return; // ys_FIXME
 	Freeze();
 
 	bool en;
@@ -2060,11 +2077,16 @@ void Tab::load_current_preset()
 	auto preset = m_presets->get_edited_preset();
 
 	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
-	update();
-	// For the printer profile, generate the extruder pages.
-	on_preset_loaded();
-	// Reload preset pages with the new configuration values.
-	reload_config();
+
+    if (m_name == "printer" && m_presets->get_edited_preset().printer_technology() == ptSLA) {} // ys_FIXME
+    else {
+        update();
+        // For the printer profile, generate the extruder pages.
+        on_preset_loaded();
+        // Reload preset pages with the new configuration values.
+        reload_config();
+    }
+
 	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
 	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
 	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
@@ -2079,7 +2101,36 @@ void Tab::load_current_preset()
 		// checking out if this Tab exists till this moment
 		if (!checked_tab(this))
 			return;
-		update_tab_ui();
+        update_tab_ui();
+
+        // update show/hide tabs
+        if (m_name == "printer"){
+            bool printer_technology = m_presets->get_edited_preset().printer_technology();
+            if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology_old)
+            {
+                wxWindow* del_page = printer_technology == ptFFF ? get_material_tab() : get_print_tab();
+                int del_page_id = get_tab_panel()->FindPage(del_page);
+                if (del_page_id != wxNOT_FOUND) {
+                    if (printer_technology == ptFFF)
+                    {
+                        get_tab_panel()->GetPage(del_page_id)->Show(false);
+                        get_tab_panel()->RemovePage(del_page_id);
+                        get_tab_panel()->InsertPage(del_page_id, get_filament_tab(), static_cast<Tab*>(get_filament_tab())->title());
+                        get_tab_panel()->InsertPage(del_page_id, get_print_tab(), static_cast<Tab*>(get_print_tab())->title());
+                    }
+                    else
+                    {
+                        for (int i = 0; i < 2; ++i) {
+                            get_tab_panel()->GetPage(del_page_id)->Show(false);
+                            get_tab_panel()->RemovePage(del_page_id);
+                        }
+                        get_tab_panel()->InsertPage(del_page_id, get_material_tab(), static_cast<Tab*>(get_material_tab())->title());
+                    }
+                    static_cast<TabPrinter*>(this)->m_printer_technology_old = printer_technology;
+                }
+            }
+        }
+
 		on_presets_changed();
 
 		if (name() == "print")
@@ -2172,7 +2223,8 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 		if (! canceled) {
 			for (PresetUpdate &pu : updates) {
 				// The preset will be switched to a different, compatible preset, or the '-- default --'.
-				m_reload_dependent_tabs.emplace_back(pu.name);
+                if (pu.technology == new_printer_technology)
+				    m_reload_dependent_tabs.emplace_back(pu.name);
 				if (pu.old_preset_dirty)
 					pu.presets->discard_current_changes();
 			}

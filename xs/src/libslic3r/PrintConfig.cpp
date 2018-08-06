@@ -2149,6 +2149,9 @@ void PrintConfigDef::init_sla_params()
     def->tooltip = L("Default print profile associated with the current printer profile. "
                    "On selection of the current printer profile, this print profile will be activated.");
     def->default_value = new ConfigOptionString();
+
+    def = this->add("sla_material_settings_id", coString);
+    def->default_value = new ConfigOptionString("");
 }
 
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
