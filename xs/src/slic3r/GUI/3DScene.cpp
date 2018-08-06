@@ -715,6 +715,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.select_group_id = obj_idx * 1000000;
     v.drag_group_id = obj_idx * 1000;
     v.is_wipe_tower = true;
+    v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);
 }
 

@@ -128,7 +128,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "gcode_comments",
         "gcode_flavor",
         "infill_acceleration",
-        "infill_first",
         "layer_gcode",
         "min_fan_speed",
         "max_fan_speed",
@@ -177,15 +176,6 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
     std::vector<PrintObjectStep> osteps;
     bool invalidated = false;
 
-    // Always invalidate the wipe tower. This is probably necessary because of the wipe_into_infill / wipe_into_objects
-    // features - nearly anything can influence what should (and could) be wiped into.
-    // Only these three parameters don't invalidate the wipe tower (they only affect the gcode export):
-    for (const t_config_option_key &opt_key : opt_keys)
-        if (opt_key != "wipe_tower_x" && opt_key != "wipe_tower_y" && opt_key != "wipe_tower_rotation_angle") {
-            steps.emplace_back(psWipeTower);
-            break;
-        }
-
     for (const t_config_option_key &opt_key : opt_keys) {
         if (steps_ignore.find(opt_key) != steps_ignore.end()) {
             // These options only affect G-code export or they are just notes without influence on the generated G-code,
@@ -218,6 +208,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
             || opt_key == "gcode_flavor"
+            || opt_key == "infill_first"
             || opt_key == "single_extruder_multi_material"
             || opt_key == "spiral_vase"
             || opt_key == "temperature"

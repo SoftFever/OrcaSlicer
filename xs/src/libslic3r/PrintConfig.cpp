@@ -511,11 +511,10 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
     def->label = L("Minimal purge on wipe tower");
-    def->tooltip = L("After a toolchange, certain amount of filament is used for purging. This "
-                     "can end up on the wipe tower, infill or sacrificial object. If there was "
-                     "enough infill etc. available, this could result in bad quality at the beginning "
-                     "of purging. This is a minimum that must be wiped on the wipe tower before "
-                     "Slic3r considers moving elsewhere. ");
+    def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
+                     "the nozzle may not be known, and the filament pressure is likely not yet stable. "
+                     "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
+                     "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
     def->cli = "filament-minimal-purge-on-wipe-tower=f@";
     def->sidetext = L("mm³");
     def->min = 0;
