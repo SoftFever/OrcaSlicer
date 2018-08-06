@@ -504,18 +504,38 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("filament_cooling_initial_speed", coFloats);
     def->label = L("Speed of the first cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed. ");
-    def->cli = "filament-cooling-initial-speed=i@";
+    def->cli = "filament-cooling-initial-speed=f@";
     def->sidetext = L("mm/s");
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 2.2f };
 
+    def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
+    def->label = L("Minimal purge on wipe tower");
+    def->tooltip = L("After a toolchange, certain amount of filament is used for purging. This "
+                     "can end up on the wipe tower, infill or sacrificial object. If there was "
+                     "enough infill etc. available, this could result in bad quality at the beginning "
+                     "of purging. This is a minimum that must be wiped on the wipe tower before "
+                     "Slic3r considers moving elsewhere. ");
+    def->cli = "filament-minimal-purge-on-wipe-tower=f@";
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 5.f };
+
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating towards this speed. ");
-    def->cli = "filament-cooling-final-speed=i@";
+    def->cli = "filament-cooling-final-speed=f@";
     def->sidetext = L("mm/s");
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 3.4f };
+
+    def = this->add("filament_load_time", coFloats);
+    def->label = L("Filament load time");
+    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->cli = "filament-load-time=i@";
+    def->sidetext = L("s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0.0f };
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
@@ -523,6 +543,14 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-ramming-parameters=s@";
     def->default_value = new ConfigOptionStrings { "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|"
 	   " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" };
+
+    def = this->add("filament_unload_time", coFloats);
+    def->label = L("Filament unload time");
+    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to unload a filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->cli = "filament-unload-time=i@";
+    def->sidetext = L("s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0.0f };
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
@@ -892,8 +920,16 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
 
+    def = this->add("remaining_times", coBool);
+    def->label = L("Supports remaining times");
+    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in seconds] at 1 minute"
+                     " intervals into the G-code to let the firmware show accurate remaining time."
+                     " As of now only the Prusa i3 MK3 firmware recognizes M73."
+                     " Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode.");
+    def->default_value = new ConfigOptionBool(false);
+
 	def = this->add("silent_mode", coBool);
-	def->label = L("Support silent mode");
+	def->label = L("Supports silent mode");
 	def->tooltip = L("Set silent mode for the G-code flavor");
 	def->default_value = new ConfigOptionBool(true);
 

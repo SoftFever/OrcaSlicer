@@ -167,7 +167,10 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
         "use_relative_e_distances",
         "use_volumetric_e",
         "variable_layer_height",
-        "wipe"
+        "wipe",
+        "wipe_tower_x",
+        "wipe_tower_y",
+        "wipe_tower_rotation_angle"
     };
 
     std::vector<PrintStep> steps;
@@ -176,7 +179,12 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
 
     // Always invalidate the wipe tower. This is probably necessary because of the wipe_into_infill / wipe_into_objects
     // features - nearly anything can influence what should (and could) be wiped into.
-    steps.emplace_back(psWipeTower);
+    // Only these three parameters don't invalidate the wipe tower (they only affect the gcode export):
+    for (const t_config_option_key &opt_key : opt_keys)
+        if (opt_key != "wipe_tower_x" && opt_key != "wipe_tower_y" && opt_key != "wipe_tower_rotation_angle") {
+            steps.emplace_back(psWipeTower);
+            break;
+        }
 
     for (const t_config_option_key &opt_key : opt_keys) {
         if (steps_ignore.find(opt_key) != steps_ignore.end()) {
@@ -205,6 +213,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "filament_unloading_speed"
             || opt_key == "filament_toolchange_delay"
             || opt_key == "filament_cooling_moves"
+            || opt_key == "filament_minimal_purge_on_wipe_tower"
             || opt_key == "filament_cooling_initial_speed"
             || opt_key == "filament_cooling_final_speed"
             || opt_key == "filament_ramming_parameters"
@@ -213,10 +222,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "spiral_vase"
             || opt_key == "temperature"
             || opt_key == "wipe_tower"
-            || opt_key == "wipe_tower_x"
-            || opt_key == "wipe_tower_y"
             || opt_key == "wipe_tower_width"
-            || opt_key == "wipe_tower_rotation_angle"
             || opt_key == "wipe_tower_bridging"
             || opt_key == "wiping_volumes_matrix"
             || opt_key == "parking_pos_retraction"
@@ -1052,6 +1058,8 @@ void Print::_make_wipe_tower()
     if (! this->has_wipe_tower())
         return;
 
+    m_wipe_tower_depth = 0.f;
+
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
     std::vector<float> wiping_matrix((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end());
     // Extract purging volumes for each extruder pair:
@@ -1145,12 +1153,19 @@ void Print::_make_wipe_tower()
             wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, current_extruder_id,false);
             for (const auto extruder_id : layer_tools.extruders) {
                 if ((first_layer && extruder_id == m_tool_ordering.all_extruders().back()) || extruder_id != current_extruder_id) {
-                    float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];    // total volume to wipe after this toolchange
+                    float volume_to_wipe = wipe_volumes[current_extruder_id][extruder_id];             // total volume to wipe after this toolchange
+                    // Not all of that can be used for infill purging:
+                    volume_to_wipe -= config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
 
                     // try to assign some infills/objects for the wiping:
-                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, wipe_volumes[current_extruder_id][extruder_id]);
+                    volume_to_wipe = layer_tools.wiping_extrusions().mark_wiping_extrusions(*this, current_extruder_id, extruder_id, volume_to_wipe);
 
-                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id, first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
+                    // add back the minimal amount toforce on the wipe tower:
+                    volume_to_wipe += config.filament_minimal_purge_on_wipe_tower.get_at(extruder_id);
+
+                    // request a toolchange at the wipe tower with at least volume_to_wipe purging amount
+                    wipe_tower.plan_toolchange(layer_tools.print_z, layer_tools.wipe_tower_layer_height, current_extruder_id, extruder_id,
+                                               first_layer && extruder_id == m_tool_ordering.all_extruders().back(), volume_to_wipe);
                     current_extruder_id = extruder_id;
                 }
             }
@@ -1163,7 +1178,8 @@ void Print::_make_wipe_tower()
     // Generate the wipe tower layers.
     m_wipe_tower_tool_changes.reserve(m_tool_ordering.layer_tools().size());
     wipe_tower.generate(m_wipe_tower_tool_changes);
-    
+    m_wipe_tower_depth = wipe_tower.get_depth();
+
     // Unload the current filament over the purge tower.
     coordf_t layer_height = this->objects.front()->config.layer_height.value;
     if (m_tool_ordering.back().wipe_tower_partitions > 0) {

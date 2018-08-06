@@ -305,10 +305,14 @@ const Pointfs& GLCanvas3D::Bed::get_shape() const
     return m_shape;
 }
 
-void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
+bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
 {
+    EType new_type = _detect_type();
+    if (m_shape == shape && m_type == new_type)
+        // No change, no need to update the UI.
+        return false;
     m_shape = shape;
-    m_type = _detect_type();
+    m_type = new_type;
 
     _calc_bounding_box();
 
@@ -324,6 +328,8 @@ void GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     _calc_gridlines(poly, bed_bbox);
 
     m_polygon = offset_ex(poly.contour, (float)bed_bbox.radius() * 1.7f, jtRound, scale_(0.5))[0].contour;
+    // Let the calee to update the UI.
+    return true;
 }
 
 const BoundingBoxf3& GLCanvas3D::Bed::get_bounding_box() const
@@ -1941,9 +1947,7 @@ void GLCanvas3D::set_model(Model* model)
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 {
-    bool new_shape = (shape != m_bed.get_shape());
-    if (new_shape)
-        m_bed.set_shape(shape);
+    bool new_shape = m_bed.set_shape(shape);
 
     // Set the origin and size for painting of the coordinate system axes.
     m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
@@ -2314,7 +2318,12 @@ void GLCanvas3D::reload_scene(bool force)
             float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
             float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
 
-            m_volumes.load_wipe_tower_preview(1000, x, y, w, 15.0f * (float)(extruders_count - 1), (float)height, a, m_use_VBOs && m_initialized);
+            float depth = m_print->get_wipe_tower_depth();
+            if (!m_print->state.is_done(psWipeTower))
+                depth = (900.f/w) * (float)(extruders_count - 1) ;
+
+            m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !m_print->state.is_done(psWipeTower),
+                                              m_print->config.nozzle_diameter.values[0] * 1.25f * 4.5f);
         }
     }
 
@@ -4063,6 +4072,8 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     {
         const Print                 *print;
         const std::vector<float>    *tool_colors;
+        WipeTower::xy                wipe_tower_pos;
+        float                        wipe_tower_angle;
 
         // Number of vertices (each vertex is 6x4=24 bytes long)
         static const size_t          alloc_size_max() { return 131072; } // 3.15MB
@@ -4094,6 +4105,9 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         ctxt.priming.emplace_back(*m_print->m_wipe_tower_priming.get());
     if (m_print->m_wipe_tower_final_purge)
         ctxt.final.emplace_back(*m_print->m_wipe_tower_final_purge.get());
+
+    ctxt.wipe_tower_angle = ctxt.print->config.wipe_tower_rotation_angle.value/180.f * M_PI;
+    ctxt.wipe_tower_pos = WipeTower::xy(ctxt.print->config.wipe_tower_x.value, ctxt.print->config.wipe_tower_y.value);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
@@ -4152,12 +4166,25 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
                     lines.reserve(n_lines);
                     widths.reserve(n_lines);
                     heights.assign(n_lines, extrusions.layer_height);
+                    WipeTower::Extrusion e_prev = extrusions.extrusions[i-1];
+
+                    if (!extrusions.priming) { // wipe tower extrusions describe the wipe tower at the origin with no rotation
+                        e_prev.pos.rotate(ctxt.wipe_tower_angle);
+                        e_prev.pos.translate(ctxt.wipe_tower_pos);
+                    }
+
                     for (; i < j; ++i) {
-                        const WipeTower::Extrusion &e = extrusions.extrusions[i];
+                        WipeTower::Extrusion e = extrusions.extrusions[i];
                         assert(e.width > 0.f);
-                        const WipeTower::Extrusion &e_prev = *(&e - 1);
+                        if (!extrusions.priming) {
+                            e.pos.rotate(ctxt.wipe_tower_angle);
+                            e.pos.translate(ctxt.wipe_tower_pos);
+                        }
+
                         lines.emplace_back(Point::new_scale(e_prev.pos.x, e_prev.pos.y), Point::new_scale(e.pos.x, e.pos.y));
                         widths.emplace_back(e.width);
+
+                        e_prev = e;
                     }
                     _3DScene::thick_lines_to_verts(lines, widths, heights, lines.front().a == lines.back().b, extrusions.print_z,
                         *vols[ctxt.volume_idx(e.tool, 0)]);
@@ -4716,8 +4743,11 @@ void GLCanvas3D::_load_shells()
     const PrintConfig& config = m_print->config;
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
-        const float width_per_extruder = 15.0f; // a simple workaround after wipe_tower_per_color_wipe got obsolete
-        m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, width_per_extruder * (extruders_count - 1), max_z, config.wipe_tower_rotation_angle, m_use_VBOs && m_initialized);
+        float depth = m_print->get_wipe_tower_depth();
+        if (!m_print->state.is_done(psWipeTower))
+            depth = (900.f/config.wipe_tower_width) * (float)(extruders_count - 1) ;
+        m_volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, depth, max_z, config.wipe_tower_rotation_angle,
+                                          m_use_VBOs && m_initialized, !m_print->state.is_done(psWipeTower), m_print->config.nozzle_diameter.values[0] * 1.25f * 4.5f);
     }
 }
 

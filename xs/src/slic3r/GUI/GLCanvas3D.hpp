@@ -162,7 +162,8 @@ public:
         bool is_custom() const;
 
         const Pointfs& get_shape() const;
-        void set_shape(const Pointfs& shape);
+        // Return true if the bed shape changed, so the calee will update the UI.
+        bool set_shape(const Pointfs& shape);
 
         const BoundingBoxf3& get_bounding_box() const;
         bool contains(const Point& point) const;
