@@ -95,9 +95,9 @@ namespace Slic3r { namespace GUI {
 		wxString tooltip_text("");
 		wxString tooltip = _(m_opt.tooltip);
 		if (tooltip.length() > 0)
-            tooltip_text = tooltip + "\n    " + _(L("default value")) + "\t: " +
+            tooltip_text = tooltip + "\n" + _(L("default value")) + "\t: " +
             (boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + default_string +
-            (boost::iends_with(m_opt_id, "_gcode") ? "" : "\n") + "\n    " +
+            (boost::iends_with(m_opt_id, "_gcode") ? "" : "\n") + 
             _(L("variable name")) + "\t: " + m_opt_id;
 
 		return tooltip_text;
