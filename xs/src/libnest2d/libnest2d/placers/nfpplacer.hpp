@@ -505,13 +505,18 @@ public:
 
     bool static inline wouldFit(const Box& bb, const _Circle<Vertex>& bin)
     {
+
         return sl::isInside<RawShape>(bb, bin);
     }
 
     bool static inline wouldFit(const RawShape& chull,
                                 const _Circle<Vertex>& bin)
     {
-        return sl::isInside<RawShape>(chull, bin);
+        auto bb = sl::boundingBox(chull);
+        auto d = bin.center() - bb.center();
+        auto chullcpy = chull;
+        sl::translate(chullcpy, d);
+        return sl::isInside<RawShape>(chullcpy, bin);
     }
 
     PackResult trypack(Item& item) {

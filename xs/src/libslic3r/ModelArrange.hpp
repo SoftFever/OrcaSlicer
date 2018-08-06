@@ -329,6 +329,45 @@ public:
     }
 };
 
+using lnCircle = libnest2d::_Circle<libnest2d::PointImpl>;
+
+template<>
+class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
+public:
+
+    AutoArranger(const lnCircle& bin, Distance dist,
+                 std::function<void(unsigned)> progressind):
+        _ArrBase<lnCircle>(bin, dist, progressind) {
+
+        pconf_.object_function = [this, &bin] (
+                    Pile& pile,
+                    const Item &item,
+                    double pile_area,
+                    double norm,
+                    double /*penality*/) {
+
+            auto result = objfunc(bin.center(), bin_area_, pile,
+                                  pile_area, item, norm, areacache_, rtree_);
+            double score = std::get<0>(result);
+
+            // Circle fitting detection is very rough at the moment but
+            // we still need something that tells how badly the arrangement
+            // misses the print bed.
+            auto& fullbb = std::get<1>(result);
+            auto bbr = 0.5*PointLike::distance(fullbb.minCorner(),
+                                               fullbb.maxCorner());
+            auto diff = bbr - bin.radius();
+
+            if(diff > 0) score += std::pow(diff, 2) / norm;
+
+
+            return score;
+        };
+
+        pck_.configure(pconf_);
+    }
+};
+
 template<>
 class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
 public:
@@ -347,15 +386,6 @@ public:
             auto result = objfunc(binbb.center(), bin_area_, pile,
                                   pile_area, item, norm, areacache_, rtree_);
             double score = std::get<0>(result);
-
-            pile.emplace_back(item.transformedShape());
-            auto chull = ShapeLike::convexHull(pile);
-            pile.pop_back();
-
-            // If it does not fit into the print bed we will beat it with a
-            // large penality. If we would not do this, there would be only one
-            // big pile that doesn't care whether it fits onto the print bed.
-            if(!Placer::wouldFit(chull, bin)) score += norm;
 
             return score;
         };
@@ -451,88 +481,8 @@ public:
 
     inline double radius() const { return radius_; }
     inline const Point& center() const { return center_; }
-    inline operator bool() { return std::isnan(radius_); }
+    inline operator bool() { return !std::isnan(radius_); }
 };
-
-
-Circle circle(std::array<Point, 3> P) {
-
-    using Coord = Point::coord_type;
-    using std::pow;
-    using std::abs;
-    using std::round;
-    using std::nan;
-
-    auto getX = [](const Point& p) { return p.x; };
-    auto getY = [](const Point& p) { return p.y; };
-
-    auto distance = [](const Point& p1, const Point& p2) {
-        return abs(p1.distance_to(p2));
-    };
-
-    static const auto E = 10.0/SCALING_FACTOR;
-
-    auto x1 = getX(P[0]), y1 = getY(P[0]);
-    auto x2 = getX(P[1]), y2 = getY(P[1]);
-    auto x3 = getX(P[2]), y3 = getY(P[2]);
-
-
-    auto A_div = (x2 - x1);
-    auto B_div = (x3 - x2);
-    if(A_div == 0 || B_div == 0) return Circle();
-
-    auto A = (y2 - y1)/A_div;
-    auto B = (y2 - y3)/B_div;
-    auto C = (-pow(x1, 2) - pow(y1, 2) + pow(x2, 2) + pow(y2, 2))/(2*(x2 - x1));
-    auto D = (pow(x2, 2) + pow(y1, 2) - pow(x3, 2) - pow(y3, 2))/(2*(x3 - x2));
-
-    auto cy = (C + D)/(A + B);
-    auto cx = B*cy - D;
-
-    Point cc = {Coord(round(cx)), Coord(round(cy))};
-    auto d =  distance(cc, P[0]);
-    auto d2 = distance(cc, P[1]);
-    auto d3 = distance(cc, P[2]);
-
-    auto e1 = abs(d - d2);
-    auto e2 = abs(d - d3);
-
-    if(e1 > E || e2 > E) return Circle();
-
-    return { cc, d };
-}
-
-Circle isCircle(const Polyline& p) {
-
-    using std::abs;
-
-    auto& pp = p.points;
-    static const double E = 10/SCALING_FACTOR;
-    double radius = 0;
-    bool ret = true;
-    Circle c;
-    for(auto i = 0; i < pp.size() - 3 && ret; i += 3) {
-        c = circle({pp[i], pp[i+1], pp[i+2]});
-        if(c || abs(radius - c.radius()) >= E) ret = false;
-        else radius = c.radius();
-    }
-
-//    auto rem = pp.size() % 3;
-
-//    if(ret && rem > 0) {
-//        std::array<Point, 3> remarr;
-
-//        auto i = 0;
-//        for(i = 0; i < rem; i++) remarr[i] = *(pp.rbegin() - i);
-//        while(i < 3) remarr[i] = pp[i++];
-//        c = circle(remarr);
-//        if(c || abs(radius - c.radius()) >= E) ret = false;
-//    }
-
-    if(!ret) c = Circle();
-
-    return c;
-}
 
 enum class BedShapeType {
     BOX,
@@ -564,7 +514,9 @@ BedShapeHint bedShape(const Polyline& bed) {
     };
 
     auto area = [&width, &height](const BoundingBox& box) {
-        return width(box) * height(box);
+        double w = width(box);
+        double h = height(box);
+        return w*h;
     };
 
     auto poly_area = [](Polyline p) {
@@ -574,18 +526,43 @@ BedShapeHint bedShape(const Polyline& bed) {
         return std::abs(pp.area());
     };
 
+
     auto bb = bed.bounding_box();
-    if(std::abs(area(bb) - poly_area(bed)) < E) {
+
+    auto isCircle = [bb](const Polyline& polygon) {
+        auto center = bb.center();
+        std::vector<double> vertex_distances;
+        double avg_dist = 0;
+        for (auto pt: polygon.points)
+        {
+            double distance = center.distance_to(pt);
+            vertex_distances.push_back(distance);
+            avg_dist += distance;
+        }
+
+        avg_dist /= vertex_distances.size();
+
+        Circle ret(center, avg_dist);
+        for (auto el: vertex_distances)
+        {
+            if (abs(el - avg_dist) > 10 * SCALED_EPSILON)
+                ret = Circle();
+            break;
+        }
+
+        return ret;
+    };
+
+    auto parea = poly_area(bed);
+
+    if( (1.0 - parea/area(bb)) < 1e-3 ) {
         ret.type = BedShapeType::BOX;
         ret.shape.box = bb;
-        std::cout << "BOX" << std::endl;
     }
     else if(auto c = isCircle(bed)) {
         ret.type = BedShapeType::CIRCLE;
         ret.shape.circ = c;
-        std::cout << "Circle" << std::endl;
     } else {
-        std::cout << "Polygon" << std::endl;
         ret.type = BedShapeType::IRREGULAR;
         ret.shape.polygon = bed;
     }
@@ -692,8 +669,15 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         result = arrange(shapes.begin(), shapes.end());
         break;
     }
-    case BedShapeType::CIRCLE:
+    case BedShapeType::CIRCLE: {
+
+        auto c = bedhint.shape.circ;
+        auto cc = lnCircle({c.center().x, c.center().y} , c.radius());
+
+        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind);
+        result = arrange(shapes.begin(), shapes.end());
         break;
+    }
     case BedShapeType::IRREGULAR:
     case BedShapeType::WHO_KNOWS: {
 
@@ -701,8 +685,6 @@ bool arrange(Model &model, coordf_t min_obj_distance,
 
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
         P irrbed = ShapeLike::create<PolygonImpl>(std::move(ctour));
-
-//        std::cout << ShapeLike::toString(irrbed) << std::endl;
 
         AutoArranger<P> arrange(irrbed, min_obj_distance, progressind);
 
