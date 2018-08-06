@@ -3392,7 +3392,7 @@ void GLCanvas3D::_camera_tranform() const
     ::glMatrixMode(GL_MODELVIEW);
     ::glLoadIdentity();
 
-    ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
+    ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
     Pointf3 neg_target = m_camera.target.negative();
@@ -4853,7 +4853,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     if (m_model == nullptr)
         return;
 
-    std::set<std::string> done;  // prevent moving instances twice
+    std::set<std::string> done;  // prevent moving instances twice
     bool object_moved = false;
     Pointf3 wipe_tower_origin(0.0, 0.0, 0.0);
     for (int volume_idx : volume_idxs)
@@ -4862,7 +4862,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         int obj_idx = volume->object_idx();
         int instance_idx = volume->instance_idx();
 
-        // prevent moving instances twice
+        // prevent moving instances twice
         char done_id[64];
         ::sprintf(done_id, "%d_%d", obj_idx, instance_idx);
         if (done.find(done_id) != done.end())
