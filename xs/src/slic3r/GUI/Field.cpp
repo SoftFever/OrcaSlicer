@@ -98,7 +98,7 @@ namespace Slic3r { namespace GUI {
             tooltip_text = tooltip + "\n" + _(L("default value")) + "\t: " +
             (boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + default_string +
             (boost::iends_with(m_opt_id, "_gcode") ? "" : "\n") + 
-            _(L("variable name")) + "\t: " + m_opt_id;
+            _(L("parameter name")) + "\t: " + m_opt_id;
 
 		return tooltip_text;
 	}
