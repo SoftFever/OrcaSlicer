@@ -24,6 +24,7 @@ class wxBoxSizer;
 class wxFlexGridSizer;
 class wxButton;
 class wxFileDialog;
+class wxTopLevelWindow;
 
 namespace Slic3r { 
 
@@ -182,7 +183,12 @@ void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
 
 // Returns the dimensions of the screen on which the main frame is displayed
-void get_current_screen_size(unsigned &width, unsigned &height);
+bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);
+
+// Save window size and maximized status into AppConfig
+void save_window_size(wxTopLevelWindow *window, const std::string &name);
+// Restore the above
+void restore_window_size(wxTopLevelWindow *window, const std::string &name);
 
 // Display an About dialog
 extern void about();

@@ -7,6 +7,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
+#include <boost/lexical_cast.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -974,13 +975,65 @@ int get_export_option(wxFileDialog* dlg)
 
 }
 
-void get_current_screen_size(unsigned &width, unsigned &height)
+bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height)
 {
-	wxDisplay display(wxDisplay::GetFromWindow(g_wxMainFrame));
+	const auto idx = wxDisplay::GetFromWindow(window);
+	if (idx == wxNOT_FOUND) {
+		return false;
+	}
+
+	wxDisplay display(idx);
 	const auto disp_size = display.GetClientArea();
 	width = disp_size.GetWidth();
 	height = disp_size.GetHeight();
+
+	return true;
 }
+
+void save_window_size(wxTopLevelWindow *window, const std::string &name)
+{
+	const wxSize size = window->GetSize();
+	const wxPoint pos = window->GetPosition();
+	const auto maximized = window->IsMaximized() ? "1" : "0";
+
+	g_AppConfig->set((boost::format("window_%1%_size") % name).str(), (boost::format("%1%;%2%") % size.GetWidth() % size.GetHeight()).str());
+	g_AppConfig->set((boost::format("window_%1%_maximized") % name).str(), maximized);
+}
+
+void restore_window_size(wxTopLevelWindow *window, const std::string &name)
+{
+	// XXX: This still doesn't behave nicely in some situations (mostly on Linux).
+	// The problem is that it's hard to obtain window position with respect to screen geometry reliably
+	// from wxWidgets. Sometimes wxWidgets claim a window is located on a different screen than on which
+	// it's actually visible. I suspect this has something to do with window initialization (maybe we
+	// restore window geometry too early), but haven't yet found a workaround.
+
+	const auto display_idx = wxDisplay::GetFromWindow(window);
+	if (display_idx == wxNOT_FOUND) { return; }
+
+	const auto display = wxDisplay(display_idx).GetClientArea();
+	std::vector<std::string> pair;
+
+	try {
+		const auto key_size = (boost::format("window_%1%_size") % name).str();
+		if (g_AppConfig->has(key_size)) {
+			if (unescape_strings_cstyle(g_AppConfig->get(key_size), pair) && pair.size() == 2) {
+				auto width = boost::lexical_cast<int>(pair[0]);
+				auto height = boost::lexical_cast<int>(pair[1]);
+
+				window->SetSize(width, height);
+			}
+		}
+	} catch(const boost::bad_lexical_cast &) {}
+
+	// Maximizing should be the last thing to do.
+	// This ensure the size and position are sane when the user un-maximizes the window.
+	const auto key_maximized = (boost::format("window_%1%_maximized") % name).str();
+	if (g_AppConfig->get(key_maximized) == "1") {
+		window->Maximize(true);
+	}
+}
+
 
 void about()
 {

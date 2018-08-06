@@ -60,6 +60,14 @@ void AppConfig::set_defaults()
 
     if (get("remember_output_path").empty())
         set("remember_output_path", "1");
+
+    // Remove legacy window positions/sizes
+    erase("", "main_frame_maximized");
+    erase("", "main_frame_pos");
+    erase("", "main_frame_size");
+    erase("", "object_settings_maximized");
+    erase("", "object_settings_pos");
+    erase("", "object_settings_size");
 }
 
 void AppConfig::load()

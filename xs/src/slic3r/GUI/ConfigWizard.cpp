@@ -870,10 +870,11 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	// If the screen is smaller, resize wizrad to match, which will enable scrollbars.
 	auto wizard_size = GetSize();
 	unsigned width, height;
-	GUI::get_current_screen_size(width, height);
-	wizard_size.SetWidth(std::min(wizard_size.GetWidth(), (int)(width - 2 * DIALOG_MARGIN)));
-	wizard_size.SetHeight(std::min(wizard_size.GetHeight(), (int)(height - 2 * DIALOG_MARGIN)));
-	SetMinSize(wizard_size);
+	if (GUI::get_current_screen_size(this, width, height)) {
+		wizard_size.SetWidth(std::min(wizard_size.GetWidth(), (int)(width - 2 * DIALOG_MARGIN)));
+		wizard_size.SetHeight(std::min(wizard_size.GetHeight(), (int)(height - 2 * DIALOG_MARGIN)));
+		SetMinSize(wizard_size);
+	}
 	Fit();
 
 	p->btn_prev->Bind(wxEVT_BUTTON, [this](const wxCommandEvent &evt) { this->p->go_prev(); });

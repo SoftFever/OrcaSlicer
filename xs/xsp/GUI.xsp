@@ -111,3 +111,9 @@ void register_on_request_update_callback(SV* callback)
 void deregister_on_request_update_callback()
     %code%{ Slic3r::GUI::g_on_request_update_callback.deregister_callback(); %};
 
+void save_window_size(SV *window, std::string name)
+    %code%{ Slic3r::GUI::save_window_size((wxTopLevelWindow*)wxPli_sv_2_object(aTHX_ window, "Wx::TopLevelWindow"), name); %};
+
+void restore_window_size(SV *window, std::string name)
+    %code%{ Slic3r::GUI::restore_window_size((wxTopLevelWindow*)wxPli_sv_2_object(aTHX_ window, "Wx::TopLevelWindow"), name); %};
+
