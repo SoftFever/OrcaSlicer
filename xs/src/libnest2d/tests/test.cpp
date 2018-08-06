@@ -99,6 +99,43 @@ TEST(BasicFunctionality, creationAndDestruction)
 
 }
 
+TEST(GeometryAlgorithms, boundingCircle) {
+    using namespace libnest2d;
+    using strategies::boundingCircle;
+
+    PolygonImpl p = {{{0, 10}, {10, 0}, {0, -10}, {0, 10}}, {}};
+    _Circle<PointImpl> c = boundingCircle<PolygonImpl>(p);
+
+    ASSERT_EQ(c.center().X, 0);
+    ASSERT_EQ(c.center().Y, 0);
+    ASSERT_DOUBLE_EQ(c.radius(), 10);
+
+    ShapeLike::translate(p, PointImpl{10, 10});
+    c = boundingCircle<PolygonImpl>(p);
+
+    ASSERT_EQ(c.center().X, 10);
+    ASSERT_EQ(c.center().Y, 10);
+    ASSERT_DOUBLE_EQ(c.radius(), 10);
+
+    auto parts = prusaParts();
+
+    int i = 0;
+    for(auto& part : parts) {
+        c = boundingCircle(part.transformedShape());
+        if(std::isnan(c.radius())) std::cout << "fail: radius is nan" << std::endl;
+
+        else for(auto v : ShapeLike::getContour(part.transformedShape()) ) {
+            auto d = PointLike::distance(v, c.center());
+            if(d > c.radius() ) {
+                auto e = std::abs( 1.0 - d/c.radius());
+                ASSERT_LE(e, 1e-3);
+            }
+        }
+        i++;
+    }
+
+}
+
 TEST(GeometryAlgorithms, Distance) {
     using namespace libnest2d;
 

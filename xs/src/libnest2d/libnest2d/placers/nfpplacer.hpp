@@ -1,15 +1,18 @@
 #ifndef NOFITPOLY_HPP
 #define NOFITPOLY_HPP
 
+#include <cassert>
+#include <random>
+
 #ifndef NDEBUG
 #include <iostream>
 #endif
 #include "placer_boilerplate.hpp"
 #include "../geometry_traits_nfp.hpp"
 #include "libnest2d/optimizer.hpp"
-#include <cassert>
 
 #include "tools/svgtools.hpp"
+
 
 namespace libnest2d { namespace strategies {
 
@@ -161,12 +164,11 @@ template<class RawShape> class EdgeCache {
     }
 
     size_t stride(const size_t N) const {
-        using std::ceil;
         using std::round;
         using std::pow;
 
         return static_cast<Coord>(
-                    std::round(N/std::pow(N, std::pow(accuracy_, 1.0/3.0)))
+                    round(N/pow(N, pow(accuracy_, 1.0/3.0)))
                 );
     }
 
@@ -177,6 +179,7 @@ template<class RawShape> class EdgeCache {
         const auto S = stride(N);
 
         contour_.corners.reserve(N / S + 1);
+        contour_.corners.emplace_back(0.0);
         auto N_1 = N-1;
         contour_.corners.emplace_back(0.0);
         for(size_t i = 0; i < N_1; i += S) {
@@ -190,8 +193,8 @@ template<class RawShape> class EdgeCache {
         if(!hc.corners.empty()) return;
 
         const auto N = hc.distances.size();
-        const auto S = stride(N);
         auto N_1 = N-1;
+        const auto S = stride(N);
         hc.corners.reserve(N / S + 1);
         hc.corners.emplace_back(0.0);
         for(size_t i = 0; i < N_1; i += S) {
@@ -339,7 +342,7 @@ Nfp::Shapes<RawShape> nfp( const Container& polygons,
 
     Nfp::Shapes<RawShape> nfps;
 
-    //int pi = 0;
+//    int pi = 0;
     for(Item& sh : polygons) {
         auto subnfp_r = Nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(
                             sh.transformedShape(), trsh.transformedShape());
@@ -441,6 +444,63 @@ Nfp::Shapes<RawShape> nfp( const Container& polygons,
 //    return nfps;
 }
 
+template<class RawShape>
+_Circle<TPoint<RawShape>> minimizeCircle(const RawShape& sh) {
+    using sl = ShapeLike; using pl = PointLike;
+    using Point = TPoint<RawShape>;
+    using Coord = TCoord<Point>;
+
+    auto bb = sl::boundingBox(sh);
+    auto capprx = bb.center();
+    auto rapprx = pl::distance(bb.minCorner(), bb.maxCorner());
+
+    auto& ctr = sl::getContour(sh);
+
+    opt::StopCriteria stopcr;
+    stopcr.max_iterations = 100;
+    stopcr.relative_score_difference = 1e-3;
+    opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
+
+    std::vector<double> dists(ctr.size(), 0);
+
+    auto result = solver.optimize_min(
+        [capprx, rapprx, &ctr, &dists](double xf, double yf) {
+            auto xt = Coord( std::round(getX(capprx) + rapprx*xf) );
+            auto yt = Coord( std::round(getY(capprx) + rapprx*yf) );
+
+            Point centr(xt, yt);
+
+            unsigned i = 0;
+            for(auto v : ctr) {
+                dists[i++] = pl::distance(v, centr);
+            }
+
+            auto mit = std::max_element(dists.begin(), dists.end());
+
+            assert(mit != dists.end());
+
+            return *mit;
+        },
+        opt::initvals(0.0, 0.0),
+        opt::bound(-1.0, 1.0), opt::bound(-1.0, 1.0)
+    );
+
+    double oxf = std::get<0>(result.optimum);
+    double oyf = std::get<1>(result.optimum);
+    auto xt = Coord( std::round(getX(capprx) + rapprx*oxf) );
+    auto yt = Coord( std::round(getY(capprx) + rapprx*oyf) );
+
+    Point cc(xt, yt);
+    auto r = result.score;
+
+    return {cc, r};
+}
+
+template<class RawShape>
+_Circle<TPoint<RawShape>> boundingCircle(const RawShape& sh) {
+    return minimizeCircle(sh);
+}
+
 template<class RawShape, class TBin = _Box<TPoint<RawShape>>>
 class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin>,
         RawShape, TBin, NfpPConfig<RawShape>> {
@@ -512,11 +572,7 @@ public:
     bool static inline wouldFit(const RawShape& chull,
                                 const _Circle<Vertex>& bin)
     {
-        auto bb = sl::boundingBox(chull);
-        auto d = bin.center() - bb.center();
-        auto chullcpy = chull;
-        sl::translate(chullcpy, d);
-        return sl::isInside<RawShape>(chullcpy, bin);
+        return boundingCircle(chull).radius() < bin.radius();
     }
 
     PackResult trypack(Item& item) {
@@ -574,8 +630,9 @@ public:
 
                 auto getNfpPoint = [&ecache](const Optimum& opt)
                 {
-                    return opt.hidx < 0? ecache[opt.nfpidx].coords(opt.relpos) :
+                    auto ret = opt.hidx < 0? ecache[opt.nfpidx].coords(opt.relpos) :
                             ecache[opt.nfpidx].coords(opt.hidx, opt.relpos);
+                    return ret;
                 };
 
                 Nfp::Shapes<RawShape> pile;
@@ -595,7 +652,7 @@ public:
                 [this, &merged_pile](
                             Nfp::Shapes<RawShape>& /*pile*/,
                             const Item& item,
-                            double occupied_area,
+                            double occupied_area, 
                             double norm,
                             double /*penality*/)
                 {
@@ -751,14 +808,37 @@ public:
     }
 
     inline void clearItems() {
+        finalAlign(bin_);
+        Base::clearItems();
+    }
+
+private:
+
+    inline void finalAlign(const RawShape& pbin) {
+        auto bbin = sl::boundingBox(pbin);
+        finalAlign(bbin);
+    }
+
+    inline void finalAlign(_Circle<TPoint<RawShape>> cbin) {
+        if(items_.empty()) return;
+
         Nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
+        for(Item& item : items_) m.emplace_back(item.transformedShape());
 
+        auto c = boundingCircle(sl::convexHull(m));
+
+        auto d = cbin.center() - c.center();
+        for(Item& item : items_) item.translate(d);
+    }
+
+    inline void finalAlign(Box bbin) {
+        Nfp::Shapes<RawShape> m;
+        m.reserve(items_.size());
         for(Item& item : items_) m.emplace_back(item.transformedShape());
         auto&& bb = sl::boundingBox<RawShape>(m);
 
         Vertex ci, cb;
-        auto bbin = sl::boundingBox<RawShape>(bin_);
 
         switch(config_.alignment) {
         case Config::Alignment::CENTER: {
@@ -790,11 +870,7 @@ public:
 
         auto d = cb - ci;
         for(Item& item : items_) item.translate(d);
-
-        Base::clearItems();
     }
-
-private:
 
     void setInitialPosition(Item& item) {
         Box&& bb = item.boundingBox();

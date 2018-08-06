@@ -109,7 +109,7 @@ public:
     inline void radius(double r) { radius_ = r; }
 
     inline double area() const BP2D_NOEXCEPT {
-        return 2.0*Pi*radius_;
+        return 2.0*Pi*radius_*radius_;
     }
 };
 

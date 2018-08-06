@@ -102,9 +102,9 @@ using SpatIndex = bgi::rtree< SpatElement, bgi::rstar<16, 4> >;
 
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
-        double /*bin_area*/,
+        double bin_area,
         ShapeLike::Shapes<PolygonImpl>& pile,   // The currently arranged pile
-        double /*pile_area*/,
+        double pile_area,
         const Item &item,
         double norm,            // A norming factor for physical dimensions
         std::vector<double>& areacache, // pile item areas will be cached
@@ -115,12 +115,16 @@ objfunc(const PointImpl& bincenter,
     using pl = PointLike;
     using sl = ShapeLike;
 
-    static const double BIG_ITEM_TRESHOLD = 0.2;
+    static const double BIG_ITEM_TRESHOLD = 0.04;
     static const double ROUNDNESS_RATIO = 0.5;
     static const double DENSITY_RATIO = 1.0 - ROUNDNESS_RATIO;
 
     // We will treat big items (compared to the print bed) differently
-    auto normarea = [norm](double area) { return std::sqrt(area)/norm; };
+
+    auto isBig = [&areacache, bin_area](double a) {
+        bool t = areacache.empty() ? true :  a > 0.5*areacache.front();
+        return a/bin_area > BIG_ITEM_TRESHOLD || t;
+    };
 
     // If a new bin has been created:
     if(pile.size() < areacache.size()) {
@@ -133,7 +137,7 @@ objfunc(const PointImpl& bincenter,
     for(auto& p : pile) {
         if(idx == areacache.size()) {
             areacache.emplace_back(sl::area(p));
-            if(normarea(areacache[idx]) > BIG_ITEM_TRESHOLD)
+            if(isBig(areacache[idx]))
                 spatindex.insert({sl::boundingBox(p), idx});
         }
 
@@ -157,14 +161,10 @@ objfunc(const PointImpl& bincenter,
         boost::geometry::convert(boostbb, bigbb);
     }
 
-    // The size indicator of the candidate item. This is not the area,
-    // but almost...
-    double item_normarea = normarea(item.area());
-
     // Will hold the resulting score
     double score = 0;
 
-    if(item_normarea > BIG_ITEM_TRESHOLD) {
+    if(isBig(item.area())) {
         // This branch is for the bigger items..
         // Here we will use the closest point of the item bounding box to
         // the already arranged pile. So not the bb center nor the a choosen
@@ -223,10 +223,9 @@ objfunc(const PointImpl& bincenter,
         // The final mix of the score is the balance between the distance
         // from the full pile center, the pack density and the
         // alignment with the neigbours
-        auto C = 0.33;
-        score = C * dist +  C * density + C * alignment_score;
+        score = 0.4 * dist +  0.4 * density + 0.2 * alignment_score;
 
-    } else if( item_normarea < BIG_ITEM_TRESHOLD && spatindex.empty()) {
+    } else if( !isBig(item.area()) && spatindex.empty()) {
         // If there are no big items, only small, we should consider the
         // density here as well to not get silly results
         auto bindist = pl::distance(ibb.center(), bincenter) / norm;
@@ -349,17 +348,26 @@ public:
             auto result = objfunc(bin.center(), bin_area_, pile,
                                   pile_area, item, norm, areacache_, rtree_);
             double score = std::get<0>(result);
-
-            // Circle fitting detection is very rough at the moment but
-            // we still need something that tells how badly the arrangement
-            // misses the print bed.
             auto& fullbb = std::get<1>(result);
-            auto bbr = 0.5*PointLike::distance(fullbb.minCorner(),
-                                               fullbb.maxCorner());
-            auto diff = bbr - bin.radius();
 
-            if(diff > 0) score += std::pow(diff, 2) / norm;
+            auto d = PointLike::distance(fullbb.minCorner(),
+                                         fullbb.maxCorner());
+            auto diff = d - 2*bin.radius();
 
+            if(diff > 0) {
+                if( item.area() > 0.01*bin_area_ && item.vertexCount() < 20) {
+                    pile.emplace_back(item.transformedShape());
+                    auto chull = ShapeLike::convexHull(pile);
+                    pile.pop_back();
+
+                    auto C = strategies::boundingCircle(chull);
+                    auto rdiff = C.radius() - bin.radius();
+
+                    if(rdiff > 0) {
+                        score += std::pow(rdiff, 3) / norm;
+                    }
+                }
+            }
 
             return score;
         };
@@ -694,6 +702,8 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         break;
     }
     };
+
+    if(result.empty()) return false;
 
     if(first_bin_only) {
         applyResult(result.front(), 0, shapemap);
