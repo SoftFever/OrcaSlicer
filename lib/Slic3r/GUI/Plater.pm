@@ -1291,7 +1291,7 @@ sub async_apply_config {
 
         # We also need to reload 3D scene because of the wipe tower preview box
         if ($self->{config}->wipe_tower) {
-	    Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
+	       Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
         }
     }
 }

@@ -524,13 +524,21 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Y, print.config.machine_max_jerk_y.values[1]);
             m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::Z, print.config.machine_max_jerk_z.values[1]);
             m_silent_time_estimator.set_axis_max_jerk(GCodeTimeEstimator::E, print.config.machine_max_jerk_e.values[1]);
-            m_silent_time_estimator.set_filament_load_times(print.config.filament_load_time.values);
-            m_silent_time_estimator.set_filament_unload_times(print.config.filament_unload_time.values);
+            if (print.config.single_extruder_multi_material) {
+                // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
+                // are considered to be active for the single extruder multi-material printers only.
+                m_silent_time_estimator.set_filament_load_times(print.config.filament_load_time.values);
+                m_silent_time_estimator.set_filament_unload_times(print.config.filament_unload_time.values);
+            }
         }
     }
     // Filament load / unload times are not specific to a firmware flavor. Let anybody use it if they find it useful.
-    m_normal_time_estimator.set_filament_load_times(print.config.filament_load_time.values);
-    m_normal_time_estimator.set_filament_unload_times(print.config.filament_unload_time.values);
+    if (print.config.single_extruder_multi_material) {
+        // As of now the fields are shown at the UI dialog in the same combo box as the ramming values, so they
+        // are considered to be active for the single extruder multi-material printers only.
+        m_normal_time_estimator.set_filament_load_times(print.config.filament_load_time.values);
+        m_normal_time_estimator.set_filament_unload_times(print.config.filament_unload_time.values);
+    }
 
     // resets analyzer
     m_analyzer.reset();
