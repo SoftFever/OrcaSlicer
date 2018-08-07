@@ -2,6 +2,10 @@
 
 #include <deque>
 #include <thread>
+#include <cstring>
+#include <cstdlib>
+#include <new>
+#include <exception>
 
 extern "C" {
 #include "ac_cfg.h"
@@ -28,6 +32,11 @@ static void avrdude_progress_handler_closure(const char *task, unsigned progress
 	(*progress_fn)(task, progress);
 }
 
+static void avrdude_oom_handler(const char *context, void *user_p)
+{
+	throw std::bad_alloc();
+}
+
 
 // Private
 
@@ -47,16 +56,22 @@ struct AvrDude::priv
 
 	priv(std::string &&sys_config) : sys_config(sys_config) {}
 
+	void set_handlers();
+	void unset_handlers();
 	int run_one(const std::vector<std::string> &args);
 	int run();
+
+	struct HandlerGuard
+	{
+		priv &p;
+
+		HandlerGuard(priv &p) : p(p) { p.set_handlers(); }
+		~HandlerGuard() { p.unset_handlers(); }
+	};
 };
 
-int AvrDude::priv::run_one(const std::vector<std::string> &args) {
-	std::vector<char*> c_args {{ const_cast<char*>(PACKAGE_NAME) }};
-	for (const auto &arg : args) {
-		c_args.push_back(const_cast<char*>(arg.data()));
-	}
-
+void AvrDude::priv::set_handlers()
+{
 	if (message_fn) {
 		::avrdude_message_handler_set(avrdude_message_handler_closure, reinterpret_cast<void*>(&message_fn));
 	} else {
@@ -69,10 +84,27 @@ int AvrDude::priv::run_one(const std::vector<std::string> &args) {
 		::avrdude_progress_handler_set(nullptr, nullptr);
 	}
 
-	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data(), sys_config.c_str());
+	::avrdude_oom_handler_set(avrdude_oom_handler, nullptr);
+}
 
+void AvrDude::priv::unset_handlers()
+{
 	::avrdude_message_handler_set(nullptr, nullptr);
 	::avrdude_progress_handler_set(nullptr, nullptr);
+	::avrdude_oom_handler_set(nullptr, nullptr);
+}
+
+
+int AvrDude::priv::run_one(const std::vector<std::string> &args) {
+	std::vector<char*> c_args {{ const_cast<char*>(PACKAGE_NAME) }};
+	for (const auto &arg : args) {
+		c_args.push_back(const_cast<char*>(arg.data()));
+	}
+
+	HandlerGuard guard(*this);
+
+	const auto res = ::avrdude_main(static_cast<int>(c_args.size()), c_args.data(), sys_config.c_str());
+
 	return res;
 }
 
@@ -134,7 +166,7 @@ AvrDude& AvrDude::on_complete(CompleteFn fn)
 
 int AvrDude::run_sync()
 {
-	return p->run();
+	return p ? p->run() : -1;
 }
 
 AvrDude::Ptr AvrDude::run()
@@ -143,19 +175,46 @@ AvrDude::Ptr AvrDude::run()
 
 	if (self->p) {
 		auto avrdude_thread = std::thread([self]() {
-			bool cancel = false;
-			int res = -1;
+			try {
+				if (self->p->run_fn) {
+					self->p->run_fn(self);
+				}
 
-			if (self->p->run_fn) {
-				self->p->run_fn();
-			}
+				if (! self->p->cancelled) {
+					self->p->exit_code = self->p->run();
+				}
 
-			if (! self->p->cancelled) {
-				self->p->exit_code = self->p->run();
-			}
+				if (self->p->complete_fn) {
+					self->p->complete_fn();
+				}
+			} catch (const std::exception &ex) {
+				self->p->exit_code = EXIT_EXCEPTION;
 
-			if (self->p->complete_fn) {
-				self->p->complete_fn();
+				static const char *msg = "An exception was thrown in the background thread:\n";
+
+				const char *what = ex.what();
+				auto &message_fn = self->p->message_fn;
+				if (message_fn) {
+					message_fn(msg, sizeof(msg));
+					message_fn(what, std::strlen(what));
+					message_fn("\n", 1);
+				}
+
+				if (self->p->complete_fn) {
+					self->p->complete_fn();
+				}
+			} catch (...) {
+				self->p->exit_code = EXIT_EXCEPTION;
+
+				static const char *msg = "An unkown exception was thrown in the background thread.\n";
+
+				if (self->p->message_fn) {
+					self->p->message_fn(msg, sizeof(msg));
+				}
+
+				if (self->p->complete_fn) {
+					self->p->complete_fn();
+				}
 			}
 		});
 

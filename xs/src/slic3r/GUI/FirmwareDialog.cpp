@@ -551,8 +551,10 @@ void FirmwareDialog::priv::perform_upload()
 	// because the dialog ensures it doesn't exit before the background thread is done.
 	auto q = this->q;
 
-	this->avrdude = avrdude
-		.on_run([this]() {
+	avrdude
+		.on_run([this](AvrDude::Ptr avrdude) {
+			this->avrdude = std::move(avrdude);
+
 			try {
 				switch (this->hex_file.device) {
 				case HexFile::DEV_MK3:
