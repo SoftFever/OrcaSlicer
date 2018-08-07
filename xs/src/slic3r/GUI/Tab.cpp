@@ -239,9 +239,8 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 	page->Hide();
 	m_hsizer->Add(page.get(), 1, wxEXPAND | wxLEFT, 5);
 
-    std::vector<PageShp> & pages = name() != "printer" ? m_pages : *static_cast<TabPrinter*>(this)->m_current_pages;
-	if (!is_extruder_pages) 
-		pages.push_back(page);
+    if (!is_extruder_pages) 
+		m_pages.push_back(page);
 
 	page->set_config(m_config);
 	return page;
@@ -1418,15 +1417,15 @@ void TabPrinter::build()
 	m_presets = &m_preset_bundle->printers;
 	load_initial_data();
 
-    m_printer_technology_old = m_presets->get_selected_preset().printer_technology();
+    m_printer_technology = m_presets->get_selected_preset().printer_technology();
 
-    if (m_presets->get_selected_preset().printer_technology() == ptSLA){
-        build_sla();
-        return;
-    }
+    m_presets->get_selected_preset().printer_technology() == ptSLA ? build_sla() : build_fff();
+}
 
-    m_current_pages = &m_pages;
-
+void TabPrinter::build_fff()
+{
+    if (!m_pages.empty())
+        m_pages.resize(0);
 	// to avoid redundant memory allocation / deallocation during extruders count changing
 	m_pages.reserve(30);
 
@@ -1709,11 +1708,8 @@ void TabPrinter::build()
 
 void TabPrinter::build_sla()
 {
-//     m_presets = &m_preset_bundle->printers;
-//     load_initial_data();
-
-    m_current_pages = &m_sla_pages;
-
+    if (!m_pages.empty())
+        m_pages.resize(0);
     auto page = add_options_page(_(L("General")), "printer_empty.png");
     auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
@@ -1962,7 +1958,6 @@ void TabPrinter::build_extruder_pages()
 // this gets executed after preset is loaded and before GUI fields are updated
 void TabPrinter::on_preset_loaded()
 {
-    return; // ys_FIXME
 	// update the extruders count field
 	auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"));
 	int extruders_count = nozzle_diameter->values.size();
@@ -1971,8 +1966,36 @@ void TabPrinter::on_preset_loaded()
 	extruders_count_changed(extruders_count);
 }
 
-void TabPrinter::update(){
-    return; // ys_FIXME
+void TabPrinter::update_pages()
+{
+    // update m_pages ONLY if printer technology is changed
+    if (m_presets->get_edited_preset().printer_technology() == m_printer_technology)
+        return;
+
+    // hide all old pages
+    for (auto& el : m_pages)
+        el.get()->Hide();
+
+    // set m_pages to m_pages_(technology before changing)
+    m_printer_technology == ptFFF ? m_pages.swap(m_pages_fff) : m_pages.swap(m_pages_sla);
+
+    // build Tab according to the technology, if it's not exist jet OR
+    // set m_pages_(technology after changing) to m_pages
+    if (m_presets->get_edited_preset().printer_technology() == ptFFF)
+        m_pages_fff.empty() ? build_fff() : m_pages.swap(m_pages_fff);
+    else 
+        m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
+
+    rebuild_page_tree(true);
+}
+
+void TabPrinter::update()
+{
+    m_presets->get_edited_preset().printer_technology() == ptFFF ? update_fff() : update_sla();
+}
+
+void TabPrinter::update_fff()
+{
 	Freeze();
 
 	bool en;
@@ -2071,6 +2094,8 @@ void TabPrinter::update(){
 	Thaw();
 }
 
+void TabPrinter::update_sla(){ ; }
+
 // Initialize the UI from the current preset
 void Tab::load_current_preset()
 {
@@ -2078,14 +2103,12 @@ void Tab::load_current_preset()
 
 	(preset.is_default || preset.is_system) ? m_btn_delete_preset->Disable() : m_btn_delete_preset->Enable(true);
 
-    if (m_name == "printer" && m_presets->get_edited_preset().printer_technology() == ptSLA) {} // ys_FIXME
-    else {
-        update();
-        // For the printer profile, generate the extruder pages.
+    update();
+    // For the printer profile, generate the extruder pages.
+    if (preset.printer_technology() == ptFFF)
         on_preset_loaded();
-        // Reload preset pages with the new configuration values.
-        reload_config();
-    }
+    // Reload preset pages with the new configuration values.
+    reload_config();
 
 	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
 	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
@@ -2105,8 +2128,8 @@ void Tab::load_current_preset()
 
         // update show/hide tabs
         if (m_name == "printer"){
-            bool printer_technology = m_presets->get_edited_preset().printer_technology();
-            if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology_old)
+            PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
+            if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
                 wxWindow* del_page = printer_technology == ptFFF ? get_material_tab() : get_print_tab();
                 int del_page_id = get_tab_panel()->FindPage(del_page);
@@ -2126,7 +2149,7 @@ void Tab::load_current_preset()
                         }
                         get_tab_panel()->InsertPage(del_page_id, get_material_tab(), static_cast<Tab*>(get_material_tab())->title());
                     }
-                    static_cast<TabPrinter*>(this)->m_printer_technology_old = printer_technology;
+                    static_cast<TabPrinter*>(this)->m_printer_technology = printer_technology;
                 }
             }
         }
@@ -2148,7 +2171,7 @@ void Tab::load_current_preset()
 }
 
 //Regerenerate content of the page tree.
-void Tab::rebuild_page_tree()
+void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
 	Freeze();
 	// get label of the currently selected item
@@ -2163,9 +2186,9 @@ void Tab::rebuild_page_tree()
 		m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
 		if (p->title() == selected) {
 			if (!(p->title() == _(L("Machine limits")) || p->title() == _(L("Single extruder MM setup")))) // These Pages have to be updated inside OnTreeSelChange
-				m_disable_tree_sel_changed_event = 1;
+				m_disable_tree_sel_changed_event = !tree_sel_change_event;
 			m_treectrl->SelectItem(itemId);
-			m_disable_tree_sel_changed_event = 0;
+			m_disable_tree_sel_changed_event = false;
 			have_selection = 1;
 		}
 	}
@@ -2245,6 +2268,8 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 		if (current_dirty || printer_tab)
 			m_preset_bundle->update_compatible_with_printer(true);
 		// Initialize the UI from the current preset.
+        if (printer_tab)
+            static_cast<TabPrinter*>(this)->update_pages();
 		load_current_preset();
 	}
 }
@@ -2299,11 +2324,9 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	wxWindowUpdateLocker noUpdates(this);
 #endif
 
-    std::vector<PageShp> & pages = name() != "printer" ? m_pages : *static_cast<TabPrinter*>(this)->m_current_pages;
-
 	Page* page = nullptr;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
-	for (auto p : pages)
+	for (auto p : m_pages)
 		if (p->title() == selection)
 		{
 			page = p.get();
@@ -2313,7 +2336,7 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 		}
 	if (page == nullptr) return;
 
-	for (auto& el : pages)
+	for (auto& el : m_pages)
 		el.get()->Hide();
 
 #ifdef __linux__

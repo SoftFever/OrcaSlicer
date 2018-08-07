@@ -218,7 +218,7 @@ public:
 	
 	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		load_current_preset();
-	void		rebuild_page_tree();
+	void        rebuild_page_tree(bool tree_sel_change_event = false);
 	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
@@ -320,7 +320,8 @@ class TabPrinter : public Tab
 	void		append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key);
 	bool		m_rebuild_kinematics_page = false;
 
-    std::vector<PageShp>			m_sla_pages;
+    std::vector<PageShp>			m_pages_fff;
+    std::vector<PageShp>			m_pages_sla;
 public:
 	wxButton*	m_serial_test_btn;
 	wxButton*	m_octoprint_host_test_btn;
@@ -330,17 +331,19 @@ public:
 	size_t		m_initial_extruders_count;
 	size_t		m_sys_extruders_count;
 
-    bool        m_printer_technology_old = ptFFF;
-
-    std::vector<PageShp>			*m_current_pages;
+    PrinterTechnology               m_printer_technology = ptFFF;
 
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
 	~TabPrinter(){}
 
 	void		build() override;
-    void		build_sla() ;
+    void		build_fff();
+    void		build_sla();
     void		update() override;
+    void		update_fff();
+    void		update_sla();
+    void        update_pages(); // update m_pages according to printer technology
 	void		update_serial_ports();
 	void		extruders_count_changed(size_t extruders_count);
 	PageShp		build_kinematics_page();
