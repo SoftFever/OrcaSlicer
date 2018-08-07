@@ -56,8 +56,11 @@ public:
         config_ = config;
     }
 
-    bool pack(Item& item) {
-        auto&& r = static_cast<Subclass*>(this)->trypack(item);
+    template<class Container>
+    bool pack(Container& items,
+              typename Container::iterator from,
+              unsigned count = 1) {
+        auto&& r = static_cast<Subclass*>(this)->trypack(items, from, count);
         if(r) {
             items_.push_back(*(r.item_ptr_));
             farea_valid_ = false;

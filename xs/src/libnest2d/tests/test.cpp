@@ -471,8 +471,8 @@ TEST(GeometryAlgorithms, BottomLeftStressTest) {
     auto next = it;
     int i = 0;
     while(it != input.end() && ++next != input.end()) {
-        placer.pack(*it);
-        placer.pack(*next);
+        placer.pack(input, it);
+        placer.pack(input, next);
 
         auto result = placer.getItems();
         bool valid = true;

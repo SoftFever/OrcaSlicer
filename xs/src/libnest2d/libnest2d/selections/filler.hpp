@@ -65,7 +65,7 @@ public:
 
         auto it = store_.begin();
         while(it != store_.end()) {
-            if(!placer.pack(*it))  {
+            if(!placer.pack(store_, it))  {
                 if(packed_bins_.back().empty()) ++it;
 //                makeProgress(placer);
                 placer.clearItems();

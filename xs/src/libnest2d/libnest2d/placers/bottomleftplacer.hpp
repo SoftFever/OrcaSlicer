@@ -27,9 +27,14 @@ public:
 
     explicit _BottomLeftPlacer(const BinType& bin): Base(bin) {}
 
-    PackResult trypack(Item& item) {
+    template<class Store>
+    PackResult trypack(Store& /*s*/, typename Store::iterator from,
+                       unsigned /*count*/ = 1)
+    {
+        Item& item = *from;
         auto r = _trypack(item);
         if(!r && Base::config_.allow_rotations) {
+
             item.rotate(Degrees(90));
             r =_trypack(item);
         }

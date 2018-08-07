@@ -40,6 +40,7 @@ public:
         packed_bins_.clear();
 
         std::vector<Placer> placers;
+        placers.reserve(last-first);
 
         std::copy(first, last, std::back_inserter(store_));
 
@@ -60,18 +61,19 @@ public:
         { auto it = store_.begin();
             while (it != store_.end()) {
                 Placer p(bin); p.configure(pconfig);
-                if(!p.pack(*it)) {
+                if(!p.pack(store_, it)) {
                     it = store_.erase(it);
                 } else it++;
             }
         }
 
-        for(auto& item : store_ ) {
+        auto it = store_.begin();
+        while(it != store_.end()) {
             bool was_packed = false;
             while(!was_packed) {
 
                 for(size_t j = 0; j < placers.size() && !was_packed; j++) {
-                    if((was_packed = placers[j].pack(item)))
+                    if((was_packed = placers[j].pack(store_, it)))
                         makeProgress(placers[j], j);
                 }
 
@@ -81,6 +83,7 @@ public:
                     packed_bins_.emplace_back();
                 }
             }
+            ++it;
         }
     }
 

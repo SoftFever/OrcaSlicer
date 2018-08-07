@@ -19,6 +19,8 @@ namespace libnest2d { namespace strategies {
 template<class RawShape>
 struct NfpPConfig {
 
+    using ItemGroup = std::vector<std::reference_wrapper<_Item<RawShape>>>;
+
     enum class Alignment {
         CENTER,
         BOTTOM_LEFT,
@@ -57,8 +59,8 @@ struct NfpPConfig {
      * \param item The second parameter is the candidate item.
      *
      * \param occupied_area The third parameter is the sum of areas of the
-     * items in the first parameter so you don't have to iterate through them
-     * if you only need their area.
+     * items in the first parameter (no candidate item there) so you don't have
+     * to iterate through them if you only need their accumulated area.
      *
      * \param norm A norming factor for physical dimensions. E.g. if your score
      * is the distance between the item and the bin center, you should divide
@@ -66,21 +68,21 @@ struct NfpPConfig {
      * divide it with the square of the norming factor. Imagine it as a unit of
      * distance.
      *
-     * \param penality The fifth parameter is the amount of minimum penality if
-     * the arranged pile would't fit into the bin. You can use the wouldFit()
-     * function to check this. Note that the pile can be outside the bin's
-     * boundaries while the placement algorithm is running. Your job is only to
-     * check if the pile could be translated into a position in the bin where
-     * all the items would be inside. For a box shaped bin you can use the
-     * pile's bounding box to check whether it's width and height is small
-     * enough. If the pile would not fit, you have to make sure that the
-     * resulting score will be higher then the penality value. A good solution
-     * would be to set score = 2*penality-score in case the pile wouldn't fit
-     * into the bin.
+     * \param remaining A container with the remaining items waiting to be
+     * placed. You can use some features about the remaining items to alter to
+     * score of the current placement. If you know that you have to leave place
+     * for other items as well, that might influence your decision about where
+     * the current candidate should be placed. E.g. imagine three big circles
+     * which you want to place into a box: you might place them in a triangle
+     * shape which has the maximum pack density. But if there is a 4th big
+     * circle than you won't be able to pack it. If you knew apriori that
+     * there four circles are to be placed, you would have placed the first 3
+     * into an L shape. This parameter can be used to make these kind of
+     * decisions (for you or a more intelligent AI).
      *
      */
     std::function<double(Nfp::Shapes<RawShape>&, const _Item<RawShape>&,
-                         double, double, double)>
+                         double, double, const ItemGroup&)>
     object_function;
 
     /**
@@ -450,11 +452,13 @@ _Circle<TPoint<RawShape>> minimizeCircle(const RawShape& sh) {
     using Point = TPoint<RawShape>;
     using Coord = TCoord<Point>;
 
+    auto& ctr = sl::getContour(sh);
+    if(ctr.empty()) return {{0, 0}, 0};
+
     auto bb = sl::boundingBox(sh);
     auto capprx = bb.center();
     auto rapprx = pl::distance(bb.minCorner(), bb.maxCorner());
 
-    auto& ctr = sl::getContour(sh);
 
     opt::StopCriteria stopcr;
     stopcr.max_iterations = 100;
@@ -513,7 +517,6 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin
     using Box = _Box<TPoint<RawShape>>;
 
     const double norm_;
-    const double penality_;
 
     using MaxNfpLevel = Nfp::MaxNfpLevel<RawShape>;
     using sl = ShapeLike;
@@ -524,8 +527,7 @@ public:
 
     inline explicit _NofitPolyPlacer(const BinType& bin):
         Base(bin),
-        norm_(std::sqrt(sl::area<RawShape>(bin))),
-        penality_(1e6*norm_) {}
+        norm_(std::sqrt(sl::area<RawShape>(bin))) {}
 
     _NofitPolyPlacer(const _NofitPolyPlacer&) = default;
     _NofitPolyPlacer& operator=(const _NofitPolyPlacer&) = default;
@@ -575,7 +577,15 @@ public:
         return boundingCircle(chull).radius() < bin.radius();
     }
 
-    PackResult trypack(Item& item) {
+    template<class Container>
+    PackResult trypack(Container& items,
+                       typename Container::iterator from,
+                       unsigned /*count*/ = 1)
+    {
+        return trypack(*from, {std::next(from), items.end()});
+    }
+
+    PackResult trypack(Item& item, ItemGroup remaining) {
 
         PackResult ret;
 
@@ -586,7 +596,7 @@ public:
             can_pack = item.isInside(bin_);
         } else {
 
-            double global_score = penality_;
+            double global_score = std::numeric_limits<double>::max();
 
             auto initial_tr = item.translation();
             auto initial_rot = item.rotation();
@@ -630,9 +640,8 @@ public:
 
                 auto getNfpPoint = [&ecache](const Optimum& opt)
                 {
-                    auto ret = opt.hidx < 0? ecache[opt.nfpidx].coords(opt.relpos) :
+                    return opt.hidx < 0? ecache[opt.nfpidx].coords(opt.relpos) :
                             ecache[opt.nfpidx].coords(opt.hidx, opt.relpos);
-                    return ret;
                 };
 
                 Nfp::Shapes<RawShape> pile;
@@ -654,7 +663,7 @@ public:
                             const Item& item,
                             double occupied_area, 
                             double norm,
-                            double /*penality*/)
+                            const ItemGroup& /*remaining*/)
                 {
                     merged_pile.emplace_back(item.transformedShape());
                     auto ch = sl::convexHull(merged_pile);
@@ -686,7 +695,7 @@ public:
                     double occupied_area = pile_area + item.area();
 
                     double score = _objfunc(pile, item, occupied_area,
-                                            norm_, penality_);
+                                            norm_, remaining);
 
                     return score;
                 };
@@ -705,12 +714,12 @@ public:
                 };
 
                 opt::StopCriteria stopcr;
-                stopcr.max_iterations = 100;
-                stopcr.relative_score_difference = 1e-12;
+                stopcr.max_iterations = 200;
+                stopcr.relative_score_difference = 1e-20;
                 opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
 
                 Optimum optimum(0, 0);
-                double best_score = penality_;
+                double best_score = std::numeric_limits<double>::max();
 
                 // Local optimization with the four polygon corners as
                 // starting points
@@ -821,7 +830,6 @@ private:
 
     inline void finalAlign(_Circle<TPoint<RawShape>> cbin) {
         if(items_.empty()) return;
-
         Nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
         for(Item& item : items_) m.emplace_back(item.transformedShape());
@@ -833,6 +841,7 @@ private:
     }
 
     inline void finalAlign(Box bbin) {
+        if(items_.empty()) return;
         Nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
         for(Item& item : items_) m.emplace_back(item.transformedShape());

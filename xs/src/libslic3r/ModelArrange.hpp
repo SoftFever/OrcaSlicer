@@ -99,6 +99,7 @@ namespace bgi = boost::geometry::index;
 
 using SpatElement = std::pair<Box, unsigned>;
 using SpatIndex = bgi::rtree< SpatElement, bgi::rstar<16, 4> >;
+using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
@@ -109,24 +110,21 @@ objfunc(const PointImpl& bincenter,
         double norm,            // A norming factor for physical dimensions
         std::vector<double>& areacache, // pile item areas will be cached
         // a spatial index to quickly get neighbors of the candidate item
-        SpatIndex& spatindex
+        SpatIndex& spatindex,
+        const ItemGroup& remaining
         )
 {
     using pl = PointLike;
     using sl = ShapeLike;
+    using Coord = TCoord<PointImpl>;
 
     static const double BIG_ITEM_TRESHOLD = 0.02;
     static const double ROUNDNESS_RATIO = 0.5;
     static const double DENSITY_RATIO = 1.0 - ROUNDNESS_RATIO;
 
     // We will treat big items (compared to the print bed) differently
-
     auto isBig = [&areacache, bin_area](double a) {
-        double farea = areacache.empty() ? 0 : areacache.front();
-        bool fbig = farea / bin_area > BIG_ITEM_TRESHOLD;
-        bool abig = a/bin_area > BIG_ITEM_TRESHOLD;
-        bool rbig = fbig && a > 0.5*farea;
-        return abig || rbig;
+        return a/bin_area > BIG_ITEM_TRESHOLD ;
     };
 
     // If a new bin has been created:
@@ -195,38 +193,73 @@ objfunc(const PointImpl& bincenter,
         auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
 
         // Density is the pack density: how big is the arranged pile
-        auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
+        double density = 0;
 
-        // Prepare a variable for the alignment score.
-        // This will indicate: how well is the candidate item aligned with
-        // its neighbors. We will check the aligment with all neighbors and
-        // return the score for the best alignment. So it is enough for the
-        // candidate to be aligned with only one item.
-        auto alignment_score = std::numeric_limits<double>::max();
+        if(remaining.empty()) {
+            pile.emplace_back(item.transformedShape());
+            auto chull = sl::convexHull(pile);
+            pile.pop_back();
+            strategies::EdgeCache<PolygonImpl> ec(chull);
 
-        auto& trsh =  item.transformedShape();
+            double circ = ec.circumference() / norm;
+            double bcirc = 2.0*(fullbb.width() + fullbb.height()) / norm;
+            score = 0.5*circ + 0.5*bcirc;
 
-        auto querybb = item.boundingBox();
+        } else {
+            // Prepare a variable for the alignment score.
+            // This will indicate: how well is the candidate item aligned with
+            // its neighbors. We will check the aligment with all neighbors and
+            // return the score for the best alignment. So it is enough for the
+            // candidate to be aligned with only one item.
+            auto alignment_score = std::numeric_limits<double>::max();
 
-        // Query the spatial index for the neigbours
-        std::vector<SpatElement> result;
-        spatindex.query(bgi::intersects(querybb), std::back_inserter(result));
+            density = (fullbb.width()*fullbb.height()) / (norm*norm);
+            auto& trsh = item.transformedShape();
+            auto querybb = item.boundingBox();
+            auto wp = querybb.width()*0.2;
+            auto hp = querybb.height()*0.2;
+            auto pad = PointImpl( Coord(wp), Coord(hp));
+            querybb = Box({ querybb.minCorner() - pad,
+                            querybb.maxCorner() + pad
+                          });
 
-        for(auto& e : result) { // now get the score for the best alignment
-            auto idx = e.second;
-            auto& p = pile[idx];
-            auto parea = areacache[idx];
-            auto bb = sl::boundingBox(sl::Shapes<PolygonImpl>{p, trsh});
-            auto bbarea = bb.area();
-            auto ascore = 1.0 - (item.area() + parea)/bbarea;
+            // Query the spatial index for the neigbours
+            std::vector<SpatElement> result;
+            result.reserve(spatindex.size());
+            spatindex.query(bgi::intersects(querybb),
+                            std::back_inserter(result));
 
-            if(ascore < alignment_score) alignment_score = ascore;
+//            if(result.empty()) {
+//                std::cout << "Error while arranging!" << std::endl;
+//                std::cout << spatindex.size() << " " << pile.size() << std::endl;
+
+//                auto ib = spatindex.bounds();
+//                Box ibb;
+//                boost::geometry::convert(ib, ibb);
+//                std::cout << "Inside: " << (sl::isInside<PolygonImpl>(querybb, ibb) ||
+//                                            boost::geometry::intersects(querybb, ibb)) << std::endl;
+//            }
+
+            for(auto& e : result) { // now get the score for the best alignment
+                auto idx = e.second;
+                auto& p = pile[idx];
+                auto parea = areacache[idx];
+                auto bb = sl::boundingBox(sl::Shapes<PolygonImpl>{p, trsh});
+                auto bbarea = bb.area();
+                auto ascore = 1.0 - (item.area() + parea)/bbarea;
+
+                if(ascore < alignment_score) alignment_score = ascore;
+            }
+
+            // The final mix of the score is the balance between the distance
+            // from the full pile center, the pack density and the
+            // alignment with the neigbours
+            if(result.empty())
+                score = 0.5 * dist + 0.5 * density;
+            else
+                score = 0.45 * dist + 0.45 * density + 0.1 * alignment_score;
+
         }
-
-        // The final mix of the score is the balance between the distance
-        // from the full pile center, the pack density and the
-        // alignment with the neigbours
-        score = 0.45 * dist +  0.45 * density + 0.1 * alignment_score;
 
     } else if( !isBig(item.area()) && spatindex.empty()) {
         // If there are no big items, only small, we should consider the
@@ -312,10 +345,12 @@ public:
                     const Item &item,
                     double pile_area,
                     double norm,
-                    double /*penality*/) {
+                    const ItemGroup& rem) {
 
             auto result = objfunc(bin.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_, rtree_);
+                                  pile_area, item, norm, areacache_,
+                                  rtree_,
+                                  rem);
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
 
@@ -346,10 +381,11 @@ public:
                     const Item &item,
                     double pile_area,
                     double norm,
-                    double /*penality*/) {
+                    const ItemGroup& rem) {
 
             auto result = objfunc(bin.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_, rtree_);
+                                  pile_area, item, norm, areacache_,
+                                  rtree_, rem);
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
 
@@ -391,11 +427,12 @@ public:
                     const Item &item,
                     double pile_area,
                     double norm,
-                    double /*penality*/) {
+                    const ItemGroup& rem) {
 
             auto binbb = ShapeLike::boundingBox(bin);
             auto result = objfunc(binbb.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_, rtree_);
+                                  pile_area, item, norm, areacache_,
+                                  rtree_, rem);
             double score = std::get<0>(result);
 
             return score;
@@ -417,10 +454,11 @@ public:
                     const Item &item,
                     double pile_area,
                     double norm,
-                    double /*penality*/) {
+                    const ItemGroup& rem) {
 
             auto result = objfunc({0, 0}, 0, pile, pile_area,
-                                  item, norm, areacache_, rtree_);
+                                  item, norm, areacache_,
+                                  rtree_, rem);
             return std::get<0>(result);
         };
 

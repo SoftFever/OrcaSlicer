@@ -541,21 +541,20 @@ public:
     inline void configure(const Config& config) { impl_.configure(config); }
 
     /**
-     * @brief A method that tries to pack an item and returns an object
-     * describing the pack result.
+     * Try to pack an item with a result object that contains the packing
+     * information for later accepting it.
      *
-     * The result can be casted to bool and used as an argument to the accept
-     * method to accept a succesfully packed item. This way the next packing
-     * will consider the accepted item as well. The PackResult should carry the
-     * transformation info so that if the tried item is later modified or tried
-     * multiple times, the result object should set it to the originally
-     * determied position. An implementation can be found in the
-     * strategies::PlacerBoilerplate::PackResult class.
-     *
-     * @param item Ithe item to be packed.
-     * @return The PackResult object that can be implicitly casted to bool.
+     * \param item_store A container of items
      */
-    inline PackResult trypack(Item& item) { return impl_.trypack(item); }
+    template<class Container>
+    inline PackResult trypack(Container& item_store,
+                              typename Container::iterator from,
+                              unsigned count = 1) {
+        using V = typename Container::value_type;
+        static_assert(std::is_convertible<V, const Item&>::value,
+                      "Invalid Item container!");
+        return impl_.trypack(item_store, from, count);
+    }
 
     /**
      * @brief A method to accept a previously tried item.
@@ -578,7 +577,16 @@ public:
      * @return Returns true if the item was packed or false if it could not be
      * packed.
      */
-    inline bool pack(Item& item) { return impl_.pack(item); }
+    template<class Container>
+    inline bool pack(Container& item_store,
+                     typename Container::iterator from,
+                     unsigned count = 1)
+    {
+        using V = typename Container::value_type;
+        static_assert(std::is_convertible<V, const Item&>::value,
+                      "Invalid Item container!");
+        return impl_.pack(item_store, from, count);
+    }
 
     /// Unpack the last element (remove it from the list of packed items).
     inline void unpackLast() { impl_.unpackLast(); }
