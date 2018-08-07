@@ -226,7 +226,7 @@ objfunc(const PointImpl& bincenter,
         // The final mix of the score is the balance between the distance
         // from the full pile center, the pack density and the
         // alignment with the neigbours
-        score = 0.4 * dist +  0.4 * density + 0.2 * alignment_score;
+        score = 0.45 * dist +  0.45 * density + 0.1 * alignment_score;
 
     } else if( !isBig(item.area()) && spatindex.empty()) {
         // If there are no big items, only small, we should consider the
@@ -261,7 +261,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 1.0f;
+    pcfg.accuracy = 0.6f;
 }
 
 template<class TBin>
