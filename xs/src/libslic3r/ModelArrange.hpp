@@ -115,15 +115,18 @@ objfunc(const PointImpl& bincenter,
     using pl = PointLike;
     using sl = ShapeLike;
 
-    static const double BIG_ITEM_TRESHOLD = 0.04;
+    static const double BIG_ITEM_TRESHOLD = 0.02;
     static const double ROUNDNESS_RATIO = 0.5;
     static const double DENSITY_RATIO = 1.0 - ROUNDNESS_RATIO;
 
     // We will treat big items (compared to the print bed) differently
 
     auto isBig = [&areacache, bin_area](double a) {
-        bool t = areacache.empty() ? true :  a > 0.5*areacache.front();
-        return a/bin_area > BIG_ITEM_TRESHOLD || t;
+        double farea = areacache.empty() ? 0 : areacache.front();
+        bool fbig = farea / bin_area > BIG_ITEM_TRESHOLD;
+        bool abig = a/bin_area > BIG_ITEM_TRESHOLD;
+        bool rbig = fbig && a > 0.5*farea;
+        return abig || rbig;
     };
 
     // If a new bin has been created:
@@ -258,7 +261,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.6f;
+    pcfg.accuracy = 1.0f;
 }
 
 template<class TBin>
@@ -355,7 +358,7 @@ public:
             auto diff = d - 2*bin.radius();
 
             if(diff > 0) {
-                if( item.area() > 0.01*bin_area_ && item.vertexCount() < 20) {
+                if( item.area() > 0.01*bin_area_ && item.vertexCount() < 30) {
                     pile.emplace_back(item.transformedShape());
                     auto chull = ShapeLike::convexHull(pile);
                     pile.pop_back();

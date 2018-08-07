@@ -706,7 +706,7 @@ public:
 
                 opt::StopCriteria stopcr;
                 stopcr.max_iterations = 100;
-                stopcr.relative_score_difference = 1e-6;
+                stopcr.relative_score_difference = 1e-12;
                 opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
 
                 Optimum optimum(0, 0);
