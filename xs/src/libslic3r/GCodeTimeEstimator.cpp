@@ -721,6 +721,8 @@ namespace Slic3r {
         }
 
         _last_st_synchronized_block_id = _blocks.size() - 1;
+        // The additional time has been consumed (added to the total time), reset it to zero.
+        set_additional_time(0.);
     }
 
     void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
