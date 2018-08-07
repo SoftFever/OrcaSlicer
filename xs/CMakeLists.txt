@@ -459,7 +459,7 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver avrdude)
+target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver avrdude qhull)
 if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
@@ -539,6 +539,10 @@ if (WIN32)
 endif()
 
 add_subdirectory(src/avrdude)
+
+add_subdirectory(src/qhull)
+include_directories(${LIBDIR}/qhull/src)
+message(STATUS ${LIBDIR}/qhull/src)
 
 ## REQUIRED packages
 
