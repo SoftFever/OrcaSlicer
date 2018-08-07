@@ -567,6 +567,8 @@ void Tab::update_dirty(){
 
 void Tab::update_tab_ui()
 {
+//     if (this == nullptr)
+//         return; // ys_FIXME
 	m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 // 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
 // 	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
@@ -576,6 +578,8 @@ void Tab::update_tab_ui()
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 void Tab::load_config(const DynamicPrintConfig& config)
 {
+//     if (this == nullptr)
+//         return; // ys_FIXME
 	bool modified = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		m_config->set_key_value(opt_key, config.option(opt_key)->clone());
@@ -650,6 +654,15 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 			int val = boost::any_cast<size_t>(value);
 			event.SetInt(val);
 		}
+
+        if (opt_key == "printer_technology")
+        {
+            int val = boost::any_cast<PrinterTechnology>(value);
+            event.SetInt(val);
+            g_wxMainFrame->ProcessWindowEvent(event);
+            return;
+        }
+        
 		g_wxMainFrame->ProcessWindowEvent(event);
 	}
 	if (opt_key == "fill_density")
@@ -701,9 +714,11 @@ void Tab::update_wiping_button_visibility() {
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
-    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
-        return; // ys_FIXME
-	if (m_event_presets_changed > 0) {
+//     if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+//         return;
+	if (m_event_presets_changed > 0
+       && get_preset_bundle()->printers.get_selected_preset().printer_technology() != ptSLA // ys_FIXME
+        ) {
 		wxCommandEvent event(m_event_presets_changed);
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
@@ -1420,6 +1435,8 @@ void TabPrinter::build()
     m_printer_technology = m_presets->get_selected_preset().printer_technology();
 
     m_presets->get_selected_preset().printer_technology() == ptSLA ? build_sla() : build_fff();
+
+//     on_value_change("printer_technology", m_printer_technology); // to update show/hide preset ComboBoxes
 }
 
 void TabPrinter::build_fff()
@@ -1987,6 +2004,8 @@ void TabPrinter::update_pages()
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
 
     rebuild_page_tree(true);
+
+    on_value_change("printer_technology", m_presets->get_edited_preset().printer_technology()); // to update show/hide preset ComboBoxes
 }
 
 void TabPrinter::update()
@@ -2112,7 +2131,7 @@ void Tab::load_current_preset()
 
 	m_bmp_non_system = m_presets->get_selected_preset_parent() ? &m_bmp_value_unlock : &m_bmp_white_bullet;
 	m_ttg_non_system = m_presets->get_selected_preset_parent() ? &m_ttg_value_unlock : &m_ttg_white_bullet_ns;
-	m_tt_non_system = m_presets->get_selected_preset_parent() ? &m_tt_value_unlock : &m_ttg_white_bullet_ns;
+	m_tt_non_system = m_presets->get_selected_preset_parent()  ? &m_tt_value_unlock  : &m_ttg_white_bullet_ns;
 
 	m_undo_to_sys_btn->Enable(!preset.is_default);
 
@@ -2235,7 +2254,8 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 		std::vector<PresetUpdate> updates = {
 			{ "print",			&m_preset_bundle->prints,			ptFFF },
 			{ "filament",		&m_preset_bundle->filaments,		ptFFF },
-			{ "sla_materials",	&m_preset_bundle->sla_materials,	ptSLA }
+ 			{ "sla_materials",	&m_preset_bundle->sla_materials,	ptSLA }
+//			{ "material",	    &m_preset_bundle->sla_materials,	ptSLA }
 		};
 		for (PresetUpdate &pu : updates) {
 			pu.old_preset_dirty      = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();
@@ -2974,7 +2994,8 @@ void TabSLAMaterial::build()
 
 void TabSLAMaterial::update()
 {
-
+    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptFFF)
+        return; // ys_FIXME
 }
 
 } // GUI

@@ -507,8 +507,7 @@ void create_preset_tabs(bool no_controller, int event_value_change, int event_pr
 	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller));
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
-		if (! tab ||
-            tab->GetName() == "sla_material")// ys_FIXME don't set event till doesn't exist material_preset combobox on plater
+		if (! tab )
 			continue;
 		tab->set_event_value_change(wxEventType(event_value_change));
 		tab->set_event_presets_changed(wxEventType(event_presets_changed));
@@ -654,7 +653,7 @@ void add_created_tab(Tab* panel)
         g_FilamentTab = panel;
         add_panel = g_PresetBundle->printers.get_edited_preset().printer_technology() == ptFFF;
     }
-    else if (tab_name == "sla_material") {
+    else if (tab_name == "material") {
         g_MaterialTab = panel;
         add_panel = g_PresetBundle->printers.get_edited_preset().printer_technology() == ptSLA;
     }
