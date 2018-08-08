@@ -387,6 +387,7 @@ const std::vector<std::string>& Preset::sla_material_options()
             "exposure_time", "initial_exposure_time",
             "material_correction_printing", "material_correction_curing",
             "material_notes",
+            "compatible_printers",
             "compatible_printers_condition", "inherits"
         };
     }
@@ -895,11 +896,11 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
     return was_dirty != is_dirty;
 }
 
-std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference, const bool is_printer_type /*= false*/)
+std::vector<std::string> PresetCollection::dirty_options(const Preset *edited, const Preset *reference, const bool deep_compare /*= false*/)
 {
     std::vector<std::string> changed;
 	if (edited != nullptr && reference != nullptr) {
-        changed = is_printer_type  ? 
+        changed = deep_compare ?
 				reference->config.deep_diff(edited->config) :
 				reference->config.diff(edited->config);
         // The "compatible_printers" option key is handled differently from the others:

@@ -362,6 +362,7 @@ public:
 
 	void		build() override;
 	void		update() override;
+    void		init_options_list() override;
 };
 
 class SavePresetWindow :public wxDialog

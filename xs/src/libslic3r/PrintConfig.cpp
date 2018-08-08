@@ -2079,14 +2079,15 @@ void PrintConfigDef::init_sla_params()
     def->default_value = new ConfigOptionFloat(100.);
 
     def = this->add("display_pixels_x", coInt);
-    def->label = L("Number of pixels in X");
+    def->full_label = L("Number of pixels in");
+    def->label = ("X");
     def->tooltip = L("Number of pixels in X");
     def->cli = "display-pixels-x=i";
     def->min = 100;
     def->default_value = new ConfigOptionInt(2000);
 
     def = this->add("display_pixels_y", coInt);
-    def->label = L("Number of pixels in Y");
+    def->label = ("Y");
     def->tooltip = L("Number of pixels in Y");
     def->cli = "display-pixels-y=i";
     def->min = 100;

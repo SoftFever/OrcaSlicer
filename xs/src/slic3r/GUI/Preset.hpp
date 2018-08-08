@@ -342,11 +342,11 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
     bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options(const bool is_printer_type = false) const
-        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), is_printer_type); }
+    std::vector<std::string>    current_dirty_options(const bool deep_compare = false) const
+        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), deep_compare); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_different_from_parent_options(const bool is_printer_type = false) const
-        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), is_printer_type); }
+    std::vector<std::string>    current_different_from_parent_options(const bool deep_compare = false) const
+        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.

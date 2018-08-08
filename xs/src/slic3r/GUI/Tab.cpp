@@ -314,10 +314,10 @@ void Tab::update_changed_ui()
 	if (m_postpone_update_ui) 
 		return;
 
-	const bool is_printer_type = (name() == "printer");
-	auto dirty_options = m_presets->current_dirty_options(is_printer_type);
-	auto nonsys_options = m_presets->current_different_from_parent_options(is_printer_type);
-	if (is_printer_type){
+	const bool deep_compare = (m_name == "printer" || m_name == "sla_material");
+	auto dirty_options = m_presets->current_dirty_options(deep_compare);
+	auto nonsys_options = m_presets->current_different_from_parent_options(deep_compare);
+    if (name() == "printer"){
 		TabPrinter* tab = static_cast<TabPrinter*>(this);
 		if (tab->m_initial_extruders_count != tab->m_extruders_count)
 			dirty_options.emplace_back("extruders_count");
@@ -398,7 +398,7 @@ void Tab::init_options_list()
 }
 
 template<class T>
-void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::string, int>& map, TabPrinter *tab, const int& value)
+void add_correct_opts_to_options_list(const std::string &opt_key, std::map<std::string, int>& map, Tab *tab, const int& value)
 {
 	T *opt_cur = static_cast<T*>(tab->m_config->option(opt_key));
 	for (int i = 0; i < opt_cur->values.size(); i++)
@@ -428,6 +428,30 @@ void TabPrinter::init_options_list()
 		}
 	}
 	m_options_list.emplace("extruders_count", m_opt_status_value);
+}
+
+void TabSLAMaterial::init_options_list()
+{
+    if (!m_options_list.empty())
+        m_options_list.clear();
+
+    for (const auto opt_key : m_config->keys())
+    {
+        if (opt_key == "compatible_printers"){
+            m_options_list.emplace(opt_key, m_opt_status_value);
+            continue;
+        }
+        switch (m_config->option(opt_key)->type())
+        {
+        case coInts:	add_correct_opts_to_options_list<ConfigOptionInts		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        case coBools:	add_correct_opts_to_options_list<ConfigOptionBools		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        case coFloats:	add_correct_opts_to_options_list<ConfigOptionFloats		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        case coStrings:	add_correct_opts_to_options_list<ConfigOptionStrings	>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        case coPercents:add_correct_opts_to_options_list<ConfigOptionPercents	>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        case coPoints:	add_correct_opts_to_options_list<ConfigOptionPoints		>(opt_key, m_options_list, this, m_opt_status_value);	break;
+        default:		m_options_list.emplace(opt_key, m_opt_status_value);		break;
+        }
+    }
 }
 
 void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool& modified_page)
@@ -1750,8 +1774,9 @@ void TabPrinter::build_sla()
     optgroup->append_single_option_line("display_width");
     optgroup->append_single_option_line("display_height");
 
-    line = { _(L("Number of pixels in axes")), "" };
-    line.append_option(optgroup->get_option("display_pixels_x"));
+    auto option = optgroup->get_option("display_pixels_x");
+    line = { _(option.opt.full_label), "" };
+    line.append_option(option);
     line.append_option(optgroup->get_option("display_pixels_y"));
     optgroup->append_line(line);
 
@@ -1769,7 +1794,7 @@ void TabPrinter::build_sla()
 
     page = add_options_page(_(L("Notes")), "note.png");
     optgroup = page->new_optgroup(_(L("Notes")), 0);
-    auto option = optgroup->get_option("printer_notes");
+    option = optgroup->get_option("printer_notes");
     option.opt.full_width = true;
     option.opt.height = 250;
     optgroup->append_single_option_line(option);
@@ -2215,7 +2240,7 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 	auto printer_tab   = m_presets->name() == "printer";
 	auto canceled      = false;
 	m_reload_dependent_tabs = {};
-	if (!current_dirty && !may_discard_current_dirty_preset()) {
+	if (current_dirty && !may_discard_current_dirty_preset()) {
 		canceled = true;
 	} else if (printer_tab) {
 		// Before switching the printer to a new one, verify, whether the currently active print and filament
@@ -2921,7 +2946,7 @@ void TabSLAMaterial::build()
     m_presets = &m_preset_bundle->sla_materials;
     load_initial_data();
 
-    auto page = add_options_page(_(L("General")), "spool.png");
+    auto page = add_options_page(_(L("Material")), "spool.png");
 
     auto optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("layer_height");
@@ -2932,6 +2957,7 @@ void TabSLAMaterial::build()
     optgroup->append_single_option_line("initial_exposure_time");
 
     optgroup = page->new_optgroup(_(L("Corrections")));
+    optgroup->label_width = 190;
     std::vector<std::string> corrections = { "material_correction_printing", "material_correction_curing" };
     std::vector<std::string> axes{ "X", "Y", "Z" };
     for (auto& opt_key : corrections){
