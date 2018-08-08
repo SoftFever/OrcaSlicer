@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "Config.hpp"
+#include "PrintConfig.hpp"
 
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -33,8 +33,6 @@ class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
 class _3DScene;
-
-enum PrinterTechnology;
 
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
