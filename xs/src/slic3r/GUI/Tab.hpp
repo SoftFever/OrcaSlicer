@@ -357,7 +357,7 @@ class TabSLAMaterial : public Tab
 public:
     TabSLAMaterial() {}
     TabSLAMaterial(wxNotebook* parent, bool no_controller) :
-		Tab(parent, _(L("SLA Material Settings")), "material", no_controller) {}
+		Tab(parent, _(L("SLA Material Settings")), "sla_material", no_controller) {}
     ~TabSLAMaterial(){}
 
 	void		build() override;

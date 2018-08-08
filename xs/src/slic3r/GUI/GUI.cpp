@@ -127,11 +127,6 @@ std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 double m_brim_width = 0.0;
 wxButton*	g_wiping_dialog_button = nullptr;
 
-// Windows, associated with Print, Filament & Material Tabs accordingly 
-wxWindow    *g_PrintTab = nullptr; 
-wxWindow    *g_FilamentTab = nullptr;
-wxWindow    *g_MaterialTab = nullptr;
-
 static void init_label_colours()
 {
 	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
@@ -501,24 +496,33 @@ void open_preferences_dialog(int event_preferences)
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
 	update_label_colours_from_appconfig();
-	add_created_tab(new TabPrint	    (g_wxTabPanel, no_controller));
-	add_created_tab(new TabFilament	    (g_wxTabPanel, no_controller));
-	add_created_tab(new TabSLAMaterial  (g_wxTabPanel, no_controller));
-	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller));
-	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
-		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
-		if (! tab )
-			continue;
-		tab->set_event_value_change(wxEventType(event_value_change));
-		tab->set_event_presets_changed(wxEventType(event_presets_changed));
-	}
+	add_created_tab(new TabPrint	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabFilament	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabSLAMaterial  (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+}
+
+std::vector<PresetTab> preset_tabs = {
+    { "print",        nullptr, ptFFF },
+    { "filament",     nullptr, ptFFF },
+    { "sla_material", nullptr, ptSLA }
+};
+const std::vector<PresetTab>& get_preset_tabs() {
+    return preset_tabs;
+}
+
+Tab* get_tab(const std::string& name)
+{
+    std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
+                                                       [name](PresetTab& tab){ return name == tab.name; });
+    return it != preset_tabs.end() ? it->panel : nullptr;
 }
 
 TabIface* get_preset_tab_iface(char *name)
 {
-    if (std::strcmp(name, "print") == 0)    return new TabIface(dynamic_cast<Tab*>(g_PrintTab));
-    if (std::strcmp(name, "filament") == 0) return new TabIface(dynamic_cast<Tab*>(g_FilamentTab));
-    if (std::strcmp(name, "material") == 0) return new TabIface(dynamic_cast<Tab*>(g_MaterialTab));
+    Tab* tab = get_tab(name);
+    if (tab) return new TabIface(tab);
+
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
@@ -636,26 +640,24 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 	}
 }
 
-void add_created_tab(Tab* panel)
+void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed)
 {
 	panel->create_preset_tab(g_PresetBundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
 
+    panel->set_event_value_change(wxEventType(event_value_change));
+    panel->set_event_presets_changed(wxEventType(event_presets_changed));
+
     const wxString& tab_name = panel->GetName();
     bool add_panel = true;
-    if (tab_name == "print") {
-        g_PrintTab = panel;
-        add_panel = g_PresetBundle->printers.get_edited_preset().printer_technology() == ptFFF;
-    }
-    else if (tab_name == "filament") {
-        g_FilamentTab = panel;
-        add_panel = g_PresetBundle->printers.get_edited_preset().printer_technology() == ptFFF;
-    }
-    else if (tab_name == "material") {
-        g_MaterialTab = panel;
-        add_panel = g_PresetBundle->printers.get_edited_preset().printer_technology() == ptSLA;
+
+    auto it = std::find_if( preset_tabs.begin(), preset_tabs.end(), 
+                           [tab_name](PresetTab& tab){return tab.name == tab_name; });
+    if (it != preset_tabs.end()) {
+        it->panel = panel;
+        add_panel = it->technology == g_PresetBundle->printers.get_edited_preset().printer_technology();
     }
 
     if (add_panel)
@@ -702,18 +704,6 @@ PresetBundle* get_preset_bundle()
 
 wxNotebook* get_tab_panel() {
     return g_wxTabPanel;
-}
-
-wxWindow*    get_print_tab() {
-    return g_PrintTab;
-}
-
-wxWindow*    get_filament_tab(){
-    return g_FilamentTab;
-}
-
-wxWindow*    get_material_tab(){
-    return g_MaterialTab;
 }
 
 const wxColour& get_label_clr_modified() {

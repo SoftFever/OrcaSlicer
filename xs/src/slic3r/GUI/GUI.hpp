@@ -34,6 +34,8 @@ class DynamicPrintConfig;
 class TabIface;
 class _3DScene;
 
+enum PrinterTechnology;
+
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
 namespace GUI { namespace I18N {
@@ -79,6 +81,13 @@ inline t_file_wild_card& get_file_wild_card() {
 	return FILE_WILDCARDS;
 }
 
+struct PresetTab {
+    std::string       name;
+    Tab*              panel;
+    PrinterTechnology technology;
+};
+
+
 void disable_screensaver();
 void enable_screensaver();
 bool debugged();
@@ -108,9 +117,8 @@ void set_label_clr_sys(const wxColour& clr);
 const wxFont& small_font();
 const wxFont& bold_font();
 
-wxWindow*    get_print_tab();
-wxWindow*    get_filament_tab();
-wxWindow*    get_material_tab();
+Tab*         get_tab(const std::string& name);
+const std::vector<PresetTab>& get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -134,7 +142,7 @@ void create_preset_tabs(bool no_controller, int event_value_change, int event_pr
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel);
+void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 

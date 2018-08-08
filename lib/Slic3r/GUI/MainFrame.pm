@@ -177,7 +177,7 @@ sub _init_tabpanel {
                 $self->{plater}->{"selected_item_$tab_name"} = $tab->get_selected_preset_item;
                 if ($tab_name eq 'printer') {
                     # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-                    for my $tab_name_other (qw(print filament material)) {
+                    for my $tab_name_other (qw(print filament sla_material)) {
                         # If the printer tells us that the print or filament preset has been switched or invalidated,
                         # refresh the print or filament tab page. Otherwise just refresh the combo box.
                         my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
@@ -193,7 +193,7 @@ sub _init_tabpanel {
     });
     Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
-    for my $tab_name (qw(print filament material printer)) {
+    for my $tab_name (qw(print filament sla_material printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");
     }
     

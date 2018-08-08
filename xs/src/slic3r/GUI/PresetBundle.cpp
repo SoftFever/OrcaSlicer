@@ -1299,7 +1299,7 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
 
 void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui)
 {
-    if (ui == nullptr)
+    if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA)
         return;
 
     unsigned char rgb[3];

@@ -132,6 +132,7 @@ PresetCollection::arrayref()
 
     Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
     Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};
+    Ref<PresetCollection>       sla_material() %code%{ RETVAL = &THIS->sla_materials; %};
     Ref<PresetCollection>       printer()  %code%{ RETVAL = &THIS->printers;  %};
     Ref<DynamicPrintConfig>     project_config() %code%{ RETVAL = &THIS->project_config; %};
 

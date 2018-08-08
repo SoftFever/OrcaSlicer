@@ -567,8 +567,6 @@ void Tab::update_dirty(){
 
 void Tab::update_tab_ui()
 {
-//     if (this == nullptr)
-//         return; // ys_FIXME
 	m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
 // 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
 // 	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
@@ -578,8 +576,6 @@ void Tab::update_tab_ui()
 // This could be used for example by setting a Wipe Tower position by interactive manipulation in the 3D view.
 void Tab::load_config(const DynamicPrintConfig& config)
 {
-//     if (this == nullptr)
-//         return; // ys_FIXME
 	bool modified = 0;
 	for(auto opt_key : m_config->diff(config)) {
 		m_config->set_key_value(opt_key, config.option(opt_key)->clone());
@@ -714,11 +710,7 @@ void Tab::update_wiping_button_visibility() {
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
-//     if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
-//         return;
-	if (m_event_presets_changed > 0
-       && get_preset_bundle()->printers.get_selected_preset().printer_technology() != ptSLA // ys_FIXME
-        ) {
+	if (m_event_presets_changed > 0) {
 		wxCommandEvent event(m_event_presets_changed);
 		event.SetString(m_name);
 		g_wxMainFrame->ProcessWindowEvent(event);
@@ -2150,26 +2142,18 @@ void Tab::load_current_preset()
             PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
-                wxWindow* del_page = printer_technology == ptFFF ? get_material_tab() : get_print_tab();
-                int del_page_id = get_tab_panel()->FindPage(del_page);
-                if (del_page_id != wxNOT_FOUND) {
-                    if (printer_technology == ptFFF)
+                for (auto& tab : get_preset_tabs()){
+                    if (tab.technology != printer_technology)
                     {
-                        get_tab_panel()->GetPage(del_page_id)->Show(false);
-                        get_tab_panel()->RemovePage(del_page_id);
-                        get_tab_panel()->InsertPage(del_page_id, get_filament_tab(), static_cast<Tab*>(get_filament_tab())->title());
-                        get_tab_panel()->InsertPage(del_page_id, get_print_tab(), static_cast<Tab*>(get_print_tab())->title());
+                        int page_id = get_tab_panel()->FindPage(tab.panel);
+                        get_tab_panel()->GetPage(page_id)->Show(false);
+                        get_tab_panel()->RemovePage(page_id);
                     }
                     else
-                    {
-                        for (int i = 0; i < 2; ++i) {
-                            get_tab_panel()->GetPage(del_page_id)->Show(false);
-                            get_tab_panel()->RemovePage(del_page_id);
-                        }
-                        get_tab_panel()->InsertPage(del_page_id, get_material_tab(), static_cast<Tab*>(get_material_tab())->title());
-                    }
-                    static_cast<TabPrinter*>(this)->m_printer_technology = printer_technology;
+                        get_tab_panel()->InsertPage(get_tab_panel()->FindPage(this), tab.panel, tab.panel->title());
                 }
+
+                static_cast<TabPrinter*>(this)->m_printer_technology = printer_technology;
             }
         }
 
@@ -2254,8 +2238,7 @@ void Tab::select_preset(std::string preset_name /*= ""*/)
 		std::vector<PresetUpdate> updates = {
 			{ "print",			&m_preset_bundle->prints,			ptFFF },
 			{ "filament",		&m_preset_bundle->filaments,		ptFFF },
- 			{ "sla_materials",	&m_preset_bundle->sla_materials,	ptSLA }
-//			{ "material",	    &m_preset_bundle->sla_materials,	ptSLA }
+ 			{ "sla_material",	&m_preset_bundle->sla_materials,	ptSLA }
 		};
 		for (PresetUpdate &pu : updates) {
 			pu.old_preset_dirty      = (old_printer_technology == pu.technology) && pu.presets->current_is_dirty();

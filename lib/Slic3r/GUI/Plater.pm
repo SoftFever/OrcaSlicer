@@ -456,7 +456,7 @@ sub new {
             my %group_labels = (
                 print       => L('Print settings'),
                 filament    => L('Filament'),
-                material    => L('SLA material'),
+                sla_material=> L('SLA material'),
                 printer     => L('Printer'),
             );
             # UI Combo boxes for a print, multiple filaments, SLA material and a printer.
@@ -464,7 +464,7 @@ sub new {
             # once a printer preset with multiple extruders is activated.
             # $self->{preset_choosers}{$group}[$idx]
             $self->{preset_choosers} = {};
-            for my $group (qw(print filament material printer)) {
+            for my $group (qw(print filament sla_material printer)) {
                 my $text = Wx::StaticText->new($self->{right_panel}, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
@@ -666,10 +666,9 @@ sub update_ui_from_settings
 # For Print settings and Printer, synchronize the selection index with their tabs.
 # For Filament, synchronize the selection index for a single extruder printer only, otherwise keep the selection.
 sub update_presets {
-    # $group: one of qw(print filament material printer)
+    # $group: one of qw(print filament sla_material printer)
     # $presets: PresetCollection
     my ($self, $group, $presets) = @_;
-    print "$group \n";
     my @choosers = @{$self->{preset_choosers}{$group}};
     if ($group eq 'filament') {
         my $choice_idx = 0;
@@ -683,7 +682,7 @@ sub update_presets {
         }
     } elsif ($group eq 'print') {
         wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);
-    } elsif ($group eq 'material') {
+    } elsif ($group eq 'sla_material') {
         wxTheApp->{preset_bundle}->sla_material->update_platter_ui($choosers[0]);
     } elsif ($group eq 'printer') {
         # Update the print choosers to only contain the compatible presets, update the dirty flags.
