@@ -76,7 +76,7 @@ private:
 
 enum FacetEdgeType { 
     // A general case, the cutting plane intersect a face at two different edges.
-    feNone,
+    feGeneral,
     // Two vertices are aligned with the cutting plane, the third vertex is below the cutting plane.
     feTop,
     // Two vertices are aligned with the cutting plane, the third vertex is above the cutting plane.
@@ -110,6 +110,11 @@ public:
 class IntersectionLine : public Line
 {
 public:
+    IntersectionLine() : a_id(-1), b_id(-1), edge_a_id(-1), edge_b_id(-1), edge_type(feGeneral), flags(0) {}
+
+    bool skip() const { return (this->flags & SKIP) != 0; }
+    void set_skip() { this->flags |= SKIP; }
+    
     // Inherits Point a, b
     // For each line end point, either {a,b}_id or {a,b}edge_a_id is set, the other is left to -1.
     // Vertex indices of the line end points.
@@ -118,11 +123,16 @@ public:
     // Source mesh edges of the line end points.
     int             edge_a_id;
     int             edge_b_id;
-    // feNone, feTop, feBottom, feHorizontal
+    // feGeneral, feTop, feBottom, feHorizontal
     FacetEdgeType   edge_type;
-    // Used by TriangleMeshSlicer::make_loops() to skip duplicate edges.
-    bool            skip;
-    IntersectionLine() : a_id(-1), b_id(-1), edge_a_id(-1), edge_b_id(-1), edge_type(feNone), skip(false) {};
+    // Used by TriangleMeshSlicer::slice() to skip duplicate edges.
+    enum {
+        EDGE0   = 1,
+        EDGE1   = 2,
+        EDGE2   = 4,
+        SKIP    = 8,
+    };
+    uint32_t        flags;
 };
 typedef std::vector<IntersectionLine> IntersectionLines;
 typedef std::vector<IntersectionLine*> IntersectionLinePtrs;
@@ -133,7 +143,12 @@ public:
     TriangleMeshSlicer(TriangleMesh* _mesh);
     void slice(const std::vector<float> &z, std::vector<Polygons>* layers) const;
     void slice(const std::vector<float> &z, std::vector<ExPolygons>* layers) const;
-    bool slice_facet(float slice_z, const stl_facet &facet, const int facet_idx,
+    enum FacetSliceType {
+        NoSlice = 0,
+        Slicing = 1,
+        Cutting = 2
+    };
+    FacetSliceType slice_facet(float slice_z, const stl_facet &facet, const int facet_idx,
         const float min_z, const float max_z, IntersectionLine *line_out) const;
     void cut(float z, TriangleMesh* upper, TriangleMesh* lower) const;
     

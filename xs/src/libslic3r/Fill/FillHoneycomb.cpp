@@ -86,8 +86,8 @@ void FillHoneycomb::_fill_surface_single(
         Polylines paths;
         {
             Polylines p;
-            for (Polygons::iterator it = polygons.begin(); it != polygons.end(); ++ it)
-                p.push_back((Polyline)(*it));
+            for (Polygon &poly : polygons)
+                p.emplace_back(poly.points);
             paths = intersection_pl(p, to_polygons(expolygon));
         }
 
