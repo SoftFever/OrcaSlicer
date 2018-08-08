@@ -167,10 +167,6 @@ objfunc(const PointImpl& bincenter,
 
     if(isBig(item.area())) {
         // This branch is for the bigger items..
-        // Here we will use the closest point of the item bounding box to
-        // the already arranged pile. So not the bb center nor the a choosen
-        // corner but whichever is the closest to the center. This will
-        // prevent some unwanted strange arrangements.
 
         auto minc = ibb.minCorner(); // bottom left corner
         auto maxc = ibb.maxCorner(); // top right corner
@@ -211,17 +207,11 @@ objfunc(const PointImpl& bincenter,
             // its neighbors. We will check the aligment with all neighbors and
             // return the score for the best alignment. So it is enough for the
             // candidate to be aligned with only one item.
-            auto alignment_score = std::numeric_limits<double>::max();
+            auto alignment_score = 1.0;
 
             density = (fullbb.width()*fullbb.height()) / (norm*norm);
             auto& trsh = item.transformedShape();
             auto querybb = item.boundingBox();
-            auto wp = querybb.width()*0.2;
-            auto hp = querybb.height()*0.2;
-            auto pad = PointImpl( Coord(wp), Coord(hp));
-            querybb = Box({ querybb.minCorner() - pad,
-                            querybb.maxCorner() + pad
-                          });
 
             // Query the spatial index for the neigbours
             std::vector<SpatElement> result;
@@ -229,26 +219,17 @@ objfunc(const PointImpl& bincenter,
             spatindex.query(bgi::intersects(querybb),
                             std::back_inserter(result));
 
-//            if(result.empty()) {
-//                std::cout << "Error while arranging!" << std::endl;
-//                std::cout << spatindex.size() << " " << pile.size() << std::endl;
-
-//                auto ib = spatindex.bounds();
-//                Box ibb;
-//                boost::geometry::convert(ib, ibb);
-//                std::cout << "Inside: " << (sl::isInside<PolygonImpl>(querybb, ibb) ||
-//                                            boost::geometry::intersects(querybb, ibb)) << std::endl;
-//            }
-
             for(auto& e : result) { // now get the score for the best alignment
                 auto idx = e.second;
                 auto& p = pile[idx];
                 auto parea = areacache[idx];
-                auto bb = sl::boundingBox(sl::Shapes<PolygonImpl>{p, trsh});
-                auto bbarea = bb.area();
-                auto ascore = 1.0 - (item.area() + parea)/bbarea;
+                if(std::abs(1.0 - parea/item.area()) < 1e-6) {
+                    auto bb = sl::boundingBox(sl::Shapes<PolygonImpl>{p, trsh});
+                    auto bbarea = bb.area();
+                    auto ascore = 1.0 - (item.area() + parea)/bbarea;
 
-                if(ascore < alignment_score) alignment_score = ascore;
+                    if(ascore < alignment_score) alignment_score = ascore;
+                }
             }
 
             // The final mix of the score is the balance between the distance
@@ -258,15 +239,12 @@ objfunc(const PointImpl& bincenter,
                 score = 0.5 * dist + 0.5 * density;
             else
                 score = 0.45 * dist + 0.45 * density + 0.1 * alignment_score;
-
         }
-
     } else if( !isBig(item.area()) && spatindex.empty()) {
-        // If there are no big items, only small, we should consider the
-        // density here as well to not get silly results
         auto bindist = pl::distance(ibb.center(), bincenter) / norm;
-        auto density = std::sqrt(fullbb.width()*fullbb.height()) / norm;
-        score = ROUNDNESS_RATIO * bindist + DENSITY_RATIO * density;
+
+        // Bindist is surprisingly enough...
+        score = bindist;
     } else {
         // Here there are the small items that should be placed around the
         // already processed bigger items.
@@ -294,7 +272,7 @@ void fillConfig(PConf& pcfg) {
 
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
-    pcfg.accuracy = 0.6f;
+    pcfg.accuracy = 0.65f;
 }
 
 template<class TBin>
