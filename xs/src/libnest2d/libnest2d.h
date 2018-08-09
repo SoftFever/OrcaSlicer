@@ -22,6 +22,7 @@ using Point = PointImpl;
 using Coord = TCoord<PointImpl>;
 using Box = _Box<PointImpl>;
 using Segment = _Segment<PointImpl>;
+using Circle = _Circle<PointImpl>;
 
 using Item = _Item<PolygonImpl>;
 using Rectangle = _Rectangle<PolygonImpl>;
@@ -35,9 +36,6 @@ using DJDHeuristic  = strategies::_DJDHeuristic<PolygonImpl>;
 
 using NfpPlacer = strategies::_NofitPolyPlacer<PolygonImpl>;
 using BottomLeftPlacer = strategies::_BottomLeftPlacer<PolygonImpl>;
-
-//template<NfpLevel lvl = NfpLevel::BOTH_CONCAVE_WITH_HOLES>
-//using NofitPolyPlacer = strategies::_NofitPolyPlacer<PolygonImpl, lvl>;
 
 }
 

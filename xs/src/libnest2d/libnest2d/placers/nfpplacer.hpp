@@ -19,7 +19,7 @@ namespace libnest2d { namespace strategies {
 template<class RawShape>
 struct NfpPConfig {
 
-    using ItemGroup = std::vector<std::reference_wrapper<_Item<RawShape>>>;
+    using ItemGroup = _ItemGroup<_Item<RawShape>>;
 
     enum class Alignment {
         CENTER,
@@ -58,16 +58,6 @@ struct NfpPConfig {
      *
      * \param item The second parameter is the candidate item.
      *
-     * \param occupied_area The third parameter is the sum of areas of the
-     * items in the first parameter (no candidate item there) so you don't have
-     * to iterate through them if you only need their accumulated area.
-     *
-     * \param norm A norming factor for physical dimensions. E.g. if your score
-     * is the distance between the item and the bin center, you should divide
-     * that distance with the norming factor. If the score is an area than
-     * divide it with the square of the norming factor. Imagine it as a unit of
-     * distance.
-     *
      * \param remaining A container with the remaining items waiting to be
      * placed. You can use some features about the remaining items to alter to
      * score of the current placement. If you know that you have to leave place
@@ -81,8 +71,8 @@ struct NfpPConfig {
      * decisions (for you or a more intelligent AI).
      *
      */
-    std::function<double(Nfp::Shapes<RawShape>&, const _Item<RawShape>&,
-                         double, double, const ItemGroup&)>
+    std::function<double(nfp::Shapes<RawShape>&, const _Item<RawShape>&,
+                         const ItemGroup&)>
     object_function;
 
     /**
@@ -134,11 +124,11 @@ template<class RawShape> class EdgeCache {
 
     void createCache(const RawShape& sh) {
         {   // For the contour
-            auto first = ShapeLike::cbegin(sh);
+            auto first = shapelike::cbegin(sh);
             auto next = std::next(first);
-            auto endit = ShapeLike::cend(sh);
+            auto endit = shapelike::cend(sh);
 
-            contour_.distances.reserve(ShapeLike::contourVertexCount(sh));
+            contour_.distances.reserve(shapelike::contourVertexCount(sh));
 
             while(next != endit) {
                 contour_.emap.emplace_back(*(first++), *(next++));
@@ -147,7 +137,7 @@ template<class RawShape> class EdgeCache {
             }
         }
 
-        for(auto& h : ShapeLike::holes(sh)) { // For the holes
+        for(auto& h : shapelike::holes(sh)) { // For the holes
             auto first = h.begin();
             auto next = std::next(first);
             auto endit = h.end();
@@ -295,11 +285,11 @@ public:
 
 };
 
-template<NfpLevel lvl>
-struct Lvl { static const NfpLevel value = lvl; };
+template<nfp::NfpLevel lvl>
+struct Lvl { static const nfp::NfpLevel value = lvl; };
 
 template<class RawShape>
-inline void correctNfpPosition(Nfp::NfpResult<RawShape>& nfp,
+inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
                                const _Item<RawShape>& stationary,
                                const _Item<RawShape>& orbiter)
 {
@@ -319,46 +309,47 @@ inline void correctNfpPosition(Nfp::NfpResult<RawShape>& nfp,
     auto dtouch = touch_sh - touch_other;
     auto top_other = orbiter.rightmostTopVertex() + dtouch;
     auto dnfp = top_other - nfp.second; // nfp.second is the nfp reference point
-    ShapeLike::translate(nfp.first, dnfp);
+    shapelike::translate(nfp.first, dnfp);
 }
 
 template<class RawShape>
-inline void correctNfpPosition(Nfp::NfpResult<RawShape>& nfp,
+inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
                                const RawShape& stationary,
                                const _Item<RawShape>& orbiter)
 {
-    auto touch_sh = Nfp::rightmostUpVertex(stationary);
+    auto touch_sh = nfp::rightmostUpVertex(stationary);
     auto touch_other = orbiter.leftmostBottomVertex();
     auto dtouch = touch_sh - touch_other;
     auto top_other = orbiter.rightmostTopVertex() + dtouch;
     auto dnfp = top_other - nfp.second;
-    ShapeLike::translate(nfp.first, dnfp);
+    shapelike::translate(nfp.first, dnfp);
 }
 
 template<class RawShape, class Container>
-Nfp::Shapes<RawShape> nfp( const Container& polygons,
+nfp::Shapes<RawShape> calcnfp( const Container& polygons,
                            const _Item<RawShape>& trsh,
-                           Lvl<NfpLevel::CONVEX_ONLY>)
+                           Lvl<nfp::NfpLevel::CONVEX_ONLY>)
 {
     using Item = _Item<RawShape>;
+    using namespace nfp;
 
-    Nfp::Shapes<RawShape> nfps;
+    nfp::Shapes<RawShape> nfps;
 
 //    int pi = 0;
     for(Item& sh : polygons) {
-        auto subnfp_r = Nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(
+        auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(
                             sh.transformedShape(), trsh.transformedShape());
         #ifndef NDEBUG
-            auto vv = ShapeLike::isValid(sh.transformedShape());
+            auto vv = sl::isValid(sh.transformedShape());
             assert(vv.first);
 
-            auto vnfp = ShapeLike::isValid(subnfp_r.first);
+            auto vnfp = sl::isValid(subnfp_r.first);
             assert(vnfp.first);
         #endif
 
         correctNfpPosition(subnfp_r, sh, trsh);
 
-        nfps = Nfp::merge(nfps, subnfp_r.first);
+        nfps = nfp::merge(nfps, subnfp_r.first);
 
 //        double SCALE = 1000000;
 //        using SVGWriter = svg::SVGWriter<RawShape>;
@@ -379,31 +370,32 @@ Nfp::Shapes<RawShape> nfp( const Container& polygons,
 }
 
 template<class RawShape, class Container, class Level>
-Nfp::Shapes<RawShape> nfp( const Container& polygons,
+nfp::Shapes<RawShape> calcnfp( const Container& polygons,
                            const _Item<RawShape>& trsh,
                            Level)
 {
+    using namespace nfp;
     using Item = _Item<RawShape>;
 
-    Nfp::Shapes<RawShape> nfps;
+    Shapes<RawShape> nfps;
 
     auto& orb = trsh.transformedShape();
     bool orbconvex = trsh.isContourConvex();
 
     for(Item& sh : polygons) {
-        Nfp::NfpResult<RawShape> subnfp;
+        nfp::NfpResult<RawShape> subnfp;
         auto& stat = sh.transformedShape();
 
         if(sh.isContourConvex() && orbconvex)
-            subnfp = Nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(stat, orb);
+            subnfp = nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(stat, orb);
         else if(orbconvex)
-            subnfp = Nfp::noFitPolygon<NfpLevel::ONE_CONVEX>(stat, orb);
+            subnfp = nfp::noFitPolygon<NfpLevel::ONE_CONVEX>(stat, orb);
         else
-            subnfp = Nfp::noFitPolygon<Level::value>(stat, orb);
+            subnfp = nfp::noFitPolygon<Level::value>(stat, orb);
 
         correctNfpPosition(subnfp, sh, trsh);
 
-        nfps = Nfp::merge(nfps, subnfp.first);
+        nfps = nfp::merge(nfps, subnfp.first);
     }
 
     return nfps;
@@ -448,7 +440,6 @@ Nfp::Shapes<RawShape> nfp( const Container& polygons,
 
 template<class RawShape>
 _Circle<TPoint<RawShape>> minimizeCircle(const RawShape& sh) {
-    using sl = ShapeLike; using pl = PointLike;
     using Point = TPoint<RawShape>;
     using Coord = TCoord<Point>;
 
@@ -518,16 +509,14 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin
 
     const double norm_;
 
-    using MaxNfpLevel = Nfp::MaxNfpLevel<RawShape>;
-    using sl = ShapeLike;
-
+    using MaxNfpLevel = nfp::MaxNfpLevel<RawShape>;
 public:
 
-    using Pile = Nfp::Shapes<RawShape>;
+    using Pile = nfp::Shapes<RawShape>;
 
     inline explicit _NofitPolyPlacer(const BinType& bin):
         Base(bin),
-        norm_(std::sqrt(sl::area<RawShape>(bin))) {}
+        norm_(std::sqrt(sl::area(bin))) {}
 
     _NofitPolyPlacer(const _NofitPolyPlacer&) = default;
     _NofitPolyPlacer& operator=(const _NofitPolyPlacer&) = default;
@@ -577,19 +566,16 @@ public:
         return boundingCircle(chull).radius() < bin.radius();
     }
 
-    template<class Container>
-    PackResult trypack(Container& items,
-                       typename Container::iterator from,
-                       unsigned /*count*/ = 1)
-    {
-        return trypack(*from, {std::next(from), items.end()});
-    }
-
-    PackResult trypack(Item& item, ItemGroup remaining) {
+    template<class Range = ConstItemRange<typename Base::DefaultIter>>
+    PackResult trypack(
+            Item& item,
+            const Range& remaining = Range()) {
 
         PackResult ret;
 
         bool can_pack = false;
+
+        auto remlist = ItemGroup(remaining.from, remaining.to);
 
         if(items_.empty()) {
             setInitialPosition(item);
@@ -602,7 +588,7 @@ public:
             auto initial_rot = item.rotation();
             Vertex final_tr = {0, 0};
             Radians final_rot = initial_rot;
-            Nfp::Shapes<RawShape> nfps;
+            nfp::Shapes<RawShape> nfps;
 
             for(auto rot : config_.rotations) {
 
@@ -615,8 +601,8 @@ public:
 
                 auto trsh = item.transformedShape();
 
-                nfps = nfp(items_, item, Lvl<MaxNfpLevel::value>());
-                auto iv = Nfp::referenceVertex(trsh);
+                nfps = calcnfp(items_, item, Lvl<MaxNfpLevel::value>());
+                auto iv = nfp::referenceVertex(trsh);
 
                 auto startpos = item.translation();
 
@@ -644,7 +630,7 @@ public:
                             ecache[opt.nfpidx].coords(opt.hidx, opt.relpos);
                 };
 
-                Nfp::Shapes<RawShape> pile;
+                nfp::Shapes<RawShape> pile;
                 pile.reserve(items_.size()+1);
                 double pile_area = 0;
                 for(Item& mitem : items_) {
@@ -652,17 +638,15 @@ public:
                     pile_area += mitem.area();
                 }
 
-                auto merged_pile = Nfp::merge(pile);
+                auto merged_pile = nfp::merge(pile);
 
                 // This is the kernel part of the object function that is
                 // customizable by the library client
                 auto _objfunc = config_.object_function?
                             config_.object_function :
-                [this, &merged_pile](
-                            Nfp::Shapes<RawShape>& /*pile*/,
+                [this, &merged_pile, &pile_area](
+                            nfp::Shapes<RawShape>& /*pile*/,
                             const Item& item,
-                            double occupied_area, 
-                            double norm,
                             const ItemGroup& /*remaining*/)
                 {
                     merged_pile.emplace_back(item.transformedShape());
@@ -670,7 +654,7 @@ public:
                     merged_pile.pop_back();
 
                     // The pack ratio -- how much is the convex hull occupied
-                    double pack_rate = occupied_area/sl::area(ch);
+                    double pack_rate = (pile_area + item.area())/sl::area(ch);
 
                     // ratio of waste
                     double waste = 1.0 - pack_rate;
@@ -680,7 +664,7 @@ public:
                     // (larger) values.
                     auto score = std::sqrt(waste);
 
-                    if(!wouldFit(ch, bin_)) score += norm;
+                    if(!wouldFit(ch, bin_)) score += norm_;
 
                     return score;
                 };
@@ -692,10 +676,7 @@ public:
                     d += startpos;
                     item.translation(d);
 
-                    double occupied_area = pile_area + item.area();
-
-                    double score = _objfunc(pile, item, occupied_area,
-                                            norm_, remaining);
+                    double score = _objfunc(pile, item, remlist);
 
                     return score;
                 };
@@ -830,7 +811,7 @@ private:
 
     inline void finalAlign(_Circle<TPoint<RawShape>> cbin) {
         if(items_.empty()) return;
-        Nfp::Shapes<RawShape> m;
+        nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
         for(Item& item : items_) m.emplace_back(item.transformedShape());
 
@@ -842,7 +823,7 @@ private:
 
     inline void finalAlign(Box bbin) {
         if(items_.empty()) return;
-        Nfp::Shapes<RawShape> m;
+        nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
         for(Item& item : items_) m.emplace_back(item.transformedShape());
         auto&& bb = sl::boundingBox<RawShape>(m);
@@ -884,7 +865,7 @@ private:
     void setInitialPosition(Item& item) {
         Box&& bb = item.boundingBox();
         Vertex ci, cb;
-        auto bbin = sl::boundingBox<RawShape>(bin_);
+        auto bbin = sl::boundingBox(bin_);
 
         switch(config_.starting_point) {
         case Config::Alignment::CENTER: {
@@ -920,7 +901,7 @@ private:
 
     void placeOutsideOfBin(Item& item) {
         auto&& bb = item.boundingBox();
-        Box binbb = sl::boundingBox<RawShape>(bin_);
+        Box binbb = sl::boundingBox(bin_);
 
         Vertex v = { getX(bb.maxCorner()), getY(bb.minCorner()) };
 

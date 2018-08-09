@@ -104,8 +104,7 @@ using ItemGroup = std::vector<std::reference_wrapper<Item>>;
 std::tuple<double /*score*/, Box /*farthest point from bin center*/>
 objfunc(const PointImpl& bincenter,
         double bin_area,
-        ShapeLike::Shapes<PolygonImpl>& pile,   // The currently arranged pile
-        double pile_area,
+        sl::Shapes<PolygonImpl>& pile,   // The currently arranged pile
         const Item &item,
         double norm,            // A norming factor for physical dimensions
         std::vector<double>& areacache, // pile item areas will be cached
@@ -114,8 +113,6 @@ objfunc(const PointImpl& bincenter,
         const ItemGroup& remaining
         )
 {
-    using pl = PointLike;
-    using sl = ShapeLike;
     using Coord = TCoord<PointImpl>;
 
     static const double BIG_ITEM_TRESHOLD = 0.02;
@@ -150,7 +147,7 @@ objfunc(const PointImpl& bincenter,
 
     // Calculate the full bounding box of the pile with the candidate item
     pile.emplace_back(item.transformedShape());
-    auto fullbb = ShapeLike::boundingBox(pile);
+    auto fullbb = sl::boundingBox(pile);
     pile.pop_back();
 
     // The bounding box of the big items (they will accumulate in the center
@@ -283,21 +280,23 @@ class _ArrBase {
 protected:
     using Placer = strategies::_NofitPolyPlacer<PolygonImpl, TBin>;
     using Selector = FirstFitSelection;
-    using Packer = Arranger<Placer, Selector>;
+    using Packer = Nester<Placer, Selector>;
     using PConfig = typename Packer::PlacementConfig;
     using Distance = TCoord<PointImpl>;
-    using Pile = ShapeLike::Shapes<PolygonImpl>;
+    using Pile = sl::Shapes<PolygonImpl>;
 
     Packer pck_;
     PConfig pconf_; // Placement configuration
     double bin_area_;
     std::vector<double> areacache_;
     SpatIndex rtree_;
+    double norm_;
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
              std::function<void(unsigned)> progressind):
-       pck_(bin, dist), bin_area_(ShapeLike::area<PolygonImpl>(bin))
+       pck_(bin, dist), bin_area_(sl::area(bin)),
+       norm_(std::sqrt(sl::area(bin)))
     {
         fillConfig(pconf_);
         pck_.progressIndicator(progressind);
@@ -306,7 +305,7 @@ public:
     template<class...Args> inline IndexedPackGroup operator()(Args&&...args) {
         areacache_.clear();
         rtree_.clear();
-        return pck_.arrangeIndexed(std::forward<Args>(args)...);
+        return pck_.executeIndexed(std::forward<Args>(args)...);
     }
 };
 
@@ -321,21 +320,17 @@ public:
         pconf_.object_function = [this, bin] (
                     Pile& pile,
                     const Item &item,
-                    double pile_area,
-                    double norm,
                     const ItemGroup& rem) {
 
             auto result = objfunc(bin.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_,
-                                  rtree_,
-                                  rem);
+                                  item, norm_, areacache_, rtree_, rem);
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
 
             auto wdiff = fullbb.width() - bin.width();
             auto hdiff = fullbb.height() - bin.height();
-            if(wdiff > 0) score += std::pow(wdiff, 2) / norm;
-            if(hdiff > 0) score += std::pow(hdiff, 2) / norm;
+            if(wdiff > 0) score += std::pow(wdiff, 2) / norm_;
+            if(hdiff > 0) score += std::pow(hdiff, 2) / norm_;
 
             return score;
         };
@@ -357,31 +352,28 @@ public:
         pconf_.object_function = [this, &bin] (
                     Pile& pile,
                     const Item &item,
-                    double pile_area,
-                    double norm,
                     const ItemGroup& rem) {
 
-            auto result = objfunc(bin.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_,
-                                  rtree_, rem);
+            auto result = objfunc(bin.center(), bin_area_, pile, item, norm_,
+                                  areacache_, rtree_, rem);
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
 
-            auto d = PointLike::distance(fullbb.minCorner(),
+            auto d = pl::distance(fullbb.minCorner(),
                                          fullbb.maxCorner());
             auto diff = d - 2*bin.radius();
 
             if(diff > 0) {
                 if( item.area() > 0.01*bin_area_ && item.vertexCount() < 30) {
                     pile.emplace_back(item.transformedShape());
-                    auto chull = ShapeLike::convexHull(pile);
+                    auto chull = sl::convexHull(pile);
                     pile.pop_back();
 
                     auto C = strategies::boundingCircle(chull);
                     auto rdiff = C.radius() - bin.radius();
 
                     if(rdiff > 0) {
-                        score += std::pow(rdiff, 3) / norm;
+                        score += std::pow(rdiff, 3) / norm_;
                     }
                 }
             }
@@ -403,14 +395,11 @@ public:
         pconf_.object_function = [this, &bin] (
                     Pile& pile,
                     const Item &item,
-                    double pile_area,
-                    double norm,
                     const ItemGroup& rem) {
 
-            auto binbb = ShapeLike::boundingBox(bin);
-            auto result = objfunc(binbb.center(), bin_area_, pile,
-                                  pile_area, item, norm, areacache_,
-                                  rtree_, rem);
+            auto binbb = sl::boundingBox(bin);
+            auto result = objfunc(binbb.center(), bin_area_, pile, item, norm_,
+                                  areacache_, rtree_, rem);
             double score = std::get<0>(result);
 
             return score;
@@ -430,13 +419,10 @@ public:
         this->pconf_.object_function = [this] (
                     Pile& pile,
                     const Item &item,
-                    double pile_area,
-                    double norm,
                     const ItemGroup& rem) {
 
-            auto result = objfunc({0, 0}, 0, pile, pile_area,
-                                  item, norm, areacache_,
-                                  rtree_, rem);
+            auto result = objfunc({0, 0}, 0, pile, item, norm_,
+                                  areacache_, rtree_, rem);
             return std::get<0>(result);
         };
 
@@ -711,7 +697,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         using P = libnest2d::PolygonImpl;
 
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
-        P irrbed = ShapeLike::create<PolygonImpl>(std::move(ctour));
+        P irrbed = sl::create<PolygonImpl>(std::move(ctour));
 
         AutoArranger<P> arrange(irrbed, min_obj_distance, progressind);
 

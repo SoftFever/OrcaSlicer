@@ -9,6 +9,27 @@
 
 namespace libnest2d {
 
+namespace __nfp {
+// Do not specialize this...
+template<class RawShape>
+inline bool _vsort(const TPoint<RawShape>& v1, const TPoint<RawShape>& v2)
+{
+    using Coord = TCoord<TPoint<RawShape>>;
+    Coord &&x1 = getX(v1), &&x2 = getX(v2), &&y1 = getY(v1), &&y2 = getY(v2);
+    auto diff = y1 - y2;
+    if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
+        return x1 < x2;
+
+    return diff < 0;
+}
+}
+
+/// A collection of static methods for handling the no fit polygon creation.
+namespace nfp {
+
+namespace sl = shapelike;
+namespace pl = pointlike;
+
 /// The complexity level of a polygon that an NFP implementation can handle.
 enum class NfpLevel: unsigned {
     CONVEX_ONLY,
@@ -18,12 +39,17 @@ enum class NfpLevel: unsigned {
     BOTH_CONCAVE_WITH_HOLES
 };
 
-/// A collection of static methods for handling the no fit polygon creation.
-struct Nfp {
+template<class RawShape>
+using NfpResult = std::pair<RawShape, TPoint<RawShape>>;
+
+template<class RawShape> struct MaxNfpLevel {
+    static const BP2D_CONSTEXPR NfpLevel value = NfpLevel::CONVEX_ONLY;
+};
+
 
 // Shorthand for a pile of polygons
 template<class RawShape>
-using Shapes = typename ShapeLike::Shapes<RawShape>;
+using Shapes = typename shapelike::Shapes<RawShape>;
 
 /**
  * Merge a bunch of polygons with the specified additional polygon.
@@ -37,7 +63,7 @@ using Shapes = typename ShapeLike::Shapes<RawShape>;
  * polygons are disjuct than the resulting set will contain more polygons.
  */
 template<class RawShape>
-static Shapes<RawShape> merge(const Shapes<RawShape>& /*shc*/)
+inline Shapes<RawShape> merge(const Shapes<RawShape>& /*shc*/)
 {
     static_assert(always_false<RawShape>::value,
                   "Nfp::merge(shapes, shape) unimplemented!");
@@ -55,7 +81,7 @@ static Shapes<RawShape> merge(const Shapes<RawShape>& /*shc*/)
  * polygons are disjuct than the resulting set will contain more polygons.
  */
 template<class RawShape>
-static Shapes<RawShape> merge(const Shapes<RawShape>& shc,
+inline Shapes<RawShape> merge(const Shapes<RawShape>& shc,
                               const RawShape& sh)
 {
     auto m = merge(shc);
@@ -64,30 +90,17 @@ static Shapes<RawShape> merge(const Shapes<RawShape>& shc,
 }
 
 /**
- * A method to get a vertex from a polygon that always maintains a relative
- * position to the coordinate system: It is always the rightmost top vertex.
- *
- * This way it does not matter in what order the vertices are stored, the
- * reference will be always the same for the same polygon.
- */
-template<class RawShape>
-inline static TPoint<RawShape> referenceVertex(const RawShape& sh)
-{
-    return rightmostUpVertex(sh);
-}
-
-/**
  * Get the vertex of the polygon that is at the lowest values (bottom) in the Y
  * axis and if there are more than one vertices on the same Y coordinate than
  * the result will be the leftmost (with the highest X coordinate).
  */
 template<class RawShape>
-static TPoint<RawShape> leftmostDownVertex(const RawShape& sh)
+inline TPoint<RawShape> leftmostDownVertex(const RawShape& sh)
 {
 
     // find min x and min y vertex
-    auto it = std::min_element(ShapeLike::cbegin(sh), ShapeLike::cend(sh),
-                               _vsort<RawShape>);
+    auto it = std::min_element(shapelike::cbegin(sh), shapelike::cend(sh),
+                               __nfp::_vsort<RawShape>);
 
     return *it;
 }
@@ -98,26 +111,27 @@ static TPoint<RawShape> leftmostDownVertex(const RawShape& sh)
  * the result will be the rightmost (with the lowest X coordinate).
  */
 template<class RawShape>
-static TPoint<RawShape> rightmostUpVertex(const RawShape& sh)
+TPoint<RawShape> rightmostUpVertex(const RawShape& sh)
 {
 
     // find max x and max y vertex
-    auto it = std::max_element(ShapeLike::cbegin(sh), ShapeLike::cend(sh),
-                               _vsort<RawShape>);
+    auto it = std::max_element(shapelike::cbegin(sh), shapelike::cend(sh),
+                               __nfp::_vsort<RawShape>);
 
     return *it;
 }
 
+/**
+ * A method to get a vertex from a polygon that always maintains a relative
+ * position to the coordinate system: It is always the rightmost top vertex.
+ *
+ * This way it does not matter in what order the vertices are stored, the
+ * reference will be always the same for the same polygon.
+ */
 template<class RawShape>
-using NfpResult = std::pair<RawShape, TPoint<RawShape>>;
-
-/// Helper function to get the NFP
-template<NfpLevel nfptype, class RawShape>
-static NfpResult<RawShape> noFitPolygon(const RawShape& sh,
-                                        const RawShape& other)
+inline TPoint<RawShape> referenceVertex(const RawShape& sh)
 {
-    NfpImpl<RawShape, nfptype> nfp;
-    return nfp(sh, other);
+    return rightmostUpVertex(sh);
 }
 
 /**
@@ -139,11 +153,11 @@ static NfpResult<RawShape> noFitPolygon(const RawShape& sh,
  *
  */
 template<class RawShape>
-static NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
+inline NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
                                          const RawShape& other)
 {
     using Vertex = TPoint<RawShape>; using Edge = _Segment<Vertex>;
-    using sl = ShapeLike;
+    namespace sl = shapelike;
 
     RawShape rsh;   // Final nfp placeholder
     Vertex top_nfp;
@@ -187,7 +201,7 @@ static NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
     sl::addVertex(rsh, edgelist.front().second());
 
     // Sorting function for the nfp reference vertex search
-    auto& cmp = _vsort<RawShape>;
+    auto& cmp = __nfp::_vsort<RawShape>;
 
     // the reference (rightmost top) vertex so far
     top_nfp = *std::max_element(sl::cbegin(rsh), sl::cend(rsh), cmp );
@@ -214,7 +228,7 @@ static NfpResult<RawShape> nfpConvexOnly(const RawShape& sh,
 }
 
 template<class RawShape>
-static NfpResult<RawShape> nfpSimpleSimple(const RawShape& cstationary,
+NfpResult<RawShape> nfpSimpleSimple(const RawShape& cstationary,
                                            const RawShape& cother)
 {
 
@@ -233,7 +247,7 @@ static NfpResult<RawShape> nfpSimpleSimple(const RawShape& cstationary,
     using Vertex = TPoint<RawShape>;
     using Coord = TCoord<Vertex>;
     using Edge = _Segment<Vertex>;
-    using sl = ShapeLike;
+    namespace sl = shapelike;
     using std::signbit;
     using std::sort;
     using std::vector;
@@ -528,27 +542,16 @@ struct NfpImpl {
     }
 };
 
-template<class RawShape> struct MaxNfpLevel {
-    static const BP2D_CONSTEXPR NfpLevel value = NfpLevel::CONVEX_ONLY;
-};
-
-private:
-
-// Do not specialize this...
-template<class RawShape>
-static inline bool _vsort(const TPoint<RawShape>& v1,
-                          const TPoint<RawShape>& v2)
+/// Helper function to get the NFP
+template<NfpLevel nfptype, class RawShape>
+inline NfpResult<RawShape> noFitPolygon(const RawShape& sh,
+                                        const RawShape& other)
 {
-    using Coord = TCoord<TPoint<RawShape>>;
-    Coord &&x1 = getX(v1), &&x2 = getX(v2), &&y1 = getY(v1), &&y2 = getY(v2);
-    auto diff = y1 - y2;
-    if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
-        return x1 < x2;
-
-    return diff < 0;
+    NfpImpl<RawShape, nfptype> nfps;
+    return nfps(sh, other);
 }
 
-};
+}
 
 }
 

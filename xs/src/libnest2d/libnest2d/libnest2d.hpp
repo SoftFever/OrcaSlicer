@@ -9,9 +9,11 @@
 #include <functional>
 
 #include "geometry_traits.hpp"
-#include "optimizer.hpp"
 
 namespace libnest2d {
+
+namespace sl = shapelike;
+namespace pl = pointlike;
 
 /**
  * \brief An item to be placed on a bin.
@@ -28,7 +30,6 @@ class _Item {
     using Coord = TCoord<TPoint<RawShape>>;
     using Vertex = TPoint<RawShape>;
     using Box = _Box<Vertex>;
-    using sl = ShapeLike;
 
     // The original shape that gets encapsulated.
     RawShape sh_;
@@ -438,7 +439,7 @@ public:
     inline _Rectangle(Unit width, Unit height,
                       // disable this ctor if o != CLOCKWISE
                       enable_if_t< o == TO::CLOCKWISE, int> = 0 ):
-        _Item<RawShape>( ShapeLike::create<RawShape>( {
+        _Item<RawShape>( sl::create<RawShape>( {
                                                         {0, 0},
                                                         {0, height},
                                                         {width, height},
@@ -452,7 +453,7 @@ public:
     inline _Rectangle(Unit width, Unit height,
                       // disable this ctor if o != COUNTER_CLOCKWISE
                       enable_if_t< o == TO::COUNTER_CLOCKWISE, int> = 0 ):
-        _Item<RawShape>( ShapeLike::create<RawShape>( {
+        _Item<RawShape>( sl::create<RawShape>( {
                                                         {0, 0},
                                                         {width, 0},
                                                         {width, height},
@@ -473,12 +474,32 @@ public:
 
 template<class RawShape>
 inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
-    return ShapeLike::isInside<RawShape>(boundingBox(), box);
+    return sl::isInside<RawShape>(boundingBox(), box);
 }
 
 template<class RawShape> inline bool
 _Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
-    return ShapeLike::isInside<RawShape>(transformedShape(), circ);
+    return sl::isInside<RawShape>(transformedShape(), circ);
+}
+
+
+template<class I> using _ItemRef = std::reference_wrapper<I>;
+template<class I> using _ItemGroup = std::vector<_ItemRef<I>>;
+
+template<class Iterator>
+struct ConstItemRange {
+    Iterator from;
+    Iterator to;
+    bool valid = false;
+
+    ConstItemRange() = default;
+    ConstItemRange(Iterator f, Iterator t): from(f), to(t), valid(true) {}
+};
+
+template<class Container>
+inline ConstItemRange<typename Container::const_iterator>
+rem(typename Container::const_iterator it, const Container& cont) {
+    return {std::next(it), cont.end()};
 }
 
 /**
@@ -515,8 +536,9 @@ public:
      */
     using PackResult = typename PlacementStrategy::PackResult;
 
-    using ItemRef = std::reference_wrapper<Item>;
-    using ItemGroup = std::vector<ItemRef>;
+    using ItemRef = _ItemRef<Item>;
+    using ItemGroup = _ItemGroup<Item>;
+    using DefaultIterator = typename ItemGroup::const_iterator;
 
     /**
      * @brief Constructor taking the bin and an optional configuration.
@@ -544,20 +566,24 @@ public:
      * Try to pack an item with a result object that contains the packing
      * information for later accepting it.
      *
-     * \param item_store A container of items
+     * \param item_store A container of items that are intended to be packed
+     * later. Can be used by the placer to switch tactics. When it's knows that
+     * many items will come a greedy startegy may not be the best.
+     * \param from The iterator to the item from which the packing should start,
+     * including the pointed item
+     * \param count How many items should be packed. If the value is 1, than
+     * just the item pointed to by "from" argument should be packed.
      */
-    template<class Container>
-    inline PackResult trypack(Container& item_store,
-                              typename Container::iterator from,
-                              unsigned count = 1) {
-        using V = typename Container::value_type;
-        static_assert(std::is_convertible<V, const Item&>::value,
-                      "Invalid Item container!");
-        return impl_.trypack(item_store, from, count);
+    template<class Iter = DefaultIterator>
+    inline PackResult trypack(
+            Item& item,
+            const ConstItemRange<Iter>& remaining = ConstItemRange<Iter>())
+    {
+        return impl_.trypack(item, remaining);
     }
 
     /**
-     * @brief A method to accept a previously tried item.
+     * @brief A method to accept a previously tried item (or items).
      *
      * If the pack result is a failure the method should ignore it.
      * @param r The result of a previous trypack call.
@@ -565,10 +591,10 @@ public:
     inline void accept(PackResult& r) { impl_.accept(r); }
 
     /**
-     * @brief pack Try to pack an item and immediately accept it on success.
+     * @brief pack Try to pack and immediately accept it on success.
      *
      * A default implementation would be to call
-     * { auto&& r = trypack(item); accept(r); return r; } but we should let the
+     * { auto&& r = trypack(...); accept(r); return r; } but we should let the
      * implementor of the placement strategy to harvest any optimizations from
      * the absence of an intermadiate step. The above version can still be used
      * in the implementation.
@@ -577,15 +603,12 @@ public:
      * @return Returns true if the item was packed or false if it could not be
      * packed.
      */
-    template<class Container>
-    inline bool pack(Container& item_store,
-                     typename Container::iterator from,
-                     unsigned count = 1)
+    template<class Range = ConstItemRange<DefaultIterator>>
+    inline bool pack(
+            Item& item,
+            const Range& remaining = Range())
     {
-        using V = typename Container::value_type;
-        static_assert(std::is_convertible<V, const Item&>::value,
-                      "Invalid Item container!");
-        return impl_.pack(item_store, from, count);
+        return impl_.pack(item, remaining);
     }
 
     /// Unpack the last element (remove it from the list of packed items).
@@ -736,10 +759,9 @@ using _IndexedPackGroup = std::vector<
  * inside the provided bin.
  */
 template<class PlacementStrategy, class SelectionStrategy >
-class Arranger {
+class Nester {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
-    bool use_min_bb_rotation_ = false;
 public:
     using Item = typename PlacementStrategy::Item;
     using ItemRef = std::reference_wrapper<Item>;
@@ -777,7 +799,7 @@ public:
     template<class TBinType = BinType,
              class PConf = PlacementConfig,
              class SConf = SelectionConfig>
-    Arranger( TBinType&& bin,
+    Nester( TBinType&& bin,
               Unit min_obj_distance = 0,
               PConf&& pconfig = PConf(),
               SConf&& sconfig = SConf()):
@@ -810,9 +832,9 @@ public:
      * the selection algorithm.
      */
     template<class TIterator>
-    inline PackGroup arrange(TIterator from, TIterator to)
+    inline PackGroup execute(TIterator from, TIterator to)
     {
-        return _arrange(from, to);
+        return _execute(from, to);
     }
 
     /**
@@ -823,20 +845,20 @@ public:
      * input sequence size.
      */
     template<class TIterator>
-    inline IndexedPackGroup arrangeIndexed(TIterator from, TIterator to)
+    inline IndexedPackGroup executeIndexed(TIterator from, TIterator to)
     {
-        return _arrangeIndexed(from, to);
+        return _executeIndexed(from, to);
     }
 
     /// Shorthand to normal arrange method.
     template<class TIterator>
     inline PackGroup operator() (TIterator from, TIterator to)
     {
-        return _arrange(from, to);
+        return _execute(from, to);
     }
 
     /// Set a progress indicatior function object for the selector.
-    inline Arranger& progressIndicator(ProgressFunction func)
+    inline Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
     }
@@ -850,10 +872,6 @@ public:
         return ret;
     }
 
-    inline Arranger& useMinimumBoundigBoxRotation(bool s = true) {
-        use_min_bb_rotation_ = s; return *this;
-    }
-
 private:
 
     template<class TIterator,
@@ -865,9 +883,9 @@ private:
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline PackGroup _arrange(TIterator from, TIterator to, bool = false)
+    inline PackGroup _execute(TIterator from, TIterator to, bool = false)
     {
-        __arrange(from, to);
+        __execute(from, to);
         return lastResult();
     }
 
@@ -875,11 +893,11 @@ private:
              class IT = remove_cvref_t<typename TIterator::value_type>,
              class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline PackGroup _arrange(TIterator from, TIterator to, int = false)
+    inline PackGroup _execute(TIterator from, TIterator to, int = false)
     {
         item_cache_ = {from, to};
 
-        __arrange(item_cache_.begin(), item_cache_.end());
+        __execute(item_cache_.begin(), item_cache_.end());
         return lastResult();
     }
 
@@ -892,11 +910,11 @@ private:
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline IndexedPackGroup _arrangeIndexed(TIterator from,
+    inline IndexedPackGroup _executeIndexed(TIterator from,
                                             TIterator to,
                                             bool = false)
     {
-        __arrange(from, to);
+        __execute(from, to);
         return createIndexedPackGroup(from, to, selector_);
     }
 
@@ -904,12 +922,12 @@ private:
              class IT = remove_cvref_t<typename TIterator::value_type>,
              class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline IndexedPackGroup _arrangeIndexed(TIterator from,
+    inline IndexedPackGroup _executeIndexed(TIterator from,
                                             TIterator to,
                                             int = false)
     {
         item_cache_ = {from, to};
-        __arrange(item_cache_.begin(), item_cache_.end());
+        __execute(item_cache_.begin(), item_cache_.end());
         return createIndexedPackGroup(from, to, selector_);
     }
 
@@ -941,36 +959,11 @@ private:
         return pg;
     }
 
-    Radians findBestRotation(Item& item) {
-        opt::StopCriteria stopcr;
-        stopcr.absolute_score_difference = 0.01;
-        stopcr.max_iterations = 10000;
-        opt::TOptimizer<opt::Method::G_GENETIC> solver(stopcr);
-
-        auto orig_rot = item.rotation();
-
-        auto result = solver.optimize_min([&item, &orig_rot](Radians rot){
-            item.rotation(orig_rot + rot);
-            auto bb = item.boundingBox();
-            return std::sqrt(bb.height()*bb.width());
-        }, opt::initvals(Radians(0)), opt::bound<Radians>(-Pi/2, Pi/2));
-
-        item.rotation(orig_rot);
-
-        return std::get<0>(result.optimum);
-    }
-
-    template<class TIter> inline void __arrange(TIter from, TIter to)
+    template<class TIter> inline void __execute(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
             item.addOffset(static_cast<Unit>(std::ceil(min_obj_distance_/2.0)));
         });
-
-        if(use_min_bb_rotation_)
-            std::for_each(from, to, [this](Item& item){
-                Radians rot = findBestRotation(item);
-                item.rotate(rot);
-            });
 
         selector_.template packItems<PlacementStrategy>(
                     from, to, bin_, pconfig_);

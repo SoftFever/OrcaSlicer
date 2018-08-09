@@ -7,10 +7,7 @@ namespace libnest2d { namespace strategies {
 
 struct EmptyConfig {};
 
-template<class Subclass, class RawShape, class TBin,
-         class Cfg = EmptyConfig,
-         class Store = std::vector<std::reference_wrapper<_Item<RawShape>>>
-         >
+template<class Subclass, class RawShape, class TBin, class Cfg = EmptyConfig>
 class PlacerBoilerplate {
     mutable bool farea_valid_ = false;
     mutable double farea_ = 0.0;
@@ -22,7 +19,8 @@ public:
     using Coord = TCoord<Vertex>;
     using Unit = Coord;
     using Config = Cfg;
-    using Container = Store;
+    using ItemGroup = _ItemGroup<Item>;
+    using DefaultIter = typename ItemGroup::const_iterator;
 
     class PackResult {
         Item *item_ptr_;
@@ -39,8 +37,6 @@ public:
         operator bool() { return item_ptr_ != nullptr; }
     };
 
-    using ItemGroup = const Container&;
-
     inline PlacerBoilerplate(const BinType& bin, unsigned cap = 50): bin_(bin)
     {
         items_.reserve(cap);
@@ -56,11 +52,10 @@ public:
         config_ = config;
     }
 
-    template<class Container>
-    bool pack(Container& items,
-              typename Container::iterator from,
-              unsigned count = 1) {
-        auto&& r = static_cast<Subclass*>(this)->trypack(items, from, count);
+    template<class Range = ConstItemRange<DefaultIter>>
+    bool pack(Item& item,
+              const Range& rem = Range()) {
+        auto&& r = static_cast<Subclass*>(this)->trypack(item, rem);
         if(r) {
             items_.push_back(*(r.item_ptr_));
             farea_valid_ = false;
@@ -82,7 +77,7 @@ public:
         farea_valid_ = false;
     }
 
-    inline ItemGroup getItems() const { return items_; }
+    inline const ItemGroup& getItems() const { return items_; }
 
     inline void clearItems() {
         items_.clear();
@@ -113,7 +108,7 @@ public:
 protected:
 
     BinType bin_;
-    Container items_;
+    ItemGroup items_;
     Cfg config_;
 };
 
@@ -124,6 +119,7 @@ using Base::items_;               \
 using Base::config_;              \
 public:                           \
 using typename Base::Item;        \
+using typename Base::ItemGroup;   \
 using typename Base::BinType;     \
 using typename Base::Config;      \
 using typename Base::Vertex;      \
@@ -131,7 +127,6 @@ using typename Base::Segment;     \
 using typename Base::PackResult;  \
 using typename Base::Coord;       \
 using typename Base::Unit;        \
-using typename Base::Container;   \
 private:
 
 }

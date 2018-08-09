@@ -61,7 +61,7 @@ public:
         { auto it = store_.begin();
             while (it != store_.end()) {
                 Placer p(bin); p.configure(pconfig);
-                if(!p.pack(store_, it)) {
+                if(!p.pack(*it)) {
                     it = store_.erase(it);
                 } else it++;
             }
@@ -73,8 +73,9 @@ public:
             while(!was_packed) {
 
                 for(size_t j = 0; j < placers.size() && !was_packed; j++) {
-                    if((was_packed = placers[j].pack(store_, it)))
-                        makeProgress(placers[j], j);
+                    if((was_packed =
+                        placers[j].pack(*it, rem(it, store_) )))
+                            makeProgress(placers[j], j);
                 }
 
                 if(!was_packed) {
