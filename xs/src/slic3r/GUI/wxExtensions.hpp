@@ -155,6 +155,7 @@ class PrusaObjectDataViewModelNode
 {
 	PrusaObjectDataViewModelNode*	m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
+    wxIcon                          m_empty_icon; 
 public:
 	PrusaObjectDataViewModelNode(const wxString &name, int instances_count=1, int scale=100) {
 		m_parent	= NULL;
@@ -198,7 +199,7 @@ public:
 	}
 	
 	wxString				m_name;
-	wxIcon					m_icon;
+	wxIcon&					m_icon = m_empty_icon;
 	wxString				m_copy;
 	wxString				m_scale;
 	std::string				m_type;
@@ -365,7 +366,7 @@ public:
 	wxString GetName(const wxDataViewItem &item) const;
 	wxString GetCopy(const wxDataViewItem &item) const;
 	wxString GetScale(const wxDataViewItem &item) const;
-	wxIcon   GetIcon(const wxDataViewItem &item) const;
+	wxIcon&  GetIcon(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
 

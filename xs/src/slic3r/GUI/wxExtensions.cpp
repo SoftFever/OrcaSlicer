@@ -566,7 +566,7 @@ wxString PrusaObjectDataViewModel::GetScale(const wxDataViewItem &item) const
 	return node->m_scale;
 }
 
-wxIcon PrusaObjectDataViewModel::GetIcon(const wxDataViewItem &item) const
+wxIcon& PrusaObjectDataViewModel::GetIcon(const wxDataViewItem &item) const
 {
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
     return node->m_icon;

@@ -228,6 +228,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
             else if (title == _("Name") && pt.x >15 &&
                      m_objects_model->GetParent(item) == wxDataViewItem(0))
             {
+                // ys_FIXME
 //                 auto menu = create_add_settings_popupmenu(true);// create_correction_stl_menu !!!
 //                 get_tab_panel()->GetPage(0)->PopupMenu(menu);
             }
@@ -275,12 +276,44 @@ wxBoxSizer* content_objects_list(wxWindow *win)
         wxDataViewItem item;
         wxDataViewColumn* col;
         m_objects_ctrl->HitTest(pt, item, col);
-        if (col->GetTitle() == " " && item)
-            m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("For object settings changing click on icon")));
-//         else if (col->GetTitle() == _("Name") && item && m_objects_model->GetIcon(item) == m_icon_manifold_warning )
-//             m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("Information about auto-repaired errors\n To fix errors, click on the icon")));
+        if (!item) return;
+
+        if ( col->GetTitle() == " " )
+            m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("Click the icon to change the object settings")));
+        else if ( col->GetTitle() == _("Name") &&
+                  m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData()) {
+            int obj_idx = m_objects_model->GetIdByItem(item);
+            auto& stats = (*m_objects)[obj_idx]->volumes[0]->mesh.stl.stats;
+            int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
+                stats.facets_added + stats.facets_reversed + stats.backwards_edges;
+
+            wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
+
+            std::map<std::string, int> error_msg;
+            error_msg[L("degenerate facets")]  = stats.degenerate_facets;
+            error_msg[L("edges fixed")]        = stats.edges_fixed;
+            error_msg[L("facets removed")]     = stats.facets_removed;
+            error_msg[L("facets added")]       = stats.facets_added;
+            error_msg[L("facets reversed")]    = stats.facets_reversed;
+            error_msg[L("backwards edges")]    = stats.backwards_edges;
+
+            for (auto error: error_msg)
+            {
+                if (error.second > 0)
+                    tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
+            }
+// OR
+//             tooltip += wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
+//                                             "%d facets added, %d facets reversed, %d backwards edges")),
+//                                             stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
+//                                             stats.facets_added, stats.facets_reversed, stats.backwards_edges);
+
+            // ysFIXME uncomment this when fix_error function will be exist
+//             tooltip += _(L("Click the icon to fix errors"));
+            m_objects_ctrl->GetMainWindow()->SetToolTip(tooltip);
+        }
         else
-            m_objects_ctrl->GetMainWindow()->SetToolTip("");
+            m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
     });
 
 	return objects_sz;
