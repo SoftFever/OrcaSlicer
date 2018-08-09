@@ -52,17 +52,16 @@ public:
         auto total = last-first;
         auto makeProgress = [this, &total](Placer& placer, size_t idx) {
             packed_bins_[idx] = placer.getItems();
-            this->progress_(--total);
+            this->progress_(static_cast<unsigned>(--total));
         };
 
         // Safety test: try to pack each item into an empty bin. If it fails
         // then it should be removed from the list
         { auto it = store_.begin();
             while (it != store_.end()) {
-                Placer p(bin);
+                Placer p(bin); p.configure(pconfig);
                 if(!p.pack(*it)) {
-                    auto itmp = it++;
-                    store_.erase(itmp);
+                    it = store_.erase(it);
                 } else it++;
             }
         }

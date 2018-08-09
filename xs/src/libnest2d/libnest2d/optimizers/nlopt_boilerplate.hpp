@@ -1,15 +1,25 @@
 #ifndef NLOPT_BOILERPLATE_HPP
 #define NLOPT_BOILERPLATE_HPP
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4244)
+#pragma warning(disable: 4267)
+#endif
 #include <nlopt.hpp>
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 #include <libnest2d/optimizer.hpp>
 #include <cassert>
+#include "libnest2d/metaloop.hpp"
 
 #include <utility>
 
 namespace libnest2d { namespace opt {
 
-nlopt::algorithm method2nloptAlg(Method m) {
+inline nlopt::algorithm method2nloptAlg(Method m) {
 
     switch(m) {
     case Method::L_SIMPLEX: return nlopt::LN_NELDERMEAD;
@@ -87,7 +97,7 @@ protected:
 
     template<class Fn, class...Args>
     static double optfunc(const std::vector<double>& params,
-                          std::vector<double>& grad,
+                          std::vector<double>& /*grad*/,
                           void *data)
     {
         auto fnptr = static_cast<remove_ref_t<Fn>*>(data);
@@ -132,12 +142,10 @@ protected:
         default: ;
         }
 
-        switch(this->stopcr_.type) {
-        case StopLimitType::ABSOLUTE:
-            opt_.set_ftol_abs(stopcr_.stoplimit); break;
-        case StopLimitType::RELATIVE:
-            opt_.set_ftol_rel(stopcr_.stoplimit); break;
-        }
+        auto abs_diff = stopcr_.absolute_score_difference;
+        auto rel_diff = stopcr_.relative_score_difference;
+        if(!std::isnan(abs_diff)) opt_.set_ftol_abs(abs_diff);
+        if(!std::isnan(rel_diff)) opt_.set_ftol_rel(rel_diff);
 
         if(this->stopcr_.max_iterations > 0)
             opt_.set_maxeval(this->stopcr_.max_iterations );

@@ -9,6 +9,8 @@
 #include "Model.hpp"
 #include "boost/nowide/iostream.hpp"
 
+#include <algorithm>
+
 namespace Slic3r {
 namespace GUI {
 
@@ -146,21 +148,18 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 		if (lines[0].parallel_to(lines[2]) && lines[1].parallel_to(lines[3])) {
 			// okay, it's a rectangle
 			// find origin
-			// the || 0 hack prevents "-0" which might confuse the user
-			int x_min, x_max, y_min, y_max;
-			x_max = x_min = points->values[0].x;
+            coordf_t x_min, x_max, y_min, y_max;
+            x_max = x_min = points->values[0].x;
 			y_max = y_min = points->values[0].y;
-			for (auto pt : points->values){
-				if (x_min > pt.x) x_min = pt.x;
-				if (x_max < pt.x) x_max = pt.x;
-				if (y_min > pt.y) y_min = pt.y;
-				if (y_max < pt.y) y_max = pt.y;
-			}
-			if (x_min < 0) x_min = 0;
-			if (x_max < 0) x_max = 0;
-			if (y_min < 0) y_min = 0;
-			if (y_max < 0) y_max = 0;
-			auto origin = new ConfigOptionPoints{ Pointf(-x_min, -y_min) };
+			for (auto pt : points->values)
+            {
+                x_min = std::min(x_min, pt.x);
+                x_max = std::max(x_max, pt.x);
+                y_min = std::min(y_min, pt.y);
+                y_max = std::max(y_max, pt.y);
+            }
+
+            auto origin = new ConfigOptionPoints{ Pointf(-x_min, -y_min) };
 
 			m_shape_options_book->SetSelection(SHAPE_RECTANGULAR);
 			auto optgroup = m_optgroups[SHAPE_RECTANGULAR];
