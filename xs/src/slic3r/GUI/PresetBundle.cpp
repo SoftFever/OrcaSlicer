@@ -90,7 +90,7 @@ PresetBundle::PresetBundle() :
 	// Load the default preset bitmaps.
     this->prints       .load_bitmap_default("cog.png");
     this->filaments    .load_bitmap_default("spool.png");
-    this->sla_materials.load_bitmap_default("spool.png");
+    this->sla_materials.load_bitmap_default("package_green.png");
     this->printers     .load_bitmap_default("printer_empty.png");
     this->load_compatible_bitmaps();
 
@@ -1394,6 +1394,7 @@ void PresetBundle::set_default_suppressed(bool default_suppressed)
 {
     prints.set_default_suppressed(default_suppressed);
     filaments.set_default_suppressed(default_suppressed);
+    sla_materials.set_default_suppressed(default_suppressed);
     printers.set_default_suppressed(default_suppressed);
 }
 

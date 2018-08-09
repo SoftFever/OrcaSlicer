@@ -2946,7 +2946,7 @@ void TabSLAMaterial::build()
     m_presets = &m_preset_bundle->sla_materials;
     load_initial_data();
 
-    auto page = add_options_page(_(L("Material")), "spool.png");
+    auto page = add_options_page(_(L("Material")), "package_green.png");
 
     auto optgroup = page->new_optgroup(_(L("Layers")));
     optgroup->append_single_option_line("layer_height");
