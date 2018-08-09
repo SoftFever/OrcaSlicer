@@ -215,28 +215,30 @@ wxBoxSizer* content_objects_list(wxWindow *win)
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& event) {
         wxPoint pt = event.GetPosition();
         wxString msg = wxString::Format("wxEVT_LEFT_DOWN\n Position: x - %d, y - %d", pt.x, pt.y);
-        auto msg_box = wxMessageBox(msg);
+        wxMessageBox(msg);
         wxDataViewItem item;
         wxDataViewColumn* col;
         m_objects_ctrl->HitTest(pt, item, col);
         wxString title = col->GetTitle();
-        if (item && (title==" " || title == _("Name"))) {
-            if (item != m_objects_ctrl->GetSelection()) {
-                m_objects_ctrl->Select(item);
-                object_ctrl_selection_changed();
-                g_prevent_list_events = false;
-            }
-
-            if (title == " ")
-                object_ctrl_context_menu();
-            else if (title == _("Name") && pt.x >15 &&
-                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
-            {
-                // ys_FIXME
-//                 if (is_windows10())
-//                     fix_through_netfabb();
-            }
+        if (!item) {
+            event.Skip();
+            return;
         }
+        if (item != m_objects_ctrl->GetSelection()) {
+            m_objects_ctrl->Select(item);
+            object_ctrl_selection_changed();
+            g_prevent_list_events = false;
+        }
+
+        if (title == " ")
+            object_ctrl_context_menu();
+        // ys_FIXME
+//         else if (title == _("Name") && pt.x >15 &&
+//                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
+//         {
+//             if (is_windows10())
+//                 fix_through_netfabb();
+//         }
 		event.Skip();
 	});
 
@@ -277,8 +279,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
         wxPoint pt = event.GetPosition();
-        wxString msg = wxString::Format("wxEVT_MOTION\n Position: x - %d, y - %d", pt.x, pt.y);
-        auto msg_box = wxMessageBox(msg);
+        wxString msg = wxString::Format("wxEVT_MOTION\n Position: x = %d, y = %d", pt.x, pt.y);
+        wxMessageBox(msg, wxEmptyString, 4, nullptr, pt.x, pt.y);
         wxDataViewItem item;
         wxDataViewColumn* col;
         m_objects_ctrl->HitTest(pt, item, col);
