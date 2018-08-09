@@ -204,8 +204,9 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
-        auto msg_box = wxMessageBox("wxEVT_DATAVIEW_SELECTION_CHANGED");
+        m_objects_ctrl->SetToolTip("wxEVT_DATAVIEW_SELECTION_CHANGED");
 		object_ctrl_selection_changed();
+        m_objects_ctrl->GetMainWindow()->SetToolTip("wxEVT_DATAVIEW_SELECTION_CHANGED from MainWindow");
 // #ifdef __WXOSX__
 //         update_extruder_in_config(g_selected_extruder);
 // #endif //__WXOSX__        
