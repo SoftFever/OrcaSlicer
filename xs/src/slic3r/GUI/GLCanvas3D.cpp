@@ -1,5 +1,6 @@
 #include "GLCanvas3D.hpp"
 
+#include "../../admesh/stl.h"
 #include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
@@ -1154,6 +1155,18 @@ bool GLCanvas3D::Gizmos::init()
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
+    gizmo = new GLGizmoFlatten;
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        _reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
+
+
     return true;
 }
 
@@ -1385,6 +1398,25 @@ void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
     GizmosMap::const_iterator it = m_gizmos.find(Rotate);
     if (it != m_gizmos.end())
         reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle_z(angle_z);
+}
+
+Pointf3 GLCanvas3D::Gizmos::get_flattening_normal() const
+{
+    if (!m_enabled)
+        return Pointf3(0.f, 0.f, 0.f);
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Pointf3(0.f, 0.f, 0.f);
+}
+
+void GLCanvas3D::Gizmos::set_flattening_data(std::vector<Pointf3s> vertices_list)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(vertices_list);
 }
 
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
@@ -2170,6 +2202,27 @@ void GLCanvas3D::update_gizmos_data()
             {
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
+
+                /////////////////////////////////////////////////////////////////////////
+                // Following block provides convex hull data to the Flatten gizmo
+                // It is temporary, it should be optimized and moved elsewhere later
+                TriangleMesh ch = model_object->mesh().convex_hull3d();
+                stl_facet* facet_ptr = ch.stl.facet_start;
+                std::vector<Pointf3s> points;
+                while (facet_ptr < ch.stl.facet_start+ch.stl.stats.number_of_facets) {
+                    Pointf3 a = Pointf3(facet_ptr->vertex[1].x - facet_ptr->vertex[0].x, facet_ptr->vertex[1].y - facet_ptr->vertex[0].y, facet_ptr->vertex[1].z - facet_ptr->vertex[0].z);
+                    Pointf3 b = Pointf3(facet_ptr->vertex[2].x - facet_ptr->vertex[0].x, facet_ptr->vertex[2].y - facet_ptr->vertex[0].y, facet_ptr->vertex[2].z - facet_ptr->vertex[0].z);
+
+                    if (0.5 * sqrt(dot(cross(a, b), cross(a,b))) > 50.f) {
+                        points.emplace_back(Pointf3s());
+                        for (unsigned int j=0; j<3; ++j)
+                            points.back().emplace_back(Pointf3(facet_ptr->vertex[j].x, facet_ptr->vertex[j].y, facet_ptr->vertex[j].z));
+                        points.back().emplace_back(Pointf3(facet_ptr->normal.x, facet_ptr->normal.y, facet_ptr->normal.z));
+                    }
+                    facet_ptr+=1;
+                }
+                m_gizmos.set_flattening_data(points);
+                ////////////////////////////////////////////////////////////////////////
             }
         }
     }
@@ -2177,6 +2230,7 @@ void GLCanvas3D::update_gizmos_data()
     {
         m_gizmos.set_scale(1.0f);
         m_gizmos.set_angle_z(0.0f);
+        m_gizmos.set_flattening_data(std::vector<Pointf3s>());
     }
 }
 
@@ -2760,6 +2814,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_gizmos.start_dragging();
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
             m_dirty = true;
+
+            if (m_gizmos.get_current_type() == Gizmos::Flatten) {
+                // Rotate the object so the normal points downward:
+                Pointf3 normal = m_gizmos.get_flattening_normal();
+                if (normal.x != 0.f || normal.y != 0.f || normal.z != 0.f) {
+                    float angle_z = -atan2(normal.y, normal.x);
+                    float angle_y = M_PI - atan2(normal.x*cos(angle_z)-normal.y*sin(angle_z), normal.z);
+                    m_on_gizmo_rotate_callback.call((double)angle_z, (double)angle_y);
+                }
+            }
         }
         else
         {
@@ -3039,7 +3103,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             case Gizmos::Rotate:
             {
-                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z(), 0.);
                 break;
             }
             default:

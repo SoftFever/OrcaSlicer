@@ -149,6 +149,38 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 };
 
+
+class GLGizmoFlatten : public GLGizmoBase
+{
+// This gizmo does not use grabbers. The m_hover_id relates to polygon managed by the class itself.
+
+private:
+    mutable Pointf3 m_normal;
+
+    struct PlaneData {
+        std::vector<Pointf3> vertices;
+        Pointf3 normal;
+        float color[3];
+    };
+
+    std::vector<PlaneData> m_planes;
+
+public:
+    GLGizmoFlatten();
+
+    void set_flattening_data(std::vector<Pointf3s> vertices_list);
+    Pointf3 get_flattening_normal() const;
+
+protected:
+    virtual bool on_init();
+    virtual void on_start_dragging();
+    virtual void on_update(const Pointf& mouse_pos);
+    virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+};
+
+
+
 } // namespace GUI
 } // namespace Slic3r
 

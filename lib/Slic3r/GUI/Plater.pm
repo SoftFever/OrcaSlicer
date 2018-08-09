@@ -141,8 +141,9 @@ sub new {
     
     # callback to react to gizmo rotate
     my $on_gizmo_rotate = sub {
-        my ($angle_z) = @_;
+        my ($angle_z, $angle_y) = @_;
         $self->rotate(rad2deg($angle_z), Z, 'absolute');
+        $self->rotate(rad2deg($angle_y), Y, 'absolute');
     };
 
     # callback to update object's geometry info while using gizmos

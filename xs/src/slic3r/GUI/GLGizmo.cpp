@@ -110,7 +110,7 @@ int GLGizmoBase::get_hover_id() const
 
 void GLGizmoBase::set_hover_id(int id)
 {
-    if (id < (int)m_grabbers.size())
+    //if (id < (int)m_grabbers.size())
         m_hover_id = id;
 }
 
@@ -501,6 +501,113 @@ void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
     }
     render_grabbers();
 }
+
+
+GLGizmoFlatten::GLGizmoFlatten()
+    : GLGizmoBase(),
+      m_normal(Pointf3(0.f, 0.f, 0.f))
+{}
+
+
+bool GLGizmoFlatten::on_init()
+{
+    std::string path = resources_dir() + "/icons/overlay/";
+
+    std::string filename = path + "scale_off.png";
+    if (!m_textures[Off].load_from_file(filename, false))
+        return false;
+
+    filename = path + "scale_hover.png";
+    if (!m_textures[Hover].load_from_file(filename, false))
+        return false;
+
+    filename = path + "scale_on.png";
+    if (!m_textures[On].load_from_file(filename, false))
+        return false;
+
+    return true;
+}
+
+void GLGizmoFlatten::on_start_dragging()
+{
+    if (m_hover_id != -1)
+        m_normal = m_planes[m_hover_id].normal;
+}
+
+void GLGizmoFlatten::on_update(const Pointf& mouse_pos)
+{
+    /*Pointf center(0.5 * (m_grabbers[1].center.x + m_grabbers[0].center.x), 0.5 * (m_grabbers[3].center.y + m_grabbers[0].center.y));
+
+    coordf_t orig_len = length(m_starting_drag_position - center);
+    coordf_t new_len = length(mouse_pos - center);
+    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+
+    m_scale = m_starting_scale * (float)ratio;*/
+}
+
+void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
+{
+    bool blending_was_enabled = ::glIsEnabled(GL_BLEND);
+    ::glEnable(GL_BLEND);
+    ::glDisable(GL_DEPTH_TEST);
+
+    for (int i=0; i<(int)m_planes.size(); ++i) {
+        if (i == m_hover_id)
+            ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
+            else
+                ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+
+        ::glBegin(GL_POLYGON);
+        for (const auto& vertex : m_planes[i].vertices)
+            ::glVertex3f((GLfloat)vertex.x, (GLfloat)vertex.y, (GLfloat)vertex.z);
+        ::glEnd();
+    }
+
+    if (!blending_was_enabled)
+        ::glDisable(GL_BLEND);
+}
+
+void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
+{
+    static const GLfloat INV_255 = 1.0f / 255.0f;
+
+    ::glDisable(GL_DEPTH_TEST);
+
+    for (unsigned int i = 0; i < m_planes.size(); ++i)
+    {
+        ::glColor3f(1.f, 1.f, (254.0f - (float)i) * INV_255);
+        ::glBegin(GL_POLYGON);
+        for (const auto& vertex : m_planes[i].vertices)
+            ::glVertex3f((GLfloat)vertex.x, (GLfloat)vertex.y, (GLfloat)vertex.z);
+        ::glEnd();
+    }
+}
+
+void GLGizmoFlatten::set_flattening_data(std::vector<Pointf3s> vertices_list)
+{
+    // Each entry in vertices_list describe one polygon that can be laid flat.
+    // All points but the last one are vertices of the polygon, the last "point" is the outer normal vector.
+
+    m_planes.clear();
+    m_planes.reserve(vertices_list.size());
+
+    for (const auto& plane_data : vertices_list) {
+        m_planes.emplace_back(PlaneData());
+        for (unsigned int i=0; i<plane_data.size()-1; ++i)
+            m_planes.back().vertices.emplace_back(plane_data[i]);
+        m_planes.back().normal = plane_data.back();
+    }
+}
+
+Pointf3 GLGizmoFlatten::get_flattening_normal() const {
+    Pointf3 normal = m_normal;
+    m_normal = Pointf3(0.f, 0.f, 0.f);
+    return normal;
+}
+
+
+
+
 
 } // namespace GUI
 } // namespace Slic3r
