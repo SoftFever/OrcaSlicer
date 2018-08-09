@@ -12,6 +12,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include "Geometry.hpp"
+#include "slic3r/Utils/FixModelByWin10.hpp"
 
 namespace Slic3r
 {
@@ -203,6 +204,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
+        auto msg_box = wxMessageBox("wxEVT_DATAVIEW_SELECTION_CHANGED");
 		object_ctrl_selection_changed();
 // #ifdef __WXOSX__
 //         update_extruder_in_config(g_selected_extruder);
@@ -212,6 +214,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 //    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event)
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& event) {
         wxPoint pt = event.GetPosition();
+        wxString msg = wxString::Format("wxEVT_LEFT_DOWN\n Position: x - %d, y - %d", pt.x, pt.y);
+        auto msg_box = wxMessageBox(msg);
         wxDataViewItem item;
         wxDataViewColumn* col;
         m_objects_ctrl->HitTest(pt, item, col);
@@ -226,11 +230,11 @@ wxBoxSizer* content_objects_list(wxWindow *win)
             if (title == " ")
                 object_ctrl_context_menu();
             else if (title == _("Name") && pt.x >15 &&
-                     m_objects_model->GetParent(item) == wxDataViewItem(0))
+                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
             {
                 // ys_FIXME
-//                 auto menu = create_add_settings_popupmenu(true);// create_correction_stl_menu !!!
-//                 get_tab_panel()->GetPage(0)->PopupMenu(menu);
+//                 if (is_windows10())
+//                     fix_through_netfabb();
             }
         }
 		event.Skip();
@@ -273,6 +277,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
         wxPoint pt = event.GetPosition();
+        wxString msg = wxString::Format("wxEVT_MOTION\n Position: x - %d, y - %d", pt.x, pt.y);
+        auto msg_box = wxMessageBox(msg);
         wxDataViewItem item;
         wxDataViewColumn* col;
         m_objects_ctrl->HitTest(pt, item, col);
@@ -308,8 +314,9 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 //                                             stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
 //                                             stats.facets_added, stats.facets_reversed, stats.backwards_edges);
 
-            // ysFIXME uncomment this when fix_error function will be exist
-//             tooltip += _(L("Click the icon to fix errors"));
+            if (is_windows10())
+                tooltip += _(L("Click the icon to fix STL through Netfabb"));
+
             m_objects_ctrl->GetMainWindow()->SetToolTip(tooltip);
         }
         else
