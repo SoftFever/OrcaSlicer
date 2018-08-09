@@ -1,6 +1,9 @@
 #include "TriangleMesh.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "qhull/src/libqhullcpp/Qhull.h"
+#include "qhull/src/libqhullcpp/QhullFacetList.h"
+#include "qhull/src/libqhullcpp/QhullVertexSet.h"
 #include <cmath>
 #include <deque>
 #include <queue>
@@ -10,6 +13,7 @@
 #include <utility>
 #include <algorithm>
 #include <math.h>
+#include <type_traits>
 
 #include <boost/log/trivial.hpp>
 
@@ -595,6 +599,50 @@ TriangleMesh::bounding_box() const
     bb.max.y = this->stl.stats.max.y;
     bb.max.z = this->stl.stats.max.z;
     return bb;
+}
+
+
+TriangleMesh TriangleMesh::convex_hull3d() const
+{
+    // qhull's realT is assumed to be a typedef for float - let's better check it first:
+    static_assert(std::is_same<realT, float>::value, "Internal type realT in the qhull library must be float!");
+
+    // Helper struct for qhull:
+    struct PointForQHull{
+        PointForQHull(float x_p, float y_p, float z_p) : x(x_p), y(y_p), z(z_p) {}
+        float x,y,z;
+        };
+    std::vector<PointForQHull> input_verts;
+
+    // We will now fill the vector with input points for computation:
+    stl_facet* facet_ptr = stl.facet_start;
+    while (facet_ptr < stl.facet_start+stl.stats.number_of_facets) {
+        for (int j=0;j<3;++j)
+            input_verts.emplace_back(PointForQHull(facet_ptr->vertex[j].x, facet_ptr->vertex[j].y, facet_ptr->vertex[j].z));
+        facet_ptr+=1;
+    }
+
+    // The qhull call:
+    orgQhull::Qhull qhull;
+    qhull.disableOutputStream(); // we want qhull to be quiet
+    qhull.runQhull("", 3, input_verts.size(), (const realT*)(input_verts.data()), "Qt" );
+
+    // Let's collect results:
+    Pointf3s vertices;
+    std::vector<Point3> facets;
+    auto facet_list = qhull.facetList().toStdVector();
+    for (const orgQhull::QhullFacet& facet : facet_list) {   // iterate through facets
+        for (unsigned char i=0; i<3; ++i) {        // iterate through facet's vertices
+            orgQhull::QhullPoint p = (facet.vertices())[i].point();
+            const float* coords = p.coordinates();
+            Pointf3 vert((float)coords[0], (float)coords[1], (float)coords[2]);
+            vertices.emplace_back(vert);
+        }
+        facets.emplace_back(Point3(vertices.size()-3, vertices.size()-2, vertices.size()-1));
+    }
+    TriangleMesh output_mesh(vertices, facets);
+    output_mesh.repair();
+    return output_mesh;
 }
 
 void
