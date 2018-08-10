@@ -204,9 +204,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
-        m_objects_ctrl->SetToolTip("wxEVT_DATAVIEW_SELECTION_CHANGED");
 		object_ctrl_selection_changed();
-        m_objects_ctrl->GetMainWindow()->SetToolTip("wxEVT_DATAVIEW_SELECTION_CHANGED from MainWindow");
 // #ifdef __WXOSX__
 //         update_extruder_in_config(g_selected_extruder);
 // #endif //__WXOSX__        
@@ -279,7 +277,8 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 #endif //__WXMSW__
 
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
-        wxPoint pt = event.GetPosition();
+        m_objects_ctrl->GetMainWindow()->SetToolTip("wxEVT_MOTION");
+/*        wxPoint pt = event.GetPosition();
         wxString msg = wxString::Format("wxEVT_MOTION\n Position: x = %d, y = %d", pt.x, pt.y);
         wxMessageBox(msg, wxEmptyString, 4, nullptr, pt.x, pt.y);
         wxDataViewItem item;
@@ -324,7 +323,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
         }
         else
             m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
-    });
+*/    });
 
 	return objects_sz;
 }
