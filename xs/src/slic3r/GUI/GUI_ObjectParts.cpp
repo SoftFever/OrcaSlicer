@@ -157,6 +157,59 @@ bool is_part_settings_changed(){ return m_part_settings_changed; }
 
 static wxString dots("â€¦", wxConvUTF8);
 
+void set_tooltip_for_item(const wxPoint& pt)
+{
+    wxDataViewItem item;
+    wxDataViewColumn* col;
+    m_objects_ctrl->HitTest(pt, item, col);
+    if (!item) return;
+
+    if (col->GetTitle() == " ")
+        m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
+    else if (col->GetTitle() == _("Name") &&
+        m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData()) {
+        int obj_idx = m_objects_model->GetIdByItem(item);
+        auto& stats = (*m_objects)[obj_idx]->volumes[0]->mesh.stl.stats;
+        int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
+            stats.facets_added + stats.facets_reversed + stats.backwards_edges;
+
+        wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
+
+        std::map<std::string, int> error_msg;
+        error_msg[L("degenerate facets")] = stats.degenerate_facets;
+        error_msg[L("edges fixed")] = stats.edges_fixed;
+        error_msg[L("facets removed")] = stats.facets_removed;
+        error_msg[L("facets added")] = stats.facets_added;
+        error_msg[L("facets reversed")] = stats.facets_reversed;
+        error_msg[L("backwards edges")] = stats.backwards_edges;
+
+        for (auto error : error_msg)
+        {
+            if (error.second > 0)
+                tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
+        }
+// OR
+//             tooltip += wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
+//                                             "%d facets added, %d facets reversed, %d backwards edges")),
+//                                             stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
+//                                             stats.facets_added, stats.facets_reversed, stats.backwards_edges);
+
+        if (is_windows10())
+            tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
+
+        m_objects_ctrl->GetMainWindow()->SetToolTip(tooltip);
+    }
+    else
+        m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
+}
+
+wxPoint get_mouse_position_in_control() {
+    const wxPoint& pt = wxGetMousePosition();
+    wxWindow* win = m_objects_ctrl->GetMainWindow();
+    return wxPoint(pt.x - win->GetScreenPosition().x, 
+                   pt.y - win->GetScreenPosition().y);
+}
+
 // ****** from GUI.cpp
 wxBoxSizer* content_objects_list(wxWindow *win)
 {
@@ -205,29 +258,17 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
 	{
 		object_ctrl_selection_changed();
-// #ifdef __WXOSX__
-//         update_extruder_in_config(g_selected_extruder);
-// #endif //__WXOSX__        
+#ifndef __WXMSW__
+        set_tooltip_for_item(get_mouse_position_in_control());
+#endif //__WXMSW__        
 	});
 
-//    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event)
-    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_LEFT_DOWN, [](wxMouseEvent& event) {
-        wxPoint pt = event.GetPosition();
-        wxString msg = wxString::Format("wxEVT_LEFT_DOWN\n Position: x - %d, y - %d", pt.x, pt.y);
-        wxMessageBox(msg);
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event) {
         wxDataViewItem item;
         wxDataViewColumn* col;
-        m_objects_ctrl->HitTest(pt, item, col);
+        m_objects_ctrl->HitTest(get_mouse_position_in_control(), item, col);
         wxString title = col->GetTitle();
-        if (!item) {
-            event.Skip();
-            return;
-        }
-        if (item != m_objects_ctrl->GetSelection()) {
-            m_objects_ctrl->Select(item);
-            object_ctrl_selection_changed();
-            g_prevent_list_events = false;
-        }
+        if (!item) return;
 
         if (title == " ")
             object_ctrl_context_menu();
@@ -256,10 +297,13 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	});
 
 #ifdef __WXMSW__
-	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event)
-	{
+	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) {
         update_extruder_in_config(event.GetString());
 	});
+
+    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
+         set_tooltip_for_item(event.GetPosition());
+    });
 #else
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
     {
@@ -275,55 +319,6 @@ wxBoxSizer* content_objects_list(wxWindow *win)
         }
     });
 #endif //__WXMSW__
-
-    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
-        m_objects_ctrl->GetMainWindow()->SetToolTip("wxEVT_MOTION");
-/*        wxPoint pt = event.GetPosition();
-        wxString msg = wxString::Format("wxEVT_MOTION\n Position: x = %d, y = %d", pt.x, pt.y);
-        wxMessageBox(msg, wxEmptyString, 4, nullptr, pt.x, pt.y);
-        wxDataViewItem item;
-        wxDataViewColumn* col;
-        m_objects_ctrl->HitTest(pt, item, col);
-        if (!item) return;
-
-        if ( col->GetTitle() == " " )
-            m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("Click the icon to change the object settings")));
-        else if ( col->GetTitle() == _("Name") &&
-                  m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData()) {
-            int obj_idx = m_objects_model->GetIdByItem(item);
-            auto& stats = (*m_objects)[obj_idx]->volumes[0]->mesh.stl.stats;
-            int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-                stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-
-            wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
-
-            std::map<std::string, int> error_msg;
-            error_msg[L("degenerate facets")]  = stats.degenerate_facets;
-            error_msg[L("edges fixed")]        = stats.edges_fixed;
-            error_msg[L("facets removed")]     = stats.facets_removed;
-            error_msg[L("facets added")]       = stats.facets_added;
-            error_msg[L("facets reversed")]    = stats.facets_reversed;
-            error_msg[L("backwards edges")]    = stats.backwards_edges;
-
-            for (auto error: error_msg)
-            {
-                if (error.second > 0)
-                    tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
-            }
-// OR
-//             tooltip += wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
-//                                             "%d facets added, %d facets reversed, %d backwards edges")),
-//                                             stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
-//                                             stats.facets_added, stats.facets_reversed, stats.backwards_edges);
-
-            if (is_windows10())
-                tooltip += _(L("Click the icon to fix STL through Netfabb"));
-
-            m_objects_ctrl->GetMainWindow()->SetToolTip(tooltip);
-        }
-        else
-            m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
-*/    });
 
 	return objects_sz;
 }
