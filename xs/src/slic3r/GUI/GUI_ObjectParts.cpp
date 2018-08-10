@@ -726,7 +726,7 @@ void unselect_objects()
     printf("UNSELECT OBJECTS\n");
     g_prevent_list_events = true;
 	m_objects_ctrl->UnselectAll();
-	part_selection_changed();
+// 	part_selection_changed();
     g_prevent_list_events = false;
 
 	get_optgroup(ogFrequentlyObjectSettings)->disable();
