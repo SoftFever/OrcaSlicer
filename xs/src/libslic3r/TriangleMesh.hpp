@@ -114,6 +114,9 @@ public:
 
     bool skip() const { return (this->flags & SKIP) != 0; }
     void set_skip() { this->flags |= SKIP; }
+
+    bool is_seed_candidate() const { return (this->flags & NO_SEED) == 0 && ! this->skip(); }
+    void set_no_seed(bool set) { if (set) this->flags |= NO_SEED; else this->flags &= ~NO_SEED; }
     
     // Inherits Point a, b
     // For each line end point, either {a,b}_id or {a,b}edge_a_id is set, the other is left to -1.
@@ -127,10 +130,17 @@ public:
     FacetEdgeType   edge_type;
     // Used by TriangleMeshSlicer::slice() to skip duplicate edges.
     enum {
-        EDGE0   = 1,
-        EDGE1   = 2,
-        EDGE2   = 4,
-        SKIP    = 8,
+        // Triangle edge added, because it has no neighbor.
+        EDGE0_NO_NEIGHBOR   = 0x001,
+        EDGE1_NO_NEIGHBOR   = 0x002,
+        EDGE2_NO_NEIGHBOR   = 0x004,
+        // Triangle edge added, because it makes a fold with another horizontal edge.
+        EDGE0_FOLD          = 0x010,
+        EDGE1_FOLD          = 0x020,
+        EDGE2_FOLD          = 0x040,
+        // The edge cannot be a seed of a greedy loop extraction (folds are not safe to become seeds).
+        NO_SEED             = 0x100,
+        SKIP                = 0x200,
     };
     uint32_t        flags;
 };

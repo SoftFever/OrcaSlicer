@@ -223,7 +223,6 @@ TriangleMesh::repair() {
     BOOST_LOG_TRIVIAL(debug) << "TriangleMesh::repair() finished";
 }
 
-
 float TriangleMesh::volume()
 {
     if (this->stl.stats.volume == -1) 
@@ -427,7 +426,7 @@ bool TriangleMesh::has_multiple_patches() const
         facet_visited[facet_idx] = true;
         for (int j = 0; j < 3; ++ j) {
             int neighbor_idx = this->stl.neighbors_start[facet_idx].neighbor[j];
-            if (! facet_visited[neighbor_idx])
+            if (neighbor_idx != -1 && ! facet_visited[neighbor_idx])
                 facet_queue[facet_queue_cnt ++] = neighbor_idx;
         }
     }
@@ -479,8 +478,7 @@ size_t TriangleMesh::number_of_patches() const
     return num_bodies;
 }
 
-TriangleMeshPtrs
-TriangleMesh::split() const
+TriangleMeshPtrs TriangleMesh::split() const
 {
     TriangleMeshPtrs meshes;
     std::set<int> seen_facets;
@@ -532,8 +530,7 @@ TriangleMesh::split() const
     return meshes;
 }
 
-void
-TriangleMesh::merge(const TriangleMesh &mesh)
+void TriangleMesh::merge(const TriangleMesh &mesh)
 {
     // reset stats and metadata
     int number_of_facets = this->stl.stats.number_of_facets;
@@ -587,8 +584,7 @@ Polygon TriangleMesh::convex_hull()
     return Slic3r::Geometry::convex_hull(pp);
 }
 
-BoundingBoxf3
-TriangleMesh::bounding_box() const
+BoundingBoxf3 TriangleMesh::bounding_box() const
 {
     BoundingBoxf3 bb;
     bb.defined = true;
@@ -601,8 +597,7 @@ TriangleMesh::bounding_box() const
     return bb;
 }
 
-void
-TriangleMesh::require_shared_vertices()
+void TriangleMesh::require_shared_vertices()
 {
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - start";
     if (!this->repaired) 
@@ -611,9 +606,22 @@ TriangleMesh::require_shared_vertices()
         BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - stl_generate_shared_vertices";
         stl_generate_shared_vertices(&(this->stl));
     }
+#ifdef _DEBUG
+	// Verify validity of neighborship data.
+	for (int facet_idx = 0; facet_idx < stl.stats.number_of_facets; ++facet_idx) {
+		const stl_neighbors &nbr = stl.neighbors_start[facet_idx];
+		const int *vertices = stl.v_indices[facet_idx].vertex;
+		for (int nbr_idx = 0; nbr_idx < 3; ++nbr_idx) {
+			int nbr_face = this->stl.neighbors_start[facet_idx].neighbor[nbr_idx];
+			if (nbr_face != -1) {
+				assert(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == vertices[(nbr_idx + 1) % 3]);
+				assert(stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == vertices[nbr_idx]);
+			}
+		}
+	}
+#endif /* _DEBUG */
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - end";
 }
-
 
 TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) : 
     mesh(_mesh)
@@ -778,11 +786,14 @@ void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons
                 svg.draw_outline(expolygons, "black", "blue", 0);
                 svg.Close();
             }
+#if 0
+//FIXME the slice_facet() creates zero length edges.
             for (Polygon &poly : polygons) {
                 for (size_t i = 1; i < poly.points.size(); ++ i)
                     assert(poly.points[i-1] != poly.points[i]);
                 assert(poly.points.front() != poly.points.back());
             }
+#endif
         }
         ++ iRun;
     }
@@ -798,21 +809,21 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
     const float min_z = fminf(facet.vertex[0].z, fminf(facet.vertex[1].z, facet.vertex[2].z));
     const float max_z = fmaxf(facet.vertex[0].z, fmaxf(facet.vertex[1].z, facet.vertex[2].z));
     
-    #ifdef SLIC3R_DEBUG
+    #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     printf("\n==> FACET %d (%f,%f,%f - %f,%f,%f - %f,%f,%f):\n", facet_idx,
         facet.vertex[0].x, facet.vertex[0].y, facet.vertex[0].z,
         facet.vertex[1].x, facet.vertex[1].y, facet.vertex[1].z,
         facet.vertex[2].x, facet.vertex[2].y, facet.vertex[2].z);
     printf("z: min = %.2f, max = %.2f\n", min_z, max_z);
-    #endif
+    #endif /* SLIC3R_TRIANGLEMESH_DEBUG */
     
     // find layer extents
     std::vector<float>::const_iterator min_layer, max_layer;
     min_layer = std::lower_bound(z.begin(), z.end(), min_z); // first layer whose slice_z is >= min_z
     max_layer = std::upper_bound(z.begin() + (min_layer - z.begin()), z.end(), max_z) - 1; // last layer whose slice_z is <= max_z
-    #ifdef SLIC3R_DEBUG
+    #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     printf("layers: min = %d, max = %d\n", (int)(min_layer - z.begin()), (int)(max_layer - z.begin()));
-    #endif
+    #endif /* SLIC3R_TRIANGLEMESH_DEBUG */
     
     for (std::vector<float>::const_iterator it = min_layer; it != max_layer + 1; ++it) {
         std::vector<float>::size_type layer_idx = it - z.begin();
@@ -824,9 +835,8 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
                 // (they may not have a nighbor, or their neighbor is vertical)
                 const int *vertices  = this->mesh->stl.v_indices[facet_idx].vertex;
                 const bool reverse   = this->mesh->stl.facet_start[facet_idx].normal.z < 0;
-                uint32_t   edge_mask = IntersectionLine::EDGE0;
-                for (int j = 0; j < 3; ++ j, edge_mask <<= 1)
-                    if (il.flags & edge_mask) {
+                for (int j = 0; j < 3; ++ j)
+                    if (il.flags & ((IntersectionLine::EDGE0_NO_NEIGHBOR | IntersectionLine::EDGE0_FOLD) << j)) {
                         int a_id = vertices[j % 3];
                         int b_id = vertices[(j+1) % 3];
                         if (reverse)
@@ -840,6 +850,8 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
                         il.a_id   = a_id;
                         il.b_id   = b_id;
                         assert(il.a != il.b);
+                        // This edge will not be used as a seed for loop extraction if it was added due to a fold of two overlapping horizontal faces.
+                        il.set_no_seed((IntersectionLine::EDGE0_FOLD << j) != 0);
                         (*lines)[layer_idx].emplace_back(il);
                     }
             } else
@@ -906,13 +918,45 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
                 line_out->edge_type = feHorizontal;
                 // Mark neighbor edges, which do not have a neighbor.
                 uint32_t edges = 0;
-                uint32_t mask  = IntersectionLine::EDGE0;
-                for (int nbr_idx = 0; nbr_idx != 3; ++ nbr_idx, mask <<= 1)
+                for (int nbr_idx = 0; nbr_idx != 3; ++ nbr_idx) {
                     // If the neighbor with an edge starting with a vertex idx (nbr_idx - 2) shares no
                     // opposite face, add it to the edges to process when slicing.
-                    if (nbr.neighbor[nbr_idx] == -1)
-                        // Mark this edge.
-                        edges |= mask;
+					if (nbr.neighbor[nbr_idx] == -1) {
+						// Mark this edge to be added to the slice.
+						edges |= (IntersectionLine::EDGE0_NO_NEIGHBOR << nbr_idx);
+					}
+#if 1
+                     else if (normal.z > 0) {
+                        // Produce edges for opposite faced overlapping horizontal faces aka folds.
+                        // This method often produces connecting lines (noise) at the cutting plane.
+                        // Produce the edges for the top facing face of the pair of top / bottom facing faces.
+
+                        // Index of a neighbor face.
+                        const int  nbr_face     = nbr.neighbor[nbr_idx];
+                        const int *nbr_vertices = this->mesh->stl.v_indices[nbr_face].vertex;
+                        int idx_vertex_opposite = nbr_vertices[nbr.which_vertex_not[nbr_idx]];
+                        const stl_vertex *c2 = &this->v_scaled_shared[idx_vertex_opposite];
+                        if (c2->z == slice_z) {
+                            // Edge shared by facet_idx and nbr_face.
+                            int               a_id      = vertices[nbr_idx];
+                            int               b_id      = vertices[(nbr_idx + 1) % 3];
+                            int               c1_id     = vertices[(nbr_idx + 2) % 3];
+                            const stl_vertex *a         = &this->v_scaled_shared[a_id];
+                            const stl_vertex *b         = &this->v_scaled_shared[b_id];
+                            const stl_vertex *c1        = &this->v_scaled_shared[c1_id];
+                            // Verify that the two neighbor faces share a common edge.
+                            assert(nbr_vertices[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == b_id);
+                            assert(nbr_vertices[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == a_id);
+                            double n1 = (double(c1->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c1->y) - double(a->y)) * (double(b->x) - double(a->x));
+                            double n2 = (double(c2->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c2->y) - double(a->y)) * (double(b->x) - double(a->x));
+                            if (n1 * n2 > 0)
+                                // The two faces overlap. This indicates an invalid mesh geometry (non-manifold),
+                                // but these are the real world objects, and leaving out these edges leads to missing contours.
+                                edges |= (IntersectionLine::EDGE0_FOLD << nbr_idx);
+                         }
+                    }
+#endif
+                }
                 // Use some edges of this triangle for slicing only if at least one of its edge does not have an opposite face.
                 result = (edges == 0) ? Cutting : Slicing;
                 line_out->flags |= edges;
@@ -937,21 +981,31 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
                     assert(this->mesh->stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == a_id);
                     int idx_vertex_opposite = this->mesh->stl.v_indices[nbr_face].vertex[nbr.which_vertex_not[nbr_idx]];
                     const stl_vertex *c = &this->v_scaled_shared[idx_vertex_opposite];
-//					double side = double(normal.x) * (double(c->x) - double(a->x)) + double(normal.y) * (double(c->y) - double(a->y));
-//					assert(c->z != slice_z || side != 0.);
-//                  double normal_nbr = (double(c->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c->y) - double(a->y)) * (double(b->x) - double(a->x));
-					result = 
-						(c->z == slice_z) ?
-							// A vertical face shares edge with a horizontal face. Verify, whether the shared edge makes a convex or concave corner.
-                            // Unfortunately too often there are flipped normals, which brake our assumption. Let's rather return every edge,
-                            // and leth the code downstream hopefully handle it.
-                            Slicing :
-                            // Failing tests: Ignore concave corners for slicing.
-                            //   (((normal_nbr < 0) == third_below) ? Cutting : Slicing) :
-                            // or
-                            //   (((this->mesh->stl.facet_start[nbr_face].normal.z < 0) == third_below) ? Cutting : Slicing) :
-                            // For a pair of faces touching exactly at the cutting plane, ignore the face with a higher index.
-                            (facet_idx < nbr_face) ? Slicing : Cutting;
+                    if (c->z == slice_z) {
+                        double normal_nbr = (double(c->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c->y) - double(a->y)) * (double(b->x) - double(a->x));
+#if 0
+                        if ((normal_nbr < 0) == third_below) {
+                            printf("Flipped normal?\n");
+                        }
+#endif
+                        result =
+                                // A vertical face shares edge with a horizontal face. Verify, whether the shared edge makes a convex or concave corner.
+                                // Unfortunately too often there are flipped normals, which brake our assumption. Let's rather return every edge,
+                                // and leth the code downstream hopefully handle it.
+    #if 1
+                                // Ignore concave corners for slicing.
+                                // This method has the unfortunate property, that folds in a horizontal plane create concave corners,
+                                // leading to broken contours, if these concave corners are not replaced by edges of the folds, see above.
+                                   ((normal_nbr < 0) == third_below) ? Cutting : Slicing;
+    #else
+                                // Use concave corners for slicing. This leads to the test 01_trianglemesh.t "slicing a top tangent plane includes its area" failing,
+                                // and rightly so.
+                                    Slicing;
+    #endif
+                    } else {
+                        // For a pair of faces touching exactly at the cutting plane, ignore one of them. An arbitrary rule is to ignore the face with a higher index.
+                        result = (facet_idx < nbr_face) ? Slicing : Cutting;
+                    }
                 }
                 if (third_below) {
                     line_out->edge_type = feTop;
@@ -1021,11 +1075,17 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
         line_out->edge_a_id  = points[1].edge_id;
         line_out->edge_b_id  = points[0].edge_id;
         // General slicing position, use the segment for both slicing and object cutting.
+#if 0
         // In a degenerate case where a plane cuts the triangle very close to its vertex, it is possible, that 
         // a zero length edge is created. In that case the zero length edge could be safely ignored
         // as the polyline will still be connected, because both the sliced edges of the triangle will be 
         // sliced the same way at the neighbor triangles.
 		return (line_out->a == line_out->b) ? NoSlice : Slicing;
+#else
+        // The chaining code primarily relies on the IDs of the edges.
+        // Even though there may be a zero length edge generated, it is still important,
+        return Slicing;
+#endif
     }
     return NoSlice;
 }
@@ -1096,8 +1156,10 @@ static inline void remove_tangent_edges(std::vector<IntersectionLine> &lines)
 
 void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const
 {
-#ifdef _DEBUG
-    for (const Line &l : lines_src)
+#if 0
+//FIXME the slice_facet() creates zero length edges.
+//#ifdef _DEBUG
+    for (const Line &l : lines)
         assert(l.a != l.b);
 #endif /* _DEBUG */
 
@@ -1141,7 +1203,8 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
             // take first spare line and start a new loop
             IntersectionLine *first_line = nullptr;
             for (; it_line_seed != lines.end(); ++ it_line_seed)
-                if (! it_line_seed->skip()) {
+                if (it_line_seed->is_seed_candidate()) {
+                //if (! it_line_seed->skip()) {
                     first_line = &(*it_line_seed ++);
                     break;
                 }
