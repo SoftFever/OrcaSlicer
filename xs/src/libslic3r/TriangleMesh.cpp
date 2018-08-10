@@ -469,7 +469,7 @@ size_t TriangleMesh::number_of_patches() const
             facet_visited[facet_idx] = true;
             for (int j = 0; j < 3; ++ j) {
                 int neighbor_idx = this->stl.neighbors_start[facet_idx].neighbor[j];
-                if (! facet_visited[neighbor_idx])
+                if (neighbor_idx != -1 && ! facet_visited[neighbor_idx])
                     facet_queue[facet_queue_cnt ++] = neighbor_idx;
             }
         }
@@ -787,7 +787,7 @@ void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons
                 svg.Close();
             }
 #if 0
-//FIXME the slice_facet() creates zero length edges.
+//FIXME slice_facet() may create zero length edges due to rounding of doubles into coord_t.
             for (Polygon &poly : polygons) {
                 for (size_t i = 1; i < poly.points.size(); ++ i)
                     assert(poly.points[i-1] != poly.points[i]);
@@ -888,15 +888,14 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
 {
     IntersectionPoint points[3];
     size_t            num_points = 0;
-    size_t            points_on_layer[3];
-    size_t            num_points_on_layer = 0;
+    size_t            point_on_layer = size_t(-1);
     
     // Reorder vertices so that the first one is the one with lowest Z.
     // This is needed to get all intersection lines in a consistent order
     // (external on the right of the line)
 	const int *vertices = this->mesh->stl.v_indices[facet_idx].vertex;
-	int i = (facet.vertex[1].z == min_z) ? 1 : ((facet.vertex[2].z == min_z) ? 2 : 0);
-	for (int j = i; j - i < 3; ++j) {  // loop through facet edges
+    int i = (facet.vertex[1].z == min_z) ? 1 : ((facet.vertex[2].z == min_z) ? 2 : 0);
+    for (int j = i; j - i < 3; ++j) {  // loop through facet edges
         int               edge_id  = this->facets_edges[facet_idx * 3 + (j % 3)];
         int               a_id     = vertices[j % 3];
         int               b_id     = vertices[(j+1) % 3];
@@ -1026,46 +1025,57 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
 
         if (a->z == slice_z) {
             // Only point a alings with the cutting plane.
-            points_on_layer[num_points_on_layer ++] = num_points;
-            IntersectionPoint &point = points[num_points ++];
-            point.x         = a->x;
-            point.y         = a->y;
-            point.point_id  = a_id;
+            if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != a_id) {
+                point_on_layer = num_points;
+                IntersectionPoint &point = points[num_points ++];
+                point.x         = a->x;
+                point.y         = a->y;
+                point.point_id  = a_id;
+            }
         } else if (b->z == slice_z) {
             // Only point b alings with the cutting plane.
-            points_on_layer[num_points_on_layer ++] = num_points;
-            IntersectionPoint &point = points[num_points ++];
-            point.x         = b->x;
-            point.y         = b->y;
-            point.point_id  = b_id;
+            if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != b_id) {
+                point_on_layer = num_points;
+                IntersectionPoint &point = points[num_points ++];
+                point.x         = b->x;
+                point.y         = b->y;
+                point.point_id  = b_id;
+            }
         } else if ((a->z < slice_z && b->z > slice_z) || (b->z < slice_z && a->z > slice_z)) {
             // A general case. The face edge intersects the cutting plane. Calculate the intersection point.
-            IntersectionPoint &point = points[num_points ++];
-            double t        = (double(slice_z) - double(b->z)) / (double(a->z) - double(b->z));
-            point.x         = float(double(b->x) + (double(a->x) - double(b->x)) * t);
-            point.y         = float(double(b->y) + (double(a->y) - double(b->y)) * t);
-            point.edge_id   = edge_id;
+			assert(a_id != b_id);
+            // Sort the edge to give a consistent answer.
+			if (a_id > b_id) {
+				std::swap(a_id, b_id);
+				std::swap(a, b);
+			}
+            IntersectionPoint &point = points[num_points];
+            double t = (double(slice_z) - double(b->z)) / (double(a->z) - double(b->z));
+			if (t <= 0.) {
+				if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != a_id) {
+					point.x = a->x;
+					point.y = a->y;
+					point_on_layer = num_points ++;
+					point.point_id = a_id;
+				}
+			} else if (t >= 1.) {
+				if (point_on_layer == size_t(-1) || points[point_on_layer].point_id != b_id) {
+					point.x = b->x;
+					point.y = b->y;
+					point_on_layer = num_points ++;
+					point.point_id = b_id;
+				}
+			} else {
+				point.x = coord_t(floor(double(b->x) + (double(a->x) - double(b->x)) * t + 0.5));
+				point.y = coord_t(floor(double(b->y) + (double(a->y) - double(b->y)) * t + 0.5));
+                point.edge_id = edge_id;
+                ++ num_points;
+            }
         }
     }
 
-    // We can't have only one point on layer because each vertex gets detected
-    // twice (once for each edge), and we can't have three points on layer,
-    // because we assume this code is not getting called for horizontal facets.
-    assert(num_points_on_layer == 0 || num_points_on_layer == 2);
-    if (num_points_on_layer > 0) {
-        assert(points[points_on_layer[0]].point_id == points[points_on_layer[1]].point_id);
-        assert(num_points == 2 || num_points == 3);
-        if (num_points < 3)
-            // This triangle touches the cutting plane with a single vertex. Ignore it.
-            return NoSlice;
-        // Erase one of the duplicate points.
-        -- num_points;
-        for (int i = points_on_layer[1]; i < num_points; ++ i)
-            points[i] = points[i + 1];
-    }
-    
-    // Facets must intersect each plane 0 or 2 times.
-    assert(num_points == 0 || num_points == 2);
+    // Facets must intersect each plane 0 or 2 times, or it may touch the plane at a single vertex only.
+    assert(num_points < 3);
     if (num_points == 2) {
         line_out->edge_type  = feGeneral;
         line_out->a          = (Point)points[1];
@@ -1074,18 +1084,27 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
         line_out->b_id       = points[0].point_id;
         line_out->edge_a_id  = points[1].edge_id;
         line_out->edge_b_id  = points[0].edge_id;
+        // Not a zero lenght edge.
+        //FIXME slice_facet() may create zero length edges due to rounding of doubles into coord_t.
+        //assert(line_out->a != line_out->b);
+        // The plane cuts at least one edge in a general position.
+        assert(line_out->a_id == -1 || line_out->b_id == -1);
+        assert(line_out->edge_a_id != -1 || line_out->edge_b_id != -1);
         // General slicing position, use the segment for both slicing and object cutting.
 #if 0
-        // In a degenerate case where a plane cuts the triangle very close to its vertex, it is possible, that 
-        // a zero length edge is created. In that case the zero length edge could be safely ignored
-        // as the polyline will still be connected, because both the sliced edges of the triangle will be 
-        // sliced the same way at the neighbor triangles.
-		return (line_out->a == line_out->b) ? NoSlice : Slicing;
-#else
-        // The chaining code primarily relies on the IDs of the edges.
-        // Even though there may be a zero length edge generated, it is still important,
-        return Slicing;
+        if (line_out->a_id != -1 && line_out->b_id != -1) {
+            // Solving a degenerate case, where both the intersections snapped to an edge.
+            // Correctly classify the face as below or above based on the position of the 3rd point.
+            int i = vertices[0];
+            if (i == line_out->a_id || i == line_out->b_id)
+                i = vertices[1];
+            if (i == line_out->a_id || i == line_out->b_id)
+                i = vertices[2];
+            assert(i != line_out->a_id && i != line_out->b_id);
+            line_out->edge_type = (this->v_scaled_shared[i].z < slice_z) ? feTop : feBottom;
+        }
 #endif
+        return Slicing;
     }
     return NoSlice;
 }
@@ -1157,7 +1176,7 @@ static inline void remove_tangent_edges(std::vector<IntersectionLine> &lines)
 void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygons* loops) const
 {
 #if 0
-//FIXME the slice_facet() creates zero length edges.
+//FIXME slice_facet() may create zero length edges due to rounding of doubles into coord_t.
 //#ifdef _DEBUG
     for (const Line &l : lines)
         assert(l.a != l.b);
