@@ -2222,6 +2222,8 @@ sub selection_changed {
         }
         $self->Layout;
     }
+
+    print "selection_changed -> have_sel = $have_sel\n";
     
     # prepagate the event to the frame (a custom Wx event would be cleaner)
     $self->GetFrame->on_plater_selection_changed($have_sel);

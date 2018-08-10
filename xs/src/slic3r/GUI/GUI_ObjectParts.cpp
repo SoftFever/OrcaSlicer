@@ -279,6 +279,9 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 //             if (is_windows10())
 //                 fix_through_netfabb();
 //         }
+#ifndef __WXMSW__
+        m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
+#endif //__WXMSW__        
 		event.Skip();
 	});
 
@@ -721,8 +724,10 @@ void set_object_scale(int idx, int scale)
 void unselect_objects()
 {
     printf("UNSELECT OBJECTS\n");
+    g_prevent_list_events = true;
 	m_objects_ctrl->UnselectAll();
 	part_selection_changed();
+    g_prevent_list_events = false;
 
 	get_optgroup(ogFrequentlyObjectSettings)->disable();
 }
@@ -1310,9 +1315,7 @@ void parts_changed(int obj_idx)
 	
 void update_settings_value()
 {
-    printf("update_settings_value\n");
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
-    printf("selected_object_id = %d\n", m_selected_object_id);
 	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id) {
 		og->set_value("scale_x", 0);
 		og->set_value("scale_y", 0);
@@ -1327,7 +1330,6 @@ void update_settings_value()
 
 void part_selection_changed()
 {
-    printf("part_selection_changed\n");
 	auto item = m_objects_ctrl->GetSelection();
 	int obj_idx = -1;
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
