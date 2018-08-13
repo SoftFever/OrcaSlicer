@@ -664,6 +664,32 @@ wxDataViewItem PrusaObjectDataViewModel::MoveChildDown(const wxDataViewItem &ite
 	return ret_item;
 }
 
+wxDataViewItem PrusaObjectDataViewModel::ReorganizeChildren(int current_volume_id, int new_volume_id, const wxDataViewItem &parent)
+{
+    auto ret_item = wxDataViewItem(0);
+    if (current_volume_id == new_volume_id)
+        return ret_item;
+    wxASSERT(parent.IsOk());
+    PrusaObjectDataViewModelNode *node_parent = (PrusaObjectDataViewModelNode*)parent.GetID();
+    if (!node_parent)      // happens if item.IsOk()==false
+        return ret_item;
+
+    PrusaObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id);
+    node_parent->GetChildren().Remove(deleted_node);
+    ItemDeleted(parent, wxDataViewItem(deleted_node));
+    node_parent->Insert(deleted_node, new_volume_id);
+    ItemAdded(parent, wxDataViewItem(deleted_node));
+
+    //update volume_id value for child-nodes
+    auto children = node_parent->GetChildren();
+    int id_frst = current_volume_id < new_volume_id ? current_volume_id : new_volume_id;
+    int id_last = current_volume_id > new_volume_id ? current_volume_id : new_volume_id;
+    for (int id = id_frst; id <= id_last; ++id)
+        children[id]->SetVolumeId(id);
+
+    return wxDataViewItem(node_parent->GetNthChild(new_volume_id));
+}
+
 // bool MyObjectTreeModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
 // {
 // 

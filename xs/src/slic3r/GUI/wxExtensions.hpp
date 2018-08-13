@@ -381,6 +381,11 @@ public:
 
 	wxDataViewItem MoveChildUp(const wxDataViewItem &item);
 	wxDataViewItem MoveChildDown(const wxDataViewItem &item);
+    // For parent move child from cur_volume_id place to new_volume_id 
+    // Remaining items will moved up/down accordingly
+    wxDataViewItem ReorganizeChildren(int cur_volume_id, 
+                                      int new_volume_id,
+                                      const wxDataViewItem &parent);
 
 // 	virtual bool IsEnabled(const wxDataViewItem &item,
 // 		unsigned int col) const override;

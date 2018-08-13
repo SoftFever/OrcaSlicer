@@ -306,6 +306,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
          set_tooltip_for_item(event.GetPosition());
+         event.Skip();
     });
 #else
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
@@ -1536,17 +1537,15 @@ void on_begin_drag(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item, not containers
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0))
-    {
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
         event.Veto();
         return;
     }
 
-    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
     wxTextDataObject *obj = new wxTextDataObject;
-    obj->SetText(node->m_name);
+    obj->SetText(wxString::Format("%d", m_objects_model->GetVolumeIdByItem(item)));
     event.SetDataObject(obj);
-    event.SetDragFlags(wxDrag_AllowMove); // allows both copy and move;
+    event.SetDragFlags(/*wxDrag_AllowMove*/wxDrag_DefaultMove); // allows both copy and move;
 }
 
 void on_drop_possible(wxDataViewEvent &event)
@@ -1554,10 +1553,8 @@ void on_drop_possible(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item or background, not containers
-    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0))
-        event.Veto();
-
-    if (event.GetDataFormat() != wxDF_UNICODETEXT)
+    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+        event.GetDataFormat() != wxDF_UNICODETEXT)
         event.Veto();
 }
 
@@ -1566,25 +1563,26 @@ void on_drop(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drops for item, not containers
-    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0))
-    {
+    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+        event.GetDataFormat() != wxDF_UNICODETEXT) {
         event.Veto();
         return;
-    }
-
-    if (event.GetDataFormat() != wxDF_UNICODETEXT)
-    {
-        event.Veto();
-        return;
-    }
+    }    
 
     wxTextDataObject obj;
     obj.SetData(wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer());
 
-    if (item.IsOk())
-        wxMessageBox(wxString::Format("Text dropped on item %s: %s", m_objects_model->GetName(item), obj.GetText()));
-    else
-        wxMessageBox(wxString::Format("Text dropped on background: %s", obj.GetText()));
+    int from_volume_id = std::stoi(obj.GetText().ToStdString());
+    int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
+
+    m_objects_ctrl->Select(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
+                                                               m_objects_model->GetParent(item)));
+
+    auto& volumes = (*m_objects)[m_selected_object_id]->volumes;
+    auto delta = to_volume_id < from_volume_id ? -1 : 1;
+    int cnt = 0;
+    for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id+=delta, cnt++)
+        std::swap(volumes[id], volumes[id +delta]);
 }
 
 } //namespace GUI
