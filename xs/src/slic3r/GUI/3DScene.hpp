@@ -497,18 +497,14 @@ public:
     static void enable_picking(wxGLCanvas* canvas, bool enable);
     static void enable_moving(wxGLCanvas* canvas, bool enable);
     static void enable_gizmos(wxGLCanvas* canvas, bool enable);
-//###################################################################################################################################
     static void enable_toolbar(wxGLCanvas* canvas, bool enable);
-//###################################################################################################################################
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
     static void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
 
-//###################################################################################################################################
     static void enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable);
     static bool is_toolbar_item_pressed(wxGLCanvas* canvas, const std::string& name);
-//###################################################################################################################################
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
@@ -542,7 +538,6 @@ public:
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
-//###################################################################################################################################
     static void register_action_add_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_delete_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_deleteall_callback(wxGLCanvas* canvas, void* callback);
@@ -556,7 +551,6 @@ public:
     static void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
-//###################################################################################################################################
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);

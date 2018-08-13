@@ -404,14 +404,12 @@ void GLCanvas3DManager::enable_gizmos(wxGLCanvas* canvas, bool enable)
         it->second->enable_gizmos(enable);
 }
 
-//###################################################################################################################################
 void GLCanvas3DManager::enable_toolbar(wxGLCanvas* canvas, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->enable_toolbar(enable);
 }
-//###################################################################################################################################
 
 void GLCanvas3DManager::enable_shader(wxGLCanvas* canvas, bool enable)
 {
@@ -441,7 +439,6 @@ void GLCanvas3DManager::allow_multisample(wxGLCanvas* canvas, bool allow)
         it->second->allow_multisample(allow);
 }
 
-//###################################################################################################################################
 void GLCanvas3DManager::enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -454,7 +451,6 @@ bool GLCanvas3DManager::is_toolbar_item_pressed(wxGLCanvas* canvas, const std::s
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->is_toolbar_item_pressed(name) : false;
 }
-//###################################################################################################################################
 
 void GLCanvas3DManager::zoom_to_bed(wxGLCanvas* canvas)
 {
@@ -699,7 +695,6 @@ void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* ca
         it->second->register_on_update_geometry_info_callback(callback);
 }
 
-//###################################################################################################################################
 void GLCanvas3DManager::register_action_add_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -790,7 +785,6 @@ void GLCanvas3DManager::register_action_layersediting_callback(wxGLCanvas* canva
     if (it != m_canvases.end())
         it->second->register_action_layersediting_callback(callback);
 }
-//###################################################################################################################################
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
 {

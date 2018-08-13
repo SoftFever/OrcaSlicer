@@ -110,18 +110,14 @@ public:
     void enable_picking(wxGLCanvas* canvas, bool enable);
     void enable_moving(wxGLCanvas* canvas, bool enable);
     void enable_gizmos(wxGLCanvas* canvas, bool enable);
-//###################################################################################################################################
     void enable_toolbar(wxGLCanvas* canvas, bool enable);
-//###################################################################################################################################
     void enable_shader(wxGLCanvas* canvas, bool enable);
     void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
     void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
     void allow_multisample(wxGLCanvas* canvas, bool allow);
 
-//###################################################################################################################################
     void enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable);
     bool is_toolbar_item_pressed(wxGLCanvas* canvas, const std::string& name) const;
-//###################################################################################################################################
 
     void zoom_to_bed(wxGLCanvas* canvas);
     void zoom_to_volumes(wxGLCanvas* canvas);
@@ -165,7 +161,6 @@ public:
     void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
-//###################################################################################################################################
     void register_action_add_callback(wxGLCanvas* canvas, void* callback);
     void register_action_delete_callback(wxGLCanvas* canvas, void* callback);
     void register_action_deleteall_callback(wxGLCanvas* canvas, void* callback);
@@ -179,7 +174,6 @@ public:
     void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
     void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
     void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
-//###################################################################################################################################
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

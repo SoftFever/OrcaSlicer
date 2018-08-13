@@ -1793,9 +1793,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
     , m_timer(nullptr)
-//###################################################################################################################################
     , m_toolbar(*this)
-//###################################################################################################################################
     , m_config(nullptr)
     , m_print(nullptr)
     , m_model(nullptr)
@@ -1805,9 +1803,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_force_zoom_to_bed_enabled(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
-//###################################################################################################################################
     , m_toolbar_action_running(false)
-//###################################################################################################################################
     , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
@@ -1914,10 +1910,8 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (m_gizmos.is_enabled() && !m_gizmos.init())
         return false;
 
-//###################################################################################################################################
     if (!_init_toolbar())
         return false;
-//###################################################################################################################################
 
     m_initialized = true;
 
@@ -2182,12 +2176,10 @@ void GLCanvas3D::enable_gizmos(bool enable)
     m_gizmos.set_enabled(enable);
 }
 
-//###################################################################################################################################
 void GLCanvas3D::enable_toolbar(bool enable)
 {
     m_toolbar.set_enabled(enable);
 }
-//###################################################################################################################################
 
 void GLCanvas3D::enable_shader(bool enable)
 {
@@ -2209,7 +2201,6 @@ void GLCanvas3D::allow_multisample(bool allow)
     m_multisample_allowed = allow;
 }
 
-//###################################################################################################################################
 void GLCanvas3D::enable_toolbar_item(const std::string& name, bool enable)
 {
     if (enable)
@@ -2222,7 +2213,6 @@ bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
 {
     return m_toolbar.is_item_pressed(name);
 }
-//###################################################################################################################################
 
 void GLCanvas3D::zoom_to_bed()
 {
@@ -2353,9 +2343,7 @@ void GLCanvas3D::render()
     _render_warning_texture();
     _render_legend_texture();
     _render_gizmo();
-//###################################################################################################################################
     _render_toolbar();
-//###################################################################################################################################
     _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
@@ -2658,7 +2646,6 @@ void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
         m_on_update_geometry_info_callback.register_callback(callback);
 }
 
-//###################################################################################################################################
 void GLCanvas3D::register_action_add_callback(void* callback)
 {
     if (callback != nullptr)
@@ -2736,7 +2723,6 @@ void GLCanvas3D::register_action_layersediting_callback(void* callback)
     if (callback != nullptr)
         m_action_layersediting_callback.register_callback(callback);
 }
-//###################################################################################################################################
 
 void GLCanvas3D::bind_event_handlers()
 {
@@ -2915,9 +2901,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
-//###################################################################################################################################
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position);
-//###################################################################################################################################
 
     if (evt.Entering())
     {
@@ -2937,13 +2921,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
         m_on_double_click_callback.call();
-//###################################################################################################################################
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
-//###################################################################################################################################
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -2982,13 +2964,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
             m_dirty = true;
         }
-//###################################################################################################################################
         else if (toolbar_contains_mouse != -1)
         {
             m_toolbar_action_running = true;
             m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
         }
-//###################################################################################################################################
         else
         {
             // Select volume in this 3D canvas.
@@ -3045,20 +3025,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
                 else if (evt.RightDown())
                 {
-//###################################################################################################################################
                     // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
                     // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
                     m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
                     render();
                     if (m_hover_volume_id != -1)
                     {
-//###################################################################################################################################
                         // if right clicking on volume, propagate event through callback (shows context menu)
                         if (m_volumes.volumes[volume_idx]->hover)
                             m_on_right_click_callback.call(pos.x, pos.y);
-//###################################################################################################################################
                     }
-//###################################################################################################################################
                 }
             }
         }
@@ -3257,16 +3233,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             
             _on_move(volume_idxs);
         }
-//#############################################################################################################################################################################
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
-//        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
-//#############################################################################################################################################################################
         {
             // deselect and propagate event through callback
-//###################################################################################################################################
             if (m_picking_enabled && !m_toolbar_action_running)
-//            if (m_picking_enabled)
-//###################################################################################################################################
             {
                 deselect_volumes();
                 _on_select(-1);
@@ -3298,9 +3268,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
-//###################################################################################################################################
         m_toolbar_action_running = false;
-//###################################################################################################################################
         m_dirty = true;
     }
     else if (evt.Moving())
@@ -3367,13 +3335,11 @@ void GLCanvas3D::reset_legend_texture()
     m_legend_texture.reset();
 }
 
-//###################################################################################################################################
 void GLCanvas3D::set_tooltip(const std::string& tooltip)
 {
     if (m_canvas != nullptr)
         m_canvas->SetToolTip(tooltip);
 }
-//###################################################################################################################################
 
 bool GLCanvas3D::_is_shown_on_screen() const
 {
@@ -3386,7 +3352,6 @@ void GLCanvas3D::_force_zoom_to_bed()
     m_force_zoom_to_bed_enabled = false;
 }
 
-//###################################################################################################################################
 bool GLCanvas3D::_init_toolbar()
 {
     if (!m_toolbar.is_enabled())
@@ -3523,7 +3488,6 @@ bool GLCanvas3D::_init_toolbar()
 
     return true;
 }
-//###################################################################################################################################
 
 void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
@@ -3749,7 +3713,6 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_gizmo_rotate_callback.deregister_callback();
     m_on_update_geometry_info_callback.deregister_callback();
 
-//###################################################################################################################################
     m_action_add_callback.deregister_callback();
     m_action_delete_callback.deregister_callback();
     m_action_deleteall_callback.deregister_callback();
@@ -3763,7 +3726,6 @@ void GLCanvas3D::_deregister_callbacks()
     m_action_cut_callback.deregister_callback();
     m_action_settings_callback.deregister_callback();
     m_action_layersediting_callback.deregister_callback();
-//###################################################################################################################################
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -3876,9 +3838,7 @@ void GLCanvas3D::_picking_pass() const
         else
             m_gizmos.reset_all_states();
 
-//###################################################################################################################################
         m_toolbar.update_hover_state(pos);
-//###################################################################################################################################
     }
 }
 
@@ -4078,13 +4038,11 @@ void GLCanvas3D::_render_gizmo() const
     m_gizmos.render(*this, _selected_volumes_bounding_box());
 }
 
-//###################################################################################################################################
 void GLCanvas3D::_render_toolbar() const
 {
     _resize_toolbar();
     m_toolbar.render();
 }
-//###################################################################################################################################
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
 {
@@ -5337,7 +5295,6 @@ bool GLCanvas3D::_is_any_volume_outside() const
     return false;
 }
 
-//###################################################################################################################################
 void GLCanvas3D::_resize_toolbar() const
 {
     Size cnv_size = get_canvas_size();
@@ -5368,7 +5325,6 @@ void GLCanvas3D::_resize_toolbar() const
     }
     }
 }
-//###################################################################################################################################
 
 } // namespace GUI
 } // namespace Slic3r

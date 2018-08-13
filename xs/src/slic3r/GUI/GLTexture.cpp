@@ -12,9 +12,7 @@
 namespace Slic3r {
 namespace GUI {
 
-//###################################################################################################################################
 GLTexture::Quad_UVs GLTexture::FullTextureUVs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
-//###################################################################################################################################
 
 GLTexture::GLTexture()
     : m_id(0)
@@ -133,32 +131,9 @@ const std::string& GLTexture::get_source() const
 
 void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
 {
-//###################################################################################################################################
     render_sub_texture(tex_id, left, right, bottom, top, FullTextureUVs);
-
-//    ::glEnable(GL_BLEND);
-//    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//
-//    ::glEnable(GL_TEXTURE_2D);
-//    ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-//
-//    ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
-//
-//    ::glBegin(GL_QUADS);
-//    ::glTexCoord2f(0.0f, 1.0f); ::glVertex2f(left, bottom);
-//    ::glTexCoord2f(1.0f, 1.0f); ::glVertex2f(right, bottom);
-//    ::glTexCoord2f(1.0f, 0.0f); ::glVertex2f(right, top);
-//    ::glTexCoord2f(0.0f, 0.0f); ::glVertex2f(left, top);
-//    ::glEnd();
-//
-//    ::glBindTexture(GL_TEXTURE_2D, 0);
-//
-//    ::glDisable(GL_TEXTURE_2D);
-//    ::glDisable(GL_BLEND);
-//###################################################################################################################################
 }
 
-//###################################################################################################################################
 void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const GLTexture::Quad_UVs& uvs)
 {
     ::glEnable(GL_BLEND);
@@ -181,7 +156,6 @@ void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right,
     ::glDisable(GL_TEXTURE_2D);
     ::glDisable(GL_BLEND);
 }
-//###################################################################################################################################
 
 unsigned int GLTexture::_generate_mipmaps(wxImage& image)
 {
