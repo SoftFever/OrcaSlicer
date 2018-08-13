@@ -25,18 +25,30 @@ public:
 		bool operator==(const xy &rhs) const { return x == rhs.x && y == rhs.y; }
 		bool operator!=(const xy &rhs) const { return x != rhs.x || y != rhs.y; }
 		
-		// Rotate the point around given point about given angle (in degrees)
-		// shifts the result so that point of rotation is in the middle of the tower
-		xy rotate(const xy& origin, float width, float depth, float angle) const {
+		// Rotate the point around center of the wipe tower about given angle (in degrees)
+		xy rotate(float width, float depth, float angle) const {
 			xy out(0,0);
 			float temp_x = x - width / 2.f;
 			float temp_y = y - depth / 2.f;
 			angle *= M_PI/180.;
-			out.x += (temp_x - origin.x) * cos(angle)  -  (temp_y - origin.y) * sin(angle);
-			out.y += (temp_x - origin.x) * sin(angle)  +  (temp_y - origin.y) * cos(angle);
-			return out + origin;
+			out.x += temp_x * cos(angle)  -  temp_y * sin(angle) + width / 2.f;
+			out.y += temp_x * sin(angle)  +  temp_y * cos(angle) + depth / 2.f;
+
+			return out;
 		}
-		
+        
+        // Rotate the point around origin about given angle in degrees
+        void rotate(float angle) {
+            float temp_x = x * cos(angle)  -  y * sin(angle);
+			y = x * sin(angle)  +  y * cos(angle);
+            x = temp_x;
+		}
+
+        void translate(const xy& vect) {
+            x += vect.x;
+            y += vect.y;
+        }
+
 		float x;
 		float y;
 	};
@@ -103,6 +115,9 @@ public:
 		// Time elapsed over this tool change.
 		// This is useful not only for the print time estimation, but also for the control of layer cooling.
 		float  				    elapsed_time;
+
+        // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
+        bool                    priming;
 
 		// Sum the total length of the extrusion.
 		float total_extrusion_length_in_plane() {

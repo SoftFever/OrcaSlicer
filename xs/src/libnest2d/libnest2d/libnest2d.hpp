@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "geometry_traits.hpp"
+#include "optimizer.hpp"
 
 namespace libnest2d {
 
@@ -27,6 +28,7 @@ class _Item {
     using Coord = TCoord<TPoint<RawShape>>;
     using Vertex = TPoint<RawShape>;
     using Box = _Box<Vertex>;
+    using sl = ShapeLike;
 
     // The original shape that gets encapsulated.
     RawShape sh_;
@@ -51,11 +53,18 @@ class _Item {
 
     enum class Convexity: char {
         UNCHECKED,
-        TRUE,
-        FALSE
+        C_TRUE,
+        C_FALSE
     };
 
     mutable Convexity convexity_ = Convexity::UNCHECKED;
+    mutable TVertexConstIterator<RawShape> rmt_;    // rightmost top vertex
+    mutable TVertexConstIterator<RawShape> lmb_;    // leftmost bottom vertex
+    mutable bool rmt_valid_ = false, lmb_valid_ = false;
+    mutable struct BBCache {
+        Box bb; bool valid; Vertex tr;
+        BBCache(): valid(false), tr(0, 0) {}
+    } bb_cache_;
 
 public:
 
@@ -104,15 +113,15 @@ public:
      * @param il The initializer list of vertices.
      */
     inline _Item(const std::initializer_list< Vertex >& il):
-        sh_(ShapeLike::create<RawShape>(il)) {}
+        sh_(sl::create<RawShape>(il)) {}
 
     inline _Item(const TContour<RawShape>& contour,
                  const THolesContainer<RawShape>& holes = {}):
-        sh_(ShapeLike::create<RawShape>(contour, holes)) {}
+        sh_(sl::create<RawShape>(contour, holes)) {}
 
     inline _Item(TContour<RawShape>&& contour,
                  THolesContainer<RawShape>&& holes):
-        sh_(ShapeLike::create<RawShape>(std::move(contour),
+        sh_(sl::create<RawShape>(std::move(contour),
                                         std::move(holes))) {}
 
     /**
@@ -122,31 +131,31 @@ public:
      */
     inline std::string toString() const
     {
-        return ShapeLike::toString(sh_);
+        return sl::toString(sh_);
     }
 
     /// Iterator tho the first contour vertex in the polygon.
     inline Iterator begin() const
     {
-        return ShapeLike::cbegin(sh_);
+        return sl::cbegin(sh_);
     }
 
     /// Alias to begin()
     inline Iterator cbegin() const
     {
-        return ShapeLike::cbegin(sh_);
+        return sl::cbegin(sh_);
     }
 
     /// Iterator to the last contour vertex.
     inline Iterator end() const
     {
-        return ShapeLike::cend(sh_);
+        return sl::cend(sh_);
     }
 
     /// Alias to end()
     inline Iterator cend() const
     {
-        return ShapeLike::cend(sh_);
+        return sl::cend(sh_);
     }
 
     /**
@@ -161,7 +170,7 @@ public:
      */
     inline Vertex vertex(unsigned long idx) const
     {
-        return ShapeLike::vertex(sh_, idx);
+        return sl::vertex(sh_, idx);
     }
 
     /**
@@ -176,7 +185,7 @@ public:
     inline void setVertex(unsigned long idx, const Vertex& v )
     {
         invalidateCache();
-        ShapeLike::vertex(sh_, idx) = v;
+        sl::vertex(sh_, idx) = v;
     }
 
     /**
@@ -191,7 +200,7 @@ public:
         double ret ;
         if(area_cache_valid_) ret = area_cache_;
         else {
-            ret = ShapeLike::area(offsettedShape());
+            ret = sl::area(offsettedShape());
             area_cache_ = ret;
             area_cache_valid_ = true;
         }
@@ -203,17 +212,17 @@ public:
 
         switch(convexity_) {
         case Convexity::UNCHECKED:
-            ret = ShapeLike::isConvex<RawShape>(ShapeLike::getContour(transformedShape()));
-            convexity_ = ret? Convexity::TRUE : Convexity::FALSE;
+            ret = sl::isConvex<RawShape>(sl::getContour(transformedShape()));
+            convexity_ = ret? Convexity::C_TRUE : Convexity::C_FALSE;
             break;
-        case Convexity::TRUE: ret = true; break;
-        case Convexity::FALSE:;
+        case Convexity::C_TRUE: ret = true; break;
+        case Convexity::C_FALSE:;
         }
 
         return ret;
     }
 
-    inline bool isHoleConvex(unsigned holeidx) const {
+    inline bool isHoleConvex(unsigned /*holeidx*/) const {
         return false;
     }
 
@@ -223,11 +232,11 @@ public:
 
     /// The number of the outer ring vertices.
     inline size_t vertexCount() const {
-        return ShapeLike::contourVertexCount(sh_);
+        return sl::contourVertexCount(sh_);
     }
 
     inline size_t holeCount() const {
-        return ShapeLike::holeCount(sh_);
+        return sl::holeCount(sh_);
     }
 
     /**
@@ -235,36 +244,39 @@ public:
      * @param p
      * @return
      */
-    inline bool isPointInside(const Vertex& p)
+    inline bool isPointInside(const Vertex& p) const
     {
-        return ShapeLike::isInside(p, sh_);
+        return sl::isInside(p, transformedShape());
     }
 
     inline bool isInside(const _Item& sh) const
     {
-        return ShapeLike::isInside(transformedShape(), sh.transformedShape());
+        return sl::isInside(transformedShape(), sh.transformedShape());
     }
 
-    inline bool isInside(const _Box<TPoint<RawShape>>& box);
+    inline bool isInside(const RawShape& sh) const
+    {
+        return sl::isInside(transformedShape(), sh);
+    }
+
+    inline bool isInside(const _Box<TPoint<RawShape>>& box) const;
+    inline bool isInside(const _Circle<TPoint<RawShape>>& box) const;
 
     inline void translate(const Vertex& d) BP2D_NOEXCEPT
     {
-        translation_ += d; has_translation_ = true;
-        tr_cache_valid_ = false;
+        translation(translation() + d);
     }
 
     inline void rotate(const Radians& rads) BP2D_NOEXCEPT
     {
-        rotation_ += rads;
-        has_rotation_ = true;
-        tr_cache_valid_ = false;
+        rotation(rotation() + rads);
     }
 
     inline void addOffset(Coord distance) BP2D_NOEXCEPT
     {
         offset_distance_ = distance;
         has_offset_ = true;
-        offset_cache_valid_ = false;
+        invalidateCache();
     }
 
     inline void removeOffset() BP2D_NOEXCEPT {
@@ -286,6 +298,8 @@ public:
     {
         if(rotation_ != rot) {
             rotation_ = rot; has_rotation_ = true; tr_cache_valid_ = false;
+            rmt_valid_ = false; lmb_valid_ = false;
+            bb_cache_.valid = false;
         }
     }
 
@@ -293,6 +307,7 @@ public:
     {
         if(translation_ != tr) {
             translation_ = tr; has_translation_ = true; tr_cache_valid_ = false;
+            bb_cache_.valid = false;
         }
     }
 
@@ -301,9 +316,10 @@ public:
         if(tr_cache_valid_) return tr_cache_;
 
         RawShape cpy = offsettedShape();
-        if(has_rotation_) ShapeLike::rotate(cpy, rotation_);
-        if(has_translation_) ShapeLike::translate(cpy, translation_);
+        if(has_rotation_) sl::rotate(cpy, rotation_);
+        if(has_translation_) sl::translate(cpy, translation_);
         tr_cache_ = cpy; tr_cache_valid_ = true;
+        rmt_valid_ = false; lmb_valid_ = false;
 
         return tr_cache_;
     }
@@ -321,23 +337,53 @@ public:
     inline void resetTransformation() BP2D_NOEXCEPT
     {
         has_translation_ = false; has_rotation_ = false; has_offset_ = false;
+        invalidateCache();
     }
 
     inline Box boundingBox() const {
-        return ShapeLike::boundingBox(transformedShape());
+        if(!bb_cache_.valid) {
+            bb_cache_.bb = sl::boundingBox(transformedShape());
+            bb_cache_.tr = {0, 0};
+            bb_cache_.valid = true;
+        }
+
+        auto &bb = bb_cache_.bb; auto &tr = bb_cache_.tr;
+        return {bb.minCorner() + tr, bb.maxCorner() + tr};
+    }
+
+    inline Vertex referenceVertex() const {
+        return rightmostTopVertex();
+    }
+
+    inline Vertex rightmostTopVertex() const {
+        if(!rmt_valid_ || !tr_cache_valid_) {  // find max x and max y vertex
+            auto& tsh = transformedShape();
+            rmt_ = std::max_element(sl::cbegin(tsh), sl::cend(tsh), vsort);
+            rmt_valid_ = true;
+        }
+        return *rmt_;
+    }
+
+    inline Vertex leftmostBottomVertex() const {
+        if(!lmb_valid_ || !tr_cache_valid_) {  // find min x and min y vertex
+            auto& tsh = transformedShape();
+            lmb_ = std::min_element(sl::cbegin(tsh), sl::cend(tsh), vsort);
+            lmb_valid_ = true;
+        }
+        return *lmb_;
     }
 
     //Static methods:
 
     inline static bool intersects(const _Item& sh1, const _Item& sh2)
     {
-        return ShapeLike::intersects(sh1.transformedShape(),
+        return sl::intersects(sh1.transformedShape(),
                                      sh2.transformedShape());
     }
 
     inline static bool touches(const _Item& sh1, const _Item& sh2)
     {
-        return ShapeLike::touches(sh1.transformedShape(),
+        return sl::touches(sh1.transformedShape(),
                                   sh2.transformedShape());
     }
 
@@ -346,12 +392,11 @@ private:
     inline const RawShape& offsettedShape() const {
         if(has_offset_ ) {
             if(offset_cache_valid_) return offset_cache_;
-            else {
-                offset_cache_ = sh_;
-                ShapeLike::offset(offset_cache_, offset_distance_);
-                offset_cache_valid_ = true;
-                return offset_cache_;
-            }
+
+            offset_cache_ = sh_;
+            sl::offset(offset_cache_, offset_distance_);
+            offset_cache_valid_ = true;
+            return offset_cache_;
         }
         return sh_;
     }
@@ -359,9 +404,22 @@ private:
     inline void invalidateCache() const BP2D_NOEXCEPT
     {
         tr_cache_valid_ = false;
+        lmb_valid_ = false; rmt_valid_ = false;
         area_cache_valid_ = false;
         offset_cache_valid_ = false;
+        bb_cache_.valid = false;
         convexity_ = Convexity::UNCHECKED;
+    }
+
+    static inline bool vsort(const Vertex& v1, const Vertex& v2)
+    {
+        Coord &&x1 = getX(v1), &&x2 = getX(v2);
+        Coord &&y1 = getY(v1), &&y2 = getY(v2);
+        auto diff = y1 - y2;
+        if(std::abs(diff) <= std::numeric_limits<Coord>::epsilon())
+            return x1 < x2;
+
+        return diff < 0;
     }
 };
 
@@ -370,7 +428,6 @@ private:
  */
 template<class RawShape>
 class _Rectangle: public _Item<RawShape> {
-    RawShape sh_;
     using _Item<RawShape>::vertex;
     using TO = Orientation;
 public:
@@ -415,9 +472,13 @@ public:
 };
 
 template<class RawShape>
-inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) {
-    _Rectangle<RawShape> rect(box.width(), box.height());
-    return _Item<RawShape>::isInside(rect);
+inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
+    return ShapeLike::isInside<RawShape>(boundingBox(), box);
+}
+
+template<class RawShape> inline bool
+_Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
+    return ShapeLike::isInside<RawShape>(transformedShape(), circ);
 }
 
 /**
@@ -874,9 +935,8 @@ private:
 
     Radians findBestRotation(Item& item) {
         opt::StopCriteria stopcr;
-        stopcr.stoplimit = 0.01;
+        stopcr.absolute_score_difference = 0.01;
         stopcr.max_iterations = 10000;
-        stopcr.type = opt::StopLimitType::RELATIVE;
         opt::TOptimizer<opt::Method::G_GENETIC> solver(stopcr);
 
         auto orig_rot = item.rotation();
@@ -910,7 +970,6 @@ private:
         if(min_obj_distance_ > 0) std::for_each(from, to, [](Item& item) {
             item.removeOffset();
         });
-
     }
 };
 

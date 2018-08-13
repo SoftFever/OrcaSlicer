@@ -136,6 +136,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/Line.hpp
     ${LIBDIR}/libslic3r/Model.cpp
     ${LIBDIR}/libslic3r/Model.hpp
+    ${LIBDIR}/libslic3r/ModelArrange.hpp
     ${LIBDIR}/libslic3r/MotionPlanner.cpp
     ${LIBDIR}/libslic3r/MotionPlanner.hpp
     ${LIBDIR}/libslic3r/MultiPoint.cpp
@@ -731,6 +732,7 @@ set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d"
 
 add_subdirectory(${LIBDIR}/libnest2d)
 target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
+target_include_directories(libslic3r_gui PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
 
 message(STATUS "Libnest2D Libraries: ${LIBNEST2D_LIBRARIES}")
 target_link_libraries(libslic3r ${LIBNEST2D_LIBRARIES})

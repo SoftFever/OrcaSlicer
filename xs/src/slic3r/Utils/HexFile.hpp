@@ -19,9 +19,10 @@ struct HexFile
 	};
 
 	boost::filesystem::path path;
-	DeviceKind device;
+	DeviceKind device = DEV_GENERIC;
 	std::string model_id;
 
+	HexFile() {}
 	HexFile(boost::filesystem::path path);
 };
 

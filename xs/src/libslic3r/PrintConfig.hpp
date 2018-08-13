@@ -528,10 +528,13 @@ public:
     ConfigOptionFloats              filament_cost;
     ConfigOptionFloats              filament_max_volumetric_speed;
     ConfigOptionFloats              filament_loading_speed;
+    ConfigOptionFloats              filament_load_time;
     ConfigOptionFloats              filament_unloading_speed;
     ConfigOptionFloats              filament_toolchange_delay;
+    ConfigOptionFloats              filament_unload_time;
     ConfigOptionInts                filament_cooling_moves;
     ConfigOptionFloats              filament_cooling_initial_speed;
+    ConfigOptionFloats              filament_minimal_purge_on_wipe_tower;
     ConfigOptionFloats              filament_cooling_final_speed;
     ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
@@ -553,6 +556,7 @@ public:
     ConfigOptionString              start_gcode;
     ConfigOptionStrings             start_filament_gcode;
     ConfigOptionBool                single_extruder_multi_material;
+    ConfigOptionBool                single_extruder_multi_material_priming;
     ConfigOptionString              toolchange_gcode;
     ConfigOptionFloat               travel_speed;
     ConfigOptionBool                use_firmware_retraction;
@@ -562,6 +566,7 @@ public:
     ConfigOptionFloat               cooling_tube_retraction;
     ConfigOptionFloat               cooling_tube_length;
     ConfigOptionFloat               parking_pos_retraction;
+    ConfigOptionBool                remaining_times;
     ConfigOptionBool                silent_mode;
     ConfigOptionFloat               extra_loading_move;
 
@@ -589,10 +594,13 @@ protected:
         OPT_PTR(filament_cost);
         OPT_PTR(filament_max_volumetric_speed);
         OPT_PTR(filament_loading_speed);
+        OPT_PTR(filament_load_time);
         OPT_PTR(filament_unloading_speed);
+        OPT_PTR(filament_unload_time);
         OPT_PTR(filament_toolchange_delay);
         OPT_PTR(filament_cooling_moves);
         OPT_PTR(filament_cooling_initial_speed);
+        OPT_PTR(filament_minimal_purge_on_wipe_tower);
         OPT_PTR(filament_cooling_final_speed);
         OPT_PTR(filament_ramming_parameters);
         OPT_PTR(gcode_comments);
@@ -612,6 +620,7 @@ protected:
         OPT_PTR(retract_restart_extra_toolchange);
         OPT_PTR(retract_speed);
         OPT_PTR(single_extruder_multi_material);
+        OPT_PTR(single_extruder_multi_material_priming);
         OPT_PTR(start_gcode);
         OPT_PTR(start_filament_gcode);
         OPT_PTR(toolchange_gcode);
@@ -623,6 +632,7 @@ protected:
         OPT_PTR(cooling_tube_retraction);
         OPT_PTR(cooling_tube_length);
         OPT_PTR(parking_pos_retraction);
+        OPT_PTR(remaining_times);
         OPT_PTR(silent_mode);
         OPT_PTR(extra_loading_move);
     }

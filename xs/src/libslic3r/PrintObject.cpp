@@ -75,6 +75,7 @@ bool PrintObject::delete_last_copy()
 
 bool PrintObject::set_copies(const Points &points)
 {
+    bool copies_num_changed = this->_copies.size() != points.size();
     this->_copies = points;
     
     // order copies with a nearest neighbor search and translate them by _copies_shift
@@ -93,7 +94,8 @@ bool PrintObject::set_copies(const Points &points)
     
     bool invalidated = this->_print->invalidate_step(psSkirt);
     invalidated |= this->_print->invalidate_step(psBrim);
-    invalidated |= this->_print->invalidate_step(psWipeTower);
+    if (copies_num_changed)
+        invalidated |= this->_print->invalidate_step(psWipeTower);
     return invalidated;
 }
 

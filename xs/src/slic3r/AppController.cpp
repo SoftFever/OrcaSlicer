@@ -8,6 +8,7 @@
 #include <unordered_map>
 
 #include <slic3r/GUI/GUI.hpp>
+#include <ModelArrange.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
 #include <Geometry.hpp>
@@ -293,6 +294,8 @@ void AppController::arrange_model()
                supports_asynch()? std::launch::async : std::launch::deferred,
                [this]()
     {
+        using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
+
         unsigned count = 0;
         for(auto obj : model_->objects) count += obj->instances.size();
 
@@ -310,13 +313,25 @@ void AppController::arrange_model()
 
         auto dist = print_ctl()->config().min_object_distance();
 
-        BoundingBoxf bb(print_ctl()->config().bed_shape.values);
+        // Create the arranger config
+        auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
+
+        auto& bedpoints = print_ctl()->config().bed_shape.values;
+        Polyline bed; bed.points.reserve(bedpoints.size());
+        for(auto& v : bedpoints)
+            bed.append(Point::new_scale(v.x, v.y));
 
         if(pind) pind->update(0, _(L("Arranging objects...")));
 
         try {
-            model_->arrange_objects(dist, &bb, [pind, count](unsigned rem){
-                if(pind) pind->update(count - rem, _(L("Arranging objects...")));
+            arr::arrange(*model_,
+                         min_obj_distance,
+                         bed,
+                         arr::BOX,
+                         false, // create many piles not just one pile
+                         [pind, count](unsigned rem) {
+                if(pind)
+                    pind->update(count - rem, _(L("Arranging objects...")));
             });
         } catch(std::exception& e) {
             std::cerr << e.what() << std::endl;

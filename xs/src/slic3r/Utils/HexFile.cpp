@@ -46,8 +46,7 @@ static size_t hex_num_sections(fs::ifstream &file)
 }
 
 HexFile::HexFile(fs::path path) :
-	path(std::move(path)),
-	device(DEV_GENERIC)
+	path(std::move(path))
 {
 	fs::ifstream file(this->path);
 	if (! file.good()) {
