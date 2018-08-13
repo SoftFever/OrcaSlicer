@@ -793,11 +793,16 @@ void WipeTowerPrusaMM::toolchange_Unload(
     float turning_point = (!m_left_to_right ? xl : xr );
     float total_retraction_distance = m_cooling_tube_retraction + m_cooling_tube_length/2.f - 15.f; // the 15mm is reserved for the first part after ramming
     writer.suppress_preview()
-          .load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
+          .retract(15.f, 5000.f) // feedrate 5000mm/min = 83mm/s
+          .retract(0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed * 60.f)
+          .retract(0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed * 60.f)
+          .retract(0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed * 60.f)
+          
+          /*.load_move_x_advanced(turning_point, -15.f, 83.f, 50.f) // this is done at fixed speed
           .load_move_x_advanced(old_x,         -0.70f * total_retraction_distance, 1.0f * m_filpar[m_current_tool].unloading_speed)
           .load_move_x_advanced(turning_point, -0.20f * total_retraction_distance, 0.5f * m_filpar[m_current_tool].unloading_speed)
           .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
-          .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate
+          .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate*/
           .resume_preview();
 
     if (new_temperature != 0 && new_temperature != m_old_temperature ) { 	// Set the extruder temperature, but don't wait.
