@@ -179,12 +179,20 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/SVG.hpp
     ${LIBDIR}/libslic3r/TriangleMesh.cpp
     ${LIBDIR}/libslic3r/TriangleMesh.hpp
-    ${LIBDIR}/libslic3r/SLASupportPool.hpp
-    ${LIBDIR}/libslic3r/SLASupportPool.cpp
+    ${LIBDIR}/libslic3r/SLABasePool.hpp
+    ${LIBDIR}/libslic3r/SLABasePool.cpp
+    ${LIBDIR}/libslic3r/ConcaveHull.hpp
+    ${LIBDIR}/libslic3r/ConcaveHull.cpp
 #    ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/libslic3r/Utils.hpp
 
 )
+
+find_package(Flann REQUIRED)
+if(FLANN_FOUND)
+message(STATUS "FLANN found: ${FLANN_LIBRARIES}")
+target_link_libraries(libslic3r ${FLANN_LIBRARIES})
+endif()
 
 add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/AboutDialog.cpp

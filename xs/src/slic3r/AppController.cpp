@@ -17,6 +17,7 @@
 #include <Geometry.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
+#include <SLABasePool.hpp>
 
 namespace Slic3r {
 
@@ -259,109 +260,124 @@ void PrintController::slice()
 
 void PrintController::slice_to_png()
 {
-    auto exd = query_png_export_data();
-
-    if(exd.zippath.empty()) return;
-
-    auto presetbundle = GUI::get_preset_bundle();
-
-    assert(presetbundle);
-
-    auto conf = presetbundle->full_config();
-
-    conf.validate();
-
-    try {
-        print_->apply_config(conf);
-        print_->validate();
-    } catch(std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), "Error");
-        return;
+    std::vector<ExPolygons> ground_layers;
+    ground_layers.reserve(print_->objects.size());
+    for(auto o : print_->objects) {
+        ModelObject *mo = o->model_object();
+        ground_layers.emplace_back();
+        sla::ground_layer(mo->mesh(), ground_layers.back());
     }
 
-    // TODO: copy the model and work with the copy only
-    bool correction = false;
-    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
-        correction = true;
-        print_->invalidate_all_steps();
-
-        for(auto po : print_->objects) {
-            po->model_object()->scale(
-                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
-                        );
-            po->model_object()->invalidate_bounding_box();
-            po->reload_model_instances();
-            po->invalidate_all_steps();
-        }
+    for(auto& lyr : ground_layers) {
+        TriangleMesh mesh;
+        sla::create_base_pool(lyr, mesh);
+        mesh.write_ascii("out.stl");
     }
 
-    // Turn back the correction scaling on the model.
-    auto scale_back = [this, correction, exd]() {
-        if(correction) { // scale the model back
-            print_->invalidate_all_steps();
-            for(auto po : print_->objects) {
-                po->model_object()->scale(
-                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
-                );
-                po->model_object()->invalidate_bounding_box();
-                po->reload_model_instances();
-                po->invalidate_all_steps();
-            }
-        }
-    };
 
-    auto print_bb = print_->bounding_box();
+//    auto exd = query_png_export_data();
 
-    // If the print does not fit into the print area we should cry about it.
-    if(unscale(print_bb.size().x) > exd.width_mm ||
-            unscale(print_bb.size().y) > exd.height_mm) {
-        std::stringstream ss;
+//    if(exd.zippath.empty()) return;
 
-        ss << _(L("Print will not fit and will be truncated!")) << "\n"
-           << _(L("Width needed: ")) << unscale(print_bb.size().x) << " mm\n"
-           << _(L("Height needed: ")) << unscale(print_bb.size().y) << " mm\n";
+//    auto presetbundle = GUI::get_preset_bundle();
 
-       if(!report_issue(IssueType::WARN_Q, ss.str(), _(L("Warning"))))  {
-           scale_back();
-           return;
-       }
-    }
+//    assert(presetbundle);
 
-//    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
-//                   [this, exd, scale_back]()
-//    {
+//    auto conf = presetbundle->full_config();
 
-        auto pri = create_progress_indicator(
-                    200, _(L("Slicing to zipped png files...")));
+//    conf.validate();
 
-        try {
-            pri->update(0, _(L("Slicing...")));
-            slice(pri);
-        } catch (std::exception& e) {
-            pri->cancel();
-            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
-            scale_back();
-            return;
-        }
+//    try {
+//        print_->apply_config(conf);
+//        print_->validate();
+//    } catch(std::exception& e) {
+//        report_issue(IssueType::ERR, e.what(), "Error");
+//        return;
+//    }
 
-        auto pbak = print_->progressindicator;
-        print_->progressindicator = pri;
+//    // TODO: copy the model and work with the copy only
+//    bool correction = false;
+//    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
+//        correction = true;
+//        print_->invalidate_all_steps();
 
-        try {
-            print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
-                        exd.width_mm, exd.height_mm,
-                        exd.width_px, exd.height_px,
-                        exd.exp_time_s, exd.exp_time_first_s);
+//        for(auto po : print_->objects) {
+//            po->model_object()->scale(
+//                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
+//                        );
+//            po->model_object()->invalidate_bounding_box();
+//            po->reload_model_instances();
+//            po->invalidate_all_steps();
+//        }
+//    }
 
-        } catch (std::exception& e) {
-            pri->cancel();
-            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
-        }
+//    // Turn back the correction scaling on the model.
+//    auto scale_back = [this, correction, exd]() {
+//        if(correction) { // scale the model back
+//            print_->invalidate_all_steps();
+//            for(auto po : print_->objects) {
+//                po->model_object()->scale(
+//                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+//                );
+//                po->model_object()->invalidate_bounding_box();
+//                po->reload_model_instances();
+//                po->invalidate_all_steps();
+//            }
+//        }
+//    };
 
-        print_->progressindicator = pbak;
-        scale_back();
+//    auto print_bb = print_->bounding_box();
 
-//    });
+//    // If the print does not fit into the print area we should cry about it.
+//    if(unscale(print_bb.size().x) > exd.width_mm ||
+//            unscale(print_bb.size().y) > exd.height_mm) {
+//        std::stringstream ss;
+
+//        ss << _(L("Print will not fit and will be truncated!")) << "\n"
+//           << _(L("Width needed: ")) << unscale(print_bb.size().x) << " mm\n"
+//           << _(L("Height needed: ")) << unscale(print_bb.size().y) << " mm\n";
+
+//       if(!report_issue(IssueType::WARN_Q, ss.str(), _(L("Warning"))))  {
+//           scale_back();
+//           return;
+//       }
+//    }
+
+////    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+////                   [this, exd, scale_back]()
+////    {
+
+//        auto pri = create_progress_indicator(
+//                    200, _(L("Slicing to zipped png files...")));
+
+//        try {
+//            pri->update(0, _(L("Slicing...")));
+//            slice(pri);
+//        } catch (std::exception& e) {
+//            pri->cancel();
+//            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+//            scale_back();
+//            return;
+//        }
+
+//        auto pbak = print_->progressindicator;
+//        print_->progressindicator = pri;
+
+//        try {
+//            print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
+//                        exd.width_mm, exd.height_mm,
+//                        exd.width_px, exd.height_px,
+//                        exd.exp_time_s, exd.exp_time_first_s);
+
+//        } catch (std::exception& e) {
+//            pri->cancel();
+//            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+//        }
+
+//        print_->progressindicator = pbak;
+//        scale_back();
+
+////    });
 }
 
 void IProgressIndicator::message_fmt(

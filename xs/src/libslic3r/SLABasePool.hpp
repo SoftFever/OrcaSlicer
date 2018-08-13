@@ -10,14 +10,16 @@ class TriangleMesh;
 
 namespace sla {
 
-using Mesh3D = TriangleMesh;
-using GroundLayer = std::vector<ExPolygon>;
+using ExPolygons = std::vector<ExPolygon>;
 
 /// Calculate the polygon representing the slice of the lowest layer of mesh
-void ground_layer(const Mesh3D& mesh, GroundLayer& output);
+void ground_layer(const TriangleMesh& mesh,
+                  ExPolygons& output,
+                  float height = .1f);
 
 /// Calculate the pool for the mesh for SLA printing
-void create_base_pool(const GroundLayer& ground_layer, Mesh3D& output_mesh);
+void create_base_pool(const ExPolygons& ground_layer,
+                      TriangleMesh& output_mesh);
 
 }
 
