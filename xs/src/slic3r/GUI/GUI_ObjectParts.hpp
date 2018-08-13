@@ -7,6 +7,7 @@ class wxBoxSizer;
 class wxString;
 class wxArrayString;
 class wxMenu;
+class wxDataViewEvent;
 
 namespace Slic3r {
 class ModelObject;
@@ -108,6 +109,10 @@ void update_scale_values(const Pointf3& size, float scale);
 void update_rotation_values();
 // update rotation value after "gizmos"
 void update_rotation_value(const double angle, const std::string& axis);
+
+void on_begin_drag(wxDataViewEvent &event);
+void on_drop_possible(wxDataViewEvent &event);
+void on_drop(wxDataViewEvent &event);
 
 } //namespace GUI
 } //namespace Slic3r 

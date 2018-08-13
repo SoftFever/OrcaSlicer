@@ -323,6 +323,9 @@ wxBoxSizer* content_objects_list(wxWindow *win)
     });
 #endif //__WXMSW__
 
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [](wxDataViewEvent& e) {on_begin_drag(e);});
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [](wxDataViewEvent& e) {on_drop_possible(e); });
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_DROP,          [](wxDataViewEvent& e) {on_drop(e);});
 	return objects_sz;
 }
 
@@ -1526,6 +1529,62 @@ void update_rotation_value(const double angle, const std::string& axis)
     if (deg>180) deg -= 360;
 
     og->set_value("rotation_"+axis, deg);
+}
+
+void on_begin_drag(wxDataViewEvent &event)
+{
+    wxDataViewItem item(event.GetItem());
+
+    // only allow drags for item, not containers
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+    {
+        event.Veto();
+        return;
+    }
+
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    wxTextDataObject *obj = new wxTextDataObject;
+    obj->SetText(node->m_name);
+    event.SetDataObject(obj);
+    event.SetDragFlags(wxDrag_AllowMove); // allows both copy and move;
+}
+
+void on_drop_possible(wxDataViewEvent &event)
+{
+    wxDataViewItem item(event.GetItem());
+
+    // only allow drags for item or background, not containers
+    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0))
+        event.Veto();
+
+    if (event.GetDataFormat() != wxDF_UNICODETEXT)
+        event.Veto();
+}
+
+void on_drop(wxDataViewEvent &event)
+{
+    wxDataViewItem item(event.GetItem());
+
+    // only allow drops for item, not containers
+    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0))
+    {
+        event.Veto();
+        return;
+    }
+
+    if (event.GetDataFormat() != wxDF_UNICODETEXT)
+    {
+        event.Veto();
+        return;
+    }
+
+    wxTextDataObject obj;
+    obj.SetData(wxDF_UNICODETEXT, event.GetDataSize(), event.GetDataBuffer());
+
+    if (item.IsOk())
+        wxMessageBox(wxString::Format("Text dropped on item %s: %s", m_objects_model->GetName(item), obj.GetText()));
+    else
+        wxMessageBox(wxString::Format("Text dropped on background: %s", obj.GetText()));
 }
 
 } //namespace GUI
