@@ -1986,7 +1986,6 @@ sub on_config_change {
 
 sub item_changed_selection{
     my ($self, $obj_idx) = @_;
-    printf "BEGIN item_changed_selection : obj_idx = $obj_idx\n";
 
     $self->{canvas}->Refresh;
     if ($self->{canvas3D}) {
@@ -1997,7 +1996,6 @@ sub item_changed_selection{
         }
         Slic3r::GUI::_3DScene::render($self->{canvas3D});
     }
-    printf "END item_changed_selection";
 }
 
 sub collect_selections {

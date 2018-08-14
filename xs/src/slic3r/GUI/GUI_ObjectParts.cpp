@@ -1325,11 +1325,13 @@ void update_settings_value()
 		og->set_value("scale_y", 0);
 		og->set_value("scale_z", 0);
         printf("return because of unselect\n");
+        og->disable();
 		return;
 	}
     g_is_percent_scale = boost::any_cast<wxString>(og->get_value("scale_unit")) == _("%");
     update_scale_values();
     update_rotation_values();
+    og->enable();
 }
 
 void part_selection_changed()
@@ -1357,13 +1359,11 @@ void part_selection_changed()
 
 		auto config = m_config;
         og->set_value("object_name", m_objects_model->GetName(item));
-        og->enable();
 		m_default_config = std::make_shared<DynamicPrintConfig>(*DynamicPrintConfig::new_from_defaults_keys(get_options(is_part)));
 	}
     else {
         wxString empty_str = wxEmptyString;
         og->set_value("object_name", empty_str);
-        og->disable();
         m_config = nullptr;
     }
 
@@ -1475,6 +1475,7 @@ void set_extruder_column_hidden(bool hide)
 
 void update_extruder_in_config(const wxString& selection)
 {
+    printf("BEGIN OF update_extruder_in_config\n");
     if (!*m_config || selection.empty())
         return;
 
@@ -1485,6 +1486,7 @@ void update_extruder_in_config(const wxString& selection)
         wxCommandEvent e(m_event_update_scene);
         get_main_frame()->ProcessWindowEvent(e);
     }
+    printf("END OF update_extruder_in_config\n");
 }
 
 void update_scale_values()
