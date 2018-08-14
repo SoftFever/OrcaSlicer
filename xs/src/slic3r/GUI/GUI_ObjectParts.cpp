@@ -1476,7 +1476,7 @@ void set_extruder_column_hidden(bool hide)
 void update_extruder_in_config(const wxString& selection)
 {
     printf("BEGIN OF update_extruder_in_config\n");
-    if (!*m_config || selection.empty())
+    if (!m_config || selection.empty())
         return;
 
     int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
