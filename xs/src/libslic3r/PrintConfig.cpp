@@ -482,6 +482,14 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 90. };
 
+    def = this->add("filament_unloading_speed_start", coFloats);
+    def->label = L("EXPERIMENTAL: Unloading speed at the start");
+    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming. ");
+    def->sidetext = L("mm/s");
+    def->cli = "filament-unloading-speed-start=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 83. };
+
     def = this->add("filament_toolchange_delay", coFloats);
     def->label = L("Delay after unloading");
     def->tooltip = L("Time to wait after the filament is unloaded. "

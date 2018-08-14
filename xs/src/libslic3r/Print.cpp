@@ -201,6 +201,7 @@ bool Print::invalidate_state_by_config_options(const std::vector<t_config_option
             || opt_key == "first_layer_temperature"
             || opt_key == "filament_loading_speed"
             || opt_key == "filament_unloading_speed"
+            || opt_key == "filament_unloading_speed_start"
             || opt_key == "filament_toolchange_delay"
             || opt_key == "filament_cooling_moves"
             || opt_key == "filament_minimal_purge_on_wipe_tower"
@@ -1124,6 +1125,7 @@ void Print::_make_wipe_tower()
             this->config.first_layer_temperature.get_at(i),
             this->config.filament_loading_speed.get_at(i),
             this->config.filament_unloading_speed.get_at(i),
+            this->config.filament_unloading_speed_start.get_at(i),
             this->config.filament_toolchange_delay.get_at(i),
             this->config.filament_cooling_moves.get_at(i),
             this->config.filament_cooling_initial_speed.get_at(i),
