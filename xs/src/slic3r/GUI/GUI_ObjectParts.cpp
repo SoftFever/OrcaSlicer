@@ -287,14 +287,16 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event)
 	{
+        printf("wxEVT_CHAR : ");
 		if (event.GetKeyCode() == WXK_TAB)
 			m_objects_ctrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
 		else if (event.GetKeyCode() == WXK_DELETE
 #ifdef __WXOSX__
 			|| event.GetKeyCode() == WXK_BACK
 #endif //__WXOSX__
-			)
-			remove();
+            ){ 
+            printf("WXK_BACK\n");
+			remove();}
 		else 
 			event.Skip();
 	});
@@ -729,8 +731,10 @@ void unselect_objects()
 {
     printf("UNSELECT OBJECTS\n");
     g_prevent_list_events = true;
-	m_objects_ctrl->UnselectAll();
-// 	part_selection_changed();
+    if (m_objects_ctrl->GetSelection())
+        m_objects_ctrl->UnselectAll();
+    else
+        printf("all items are UNSELECTED\n");
     g_prevent_list_events = false;
 
 	get_optgroup(ogFrequentlyObjectSettings)->disable();
@@ -774,11 +778,9 @@ void object_ctrl_selection_changed()
 
 	part_selection_changed();
 
-// 	if (m_selected_object_id < 0) return;
-
 	if (m_event_object_selection_changed > 0) {
 		wxCommandEvent event(m_event_object_selection_changed);
-		event.SetInt(int(m_objects_model->GetParent(/*item*/ m_objects_ctrl->GetSelection()) != wxDataViewItem(0)));
+		event.SetInt(int(m_objects_model->GetParent(m_objects_ctrl->GetSelection()) != wxDataViewItem(0)));
 		event.SetId(m_selected_object_id);
 		get_main_frame()->ProcessWindowEvent(event);
 	}
