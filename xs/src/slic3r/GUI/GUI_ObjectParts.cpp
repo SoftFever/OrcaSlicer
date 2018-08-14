@@ -690,7 +690,7 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
     }
 
 // 	part_selection_changed();
-#ifdef __WXMSW__
+#ifndef __WXOSX__ //#ifdef __WXMSW__
 	object_ctrl_selection_changed();
 #endif //__WXMSW__
 }
@@ -1230,7 +1230,7 @@ void on_btn_del()
 void on_btn_split(const bool split_part)
 {
 	auto item = m_objects_ctrl->GetSelection();
-	if (!item)
+	if (!item || m_selected_object_id<0)
 		return;
 	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
     ModelVolume* volume;
@@ -1542,6 +1542,13 @@ void on_begin_drag(wxDataViewEvent &event)
         return;
     }
 
+    /* Under MSW or OSX, DnD moves an item to the place of another selected item
+     * But under GTK, DnD moves an item between another two items.
+     * And as a result - call EVT_CHANGE_SELECTION to unselect all items.
+     * To prevent such behavior use g_prevent_list_events
+    **/
+    g_prevent_list_events = true;//it's needed for GTK
+
     wxTextDataObject *obj = new wxTextDataObject;
     obj->SetText(wxString::Format("%d", m_objects_model->GetVolumeIdByItem(item)));
     event.SetDataObject(obj);
@@ -1575,6 +1582,14 @@ void on_drop(wxDataViewEvent &event)
     int from_volume_id = std::stoi(obj.GetText().ToStdString());
     int to_volume_id = m_objects_model->GetVolumeIdByItem(item);
 
+#ifdef __WXGTK__
+    /* Under GTK, DnD moves an item between another two items.
+     * And event.GetItem() return item, which is under "insertion line"
+     * So, if we move item down we should to decrease the to_volume_id value
+    **/
+    if (to_volume_id > from_volume_id) to_volume_id--;
+#endif // __WXGTK__
+
     m_objects_ctrl->Select(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
                                                                m_objects_model->GetParent(item)));
 
@@ -1583,6 +1598,8 @@ void on_drop(wxDataViewEvent &event)
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id+=delta, cnt++)
         std::swap(volumes[id], volumes[id +delta]);
+
+    g_prevent_list_events = false;
 }
 
 } //namespace GUI
