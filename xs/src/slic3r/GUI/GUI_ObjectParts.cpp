@@ -733,7 +733,7 @@ void unselect_objects()
     g_prevent_list_events = true;
     if (m_objects_ctrl->GetSelection()) {
         m_objects_ctrl->UnselectAll();
-        get_optgroup(ogFrequentlyObjectSettings)->disable();
+        part_selection_changed();
     }
     else
         printf("all items are UNSELECTED\n");
@@ -751,8 +751,6 @@ void select_current_object(int idx)
 	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
 	part_selection_changed();
 	g_prevent_list_events = false;
-
-	get_optgroup(ogFrequentlyObjectSettings)->enable();
 }
 
 void remove()
@@ -1359,11 +1357,13 @@ void part_selection_changed()
 
 		auto config = m_config;
         og->set_value("object_name", m_objects_model->GetName(item));
+        og->enable();
 		m_default_config = std::make_shared<DynamicPrintConfig>(*DynamicPrintConfig::new_from_defaults_keys(get_options(is_part)));
 	}
     else {
         wxString empty_str = wxEmptyString;
         og->set_value("object_name", empty_str);
+        og->disable();
         m_config = nullptr;
     }
 
