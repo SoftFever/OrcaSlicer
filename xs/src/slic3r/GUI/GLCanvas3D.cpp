@@ -2209,14 +2209,49 @@ void GLCanvas3D::update_gizmos_data()
                 TriangleMesh ch = model_object->mesh().convex_hull3d();
                 stl_facet* facet_ptr = ch.stl.facet_start;
                 std::vector<Pointf3s> points;
+                const unsigned int k = 20;
+                const float ratio = 0.2f;
+                const unsigned int N = 3; // 3 - triangle
+
                 while (facet_ptr < ch.stl.facet_start+ch.stl.stats.number_of_facets) {
                     Pointf3 a = Pointf3(facet_ptr->vertex[1].x - facet_ptr->vertex[0].x, facet_ptr->vertex[1].y - facet_ptr->vertex[0].y, facet_ptr->vertex[1].z - facet_ptr->vertex[0].z);
                     Pointf3 b = Pointf3(facet_ptr->vertex[2].x - facet_ptr->vertex[0].x, facet_ptr->vertex[2].y - facet_ptr->vertex[0].y, facet_ptr->vertex[2].z - facet_ptr->vertex[0].z);
 
+
                     if (0.5 * sqrt(dot(cross(a, b), cross(a,b))) > 50.f) {
-                        points.emplace_back(Pointf3s());
-                        for (unsigned int j=0; j<3; ++j)
-                            points.back().emplace_back(Pointf3(facet_ptr->vertex[j].x, facet_ptr->vertex[j].y, facet_ptr->vertex[j].z));
+                        points.emplace_back(Pointf3s(2*k*N));
+
+                        std::vector<std::pair<unsigned int, unsigned int>> neighbours;
+                        if (k != 0) {
+                            for (unsigned int j=0; j<N; ++j) {
+                                points.back()[j*2*k] = Pointf3(facet_ptr->vertex[j].x, facet_ptr->vertex[j].y, facet_ptr->vertex[j].z);
+                                neighbours.push_back(std::make_pair((int)(j*2*k-k) < 0 ? (N-1)*2*k+k : j*2*k-k, j*2*k+k));
+                            }
+
+                            for (unsigned int i=0; i<k; ++i) {
+                                // Calculate middle of each edge so that neighbours points to something useful:
+                                for (unsigned int j=0; j<N; ++j)
+                                    if (i==0)
+                                        points.back()[j*2*k+k] = 0.5f * (points.back()[j*2*k] + points.back()[j==N-1 ? 0 : (j+1)*2*k]);
+                                    else {
+                                        float r = 0.2+0.3/(k-1)*i;
+                                        points.back()[neighbours[j].first] = r*points.back()[j*2*k] + (1-r) * points.back()[neighbours[j].first-1];
+                                        points.back()[neighbours[j].second] = r*points.back()[j*2*k] + (1-r) * points.back()[neighbours[j].second+1];
+                                    }
+                                // Now we have a triangle and valid neighbours, we can do an iteration:
+                                for (unsigned int j=0; j<N; ++j)
+                                    points.back()[2*k*j] = (1-ratio) * points.back()[2*k*j] + ratio * 0.5*(points.back()[neighbours[j].first] + points.back()[neighbours[j].second]);
+
+                                for (auto& n : neighbours) {
+                                    ++n.first;
+                                    --n.second;
+                                }
+                            }
+                        }
+                        else
+                            for (unsigned int j=0; j<N; ++j)
+                                points.back().emplace_back(Pointf3(facet_ptr->vertex[j].x, facet_ptr->vertex[j].y, facet_ptr->vertex[j].z));
+
                         points.back().emplace_back(Pointf3(facet_ptr->normal.x, facet_ptr->normal.y, facet_ptr->normal.z));
                     }
                     facet_ptr+=1;
