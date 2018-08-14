@@ -220,12 +220,12 @@ Line::ccw(const Point& point) const
 
 double Line3::length() const
 {
-    return a.distance_to(b);
+    return (b.data - a.data).norm();
 }
 
 Vector3 Line3::vector() const
 {
-    return Vector3(b.x() - a.x(), b.y() - a.y(), b.z() - a.z());
+    return Vector3(b.data - a.data);
 }
 
 Pointf3

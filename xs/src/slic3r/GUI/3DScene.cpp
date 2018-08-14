@@ -26,11 +26,6 @@
 
 #include "GUI.hpp"
 
-static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
-                                     0.0f, 1.0f, 0.0f, 0.0f,
-                                     0.0f, 0.0f, 1.0f, 0.0f,
-                                     0.0f, 0.0f, 0.0f, 1.0f };
-
 namespace Slic3r {
 
 void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
@@ -218,7 +213,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
-    m_world_mat = std::vector<float>(UNIT_MATRIX, std::end(UNIT_MATRIX));
+    m_world_mat = Transform3f::Identity();
 
     color[0] = r;
     color[1] = g;
@@ -279,15 +274,14 @@ void GLVolume::set_scale_factor(float scale_factor)
     m_dirty = true;
 }
 
-const std::vector<float>& GLVolume::world_matrix() const
+const Transform3f& GLVolume::world_matrix() const
 {
     if (m_dirty)
     {
-        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-        m.translate(Eigen::Vector3f((float)m_origin.x(), (float)m_origin.y(), (float)m_origin.z()));
-        m.rotate(Eigen::AngleAxisf(m_angle_z, Eigen::Vector3f::UnitZ()));
-        m.scale(m_scale_factor);
-        ::memcpy((void*)m_world_mat.data(), (const void*)m.data(), 16 * sizeof(float));
+        m_world_mat = Transform3f::Identity();
+        m_world_mat.translate(Vec3f(m_origin.x(), m_origin.y(), 0));
+        m_world_mat.rotate(Eigen::AngleAxisf(m_angle_z, Eigen::Vector3f::UnitZ()));
+        m_world_mat.scale(m_scale_factor);
         m_dirty = false;
     }
 

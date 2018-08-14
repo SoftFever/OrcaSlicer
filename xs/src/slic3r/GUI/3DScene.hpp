@@ -261,7 +261,7 @@ private:
     // Scale factor of the volume to be rendered.
     float                 m_scale_factor;
     // World matrix of the volume to be rendered.
-    std::vector<float>    m_world_mat;
+    mutable Transform3f   m_world_mat;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the world matrix.
@@ -326,7 +326,7 @@ public:
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
-    const std::vector<float>& world_matrix() const;
+    const Transform3f&  world_matrix() const;
     BoundingBoxf3       transformed_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }

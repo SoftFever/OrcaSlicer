@@ -726,7 +726,7 @@ BoundingBox Print::bounding_box() const
     for (const PrintObject *object : this->objects)
         for (Point copy : object->_shifted_copies) {
             bb.merge(copy);
-            copy.translate(object->size);
+            copy.translate(object->size.xy());
             bb.merge(copy);
         }
     return bb;

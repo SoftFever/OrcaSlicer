@@ -396,7 +396,7 @@ using ShapeData2D =
 ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
     ShapeData2D ret;
 
-    auto s = std::accumulate(model.objects.begin(), model.objects.end(), 0,
+    auto s = std::accumulate(model.objects.begin(), model.objects.end(), size_t(0),
                     [](size_t s, ModelObject* o){
         return s + o->instances.size();
     });
@@ -648,8 +648,8 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
             for (size_t i = 0; i < o->instances.size(); ++ i) {
                 // an accurate snug bounding box around the transformed mesh.
                 BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
-                instance_sizes.push_back(bbox.size());
-                instance_centers.push_back(bbox.center());
+                instance_sizes.push_back(bbox.size().xy());
+                instance_centers.push_back(bbox.center().xy());
             }
 
         Pointfs positions;
@@ -672,7 +672,7 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb,
 // Duplicate the entire model preserving instance relative positions.
 void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
 {
-    Pointfs model_sizes(copies_num-1, this->bounding_box().size());
+    Pointfs model_sizes(copies_num-1, this->bounding_box().size().xy());
     Pointfs positions;
     if (! _arrange(model_sizes, dist, bb, positions))
         CONFESS("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
@@ -1081,10 +1081,10 @@ void ModelObject::center_around_origin()
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
-            Vectorf3 v = vector.negative();
+            Vectorf v = vector.negative().xy();
             v.rotate(i->rotation);
             v.scale(i->scaling_factor);
-            i->offset.translate(v.x(), v.y());
+            i->offset.translate(v);
         }
         this->invalidate_bounding_box();
     }
@@ -1440,16 +1440,12 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    Eigen::Transform<float, 3, Eigen::Affine> matrix = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    auto matrix = Transform3f::Identity();
     if (!dont_translate)
-        matrix.translate(Eigen::Vector3f((float)offset.x(), (float)offset.y(), 0.0f));
-
-    matrix.rotate(Eigen::AngleAxisf(rotation, Eigen::Vector3f::UnitZ()));
+        matrix.translate(Vec3f((float)offset.x(), (float)offset.y(), 0.0f));
+    matrix.rotate(Eigen::AngleAxisf(rotation, Vec3f::UnitZ()));
     matrix.scale(scaling_factor);
-
-    std::vector<float> m(16, 0.0f);
-    ::memcpy((void*)m.data(), (const void*)matrix.data(), 16 * sizeof(float));
-    return bbox.transformed(m);
+    return bbox.transformed(matrix);
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const

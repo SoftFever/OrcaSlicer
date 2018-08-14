@@ -299,7 +299,7 @@ std::string GCodeWriter::travel_to_xyz(const Pointf3 &point, const std::string &
     if (!this->will_move_z(point.z())) {
         double nominal_z = m_pos.z() - m_lifted;
         m_lifted = m_lifted - (point.z() - nominal_z);
-        return this->travel_to_xy(point);
+        return this->travel_to_xy(point.xy());
     }
     
     /*  In all the other cases, we perform an actual XYZ move and cancel

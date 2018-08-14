@@ -253,9 +253,9 @@ void BoundingBox::align_to_grid(const coord_t cell_size)
     }
 }
 
-BoundingBoxf3 BoundingBoxf3::transformed(const std::vector<float>& matrix) const
+BoundingBoxf3 BoundingBoxf3::transformed(const Transform3f& matrix) const
 {
-    Eigen::Matrix<float, 3, 8> vertices;
+    Eigen::Matrix<float, 3, 8, Eigen::DontAlign> vertices;
 
     vertices(0, 0) = (float)min.x(); vertices(1, 0) = (float)min.y(); vertices(2, 0) = (float)min.z();
     vertices(0, 1) = (float)max.x(); vertices(1, 1) = (float)min.y(); vertices(2, 1) = (float)min.z();
@@ -266,9 +266,7 @@ BoundingBoxf3 BoundingBoxf3::transformed(const std::vector<float>& matrix) const
     vertices(0, 6) = (float)max.x(); vertices(1, 6) = (float)max.y(); vertices(2, 6) = (float)max.z();
     vertices(0, 7) = (float)min.x(); vertices(1, 7) = (float)max.y(); vertices(2, 7) = (float)max.z();
 
-    Eigen::Transform<float, 3, Eigen::Affine> m;
-    ::memcpy((void*)m.data(), (const void*)matrix.data(), 16 * sizeof(float));
-    Eigen::Matrix<float, 3, 8> transf_vertices = m * vertices.colwise().homogeneous();
+    Eigen::Matrix<float, 3, 8, Eigen::DontAlign> transf_vertices = matrix * vertices.colwise().homogeneous();
 
     float min_x = transf_vertices(0, 0);
     float max_x = transf_vertices(0, 0);

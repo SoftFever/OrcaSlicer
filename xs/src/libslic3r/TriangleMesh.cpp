@@ -502,7 +502,7 @@ TriangleMesh::split() const
             int facet_idx = facet_queue.front();
             facet_queue.pop();
             if (seen_facets.find(facet_idx) != seen_facets.end()) continue;
-            facets.push_back(facet_idx);
+            facets.emplace_back(facet_idx);
             for (int j = 0; j <= 2; j++) {
                 facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
             }
@@ -510,7 +510,7 @@ TriangleMesh::split() const
         }
         
         TriangleMesh* mesh = new TriangleMesh;
-        meshes.push_back(mesh);
+        meshes.emplace_back(mesh);
         mesh->stl.stats.type = inmemory;
         mesh->stl.stats.number_of_facets = facets.size();
         mesh->stl.stats.original_num_facets = mesh->stl.stats.number_of_facets;
@@ -564,7 +564,7 @@ ExPolygons TriangleMesh::horizontal_projection() const
         p.points[1] = Point::new_scale(facet->vertex[1].x, facet->vertex[1].y);
         p.points[2] = Point::new_scale(facet->vertex[2].x, facet->vertex[2].y);
         p.make_counter_clockwise();  // do this after scaling, as winding order might change while doing that
-        pp.push_back(p);
+        pp.emplace_back(p);
     }
     
     // the offset factor was tuned using groovemount.stl
@@ -819,10 +819,10 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
                     il.b.y()    = b->y;
                     il.a_id   = a_id;
                     il.b_id   = b_id;
-                    (*lines)[layer_idx].push_back(il);
+                    (*lines)[layer_idx].emplace_back(il);
                 }
             } else
-                (*lines)[layer_idx].push_back(il);
+                (*lines)[layer_idx].emplace_back(il);
         }
     }
 }
@@ -1229,9 +1229,9 @@ void TriangleMeshSlicer::make_expolygons_simple(std::vector<IntersectionLine> &l
         if (loop->area() >= 0.) {
             ExPolygon ex;
             ex.contour = *loop;
-            slices->push_back(ex);
+            slices->emplace_back(ex);
         } else {
-            holes.push_back(*loop);
+            holes.emplace_back(*loop);
         }
     }
 
@@ -1322,8 +1322,8 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slic
     //std::vector<double> area;
     //std::vector<size_t> sorted_area;  // vector of indices
     //for (Polygons::const_iterator loop = loops.begin(); loop != loops.end(); ++ loop) {
-    //    area.push_back(loop->area());
-    //    sorted_area.push_back(loop - loops.begin());
+    //    area.emplace_back(loop->area());
+    //    sorted_area.emplace_back(loop - loops.begin());
     //}
     //
     //// outer first
@@ -1338,7 +1338,7 @@ void TriangleMeshSlicer::make_expolygons(const Polygons &loops, ExPolygons* slic
     //       would do the same, thus repeating the calculation */
     //    Polygons::const_iterator loop = loops.begin() + *loop_idx;
     //    if (area[*loop_idx] > +EPSILON)
-    //        p_slices.push_back(*loop);
+    //        p_slices.emplace_back(*loop);
     //    else if (area[*loop_idx] < -EPSILON)
     //        //FIXME This is arbitrary and possibly very slow.
     //        // If the hole is inside a polygon, then there is no need to diff.
@@ -1396,12 +1396,12 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
         if (this->slice_facet(scaled_z, *facet, facet_idx, min_z, max_z, &line)) {
             // Save intersection lines for generating correct triangulations.
             if (line.edge_type == feTop) {
-                lower_lines.push_back(line);
+                lower_lines.emplace_back(line);
             } else if (line.edge_type == feBottom) {
-                upper_lines.push_back(line);
+                upper_lines.emplace_back(line);
             } else if (line.edge_type != feHorizontal) {
-                lower_lines.push_back(line);
-                upper_lines.push_back(line);
+                lower_lines.emplace_back(line);
+                upper_lines.emplace_back(line);
             }
         }
         
@@ -1560,8 +1560,8 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
     std::vector<Point3> facets;
 
     // 2 special vertices, top and bottom center, rest are relative to this
-    vertices.push_back(Pointf3(0.0, 0.0, 0.0));
-    vertices.push_back(Pointf3(0.0, 0.0, h));
+    vertices.emplace_back(Pointf3(0.0, 0.0, 0.0));
+    vertices.emplace_back(Pointf3(0.0, 0.0, h));
 
     // adjust via rounding to get an even multiple for any provided angle.
     double angle = (2*PI / floor(2*PI / fa));
@@ -1571,26 +1571,24 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
     // top and bottom.
     // Special case: Last line shares 2 vertices with the first line.
     unsigned id = vertices.size() - 1;
-    vertices.push_back(Pointf3(sin(0) * r , cos(0) * r, 0));
-    vertices.push_back(Pointf3(sin(0) * r , cos(0) * r, h));
+    vertices.emplace_back(Pointf3(sin(0) * r , cos(0) * r, 0));
+    vertices.emplace_back(Pointf3(sin(0) * r , cos(0) * r, h));
     for (double i = 0; i < 2*PI; i+=angle) {
-        Pointf3 b(0, r, 0);
-        Pointf3 t(0, r, h);
-        b.rotate(i, Pointf3(0,0,0)); 
-        t.rotate(i, Pointf3(0,0,h));
-        vertices.push_back(b);
-        vertices.push_back(t);
+        Pointf p(0, r);
+        p.rotate(i);
+        vertices.emplace_back(Pointf3(p.x(), p.y(), 0.));
+        vertices.emplace_back(Pointf3(p.x(), p.y(), h));
         id = vertices.size() - 1;
-        facets.push_back(Point3( 0, id - 1, id - 3)); // top
-        facets.push_back(Point3(id,      1, id - 2)); // bottom
-        facets.push_back(Point3(id, id - 2, id - 3)); // upper-right of side
-        facets.push_back(Point3(id, id - 3, id - 1)); // bottom-left of side
+        facets.emplace_back(Point3( 0, id - 1, id - 3)); // top
+        facets.emplace_back(Point3(id,      1, id - 2)); // bottom
+        facets.emplace_back(Point3(id, id - 2, id - 3)); // upper-right of side
+        facets.emplace_back(Point3(id, id - 3, id - 1)); // bottom-left of side
     }
     // Connect the last set of vertices with the first.
-    facets.push_back(Point3( 2, 0, id - 1));
-    facets.push_back(Point3( 1, 3,     id));
-    facets.push_back(Point3(id, 3,      2));
-    facets.push_back(Point3(id, 2, id - 1));
+    facets.emplace_back(Point3( 2, 0, id - 1));
+    facets.emplace_back(Point3( 1, 3,     id));
+    facets.emplace_back(Point3(id, 3,      2));
+    facets.emplace_back(Point3(id, 2, id - 1));
     
     TriangleMesh mesh(vertices, facets);
     return mesh;
@@ -1613,29 +1611,25 @@ TriangleMesh make_sphere(double rho, double fa) {
     // Ring to be scaled to generate the steps of the sphere
     std::vector<double> ring;
     for (double i = 0; i < 2*PI; i+=angle) {
-        ring.push_back(i);
+        ring.emplace_back(i);
     }
     const size_t steps = ring.size(); 
     const double increment = (double)(1.0 / (double)steps);
 
     // special case: first ring connects to 0,0,0
     // insert and form facets.
-    vertices.push_back(Pointf3(0.0, 0.0, -rho));
+    vertices.emplace_back(Pointf3(0.0, 0.0, -rho));
     size_t id = vertices.size();
     for (size_t i = 0; i < ring.size(); i++) {
         // Fixed scaling 
         const double z = -rho + increment*rho*2.0;
         // radius of the circle for this step.
         const double r = sqrt(abs(rho*rho - z*z));
-        Pointf3 b(0, r, z);
-        b.rotate(ring[i], Pointf3(0,0,z)); 
-        vertices.push_back(b);
-        if (i == 0) {
-            facets.push_back(Point3(1, 0, ring.size()));
-        } else {
-            facets.push_back(Point3(id, 0, id - 1));
-        }
-        id++;
+        Pointf b(0, r);
+        b.rotate(ring[i]);
+        vertices.emplace_back(Pointf3(b.x(), b.y(), z));
+        facets.emplace_back((i == 0) ? Point3(1, 0, ring.size()) : Point3(id, 0, id - 1));
+        ++ id;
     }
 
     // General case: insert and form facets for each step, joining it to the ring below it.
@@ -1644,16 +1638,16 @@ TriangleMesh make_sphere(double rho, double fa) {
         const double r = sqrt(abs(rho*rho - z*z));
 
         for (size_t i = 0; i < ring.size(); i++) {
-            Pointf3 b(0, r, z);
-            b.rotate(ring[i], Pointf3(0,0,z)); 
-            vertices.push_back(b);
+            Pointf b(0, r);
+            b.rotate(ring[i]); 
+            vertices.emplace_back(Pointf3(b.x(), b.y(), z));
             if (i == 0) {
                 // wrap around
-                facets.push_back(Point3(id + ring.size() - 1 , id, id - 1)); 
-                facets.push_back(Point3(id, id - ring.size(),  id - 1)); 
+                facets.emplace_back(Point3(id + ring.size() - 1 , id, id - 1)); 
+                facets.emplace_back(Point3(id, id - ring.size(),  id - 1)); 
             } else {
-                facets.push_back(Point3(id , id - ring.size(), (id - 1) - ring.size())); 
-                facets.push_back(Point3(id, id - 1 - ring.size() ,  id - 1)); 
+                facets.emplace_back(Point3(id , id - ring.size(), (id - 1) - ring.size())); 
+                facets.emplace_back(Point3(id, id - 1 - ring.size() ,  id - 1)); 
             }
             id++;
         } 
@@ -1662,13 +1656,13 @@ TriangleMesh make_sphere(double rho, double fa) {
 
     // special case: last ring connects to 0,0,rho*2.0
     // only form facets.
-    vertices.push_back(Pointf3(0.0, 0.0, rho));
+    vertices.emplace_back(Pointf3(0.0, 0.0, rho));
     for (size_t i = 0; i < ring.size(); i++) {
         if (i == 0) {
             // third vertex is on the other side of the ring.
-            facets.push_back(Point3(id, id - ring.size(),  id - 1));
+            facets.emplace_back(Point3(id, id - ring.size(),  id - 1));
         } else {
-            facets.push_back(Point3(id, id - ring.size() + i,  id - ring.size() + (i - 1)));
+            facets.emplace_back(Point3(id, id - ring.size() + i,  id - ring.size() + (i - 1)));
         }
     }
     id++;

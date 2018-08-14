@@ -8,24 +8,19 @@ MultiPoint::operator Points() const
     return this->points;
 }
 
-void
-MultiPoint::scale(double factor)
+void MultiPoint::scale(double factor)
 {
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        (*it).scale(factor);
-    }
+    for (Point &pt : points)
+        pt.scale(factor);
 }
 
-void
-MultiPoint::translate(double x, double y)
+void MultiPoint::translate(double x, double y)
 {
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        (*it).translate(x, y);
-    }
+    for (Point &pt : points)
+        pt.translate(x, y);
 }
 
-void
-MultiPoint::translate(const Point &vector)
+void MultiPoint::translate(const Point &vector)
 {
     this->translate(vector.x(), vector.y());
 }
@@ -40,27 +35,23 @@ void MultiPoint::rotate(double cos_angle, double sin_angle)
     }
 }
 
-void
-MultiPoint::rotate(double angle, const Point &center)
+void MultiPoint::rotate(double angle, const Point &center)
 {
     double s = sin(angle);
     double c = cos(angle);
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        double dx = double(it->x() - center.x());
-        double dy = double(it->y() - center.y());
-        it->x() = (coord_t)round(double(center.x()) + c * dx - s * dy);
-        it->y() = (coord_t)round(double(center.y()) + c * dy + s * dx);
+    for (Point &pt : points) {
+        Vec2crd dif(pt.data - center.data);
+        pt.x() = (coord_t)round(double(center.x()) + c * dif[0] - s * dif[1]);
+        pt.y() = (coord_t)round(double(center.y()) + c * dif[1] + s * dif[0]);
     }
 }
 
-void
-MultiPoint::reverse()
+void MultiPoint::reverse()
 {
     std::reverse(this->points.begin(), this->points.end());
 }
 
-Point
-MultiPoint::first_point() const
+Point MultiPoint::first_point() const
 {
     return this->points.front();
 }
@@ -216,9 +207,9 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 
 void MultiPoint3::translate(double x, double y)
 {
-    for (Point3& p : points)
-    {
-        p.translate(x, y);
+    for (Point3 &p : points) {
+        p.x() += x;
+        p.y() += y;
     }
 }
 
@@ -229,12 +220,9 @@ void MultiPoint3::translate(const Point& vector)
 
 double MultiPoint3::length() const
 {
-    Lines3 lines = this->lines();
     double len = 0.0;
-    for (const Line3& line : lines)
-    {
+    for (const Line3& line : this->lines())
         len += line.length();
-    }
     return len;
 }
 
