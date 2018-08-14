@@ -731,13 +731,13 @@ void unselect_objects()
 {
     printf("UNSELECT OBJECTS\n");
     g_prevent_list_events = true;
-    if (m_objects_ctrl->GetSelection())
+    if (m_objects_ctrl->GetSelection()) {
         m_objects_ctrl->UnselectAll();
+        get_optgroup(ogFrequentlyObjectSettings)->disable();
+    }
     else
         printf("all items are UNSELECTED\n");
     g_prevent_list_events = false;
-
-	get_optgroup(ogFrequentlyObjectSettings)->disable();
 }
 
 void select_current_object(int idx)
