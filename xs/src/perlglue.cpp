@@ -485,8 +485,8 @@ SV* to_SV_pureperl(const Point* THIS)
 {
     AV* av = newAV();
     av_fill(av, 1);
-    av_store(av, 0, newSViv(THIS->x));
-    av_store(av, 1, newSViv(THIS->y));
+    av_store(av, 0, newSViv(THIS->x()));
+    av_store(av, 1, newSViv(THIS->y()));
     return newRV_noinc((SV*)av);
 }
 
@@ -495,8 +495,8 @@ void from_SV(SV* point_sv, Point* point)
     AV* point_av = (AV*)SvRV(point_sv);
     // get a double from Perl and round it, otherwise
     // it would get truncated
-    point->x = lrint(SvNV(*av_fetch(point_av, 0, 0)));
-    point->y = lrint(SvNV(*av_fetch(point_av, 1, 0)));
+    point->x() = lrint(SvNV(*av_fetch(point_av, 0, 0)));
+    point->y() = lrint(SvNV(*av_fetch(point_av, 1, 0)));
 }
 
 void from_SV_check(SV* point_sv, Point* point)
@@ -514,8 +514,8 @@ SV* to_SV_pureperl(const Pointf* point)
 {
     AV* av = newAV();
     av_fill(av, 1);
-    av_store(av, 0, newSVnv(point->x));
-    av_store(av, 1, newSVnv(point->y));
+    av_store(av, 0, newSVnv(point->x()));
+    av_store(av, 1, newSVnv(point->y()));
     return newRV_noinc((SV*)av);
 }
 
@@ -526,8 +526,8 @@ bool from_SV(SV* point_sv, Pointf* point)
     SV* sv_y = *av_fetch(point_av, 1, 0);
     if (!looks_like_number(sv_x) || !looks_like_number(sv_y)) return false;
     
-    point->x = SvNV(sv_x);
-    point->y = SvNV(sv_y);
+    point->x() = SvNV(sv_x);
+    point->y() = SvNV(sv_y);
     return true;
 }
 

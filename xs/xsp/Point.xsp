@@ -19,13 +19,13 @@
     SV* pp()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     int x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = THIS->x(); %};
     int y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = THIS->y(); %};
     void set_x(int val)
-        %code{% THIS->x = val; %};
+        %code{% THIS->x() = val; %};
     void set_y(int val)
-        %code{% THIS->y = val; %};
+        %code{% THIS->y() = val; %};
     int nearest_point_index(Points points);
     Clone<Point> nearest_point(Points points)
         %code{% Point p; THIS->nearest_point(points, &p); RETVAL = p; %};
@@ -49,7 +49,7 @@
         %code{% RETVAL = new Point(THIS->negative()); %};
     bool coincides_with_epsilon(Point* point)
         %code{% RETVAL = THIS->coincides_with_epsilon(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", THIS->x, THIS->y); RETVAL = buf; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", THIS->x(), THIS->y()); RETVAL = buf; %};
 
 %{
 
@@ -82,12 +82,12 @@ Point::coincides_with(point_sv)
     Clone<Point3> clone()
         %code{% RETVAL = THIS; %};
     int x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = THIS->x(); %};
     int y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = THIS->y(); %};
     int z()
-        %code{% RETVAL = THIS->z; %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld,%ld", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
+        %code{% RETVAL = THIS->z(); %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld,%ld", THIS->x(), THIS->y(), THIS->z()); RETVAL = buf; %};
 };
 
 %name{Slic3r::Pointf} class Pointf {
@@ -100,13 +100,13 @@ Point::coincides_with(point_sv)
     SV* pp()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     double x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = THIS->x(); %};
     double y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = THIS->y(); %};
     void set_x(double val)
-        %code{% THIS->x = val; %};
+        %code{% THIS->x() = val; %};
     void set_y(double val)
-        %code{% THIS->y = val; %};
+        %code{% THIS->y() = val; %};
     void translate(double x, double y);
     void scale(double factor);
     void rotate(double angle, Pointf* center)
@@ -115,7 +115,7 @@ Point::coincides_with(point_sv)
         %code{% RETVAL = THIS->negative(); %};
     Clone<Pointf> vector_to(Pointf* point)
         %code{% RETVAL = THIS->vector_to(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", THIS->x, THIS->y); RETVAL = buf; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", THIS->x(), THIS->y()); RETVAL = buf; %};
 };
 
 %name{Slic3r::Pointf3} class Pointf3 {
@@ -124,17 +124,17 @@ Point::coincides_with(point_sv)
     Clone<Pointf3> clone()
         %code{% RETVAL = THIS; %};
     double x()
-        %code{% RETVAL = THIS->x; %};
+        %code{% RETVAL = THIS->x(); %};
     double y()
-        %code{% RETVAL = THIS->y; %};
+        %code{% RETVAL = THIS->y(); %};
     double z()
-        %code{% RETVAL = THIS->z; %};
+        %code{% RETVAL = THIS->z(); %};
     void set_x(double val)
-        %code{% THIS->x = val; %};
+        %code{% THIS->x() = val; %};
     void set_y(double val)
-        %code{% THIS->y = val; %};
+        %code{% THIS->y() = val; %};
     void set_z(double val)
-        %code{% THIS->z = val; %};
+        %code{% THIS->z() = val; %};
     void translate(double x, double y, double z);
     void scale(double factor);
     double distance_to(Pointf3* point)
@@ -143,5 +143,5 @@ Point::coincides_with(point_sv)
         %code{% RETVAL = THIS->negative(); %};
     Clone<Pointf3> vector_to(Pointf3* point)
         %code{% RETVAL = THIS->vector_to(*point); %};
-    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf", THIS->x, THIS->y, THIS->z); RETVAL = buf; %};
+    std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf", THIS->x(), THIS->y(), THIS->z()); RETVAL = buf; %};
 };

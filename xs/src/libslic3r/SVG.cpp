@@ -32,8 +32,8 @@ bool SVG::open(const char* afilename, const BoundingBox &bbox, const coord_t bbo
     this->f        = boost::nowide::fopen(afilename, "w");
     if (f == NULL)
         return false;
-    float w = COORD(bbox.max.x - bbox.min.x + 2 * bbox_offset);
-    float h = COORD(bbox.max.y - bbox.min.y + 2 * bbox_offset);
+    float w = COORD(bbox.max.x() - bbox.min.x() + 2 * bbox_offset);
+    float h = COORD(bbox.max.y() - bbox.min.y() + 2 * bbox_offset);
     fprintf(this->f,
         "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n"
         "<!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.0//EN\" \"http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd\">\n"
@@ -50,7 +50,7 @@ SVG::draw(const Line &line, std::string stroke, coordf_t stroke_width)
 {
     fprintf(this->f,
         "   <line x1=\"%f\" y1=\"%f\" x2=\"%f\" y2=\"%f\" style=\"stroke: %s; stroke-width: %f\"",
-        COORD(line.a.x - origin.x), COORD(line.a.y - origin.y), COORD(line.b.x - origin.x), COORD(line.b.y - origin.y), stroke.c_str(), (stroke_width == 0) ? 1.f : COORD(stroke_width));
+        COORD(line.a.x() - origin.x()), COORD(line.a.y() - origin.y()), COORD(line.b.x() - origin.x()), COORD(line.b.y() - origin.y()), stroke.c_str(), (stroke_width == 0) ? 1.f : COORD(stroke_width));
     if (this->arrows)
         fprintf(this->f, " marker-end=\"url(#endArrow)\"");
     fprintf(this->f, "/>\n");
@@ -58,21 +58,21 @@ SVG::draw(const Line &line, std::string stroke, coordf_t stroke_width)
 
 void SVG::draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coordf_t stroke_width)
 {
-    Pointf dir(line.b.x-line.a.x, line.b.y-line.a.y);
-    Pointf perp(-dir.y, dir.x);
-    coordf_t len = sqrt(perp.x*perp.x + perp.y*perp.y);
+    Pointf dir(line.b.x()-line.a.x(), line.b.y()-line.a.y());
+    Pointf perp(-dir.y(), dir.x());
+    coordf_t len = sqrt(perp.x()*perp.x() + perp.y()*perp.y());
     coordf_t da  = coordf_t(0.5)*line.a_width/len;
     coordf_t db  = coordf_t(0.5)*line.b_width/len;
     fprintf(this->f,
         "   <polygon points=\"%f,%f %f,%f %f,%f %f,%f\" style=\"fill:%s; stroke: %s; stroke-width: %f\"/>\n",
-        COORD(line.a.x-da*perp.x-origin.x),
-        COORD(line.a.y-da*perp.y-origin.y),
-        COORD(line.b.x-db*perp.x-origin.x),
-        COORD(line.b.y-db*perp.y-origin.y),
-        COORD(line.b.x+db*perp.x-origin.x),
-        COORD(line.b.y+db*perp.y-origin.y),
-        COORD(line.a.x+da*perp.x-origin.x),
-        COORD(line.a.y+da*perp.y-origin.y),
+        COORD(line.a.x()-da*perp.x()-origin.x()),
+        COORD(line.a.y()-da*perp.y()-origin.y()),
+        COORD(line.b.x()-db*perp.x()-origin.x()),
+        COORD(line.b.y()-db*perp.y()-origin.y()),
+        COORD(line.b.x()+db*perp.x()-origin.x()),
+        COORD(line.b.y()+db*perp.y()-origin.y()),
+        COORD(line.a.x()+da*perp.x()-origin.x()),
+        COORD(line.a.y()+da*perp.y()-origin.y()),
         fill.c_str(), stroke.c_str(),
         (stroke_width == 0) ? 1.f : COORD(stroke_width));
 }
@@ -220,7 +220,7 @@ SVG::draw(const Point &point, std::string fill, coord_t iradius)
 {
     float radius = (iradius == 0) ? 3.f : COORD(iradius);
     std::ostringstream svg;
-    svg << "   <circle cx=\"" << COORD(point.x - origin.x) << "\" cy=\"" << COORD(point.y - origin.y)
+    svg << "   <circle cx=\"" << COORD(point.x() - origin.x()) << "\" cy=\"" << COORD(point.y() - origin.y())
         << "\" r=\"" << radius << "\" "
         << "style=\"stroke: none; fill: " << fill << "\" />";
     
@@ -287,8 +287,8 @@ SVG::get_path_d(const MultiPoint &mp, bool closed) const
     std::ostringstream d;
     d << "M ";
     for (Points::const_iterator p = mp.points.begin(); p != mp.points.end(); ++p) {
-        d << COORD(p->x - origin.x) << " ";
-        d << COORD(p->y - origin.y) << " ";
+        d << COORD(p->x() - origin.x()) << " ";
+        d << COORD(p->y() - origin.y()) << " ";
     }
     if (closed) d << "z";
     return d.str();
@@ -300,8 +300,8 @@ SVG::get_path_d(const ClipperLib::Path &path, double scale, bool closed) const
     std::ostringstream d;
     d << "M ";
     for (ClipperLib::Path::const_iterator p = path.begin(); p != path.end(); ++p) {
-        d << COORD(scale * p->X - origin.x) << " ";
-        d << COORD(scale * p->Y - origin.y) << " ";
+        d << COORD(scale * p->X - origin.x()) << " ";
+        d << COORD(scale * p->Y - origin.y()) << " ";
     }
     if (closed) d << "z";
     return d.str();
@@ -311,8 +311,8 @@ void SVG::draw_text(const Point &pt, const char *text, const char *color)
 {
     fprintf(this->f,
         "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"20px\" fill=\"%s\">%s</text>",
-        COORD(pt.x-origin.x),
-        COORD(pt.y-origin.y),
+        COORD(pt.x()-origin.x()),
+        COORD(pt.y()-origin.y()),
         color, text);
 }
 
@@ -320,13 +320,13 @@ void SVG::draw_legend(const Point &pt, const char *text, const char *color)
 {
     fprintf(this->f,
         "<circle cx=\"%f\" cy=\"%f\" r=\"10\" fill=\"%s\"/>",
-        COORD(pt.x-origin.x),
-        COORD(pt.y-origin.y),
+        COORD(pt.x()-origin.x()),
+        COORD(pt.y()-origin.y()),
         color);
     fprintf(this->f,
         "<text x=\"%f\" y=\"%f\" font-family=\"sans-serif\" font-size=\"10px\" fill=\"%s\">%s</text>",
-        COORD(pt.x-origin.x) + 20.f,
-        COORD(pt.y-origin.y),
+        COORD(pt.x()-origin.x()) + 20.f,
+        COORD(pt.y()-origin.y()),
         "black", text);
 }
 

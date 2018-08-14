@@ -2067,7 +2067,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         ConfigOptionPoint p;
         p.deserialize(value);
         std::ostringstream oss;
-        oss << "0x0," << p.value.x << "x0," << p.value.x << "x" << p.value.y << ",0x" << p.value.y;
+        oss << "0x0," << p.value.x() << "x0," << p.value.x() << "x" << p.value.y() << ",0x" << p.value.y();
         value = oss.str();
 // Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
 // Commenting this out fixes github issue #869 for now.

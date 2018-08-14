@@ -27,7 +27,7 @@ public:
 	static Polygon new_scale(std::vector<Pointf> points) { 
 		Points int_points;
 		for (auto pt : points)
-			int_points.push_back(Point::new_scale(pt.x, pt.y));
+			int_points.push_back(Point::new_scale(pt.x(), pt.y()));
 		return Polygon(int_points);
 	}
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }

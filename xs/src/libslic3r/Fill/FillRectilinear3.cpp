@@ -223,24 +223,24 @@ Point SegmentIntersection::pos() const
     const Pointf   p2  = convert_to<Pointf>(line->pos);
     const Pointf   v2  = convert_to<Pointf>(line->dir);
     // Intersect the two rays.
-    double denom = v1.x * v2.y - v2.x * v1.y;
+    double denom = v1.x() * v2.y() - v2.x() * v1.y();
     Point out;
     if (denom == 0.) {
         // Lines are collinear. As the pos() method is not supposed to be called on collinear vectors,
         // the source vectors are not quite collinear. Return the center of the contour segment.
         out = seg_start + seg_end;
-        out.x >>= 1;
-        out.y >>= 1;
+        out.x() >>= 1;
+        out.y() >>= 1;
     } else {
         // Find the intersection point.
-        double t = (v2.x * (p1.y - p2.y) - v2.y * (p1.x - p2.x)) / denom;
+        double t = (v2.x() * (p1.y() - p2.y()) - v2.y() * (p1.x() - p2.x())) / denom;
         if (t < 0.)
             out = seg_start;
         else if (t > 1.)
             out = seg_end;
         else {
-            out.x = coord_t(floor(p1.x + t * v1.x + 0.5));
-            out.y = coord_t(floor(p1.y + t * v1.y + 0.5));
+            out.x() = coord_t(floor(p1.x() + t * v1.x() + 0.5));
+            out.y() = coord_t(floor(p1.y() + t * v1.y() + 0.5));
         }
     }
     return out;
@@ -317,8 +317,8 @@ int SegmentIntersection::ordering_along_line(const SegmentIntersection &other) c
 	int64_t denom2 = cross(this->line->dir, vec_b);
 	Point   vx_a   = seg_start_a - this->line->pos;
 	Point   vx_b   = seg_start_b - this->line->pos;
-	int64_t t1_times_denom1 = int64_t(vx_a.x) * int64_t(vec_a.y) - int64_t(vx_a.y) * int64_t(vec_a.x);
-	int64_t t2_times_denom2 = int64_t(vx_b.x) * int64_t(vec_b.y) - int64_t(vx_b.y) * int64_t(vec_b.x);
+	int64_t t1_times_denom1 = int64_t(vx_a.x()) * int64_t(vec_a.y()) - int64_t(vx_a.y()) * int64_t(vec_a.x());
+	int64_t t2_times_denom2 = int64_t(vx_b.x()) * int64_t(vec_b.y()) - int64_t(vx_b.y()) * int64_t(vec_b.x());
 	assert(denom1 != 0);
     assert(denom2 != 0);
     return Int128::compare_rationals_filtered(t1_times_denom1, denom1, t2_times_denom2, denom2);
@@ -389,7 +389,7 @@ static bool prepare_infill_hatching_segments(
     // Define the flow spacing according to requested density.
     if (params.full_infill() && ! params.dont_adjust) {
         // Full infill, adjust the line spacing to fit an integer number of lines.
-        out.line_spacing = Fill::_adjust_solid_spacing(bounding_box.size().x, line_spacing);
+        out.line_spacing = Fill::_adjust_solid_spacing(bounding_box.size().x(), line_spacing);
         // Report back the adjusted line spacing.
         fill_dir_params.spacing = float(unscale(line_spacing));
     } else {
@@ -398,7 +398,7 @@ static bool prepare_infill_hatching_segments(
         Point refpt = rotate_vector.second.rotated(- out.angle);
         // _align_to_grid will not work correctly with positive pattern_shift.
         coord_t pattern_shift_scaled = coord_t(scale_(fill_dir_params.pattern_shift)) % line_spacing;
-        refpt.x -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
+        refpt.x() -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
         bounding_box.merge(Fill::_align_to_grid(
             bounding_box.min, 
             Point(line_spacing, line_spacing), 
@@ -407,13 +407,13 @@ static bool prepare_infill_hatching_segments(
 
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
     // n_vlines = ceil(bbox_width / line_spacing)
-    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
-    coord_t x0 = bounding_box.min.x;
+    size_t  n_vlines = (bounding_box.max.x() - bounding_box.min.x() + line_spacing - 1) / line_spacing;
+    coord_t x0 = bounding_box.min.x();
     if (params.full_infill())
         x0 += coord_t((line_spacing + SCALED_EPSILON) / 2);
 
     out.line_spacing = line_spacing;
-    out.start_point = Point(x0, bounding_box.min.y);
+    out.start_point = Point(x0, bounding_box.min.y());
     out.start_point.rotate(out.angle);
 
 #ifdef SLIC3R_DEBUG
@@ -436,10 +436,10 @@ static bool prepare_infill_hatching_segments(
     for (size_t i = 0; i < n_vlines; ++ i) {
         auto &seg = out.segs[i];
         seg.idx = i;
-        // seg.x   = x0 + coord_t(i) * line_spacing;
+        // seg.x()   = x0 + coord_t(i) * line_spacing;
         coord_t x = x0 + coord_t(i) * line_spacing;
-        seg.pos.x = coord_t(floor(cos_a * x                  - sin_a * bounding_box.min.y + 0.5));
-        seg.pos.y = coord_t(floor(cos_a * bounding_box.min.y + sin_a * x                  + 0.5));
+        seg.pos.x() = coord_t(floor(cos_a * x                  - sin_a * bounding_box.min.y() + 0.5));
+        seg.pos.y() = coord_t(floor(cos_a * bounding_box.min.y() + sin_a * x                  + 0.5));
         seg.dir = out.direction;
     }
 
@@ -454,7 +454,7 @@ static bool prepare_infill_hatching_segments(
             const Point *pr = &contour[iSegment];
             // Orient the segment to the direction vector.
             const Point  v  = *pr - *pl;
-            int   orientation = Int128::sign_determinant_2x2_filtered(v.x, v.y, out.direction.x, out.direction.y);
+            int   orientation = Int128::sign_determinant_2x2_filtered(v.x(), v.y(), out.direction.x(), out.direction.y());
             if (orientation == 0)
                 // Ignore strictly vertical segments.
                 continue;
@@ -462,8 +462,8 @@ static bool prepare_infill_hatching_segments(
                 // Always orient the input segment consistently towards the hatching direction.
                 std::swap(pl, pr);
             // Which of the equally spaced vertical lines is intersected by this segment?
-            coord_t l = (coord_t)floor(cos_a * pl->x + sin_a * pl->y - SCALED_EPSILON);
-            coord_t r = (coord_t)ceil (cos_a * pr->x + sin_a * pr->y + SCALED_EPSILON);
+            coord_t l = (coord_t)floor(cos_a * pl->x() + sin_a * pl->y() - SCALED_EPSILON);
+            coord_t r = (coord_t)ceil (cos_a * pr->x() + sin_a * pr->y() + SCALED_EPSILON);
 			assert(l < r - SCALED_EPSILON);
             // il, ir are the left / right indices of vertical lines intersecting a segment
             int il = std::max<int>(0, (l - x0 + line_spacing) / line_spacing);
@@ -479,9 +479,9 @@ static bool prepare_infill_hatching_segments(
             // 2) all lines from il to ir intersect <pl, pr>.
             assert(il >= 0 && ir < int(out.segs.size()));
             for (int i = il; i <= ir; ++ i) {
-                // assert(out.segs[i].x == i * line_spacing + x0);
-                // assert(l <= out.segs[i].x);
-                // assert(r >= out.segs[i].x);
+                // assert(out.segs[i].x() == i * line_spacing + x0);
+                // assert(l <= out.segs[i].x());
+                // assert(r >= out.segs[i].x());
                 SegmentIntersection is;
                 is.line     = &out.segs[i];
                 is.expoly_with_offset = &poly_with_offset;
@@ -491,10 +491,10 @@ static bool prepare_infill_hatching_segments(
                 // +-1 to take rounding into account.
                 assert(int128::orient(out.segs[i].pos, out.segs[i].pos + out.direction, *pl) >= 0);
                 assert(int128::orient(out.segs[i].pos, out.segs[i].pos + out.direction, *pr) <= 0);
-                assert(is.pos().x + 1 >= std::min(pl->x, pr->x));
-                assert(is.pos().y + 1 >= std::min(pl->y, pr->y));
-                assert(is.pos().x     <= std::max(pl->x, pr->x) + 1);
-                assert(is.pos().y     <= std::max(pl->y, pr->y) + 1);
+                assert(is.pos().x() + 1 >= std::min(pl->x(), pr->x()));
+                assert(is.pos().y() + 1 >= std::min(pl->y(), pr->y()));
+                assert(is.pos().x()     <= std::max(pl->x(), pr->x()) + 1);
+                assert(is.pos().y()     <= std::max(pl->y(), pr->y()) + 1);
                 out.segs[i].intersections.push_back(is);
             }
         }
@@ -659,12 +659,12 @@ static inline coordf_t segment_length(const Polygon &poly, size_t seg1, const Po
         Point  px  = (i == 0) ? p1   : p2;
         Point  pa  = poly.points[((seg == 0) ? poly.points.size() : seg) - 1];
         Point  pb  = poly.points[seg];
-        if (pa.x > pb.x)
-            std::swap(pa.x, pb.x);
-        if (pa.y > pb.y)
-            std::swap(pa.y, pb.y);
-        assert(px.x >= pa.x && px.x <= pb.x);
-        assert(px.y >= pa.y && px.y <= pb.y);
+        if (pa.x() > pb.x())
+            std::swap(pa.x(), pb.x());
+        if (pa.y() > pb.y())
+            std::swap(pa.y(), pb.y());
+        assert(px.x() >= pa.x() && px.x() <= pb.x());
+        assert(px.y() >= pa.y() && px.y() <= pb.y());
     }
 #endif /* SLIC3R_DEBUG */
     const Point *pPrev = &p1;
@@ -1481,8 +1481,8 @@ static bool fill_hatching_segments_legacy(
         // Handle nearly zero length edges.
         if (polyline_current->points.size() <= 1 ||
             (polyline_current->points.size() == 2 &&
-                std::abs(polyline_current->points.front().x - polyline_current->points.back().x) < SCALED_EPSILON &&
-                std::abs(polyline_current->points.front().y - polyline_current->points.back().y) < SCALED_EPSILON))
+                std::abs(polyline_current->points.front().x() - polyline_current->points.back().x()) < SCALED_EPSILON &&
+                std::abs(polyline_current->points.front().y() - polyline_current->points.back().y()) < SCALED_EPSILON))
             polylines_out.pop_back();
         intrsctn = NULL;
         i_intersection = -1;
@@ -1510,7 +1510,7 @@ static bool fill_hatching_segments_legacy(
     // paths must be rotated back
     for (Polylines::iterator it = polylines_out.begin() + n_polylines_out_initial; it != polylines_out.end(); ++ it) {
         // No need to translate, the absolute position is irrelevant.
-        // it->translate(- rotate_vector.second.x, - rotate_vector.second.y);
+        // it->translate(- rotate_vector.second.x(), - rotate_vector.second.y());
         assert(! it->has_duplicate_points());
         //it->rotate(rotate_vector.first);
         //FIXME rather simplify the paths to avoid very short edges?

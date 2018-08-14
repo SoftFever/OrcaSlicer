@@ -683,7 +683,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     // constructs the polylines while traversing the moves
     for (const GCodeMove& move : extrude_moves->second)
     {
-        if ((data != move.data) || (z != move.start_position.z) || (position != move.start_position) || (volumetric_rate != move.data.feedrate * (float)move.data.mm3_per_mm))
+        if ((data != move.data) || (z != move.start_position.z()) || (position != move.start_position) || (volumetric_rate != move.data.feedrate * (float)move.data.mm3_per_mm))
         {
             // store current polyline
             polyline.remove_duplicate_points();
@@ -693,12 +693,12 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
             polyline = Polyline();
 
             // add both vertices of the move
-            polyline.append(Point(scale_(move.start_position.x), scale_(move.start_position.y)));
-            polyline.append(Point(scale_(move.end_position.x), scale_(move.end_position.y)));
+            polyline.append(Point(scale_(move.start_position.x()), scale_(move.start_position.y())));
+            polyline.append(Point(scale_(move.end_position.x()), scale_(move.end_position.y())));
 
             // update current values
             data = move.data;
-            z = move.start_position.z;
+            z = move.start_position.z();
             volumetric_rate = move.data.feedrate * (float)move.data.mm3_per_mm;
             height_range.update_from(move.data.height);
             width_range.update_from(move.data.width);
@@ -707,7 +707,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
         }
         else
             // append end vertex of the move to current polyline
-            polyline.append(Point(scale_(move.end_position.x), scale_(move.end_position.y)));
+            polyline.append(Point(scale_(move.end_position.x()), scale_(move.end_position.y())));
 
         // update current values
         position = move.end_position;
@@ -756,7 +756,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
     for (const GCodeMove& move : travel_moves->second)
     {
         GCodePreviewData::Travel::EType move_type = (move.delta_extruder < 0.0f) ? GCodePreviewData::Travel::Retract : ((move.delta_extruder > 0.0f) ? GCodePreviewData::Travel::Extrude : GCodePreviewData::Travel::Move);
-        GCodePreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x != move.end_position.x) || (move.start_position.y != move.end_position.y)) ? GCodePreviewData::Travel::Polyline::Generic : GCodePreviewData::Travel::Polyline::Vertical;
+        GCodePreviewData::Travel::Polyline::EDirection move_direction = ((move.start_position.x() != move.end_position.x()) || (move.start_position.y() != move.end_position.y())) ? GCodePreviewData::Travel::Polyline::Generic : GCodePreviewData::Travel::Polyline::Vertical;
 
         if ((type != move_type) || (direction != move_direction) || (feedrate != move.data.feedrate) || (position != move.start_position) || (extruder_id != move.data.extruder_id))
         {
@@ -768,12 +768,12 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
             polyline = Polyline3();
 
             // add both vertices of the move
-            polyline.append(Point3(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z)));
-            polyline.append(Point3(scale_(move.end_position.x), scale_(move.end_position.y), scale_(move.end_position.z)));
+            polyline.append(Point3(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z())));
+            polyline.append(Point3(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
         }
         else
             // append end vertex of the move to current polyline
-            polyline.append(Point3(scale_(move.end_position.x), scale_(move.end_position.y), scale_(move.end_position.z)));
+            polyline.append(Point3(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
 
         // update current values
         position = move.end_position;
@@ -804,7 +804,7 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_da
     for (const GCodeMove& move : retraction_moves->second)
     {
         // store position
-        Point3 position(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
+        Point3 position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }
@@ -818,7 +818,7 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_
     for (const GCodeMove& move : unretraction_moves->second)
     {
         // store position
-        Point3 position(scale_(move.start_position.x), scale_(move.start_position.y), scale_(move.start_position.z));
+        Point3 position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }

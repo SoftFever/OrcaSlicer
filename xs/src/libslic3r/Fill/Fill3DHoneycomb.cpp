@@ -54,9 +54,9 @@ static std::vector<coordf_t> perpendPoints(const coordf_t offset, const size_t b
 // components that are outside these limits are set to the limits.
 static inline void trim(Pointfs &pts, coordf_t minX, coordf_t minY, coordf_t maxX, coordf_t maxY)
 {
-    for (Pointfs::iterator it = pts.begin(); it != pts.end(); ++ it) {
-        it->x = clamp(minX, maxX, it->x);
-        it->y = clamp(minY, maxY, it->y);
+    for (Pointf &pt : pts) {
+        pt.x() = clamp(minX, maxX, pt.x());
+        pt.y() = clamp(minY, maxY, pt.y());
     }
 }
 
@@ -128,7 +128,7 @@ static Polylines makeGrid(coord_t z, coord_t gridSize, size_t gridWidth, size_t 
         result.push_back(Polyline());
         Polyline &polyline = result.back();
         for (Pointfs::const_iterator it = it_polylines->begin(); it != it_polylines->end(); ++ it)
-            polyline.points.push_back(Point(coord_t(it->x * scaleFactor), coord_t(it->y * scaleFactor)));
+            polyline.points.push_back(Point(coord_t(it->x() * scaleFactor), coord_t(it->y() * scaleFactor)));
     }
     return result;
 }
@@ -153,13 +153,13 @@ void Fill3DHoneycomb::_fill_surface_single(
     Polylines   polylines = makeGrid(
         scale_(this->z),
         distance,
-        ceil(bb.size().x / distance) + 1,
-        ceil(bb.size().y / distance) + 1,
+        ceil(bb.size().x() / distance) + 1,
+        ceil(bb.size().y() / distance) + 1,
         ((this->layer_id/thickness_layers) % 2) + 1);
     
     // move pattern in place
     for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it)
-        it->translate(bb.min.x, bb.min.y);
+        it->translate(bb.min.x(), bb.min.y());
 
     // clip pattern to boundaries
     polylines = intersection_pl(polylines, (Polygons)expolygon);

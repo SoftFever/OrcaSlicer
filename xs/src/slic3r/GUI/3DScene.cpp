@@ -284,7 +284,7 @@ const std::vector<float>& GLVolume::world_matrix() const
     if (m_dirty)
     {
         Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-        m.translate(Eigen::Vector3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z));
+        m.translate(Eigen::Vector3f((float)m_origin.x(), (float)m_origin.y(), (float)m_origin.z()));
         m.rotate(Eigen::AngleAxisf(m_angle_z, Eigen::Vector3f::UnitZ()));
         m.scale(m_scale_factor);
         ::memcpy((void*)m_world_mat.data(), (const void*)m.data(), 16 * sizeof(float));
@@ -344,7 +344,7 @@ void GLVolume::render() const
 
     ::glCullFace(GL_BACK);
     ::glPushMatrix();
-    ::glTranslated(m_origin.x, m_origin.y, m_origin.z);
+    ::glTranslated(m_origin.x(), m_origin.y(), m_origin.z());
     ::glRotatef(m_angle_z * 180.0f / PI, 0.0f, 0.0f, 1.0f);
     ::glScalef(m_scale_factor, m_scale_factor, m_scale_factor);
     if (this->indexed_vertex_array.indexed())
@@ -378,7 +378,7 @@ void GLVolume::render_using_layer_height() const
         glUniform1f(z_texture_row_to_normalized_id, (GLfloat)(1.0f / layer_height_texture_height()));
 
     if (z_cursor_id >= 0)
-        glUniform1f(z_cursor_id, (GLfloat)(layer_height_texture_data.print_object->model_object()->bounding_box().max.z * layer_height_texture_data.z_cursor_relative));
+        glUniform1f(z_cursor_id, (GLfloat)(layer_height_texture_data.print_object->model_object()->bounding_box().max.z() * layer_height_texture_data.z_cursor_relative));
 
     if (z_cursor_band_width_id >= 0)
         glUniform1f(z_cursor_band_width_id, (GLfloat)layer_height_texture_data.edit_band_width);
@@ -470,7 +470,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
 
     ::glPushMatrix();
-    ::glTranslated(m_origin.x, m_origin.y, m_origin.z);
+    ::glTranslated(m_origin.x(), m_origin.y(), m_origin.z());
     ::glRotatef(m_angle_z * 180.0f / PI, 0.0f, 0.0f, 1.0f);
     ::glScalef(m_scale_factor, m_scale_factor, m_scale_factor);
 
@@ -515,7 +515,7 @@ void GLVolume::render_legacy() const
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data());
 
     ::glPushMatrix();
-    ::glTranslated(m_origin.x, m_origin.y, m_origin.z);
+    ::glTranslated(m_origin.x(), m_origin.y(), m_origin.z());
     ::glRotatef(m_angle_z * 180.0f / PI, 0.0f, 0.0f, 1.0f);
     ::glScalef(m_scale_factor, m_scale_factor, m_scale_factor);
 
@@ -530,7 +530,7 @@ void GLVolume::render_legacy() const
 
 double GLVolume::layer_height_texture_z_to_row_id() const
 {
-    return (this->layer_height_texture.get() == nullptr) ? 0.0 : double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * this->layer_height_texture_data.print_object->model_object()->bounding_box().max.z);
+    return (this->layer_height_texture.get() == nullptr) ? 0.0 : double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * this->layer_height_texture_data.print_object->model_object()->bounding_box().max.z());
 }
 
 void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)
@@ -634,7 +634,7 @@ std::vector<int> GLVolumeCollection::load_object(
             }
             v.is_modifier = model_volume->modifier;
             v.outside_printer_detection_enabled = !model_volume->modifier;
-            v.set_origin(Pointf3(instance->offset.x, instance->offset.y, 0.0));
+            v.set_origin(Pointf3(instance->offset.x(), instance->offset.y(), 0.0));
             v.set_angle_z(instance->rotation);
             v.set_scale_factor(instance->scaling_factor);
         }
@@ -748,9 +748,9 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x), unscale(bed_box_2D.min.y), 0.0), Pointf3(unscale(bed_box_2D.max.x), unscale(bed_box_2D.max.y), config->opt_float("max_print_height")));
+    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x()), unscale(bed_box_2D.min.y()), 0.0), Pointf3(unscale(bed_box_2D.max.x()), unscale(bed_box_2D.max.y()), config->opt_float("max_print_height")));
     // Allow the objects to protrude below the print bed
-    print_volume.min.z = -1e10;
+    print_volume.min.z() = -1e10;
 
     ModelInstance::EPrintVolumeState state = ModelInstance::PVS_Inside;
     bool all_contained = true;
@@ -945,8 +945,8 @@ static void thick_lines_to_indexed_vertex_array(
         Pointf b2 = b;
         {
             double dist = 0.5 * width;  // scaled
-            double dx = dist * v.x;
-            double dy = dist * v.y;
+            double dx = dist * v.x();
+            double dy = dist * v.y();
             a1.translate(+dy, -dx);
             a2.translate(-dy, +dx);
             b1.translate(+dy, -dx);
@@ -955,7 +955,7 @@ static void thick_lines_to_indexed_vertex_array(
 
         // calculate new XY normals
         Vector n = line.normal();
-        Vectorf3 xy_right_normal = Vectorf3::new_unscale(n.x, n.y, 0);
+        Vectorf3 xy_right_normal = Vectorf3::new_unscale(n.x(), n.y(), 0);
         xy_right_normal.scale(inv_len);
 
         int idx_a[4];
@@ -974,7 +974,7 @@ static void thick_lines_to_indexed_vertex_array(
         // Share top / bottom vertices if possible.
         if (is_first) {
             idx_a[TOP] = idx_last++;
-            volume.push_geometry(a.x, a.y, top_z   , 0., 0.,  1.); 
+            volume.push_geometry(a.x(), a.y(), top_z   , 0., 0.,  1.); 
         } else {
             idx_a[TOP] = idx_prev[TOP];
         }
@@ -982,11 +982,11 @@ static void thick_lines_to_indexed_vertex_array(
         if (is_first || bottom_z_different) {
             // Start of the 1st line segment or a change of the layer thickness while maintaining the print_z.
             idx_a[BOTTOM] = idx_last ++;
-            volume.push_geometry(a.x, a.y, bottom_z, 0., 0., -1.);
+            volume.push_geometry(a.x(), a.y(), bottom_z, 0., 0., -1.);
             idx_a[LEFT ] = idx_last ++;
-            volume.push_geometry(a2.x, a2.y, middle_z, -xy_right_normal.x, -xy_right_normal.y, -xy_right_normal.z);
+            volume.push_geometry(a2.x(), a2.y(), middle_z, -xy_right_normal.x(), -xy_right_normal.y(), -xy_right_normal.z());
             idx_a[RIGHT] = idx_last ++;
-            volume.push_geometry(a1.x, a1.y, middle_z, xy_right_normal.x, xy_right_normal.y, xy_right_normal.z);
+            volume.push_geometry(a1.x(), a1.y(), middle_z, xy_right_normal.x(), xy_right_normal.y(), xy_right_normal.z());
         }
         else {
             idx_a[BOTTOM] = idx_prev[BOTTOM];
@@ -1007,9 +1007,9 @@ static void thick_lines_to_indexed_vertex_array(
                 {
                     // Allocate new left / right points for the start of this segment as these points will receive their own normals to indicate a sharp turn.
                     idx_a[RIGHT] = idx_last++;
-                    volume.push_geometry(a1.x, a1.y, middle_z, xy_right_normal.x, xy_right_normal.y, xy_right_normal.z);
+                    volume.push_geometry(a1.x(), a1.y(), middle_z, xy_right_normal.x(), xy_right_normal.y(), xy_right_normal.z());
                     idx_a[LEFT] = idx_last++;
-                    volume.push_geometry(a2.x, a2.y, middle_z, -xy_right_normal.x, -xy_right_normal.y, -xy_right_normal.z);
+                    volume.push_geometry(a2.x(), a2.y(), middle_z, -xy_right_normal.x(), -xy_right_normal.y(), -xy_right_normal.z());
                 }
             }
             if (v_dot > 0.9) {
@@ -1035,17 +1035,17 @@ static void thick_lines_to_indexed_vertex_array(
                     float *p_left_prev  = n_left_prev  + 3;
                     float *n_right_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6;
                     float *p_right_prev = n_right_prev + 3;
-                    p_left_prev [0] = float(a2.x);
-                    p_left_prev [1] = float(a2.y);
-                    p_right_prev[0] = float(a1.x);
-                    p_right_prev[1] = float(a1.y);
-                    xy_right_normal.x += n_right_prev[0];
-                    xy_right_normal.y += n_right_prev[1];
+                    p_left_prev [0] = float(a2.x());
+                    p_left_prev [1] = float(a2.y());
+                    p_right_prev[0] = float(a1.x());
+                    p_right_prev[1] = float(a1.y());
+                    xy_right_normal.x() += n_right_prev[0];
+                    xy_right_normal.y() += n_right_prev[1];
                     xy_right_normal.scale(1. / length(xy_right_normal));
-                    n_left_prev [0] = float(-xy_right_normal.x);
-                    n_left_prev [1] = float(-xy_right_normal.y);
-                    n_right_prev[0] = float( xy_right_normal.x);
-                    n_right_prev[1] = float( xy_right_normal.y);
+                    n_left_prev [0] = float(-xy_right_normal.x());
+                    n_left_prev [1] = float(-xy_right_normal.y());
+                    n_right_prev[0] = float( xy_right_normal.x());
+                    n_right_prev[1] = float( xy_right_normal.y());
                     idx_a[LEFT ] = idx_prev[LEFT ];
                     idx_a[RIGHT] = idx_prev[RIGHT];
                 }
@@ -1086,20 +1086,20 @@ static void thick_lines_to_indexed_vertex_array(
             idx_b[TOP] = idx_initial[TOP];
         } else {
             idx_b[TOP] = idx_last ++;
-            volume.push_geometry(b.x, b.y, top_z   , 0., 0.,  1.);
+            volume.push_geometry(b.x(), b.y(), top_z   , 0., 0.,  1.);
         }
 
         if (is_closing && (width == width_initial) && (bottom_z == bottom_z_initial)) {
             idx_b[BOTTOM] = idx_initial[BOTTOM];
         } else {
             idx_b[BOTTOM] = idx_last ++;
-            volume.push_geometry(b.x, b.y, bottom_z, 0., 0., -1.);
+            volume.push_geometry(b.x(), b.y(), bottom_z, 0., 0., -1.);
         }
         // Generate new vertices for the end of this line segment.
         idx_b[LEFT  ] = idx_last ++;
-        volume.push_geometry(b2.x, b2.y, middle_z, -xy_right_normal.x, -xy_right_normal.y, -xy_right_normal.z);
+        volume.push_geometry(b2.x(), b2.y(), middle_z, -xy_right_normal.x(), -xy_right_normal.y(), -xy_right_normal.z());
         idx_b[RIGHT ] = idx_last ++;
-        volume.push_geometry(b1.x, b1.y, middle_z, xy_right_normal.x, xy_right_normal.y, xy_right_normal.z);
+        volume.push_geometry(b1.x(), b1.y(), middle_z, xy_right_normal.x(), xy_right_normal.y(), xy_right_normal.z());
 
         memcpy(idx_prev, idx_b, 4 * sizeof(int));
         bottom_z_prev = bottom_z;
@@ -1184,10 +1184,10 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         Vectorf3 n_right;
         Vectorf3 unit_positive_z(0.0, 0.0, 1.0);
 
-        if ((line.a.x == line.b.x) && (line.a.y == line.b.y))
+        if ((line.a.x() == line.b.x()) && (line.a.y() == line.b.y()))
         {
             // vertical segment
-            n_right = (line.a.z < line.b.z) ? Vectorf3(-1.0, 0.0, 0.0) : Vectorf3(1.0, 0.0, 0.0);
+            n_right = (line.a.z() < line.b.z()) ? Vectorf3(-1.0, 0.0, 0.0) : Vectorf3(1.0, 0.0, 0.0);
             n_top = Vectorf3(0.0, 1.0, 0.0);
         }
         else
@@ -1218,8 +1218,8 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         int idx_b[4];
         int idx_last = int(volume.vertices_and_normals_interleaved.size() / 6);
 
-        bool z_different = (z_prev != l_a.z);
-        z_prev = l_b.z;
+        bool z_different = (z_prev != l_a.z());
+        z_prev = l_b.z();
 
         // Share top / bottom vertices if possible.
         if (ii == 0)
@@ -1288,25 +1288,25 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
 
                 // updates previous line normals
                 float* normal_left_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT] * 6;
-                normal_left_prev[0] = float(average_n_left.x);
-                normal_left_prev[1] = float(average_n_left.y);
-                normal_left_prev[2] = float(average_n_left.z);
+                normal_left_prev[0] = float(average_n_left.x());
+                normal_left_prev[1] = float(average_n_left.y());
+                normal_left_prev[2] = float(average_n_left.z());
 
                 float* normal_right_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6;
-                normal_right_prev[0] = float(average_n_right.x);
-                normal_right_prev[1] = float(average_n_right.y);
-                normal_right_prev[2] = float(average_n_right.z);
+                normal_right_prev[0] = float(average_n_right.x());
+                normal_right_prev[1] = float(average_n_right.y());
+                normal_right_prev[2] = float(average_n_right.z());
 
                 // updates previous line's vertices around b
                 float* b_left_prev = normal_left_prev + 3;
-                b_left_prev[0] = float(a[LEFT].x);
-                b_left_prev[1] = float(a[LEFT].y);
-                b_left_prev[2] = float(a[LEFT].z);
+                b_left_prev[0] = float(a[LEFT].x());
+                b_left_prev[1] = float(a[LEFT].y());
+                b_left_prev[2] = float(a[LEFT].z());
 
                 float* b_right_prev = normal_right_prev + 3;
-                b_right_prev[0] = float(a[RIGHT].x);
-                b_right_prev[1] = float(a[RIGHT].y);
-                b_right_prev[2] = float(a[RIGHT].z);
+                b_right_prev[0] = float(a[RIGHT].x());
+                b_right_prev[1] = float(a[RIGHT].y());
+                b_right_prev[2] = float(a[RIGHT].z());
 
                 idx_a[LEFT] = idx_prev[LEFT];
                 idx_a[RIGHT] = idx_prev[RIGHT];

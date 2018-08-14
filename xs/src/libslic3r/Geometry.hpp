@@ -30,9 +30,9 @@ enum Orientation
 static inline Orientation orient(const Point &a, const Point &b, const Point &c)
 {
     // BOOST_STATIC_ASSERT(sizeof(coord_t) * 2 == sizeof(int64_t));
-    int64_t u = int64_t(b.x) * int64_t(c.y) - int64_t(b.y) * int64_t(c.x);
-    int64_t v = int64_t(a.x) * int64_t(c.y) - int64_t(a.y) * int64_t(c.x);
-    int64_t w = int64_t(a.x) * int64_t(b.y) - int64_t(a.y) * int64_t(b.x);
+    int64_t u = int64_t(b.x()) * int64_t(c.y()) - int64_t(b.y()) * int64_t(c.x());
+    int64_t v = int64_t(a.x()) * int64_t(c.y()) - int64_t(a.y()) * int64_t(c.x());
+    int64_t w = int64_t(a.x()) * int64_t(b.y()) - int64_t(a.y()) * int64_t(b.x());
     int64_t d = u - v + w;
     return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
 }
@@ -52,7 +52,7 @@ static inline bool is_ccw(const Polygon &poly)
     for (unsigned int i = 1; i < poly.points.size(); ++ i) {
         const Point &pmin = poly.points[imin];
         const Point &p    = poly.points[i];
-        if (p.x < pmin.x || (p.x == pmin.x && p.y < pmin.y))
+        if (p.x() < pmin.x() || (p.x() == pmin.x() && p.y() < pmin.y()))
             imin = i;
     }
 
@@ -68,24 +68,24 @@ static inline bool is_ccw(const Polygon &poly)
 
 inline bool ray_ray_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
 {
-    double denom = v1.x * v2.y - v2.x * v1.y;
+    double denom = v1.x() * v2.y() - v2.x() * v1.y();
     if (std::abs(denom) < EPSILON)
         return false;
-    double t = (v2.x * (p1.y - p2.y) - v2.y * (p1.x - p2.x)) / denom;
-    res.x = p1.x + t * v1.x;
-    res.y = p1.y + t * v1.y;
+    double t = (v2.x() * (p1.y() - p2.y()) - v2.y() * (p1.x() - p2.x())) / denom;
+    res.x() = p1.x() + t * v1.x();
+    res.y() = p1.y() + t * v1.y();
     return true;
 }
 
 inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
 {
-    double denom = v1.x * v2.y - v2.x * v1.y;
+    double denom = v1.x() * v2.y() - v2.x() * v1.y();
     if (std::abs(denom) < EPSILON)
         // Lines are collinear.
         return false;
-    double s12_x = p1.x - p2.x;
-    double s12_y = p1.y - p2.y;
-    double s_numer = v1.x * s12_y - v1.y * s12_x;
+    double s12_x = p1.x() - p2.x();
+    double s12_y = p1.y() - p2.y();
+    double s_numer = v1.x() * s12_y - v1.y() * s12_x;
     bool   denom_is_positive = false;
     if (denom < 0.) {
         denom_is_positive = true;
@@ -95,7 +95,7 @@ inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, co
     if (s_numer < 0.)
         // Intersection outside of the 1st segment.
         return false;
-    double t_numer = v2.x * s12_y - v2.y * s12_x;
+    double t_numer = v2.x() * s12_y - v2.y() * s12_x;
     if (! denom_is_positive)
         t_numer = - t_numer;
     if (t_numer < 0. || s_numer > denom || t_numer > denom)
@@ -103,8 +103,8 @@ inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, co
         return false;
     // Intersection inside both of the segments.
     double t = t_numer / denom;
-    res.x = p1.x + t * v1.x;
-    res.y = p1.y + t * v1.y;
+    res.x() = p1.x() + t * v1.x();
+    res.y() = p1.y() + t * v1.y();
     return true;
 }
 

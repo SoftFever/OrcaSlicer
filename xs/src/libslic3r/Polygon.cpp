@@ -88,7 +88,7 @@ int64_t Polygon::area2x() const
 
     int64_t a = 0;
     for (size_t i = 0, j = n - 1; i < n; ++i)
-        a += int64_t(poly[j].x + poly[i].x) * int64_t(poly[j].y - poly[i].y);
+        a += int64_t(poly[j].x() + poly[i].x()) * int64_t(poly[j].y() - poly[i].y());
         j = i;
     }
     return -a * 0.5;
@@ -103,7 +103,7 @@ double Polygon::area() const
 
     double a = 0.;
     for (size_t i = 0, j = n - 1; i < n; ++i) {
-        a += ((double)points[j].x + (double)points[i].x) * ((double)points[i].y - (double)points[j].y);
+        a += ((double)points[j].x() + (double)points[i].x()) * ((double)points[i].y() - (double)points[j].y());
         j = i;
     }
     return 0.5 * a;
@@ -157,17 +157,17 @@ Polygon::contains(const Point &point) const
     Points::const_iterator i = this->points.begin();
     Points::const_iterator j = this->points.end() - 1;
     for (; i != this->points.end(); j = i++) {
-        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point.y well.
-        // Does the ray with y == point.y intersect this line segment?
+        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point.y() well.
+        // Does the ray with y == point.y() intersect this line segment?
 #if 1
-        if ( ((i->y > point.y) != (j->y > point.y))
-            && ((double)point.x < (double)(j->x - i->x) * (double)(point.y - i->y) / (double)(j->y - i->y) + (double)i->x) )
+        if ( ((i->y() > point.y()) != (j->y() > point.y()))
+            && ((double)point.x() < (double)(j->x() - i->x()) * (double)(point.y() - i->y()) / (double)(j->y() - i->y()) + (double)i->x()) )
             result = !result;
 #else
-        if ((i->y > point.y) != (j->y > point.y)) {
+        if ((i->y() > point.y()) != (j->y() > point.y())) {
             // Orientation predicated relative to i-th point.
-            double orient = (double)(point.x - i->x) * (double)(j->y - i->y) - (double)(point.y - i->y) * (double)(j->x - i->x);
-            if ((i->y > j->y) ? (orient > 0.) : (orient < 0.))
+            double orient = (double)(point.x() - i->x()) * (double)(j->y() - i->y()) - (double)(point.y() - i->y()) * (double)(j->x() - i->x());
+            if ((i->y() > j->y()) ? (orient > 0.) : (orient < 0.))
                 result = !result;
         }
 #endif
@@ -225,8 +225,8 @@ Polygon::centroid() const
     
     Polyline polyline = this->split_at_first_point();
     for (Points::const_iterator point = polyline.points.begin(); point != polyline.points.end() - 1; ++point) {
-        x_temp += (double)( point->x + (point+1)->x ) * ( (double)point->x*(point+1)->y - (double)(point+1)->x*point->y );
-        y_temp += (double)( point->y + (point+1)->y ) * ( (double)point->x*(point+1)->y - (double)(point+1)->x*point->y );
+        x_temp += (double)( point->x() + (point+1)->x() ) * ( (double)point->x()*(point+1)->y() - (double)(point+1)->x()*point->y() );
+        y_temp += (double)( point->y() + (point+1)->y() ) * ( (double)point->x()*(point+1)->y() - (double)(point+1)->x()*point->y() );
     }
     
     return Point(x_temp/(6*area_temp), y_temp/(6*area_temp));
@@ -238,7 +238,7 @@ Polygon::wkt() const
     std::ostringstream wkt;
     wkt << "POLYGON((";
     for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
-        wkt << p->x << " " << p->y;
+        wkt << p->x() << " " << p->y();
         if (p != this->points.end()-1) wkt << ",";
     }
     wkt << "))";
@@ -312,13 +312,13 @@ Point Polygon::point_projection(const Point &point) const
                 dmin = d;
                 proj = pt1;
             }
-            Pointf v1(coordf_t(pt1.x - pt0.x), coordf_t(pt1.y - pt0.y));
+            Pointf v1(coordf_t(pt1.x() - pt0.x()), coordf_t(pt1.y() - pt0.y()));
             coordf_t div = dot(v1);
             if (div > 0.) {
-                Pointf v2(coordf_t(point.x - pt0.x), coordf_t(point.y - pt0.y));
+                Pointf v2(coordf_t(point.x() - pt0.x()), coordf_t(point.y() - pt0.y()));
                 coordf_t t = dot(v1, v2) / div;
                 if (t > 0. && t < 1.) {
-                    Point foot(coord_t(floor(coordf_t(pt0.x) + t * v1.x + 0.5)), coord_t(floor(coordf_t(pt0.y) + t * v1.y + 0.5)));
+                    Point foot(coord_t(floor(coordf_t(pt0.x()) + t * v1.x() + 0.5)), coord_t(floor(coordf_t(pt0.y()) + t * v1.y() + 0.5)));
                     d = foot.distance_to(point);
                     if (d < dmin) {
                         dmin = d;
@@ -376,12 +376,12 @@ static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)
 {
     Point v1 = p2 - p1;
     Point v2 = p3 - p2;
-    int64_t dir = int64_t(v1.x) * int64_t(v2.x) + int64_t(v1.y) * int64_t(v2.y);
+    int64_t dir = int64_t(v1.x()) * int64_t(v2.x()) + int64_t(v1.y()) * int64_t(v2.y());
     if (dir > 0)
         // p3 does not turn back to p1. Do not remove p2.
         return false;
-    double l2_1 = double(v1.x) * double(v1.x) + double(v1.y) * double(v1.y);
-    double l2_2 = double(v2.x) * double(v2.x) + double(v2.y) * double(v2.y);
+    double l2_1 = double(v1.x()) * double(v1.x()) + double(v1.y()) * double(v1.y());
+    double l2_2 = double(v2.x()) * double(v2.x()) + double(v2.y()) * double(v2.y());
     if (dir == 0)
         // p1, p2, p3 may make a perpendicular corner, or there is a zero edge length.
         // Remove p2 if it is coincident with p1 or p2.
@@ -389,7 +389,7 @@ static inline bool is_stick(const Point &p1, const Point &p2, const Point &p3)
     // p3 turns back to p1 after p2. Are p1, p2, p3 collinear?
     // Calculate distance from p3 to a segment (p1, p2) or from p1 to a segment(p2, p3),
     // whichever segment is longer
-    double cross = double(v1.x) * double(v2.y) - double(v2.x) * double(v1.y);
+    double cross = double(v1.x()) * double(v2.y()) - double(v2.x()) * double(v1.y());
     double dist2 = cross * cross / std::max(l2_1, l2_2);
     return dist2 < EPSILON * EPSILON;
 }

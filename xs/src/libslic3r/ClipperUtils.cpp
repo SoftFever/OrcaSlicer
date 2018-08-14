@@ -171,7 +171,7 @@ Slic3rMultiPoint_to_ClipperPath(const MultiPoint &input)
 {
     ClipperLib::Path retval;
     for (Points::const_iterator pit = input.points.begin(); pit != input.points.end(); ++pit)
-        retval.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
+        retval.push_back(ClipperLib::IntPoint( (*pit).x(), (*pit).y() ));
     return retval;
 }
 
@@ -181,7 +181,7 @@ Slic3rMultiPoint_to_ClipperPath_reversed(const Slic3r::MultiPoint &input)
     ClipperLib::Path output;
     output.reserve(input.points.size());
     for (Slic3r::Points::const_reverse_iterator pit = input.points.rbegin(); pit != input.points.rend(); ++pit)
-        output.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
+        output.push_back(ClipperLib::IntPoint( (*pit).x(), (*pit).y() ));
     return output;
 }
 

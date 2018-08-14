@@ -1352,8 +1352,8 @@ namespace Slic3r {
         double angle_z = (rotation.axis() == Eigen::Vector3d::UnitZ()) ? rotation.angle() : -rotation.angle();
 #endif 
 
-        instance.offset.x = offset_x;
-        instance.offset.y = offset_y;
+        instance.offset.x() = offset_x;
+        instance.offset.y() = offset_y;
         instance.scaling_factor = sx;
         instance.rotation = angle_z;
     }
@@ -1801,7 +1801,7 @@ namespace Slic3r {
             }
 
             Eigen::Affine3f transform;
-            transform = Eigen::Translation3f((float)instance->offset.x, (float)instance->offset.y, 0.0f) * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ()) * Eigen::Scaling((float)instance->scaling_factor);
+            transform = Eigen::Translation3f((float)instance->offset.x(), (float)instance->offset.y(), 0.0f) * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ()) * Eigen::Scaling((float)instance->scaling_factor);
             build_items.emplace_back(instance_id, transform.matrix());
 
             stream << "  </" << OBJECT_TAG << ">\n";

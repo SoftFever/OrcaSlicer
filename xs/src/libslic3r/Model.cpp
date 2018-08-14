@@ -257,8 +257,8 @@ void Model::center_instances_around_point(const Pointf &point)
             bb.merge(o->instance_bounding_box(i, false));
 
     Sizef3 size = bb.size();
-    coordf_t shift_x = -bb.min.x + point.x - size.x/2;
-    coordf_t shift_y = -bb.min.y + point.y - size.y/2;
+    coordf_t shift_x = -bb.min.x() + point.x() - size.x()/2;
+    coordf_t shift_y = -bb.min.y() + point.y() - size.y()/2;
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances)
             i->offset.translate(shift_x, shift_y);
@@ -337,11 +337,11 @@ std::string toString(const Model& model, bool holes = true) {
                 ss << "\t\t{\n";
 
                 for(auto v : expoly.contour.points) ss << "\t\t\t{"
-                                                    << v.x << ", "
-                                                    << v.y << "},\n";
+                                                    << v.x() << ", "
+                                                    << v.y() << "},\n";
                 {
                     auto v = expoly.contour.points.front();
-                    ss << "\t\t\t{" << v.x << ", " << v.y << "},\n";
+                    ss << "\t\t\t{" << v.x() << ", " << v.y() << "},\n";
                 }
                 ss << "\t\t},\n";
 
@@ -350,11 +350,11 @@ std::string toString(const Model& model, bool holes = true) {
                 if(holes) for(auto h : expoly.holes) {
                     ss << "\t\t\t{\n";
                     for(auto v : h.points) ss << "\t\t\t\t{"
-                                           << v.x << ", "
-                                           << v.y << "},\n";
+                                           << v.x() << ", "
+                                           << v.y() << "},\n";
                     {
                         auto v = h.points.front();
-                        ss << "\t\t\t\t{" << v.x << ", " << v.y << "},\n";
+                        ss << "\t\t\t\t{" << v.x() << ", " << v.y() << "},\n";
                     }
                     ss << "\t\t\t},\n";
                 }
@@ -429,8 +429,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     if(item.vertexCount() > 3) {
                         item.rotation(objinst->rotation);
                         item.translation( {
-                            ClipperLib::cInt(objinst->offset.x/SCALING_FACTOR),
-                            ClipperLib::cInt(objinst->offset.y/SCALING_FACTOR)
+                            ClipperLib::cInt(objinst->offset.x()/SCALING_FACTOR),
+                            ClipperLib::cInt(objinst->offset.y()/SCALING_FACTOR)
                         });
                         ret.emplace_back(objinst, item);
                     }
@@ -501,12 +501,12 @@ bool arrange(Model &model, coordf_t dist, const Slic3r::BoundingBoxf* bb,
         bbb.scale(1.0/SCALING_FACTOR);
 
         bin = Box({
-                    static_cast<libnest2d::Coord>(bbb.min.x),
-                    static_cast<libnest2d::Coord>(bbb.min.y)
+                    static_cast<libnest2d::Coord>(bbb.min.x()),
+                    static_cast<libnest2d::Coord>(bbb.min.y())
                 },
                 {
-                    static_cast<libnest2d::Coord>(bbb.max.x),
-                    static_cast<libnest2d::Coord>(bbb.max.y)
+                    static_cast<libnest2d::Coord>(bbb.max.x()),
+                    static_cast<libnest2d::Coord>(bbb.max.y())
                 });
     }
 
@@ -720,8 +720,8 @@ void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
     for (size_t x_copy = 1; x_copy <= x; ++x_copy) {
         for (size_t y_copy = 1; y_copy <= y; ++y_copy) {
             ModelInstance* instance = object->add_instance();
-            instance->offset.x = (size.x + dist) * (x_copy-1);
-            instance->offset.y = (size.y + dist) * (y_copy-1);
+            instance->offset.x() = (size.x() + dist) * (x_copy-1);
+            instance->offset.y() = (size.y() + dist) * (y_copy-1);
         }
     }
 }
@@ -735,7 +735,7 @@ bool Model::looks_like_multipart_object() const
         if (obj->volumes.size() > 1 || obj->config.keys().size() > 1)
             return false;
         for (const ModelVolume *vol : obj->volumes) {
-            double zmin_this = vol->mesh.bounding_box().min.z;
+            double zmin_this = vol->mesh.bounding_box().min.z();
             if (zmin == std::numeric_limits<double>::max())
                 zmin = zmin_this;
             else if (std::abs(zmin - zmin_this) > EPSILON)
@@ -779,13 +779,13 @@ void Model::adjust_min_z()
     if (objects.empty())
         return;
 
-    if (bounding_box().min.z < 0.0)
+    if (bounding_box().min.z() < 0.0)
     {
         for (ModelObject* obj : objects)
         {
             if (obj != nullptr)
             {
-                coordf_t obj_min_z = obj->bounding_box().min.z;
+                coordf_t obj_min_z = obj->bounding_box().min.z();
                 if (obj_min_z < 0.0)
                     obj->translate(0.0, 0.0, -obj_min_z);
             }
@@ -985,19 +985,19 @@ BoundingBoxf3 ModelObject::tight_bounding_box(bool include_modifiers) const
                         Pointf3 p((double)v.x, (double)v.y, (double)v.z);
 
                         // scale
-                        p.x *= inst->scaling_factor;
-                        p.y *= inst->scaling_factor;
-                        p.z *= inst->scaling_factor;
+                        p.x() *= inst->scaling_factor;
+                        p.y() *= inst->scaling_factor;
+                        p.z() *= inst->scaling_factor;
 
                         // rotate Z
-                        double x = p.x;
-                        double y = p.y;
-                        p.x = c * x - s * y;
-                        p.y = s * x + c * y;
+                        double x = p.x();
+                        double y = p.y();
+                        p.x() = c * x - s * y;
+                        p.y() = s * x + c * y;
 
                         // translate
-                        p.x += inst->offset.x;
-                        p.y += inst->offset.y;
+                        p.x() += inst->offset.x();
+                        p.y() += inst->offset.y();
 
                         bb.merge(p);
                     }
@@ -1067,12 +1067,12 @@ void ModelObject::center_around_origin()
 			bb.merge(v->mesh.bounding_box());
     
     // first align to origin on XYZ
-    Vectorf3 vector(-bb.min.x, -bb.min.y, -bb.min.z);
+    Vectorf3 vector(-bb.min.x(), -bb.min.y(), -bb.min.z());
     
     // then center it on XY
     Sizef3 size = bb.size();
-    vector.x -= size.x/2;
-    vector.y -= size.y/2;
+    vector.x() -= size.x()/2;
+    vector.y() -= size.y()/2;
     
     this->translate(vector);
     this->origin_translation.translate(vector);
@@ -1084,7 +1084,7 @@ void ModelObject::center_around_origin()
             Vectorf3 v = vector.negative();
             v.rotate(i->rotation);
             v.scale(i->scaling_factor);
-            i->offset.translate(v.x, v.y);
+            i->offset.translate(v.x(), v.y());
         }
         this->invalidate_bounding_box();
     }
@@ -1259,19 +1259,19 @@ void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_
                         Pointf3 p((double)v.x, (double)v.y, (double)v.z);
 
                         // scale
-                        p.x *= inst->scaling_factor;
-                        p.y *= inst->scaling_factor;
-                        p.z *= inst->scaling_factor;
+                        p.x() *= inst->scaling_factor;
+                        p.y() *= inst->scaling_factor;
+                        p.z() *= inst->scaling_factor;
 
                         // rotate Z
-                        double x = p.x;
-                        double y = p.y;
-                        p.x = c * x - s * y;
-                        p.y = s * x + c * y;
+                        double x = p.x();
+                        double y = p.y();
+                        p.x() = c * x - s * y;
+                        p.y() = s * x + c * y;
 
                         // translate
-                        p.x += inst->offset.x;
-                        p.y += inst->offset.y;
+                        p.x() += inst->offset.x();
+                        p.y() += inst->offset.y();
 
                         bb.merge(p);
                     }
@@ -1298,15 +1298,15 @@ void ModelObject::print_info() const
     mesh.check_topology();
     BoundingBoxf3 bb = mesh.bounding_box();
     Sizef3 size = bb.size();
-    cout << "size_x = " << size.x << endl;
-    cout << "size_y = " << size.y << endl;
-    cout << "size_z = " << size.z << endl;
-    cout << "min_x = " << bb.min.x << endl;
-    cout << "min_y = " << bb.min.y << endl;
-    cout << "min_z = " << bb.min.z << endl;
-    cout << "max_x = " << bb.max.x << endl;
-    cout << "max_y = " << bb.max.y << endl;
-    cout << "max_z = " << bb.max.z << endl;
+    cout << "size_x = " << size.x() << endl;
+    cout << "size_y = " << size.y() << endl;
+    cout << "size_z = " << size.z() << endl;
+    cout << "min_x = " << bb.min.x() << endl;
+    cout << "min_y = " << bb.min.y() << endl;
+    cout << "min_z = " << bb.min.z() << endl;
+    cout << "max_x = " << bb.max.x() << endl;
+    cout << "max_y = " << bb.max.y() << endl;
+    cout << "max_z = " << bb.max.z() << endl;
     cout << "number_of_facets = " << mesh.stl.stats.number_of_facets  << endl;
     cout << "manifold = "   << (mesh.is_manifold() ? "yes" : "no") << endl;
     
@@ -1397,7 +1397,7 @@ void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) cons
     mesh->rotate_z(this->rotation);                 // rotate around mesh origin
     mesh->scale(this->scaling_factor);              // scale around mesh origin
     if (!dont_translate)
-        mesh->translate(this->offset.x, this->offset.y, 0);
+        mesh->translate(this->offset.x(), this->offset.y(), 0);
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
@@ -1420,19 +1420,19 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
     if (! empty(bbox)) {
         // Scale the bounding box uniformly.
         if (std::abs(this->scaling_factor - 1.) > EPSILON) {
-            bbox.min.x *= float(this->scaling_factor);
-            bbox.min.y *= float(this->scaling_factor);
-            bbox.min.z *= float(this->scaling_factor);
-            bbox.max.x *= float(this->scaling_factor);
-            bbox.max.y *= float(this->scaling_factor);
-            bbox.max.z *= float(this->scaling_factor);
+            bbox.min.x() *= float(this->scaling_factor);
+            bbox.min.y() *= float(this->scaling_factor);
+            bbox.min.z() *= float(this->scaling_factor);
+            bbox.max.x() *= float(this->scaling_factor);
+            bbox.max.y() *= float(this->scaling_factor);
+            bbox.max.z() *= float(this->scaling_factor);
         }
         // Translate the bounding box.
         if (! dont_translate) {
-            bbox.min.x += float(this->offset.x);
-            bbox.min.y += float(this->offset.y);
-            bbox.max.x += float(this->offset.x);
-            bbox.max.y += float(this->offset.y);
+            bbox.min.x() += float(this->offset.x());
+            bbox.min.y() += float(this->offset.y());
+            bbox.max.x() += float(this->offset.x());
+            bbox.max.y() += float(this->offset.y());
         }
     }
     return bbox;
@@ -1442,7 +1442,7 @@ BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, b
 {
     Eigen::Transform<float, 3, Eigen::Affine> matrix = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
     if (!dont_translate)
-        matrix.translate(Eigen::Vector3f((float)offset.x, (float)offset.y, 0.0f));
+        matrix.translate(Eigen::Vector3f((float)offset.x(), (float)offset.y(), 0.0f));
 
     matrix.rotate(Eigen::AngleAxisf(rotation, Eigen::Vector3f::UnitZ()));
     matrix.scale(scaling_factor);

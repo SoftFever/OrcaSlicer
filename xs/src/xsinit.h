@@ -68,6 +68,13 @@ extern "C" {
     #undef fputc
     #undef fwrite
     #undef fclose
+
+	// Breaks compilation with Eigen matrices embedded into Slic3r::Point.
+	#undef malloc
+	#undef realloc
+	#undef free
+	#undef Zero
+	#undef select
 #endif /* _MSC_VER */
 }
 #endif

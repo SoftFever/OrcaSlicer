@@ -33,7 +33,7 @@ Polyline::leftmost_point() const
 {
     Point p = this->points.front();
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
-        if (it->x < p.x) p = *it;
+        if (it->x() < p.x()) p = *it;
     }
     return p;
 }
@@ -214,7 +214,7 @@ Polyline::wkt() const
     std::ostringstream wkt;
     wkt << "LINESTRING((";
     for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
-        wkt << p->x << " " << p->y;
+        wkt << p->x() << " " << p->y();
         if (p != this->points.end()-1) wkt << ",";
     }
     wkt << "))";

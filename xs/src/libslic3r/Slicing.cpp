@@ -608,17 +608,17 @@ int generate_layer_height_texture(
             coordf_t intensity = cos(M_PI * 0.7 * (mid - z) / h);
             // Color mapping from layer height to RGB.
             Pointf3 color(
-                intensity * lerp(coordf_t(color1.x), coordf_t(color2.x), t), 
-                intensity * lerp(coordf_t(color1.y), coordf_t(color2.y), t),
-                intensity * lerp(coordf_t(color1.z), coordf_t(color2.z), t));
+                intensity * lerp(coordf_t(color1.x()), coordf_t(color2.x()), t), 
+                intensity * lerp(coordf_t(color1.y()), coordf_t(color2.y()), t),
+                intensity * lerp(coordf_t(color1.z()), coordf_t(color2.z()), t));
             int row = cell / (cols - 1);
             int col = cell - row * (cols - 1);
 			assert(row >= 0 && row < rows);
 			assert(col >= 0 && col < cols);
             unsigned char *ptr = (unsigned char*)data + (row * cols + col) * 4;
-            ptr[0] = (unsigned char)clamp<int>(0, 255, int(floor(color.x + 0.5)));
-            ptr[1] = (unsigned char)clamp<int>(0, 255, int(floor(color.y + 0.5)));
-            ptr[2] = (unsigned char)clamp<int>(0, 255, int(floor(color.z + 0.5)));
+            ptr[0] = (unsigned char)clamp<int>(0, 255, int(floor(color.x() + 0.5)));
+            ptr[1] = (unsigned char)clamp<int>(0, 255, int(floor(color.y() + 0.5)));
+            ptr[2] = (unsigned char)clamp<int>(0, 255, int(floor(color.z() + 0.5)));
             ptr[3] = 255;
             if (col == 0 && row > 0) {
                 // Duplicate the first value in a row as a last value of the preceding row.
@@ -640,17 +640,17 @@ int generate_layer_height_texture(
                 const Point3 &color2 = palette_raw[idx2];
                 // Color mapping from layer height to RGB.
                 Pointf3 color(
-                    lerp(coordf_t(color1.x), coordf_t(color2.x), t), 
-                    lerp(coordf_t(color1.y), coordf_t(color2.y), t),
-                    lerp(coordf_t(color1.z), coordf_t(color2.z), t));
+                    lerp(coordf_t(color1.x()), coordf_t(color2.x()), t), 
+                    lerp(coordf_t(color1.y()), coordf_t(color2.y()), t),
+                    lerp(coordf_t(color1.z()), coordf_t(color2.z()), t));
                 int row = cell / (cols1 - 1);
                 int col = cell - row * (cols1 - 1);
     			assert(row >= 0 && row < rows/2);
     			assert(col >= 0 && col < cols/2);
                 unsigned char *ptr = data1 + (row * cols1 + col) * 4;
-                ptr[0] = (unsigned char)clamp<int>(0, 255, int(floor(color.x + 0.5)));
-                ptr[1] = (unsigned char)clamp<int>(0, 255, int(floor(color.y + 0.5)));
-                ptr[2] = (unsigned char)clamp<int>(0, 255, int(floor(color.z + 0.5)));
+                ptr[0] = (unsigned char)clamp<int>(0, 255, int(floor(color.x() + 0.5)));
+                ptr[1] = (unsigned char)clamp<int>(0, 255, int(floor(color.y() + 0.5)));
+                ptr[2] = (unsigned char)clamp<int>(0, 255, int(floor(color.z() + 0.5)));
                 ptr[3] = 255;
                 if (col == 0 && row > 0) {
                     // Duplicate the first value in a row as a last value of the preceding row.

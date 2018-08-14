@@ -893,24 +893,24 @@ ExtrusionSimulator::~ExtrusionSimulator()
 void ExtrusionSimulator::set_image_size(const Point &image_size)
 {
 	// printf("ExtrusionSimulator::set_image_size()\n");
-	if (this->image_size.x == image_size.x &&
-		this->image_size.y == image_size.y)
+	if (this->image_size.x() == image_size.x() &&
+		this->image_size.y() == image_size.y())
 		return;
 
 	// printf("Setting image size: %d, %d\n", image_size.x, image_size.y);
 	this->image_size = image_size;
 	// Allocate the image data in an RGBA format.
 	// printf("Allocating image data, size %d\n", image_size.x * image_size.y * 4);
-	pimpl->image_data.assign(image_size.x * image_size.y * 4, 0);
+	pimpl->image_data.assign(image_size.x() * image_size.y() * 4, 0);
 	// printf("Allocating image data, allocated\n");
 
 	//FIXME fill the image with red vertical lines.
-	for (size_t r = 0; r < image_size.y; ++ r) {
-		for (size_t c = 0; c < image_size.x; c += 2) {
+	for (size_t r = 0; r < image_size.y(); ++ r) {
+		for (size_t c = 0; c < image_size.x(); c += 2) {
 			// Color red
-			pimpl->image_data[r * image_size.x * 4 + c * 4] = 255;
+			pimpl->image_data[r * image_size.x() * 4 + c * 4] = 255;
 			// Opacity full
-			pimpl->image_data[r * image_size.x * 4 + c * 4 + 3] = 255;
+			pimpl->image_data[r * image_size.x() * 4 + c * 4 + 3] = 255;
 		}
 	}
 	// printf("Allocating image data, set\n");
@@ -922,8 +922,8 @@ void ExtrusionSimulator::set_viewport(const BoundingBox &viewport)
 	if (this->viewport != viewport) {
 		this->viewport = viewport;
 		Point sz = viewport.size();
-		pimpl->accumulator.resize(boost::extents[sz.y][sz.x]);
-		pimpl->bitmap.resize(boost::extents[sz.y*pimpl->bitmap_oversampled][sz.x*pimpl->bitmap_oversampled]);
+		pimpl->accumulator.resize(boost::extents[sz.y()][sz.x()]);
+		pimpl->bitmap.resize(boost::extents[sz.y()*pimpl->bitmap_oversampled][sz.x()*pimpl->bitmap_oversampled]);
 		// printf("Accumulator size: %d, %d\n", sz.y, sz.x);
 	}
 }
@@ -943,8 +943,8 @@ void ExtrusionSimulator::reset_accumulator()
 	// printf("ExtrusionSimulator::reset_accumulator()\n");
 	Point sz = viewport.size();
 	// printf("Reset accumulator, Accumulator size: %d, %d\n", sz.y, sz.x);
-	memset(&pimpl->accumulator[0][0], 0, sizeof(float) * sz.x * sz.y);
-	memset(&pimpl->bitmap[0][0], 0, sz.x * sz.y * pimpl->bitmap_oversampled * pimpl->bitmap_oversampled);
+	memset(&pimpl->accumulator[0][0], 0, sizeof(float) * sz.x() * sz.y());
+	memset(&pimpl->bitmap[0][0], 0, sz.x() * sz.y() * pimpl->bitmap_oversampled * pimpl->bitmap_oversampled);
 	pimpl->extrusion_points.clear();
 	// printf("Reset accumulator, done.\n");
 }
@@ -955,17 +955,17 @@ void ExtrusionSimulator::extrude_to_accumulator(const ExtrusionPath &path, const
 	// Convert the path to V2f points, shift and scale them to the viewport.
 	std::vector<V2f> polyline;
 	polyline.reserve(path.polyline.points.size());
-	float scalex  = float(viewport.size().x) / float(bbox.size().x);
-	float scaley  = float(viewport.size().y) / float(bbox.size().y);
+	float scalex  = float(viewport.size().x()) / float(bbox.size().x());
+	float scaley  = float(viewport.size().y()) / float(bbox.size().y());
 	float w = scale_(path.width) * scalex;
 	float h = scale_(path.height) * scalex;
 	w = scale_(path.mm3_per_mm / path.height) * scalex;
 	// printf("scalex: %f, scaley: %f\n", scalex, scaley);
-	// printf("bbox: %d,%d %d,%d\n", bbox.min.x, bbox.min.y, bbox.max.x, bbox.max.y);
+	// printf("bbox: %d,%d %d,%d\n", bbox.min.x(), bbox.min.y, bbox.max.x(), bbox.max.y);
 	for (Points::const_iterator it = path.polyline.points.begin(); it != path.polyline.points.end(); ++ it) {
-		// printf("point %d,%d\n", it->x+shift.x, it->y+shift.y);
+		// printf("point %d,%d\n", it->x+shift.x(), it->y+shift.y);
 		ExtrusionPoint ept;
-		ept.center = V2f(float(it->x+shift.x-bbox.min.x) * scalex, float(it->y+shift.y-bbox.min.y) * scaley);
+		ept.center = V2f(float(it->x()+shift.x()-bbox.min.x()) * scalex, float(it->y()+shift.y()-bbox.min.y()) * scaley);
 		ept.radius = w/2.f;
 		ept.height = 0.5f;
 		polyline.push_back(ept.center);
@@ -989,9 +989,9 @@ void ExtrusionSimulator::evaluate_accumulator(ExtrusionSimulationType simulation
 
 	if (simulationType > ExtrusionSimulationDontSpread) {
 		// Average the cells of a bitmap into a lower resolution floating point mask.
-		A2f mask(boost::extents[sz.y][sz.x]);
-		for (int r = 0; r < sz.y; ++r) {
-			for (int c = 0; c < sz.x; ++c) {
+		A2f mask(boost::extents[sz.y()][sz.x()]);
+		for (int r = 0; r < sz.y(); ++r) {
+			for (int c = 0; c < sz.x(); ++c) {
 				float p = 0;
 				for (int j = 0; j < pimpl->bitmap_oversampled; ++ j) {
 					for (int i = 0; i < pimpl->bitmap_oversampled; ++ i) {
@@ -1009,9 +1009,9 @@ void ExtrusionSimulator::evaluate_accumulator(ExtrusionSimulationType simulation
 	}
 
 	// Color map the accumulator.
-	for (int r = 0; r < sz.y; ++r) {
-		unsigned char *ptr = &pimpl->image_data[(image_size.x * (viewport.min.y + r) + viewport.min.x) * 4];
-		for (int c = 0; c < sz.x; ++c) {
+	for (int r = 0; r < sz.y(); ++r) {
+		unsigned char *ptr = &pimpl->image_data[(image_size.x() * (viewport.min.y() + r) + viewport.min.x()) * 4];
+		for (int c = 0; c < sz.x(); ++c) {
 			#if 1
 			float p   = pimpl->accumulator[r][c];
 			#else

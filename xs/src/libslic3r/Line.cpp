@@ -11,8 +11,8 @@ std::string
 Line::wkt() const
 {
     std::ostringstream ss;
-    ss << "LINESTRING(" << this->a.x << " " << this->a.y << ","
-        << this->b.x << " " << this->b.y << ")";
+    ss << "LINESTRING(" << this->a.x() << " " << this->a.y() << ","
+        << this->b.x() << " " << this->b.y() << ")";
     return ss.str();
 }
 
@@ -67,7 +67,7 @@ Line::length() const
 Point
 Line::midpoint() const
 {
-    return Point((this->a.x + this->b.x) / 2.0, (this->a.y + this->b.y) / 2.0);
+    return Point((this->a.x() + this->b.x()) / 2.0, (this->a.y() + this->b.y()) / 2.0);
 }
 
 void
@@ -75,10 +75,10 @@ Line::point_at(double distance, Point* point) const
 {
     double len = this->length();
     *point = this->a;
-    if (this->a.x != this->b.x)
-        point->x = this->a.x + (this->b.x - this->a.x) * distance / len;
-    if (this->a.y != this->b.y)
-        point->y = this->a.y + (this->b.y - this->a.y) * distance / len;
+    if (this->a.x() != this->b.x())
+        point->x() = this->a.x() + (this->b.x() - this->a.x()) * distance / len;
+    if (this->a.y() != this->b.y())
+        point->y() = this->a.y() + (this->b.y() - this->a.y()) * distance / len;
 }
 
 Point
@@ -96,13 +96,13 @@ Line::intersection_infinite(const Line &other, Point* point) const
     Vector d1 = this->vector();
     Vector d2 = other.vector();
 
-    double cross = d1.x * d2.y - d1.y * d2.x;
+    double cross = d1.x() * d2.y() - d1.y() * d2.x();
     if (std::fabs(cross) < EPSILON)
         return false;
 
-    double t1 = (x.x * d2.y - x.y * d2.x)/cross;
-    point->x = this->a.x + d1.x * t1;
-    point->y = this->a.y + d1.y * t1;
+    double t1 = (x.x() * d2.y() - x.y() * d2.x())/cross;
+    point->x() = this->a.x() + d1.x() * t1;
+    point->y() = this->a.y() + d1.y() * t1;
     return true;
 }
 
@@ -121,7 +121,7 @@ Line::distance_to(const Point &point) const
 double
 Line::atan2_() const
 {
-    return atan2(this->b.y - this->a.y, this->b.x - this->a.x);
+    return atan2(this->b.y() - this->a.y(), this->b.x() - this->a.x());
 }
 
 double
@@ -154,13 +154,13 @@ Line::parallel_to(const Line &line) const {
 Vector
 Line::vector() const
 {
-    return Vector(this->b.x - this->a.x, this->b.y - this->a.y);
+    return Vector(this->b.x() - this->a.x(), this->b.y() - this->a.y());
 }
 
 Vector
 Line::normal() const
 {
-    return Vector((this->b.y - this->a.y), -(this->b.x - this->a.x));
+    return Vector((this->b.y() - this->a.y()), -(this->b.x() - this->a.x()));
 }
 
 void
@@ -182,14 +182,14 @@ Line::extend_start(double distance)
 bool
 Line::intersection(const Line& line, Point* intersection) const
 {
-    double denom = ((double)(line.b.y - line.a.y)*(this->b.x - this->a.x)) -
-                   ((double)(line.b.x - line.a.x)*(this->b.y - this->a.y));
+    double denom = ((double)(line.b.y() - line.a.y())*(this->b.x() - this->a.x())) -
+                   ((double)(line.b.x() - line.a.x())*(this->b.y() - this->a.y()));
 
-    double nume_a = ((double)(line.b.x - line.a.x)*(this->a.y - line.a.y)) -
-                    ((double)(line.b.y - line.a.y)*(this->a.x - line.a.x));
+    double nume_a = ((double)(line.b.x() - line.a.x())*(this->a.y() - line.a.y())) -
+                    ((double)(line.b.y() - line.a.y())*(this->a.x() - line.a.x()));
 
-    double nume_b = ((double)(this->b.x - this->a.x)*(this->a.y - line.a.y)) -
-                    ((double)(this->b.y - this->a.y)*(this->a.x - line.a.x));
+    double nume_b = ((double)(this->b.x() - this->a.x())*(this->a.y() - line.a.y())) -
+                    ((double)(this->b.y() - this->a.y())*(this->a.x() - line.a.x()));
     
     if (fabs(denom) < EPSILON) {
         if (fabs(nume_a) < EPSILON && fabs(nume_b) < EPSILON) {
@@ -204,8 +204,8 @@ Line::intersection(const Line& line, Point* intersection) const
     if (ua >= 0 && ua <= 1.0f && ub >= 0 && ub <= 1.0f)
     {
         // Get the intersection point.
-        intersection->x = this->a.x + ua*(this->b.x - this->a.x);
-        intersection->y = this->a.y + ua*(this->b.y - this->a.y);
+        intersection->x() = this->a.x() + ua*(this->b.x() - this->a.x());
+        intersection->y() = this->a.y() + ua*(this->b.y() - this->a.y());
         return true;
     }
     
@@ -225,15 +225,15 @@ double Line3::length() const
 
 Vector3 Line3::vector() const
 {
-    return Vector3(b.x - a.x, b.y - a.y, b.z - a.z);
+    return Vector3(b.x() - a.x(), b.y() - a.y(), b.z() - a.z());
 }
 
 Pointf3
 Linef3::intersect_plane(double z) const
 {
     return Pointf3(
-        this->a.x + (this->b.x - this->a.x) * (z - this->a.z) / (this->b.z - this->a.z),
-        this->a.y + (this->b.y - this->a.y) * (z - this->a.z) / (this->b.z - this->a.z),
+        this->a.x() + (this->b.x() - this->a.x()) * (z - this->a.z()) / (this->b.z() - this->a.z()),
+        this->a.y() + (this->b.y() - this->a.y()) * (z - this->a.z()) / (this->b.z() - this->a.z()),
         z
     );
 }

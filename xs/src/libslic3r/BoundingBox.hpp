@@ -22,23 +22,23 @@ public:
     
     BoundingBoxBase() : defined(false) {};
     BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
-        min(pmin), max(pmax), defined(pmin.x < pmax.x && pmin.y < pmax.y) {}
+        min(pmin), max(pmax), defined(pmin.x() < pmax.x() && pmin.y() < pmax.y()) {}
     BoundingBoxBase(const std::vector<PointClass>& points)
     {
         if (points.empty())
             CONFESS("Empty point set supplied to BoundingBoxBase constructor");
 
         typename std::vector<PointClass>::const_iterator it = points.begin();
-        this->min.x = this->max.x = it->x;
-        this->min.y = this->max.y = it->y;
+        this->min.x() = this->max.x() = it->x();
+        this->min.y() = this->max.y() = it->y();
         for (++it; it != points.end(); ++it)
         {
-            this->min.x = std::min(it->x, this->min.x);
-            this->min.y = std::min(it->y, this->min.y);
-            this->max.x = std::max(it->x, this->max.x);
-            this->max.y = std::max(it->y, this->max.y);
+            this->min.x() = std::min(it->x(), this->min.x());
+            this->min.y() = std::min(it->y(), this->min.y());
+            this->max.x() = std::max(it->x(), this->max.x());
+            this->max.y() = std::max(it->y(), this->max.y());
         }
-        this->defined = (this->min.x < this->max.x) && (this->min.y < this->max.y);
+        this->defined = (this->min.x() < this->max.x()) && (this->min.y() < this->max.y());
     }
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
@@ -47,16 +47,16 @@ public:
     PointClass size() const;
     double radius() const;
     void translate(coordf_t x, coordf_t y) { assert(this->defined); this->min.translate(x, y); this->max.translate(x, y); }
-    void translate(const Pointf &pos) { this->translate(pos.x, pos.y); }
+    void translate(const Pointf &pos) { this->translate(pos.x(), pos.y()); }
     void offset(coordf_t delta);
     PointClass center() const;
     bool contains(const PointClass &point) const {
-        return point.x >= this->min.x && point.x <= this->max.x
-            && point.y >= this->min.y && point.y <= this->max.y;
+        return point.x() >= this->min.x() && point.x() <= this->max.x()
+            && point.y() >= this->min.y() && point.y() <= this->max.y();
     }
     bool overlap(const BoundingBoxBase<PointClass> &other) const {
-        return ! (this->max.x < other.min.x || this->min.x > other.max.x ||
-                  this->max.y < other.min.y || this->min.y > other.max.y);
+        return ! (this->max.x() < other.min.x() || this->min.x() > other.max.x() ||
+                  this->max.y() < other.min.y() || this->min.y() > other.max.y());
     }
     bool operator==(const BoundingBoxBase<PointClass> &rhs) { return this->min == rhs.min && this->max == rhs.max; }
     bool operator!=(const BoundingBoxBase<PointClass> &rhs) { return ! (*this == rhs); }
@@ -69,7 +69,7 @@ public:
     BoundingBox3Base() : BoundingBoxBase<PointClass>() {};
     BoundingBox3Base(const PointClass &pmin, const PointClass &pmax) : 
         BoundingBoxBase<PointClass>(pmin, pmax) 
-        { if (pmin.z >= pmax.z) BoundingBoxBase<PointClass>::defined = false; }
+        { if (pmin.z() >= pmax.z()) BoundingBoxBase<PointClass>::defined = false; }
     BoundingBox3Base(const std::vector<PointClass>& points)
         : BoundingBoxBase<PointClass>(points)
     {
@@ -77,13 +77,13 @@ public:
             CONFESS("Empty point set supplied to BoundingBox3Base constructor");
 
         typename std::vector<PointClass>::const_iterator it = points.begin();
-        this->min.z = this->max.z = it->z;
+        this->min.z() = this->max.z() = it->z();
         for (++it; it != points.end(); ++it)
         {
-            this->min.z = std::min(it->z, this->min.z);
-            this->max.z = std::max(it->z, this->max.z);
+            this->min.z() = std::min(it->z(), this->min.z());
+            this->max.z() = std::max(it->z(), this->max.z());
         }
-        this->defined &= (this->min.z < this->max.z);
+        this->defined &= (this->min.z() < this->max.z());
     }
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
@@ -91,13 +91,13 @@ public:
     PointClass size() const;
     double radius() const;
     void translate(coordf_t x, coordf_t y, coordf_t z) { this->min.translate(x, y, z); this->max.translate(x, y, z); }
-    void translate(const Pointf3 &pos) { this->translate(pos.x, pos.y, pos.z); }
+    void translate(const Pointf3 &pos) { this->translate(pos.x(), pos.y(), pos.z()); }
     void offset(coordf_t delta);
     PointClass center() const;
     coordf_t max_size() const;
 
     bool contains(const PointClass &point) const {
-        return BoundingBoxBase<PointClass>::contains(point) && point.z >= this->min.z && point.z <= this->max.z;
+        return BoundingBoxBase<PointClass>::contains(point) && point.z() >= this->min.z() && point.z() <= this->max.z();
     }
 
     bool contains(const BoundingBox3Base<PointClass>& other) const {
@@ -105,7 +105,7 @@ public:
     }
 
     bool intersects(const BoundingBox3Base<PointClass>& other) const {
-        return (this->min.x < other.max.x) && (this->max.x > other.min.x) && (this->min.y < other.max.y) && (this->max.y > other.min.y) && (this->min.z < other.max.z) && (this->max.z > other.min.z);
+        return (this->min.x() < other.max.x()) && (this->max.x() > other.min.x()) && (this->min.y() < other.max.y()) && (this->max.y() > other.min.y()) && (this->min.z() < other.max.z()) && (this->max.z() > other.min.z());
     }
 };
 
@@ -159,13 +159,13 @@ public:
 template<typename VT>
 inline bool empty(const BoundingBoxBase<VT> &bb)
 {
-    return ! bb.defined || bb.min.x >= bb.max.x || bb.min.y >= bb.max.y;
+    return ! bb.defined || bb.min.x() >= bb.max.x() || bb.min.y() >= bb.max.y();
 }
 
 template<typename VT>
 inline bool empty(const BoundingBox3Base<VT> &bb)
 {
-    return ! bb.defined || bb.min.x >= bb.max.x || bb.min.y >= bb.max.y || bb.min.z >= bb.max.z;
+    return ! bb.defined || bb.min.x() >= bb.max.x() || bb.min.y() >= bb.max.y() || bb.min.z() >= bb.max.z();
 }
 
 } // namespace Slic3r

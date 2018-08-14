@@ -27,16 +27,16 @@ MultiPoint::translate(double x, double y)
 void
 MultiPoint::translate(const Point &vector)
 {
-    this->translate(vector.x, vector.y);
+    this->translate(vector.x(), vector.y());
 }
 
 void MultiPoint::rotate(double cos_angle, double sin_angle)
 {
     for (Point &pt : this->points) {
-        double cur_x = double(pt.x);
-        double cur_y = double(pt.y);
-        pt.x = coord_t(round(cos_angle * cur_x - sin_angle * cur_y));
-        pt.y = coord_t(round(cos_angle * cur_y + sin_angle * cur_x));
+        double cur_x = double(pt.x());
+        double cur_y = double(pt.y());
+        pt.x() = coord_t(round(cos_angle * cur_x - sin_angle * cur_y));
+        pt.y() = coord_t(round(cos_angle * cur_y + sin_angle * cur_x));
     }
 }
 
@@ -46,10 +46,10 @@ MultiPoint::rotate(double angle, const Point &center)
     double s = sin(angle);
     double c = cos(angle);
     for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        double dx = double(it->x - center.x);
-        double dy = double(it->y - center.y);
-        it->x = (coord_t)round(double(center.x) + c * dx - s * dy);
-        it->y = (coord_t)round(double(center.y) + c * dy + s * dx);
+        double dx = double(it->x() - center.x());
+        double dy = double(it->y() - center.y());
+        it->x() = (coord_t)round(double(center.x()) + c * dx - s * dy);
+        it->y() = (coord_t)round(double(center.y()) + c * dy + s * dx);
     }
 }
 
@@ -224,7 +224,7 @@ void MultiPoint3::translate(double x, double y)
 
 void MultiPoint3::translate(const Point& vector)
 {
-    translate(vector.x, vector.y);
+    translate(vector.x(), vector.y());
 }
 
 double MultiPoint3::length() const
@@ -281,19 +281,19 @@ BoundingBox get_extents_rotated(const Points &points, double angle)
         double s = sin(angle);
         double c = cos(angle);
         Points::const_iterator it = points.begin();
-        double cur_x = (double)it->x;
-        double cur_y = (double)it->y;
-        bbox.min.x = bbox.max.x = (coord_t)round(c * cur_x - s * cur_y);
-        bbox.min.y = bbox.max.y = (coord_t)round(c * cur_y + s * cur_x);
+        double cur_x = (double)it->x();
+        double cur_y = (double)it->y();
+        bbox.min.x() = bbox.max.x() = (coord_t)round(c * cur_x - s * cur_y);
+        bbox.min.y() = bbox.max.y() = (coord_t)round(c * cur_y + s * cur_x);
         for (++it; it != points.end(); ++it) {
-            double cur_x = (double)it->x;
-            double cur_y = (double)it->y;
+            double cur_x = (double)it->x();
+            double cur_y = (double)it->y();
             coord_t x = (coord_t)round(c * cur_x - s * cur_y);
             coord_t y = (coord_t)round(c * cur_y + s * cur_x);
-            bbox.min.x = std::min(x, bbox.min.x);
-            bbox.min.y = std::min(y, bbox.min.y);
-            bbox.max.x = std::max(x, bbox.max.x);
-            bbox.max.y = std::max(y, bbox.max.y);
+            bbox.min.x() = std::min(x, bbox.min.x());
+            bbox.min.y() = std::min(y, bbox.min.y());
+            bbox.max.x() = std::max(x, bbox.max.x());
+            bbox.max.y() = std::max(y, bbox.max.y());
         }
         bbox.defined = true;
     }
