@@ -385,15 +385,18 @@ wxDataViewItem PrusaObjectDataViewModel::Add(wxString &name, int instances_count
 wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_item,
 													const wxString &name,
 													const wxIcon& icon,
-                                                    bool  create_frst_child/* = true*/)
+                                                    const int extruder/* = 0*/,
+                                                    const bool create_frst_child/* = true*/)
 {
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
 
+    wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+
     if (root->GetChildren().Count() == 0 && create_frst_child)
 	{
 		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
-		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, 0);
+		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, extruder_str, 0);
 		root->Append(node);
 		// notify control
 		wxDataViewItem child((void*)node);
@@ -401,7 +404,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_
 	}
 
 	auto volume_id = root->GetChildCount();
-	auto node = new PrusaObjectDataViewModelNode(root, name, icon, volume_id);
+	auto node = new PrusaObjectDataViewModelNode(root, name, icon, extruder_str, volume_id);
 	root->Append(node);
 	// notify control
 	wxDataViewItem child((void*)node);

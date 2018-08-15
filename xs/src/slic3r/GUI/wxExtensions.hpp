@@ -176,7 +176,8 @@ public:
 	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
 									const wxString& sub_obj_name, 
 									const wxIcon& icon, 
-									int volume_id=-1) {
+                                    const wxString& extruder, 
+									const int volume_id=-1) {
 		m_parent	= parent;
 		m_name		= sub_obj_name;
 		m_copy		= wxEmptyString;
@@ -184,6 +185,7 @@ public:
 		m_icon		= icon;
 		m_type		= "volume";
 		m_volume_id = volume_id;
+        m_extruder  = extruder;
 		set_part_action_icon();
 	}
 
@@ -352,7 +354,8 @@ public:
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const wxIcon& icon,
-                            bool  create_frst_child = true);
+                            const int = 0,
+                            const bool create_frst_child = true);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	void DeleteAll();
     void DeleteChildren(wxDataViewItem& parent);

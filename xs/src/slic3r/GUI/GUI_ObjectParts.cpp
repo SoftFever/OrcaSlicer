@@ -648,12 +648,15 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 
     if (model_object->volumes.size() > 1) {
         for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
+            m_objects_model->AddChild(item, 
+                                      model_object->volumes[id]->name, 
+                                      m_icon_solidmesh, 
+                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
+                                      false);
         m_objects_ctrl->Expand(item);
     }
 
-// 	part_selection_changed();
-#ifndef __WXOSX__ //#ifdef __WXMSW__
+#ifndef __WXOSX__ 
 	object_ctrl_selection_changed();
 #endif //__WXMSW__
 }
@@ -1257,13 +1260,18 @@ void on_btn_split(const bool split_part)
 
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(parent, model_object->volumes[id]->name,
-            model_object->volumes[id]->modifier ? m_icon_modifiermesh : m_icon_solidmesh, false);
+                                      model_object->volumes[id]->modifier ? m_icon_modifiermesh : m_icon_solidmesh,
+                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value, 
+                                      false);
 
         m_objects_ctrl->Expand(parent);
     }
     else {
         for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(item, model_object->volumes[id]->name, m_icon_solidmesh, false);
+            m_objects_model->AddChild(item, model_object->volumes[id]->name, 
+                                      m_icon_solidmesh,
+                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value, 
+                                      false);
         m_objects_ctrl->Expand(item);
     }
 }
@@ -1519,7 +1527,7 @@ void update_rotation_values()
 
     auto rotation_z = (*m_objects)[m_selected_object_id]->instances[0]->rotation;
     auto deg = int(Geometry::rad2deg(rotation_z));
-    if (deg > 180) deg -= 360;
+//     if (deg > 180) deg -= 360;
 
     og->set_value("rotation_z", deg);
 }
@@ -1529,7 +1537,7 @@ void update_rotation_value(const double angle, const std::string& axis)
     auto og = get_optgroup(ogFrequentlyObjectSettings);
     
     int deg = int(Geometry::rad2deg(angle));
-    if (deg>180) deg -= 360;
+//     if (deg>180) deg -= 360;
 
     og->set_value("rotation_"+axis, deg);
 }
