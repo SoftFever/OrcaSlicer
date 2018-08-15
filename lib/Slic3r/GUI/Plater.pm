@@ -316,50 +316,50 @@ sub new {
         }
     });
     
-    # toolbar for object manipulation
-    if (!&Wx::wxMSW) {
-        Wx::ToolTip::Enable(1);
-        $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
-        $self->{htoolbar}->AddTool(TB_ADD, L("Add…"), Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_REMOVE, L("Delete"), Wx::Bitmap->new(Slic3r::var("brick_delete.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_RESET, L("Delete All"), Wx::Bitmap->new(Slic3r::var("cross.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_ARRANGE, L("Arrange"), Wx::Bitmap->new(Slic3r::var("bricks.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_MORE, L("More"), Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_FEWER, L("Fewer"), Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_45CCW, L("45° ccw"), Wx::Bitmap->new(Slic3r::var("arrow_rotate_anticlockwise.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_45CW, L("45° cw"), Wx::Bitmap->new(Slic3r::var("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_SCALE, L("Scale…"), Wx::Bitmap->new(Slic3r::var("arrow_out.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_SPLIT, L("Split"), Wx::Bitmap->new(Slic3r::var("shape_ungroup.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_CUT, L("Cut…"), Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddSeparator;
-        $self->{htoolbar}->AddTool(TB_SETTINGS, L("Settings…"), Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG), '');
-        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, L('Layer Editing'), Wx::Bitmap->new(Slic3r::var("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, 0, 'Layer Editing');
-    } else {
-        my %tbar_buttons = (
-            add             => L("Add…"),
-            remove          => L("Delete"),
-            reset           => L("Delete All"),
-            arrange         => L("Arrange"),
-            increase        => "",
-            decrease        => "",
-            rotate45ccw     => "",
-            rotate45cw      => "",
-            changescale     => L("Scale…"),
-            split           => L("Split"),
-            cut             => L("Cut…"),
-            settings        => L("Settings…"),
-            layer_editing   => L("Layer editing"),
-        );
-        $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
-        for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw changescale split cut settings)) {
-            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-            $self->{btoolbar}->Add($self->{"btn_$_"});
-        }
-        $self->{"btn_layer_editing"} = Wx::ToggleButton->new($self, -1, $tbar_buttons{'layer_editing'}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-        $self->{btoolbar}->Add($self->{"btn_layer_editing"});
-    }
+#    # toolbar for object manipulation
+#    if (!&Wx::wxMSW) {
+#        Wx::ToolTip::Enable(1);
+#        $self->{htoolbar} = Wx::ToolBar->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL | wxTB_TEXT | wxBORDER_SIMPLE | wxTAB_TRAVERSAL);
+#        $self->{htoolbar}->AddTool(TB_ADD, L("Add…"), Wx::Bitmap->new(Slic3r::var("brick_add.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_REMOVE, L("Delete"), Wx::Bitmap->new(Slic3r::var("brick_delete.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_RESET, L("Delete All"), Wx::Bitmap->new(Slic3r::var("cross.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_ARRANGE, L("Arrange"), Wx::Bitmap->new(Slic3r::var("bricks.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddSeparator;
+#        $self->{htoolbar}->AddTool(TB_MORE, L("More"), Wx::Bitmap->new(Slic3r::var("add.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_FEWER, L("Fewer"), Wx::Bitmap->new(Slic3r::var("delete.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddSeparator;
+#        $self->{htoolbar}->AddTool(TB_45CCW, L("45° ccw"), Wx::Bitmap->new(Slic3r::var("arrow_rotate_anticlockwise.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_45CW, L("45° cw"), Wx::Bitmap->new(Slic3r::var("arrow_rotate_clockwise.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_SCALE, L("Scale…"), Wx::Bitmap->new(Slic3r::var("arrow_out.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_SPLIT, L("Split"), Wx::Bitmap->new(Slic3r::var("shape_ungroup.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_CUT, L("Cut…"), Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddSeparator;
+#        $self->{htoolbar}->AddTool(TB_SETTINGS, L("Settings…"), Wx::Bitmap->new(Slic3r::var("cog.png"), wxBITMAP_TYPE_PNG), '');
+#        $self->{htoolbar}->AddTool(TB_LAYER_EDITING, L('Layer Editing'), Wx::Bitmap->new(Slic3r::var("variable_layer_height.png"), wxBITMAP_TYPE_PNG), wxNullBitmap, 1, 0, 'Layer Editing');
+#    } else {
+#        my %tbar_buttons = (
+#            add             => L("Add…"),
+#            remove          => L("Delete"),
+#            reset           => L("Delete All"),
+#            arrange         => L("Arrange"),
+#            increase        => "",
+#            decrease        => "",
+#            rotate45ccw     => "",
+#            rotate45cw      => "",
+#            changescale     => L("Scale…"),
+#            split           => L("Split"),
+#            cut             => L("Cut…"),
+#            settings        => L("Settings…"),
+#            layer_editing   => L("Layer editing"),
+#        );
+#        $self->{btoolbar} = Wx::BoxSizer->new(wxHORIZONTAL);
+#        for (qw(add remove reset arrange increase decrease rotate45ccw rotate45cw changescale split cut settings)) {
+#            $self->{"btn_$_"} = Wx::Button->new($self, -1, $tbar_buttons{$_}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+#            $self->{btoolbar}->Add($self->{"btn_$_"});
+#        }
+#        $self->{"btn_layer_editing"} = Wx::ToggleButton->new($self, -1, $tbar_buttons{'layer_editing'}, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+#        $self->{btoolbar}->Add($self->{"btn_layer_editing"});
+#    }
 
     ### Panel for right column
     $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -439,39 +439,39 @@ sub new {
     EVT_BUTTON($self, $self->{btn_reslice}, \&reslice);
     EVT_BUTTON($self, $self->{btn_export_stl}, \&export_stl);
     
-    if ($self->{htoolbar}) {
-        EVT_TOOL($self, TB_ADD, sub { $self->add; });
-        EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
-        EVT_TOOL($self, TB_RESET, sub { $self->reset; });
-        EVT_TOOL($self, TB_ARRANGE, sub { $self->arrange; });
-        EVT_TOOL($self, TB_MORE, sub { $self->increase; });
-        EVT_TOOL($self, TB_FEWER, sub { $self->decrease; });
-        EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45, Z, 'relative') });
-        EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45, Z, 'relative') });
-        EVT_TOOL($self, TB_SCALE, sub { $self->changescale(undef); });
-        EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
-        EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
-        EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
-        EVT_TOOL($self, TB_LAYER_EDITING, sub {
-            my $state = Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
-            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, ! $state);
-            $self->on_layer_editing_toggled(! $state);
-        });
-    } else {
-        EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
-        EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
-        EVT_BUTTON($self, $self->{btn_reset}, sub { $self->reset; });
-        EVT_BUTTON($self, $self->{btn_arrange}, sub { $self->arrange; });
-        EVT_BUTTON($self, $self->{btn_increase}, sub { $self->increase; });
-        EVT_BUTTON($self, $self->{btn_decrease}, sub { $self->decrease; });
-        EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45, Z, 'relative') });
-        EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45, Z, 'relative') });
-        EVT_BUTTON($self, $self->{btn_changescale}, sub { $self->changescale(undef); });
-        EVT_BUTTON($self, $self->{btn_split}, sub { $self->split_object; });
-        EVT_BUTTON($self, $self->{btn_cut}, sub { $_[0]->object_cut_dialog });
-        EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
-        EVT_TOGGLEBUTTON($self, $self->{btn_layer_editing}, sub { $self->on_layer_editing_toggled($self->{btn_layer_editing}->GetValue); });
-    }
+#    if ($self->{htoolbar}) {
+#        EVT_TOOL($self, TB_ADD, sub { $self->add; });
+#        EVT_TOOL($self, TB_REMOVE, sub { $self->remove() }); # explicitly pass no argument to remove
+#        EVT_TOOL($self, TB_RESET, sub { $self->reset; });
+#        EVT_TOOL($self, TB_ARRANGE, sub { $self->arrange; });
+#        EVT_TOOL($self, TB_MORE, sub { $self->increase; });
+#        EVT_TOOL($self, TB_FEWER, sub { $self->decrease; });
+#        EVT_TOOL($self, TB_45CW, sub { $_[0]->rotate(-45, Z, 'relative') });
+#        EVT_TOOL($self, TB_45CCW, sub { $_[0]->rotate(45, Z, 'relative') });
+#        EVT_TOOL($self, TB_SCALE, sub { $self->changescale(undef); });
+#        EVT_TOOL($self, TB_SPLIT, sub { $self->split_object; });
+#        EVT_TOOL($self, TB_CUT, sub { $_[0]->object_cut_dialog });
+#        EVT_TOOL($self, TB_SETTINGS, sub { $_[0]->object_settings_dialog });
+#        EVT_TOOL($self, TB_LAYER_EDITING, sub {
+#            my $state = Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
+#            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, ! $state);
+#            $self->on_layer_editing_toggled(! $state);
+#        });
+#    } else {
+#        EVT_BUTTON($self, $self->{btn_add}, sub { $self->add; });
+#        EVT_BUTTON($self, $self->{btn_remove}, sub { $self->remove() }); # explicitly pass no argument to remove
+#        EVT_BUTTON($self, $self->{btn_reset}, sub { $self->reset; });
+#        EVT_BUTTON($self, $self->{btn_arrange}, sub { $self->arrange; });
+#        EVT_BUTTON($self, $self->{btn_increase}, sub { $self->increase; });
+#        EVT_BUTTON($self, $self->{btn_decrease}, sub { $self->decrease; });
+#        EVT_BUTTON($self, $self->{btn_rotate45cw}, sub { $_[0]->rotate(-45, Z, 'relative') });
+#        EVT_BUTTON($self, $self->{btn_rotate45ccw}, sub { $_[0]->rotate(45, Z, 'relative') });
+#        EVT_BUTTON($self, $self->{btn_changescale}, sub { $self->changescale(undef); });
+#        EVT_BUTTON($self, $self->{btn_split}, sub { $self->split_object; });
+#        EVT_BUTTON($self, $self->{btn_cut}, sub { $_[0]->object_cut_dialog });
+#        EVT_BUTTON($self, $self->{btn_settings}, sub { $_[0]->object_settings_dialog });
+#        EVT_TOGGLEBUTTON($self, $self->{btn_layer_editing}, sub { $self->on_layer_editing_toggled($self->{btn_layer_editing}->GetValue); });
+#    }
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for grep defined($_),
@@ -628,10 +628,10 @@ sub new {
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
         $hsizer->Add($self->{right_panel}, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
-        
+
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
-        $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
-        $sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
+#        $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
+#        $sizer->Add($self->{btoolbar}, 0, wxEXPAND, 0) if $self->{btoolbar};
         $sizer->Add($hsizer, 1, wxEXPAND, 0);
         
         $sizer->SetSizeHints($self);
@@ -697,13 +697,13 @@ sub on_layer_editing_toggled {
     Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, $new_state);
     if ($new_state && ! Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D})) {
         # Initialization of the OpenGL shaders failed. Disable the tool.
-        if ($self->{htoolbar}) {
-            $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
-            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 0);
-        } else {
-            $self->{"btn_layer_editing"}->Disable;
-            $self->{"btn_layer_editing"}->SetValue(0);
-        }
+#        if ($self->{htoolbar}) {
+#            $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
+#            $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 0);
+#        } else {
+#            $self->{"btn_layer_editing"}->Disable;
+#            $self->{"btn_layer_editing"}->SetValue(0);
+#        }
         Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 0);
     }
     $self->{canvas3D}->Refresh;
@@ -1990,24 +1990,24 @@ sub on_config_change {
             $self->Layout;
         } elsif ($opt_key eq 'variable_layer_height') {
             if ($config->get('variable_layer_height') != 1) {
-                if ($self->{htoolbar}) {
-                    $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
-                    $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 0);
-                } else {
-                    $self->{"btn_layer_editing"}->Disable;
-                    $self->{"btn_layer_editing"}->SetValue(0);
-                }
+#                if ($self->{htoolbar}) {
+#                    $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 0);
+#                    $self->{htoolbar}->ToggleTool(TB_LAYER_EDITING, 0);
+#                } else {
+#                    $self->{"btn_layer_editing"}->Disable;
+#                    $self->{"btn_layer_editing"}->SetValue(0);
+#                }
                 Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 0);
                 Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, 0);
                 $self->{canvas3D}->Refresh;
                 $self->{canvas3D}->Update;
             } elsif (Slic3r::GUI::_3DScene::is_layers_editing_allowed($self->{canvas3D})) {
                 # Want to allow the layer editing, but do it only if the OpenGL supports it.
-                if ($self->{htoolbar}) {
-                    $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 1);
-                } else {
-                    $self->{"btn_layer_editing"}->Enable;
-                }
+#                if ($self->{htoolbar}) {
+#                    $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, 1);
+#                } else {
+#                    $self->{"btn_layer_editing"}->Enable;
+#                }
                 Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", 1);
             }
         } elsif ($opt_key eq 'extruder_colour') {
@@ -2176,16 +2176,16 @@ sub object_list_changed {
         
     # Enable/disable buttons depending on whether there are any objects on the platter.
     my $have_objects = @{$self->{objects}} ? 1 : 0;
-    if ($self->{htoolbar}) {
-        # On OSX or Linux
-        $self->{htoolbar}->EnableTool($_, $have_objects)
-            for (TB_RESET, TB_ARRANGE);
-    } else {
-        # On MSW
-        my $method = $have_objects ? 'Enable' : 'Disable';
-        $self->{"btn_$_"}->$method
-            for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode);
-    }
+#    if ($self->{htoolbar}) {
+#        # On OSX or Linux
+#        $self->{htoolbar}->EnableTool($_, $have_objects)
+#            for (TB_RESET, TB_ARRANGE);
+#    } else {
+#        # On MSW
+#        my $method = $have_objects ? 'Enable' : 'Disable';
+#        $self->{"btn_$_"}->$method
+#            for grep $self->{"btn_$_"}, qw(reset arrange reslice export_gcode export_stl print send_gcode);
+#    }
 
     for my $toolbar_item (qw(deleteall arrange)) {
         Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, $toolbar_item, $have_objects);
@@ -2207,43 +2207,43 @@ sub selection_changed {
     my $layers_height_allowed = $self->{config}->variable_layer_height && Slic3r::GUI::_3DScene::is_layers_editing_allowed($self->{canvas3D}) && $have_sel;
 
     $self->{right_panel}->Freeze;
-    if ($self->{htoolbar}) {
-        # On OSX or Linux
-        $self->{htoolbar}->EnableTool($_, $have_sel)
-            for (TB_REMOVE, TB_MORE, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_CUT, TB_SETTINGS);
-
-        $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, $layers_height_allowed);
-
-        if ($have_sel) {
-            my $model_object = $self->{model}->objects->[$obj_idx];
-            $self->{htoolbar}->EnableTool(TB_FEWER, $model_object->instances_count > 1);
-        } else {
-            $self->{htoolbar}->EnableTool(TB_FEWER, 0);
-        }
-            
-    } else {
-        # On MSW
-        my $method = $have_sel ? 'Enable' : 'Disable';
-        $self->{"btn_$_"}->$method
-            for grep $self->{"btn_$_"}, qw(remove increase rotate45cw rotate45ccw changescale split cut settings);
-
-        if ($layers_height_allowed) {
-            $self->{"btn_layer_editing"}->Enable;
-        } else {
-            $self->{"btn_layer_editing"}->Disable;
-        }
-
-        if ($have_sel) {
-            my $model_object = $self->{model}->objects->[$obj_idx];
-            if ($model_object->instances_count > 1) {
-                $self->{"btn_decrease"}->Enable;
-            } else {
-                $self->{"btn_decrease"}->Disable;
-            }            
-        } else {
-            $self->{"btn_decrease"}->Disable;
-        }
-    }
+#    if ($self->{htoolbar}) {
+#        # On OSX or Linux
+#        $self->{htoolbar}->EnableTool($_, $have_sel)
+#            for (TB_REMOVE, TB_MORE, TB_45CW, TB_45CCW, TB_SCALE, TB_SPLIT, TB_CUT, TB_SETTINGS);
+#
+#        $self->{htoolbar}->EnableTool(TB_LAYER_EDITING, $layers_height_allowed);
+#
+#        if ($have_sel) {
+#            my $model_object = $self->{model}->objects->[$obj_idx];
+#            $self->{htoolbar}->EnableTool(TB_FEWER, $model_object->instances_count > 1);
+#        } else {
+#            $self->{htoolbar}->EnableTool(TB_FEWER, 0);
+#        }
+#            
+#    } else {
+#        # On MSW
+#        my $method = $have_sel ? 'Enable' : 'Disable';
+#        $self->{"btn_$_"}->$method
+#            for grep $self->{"btn_$_"}, qw(remove increase rotate45cw rotate45ccw changescale split cut settings);
+#
+#        if ($layers_height_allowed) {
+#            $self->{"btn_layer_editing"}->Enable;
+#        } else {
+#            $self->{"btn_layer_editing"}->Disable;
+#        }
+#
+#        if ($have_sel) {
+#            my $model_object = $self->{model}->objects->[$obj_idx];
+#            if ($model_object->instances_count > 1) {
+#                $self->{"btn_decrease"}->Enable;
+#            } else {
+#                $self->{"btn_decrease"}->Disable;
+#            }            
+#        } else {
+#            $self->{"btn_decrease"}->Disable;
+#        }
+#    }
     
     for my $toolbar_item (qw(delete more fewer ccw45 cw45 scale split cut settings)) {
         Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, $toolbar_item, $have_sel);
