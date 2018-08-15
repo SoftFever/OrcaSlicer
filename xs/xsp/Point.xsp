@@ -48,7 +48,7 @@
     Clone<Point> negative()
         %code{% RETVAL = new Point(THIS->negative()); %};
     bool coincides_with_epsilon(Point* point)
-        %code{% RETVAL = THIS->coincides_with_epsilon(*point); %};
+        %code{% RETVAL = (*THIS) == *point; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", THIS->x(), THIS->y()); RETVAL = buf; %};
 
 %{
@@ -68,7 +68,7 @@ Point::coincides_with(point_sv)
     CODE:
         Point point;
         from_SV_check(point_sv, &point);
-        RETVAL = THIS->coincides_with(point);
+        RETVAL = (*THIS) == point;
     OUTPUT:
         RETVAL
 

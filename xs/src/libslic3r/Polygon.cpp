@@ -44,11 +44,9 @@ Polyline
 Polygon::split_at_vertex(const Point &point) const
 {
     // find index of point
-    for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-        if (it->coincides_with(point)) {
-            return this->split_at_index(it - this->points.begin());
-        }
-    }
+    for (const Point &pt : this->points)
+        if (pt == point)
+            return this->split_at_index(&pt - &this->points.front());
     CONFESS("Point not found");
     return Polyline();
 }

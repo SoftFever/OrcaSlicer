@@ -891,10 +891,13 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			g_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
 			{
 				auto &config = g_PresetBundle->project_config;
-                std::vector<double> init_matrix = (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
-                std::vector<double> init_extruders = (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+                const std::vector<double> &init_matrix    = (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+                const std::vector<double> &init_extruders = (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
+#pragma warning(push)
+#pragma warning(disable:4244) // disable Visual Studio's warning: conversion from 'double' to 'float', possible loss of data
                 WipingDialog dlg(parent,std::vector<float>(init_matrix.begin(),init_matrix.end()),std::vector<float>(init_extruders.begin(),init_extruders.end()));
+#pragma warning(pop)
 
 				if (dlg.ShowModal() == wxID_OK) {
                     std::vector<float> matrix = dlg.get_matrix();

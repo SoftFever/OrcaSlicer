@@ -35,45 +35,49 @@ typedef std::vector<Pointf3> Pointf3s;
 // Vector types with a fixed point coordinate base type.
 typedef Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign> Vec2crd;
 typedef Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign> Vec3crd;
+
 // Vector types with a double coordinate base type.
 typedef Eigen::Matrix<float,    2, 1, Eigen::DontAlign> Vec2f;
 typedef Eigen::Matrix<float,    3, 1, Eigen::DontAlign> Vec3f;
-typedef Eigen::Matrix<coordf_t, 2, 1, Eigen::DontAlign> Vec2d;
-typedef Eigen::Matrix<coordf_t, 3, 1, Eigen::DontAlign> Vec3d;
+typedef Eigen::Matrix<double,   2, 1, Eigen::DontAlign> Vec2d;
+typedef Eigen::Matrix<double,   3, 1, Eigen::DontAlign> Vec3d;
 
 typedef Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign> Transform2f;
 typedef Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign> Transform2d;
 typedef Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign> Transform3f;
 typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d;
 
-class Point
+class Point : public Vec2crd
 {
 public:
     typedef coord_t coord_type;
-    Vec2crd data;
 
-    Point(coord_t x = 0, coord_t y = 0) { data(0) = x; data(1) = y; }
-    Point(int64_t x, int64_t y) : Point(coord_t(x), coord_t(y)) {} // for Clipper
-    Point(double x, double y) : Point(lrint(x), lrint(y)) {}
-    explicit Point(const Vec2crd &rhs) { this->data = rhs; }
-    explicit Point(Vec2crd &&rhs) { this->data = std::move(rhs); }
+    Point() : Vec2crd() { (*this)(0) = 0; (*this)(1) = 0; }
+    Point(coord_t x, coord_t y) { (*this)(0) = x; (*this)(1) = y; }
+    Point(int64_t x, int64_t y) { (*this)(0) = coord_t(x); (*this)(1) = coord_t(y); } // for Clipper
+    Point(double x, double y) { (*this)(0) = coord_t(lrint(x)); (*this)(1) = coord_t(lrint(y)); }
+    Point(const Point &rhs) { *this = rhs; }
+    // This constructor allows you to construct Point from Eigen expressions
+    template<typename OtherDerived>
+    Point(const Eigen::MatrixBase<OtherDerived> &other) : Vec2crd(other) {}
     static Point new_scale(coordf_t x, coordf_t y) { return Point(coord_t(scale_(x)), coord_t(scale_(y))); }
 
-    const coord_t&  x() const { return this->data[0]; }
-    coord_t&        x()       { return this->data[0]; }
-    const coord_t&  y() const { return this->data[1]; }
-    coord_t&        y()       { return this->data[1]; }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Point& operator=(const Eigen::MatrixBase<OtherDerived> &other)
+    {
+        this->Point::operator=(other);
+        return *this;
+    }
 
-    operator const  Vec2crd& () const { return this->data; }
-    operator        Vec2crd& ()       { return this->data; }
-    template<typename T> Eigen::Matrix<T, 2, 1, Eigen::DontAlign> cast() const { return this->data.cast<T>(); }
-
-    Point& operator=(const Vec2crd &rhs) { this->data = rhs; return *this; }
-    Point& operator=(Vec2crd &&rhs) { this->data = std::move(rhs); return *this; }
+    const coord_t&  x() const { return (*this)(0); }
+    coord_t&        x()       { return (*this)(0); }
+    const coord_t&  y() const { return (*this)(1); }
+    coord_t&        y()       { return (*this)(1); }
 
     bool operator==(const Point& rhs) const { return this->x() == rhs.x() && this->y() == rhs.y(); }
     bool operator!=(const Point& rhs) const { return ! (*this == rhs); }
-    bool operator<(const Point& rhs) const { return this->x() < rhs.x() || (this->x() == rhs.x() && this->y() < rhs.y()); }
+    bool operator< (const Point& rhs) const { return this->x() < rhs.x() || (this->x() == rhs.x() && this->y() < rhs.y()); }
 
     Point& operator+=(const Point& rhs) { this->x() += rhs.x(); this->y() += rhs.y(); return *this; }
     Point& operator-=(const Point& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); return *this; }
@@ -81,30 +85,30 @@ public:
 
     std::string wkt() const;
     std::string dump_perl() const;
-    void scale(double factor) { this->data *= factor; }
-    void translate(double x, double y) { this->data += Vec2crd(x, y); }
-    void translate(const Vector &vector) { this->data += vector.data; }
-    void rotate(double angle);
-    void rotate(double angle, const Point &center);
-    Point rotated(double angle) const { Point res(*this); res.rotate(angle); return res; }
-    Point rotated(double angle, const Point &center) const { Point res(*this); res.rotate(angle, center); return res; }
-    bool coincides_with(const Point &point) const { return this->x() == point.x() && this->y() == point.y(); }
-    bool coincides_with_epsilon(const Point &point) const;
-    int nearest_point_index(const Points &points) const;
-    int nearest_point_index(const PointConstPtrs &points) const;
-    int nearest_point_index(const PointPtrs &points) const;
-    bool nearest_point(const Points &points, Point* point) const;
-    double distance_to(const Point &point) const { return sqrt(distance_to_sq(point)); }
-    double distance_to_sq(const Point &point) const { double dx = double(point.x() - this->x()); double dy = double(point.y() - this->y()); return dx*dx + dy*dy; }
+    void   scale(double factor) { *this *= factor; }
+    void   translate(double x, double y) { *this += Vector(x, y); }
+    void   translate(const Vector &vector) { *this += vector; }
+    void   rotate(double angle);
+    void   rotate(double angle, const Point &center);
+    Point  rotated(double angle) const { Point res(*this); res.rotate(angle); return res; }
+    Point  rotated(double angle, const Point &center) const { Point res(*this); res.rotate(angle, center); return res; }
+    bool   coincides_with(const Point &rhs) const { return *this == rhs; }
+    bool   coincides_with_epsilon(const Point &point) const;
+    int    nearest_point_index(const Points &points) const;
+    int    nearest_point_index(const PointConstPtrs &points) const;
+    int    nearest_point_index(const PointPtrs &points) const;
+    bool   nearest_point(const Points &points, Point* point) const;
+    double distance_to(const Point &point) const { return (point - *this).norm(); }
+    double distance_to_sq(const Point &point) const { return (point - *this).squaredNorm(); }
     double distance_to(const Line &line) const;
     double perp_distance_to(const Line &line) const;
     double ccw(const Point &p1, const Point &p2) const;
     double ccw(const Line &line) const;
     double ccw_angle(const Point &p1, const Point &p2) const;
-    Point projection_onto(const MultiPoint &poly) const;
-    Point projection_onto(const Line &line) const;
-    Point negative() const { return Point(- this->data); }
-    Vector vector_to(const Point &point) const { return Vector(point.data - this->data); }
+    Point  projection_onto(const MultiPoint &poly) const;
+    Point  projection_onto(const Line &line) const;
+    Point  negative() const { return Point(- *this); }
+    Vector vector_to(const Point &point) const { return Vector(point - *this); }
 };
 
 inline Point operator+(const Point& point1, const Point& point2) { return Point(point1.x() + point2.x(), point1.y() + point2.y()); }
@@ -223,70 +227,77 @@ private:
     coord_t  m_grid_log2;
 };
 
-class Point3
+class Point3 : public Vec3crd
 {
 public:
     typedef coord_t coord_type;
-    Vec3crd data;
 
-    const coord_t&  x() const { return this->data[0]; }
-    coord_t&        x()       { return this->data[0]; }
-    const coord_t&  y() const { return this->data[1]; }
-    coord_t&        y()       { return this->data[1]; }
-    const coord_t&  z() const { return this->data[2]; }
-    coord_t&        z()       { return this->data[2]; }
-
-    operator const  Vec3crd& () const { return this->data; }
-    operator        Vec3crd& ()       { return this->data; }
-    template<typename T> Eigen::Matrix<T, 3, 1, Eigen::DontAlign> cast() const { return this->data.cast<T>(); }
-
-    explicit Point3(coord_t _x = 0, coord_t _y = 0, coord_t _z = 0) { this->data[0] = _x; this->data[1] = _y; this->data[2] = _z; }
-    explicit Point3(const Vec3crd &rhs) { this->data = rhs; }
-    explicit Point3(Vec3crd &&rhs) { this->data = std::move(rhs); }
+    explicit Point3() { (*this)(0) = (*this)(1) = (*this)(2) = 0; }
+    explicit Point3(coord_t x, coord_t y, coord_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
+    // This constructor allows you to construct Point3 from Eigen expressions
+    template<typename OtherDerived>
+    Point3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3crd(other) {}
     static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
-    Point3& operator=(const Vec3crd &rhs) { this->data = rhs; return *this; }
-    Point3& operator=(Vec3crd &&rhs) { this->data = std::move(rhs); return *this; }
-    bool operator==(const Point3 &rhs) const { return this->x() == rhs.x() && this->y() == rhs.y() && this->z() == rhs.z(); }
-    bool operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
-    bool coincides_with(const Point3& rhs) const { return this->x() == rhs.x() && this->y() == rhs.y() && this->z() == rhs.z(); }
 
-    Point xy() const { return Point(this->x(), this->y()); }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Point3& operator=(const Eigen::MatrixBase<OtherDerived> &other)
+    {
+        this->Point3::operator=(other);
+        return *this;
+    }
+
+    const coord_t&  x() const { return (*this)(0); }
+    coord_t&        x()       { return (*this)(0); }
+    const coord_t&  y() const { return (*this)(1); }
+    coord_t&        y()       { return (*this)(1); }
+    const coord_t&  z() const { return (*this)(2); }
+    coord_t&        z()       { return (*this)(2); }
+
+    bool            operator==(const Point3 &rhs) const { return this->x() == rhs.x() && this->y() == rhs.y() && this->z() == rhs.z(); }
+    bool            operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
+
+    Point           xy() const { return Point(this->x(), this->y()); }
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
 
-class Pointf
+class Pointf : public Vec2d
 {
 public:
     typedef coordf_t coord_type;
-    Vec2d data;
 
-    explicit Pointf(coordf_t x = 0, coordf_t y = 0) { data(0) = x; data(1) = y; }
-    explicit Pointf(const Vec2d &rhs) { this->data = rhs; }
-    explicit Pointf(Vec2d &&rhs) { this->data = std::move(rhs); }
+    explicit Pointf() { (*this)(0) = (*this)(1) = 0.; }
+//    explicit Pointf(double  x, double  y) { (*this)(0) = x; (*this)(1) = y; }
+    explicit Pointf(coordf_t x, coordf_t y) { (*this)(0) = x; (*this)(1) = y; }
+    // This constructor allows you to construct Pointf from Eigen expressions
+    template<typename OtherDerived>
+    Pointf(const Eigen::MatrixBase<OtherDerived> &other) : Vec2d(other) {}
     static Pointf new_unscale(coord_t x, coord_t y) { return Pointf(unscale(x), unscale(y)); }
     static Pointf new_unscale(const Point &p) { return Pointf(unscale(p.x()), unscale(p.y())); }
-    Pointf& operator=(const Vec2d &rhs) { this->data = rhs; return *this; }
-    Pointf& operator=(Vec2d &&rhs) { this->data = std::move(rhs); return *this; }
 
-    const coordf_t& x() const { return this->data[0]; }
-    coordf_t&       x()       { return this->data[0]; }
-    const coordf_t& y() const { return this->data[1]; }
-    coordf_t&       y()       { return this->data[1]; }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Pointf& operator=(const Eigen::MatrixBase<OtherDerived> &other)
+    {
+        this->Pointf::operator=(other);
+        return *this;
+    }
 
-    operator const  Vec2d&   () const { return this->data; }
-    operator        Vec2d&   ()       { return this->data; }
-    template<typename T> Eigen::Matrix<T, 2, 1, Eigen::DontAlign> cast() const { return this->data.cast<T>(); }
+    const coordf_t& x() const { return (*this)(0); }
+    coordf_t&       x()       { return (*this)(0); }
+    const coordf_t& y() const { return (*this)(1); }
+    coordf_t&       y()       { return (*this)(1); }
 
     std::string wkt() const;
     std::string dump_perl() const;
-    void scale(double factor) { this->data *= factor; }
-    void translate(double x, double y) { this->data += Vec2d(x, y); }
-    void translate(const Vectorf &vector) { this->data += vector.data; }
-    void rotate(double angle);
-    void rotate(double angle, const Pointf &center);
-    Pointf negative() const { return Pointf(- this->data); }
-    Vectorf vector_to(const Pointf &point) const { return Vectorf(point.data - this->data); }
+    void    scale(double factor) { *this *= factor; }
+    void    translate(double x, double y) { *this += Vec2d(x, y); }
+    void    translate(const Vectorf &vector) { *this += vector; }
+    void    rotate(double angle);
+    void    rotate(double angle, const Pointf &center);
+    Pointf  negative() const { return Pointf(- *this); }
+    Vectorf vector_to(const Pointf &point) const { return point - *this; }
     Pointf& operator+=(const Pointf& rhs) { this->x() += rhs.x(); this->y() += rhs.y(); return *this; }
     Pointf& operator-=(const Pointf& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); return *this; }
     Pointf& operator*=(const coordf_t& rhs) { this->x() *= rhs; this->y() *= rhs;   return *this; }
@@ -311,37 +322,41 @@ inline Vectorf normalize(const Vectorf& v)
     return (len != 0.0) ? 1.0 / len * v : Vectorf(0.0, 0.0);
 }
 
-class Pointf3
+class Pointf3 : public Vec3d
 {
 public:
     typedef coordf_t coord_type;
-    Vec3d data;
 
-    const coordf_t& x() const { return this->data[0]; }
-    coordf_t&       x()       { return this->data[0]; }
-    const coordf_t& y() const { return this->data[1]; }
-    coordf_t&       y()       { return this->data[1]; }
-    const coordf_t& z() const { return this->data[2]; }
-    coordf_t&       z()       { return this->data[2]; }
-
-    operator const  Vec3d&   () const { return this->data; }
-    operator        Vec3d&   ()       { return this->data; }
-    template<typename T> Eigen::Matrix<T, 3, 1, Eigen::DontAlign> cast() const { return this->data.cast<T>(); }
-
-    explicit Pointf3(coordf_t _x = 0, coordf_t _y = 0, coordf_t _z = 0) { this->data[0] = _x; this->data[1] = _y; this->data[2] = _z; }
-    explicit Pointf3(const Vec3d &rhs) { this->data = rhs; }
-    explicit Pointf3(Vec3d &&rhs) { this->data = std::move(rhs); }
+    explicit Pointf3() { (*this)(0) = (*this)(1) = (*this)(2) = 0.; }
+//    explicit Pointf3(coord_t x, coord_t y, coord_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
+    explicit Pointf3(coordf_t x, coordf_t y, coordf_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
+    // This constructor allows you to construct Pointf from Eigen expressions
+    template<typename OtherDerived>
+    Pointf3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3d(other) {}
     static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) { return Pointf3(unscale(x), unscale(y), unscale(z)); }
     static Pointf3 new_unscale(const Point3& p) { return Pointf3(unscale(p.x()), unscale(p.y()), unscale(p.z())); }
-    Pointf3& operator=(const Vec3d &rhs) { this->data = rhs; return *this; }
-    Pointf3& operator=(Vec3d &&rhs) { this->data = std::move(rhs); return *this; }
 
-    void scale(double factor) { this->data *= factor; }
-    void translate(const Vectorf3 &vector) { this->data += vector.data; }
-    void translate(double x, double y, double z) { this->data += Vec3d(x, y, z); }
-    double distance_to(const Pointf3 &point) const { return (point.data - this->data).norm(); }
-    Pointf3 negative() const { return Pointf3(- this->data); }
-    Vectorf3 vector_to(const Pointf3 &point) const { return Vectorf3(point.data - this->data); }
+    // This method allows you to assign Eigen expressions to MyVectorType
+    template<typename OtherDerived>
+    Pointf3& operator=(const Eigen::MatrixBase<OtherDerived> &other)
+    {
+        this->Pointf3::operator=(other);
+        return *this;
+    }
+
+    const coordf_t& x() const { return (*this)(0); }
+    coordf_t&       x()       { return (*this)(0); }
+    const coordf_t& y() const { return (*this)(1); }
+    coordf_t&       y()       { return (*this)(1); }
+    const coordf_t& z() const { return (*this)(2); }
+    coordf_t&       z()       { return (*this)(2); }
+
+    void     scale(double factor) { *this *= factor; }
+    void     translate(const Vectorf3 &vector) { *this += vector; }
+    void     translate(double x, double y, double z) { *this += Vec3d(x, y, z); }
+    double   distance_to(const Pointf3 &point) const { return (point - *this).norm(); }
+    Pointf3  negative() const { return Pointf3(- *this); }
+    Vectorf3 vector_to(const Pointf3 &point) const { return point - *this; }
 
     bool operator==(const Pointf3 &rhs) const { return this->x() == rhs.x() && this->y() == rhs.y() && this->z() == rhs.z(); }
     bool operator!=(const Pointf3 &rhs) const { return ! (*this == rhs); }

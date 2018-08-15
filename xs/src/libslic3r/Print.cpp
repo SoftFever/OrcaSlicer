@@ -1052,7 +1052,10 @@ void Print::_make_wipe_tower()
         return;
 
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
+#pragma warning(push)
+#pragma warning(disable:4244) // disable Visual Studio's warning: conversion from 'double' to 'float', possible loss of data
     std::vector<float> wiping_matrix((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end());
+#pragma warning(pop)
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
     const unsigned int number_of_extruders = (unsigned int)(sqrt(wiping_matrix.size())+EPSILON);

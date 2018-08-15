@@ -31,7 +31,7 @@ public:
 			xy out(0,0);
 			float temp_x = x - width / 2.f;
 			float temp_y = y - depth / 2.f;
-			angle *= M_PI/180.;
+			angle *= float(M_PI/180.);
 			out.x += (temp_x - origin.x) * cos(angle)  -  (temp_y - origin.y) * sin(angle);
 			out.y += (temp_x - origin.x) * sin(angle)  +  (temp_y - origin.y) * cos(angle);
 			return out + origin;

@@ -1947,7 +1947,7 @@ void GLCanvas3D::set_auto_bed_shape()
     // draw a default square bed around object center
     const BoundingBoxf3& bbox = volumes_bounding_box();
     coordf_t max_size = bbox.max_size();
-    const Pointf3& center = bbox.center();
+    const Pointf3 center = bbox.center();
 
     Pointfs bed_shape;
     bed_shape.reserve(4);
@@ -3101,7 +3101,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
                     // an converts the screen space coordinate to unscaled object space.
-                    Pointf3 pos3d = (volume_idx == -1) ? Pointf3(DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
+                    Pointf3 pos3d = (volume_idx == -1) ? Pointf3(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
 
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();

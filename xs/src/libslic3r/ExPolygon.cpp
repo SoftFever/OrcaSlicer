@@ -294,14 +294,14 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
             // find another polyline starting here
             for (size_t j = i+1; j < pp.size(); ++j) {
                 ThickPolyline& other = pp[j];
-                if (polyline.last_point().coincides_with(other.last_point())) {
+                if (polyline.last_point() == other.last_point()) {
                     other.reverse();
-                } else if (polyline.first_point().coincides_with(other.last_point())) {
+                } else if (polyline.first_point() == other.last_point()) {
                     polyline.reverse();
                     other.reverse();
-                } else if (polyline.first_point().coincides_with(other.first_point())) {
+                } else if (polyline.first_point() == other.first_point()) {
                     polyline.reverse();
-                } else if (!polyline.last_point().coincides_with(other.first_point())) {
+                } else if (polyline.last_point() != other.first_point()) {
                     continue;
                 }
                 

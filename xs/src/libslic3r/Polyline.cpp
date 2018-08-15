@@ -178,9 +178,9 @@ Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
     
     // create first half
     p1->points.clear();
-    for (Lines::const_iterator line = lines.begin(); line != lines.begin() + line_idx + 1; ++line) {
-        if (!line->a.coincides_with(p)) p1->points.push_back(line->a);
-    }
+    for (Lines::const_iterator line = lines.begin(); line != lines.begin() + line_idx + 1; ++line)
+        if (line->a != p) 
+            p1->points.push_back(line->a);
     // we add point instead of p because they might differ because of numerical issues
     // and caller might want to rely on point belonging to result polylines
     p1->points.push_back(point);

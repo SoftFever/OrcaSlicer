@@ -229,7 +229,7 @@ convex_hull(Points points)
 
         hull.points.resize(k);
         
-        assert( hull.points.front().coincides_with(hull.points.back()) );
+        assert( hull.points.front() == hull.points.back() );
         hull.points.pop_back();
     }
     
@@ -910,7 +910,7 @@ MedialAxis::build(ThickPolylines* polylines)
         assert(polyline.width.size() == polyline.points.size()*2 - 2);
         
         // prevent loop endpoints from being extended
-        if (polyline.first_point().coincides_with(polyline.last_point())) {
+        if (polyline.first_point() == polyline.last_point()) {
             polyline.endpoints.first = false;
             polyline.endpoints.second = false;
         }
@@ -1003,7 +1003,7 @@ MedialAxis::validate_edge(const VD::edge_type* edge)
     // this could maybe be optimized (checking inclusion of the endpoints
     // might give false positives as they might belong to the contour itself)
     if (this->expolygon != NULL) {
-        if (line.a.coincides_with(line.b)) {
+        if (line.a == line.b) {
             // in this case, contains(line) returns a false positive
             if (!this->expolygon->contains(line.a)) return false;
         } else {

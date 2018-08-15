@@ -182,9 +182,9 @@ std::vector<double> BridgeDetector::bridge_direction_candidates() const
     
     /*  we also test angles of each open supporting edge
         (this finds the optimal angle for C-shaped supports) */
-    for (Polylines::const_iterator edge = this->_edges.begin(); edge != this->_edges.end(); ++edge)
-        if (! edge->first_point().coincides_with(edge->last_point()))
-            angles.push_back(Line(edge->first_point(), edge->last_point()).direction());
+    for (const Polyline &edge : this->_edges)
+        if (edge.first_point() != edge.last_point())
+            angles.push_back(Line(edge.first_point(), edge.last_point()).direction());
     
     // remove duplicates
     double min_resolution = PI/180.0;  // 1 degree

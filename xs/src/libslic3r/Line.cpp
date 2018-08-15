@@ -109,7 +109,7 @@ Line::intersection_infinite(const Line &other, Point* point) const
 bool
 Line::coincides_with(const Line &line) const
 {
-    return this->a.coincides_with(line.a) && this->b.coincides_with(line.b);
+    return this->a == line.a && this->b == line.b;
 }
 
 double
@@ -220,22 +220,19 @@ Line::ccw(const Point& point) const
 
 double Line3::length() const
 {
-    return (b.data - a.data).norm();
+    return (b - a).norm();
 }
 
 Vector3 Line3::vector() const
 {
-    return Vector3(b.data - a.data);
+    return Vector3(b - a);
 }
 
-Pointf3
-Linef3::intersect_plane(double z) const
+Pointf3 Linef3::intersect_plane(double z) const
 {
-    return Pointf3(
-        this->a.x() + (this->b.x() - this->a.x()) * (z - this->a.z()) / (this->b.z() - this->a.z()),
-        this->a.y() + (this->b.y() - this->a.y()) * (z - this->a.z()) / (this->b.z() - this->a.z()),
-        z
-    );
+    Vec3d  v = this->b - this->a;
+    double t = (z - this->a.z()) / v.z();
+    return Pointf3(this->a.x() + v.x() * t, this->a.y() + v.y() * t, z);
 }
 
 void

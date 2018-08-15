@@ -24,8 +24,8 @@ void Point::rotate(double angle)
 {
     double cur_x = (double)this->x();
     double cur_y = (double)this->y();
-    double s     = sin(angle);
-    double c     = cos(angle);
+    double s     = ::sin(angle);
+    double c     = ::cos(angle);
     this->x() = (coord_t)round(c * cur_x - s * cur_y);
     this->y() = (coord_t)round(c * cur_y + s * cur_x);
 }
@@ -34,8 +34,8 @@ void Point::rotate(double angle, const Point &center)
 {
     double cur_x = (double)this->x();
     double cur_y = (double)this->y();
-    double s     = sin(angle);
-    double c     = cos(angle);
+    double s     = ::sin(angle);
+    double c     = ::cos(angle);
     double dx    = cur_x - (double)center.x();
     double dy    = cur_y - (double)center.y();
     this->x() = (coord_t)round( (double)center.x() + c * dx - s * dy );
@@ -122,7 +122,7 @@ double Point::distance_to(const Line &line) const
 
 double Point::perp_distance_to(const Line &line) const
 {
-    if (line.a.coincides_with(line.b)) return this->distance_to(line.a);
+    if (line.a == line.b) return this->distance_to(line.a);
     
     double n = (double)(line.b.x() - line.a.x()) * (double)(line.a.y() - this->y())
         - (double)(line.a.x() - this->x()) * (double)(line.b.y() - line.a.y());
@@ -176,7 +176,7 @@ Point Point::projection_onto(const MultiPoint &poly) const
 
 Point Point::projection_onto(const Line &line) const
 {
-    if (line.a.coincides_with(line.b)) return line.a;
+    if (line.a == line.b) return line.a;
     
     /*
         (Ported from VisiLibity by Karl J. Obermeyer)
@@ -226,8 +226,8 @@ void Pointf::rotate(double angle)
 {
     double cur_x = this->x();
     double cur_y = this->y();
-    double s     = sin(angle);
-    double c     = cos(angle);
+    double s     = ::sin(angle);
+    double c     = ::cos(angle);
     this->x() = c * cur_x - s * cur_y;
     this->y() = c * cur_y + s * cur_x;
 }
@@ -236,8 +236,8 @@ void Pointf::rotate(double angle, const Pointf &center)
 {
     double cur_x = this->x();
     double cur_y = this->y();
-    double s     = sin(angle);
-    double c     = cos(angle);
+    double s     = ::sin(angle);
+    double c     = ::cos(angle);
     double dx    = cur_x - center.x();
     double dy    = cur_y - center.y();
     this->x() = center.x() + c * dx - s * dy;

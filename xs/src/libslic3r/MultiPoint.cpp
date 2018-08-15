@@ -40,9 +40,9 @@ void MultiPoint::rotate(double angle, const Point &center)
     double s = sin(angle);
     double c = cos(angle);
     for (Point &pt : points) {
-        Vec2crd dif(pt.data - center.data);
-        pt.x() = (coord_t)round(double(center.x()) + c * dif[0] - s * dif[1]);
-        pt.y() = (coord_t)round(double(center.y()) + c * dif[1] + s * dif[0]);
+        Vec2crd v(pt - center);
+        pt.x() = (coord_t)round(double(center.x()) + c * v[0] - s * v[1]);
+        pt.y() = (coord_t)round(double(center.y()) + c * v[1] + s * v[0]);
     }
 }
 
@@ -70,9 +70,9 @@ MultiPoint::length() const
 int
 MultiPoint::find_point(const Point &point) const
 {
-    for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-        if (it->coincides_with(point)) return it - this->points.begin();
-    }
+    for (const Point &pt : this->points)
+        if (pt == point)
+            return &pt - &this->points.front();
     return -1;  // not found
 }
 
@@ -93,7 +93,7 @@ bool
 MultiPoint::has_duplicate_points() const
 {
     for (size_t i = 1; i < points.size(); ++i)
-        if (points[i-1].coincides_with(points[i]))
+        if (points[i-1] == points[i])
             return true;
     return false;
 }
@@ -103,7 +103,7 @@ MultiPoint::remove_duplicate_points()
 {
     size_t j = 0;
     for (size_t i = 1; i < points.size(); ++i) {
-        if (points[j].coincides_with(points[i])) {
+        if (points[j] == points[i]) {
             // Just increase index i.
         } else {
             ++ j;
@@ -234,15 +234,11 @@ BoundingBox3 MultiPoint3::bounding_box() const
 bool MultiPoint3::remove_duplicate_points()
 {
     size_t j = 0;
-    for (size_t i = 1; i < points.size(); ++i)
-    {
-        if (points[j].coincides_with(points[i]))
-        {
+    for (size_t i = 1; i < points.size(); ++i) {
+        if (points[j] == points[i]) {
             // Just increase index i.
-        }
-        else
-        {
-            ++j;
+        } else {
+            ++ j;
             if (j < i)
                 points[j] = points[i];
         }

@@ -452,7 +452,7 @@ ExtrusionEntityCollection PerimeterGenerator::_variable_width(const ThickPolylin
             paths.emplace_back(std::move(path));        
         // Append paths to collection.
         if (! paths.empty()) {
-            if (paths.front().first_point().coincides_with(paths.back().last_point()))
+            if (paths.front().first_point() == paths.back().last_point())
                 coll.append(ExtrusionLoop(paths));
             else
                 coll.append(paths);

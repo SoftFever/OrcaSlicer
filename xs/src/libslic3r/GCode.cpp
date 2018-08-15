@@ -2213,7 +2213,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     std::string gcode;
     
     // go to first point of extrusion path
-    if (!m_last_pos_defined || !m_last_pos.coincides_with(path.first_point())) {
+    if (!m_last_pos_defined || m_last_pos != path.first_point()) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),

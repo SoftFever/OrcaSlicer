@@ -280,7 +280,7 @@ const Transform3f& GLVolume::world_matrix() const
     {
         m_world_mat = Transform3f::Identity();
         m_world_mat.translate(Vec3f(m_origin.x(), m_origin.y(), 0));
-        m_world_mat.rotate(Eigen::AngleAxisf(m_angle_z, Eigen::Vector3f::UnitZ()));
+        m_world_mat.rotate(Eigen::AngleAxisf(m_angle_z, Vec3f::UnitZ()));
         m_world_mat.scale(m_scale_factor);
         m_dirty = false;
     }
