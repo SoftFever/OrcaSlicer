@@ -1473,6 +1473,13 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
 const unsigned char GLCanvas3D::WarningTexture::Opacity = 255;
 
+GLCanvas3D::WarningTexture::WarningTexture()
+    : GUI::GLTexture()
+    , m_original_width(0)
+    , m_original_height(0)
+{
+}
+
 bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
 {
     reset();
@@ -1482,13 +1489,21 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
 
     wxMemoryDC memDC;
     // select default font
-    memDC.SetFont(wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT));
+    wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    font.MakeLarger();
+    font.MakeBold();
+    memDC.SetFont(font);
 
     // calculates texture size
     wxCoord w, h;
     memDC.GetTextExtent(msg, &w, &h);
-    m_width = (int)w;
-    m_height = (int)h;
+
+    int pow_of_two_size = next_highest_power_of_2((int)std::max(w, h));
+
+    m_original_width = (int)w;
+    m_original_height = (int)h;
+    m_width = pow_of_two_size;
+    m_height = pow_of_two_size;
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -1540,9 +1555,50 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
     return true;
 }
 
+void GLCanvas3D::WarningTexture::render(const GLCanvas3D& canvas) const
+{
+    if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
+    {
+        ::glDisable(GL_DEPTH_TEST);
+        ::glPushMatrix();
+        ::glLoadIdentity();
+
+        const Size& cnv_size = canvas.get_canvas_size();
+        float zoom = canvas.get_camera_zoom();
+        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+        float left = (-0.5f * (float)m_original_width) * inv_zoom;
+        float top = (-0.5f * (float)cnv_size.get_height() + (float)m_original_height + 2.0f) * inv_zoom;
+        float right = left + (float)m_original_width * inv_zoom;
+        float bottom = top - (float)m_original_height * inv_zoom;
+
+        float uv_left = 0.0f;
+        float uv_top = 0.0f;
+        float uv_right = (float)m_original_width / (float)m_width;
+        float uv_bottom = (float)m_original_height / (float)m_height;
+
+        GLTexture::Quad_UVs uvs;
+        uvs.left_top = { uv_left, uv_top };
+        uvs.left_bottom = { uv_left, uv_bottom };
+        uvs.right_bottom = { uv_right, uv_bottom };
+        uvs.right_top = { uv_right, uv_top };
+
+        GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
+
+        ::glPopMatrix();
+        ::glEnable(GL_DEPTH_TEST);
+    }
+}
+
 const unsigned char GLCanvas3D::LegendTexture::Squares_Border_Color[3] = { 64, 64, 64 };
 const unsigned char GLCanvas3D::LegendTexture::Background_Color[3] = { 9, 91, 134 };
 const unsigned char GLCanvas3D::LegendTexture::Opacity = 255;
+
+GLCanvas3D::LegendTexture::LegendTexture()
+    : GUI::GLTexture()
+    , m_original_width(0)
+    , m_original_height(0)
+{
+}
 
 bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors)
 {
@@ -1576,10 +1632,15 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
         max_text_height = std::max(max_text_height, (int)h);
     }
 
-    m_width = std::max(2 * Px_Border + title_width, 2 * (Px_Border + Px_Square_Contour) + Px_Square + Px_Text_Offset + max_text_width);
-    m_height = 2 * (Px_Border + Px_Square_Contour) + title_height + Px_Title_Offset + items_count * Px_Square;
+    m_original_width = std::max(2 * Px_Border + title_width, 2 * (Px_Border + Px_Square_Contour) + Px_Square + Px_Text_Offset + max_text_width);
+    m_original_height = 2 * (Px_Border + Px_Square_Contour) + title_height + Px_Title_Offset + items_count * Px_Square;
     if (items_count > 1)
-        m_height += (items_count - 1) * Px_Square_Contour;
+        m_original_height += (items_count - 1) * Px_Square_Contour;
+
+    int pow_of_two_size = next_highest_power_of_2(std::max(m_original_width, m_original_height));
+
+    m_width = pow_of_two_size;
+    m_height = pow_of_two_size;
 
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
@@ -1688,6 +1749,40 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     return true;
 }
 
+void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
+{
+    if ((m_id > 0) && (m_original_width > 0) && (m_original_height > 0) && (m_width > 0) && (m_height > 0))
+    {
+        ::glDisable(GL_DEPTH_TEST);
+        ::glPushMatrix();
+        ::glLoadIdentity();
+
+        const Size& cnv_size = canvas.get_canvas_size();
+        float zoom = canvas.get_camera_zoom();
+        float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+        float left = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
+        float top = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
+        float right = left + (float)m_original_width * inv_zoom;
+        float bottom = top - (float)m_original_height * inv_zoom;
+
+        float uv_left = 0.0f;
+        float uv_top = 0.0f;
+        float uv_right = (float)m_original_width / (float)m_width;
+        float uv_bottom = (float)m_original_height / (float)m_height;
+
+        GLTexture::Quad_UVs uvs;
+        uvs.left_top = { uv_left, uv_top };
+        uvs.left_bottom = { uv_left, uv_bottom };
+        uvs.right_bottom = { uv_right, uv_bottom };
+        uvs.right_top = { uv_right, uv_top };
+
+        GLTexture::render_sub_texture(m_id, left, right, bottom, top, uvs);
+
+        ::glPopMatrix();
+        ::glEnable(GL_DEPTH_TEST);
+    }
+}
+
 GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
 {
     GizmosMap::const_iterator it = m_gizmos.find(m_current);
@@ -1698,6 +1793,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
     , m_timer(nullptr)
+    , m_toolbar(*this)
     , m_config(nullptr)
     , m_print(nullptr)
     , m_model(nullptr)
@@ -1707,6 +1803,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_force_zoom_to_bed_enabled(false)
     , m_apply_zoom_to_volumes_filter(false)
     , m_hover_volume_id(-1)
+    , m_toolbar_action_running(false)
     , m_warning_texture_enabled(false)
     , m_legend_texture_enabled(false)
     , m_picking_enabled(false)
@@ -1811,6 +1908,9 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
         m_volumes.finalize_geometry(m_use_VBOs);
 
     if (m_gizmos.is_enabled() && !m_gizmos.init())
+        return false;
+
+    if (!_init_toolbar())
         return false;
 
     m_initialized = true;
@@ -2076,6 +2176,11 @@ void GLCanvas3D::enable_gizmos(bool enable)
     m_gizmos.set_enabled(enable);
 }
 
+void GLCanvas3D::enable_toolbar(bool enable)
+{
+    m_toolbar.set_enabled(enable);
+}
+
 void GLCanvas3D::enable_shader(bool enable)
 {
     m_shader_enabled = enable;
@@ -2094,6 +2199,19 @@ void GLCanvas3D::enable_dynamic_background(bool enable)
 void GLCanvas3D::allow_multisample(bool allow)
 {
     m_multisample_allowed = allow;
+}
+
+void GLCanvas3D::enable_toolbar_item(const std::string& name, bool enable)
+{
+    if (enable)
+        m_toolbar.enable_item(name);
+    else
+        m_toolbar.disable_item(name);
+}
+
+bool GLCanvas3D::is_toolbar_item_pressed(const std::string& name) const
+{
+    return m_toolbar.is_item_pressed(name);
 }
 
 void GLCanvas3D::zoom_to_bed()
@@ -2225,6 +2343,7 @@ void GLCanvas3D::render()
     _render_warning_texture();
     _render_legend_texture();
     _render_gizmo();
+    _render_toolbar();
     _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
@@ -2527,6 +2646,84 @@ void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
         m_on_update_geometry_info_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_action_add_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_add_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_delete_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_delete_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_deleteall_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_deleteall_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_arrange_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_arrange_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_more_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_more_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_fewer_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_fewer_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_ccw45_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_ccw45_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_cw45_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_cw45_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_scale_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_scale_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_split_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_split_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_cut_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_cut_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_settings_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_settings_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_action_layersediting_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_layersediting_callback.register_callback(callback);
+}
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -2704,6 +2901,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
+    int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position);
 
     if (evt.Entering())
     {
@@ -2723,6 +2921,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
         m_on_double_click_callback.call();
+    else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
+    {
+        m_toolbar_action_running = true;
+        m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
+    }
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -2760,6 +2963,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_gizmos.start_dragging();
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
             m_dirty = true;
+        }
+        else if (toolbar_contains_mouse != -1)
+        {
+            m_toolbar_action_running = true;
+            m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
         }
         else
         {
@@ -2817,9 +3025,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
                 else if (evt.RightDown())
                 {
-                    // if right clicking on volume, propagate event through callback
-                    if (m_volumes.volumes[volume_idx]->hover)
-                        m_on_right_click_callback.call(pos.x, pos.y);
+                    // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
+                    // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
+                    m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
+                    render();
+                    if (m_hover_volume_id != -1)
+                    {
+                        // if right clicking on volume, propagate event through callback (shows context menu)
+                        if (m_volumes.volumes[volume_idx]->hover)
+                            m_on_right_click_callback.call(pos.x, pos.y);
+                    }
                 }
             }
         }
@@ -3018,10 +3233,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             
             _on_move(volume_idxs);
         }
-        else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
+        else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
-            if (m_picking_enabled)
+            if (m_picking_enabled && !m_toolbar_action_running)
             {
                 deselect_volumes();
                 _on_select(-1);
@@ -3053,6 +3268,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
+        m_toolbar_action_running = false;
         m_dirty = true;
     }
     else if (evt.Moving())
@@ -3119,6 +3335,12 @@ void GLCanvas3D::reset_legend_texture()
     m_legend_texture.reset();
 }
 
+void GLCanvas3D::set_tooltip(const std::string& tooltip)
+{
+    if (m_canvas != nullptr)
+        m_canvas->SetToolTip(tooltip);
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
@@ -3128,6 +3350,143 @@ void GLCanvas3D::_force_zoom_to_bed()
 {
     zoom_to_bed();
     m_force_zoom_to_bed_enabled = false;
+}
+
+bool GLCanvas3D::_init_toolbar()
+{
+    if (!m_toolbar.is_enabled())
+        return true;
+
+    if (!m_toolbar.init("toolbar.png", 36, 1, 1))
+    {
+        // unable to init the toolbar texture, disable it
+        m_toolbar.set_enabled(false);
+        return true;
+    }
+
+//    m_toolbar.set_layout_type(GLToolbar::Layout::Vertical);
+    m_toolbar.set_layout_type(GLToolbar::Layout::Horizontal);
+    m_toolbar.set_separator_size(5);
+    m_toolbar.set_gap_size(2);
+
+    GLToolbarItem::Data item;
+
+    item.name = "add";
+    item.tooltip = GUI::L_str("Add...");
+    item.sprite_id = 0;
+    item.is_toggable = false;
+    item.action_callback = &m_action_add_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "delete";
+    item.tooltip = GUI::L_str("Delete");
+    item.sprite_id = 1;
+    item.is_toggable = false;
+    item.action_callback = &m_action_delete_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "deleteall";
+    item.tooltip = GUI::L_str("Delete all");
+    item.sprite_id = 2;
+    item.is_toggable = false;
+    item.action_callback = &m_action_deleteall_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "arrange";
+    item.tooltip = GUI::L_str("Arrange");
+    item.sprite_id = 3;
+    item.is_toggable = false;
+    item.action_callback = &m_action_arrange_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
+    item.name = "more";
+    item.tooltip = GUI::L_str("Add instance");
+    item.sprite_id = 4;
+    item.is_toggable = false;
+    item.action_callback = &m_action_more_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "fewer";
+    item.tooltip = GUI::L_str("Remove instance");
+    item.sprite_id = 5;
+    item.is_toggable = false;
+    item.action_callback = &m_action_fewer_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
+    item.name = "ccw45";
+    item.tooltip = GUI::L_str("Rotate CCW 45 degrees");
+    item.sprite_id = 6;
+    item.is_toggable = false;
+    item.action_callback = &m_action_ccw45_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "cw45";
+    item.tooltip = GUI::L_str("Rotate CW 45 degrees");
+    item.sprite_id = 7;
+    item.is_toggable = false;
+    item.action_callback = &m_action_cw45_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "scale";
+    item.tooltip = GUI::L_str("Scale...");
+    item.sprite_id = 8;
+    item.is_toggable = false;
+    item.action_callback = &m_action_scale_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "split";
+    item.tooltip = GUI::L_str("Split");
+    item.sprite_id = 9;
+    item.is_toggable = false;
+    item.action_callback = &m_action_split_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "cut";
+    item.tooltip = GUI::L_str("Cut...");
+    item.sprite_id = 10;
+    item.is_toggable = false;
+    item.action_callback = &m_action_cut_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
+    item.name = "settings";
+    item.tooltip = GUI::L_str("Settings...");
+    item.sprite_id = 11;
+    item.is_toggable = false;
+    item.action_callback = &m_action_settings_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "layersediting";
+    item.tooltip = GUI::L_str("Layers editing");
+    item.sprite_id = 12;
+    item.is_toggable = true;
+    item.action_callback = &m_action_layersediting_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    enable_toolbar_item("add", true);
+
+    return true;
 }
 
 void GLCanvas3D::_resize(unsigned int w, unsigned int h)
@@ -3353,6 +3712,20 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
     m_on_gizmo_rotate_callback.deregister_callback();
     m_on_update_geometry_info_callback.deregister_callback();
+
+    m_action_add_callback.deregister_callback();
+    m_action_delete_callback.deregister_callback();
+    m_action_deleteall_callback.deregister_callback();
+    m_action_arrange_callback.deregister_callback();
+    m_action_more_callback.deregister_callback();
+    m_action_fewer_callback.deregister_callback();
+    m_action_ccw45_callback.deregister_callback();
+    m_action_cw45_callback.deregister_callback();
+    m_action_scale_callback.deregister_callback();
+    m_action_split_callback.deregister_callback();
+    m_action_cut_callback.deregister_callback();
+    m_action_settings_callback.deregister_callback();
+    m_action_layersediting_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -3464,6 +3837,8 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.update_hover_state(*this, pos);
         else
             m_gizmos.reset_all_states();
+
+        m_toolbar.update_hover_state(pos);
     }
 }
 
@@ -3568,32 +3943,7 @@ void GLCanvas3D::_render_warning_texture() const
     if (!m_warning_texture_enabled)
         return;
 
-    // If the warning texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = m_warning_texture.get_id();
-    if (tex_id > 0)
-    {
-        int w = m_warning_texture.get_width();
-        int h = m_warning_texture.get_height();
-        if ((w > 0) && (h > 0))
-        {
-            ::glDisable(GL_DEPTH_TEST);
-            ::glPushMatrix();
-            ::glLoadIdentity();
-
-            const Size& cnv_size = get_canvas_size();
-            float zoom = get_camera_zoom();
-            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-            float l = (-0.5f * (float)w) * inv_zoom;
-            float t = (-0.5f * (float)cnv_size.get_height() + (float)h) * inv_zoom;
-            float r = l + (float)w * inv_zoom;
-            float b = t - (float)h * inv_zoom;
-
-            GLTexture::render_texture(tex_id, l, r, b, t);
-
-            ::glPopMatrix();
-            ::glEnable(GL_DEPTH_TEST);
-        }
-    }
+    m_warning_texture.render(*this);
 }
 
 void GLCanvas3D::_render_legend_texture() const
@@ -3601,32 +3951,7 @@ void GLCanvas3D::_render_legend_texture() const
     if (!m_legend_texture_enabled)
         return;
 
-    // If the legend texture has not been loaded into the GPU, do it now.
-    unsigned int tex_id = m_legend_texture.get_id();
-    if (tex_id > 0)
-    {
-        int w = m_legend_texture.get_width();
-        int h = m_legend_texture.get_height();
-        if ((w > 0) && (h > 0))
-        {
-            ::glDisable(GL_DEPTH_TEST);
-            ::glPushMatrix();
-            ::glLoadIdentity();
-
-            const Size& cnv_size = get_canvas_size();
-            float zoom = get_camera_zoom();
-            float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
-            float l = (-0.5f * (float)cnv_size.get_width()) * inv_zoom;
-            float t = (0.5f * (float)cnv_size.get_height()) * inv_zoom;
-            float r = l + (float)w * inv_zoom;
-            float b = t - (float)h * inv_zoom;
-
-            GLTexture::render_texture(tex_id, l, r, b, t);
-
-            ::glPopMatrix();
-            ::glEnable(GL_DEPTH_TEST);
-        }
-    }
+    m_legend_texture.render(*this);
 }
 
 void GLCanvas3D::_render_layer_editing_overlay() const
@@ -3711,6 +4036,12 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 void GLCanvas3D::_render_gizmo() const
 {
     m_gizmos.render(*this, _selected_volumes_bounding_box());
+}
+
+void GLCanvas3D::_render_toolbar() const
+{
+    _resize_toolbar();
+    m_toolbar.render();
 }
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
@@ -4962,6 +5293,37 @@ bool GLCanvas3D::_is_any_volume_outside() const
     }
 
     return false;
+}
+
+void GLCanvas3D::_resize_toolbar() const
+{
+    Size cnv_size = get_canvas_size();
+    float zoom = get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+
+    switch (m_toolbar.get_layout_type())
+    {
+    default:
+    case GLToolbar::Layout::Horizontal:
+    {
+        // centers the toolbar on the top edge of the 3d scene
+        unsigned int toolbar_width = m_toolbar.get_width();
+        float top = (0.5f * (float)cnv_size.get_height() - 2.0f) * inv_zoom;
+        float left = -0.5f * (float)toolbar_width * inv_zoom;
+        m_toolbar.set_position(top, left);
+        break;
+    }
+    case GLToolbar::Layout::Vertical:
+    {
+        // centers the toolbar on the right edge of the 3d scene
+        unsigned int toolbar_width = m_toolbar.get_width();
+        unsigned int toolbar_height = m_toolbar.get_height();
+        float top = 0.5f * (float)toolbar_height * inv_zoom;
+        float left = (0.5f * (float)cnv_size.get_width() - toolbar_width - 2.0f) * inv_zoom;
+        m_toolbar.set_position(top, left);
+        break;
+    }
+    }
 }
 
 } // namespace GUI

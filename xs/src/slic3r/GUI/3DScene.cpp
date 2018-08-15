@@ -1852,6 +1852,11 @@ void _3DScene::enable_gizmos(wxGLCanvas* canvas, bool enable)
     s_canvas_mgr.enable_gizmos(canvas, enable);
 }
 
+void _3DScene::enable_toolbar(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_toolbar(canvas, enable);
+}
+
 void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_shader(canvas, enable);
@@ -1870,6 +1875,16 @@ void _3DScene::enable_dynamic_background(wxGLCanvas* canvas, bool enable)
 void _3DScene::allow_multisample(wxGLCanvas* canvas, bool allow)
 {
     s_canvas_mgr.allow_multisample(canvas, allow);
+}
+
+void _3DScene::enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable)
+{
+    s_canvas_mgr.enable_toolbar_item(canvas, name, enable);
+}
+
+bool _3DScene::is_toolbar_item_pressed(wxGLCanvas* canvas, const std::string& name)
+{
+    return s_canvas_mgr.is_toolbar_item_pressed(canvas, name);
 }
 
 void _3DScene::zoom_to_bed(wxGLCanvas* canvas)
@@ -2005,6 +2020,71 @@ void _3DScene::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callb
 void _3DScene::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_update_geometry_info_callback(canvas, callback);
+}
+
+void _3DScene::register_action_add_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_add_callback(canvas, callback);
+}
+
+void _3DScene::register_action_delete_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_delete_callback(canvas, callback);
+}
+
+void _3DScene::register_action_deleteall_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_deleteall_callback(canvas, callback);
+}
+
+void _3DScene::register_action_arrange_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_arrange_callback(canvas, callback);
+}
+
+void _3DScene::register_action_more_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_more_callback(canvas, callback);
+}
+
+void _3DScene::register_action_fewer_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_fewer_callback(canvas, callback);
+}
+
+void _3DScene::register_action_ccw45_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_ccw45_callback(canvas, callback);
+}
+
+void _3DScene::register_action_cw45_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_cw45_callback(canvas, callback);
+}
+
+void _3DScene::register_action_scale_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_scale_callback(canvas, callback);
+}
+
+void _3DScene::register_action_split_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_split_callback(canvas, callback);
+}
+
+void _3DScene::register_action_cut_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_cut_callback(canvas, callback);
+}
+
+void _3DScene::register_action_settings_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_settings_callback(canvas, callback);
+}
+
+void _3DScene::register_action_layersediting_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_layersediting_callback(canvas, callback);
 }
 
 static inline int hex_digit_to_int(const char c)
