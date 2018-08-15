@@ -30,9 +30,9 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 
 	auto optgroup = init_modificator_options_page(_(L("Box")));
 		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
-			int opt_id =	opt_key == "L" ? 0 :
-							opt_key == "W" ? 1 : 
-							opt_key == "L" ? 2 : -1;
+			int opt_id =	opt_key == "l" ? 0 :
+							opt_key == "w" ? 1 : 
+							opt_key == "h" ? 2 : -1;
 			if (opt_id < 0) return;
 			object_parameters.dim[opt_id] = boost::any_cast<double>(value);
 		};

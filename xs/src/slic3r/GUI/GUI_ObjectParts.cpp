@@ -690,14 +690,12 @@ void set_object_scale(int idx, int scale)
 
 void unselect_objects()
 {
-    printf("UNSELECT OBJECTS\n");
+    if (!m_objects_ctrl->GetSelection())
+        return;
+
     g_prevent_list_events = true;
-    if (m_objects_ctrl->GetSelection()) {
-        m_objects_ctrl->UnselectAll();
-        part_selection_changed();
-    }
-    else
-        printf("all items are UNSELECTED\n");
+    m_objects_ctrl->UnselectAll();
+    part_selection_changed();
     g_prevent_list_events = false;
 }
 
@@ -1327,7 +1325,6 @@ void update_settings_value()
 		og->set_value("scale_x", 0);
 		og->set_value("scale_y", 0);
 		og->set_value("scale_z", 0);
-        printf("return because of unselect\n");
         og->disable();
 		return;
 	}
@@ -1478,7 +1475,6 @@ void set_extruder_column_hidden(bool hide)
 
 void update_extruder_in_config(const wxString& selection)
 {
-    printf("BEGIN OF update_extruder_in_config\n");
     if (!m_config || selection.empty())
         return;
 
@@ -1489,7 +1485,6 @@ void update_extruder_in_config(const wxString& selection)
         wxCommandEvent e(m_event_update_scene);
         get_main_frame()->ProcessWindowEvent(e);
     }
-    printf("END OF update_extruder_in_config\n");
 }
 
 void update_scale_values()
@@ -1612,7 +1607,7 @@ void on_drop(wxDataViewEvent &event)
 void update_objects_list_extruder_column(const int extruders_count)
 {
     // delete old 3rd column
-    m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumnAt(3));
+    m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumn(3));
     // insert new created 3rd column
     m_objects_ctrl->InsertColumn(3, object_ctrl_create_extruder_column(extruders_count));
     // set show/hide for this column 
