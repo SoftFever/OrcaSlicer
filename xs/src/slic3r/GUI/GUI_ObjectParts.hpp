@@ -8,6 +8,7 @@ class wxString;
 class wxArrayString;
 class wxMenu;
 class wxDataViewEvent;
+class wxKeyEvent;
 
 namespace Slic3r {
 class ModelObject;
@@ -71,6 +72,9 @@ void remove();
 
 void object_ctrl_selection_changed();
 void object_ctrl_context_menu();
+void object_ctrl_key_event(wxKeyEvent& event);
+void object_ctrl_item_value_change(wxDataViewEvent& event);
+void show_context_menu();
 
 void init_mesh_icons();
 void set_event_object_selection_changed(const int& event);

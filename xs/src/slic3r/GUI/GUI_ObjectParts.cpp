@@ -210,13 +210,12 @@ wxPoint get_mouse_position_in_control() {
                    pt.y - win->GetScreenPosition().y);
 }
 
-// ****** from GUI.cpp
-wxBoxSizer* content_objects_list(wxWindow *win)
+void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 {
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
 	m_objects_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
 
-	auto objects_sz = new wxBoxSizer(wxVERTICAL);
+	objects_sz = new wxBoxSizer(wxVERTICAL);
 	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT, 20);
 
 	m_objects_model = new PrusaObjectDataViewModel;
@@ -228,7 +227,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 
 	// column 0(Icon+Text) of the view control:
 	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 120,
-		wxALIGN_LEFT, /*wxDATAVIEW_COL_SORTABLE | */wxDATAVIEW_COL_RESIZABLE);
+		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
 	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
@@ -254,9 +253,15 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	// column 4 of the view control:
 	m_objects_ctrl->AppendBitmapColumn(" ", 4, wxDATAVIEW_CELL_INERT, 25,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+}
 
-	m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event)
-	{
+// ****** from GUI.cpp
+wxBoxSizer* create_objects_list(wxWindow *win)
+{
+    wxBoxSizer* objects_sz;
+    create_objects_ctrl(win, objects_sz);
+
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event) {
 		object_ctrl_selection_changed();
 #ifndef __WXMSW__
         set_tooltip_for_item(get_mouse_position_in_control());
@@ -264,66 +269,21 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	});
 
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event) {
-        wxDataViewItem item;
-        wxDataViewColumn* col;
-        m_objects_ctrl->HitTest(get_mouse_position_in_control(), item, col);
-        wxString title = col->GetTitle();
-        if (!item) return;
-
-        if (title == " ")
-            object_ctrl_context_menu();
-        // ys_FIXME
-//         else if (title == _("Name") && pt.x >15 &&
-//                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
-//         {
-//             if (is_windows10())
-//                 fix_through_netfabb();
-//         }
-#ifndef __WXMSW__
-        m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
-#endif //__WXMSW__        
+        object_ctrl_context_menu();
 		event.Skip();
 	});
 
-	m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event)
-	{
-        printf("wxEVT_CHAR : ");
-		if (event.GetKeyCode() == WXK_TAB)
-			m_objects_ctrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
-		else if (event.GetKeyCode() == WXK_DELETE
-#ifdef __WXOSX__
-			|| event.GetKeyCode() == WXK_BACK
-#endif //__WXOSX__
-            ){ 
-            printf("WXK_BACK\n");
-			remove();}
-		else 
-			event.Skip();
-	});
+    m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event) { object_ctrl_key_event(event); });
 
 #ifdef __WXMSW__
-	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) {
-        update_extruder_in_config(event.GetString());
-	});
+	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
 
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
          set_tooltip_for_item(event.GetPosition());
          event.Skip();
     });
 #else
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event)
-    {
-        if (event.GetColumn() == 3)
-        {
-        	wxVariant variant;
-        	m_objects_model->GetValue(variant, event.GetItem(), 3);
-#ifdef __WXOSX__
-            g_selected_extruder = variant.GetString();
-#else // --> for Linux
-        	update_extruder_in_config(variant.GetString());
-#endif //__WXOSX__  
-        }
-    });
+    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event) { object_ctrl_item_value_change(event); });
 #endif //__WXMSW__
 
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [](wxDataViewEvent& e) {on_begin_drag(e);});
@@ -332,7 +292,7 @@ wxBoxSizer* content_objects_list(wxWindow *win)
 	return objects_sz;
 }
 
-wxBoxSizer* content_edit_object_buttons(wxWindow* win)
+wxBoxSizer* create_edit_object_buttons(wxWindow* win)
 {
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -493,7 +453,7 @@ wxBoxSizer* content_settings(wxWindow *win)
 	get_optgroups().push_back(optgroup);  // ogObjectSettings
 
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(content_edit_object_buttons(win), 0, wxEXPAND, 0); // *** Edit Object Buttons***
+	sizer->Add(create_edit_object_buttons(win), 0, wxEXPAND, 0); // *** Edit Object Buttons***
 
 	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
 
@@ -509,7 +469,7 @@ wxBoxSizer* content_settings(wxWindow *win)
 
 void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
 {
-	const auto ol_sizer = content_objects_list(parent);
+	const auto ol_sizer = create_objects_list(parent);
 	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
 	set_objects_list_sizer(ol_sizer);
 }
@@ -646,7 +606,7 @@ wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_pare
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer)
 {
 	// *** Objects List ***	
-	auto collpane = add_collapsible_pane(parent, sizer, "Objects List:", content_objects_list);
+	auto collpane = add_collapsible_pane(parent, sizer, "Objects List:", create_objects_list);
 	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent& e){
 		// 		wxWindowUpdateLocker noUpdates(g_right_panel);
 		if (collpane->IsCollapsed()) {
@@ -786,6 +746,58 @@ void object_ctrl_selection_changed()
 #ifdef __WXOSX__
     update_extruder_in_config(g_selected_extruder);
 #endif //__WXOSX__        
+}
+
+void object_ctrl_context_menu()
+{
+    wxDataViewItem item;
+    wxDataViewColumn* col;
+    m_objects_ctrl->HitTest(get_mouse_position_in_control(), item, col);
+    wxString title = col->GetTitle();
+    if (!item) return;
+
+    if (title == " ")
+        show_context_menu();
+// ys_FIXME
+//         else if (title == _("Name") && pt.x >15 &&
+//                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
+//         {
+//             if (is_windows10())
+//                 fix_through_netfabb();
+//         }
+#ifndef __WXMSW__
+    m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
+#endif //__WXMSW__
+}
+
+void object_ctrl_key_event(wxKeyEvent& event)
+{
+    if (event.GetKeyCode() == WXK_TAB)
+        m_objects_ctrl->Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
+    else if (event.GetKeyCode() == WXK_DELETE
+#ifdef __WXOSX__
+        || event.GetKeyCode() == WXK_BACK
+#endif //__WXOSX__
+        ){
+        printf("WXK_BACK\n");
+        remove();
+    }
+    else
+        event.Skip();
+}
+
+void object_ctrl_item_value_change(wxDataViewEvent& event)
+{
+    if (event.GetColumn() == 3)
+    {
+        wxVariant variant;
+        m_objects_model->GetValue(variant, event.GetItem(), 3);
+#ifdef __WXOSX__
+        g_selected_extruder = variant.GetString();
+#else // --> for Linux
+        update_extruder_in_config(variant.GetString());
+#endif //__WXOSX__  
+    }
 }
 
 //update_optgroup
@@ -1049,30 +1061,20 @@ wxMenu *create_add_settings_popupmenu(bool is_part)
 	return menu;
 }
 
-void object_ctrl_context_menu()
+void show_context_menu()
 {
-// 	auto cur_column = m_objects_ctrl->GetCurrentColumn();
-// 	auto action_column = m_objects_ctrl->GetColumn(4);
-// 	if (cur_column == action_column)			
-	{
-		auto item = m_objects_ctrl->GetSelection();
-		if (item)
-		{
-			if (m_objects_model->GetParent(item) == wxDataViewItem(0))				{
-				auto menu = create_add_part_popupmenu();
-				get_tab_panel()->GetPage(0)->PopupMenu(menu);
-			}
-			else {
-// 				auto parent = m_objects_model->GetParent(item);
-// 				// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
-// 				obj_idx = m_objects_model->GetIdByItem(parent);
-// 				auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-// 				if (volume_id < 0) return;
-				auto menu = create_part_settings_popupmenu();
-				get_tab_panel()->GetPage(0)->PopupMenu(menu);
-			}
-		}
-	}
+    auto item = m_objects_ctrl->GetSelection();
+    if (item)
+    {
+        if (m_objects_model->GetParent(item) == wxDataViewItem(0))				{
+            auto menu = create_add_part_popupmenu();
+            get_tab_panel()->GetPage(0)->PopupMenu(menu);
+        }
+        else {
+            auto menu = create_part_settings_popupmenu();
+            get_tab_panel()->GetPage(0)->PopupMenu(menu);
+        }
+    }
 }
 
 // ******
