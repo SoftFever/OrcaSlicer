@@ -189,7 +189,7 @@ GLGizmoRotate::GLGizmoRotate()
     , m_angle_z(0.0f)
     , m_center(Pointf(0.0, 0.0))
     , m_radius(0.0f)
-    , m_keep_radius(false)
+    , m_keep_initial_values(false)
 {
 }
 
@@ -229,7 +229,7 @@ bool GLGizmoRotate::on_init()
 
 void GLGizmoRotate::on_set_state()
 {
-    m_keep_radius = (m_state == On) ? false : true;
+    m_keep_initial_values = (m_state == On) ? false : true;
 }
 
 void GLGizmoRotate::on_update(const Pointf& mouse_pos)
@@ -255,19 +255,19 @@ void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 
 void GLGizmoRotate::on_refresh()
 {
-    m_keep_radius = false;
+    m_keep_initial_values = false;
 }
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
-    const Pointf3& size = box.size();
-    m_center = box.center();
-    if (!m_keep_radius)
+    if (!m_keep_initial_values)
     {
+        const Pointf3& size = box.size();
+        m_center = box.center();
         m_radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y));
-        m_keep_radius = true;
+        m_keep_initial_values = true;
     }
 
     ::glLineWidth(2.0f);

@@ -65,7 +65,6 @@
              %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
-    Clone<BoundingBoxf3> transformed_bounding_box() const;
 
     bool                empty() const;
     bool                indexed() const;

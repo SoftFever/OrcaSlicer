@@ -202,7 +202,8 @@ const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 GLVolume::GLVolume(float r, float g, float b, float a)
     : m_angle_z(0.0f)
     , m_scale_factor(1.0f)
-    , m_dirty(true)
+    , m_transformed_bounding_box_dirty(true)
+    , m_transformed_convex_hull_bounding_box_dirty(true)
     , composite_id(-1)
     , select_group_id(-1)
     , drag_group_id(-1)
@@ -219,8 +220,6 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
-    m_world_mat = std::vector<float>(UNIT_MATRIX, std::end(UNIT_MATRIX));
-
     color[0] = r;
     color[1] = g;
     color[2] = b;
@@ -264,43 +263,74 @@ const Pointf3& GLVolume::get_origin() const
 
 void GLVolume::set_origin(const Pointf3& origin)
 {
-    m_origin = origin;
-    m_dirty = true;
+    if (m_origin != origin)
+    {
+        m_origin = origin;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
 }
 
 void GLVolume::set_angle_z(float angle_z)
 {
-    m_angle_z = angle_z;
-    m_dirty = true;
+    if (m_angle_z != angle_z)
+    {
+        m_angle_z = angle_z;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
 }
 
 void GLVolume::set_scale_factor(float scale_factor)
 {
-    m_scale_factor = scale_factor;
-    m_dirty = true;
+    if (m_scale_factor != scale_factor)
+    {
+        m_scale_factor = scale_factor;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
 }
 
-const std::vector<float>& GLVolume::world_matrix() const
+void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
 {
-    if (m_dirty)
-    {
-        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-        m.translate(Eigen::Vector3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z));
-        m.rotate(Eigen::AngleAxisf(m_angle_z, Eigen::Vector3f::UnitZ()));
-        m.scale(m_scale_factor);
-        ::memcpy((void*)m_world_mat.data(), (const void*)m.data(), 16 * sizeof(float));
-        m_dirty = false;
-    }
+    m_convex_hull = convex_hull;
+}
 
-    return m_world_mat;
+std::vector<float> GLVolume::world_matrix() const
+{
+    std::vector<float> world_mat(UNIT_MATRIX, std::end(UNIT_MATRIX));
+    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    m.translate(Eigen::Vector3f((float)m_origin.x, (float)m_origin.y, (float)m_origin.z));
+    m.rotate(Eigen::AngleAxisf(m_angle_z, Eigen::Vector3f::UnitZ()));
+    m.scale(m_scale_factor);
+    ::memcpy((void*)world_mat.data(), (const void*)m.data(), 16 * sizeof(float));
+    return world_mat;
 }
 
 BoundingBoxf3 GLVolume::transformed_bounding_box() const
 {
-    if (m_dirty)
+    if (m_transformed_bounding_box_dirty)
+    {
         m_transformed_bounding_box = bounding_box.transformed(world_matrix());
+        m_transformed_bounding_box_dirty = false;
+    }
 
     return m_transformed_bounding_box;
+}
+
+BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box() const
+{
+    if (m_transformed_convex_hull_bounding_box_dirty)
+    {
+        if (m_convex_hull.stl.stats.number_of_facets > 0)
+            m_transformed_convex_hull_bounding_box = m_convex_hull.transformed_bounding_box(world_matrix());
+        else
+            m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix());
+
+        m_transformed_convex_hull_bounding_box_dirty = false;
+    }
+
+    return m_transformed_convex_hull_bounding_box;
 }
 
 void GLVolume::set_range(double min_z, double max_z)
@@ -629,6 +659,7 @@ std::vector<int> GLVolumeCollection::load_object(
 
             if (!model_volume->modifier)
             {
+                v.set_convex_hull(model_volume->get_convex_hull());
                 v.layer_height_texture = layer_height_texture;
                 if (extruder_id != -1)
                     v.extruder_id = extruder_id;
@@ -716,6 +747,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.drag_group_id = obj_idx * 1000;
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
+    v.set_convex_hull(mesh.convex_hull_3d());
     return int(this->volumes.size() - 1);
 }
 
@@ -803,7 +835,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
     {
         if ((volume != nullptr) && !volume->is_modifier)
         {
-            const BoundingBoxf3& bb = volume->transformed_bounding_box();
+            const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
             bool contained = print_volume.contains(bb);
             all_contained &= contained;
 

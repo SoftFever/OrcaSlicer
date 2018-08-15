@@ -1,6 +1,9 @@
 #include "TriangleMesh.hpp"
 #include "ClipperUtils.hpp"
 #include "Geometry.hpp"
+#include "qhull/src/libqhullcpp/Qhull.h"
+#include "qhull/src/libqhullcpp/QhullFacetList.h"
+#include "qhull/src/libqhullcpp/QhullVertexSet.h"
 #include <cmath>
 #include <deque>
 #include <queue>
@@ -14,6 +17,8 @@
 #include <boost/log/trivial.hpp>
 
 #include <tbb/parallel_for.h>
+
+#include <Eigen/Dense>
 
 #if 0
     #define DEBUG
@@ -595,6 +600,134 @@ TriangleMesh::bounding_box() const
     bb.max.y = this->stl.stats.max.y;
     bb.max.z = this->stl.stats.max.z;
     return bb;
+}
+
+BoundingBoxf3 TriangleMesh::transformed_bounding_box(const std::vector<float>& matrix) const
+{
+    bool has_shared = (stl.v_shared != nullptr);
+    if (!has_shared)
+        stl_generate_shared_vertices(&stl);
+
+    unsigned int vertices_count = (stl.stats.shared_vertices > 0) ? (unsigned int)stl.stats.shared_vertices : 3 * (unsigned int)stl.stats.number_of_facets;
+
+    if (vertices_count == 0)
+        return BoundingBoxf3();
+
+    Eigen::MatrixXf src_vertices(3, vertices_count);
+
+    if (stl.stats.shared_vertices > 0)
+    {
+        stl_vertex* vertex_ptr = stl.v_shared;
+        for (int i = 0; i < stl.stats.shared_vertices; ++i)
+        {
+            src_vertices(0, i) = vertex_ptr->x;
+            src_vertices(1, i) = vertex_ptr->y;
+            src_vertices(2, i) = vertex_ptr->z;
+            vertex_ptr += 1;
+        }
+    }
+    else
+    {
+        stl_facet* facet_ptr = stl.facet_start;
+        unsigned int v_id = 0;
+        while (facet_ptr < stl.facet_start + stl.stats.number_of_facets)
+        {
+            for (int i = 0; i < 3; ++i)
+            {
+                src_vertices(0, v_id) = facet_ptr->vertex[i].x;
+                src_vertices(1, v_id) = facet_ptr->vertex[i].y;
+                src_vertices(2, v_id) = facet_ptr->vertex[i].z;
+            }
+            facet_ptr += 1;
+            ++v_id;
+        }
+    }
+
+    if (!has_shared && (stl.stats.shared_vertices > 0))
+        stl_invalidate_shared_vertices(&stl);
+
+    Eigen::Transform<float, 3, Eigen::Affine> m;
+    ::memcpy((void*)m.data(), (const void*)matrix.data(), 16 * sizeof(float));
+
+    Eigen::MatrixXf dst_vertices(3, vertices_count);
+    dst_vertices = m * src_vertices.colwise().homogeneous();
+
+    float min_x = dst_vertices(0, 0);
+    float max_x = dst_vertices(0, 0);
+    float min_y = dst_vertices(1, 0);
+    float max_y = dst_vertices(1, 0);
+    float min_z = dst_vertices(2, 0);
+    float max_z = dst_vertices(2, 0);
+
+    for (int i = 1; i < vertices_count; ++i)
+    {
+        min_x = std::min(min_x, dst_vertices(0, i));
+        max_x = std::max(max_x, dst_vertices(0, i));
+        min_y = std::min(min_y, dst_vertices(1, i));
+        max_y = std::max(max_y, dst_vertices(1, i));
+        min_z = std::min(min_z, dst_vertices(2, i));
+        max_z = std::max(max_z, dst_vertices(2, i));
+    }
+
+    return BoundingBoxf3(Pointf3((coordf_t)min_x, (coordf_t)min_y, (coordf_t)min_z), Pointf3((coordf_t)max_x, (coordf_t)max_y, (coordf_t)max_z));
+}
+
+TriangleMesh TriangleMesh::convex_hull_3d() const
+{
+    // Helper struct for qhull:
+    struct PointForQHull{
+        PointForQHull(float x_p, float y_p, float z_p) : x((realT)x_p), y((realT)y_p), z((realT)z_p) {}
+        realT x, y, z;
+    };
+    std::vector<PointForQHull> src_vertices;
+
+    // We will now fill the vector with input points for computation:
+    stl_facet* facet_ptr = stl.facet_start;
+    while (facet_ptr < stl.facet_start + stl.stats.number_of_facets)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            const stl_vertex& v = facet_ptr->vertex[i];
+            src_vertices.emplace_back(v.x, v.y, v.z);
+        }
+
+        facet_ptr += 1;
+    }
+
+    // The qhull call:
+    orgQhull::Qhull qhull;
+    qhull.disableOutputStream(); // we want qhull to be quiet
+    try
+    {
+        qhull.runQhull("", 3, (int)src_vertices.size(), (const realT*)(src_vertices.data()), "Qt");
+    }
+    catch (...)
+    {
+        std::cout << "Unable to create convex hull" << std::endl;
+        return TriangleMesh();
+    }
+
+    // Let's collect results:
+    Pointf3s det_vertices;
+    std::vector<Point3> facets;
+    auto facet_list = qhull.facetList().toStdVector();
+    for (const orgQhull::QhullFacet& facet : facet_list)
+    {   // iterate through facets
+        orgQhull::QhullVertexSet vertices = facet.vertices();
+        for (int i = 0; i < 3; ++i)
+        {   // iterate through facet's vertices
+
+            orgQhull::QhullPoint p = vertices[i].point();
+            const float* coords = p.coordinates();
+            det_vertices.emplace_back(coords[0], coords[1], coords[2]);
+        }
+        unsigned int size = (unsigned int)det_vertices.size();
+        facets.emplace_back(size - 3, size - 2, size - 1);
+    }
+
+    TriangleMesh output_mesh(det_vertices, facets);
+    output_mesh.repair();
+    return output_mesh;
 }
 
 void
