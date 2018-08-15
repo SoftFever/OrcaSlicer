@@ -8,7 +8,6 @@
 #include "../../libslic3r/Utils.hpp"
 
 #include <wx/msgdlg.h>
-#include <wx/frame.h>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
 #include "Geometry.hpp"
@@ -210,6 +209,18 @@ wxPoint get_mouse_position_in_control() {
                    pt.y - win->GetScreenPosition().y);
 }
 
+wxDataViewColumn* object_ctrl_create_extruder_column(int extruders_count)
+{
+    wxArrayString choices;
+    choices.Add("default");
+    for (int i = 1; i <= extruders_count; ++i)
+        choices.Add(wxString::Format("%d", i));
+    wxDataViewChoiceRenderer *c =
+        new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
+    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 3, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+    return column;
+}
+
 void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 {
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
@@ -238,17 +249,7 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 3 of the view control:
-	wxArrayString choices;
-	choices.Add("default");
-	choices.Add("1");
-	choices.Add("2");
-	choices.Add("3");
-	choices.Add("4");
-	wxDataViewChoiceRenderer *c =
-		new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-	wxDataViewColumn *column3 =
-		new wxDataViewColumn(_(L("Extruder")), c, 3, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-	m_objects_ctrl->AppendColumn(column3);
+    m_objects_ctrl->AppendColumn(object_ctrl_create_extruder_column(4));
 
 	// column 4 of the view control:
 	m_objects_ctrl->AppendBitmapColumn(" ", 4, wxDATAVIEW_CELL_INERT, 25,
@@ -1606,6 +1607,16 @@ void on_drop(wxDataViewEvent &event)
         std::swap(volumes[id], volumes[id +delta]);
 
     g_prevent_list_events = false;
+}
+
+void update_objects_list_extruder_column(const int extruders_count)
+{
+    // delete old 3rd column
+    m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumnAt(3));
+    // insert new created 3rd column
+    m_objects_ctrl->InsertColumn(3, object_ctrl_create_extruder_column(extruders_count));
+    // set show/hide for this column 
+    set_extruder_column_hidden(extruders_count <= 1);
 }
 
 } //namespace GUI
