@@ -204,6 +204,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , m_scale_factor(1.0f)
     , m_transformed_bounding_box_dirty(true)
     , m_transformed_convex_hull_bounding_box_dirty(true)
+    , m_convex_hull(nullptr)
     , composite_id(-1)
     , select_group_id(-1)
     , drag_group_id(-1)
@@ -293,7 +294,7 @@ void GLVolume::set_scale_factor(float scale_factor)
 
 void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
 {
-    m_convex_hull = convex_hull;
+    m_convex_hull = &convex_hull;
 }
 
 std::vector<float> GLVolume::world_matrix() const
@@ -322,8 +323,8 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box() const
 {
     if (m_transformed_convex_hull_bounding_box_dirty)
     {
-        if (m_convex_hull.stl.stats.number_of_facets > 0)
-            m_transformed_convex_hull_bounding_box = m_convex_hull.transformed_bounding_box(world_matrix());
+        if ((m_convex_hull != nullptr) && (m_convex_hull->stl.stats.number_of_facets > 0))
+            m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix());
         else
             m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix());
 
@@ -747,7 +748,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.drag_group_id = obj_idx * 1000;
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
-    v.set_convex_hull(mesh.convex_hull_3d());
     return int(this->volumes.size() - 1);
 }
 
