@@ -209,6 +209,15 @@ wxPoint get_mouse_position_in_control() {
                    pt.y - win->GetScreenPosition().y);
 }
 
+bool is_mouse_position_in_control(wxPoint& pt) {
+    pt = get_mouse_position_in_control();
+    const wxSize& cz = m_objects_ctrl->GetSize();
+    if (pt.x > 0 && pt.x < cz.x &&
+        pt.y > 0 && pt.y < cz.y)
+        return true;
+    return false;
+}
+
 wxDataViewColumn* object_ctrl_create_extruder_column(int extruders_count)
 {
     wxArrayString choices;
@@ -260,8 +269,10 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 wxBoxSizer* create_objects_list(wxWindow *win)
 {
     wxBoxSizer* objects_sz;
+    // create control
     create_objects_ctrl(win, objects_sz);
 
+    // describe control behavior 
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event) {
 		object_ctrl_selection_changed();
 #ifndef __WXMSW__
@@ -283,6 +294,7 @@ wxBoxSizer* create_objects_list(wxWindow *win)
         [](wxKeyEvent& event) { object_ctrl_key_event(event); });
 
 #ifdef __WXMSW__
+    // Extruder value changed
 	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
 
     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
@@ -290,7 +302,15 @@ wxBoxSizer* create_objects_list(wxWindow *win)
          event.Skip();
     });
 #else
+    // equivalent to wxEVT_CHOICE on __WXMSW__
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event) { object_ctrl_item_value_change(event); });
+
+    get_right_panel()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
+        event.Skip();
+        wxPoint pt;
+        if (is_mouse_position_in_control(pt))
+            set_tooltip_for_item(pt);
+    });
 #endif //__WXMSW__
 
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [](wxDataViewEvent& e) {on_begin_drag(e);});
