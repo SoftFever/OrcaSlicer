@@ -264,8 +264,8 @@ private:
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.
     mutable bool          m_transformed_bounding_box_dirty;
-    // Convex hull of the original mesh, if any.
-    TriangleMesh          m_convex_hull;
+    // Pointer to convex hull of the original mesh, if any.
+    const TriangleMesh*   m_convex_hull;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
     // Whether or not is needed to recalculate the transformed convex hull bounding box.

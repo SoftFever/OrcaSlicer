@@ -3232,6 +3232,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             
             _on_move(volume_idxs);
+
+            // force re-selection of the wipe tower, if needed
+            if ((volume_idxs.size() == 1) && m_volumes.volumes[volume_idxs[0]]->is_wipe_tower)
+                select_volume(volume_idxs[0]);
         }
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
