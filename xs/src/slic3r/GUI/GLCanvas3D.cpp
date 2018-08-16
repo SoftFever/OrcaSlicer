@@ -2206,7 +2206,7 @@ void GLCanvas3D::update_gizmos_data()
                 /////////////////////////////////////////////////////////////////////////
                 // Following block provides convex hull data to the Flatten gizmo
                 // It is temporary, it should be optimized and moved elsewhere later
-                TriangleMesh ch = model_object->mesh().convex_hull3d();
+                TriangleMesh ch = model_object->mesh().convex_hull_3d();
                 stl_facet* facet_ptr = ch.stl.facet_start;
                 std::vector<Pointf3s> points;
                 const unsigned int k = 20;
@@ -3342,7 +3342,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
     {
         for (const GLVolume* volume : selected_volumes)
         {
-            bb.merge(volume->transformed_bounding_box());
+            bb.merge(volume->transformed_convex_hull_bounding_box());
         }
     }
 

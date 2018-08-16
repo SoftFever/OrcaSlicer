@@ -55,7 +55,10 @@ public:
     ExPolygons horizontal_projection() const;
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
-    TriangleMesh convex_hull3d() const;
+    // Returns the bbox of this TriangleMesh transformed by the given matrix
+    BoundingBoxf3 transformed_bounding_box(const std::vector<float>& matrix) const;
+    // Returns the convex hull of this TriangleMesh
+    TriangleMesh convex_hull_3d() const;
     void reset_repair_stats();
     bool needed_repair() const;
     size_t facets_count() const;
@@ -67,7 +70,7 @@ public:
     // Count disconnected triangle patches.
     size_t number_of_patches() const;
 
-    stl_file stl;
+    mutable stl_file stl;
     bool repaired;
     
 private:

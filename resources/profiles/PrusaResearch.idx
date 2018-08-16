@@ -1,4 +1,5 @@
 min_slic3r_version = 1.41.0-alpha
+0.2.0-beta Removed limit on the MK3MMU2 height, added legacy M204 S T format to the MK2 profiles
 0.2.0-alpha8 Added filament_load/unload_time for the PLA/ABS MMU2 filament presets.
 0.2.0-alpha7 Fixed the *MK3* references
 0.2.0-alpha6

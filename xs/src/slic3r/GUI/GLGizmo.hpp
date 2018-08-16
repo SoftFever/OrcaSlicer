@@ -101,7 +101,7 @@ class GLGizmoRotate : public GLGizmoBase
 
     mutable Pointf m_center;
     mutable float m_radius;
-    mutable bool m_keep_radius;
+    mutable bool m_keep_initial_values;
 
 public:
     GLGizmoRotate();
