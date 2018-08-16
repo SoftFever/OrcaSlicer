@@ -3,63 +3,32 @@
 #include "SLABasePool.hpp"
 #include "ExPolygon.hpp"
 #include "TriangleMesh.hpp"
-#include "libnest2d/clipper_backend/clipper_backend.hpp"
+#include <numeric>
 #include "ClipperUtils.hpp"
+#include "boost/log/trivial.hpp"
 
-#include "ConcaveHull.hpp"
-
-using BoostPolygon = libnest2d::PolygonImpl;
-using BoostPolygons = std::vector<libnest2d::PolygonImpl>;
+//#include "SVG.hpp"
 
 namespace Slic3r { namespace sla {
 
 namespace {
 
 using coord_t = Point::coord_type;
+inline coord_t mm(double v) { return coord_t(v/SCALING_FACTOR); }
 
-void reverse(Polygon& p) {
-    std::reverse(p.points.begin(), p.points.end());
-}
-
-inline BoostPolygon convert(const ExPolygon& exp) {
-    auto&& ctour = Slic3rMultiPoint_to_ClipperPath(exp.contour);
-    auto&& holes = Slic3rMultiPoints_to_ClipperPaths(exp.holes);
-    return {ctour, holes};
-}
-
-inline BoostPolygons convert(const ExPolygons& exps) {
-    BoostPolygons ret;
-    ret.reserve(exps.size());
-    std::for_each(exps.begin(), exps.end(), [&ret](const ExPolygon p) {
-        ret.emplace_back(convert(p));
-    });
-    return ret;
-}
-
-inline ExPolygon convert(const BoostPolygon& p) {
-    ExPolygon ret;
-
-    auto&& ctour = ClipperPath_to_Slic3rPolygon(p.Contour);
-    ctour.points.pop_back();
-
-    auto&& holes = ClipperPaths_to_Slic3rPolygons(p.Holes);
-    for(auto&& h : holes) h.points.pop_back();
-
-    ret.contour = ctour;
-    ret.holes = holes;
-    return ret;
-}
+inline coord_t x(const Point& p) { return p.x; }
+inline coord_t y(const Point& p) { return p.y; }
 
 struct Contour3D {
     Pointf3s points;
     std::vector<Point3> indices;
 
-    void merge(const Contour3D& ctour) {
+    void merge(const Contour3D& ctr) {
         auto s3 = coord_t(points.size());
         auto s = coord_t(indices.size());
 
-        points.insert(points.end(), ctour.points.begin(), ctour.points.end());
-        indices.insert(indices.end(), ctour.indices.begin(), ctour.indices.end());
+        points.insert(points.end(), ctr.points.begin(), ctr.points.end());
+        indices.insert(indices.end(), ctr.indices.begin(), ctr.indices.end());
 
         for(auto n = s; n < indices.size(); n++) {
             auto& idx = indices[n]; idx.x += s3; idx.y += s3; idx.z += s3;
@@ -79,7 +48,7 @@ inline Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
         if(dir) indices.emplace_back(a, b, c);
         else indices.emplace_back(c, b, a);
         for(auto& p : tr.points) {
-            points.emplace_back(Pointf3::new_unscale(p.x, p.y, z));
+            points.emplace_back(Pointf3::new_unscale(x(p), y(p), z));
         }
     }
 
@@ -90,26 +59,26 @@ inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
     Polygons triangles;
     poly.triangulate_pp(&triangles);
 
-    auto lower = convert(triangles, 0, true);
-    auto upper = convert(triangles, z_distance, false);
+    auto lower = convert(triangles, 0, false);
+    auto upper = convert(triangles, z_distance, true);
     lower.merge(upper);
     return lower;
 }
 
 inline Contour3D inner_bed(const ExPolygon& poly, coord_t depth) {
     Polygons triangles;
-    poly.triangulate_pp(&triangles);
+    poly.triangulate_p2t(&triangles);
 
     auto bottom = convert(triangles, -depth, false);
     auto lines = poly.lines();
 
     // Generate outer walls
     auto fp = [](const Point& p, Point::coord_type z) {
-        return Pointf3::new_unscale(p.x, p.y, z);
+        return Pointf3::new_unscale(x(p), y(p), z);
     };
 
     for(auto& l : lines) {
-        auto s = bottom.points.size();
+        auto s = coord_t(bottom.points.size());
 
         bottom.points.emplace_back(fp(l.a, -depth));
         bottom.points.emplace_back(fp(l.b, -depth));
@@ -131,94 +100,182 @@ inline TriangleMesh mesh(Contour3D&& ctour) {
     return {std::move(ctour.points), std::move(ctour.indices)};
 }
 
-inline void offset(BoostPolygon& sh, Point::coord_type distance) {
+inline void offset(ExPolygon& sh, coord_t distance) {
     using ClipperLib::ClipperOffset;
     using ClipperLib::jtRound;
     using ClipperLib::etClosedPolygon;
     using ClipperLib::Paths;
-    using namespace libnest2d;
+    using ClipperLib::Path;
+
+    auto&& ctour = Slic3rMultiPoint_to_ClipperPath(sh.contour);
+    auto&& holes = Slic3rMultiPoints_to_ClipperPaths(sh.holes);
 
     // If the input is not at least a triangle, we can not do this algorithm
-    if(sh.Contour.size() <= 3 ||
-       std::any_of(sh.Holes.begin(), sh.Holes.end(),
-                   [](const PathImpl& p) { return p.size() <= 3; })
-       ) throw GeometryException(GeomErr::OFFSET);
+    if(ctour.size() < 3 ||
+       std::any_of(holes.begin(), holes.end(),
+                   [](const Path& p) { return p.size() < 3; })
+            ) {
+        BOOST_LOG_TRIVIAL(error) << "Invalid geometry for offsetting!";
+        return;
+    }
 
     ClipperOffset offs;
+    offs.ArcTolerance = 0.05*mm(1);
     Paths result;
-    offs.AddPath(sh.Contour, jtRound, etClosedPolygon);
-    offs.AddPaths(sh.Holes, jtRound, etClosedPolygon);
+    offs.AddPath(ctour, jtRound, etClosedPolygon);
+    offs.AddPaths(holes, jtRound, etClosedPolygon);
     offs.Execute(result, static_cast<double>(distance));
 
     // Offsetting reverts the orientation and also removes the last vertex
     // so boost will not have a closed polygon.
 
     bool found_the_contour = false;
+    sh.holes.clear();
     for(auto& r : result) {
         if(ClipperLib::Orientation(r)) {
             // We don't like if the offsetting generates more than one contour
             // but throwing would be an overkill. Instead, we should warn the
             // caller about the inability to create correct geometries
             if(!found_the_contour) {
-                sh.Contour = r;
-                ClipperLib::ReversePath(sh.Contour);
-                sh.Contour.push_back(sh.Contour.front());
+                auto rr = ClipperPath_to_Slic3rPolygon(r);
+                sh.contour.points.swap(rr.points);
                 found_the_contour = true;
             } else {
-                dout() << "Warning: offsetting result is invalid!";
-                /* TODO warning */
+                BOOST_LOG_TRIVIAL(warning)
+                        << "Warning: offsetting result is invalid!";
             }
         } else {
             // TODO If there are multiple contours we can't be sure which hole
             // belongs to the first contour. (But in this case the situation is
             // bad enough to let it go...)
-            sh.Holes.push_back(r);
-            ClipperLib::ReversePath(sh.Holes.back());
-            sh.Holes.back().push_back(sh.Holes.back().front());
+            sh.holes.emplace_back(ClipperPath_to_Slic3rPolygon(r));
         }
     }
 }
 
+inline ExPolygons unify(const ExPolygons& shapes) {
+    ExPolygons retv;
 
-inline ExPolygon concave_hull(const ExPolygons& polys) {
-    concavehull::PointVector pv;
-    size_t s = 0;
+    bool closed = true;
+    bool valid = true;
 
-    for(auto& ep : polys) s += ep.contour.points.size();
-    pv.reserve(s);
+    ClipperLib::Clipper clipper;
 
-    std::cout << polys.size() << std::endl;
+    for(auto& path : shapes) {
+        auto clipperpath = Slic3rMultiPoint_to_ClipperPath(path.contour);
+        valid &= clipper.AddPath(clipperpath, ClipperLib::ptSubject, closed);
 
-//    for(const ExPolygon& ep : polys) {
-    auto& ep = polys.front();
-
-    for(auto& v : ep.contour.points)
-        pv.emplace_back(Pointf::new_unscale(v.x, v.y));
-
-    std::reverse(pv.begin(), pv.end());
-
-//        auto frontpoint = ep.contour.points.front();
-//        pv.emplace_back(Pointf::new_unscale(frontpoint));
-//    }
-
-    auto result = concavehull::ConcaveHull(pv, 3, true);
-
-    if(result.empty()) std::cout << "Empty concave hull!!!" << std::endl;
-    std::cout << "result size " << result.size() << std::endl;
-
-    ExPolygon ret;
-    ret.contour.points.reserve(result.size() + 1);
-
-    std::reverse(result.begin(), result.end());
-
-    for(auto& p : result) {
-        std::cout << p.x << " " << p.y << std::endl;
-        ret.contour.points.emplace_back(Point::new_scale(p.x, p.y));
+        auto clipperholes = Slic3rMultiPoints_to_ClipperPaths(path.holes);
+        for(auto& hole : clipperholes) {
+            valid &= clipper.AddPath(hole, ClipperLib::ptSubject, closed);
+        }
     }
 
-    reverse(ret.contour);
+    if(!valid) BOOST_LOG_TRIVIAL(warning) << "Unification of invalid shapes!";
 
-//    ret.contour.points.emplace_back(ret.contour.points.front());
+    ClipperLib::PolyTree result;
+    clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNonZero);
+
+    retv.reserve(static_cast<size_t>(result.Total()));
+
+    // Now we will recursively traverse the polygon tree and serialize it
+    // into an ExPolygon with holes. The polygon tree has the clipper-ish
+    // PolyTree structure which alternates its nodes as contours and holes
+
+    // A "declaration" of function for traversing leafs which are holes
+    std::function<void(ClipperLib::PolyNode*, ExPolygon&)> processHole;
+
+    // Process polygon which calls processHoles which than calls processPoly
+    // again until no leafs are left.
+    auto processPoly = [&retv, &processHole](ClipperLib::PolyNode *pptr) {
+        ExPolygon poly;
+        poly.contour.points = ClipperPath_to_Slic3rPolygon(pptr->Contour);
+        for(auto h : pptr->Childs) { processHole(h, poly); }
+        retv.push_back(poly);
+    };
+
+    // Body of the processHole function
+    processHole = [&processPoly](ClipperLib::PolyNode *pptr, ExPolygon& poly)
+    {
+        poly.holes.emplace_back();
+        poly.holes.back().points = ClipperPath_to_Slic3rPolygon(pptr->Contour);
+        for(auto c : pptr->Childs) processPoly(c);
+    };
+
+    // Wrapper for traversing.
+    auto traverse = [&processPoly] (ClipperLib::PolyNode *node)
+    {
+        for(auto ch : node->Childs) {
+            processPoly(ch);
+        }
+    };
+
+    // Here is the actual traverse
+    traverse(&result);
+
+    return retv;
+}
+
+inline Point centroid(Points& pp) {
+    Polygon p;
+    p.points.swap(pp);
+    Point c = p.centroid();
+    pp.swap(p.points);
+    return c;
+}
+
+inline Point centroid(const ExPolygon& poly) {
+    return poly.contour.centroid();
+}
+
+inline ExPolygon concave_hull(const ExPolygons& polys) {
+    if(polys.empty()) return ExPolygon();
+
+    ExPolygons punion = unify(polys);
+
+    ExPolygon ret;
+
+    if(punion.size() == 1) return punion.front();
+
+    // We get the centroids of all the islands in the 2D slice
+    Points centroids; centroids.reserve(punion.size());
+    std::transform(punion.begin(), punion.end(), std::back_inserter(centroids),
+                   [](const ExPolygon& poly) { return centroid(poly); });
+
+    // Centroid of the centroids of islands. This is where the additional
+    // connector sticks are routed.
+    Point cc = centroid(centroids);
+
+    punion.reserve(punion.size() + centroids.size());
+
+    std::transform(centroids.begin(), centroids.end(),
+                   std::back_inserter(punion),
+                   [cc](const Point& c) {
+
+        double dx = x(c) - x(cc), dy = y(c) - y(cc);
+        double l = std::sqrt(dx * dx + dy * dy);
+        double nx = dx / l, ny = dy / l;
+
+        ExPolygon r;
+        auto& ctour = r.contour.points;
+
+        ctour.reserve(3);
+        ctour.emplace_back(cc);
+
+        Point d(coord_t(mm(1)*nx), coord_t(mm(1)*ny));
+        ctour.emplace_back(c + Point( -y(d),  x(d) ));
+        ctour.emplace_back(c + Point(  y(d), -x(d) ));
+        offset(r, mm(1));
+
+        return r;
+    });
+
+    punion = unify(punion);
+
+    if(punion.size() != 1)
+        BOOST_LOG_TRIVIAL(error) << "Cannot generate correct SLA base pool!";
+
+    if(!punion.empty()) ret = punion.front();
 
     return ret;
 }
@@ -237,81 +294,54 @@ void ground_layer(const TriangleMesh &mesh, ExPolygons &output, float h)
     output = tmp.front();
 }
 
-void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out)
+void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
+                      double min_wall_thickness_mm,
+                      double min_wall_height_mm)
 {
-    using libnest2d::PolygonImpl;
-    using boost::geometry::convex_hull;
-    using boost::geometry::is_valid;
-
-    static const Point::coord_type INNER_OFFSET_DIST = 2000000;
-    static const Point::coord_type OFFSET_DIST = 5000000;
-    static const Point::coord_type HEIGHT = 10000000;
-
     // 1: Offset the ground layer
-    auto concaveh = ground_layer.front(); //concave_hull(ground_layer);
+    auto concaveh = concave_hull(ground_layer);
+    if(concaveh.contour.points.empty()) return;
     concaveh.holes.clear();
 
-//    BoostPolygon chull_boost;
-//    convex_hull(convert(ground_layer), chull_boost);
-//    auto concaveh = convert(chull_boost);
+    BoundingBox bb(concaveh);
+    coord_t w = bb.max.x - bb.min.x;
+    coord_t h = bb.max.y - bb.min.y;
 
-//    auto pool = roofs(concaveh, HEIGHT);
+    auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
 
-//    // Generate outer walls
-//    auto fp = [](const Point& p, Point::coord_type z) {
-//        return Pointf3::new_unscale(p.x, p.y, z);
-//    };
+    const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) + wall_thickness;
+    const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
+    const coord_t HEIGHT = mm(min_wall_height_mm);
 
-//    auto lines = concaveh.lines();
-//    std::cout << "lines: " << lines.size() << std::endl;
-//    for(auto& l : lines) {
-//        auto s = pool.points.size();
-
-//        pool.points.emplace_back(fp(l.a, 0));
-//        pool.points.emplace_back(fp(l.b, 0));
-//        pool.points.emplace_back(fp(l.a, HEIGHT));
-//        pool.points.emplace_back(fp(l.b, HEIGHT));
-
-//        pool.indices.emplace_back(s, s + 3, s + 1);
-//        pool.indices.emplace_back(s, s + 2, s + 3);
-//    }
-
-//    out = mesh(pool);
-
-    BoostPolygon chull_boost = convert(concaveh);
-//    convex_hull(convert(ground_layer), chull_boost);
-
-    offset(chull_boost, INNER_OFFSET_DIST);
-    auto chull_outer_boost = chull_boost;
-    offset(chull_outer_boost, OFFSET_DIST);
-
-
-    // Convert back to Slic3r format
-    ExPolygon chull_inner = convert(chull_boost);
-    ExPolygon chull_outer = convert(chull_outer_boost);
+    auto outer_base = concaveh;
+    offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
+    auto inner_base = outer_base;
+    offset(inner_base, -WALL_THICKNESS);
+    inner_base.holes.clear(); outer_base.holes.clear();
 
     ExPolygon top_poly;
-    top_poly.contour = chull_outer.contour;
-    top_poly.holes.emplace_back(chull_inner.contour);
-    reverse(top_poly.holes.back());
+    top_poly.contour = outer_base.contour;
+    top_poly.holes.emplace_back(inner_base.contour);
+    auto& tph = top_poly.holes.back().points;
+    std::reverse(tph.begin(), tph.end());
 
     Contour3D pool;
 
     Polygons top_triangles, bottom_triangles;
-    top_poly.triangulate_pp(&top_triangles);
-    chull_outer.triangulate_pp(&bottom_triangles);
+    top_poly.triangulate_p2t(&top_triangles);
+    outer_base.triangulate_p2t(&bottom_triangles);
     auto top_plate = convert(top_triangles, 0, false);
     auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
-    auto innerbed = inner_bed(chull_inner, HEIGHT/2);
+    auto innerbed = inner_bed(inner_base, HEIGHT/2);
 
     // Generate outer walls
-    auto fp = [](const Point& p, Point::coord_type z) {
-        return Pointf3::new_unscale(p.x, p.y, z);
+    auto fp = [](const Point& p, coord_t z) {
+        return Pointf3::new_unscale(x(p), y(p), z);
     };
 
-    auto lines = chull_outer.lines();
+    auto lines = outer_base.lines();
     for(auto& l : lines) {
-        auto s = pool.points.size();
+        auto s = coord_t(pool.points.size());
 
         pool.points.emplace_back(fp(l.a, -HEIGHT));
         pool.points.emplace_back(fp(l.b, -HEIGHT));

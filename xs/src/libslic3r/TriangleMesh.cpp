@@ -842,7 +842,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
 #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     			printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
 #endif
-    			this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
+                this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
     		}
     	});
 	BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::make_expolygons in parallel - end";

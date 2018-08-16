@@ -9,9 +9,9 @@ namespace Slic3r {
 class ExPolygon;
 
 /**
- * @brief Raster captures an antialiased monochrome canvas where vectorial
+ * @brief Raster captures an anti-aliased monochrome canvas where vectorial
  * polygons can be rasterized. Fill color is always white and the background is
- * black. Countours are antialiased.
+ * black. Contours are anti-aliased.
  *
  * It also supports saving the raster data into a standard output stream in raw
  * or PNG format.

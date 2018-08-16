@@ -181,8 +181,6 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/TriangleMesh.hpp
     ${LIBDIR}/libslic3r/SLABasePool.hpp
     ${LIBDIR}/libslic3r/SLABasePool.cpp
-    ${LIBDIR}/libslic3r/ConcaveHull.hpp
-    ${LIBDIR}/libslic3r/ConcaveHull.cpp
 #    ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/libslic3r/Utils.hpp
 
@@ -751,9 +749,14 @@ if(APPLE)
 endif()
 
 # Create a slic3r executable
-add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
+add_executable(slic3r EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
 target_include_directories(XS PRIVATE src src/libslic3r)
 target_link_libraries(slic3r libslic3r libslic3r_gui admesh miniz ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
+
+#add_executable(slabasebed ${PROJECT_SOURCE_DIR}/src/slabasebed.cpp)
+#target_include_directories(slabasebed PRIVATE src src/libslic3r)
+#target_link_libraries(slabasebed libslic3r libslic3r_gui admesh miniz ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
+
 if(SLIC3R_PROFILE)
     target_link_libraries(Shiny)
 endif()
