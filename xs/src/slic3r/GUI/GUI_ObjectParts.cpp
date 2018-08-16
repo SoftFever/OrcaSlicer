@@ -274,7 +274,13 @@ wxBoxSizer* create_objects_list(wxWindow *win)
 		event.Skip();
 	});
 
-    m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event) { object_ctrl_key_event(event); });
+    m_objects_ctrl->Bind(
+#ifdef __WXOSX__
+        wxEVT_CHAR_HOOK,
+#else
+        wxEVT_CHAR,
+#endif //__WXOSX__
+        [](wxKeyEvent& event) { object_ctrl_key_event(event); });
 
 #ifdef __WXMSW__
 	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
