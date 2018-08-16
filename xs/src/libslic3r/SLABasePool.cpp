@@ -1,9 +1,9 @@
 #include <functional>
+#include <numeric>
 
 #include "SLABasePool.hpp"
 #include "ExPolygon.hpp"
 #include "TriangleMesh.hpp"
-#include <numeric>
 #include "ClipperUtils.hpp"
 #include "boost/log/trivial.hpp"
 
@@ -14,11 +14,15 @@ namespace Slic3r { namespace sla {
 namespace {
 
 using coord_t = Point::coord_type;
+
+/// get the scaled clipper units for a millimeter value
 inline coord_t mm(double v) { return coord_t(v/SCALING_FACTOR); }
 
+/// Get x and y coordinates (because we are eigenizing...)
 inline coord_t x(const Point& p) { return p.x; }
 inline coord_t y(const Point& p) { return p.y; }
 
+/// Intermediate struct for a 3D mesh
 struct Contour3D {
     Pointf3s points;
     std::vector<Point3> indices;
@@ -36,6 +40,7 @@ struct Contour3D {
     }
 };
 
+/// Convert the triangulation output to an intermediate mesh.
 inline Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
 
     Pointf3s points;
@@ -55,6 +60,8 @@ inline Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
     return {points, indices};
 }
 
+/// Only a debug function to generate top and bottom plates from a 2D shape.
+/// It is not used in the algorithm directly.
 inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
     Polygons triangles;
     poly.triangulate_pp(&triangles);
@@ -65,6 +72,8 @@ inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
     return lower;
 }
 
+/// Generating the concave part of the 3D pool with the bottom plate and the
+/// side walls.
 inline Contour3D inner_bed(const ExPolygon& poly, coord_t depth) {
     Polygons triangles;
     poly.triangulate_p2t(&triangles);
@@ -92,14 +101,17 @@ inline Contour3D inner_bed(const ExPolygon& poly, coord_t depth) {
     return bottom;
 }
 
+/// Mesh from an existing contour.
 inline TriangleMesh mesh(const Contour3D& ctour) {
     return {ctour.points, ctour.indices};
 }
 
+/// Mesh from an evaporating 3D contour
 inline TriangleMesh mesh(Contour3D&& ctour) {
     return {std::move(ctour.points), std::move(ctour.indices)};
 }
 
+/// Offsetting with clipper and smoothing the edges into a curvature.
 inline void offset(ExPolygon& sh, coord_t distance) {
     using ClipperLib::ClipperOffset;
     using ClipperLib::jtRound;
@@ -153,6 +165,7 @@ inline void offset(ExPolygon& sh, coord_t distance) {
     }
 }
 
+/// Unification of polygons (with clipper) preserving holes as well.
 inline ExPolygons unify(const ExPolygons& shapes) {
     ExPolygons retv;
 
@@ -228,6 +241,10 @@ inline Point centroid(const ExPolygon& poly) {
     return poly.contour.centroid();
 }
 
+/// A fake concave hull that is constructed by connecting separate shapes
+/// with explicit bridges. Bridges are generated from each shape's centroid
+/// to the center of the "scene" which is the centroid calculated from the shape
+/// centroids (a star is created...)
 inline ExPolygon concave_hull(const ExPolygons& polys) {
     if(polys.empty()) return ExPolygon();
 
