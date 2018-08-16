@@ -287,7 +287,7 @@ wxBoxSizer* create_objects_list(wxWindow *win)
 
     m_objects_ctrl->Bind(
 #ifdef __WXOSX__
-        wxEVT_CHAR_HOOK,
+        wxEVT_KEY_DOWN,
 #else
         wxEVT_CHAR,
 #endif //__WXOSX__
