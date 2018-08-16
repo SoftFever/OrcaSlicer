@@ -285,45 +285,16 @@ wxBoxSizer* create_objects_list(wxWindow *win)
 		event.Skip();
 	});
 
-    m_objects_ctrl->Bind(
-#ifdef __WXOSX__
-        wxEVT_KEY_DOWN,
-#else
-        wxEVT_CHAR,
-#endif //__WXOSX__
-        [](wxKeyEvent& event) { object_ctrl_key_event(event); });
-
-    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
-#ifdef __WXMSW__
-        set_tooltip_for_item(event.GetPosition());
-#else
-        printf("wxEVT_MOTION from GetMainWindow\n");
-        wxPoint pt;
-        if (is_mouse_position_in_control(pt))
-            set_tooltip_for_item(pt);
-#endif
-        event.Skip();
-    });
-
-#ifndef __WXMSW__
-    win->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
-        printf("wxEVT_MOTION from win\n");
-        wxPoint pt;
-        if (is_mouse_position_in_control(pt))
-            set_tooltip_for_item(pt);
-        event.Skip();
-    });
-#endif
+    m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event) { object_ctrl_key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
     // Extruder value changed
 	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
 
-//     m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
-//          set_tooltip_for_item(event.GetPosition());
-//          event.Skip();
-//     });
-
+    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
+         set_tooltip_for_item(event.GetPosition());
+         event.Skip();
+    });
 #else
     // equivalent to wxEVT_CHOICE on __WXMSW__
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event) { object_ctrl_item_value_change(event); });
