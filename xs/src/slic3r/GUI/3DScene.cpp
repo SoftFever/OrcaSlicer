@@ -833,7 +833,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
 
     for (GLVolume* volume : this->volumes)
     {
-        if ((volume != nullptr) && !volume->is_modifier)
+        if ((volume != nullptr) && !volume->is_modifier && (!volume->is_wipe_tower || (volume->is_wipe_tower && volume->shader_outside_printer_detection_enabled)))
         {
             const BoundingBoxf3& bb = volume->transformed_convex_hull_bounding_box();
             bool contained = print_volume.contains(bb);
