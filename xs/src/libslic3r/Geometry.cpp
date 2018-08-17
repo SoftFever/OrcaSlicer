@@ -195,44 +195,59 @@ using namespace boost::polygon;  // provides also high() and low()
 
 namespace Slic3r { namespace Geometry {
 
-static bool
-sort_points (Point a, Point b)
-{
-    return (a.x < b.x) || (a.x == b.x && a.y < b.y);
-}
+struct SortPoints {
+    template <class T>
+    bool operator()(const T& a, const T& b) const {
+        return (b.x > a.x) || (a.x == b.x && b.y > a.y);
+    }
+};
 
-/* This implementation is based on Andrew's monotone chain 2D convex hull algorithm */
-Polygon
-convex_hull(Points points)
+// This implementation is based on Andrew's monotone chain 2D convex hull algorithm
+template<class T>
+static T raw_convex_hull(T& points)
 {
     assert(points.size() >= 3);
     // sort input points
-    std::sort(points.begin(), points.end(), sort_points);
+    std::sort(points.begin(), points.end(), SortPoints());
     
     int n = points.size(), k = 0;
-    Polygon hull;
+    T hull;
 
     if (n >= 3) {
-        hull.points.resize(2*n);
+        hull.resize(2*n);
 
         // Build lower hull
         for (int i = 0; i < n; i++) {
-            while (k >= 2 && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
-            hull.points[k++] = points[i];
+            while (k >= 2 && points[i].ccw(hull[k-2], hull[k-1]) <= 0) k--;
+            hull[k++] = points[i];
         }
 
         // Build upper hull
         for (int i = n-2, t = k+1; i >= 0; i--) {
-            while (k >= t && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
-            hull.points[k++] = points[i];
+            while (k >= t && points[i].ccw(hull[k-2], hull[k-1]) <= 0) k--;
+            hull[k++] = points[i];
         }
 
-        hull.points.resize(k);
+        hull.resize(k);
         
-        assert( hull.points.front().coincides_with(hull.points.back()) );
-        hull.points.pop_back();
+        assert( hull.front().coincides_with(hull.back()) );
+        hull.pop_back();
     }
     
+    return hull;
+}
+
+Pointf3s
+convex_hull(Pointf3s points)
+{
+    return raw_convex_hull(points);
+}
+
+Polygon
+convex_hull(Points points)
+{
+    Polygon hull;
+    hull.points = raw_convex_hull(points);
     return hull;
 }
 
@@ -243,7 +258,7 @@ convex_hull(const Polygons &polygons)
     for (Polygons::const_iterator p = polygons.begin(); p != polygons.end(); ++p) {
         pp.insert(pp.end(), p->points.begin(), p->points.end());
     }
-    return convex_hull(pp);
+    return convex_hull(std::move(pp));
 }
 
 /* accepts an arrayref of points and returns a list of indices
