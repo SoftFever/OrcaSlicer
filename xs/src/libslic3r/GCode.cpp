@@ -53,7 +53,7 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     Polyline result = (use_external ? m_external_mp.get() : m_layer_mp.get())->
         shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
     if (use_external)
-        result.translate(scaled_origin.negative());
+        result.translate(- scaled_origin);
     return result;
 }
 
@@ -681,7 +681,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 for (const ExPolygon &expoly : layer->slices.expolygons)
                     for (const Point &copy : object->_shifted_copies) {
                         islands.emplace_back(expoly.contour);
-                        islands.back().translate(copy);
+                        islands.back().translate(- copy);
                     }
         //FIXME Mege the islands in parallel.
         m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
@@ -699,7 +699,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             for (unsigned int extruder_id : print.extruders()) {
                 const Pointf &extruder_offset = print.config.extruder_offset.get_at(extruder_id);
                 Polygon s(outer_skirt);
-                s.translate(-scale_(extruder_offset.x()), -scale_(extruder_offset.y()));
+                s.translate(Point::new_scale(- extruder_offset.x(), - extruder_offset.y()));
                 skirts.emplace_back(std::move(s));
             }
             m_ooze_prevention.enable = true;
@@ -1547,7 +1547,7 @@ void GCode::set_origin(const Pointf &pointf)
         scale_(m_origin.x() - pointf.x()),
         scale_(m_origin.y() - pointf.y())
     );
-    m_last_pos.translate(translate);
+    m_last_pos += translate;
     m_wipe.path.translate(translate);
     m_origin = pointf;
 }
@@ -1678,8 +1678,8 @@ static Points::iterator project_point_to_polygon_and_insert(Polygon &polygon, co
             j = 0;
         const Point &p1 = polygon.points[i];
         const Point &p2 = polygon.points[j];
-        const Slic3r::Point v_seg = p1.vector_to(p2);
-        const Slic3r::Point v_pt  = p1.vector_to(pt);
+        const Slic3r::Point v_seg = p2 - p1;
+        const Slic3r::Point v_pt  = pt - p1;
         const int64_t l2_seg = int64_t(v_seg.x()) * int64_t(v_seg.x()) + int64_t(v_seg.y()) * int64_t(v_seg.y());
         int64_t t_pt = int64_t(v_seg.x()) * int64_t(v_pt.x()) + int64_t(v_seg.y()) * int64_t(v_pt.y());
         if (t_pt < 0) {
@@ -1714,7 +1714,7 @@ static Points::iterator project_point_to_polygon_and_insert(Polygon &polygon, co
     }
 
 	assert(i_min != size_t(-1));
-    if (pt_min.distance_to(polygon.points[i_min]) > eps) {
+    if ((pt_min - polygon.points[i_min]).cast<double>().norm() > eps) {
         // Insert a new point on the segment i_min, i_min+1.
         return polygon.points.insert(polygon.points.begin() + (i_min + 1), pt_min);
     }
@@ -1726,8 +1726,8 @@ std::vector<float> polygon_parameter_by_length(const Polygon &polygon)
     // Parametrize the polygon by its length.
     std::vector<float> lengths(polygon.points.size()+1, 0.);
     for (size_t i = 1; i < polygon.points.size(); ++ i)
-        lengths[i] = lengths[i-1] + float(polygon.points[i].distance_to(polygon.points[i-1]));
-    lengths.back() = lengths[lengths.size()-2] + float(polygon.points.front().distance_to(polygon.points.back()));
+        lengths[i] = lengths[i-1] + (polygon.points[i] - polygon.points[i-1]).cast<float>().norm();
+    lengths.back() = lengths[lengths.size()-2] + (polygon.points.front() - polygon.points.back()).cast<float>().norm();
     return lengths;
 }
 
@@ -1775,8 +1775,8 @@ std::vector<float> polygon_angles_at_vertices(const Polygon &polygon, const std:
         const Point &p0 = polygon.points[idx_prev];
         const Point &p1 = polygon.points[idx_curr];
         const Point &p2 = polygon.points[idx_next];
-        const Point  v1 = p0.vector_to(p1);
-        const Point  v2 = p1.vector_to(p2);
+        const Point  v1 = p1 - p0;
+        const Point  v2 = p2 - p1;
 		int64_t dot   = int64_t(v1.x())*int64_t(v2.x()) + int64_t(v1.y())*int64_t(v2.y());
 		int64_t cross = int64_t(v1.x())*int64_t(v2.y()) - int64_t(v1.y())*int64_t(v2.x());
 		float angle = float(atan2(double(cross), double(dot)));
@@ -2031,19 +2031,17 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know
         // the rotation of the second segment so we might cross the object boundary
-        Line first_segment(
-            paths.front().polyline.points[0],
-            paths.front().polyline.points[1]
-        );
-        double distance = std::min<double>(
-            scale_(EXTRUDER_CONFIG(nozzle_diameter)),
-            first_segment.length()
-        );
-        Point point = first_segment.point_at(distance);
-        point.rotate(angle, first_segment.a);
-        
+        Vec2d  p1 = paths.front().polyline.points.front().cast<double>();
+        Vec2d  p2 = paths.front().polyline.points[1].cast<double>();
+        Vec2d  v  = p2 - p1;
+        double nd = scale_(EXTRUDER_CONFIG(nozzle_diameter));
+        double l2 = v.squaredNorm();
+        // Shift by no more than a nozzle diameter.
+        //FIXME Hiding the seams will not work nicely for very densely discretized contours!
+        Point  pt = ((nd * nd >= l2) ? p2 : (p1 + v * (nd / sqrt(l2)))).cast<coord_t>();
+        pt.rotate(angle, paths.front().polyline.points.front());
         // generate the travel move
-        gcode += m_writer.travel_to_xy(this->point_to_gcode(point), "move inwards before travel");
+        gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
     }
     
     return gcode;

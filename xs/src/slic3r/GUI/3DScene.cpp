@@ -929,7 +929,7 @@ static void thick_lines_to_indexed_vertex_array(
         bool is_closing = closed && is_last;
 
         Vectorf v = Vectorf::new_unscale(line.vector());
-        v.scale(inv_len);
+        v *= inv_len;
 
         Pointf a = Pointf::new_unscale(line.a);
         Pointf b = Pointf::new_unscale(line.b);
@@ -941,16 +941,16 @@ static void thick_lines_to_indexed_vertex_array(
             double dist = 0.5 * width;  // scaled
             double dx = dist * v.x();
             double dy = dist * v.y();
-            a1.translate(+dy, -dx);
-            a2.translate(-dy, +dx);
-            b1.translate(+dy, -dx);
-            b2.translate(-dy, +dx);
+            a1 += Vectorf(+dy, -dx);
+            a2 += Vectorf(-dy, +dx);
+            b1 += Vectorf(+dy, -dx);
+            b2 += Vectorf(-dy, +dx);
         }
 
         // calculate new XY normals
         Vector n = line.normal();
         Vectorf3 xy_right_normal = Vectorf3::new_unscale(n.x(), n.y(), 0);
-        xy_right_normal.scale(inv_len);
+        xy_right_normal *= inv_len;
 
         int idx_a[4];
         int idx_b[4];
@@ -994,7 +994,7 @@ static void thick_lines_to_indexed_vertex_array(
         } else {
             // Continuing a previous segment.
             // Share left / right vertices if possible.
-			double v_dot    = dot(v_prev, v);
+			double v_dot    = v_prev.dot(v);
             bool   sharp    = v_dot < 0.707; // sin(45 degrees)
             if (sharp) {
                 if (!bottom_z_different)
@@ -1023,8 +1023,8 @@ static void thick_lines_to_indexed_vertex_array(
                     Geometry::ray_ray_intersection(b1_prev, v_prev, a1, v, intersection);
                     a1 = intersection;
                     a2 = 2. * a - intersection;
-                    assert(length(a1.vector_to(a)) < width);
-                    assert(length(a2.vector_to(a)) < width);
+                    assert((a - a1).norm() < width);
+                    assert((a - a2).norm() < width);
                     float *n_left_prev  = volume.vertices_and_normals_interleaved.data() + idx_prev[LEFT ] * 6;
                     float *p_left_prev  = n_left_prev  + 3;
                     float *n_right_prev = volume.vertices_and_normals_interleaved.data() + idx_prev[RIGHT] * 6;
@@ -1035,7 +1035,7 @@ static void thick_lines_to_indexed_vertex_array(
                     p_right_prev[1] = float(a1.y());
                     xy_right_normal.x() += n_right_prev[0];
                     xy_right_normal.y() += n_right_prev[1];
-                    xy_right_normal.scale(1. / length(xy_right_normal));
+                    xy_right_normal *= 1. / xy_right_normal.norm();
                     n_left_prev [0] = float(-xy_right_normal.x());
                     n_left_prev [1] = float(-xy_right_normal.y());
                     n_right_prev[0] = float( xy_right_normal.x());
@@ -1044,7 +1044,7 @@ static void thick_lines_to_indexed_vertex_array(
                     idx_a[RIGHT] = idx_prev[RIGHT];
                 }
             }
-            else if (cross(v_prev, v) > 0.) {
+            else if (cross2(v_prev, v) > 0.) {
                 // Right turn. Fill in the right turn wedge.
                 volume.push_triangle(idx_prev[RIGHT], idx_a   [RIGHT],  idx_prev[TOP]   );
                 volume.push_triangle(idx_prev[RIGHT], idx_prev[BOTTOM], idx_a   [RIGHT] );
@@ -1172,7 +1172,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         double height = heights[i];
         double width = widths[i];
 
-        Vectorf3 unit_v = normalize(Vectorf3::new_unscale(line.vector()));
+        Vectorf3 unit_v = Vectorf3::new_unscale(line.vector()).normalized();
 
         Vectorf3 n_top;
         Vectorf3 n_right;
@@ -1187,8 +1187,8 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         else
         {
             // generic segment
-            n_right = normalize(cross(unit_v, unit_positive_z));
-            n_top = normalize(cross(n_right, unit_v));
+            n_right = unit_v.cross(unit_positive_z).normalized();
+            n_top = n_right.cross(unit_v).normalized();
         }
 
         Vectorf3 rl_displacement = 0.5 * width * n_right;
@@ -1247,9 +1247,9 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         {
             // Continuing a previous segment.
             // Share left / right vertices if possible.
-            double v_dot = dot(unit_v_prev, unit_v);
+            double v_dot = unit_v_prev.dot(unit_v);
             bool is_sharp = v_dot < 0.707; // sin(45 degrees)
-            bool is_right_turn = dot(n_top_prev, cross(unit_v_prev, unit_v)) > 0.0;
+            bool is_right_turn = n_top_prev.dot(unit_v_prev.cross(unit_v)) > 0.0;
 
             if (is_sharp)
             {
@@ -1272,7 +1272,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
                 // At the crease angle of 45 degrees, the overshot at the corner will be less than (1-1/cos(PI/8)) = 8.2% over an arc.
 
                 // averages normals
-                Vectorf3 average_n_right = normalize(0.5 * (n_right + n_right_prev));
+                Vectorf3 average_n_right = 0.5 * (n_right + n_right_prev).normalized();
                 Vectorf3 average_n_left = -average_n_right;
                 Vectorf3 average_rl_displacement = 0.5 * width * average_n_right;
 

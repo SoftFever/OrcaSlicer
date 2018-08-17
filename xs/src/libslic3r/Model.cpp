@@ -256,12 +256,10 @@ void Model::center_instances_around_point(const Pointf &point)
         for (size_t i = 0; i < o->instances.size(); ++ i)
             bb.merge(o->instance_bounding_box(i, false));
 
-    Sizef3 size = bb.size();
-    coordf_t shift_x = -bb.min.x() + point.x() - size.x()/2;
-    coordf_t shift_y = -bb.min.y() + point.y() - size.y()/2;
+    Pointf shift = point - 0.5 * bb.size().xy() - bb.min.xy();
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances)
-            i->offset.translate(shift_x, shift_y);
+            i->offset += shift;
         o->invalidate_bounding_box();
     }
 }
@@ -685,7 +683,7 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
         for (const ModelInstance *i : instances) {
             for (const Pointf &pos : positions) {
                 ModelInstance *instance = o->add_instance(*i);
-                instance->offset.translate(pos);
+                instance->offset += pos;
             }
         }
         o->invalidate_bounding_box();
@@ -1075,16 +1073,15 @@ void ModelObject::center_around_origin()
     vector.y() -= size.y()/2;
     
     this->translate(vector);
-    this->origin_translation.translate(vector);
+    this->origin_translation += vector;
     
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
-            Vectorf v = vector.negative().xy();
+            Vectorf v = - vector.xy();
             v.rotate(i->rotation);
-            v.scale(i->scaling_factor);
-            i->offset.translate(v);
+            i->offset += v * i->scaling_factor;
         }
         this->invalidate_bounding_box();
     }

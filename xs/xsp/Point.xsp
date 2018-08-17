@@ -3,6 +3,7 @@
 %{
 #include <xsinit.h>
 #include "libslic3r/Point.hpp"
+#include "libslic3r/Line.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Polyline.hpp"
 %}
@@ -12,8 +13,10 @@
     ~Point();
     Clone<Point> clone()
         %code{% RETVAL=THIS; %}; 
-    void scale(double factor);
-    void translate(double x, double y);
+    void scale(double factor)
+        %code{% *THIS *= factor; %};
+    void translate(double x, double y)
+        %code{% *THIS += Point(x, y); %};
     SV* arrayref()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
     SV* pp()
@@ -30,23 +33,23 @@
     Clone<Point> nearest_point(Points points)
         %code{% Point p; THIS->nearest_point(points, &p); RETVAL = p; %};
     double distance_to(Point* point)
-        %code{% RETVAL = THIS->distance_to(*point); %};
+        %code{% RETVAL = (*point - *THIS).cast<double>().norm(); %};
     double distance_to_line(Line* line)
-        %code{% RETVAL = THIS->distance_to(*line); %};
+        %code{% RETVAL = line->distance_to(*THIS); %};
     double perp_distance_to_line(Line* line)
-        %code{% RETVAL = THIS->perp_distance_to(*line); %};
+        %code{% RETVAL = line->perp_distance_to(*THIS); %};
     double ccw(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw(*p1, *p2); %};
     double ccw_angle(Point* p1, Point* p2)
         %code{% RETVAL = THIS->ccw_angle(*p1, *p2); %};
-    Clone<Point> projection_onto_polygon(Polygon* polygon)
+    Point* projection_onto_polygon(Polygon* polygon)
         %code{% RETVAL = new Point(THIS->projection_onto(*polygon)); %};
-    Clone<Point> projection_onto_polyline(Polyline* polyline)
+    Point* projection_onto_polyline(Polyline* polyline)
         %code{% RETVAL = new Point(THIS->projection_onto(*polyline)); %};
-    Clone<Point> projection_onto_line(Line* line)
+    Point* projection_onto_line(Line* line)
         %code{% RETVAL = new Point(THIS->projection_onto(*line)); %};
-    Clone<Point> negative()
-        %code{% RETVAL = new Point(THIS->negative()); %};
+    Point* negative()
+        %code{% RETVAL = new Point(- *THIS); %};
     bool coincides_with_epsilon(Point* point)
         %code{% RETVAL = (*THIS) == *point; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", THIS->x(), THIS->y()); RETVAL = buf; %};
@@ -107,14 +110,16 @@ Point::coincides_with(point_sv)
         %code{% THIS->x() = val; %};
     void set_y(double val)
         %code{% THIS->y() = val; %};
-    void translate(double x, double y);
-    void scale(double factor);
+    void translate(double x, double y)
+        %code{% *THIS += Pointf(x, y); %};
+    void scale(double factor)
+        %code{% *THIS *= factor; %};
     void rotate(double angle, Pointf* center)
         %code{% THIS->rotate(angle, *center); %};
-    Clone<Pointf> negative()
-        %code{% RETVAL = THIS->negative(); %};
-    Clone<Pointf> vector_to(Pointf* point)
-        %code{% RETVAL = THIS->vector_to(*point); %};
+    Pointf* negative()
+        %code{% RETVAL = new Pointf(- *THIS); %};
+    Pointf* vector_to(Pointf* point)
+        %code{% RETVAL = new Pointf(*point - *THIS); %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", THIS->x(), THIS->y()); RETVAL = buf; %};
 };
 
@@ -135,13 +140,15 @@ Point::coincides_with(point_sv)
         %code{% THIS->y() = val; %};
     void set_z(double val)
         %code{% THIS->z() = val; %};
-    void translate(double x, double y, double z);
-    void scale(double factor);
+    void translate(double x, double y, double z)
+        %code{% *THIS += Pointf3(x, y, z); %};
+    void scale(double factor)
+        %code{% *THIS *= factor; %};
     double distance_to(Pointf3* point)
-        %code{% RETVAL = THIS->distance_to(*point); %};
-    Clone<Pointf3> negative()
-        %code{% RETVAL = THIS->negative(); %};
-    Clone<Pointf3> vector_to(Pointf3* point)
-        %code{% RETVAL = THIS->vector_to(*point); %};
+        %code{% RETVAL = (*point - *THIS).norm(); %};
+    Pointf3* negative()
+        %code{% RETVAL = new Pointf3(- *THIS); %};
+    Pointf3* vector_to(Pointf3* point)
+        %code{% RETVAL = new Pointf3(*point - *THIS); %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf", THIS->x(), THIS->y(), THIS->z()); RETVAL = buf; %};
 };

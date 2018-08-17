@@ -1177,7 +1177,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Poin
         // we currently use circular icons for gizmo, so we check the radius
         if (it->second->get_state() != GLGizmoBase::On)
         {
-            bool inside = length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size;
+            bool inside = (mouse_pos - Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
         }
         top_y += (tex_size + OverlayGapY);
@@ -1201,7 +1201,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
+        if ((mouse_pos - Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -1267,7 +1267,7 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
+        if ((mouse_pos - Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
             return true;
 
         top_y += (tex_size + OverlayGapY);
@@ -3114,7 +3114,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_mouse.drag.start_position_3D = pos3d;
                         // Remember the shift to to the object center.The object center will later be used
                         // to limit the object placement close to the bed.
-                        m_mouse.drag.volume_center_offset = pos3d.vector_to(volume_bbox.center());
+                        m_mouse.drag.volume_center_offset = volume_bbox.center() - pos3d;
                     }
                 }
                 else if (evt.RightDown())
@@ -3136,7 +3136,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         Pointf3 cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D.z());
 
         // Clip the new position, so the object center remains close to the bed.
-        cur_pos.translate(m_mouse.drag.volume_center_offset);
+        cur_pos += m_mouse.drag.volume_center_offset;
         Point cur_pos2(scale_(cur_pos.x()), scale_(cur_pos.y()));
         if (!m_bed.contains(cur_pos2))
         {
@@ -3144,10 +3144,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             cur_pos.x() = unscale(ip.x());
             cur_pos.y() = unscale(ip.y());
         }
-        cur_pos.translate(m_mouse.drag.volume_center_offset.negative());
+        cur_pos -= m_mouse.drag.volume_center_offset;
 
         // Calculate the translation vector.
-        Vectorf3 vector = m_mouse.drag.start_position_3D.vector_to(cur_pos);
+        Vectorf3 vector = cur_pos - m_mouse.drag.start_position_3D;
         // Get the volume being dragged.
         GLVolume* volume = m_volumes.volumes[m_mouse.drag.move_volume_idx];
         // Get all volumes belonging to the same group, if any.
@@ -3169,11 +3169,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         // Apply new temporary volume origin and ignore Z.
         for (GLVolume* v : volumes)
-        {
-            Pointf3 origin = v->get_origin();
-            origin.translate(vector.x(), vector.y(), 0.0);
-            v->set_origin(origin);
-        }
+            v->set_origin(v->get_origin() + Vectorf3(vector.x(), vector.y(), 0.0));
 
         m_mouse.drag.start_position_3D = cur_pos;
         m_gizmos.refresh();
@@ -3275,9 +3271,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 float z = 0.0f;
                 const Pointf3& cur_pos = _mouse_to_3d(pos, &z);
                 Pointf3 orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
-                Pointf3 camera_target = m_camera.target;
-                camera_target.translate(orig.vector_to(cur_pos).negative());
-                m_camera.target = camera_target;
+                m_camera.target += orig - cur_pos;
 
                 m_on_viewport_changed_callback.call();
 
@@ -3571,11 +3565,11 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     {
         // project vertex on the plane perpendicular to camera forward axis
         Pointf3 pos(v.x() - bb_center.x(), v.y() - bb_center.y(), v.z() - bb_center.z());
-        Pointf3 proj_on_plane = pos - dot(pos, forward) * forward;
+        Pointf3 proj_on_plane = pos - pos.dot(forward) * forward;
 
         // calculates vertex coordinate along camera xy axes
-        coordf_t x_on_plane = dot(proj_on_plane, right);
-        coordf_t y_on_plane = dot(proj_on_plane, up);
+        coordf_t x_on_plane = proj_on_plane.dot(right);
+        coordf_t y_on_plane = proj_on_plane.dot(up);
 
         max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
         max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
@@ -3653,7 +3647,7 @@ void GLCanvas3D::_camera_tranform() const
     ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
-    Pointf3 neg_target = m_camera.target.negative();
+    Pointf3 neg_target = - m_camera.target;
     ::glTranslatef((GLfloat)neg_target.x(), (GLfloat)neg_target.y(), (GLfloat)neg_target.z());
 }
 

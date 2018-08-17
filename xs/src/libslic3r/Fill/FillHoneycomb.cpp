@@ -101,7 +101,7 @@ void FillHoneycomb::_fill_surface_single(
             for (Polylines::iterator it_path = chained.begin(); it_path != chained.end(); ++ it_path) {
                 if (! paths.empty()) {
                     // distance between first point of this path and last point of last path
-                    double distance = paths.back().last_point().distance_to(it_path->first_point());
+                    double distance = (it_path->first_point() - paths.back().last_point()).cast<double>().norm();
                     if (distance <= m.hex_width) {
                         paths.back().points.insert(paths.back().points.end(), it_path->points.begin(), it_path->points.end());
                         continue;

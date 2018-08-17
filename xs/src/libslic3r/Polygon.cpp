@@ -300,24 +300,24 @@ Point Polygon::point_projection(const Point &point) const
         for (size_t i = 0; i < this->points.size(); ++ i) {
             const Point &pt0 = this->points[i];
             const Point &pt1 = this->points[(i + 1 == this->points.size()) ? 0 : i + 1];
-            double d = pt0.distance_to(point);
+            double d = (point - pt0).cast<double>().norm();
             if (d < dmin) {
                 dmin = d;
                 proj = pt0;
             }
-            d = pt1.distance_to(point);
+            d = (point - pt1).cast<double>().norm();
             if (d < dmin) {
                 dmin = d;
                 proj = pt1;
             }
             Pointf v1(coordf_t(pt1.x() - pt0.x()), coordf_t(pt1.y() - pt0.y()));
-            coordf_t div = dot(v1);
+            coordf_t div = v1.squaredNorm();
             if (div > 0.) {
                 Pointf v2(coordf_t(point.x() - pt0.x()), coordf_t(point.y() - pt0.y()));
-                coordf_t t = dot(v1, v2) / div;
+                coordf_t t = v1.dot(v2) / div;
                 if (t > 0. && t < 1.) {
                     Point foot(coord_t(floor(coordf_t(pt0.x()) + t * v1.x() + 0.5)), coord_t(floor(coordf_t(pt0.y()) + t * v1.y() + 0.5)));
-                    d = foot.distance_to(point);
+                    d = (point - foot).cast<double>().norm();
                     if (d < dmin) {
                         dmin = d;
                         proj = foot;

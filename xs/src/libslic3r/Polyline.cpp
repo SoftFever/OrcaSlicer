@@ -52,92 +52,82 @@ Polyline::lines() const
 }
 
 // removes the given distance from the end of the polyline
-void
-Polyline::clip_end(double distance)
+void Polyline::clip_end(double distance)
 {
     while (distance > 0) {
-        Point last_point = this->last_point();
+        Vec2d  last_point = this->last_point().cast<double>();
         this->points.pop_back();
-        if (this->points.empty()) break;
-        
-        double last_segment_length = last_point.distance_to(this->last_point());
-        if (last_segment_length <= distance) {
-            distance -= last_segment_length;
-            continue;
+        if (this->points.empty())
+            break;
+        Vec2d  v    = this->last_point().cast<double>() - last_point;
+        double lsqr = v.squaredNorm();
+        if (lsqr > distance * distance) {
+            this->points.emplace_back((last_point + v * (distance / sqrt(lsqr))).cast<coord_t>());
+            return;
         }
-        
-        Line segment(last_point, this->last_point());
-        this->points.push_back(segment.point_at(distance));
-        distance = 0;
+        distance -= sqrt(lsqr);
     }
 }
 
 // removes the given distance from the start of the polyline
-void
-Polyline::clip_start(double distance)
+void Polyline::clip_start(double distance)
 {
     this->reverse();
     this->clip_end(distance);
-    if (this->points.size() >= 2) this->reverse();
+    if (this->points.size() >= 2)
+        this->reverse();
 }
 
-void
-Polyline::extend_end(double distance)
+void Polyline::extend_end(double distance)
 {
     // relocate last point by extending the last segment by the specified length
-    Line line(
-        this->points.back(),
-        *(this->points.end() - 2)
-    );
-    this->points.back() = line.point_at(-distance);
+    Vec2d v = (this->points.back() - *(this->points.end() - 2)).cast<double>().normalized();
+    this->points.back() += (v * distance).cast<coord_t>();
 }
 
-void
-Polyline::extend_start(double distance)
+void Polyline::extend_start(double distance)
 {
     // relocate first point by extending the first segment by the specified length
-    this->points.front() = Line(this->points.front(), this->points[1]).point_at(-distance);
+    Vec2d v = (this->points.front() - this->points[1]).cast<double>().normalized();
+    this->points.front() += (v * distance).cast<coord_t>();
 }
 
 /* this method returns a collection of points picked on the polygon contour
    so that they are evenly spaced according to the input distance */
-Points
-Polyline::equally_spaced_points(double distance) const
+Points Polyline::equally_spaced_points(double distance) const
 {
     Points points;
-    points.push_back(this->first_point());
+    points.emplace_back(this->first_point());
     double len = 0;
     
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
-        double segment_length = it->distance_to(*(it-1));
+        Vec2d  p1 = (it-1)->cast<double>();
+        Vec2d  v  = it->cast<double>() - p1;
+        double segment_length = v.norm();
         len += segment_length;
-        if (len < distance) continue;
-        
+        if (len < distance)
+            continue;
         if (len == distance) {
-            points.push_back(*it);
+            points.emplace_back(*it);
             len = 0;
             continue;
         }
-        
         double take = segment_length - (len - distance);  // how much we take of this segment
-        Line segment(*(it-1), *it);
-        points.push_back(segment.point_at(take));
-        --it;
-        len = -take;
+        points.emplace_back((p1 + v * (take / v.norm())).cast<coord_t>());
+        -- it;
+        len = - take;
     }
     return points;
 }
 
-void
-Polyline::simplify(double tolerance)
+void Polyline::simplify(double tolerance)
 {
     this->points = MultiPoint::_douglas_peucker(this->points, tolerance);
 }
 
 /* This method simplifies all *lines* contained in the supplied area */
 template <class T>
-void
-Polyline::simplify_by_visibility(const T &area)
+void Polyline::simplify_by_visibility(const T &area)
 {
     Points &pp = this->points;
     
@@ -157,21 +147,20 @@ Polyline::simplify_by_visibility(const T &area)
 template void Polyline::simplify_by_visibility<ExPolygon>(const ExPolygon &area);
 template void Polyline::simplify_by_visibility<ExPolygonCollection>(const ExPolygonCollection &area);
 
-void
-Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
+void Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
 {
     if (this->points.empty()) return;
     
     // find the line to split at
     size_t line_idx = 0;
     Point p = this->first_point();
-    double min = point.distance_to(p);
+    double min = (p - point).cast<double>().norm();
     Lines lines = this->lines();
     for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
         Point p_tmp = point.projection_onto(*line);
-        if (point.distance_to(p_tmp) < min) {
+        if ((p_tmp - point).cast<double>().norm() < min) {
 	        p = p_tmp;
-	        min = point.distance_to(p);
+	        min = (p - point).cast<double>().norm();
 	        line_idx = line - lines.begin();
         }
     }
@@ -193,8 +182,7 @@ Polyline::split_at(const Point &point, Polyline* p1, Polyline* p2) const
     }
 }
 
-bool
-Polyline::is_straight() const
+bool Polyline::is_straight() const
 {
     /*  Check that each segment's direction is equal to the line connecting
         first point and last point. (Checking each line against the previous
@@ -208,8 +196,7 @@ Polyline::is_straight() const
     return true;
 }
 
-std::string
-Polyline::wkt() const
+std::string Polyline::wkt() const
 {
     std::ostringstream wkt;
     wkt << "LINESTRING((";
@@ -254,28 +241,15 @@ bool remove_degenerate(Polylines &polylines)
     return modified;
 }
 
-ThickLines
-ThickPolyline::thicklines() const
+ThickLines ThickPolyline::thicklines() const
 {
     ThickLines lines;
     if (this->points.size() >= 2) {
         lines.reserve(this->points.size() - 1);
-        for (size_t i = 0; i < this->points.size()-1; ++i) {
-            ThickLine line(this->points[i], this->points[i+1]);
-            line.a_width = this->width[2*i];
-            line.b_width = this->width[2*i+1];
-            lines.push_back(line);
-        }
+        for (size_t i = 0; i + 1 < this->points.size(); ++ i)
+            lines.emplace_back(this->points[i], this->points[i + 1], this->width[2 * i], this->width[2 * i + 1]);
     }
     return lines;
-}
-
-void
-ThickPolyline::reverse()
-{
-    Polyline::reverse();
-    std::reverse(this->width.begin(), this->width.end());
-    std::swap(this->endpoints.first, this->endpoints.second);
 }
 
 Lines3 Polyline3::lines() const

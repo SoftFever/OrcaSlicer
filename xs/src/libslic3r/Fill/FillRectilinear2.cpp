@@ -55,14 +55,14 @@ static inline coordf_t segment_length(const Polygon &poly, size_t seg1, const Po
     coordf_t len = 0;
     if (seg1 <= seg2) {
         for (size_t i = seg1; i < seg2; ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
     } else {
         for (size_t i = seg1; i < poly.points.size(); ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
         for (size_t i = 0; i < seg2; ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
     }
-    len += pPrev->distance_to(p2);
+    len += (*pPrev - p2).cast<double>().norm();
     return len;
 }
 

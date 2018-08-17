@@ -894,10 +894,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
                 const std::vector<double> &init_matrix    = (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
                 const std::vector<double> &init_extruders = (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
 
-#pragma warning(push)
-#pragma warning(disable:4244) // disable Visual Studio's warning: conversion from 'double' to 'float', possible loss of data
-                WipingDialog dlg(parent,std::vector<float>(init_matrix.begin(),init_matrix.end()),std::vector<float>(init_extruders.begin(),init_extruders.end()));
-#pragma warning(pop)
+                WipingDialog dlg(parent,cast<float>(init_matrix),cast<float>(init_extruders));
 
 				if (dlg.ShowModal() == wxID_OK) {
                     std::vector<float> matrix = dlg.get_matrix();

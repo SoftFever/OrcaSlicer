@@ -68,8 +68,8 @@ BoundingBox BoundingBox::rotated(double angle, const Point &center) const
 template <class PointClass> void
 BoundingBoxBase<PointClass>::scale(double factor)
 {
-    this->min.scale(factor);
-    this->max.scale(factor);
+    this->min *= factor;
+    this->max *= factor;
 }
 template void BoundingBoxBase<Point>::scale(double factor);
 template void BoundingBoxBase<Pointf>::scale(double factor);
@@ -188,8 +188,9 @@ template double BoundingBox3Base<Pointf3>::radius() const;
 template <class PointClass> void
 BoundingBoxBase<PointClass>::offset(coordf_t delta)
 {
-    this->min.translate(-delta, -delta);
-    this->max.translate(delta, delta);
+    PointClass v(delta, delta);
+    this->min -= v;
+    this->max += v;
 }
 template void BoundingBoxBase<Point>::offset(coordf_t delta);
 template void BoundingBoxBase<Pointf>::offset(coordf_t delta);
@@ -197,8 +198,9 @@ template void BoundingBoxBase<Pointf>::offset(coordf_t delta);
 template <class PointClass> void
 BoundingBox3Base<PointClass>::offset(coordf_t delta)
 {
-    this->min.translate(-delta, -delta, -delta);
-    this->max.translate(delta, delta, delta);
+    PointClass v(delta, delta, delta);
+    this->min -= v;
+    this->max += v;
 }
 template void BoundingBox3Base<Pointf3>::offset(coordf_t delta);
 

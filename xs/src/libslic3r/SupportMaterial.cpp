@@ -506,8 +506,8 @@ public:
 
         for (ExPolygon &island : islands) {
             BoundingBox bbox = get_extents(island.contour);
-            auto it_lower = std::lower_bound(m_island_samples.begin(), m_island_samples.end(), bbox.min - Point(1, 1));
-            auto it_upper = std::upper_bound(m_island_samples.begin(), m_island_samples.end(), bbox.max + Point(1, 1));
+            auto it_lower = std::lower_bound(m_island_samples.begin(), m_island_samples.end(), Point(bbox.min - Point(1, 1)));
+            auto it_upper = std::upper_bound(m_island_samples.begin(), m_island_samples.end(), Point(bbox.max + Point(1, 1)));
             samples_inside.clear();
             for (auto it = it_lower; it != it_upper; ++ it)
                 if (bbox.contains(*it))
@@ -2059,9 +2059,9 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                         // Intersection of a ray (p1, p2) with a circle placed at center_last, with radius of circle_distance.
                         const Pointf v_seg(coordf_t(p2.x()) - coordf_t(p1.x()), coordf_t(p2.y()) - coordf_t(p1.y()));
                         const Pointf v_cntr(coordf_t(p1.x() - center_last.x()), coordf_t(p1.y() - center_last.y()));
-                        coordf_t a = dot(v_seg);
-                        coordf_t b = 2. * dot(v_seg, v_cntr);
-                        coordf_t c = dot(v_cntr) - circle_distance * circle_distance;
+                        coordf_t a = v_seg.squaredNorm();
+                        coordf_t b = 2. * v_seg.dot(v_cntr);
+                        coordf_t c = v_cntr.squaredNorm() - circle_distance * circle_distance;
                         coordf_t disc = b * b - 4. * a * c;
                         if (disc > 0.) {
                             // The circle intersects a ray. Avoid the parts of the segment inside the circle.
@@ -2100,9 +2100,9 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                         circle_centers.push_back(center_last);
                     }
                     external_loops.push_back(std::move(contour));
-                    for (Points::const_iterator it_center = circle_centers.begin(); it_center != circle_centers.end(); ++ it_center) {
+                    for (const Point &center : circle_centers) {
                         circles.push_back(circle);
-                        circles.back().translate(*it_center);
+                        circles.back().translate(center);
                     }
                 }
             }
@@ -2392,7 +2392,7 @@ void modulate_extrusion_by_overlapping_layers(
             if (end_and_dist2.first == nullptr) {
                 // New fragment connecting to pt_current was not found.
                 // Verify that the last point found is close to the original end point of the unfragmented path.
-                //const double d2 = pt_end.distance_to_sq(pt_current);
+                //const double d2 = (pt_end - pt_current).squaredNorm();
                 //assert(d2 < coordf_t(search_radius * search_radius));
                 // End of the path.
                 break;

@@ -34,54 +34,43 @@ ExPolygon::operator Polylines() const
     return to_polylines(*this);
 }
 
-void
-ExPolygon::scale(double factor)
+void ExPolygon::scale(double factor)
 {
     contour.scale(factor);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).scale(factor);
-    }
+    for (Polygon &hole : holes)
+        hole.scale(factor);
 }
 
-void
-ExPolygon::translate(double x, double y)
+void ExPolygon::translate(double x, double y)
 {
     contour.translate(x, y);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).translate(x, y);
-    }
+    for (Polygon &hole : holes)
+        hole.translate(x, y);
 }
 
-void
-ExPolygon::rotate(double angle)
+void ExPolygon::rotate(double angle)
 {
     contour.rotate(angle);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).rotate(angle);
-    }
+    for (Polygon &hole : holes)
+        hole.rotate(angle);
 }
 
-void
-ExPolygon::rotate(double angle, const Point &center)
+void ExPolygon::rotate(double angle, const Point &center)
 {
     contour.rotate(angle, center);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).rotate(angle, center);
-    }
+    for (Polygon &hole : holes)
+        hole.rotate(angle, center);
 }
 
-double
-ExPolygon::area() const
+double ExPolygon::area() const
 {
     double a = this->contour.area();
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        a -= -(*it).area();  // holes have negative area
-    }
+    for (const Polygon &hole : holes)
+        a -= - hole.area();  // holes have negative area
     return a;
 }
 
-bool
-ExPolygon::is_valid() const
+bool ExPolygon::is_valid() const
 {
     if (!this->contour.is_valid() || !this->contour.is_counter_clockwise()) return false;
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
@@ -90,20 +79,17 @@ ExPolygon::is_valid() const
     return true;
 }
 
-bool
-ExPolygon::contains(const Line &line) const
+bool ExPolygon::contains(const Line &line) const
 {
-    return this->contains((Polyline)line);
+    return this->contains(Polyline(line.a, line.b));
 }
 
-bool
-ExPolygon::contains(const Polyline &polyline) const
+bool ExPolygon::contains(const Polyline &polyline) const
 {
     return diff_pl((Polylines)polyline, *this).empty();
 }
 
-bool
-ExPolygon::contains(const Polylines &polylines) const
+bool ExPolygon::contains(const Polylines &polylines) const
 {
     #if 0
     BoundingBox bbox = get_extents(polylines);
@@ -120,8 +106,7 @@ ExPolygon::contains(const Polylines &polylines) const
     return pl_out.empty();
 }
 
-bool
-ExPolygon::contains(const Point &point) const
+bool ExPolygon::contains(const Point &point) const
 {
     if (!this->contour.contains(point)) return false;
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
@@ -131,8 +116,7 @@ ExPolygon::contains(const Point &point) const
 }
 
 // inclusive version of contains() that also checks whether point is on boundaries
-bool
-ExPolygon::contains_b(const Point &point) const
+bool ExPolygon::contains_b(const Point &point) const
 {
     return this->contains(point) || this->has_boundary_point(point);
 }
@@ -243,25 +227,24 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
         Point new_front = polyline.points.front();
         Point new_back  = polyline.points.back();
         if (polyline.endpoints.first && !this->has_boundary_point(new_front)) {
-            Line line(polyline.points.front(), polyline.points[1]);
-            
+            Vec2d p1 = polyline.points.front().cast<double>();
+            Vec2d p2 = polyline.points[1].cast<double>();
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
-            if (polyline.points.size() == 2) line.b = line.midpoint();
-            
-            line.extend_start(max_width);
-            (void)this->contour.intersection(line, &new_front);
+            if (polyline.points.size() == 2)
+                p2 = (p1 + p2) * 0.5;
+            // Extend the start of the segment.
+            p1 -= (p2 - p1).normalized() * max_width;
+            this->contour.intersection(Line(p1.cast<coord_t>(), p2.cast<coord_t>()), &new_front);
         }
         if (polyline.endpoints.second && !this->has_boundary_point(new_back)) {
-            Line line(
-                *(polyline.points.end() - 2),
-                polyline.points.back()
-            );
-            
+            Vec2d p1 = (polyline.points.end() - 2)->cast<double>();
+            Vec2d p2 = polyline.points.back().cast<double>();
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
-            if (polyline.points.size() == 2) line.a = line.midpoint();
-            line.extend_end(max_width);
-            
-            (void)this->contour.intersection(line, &new_back);
+            if (polyline.points.size() == 2)
+                p1 = (p1 + p2) * 0.5;
+            // Extend the start of the segment.
+            p2 += (p2 - p1).normalized() * max_width;
+            this->contour.intersection(Line(p1.cast<coord_t>(), p2.cast<coord_t>()), &new_back);
         }
         polyline.points.front() = new_front;
         polyline.points.back()  = new_back;

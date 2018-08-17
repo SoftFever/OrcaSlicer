@@ -46,8 +46,8 @@ public:
     void scale(double factor);
     PointClass size() const;
     double radius() const;
-    void translate(coordf_t x, coordf_t y) { assert(this->defined); this->min.translate(x, y); this->max.translate(x, y); }
-    void translate(const Pointf &pos) { this->translate(pos.x(), pos.y()); }
+    void translate(coordf_t x, coordf_t y) { assert(this->defined); PointClass v(x, y); this->min += v; this->max += v; }
+    void translate(const Pointf &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
     PointClass center() const;
     bool contains(const PointClass &point) const {
@@ -90,8 +90,8 @@ public:
     void merge(const BoundingBox3Base<PointClass> &bb);
     PointClass size() const;
     double radius() const;
-    void translate(coordf_t x, coordf_t y, coordf_t z) { this->min.translate(x, y, z); this->max.translate(x, y, z); }
-    void translate(const Pointf3 &pos) { this->translate(pos.x(), pos.y(), pos.z()); }
+    void translate(coordf_t x, coordf_t y, coordf_t z) { assert(this->defined); PointClass v(x, y, z); this->min += v; this->max += v; }
+    void translate(const Pointf3 &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
     PointClass center() const;
     coordf_t max_size() const;

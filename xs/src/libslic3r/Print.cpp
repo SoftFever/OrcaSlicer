@@ -726,7 +726,7 @@ BoundingBox Print::bounding_box() const
     for (const PrintObject *object : this->objects)
         for (Point copy : object->_shifted_copies) {
             bb.merge(copy);
-            copy.translate(object->size.xy());
+            copy += object->size.xy();
             bb.merge(copy);
         }
     return bb;
@@ -902,7 +902,7 @@ void Print::_make_skirt()
         for (const Point &shift : object->_shifted_copies) {
             Points copy_points = object_points;
             for (Point &pt : copy_points)
-                pt.translate(shift);
+                pt += shift;
             append(points, copy_points);
         }
     }
@@ -1052,10 +1052,7 @@ void Print::_make_wipe_tower()
         return;
 
     // Get wiping matrix to get number of extruders and convert vector<double> to vector<float>:
-#pragma warning(push)
-#pragma warning(disable:4244) // disable Visual Studio's warning: conversion from 'double' to 'float', possible loss of data
-    std::vector<float> wiping_matrix((this->config.wiping_volumes_matrix.values).begin(),(this->config.wiping_volumes_matrix.values).end());
-#pragma warning(pop)
+    std::vector<float> wiping_matrix(cast<float>(this->config.wiping_volumes_matrix.values));
     // Extract purging volumes for each extruder pair:
     std::vector<std::vector<float>> wipe_volumes;
     const unsigned int number_of_extruders = (unsigned int)(sqrt(wiping_matrix.size())+EPSILON);

@@ -74,6 +74,7 @@ extern "C" {
 	#undef realloc
 	#undef free
 	#undef Zero
+    #undef Packet
 	#undef select
 #endif /* _MSC_VER */
 }

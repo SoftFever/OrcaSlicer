@@ -11,18 +11,20 @@ MultiPoint::operator Points() const
 void MultiPoint::scale(double factor)
 {
     for (Point &pt : points)
-        pt.scale(factor);
+        pt *= factor;
 }
 
 void MultiPoint::translate(double x, double y)
 {
+    Vector v(x, y);
     for (Point &pt : points)
-        pt.translate(x, y);
+        pt += v;
 }
 
-void MultiPoint::translate(const Point &vector)
+void MultiPoint::translate(const Point &v)
 {
-    this->translate(vector.x(), vector.y());
+    for (Point &pt : points)
+        pt += v;
 }
 
 void MultiPoint::rotate(double cos_angle, double sin_angle)
@@ -79,7 +81,7 @@ MultiPoint::find_point(const Point &point) const
 bool
 MultiPoint::has_boundary_point(const Point &point) const
 {
-    double dist = point.distance_to(point.projection_onto(*this));
+    double dist = (point.projection_onto(*this) - point).cast<double>().norm();
     return dist < SCALED_EPSILON;
 }
 
@@ -137,10 +139,10 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
         if (l.intersection(line, &ip)) {
             if (! found) {
                 found = true;
-                dmin = ip.distance_to(line.a);
+                dmin = (line.a - ip).cast<double>().norm();
                 *intersection = ip;
             } else {
-                double d = ip.distance_to(line.a);
+                double d = (line.a - ip).cast<double>().norm();
                 if (d < dmin) {
                     dmin = d;
                     *intersection = ip;
@@ -176,7 +178,7 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
     Line full(points.front(), points.back());
     for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
         // we use shortest distance, not perpendicular distance
-        double d = it->distance_to(full);
+        double d = full.distance_to(*it);
         if (d > dmax) {
             index = it - points.begin();
             dmax = d;
@@ -215,7 +217,7 @@ void MultiPoint3::translate(double x, double y)
 
 void MultiPoint3::translate(const Point& vector)
 {
-    translate(vector.x(), vector.y());
+    this->translate(vector.x(), vector.y());
 }
 
 double MultiPoint3::length() const

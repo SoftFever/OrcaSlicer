@@ -235,13 +235,13 @@ void GLGizmoRotate::on_set_state()
 void GLGizmoRotate::on_update(const Pointf& mouse_pos)
 {
     Vectorf orig_dir(1.0, 0.0);
-    Vectorf new_dir = normalize(mouse_pos - m_center);
-    coordf_t theta = ::acos(clamp(-1.0, 1.0, dot(new_dir, orig_dir)));
-    if (cross(orig_dir, new_dir) < 0.0)
+    Vectorf new_dir = (mouse_pos - m_center).normalized();
+    coordf_t theta = ::acos(clamp(-1.0, 1.0, new_dir.dot(orig_dir)));
+    if (cross2(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (coordf_t)PI - theta;
 
     // snap
-    if (length(m_center.vector_to(mouse_pos)) < 2.0 * (double)m_radius / 3.0)
+    if ((mouse_pos - m_center).norm() < 2.0 * (double)m_radius / 3.0)
     {
         coordf_t step = 2.0 * (coordf_t)PI / (coordf_t)SnapRegionsCount;
         theta = step * (coordf_t)std::round(theta / step);
@@ -444,8 +444,8 @@ void GLGizmoScale::on_update(const Pointf& mouse_pos)
 {
     Pointf center(0.5 * (m_grabbers[1].center.x() + m_grabbers[0].center.x()), 0.5 * (m_grabbers[3].center.y() + m_grabbers[0].center.y()));
 
-    coordf_t orig_len = length(m_starting_drag_position - center);
-    coordf_t new_len = length(mouse_pos - center);
+    coordf_t orig_len = (m_starting_drag_position - center).norm();
+    coordf_t new_len = (mouse_pos - center).norm();
     coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
 
     m_scale = m_starting_scale * (float)ratio;

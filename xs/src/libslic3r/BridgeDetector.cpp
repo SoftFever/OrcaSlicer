@@ -282,10 +282,12 @@ BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
             extrusions would be anchored within such length (i.e. a slightly non-parallel bridging
             direction might still benefit from anchors if long enough)
             double angle_tolerance = PI / 180.0 * 5.0; */
-        for (Lines::const_iterator line = unsupported_lines.begin(); line != unsupported_lines.end(); ++line) {
-            if (!Slic3r::Geometry::directions_parallel(line->direction(), angle))
-                unsupported->push_back(*line);
-        }
+        for (const Line &line : unsupported_lines)
+            if (! Slic3r::Geometry::directions_parallel(line.direction(), angle)) {
+                unsupported->emplace_back(Polyline());
+                unsupported->back().points.emplace_back(line.a);
+                unsupported->back().points.emplace_back(line.b);
+            }
     }
     
     /*

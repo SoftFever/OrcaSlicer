@@ -103,7 +103,7 @@ void FillRectilinear::_fill_surface_single(
                 const Point &first_point = it_polyline->points.front();
                 const Point &last_point = pts_end.back();
                 // Distance in X, Y.
-                const Vector distance = first_point.vector_to(last_point);
+                const Vector distance = last_point - first_point;
                 // TODO: we should also check that both points are on a fill_boundary to avoid 
                 // connecting paths on the boundaries of internal regions
                 if (this->_can_connect(std::abs(distance.x()), std::abs(distance.y())) && 

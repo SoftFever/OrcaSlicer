@@ -220,7 +220,7 @@ void ExtrusionLoop::split_at(const Point &point, bool prefer_non_overhang)
         double min_non_overhang = std::numeric_limits<double>::max();
         for (ExtrusionPaths::const_iterator path = this->paths.begin(); path != this->paths.end(); ++path) {
             Point p_tmp = point.projection_onto(path->polyline);
-            double dist = point.distance_to(p_tmp);
+            double dist = (p_tmp - point).cast<double>().norm();
             if (dist < min) {
                 p = p_tmp;
                 min = dist;

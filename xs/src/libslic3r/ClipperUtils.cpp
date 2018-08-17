@@ -634,8 +634,8 @@ _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Polygons 
     // convert Lines to Polylines
     Polylines polylines;
     polylines.reserve(subject.size());
-    for (Lines::const_iterator line = subject.begin(); line != subject.end(); ++line)
-        polylines.push_back(*line);
+    for (const Line &line : subject)
+        polylines.emplace_back(Polyline(line.a, line.b));
     
     // perform operation
     polylines = _clipper_pl(clipType, polylines, clip, safety_offset_);

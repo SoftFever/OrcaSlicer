@@ -179,7 +179,7 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 		double avg_dist = 0;
 		for (auto pt: polygon.points)
 		{
-			double distance = center.distance_to(pt);
+			double distance = (pt - center).cast<double>().norm();
 			vertex_distances.push_back(distance);
 			avg_dist += distance;
 		}

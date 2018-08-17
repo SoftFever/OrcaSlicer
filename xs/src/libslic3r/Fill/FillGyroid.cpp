@@ -49,7 +49,7 @@ static inline Polyline make_wave(
         point.y() = clamp(0., height, double(point.y()));
         if (vertical)
             std::swap(point.x(), point.y());
-        polyline.points.emplace_back(convert_to<Point>(point * scaleFactor));
+        polyline.points.emplace_back((point * scaleFactor).cast<coord_t>());
     }
 
     return polyline;
@@ -177,7 +177,7 @@ void FillGyroid::_fill_surface_single(
                 // TODO: we should also check that both points are on a fill_boundary to avoid 
                 // connecting paths on the boundaries of internal regions
                 // TODO: avoid crossing current infill path
-                if (first_point.distance_to(last_point) <= 5 * distance && 
+                if ((last_point - first_point).cast<double>().norm() <= 5 * distance && 
                     expolygon_off.contains(Line(last_point, first_point))) {
                     // Append the polyline.
                     pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());

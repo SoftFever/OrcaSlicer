@@ -18,77 +18,77 @@ typedef std::vector<ThickLine> ThickLines;
 class Line
 {
 public:
-    Point a;
-    Point b;
-    Line() {};
-    explicit Line(Point _a, Point _b): a(_a), b(_b) {};
+    Line() {}
+    explicit Line(Point _a, Point _b): a(_a), b(_b) {}
     std::string wkt() const;
-    operator Lines() const;
-    operator Polyline() const;
-    void scale(double factor);
-    void translate(double x, double y);
-    void rotate(double angle, const Point &center);
-    void reverse();
-    double length() const;
-    Point midpoint() const;
-    void point_at(double distance, Point* point) const;
-    Point point_at(double distance) const;
-    bool intersection_infinite(const Line &other, Point* point) const;
-    bool coincides_with(const Line &line) const;
+    explicit operator Lines() const { Lines lines; lines.emplace_back(*this); return lines; }
+    void   scale(double factor) { this->a *= factor; this->b *= factor; }
+    void   translate(double x, double y) { Vector v(x, y); this->a += v; this->b += v; }
+    void   rotate(double angle, const Point &center) { this->a.rotate(angle, center); this->b.rotate(angle, center); }
+    void   reverse() { std::swap(this->a, this->b); }
+    double length() const { return (b - a).cast<double>().norm(); }
+    Point  midpoint() const { return (this->a + this->b) / 2; }
+    bool   intersection_infinite(const Line &other, Point* point) const;
+    bool   coincides_with(const Line &line) const { return this->a == line.a && this->b == line.b; }
     double distance_to(const Point &point) const;
-    bool parallel_to(double angle) const;
-    bool parallel_to(const Line &line) const;
-    double atan2_() const;
+    double perp_distance_to(const Point &point) const;
+    bool   parallel_to(double angle) const;
+    bool   parallel_to(const Line &line) const { return this->parallel_to(line.direction()); }
+    double atan2_() const { return atan2(this->b.y() - this->a.y(), this->b.x() - this->a.x()); }
     double orientation() const;
     double direction() const;
-    Vector vector() const;
-    Vector normal() const;
-    void extend_end(double distance);
-    void extend_start(double distance);
-    bool intersection(const Line& line, Point* intersection) const;
-    double ccw(const Point& point) const;
+    Vector vector() const { return this->b - this->a; }
+    Vector normal() const { return Vector((this->b.y() - this->a.y()), -(this->b.x() - this->a.x())); }
+    bool   intersection(const Line& line, Point* intersection) const;
+    double ccw(const Point& point) const { return point.ccw(*this); }
+
+    Point a;
+    Point b;
 };
 
 class ThickLine : public Line
 {
-    public:
-    coordf_t a_width, b_width;
-    
-    ThickLine() : a_width(0), b_width(0) {};
-    ThickLine(Point _a, Point _b) : Line(_a, _b), a_width(0), b_width(0) {};
+public:
+    ThickLine() : a_width(0), b_width(0) {}
+    ThickLine(Point a, Point b) : Line(a, b), a_width(0), b_width(0) {}
+    ThickLine(Point a, Point b, double wa, double wb) : Line(a, b), a_width(wa), b_width(wb) {}
+
+    coordf_t a_width, b_width;    
 };
 
 class Line3
 {
 public:
-    Point3 a;
-    Point3 b;
-
     Line3() {}
     Line3(const Point3& _a, const Point3& _b) : a(_a), b(_b) {}
 
-    double length() const;
-    Vector3 vector() const;
+    double  length() const { return (this->a - this->b).cast<double>().norm(); }
+    Vector3 vector() const { return this->b - this->a; }
+
+    Point3 a;
+    Point3 b;
 };
 
 class Linef
 {
-    public:
+public:
+    Linef() {}
+    explicit Linef(Pointf _a, Pointf _b): a(_a), b(_b) {}
+
     Pointf a;
     Pointf b;
-    Linef() {};
-    explicit Linef(Pointf _a, Pointf _b): a(_a), b(_b) {};
 };
 
 class Linef3
 {
-    public:
+public:
+    Linef3() {}
+    explicit Linef3(Pointf3 _a, Pointf3 _b): a(_a), b(_b) {}
+    Pointf3 intersect_plane(double z) const;
+    void    scale(double factor) { this->a *= factor; this->b *= factor; }
+
     Pointf3 a;
     Pointf3 b;
-    Linef3() {};
-    explicit Linef3(Pointf3 _a, Pointf3 _b): a(_a), b(_b) {};
-    Pointf3 intersect_plane(double z) const;
-    void scale(double factor);
 };
 
 } // namespace Slic3r

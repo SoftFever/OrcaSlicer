@@ -85,11 +85,8 @@ bool PrintObject::set_copies(const Points &points)
     std::vector<Points::size_type> ordered_copies;
     Slic3r::Geometry::chained_path(points, ordered_copies);
     
-    for (size_t point_idx : ordered_copies) {
-        Point copy = points[point_idx];
-        copy.translate(this->_copies_shift);
-        this->_shifted_copies.push_back(copy);
-    }
+    for (size_t point_idx : ordered_copies)
+        this->_shifted_copies.push_back(points[point_idx] + this->_copies_shift);
     
     bool invalidated = this->_print->invalidate_step(psSkirt);
     invalidated |= this->_print->invalidate_step(psBrim);

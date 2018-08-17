@@ -1042,12 +1042,12 @@ MedialAxis::validate_edge(const VD::edge_type* edge)
         calculate the distance to that endpoint instead.  */
     
     coordf_t w0 = cell_r->contains_segment()
-        ? line.a.distance_to(segment_r)*2
-        : line.a.distance_to(this->retrieve_endpoint(cell_r))*2;
+        ? segment_r.distance_to(line.a)*2
+        : (this->retrieve_endpoint(cell_r) - line.a).cast<double>().norm()*2;
     
     coordf_t w1 = cell_l->contains_segment()
-        ? line.b.distance_to(segment_l)*2
-        : line.b.distance_to(this->retrieve_endpoint(cell_l))*2;
+        ? segment_l.distance_to(line.b)*2
+        : (this->retrieve_endpoint(cell_l) - line.b).cast<double>().norm()*2;
     
     if (cell_l->contains_segment() && cell_r->contains_segment()) {
         // calculate the relative angle between the two boundary segments

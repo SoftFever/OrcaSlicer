@@ -217,11 +217,11 @@ Point SegmentIntersection::pos() const
     const Point   &seg_start = poly.points[(this->iSegment == 0) ? poly.points.size() - 1 : this->iSegment - 1];
     const Point   &seg_end   = poly.points[this->iSegment];
     // Point, vector of the segment.
-    const Pointf   p1  = convert_to<Pointf>(seg_start);
-    const Pointf   v1  = convert_to<Pointf>(seg_end - seg_start);
+    const Pointf   p1(seg_start.cast<coordf_t>());
+    const Pointf   v1((seg_end - seg_start).cast<coordf_t>());
     // Point, vector of this hatching line.
-    const Pointf   p2  = convert_to<Pointf>(line->pos);
-    const Pointf   v2  = convert_to<Pointf>(line->dir);
+    const Pointf   p2(line->pos.cast<coordf_t>());
+    const Pointf   v2(line->dir.cast<coordf_t>());
     // Intersect the two rays.
     double denom = v1.x() * v2.y() - v2.x() * v1.y();
     Point out;
@@ -276,13 +276,13 @@ int SegmentIntersection::ordering_along_line(const SegmentIntersection &other) c
             // other.iSegment succeeds this->iSegment
 			assert(seg_end_a == seg_start_b);
 			// Avoid calling the 128bit x 128bit multiplication below if this->line intersects the common point.
-			if (cross(this->line->dir, seg_end_b - this->line->pos) == 0)
+			if (cross2(Vec2i64(this->line->dir.cast<int64_t>()), (seg_end_b - this->line->pos).cast<int64_t>()) == 0)
 				return 0;
         } else if ((other.iSegment + 1) % poly_a.points.size() == this->iSegment) {
             // this->iSegment succeeds other.iSegment
 			assert(seg_start_a == seg_end_b);
 			// Avoid calling the 128bit x 128bit multiplication below if this->line intersects the common point.
-			if (cross(this->line->dir, seg_start_a - this->line->pos) == 0)
+			if (cross2(Vec2i64(this->line->dir.cast<int64_t>()), (seg_start_a - this->line->pos).cast<int64_t>()) == 0)
 				return 0;
         } else {
             // General case.
@@ -290,35 +290,35 @@ int SegmentIntersection::ordering_along_line(const SegmentIntersection &other) c
     }
 
     // First test, whether both points of one segment are completely in one half-plane of the other line.
-    const Point vec_b = seg_end_b - seg_start_b;
-    int side_start = signum(cross(vec_b, seg_start_a - seg_start_b));
-    int side_end   = signum(cross(vec_b, seg_end_a   - seg_start_b));
+    const Vec2i64 vec_b = (seg_end_b - seg_start_b).cast<int64_t>();
+    int side_start = signum(cross2(vec_b, (seg_start_a - seg_start_b).cast<int64_t>()));
+    int side_end   = signum(cross2(vec_b, (seg_end_a   - seg_start_b).cast<int64_t>()));
     int side       = side_start * side_end;
     if (side > 0)
         // This segment is completely inside one half-plane of the other line, therefore the ordering is trivial.
-        return signum(cross(vec_b, this->line->dir)) * side_start;
+        return signum(cross2(vec_b, this->line->dir.cast<int64_t>())) * side_start;
 
-    const Point vec_a = seg_end_a - seg_start_a;
-    int side_start2 = signum(cross(vec_a, seg_start_b - seg_start_a));
-    int side_end2   = signum(cross(vec_a, seg_end_b   - seg_start_a));
+    const Vec2i64 vec_a = (seg_end_a - seg_start_a).cast<int64_t>();
+    int side_start2 = signum(cross2(vec_a, (seg_start_b - seg_start_a).cast<int64_t>()));
+    int side_end2   = signum(cross2(vec_a, (seg_end_b   - seg_start_a).cast<int64_t>()));
     int side2       = side_start2 * side_end2;
     //if (side == 0 && side2 == 0)
         // The segments share one of their end points.
     if (side2 > 0)
         // This segment is completely inside one half-plane of the other line, therefore the ordering is trivial.
-        return signum(cross(this->line->dir, vec_a)) * side_start2;
+        return signum(cross2(this->line->dir.cast<int64_t>(), vec_a)) * side_start2;
 
     // The two segments intersect and they are not sucessive segments of the same contour.
     // Ordering of the points depends on the position of the segment intersection (left / right from this->line),
     // therefore a simple test over the input segment end points is not sufficient.
 
     // Find the parameters of intersection of the two segmetns with this->line.
-	int64_t denom1 = cross(this->line->dir, vec_a);
-	int64_t denom2 = cross(this->line->dir, vec_b);
-	Point   vx_a   = seg_start_a - this->line->pos;
-	Point   vx_b   = seg_start_b - this->line->pos;
-	int64_t t1_times_denom1 = int64_t(vx_a.x()) * int64_t(vec_a.y()) - int64_t(vx_a.y()) * int64_t(vec_a.x());
-	int64_t t2_times_denom2 = int64_t(vx_b.x()) * int64_t(vec_b.y()) - int64_t(vx_b.y()) * int64_t(vec_b.x());
+	int64_t denom1 = cross2(this->line->dir.cast<int64_t>(), vec_a);
+	int64_t denom2 = cross2(this->line->dir.cast<int64_t>(), vec_b);
+	Vec2i64 vx_a   = (seg_start_a - this->line->pos).cast<int64_t>();
+	Vec2i64 vx_b   = (seg_start_b - this->line->pos).cast<int64_t>();
+	int64_t t1_times_denom1 = vx_a.x() * vec_a.y() - vx_a.y() * vec_a.x();
+	int64_t t2_times_denom2 = vx_b.x() * vec_b.y() - vx_b.y() * vec_b.x();
 	assert(denom1 != 0);
     assert(denom2 != 0);
     return Int128::compare_rationals_filtered(t1_times_denom1, denom1, t2_times_denom2, denom2);
@@ -330,7 +330,7 @@ bool SegmentIntersection::operator<(const SegmentIntersection &other) const
 #ifdef _DEBUG
     Point p1 = this->pos();
     Point p2 = other.pos();
-    int64_t d = dot(this->line->dir, p2 - p1);
+    int64_t d = this->line->dir.cast<int64_t>().dot((p2 - p1).cast<int64_t>());
 #endif /* _DEBUG */
     int   ordering = this->ordering_along_line(other);
 #ifdef _DEBUG
@@ -510,7 +510,7 @@ static bool prepare_infill_hatching_segments(
         for (size_t i = 1; i < sil.intersections.size(); ++ i) {
             Point p1 = sil.intersections[i - 1].pos();
             Point p2 = sil.intersections[i].pos();
-            int64_t d = dot(sil.dir, p2 - p1);
+            int64_t d = sil.dir.cast<int64_t>().dot((p2 - p1).cast<int64_t>());
             assert(d >= - int64_t(SCALED_EPSILON));
         }
 #endif /* _DEBUG */
@@ -672,14 +672,14 @@ static inline coordf_t segment_length(const Polygon &poly, size_t seg1, const Po
     coordf_t len = 0;
     if (seg1 <= seg2) {
         for (size_t i = seg1; i < seg2; ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
     } else {
         for (size_t i = seg1; i < poly.points.size(); ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
         for (size_t i = 0; i < seg2; ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
     }
-    len += pPrev->distance_to(p2);
+    len += (*pPrev - p2).cast<double>().norm();
     return len;
 }
 
@@ -1191,7 +1191,7 @@ static bool fill_hatching_segments_legacy(
                                 intrsctn.consumed_vertical_up : 
                                 seg.intersections[i-1].consumed_vertical_up;
                             if (! consumed) {
-                                coordf_t dist2 = pointLast.distance_to(intrsctn.pos());
+                                coordf_t dist2 = (intrsctn.pos() - pointLast).cast<double>().norm();
                                 if (dist2 < dist2min) {
                                     dist2min = dist2;
                                     i_vline = i_vline2;

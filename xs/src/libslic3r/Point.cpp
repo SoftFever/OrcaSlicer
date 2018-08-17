@@ -98,38 +98,6 @@ bool Point::nearest_point(const Points &points, Point* point) const
     return true;
 }
 
-/* distance to the closest point of line */
-double Point::distance_to(const Line &line) const
-{
-    const double dx = line.b.x() - line.a.x();
-    const double dy = line.b.y() - line.a.y();
-    
-    const double l2 = dx*dx + dy*dy;  // avoid a sqrt
-    if (l2 == 0.0) return this->distance_to(line.a);   // line.a == line.b case
-    
-    // Consider the line extending the segment, parameterized as line.a + t (line.b - line.a).
-    // We find projection of this point onto the line. 
-    // It falls where t = [(this-line.a) . (line.b-line.a)] / |line.b-line.a|^2
-    const double t = ((this->x() - line.a.x()) * dx + (this->y() - line.a.y()) * dy) / l2;
-    if (t < 0.0)      return this->distance_to(line.a);  // beyond the 'a' end of the segment
-    else if (t > 1.0) return this->distance_to(line.b);  // beyond the 'b' end of the segment
-    Point projection(
-        line.a.x() + t * dx,
-        line.a.y() + t * dy
-    );
-    return this->distance_to(projection);
-}
-
-double Point::perp_distance_to(const Line &line) const
-{
-    if (line.a == line.b) return this->distance_to(line.a);
-    
-    double n = (double)(line.b.x() - line.a.x()) * (double)(line.a.y() - this->y())
-        - (double)(line.a.x() - this->x()) * (double)(line.b.y() - line.a.y());
-    
-    return std::abs(n) / line.length();
-}
-
 /* Three points are a counter-clockwise turn if ccw > 0, clockwise if
  * ccw < 0, and collinear if ccw = 0 because ccw is a determinant that
  * gives the signed area of the triangle formed by p1, p2 and this point.
@@ -161,14 +129,14 @@ double Point::ccw_angle(const Point &p1, const Point &p2) const
 Point Point::projection_onto(const MultiPoint &poly) const
 {
     Point running_projection = poly.first_point();
-    double running_min = this->distance_to(running_projection);
+    double running_min = (running_projection - *this).cast<double>().norm();
     
     Lines lines = poly.lines();
     for (Lines::const_iterator line = lines.begin(); line != lines.end(); ++line) {
         Point point_temp = this->projection_onto(*line);
-        if (this->distance_to(point_temp) < running_min) {
+        if ((point_temp - *this).cast<double>().norm() < running_min) {
 	        running_projection = point_temp;
-	        running_min = this->distance_to(running_projection);
+	        running_min = (running_projection - *this).cast<double>().norm();
         }
     }
     return running_projection;
@@ -193,14 +161,10 @@ Point Point::projection_onto(const Line &line) const
           / ( sqr<double>(lx) + sqr<double>(ly) );
     
     if (0.0 <= theta && theta <= 1.0)
-        return theta * line.a + (1.0-theta) * line.b;
+        return (theta * line.a.cast<coordf_t>() + (1.0-theta) * line.b.cast<coordf_t>()).cast<coord_t>();
     
     // Else pick closest endpoint.
-    if (this->distance_to(line.a) < this->distance_to(line.b)) {
-        return line.a;
-    } else {
-        return line.b;
-    }
+    return ((line.a - *this).cast<double>().squaredNorm() < (line.b - *this).cast<double>().squaredNorm()) ? line.a : line.b;
 }
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf)

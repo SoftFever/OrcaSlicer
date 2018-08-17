@@ -34,11 +34,11 @@ void Bed_2D::repaint()
 
 	auto cbb = BoundingBoxf(Pointf(0, 0),Pointf(cw, ch));
 	// leave space for origin point
-	cbb.min.translate(4, 0);
-	cbb.max.translate(-4, -4);
+	cbb.min.x() += 4;
+	cbb.max -= Vec2d(4., 4.);
 
 	// leave space for origin label
-	cbb.max.translate(0, -13);
+	cbb.max.y() -= 13;
 
 	// read new size
 	cw = cbb.size().x();
@@ -113,7 +113,7 @@ void Bed_2D::repaint()
 	dc.DrawLine(wxPoint(origin_px.x(), origin_px.y()), wxPoint(x_end.x(), x_end.y()));
 	for (auto angle : { -arrow_angle, arrow_angle }){
 		auto end = x_end;
-		end.translate(-arrow_len, 0);
+		end.x() -= arrow_len;
 		end.rotate(angle, x_end);
 		dc.DrawLine(wxPoint(x_end.x(), x_end.y()), wxPoint(end.x(), end.y()));
 	}
@@ -123,7 +123,7 @@ void Bed_2D::repaint()
 	dc.DrawLine(wxPoint(origin_px.x(), origin_px.y()), wxPoint(y_end.x(), y_end.y()));
 	for (auto angle : { -arrow_angle, arrow_angle }) {
 		auto end = y_end;
-		end.translate(0, +arrow_len);
+		end.y() += arrow_len;
 		end.rotate(angle, y_end);
 		dc.DrawLine(wxPoint(y_end.x(), y_end.y()), wxPoint(end.x(), end.y()));
 	}
@@ -157,9 +157,7 @@ void Bed_2D::repaint()
 
 // convert G - code coordinates into pixels
 Point Bed_2D::to_pixels(Pointf point){
-	auto p = Pointf(point);
-	p.scale(m_scale_factor);
-	p.translate(m_shift);
+	auto p = point * m_scale_factor + m_shift;
 	return Point(p.x(), GetSize().GetHeight() - p.y()); 
 }
 
@@ -178,10 +176,7 @@ void Bed_2D::mouse_event(wxMouseEvent event){
 
 // convert pixels into G - code coordinates
 Pointf Bed_2D::to_units(Point point){
-	auto p = Pointf(point.x(), GetSize().GetHeight() - point.y());
-	p.translate(m_shift.negative());
-	p.scale(1 / m_scale_factor);
-	return p;
+	return (Pointf(point.x(), GetSize().GetHeight() - point.y()) - m_shift) * (1. / m_scale_factor);
 }
 
 void Bed_2D::set_pos(Pointf pos){

@@ -187,7 +187,7 @@ void Fill3DHoneycomb::_fill_surface_single(
                 const Point &last_point = pts_end.back();
                 // TODO: we should also check that both points are on a fill_boundary to avoid 
                 // connecting paths on the boundaries of internal regions
-                if (first_point.distance_to(last_point) <= 1.5 * distance && 
+                if ((last_point - first_point).cast<double>().norm() <= 1.5 * distance && 
                     expolygon_off.contains(Line(last_point, first_point))) {
                     // Append the polyline.
                     pts_end.insert(pts_end.end(), it_polyline->points.begin(), it_polyline->points.end());

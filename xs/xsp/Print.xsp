@@ -176,15 +176,6 @@ _constant()
     void set_step_started(PrintStep step)
         %code%{ THIS->state.set_started(step); %};
     
-    void clear_filament_stats()
-        %code%{
-            THIS->filament_stats.clear();
-        %};
-    void set_filament_stats(int extruder_id, float length)
-        %code%{
-            THIS->filament_stats.insert(std::pair<size_t,float>(extruder_id, 0));
-            THIS->filament_stats[extruder_id] += length;
-        %};
     SV* filament_stats()
         %code%{
             HV* hv = newHV();

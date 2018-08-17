@@ -19,6 +19,8 @@ public:
     Polyline() {};
     Polyline(const Polyline &other) : MultiPoint(other.points) {}
     Polyline(Polyline &&other) : MultiPoint(std::move(other.points)) {}
+    Polyline(std::initializer_list<Point> list) : MultiPoint(list) {}
+    explicit Polyline(const Point &p1, const Point &p2) { points.reserve(2); points.emplace_back(p1); points.emplace_back(p2); }
     Polyline& operator=(const Polyline &other) { points = other.points; return *this; }
     Polyline& operator=(Polyline &&other) { points = std::move(other.points); return *this; }
 	static Polyline new_scale(std::vector<Pointf> points) {
@@ -129,12 +131,17 @@ inline void polylines_append(Polylines &dst, Polylines &&src)
 bool remove_degenerate(Polylines &polylines);
 
 class ThickPolyline : public Polyline {
-    public:
-    std::vector<coordf_t> width;
-    std::pair<bool,bool> endpoints;
-    ThickPolyline() : endpoints(std::make_pair(false, false)) {};
+public:
+    ThickPolyline() : endpoints(std::make_pair(false, false)) {}
     ThickLines thicklines() const;
-    void reverse();
+    void reverse() {
+        Polyline::reverse();
+        std::reverse(this->width.begin(), this->width.end());
+        std::swap(this->endpoints.first, this->endpoints.second);
+    }
+
+    std::vector<coordf_t> width;
+    std::pair<bool,bool>  endpoints;
 };
 
 class Polyline3 : public MultiPoint3

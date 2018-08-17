@@ -767,7 +767,7 @@ void EdgeGrid::Grid::calculate_sdf()
 				const Slic3r::Point &p1 = pts[ipt];
 				const Slic3r::Point &p2 = pts[(ipt + 1 == pts.size()) ? 0 : ipt + 1];
 				// Segment vector
-				const Slic3r::Point v_seg = p1.vector_to(p2);
+				const Slic3r::Point v_seg = p2 - p1;
 				// l2 of v_seg
 				const int64_t l2_seg = int64_t(v_seg.x()) * int64_t(v_seg.x()) + int64_t(v_seg.y()) * int64_t(v_seg.y());
 				// For each corner of this cell and its 1 ring neighbours:
@@ -781,7 +781,7 @@ void EdgeGrid::Grid::calculate_sdf()
 							continue;
 						float  &d_min = m_signed_distance_field[corner_r * ncols + corner_c];
 						Slic3r::Point pt(m_bbox.min.x() + corner_c * m_resolution, m_bbox.min.y() + corner_r * m_resolution);
-						Slic3r::Point v_pt = p1.vector_to(pt);
+						Slic3r::Point v_pt = pt - p1;
 						// dot(p2-p1, pt-p1)
 						int64_t t_pt = int64_t(v_seg.x()) * int64_t(v_pt.x()) + int64_t(v_seg.y()) * int64_t(v_pt.y());
 						if (t_pt < 0) {
@@ -790,7 +790,7 @@ void EdgeGrid::Grid::calculate_sdf()
 							if (dabs < d_min) {
 								// Previous point.
 								const Slic3r::Point &p0 = pts[(ipt == 0) ? (pts.size() - 1) : ipt - 1];
-								Slic3r::Point v_seg_prev = p0.vector_to(p1);
+								Slic3r::Point v_seg_prev = p1 - p0;
 								int64_t t2_pt = int64_t(v_seg_prev.x()) * int64_t(v_pt.x()) + int64_t(v_seg_prev.y()) * int64_t(v_pt.y());
 								if (t2_pt > 0) {
 									// Inside the wedge between the previous and the next segment.
@@ -1164,8 +1164,8 @@ bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radiu
 				// End points of the line segment.
 				const Slic3r::Point &p1 = pts[ipt];
 				const Slic3r::Point &p2 = pts[(ipt + 1 == pts.size()) ? 0 : ipt + 1];
-				Slic3r::Point v_seg = p1.vector_to(p2);
-				Slic3r::Point v_pt = p1.vector_to(pt);
+				Slic3r::Point v_seg = p2 - p1;
+				Slic3r::Point v_pt  = pt - p1;
 				// dot(p2-p1, pt-p1)
 				int64_t t_pt = int64_t(v_seg.x()) * int64_t(v_pt.x()) + int64_t(v_seg.y()) * int64_t(v_pt.y());
 				// l2 of seg
@@ -1176,7 +1176,7 @@ bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radiu
 					if (dabs < d_min) {
 						// Previous point.
 						const Slic3r::Point &p0 = pts[(ipt == 0) ? (pts.size() - 1) : ipt - 1];
-						Slic3r::Point v_seg_prev = p0.vector_to(p1);
+						Slic3r::Point v_seg_prev = p1 - p0;
 						int64_t t2_pt = int64_t(v_seg_prev.x()) * int64_t(v_pt.x()) + int64_t(v_seg_prev.y()) * int64_t(v_pt.y());
 						if (t2_pt > 0) {
 							// Inside the wedge between the previous and the next segment.
