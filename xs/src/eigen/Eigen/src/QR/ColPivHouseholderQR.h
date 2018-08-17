@@ -506,8 +506,8 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
     m_colNormsUpdated.coeffRef(k) = m_colNormsDirect.coeffRef(k);
   }
 
-  RealScalar threshold_helper =  numext::abs2<Scalar>(m_colNormsUpdated.maxCoeff() * NumTraits<Scalar>::epsilon()) / RealScalar(rows);
-  RealScalar norm_downdate_threshold = numext::sqrt(NumTraits<Scalar>::epsilon());
+  RealScalar threshold_helper =  numext::abs2<RealScalar>(m_colNormsUpdated.maxCoeff() * NumTraits<RealScalar>::epsilon()) / RealScalar(rows);
+  RealScalar norm_downdate_threshold = numext::sqrt(NumTraits<RealScalar>::epsilon());
 
   m_nonzero_pivots = size; // the generic case is that in which all pivots are nonzero (invertible case)
   m_maxpivot = RealScalar(0);
@@ -553,12 +553,12 @@ void ColPivHouseholderQR<MatrixType>::computeInPlace()
       // http://www.netlib.org/lapack/lawnspdf/lawn176.pdf
       // and used in LAPACK routines xGEQPF and xGEQP3.
       // See lines 278-297 in http://www.netlib.org/lapack/explore-html/dc/df4/sgeqpf_8f_source.html
-      if (m_colNormsUpdated.coeffRef(j) != 0) {
+      if (m_colNormsUpdated.coeffRef(j) != RealScalar(0)) {
         RealScalar temp = abs(m_qr.coeffRef(k, j)) / m_colNormsUpdated.coeffRef(j);
         temp = (RealScalar(1) + temp) * (RealScalar(1) - temp);
-        temp = temp < 0 ? 0 : temp;
-        RealScalar temp2 = temp * numext::abs2<Scalar>(m_colNormsUpdated.coeffRef(j) /
-                                                       m_colNormsDirect.coeffRef(j));
+        temp = temp <  RealScalar(0) ? RealScalar(0) : temp;
+        RealScalar temp2 = temp * numext::abs2<RealScalar>(m_colNormsUpdated.coeffRef(j) /
+                                                           m_colNormsDirect.coeffRef(j));
         if (temp2 <= norm_downdate_threshold) {
           // The updated norm has become too inaccurate so re-compute the column
           // norm directly.

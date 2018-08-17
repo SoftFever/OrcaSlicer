@@ -404,7 +404,7 @@ inline void MatrixBase<Derived>::computeInverseWithCheck(
     const RealScalar& absDeterminantThreshold
   ) const
 {
-  RealScalar determinant;
+  Scalar determinant;
   // i'd love to put some static assertions there, but SFINAE means that they have no effect...
   eigen_assert(rows() == cols());
   computeInverseAndDetWithCheck(inverse,determinant,invertible,absDeterminantThreshold);

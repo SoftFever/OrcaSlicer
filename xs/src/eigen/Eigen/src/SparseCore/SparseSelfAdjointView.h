@@ -47,6 +47,7 @@ template<typename MatrixType, unsigned int _Mode> class SparseSelfAdjointView
     
     enum {
       Mode = _Mode,
+      TransposeMode = ((Mode & Upper) ? Lower : 0) | ((Mode & Lower) ? Upper : 0),
       RowsAtCompileTime = internal::traits<SparseSelfAdjointView>::RowsAtCompileTime,
       ColsAtCompileTime = internal::traits<SparseSelfAdjointView>::ColsAtCompileTime
     };
@@ -310,7 +311,7 @@ inline void sparse_selfadjoint_time_dense_product(const SparseLhsType& lhs, cons
         while (i && i.index()<j) ++i;
         if(i && i.index()==j)
         {
-          res(j,k) += alpha * i.value() * rhs(j,k);
+          res.coeffRef(j,k) += alpha * i.value() * rhs.coeff(j,k);
           ++i;
         }
       }
@@ -323,14 +324,14 @@ inline void sparse_selfadjoint_time_dense_product(const SparseLhsType& lhs, cons
       {
         LhsScalar lhs_ij = i.value();
         if(!LhsIsRowMajor) lhs_ij = numext::conj(lhs_ij);
-        res_j += lhs_ij * rhs(i.index(),k);
+        res_j += lhs_ij * rhs.coeff(i.index(),k);
         res(i.index(),k) += numext::conj(lhs_ij) * rhs_j;
       }
-      res(j,k) += alpha * res_j;
+      res.coeffRef(j,k) += alpha * res_j;
 
       // handle diagonal coeff
       if (ProcessFirstHalf && i && (i.index()==j))
-        res(j,k) += alpha * i.value() * rhs(j,k);
+        res.coeffRef(j,k) += alpha * i.value() * rhs.coeff(j,k);
     }
   }
 }
@@ -368,7 +369,7 @@ struct generic_product_impl<Lhs, RhsView, DenseShape, SparseSelfAdjointShape, Pr
     
     // transpose everything
     Transpose<Dest> dstT(dst);
-    internal::sparse_selfadjoint_time_dense_product<RhsView::Mode>(rhsNested.transpose(), lhsNested.transpose(), dstT, alpha);
+    internal::sparse_selfadjoint_time_dense_product<RhsView::TransposeMode>(rhsNested.transpose(), lhsNested.transpose(), dstT, alpha);
   }
 };
 

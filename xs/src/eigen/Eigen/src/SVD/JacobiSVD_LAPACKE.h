@@ -61,9 +61,10 @@ JacobiSVD<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW, Dynamic, Dynamic>, ColPiv
     u    = (LAPACKE_TYPE*)m_matrixU.data(); \
   } else { ldu=1; u=&dummy; }\
   MatrixType localV; \
-  ldvt = (m_computeFullV) ? internal::convert_index<lapack_int>(m_cols) : (m_computeThinV) ? internal::convert_index<lapack_int>(m_diagSize) : 1; \
+  lapack_int vt_rows = (m_computeFullV) ? internal::convert_index<lapack_int>(m_cols) : (m_computeThinV) ? internal::convert_index<lapack_int>(m_diagSize) : 1; \
   if (computeV()) { \
-    localV.resize(ldvt, m_cols); \
+    localV.resize(vt_rows, m_cols); \
+    ldvt  = internal::convert_index<lapack_int>(localV.outerStride()); \
     vt   = (LAPACKE_TYPE*)localV.data(); \
   } else { ldvt=1; vt=&dummy; }\
   Matrix<LAPACKE_RTYPE, Dynamic, Dynamic> superb; superb.resize(m_diagSize, 1); \

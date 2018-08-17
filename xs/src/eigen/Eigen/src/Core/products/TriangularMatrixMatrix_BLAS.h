@@ -75,7 +75,7 @@ EIGEN_BLAS_TRMM_SPECIALIZE(scomplex, true)
 EIGEN_BLAS_TRMM_SPECIALIZE(scomplex, false)
 
 // implements col-major += alpha * op(triangular) * op(general)
-#define EIGEN_BLAS_TRMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
+#define EIGEN_BLAS_TRMM_L(EIGTYPE, BLASTYPE, EIGPREFIX, BLASFUNC) \
 template <typename Index, int Mode, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -172,7 +172,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
    } \
    /*std::cout << "TRMM_L: A is square! Go to BLAS TRMM implementation! \n";*/ \
 /* call ?trmm*/ \
-   BLASPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)b, &ldb); \
+   BLASFUNC(&side, &uplo, &transa, &diag, &m, &n, (const BLASTYPE*)&numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)b, &ldb); \
 \
 /* Add op(a_triangular)*b into res*/ \
    Map<MatrixX##EIGPREFIX, 0, OuterStride<> > res_tmp(res,rows,cols,OuterStride<>(resStride)); \
@@ -180,13 +180,20 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,true, \
   } \
 };
 
-EIGEN_BLAS_TRMM_L(double, double, d, d)
-EIGEN_BLAS_TRMM_L(dcomplex, double, cd, z)
-EIGEN_BLAS_TRMM_L(float, float, f, s)
-EIGEN_BLAS_TRMM_L(scomplex, float, cf, c)
+#ifdef EIGEN_USE_MKL
+EIGEN_BLAS_TRMM_L(double, double, d, dtrmm)
+EIGEN_BLAS_TRMM_L(dcomplex, MKL_Complex16, cd, ztrmm)
+EIGEN_BLAS_TRMM_L(float, float, f, strmm)
+EIGEN_BLAS_TRMM_L(scomplex, MKL_Complex8, cf, ctrmm)
+#else
+EIGEN_BLAS_TRMM_L(double, double, d, dtrmm_)
+EIGEN_BLAS_TRMM_L(dcomplex, double, cd, ztrmm_)
+EIGEN_BLAS_TRMM_L(float, float, f, strmm_)
+EIGEN_BLAS_TRMM_L(scomplex, float, cf, ctrmm_)
+#endif
 
 // implements col-major += alpha * op(general) * op(triangular)
-#define EIGEN_BLAS_TRMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASPREFIX) \
+#define EIGEN_BLAS_TRMM_R(EIGTYPE, BLASTYPE, EIGPREFIX, BLASFUNC) \
 template <typename Index, int Mode, \
           int LhsStorageOrder, bool ConjugateLhs, \
           int RhsStorageOrder, bool ConjugateRhs> \
@@ -282,7 +289,7 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
    } \
    /*std::cout << "TRMM_R: A is square! Go to BLAS TRMM implementation! \n";*/ \
 /* call ?trmm*/ \
-   BLASPREFIX##trmm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)b, &ldb); \
+   BLASFUNC(&side, &uplo, &transa, &diag, &m, &n, (const BLASTYPE*)&numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)b, &ldb); \
 \
 /* Add op(a_triangular)*b into res*/ \
    Map<MatrixX##EIGPREFIX, 0, OuterStride<> > res_tmp(res,rows,cols,OuterStride<>(resStride)); \
@@ -290,11 +297,17 @@ struct product_triangular_matrix_matrix_trmm<EIGTYPE,Index,Mode,false, \
   } \
 };
 
-EIGEN_BLAS_TRMM_R(double, double, d, d)
-EIGEN_BLAS_TRMM_R(dcomplex, double, cd, z)
-EIGEN_BLAS_TRMM_R(float, float, f, s)
-EIGEN_BLAS_TRMM_R(scomplex, float, cf, c)
-
+#ifdef EIGEN_USE_MKL
+EIGEN_BLAS_TRMM_R(double, double, d, dtrmm)
+EIGEN_BLAS_TRMM_R(dcomplex, MKL_Complex16, cd, ztrmm)
+EIGEN_BLAS_TRMM_R(float, float, f, strmm)
+EIGEN_BLAS_TRMM_R(scomplex, MKL_Complex8, cf, ctrmm)
+#else
+EIGEN_BLAS_TRMM_R(double, double, d, dtrmm_)
+EIGEN_BLAS_TRMM_R(dcomplex, double, cd, ztrmm_)
+EIGEN_BLAS_TRMM_R(float, float, f, strmm_)
+EIGEN_BLAS_TRMM_R(scomplex, float, cf, ctrmm_)
+#endif
 } // end namespace internal
 
 } // end namespace Eigen

@@ -13,7 +13,7 @@
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted.
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// “AS IS” AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 // LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
 // A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
 // HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
@@ -147,55 +147,55 @@ namespace half_impl {
 // versions to get the ALU speed increased), but you do save the
 // conversion steps back and forth.
 
-__device__ half operator + (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator + (const half& a, const half& b) {
   return __hadd(a, b);
 }
-__device__ half operator * (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator * (const half& a, const half& b) {
   return __hmul(a, b);
 }
-__device__ half operator - (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator - (const half& a, const half& b) {
   return __hsub(a, b);
 }
-__device__ half operator / (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half operator / (const half& a, const half& b) {
   float num = __half2float(a);
   float denom = __half2float(b);
   return __float2half(num / denom);
 }
-__device__ half operator - (const half& a) {
+EIGEN_STRONG_INLINE __device__ half operator - (const half& a) {
   return __hneg(a);
 }
-__device__ half& operator += (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator += (half& a, const half& b) {
   a = a + b;
   return a;
 }
-__device__ half& operator *= (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator *= (half& a, const half& b) {
   a = a * b;
   return a;
 }
-__device__ half& operator -= (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator -= (half& a, const half& b) {
   a = a - b;
   return a;
 }
-__device__ half& operator /= (half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ half& operator /= (half& a, const half& b) {
   a = a / b;
   return a;
 }
-__device__ bool operator == (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator == (const half& a, const half& b) {
   return __heq(a, b);
 }
-__device__ bool operator != (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator != (const half& a, const half& b) {
   return __hne(a, b);
 }
-__device__ bool operator < (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator < (const half& a, const half& b) {
   return __hlt(a, b);
 }
-__device__ bool operator <= (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator <= (const half& a, const half& b) {
   return __hle(a, b);
 }
-__device__ bool operator > (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator > (const half& a, const half& b) {
   return __hgt(a, b);
 }
-__device__ bool operator >= (const half& a, const half& b) {
+EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
   return __hge(a, b);
 }
 
@@ -238,10 +238,10 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator /= (half& a, const half& b)
   return a;
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator == (const half& a, const half& b) {
-  return float(a) == float(b);
+  return numext::equal_strict(float(a),float(b));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator != (const half& a, const half& b) {
-  return float(a) != float(b);
+  return numext::not_equal_strict(float(a), float(b));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator < (const half& a, const half& b) {
   return float(a) < float(b);
@@ -386,11 +386,15 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half abs(const half& a) {
   return result;
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half exp(const half& a) {
-  return half(::expf(float(a)));
+#if EIGEN_CUDACC_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 530
+  return half(hexp(a));
+#else
+   return half(::expf(float(a)));
+#endif
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half log(const half& a) {
-#if defined(EIGEN_HAS_CUDA_FP16) && defined __CUDACC_VER__ && __CUDACC_VER__ >= 80000 && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
-  return Eigen::half(::hlog(a));
+#if defined(EIGEN_HAS_CUDA_FP16) && EIGEN_CUDACC_VER >= 80000 && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 530
+  return half(::hlog(a));
 #else
   return half(::logf(float(a)));
 #endif
@@ -402,7 +406,11 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half log10(const half& a) {
   return half(::log10f(float(a)));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half sqrt(const half& a) {
-  return half(::sqrtf(float(a)));
+#if EIGEN_CUDACC_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 530
+  return half(hsqrt(a));
+#else
+    return half(::sqrtf(float(a)));
+#endif
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half pow(const half& a, const half& b) {
   return half(::powf(float(a), float(b)));
@@ -420,10 +428,18 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half tanh(const half& a) {
   return half(::tanhf(float(a)));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half floor(const half& a) {
+#if EIGEN_CUDACC_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 300
+  return half(hfloor(a));
+#else
   return half(::floorf(float(a)));
+#endif
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half ceil(const half& a) {
+#if EIGEN_CUDACC_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 300
+  return half(hceil(a));
+#else
   return half(::ceilf(float(a)));
+#endif
 }
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half (min)(const half& a, const half& b) {
@@ -474,9 +490,59 @@ template<> struct is_arithmetic<half> { enum { value = true }; };
 
 } // end namespace internal
 
+}  // end namespace Eigen
+
+namespace std {
+template<>
+struct numeric_limits<Eigen::half> {
+  static const bool is_specialized = true;
+  static const bool is_signed = true;
+  static const bool is_integer = false;
+  static const bool is_exact = false;
+  static const bool has_infinity = true;
+  static const bool has_quiet_NaN = true;
+  static const bool has_signaling_NaN = true;
+  static const float_denorm_style has_denorm = denorm_present;
+  static const bool has_denorm_loss = false;
+  static const std::float_round_style round_style = std::round_to_nearest;
+  static const bool is_iec559 = false;
+  static const bool is_bounded = false;
+  static const bool is_modulo = false;
+  static const int digits = 11;
+  static const int digits10 = 3;      // according to http://half.sourceforge.net/structstd_1_1numeric__limits_3_01half__float_1_1half_01_4.html
+  static const int max_digits10 = 5;  // according to http://half.sourceforge.net/structstd_1_1numeric__limits_3_01half__float_1_1half_01_4.html
+  static const int radix = 2;
+  static const int min_exponent = -13;
+  static const int min_exponent10 = -4;
+  static const int max_exponent = 16;
+  static const int max_exponent10 = 4;
+  static const bool traps = true;
+  static const bool tinyness_before = false;
+
+  static Eigen::half (min)() { return Eigen::half_impl::raw_uint16_to_half(0x400); }
+  static Eigen::half lowest() { return Eigen::half_impl::raw_uint16_to_half(0xfbff); }
+  static Eigen::half (max)() { return Eigen::half_impl::raw_uint16_to_half(0x7bff); }
+  static Eigen::half epsilon() { return Eigen::half_impl::raw_uint16_to_half(0x0800); }
+  static Eigen::half round_error() { return Eigen::half(0.5); }
+  static Eigen::half infinity() { return Eigen::half_impl::raw_uint16_to_half(0x7c00); }
+  static Eigen::half quiet_NaN() { return Eigen::half_impl::raw_uint16_to_half(0x7e00); }
+  static Eigen::half signaling_NaN() { return Eigen::half_impl::raw_uint16_to_half(0x7e00); }
+  static Eigen::half denorm_min() { return Eigen::half_impl::raw_uint16_to_half(0x1); }
+};
+}
+
+namespace Eigen {
+
 template<> struct NumTraits<Eigen::half>
     : GenericNumTraits<Eigen::half>
 {
+  enum {
+    IsSigned = true,
+    IsInteger = false,
+    IsComplex = false,
+    RequireInitialization = false
+  };
+
   EIGEN_DEVICE_FUNC static EIGEN_STRONG_INLINE Eigen::half epsilon() {
     return half_impl::raw_uint16_to_half(0x0800);
   }
@@ -507,7 +573,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half exph(const Eigen::half& a) {
   return Eigen::half(::expf(float(a)));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC Eigen::half logh(const Eigen::half& a) {
-#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 80000 && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 530
+#if EIGEN_CUDACC_VER >= 80000 && defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 530
   return Eigen::half(::hlog(a));
 #else
   return Eigen::half(::logf(float(a)));

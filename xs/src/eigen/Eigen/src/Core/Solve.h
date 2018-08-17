@@ -34,12 +34,12 @@ template<typename Decomposition, typename RhsType,typename StorageKind> struct s
 template<typename Decomposition, typename RhsType>
 struct solve_traits<Decomposition,RhsType,Dense>
 {
-  typedef Matrix<typename RhsType::Scalar,
+  typedef typename make_proper_matrix_type<typename RhsType::Scalar,
                  Decomposition::ColsAtCompileTime,
                  RhsType::ColsAtCompileTime,
                  RhsType::PlainObject::Options,
                  Decomposition::MaxColsAtCompileTime,
-                 RhsType::MaxColsAtCompileTime> PlainObject;  
+                 RhsType::MaxColsAtCompileTime>::type PlainObject;
 };
 
 template<typename Decomposition, typename RhsType>

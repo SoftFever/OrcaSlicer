@@ -215,6 +215,8 @@ struct NumTraits<Array<Scalar, Rows, Cols, Options, MaxRows, MaxCols> >
   static inline RealScalar epsilon() { return NumTraits<RealScalar>::epsilon(); }
   EIGEN_DEVICE_FUNC
   static inline RealScalar dummy_precision() { return NumTraits<RealScalar>::dummy_precision(); }
+
+  static inline int digits10() { return NumTraits<Scalar>::digits10(); }
 };
 
 template<> struct NumTraits<std::string>

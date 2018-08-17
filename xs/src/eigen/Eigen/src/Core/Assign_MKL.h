@@ -84,7 +84,8 @@ class vml_assign_traits
   struct Assignment<DstXprType, CwiseUnaryOp<scalar_##EIGENOP##_op<EIGENTYPE>, SrcXprNested>, assign_op<EIGENTYPE,EIGENTYPE>,   \
                    Dense2Dense, typename enable_if<vml_assign_traits<DstXprType,SrcXprNested>::EnableVml>::type> {              \
     typedef CwiseUnaryOp<scalar_##EIGENOP##_op<EIGENTYPE>, SrcXprNested> SrcXprType;                                            \
-    static void run(DstXprType &dst, const SrcXprType &src, const assign_op<EIGENTYPE,EIGENTYPE> &/*func*/) {                   \
+    static void run(DstXprType &dst, const SrcXprType &src, const assign_op<EIGENTYPE,EIGENTYPE> &func) {                       \
+      resize_if_allowed(dst, src, func);                                                                                        \
       eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());                                                       \
       if(vml_assign_traits<DstXprType,SrcXprNested>::Traversal==LinearTraversal) {                                              \
         VMLOP(dst.size(), (const VMLTYPE*)src.nestedExpression().data(),                                                        \
@@ -144,7 +145,8 @@ EIGEN_MKL_VML_DECLARE_UNARY_CALLS_REAL(ceil,  Ceil,   _)
                    Dense2Dense, typename enable_if<vml_assign_traits<DstXprType,SrcXprNested>::EnableVml>::type> {            \
     typedef CwiseBinaryOp<scalar_##EIGENOP##_op<EIGENTYPE,EIGENTYPE>, SrcXprNested,                                           \
                     const CwiseNullaryOp<internal::scalar_constant_op<EIGENTYPE>,Plain> > SrcXprType;                         \
-    static void run(DstXprType &dst, const SrcXprType &src, const assign_op<EIGENTYPE,EIGENTYPE> &/*func*/) {                 \
+    static void run(DstXprType &dst, const SrcXprType &src, const assign_op<EIGENTYPE,EIGENTYPE> &func) {                     \
+      resize_if_allowed(dst, src, func);                                                                                      \
       eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());                                                     \
       VMLTYPE exponent = reinterpret_cast<const VMLTYPE&>(src.rhs().functor().m_other);                                       \
       if(vml_assign_traits<DstXprType,SrcXprNested>::Traversal==LinearTraversal)                                              \

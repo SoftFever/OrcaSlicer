@@ -97,8 +97,8 @@ class Product : public ProductImpl<_Lhs,_Rhs,Option,
         && "if you wanted a coeff-wise or a dot product use the respective explicit functions");
     }
 
-    EIGEN_DEVICE_FUNC inline Index rows() const { return m_lhs.rows(); }
-    EIGEN_DEVICE_FUNC inline Index cols() const { return m_rhs.cols(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index rows() const { return m_lhs.rows(); }
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Index cols() const { return m_rhs.cols(); }
 
     EIGEN_DEVICE_FUNC const LhsNestedCleaned& lhs() const { return m_lhs; }
     EIGEN_DEVICE_FUNC const RhsNestedCleaned& rhs() const { return m_rhs; }
@@ -127,7 +127,7 @@ public:
   using Base::derived;
   typedef typename Base::Scalar Scalar;
   
-  operator const Scalar() const
+  EIGEN_STRONG_INLINE operator const Scalar() const
   {
     return internal::evaluator<ProductXpr>(derived()).coeff(0,0);
   }
@@ -162,7 +162,7 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
     
   public:
   
-    EIGEN_DEVICE_FUNC Scalar coeff(Index row, Index col) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar coeff(Index row, Index col) const
     {
       EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
       eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );
@@ -170,7 +170,7 @@ class ProductImpl<Lhs,Rhs,Option,Dense>
       return internal::evaluator<Derived>(derived()).coeff(row,col);
     }
 
-    EIGEN_DEVICE_FUNC Scalar coeff(Index i) const
+    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar coeff(Index i) const
     {
       EIGEN_STATIC_ASSERT(EnableCoeff, THIS_METHOD_IS_ONLY_FOR_INNER_OR_LAZY_PRODUCTS);
       eigen_assert( (Option==LazyProduct) || (this->rows() == 1 && this->cols() == 1) );

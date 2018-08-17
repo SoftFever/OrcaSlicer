@@ -36,7 +36,11 @@
 #include "src/QR/ColPivHouseholderQR.h"
 #include "src/QR/CompleteOrthogonalDecomposition.h"
 #ifdef EIGEN_USE_LAPACKE
+#ifdef EIGEN_USE_MKL
+#include "mkl_lapacke.h"
+#else
 #include "src/misc/lapacke.h"
+#endif
 #include "src/QR/HouseholderQR_LAPACKE.h"
 #include "src/QR/ColPivHouseholderQR_LAPACKE.h"
 #endif

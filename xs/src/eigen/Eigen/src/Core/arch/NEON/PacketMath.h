@@ -36,11 +36,42 @@ namespace internal {
 #endif
 #endif
 
+#if EIGEN_COMP_MSVC
+
+// In MSVC's arm_neon.h header file, all NEON vector types
+// are aliases to the same underlying type __n128.
+// We thus have to wrap them to make them different C++ types.
+// (See also bug 1428)
+
+template<typename T,int unique_id>
+struct eigen_packet_wrapper
+{
+  operator T&() { return m_val; }
+  operator const T&() const { return m_val; }
+  eigen_packet_wrapper() {}
+  eigen_packet_wrapper(const T &v) : m_val(v) {}
+  eigen_packet_wrapper& operator=(const T &v) {
+    m_val = v;
+    return *this;
+  }
+
+  T m_val;
+};
+typedef eigen_packet_wrapper<float32x2_t,0> Packet2f;
+typedef eigen_packet_wrapper<float32x4_t,1> Packet4f;
+typedef eigen_packet_wrapper<int32x4_t  ,2> Packet4i;
+typedef eigen_packet_wrapper<int32x2_t  ,3> Packet2i;
+typedef eigen_packet_wrapper<uint32x4_t ,4> Packet4ui;
+
+#else
+
 typedef float32x2_t Packet2f;
 typedef float32x4_t Packet4f;
 typedef int32x4_t   Packet4i;
 typedef int32x2_t   Packet2i;
 typedef uint32x4_t  Packet4ui;
+
+#endif // EIGEN_COMP_MSVC
 
 #define _EIGEN_DECLARE_CONST_Packet4f(NAME,X) \
   const Packet4f p4f_##NAME = pset1<Packet4f>(X)
@@ -51,14 +82,17 @@ typedef uint32x4_t  Packet4ui;
 #define _EIGEN_DECLARE_CONST_Packet4i(NAME,X) \
   const Packet4i p4i_##NAME = pset1<Packet4i>(X)
 
-// arm64 does have the pld instruction. If available, let's trust the __builtin_prefetch built-in function
-// which available on LLVM and GCC (at least)
-#if EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
+#if EIGEN_ARCH_ARM64
+  // __builtin_prefetch tends to do nothing on ARM64 compilers because the
+  // prefetch instructions there are too detailed for __builtin_prefetch to map
+  // meaningfully to them.
+  #define EIGEN_ARM_PREFETCH(ADDR)  __asm__ __volatile__("prfm pldl1keep, [%[addr]]\n" ::[addr] "r"(ADDR) : );
+#elif EIGEN_HAS_BUILTIN(__builtin_prefetch) || EIGEN_COMP_GNUC
   #define EIGEN_ARM_PREFETCH(ADDR) __builtin_prefetch(ADDR);
 #elif defined __pld
   #define EIGEN_ARM_PREFETCH(ADDR) __pld(ADDR)
-#elif !EIGEN_ARCH_ARM64
-  #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ( "   pld [%[addr]]\n" :: [addr] "r" (ADDR) : "cc" );
+#elif EIGEN_ARCH_ARM32
+  #define EIGEN_ARM_PREFETCH(ADDR) __asm__ __volatile__ ("pld [%[addr]]\n" :: [addr] "r" (ADDR) : );
 #else
   // by default no explicit prefetching
   #define EIGEN_ARM_PREFETCH(ADDR)
@@ -113,7 +147,7 @@ template<> EIGEN_STRONG_INLINE Packet4i pset1<Packet4i>(const int32_t&    from) 
 
 template<> EIGEN_STRONG_INLINE Packet4f plset<Packet4f>(const float& a)
 {
-  const float32_t f[] = {0, 1, 2, 3};
+  const float f[] = {0, 1, 2, 3};
   Packet4f countdown = vld1q_f32(f);
   return vaddq_f32(pset1<Packet4f>(a), countdown);
 }

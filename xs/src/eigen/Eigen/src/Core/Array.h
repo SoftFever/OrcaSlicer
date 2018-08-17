@@ -231,10 +231,16 @@ class Array
             : Base(other)
     { }
 
+  private:
+    struct PrivateType {};
+  public:
+
     /** \sa MatrixBase::operator=(const EigenBase<OtherDerived>&) */
     template<typename OtherDerived>
     EIGEN_DEVICE_FUNC
-    EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other)
+    EIGEN_STRONG_INLINE Array(const EigenBase<OtherDerived> &other,
+                              typename internal::enable_if<internal::is_convertible<typename OtherDerived::Scalar,Scalar>::value,
+                                                           PrivateType>::type = PrivateType())
       : Base(other.derived())
     { }
 

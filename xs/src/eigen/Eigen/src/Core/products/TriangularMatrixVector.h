@@ -221,8 +221,9 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
     typename internal::add_const_on_value_type<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
     typename internal::add_const_on_value_type<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
 
-    ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(lhs)
-                                  * RhsBlasTraits::extractScalarFactor(rhs);
+    LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(lhs);
+    RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(rhs);
+    ResScalar actualAlpha = alpha * lhs_alpha * rhs_alpha;
 
     enum {
       // FIXME find a way to allow an inner stride on the result if packet_traits<Scalar>::size==1
@@ -274,6 +275,12 @@ template<int Mode> struct trmv_selector<Mode,ColMajor>
       else
         dest = MappedDest(actualDestPtr, dest.size());
     }
+
+    if ( ((Mode&UnitDiag)==UnitDiag) && (lhs_alpha!=LhsScalar(1)) )
+    {
+      Index diagSize = (std::min)(lhs.rows(),lhs.cols());
+      dest.head(diagSize) -= (lhs_alpha-LhsScalar(1))*rhs.head(diagSize);
+    }
   }
 };
 
@@ -295,8 +302,9 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
     typename add_const<ActualLhsType>::type actualLhs = LhsBlasTraits::extract(lhs);
     typename add_const<ActualRhsType>::type actualRhs = RhsBlasTraits::extract(rhs);
 
-    ResScalar actualAlpha = alpha * LhsBlasTraits::extractScalarFactor(lhs)
-                                  * RhsBlasTraits::extractScalarFactor(rhs);
+    LhsScalar lhs_alpha = LhsBlasTraits::extractScalarFactor(lhs);
+    RhsScalar rhs_alpha = RhsBlasTraits::extractScalarFactor(rhs);
+    ResScalar actualAlpha = alpha * lhs_alpha * rhs_alpha;
 
     enum {
       DirectlyUseRhs = ActualRhsTypeCleaned::InnerStrideAtCompileTime==1
@@ -326,6 +334,12 @@ template<int Mode> struct trmv_selector<Mode,RowMajor>
             actualRhsPtr,1,
             dest.data(),dest.innerStride(),
             actualAlpha);
+
+    if ( ((Mode&UnitDiag)==UnitDiag) && (lhs_alpha!=LhsScalar(1)) )
+    {
+      Index diagSize = (std::min)(lhs.rows(),lhs.cols());
+      dest.head(diagSize) -= (lhs_alpha-LhsScalar(1))*rhs.head(diagSize);
+    }
   }
 };
 
