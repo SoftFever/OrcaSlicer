@@ -629,9 +629,9 @@ void PointCtrl::BUILD()
 	wxSize field_size(40, -1);
 
 	auto default_pt = static_cast<ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
-	double val = default_pt.x();
+	double val = default_pt(0);
 	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
-	val = default_pt.y();
+	val = default_pt(1);
 	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size);
@@ -656,9 +656,9 @@ void PointCtrl::set_value(const Pointf& value, bool change_event)
 {
 	m_disable_change_event = !change_event;
 
-	double val = value.x();
+	double val = value(0);
 	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
-	val = value.y();
+	val = value(1);
 	y_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
 
 	m_disable_change_event = false;
@@ -683,9 +683,9 @@ boost::any& PointCtrl::get_value()
 	Pointf ret_point;
 	double val;
 	x_textctrl->GetValue().ToDouble(&val);
-	ret_point.x() = val;
+	ret_point(0) = val;
 	y_textctrl->GetValue().ToDouble(&val);
-	ret_point.y() = val;
+	ret_point(1) = val;
 	return m_value = ret_point;
 }
 

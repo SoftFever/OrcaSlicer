@@ -35,7 +35,7 @@ void GLGizmoBase::Grabber::render(bool hover) const
 
     float angle_z_in_deg = angle_z * 180.0f / (float)PI;
     ::glPushMatrix();
-    ::glTranslatef((GLfloat)center.x(), (GLfloat)center.y(), 0.0f);
+    ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), 0.0f);
     ::glRotatef((GLfloat)angle_z_in_deg, 0.0f, 0.0f, 1.0f);
 
     ::glDisable(GL_CULL_FACE);
@@ -266,7 +266,7 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     m_center = box.center().xy();
     if (!m_keep_radius)
     {
-        m_radius = Offset + ::sqrt(sqr(0.5f * size.x()) + sqr(0.5f * size.y()));
+        m_radius = Offset + ::sqrt(sqr(0.5f * size(0)) + sqr(0.5f * size(1)));
         m_keep_radius = true;
     }
 
@@ -299,8 +299,8 @@ void GLGizmoRotate::_render_circle() const
     for (unsigned int i = 0; i < ScaleStepsCount; ++i)
     {
         float angle = (float)i * ScaleStepRad;
-        float x = m_center.x() + ::cos(angle) * m_radius;
-        float y = m_center.y() + ::sin(angle) * m_radius;
+        float x = m_center(0) + ::cos(angle) * m_radius;
+        float y = m_center(1) + ::sin(angle) * m_radius;
         ::glVertex3f((GLfloat)x, (GLfloat)y, 0.0f);
     }
     ::glEnd();
@@ -317,10 +317,10 @@ void GLGizmoRotate::_render_scale() const
         float angle = (float)i * ScaleStepRad;
         float cosa = ::cos(angle);
         float sina = ::sin(angle);
-        float in_x = m_center.x() + cosa * m_radius;
-        float in_y = m_center.y() + sina * m_radius;
-        float out_x = (i % ScaleLongEvery == 0) ? m_center.x() + cosa * out_radius_long : m_center.x() + cosa * out_radius_short;
-        float out_y = (i % ScaleLongEvery == 0) ? m_center.y() + sina * out_radius_long : m_center.y() + sina * out_radius_short;
+        float in_x = m_center(0) + cosa * m_radius;
+        float in_y = m_center(1) + sina * m_radius;
+        float out_x = (i % ScaleLongEvery == 0) ? m_center(0) + cosa * out_radius_long : m_center(0) + cosa * out_radius_short;
+        float out_y = (i % ScaleLongEvery == 0) ? m_center(1) + sina * out_radius_long : m_center(1) + sina * out_radius_short;
         ::glVertex3f((GLfloat)in_x, (GLfloat)in_y, 0.0f);
         ::glVertex3f((GLfloat)out_x, (GLfloat)out_y, 0.0f);
     }
@@ -340,10 +340,10 @@ void GLGizmoRotate::_render_snap_radii() const
         float angle = (float)i * step;
         float cosa = ::cos(angle);
         float sina = ::sin(angle);
-        float in_x = m_center.x() + cosa * in_radius;
-        float in_y = m_center.y() + sina * in_radius;
-        float out_x = m_center.x() + cosa * out_radius;
-        float out_y = m_center.y() + sina * out_radius;
+        float in_x = m_center(0) + cosa * in_radius;
+        float in_y = m_center(1) + sina * in_radius;
+        float out_x = m_center(0) + cosa * out_radius;
+        float out_y = m_center(1) + sina * out_radius;
         ::glVertex3f((GLfloat)in_x, (GLfloat)in_y, 0.0f);
         ::glVertex3f((GLfloat)out_x, (GLfloat)out_y, 0.0f);
     }
@@ -353,8 +353,8 @@ void GLGizmoRotate::_render_snap_radii() const
 void GLGizmoRotate::_render_reference_radius() const
 {
     ::glBegin(GL_LINES);
-    ::glVertex3f((GLfloat)m_center.x(), (GLfloat)m_center.y(), 0.0f);
-    ::glVertex3f((GLfloat)m_center.x() + m_radius + GrabberOffset, (GLfloat)m_center.y(), 0.0f);
+    ::glVertex3f((GLfloat)m_center(0), (GLfloat)m_center(1), 0.0f);
+    ::glVertex3f((GLfloat)m_center(0) + m_radius + GrabberOffset, (GLfloat)m_center(1), 0.0f);
     ::glEnd();
 }
 
@@ -367,8 +367,8 @@ void GLGizmoRotate::_render_angle_z() const
     for (unsigned int i = 0; i <= AngleResolution; ++i)
     {
         float angle = (float)i * step_angle;
-        float x = m_center.x() + ::cos(angle) * ex_radius;
-        float y = m_center.y() + ::sin(angle) * ex_radius;
+        float x = m_center(0) + ::cos(angle) * ex_radius;
+        float y = m_center(1) + ::sin(angle) * ex_radius;
         ::glVertex3f((GLfloat)x, (GLfloat)y, 0.0f);
     }
     ::glEnd();
@@ -377,14 +377,14 @@ void GLGizmoRotate::_render_angle_z() const
 void GLGizmoRotate::_render_grabber() const
 {
     float grabber_radius = m_radius + GrabberOffset;
-    m_grabbers[0].center.x() = m_center.x() + ::cos(m_angle_z) * grabber_radius;
-    m_grabbers[0].center.y() = m_center.y() + ::sin(m_angle_z) * grabber_radius;
+    m_grabbers[0].center(0) = m_center(0) + ::cos(m_angle_z) * grabber_radius;
+    m_grabbers[0].center(1) = m_center(1) + ::sin(m_angle_z) * grabber_radius;
     m_grabbers[0].angle_z = m_angle_z;
 
     ::glColor3fv(BaseColor);
     ::glBegin(GL_LINES);
-    ::glVertex3f((GLfloat)m_center.x(), (GLfloat)m_center.y(), 0.0f);
-    ::glVertex3f((GLfloat)m_grabbers[0].center.x(), (GLfloat)m_grabbers[0].center.y(), 0.0f);
+    ::glVertex3f((GLfloat)m_center(0), (GLfloat)m_center(1), 0.0f);
+    ::glVertex3f((GLfloat)m_grabbers[0].center(0), (GLfloat)m_grabbers[0].center(1), 0.0f);
     ::glEnd();
 
     ::memcpy((void*)m_grabbers[0].color, (const void*)HighlightColor, 3 * sizeof(float));
@@ -442,7 +442,7 @@ void GLGizmoScale::on_start_dragging()
 
 void GLGizmoScale::on_update(const Pointf& mouse_pos)
 {
-    Pointf center(0.5 * (m_grabbers[1].center.x() + m_grabbers[0].center.x()), 0.5 * (m_grabbers[3].center.y() + m_grabbers[0].center.y()));
+    Pointf center(0.5 * (m_grabbers[1].center(0) + m_grabbers[0].center(0)), 0.5 * (m_grabbers[3].center(1) + m_grabbers[0].center(1)));
 
     coordf_t orig_len = (m_starting_drag_position - center).norm();
     coordf_t new_len = (mouse_pos - center).norm();
@@ -455,19 +455,19 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
-    coordf_t min_x = box.min.x() - (coordf_t)Offset;
-    coordf_t max_x = box.max.x() + (coordf_t)Offset;
-    coordf_t min_y = box.min.y() - (coordf_t)Offset;
-    coordf_t max_y = box.max.y() + (coordf_t)Offset;
+    coordf_t min_x = box.min(0) - (coordf_t)Offset;
+    coordf_t max_x = box.max(0) + (coordf_t)Offset;
+    coordf_t min_y = box.min(1) - (coordf_t)Offset;
+    coordf_t max_y = box.max(1) + (coordf_t)Offset;
 
-    m_grabbers[0].center.x() = min_x;
-    m_grabbers[0].center.y() = min_y;
-    m_grabbers[1].center.x() = max_x;
-    m_grabbers[1].center.y() = min_y;
-    m_grabbers[2].center.x() = max_x;
-    m_grabbers[2].center.y() = max_y;
-    m_grabbers[3].center.x() = min_x;
-    m_grabbers[3].center.y() = max_y;
+    m_grabbers[0].center(0) = min_x;
+    m_grabbers[0].center(1) = min_y;
+    m_grabbers[1].center(0) = max_x;
+    m_grabbers[1].center(1) = min_y;
+    m_grabbers[2].center(0) = max_x;
+    m_grabbers[2].center(1) = max_y;
+    m_grabbers[3].center(0) = min_x;
+    m_grabbers[3].center(1) = max_y;
 
     ::glLineWidth(2.0f);
     ::glColor3fv(BaseColor);
@@ -475,7 +475,7 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
     ::glBegin(GL_LINE_LOOP);
     for (unsigned int i = 0; i < 4; ++i)
     {
-        ::glVertex3f((GLfloat)m_grabbers[i].center.x(), (GLfloat)m_grabbers[i].center.y(), 0.0f);
+        ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), 0.0f);
     }
     ::glEnd();
 

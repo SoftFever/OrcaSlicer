@@ -148,13 +148,13 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 			// find origin
 			// the || 0 hack prevents "-0" which might confuse the user
 			int x_min, x_max, y_min, y_max;
-			x_max = x_min = points->values[0].x();
-			y_max = y_min = points->values[0].y();
+			x_max = x_min = points->values[0](0);
+			y_max = y_min = points->values[0](1);
 			for (auto pt : points->values){
-				if (x_min > pt.x()) x_min = pt.x();
-				if (x_max < pt.x()) x_max = pt.x();
-				if (y_min > pt.y()) y_min = pt.y();
-				if (y_max < pt.y()) y_max = pt.y();
+				if (x_min > pt(0)) x_min = pt(0);
+				if (x_max < pt(0)) x_max = pt(0);
+				if (y_min > pt(1)) y_min = pt(1);
+				if (y_max < pt(1)) y_max = pt(1);
 			}
 			if (x_min < 0) x_min = 0;
 			if (x_max < 0) x_max = 0;
@@ -242,8 +242,8 @@ void BedShapePanel::update_shape()
 		catch (const std::exception &e){
 			return;}
 		
-		auto x = rect_size.x();
-		auto y = rect_size.y();
+		auto x = rect_size(0);
+		auto y = rect_size(1);
 		// empty strings or '-' or other things
 		if (x == 0 || y == 0)	return;
 		double x0 = 0.0;
@@ -251,8 +251,8 @@ void BedShapePanel::update_shape()
 		double x1 = x;
 		double y1 = y;
 
-		auto dx = rect_origin.x();
-		auto dy = rect_origin.y();
+		auto dx = rect_origin(0);
+		auto dy = rect_origin(1);
 
 		x0 -= dx;
 		x1 -= dx;

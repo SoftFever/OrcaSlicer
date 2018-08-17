@@ -15,9 +15,9 @@ inline int nearest_point_index(const std::vector<Chaining> &pairs, const Point &
     T dmin = std::numeric_limits<T>::max();
     int idx = 0;
     for (std::vector<Chaining>::const_iterator it = pairs.begin(); it != pairs.end(); ++it) {
-        T d = sqr(T(start_near.x() - it->first.x()));
+        T d = sqr(T(start_near(0) - it->first(0)));
         if (d <= dmin) {
-            d += sqr(T(start_near.y() - it->first.y()));
+            d += sqr(T(start_near(1) - it->first(1)));
             if (d < dmin) {
                 idx = (it - pairs.begin()) * 2;
                 dmin = d;
@@ -26,9 +26,9 @@ inline int nearest_point_index(const std::vector<Chaining> &pairs, const Point &
             }
         }
         if (! no_reverse) {
-            d = sqr(T(start_near.x() - it->last.x()));
+            d = sqr(T(start_near(0) - it->last(0)));
             if (d <= dmin) {
-                d += sqr(T(start_near.y() - it->last.y()));
+                d += sqr(T(start_near(1) - it->last(1)));
                 if (d < dmin) {
                     idx = (it - pairs.begin()) * 2 + 1;
                     dmin = d;
@@ -82,7 +82,7 @@ Point PolylineCollection::leftmost_point(const Polylines &polylines)
     Point p = it->leftmost_point();
     for (++ it; it != polylines.end(); ++it) {
         Point p2 = it->leftmost_point();
-        if (p2.x() < p.x())
+        if (p2(0) < p(0))
             p = p2;
     }
     return p;

@@ -496,8 +496,8 @@ void AMFParserContext::endDocument()
         for (const Instance &instance : object.second.instances)
             if (instance.deltax_set && instance.deltay_set) {
                 ModelInstance *mi = m_model.objects[object.second.idx]->add_instance();
-                mi->offset.x() = instance.deltax;
-                mi->offset.y() = instance.deltay;
+                mi->offset(0) = instance.deltax;
+                mi->offset(1) = instance.deltay;
                 mi->rotation = instance.rz_set ? instance.rz : 0.f;
                 mi->scaling_factor = instance.scale_set ? instance.scale : 1.f;
             }
@@ -829,8 +829,8 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     "      <scale>%lf</scale>\n"
                     "    </instance>\n",
                     object_id,
-                    instance->offset.x(),
-                    instance->offset.y(),
+                    instance->offset(0),
+                    instance->offset(1),
                     instance->rotation,
                     instance->scaling_factor);
                 //FIXME missing instance->scaling_factor

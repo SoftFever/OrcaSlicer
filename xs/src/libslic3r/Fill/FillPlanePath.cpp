@@ -24,14 +24,14 @@ void FillPlanePath::_fill_surface_single(
     Point shift = this->_centered() ? 
         bounding_box.center() :
         bounding_box.min;
-    expolygon.translate(-shift.x(), -shift.y());
-    bounding_box.translate(-shift.x(), -shift.y());
+    expolygon.translate(-shift(0), -shift(1));
+    bounding_box.translate(-shift(0), -shift(1));
 
     Pointfs pts = _generate(
-        coord_t(ceil(coordf_t(bounding_box.min.x()) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.min.y()) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.max.x()) / distance_between_lines)),
-        coord_t(ceil(coordf_t(bounding_box.max.y()) / distance_between_lines)));
+        coord_t(ceil(coordf_t(bounding_box.min(0)) / distance_between_lines)),
+        coord_t(ceil(coordf_t(bounding_box.min(1)) / distance_between_lines)),
+        coord_t(ceil(coordf_t(bounding_box.max(0)) / distance_between_lines)),
+        coord_t(ceil(coordf_t(bounding_box.max(1)) / distance_between_lines)));
 
     Polylines polylines;
     if (pts.size() >= 2) {
@@ -41,8 +41,8 @@ void FillPlanePath::_fill_surface_single(
         polyline.points.reserve(pts.size());
         for (Pointfs::iterator it = pts.begin(); it != pts.end(); ++ it)
             polyline.points.push_back(Point(
-                coord_t(floor(it->x() * distance_between_lines + 0.5)), 
-                coord_t(floor(it->y() * distance_between_lines + 0.5))));
+                coord_t(floor((*it)(0) * distance_between_lines + 0.5)), 
+                coord_t(floor((*it)(1) * distance_between_lines + 0.5))));
 //      intersection(polylines_src, offset((Polygons)expolygon, scale_(0.02)), &polylines);
         polylines = intersection_pl(polylines, to_polygons(expolygon));
 
@@ -62,7 +62,7 @@ void FillPlanePath::_fill_surface_single(
         
         // paths must be repositioned and rotated back
         for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it) {
-            it->translate(shift.x(), shift.y());
+            it->translate(shift(0), shift(1));
             it->rotate(direction.first);
         }
     }
@@ -162,7 +162,7 @@ Pointfs FillHilbertCurve::_generate(coord_t min_x, coord_t min_y, coord_t max_x,
     line.reserve(sz2);
     for (size_t i = 0; i < sz2; ++ i) {
         Point p = hilbert_n_to_xy(i);
-        line.push_back(Pointf(p.x() + min_x, p.y() + min_y));
+        line.push_back(Pointf(p(0) + min_x, p(1) + min_y));
     }
     return line;
 }

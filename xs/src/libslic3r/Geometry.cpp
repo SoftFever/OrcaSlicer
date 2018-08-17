@@ -198,7 +198,7 @@ namespace Slic3r { namespace Geometry {
 static bool
 sort_points (Point a, Point b)
 {
-    return (a.x() < b.x()) || (a.x() == b.x() && a.y() < b.y());
+    return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
 }
 
 /* This implementation is based on Andrew's monotone chain 2D convex hull algorithm */
@@ -349,30 +349,30 @@ struct ArrangeItem {
     coordf_t  weight;
     bool operator<(const ArrangeItem &other) const {
         return weight < other.weight ||
-            ((weight == other.weight) && (pos.y() < other.pos.y() || (pos.y() == other.pos.y() && pos.x() < other.pos.x())));
+            ((weight == other.weight) && (pos(1) < other.pos(1) || (pos(1) == other.pos(1) && pos(0) < other.pos(0))));
     }
 };
 
 Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box)
 {
     // Use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm.
-    const Pointf       cell_size(part_size.x() + gap, part_size.y() + gap);
+    const Pointf       cell_size(part_size(0) + gap, part_size(1) + gap);
 
     const BoundingBoxf bed_bbox = (bed_bounding_box != NULL && bed_bounding_box->defined) ? 
         *bed_bounding_box :
         // Bogus bed size, large enough not to trigger the unsufficient bed size error.
         BoundingBoxf(
             Pointf(0, 0),
-            Pointf(cell_size.x() * num_parts, cell_size.y() * num_parts));
+            Pointf(cell_size(0) * num_parts, cell_size(1) * num_parts));
 
     // This is how many cells we have available into which to put parts.
-    size_t cellw = size_t(floor((bed_bbox.size().x() + gap) / cell_size.x()));
-    size_t cellh = size_t(floor((bed_bbox.size().y() + gap) / cell_size.y()));
+    size_t cellw = size_t(floor((bed_bbox.size()(0) + gap) / cell_size(0)));
+    size_t cellh = size_t(floor((bed_bbox.size()(1) + gap) / cell_size(1)));
     if (num_parts > cellw * cellh)
         CONFESS(PRINTF_ZU " parts won't fit in your print area!\n", num_parts);
     
     // Get a bounding box of cellw x cellh cells, centered at the center of the bed.
-    Pointf       cells_size(cellw * cell_size.x() - gap, cellh * cell_size.y() - gap);
+    Pointf       cells_size(cellw * cell_size(0) - gap, cellh * cell_size(1) - gap);
     Pointf       cells_offset(bed_bbox.center() - 0.5 * cells_size);
     BoundingBoxf cells_bb(cells_offset, cells_size + cells_offset);
     
@@ -380,19 +380,19 @@ Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const B
     std::vector<ArrangeItem> cellsorder(cellw * cellh, ArrangeItem());
     for (size_t j = 0; j < cellh; ++ j) {
         // Center of the jth row on the bed.
-        coordf_t cy = linint(j + 0.5, 0., double(cellh), cells_bb.min.y(), cells_bb.max.y());
+        coordf_t cy = linint(j + 0.5, 0., double(cellh), cells_bb.min(1), cells_bb.max(1));
         // Offset from the bed center.
-        coordf_t yd = cells_bb.center().y() - cy;
+        coordf_t yd = cells_bb.center()(1) - cy;
         for (size_t i = 0; i < cellw; ++ i) {
             // Center of the ith column on the bed.
-            coordf_t cx = linint(i + 0.5, 0., double(cellw), cells_bb.min.x(), cells_bb.max.x());
+            coordf_t cx = linint(i + 0.5, 0., double(cellw), cells_bb.min(0), cells_bb.max(0));
             // Offset from the bed center.
-            coordf_t xd = cells_bb.center().x() - cx;
+            coordf_t xd = cells_bb.center()(0) - cx;
             // Cell with a distance from the bed center.
             ArrangeItem &ci = cellsorder[j * cellw + i];
             // Cell center
-            ci.pos.x() = cx;
-            ci.pos.y() = cy;
+            ci.pos(0) = cx;
+            ci.pos(1) = cy;
             // Square distance of the cell center to the bed center.
             ci.weight = xd * xd + yd * yd;
         }
@@ -405,7 +405,7 @@ Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const B
     Pointfs positions;
     positions.reserve(num_parts);
     for (std::vector<ArrangeItem>::const_iterator it = cellsorder.begin(); it != cellsorder.end(); ++ it)
-        positions.push_back(Pointf(it->pos.x() - 0.5 * part_size.x(), it->pos.y() - 0.5 * part_size.y()));
+        positions.push_back(Pointf(it->pos(0) - 0.5 * part_size(0), it->pos(1) - 0.5 * part_size(1)));
     return positions;
 }
 #else
@@ -430,26 +430,26 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
     Pointf part = part_size;
 
     // use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
-    part.x() += dist;
-    part.y() += dist;
+    part(0) += dist;
+    part(1) += dist;
     
     Pointf area;
     if (bb != NULL && bb->defined) {
         area = bb->size();
     } else {
         // bogus area size, large enough not to trigger the error below
-        area.x() = part.x() * total_parts;
-        area.y() = part.y() * total_parts;
+        area(0) = part(0) * total_parts;
+        area(1) = part(1) * total_parts;
     }
     
     // this is how many cells we have available into which to put parts
-    size_t cellw = floor((area.x() + dist) / part.x());
-    size_t cellh = floor((area.y() + dist) / part.y());
+    size_t cellw = floor((area(0) + dist) / part(0));
+    size_t cellh = floor((area(1) + dist) / part(1));
     if (total_parts > (cellw * cellh))
         return false;
     
     // total space used by cells
-    Pointf cells(cellw * part.x(), cellh * part.y());
+    Pointf cells(cellw * part(0), cellh * part(1));
     
     // bounding box of total space used by cells
     BoundingBoxf cells_bb;
@@ -458,8 +458,8 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
     
     // center bounding box to area
     cells_bb.translate(
-        (area.x() - cells.x()) / 2,
-        (area.y() - cells.y()) / 2
+        (area(0) - cells(0)) / 2,
+        (area(1) - cells(1)) / 2
     );
     
     // list of cells, sorted by distance from center
@@ -468,15 +468,15 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
     // work out distance for all cells, sort into list
     for (size_t i = 0; i <= cellw-1; ++i) {
         for (size_t j = 0; j <= cellh-1; ++j) {
-            coordf_t cx = linint(i + 0.5, 0, cellw, cells_bb.min.x(), cells_bb.max.x());
-            coordf_t cy = linint(j + 0.5, 0, cellh, cells_bb.min.y(), cells_bb.max.y());
+            coordf_t cx = linint(i + 0.5, 0, cellw, cells_bb.min(0), cells_bb.max(0));
+            coordf_t cy = linint(j + 0.5, 0, cellh, cells_bb.min(1), cells_bb.max(1));
             
-            coordf_t xd = fabs((area.x() / 2) - cx);
-            coordf_t yd = fabs((area.y() / 2) - cy);
+            coordf_t xd = fabs((area(0) / 2) - cx);
+            coordf_t yd = fabs((area(1) / 2) - cy);
             
             ArrangeItem c;
-            c.pos.x() = cx;
-            c.pos.y() = cy;
+            c.pos(0) = cx;
+            c.pos(1) = cy;
             c.index_x = i;
             c.index_y = j;
             c.dist = xd * xd + yd * yd - fabs((cellw / 2) - (i + 0.5));
@@ -533,13 +533,13 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
         coordf_t cx = c.item.index_x - lx;
         coordf_t cy = c.item.index_y - ty;
         
-        positions.push_back(Pointf(cx * part.x(), cy * part.y()));
+        positions.push_back(Pointf(cx * part(0), cy * part(1)));
     }
     
     if (bb != NULL && bb->defined) {
         for (Pointfs::iterator p = positions.begin(); p != positions.end(); ++p) {
-            p->x() += bb->min.x();
-            p->y() += bb->min.y();
+            p->x() += bb->min(0);
+            p->y() += bb->min(1);
         }
     }
     
@@ -608,15 +608,15 @@ namespace Voronoi { namespace Internal {
         if (cell1.contains_point() && cell2.contains_point()) {
             point_type p1 = retrieve_point(segments, cell1);
             point_type p2 = retrieve_point(segments, cell2);
-            origin.x((p1.x() + p2.x()) * 0.5);
-            origin.y((p1.y() + p2.y()) * 0.5);
-            direction.x(p1.y() - p2.y());
-            direction.y(p2.x() - p1.x());
+            origin.x((p1(0) + p2(0)) * 0.5);
+            origin.y((p1(1) + p2(1)) * 0.5);
+            direction.x(p1(1) - p2(1));
+            direction.y(p2(0) - p1(0));
         } else {
             origin = cell1.contains_segment() ? retrieve_point(segments, cell2) : retrieve_point(segments, cell1);
             segment_type segment = cell1.contains_segment() ? segments[cell1.source_index()] : segments[cell2.source_index()];
-            coordinate_type dx = high(segment).x() - low(segment).x();
-            coordinate_type dy = high(segment).y() - low(segment).y();
+            coordinate_type dx = high(segment)(0) - low(segment)(0);
+            coordinate_type dy = high(segment)(1) - low(segment)(1);
             if ((low(segment) == origin) ^ cell1.contains_point()) {
                 direction.x(dy);
                 direction.y(-dx);
@@ -625,19 +625,19 @@ namespace Voronoi { namespace Internal {
                 direction.y(dx);
             }
         }
-        coordinate_type koef = bbox_max_size / (std::max)(fabs(direction.x()), fabs(direction.y()));
+        coordinate_type koef = bbox_max_size / (std::max)(fabs(direction(0)), fabs(direction(1)));
         if (edge.vertex0() == NULL) {
             clipped_edge->push_back(point_type(
-                origin.x() - direction.x() * koef,
-                origin.y() - direction.y() * koef));
+                origin(0) - direction(0) * koef,
+                origin(1) - direction(1) * koef));
         } else {
             clipped_edge->push_back(
                 point_type(edge.vertex0()->x(), edge.vertex0()->y()));
         }
         if (edge.vertex1() == NULL) {
             clipped_edge->push_back(point_type(
-                origin.x() + direction.x() * koef,
-                origin.y() + direction.y() * koef));
+                origin(0) + direction(0) * koef,
+                origin(1) + direction(1) * koef));
         } else {
             clipped_edge->push_back(
                 point_type(edge.vertex1()->x(), edge.vertex1()->y()));
@@ -676,10 +676,10 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
     const bool          primaryEdgesOnly            = false;
 
     BoundingBox bbox = BoundingBox(lines);
-    bbox.min.x() -= coord_t(1. / SCALING_FACTOR);
-    bbox.min.y() -= coord_t(1. / SCALING_FACTOR);
-    bbox.max.x() += coord_t(1. / SCALING_FACTOR);
-    bbox.max.y() += coord_t(1. / SCALING_FACTOR);
+    bbox.min(0) -= coord_t(1. / SCALING_FACTOR);
+    bbox.min(1) -= coord_t(1. / SCALING_FACTOR);
+    bbox.max(0) += coord_t(1. / SCALING_FACTOR);
+    bbox.max(1) += coord_t(1. / SCALING_FACTOR);
 
     ::Slic3r::SVG svg(path, bbox);
 
@@ -689,7 +689,7 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
 //    bbox.scale(1.2);
     // For clipping of half-lines to some reasonable value.
     // The line will then be clipped by the SVG viewer anyway.
-    const double bbox_dim_max = double(bbox.max.x() - bbox.min.x()) + double(bbox.max.y() - bbox.min.y());
+    const double bbox_dim_max = double(bbox.max(0) - bbox.min(0)) + double(bbox.max(1) - bbox.min(1));
     // For the discretization of the Voronoi parabolic segments.
     const double discretization_step = 0.0005 * bbox_dim_max;
 
@@ -697,8 +697,8 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
     std::vector<Voronoi::Internal::segment_type> segments;
     for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++ it)
         segments.push_back(Voronoi::Internal::segment_type(
-            Voronoi::Internal::point_type(double(it->a.x()), double(it->a.y())), 
-            Voronoi::Internal::point_type(double(it->b.x()), double(it->b.y()))));
+            Voronoi::Internal::point_type(double(it->a(0)), double(it->a(1))), 
+            Voronoi::Internal::point_type(double(it->b(0)), double(it->b(1)))));
     
     // Color exterior edges.
     for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it)
@@ -712,13 +712,13 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
     }
     // Draw the input polygon.
     for (Lines::const_iterator it = lines.begin(); it != lines.end(); ++it)
-        svg.draw(Line(Point(coord_t(it->a.x()), coord_t(it->a.y())), Point(coord_t(it->b.x()), coord_t(it->b.y()))), inputSegmentColor, inputSegmentLineWidth);
+        svg.draw(Line(Point(coord_t(it->a(0)), coord_t(it->a(1))), Point(coord_t(it->b(0)), coord_t(it->b(1)))), inputSegmentColor, inputSegmentLineWidth);
 
 #if 1
     // Draw voronoi vertices.
     for (voronoi_diagram<double>::const_vertex_iterator it = vd.vertices().begin(); it != vd.vertices().end(); ++it)
         if (! internalEdgesOnly || it->color() != Voronoi::Internal::EXTERNAL_COLOR)
-            svg.draw(Point(coord_t(it->x()), coord_t(it->y())), voronoiPointColor, voronoiPointRadius);
+            svg.draw(Point(coord_t((*it)(0)), coord_t((*it)(1))), voronoiPointColor, voronoiPointRadius);
 
     for (voronoi_diagram<double>::const_edge_iterator it = vd.edges().begin(); it != vd.edges().end(); ++it) {
         if (primaryEdgesOnly && !it->is_primary())
@@ -743,7 +743,7 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
                 color = voronoiLineColorSecondary;
         }
         for (std::size_t i = 0; i + 1 < samples.size(); ++i)
-            svg.draw(Line(Point(coord_t(samples[i].x()), coord_t(samples[i].y())), Point(coord_t(samples[i+1].x()), coord_t(samples[i+1].y()))), color, voronoiLineWidth);
+            svg.draw(Line(Point(coord_t(samples[i](0)), coord_t(samples[i](1))), Point(coord_t(samples[i+1](0)), coord_t(samples[i+1](1)))), color, voronoiLineWidth);
     }
 #endif
 
@@ -758,8 +758,8 @@ static inline void dump_voronoi_to_svg(const Lines &lines, /* const */ voronoi_d
 template<typename T>
 T dist(const boost::polygon::point_data<T> &p1,const boost::polygon::point_data<T> &p2)
 {
-	T dx = p2.x() - p1.x();
-	T dy = p2.y() - p1.y();
+	T dx = p2(0) - p1(0);
+	T dy = p2(1) - p1(1);
 	return sqrt(dx*dx+dy*dy);
 }
 
@@ -770,11 +770,11 @@ inline point_type project_point_to_segment(segment_type &seg, point_type &px)
     typedef typename point_type::coordinate_type T;
     const point_type &p0 = low(seg);
     const point_type &p1 = high(seg);
-    const point_type  dir(p1.x()-p0.x(), p1.y()-p0.y());
-    const point_type  dproj(px.x()-p0.x(), px.y()-p0.y());
-    const T           t = (dir.x()*dproj.x() + dir.y()*dproj.y()) / (dir.x()*dir.x() + dir.y()*dir.y());
+    const point_type  dir(p1(0)-p0(0), p1(1)-p0(1));
+    const point_type  dproj(px(0)-p0(0), px(1)-p0(1));
+    const T           t = (dir(0)*dproj(0) + dir(1)*dproj(1)) / (dir(0)*dir(0) + dir(1)*dir(1));
     assert(t >= T(-1e-6) && t <= T(1. + 1e-6));
-    return point_type(p0.x() + t*dir.x(), p0.y() + t*dir.y());
+    return point_type(p0(0) + t*dir(0), p0(1) + t*dir(1));
 }
 
 template<typename VD, typename SEGMENTS>
@@ -828,8 +828,8 @@ public:
     Lines2VDSegments(const Lines &alines) : lines(alines) {}
     typename VD::segment_type operator[](size_t idx) const {
         return typename VD::segment_type(
-            typename VD::point_type(typename VD::coord_type(lines[idx].a.x()), typename VD::coord_type(lines[idx].a.y())),
-            typename VD::point_type(typename VD::coord_type(lines[idx].b.x()), typename VD::coord_type(lines[idx].b.y())));
+            typename VD::point_type(typename VD::coord_type(lines[idx].a(0)), typename VD::coord_type(lines[idx].a(1))),
+            typename VD::point_type(typename VD::coord_type(lines[idx].b(0)), typename VD::coord_type(lines[idx].b(1))));
     }
 private:
     const Lines &lines;

@@ -27,7 +27,7 @@ public:
 		Polyline pl;
 		Points int_points;
 		for (auto pt : points)
-			int_points.push_back(Point::new_scale(pt.x(), pt.y()));
+			int_points.push_back(Point::new_scale(pt(0), pt(1)));
 		pl.append(int_points);
 		return pl;
     }

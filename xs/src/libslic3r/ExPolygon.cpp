@@ -355,14 +355,14 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
         // build rectangle
         Polygon poly;
         poly.points.resize(4);
-        poly[0].x() = *x;
-        poly[0].y() = bb.min.y();
-        poly[1].x() = next_x;
-        poly[1].y() = bb.min.y();
-        poly[2].x() = next_x;
-        poly[2].y() = bb.max.y();
-        poly[3].x() = *x;
-        poly[3].y() = bb.max.y();
+        poly[0](0) = *x;
+        poly[0](1) = bb.min(1);
+        poly[1](0) = next_x;
+        poly[1](1) = bb.min(1);
+        poly[2](0) = next_x;
+        poly[2](1) = bb.max(1);
+        poly[3](0) = *x;
+        poly[3](1) = bb.max(1);
         
         // intersect with this expolygon
         // append results to return value
@@ -408,9 +408,10 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
             TPPLPoly p;
             p.Init(int(ex->contour.points.size()));
             //printf(PRINTF_ZU "\n0\n", ex->contour.points.size());
-            for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
-                p[ point-ex->contour.points.begin() ].x = point->x();
-                p[ point-ex->contour.points.begin() ].y = point->y();
+            for (const Point &point : ex->contour.points) {
+                size_t i = &point - &ex->contour.points.front();
+                p[i].x = point(0);
+                p[i].y = point(1);
                 //printf("%ld %ld\n", point->x(), point->y());
             }
             p.SetHole(false);
@@ -422,9 +423,10 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
             TPPLPoly p;
             p.Init(hole->points.size());
             //printf(PRINTF_ZU "\n1\n", hole->points.size());
-            for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
-                p[ point-hole->points.begin() ].x = point->x();
-                p[ point-hole->points.begin() ].y = point->y();
+            for (const Point &point : hole->points) {
+                size_t i = &point - &hole->points.front();
+                p[i].x = point(0);
+                p[i].y = point(1);
                 //printf("%ld %ld\n", point->x(), point->y());
             }
             p.SetHole(true);
@@ -443,8 +445,8 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
         Polygon p;
         p.points.resize(num_points);
         for (long i = 0; i < num_points; ++i) {
-            p.points[i].x() = coord_t((*poly)[i].x);
-            p.points[i].y() = coord_t((*poly)[i].y);
+            p.points[i](0) = coord_t((*poly)[i].x);
+            p.points[i](1) = coord_t((*poly)[i].y);
         }
         polygons->push_back(p);
     }
@@ -460,19 +462,17 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
 
         // contour
         std::vector<p2t::Point*> ContourPoints;
-        for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
+        for (const Point &pt : ex->contour.points)
             // We should delete each p2t::Point object
-            ContourPoints.push_back(new p2t::Point(point->x(), point->y()));
-        }
+            ContourPoints.push_back(new p2t::Point(pt(0), pt(1)));
         p2t::CDT cdt(ContourPoints);
 
         // holes
         for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
             std::vector<p2t::Point*> points;
-            for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
+            for (const Point &pt : hole->points)
                 // will be destructed in SweepContext::~SweepContext
-                points.push_back(new p2t::Point(point->x(), point->y()));
-            }
+                points.push_back(new p2t::Point(pt(0), pt(1)));
             cdt.AddHole(points);
         }
         

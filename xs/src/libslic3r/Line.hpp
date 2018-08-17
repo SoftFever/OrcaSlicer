@@ -34,11 +34,11 @@ public:
     double perp_distance_to(const Point &point) const;
     bool   parallel_to(double angle) const;
     bool   parallel_to(const Line &line) const { return this->parallel_to(line.direction()); }
-    double atan2_() const { return atan2(this->b.y() - this->a.y(), this->b.x() - this->a.x()); }
+    double atan2_() const { return atan2(this->b(1) - this->a(1), this->b(0) - this->a(0)); }
     double orientation() const;
     double direction() const;
     Vector vector() const { return this->b - this->a; }
-    Vector normal() const { return Vector((this->b.y() - this->a.y()), -(this->b.x() - this->a.x())); }
+    Vector normal() const { return Vector((this->b(1) - this->a(1)), -(this->b(0) - this->a(0))); }
     bool   intersection(const Line& line, Point* intersection) const;
     double ccw(const Point& point) const { return point.ccw(*this); }
 

@@ -120,7 +120,7 @@ public:
     }
 
     inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
-        push_geometry(p.x(), p.y(), p.z(), n.x(), n.y(), n.z());
+        push_geometry(p(0), p(1), p(2), n(0), n(1), n(2));
     }
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
@@ -176,17 +176,17 @@ public:
         BoundingBoxf3 bbox;
         if (! this->vertices_and_normals_interleaved.empty()) {
             bbox.defined = true;
-            bbox.min.x() = bbox.max.x() = this->vertices_and_normals_interleaved[3];
-            bbox.min.y() = bbox.max.y() = this->vertices_and_normals_interleaved[4];
-            bbox.min.z() = bbox.max.z() = this->vertices_and_normals_interleaved[5];
+            bbox.min(0) = bbox.max(0) = this->vertices_and_normals_interleaved[3];
+            bbox.min(1) = bbox.max(1) = this->vertices_and_normals_interleaved[4];
+            bbox.min(2) = bbox.max(2) = this->vertices_and_normals_interleaved[5];
             for (size_t i = 9; i < this->vertices_and_normals_interleaved.size(); i += 6) {
                 const float *verts = this->vertices_and_normals_interleaved.data() + i;
-                bbox.min.x() = std::min<coordf_t>(bbox.min.x(), verts[0]);
-                bbox.min.y() = std::min<coordf_t>(bbox.min.y(), verts[1]);
-                bbox.min.z() = std::min<coordf_t>(bbox.min.z(), verts[2]);
-                bbox.max.x() = std::max<coordf_t>(bbox.max.x(), verts[0]);
-                bbox.max.y() = std::max<coordf_t>(bbox.max.y(), verts[1]);
-                bbox.max.z() = std::max<coordf_t>(bbox.max.z(), verts[2]);
+                bbox.min(0) = std::min<coordf_t>(bbox.min(0), verts[0]);
+                bbox.min(1) = std::min<coordf_t>(bbox.min(1), verts[1]);
+                bbox.min(2) = std::min<coordf_t>(bbox.min(2), verts[2]);
+                bbox.max(0) = std::max<coordf_t>(bbox.max(0), verts[0]);
+                bbox.max(1) = std::max<coordf_t>(bbox.max(1), verts[1]);
+                bbox.max(2) = std::max<coordf_t>(bbox.max(2), verts[2]);
             }
         }
         return bbox;

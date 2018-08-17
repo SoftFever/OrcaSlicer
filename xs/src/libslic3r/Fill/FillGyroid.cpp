@@ -34,21 +34,21 @@ static inline Polyline make_wave(
     double z_cos, double z_sin, bool vertical)
 {
     std::vector<Pointf> points = one_period;
-    double period = points.back().x();
+    double period = points.back()(0);
     points.pop_back();
     int n = points.size();
     do {
-        points.emplace_back(Pointf(points[points.size()-n].x() + period, points[points.size()-n].y()));
-    } while (points.back().x() < width);
-    points.back().x() = width;
+        points.emplace_back(Pointf(points[points.size()-n](0) + period, points[points.size()-n](1)));
+    } while (points.back()(0) < width);
+    points.back()(0) = width;
 
     // and construct the final polyline to return:
     Polyline polyline;
     for (auto& point : points) {
-        point.y() += offset;
-        point.y() = clamp(0., height, double(point.y()));
+        point(1) += offset;
+        point(1) = clamp(0., height, double(point(1)));
         if (vertical)
-            std::swap(point.x(), point.y());
+            std::swap(point(0), point(1));
         polyline.points.emplace_back((point * scaleFactor).cast<coord_t>());
     }
 
@@ -73,12 +73,12 @@ static std::vector<Pointf> make_one_period(double width, double scaleFactor, dou
         auto& tp = points[i];   // this point
         auto& rp = points[i+1]; // right point
         // calculate distance of the point to the line:
-        double dist_mm = unscale(scaleFactor * std::abs( (rp.y() - lp.y())*tp.x() + (lp.x() - rp.x())*tp.y() + (rp.x()*lp.y() - rp.y()*lp.x()) ) / std::hypot((rp.y() - lp.y()),(lp.x() - rp.x())));
+        double dist_mm = unscale(scaleFactor * std::abs( (rp(1) - lp(1))*tp(0) + (lp(0) - rp(0))*tp(1) + (rp(0)*lp(1) - rp(1)*lp(0)) ) / std::hypot((rp(1) - lp(1)),(lp(0) - rp(0))));
 
         if (dist_mm > tolerance) {                               // if the difference from straight line is more than this
-            double x = 0.5f * (points[i-1].x() + points[i].x());
+            double x = 0.5f * (points[i-1](0) + points[i](0));
             points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));
-            x = 0.5f * (points[i+1].x() + points[i].x());
+            x = 0.5f * (points[i+1](0) + points[i](0));
             points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));
             std::sort(points.begin(), points.end());            // we added the points to the end, but need them all in order
             --i;                                                // decrement i so we also check the first newly added point
@@ -143,12 +143,12 @@ void FillGyroid::_fill_surface_single(
         scale_(this->z),
         density_adjusted,
         this->spacing,
-        ceil(bb.size().x() / distance) + 1.,
-        ceil(bb.size().y() / distance) + 1.);
+        ceil(bb.size()(0) / distance) + 1.,
+        ceil(bb.size()(1) / distance) + 1.);
     
     // move pattern in place
     for (Polyline &polyline : polylines)
-        polyline.translate(bb.min.x(), bb.min.y());
+        polyline.translate(bb.min(0), bb.min(1));
 
     // clip pattern to boundaries
     polylines = intersection_pl(polylines, (Polygons)expolygon);

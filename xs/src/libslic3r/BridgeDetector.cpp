@@ -102,16 +102,16 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
             // Get an oriented bounding box around _anchor_regions.
             BoundingBox bbox = get_extents_rotated(this->_anchor_regions, - angle);
             // Cover the region with line segments.
-            lines.reserve((bbox.max.y() - bbox.min.y() + this->spacing) / this->spacing);
+            lines.reserve((bbox.max(1) - bbox.min(1) + this->spacing) / this->spacing);
             double s = sin(angle);
             double c = cos(angle);
             //FIXME Vojtech: The lines shall be spaced half the line width from the edge, but then 
             // some of the test cases fail. Need to adjust the test cases then?
-//            for (coord_t y = bbox.min.y() + this->spacing / 2; y <= bbox.max.y(); y += this->spacing)
-            for (coord_t y = bbox.min.y(); y <= bbox.max.y(); y += this->spacing)
+//            for (coord_t y = bbox.min(1) + this->spacing / 2; y <= bbox.max(1); y += this->spacing)
+            for (coord_t y = bbox.min(1); y <= bbox.max(1); y += this->spacing)
                 lines.push_back(Line(
-                    Point((coord_t)round(c * bbox.min.x() - s * y), (coord_t)round(c * y + s * bbox.min.x())),
-                    Point((coord_t)round(c * bbox.max.x() - s * y), (coord_t)round(c * y + s * bbox.max.x()))));
+                    Point((coord_t)round(c * bbox.min(0) - s * y), (coord_t)round(c * y + s * bbox.min(0))),
+                    Point((coord_t)round(c * bbox.max(0) - s * y), (coord_t)round(c * y + s * bbox.max(0)))));
         }
 
         double total_length = 0;

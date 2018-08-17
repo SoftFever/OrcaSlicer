@@ -965,7 +965,7 @@ void ExtrusionSimulator::extrude_to_accumulator(const ExtrusionPath &path, const
 	for (Points::const_iterator it = path.polyline.points.begin(); it != path.polyline.points.end(); ++ it) {
 		// printf("point %d,%d\n", it->x+shift.x(), it->y+shift.y);
 		ExtrusionPoint ept;
-		ept.center = V2f(float(it->x()+shift.x()-bbox.min.x()) * scalex, float(it->y()+shift.y()-bbox.min.y()) * scaley);
+		ept.center = V2f(float((*it)(0)+shift.x()-bbox.min.x()) * scalex, float((*it)(1)+shift.y()-bbox.min.y()) * scaley);
 		ept.radius = w/2.f;
 		ept.height = 0.5f;
 		polyline.push_back(ept.center);

@@ -10,8 +10,8 @@ namespace Slic3r {
 std::string Line::wkt() const
 {
     std::ostringstream ss;
-    ss << "LINESTRING(" << this->a.x() << " " << this->a.y() << ","
-        << this->b.x() << " " << this->b.y() << ")";
+    ss << "LINESTRING(" << this->a(0) << " " << this->a(1) << ","
+        << this->b(0) << " " << this->b(1) << ")";
     return ss.str();
 }
 
@@ -108,8 +108,8 @@ bool Line::intersection(const Line &l2, Point *intersection) const
 Pointf3 Linef3::intersect_plane(double z) const
 {
     auto   v = (this->b - this->a).cast<double>();
-    double t = (z - this->a.z()) / v.z();
-    return Pointf3(this->a.x() + v.x() * t, this->a.y() + v.y() * t, z);
+    double t = (z - this->a(2)) / v(2);
+    return Pointf3(this->a(0) + v(0) * t, this->a(1) + v(1) * t, z);
 }
 
 }

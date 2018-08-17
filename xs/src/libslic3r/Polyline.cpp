@@ -33,7 +33,7 @@ Polyline::leftmost_point() const
 {
     Point p = this->points.front();
     for (Points::const_iterator it = this->points.begin() + 1; it != this->points.end(); ++it) {
-        if (it->x() < p.x()) p = *it;
+        if ((*it)(0) < p(0)) p = *it;
     }
     return p;
 }

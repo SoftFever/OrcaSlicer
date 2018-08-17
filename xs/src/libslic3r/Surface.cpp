@@ -106,9 +106,9 @@ Point export_surface_type_legend_to_svg_box_size()
 void export_surface_type_legend_to_svg(SVG &svg, const Point &pos)
 {
     // 1st row
-    coord_t pos_x0 = pos.x() + scale_(1.);
+    coord_t pos_x0 = pos(0) + scale_(1.);
     coord_t pos_x = pos_x0;
-    coord_t pos_y = pos.y() + scale_(1.5);
+    coord_t pos_y = pos(1) + scale_(1.5);
     coord_t step_x = scale_(10.);
     svg.draw_legend(Point(pos_x, pos_y), "perimeter"      , surface_type_to_color_name(stPerimeter));
     pos_x += step_x;
@@ -121,7 +121,7 @@ void export_surface_type_legend_to_svg(SVG &svg, const Point &pos)
     svg.draw_legend(Point(pos_x, pos_y), "invalid"        , surface_type_to_color_name(SurfaceType(-1)));
     // 2nd row
     pos_x = pos_x0;
-    pos_y = pos.y()+scale_(2.8);
+    pos_y = pos(1)+scale_(2.8);
     svg.draw_legend(Point(pos_x, pos_y), "internal"       , surface_type_to_color_name(stInternal));
     pos_x += step_x;
     svg.draw_legend(Point(pos_x, pos_y), "internal solid" , surface_type_to_color_name(stInternalSolid));

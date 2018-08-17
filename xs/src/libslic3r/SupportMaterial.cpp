@@ -67,9 +67,9 @@ Point export_support_surface_type_legend_to_svg_box_size()
 void export_support_surface_type_legend_to_svg(SVG &svg, const Point &pos)
 {
     // 1st row
-    coord_t pos_x0 = pos.x() + scale_(1.);
+    coord_t pos_x0 = pos(0) + scale_(1.);
     coord_t pos_x = pos_x0;
-    coord_t pos_y = pos.y() + scale_(1.5);
+    coord_t pos_y = pos(1) + scale_(1.5);
     coord_t step_x = scale_(10.);
     svg.draw_legend(Point(pos_x, pos_y), "top contact"    , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltTopContact));
     pos_x += step_x;
@@ -82,7 +82,7 @@ void export_support_surface_type_legend_to_svg(SVG &svg, const Point &pos)
     svg.draw_legend(Point(pos_x, pos_y), "bottom contact" , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltBottomContact));
     // 2nd row
     pos_x = pos_x0;
-    pos_y = pos.y()+scale_(2.8);
+    pos_y = pos(1)+scale_(2.8);
     svg.draw_legend(Point(pos_x, pos_y), "raft interface" , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltRaftInterface));
     pos_x += step_x;
     svg.draw_legend(Point(pos_x, pos_y), "raft base"      , support_surface_type_to_color_name(PrintObjectSupportMaterial::sltRaftBase));
@@ -98,8 +98,8 @@ void export_print_z_polygons_to_svg(const char *path, PrintObjectSupportMaterial
     for (int i = 0; i < n_layers; ++ i)
         bbox.merge(get_extents(layers[i]->polygons));
     Point legend_size = export_support_surface_type_legend_to_svg_box_size();
-    Point legend_pos(bbox.min.x(), bbox.max.y());
-    bbox.merge(Point(std::max(bbox.min.x() + legend_size.x(), bbox.max.x()), bbox.max.y() + legend_size.y()));
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
     SVG svg(path, bbox);
     const float transparency = 0.5f;
     for (int i = 0; i < n_layers; ++ i)
@@ -120,8 +120,8 @@ void export_print_z_polygons_and_extrusions_to_svg(
     for (int i = 0; i < n_layers; ++ i)
         bbox.merge(get_extents(layers[i]->polygons));
     Point legend_size = export_support_surface_type_legend_to_svg_box_size();
-    Point legend_pos(bbox.min.x(), bbox.max.y());
-    bbox.merge(Point(std::max(bbox.min.x() + legend_size.x(), bbox.max.x()), bbox.max.y() + legend_size.y()));
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
     SVG svg(path, bbox);
     const float transparency = 0.5f;
     for (int i = 0; i < n_layers; ++ i)
@@ -519,12 +519,12 @@ public:
                     Points::const_iterator i = contour.points.begin();
                     Points::const_iterator j = contour.points.end() - 1;
                     for (; i != contour.points.end(); j = i ++) {
-                        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point.y() well.
-                        // Does the ray with y == point.y() intersect this line segment?
+                        //FIXME this test is not numerically robust. Particularly, it does not handle horizontal segments at y == point(1) well.
+                        // Does the ray with y == point(1) intersect this line segment?
                         for (auto &sample_inside : samples_inside) {
-                            if ((i->y() > sample_inside.first.y()) != (j->y() > sample_inside.first.y())) {
-                                double x1 = (double)sample_inside.first.x();
-                                double x2 = (double)i->x() + (double)(j->x() - i->x()) * (double)(sample_inside.first.y() - i->y()) / (double)(j->y() - i->y());
+                            if (((*i)(1) > sample_inside.first(1)) != ((*j)(1) > sample_inside.first(1))) {
+                                double x1 = (double)sample_inside.first(0);
+                                double x2 = (double)(*i)(0) + (double)((*j)(0) - (*i)(0)) * (double)(sample_inside.first(1) - (*i)(1)) / (double)((*j)(1) - (*i)(1));
                                 if (x1 < x2)
                                     sample_inside.second = !sample_inside.second;
                             }
@@ -585,11 +585,11 @@ private:
         const Point &p3 = (pt_min == &expoly.contour.points.back()) ? expoly.contour.points.front() : *(pt_min + 1);
 
         Vector v  = (p3 - p2) + (p1 - p2);
-        double l2 = double(v.x())*double(v.x())+double(v.y())*double(v.y());
+        double l2 = double(v(0))*double(v(0))+double(v(1))*double(v(1));
         if (l2 == 0.)
             return p2;
         double coef = 20. / sqrt(l2);
-        return Point(p2.x() + coef * v.x(), p2.y() + coef * v.y());
+        return Point(p2(0) + coef * v(0), p2(1) + coef * v(1));
     }
 
     static Points island_samples(const ExPolygons &expolygons)
@@ -789,7 +789,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                     
                                     // workaround for Clipper bug, see Slic3r::Polygon::clip_as_polyline()
                                     for (Polyline &polyline : overhang_perimeters)
-                                        polyline.points[0].x() += 1;
+                                        polyline.points[0](0) += 1;
                                     // Trim the perimeters of this layer by the lower layer to get the unsupported pieces of perimeters.
                                     overhang_perimeters = diff_pl(overhang_perimeters, lower_grown_slices);
                                     
@@ -2057,8 +2057,8 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                         const Point &p1 = *(it-1);
                         const Point &p2 = *it;
                         // Intersection of a ray (p1, p2) with a circle placed at center_last, with radius of circle_distance.
-                        const Pointf v_seg(coordf_t(p2.x()) - coordf_t(p1.x()), coordf_t(p2.y()) - coordf_t(p1.y()));
-                        const Pointf v_cntr(coordf_t(p1.x() - center_last.x()), coordf_t(p1.y() - center_last.y()));
+                        const Pointf v_seg(coordf_t(p2(0)) - coordf_t(p1(0)), coordf_t(p2(1)) - coordf_t(p1(1)));
+                        const Pointf v_cntr(coordf_t(p1(0) - center_last(0)), coordf_t(p1(1) - center_last(1)));
                         coordf_t a = v_seg.squaredNorm();
                         coordf_t b = 2. * v_seg.dot(v_cntr);
                         coordf_t c = v_cntr.squaredNorm() - circle_distance * circle_distance;
@@ -2081,7 +2081,7 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                             }
                             seg_current_pt = &p1;
                             seg_current_t  = t;
-                            center_last    = Point(p1.x() + coord_t(v_seg.x() * t), p1.y() + coord_t(v_seg.y() * t));
+                            center_last    = Point(p1(0) + coord_t(v_seg(0) * t), p1(1) + coord_t(v_seg(1) * t));
                             // It has been verified that the new point is far enough from center_last.
                             // Ensure, that it is far enough from all the centers.
                             std::pair<const Point*, coordf_t> circle_closest = circle_centers_lookup.find(center_last);
@@ -2887,9 +2887,9 @@ void PrintObjectSupportMaterial::clip_by_pillars(
         BoundingBox bbox;
         for (LayersPtr::const_iterator it = top_contacts.begin(); it != top_contacts.end(); ++ it)
             bbox.merge(get_extents((*it)->polygons));
-        grid.reserve(size_t(ceil(bb.size().x() / pillar_spacing)) * size_t(ceil(bb.size().y() / pillar_spacing)));
-        for (coord_t x = bb.min.x(); x <= bb.max.x() - pillar_size; x += pillar_spacing) {
-            for (coord_t y = bb.min.y(); y <= bb.max.y() - pillar_size; y += pillar_spacing) {
+        grid.reserve(size_t(ceil(bb.size()(0) / pillar_spacing)) * size_t(ceil(bb.size()(1) / pillar_spacing)));
+        for (coord_t x = bb.min(0); x <= bb.max(0) - pillar_size; x += pillar_spacing) {
+            for (coord_t y = bb.min(1); y <= bb.max(1) - pillar_size; y += pillar_spacing) {
                 grid.push_back(pillar);
                 for (size_t i = 0; i < pillar.points.size(); ++ i)
                     grid.back().points[i].translate(Point(x, y));

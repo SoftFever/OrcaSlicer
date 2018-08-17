@@ -49,10 +49,10 @@ typedef Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign> Transform2d
 typedef Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign> Transform3f;
 typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d;
 
-inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1.x() * v2.y() - v1.y() * v2.x(); }
-inline coord_t cross2(const Vec2crd &v1, const Vec2crd &v2) { return v1.x() * v2.y() - v1.y() * v2.x(); }
-inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1.x() * v2.y() - v1.y() * v2.x(); }
-inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1.x() * v2.y() - v1.y() * v2.x(); }
+inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
+inline coord_t cross2(const Vec2crd &v1, const Vec2crd &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
+inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
+inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 
 class Point : public Vec2crd
 {
@@ -77,18 +77,13 @@ public:
         return *this;
     }
 
-    const coord_t&  x() const { return (*this)(0); }
-    coord_t&        x()       { return (*this)(0); }
-    const coord_t&  y() const { return (*this)(1); }
-    coord_t&        y()       { return (*this)(1); }
-
-    bool operator==(const Point& rhs) const { return this->x() == rhs.x() && this->y() == rhs.y(); }
+    bool operator==(const Point& rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1); }
     bool operator!=(const Point& rhs) const { return ! (*this == rhs); }
-    bool operator< (const Point& rhs) const { return this->x() < rhs.x() || (this->x() == rhs.x() && this->y() < rhs.y()); }
+    bool operator< (const Point& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
 
-    Point& operator+=(const Point& rhs) { this->x() += rhs.x(); this->y() += rhs.y(); return *this; }
-    Point& operator-=(const Point& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); return *this; }
-    Point& operator*=(const double &rhs) { this->x() *= rhs; this->y() *= rhs;   return *this; }
+    Point& operator+=(const Point& rhs) { (*this)(0) += rhs(0); (*this)(1) += rhs(1); return *this; }
+    Point& operator-=(const Point& rhs) { (*this)(0) -= rhs(0); (*this)(1) -= rhs(1); return *this; }
+    Point& operator*=(const double &rhs) { (*this)(0) *= rhs; (*this)(1) *= rhs;   return *this; }
 
     std::string wkt() const;
     std::string dump_perl() const;
@@ -120,7 +115,7 @@ namespace int128 {
 // To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
     size_t operator()(const Point &pt) const {
-        return std::hash<coord_t>()(pt.x()) ^ std::hash<coord_t>()(pt.y());
+        return std::hash<coord_t>()(pt(0)) ^ std::hash<coord_t>()(pt(1));
     }
 };
 
@@ -182,12 +177,12 @@ public:
         const ValueType *value_min = nullptr;
         double           dist_min = std::numeric_limits<double>::max();
         // Round pt to a closest grid_cell corner.
-        Point            grid_corner((pt.x()+(m_grid_resolution>>1))>>m_grid_log2, (pt.y()+(m_grid_resolution>>1))>>m_grid_log2);
+        Point            grid_corner((pt(0)+(m_grid_resolution>>1))>>m_grid_log2, (pt(1)+(m_grid_resolution>>1))>>m_grid_log2);
         // For four neighbors of grid_corner:
         for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
             for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
                 // Range of fragment starts around grid_corner, close to pt.
-                auto range = m_map.equal_range(Point(grid_corner.x() + neighbor_x, grid_corner.y() + neighbor_y));
+                auto range = m_map.equal_range(Point(grid_corner(0) + neighbor_x, grid_corner(1) + neighbor_y));
                 // Find the map entry closest to pt.
                 for (auto it = range.first; it != range.second; ++it) {
                     const ValueType &value = it->second;
@@ -236,17 +231,10 @@ public:
         return *this;
     }
 
-    const coord_t&  x() const { return (*this)(0); }
-    coord_t&        x()       { return (*this)(0); }
-    const coord_t&  y() const { return (*this)(1); }
-    coord_t&        y()       { return (*this)(1); }
-    const coord_t&  z() const { return (*this)(2); }
-    coord_t&        z()       { return (*this)(2); }
-
-    bool            operator==(const Point3 &rhs) const { return this->x() == rhs.x() && this->y() == rhs.y() && this->z() == rhs.z(); }
+    bool            operator==(const Point3 &rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1) && (*this)(2) == rhs(2); }
     bool            operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
 
-    Point           xy() const { return Point(this->x(), this->y()); }
+    Point           xy() const { return Point((*this)(0), (*this)(1)); }
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
@@ -262,7 +250,7 @@ public:
     template<typename OtherDerived>
     Pointf(const Eigen::MatrixBase<OtherDerived> &other) : Vec2d(other) {}
     static Pointf new_unscale(coord_t x, coord_t y) { return Pointf(unscale(x), unscale(y)); }
-    static Pointf new_unscale(const Point &p) { return Pointf(unscale(p.x()), unscale(p.y())); }
+    static Pointf new_unscale(const Point &p) { return Pointf(unscale(p(0)), unscale(p(1))); }
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template<typename OtherDerived>
@@ -272,22 +260,14 @@ public:
         return *this;
     }
 
-    const coordf_t& x() const { return (*this)(0); }
-    coordf_t&       x()       { return (*this)(0); }
-    const coordf_t& y() const { return (*this)(1); }
-    coordf_t&       y()       { return (*this)(1); }
-
     std::string wkt() const;
     std::string dump_perl() const;
     void    rotate(double angle);
     void    rotate(double angle, const Pointf &center);
-    Pointf& operator+=(const Pointf& rhs) { this->x() += rhs.x(); this->y() += rhs.y(); return *this; }
-    Pointf& operator-=(const Pointf& rhs) { this->x() -= rhs.x(); this->y() -= rhs.y(); return *this; }
-    Pointf& operator*=(const coordf_t& rhs) { this->x() *= rhs; this->y() *= rhs;   return *this; }
 
-    bool operator==(const Pointf &rhs) const { return this->x() == rhs.x() && this->y() == rhs.y(); }
+    bool operator==(const Pointf &rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1); }
     bool operator!=(const Pointf &rhs) const { return ! (*this == rhs); }
-    bool operator< (const Pointf& rhs) const { return this->x() < rhs.x() || (this->x() == rhs.x() && this->y() < rhs.y()); }
+    bool operator< (const Pointf& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
 };
 
 class Pointf3 : public Vec3d
@@ -302,7 +282,7 @@ public:
     template<typename OtherDerived>
     Pointf3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3d(other) {}
     static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) { return Pointf3(unscale(x), unscale(y), unscale(z)); }
-    static Pointf3 new_unscale(const Point3& p) { return Pointf3(unscale(p.x()), unscale(p.y()), unscale(p.z())); }
+    static Pointf3 new_unscale(const Point3& p) { return Pointf3(unscale(p(0)), unscale(p(1)), unscale(p(2))); }
 
     // This method allows you to assign Eigen expressions to MyVectorType
     template<typename OtherDerived>
@@ -312,17 +292,10 @@ public:
         return *this;
     }
 
-    const coordf_t& x() const { return (*this)(0); }
-    coordf_t&       x()       { return (*this)(0); }
-    const coordf_t& y() const { return (*this)(1); }
-    coordf_t&       y()       { return (*this)(1); }
-    const coordf_t& z() const { return (*this)(2); }
-    coordf_t&       z()       { return (*this)(2); }
-
-    bool operator==(const Pointf3 &rhs) const { return this->x() == rhs.x() && this->y() == rhs.y() && this->z() == rhs.z(); }
+    bool operator==(const Pointf3 &rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1) && (*this)(2) == rhs(2); }
     bool operator!=(const Pointf3 &rhs) const { return ! (*this == rhs); }
 
-    Pointf xy() const { return Pointf(this->x(), this->y()); }
+    Pointf xy() const { return Pointf((*this)(0), (*this)(1)); }
 };
 
 } // namespace Slic3r
@@ -339,7 +312,7 @@ namespace boost { namespace polygon {
         typedef coord_t coordinate_type;
     
         static inline coordinate_type get(const Slic3r::Point& point, orientation_2d orient) {
-            return (orient == HORIZONTAL) ? (coordinate_type)point.x() : (coordinate_type)point.y();
+            return (orient == HORIZONTAL) ? (coordinate_type)point(0) : (coordinate_type)point(1);
         }
     };
     
@@ -348,14 +321,14 @@ namespace boost { namespace polygon {
         typedef coord_t coordinate_type;
         static inline void set(Slic3r::Point& point, orientation_2d orient, coord_t value) {
             if (orient == HORIZONTAL)
-                point.x() = value;
+                point(0) = value;
             else
-                point.y() = value;
+                point(1) = value;
         }
         static inline Slic3r::Point construct(coord_t x_value, coord_t y_value) {
             Slic3r::Point retval;
-            retval.x() = x_value;
-            retval.y() = y_value; 
+            retval(0) = x_value;
+            retval(1) = y_value; 
             return retval;
         }
     };

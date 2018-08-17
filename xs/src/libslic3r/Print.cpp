@@ -538,9 +538,9 @@ bool Print::has_skirt() const
 std::string Print::validate() const
 {
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(config.bed_shape.values));
-    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min.x()), unscale(bed_box_2D.min.y()), 0.0), Pointf3(unscale(bed_box_2D.max.x()), unscale(bed_box_2D.max.y()), config.max_print_height));
+    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min(0)), unscale(bed_box_2D.min(1)), 0.0), Pointf3(unscale(bed_box_2D.max(0)), unscale(bed_box_2D.max(1)), config.max_print_height));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
-    print_volume.min.z() = -1e10;
+    print_volume.min(2) = -1e10;
     unsigned int printable_count = 0;
     for (PrintObject *po : this->objects) {
         po->model_object()->check_instances_print_volume_state(print_volume);
@@ -585,7 +585,7 @@ std::string Print::validate() const
         {
             std::vector<coord_t> object_height;
             for (const PrintObject *object : this->objects)
-                object_height.insert(object_height.end(), object->copies().size(), object->size.z());
+                object_height.insert(object_height.end(), object->copies().size(), object->size(2));
             std::sort(object_height.begin(), object_height.end());
             // Ignore the tallest *copy* (this is why we repeat height for all of them):
             // it will be printed as last one so its height doesn't matter.
