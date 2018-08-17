@@ -728,6 +728,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
 
     TriangleMesh output_mesh(det_vertices, facets);
     output_mesh.repair();
+    output_mesh.require_shared_vertices();
     return output_mesh;
 }
 
