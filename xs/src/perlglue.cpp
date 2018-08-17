@@ -495,7 +495,7 @@ void from_SV(SV* point_sv, Point* point)
     AV* point_av = (AV*)SvRV(point_sv);
     // get a double from Perl and round it, otherwise
     // it would get truncated
-    (*point) = Point(lrint(SvNV(*av_fetch(point_av, 0, 0))), lrint(SvNV(*av_fetch(point_av, 1, 0))));
+    (*point) = Point(SvNV(*av_fetch(point_av, 0, 0)), SvNV(*av_fetch(point_av, 1, 0)));
 }
 
 void from_SV_check(SV* point_sv, Point* point)

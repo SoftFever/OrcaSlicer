@@ -69,7 +69,7 @@ Line::coincides_with(line_sv)
     CODE:
         Line line;
         from_SV_check(line_sv, &line);
-        RETVAL = THIS->coincides_with(line);
+        RETVAL = (*THIS) == line;
     OUTPUT:
         RETVAL
 

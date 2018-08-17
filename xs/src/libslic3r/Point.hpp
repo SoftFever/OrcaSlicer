@@ -269,7 +269,6 @@ public:
     typedef coordf_t coord_type;
 
     explicit Pointf3() { (*this)(0) = (*this)(1) = (*this)(2) = 0.; }
-//    explicit Pointf3(coord_t x, coord_t y, coord_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
     explicit Pointf3(coordf_t x, coordf_t y, coordf_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
     // This constructor allows you to construct Pointf from Eigen expressions
     template<typename OtherDerived>

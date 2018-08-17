@@ -28,7 +28,7 @@ public:
     double length() const { return (b - a).cast<double>().norm(); }
     Point  midpoint() const { return (this->a + this->b) / 2; }
     bool   intersection_infinite(const Line &other, Point* point) const;
-    bool   coincides_with(const Line &line) const { return this->a == line.a && this->b == line.b; }
+    bool   operator==(const Line &rhs) const { return this->a == rhs.a && this->b == rhs.b; }
     double distance_to(const Point &point) const;
     double perp_distance_to(const Point &point) const;
     bool   parallel_to(double angle) const;
