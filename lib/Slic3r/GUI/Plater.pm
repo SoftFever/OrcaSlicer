@@ -1291,7 +1291,9 @@ sub async_apply_config {
 
         # We also need to reload 3D scene because of the wipe tower preview box
         if ($self->{config}->wipe_tower) {
-	       Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
+            my $selections = $self->collect_selections;
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+	        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
         }
     }
 }
@@ -1507,6 +1509,8 @@ sub on_process_completed {
     $self->{preview3D}->reload_print if $self->{preview3D};
 
     # in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
+    my $selections = $self->collect_selections;
+    Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
     
     # if we have an export filename, start a new thread for exporting G-code
