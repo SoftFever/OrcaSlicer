@@ -7,14 +7,6 @@
 
 namespace Slic3r {
 
-std::string Line::wkt() const
-{
-    std::ostringstream ss;
-    ss << "LINESTRING(" << this->a(0) << " " << this->a(1) << ","
-        << this->b(0) << " " << this->b(1) << ")";
-    return ss.str();
-}
-
 bool Line::intersection_infinite(const Line &other, Point* point) const
 {
     Vec2d a1 = this->a.cast<double>();

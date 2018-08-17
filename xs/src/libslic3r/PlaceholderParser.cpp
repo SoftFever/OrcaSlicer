@@ -693,7 +693,7 @@ namespace client
             case coInts:     output.set_i(static_cast<const ConfigOptionInts    *>(opt.opt)->values[idx]); break;
             case coStrings:  output.set_s(static_cast<const ConfigOptionStrings *>(opt.opt)->values[idx]); break;
             case coPercents: output.set_d(static_cast<const ConfigOptionPercents*>(opt.opt)->values[idx]); break;
-            case coPoints:   output.set_s(static_cast<const ConfigOptionPoints  *>(opt.opt)->values[idx].dump_perl()); break;
+            case coPoints:   output.set_s(to_string(static_cast<const ConfigOptionPoints  *>(opt.opt)->values[idx])); break;
             case coBools:    output.set_b(static_cast<const ConfigOptionBools   *>(opt.opt)->values[idx] != 0); break;
             default:
                 ctx->throw_exception("Unknown vector variable type", opt.it_range);

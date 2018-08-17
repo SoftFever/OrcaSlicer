@@ -73,10 +73,10 @@ extern "C" {
 	#undef malloc
 	#undef realloc
 	#undef free
-	#undef Zero
-    #undef Packet
 	#undef select
 #endif /* _MSC_VER */
+#undef Zero
+#undef Packet
 }
 #endif
 

@@ -14,22 +14,21 @@
 namespace Slic3r {
 
 class Line;
-class Linef;
 class MultiPoint;
 class Point;
 class Point3;
 class Pointf;
 class Pointf3;
-typedef Point Vector;
-typedef Point3 Vector3;
-typedef Pointf Vectorf;
-typedef Pointf3 Vectorf3;
-typedef std::vector<Point> Points;
-typedef std::vector<Point*> PointPtrs;
-typedef std::vector<const Point*> PointConstPtrs;
-typedef std::vector<Point3> Points3;
-typedef std::vector<Pointf> Pointfs;
-typedef std::vector<Pointf3> Pointf3s;
+typedef Point                       Vector;
+typedef Point3                      Vector3;
+typedef Pointf                      Vectorf;
+typedef Pointf3                     Vectorf3;
+typedef std::vector<Point>          Points;
+typedef std::vector<Point*>         PointPtrs;
+typedef std::vector<const Point*>   PointConstPtrs;
+typedef std::vector<Point3>         Points3;
+typedef std::vector<Pointf>         Pointfs;
+typedef std::vector<Pointf3>        Pointf3s;
 
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
@@ -54,6 +53,11 @@ inline coord_t cross2(const Vec2crd &v1, const Vec2crd &v2) { return v1(0) * v2(
 inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 
+inline std::string to_string(const Vec2crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
+inline std::string to_string(const Vec2d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
+inline std::string to_string(const Vec3crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
+inline std::string to_string(const Vec3d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
+
 class Point : public Vec2crd
 {
 public:
@@ -77,16 +81,12 @@ public:
         return *this;
     }
 
-    bool operator==(const Point& rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1); }
-    bool operator!=(const Point& rhs) const { return ! (*this == rhs); }
     bool operator< (const Point& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
 
     Point& operator+=(const Point& rhs) { (*this)(0) += rhs(0); (*this)(1) += rhs(1); return *this; }
     Point& operator-=(const Point& rhs) { (*this)(0) -= rhs(0); (*this)(1) -= rhs(1); return *this; }
     Point& operator*=(const double &rhs) { (*this)(0) *= rhs; (*this)(1) *= rhs;   return *this; }
 
-    std::string wkt() const;
-    std::string dump_perl() const;
     void   rotate(double angle);
     void   rotate(double angle, const Point &center);
     Point  rotated(double angle) const { Point res(*this); res.rotate(angle); return res; }
@@ -106,15 +106,15 @@ public:
 namespace int128 {
     // Exact orientation predicate,
     // returns +1: CCW, 0: collinear, -1: CW.
-    int orient(const Point &p1, const Point &p2, const Point &p3);
+    int orient(const Vec2crd &p1, const Vec2crd &p2, const Vec2crd &p3);
     // Exact orientation predicate,
     // returns +1: CCW, 0: collinear, -1: CW.
-    int cross(const Point &v1, const Slic3r::Point &v2);
+    int cross(const Vec2crd &v1, const Vec2crd &v2);
 }
 
 // To be used by std::unordered_map, std::unordered_multimap and friends.
 struct PointHash {
-    size_t operator()(const Point &pt) const {
+    size_t operator()(const Vec2crd &pt) const {
         return std::hash<coord_t>()(pt(0)) ^ std::hash<coord_t>()(pt(1));
     }
 };
@@ -159,34 +159,34 @@ public:
     }
 
     void insert(const ValueType &value) {
-        const Point *pt = m_point_accessor(value);
+        const Vec2crd *pt = m_point_accessor(value);
         if (pt != nullptr)
-            m_map.emplace(std::make_pair(Point(pt->x()>>m_grid_log2, pt->y()>>m_grid_log2), value));
+            m_map.emplace(std::make_pair(Vec2crd(pt->x()>>m_grid_log2, pt->y()>>m_grid_log2), value));
     }
 
     void insert(ValueType &&value) {
-        const Point *pt = m_point_accessor(value);
+        const Vec2crd *pt = m_point_accessor(value);
         if (pt != nullptr)
-            m_map.emplace(std::make_pair(Point(pt->x()>>m_grid_log2, pt->y()>>m_grid_log2), std::move(value)));
+            m_map.emplace(std::make_pair(Vec2crd(pt->x()>>m_grid_log2, pt->y()>>m_grid_log2), std::move(value)));
     }
 
     // Return a pair of <ValueType*, distance_squared>
-    std::pair<const ValueType*, double> find(const Point &pt) {
+    std::pair<const ValueType*, double> find(const Vec2crd &pt) {
         // Iterate over 4 closest grid cells around pt,
         // find the closest start point inside these cells to pt.
         const ValueType *value_min = nullptr;
         double           dist_min = std::numeric_limits<double>::max();
         // Round pt to a closest grid_cell corner.
-        Point            grid_corner((pt(0)+(m_grid_resolution>>1))>>m_grid_log2, (pt(1)+(m_grid_resolution>>1))>>m_grid_log2);
+        Vec2crd            grid_corner((pt(0)+(m_grid_resolution>>1))>>m_grid_log2, (pt(1)+(m_grid_resolution>>1))>>m_grid_log2);
         // For four neighbors of grid_corner:
         for (coord_t neighbor_y = -1; neighbor_y < 1; ++ neighbor_y) {
             for (coord_t neighbor_x = -1; neighbor_x < 1; ++ neighbor_x) {
                 // Range of fragment starts around grid_corner, close to pt.
-                auto range = m_map.equal_range(Point(grid_corner(0) + neighbor_x, grid_corner(1) + neighbor_y));
+                auto range = m_map.equal_range(Vec2crd(grid_corner(0) + neighbor_x, grid_corner(1) + neighbor_y));
                 // Find the map entry closest to pt.
                 for (auto it = range.first; it != range.second; ++it) {
                     const ValueType &value = it->second;
-                    const Point *pt2 = m_point_accessor(value);
+                    const Vec2crd *pt2 = m_point_accessor(value);
                     if (pt2 != nullptr) {
                         const double d2 = (pt - *pt2).squaredNorm();
                         if (d2 < dist_min) {
@@ -203,7 +203,7 @@ public:
     }
 
 private:
-    typedef typename std::unordered_multimap<Point, ValueType, PointHash> map_type;
+    typedef typename std::unordered_multimap<Vec2crd, ValueType, PointHash> map_type;
     PointAccessor m_point_accessor;
     map_type m_map;
     coord_t  m_search_radius;
@@ -231,10 +231,7 @@ public:
         return *this;
     }
 
-    bool            operator==(const Point3 &rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1) && (*this)(2) == rhs(2); }
-    bool            operator!=(const Point3 &rhs) const { return ! (*this == rhs); }
-
-    Point           xy() const { return Point((*this)(0), (*this)(1)); }
+    Point xy() const { return Point((*this)(0), (*this)(1)); }
 };
 
 std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
@@ -260,13 +257,9 @@ public:
         return *this;
     }
 
-    std::string wkt() const;
-    std::string dump_perl() const;
     void    rotate(double angle);
     void    rotate(double angle, const Pointf &center);
 
-    bool operator==(const Pointf &rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1); }
-    bool operator!=(const Pointf &rhs) const { return ! (*this == rhs); }
     bool operator< (const Pointf& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
 };
 
@@ -291,9 +284,6 @@ public:
         this->Vec3d::operator=(other);
         return *this;
     }
-
-    bool operator==(const Pointf3 &rhs) const { return (*this)(0) == rhs(0) && (*this)(1) == rhs(1) && (*this)(2) == rhs(2); }
-    bool operator!=(const Pointf3 &rhs) const { return ! (*this == rhs); }
 
     Pointf xy() const { return Pointf((*this)(0), (*this)(1)); }
 };

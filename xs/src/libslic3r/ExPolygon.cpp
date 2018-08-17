@@ -505,17 +505,6 @@ ExPolygon::lines() const
     return lines;
 }
 
-std::string
-ExPolygon::dump_perl() const
-{
-    std::ostringstream ret;
-    ret << "[" << this->contour.dump_perl();
-    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h)
-        ret << "," << h->dump_perl();
-    ret << "]";
-    return ret.str();
-}
-
 BoundingBox get_extents(const ExPolygon &expolygon)
 {
     return get_extents(expolygon.contour);

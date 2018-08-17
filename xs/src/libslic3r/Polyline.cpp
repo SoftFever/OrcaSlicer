@@ -196,18 +196,6 @@ bool Polyline::is_straight() const
     return true;
 }
 
-std::string Polyline::wkt() const
-{
-    std::ostringstream wkt;
-    wkt << "LINESTRING((";
-    for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
-        wkt << p->x() << " " << p->y();
-        if (p != this->points.end()-1) wkt << ",";
-    }
-    wkt << "))";
-    return wkt.str();
-}
-
 BoundingBox get_extents(const Polyline &polyline)
 {
     return polyline.bounding_box();

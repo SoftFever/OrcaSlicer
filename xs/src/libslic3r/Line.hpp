@@ -20,7 +20,6 @@ class Line
 public:
     Line() {}
     explicit Line(Point _a, Point _b): a(_a), b(_b) {}
-    std::string wkt() const;
     explicit operator Lines() const { Lines lines; lines.emplace_back(*this); return lines; }
     void   scale(double factor) { this->a *= factor; this->b *= factor; }
     void   translate(double x, double y) { Vector v(x, y); this->a += v; this->b += v; }

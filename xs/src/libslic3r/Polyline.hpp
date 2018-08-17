@@ -73,7 +73,6 @@ public:
     template <class T> void simplify_by_visibility(const T &area);
     void split_at(const Point &point, Polyline* p1, Polyline* p2) const;
     bool is_straight() const;
-    std::string wkt() const;
 };
 
 extern BoundingBox get_extents(const Polyline &polyline);

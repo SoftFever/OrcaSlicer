@@ -6,20 +6,6 @@
 
 namespace Slic3r {
 
-std::string Point::wkt() const
-{
-    std::ostringstream ss;
-    ss << "POINT(" << (*this)(0) << " " << (*this)(1) << ")";
-    return ss.str();
-}
-
-std::string Point::dump_perl() const
-{
-    std::ostringstream ss;
-    ss << "[" << (*this)(0) << "," << (*this)(1) << "]";
-    return ss.str();
-}
-
 void Point::rotate(double angle)
 {
     double cur_x = (double)(*this)(0);
@@ -172,20 +158,6 @@ std::ostream& operator<<(std::ostream &stm, const Pointf &pointf)
     return stm << pointf(0) << "," << pointf(1);
 }
 
-std::string Pointf::wkt() const
-{
-    std::ostringstream ss;
-    ss << "POINT(" << (*this)(0) << " " << (*this)(1) << ")";
-    return ss.str();
-}
-
-std::string Pointf::dump_perl() const
-{
-    std::ostringstream ss;
-    ss << "[" << (*this)(0) << "," << (*this)(1) << "]";
-    return ss.str();
-}
-
 void Pointf::rotate(double angle)
 {
     double cur_x = (*this)(0);
@@ -210,14 +182,14 @@ void Pointf::rotate(double angle, const Pointf &center)
 
 namespace int128 {
 
-int orient(const Point &p1, const Point &p2, const Point &p3)
+int orient(const Vec2crd &p1, const Vec2crd &p2, const Vec2crd &p3)
 {
     Slic3r::Vector v1(p2 - p1);
     Slic3r::Vector v2(p3 - p1);
     return Int128::sign_determinant_2x2_filtered(v1(0), v1(1), v2(0), v2(1));
 }
 
-int cross(const Point &v1, const Point &v2)
+int cross(const Vec2crd &v1, const Vec2crd &v2)
 {
     return Int128::sign_determinant_2x2_filtered(v1(0), v1(1), v2(0), v2(1));
 }

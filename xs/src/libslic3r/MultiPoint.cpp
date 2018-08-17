@@ -153,19 +153,6 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
     return found;
 }
 
-std::string
-MultiPoint::dump_perl() const
-{
-    std::ostringstream ret;
-    ret << "[";
-    for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
-        ret << p->dump_perl();
-        if (p != this->points.end()-1) ret << ",";
-    }
-    ret << "]";
-    return ret.str();
-}
-
 //FIXME This is very inefficient in term of memory use.
 // The recursive algorithm shall run in place, not allocating temporary data in each recursion.
 Points
