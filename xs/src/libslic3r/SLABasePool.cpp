@@ -72,6 +72,53 @@ inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
     return lower;
 }
 
+inline Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
+                       double floor_z_mm, double ceiling_z_mm) {
+    using std::transform; using std::back_inserter;
+
+    ExPolygon poly;
+    poly.contour.points = floor_plate.contour.points;
+    poly.holes.emplace_back(ceiling.contour);
+    auto& h = poly.holes.front();
+    std::reverse(h.points.begin(), h.points.end());
+    Polygons tri;
+    poly.triangulate_p2t(&tri);
+
+    Contour3D ret;
+    ret.points.reserve(tri.size() * 3);
+
+    double fz = floor_z_mm;
+    double cz = ceiling_z_mm;
+    auto& rp = ret.points;
+    auto& rpi = ret.indices;
+    ret.indices.reserve(tri.size() * 3);
+
+    coord_t idx = 0;
+
+    auto hlines = h.lines();
+    auto is_upper = [&hlines](const Point& p) {
+        return std::any_of(hlines.begin(), hlines.end(),
+                               [&p](const Line& l) {
+            return l.distance_to(p) < mm(0.01);
+        });
+    };
+
+    std::for_each(tri.begin(), tri.end(),
+                  [&rp, &rpi, &poly, &idx, is_upper, fz, cz](const Polygon& pp)
+    {
+        for(auto& p : pp.points)
+            if(is_upper(p))
+                rp.emplace_back(Pointf3::new_unscale(x(p), y(p), mm(cz)));
+            else rp.emplace_back(Pointf3::new_unscale(x(p), y(p), mm(fz)));
+
+        coord_t a = idx++, b = idx++, c = idx++;
+        std::cout << a << " " << b << " " << c << std::endl;
+        rpi.emplace_back(a, b, c);
+    });
+
+    return ret;
+}
+
 /// Generating the concave part of the 3D pool with the bottom plate and the
 /// side walls.
 inline Contour3D inner_bed(const ExPolygon& poly, coord_t depth) {
@@ -315,65 +362,87 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       double min_wall_thickness_mm,
                       double min_wall_height_mm)
 {
-    // 1: Offset the ground layer
-    auto concaveh = concave_hull(ground_layer);
-    if(concaveh.contour.points.empty()) return;
-    concaveh.holes.clear();
-
-    BoundingBox bb(concaveh);
-    coord_t w = bb.max.x - bb.min.x;
-    coord_t h = bb.max.y - bb.min.y;
-
-    auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
-
-    const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) + wall_thickness;
-    const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
-    const coord_t HEIGHT = mm(min_wall_height_mm);
-
-    auto outer_base = concaveh;
-    offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
-    auto inner_base = outer_base;
-    offset(inner_base, -WALL_THICKNESS);
-    inner_base.holes.clear(); outer_base.holes.clear();
-
-    ExPolygon top_poly;
-    top_poly.contour = outer_base.contour;
-    top_poly.holes.emplace_back(inner_base.contour);
-    auto& tph = top_poly.holes.back().points;
-    std::reverse(tph.begin(), tph.end());
-
     Contour3D pool;
 
-    Polygons top_triangles, bottom_triangles;
-    top_poly.triangulate_p2t(&top_triangles);
-    outer_base.triangulate_p2t(&bottom_triangles);
-    auto top_plate = convert(top_triangles, 0, false);
-    auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
-    auto innerbed = inner_bed(inner_base, HEIGHT/2);
+    auto& poly = ground_layer.front();
+    auto floor_poly = poly;
+    offset(floor_poly, mm(5));
 
-    // Generate outer walls
-    auto fp = [](const Point& p, coord_t z) {
-        return Pointf3::new_unscale(x(p), y(p), z);
-    };
+//    Polygons floor_plate;
+//    floor_poly.triangulate_p2t(&floor_plate);
+//    auto floor_mesh = convert(floor_plate, mm(0), true);
+//    pool.merge(floor_mesh);
 
-    auto lines = outer_base.lines();
-    for(auto& l : lines) {
-        auto s = coord_t(pool.points.size());
+    Polygons ceil_plate;
+    poly.triangulate_p2t(&ceil_plate);
+    auto ceil_mesh = convert(ceil_plate, mm(20), false);
+    pool.merge(ceil_mesh);
 
-        pool.points.emplace_back(fp(l.a, -HEIGHT));
-        pool.points.emplace_back(fp(l.b, -HEIGHT));
-        pool.points.emplace_back(fp(l.a, 0));
-        pool.points.emplace_back(fp(l.b, 0));
+    auto w = walls(floor_poly, poly, 0, 20);
 
-        pool.indices.emplace_back(s, s + 3, s + 1);
-        pool.indices.emplace_back(s, s + 2, s + 3);
-    }
-
-    pool.merge(top_plate);
-    pool.merge(bottom_plate);
-    pool.merge(innerbed);
+    pool.merge(w);
 
     out = mesh(pool);
+
+
+//    auto concaveh = concave_hull(ground_layer);
+//    if(concaveh.contour.points.empty()) return;
+//    concaveh.holes.clear();
+
+//    BoundingBox bb(concaveh);
+//    coord_t w = bb.max.x - bb.min.x;
+//    coord_t h = bb.max.y - bb.min.y;
+
+//    auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
+
+//    const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) + wall_thickness;
+//    const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
+//    const coord_t HEIGHT = mm(min_wall_height_mm);
+
+//    auto outer_base = concaveh;
+//    offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
+//    auto inner_base = outer_base;
+//    offset(inner_base, -WALL_THICKNESS);
+//    inner_base.holes.clear(); outer_base.holes.clear();
+
+//    ExPolygon top_poly;
+//    top_poly.contour = outer_base.contour;
+//    top_poly.holes.emplace_back(inner_base.contour);
+//    auto& tph = top_poly.holes.back().points;
+//    std::reverse(tph.begin(), tph.end());
+
+//    Contour3D pool;
+
+//    Polygons top_triangles, bottom_triangles;
+//    top_poly.triangulate_p2t(&top_triangles);
+//    outer_base.triangulate_p2t(&bottom_triangles);
+//    auto top_plate = convert(top_triangles, 0, false);
+//    auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
+//    auto innerbed = inner_bed(inner_base, HEIGHT/2);
+
+//    // Generate outer walls
+//    auto fp = [](const Point& p, coord_t z) {
+//        return Pointf3::new_unscale(x(p), y(p), z);
+//    };
+
+//    auto lines = outer_base.lines();
+//    for(auto& l : lines) {
+//        auto s = coord_t(pool.points.size());
+
+//        pool.points.emplace_back(fp(l.a, -HEIGHT));
+//        pool.points.emplace_back(fp(l.b, -HEIGHT));
+//        pool.points.emplace_back(fp(l.a, 0));
+//        pool.points.emplace_back(fp(l.b, 0));
+
+//        pool.indices.emplace_back(s, s + 3, s + 1);
+//        pool.indices.emplace_back(s, s + 2, s + 3);
+//    }
+
+//    pool.merge(top_plate);
+//    pool.merge(bottom_plate);
+//    pool.merge(innerbed);
+
+//    out = mesh(pool);
 }
 
 }

@@ -135,7 +135,7 @@ Raster::Raster(Raster &&m):
 
 void Raster::reset(const Raster::Resolution &r, const Raster::PixelDim &pd)
 {
-    // Free up the unneccessary memory and make sure it stays clear after
+    // Free up the unnecessary memory and make sure it stays clear after
     // an exception
     auto o = impl_? impl_->origin() : Origin::TOP_LEFT;
     reset(r, pd, o);
