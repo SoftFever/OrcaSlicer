@@ -3,6 +3,7 @@
 
 #include <string>
 #include <type_traits>
+#include <algorithm>
 #include <array>
 #include <vector>
 #include <numeric>
@@ -68,7 +69,7 @@ class _Box: PointPair<RawPoint> {
     using PointPair<RawPoint>::p2;
 public:
 
-    inline _Box() {}
+    inline _Box() = default;
     inline _Box(const RawPoint& p, const RawPoint& pp):
         PointPair<RawPoint>({p, pp}) {}
 
@@ -85,6 +86,31 @@ public:
     inline TCoord<RawPoint> height() const BP2D_NOEXCEPT;
 
     inline RawPoint center() const BP2D_NOEXCEPT;
+
+    inline double area() const BP2D_NOEXCEPT {
+        return double(width()*height());
+    }
+};
+
+template<class RawPoint>
+class _Circle {
+    RawPoint center_;
+    double radius_ = 0;
+public:
+
+    _Circle() = default;
+
+    _Circle(const RawPoint& center, double r): center_(center), radius_(r) {}
+
+    inline const RawPoint& center() const BP2D_NOEXCEPT { return center_; }
+    inline const void center(const RawPoint& c) { center_ = c; }
+
+    inline double radius() const BP2D_NOEXCEPT { return radius_; }
+    inline void radius(double r) { radius_ = r; }
+
+    inline double area() const BP2D_NOEXCEPT {
+        return 2.0*Pi*radius_;
+    }
 };
 
 /**
@@ -97,7 +123,7 @@ class _Segment: PointPair<RawPoint> {
     mutable Radians angletox_ = std::nan("");
 public:
 
-    inline _Segment() {}
+    inline _Segment() = default;
 
     inline _Segment(const RawPoint& p, const RawPoint& pp):
         PointPair<RawPoint>({p, pp}) {}
@@ -188,7 +214,7 @@ struct PointLike {
 
         if( (y < y1 && y < y2) || (y > y1 && y > y2) )
             return {0, false};
-        else if ((y == y1 && y == y2) && (x > x1 && x > x2))
+        if ((y == y1 && y == y2) && (x > x1 && x > x2))
             ret = std::min( x-x1, x -x2);
         else if( (y == y1 && y == y2) && (x < x1 && x < x2))
             ret = -std::min(x1 - x, x2 - x);
@@ -214,7 +240,7 @@ struct PointLike {
 
         if( (x < x1 && x < x2) || (x > x1 && x > x2) )
             return {0, false};
-        else if ((x == x1 && x == x2) && (y > y1 && y > y2))
+        if ((x == x1 && x == x2) && (y > y1 && y > y2))
             ret = std::min( y-y1, y -y2);
         else if( (x == x1 && x == x2) && (y < y1 && y < y2))
             ret = -std::min(y1 - y, y2 - y);
@@ -329,7 +355,7 @@ enum class Formats {
 };
 
 // This struct serves as a namespace. The only difference is that it can be
-// used in friend declarations.
+// used in friend declarations and can be aliased at class scope.
 struct ShapeLike {
 
     template<class RawShape>
@@ -359,6 +385,51 @@ struct ShapeLike {
     static RawShape create(TContour<RawShape>&& contour)
     {
         return create<RawShape>(contour, {});
+    }
+
+    template<class RawShape>
+    static THolesContainer<RawShape>& holes(RawShape& /*sh*/)
+    {
+        static THolesContainer<RawShape> empty;
+        return empty;
+    }
+
+    template<class RawShape>
+    static const THolesContainer<RawShape>& holes(const RawShape& /*sh*/)
+    {
+        static THolesContainer<RawShape> empty;
+        return empty;
+    }
+
+    template<class RawShape>
+    static TContour<RawShape>& getHole(RawShape& sh, unsigned long idx)
+    {
+        return holes(sh)[idx];
+    }
+
+    template<class RawShape>
+    static const TContour<RawShape>& getHole(const RawShape& sh,
+                                              unsigned long idx)
+    {
+        return holes(sh)[idx];
+    }
+
+    template<class RawShape>
+    static size_t holeCount(const RawShape& sh)
+    {
+        return holes(sh).size();
+    }
+
+    template<class RawShape>
+    static TContour<RawShape>& getContour(RawShape& sh)
+    {
+        return sh;
+    }
+
+    template<class RawShape>
+    static const TContour<RawShape>& getContour(const RawShape& sh)
+    {
+        return sh;
     }
 
     // Optional, does nothing by default
@@ -402,7 +473,7 @@ struct ShapeLike {
     }
 
     template<Formats, class RawShape>
-    static std::string serialize(const RawShape& /*sh*/, double scale=1)
+    static std::string serialize(const RawShape& /*sh*/, double /*scale*/=1)
     {
         static_assert(always_false<RawShape>::value,
                       "ShapeLike::serialize() unimplemented!");
@@ -499,51 +570,6 @@ struct ShapeLike {
     }
 
     template<class RawShape>
-    static THolesContainer<RawShape>& holes(RawShape& /*sh*/)
-    {
-        static THolesContainer<RawShape> empty;
-        return empty;
-    }
-
-    template<class RawShape>
-    static const THolesContainer<RawShape>& holes(const RawShape& /*sh*/)
-    {
-        static THolesContainer<RawShape> empty;
-        return empty;
-    }
-
-    template<class RawShape>
-    static TContour<RawShape>& getHole(RawShape& sh, unsigned long idx)
-    {
-        return holes(sh)[idx];
-    }
-
-    template<class RawShape>
-    static const TContour<RawShape>& getHole(const RawShape& sh,
-                                              unsigned long idx)
-    {
-        return holes(sh)[idx];
-    }
-
-    template<class RawShape>
-    static size_t holeCount(const RawShape& sh)
-    {
-        return holes(sh).size();
-    }
-
-    template<class RawShape>
-    static TContour<RawShape>& getContour(RawShape& sh)
-    {
-        return sh;
-    }
-
-    template<class RawShape>
-    static const TContour<RawShape>& getContour(const RawShape& sh)
-    {
-        return sh;
-    }
-
-    template<class RawShape>
     static void rotate(RawShape& /*sh*/, const Radians& /*rads*/)
     {
         static_assert(always_false<RawShape>::value,
@@ -615,20 +641,96 @@ struct ShapeLike {
     }
 
     template<class RawShape>
+    static inline _Box<TPoint<RawShape>> boundingBox(
+            const _Circle<TPoint<RawShape>>& circ)
+    {
+        using Coord = TCoord<TPoint<RawShape>>;
+        TPoint<RawShape> pmin = {
+            static_cast<Coord>(getX(circ.center()) - circ.radius()),
+            static_cast<Coord>(getY(circ.center()) - circ.radius()) };
+
+        TPoint<RawShape> pmax = {
+            static_cast<Coord>(getX(circ.center()) + circ.radius()),
+            static_cast<Coord>(getY(circ.center()) + circ.radius()) };
+
+        return {pmin, pmax};
+    }
+
+    template<class RawShape>
     static inline double area(const _Box<TPoint<RawShape>>& box)
     {
         return static_cast<double>(box.width() * box.height());
     }
 
     template<class RawShape>
-    static double area(const Shapes<RawShape>& shapes)
+    static inline double area(const _Circle<TPoint<RawShape>>& circ)
     {
-        double ret = 0;
-        std::accumulate(shapes.first(), shapes.end(),
-                        [](const RawShape& a, const RawShape& b) {
-            return area(a) + area(b);
+        return circ.area();
+    }
+
+    template<class RawShape>
+    static inline double area(const Shapes<RawShape>& shapes)
+    {
+        return std::accumulate(shapes.begin(), shapes.end(), 0.0,
+                        [](double a, const RawShape& b) {
+            return a += area(b);
         });
-        return ret;
+    }
+
+    template<class RawShape>
+    static bool isInside(const TPoint<RawShape>& point,
+                         const _Circle<TPoint<RawShape>>& circ)
+    {
+        return PointLike::distance(point, circ.center()) < circ.radius();
+    }
+
+    template<class RawShape>
+    static bool isInside(const TPoint<RawShape>& point,
+                         const _Box<TPoint<RawShape>>& box)
+    {
+        auto px = getX(point);
+        auto py = getY(point);
+        auto minx = getX(box.minCorner());
+        auto miny = getY(box.minCorner());
+        auto maxx = getX(box.maxCorner());
+        auto maxy = getY(box.maxCorner());
+
+        return px > minx && px < maxx && py > miny && py < maxy;
+    }
+
+    template<class RawShape>
+    static bool isInside(const RawShape& sh,
+                         const _Circle<TPoint<RawShape>>& circ)
+    {
+        return std::all_of(cbegin(sh), cend(sh),
+                           [&circ](const TPoint<RawShape>& p){
+            return isInside<RawShape>(p, circ);
+        });
+    }
+
+    template<class RawShape>
+    static bool isInside(const _Box<TPoint<RawShape>>& box,
+                         const _Circle<TPoint<RawShape>>& circ)
+    {
+        return isInside<RawShape>(box.minCorner(), circ) &&
+                isInside<RawShape>(box.maxCorner(), circ);
+    }
+
+    template<class RawShape>
+    static bool isInside(const _Box<TPoint<RawShape>>& ibb,
+                         const _Box<TPoint<RawShape>>& box)
+    {
+        auto iminX = getX(ibb.minCorner());
+        auto imaxX = getX(ibb.maxCorner());
+        auto iminY = getY(ibb.minCorner());
+        auto imaxY = getY(ibb.maxCorner());
+
+        auto minX = getX(box.minCorner());
+        auto maxX = getX(box.maxCorner());
+        auto minY = getY(box.minCorner());
+        auto maxY = getY(box.maxCorner());
+
+        return iminX > minX && imaxX < maxX && iminY > minY && imaxY < maxY;
     }
 
     template<class RawShape> // Potential O(1) implementation may exist

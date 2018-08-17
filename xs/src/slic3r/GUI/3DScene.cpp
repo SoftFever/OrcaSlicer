@@ -205,11 +205,12 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , selected(false)
     , is_active(true)
     , zoom_to_volumes(true)
-    , outside_printer_detection_enabled(true)
+    , shader_outside_printer_detection_enabled(false)
     , is_outside(false)
     , hover(false)
     , is_modifier(false)
     , is_wipe_tower(false)
+    , is_extrusion_path(false)
     , tverts_range(0, size_t(-1))
     , qverts_range(0, size_t(-1))
 {
@@ -245,7 +246,7 @@ void GLVolume::set_render_color()
         set_render_color(is_outside ? SELECTED_OUTSIDE_COLOR : SELECTED_COLOR, 4);
     else if (hover)
         set_render_color(HOVER_COLOR, 4);
-    else if (is_outside)
+    else if (is_outside && shader_outside_printer_detection_enabled)
         set_render_color(OUTSIDE_COLOR, 4);
     else
         set_render_color(color, 4);
@@ -435,7 +436,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
             ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
 
         if (detection_id != -1)
-            ::glUniform1i(detection_id, outside_printer_detection_enabled ? 1 : 0);
+            ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
         if (worldmatrix_id != -1)
             ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
@@ -454,7 +455,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
         ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
 
     if (detection_id != -1)
-        ::glUniform1i(detection_id, outside_printer_detection_enabled ? 1 : 0);
+        ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
 
     if (worldmatrix_id != -1)
         ::glUniformMatrix4fv(worldmatrix_id, 1, GL_FALSE, (const GLfloat*)world_matrix().data());
@@ -627,7 +628,7 @@ std::vector<int> GLVolumeCollection::load_object(
                     v.extruder_id = extruder_id;
             }
             v.is_modifier = model_volume->modifier;
-            v.outside_printer_detection_enabled = !model_volume->modifier;
+            v.shader_outside_printer_detection_enabled = !model_volume->modifier;
             v.set_origin(Pointf3(instance->offset(0), instance->offset(1), 0.0));
             v.set_angle_z(instance->rotation);
             v.set_scale_factor(instance->scaling_factor);
@@ -637,20 +638,62 @@ std::vector<int> GLVolumeCollection::load_object(
     return volumes_idx; 
 }
 
-int GLVolumeCollection::load_wipe_tower_preview(
-    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs)
-{
-    float color[4] = { 0.5f, 0.5f, 0.0f, 0.5f };
-    this->volumes.emplace_back(new GLVolume(color));
-    GLVolume &v = *this->volumes.back();
 
+int GLVolumeCollection::load_wipe_tower_preview(
+    int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width)
+{
+    if (depth < 0.01f)
+        return int(this->volumes.size() - 1);
     if (height == 0.0f)
         height = 0.1f;
-
-    auto mesh = make_cube(width, depth, height);
-    mesh.translate(-width / 2.f, -depth / 2.f, 0.f);
     Point origin_of_rotation(0.f, 0.f);
-    mesh.rotate(rotation_angle,&origin_of_rotation);
+    TriangleMesh mesh;
+    float color[4] = { 0.5f, 0.5f, 0.0f, 1.f };
+
+    // In case we don't know precise dimensions of the wipe tower yet, we'll draw the box with different color with one side jagged:
+    if (size_unknown) {
+        color[0] = 0.9f;
+        color[1] = 0.6f;
+
+        depth = std::max(depth, 10.f); // Too narrow tower would interfere with the teeth. The estimate is not precise anyway.
+        float min_width = 30.f;
+        // We'll now create the box with jagged edge. y-coordinates of the pre-generated model are shifted so that the front
+        // edge has y=0 and centerline of the back edge has y=depth:
+        Pointf3s points;
+        std::vector<Point3> facets;
+        float out_points_idx[][3] = {{0, -depth, 0}, {0, 0, 0}, {38.453, 0, 0}, {61.547, 0, 0}, {100, 0, 0}, {100, -depth, 0}, {55.7735, -10, 0}, {44.2265, 10, 0},
+                                     {38.453, 0, 1}, {0, 0, 1}, {0, -depth, 1}, {100, -depth, 1}, {100, 0, 1}, {61.547, 0, 1}, {55.7735, -10, 1}, {44.2265, 10, 1}};
+        int out_facets_idx[][3] = {{0, 1, 2}, {3, 4, 5}, {6, 5, 0}, {3, 5, 6}, {6, 2, 7}, {6, 0, 2}, {8, 9, 10}, {11, 12, 13}, {10, 11, 14}, {14, 11, 13}, {15, 8, 14},
+                                   {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
+                                   {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11}};
+        for (int i=0;i<16;++i)
+            points.push_back(Pointf3(out_points_idx[i][0] / (100.f/min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
+        for (int i=0;i<28;++i)
+            facets.push_back(Point3(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
+        TriangleMesh tooth_mesh(points, facets);
+
+        // We have the mesh ready. It has one tooth and width of min_width. We will now append several of these together until we are close to
+        // the required width of the block. Than we can scale it precisely.
+        size_t n = std::max(1, int(width/min_width)); // How many shall be merged?
+        for (size_t i=0;i<n;++i) {
+            mesh.merge(tooth_mesh);
+            tooth_mesh.translate(min_width, 0.f, 0.f);
+        }
+
+        mesh.scale(Pointf3(width/(n*min_width), 1.f, height)); // Scaling to proper width
+    }
+    else
+        mesh = make_cube(width, depth, height);
+
+    // We'll make another mesh to show the brim (fixed layer height):
+    TriangleMesh brim_mesh = make_cube(width+2.f*brim_width, depth+2.f*brim_width, 0.2f);
+    brim_mesh.translate(-brim_width, -brim_width, 0.f);
+    mesh.merge(brim_mesh);
+
+    mesh.rotate(rotation_angle, &origin_of_rotation); // rotates the box according to the config rotation setting
+
+    this->volumes.emplace_back(new GLVolume(color));
+    GLVolume &v = *this->volumes.back();
 
     if (use_VBOs)
         v.indexed_vertex_array.load_mesh_full_shading(mesh);
@@ -666,6 +709,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.select_group_id = obj_idx * 1000000;
     v.drag_group_id = obj_idx * 1000;
     v.is_wipe_tower = true;
+    v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);
 }
 
@@ -1645,7 +1689,7 @@ void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<in
     s_canvas_mgr.update_volumes_selection(canvas, selections);
 }
 
-bool _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
+int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
 {
     return s_canvas_mgr.check_volumes_outside_state(canvas, config);
 }
@@ -1778,6 +1822,11 @@ void _3DScene::enable_shader(wxGLCanvas* canvas, bool enable)
 void _3DScene::enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable)
 {
     s_canvas_mgr.enable_force_zoom_to_bed(canvas, enable);
+}
+
+void _3DScene::enable_dynamic_background(wxGLCanvas* canvas, bool enable)
+{
+    s_canvas_mgr.enable_dynamic_background(canvas, enable);
 }
 
 void _3DScene::allow_multisample(wxGLCanvas* canvas, bool allow)
@@ -1962,24 +2011,14 @@ void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
     s_canvas_mgr.reload_scene(canvas, force);
 }
 
-void _3DScene::load_print_toolpaths(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.load_print_toolpaths(canvas);
-}
-
-void _3DScene::load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors)
-{
-    s_canvas_mgr.load_print_object_toolpaths(canvas, print_object, str_tool_colors);
-}
-
-void _3DScene::load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
-{
-    s_canvas_mgr.load_wipe_tower_toolpaths(canvas, str_tool_colors);
-}
-
 void _3DScene::load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors)
 {
     s_canvas_mgr.load_gcode_preview(canvas, preview_data, str_tool_colors);
+}
+
+void _3DScene::load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors)
+{
+    s_canvas_mgr.load_preview(canvas, str_tool_colors);
 }
 
 void _3DScene::reset_legend_texture()

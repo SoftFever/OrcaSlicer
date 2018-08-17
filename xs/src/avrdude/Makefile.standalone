@@ -1,0 +1,54 @@
+
+TARGET = avrdude-slic3r
+
+SOURCES = \
+    arduino.c \
+    avr.c \
+    avrpart.c \
+    avr910.c \
+    bitbang.c \
+    buspirate.c \
+    butterfly.c \
+    config.c \
+    config_gram.c \
+    crc16.c \
+    fileio.c \
+    lexer.c \
+    linuxgpio.c \
+    lists.c \
+    pgm.c \
+    pgm_type.c \
+    pickit2.c \
+    pindefs.c \
+    safemode.c \
+    ser_avrdoper.c \
+    serbb_posix.c \
+    serbb_win32.c \
+    ser_posix.c \
+    ser_win32.c \
+    stk500.c \
+    stk500generic.c \
+    stk500v2.c \
+    term.c \
+    update.c \
+    wiring.c \
+    main.c \
+    main-standalone.c
+
+OBJECTS = $(SOURCES:.c=.o)
+CFLAGS = -std=c99 -Wall -D_BSD_SOURCE -D_DEFAULT_SOURCE -O3 -DNDEBUG -fPIC
+LDFLAGS = -lm
+
+CC = gcc
+RM = rm
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) -o ./$@ $(OBJECTS) $(LDFLAGS)
+
+$(OBJECTS): %.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $<
+
+clean:
+	$(RM) -f $(OBJECTS) $(TARGET)

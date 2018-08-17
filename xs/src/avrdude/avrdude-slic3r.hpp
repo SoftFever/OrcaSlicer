@@ -15,7 +15,7 @@ public:
 	typedef std::function<void()> RunFn;
 	typedef std::function<void(const char * /* msg */, unsigned /* size */)> MessageFn;
 	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
-	typedef std::function<void(int /* exit status */, size_t /* args_id */)> CompleteFn;
+	typedef std::function<void()> CompleteFn;
 
 	// Main c-tor, sys_config is the location of avrdude's main configuration file
 	AvrDude(std::string sys_config);
@@ -31,7 +31,8 @@ public:
 	AvrDude& push_args(std::vector<std::string> args);
 
 	// Set a callback to be called just after run() before avrdude is ran
-	// This can be used to perform any needed setup tasks from the background thread.
+	// This can be used to perform any needed setup tasks from the background thread,
+	// and, optionally, to cancel by writing true to the `cancel` argument.
 	// This has no effect when using run_sync().
 	AvrDude& on_run(RunFn fn);
 
@@ -53,6 +54,10 @@ public:
 
 	void cancel();
 	void join();
+
+	bool cancelled();          // Whether avrdude run was cancelled
+	int exit_code();           // The exit code of the last invocation
+	size_t last_args_set();    // Index of the last argument set that was processsed
 private:
 	struct priv;
 	std::unique_ptr<priv> p;

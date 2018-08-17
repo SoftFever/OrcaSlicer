@@ -919,6 +919,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_bridging");
+        optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("interface_shells");
@@ -1291,10 +1292,13 @@ void TabFilament::build()
         optgroup = page->new_optgroup(_(L("Toolchange parameters with single extruder MM printers")));
 		optgroup->append_single_option_line("filament_loading_speed");
         optgroup->append_single_option_line("filament_unloading_speed");
+		optgroup->append_single_option_line("filament_load_time");
+		optgroup->append_single_option_line("filament_unload_time");
         optgroup->append_single_option_line("filament_toolchange_delay");
         optgroup->append_single_option_line("filament_cooling_moves");
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
+        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
@@ -1606,6 +1610,7 @@ void TabPrinter::build()
 		optgroup = page->new_optgroup(_(L("Firmware")));
 		optgroup->append_single_option_line("gcode_flavor");
 		optgroup->append_single_option_line("silent_mode");
+		optgroup->append_single_option_line("remaining_times");
 
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
 			wxTheApp->CallAfter([this, opt_key, value](){
@@ -2728,7 +2733,7 @@ void SavePresetWindow::accept()
 		const char* unusable_symbols = "<>:/\\|?*\"";
 		bool is_unusable_symbol = false;
 		bool is_unusable_postfix = false;
-		const std::string unusable_postfix = "(modified)";
+		const std::string unusable_postfix = PresetCollection::get_suffix_modified();//"(modified)";
 		for (size_t i = 0; i < std::strlen(unusable_symbols); i++){
 			if (m_chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos){
 				is_unusable_symbol = true;
@@ -2743,8 +2748,9 @@ void SavePresetWindow::accept()
 							_(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
 		}
 		else if (is_unusable_postfix){
-			show_error(this,	_(L("The supplied name is not valid;")) + "\n" + 
-								_(L("the following postfix are not allowed:")) + "\n\t" + unusable_postfix);
+			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
+							_(L("the following postfix are not allowed:")) + "\n\t" + //unusable_postfix);
+							wxString::FromUTF8(unusable_postfix.c_str()));
 		}
 		else if (m_chosen_name.compare("- default -") == 0) {
 			show_error(this, _(L("The supplied name is not available.")));

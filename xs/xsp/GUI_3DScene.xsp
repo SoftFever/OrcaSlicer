@@ -85,7 +85,7 @@
 
     std::vector<int> load_object(ModelObject *object, int obj_idx, std::vector<int> instance_idxs, std::string color_by, std::string select_by, std::string drag_by, bool use_VBOs);
 
-    int load_wipe_tower_preview(int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
+    int load_wipe_tower_preview(int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
 
     void erase()
         %code{% THIS->clear(); %};
@@ -226,7 +226,7 @@ update_volumes_selection(canvas, selections)
     CODE:
         _3DScene::update_volumes_selection((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), selections);
 
-bool
+int
 check_volumes_outside_state(canvas, config)
         SV                 *canvas;
         DynamicPrintConfig *config;
@@ -425,6 +425,13 @@ enable_force_zoom_to_bed(canvas, enable)
         bool enable;
     CODE:
         _3DScene::enable_force_zoom_to_bed((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
+
+void
+enable_dynamic_background(canvas, enable)
+        SV   *canvas;
+        bool enable;
+    CODE:
+        _3DScene::enable_dynamic_background((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), enable);
 
 void
 allow_multisample(canvas, allow)
@@ -653,27 +660,6 @@ reload_scene(canvas, force)
     CODE:
         _3DScene::reload_scene((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), force);
 
-void
-load_print_toolpaths(canvas)
-        SV *canvas;
-    CODE:
-        _3DScene::load_print_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
-
-void 
-load_print_object_toolpaths(canvas, print_object, tool_colors)
-        SV                       *canvas;
-        PrintObject              *print_object;
-        std::vector<std::string> tool_colors;
-    CODE:
-        _3DScene::load_print_object_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), print_object, tool_colors);
-
-void
-load_wipe_tower_toolpaths(canvas, tool_colors)
-        SV                       *canvas;
-        std::vector<std::string> tool_colors;
-    CODE:
-        _3DScene::load_wipe_tower_toolpaths((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), tool_colors);
-
 void 
 load_gcode_preview(canvas, preview_data, str_tool_colors)
         SV                       *canvas;
@@ -681,5 +667,12 @@ load_gcode_preview(canvas, preview_data, str_tool_colors)
         std::vector<std::string> str_tool_colors;
     CODE:
         _3DScene::load_gcode_preview((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), preview_data, str_tool_colors);
-        
+
+void
+load_preview(canvas, str_tool_colors)
+        SV                       *canvas;
+        std::vector<std::string> str_tool_colors;
+    CODE:
+        _3DScene::load_preview((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), str_tool_colors);
+
 %}
