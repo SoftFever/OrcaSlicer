@@ -497,6 +497,14 @@ if (WIN32)
     target_compile_definitions(XS PRIVATE -DNOGDI -DNOMINMAX -DHAS_BOOL)
 endif ()
 
+# SLIC3R_MSVC_PDB
+if (MSVC AND SLIC3R_MSVC_PDB AND ${CMAKE_BUILD_TYPE} STREQUAL "Release")
+    set_target_properties(XS PROPERTIES
+        COMPILE_FLAGS "/Zi"
+        LINK_FLAGS "/DEBUG /OPT:REF /OPT:ICF"
+    )
+endif()
+
 ## Configuration flags
 if (SLIC3R_GUI)
     message("Slic3r will be built with GUI support")

@@ -22,6 +22,7 @@ option(SLIC3R_GUI    			"Compile Slic3r with GUI components (OpenGL, wxWidgets)"
 option(SLIC3R_PRUSACONTROL		"Compile Slic3r with the PrusaControl prject file format (requires wxWidgets base library)" 1)
 option(SLIC3R_PROFILE 			"Compile Slic3r with an invasive Shiny profiler" 0)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
+option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 
 if (MSVC AND SLIC3R_MSVC_COMPILE_PARALLEL)
 	add_compile_options(/MP)
