@@ -1126,8 +1126,7 @@ sub changescale {
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $model_instance = $model_object->instances->[0];
     
-    my $object_size = $model_object->bounding_box->size;
-    my $bed_size = Slic3r::Polygon->new_scale(@{$self->{config}->bed_shape})->bounding_box->size;
+    my $object_size = $model_object->instance_bounding_box(0)->size;
     
     if (defined $axis) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
@@ -1135,7 +1134,7 @@ sub changescale {
         if ($tosize) {
             my $cursize = $object_size->[$axis];
             my $newsize = $self->_get_number_from_user(
-                sprintf(L('Enter the new size for the selected object (print bed: %smm):'), unscale($bed_size->[$axis])), 
+                L('Enter the new size for the selected object:'), 
                 L("Scale along ").$axis_name, L('Invalid scaling value entered'), $cursize, 1);
             return if $newsize eq '';
             $scale = $newsize / $cursize * 100;
