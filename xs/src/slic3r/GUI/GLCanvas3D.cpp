@@ -1139,7 +1139,11 @@ bool GLCanvas3D::Gizmos::init()
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
-    gizmo = new GLGizmoRotate;
+#if ENABLE_GIZMOS_3D
+    gizmo = new GLGizmoRotate3D;
+#else
+    gizmo = new GLGizmoRotate(GLGizmoRotate::Z);
+#endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
     {
         _reset();
@@ -1294,14 +1298,14 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
-void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
+void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->update(mouse_pos);
+        curr->update(mouse_ray);
 }
 
 void GLCanvas3D::Gizmos::refresh()
@@ -1374,7 +1378,11 @@ float GLCanvas3D::Gizmos::get_angle_z() const
         return 0.0f;
 
     GizmosMap::const_iterator it = m_gizmos.find(Rotate);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate*>(it->second)->get_angle_z() : 0.0f;
+#if ENABLE_GIZMOS_3D
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate3D*>(it->second)->get_angle_z() : 0.0f;
+#else
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate*>(it->second)->get_angle() : 0.0f;
+#endif // ENABLE_GIZMOS_3D
 }
 
 void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
@@ -1384,7 +1392,11 @@ void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
 
     GizmosMap::const_iterator it = m_gizmos.find(Rotate);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle_z(angle_z);
+#if ENABLE_GIZMOS_3D
+reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
+#else
+        reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle(angle_z);
+#endif // ENABLE_GIZMOS_3D
 }
 
 void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
@@ -3096,9 +3108,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Dragging() && m_gizmos.is_dragging())
     {
         m_mouse.dragging = true;
-
-        const Pointf3& cur_pos = _mouse_to_bed_3d(pos);
-        m_gizmos.update(Pointf(cur_pos.x, cur_pos.y));
+        m_gizmos.update(mouse_ray(pos));
 
         std::vector<GLVolume*> volumes;
         if (m_mouse.drag.gizmo_volume_idx != -1)
@@ -4129,9 +4139,14 @@ Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
 
 Pointf3 GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
 {
+    return mouse_ray(mouse_pos).intersect_plane(0.0);
+}
+
+Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
+{
     float z0 = 0.0f;
     float z1 = 1.0f;
-    return Linef3(_mouse_to_3d(mouse_pos, &z0), _mouse_to_3d(mouse_pos, &z1)).intersect_plane(0.0);
+    return Linef3(_mouse_to_3d(mouse_pos, &z0), _mouse_to_3d(mouse_pos, &z1));
 }
 
 void GLCanvas3D::_start_timer()

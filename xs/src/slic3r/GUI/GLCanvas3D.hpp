@@ -365,7 +365,7 @@ public:
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Pointf& mouse_pos);
+        void update(const Linef3& mouse_ray);
         void refresh();
 
         EType get_current_type() const;
@@ -693,6 +693,9 @@ private:
 
     // Convert the screen space coordinate to world coordinate on the bed.
     Pointf3 _mouse_to_bed_3d(const Point& mouse_pos);
+
+    // Returns the view ray line, in world coordinate, at the given mouse position.
+    Linef3 mouse_ray(const Point& mouse_pos);
 
     void _start_timer();
     void _stop_timer();
