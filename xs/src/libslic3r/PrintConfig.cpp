@@ -518,7 +518,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-minimal-purge-on-wipe-tower=f@";
     def->sidetext = L("mm³");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats { 5.f };
+    def->default_value = new ConfigOptionFloats { 15.f };
 
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
@@ -572,10 +572,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("filament_type", coStrings);
     def->label = L("Filament type");
-    def->tooltip = L("If you want to process the output G-code through custom scripts, just list their "
-                   "absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed "
-                   "the absolute path to the G-code file as the first argument, and they can access "
-                   "the Slic3r config settings by reading environment variables.");
+    def->tooltip = L("The filament material type for use in custom G-codes.");
     def->cli = "filament_type=s@";
     def->gui_type = "f_enum_open";
     def->gui_flags = "show_value";
@@ -921,7 +918,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("remaining_times", coBool);
     def->label = L("Supports remaining times");
-    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in seconds] at 1 minute"
+    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute"
                      " intervals into the G-code to let the firmware show accurate remaining time."
                      " As of now only the Prusa i3 MK3 firmware recognizes M73."
                      " Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode.");

@@ -38,7 +38,6 @@ if ($gui) {
     %prereqs = qw(
     Class::Accessor                 0
     Wx                              0.9918
-    Socket                          2.016
     );
     %recommends = qw(
     Wx::GLCanvas                    0
