@@ -21,9 +21,6 @@ struct PolygonImpl {
     PathImpl Contour;
     HoleStore Holes;
 
-    using Tag = libnest2d::PolygonTag;
-    using PointType = PointImpl;
-
     inline PolygonImpl() = default;
 
     inline explicit PolygonImpl(const PathImpl& cont): Contour(cont) {}
@@ -102,41 +99,49 @@ template<> struct PointType<PolygonImpl> {
     using Type = PointImpl;
 };
 
-// Type of vertex iterator used by Clipper
-template<> struct VertexIteratorType<PolygonImpl> {
-    using Type = ClipperLib::Path::iterator;
-};
-
-// Type of vertex iterator used by Clipper
-template<> struct VertexConstIteratorType<PolygonImpl> {
-    using Type = ClipperLib::Path::const_iterator;
+template<> struct PointType<PointImpl> {
+    using Type = PointImpl;
 };
 
 template<> struct CountourType<PolygonImpl> {
     using Type = PathImpl;
 };
 
+template<> struct ShapeTag<PolygonImpl> { using Type = PolygonTag; };
+
+template<> struct ShapeTag<TMultiShape<PolygonImpl>> {
+    using Type = MultiPolygonTag;
+};
+
+template<> struct PointType<TMultiShape<PolygonImpl>> {
+    using Type = PointImpl;
+};
+
+template<> struct HolesContainer<PolygonImpl> {
+    using Type = ClipperLib::Paths;
+};
+
 namespace pointlike {
 
-// Tell binpack2d how to extract the X coord from a ClipperPoint object
+// Tell libnest2d how to extract the X coord from a ClipperPoint object
 template<> inline TCoord<PointImpl> x(const PointImpl& p)
 {
     return p.X;
 }
 
-// Tell binpack2d how to extract the Y coord from a ClipperPoint object
+// Tell libnest2d how to extract the Y coord from a ClipperPoint object
 template<> inline TCoord<PointImpl> y(const PointImpl& p)
 {
     return p.Y;
 }
 
-// Tell binpack2d how to extract the X coord from a ClipperPoint object
+// Tell libnest2d how to extract the X coord from a ClipperPoint object
 template<> inline TCoord<PointImpl>& x(PointImpl& p)
 {
     return p.X;
 }
 
-// Tell binpack2d how to extract the Y coord from a ClipperPoint object
+// Tell libnest2d how to extract the Y coord from a ClipperPoint object
 template<> inline TCoord<PointImpl>& y(PointImpl& p)
 {
     return p.Y;
@@ -178,10 +183,6 @@ inline double area<Orientation::COUNTER_CLOCKWISE>(const PolygonImpl& sh) {
 
 }
 
-template<> struct HolesContainer<PolygonImpl> {
-    using Type = ClipperLib::Paths;
-};
-
 namespace shapelike {
 
 template<> inline void reserve(PolygonImpl& sh, size_t vertex_capacity)
@@ -189,7 +190,7 @@ template<> inline void reserve(PolygonImpl& sh, size_t vertex_capacity)
     return sh.Contour.reserve(vertex_capacity);
 }
 
-// Tell binpack2d how to make string out of a ClipperPolygon object
+// Tell libnest2d how to make string out of a ClipperPolygon object
 template<> inline double area(const PolygonImpl& sh, const PolygonTag&)
 {
     return _smartarea::area<OrientationType<PolygonImpl>::Value>(sh);
@@ -267,28 +268,6 @@ template<> inline std::string toString(const PolygonImpl& sh)
     }
 
     return ss.str();
-}
-
-template<> inline TVertexIterator<PolygonImpl> begin(PolygonImpl& sh)
-{
-    return sh.Contour.begin();
-}
-
-template<> inline TVertexIterator<PolygonImpl> end(PolygonImpl& sh)
-{
-    return sh.Contour.end();
-}
-
-template<>
-inline TVertexConstIterator<PolygonImpl> cbegin(const PolygonImpl& sh)
-{
-    return sh.Contour.cbegin();
-}
-
-template<> inline TVertexConstIterator<PolygonImpl> cend(
-        const PolygonImpl& sh)
-{
-    return sh.Contour.cend();
 }
 
 template<>
@@ -410,8 +389,8 @@ inline void rotate(PolygonImpl& sh, const Radians& rads)
 } // namespace shapelike
 
 #define DISABLE_BOOST_NFP_MERGE
-inline nfp::Shapes<PolygonImpl> _merge(ClipperLib::Clipper& clipper) {
-    nfp::Shapes<PolygonImpl> retv;
+inline std::vector<PolygonImpl> _merge(ClipperLib::Clipper& clipper) {
+    shapelike::Shapes<PolygonImpl> retv;
 
     ClipperLib::PolyTree result;
     clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNegative);
@@ -447,8 +426,8 @@ inline nfp::Shapes<PolygonImpl> _merge(ClipperLib::Clipper& clipper) {
 
 namespace nfp {
 
-template<> inline nfp::Shapes<PolygonImpl>
-merge(const nfp::Shapes<PolygonImpl>& shapes)
+template<> inline std::vector<PolygonImpl>
+merge(const std::vector<PolygonImpl>& shapes)
 {
     ClipperLib::Clipper clipper(ClipperLib::ioReverseSolution);
 

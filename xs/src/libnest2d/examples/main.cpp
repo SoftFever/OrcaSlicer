@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-
 //#define DEBUG_EXPORT_NFP
 
 #include <libnest2d.h>
@@ -12,6 +11,8 @@
 #include "libnest2d/rotfinder.hpp"
 
 //#include "tools/libnfpglue.hpp"
+//#include "tools/nfp_svgnest_glue.hpp"
+
 
 using namespace libnest2d;
 using ItemGroup = std::vector<std::reference_wrapper<Item>>;
@@ -53,10 +54,50 @@ void arrangeRectangles() {
 
     const int SCALE = 1000000;
 
-    std::vector<Rectangle> rects = {
-        {60*SCALE, 200*SCALE},
-        {60*SCALE, 200*SCALE}
-    };
+    std::vector<Item> rects(100,       {
+                                     {-9945219, -3065619},
+                                     {-9781479, -2031780},
+                                     {-9510560, -1020730},
+                                     {-9135450, -43529},
+                                     {-2099999, 14110899},
+                                     {2099999, 14110899},
+                                     {9135450, -43529},
+                                     {9510560, -1020730},
+                                     {9781479, -2031780},
+                                     {9945219, -3065619},
+                                     {10000000, -4110899},
+                                     {9945219, -5156179},
+                                     {9781479, -6190019},
+                                     {9510560, -7201069},
+                                     {9135450, -8178270},
+                                     {8660249, -9110899},
+                                     {8090169, -9988750},
+                                     {7431449, -10802209},
+                                     {6691309, -11542349},
+                                     {5877850, -12201069},
+                                     {5000000, -12771149},
+                                     {4067369, -13246350},
+                                     {3090169, -13621459},
+                                     {2079119, -13892379},
+                                     {1045279, -14056119},
+                                     {0, -14110899},
+                                     {-1045279, -14056119},
+                                     {-2079119, -13892379},
+                                     {-3090169, -13621459},
+                                     {-4067369, -13246350},
+                                     {-5000000, -12771149},
+                                     {-5877850, -12201069},
+                                     {-6691309, -11542349},
+                                     {-7431449, -10802209},
+                                     {-8090169, -9988750},
+                                     {-8660249, -9110899},
+                                     {-9135450, -8178270},
+                                     {-9510560, -7201069},
+                                     {-9781479, -6190019},
+                                     {-9945219, -5156179},
+                                     {-10000000, -4110899},
+                                     {-9945219, -3065619},
+                                 });
 
     std::vector<Item> input;
     input.insert(input.end(), prusaParts().begin(), prusaParts().end());
@@ -84,7 +125,7 @@ void arrangeRectangles() {
 
 //    _Circle<PointImpl> bin({0, 0}, 125*SCALE);
 
-    auto min_obj_distance = static_cast<Coord>(0*SCALE);
+    auto min_obj_distance = static_cast<Coord>(1.5*SCALE);
 
     using Placer = strategies::_NofitPolyPlacer<PolygonImpl, decltype(bin)>;
     using Packer = Nester<Placer, FirstFitSelection>;
@@ -95,14 +136,15 @@ void arrangeRectangles() {
     pconf.alignment = Placer::Config::Alignment::CENTER;
     pconf.starting_point = Placer::Config::Alignment::CENTER;
     pconf.rotations = {0.0/*, Pi/2.0, Pi, 3*Pi/2*/};
-    pconf.accuracy = 1.0f;
+    pconf.accuracy = 0.5f;
+    pconf.parallel = true;
 
     Packer::SelectionConfig sconf;
 //    sconf.allow_parallel = false;
 //    sconf.force_parallel = false;
 //    sconf.try_triplets = true;
 //    sconf.try_reverse_order = true;
-//    sconf.waste_increment = 0.005;
+//    sconf.waste_increment = 0.01;
 
     arrange.configure(pconf, sconf);
 
@@ -175,7 +217,6 @@ void arrangeRectangles() {
     SVGWriter svgw(conf);
     svgw.setSize(Box(250*SCALE, 210*SCALE));
     svgw.writePackGroup(result);
-//    std::for_each(input.begin(), input.end(), [&svgw](Item& item){ svgw.writeItem(item);});
     svgw.save("out");
 }
 

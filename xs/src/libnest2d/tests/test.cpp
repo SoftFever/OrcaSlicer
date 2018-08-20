@@ -5,6 +5,7 @@
 #include "printer_parts.h"
 #include <libnest2d/geometry_traits_nfp.hpp>
 //#include "../tools/libnfpglue.hpp"
+//#include "../tools/nfp_svgnest_glue.hpp"
 
 std::vector<libnest2d::Item>& prusaParts() {
     static std::vector<libnest2d::Item> ret;
@@ -219,21 +220,21 @@ TEST(GeometryAlgorithms, IsPointInsidePolygon) {
 
     Point p = {1, 1};
 
-    ASSERT_TRUE(rect.isPointInside(p));
+    ASSERT_TRUE(rect.isInside(p));
 
     p = {11, 11};
 
-    ASSERT_FALSE(rect.isPointInside(p));
+    ASSERT_FALSE(rect.isInside(p));
 
 
     p = {11, 12};
 
-    ASSERT_FALSE(rect.isPointInside(p));
+    ASSERT_FALSE(rect.isInside(p));
 
 
     p = {3, 3};
 
-    ASSERT_TRUE(rect.isPointInside(p));
+    ASSERT_TRUE(rect.isInside(p));
 
 }
 

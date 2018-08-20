@@ -356,8 +356,7 @@ inline double area(const PolygonImpl& shape, const PolygonTag&)
 #endif
 
 template<>
-inline bool isInside<PolygonImpl>(const PointImpl& point,
-                                  const PolygonImpl& shape)
+inline bool isInside(const PointImpl& point, const PolygonImpl& shape)
 {
     return boost::geometry::within(point, shape);
 }
@@ -390,7 +389,8 @@ inline bp2d::Box boundingBox(const PolygonImpl& sh, const PolygonTag&)
 }
 
 template<>
-inline bp2d::Box boundingBox<PolygonImpl>(const bp2d::Shapes& shapes)
+inline bp2d::Box boundingBox<bp2d::Shapes>(const bp2d::Shapes& shapes,
+                                           const MultiPolygonTag&)
 {
     bp2d::Box b;
     boost::geometry::envelope(shapes, b);
@@ -400,7 +400,7 @@ inline bp2d::Box boundingBox<PolygonImpl>(const bp2d::Shapes& shapes)
 
 #ifndef DISABLE_BOOST_CONVEX_HULL
 template<>
-inline PolygonImpl convexHull(const PolygonImpl& sh)
+inline PolygonImpl convexHull(const PolygonImpl& sh, const PolygonTag&)
 {
     PolygonImpl ret;
     boost::geometry::convex_hull(sh, ret);
@@ -408,39 +408,12 @@ inline PolygonImpl convexHull(const PolygonImpl& sh)
 }
 
 template<>
-inline PolygonImpl convexHull(const bp2d::Shapes& shapes)
+inline PolygonImpl convexHull(const TMultiShape<PolygonImpl>& shapes,
+                              const MultiPolygonTag&)
 {
     PolygonImpl ret;
     boost::geometry::convex_hull(shapes, ret);
     return ret;
-}
-#endif
-
-#ifndef DISABLE_BOOST_ROTATE
-template<>
-inline void rotate(PolygonImpl& sh, const Radians& rads)
-{
-    namespace trans = boost::geometry::strategy::transform;
-
-    PolygonImpl cpy = sh;
-    trans::rotate_transformer<boost::geometry::radian, Radians, 2, 2>
-            rotate(rads);
-
-    boost::geometry::transform(cpy, sh, rotate);
-}
-#endif
-
-#ifndef DISABLE_BOOST_TRANSLATE
-template<>
-inline void translate(PolygonImpl& sh, const PointImpl& offs)
-{
-    namespace trans = boost::geometry::strategy::transform;
-
-    PolygonImpl cpy = sh;
-    trans::translate_transformer<bp2d::Coord, 2, 2> translate(
-                bp2d::getX(offs), bp2d::getY(offs));
-
-    boost::geometry::transform(cpy, sh, translate);
 }
 #endif
 
@@ -515,12 +488,22 @@ template<> inline std::pair<bool, std::string> isValid(const PolygonImpl& sh)
 namespace nfp {
 
 #ifndef DISABLE_BOOST_NFP_MERGE
+
+// Warning: I could not get boost union_ to work. Geometries will overlap.
 template<>
-inline bp2d::Shapes Nfp::merge(const bp2d::Shapes& shapes,
+inline bp2d::Shapes nfp::merge(const bp2d::Shapes& shapes,
                                const PolygonImpl& sh)
 {
     bp2d::Shapes retv;
     boost::geometry::union_(shapes, sh, retv);
+    return retv;
+}
+
+template<>
+inline bp2d::Shapes nfp::merge(const bp2d::Shapes& shapes)
+{
+    bp2d::Shapes retv;
+    boost::geometry::union_(shapes, shapes.back(), retv);
     return retv;
 }
 #endif

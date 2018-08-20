@@ -93,6 +93,8 @@ if(LIBNEST2D_BUILD_EXAMPLES)
     add_executable(example examples/main.cpp
 #                           tools/libnfpglue.hpp
 #                           tools/libnfpglue.cpp
+                           tools/nfp_svgnest.hpp
+                           tools/nfp_svgnest_glue.hpp
                            tools/svgtools.hpp
                            tests/printer_parts.cpp
                            tests/printer_parts.h

@@ -31,6 +31,8 @@ class _Item {
     using Vertex = TPoint<RawShape>;
     using Box = _Box<Vertex>;
 
+    using VertexConstIterator = typename TContour<RawShape>::const_iterator;
+
     // The original shape that gets encapsulated.
     RawShape sh_;
 
@@ -39,7 +41,7 @@ class _Item {
     Radians rotation_;
     Coord offset_distance_;
 
-    // Info about whether the tranformations will have to take place
+    // Info about whether the transformations will have to take place
     // This is needed because if floating point is used, it is hard to say
     // that a zero angle is not a rotation because of testing for equality.
     bool has_rotation_ = false, has_translation_ = false, has_offset_ = false;
@@ -59,8 +61,8 @@ class _Item {
     };
 
     mutable Convexity convexity_ = Convexity::UNCHECKED;
-    mutable TVertexConstIterator<RawShape> rmt_;    // rightmost top vertex
-    mutable TVertexConstIterator<RawShape> lmb_;    // leftmost bottom vertex
+    mutable VertexConstIterator rmt_;    // rightmost top vertex
+    mutable VertexConstIterator lmb_;    // leftmost bottom vertex
     mutable bool rmt_valid_ = false, lmb_valid_ = false;
     mutable struct BBCache {
         Box bb; bool valid; Vertex tr;
@@ -81,7 +83,7 @@ public:
      * supports. Giving out a non const iterator would make it impossible to
      * perform correct cache invalidation.
      */
-    using Iterator = TVertexConstIterator<RawShape>;
+    using Iterator = VertexConstIterator;
 
     /**
      * @brief Get the orientation of the polygon.
@@ -110,7 +112,7 @@ public:
     explicit inline _Item(RawShape&& sh): sh_(std::move(sh)) {}
 
     /**
-     * @brief Create an item from an initilizer list.
+     * @brief Create an item from an initializer list.
      * @param il The initializer list of vertices.
      */
     inline _Item(const std::initializer_list< Vertex >& il):
@@ -160,7 +162,7 @@ public:
     }
 
     /**
-     * @brief Get a copy of an outer vertex whithin the carried shape.
+     * @brief Get a copy of an outer vertex within the carried shape.
      *
      * Note that the vertex considered here is taken from the original shape
      * that this item is constructed from. This means that no transformation is
@@ -245,7 +247,7 @@ public:
      * @param p
      * @return
      */
-    inline bool isPointInside(const Vertex& p) const
+    inline bool isInside(const Vertex& p) const
     {
         return sl::isInside(p, transformedShape());
     }
@@ -505,7 +507,7 @@ rem(typename Container::const_iterator it, const Container& cont) {
 /**
  * \brief A wrapper interface (trait) class for any placement strategy provider.
  *
- * If a client want's to use its own placement algorithm, all it has to do is to
+ * If a client wants to use its own placement algorithm, all it has to do is to
  * specialize this class template and define all the ten methods it has. It can
  * use the strategies::PlacerBoilerplace class for creating a new placement
  * strategy where only the constructor and the trypack method has to be provided
@@ -558,7 +560,7 @@ public:
      * Note that it depends on the particular placer implementation how it
      * reacts to config changes in the middle of a calculation.
      *
-     * @param config The configuration object defined by the placement startegy.
+     * @param config The configuration object defined by the placement strategy.
      */
     inline void configure(const Config& config) { impl_.configure(config); }
 
@@ -568,7 +570,7 @@ public:
      *
      * \param item_store A container of items that are intended to be packed
      * later. Can be used by the placer to switch tactics. When it's knows that
-     * many items will come a greedy startegy may not be the best.
+     * many items will come a greedy strategy may not be the best.
      * \param from The iterator to the item from which the packing should start,
      * including the pointed item
      * \param count How many items should be packed. If the value is 1, than
@@ -596,7 +598,7 @@ public:
      * A default implementation would be to call
      * { auto&& r = trypack(...); accept(r); return r; } but we should let the
      * implementor of the placement strategy to harvest any optimizations from
-     * the absence of an intermadiate step. The above version can still be used
+     * the absence of an intermediate step. The above version can still be used
      * in the implementation.
      *
      * @param item The item to pack.
@@ -628,13 +630,6 @@ public:
 
     inline double filledArea() const { return impl_.filledArea(); }
 
-#ifndef NDEBUG
-    inline auto getDebugItems() -> decltype(impl_.debug_items_)&
-    {
-        return impl_.debug_items_;
-    }
-#endif
-
 };
 
 // The progress function will be called with the number of placed items
@@ -659,15 +654,15 @@ public:
      * Note that it depends on the particular placer implementation how it
      * reacts to config changes in the middle of a calculation.
      *
-     * @param config The configuration object defined by the selection startegy.
+     * @param config The configuration object defined by the selection strategy.
      */
     inline void configure(const Config& config) {
         impl_.configure(config);
     }
 
     /**
-     * @brief A function callback which should be called whenewer an item or
-     * a group of items where succesfully packed.
+     * @brief A function callback which should be called whenever an item or
+     * a group of items where successfully packed.
      * @param fn A function callback object taking one unsigned integer as the
      * number of the remaining items to pack.
      */
@@ -680,7 +675,7 @@ public:
      * placer compatible with the PlacementStrategyLike interface.
      *
      * \param first, last The first and last iterator if the input sequence. It
-     * can be only an iterator of a type converitible to Item.
+     * can be only an iterator of a type convertible to Item.
      * \param bin. The shape of the bin. It has to be supported by the placement
      * strategy.
      * \param An optional config object for the placer.
@@ -712,7 +707,7 @@ public:
     /**
      * @brief Get the items for a particular bin.
      * @param binIndex The index of the requested bin.
-     * @return Returns a list of allitems packed into the requested bin.
+     * @return Returns a list of all items packed into the requested bin.
      */
     inline ItemGroup itemsForBin(size_t binIndex) {
         return impl_.itemsForBin(binIndex);
@@ -754,7 +749,7 @@ using _IndexedPackGroup = std::vector<
                           >;
 
 /**
- * The Arranger is the frontend class for the binpack2d library. It takes the
+ * The Arranger is the front-end class for the libnest2d library. It takes the
  * input items and outputs the items with the proper transformations to be
  * inside the provided bin.
  */
@@ -857,7 +852,7 @@ public:
         return _execute(from, to);
     }
 
-    /// Set a progress indicatior function object for the selector.
+    /// Set a progress indicator function object for the selector.
     inline Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
@@ -877,8 +872,8 @@ private:
     template<class TIterator,
              class IT = remove_cvref_t<typename TIterator::value_type>,
 
-             // This funtion will be used only if the iterators are pointing to
-             // a type compatible with the binpack2d::_Item template.
+             // This function will be used only if the iterators are pointing to
+             // a type compatible with the libnets2d::_Item template.
              // This way we can use references to input elements as they will
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
@@ -904,8 +899,8 @@ private:
     template<class TIterator,
              class IT = remove_cvref_t<typename TIterator::value_type>,
 
-             // This funtion will be used only if the iterators are pointing to
-             // a type compatible with the binpack2d::_Item template.
+             // This function will be used only if the iterators are pointing to
+             // a type compatible with the libnest2d::_Item template.
              // This way we can use references to input elements as they will
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>

@@ -2,7 +2,15 @@
 #define NOFITPOLY_HPP
 
 #include <cassert>
-#include <random>
+
+// For caching nfps
+#include <unordered_map>
+
+// For parallel for
+#include <functional>
+#include <iterator>
+#include <future>
+#include <atomic>
 
 #ifndef NDEBUG
 #include <iostream>
@@ -13,8 +21,84 @@
 
 #include "tools/svgtools.hpp"
 
+namespace libnest2d {
 
-namespace libnest2d { namespace strategies {
+namespace __parallel {
+
+using std::function;
+using std::iterator_traits;
+template<class It>
+using TIteratorValue = typename iterator_traits<It>::value_type;
+
+template<class Iterator>
+inline void enumerate(
+        Iterator from, Iterator to,
+        function<void(TIteratorValue<Iterator>, unsigned)> fn,
+        std::launch policy = std::launch::deferred | std::launch::async)
+{
+    auto N = to-from;
+    std::vector<std::future<void>> rets(N);
+
+    auto it = from;
+    for(unsigned b = 0; b < N; b++) {
+        rets[b] = std::async(policy, fn, *it++, b);
+    }
+
+    for(unsigned fi = 0; fi < rets.size(); ++fi) rets[fi].wait();
+}
+
+}
+
+namespace __itemhash {
+
+using Key = size_t;
+
+template<class S>
+Key hash(const _Item<S>& item) {
+    using Point = TPoint<S>;
+    using Segment = _Segment<Point>;
+
+    static const int N = 26;
+    static const int M = N*N - 1;
+
+    std::string ret;
+    auto& rhs = item.rawShape();
+    auto& ctr = sl::getContour(rhs);
+    auto it = ctr.begin();
+    auto nx = std::next(it);
+
+    double circ = 0;
+    while(nx != ctr.end()) {
+        Segment seg(*it++, *nx++);
+        Radians a = seg.angleToXaxis();
+        double deg = Degrees(a);
+        int ms = 'A', ls = 'A';
+        while(deg > N) { ms++; deg -= N; }
+        ls += int(deg);
+        ret.push_back(char(ms)); ret.push_back(char(ls));
+        circ += seg.length();
+    }
+
+    it = ctr.begin(); nx = std::next(it);
+
+    while(nx != ctr.end()) {
+        Segment seg(*it++, *nx++);
+        auto l = int(M * seg.length() / circ);
+        int ms = 'A', ls = 'A';
+        while(l > N) { ms++; l -= N; }
+        ls += l;
+        ret.push_back(char(ms)); ret.push_back(char(ls));
+    }
+
+    return std::hash<std::string>()(ret);
+}
+
+template<class S>
+using Hash = std::unordered_map<Key, nfp::NfpResult<S>>;
+
+}
+
+namespace strategies {
 
 template<class RawShape>
 struct NfpPConfig {
@@ -71,7 +155,7 @@ struct NfpPConfig {
      * decisions (for you or a more intelligent AI).
      *
      */
-    std::function<double(nfp::Shapes<RawShape>&, const _Item<RawShape>&,
+    std::function<double(const nfp::Shapes<RawShape>&, const _Item<RawShape>&,
                          const ItemGroup&)>
     object_function;
 
@@ -80,7 +164,7 @@ struct NfpPConfig {
      * This is a compromise slider between quality and speed. Zero is the
      * fast and poor solution while 1.0 is the slowest but most accurate.
      */
-    float accuracy = 1.0;
+    float accuracy = 0.65f;
 
     /**
      * @brief If you want to see items inside other item's holes, you have to
@@ -90,6 +174,11 @@ struct NfpPConfig {
      * The library has no such implementation right now.
      */
     bool explore_holes = false;
+
+    /**
+     * @brief If true, use all CPUs available. Run on a single core otherwise.
+     */
+    bool parallel = true;
 
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
@@ -325,121 +414,8 @@ inline void correctNfpPosition(nfp::NfpResult<RawShape>& nfp,
     shapelike::translate(nfp.first, dnfp);
 }
 
-template<class RawShape, class Container>
-nfp::Shapes<RawShape> calcnfp( const Container& polygons,
-                           const _Item<RawShape>& trsh,
-                           Lvl<nfp::NfpLevel::CONVEX_ONLY>)
-{
-    using Item = _Item<RawShape>;
-    using namespace nfp;
-
-    nfp::Shapes<RawShape> nfps;
-
-//    int pi = 0;
-    for(Item& sh : polygons) {
-        auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(
-                            sh.transformedShape(), trsh.transformedShape());
-        #ifndef NDEBUG
-            auto vv = sl::isValid(sh.transformedShape());
-            assert(vv.first);
-
-            auto vnfp = sl::isValid(subnfp_r.first);
-            assert(vnfp.first);
-        #endif
-
-        correctNfpPosition(subnfp_r, sh, trsh);
-
-        nfps = nfp::merge(nfps, subnfp_r.first);
-
-//        double SCALE = 1000000;
-//        using SVGWriter = svg::SVGWriter<RawShape>;
-//        SVGWriter::Config conf;
-//        conf.mm_in_coord_units = SCALE;
-//        SVGWriter svgw(conf);
-//        Box bin(250*SCALE, 210*SCALE);
-//        svgw.setSize(bin);
-//        for(int i = 0; i <= pi; i++) svgw.writeItem(polygons[i]);
-//        svgw.writeItem(trsh);
-////        svgw.writeItem(Item(subnfp_r.first));
-//        for(auto& n : nfps) svgw.writeItem(Item(n));
-//        svgw.save("nfpout");
-//        pi++;
-    }
-
-    return nfps;
-}
-
-template<class RawShape, class Container, class Level>
-nfp::Shapes<RawShape> calcnfp( const Container& polygons,
-                           const _Item<RawShape>& trsh,
-                           Level)
-{
-    using namespace nfp;
-    using Item = _Item<RawShape>;
-
-    Shapes<RawShape> nfps;
-
-    auto& orb = trsh.transformedShape();
-    bool orbconvex = trsh.isContourConvex();
-
-    for(Item& sh : polygons) {
-        nfp::NfpResult<RawShape> subnfp;
-        auto& stat = sh.transformedShape();
-
-        if(sh.isContourConvex() && orbconvex)
-            subnfp = nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(stat, orb);
-        else if(orbconvex)
-            subnfp = nfp::noFitPolygon<NfpLevel::ONE_CONVEX>(stat, orb);
-        else
-            subnfp = nfp::noFitPolygon<Level::value>(stat, orb);
-
-        correctNfpPosition(subnfp, sh, trsh);
-
-        nfps = nfp::merge(nfps, subnfp.first);
-    }
-
-    return nfps;
-
-
-//    using Item = _Item<RawShape>;
-//    using sl = ShapeLike;
-
-//    Nfp::Shapes<RawShape> nfps, stationary;
-
-//    for(Item& sh : polygons) {
-//        stationary = Nfp::merge(stationary, sh.transformedShape());
-//    }
-
-//    for(RawShape& sh : stationary) {
-
-////        auto vv = sl::isValid(sh);
-////        std::cout << vv.second << std::endl;
-
-
-//        Nfp::NfpResult<RawShape> subnfp;
-//        bool shconvex = sl::isConvex<RawShape>(sl::getContour(sh));
-//        if(shconvex && trsh.isContourConvex()) {
-//            subnfp = Nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(
-//                        sh, trsh.transformedShape());
-//        } else if(trsh.isContourConvex()) {
-//            subnfp = Nfp::noFitPolygon<NfpLevel::ONE_CONVEX>(
-//                        sh, trsh.transformedShape());
-//        }
-//        else {
-//            subnfp = Nfp::noFitPolygon<Level::value>( sh,
-//                                                      trsh.transformedShape());
-//        }
-
-//        correctNfpPosition(subnfp, sh, trsh);
-
-//        nfps = Nfp::merge(nfps, subnfp.first);
-//    }
-
-//    return nfps;
-}
-
-template<class RawShape>
-_Circle<TPoint<RawShape>> minimizeCircle(const RawShape& sh) {
+template<class RawShape, class Circle = _Circle<TPoint<RawShape>> >
+Circle minimizeCircle(const RawShape& sh) {
     using Point = TPoint<RawShape>;
     using Coord = TCoord<Point>;
 
@@ -507,9 +483,19 @@ class _NofitPolyPlacer: public PlacerBoilerplate<_NofitPolyPlacer<RawShape, TBin
 
     using Box = _Box<TPoint<RawShape>>;
 
+    using MaxNfpLevel = nfp::MaxNfpLevel<RawShape>;
+
+    using ItemKeys = std::vector<__itemhash::Key>;
+
+    // Norming factor for the optimization function
     const double norm_;
 
-    using MaxNfpLevel = nfp::MaxNfpLevel<RawShape>;
+    // Caching calculated nfps
+    __itemhash::Hash<RawShape> nfpcache_;
+
+    // Storing item hash keys
+    ItemKeys item_keys_;
+
 public:
 
     using Pile = nfp::Shapes<RawShape>;
@@ -526,60 +512,290 @@ public:
     _NofitPolyPlacer& operator=(_NofitPolyPlacer&&) BP2D_NOEXCEPT = default;
 #endif
 
-    bool static inline wouldFit(const Box& bb, const RawShape& bin) {
-        auto bbin = sl::boundingBox<RawShape>(bin);
+    static inline double overfit(const Box& bb, const RawShape& bin) {
+        auto bbin = sl::boundingBox(bin);
         auto d = bbin.center() - bb.center();
         _Rectangle<RawShape> rect(bb.width(), bb.height());
         rect.translate(bb.minCorner() + d);
-        return sl::isInside<RawShape>(rect.transformedShape(), bin);
+        return sl::isInside(rect.transformedShape(), bin) ? -1.0 : 1;
     }
 
-    bool static inline wouldFit(const RawShape& chull, const RawShape& bin) {
-        auto bbch = sl::boundingBox<RawShape>(chull);
-        auto bbin = sl::boundingBox<RawShape>(bin);
+    static inline double overfit(const RawShape& chull, const RawShape& bin) {
+        auto bbch = sl::boundingBox(chull);
+        auto bbin = sl::boundingBox(bin);
         auto d =  bbch.center() - bbin.center();
         auto chullcpy = chull;
         sl::translate(chullcpy, d);
-        return sl::isInside<RawShape>(chullcpy, bin);
+        return sl::isInside(chullcpy, bin) ? -1.0 : 1.0;
     }
 
-    bool static inline wouldFit(const RawShape& chull, const Box& bin)
+    static inline double overfit(const RawShape& chull, const Box& bin)
     {
-        auto bbch = sl::boundingBox<RawShape>(chull);
-        return wouldFit(bbch, bin);
+        auto bbch = sl::boundingBox(chull);
+        return overfit(bbch, bin);
     }
 
-    bool static inline wouldFit(const Box& bb, const Box& bin)
+    static inline double overfit(const Box& bb, const Box& bin)
     {
-        return bb.width() <= bin.width() && bb.height() <= bin.height();
+        auto wdiff = double(bb.width() - bin.width());
+        auto hdiff = double(bb.height() - bin.height());
+        double diff = 0;
+        if(wdiff > 0) diff += wdiff;
+        if(hdiff > 0) diff += hdiff;
+        return diff;
     }
 
-    bool static inline wouldFit(const Box& bb, const _Circle<Vertex>& bin)
+    static inline double overfit(const Box& bb, const _Circle<Vertex>& bin)
     {
-
-        return sl::isInside<RawShape>(bb, bin);
+        double boxr = 0.5*pl::distance(bb.minCorner(), bb.maxCorner());
+        double diff = boxr - bin.radius();
+        return diff;
     }
 
-    bool static inline wouldFit(const RawShape& chull,
+    static inline double overfit(const RawShape& chull,
                                 const _Circle<Vertex>& bin)
     {
-        return boundingCircle(chull).radius() < bin.radius();
+        double r = boundingCircle(chull).radius();
+        double diff = r - bin.radius();
+        return diff;
     }
 
     template<class Range = ConstItemRange<typename Base::DefaultIter>>
-    PackResult trypack(
+    PackResult trypack(Item& item,
+                        const Range& remaining = Range()) {
+        auto result = _trypack(item, remaining);
+
+        // Experimental
+        // if(!result) repack(item, result);
+
+        return result;
+    }
+
+    ~_NofitPolyPlacer() {
+        clearItems();
+    }
+
+    inline void clearItems() {
+        finalAlign(bin_);
+        Base::clearItems();
+    }
+
+private:
+
+    using Shapes = TMultiShape<RawShape>;
+    using ItemRef = std::reference_wrapper<Item>;
+    using ItemWithHash = const std::pair<ItemRef, __itemhash::Key>;
+
+    Shapes calcnfp(const ItemWithHash itsh, Lvl<nfp::NfpLevel::CONVEX_ONLY>)
+    {
+        using namespace nfp;
+
+        Shapes nfps;
+        const Item& trsh = itsh.first;
+    //    nfps.reserve(polygons.size());
+
+//        unsigned idx = 0;
+        for(Item& sh : items_) {
+
+//            auto ik = item_keys_[idx++] + itsh.second;
+//            auto fnd = nfpcache_.find(ik);
+
+//            nfp::NfpResult<RawShape> subnfp_r;
+//            if(fnd == nfpcache_.end()) {
+
+                auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(
+                                sh.transformedShape(), trsh.transformedShape());
+//                nfpcache_[ik] = subnfp_r;
+//            } else {
+//                subnfp_r = fnd->second;
+//            }
+
+            correctNfpPosition(subnfp_r, sh, trsh);
+
+    //        nfps.emplace_back(subnfp_r.first);
+            nfps = nfp::merge(nfps, subnfp_r.first);
+        }
+
+    //    nfps = nfp::merge(nfps);
+
+        return nfps;
+    }
+
+    template<class Level>
+    Shapes calcnfp( const ItemWithHash itsh, Level)
+    { // Function for arbitrary level of nfp implementation
+        using namespace nfp;
+
+        Shapes nfps;
+        const Item& trsh = itsh.first;
+
+        auto& orb = trsh.transformedShape();
+        bool orbconvex = trsh.isContourConvex();
+
+        for(Item& sh : items_) {
+            nfp::NfpResult<RawShape> subnfp;
+            auto& stat = sh.transformedShape();
+
+            if(sh.isContourConvex() && orbconvex)
+                subnfp = nfp::noFitPolygon<NfpLevel::CONVEX_ONLY>(stat, orb);
+            else if(orbconvex)
+                subnfp = nfp::noFitPolygon<NfpLevel::ONE_CONVEX>(stat, orb);
+            else
+                subnfp = nfp::noFitPolygon<Level::value>(stat, orb);
+
+            correctNfpPosition(subnfp, sh, trsh);
+
+            nfps = nfp::merge(nfps, subnfp.first);
+        }
+
+        return nfps;
+    }
+
+    // Very much experimental
+    void repack(Item& item, PackResult& result) {
+
+        if((sl::area(bin_) - this->filledArea()) >= item.area()) {
+            auto prev_func = config_.object_function;
+
+            unsigned iter = 0;
+            ItemGroup backup_rf = items_;
+            std::vector<Item> backup_cpy;
+            for(Item& itm : items_) backup_cpy.emplace_back(itm);
+
+            auto ofn = [this, &item, &result, &iter, &backup_cpy, &backup_rf]
+                    (double ratio)
+            {
+                auto& bin = bin_;
+                iter++;
+                config_.object_function = [bin, ratio](
+                        nfp::Shapes<RawShape>& pile,
+                        const Item& item,
+                        const ItemGroup& /*remaining*/)
+                {
+                    pile.emplace_back(item.transformedShape());
+                    auto ch = sl::convexHull(pile);
+                    auto pbb = sl::boundingBox(pile);
+                    pile.pop_back();
+
+                    double parea = 0.5*(sl::area(ch) + sl::area(pbb));
+
+                    double pile_area = std::accumulate(
+                                pile.begin(), pile.end(), item.area(),
+                                [](double sum, const RawShape& sh){
+                        return sum + sl::area(sh);
+                    });
+
+                    // The pack ratio -- how much is the convex hull occupied
+                    double pack_rate = (pile_area)/parea;
+
+                    // ratio of waste
+                    double waste = 1.0 - pack_rate;
+
+                    // Score is the square root of waste. This will extend the
+                    // range of good (lower) values and shrink the range of bad
+                    // (larger) values.
+                    auto wscore = std::sqrt(waste);
+
+
+                    auto ibb = item.boundingBox();
+                    auto bbb = sl::boundingBox(bin);
+                    auto c = ibb.center();
+                    double norm = 0.5*pl::distance(bbb.minCorner(),
+                                                   bbb.maxCorner());
+
+                    double dscore = pl::distance(c, pbb.center()) / norm;
+
+                    return ratio*wscore + (1.0 - ratio) * dscore;
+                };
+
+                auto bb = sl::boundingBox(bin);
+                double norm = bb.width() + bb.height();
+
+                auto items = items_;
+                clearItems();
+                auto it = items.begin();
+                while(auto pr = _trypack(*it++)) {
+                    this->accept(pr); if(it == items.end()) break;
+                }
+
+                auto count_diff = items.size() - items_.size();
+                double score = count_diff;
+
+                if(count_diff == 0) {
+                    result = _trypack(item);
+
+                    if(result) {
+                        std::cout << "Success" << std::endl;
+                        score = 0.0;
+                    } else {
+                        score += result.overfit() / norm;
+                    }
+                } else {
+                    result = PackResult();
+                    items_ = backup_rf;
+                    for(unsigned i = 0; i < items_.size(); i++) {
+                        items_[i].get() = backup_cpy[i];
+                    }
+                }
+
+                std::cout << iter << " repack result: " << score << " "
+                          << ratio << " " << count_diff << std::endl;
+
+                return score;
+            };
+
+                opt::StopCriteria stopcr;
+                stopcr.max_iterations = 30;
+                stopcr.stop_score = 1e-20;
+                opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
+                solver.optimize_min(ofn, opt::initvals(0.5),
+                                    opt::bound(0.0, 1.0));
+
+            // optimize
+            config_.object_function = prev_func;
+        }
+
+    }
+
+    struct Optimum {
+        double relpos;
+        unsigned nfpidx;
+        int hidx;
+        Optimum(double pos, unsigned nidx):
+            relpos(pos), nfpidx(nidx), hidx(-1) {}
+        Optimum(double pos, unsigned nidx, int holeidx):
+            relpos(pos), nfpidx(nidx), hidx(holeidx) {}
+    };
+
+    class Optimizer: public opt::TOptimizer<opt::Method::L_SUBPLEX> {
+    public:
+        Optimizer() {
+            opt::StopCriteria stopcr;
+            stopcr.max_iterations = 200;
+            stopcr.relative_score_difference = 1e-20;
+            this->stopcr_ = stopcr;
+        }
+    };
+
+    using Edges = EdgeCache<RawShape>;
+
+    template<class Range = ConstItemRange<typename Base::DefaultIter>>
+    PackResult _trypack(
             Item& item,
             const Range& remaining = Range()) {
 
         PackResult ret;
 
         bool can_pack = false;
+        double best_overfit = std::numeric_limits<double>::max();
 
         auto remlist = ItemGroup(remaining.from, remaining.to);
+        size_t itemhash = __itemhash::hash(item);
 
         if(items_.empty()) {
             setInitialPosition(item);
-            can_pack = item.isInside(bin_);
+            best_overfit = overfit(item.transformedShape(), bin_);
+            can_pack = best_overfit <= 0;
         } else {
 
             double global_score = std::numeric_limits<double>::max();
@@ -588,7 +804,7 @@ public:
             auto initial_rot = item.rotation();
             Vertex final_tr = {0, 0};
             Radians final_rot = initial_rot;
-            nfp::Shapes<RawShape> nfps;
+            Shapes nfps;
 
             for(auto rot : config_.rotations) {
 
@@ -596,17 +812,16 @@ public:
                 item.rotation(initial_rot + rot);
 
                 // place the new item outside of the print bed to make sure
-                // it is disjuct from the current merged pile
+                // it is disjunct from the current merged pile
                 placeOutsideOfBin(item);
 
-                auto trsh = item.transformedShape();
+                nfps = calcnfp({item, itemhash}, Lvl<MaxNfpLevel::value>());
 
-                nfps = calcnfp(items_, item, Lvl<MaxNfpLevel::value>());
-                auto iv = nfp::referenceVertex(trsh);
+                auto iv = item.referenceVertex();
 
                 auto startpos = item.translation();
 
-                std::vector<EdgeCache<RawShape>> ecache;
+                std::vector<Edges> ecache;
                 ecache.reserve(nfps.size());
 
                 for(auto& nfp : nfps ) {
@@ -614,14 +829,54 @@ public:
                     ecache.back().accuracy(config_.accuracy);
                 }
 
-                struct Optimum {
-                    double relpos;
-                    unsigned nfpidx;
-                    int hidx;
-                    Optimum(double pos, unsigned nidx):
-                        relpos(pos), nfpidx(nidx), hidx(-1) {}
-                    Optimum(double pos, unsigned nidx, int holeidx):
-                        relpos(pos), nfpidx(nidx), hidx(holeidx) {}
+                Shapes pile;
+                pile.reserve(items_.size()+1);
+                // double pile_area = 0;
+                for(Item& mitem : items_) {
+                    pile.emplace_back(mitem.transformedShape());
+                    // pile_area += mitem.area();
+                }
+
+                auto merged_pile = nfp::merge(pile);
+                auto& bin = bin_;
+                double norm = norm_;
+
+                // This is the kernel part of the object function that is
+                // customizable by the library client
+                auto _objfunc = config_.object_function?
+                            config_.object_function :
+                            [norm, /*pile_area,*/ bin, merged_pile](
+                                const Pile& /*pile*/,
+                                const Item& item,
+                                const ItemGroup& /*remaining*/)
+                {
+                    auto ibb = item.boundingBox();
+                    auto binbb = sl::boundingBox(bin);
+                    auto mp = merged_pile;
+                    mp.emplace_back(item.transformedShape());
+                    auto fullbb = sl::boundingBox(mp);
+
+                    double score = pl::distance(ibb.center(), binbb.center());
+                    score /= norm;
+
+                    double miss = overfit(fullbb, bin);
+                    miss = miss > 0? miss : 0;
+                    score += std::pow(miss, 2);
+
+                    return score;
+                };
+
+                // Our object function for placement
+                auto rawobjfunc =
+                        [item, _objfunc, iv,
+                         startpos, remlist, pile] (Vertex v)
+                {
+                    auto d = v - iv;
+                    d += startpos;
+                    Item itm = item;
+                    itm.translation(d);
+
+                    return _objfunc(pile, itm, remlist);
                 };
 
                 auto getNfpPoint = [&ecache](const Optimum& opt)
@@ -630,58 +885,10 @@ public:
                             ecache[opt.nfpidx].coords(opt.hidx, opt.relpos);
                 };
 
-                nfp::Shapes<RawShape> pile;
-                pile.reserve(items_.size()+1);
-                double pile_area = 0;
-                for(Item& mitem : items_) {
-                    pile.emplace_back(mitem.transformedShape());
-                    pile_area += mitem.area();
-                }
-
-                auto merged_pile = nfp::merge(pile);
-
-                // This is the kernel part of the object function that is
-                // customizable by the library client
-                auto _objfunc = config_.object_function?
-                            config_.object_function :
-                [this, &merged_pile, &pile_area](
-                            nfp::Shapes<RawShape>& /*pile*/,
-                            const Item& item,
-                            const ItemGroup& /*remaining*/)
+                auto boundaryCheck =
+                    [&merged_pile, &getNfpPoint, &item, &bin, &iv, &startpos]
+                    (const Optimum& o)
                 {
-                    merged_pile.emplace_back(item.transformedShape());
-                    auto ch = sl::convexHull(merged_pile);
-                    merged_pile.pop_back();
-
-                    // The pack ratio -- how much is the convex hull occupied
-                    double pack_rate = (pile_area + item.area())/sl::area(ch);
-
-                    // ratio of waste
-                    double waste = 1.0 - pack_rate;
-
-                    // Score is the square root of waste. This will extend the
-                    // range of good (lower) values and shring the range of bad
-                    // (larger) values.
-                    auto score = std::sqrt(waste);
-
-                    if(!wouldFit(ch, bin_)) score += norm_;
-
-                    return score;
-                };
-
-                // Our object function for placement
-                auto rawobjfunc = [&] (Vertex v)
-                {
-                    auto d = v - iv;
-                    d += startpos;
-                    item.translation(d);
-
-                    double score = _objfunc(pile, item, remlist);
-
-                    return score;
-                };
-
-                auto boundaryCheck = [&](const Optimum& o) {
                     auto v = getNfpPoint(o);
                     auto d = v - iv;
                     d += startpos;
@@ -691,84 +898,111 @@ public:
                     auto chull = sl::convexHull(merged_pile);
                     merged_pile.pop_back();
 
-                    return wouldFit(chull, bin_);
+                    return overfit(chull, bin);
                 };
-
-                opt::StopCriteria stopcr;
-                stopcr.max_iterations = 200;
-                stopcr.relative_score_difference = 1e-20;
-                opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
 
                 Optimum optimum(0, 0);
                 double best_score = std::numeric_limits<double>::max();
+                std::launch policy = std::launch::deferred;
+                if(config_.parallel) policy |= std::launch::async;
+
+                using OptResult = opt::Result<double>;
+                using OptResults = std::vector<OptResult>;
 
                 // Local optimization with the four polygon corners as
                 // starting points
                 for(unsigned ch = 0; ch < ecache.size(); ch++) {
                     auto& cache = ecache[ch];
 
-                    auto contour_ofn = [&rawobjfunc, &getNfpPoint, ch]
+                    auto contour_ofn = [rawobjfunc, getNfpPoint, ch]
                             (double relpos)
                     {
                         return rawobjfunc(getNfpPoint(Optimum(relpos, ch)));
                     };
 
-                    std::for_each(cache.corners().begin(),
-                                  cache.corners().end(),
-                                  [ch, &contour_ofn, &solver, &best_score,
-                                  &optimum, &boundaryCheck] (double pos)
+                    OptResults results(cache.corners().size());
+
+                    __parallel::enumerate(
+                                cache.corners().begin(),
+                                cache.corners().end(),
+                                [&contour_ofn, &results]
+                                (double pos, unsigned n)
                     {
+                        Optimizer solver;
                         try {
-                            auto result = solver.optimize_min(contour_ofn,
+                            results[n] = solver.optimize_min(contour_ofn,
                                             opt::initvals<double>(pos),
                                             opt::bound<double>(0, 1.0)
                                             );
-
-                            if(result.score < best_score) {
-                                Optimum o(std::get<0>(result.optimum), ch, -1);
-                                if(boundaryCheck(o)) {
-                                    best_score = result.score;
-                                    optimum = o;
-                                }
-                            }
                         } catch(std::exception& e) {
                             derr() << "ERROR: " << e.what() << "\n";
                         }
-                    });
+                    }, policy);
+
+                    auto resultcomp =
+                            []( const OptResult& r1, const OptResult& r2 ) {
+                        return r1.score < r2.score;
+                    };
+
+                    auto mr = *std::min_element(results.begin(), results.end(),
+                                                resultcomp);
+
+                    if(mr.score < best_score) {
+                        Optimum o(std::get<0>(mr.optimum), ch, -1);
+                        double miss = boundaryCheck(o);
+                        if(miss <= 0) {
+                            best_score = mr.score;
+                            optimum = o;
+                        } else {
+                            best_overfit = std::min(miss, best_overfit);
+                        }
+                    }
 
                     for(unsigned hidx = 0; hidx < cache.holeCount(); ++hidx) {
                         auto hole_ofn =
-                                [&rawobjfunc, &getNfpPoint, ch, hidx]
+                                [rawobjfunc, getNfpPoint, ch, hidx]
                                 (double pos)
                         {
                             Optimum opt(pos, ch, hidx);
                             return rawobjfunc(getNfpPoint(opt));
                         };
 
-                        std::for_each(cache.corners(hidx).begin(),
+                        results.clear();
+                        results.resize(cache.corners(hidx).size());
+
+                        // TODO : use parallel for
+                        __parallel::enumerate(cache.corners(hidx).begin(),
                                       cache.corners(hidx).end(),
-                                      [&hole_ofn, &solver, &best_score,
-                                       &optimum, ch, hidx, &boundaryCheck]
-                                      (double pos)
+                                      [&hole_ofn, &results]
+                                      (double pos, unsigned n)
                         {
+                            Optimizer solver;
                             try {
-                                auto result = solver.optimize_min(hole_ofn,
+                                results[n] = solver.optimize_min(hole_ofn,
                                                 opt::initvals<double>(pos),
                                                 opt::bound<double>(0, 1.0)
                                                 );
 
-                                if(result.score < best_score) {
-                                    Optimum o(std::get<0>(result.optimum),
-                                              ch, hidx);
-                                    if(boundaryCheck(o)) {
-                                        best_score = result.score;
-                                        optimum = o;
-                                    }
-                                }
                             } catch(std::exception& e) {
                                 derr() << "ERROR: " << e.what() << "\n";
                             }
-                        });
+                        }, policy);
+
+                        auto hmr = *std::min_element(results.begin(),
+                                                    results.end(),
+                                                    resultcomp);
+
+                        if(hmr.score < best_score) {
+                            Optimum o(std::get<0>(hmr.optimum),
+                                      ch, hidx);
+                            double miss = boundaryCheck(o);
+                            if(miss <= 0.0) {
+                                best_score = hmr.score;
+                                optimum = o;
+                            } else {
+                                best_overfit = std::min(miss, best_overfit);
+                            }
+                        }
                     }
                 }
 
@@ -788,21 +1022,13 @@ public:
 
         if(can_pack) {
             ret = PackResult(item);
+            item_keys_.emplace_back(itemhash);
+        } else {
+            ret = PackResult(best_overfit);
         }
 
         return ret;
     }
-
-    ~_NofitPolyPlacer() {
-        clearItems();
-    }
-
-    inline void clearItems() {
-        finalAlign(bin_);
-        Base::clearItems();
-    }
-
-private:
 
     inline void finalAlign(const RawShape& pbin) {
         auto bbin = sl::boundingBox(pbin);
@@ -826,7 +1052,7 @@ private:
         nfp::Shapes<RawShape> m;
         m.reserve(items_.size());
         for(Item& item : items_) m.emplace_back(item.transformedShape());
-        auto&& bb = sl::boundingBox<RawShape>(m);
+        auto&& bb = sl::boundingBox(m);
 
         Vertex ci, cb;
 

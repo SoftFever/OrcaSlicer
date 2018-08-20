@@ -22,33 +22,11 @@ template<class GeomType>
 using TCoord = typename CoordType<remove_cvref_t<GeomType>>::Type;
 
 /// Getting the type of point structure used by a shape.
-template<class Shape> struct PointType { /*using Type = void;*/ };
+template<class Sh> struct PointType { using Type = typename Sh::PointType; };
 
 /// TPoint<ShapeClass> as shorthand for `typename PointType<ShapeClass>::Type`.
 template<class Shape>
 using TPoint = typename PointType<remove_cvref_t<Shape>>::Type;
-
-/// Getting the VertexIterator type of a shape class.
-template<class Shape> struct VertexIteratorType { /*using Type = void;*/ };
-
-/// Getting the const vertex iterator for a shape class.
-template<class Shape> struct VertexConstIteratorType {/* using Type = void;*/ };
-
-/**
- * TVertexIterator<Shape> as shorthand for
- * `typename VertexIteratorType<Shape>::Type`
- */
-template<class Shape>
-using TVertexIterator =
-typename VertexIteratorType<remove_cvref_t<Shape>>::Type;
-
-/**
- * \brief TVertexConstIterator<Shape> as shorthand for
- * `typename VertexConstIteratorType<Shape>::Type`
- */
-template<class ShapeClass>
-using TVertexConstIterator =
-typename VertexConstIteratorType<remove_cvref_t<ShapeClass>>::Type;
 
 /**
  * \brief A point pair base class for other point pairs (segment, box, ...).
@@ -61,8 +39,15 @@ struct PointPair {
 };
 
 struct PolygonTag {};
+struct MultiPolygonTag {};
 struct BoxTag {};
 struct CircleTag {};
+
+template<class Shape> struct ShapeTag { using Type = typename Shape::Tag; };
+template<class S> using Tag = typename ShapeTag<S>::Type;
+
+template<class S> struct MultiShape { using Type = std::vector<S>; };
+template<class S> using TMultiShape = typename MultiShape<S>::Type;
 
 /**
  * \brief An abstraction of a box;
@@ -371,7 +356,7 @@ enum class Formats {
 namespace shapelike {
 
     template<class RawShape>
-    using Shapes = std::vector<RawShape>;
+    using Shapes = TMultiShape<RawShape>;
 
     template<class RawShape>
     inline RawShape create(const TContour<RawShape>& contour,
@@ -455,27 +440,28 @@ namespace shapelike {
     }
 
     template<class RawShape>
-    inline TVertexIterator<RawShape> begin(RawShape& sh)
+    inline typename TContour<RawShape>::iterator begin(RawShape& sh)
     {
-        return sh.begin();
+        return getContour(sh).begin();
     }
 
     template<class RawShape>
-    inline TVertexIterator<RawShape> end(RawShape& sh)
+    inline typename TContour<RawShape>::iterator end(RawShape& sh)
     {
-        return sh.end();
+        return getContour(sh).end();
     }
 
     template<class RawShape>
-    inline TVertexConstIterator<RawShape> cbegin(const RawShape& sh)
+    inline typename TContour<RawShape>::const_iterator
+    cbegin(const RawShape& sh)
     {
-        return sh.cbegin();
+        return getContour(sh).cbegin();
     }
 
     template<class RawShape>
-    inline TVertexConstIterator<RawShape> cend(const RawShape& sh)
+    inline typename TContour<RawShape>::const_iterator cend(const RawShape& sh)
     {
-        return sh.cend();
+        return getContour(sh).cend();
     }
 
     template<class RawShape>
@@ -559,27 +545,29 @@ namespace shapelike {
                       "ShapeLike::boundingBox(shape) unimplemented!");
     }
 
-    template<class RawShape>
-    inline _Box<TPoint<RawShape>> boundingBox(const Shapes<RawShape>& /*sh*/)
+    template<class RawShapes>
+    inline _Box<TPoint<typename RawShapes::value_type>>
+    boundingBox(const RawShapes& /*sh*/, const MultiPolygonTag&)
     {
-        static_assert(always_false<RawShape>::value,
+        static_assert(always_false<RawShapes>::value,
                       "ShapeLike::boundingBox(shapes) unimplemented!");
     }
 
     template<class RawShape>
-    inline RawShape convexHull(const RawShape& /*sh*/)
+    inline RawShape convexHull(const RawShape& /*sh*/, const PolygonTag&)
     {
         static_assert(always_false<RawShape>::value,
                       "ShapeLike::convexHull(shape) unimplemented!");
         return RawShape();
     }
 
-    template<class RawShape>
-    inline RawShape convexHull(const Shapes<RawShape>& /*sh*/)
+    template<class RawShapes>
+    inline typename RawShapes::value_type
+    convexHull(const RawShapes& /*sh*/, const MultiPolygonTag&)
     {
-        static_assert(always_false<RawShape>::value,
+        static_assert(always_false<RawShapes>::value,
                       "ShapeLike::convexHull(shapes) unimplemented!");
-        return RawShape();
+        return typename RawShapes::value_type();
     }
 
     template<class RawShape>
@@ -599,8 +587,7 @@ namespace shapelike {
     template<class RawShape>
     inline void offset(RawShape& /*sh*/, TCoord<TPoint<RawShape>> /*distance*/)
     {
-        static_assert(always_false<RawShape>::value,
-                      "ShapeLike::offset() unimplemented!");
+        dout() << "The current geometry backend does not support offsetting!\n";
     }
 
     template<class RawShape>
@@ -670,9 +657,9 @@ namespace shapelike {
     }
 
     template<class S> // Dispatch function
-    inline _Box<typename S::PointType> boundingBox(const S& sh)
+    inline _Box<TPoint<S>> boundingBox(const S& sh)
     {
-        return boundingBox(sh, typename S::Tag());
+        return boundingBox(sh, Tag<S>() );
     }
 
     template<class Box>
@@ -690,7 +677,7 @@ namespace shapelike {
     template<class RawShape> // Dispatching function
     inline double area(const RawShape& sh)
     {
-        return area(sh, typename RawShape::Tag());
+        return area(sh, Tag<RawShape>());
     }
 
     template<class RawShape>
@@ -700,6 +687,13 @@ namespace shapelike {
                         [](double a, const RawShape& b) {
             return a += area(b);
         });
+    }
+
+    template<class RawShape>
+    inline auto convexHull(const RawShape& sh)
+        -> decltype(convexHull(sh, Tag<RawShape>())) // TODO: C++14 could deduce
+    {
+        return convexHull(sh, Tag<RawShape>());
     }
 
     template<class RawShape>
@@ -815,6 +809,16 @@ namespace shapelike {
         foreachHoleVertex(sh, fn);
     }
 }
+
+#define DECLARE_MAIN_TYPES(T)        \
+    using Polygon = T;               \
+    using Point   = TPoint<T>;       \
+    using Coord   = TCoord<Point>;   \
+    using Contour = TContour<T>;     \
+    using Box     = _Box<Point>;     \
+    using Circle  = _Circle<Point>;  \
+    using Segment = _Segment<Point>; \
+    using Polygons = TMultiShape<T>
 
 }
 

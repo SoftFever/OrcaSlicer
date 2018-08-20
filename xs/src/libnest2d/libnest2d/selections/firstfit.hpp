@@ -68,13 +68,13 @@ public:
         }
 
         auto it = store_.begin();
+
         while(it != store_.end()) {
             bool was_packed = false;
+            size_t j = 0;
             while(!was_packed) {
-
-                for(size_t j = 0; j < placers.size() && !was_packed; j++) {
-                    if((was_packed =
-                        placers[j].pack(*it, rem(it, store_) )))
+                for(; j < placers.size() && !was_packed; j++) {
+                    if((was_packed = placers[j].pack(*it, rem(it, store_) )))
                             makeProgress(placers[j], j);
                 }
 
@@ -82,6 +82,7 @@ public:
                     placers.emplace_back(bin);
                     placers.back().configure(pconfig);
                     packed_bins_.emplace_back();
+                    j = placers.size() - 1;
                 }
             }
             ++it;

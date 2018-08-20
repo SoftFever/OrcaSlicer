@@ -142,10 +142,12 @@ protected:
         default: ;
         }
 
-        auto abs_diff = stopcr_.absolute_score_difference;
-        auto rel_diff = stopcr_.relative_score_difference;
+        double abs_diff = stopcr_.absolute_score_difference;
+        double rel_diff = stopcr_.relative_score_difference;
+        double stopval = stopcr_.stop_score;
         if(!std::isnan(abs_diff)) opt_.set_ftol_abs(abs_diff);
         if(!std::isnan(rel_diff)) opt_.set_ftol_rel(rel_diff);
+        if(!std::isnan(stopval))  opt_.set_stopval(stopval);
 
         if(this->stopcr_.max_iterations > 0)
             opt_.set_maxeval(this->stopcr_.max_iterations );

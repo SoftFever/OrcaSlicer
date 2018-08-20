@@ -102,6 +102,9 @@ struct StopCriteria {
     /// If the relative value difference between two scores.
     double relative_score_difference = std::nan("");
 
+    /// Stop if this value or better is found.
+    double stop_score = std::nan("");
+
     unsigned max_iterations = 0;
 };
 

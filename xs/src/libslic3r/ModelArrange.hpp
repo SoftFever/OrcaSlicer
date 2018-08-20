@@ -270,6 +270,8 @@ void fillConfig(PConf& pcfg) {
     // The accuracy of optimization.
     // Goes from 0.0 to 1.0 and scales performance as well
     pcfg.accuracy = 0.65f;
+
+    pcfg.parallel = false;
 }
 
 template<class TBin>
@@ -291,6 +293,7 @@ protected:
     std::vector<double> areacache_;
     SpatIndex rtree_;
     double norm_;
+    Pile pile_cache_;
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
@@ -317,23 +320,26 @@ public:
                  std::function<void(unsigned)> progressind):
         _ArrBase<Box>(bin, dist, progressind)
     {
-        pconf_.object_function = [this, bin] (
-                    Pile& pile,
-                    const Item &item,
-                    const ItemGroup& rem) {
+//        pconf_.object_function = [this, bin] (
+//                    const Pile& pile_c,
+//                    const Item &item,
+//                    const ItemGroup& rem) {
 
-            auto result = objfunc(bin.center(), bin_area_, pile,
-                                  item, norm_, areacache_, rtree_, rem);
-            double score = std::get<0>(result);
-            auto& fullbb = std::get<1>(result);
+//            auto& pile = pile_cache_;
+//            if(pile.size() != pile_c.size()) pile = pile_c;
 
-            auto wdiff = fullbb.width() - bin.width();
-            auto hdiff = fullbb.height() - bin.height();
-            if(wdiff > 0) score += std::pow(wdiff, 2) / norm_;
-            if(hdiff > 0) score += std::pow(hdiff, 2) / norm_;
+//            auto result = objfunc(bin.center(), bin_area_, pile,
+//                                  item, norm_, areacache_, rtree_, rem);
+//            double score = std::get<0>(result);
+//            auto& fullbb = std::get<1>(result);
 
-            return score;
-        };
+//            auto wdiff = fullbb.width() - bin.width();
+//            auto hdiff = fullbb.height() - bin.height();
+//            if(wdiff > 0) score += std::pow(wdiff, 2) / norm_;
+//            if(hdiff > 0) score += std::pow(hdiff, 2) / norm_;
+
+//            return score;
+//        };
 
         pck_.configure(pconf_);
     }
@@ -350,9 +356,12 @@ public:
         _ArrBase<lnCircle>(bin, dist, progressind) {
 
         pconf_.object_function = [this, &bin] (
-                    Pile& pile,
+                    const Pile& pile_c,
                     const Item &item,
                     const ItemGroup& rem) {
+
+            auto& pile = pile_cache_;
+            if(pile.size() != pile_c.size()) pile = pile_c;
 
             auto result = objfunc(bin.center(), bin_area_, pile, item, norm_,
                                   areacache_, rtree_, rem);
@@ -393,9 +402,12 @@ public:
         _ArrBase<PolygonImpl>(bin, dist, progressind)
     {
         pconf_.object_function = [this, &bin] (
-                    Pile& pile,
+                    const Pile& pile_c,
                     const Item &item,
                     const ItemGroup& rem) {
+
+            auto& pile = pile_cache_;
+            if(pile.size() != pile_c.size()) pile = pile_c;
 
             auto binbb = sl::boundingBox(bin);
             auto result = objfunc(binbb.center(), bin_area_, pile, item, norm_,
@@ -417,9 +429,12 @@ public:
         _ArrBase<Box>(Box(0, 0), dist, progressind)
     {
         this->pconf_.object_function = [this] (
-                    Pile& pile,
+                    const Pile& pile_c,
                     const Item &item,
                     const ItemGroup& rem) {
+
+            auto& pile = pile_cache_;
+            if(pile.size() != pile_c.size()) pile = pile_c;
 
             auto result = objfunc({0, 0}, 0, pile, item, norm_,
                                   areacache_, rtree_, rem);

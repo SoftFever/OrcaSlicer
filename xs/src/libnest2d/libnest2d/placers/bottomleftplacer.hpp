@@ -7,9 +7,24 @@
 
 namespace libnest2d { namespace strategies {
 
+template<class T, class = T> struct Epsilon {};
+
+template<class T>
+struct Epsilon<T, enable_if_t<std::is_integral<T>::value, T> > {
+    static const T Value = 1;
+};
+
+template<class T>
+struct Epsilon<T, enable_if_t<std::is_floating_point<T>::value, T> > {
+    static const T Value = 1e-3;
+};
+
 template<class RawShape>
 struct BLConfig {
-    TCoord<TPoint<RawShape>> min_obj_distance = 0;
+    DECLARE_MAIN_TYPES(RawShape);
+
+    Coord min_obj_distance = 0;
+    Coord epsilon = Epsilon<Coord>::Value;
     bool allow_rotations = false;
 };
 
@@ -69,20 +84,21 @@ protected:
         setInitialPosition(item);
 
         Unit d = availableSpaceDown(item);
-        bool can_move = d > 1 /*std::numeric_limits<Unit>::epsilon()*/;
+        auto eps = config_.epsilon;
+        bool can_move = d > eps;
         bool can_be_packed = can_move;
         bool left = true;
 
         while(can_move) {
             if(left) { // write previous down move and go down
-                item.translate({0, -d+1});
+                item.translate({0, -d+eps});
                 d = availableSpaceLeft(item);
-                can_move = d > 1/*std::numeric_limits<Unit>::epsilon()*/;
+                can_move = d > eps;
                 left = false;
             } else { // write previous left move and go down
-                item.translate({-d+1, 0});
+                item.translate({-d+eps, 0});
                 d = availableSpaceDown(item);
-                can_move = d > 1/*std::numeric_limits<Unit>::epsilon()*/;
+                can_move = d > eps;
                 left = true;
             }
         }

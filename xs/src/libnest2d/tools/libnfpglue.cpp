@@ -56,7 +56,7 @@ libnfporb::point_t scale(const libnfporb::point_t& p, long double factor) {
 
 NfpR _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
 {
-    using Vertex = PointImpl;
+    namespace sl = shapelike;
 
     NfpR ret;
 
@@ -85,7 +85,7 @@ NfpR _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
         // this can throw
         auto nfp = libnfporb::generateNFP(pstat, porb, true);
 
-        auto &ct = ShapeLike::getContour(ret.first);
+        auto &ct = sl::getContour(ret.first);
         ct.reserve(nfp.front().size()+1);
         for(auto v : nfp.front()) {
             v = scale(v, refactor);
@@ -94,7 +94,7 @@ NfpR _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
         ct.push_back(ct.front());
         std::reverse(ct.begin(), ct.end());
 
-        auto &rholes = ShapeLike::holes(ret.first);
+        auto &rholes = sl::holes(ret.first);
         for(size_t hidx = 1; hidx < nfp.size(); ++hidx) {
             if(nfp[hidx].size() >= 3) {
                 rholes.emplace_back();
@@ -110,31 +110,31 @@ NfpR _nfp(const PolygonImpl &sh, const PolygonImpl &cother)
             }
         }
 
-        ret.second = Nfp::referenceVertex(ret.first);
+        ret.second = nfp::referenceVertex(ret.first);
 
     } catch(std::exception& e) {
         std::cout << "Error: " << e.what() << "\nTrying with convex hull..." << std::endl;
 //        auto ch_stat = ShapeLike::convexHull(sh);
 //        auto ch_orb = ShapeLike::convexHull(cother);
-        ret = Nfp::nfpConvexOnly(sh, cother);
+        ret = nfp::nfpConvexOnly(sh, cother);
     }
 
     return ret;
 }
 
-NfpR Nfp::NfpImpl<PolygonImpl, NfpLevel::CONVEX_ONLY>::operator()(
+NfpR nfp::NfpImpl<PolygonImpl, nfp::NfpLevel::CONVEX_ONLY>::operator()(
         const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
 {
     return _nfp(sh, cother);//nfpConvexOnly(sh, cother);
 }
 
-NfpR Nfp::NfpImpl<PolygonImpl, NfpLevel::ONE_CONVEX>::operator()(
+NfpR nfp::NfpImpl<PolygonImpl, nfp::NfpLevel::ONE_CONVEX>::operator()(
         const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
 {
     return _nfp(sh, cother);
 }
 
-NfpR Nfp::NfpImpl<PolygonImpl, NfpLevel::BOTH_CONCAVE>::operator()(
+NfpR nfp::NfpImpl<PolygonImpl, nfp::NfpLevel::BOTH_CONCAVE>::operator()(
         const PolygonImpl &sh, const ClipperLib::PolygonImpl &cother)
 {
     return _nfp(sh, cother);

@@ -27,8 +27,8 @@ inline bool _vsort(const TPoint<RawShape>& v1, const TPoint<RawShape>& v2)
 /// A collection of static methods for handling the no fit polygon creation.
 namespace nfp {
 
-namespace sl = shapelike;
-namespace pl = pointlike;
+//namespace sl = shapelike;
+//namespace pl = pointlike;
 
 /// The complexity level of a polygon that an NFP implementation can handle.
 enum class NfpLevel: unsigned {
@@ -49,7 +49,7 @@ template<class RawShape> struct MaxNfpLevel {
 
 // Shorthand for a pile of polygons
 template<class RawShape>
-using Shapes = typename shapelike::Shapes<RawShape>;
+using Shapes = TMultiShape<RawShape>;
 
 /**
  * Merge a bunch of polygons with the specified additional polygon.
@@ -62,10 +62,10 @@ using Shapes = typename shapelike::Shapes<RawShape>;
  * mostly it will be a set containing only one big polygon but if the input
  * polygons are disjuct than the resulting set will contain more polygons.
  */
-template<class RawShape>
-inline Shapes<RawShape> merge(const Shapes<RawShape>& /*shc*/)
+template<class RawShapes>
+inline RawShapes merge(const RawShapes& /*shc*/)
 {
-    static_assert(always_false<RawShape>::value,
+    static_assert(always_false<RawShapes>::value,
                   "Nfp::merge(shapes, shape) unimplemented!");
 }
 
@@ -81,12 +81,12 @@ inline Shapes<RawShape> merge(const Shapes<RawShape>& /*shc*/)
  * polygons are disjuct than the resulting set will contain more polygons.
  */
 template<class RawShape>
-inline Shapes<RawShape> merge(const Shapes<RawShape>& shc,
-                              const RawShape& sh)
+inline TMultiShape<RawShape> merge(const TMultiShape<RawShape>& shc,
+                                   const RawShape& sh)
 {
-    auto m = merge(shc);
+    auto m = nfp::merge(shc);
     m.push_back(sh);
-    return merge(m);
+    return nfp::merge(m);
 }
 
 /**
