@@ -732,6 +732,11 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
     return output_mesh;
 }
 
+const float* TriangleMesh::first_vertex() const
+{
+    return stl.facet_start ? &stl.facet_start->vertex[0].x : nullptr;
+}
+
 void
 TriangleMesh::require_shared_vertices()
 {

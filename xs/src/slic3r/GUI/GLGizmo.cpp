@@ -515,15 +515,15 @@ bool GLGizmoFlatten::on_init()
 {
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "scale_off.png";
+    std::string filename = path + "layflat_off.png";
     if (!m_textures[Off].load_from_file(filename, false))
         return false;
 
-    filename = path + "scale_hover.png";
+    filename = path + "layflat_hover.png";
     if (!m_textures[Hover].load_from_file(filename, false))
         return false;
 
-    filename = path + "scale_on.png";
+    filename = path + "layflat_on.png";
     if (!m_textures[On].load_from_file(filename, false))
         return false;
 
@@ -591,12 +591,12 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 
 
 // TODO - remove and use Eigen instead
-static Pointf3 super_rotation(const Pointf3& axis, float angle, const Pointf3& point)
+static Pointf3 super_rotation(Pointf3 axis, float angle, const Pointf3& point)
 {
-    float axis_length = axis.distance_to(Pointf3(0.f, 0.f, 0.f));
-    float x = axis.x / axis_length;
-    float y = axis.y / axis_length;
-    float z = axis.z / axis_length;
+    axis = normalize(axis);
+    const float& x = axis.x;
+    const float& y = axis.y;
+    const float& z = axis.z;
     float s = sin(angle);
     float c = cos(angle);
     float D = 1-c;
@@ -774,6 +774,8 @@ void GLGizmoFlatten::update_planes()
         m_source_data.bounding_boxes.push_back(vol->get_convex_hull().bounding_box());
     m_source_data.scaling_factor = m_model_object->instances.front()->scaling_factor;
     m_source_data.rotation = m_model_object->instances.front()->rotation;
+    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
+    m_source_data.mesh_first_point = Pointf3(first_vertex[0], first_vertex[1], first_vertex[3]);
 }
 
 // Check if the bounding boxes of each volume's convex hull is the same as before
@@ -792,6 +794,11 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     for (unsigned int i=0; i<m_model_object->volumes.size(); ++i)
         if (m_model_object->volumes[i]->get_convex_hull().bounding_box() != m_source_data.bounding_boxes[i])
             return true;
+
+    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
+    Pointf3 first_point(first_vertex[0], first_vertex[1], first_vertex[2]);
+    if (first_point != m_source_data.mesh_first_point)
+        return true;
 
     return false;
 }

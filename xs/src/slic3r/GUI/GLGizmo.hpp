@@ -166,6 +166,7 @@ private:
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
         float scaling_factor;
         float rotation;
+        Pointf3 mesh_first_point;
     };
 
     // This holds information to decide whether recalculation is necessary:
