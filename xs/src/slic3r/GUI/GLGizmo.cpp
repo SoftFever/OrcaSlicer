@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 
 #include <iostream>
+#include <numeric>
 
 namespace Slic3r {
 namespace GUI {
