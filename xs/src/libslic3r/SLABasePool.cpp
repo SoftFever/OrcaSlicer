@@ -178,7 +178,7 @@ inline void offset(ExPolygon& sh, coord_t distance) {
     }
 
     ClipperOffset offs;
-    offs.ArcTolerance = 0.05*mm(1);
+    offs.ArcTolerance = 0.01*mm(1);
     Paths result;
     offs.AddPath(ctour, jtRound, etClosedPolygon);
     offs.AddPaths(holes, jtRound, etClosedPolygon);
@@ -294,7 +294,7 @@ inline Point centroid(const ExPolygon& poly) {
 inline ExPolygon concave_hull(const ExPolygons& polys) {
     if(polys.empty()) return ExPolygon();
 
-    ExPolygons punion = unify(polys);
+    ExPolygons punion = unify(polys);   // could be redundant
 
     ExPolygon ret;
 
@@ -361,89 +361,116 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       double min_wall_thickness_mm,
                       double min_wall_height_mm)
 {
-//    Contour3D pool;
-
-//    auto& poly = ground_layer.front();
-//    auto floor_poly = poly;
-//    offset(floor_poly, mm(5));
-
-//    Polygons floor_plate;
-//    floor_poly.triangulate_p2t(&floor_plate);
-//    auto floor_mesh = convert(floor_plate, mm(20), false);
-//    pool.merge(floor_mesh);
-
-//    Polygons ceil_plate;
-//    poly.triangulate_p2t(&ceil_plate);
-//    auto ceil_mesh = convert(ceil_plate, mm(0), true);
-//    pool.merge(ceil_mesh);
-
-//    auto w = walls(floor_poly, poly, 20, 0);
-
-//    pool.merge(w);
-
-//    out = mesh(pool);
-
-    auto concaveh = concave_hull(ground_layer);
-    if(concaveh.contour.points.empty()) return;
-    concaveh.holes.clear();
-
-    BoundingBox bb(concaveh);
-    coord_t w = bb.max.x - bb.min.x;
-    coord_t h = bb.max.y - bb.min.y;
-
-    auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
-
-    const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) + wall_thickness;
-    const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
-    const coord_t HEIGHT = mm(min_wall_height_mm);
-
-    auto outer_base = concaveh;
-    offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
-    auto inner_base = outer_base;
-    offset(inner_base, -WALL_THICKNESS);
-    inner_base.holes.clear(); outer_base.holes.clear();
-
-    ExPolygon top_poly;
-    top_poly.contour = outer_base.contour;
-    top_poly.holes.emplace_back(inner_base.contour);
-    auto& tph = top_poly.holes.back().points;
-    std::reverse(tph.begin(), tph.end());
-
     Contour3D pool;
 
-    auto poolwalls = walls(outer_base, inner_base, 0, -min_wall_height_mm);
+    auto& poly = ground_layer.front();
+    auto floor_poly = poly;
+    offset(floor_poly, mm(5));
 
-    Polygons top_triangles, bottom_triangles;
-    top_poly.triangulate_p2t(&top_triangles);
-    inner_base.triangulate_p2t(&bottom_triangles);
-    auto top_plate = convert(top_triangles, 0, false);
-    auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
-    auto innerbed = inner_bed(inner_base, HEIGHT/2);
+    Polygons floor_plate;
+    floor_poly.triangulate_p2t(&floor_plate);
+    auto floor_mesh = convert(floor_plate, mm(20), false);
+    pool.merge(floor_mesh);
 
-//    // Generate outer walls
-//    auto fp = [](const Point& p, coord_t z) {
-//        return Pointf3::new_unscale(x(p), y(p), z);
-//    };
+    Polygons ceil_plate;
+    poly.triangulate_p2t(&ceil_plate);
+    auto ceil_mesh = convert(ceil_plate, mm(0), true);
+    pool.merge(ceil_mesh);
 
-//    auto lines = outer_base.lines();
-//    for(auto& l : lines) {
-//        auto s = coord_t(pool.points.size());
+    auto ob = floor_poly;
+    auto ob_prev = ob;
+    double wh = 20, wh_prev = wh;
+    Contour3D curvedwalls;
 
-//        pool.points.emplace_back(fp(l.a, -HEIGHT));
-//        pool.points.emplace_back(fp(l.b, -HEIGHT));
-//        pool.points.emplace_back(fp(l.a, 0));
-//        pool.points.emplace_back(fp(l.b, 0));
+    const size_t steps = 6;
+    const double radius_mm = 1;
+    const double ystep_mm = radius_mm/steps;
+    const double ceilheight_mm = 20;
+    for(int i = 0; i < 1.5*steps; i++) {
+        ob = floor_poly;
 
-//        pool.indices.emplace_back(s, s + 3, s + 1);
-//        pool.indices.emplace_back(s, s + 2, s + 3);
-//    }
+        // The offset is given by the equation: x = sqrt(r^2 - y^2)
+        // which can be derived from the circle equation. y is the current
+        // height for which the offset is calculated and x is the offset itself
+        // r is the radius of the circle that is used to smooth the edges
 
-    pool.merge(top_plate);
-    pool.merge(bottom_plate);
-    pool.merge(innerbed);
-    pool.merge(poolwalls);
+        double r2 = radius_mm * radius_mm;
+        double y2 = steps*ystep_mm - i*ystep_mm;
+        y2 *= y2;
+
+        double x = sqrt(r2 - y2);
+        offset(ob, mm(x));
+        wh = ceilheight_mm - i*ystep_mm;
+
+        Contour3D pwalls;
+        pwalls = walls(ob, ob_prev, wh, wh_prev);
+
+        curvedwalls.merge(pwalls);
+        ob_prev = ob;
+        wh_prev = wh;
+    }
+
+    auto w = walls(ob, poly, wh, 0);
+
+    pool.merge(w);
+    pool.merge(curvedwalls);
 
     out = mesh(pool);
+
+//    auto concaveh = concave_hull(ground_layer);
+//    if(concaveh.contour.points.empty()) return;
+//    concaveh.holes.clear();
+
+//    BoundingBox bb(concaveh);
+//    coord_t w = bb.max.x - bb.min.x;
+//    coord_t h = bb.max.y - bb.min.y;
+
+//    auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
+
+//    const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) + wall_thickness;
+//    const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
+//    const coord_t HEIGHT = mm(min_wall_height_mm);
+
+//    auto outer_base = concaveh;
+//    offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
+//    auto inner_base = outer_base;
+//    offset(inner_base, -WALL_THICKNESS);
+//    inner_base.holes.clear(); outer_base.holes.clear();
+
+//    ExPolygon top_poly;
+//    top_poly.contour = outer_base.contour;
+//    top_poly.holes.emplace_back(inner_base.contour);
+//    auto& tph = top_poly.holes.back().points;
+//    std::reverse(tph.begin(), tph.end());
+
+//    Contour3D pool;
+
+//    auto pwalls = walls(outer_base, inner_base, 0, - min_wall_height_mm);
+//    pool.merge(pwalls);
+////    auto ob = outer_base;
+////    auto ob_prev = ob;
+////    double wh = 0, wh_prev = h;
+////    for(int i = 1; i <= 4; i++) {
+////        offset(ob, mm(0.0002));
+////        wh = wh_prev - 0.0002;
+////        auto poolwalls = walls(ob, ob_prev, wh, wh_prev);
+////        pool.merge(poolwalls);
+////        ob_prev = ob;
+////        wh_prev = wh;
+////    }
+
+//    Polygons top_triangles, bottom_triangles;
+//    top_poly.triangulate_p2t(&top_triangles);
+//    inner_base.triangulate_p2t(&bottom_triangles);
+//    auto top_plate = convert(top_triangles, 0, false);
+//    auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
+//    auto innerbed = inner_bed(inner_base, HEIGHT/2);
+
+//    pool.merge(top_plate);
+//    pool.merge(bottom_plate);
+//    pool.merge(innerbed);
+
+//    out = mesh(pool);
 }
 
 }

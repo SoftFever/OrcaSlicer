@@ -186,12 +186,6 @@ add_library(libslic3r STATIC
 
 )
 
-find_package(Flann REQUIRED)
-if(FLANN_FOUND)
-message(STATUS "FLANN found: ${FLANN_LIBRARIES}")
-target_link_libraries(libslic3r ${FLANN_LIBRARIES})
-endif()
-
 add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/AboutDialog.cpp
     ${LIBDIR}/slic3r/GUI/AboutDialog.hpp
