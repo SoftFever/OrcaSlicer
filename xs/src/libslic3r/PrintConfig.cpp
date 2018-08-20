@@ -1153,21 +1153,21 @@ PrintConfigDef::PrintConfigDef()
     def->label = L("API Key / Password");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
                    "the API Key or the password required for authentication.");
-    def->cli = "octoprint-apikey=s";
+    def->cli = "printhost-apikey=s";
     def->default_value = new ConfigOptionString("");
     
     def = this->add("printhost_cafile", coString);
     def->label = "HTTPS CA file";
     def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
                    "If left blank, the default OS CA certificate repository is used.";
-    def->cli = "octoprint-cafile=s";
+    def->cli = "printhost-cafile=s";
     def->default_value = new ConfigOptionString("");
 
     def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
     def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
                    "the hostname, IP address or URL of the printer host instance.");
-    def->cli = "octoprint-host=s";
+    def->cli = "print-host=s";
     def->default_value = new ConfigOptionString("");
 
     def = this->add("only_retract_when_crossing_perimeters", coBool);
@@ -2129,6 +2129,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "support_material_pattern" && value == "pillars") {
         // Slic3r PE does not support the pillars. They never worked well.
         value = "rectilinear";
+    } else if (opt_key == "octoprint_host") {
+        opt_key = "print_host";
+    } else if (opt_key == "octoprint_cafile") {
+        opt_key = "printhost_cafile";
+    } else if (opt_key == "octoprint_apikey") {
+        opt_key = "printhost_apikey";
     }
     
     // Ignore the following obsolete configuration keys:
