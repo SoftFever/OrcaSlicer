@@ -775,7 +775,7 @@ void GLGizmoFlatten::update_planes()
     m_source_data.scaling_factor = m_model_object->instances.front()->scaling_factor;
     m_source_data.rotation = m_model_object->instances.front()->rotation;
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
-    m_source_data.mesh_first_point = Pointf3(first_vertex[0], first_vertex[1], first_vertex[3]);
+    m_source_data.mesh_first_point = Pointf3(first_vertex[0], first_vertex[1], first_vertex[2]);
 }
 
 // Check if the bounding boxes of each volume's convex hull is the same as before
@@ -788,7 +788,7 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size()
      || m_model_object->instances.front()->scaling_factor != m_source_data.scaling_factor
      || m_model_object->instances.front()->rotation != m_source_data.rotation)
-        return true;
+         return true;
 
     // now compare the bounding boxes:
     for (unsigned int i=0; i<m_model_object->volumes.size(); ++i)
@@ -805,6 +805,7 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
 
 Pointf3 GLGizmoFlatten::get_flattening_normal() const {
     Pointf3 normal = m_normal;
+    normal.rotate(-m_model_object->instances.front()->rotation);
     m_normal = Pointf3(0.f, 0.f, 0.f);
     return normal;
 }

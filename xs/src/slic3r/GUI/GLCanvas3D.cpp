@@ -1419,22 +1419,27 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
-void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
+void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box, RenderOrder render_order) const
 {
     if (!m_enabled)
         return;
 
     ::glDisable(GL_DEPTH_TEST);
 
-    if (box.radius() > 0.0)
-        _render_current_gizmo(box);
+    if ((render_order == BeforeBed && dynamic_cast<GLGizmoFlatten*>(_get_current()))
+     || (render_order == AfterBed && !dynamic_cast<GLGizmoFlatten*>(_get_current()))) {
+        if (box.radius() > 0.0)
+            _render_current_gizmo(box);
+     }
 
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    if  (render_order == AfterBed) {
+        ::glPushMatrix();
+        ::glLoadIdentity();
 
-    _render_overlay(canvas);
+        _render_overlay(canvas);
 
-    ::glPopMatrix();
+        ::glPopMatrix();
+    }
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const
@@ -2249,6 +2254,7 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
+    _render_gizmo(Gizmos::RenderOrder::BeforeBed);
     // textured bed needs to be rendered after objects
     if (!is_custom_bed)
     {
@@ -2258,7 +2264,7 @@ void GLCanvas3D::render()
     _render_cutting_plane();
     _render_warning_texture();
     _render_legend_texture();
-    _render_gizmo();
+    _render_gizmo(Gizmos::RenderOrder::AfterBed);
     _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
@@ -3756,9 +3762,9 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
         ::glDisable(GL_LIGHTING);
 }
 
-void GLCanvas3D::_render_gizmo() const
+void GLCanvas3D::_render_gizmo(Gizmos::RenderOrder render_order) const
 {
-    m_gizmos.render(*this, _selected_volumes_bounding_box());
+    m_gizmos.render(*this, _selected_volumes_bounding_box(), render_order);
 }
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const

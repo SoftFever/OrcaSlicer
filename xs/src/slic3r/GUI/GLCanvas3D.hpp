@@ -341,6 +341,10 @@ public:
             Flatten,
             Num_Types
         };
+        enum RenderOrder : unsigned char {
+            BeforeBed,
+            AfterBed
+        };
 
     private:
         bool m_enabled;
@@ -386,7 +390,7 @@ public:
         void set_flattening_data(const ModelObject* model_object);
         Pointf3 get_flattening_normal() const;
 
-        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
+        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box, RenderOrder render_order) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
 
     private:
@@ -633,7 +637,7 @@ private:
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
-    void _render_gizmo() const;
+    void _render_gizmo(Gizmos::RenderOrder render_order) const;
 
     float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
