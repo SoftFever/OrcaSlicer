@@ -260,11 +260,11 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     ::glPushMatrix();
     transform_to_local();
 
-    ::glLineWidth(2.0f);
-
 #if ENABLE_GIZMOS_3D
-    ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_base_color);
+    ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
+    ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
 #else
+    ::glLineWidth(2.0f);
     ::glColor3fv(m_drag_color);
 #endif // ENABLE_GIZMOS_3D
 
@@ -403,7 +403,7 @@ void GLGizmoRotate::render_grabber() const
     m_grabbers[0].angle_z = m_angle;
 
 #if ENABLE_GIZMOS_3D
-    ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_base_color);
+    ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
 #else
     ::glColor3fv(m_drag_color);
 #endif // ENABLE_GIZMOS_3D

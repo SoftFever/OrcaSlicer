@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#define ENABLE_GIZMOS_3D 0
+#define ENABLE_GIZMOS_3D 1
 
 namespace Slic3r {
 
