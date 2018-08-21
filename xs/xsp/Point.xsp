@@ -50,8 +50,6 @@
         %code{% RETVAL = new Point(THIS->projection_onto(*line)); %};
     Point* negative()
         %code{% RETVAL = new Point(- *THIS); %};
-    bool coincides_with_epsilon(Point* point)
-        %code{% RETVAL = (*THIS) == *point; %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld", (*THIS)(0), (*THIS)(1)); RETVAL = buf; %};
 
 %{

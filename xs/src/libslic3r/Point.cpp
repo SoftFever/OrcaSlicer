@@ -28,11 +28,6 @@ void Point::rotate(double angle, const Point &center)
     (*this)(1) = (coord_t)round( (double)center(1) + c * dy + s * dx );
 }
 
-bool Point::coincides_with_epsilon(const Point &point) const
-{
-    return std::abs((*this)(0) - point(0)) < SCALED_EPSILON && std::abs((*this)(1) - point(1)) < SCALED_EPSILON;
-}
-
 int Point::nearest_point_index(const Points &points) const
 {
     PointConstPtrs p;
