@@ -622,11 +622,11 @@ public:
     }
 };
 
-class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
+class ConfigOptionPoint : public ConfigOptionSingle<Vec2d>
 {
 public:
-    ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {}
-    explicit ConfigOptionPoint(const Pointf &value) : ConfigOptionSingle<Pointf>(value) {}
+    ConfigOptionPoint() : ConfigOptionSingle<Vec2d>(Vec2d(0,0)) {}
+    explicit ConfigOptionPoint(const Vec2d &value) : ConfigOptionSingle<Vec2d>(value) {}
     
     static ConfigOptionType static_type() { return coPoint; }
     ConfigOptionType        type()  const override { return static_type(); }
@@ -652,13 +652,13 @@ public:
     }
 };
 
-class ConfigOptionPoints : public ConfigOptionVector<Pointf>
+class ConfigOptionPoints : public ConfigOptionVector<Vec2d>
 {
 public:
-    ConfigOptionPoints() : ConfigOptionVector<Pointf>() {}
-    explicit ConfigOptionPoints(size_t n, const Pointf &value) : ConfigOptionVector<Pointf>(n, value) {}
-    explicit ConfigOptionPoints(std::initializer_list<Pointf> il) : ConfigOptionVector<Pointf>(std::move(il)) {}
-    explicit ConfigOptionPoints(const std::vector<Pointf> &values) : ConfigOptionVector<Pointf>(values) {}
+    ConfigOptionPoints() : ConfigOptionVector<Vec2d>() {}
+    explicit ConfigOptionPoints(size_t n, const Vec2d &value) : ConfigOptionVector<Vec2d>(n, value) {}
+    explicit ConfigOptionPoints(std::initializer_list<Vec2d> il) : ConfigOptionVector<Vec2d>(std::move(il)) {}
+    explicit ConfigOptionPoints(const std::vector<Vec2d> &values) : ConfigOptionVector<Vec2d>(values) {}
 
     static ConfigOptionType static_type() { return coPoints; }
     ConfigOptionType        type()  const override { return static_type(); }
@@ -696,7 +696,7 @@ public:
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
-            Pointf point(Vec2d::Zero());
+            Vec2d point(Vec2d::Zero());
             std::istringstream iss(point_str);
             std::string coord_str;
             if (std::getline(iss, coord_str, 'x')) {

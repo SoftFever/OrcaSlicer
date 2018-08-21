@@ -166,7 +166,7 @@ bool load_prus(const char *path, Model *model)
             float  trafo[3][4] = { 0 };
             double instance_rotation = 0.;
             double instance_scaling_factor = 1.f;
-            Pointf instance_offset(0., 0.); 
+            Vec2d instance_offset(0., 0.); 
             bool   trafo_set = false;
             unsigned int group_id     = (unsigned int)-1;
             unsigned int extruder_id  = (unsigned int)-1;

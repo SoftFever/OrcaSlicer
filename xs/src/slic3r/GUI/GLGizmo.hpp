@@ -23,7 +23,7 @@ protected:
         static const float HalfSize;
         static const float HoverOffset;
 
-        Pointf center;
+        Vec2d center;
         float angle_z;
         float color[3];
 
@@ -64,7 +64,7 @@ public:
 
     void start_dragging();
     void stop_dragging();
-    void update(const Pointf& mouse_pos);
+    void update(const Vec2d& mouse_pos);
     void refresh();
 
     void render(const BoundingBoxf3& box) const;
@@ -75,7 +75,7 @@ protected:
     virtual void on_set_state();
     virtual void on_start_dragging();
     virtual void on_stop_dragging();
-    virtual void on_update(const Pointf& mouse_pos) = 0;
+    virtual void on_update(const Vec2d& mouse_pos) = 0;
     virtual void on_refresh();
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
@@ -98,7 +98,7 @@ class GLGizmoRotate : public GLGizmoBase
 
     float m_angle_z;
 
-    mutable Pointf m_center;
+    mutable Vec2d m_center;
     mutable float m_radius;
     mutable bool m_keep_radius;
 
@@ -111,7 +111,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_set_state();
-    virtual void on_update(const Pointf& mouse_pos);
+    virtual void on_update(const Vec2d& mouse_pos);
     virtual void on_refresh();
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
@@ -132,7 +132,7 @@ class GLGizmoScale : public GLGizmoBase
     float m_scale;
     float m_starting_scale;
 
-    Pointf m_starting_drag_position;
+    Vec2d m_starting_drag_position;
 
 public:
     GLGizmoScale();
@@ -143,7 +143,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_start_dragging();
-    virtual void on_update(const Pointf& mouse_pos);
+    virtual void on_update(const Vec2d& mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 };

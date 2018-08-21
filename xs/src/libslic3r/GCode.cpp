@@ -207,7 +207,7 @@ std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::T
         check_add_eol(gcode);
     }
     // A phony move to the end position at the wipe tower.
-    gcodegen.writer().travel_to_xy(Pointf(end_pos.x, end_pos.y));
+    gcodegen.writer().travel_to_xy(Vec2d(end_pos.x, end_pos.y));
     gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, end_pos));
 
     // Prepare a future wipe.
@@ -293,7 +293,7 @@ std::string WipeTowerIntegration::prime(GCode &gcodegen)
         gcodegen.writer().toolchange(current_extruder_id);
         gcodegen.placeholder_parser().set("current_extruder", current_extruder_id);
         // A phony move to the end position at the wipe tower.
-        gcodegen.writer().travel_to_xy(Pointf(m_priming.end_pos.x, m_priming.end_pos.y));
+        gcodegen.writer().travel_to_xy(Vec2d(m_priming.end_pos.x, m_priming.end_pos.y));
         gcodegen.set_last_pos(wipe_tower_point_to_object_point(gcodegen, m_priming.end_pos));
         // Prepare a future wipe.
         gcodegen.m_wipe.path.points.clear();
@@ -783,7 +783,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             Polygon outer_skirt = Slic3r::Geometry::convex_hull(skirt_points);
             Polygons skirts;
             for (unsigned int extruder_id : print.extruders()) {
-                const Pointf &extruder_offset = print.config.extruder_offset.get_at(extruder_id);
+                const Vec2d &extruder_offset = print.config.extruder_offset.get_at(extruder_id);
                 Polygon s(outer_skirt);
                 s.translate(Point::new_scale(- extruder_offset(0), - extruder_offset(1)));
                 skirts.emplace_back(std::move(s));
@@ -1632,7 +1632,7 @@ void GCode::set_extruders(const std::vector<unsigned int> &extruder_ids)
         }
 }
 
-void GCode::set_origin(const Pointf &pointf)
+void GCode::set_origin(const Vec2d &pointf)
 {    
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
     const Point translate(
@@ -2618,16 +2618,16 @@ std::string GCode::set_extruder(unsigned int extruder_id)
 }
 
 // convert a model-space scaled point into G-code coordinates
-Pointf GCode::point_to_gcode(const Point &point) const
+Vec2d GCode::point_to_gcode(const Point &point) const
 {
-    Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
+    Vec2d extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return unscale(point) + m_origin - extruder_offset;
 }
 
 // convert a model-space scaled point into G-code coordinates
-Point GCode::gcode_to_point(const Pointf &point) const
+Point GCode::gcode_to_point(const Vec2d &point) const
 {
-    Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
+    Vec2d extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Point(
         scale_(point(0) - m_origin(0) + extruder_offset(0)),
         scale_(point(1) - m_origin(1) + extruder_offset(1)));

@@ -91,10 +91,10 @@ Point::coincides_with(point_sv)
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%ld,%ld,%ld", (*THIS)(0), (*THIS)(1), (*THIS)(2)); RETVAL = buf; %};
 };
 
-%name{Slic3r::Pointf} class Pointf {
-    Pointf(double _x = 0, double _y = 0);
-    ~Pointf();
-    Clone<Pointf> clone()
+%name{Slic3r::Pointf} class Vec2d {
+    Vec2d(double _x = 0, double _y = 0);
+    ~Vec2d();
+    Clone<Vec2d> clone()
         %code{% RETVAL = THIS; %};
     SV* arrayref()
         %code{% RETVAL = to_SV_pureperl(THIS); %};
@@ -109,15 +109,15 @@ Point::coincides_with(point_sv)
     void set_y(double val)
         %code{% (*THIS)(1) = val; %};
     void translate(double x, double y)
-        %code{% *THIS += Pointf(x, y); %};
+        %code{% *THIS += Vec2d(x, y); %};
     void scale(double factor)
         %code{% *THIS *= factor; %};
-    void rotate(double angle, Pointf* center)
+    void rotate(double angle, Vec2d* center)
         %code{% *THIS = Eigen::Translation2d(*center) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- *center) * Eigen::Vector2d((*THIS)(0), (*THIS)(1)); %};
-    Pointf* negative()
-        %code{% RETVAL = new Pointf(- *THIS); %};
-    Pointf* vector_to(Pointf* point)
-        %code{% RETVAL = new Pointf(*point - *THIS); %};
+    Vec2d* negative()
+        %code{% RETVAL = new Vec2d(- *THIS); %};
+    Vec2d* vector_to(Vec2d* point)
+        %code{% RETVAL = new Vec2d(*point - *THIS); %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", (*THIS)(0), (*THIS)(1)); RETVAL = buf; %};
 };
 

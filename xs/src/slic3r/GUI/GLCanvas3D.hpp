@@ -314,7 +314,7 @@ public:
         };
 
         bool dragging;
-        Pointf position;
+        Vec2d position;
         Drag drag;
 
         Mouse();
@@ -357,15 +357,15 @@ public:
         bool is_enabled() const;
         void set_enabled(bool enable);
 
-        void update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
-        void update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos);
+        void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
+        void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
         void reset_all_states();
 
         void set_hover_id(int id);
 
-        bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
+        bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Pointf& mouse_pos);
+        void update(const Vec2d& mouse_pos);
         void refresh();
 
         EType get_current_type() const;

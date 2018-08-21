@@ -56,15 +56,15 @@ new_from_points(CLASS, points)
     Clone<BoundingBoxf> clone()
         %code{% RETVAL = THIS; %};
     void merge(BoundingBoxf* bb) %code{% THIS->merge(*bb); %};
-    void merge_point(Pointf* point) %code{% THIS->merge(*point); %};
+    void merge_point(Vec2d* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y);
-    Clone<Pointf> size();
-    Clone<Pointf> center();
+    Clone<Vec2d> size();
+    Clone<Vec2d> center();
     double radius();
     bool empty() %code{% RETVAL = empty(*THIS); %};
-    Clone<Pointf> min_point() %code{% RETVAL = THIS->min; %};
-    Clone<Pointf> max_point() %code{% RETVAL = THIS->max; %};
+    Clone<Vec2d> min_point() %code{% RETVAL = THIS->min; %};
+    Clone<Vec2d> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min(0); %};
     double x_max() %code{% RETVAL = THIS->max(0); %};
     double y_min() %code{% RETVAL = THIS->min(1); %};

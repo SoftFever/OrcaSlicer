@@ -217,11 +217,11 @@ Point SegmentIntersection::pos() const
     const Point   &seg_start = poly.points[(this->iSegment == 0) ? poly.points.size() - 1 : this->iSegment - 1];
     const Point   &seg_end   = poly.points[this->iSegment];
     // Point, vector of the segment.
-    const Pointf   p1(seg_start.cast<coordf_t>());
-    const Pointf   v1((seg_end - seg_start).cast<coordf_t>());
+    const Vec2d   p1(seg_start.cast<coordf_t>());
+    const Vec2d   v1((seg_end - seg_start).cast<coordf_t>());
     // Point, vector of this hatching line.
-    const Pointf   p2(line->pos.cast<coordf_t>());
-    const Pointf   v2(line->dir.cast<coordf_t>());
+    const Vec2d   p2(line->pos.cast<coordf_t>());
+    const Vec2d   v2(line->dir.cast<coordf_t>());
     // Intersect the two rays.
     double denom = v1(0) * v2(1) - v2(0) * v1(1);
     Point out;

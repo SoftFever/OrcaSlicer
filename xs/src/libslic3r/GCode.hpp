@@ -153,12 +153,12 @@ public:
     void            do_export(Print *print, const char *path, GCodePreviewData *preview_data = nullptr);
 
     // Exported for the helper classes (OozePrevention, Wipe) and for the Perl binding for unit tests.
-    const Pointf&   origin() const { return m_origin; }
-    void            set_origin(const Pointf &pointf);
-    void            set_origin(const coordf_t x, const coordf_t y) { this->set_origin(Pointf(x, y)); }
+    const Vec2d&   origin() const { return m_origin; }
+    void            set_origin(const Vec2d &pointf);
+    void            set_origin(const coordf_t x, const coordf_t y) { this->set_origin(Vec2d(x, y)); }
     const Point&    last_pos() const { return m_last_pos; }
-    Pointf          point_to_gcode(const Point &point) const;
-    Point           gcode_to_point(const Pointf &point) const;
+    Vec2d          point_to_gcode(const Point &point) const;
+    Point           gcode_to_point(const Vec2d &point) const;
     const FullPrintConfig &config() const { return m_config; }
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
@@ -259,7 +259,7 @@ protected:
     /* Origin of print coordinates expressed in unscaled G-code coordinates.
        This affects the input arguments supplied to the extrude*() and travel_to()
        methods. */
-    Pointf                              m_origin;
+    Vec2d                              m_origin;
     FullPrintConfig                     m_config;
     GCodeWriter                         m_writer;
     PlaceholderParser                   m_placeholder_parser;

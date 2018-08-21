@@ -58,8 +58,8 @@ SVG::draw(const Line &line, std::string stroke, coordf_t stroke_width)
 
 void SVG::draw(const ThickLine &line, const std::string &fill, const std::string &stroke, coordf_t stroke_width)
 {
-    Pointf dir(line.b(0)-line.a(0), line.b(1)-line.a(1));
-    Pointf perp(-dir(1), dir(0));
+    Vec2d dir(line.b(0)-line.a(0), line.b(1)-line.a(1));
+    Vec2d perp(-dir(1), dir(0));
     coordf_t len = sqrt(perp(0)*perp(0) + perp(1)*perp(1));
     coordf_t da  = coordf_t(0.5)*line.a_width/len;
     coordf_t db  = coordf_t(0.5)*line.b_width/len;

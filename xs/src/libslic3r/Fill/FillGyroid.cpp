@@ -30,15 +30,15 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
 }
 
 static inline Polyline make_wave(
-    const std::vector<Pointf>& one_period, double width, double height, double offset, double scaleFactor,
+    const std::vector<Vec2d>& one_period, double width, double height, double offset, double scaleFactor,
     double z_cos, double z_sin, bool vertical)
 {
-    std::vector<Pointf> points = one_period;
+    std::vector<Vec2d> points = one_period;
     double period = points.back()(0);
     points.pop_back();
     int n = points.size();
     do {
-        points.emplace_back(Pointf(points[points.size()-n](0) + period, points[points.size()-n](1)));
+        points.emplace_back(Vec2d(points[points.size()-n](0) + period, points[points.size()-n](1)));
     } while (points.back()(0) < width);
     points.back()(0) = width;
 
@@ -55,14 +55,14 @@ static inline Polyline make_wave(
     return polyline;
 }
 
-static std::vector<Pointf> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip)
+static std::vector<Vec2d> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip)
 {
-    std::vector<Pointf> points;
+    std::vector<Vec2d> points;
     double dx = M_PI_4; // very coarse spacing to begin with
     double limit = std::min(2*M_PI, width);
     for (double x = 0.; x < limit + EPSILON; x += dx) {  // so the last point is there too
         x = std::min(x, limit);
-        points.emplace_back(Pointf(x,f(x, z_sin,z_cos, vertical, flip)));
+        points.emplace_back(Vec2d(x,f(x, z_sin,z_cos, vertical, flip)));
     }
 
     // now we will check all internal points and in case some are too far from the line connecting its neighbours,
@@ -77,11 +77,13 @@ static std::vector<Pointf> make_one_period(double width, double scaleFactor, dou
         double dist_mm = unscale<double>(scaleFactor) * std::abs(cross2(rp, lp) - cross2(rp - lp, tp)) / lrv.norm();
         if (dist_mm > tolerance) {                               // if the difference from straight line is more than this
             double x = 0.5f * (points[i-1](0) + points[i](0));
-            points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));
+            points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
             x = 0.5f * (points[i+1](0) + points[i](0));
-            points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));
-            std::sort(points.begin(), points.end());            // we added the points to the end, but need them all in order
-            --i;                                                // decrement i so we also check the first newly added point
+            points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
+            // we added the points to the end, but need them all in order
+            std::sort(points.begin(), points.end(), [](const Vec2d &lhs, const Vec2d &rhs){ return lhs < rhs; });
+            // decrement i so we also check the first newly added point
+            --i;
         }
     }
     return points;
@@ -107,7 +109,7 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
         std::swap(width,height);
     }
 
-    std::vector<Pointf> one_period = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
+    std::vector<Vec2d> one_period = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
     Polylines result;
 
     for (double y0 = lower_bound; y0 < upper_bound+EPSILON; y0 += 2*M_PI)           // creates odd polylines

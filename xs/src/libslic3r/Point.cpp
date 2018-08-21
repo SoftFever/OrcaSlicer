@@ -148,7 +148,7 @@ Point Point::projection_onto(const Line &line) const
     return ((line.a - *this).cast<double>().squaredNorm() < (line.b - *this).cast<double>().squaredNorm()) ? line.a : line.b;
 }
 
-std::ostream& operator<<(std::ostream &stm, const Pointf &pointf)
+std::ostream& operator<<(std::ostream &stm, const Vec2d &pointf)
 {
     return stm << pointf(0) << "," << pointf(1);
 }

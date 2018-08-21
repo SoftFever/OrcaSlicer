@@ -16,7 +16,7 @@ const float GLGizmoBase::BaseColor[3] = { 1.0f, 1.0f, 1.0f };
 const float GLGizmoBase::HighlightColor[3] = { 1.0f, 0.38f, 0.0f };
 
 GLGizmoBase::Grabber::Grabber()
-    : center(Pointf(0.0, 0.0))
+    : center(Vec2d(0.0, 0.0))
     , angle_z(0.0f)
 {
     color[0] = 1.0f;
@@ -124,7 +124,7 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const Pointf& mouse_pos)
+void GLGizmoBase::update(const Vec2d& mouse_pos)
 {
     if (m_hover_id != -1)
         on_update(mouse_pos);
@@ -187,7 +187,7 @@ const float GLGizmoRotate::GrabberOffset = 5.0f;
 GLGizmoRotate::GLGizmoRotate()
     : GLGizmoBase()
     , m_angle_z(0.0f)
-    , m_center(Pointf(0.0, 0.0))
+    , m_center(Vec2d(0.0, 0.0))
     , m_radius(0.0f)
     , m_keep_radius(false)
 {
@@ -232,10 +232,10 @@ void GLGizmoRotate::on_set_state()
     m_keep_radius = (m_state == On) ? false : true;
 }
 
-void GLGizmoRotate::on_update(const Pointf& mouse_pos)
+void GLGizmoRotate::on_update(const Vec2d& mouse_pos)
 {
-    Vectorf orig_dir(1.0, 0.0);
-    Vectorf new_dir = (mouse_pos - m_center).normalized();
+    Vec2d orig_dir(1.0, 0.0);
+    Vec2d new_dir = (mouse_pos - m_center).normalized();
     coordf_t theta = ::acos(clamp(-1.0, 1.0, new_dir.dot(orig_dir)));
     if (cross2(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (coordf_t)PI - theta;
@@ -440,9 +440,9 @@ void GLGizmoScale::on_start_dragging()
         m_starting_drag_position = m_grabbers[m_hover_id].center;
 }
 
-void GLGizmoScale::on_update(const Pointf& mouse_pos)
+void GLGizmoScale::on_update(const Vec2d& mouse_pos)
 {
-    Pointf center(0.5 * (m_grabbers[1].center(0) + m_grabbers[0].center(0)), 0.5 * (m_grabbers[3].center(1) + m_grabbers[0].center(1)));
+    Vec2d center(0.5 * (m_grabbers[1].center(0) + m_grabbers[0].center(0)), 0.5 * (m_grabbers[3].center(1) + m_grabbers[0].center(1)));
 
     coordf_t orig_len = (m_starting_drag_position - center).norm();
     coordf_t new_len = (mouse_pos - center).norm();

@@ -39,7 +39,7 @@ public:
     PointClass size() const;
     double radius() const;
     void translate(coordf_t x, coordf_t y) { assert(this->defined); PointClass v(x, y); this->min += v; this->max += v; }
-    void translate(const Pointf &v) { this->min += v; this->max += v; }
+    void translate(const Vec2d &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
     PointClass center() const;
     bool contains(const PointClass &point) const {
@@ -128,12 +128,12 @@ public:
     BoundingBox3(const Points3& points) : BoundingBox3Base<Point3>(points) {};
 };
 
-class BoundingBoxf : public BoundingBoxBase<Pointf> 
+class BoundingBoxf : public BoundingBoxBase<Vec2d> 
 {
 public:
-    BoundingBoxf() : BoundingBoxBase<Pointf>() {};
-    BoundingBoxf(const Pointf &pmin, const Pointf &pmax) : BoundingBoxBase<Pointf>(pmin, pmax) {};
-    BoundingBoxf(const std::vector<Pointf> &points) : BoundingBoxBase<Pointf>(points) {};
+    BoundingBoxf() : BoundingBoxBase<Vec2d>() {};
+    BoundingBoxf(const Vec2d &pmin, const Vec2d &pmax) : BoundingBoxBase<Vec2d>(pmin, pmax) {};
+    BoundingBoxf(const std::vector<Vec2d> &points) : BoundingBoxBase<Vec2d>(points) {};
 };
 
 class BoundingBoxf3 : public BoundingBox3Base<Vec3d> 

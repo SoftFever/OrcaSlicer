@@ -17,10 +17,8 @@ class Line;
 class MultiPoint;
 class Point;
 class Point3;
-class Pointf;
 typedef Point                       Vector;
 typedef Point3                      Vector3;
-typedef Pointf                      Vectorf;
 
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
@@ -39,7 +37,7 @@ typedef std::vector<Point>                              Points;
 typedef std::vector<Point*>                             PointPtrs;
 typedef std::vector<const Point*>                       PointConstPtrs;
 typedef std::vector<Point3>                             Points3;
-typedef std::vector<Pointf>                             Pointfs;
+typedef std::vector<Vec2d>                              Pointfs;
 typedef std::vector<Vec3d>                              Pointf3s;
 
 typedef Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign> Transform2f;
@@ -244,33 +242,7 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
-
-class Pointf : public Vec2d
-{
-public:
-    typedef coordf_t coord_type;
-
-//    explicit Pointf() { (*this)(0) = (*this)(1) = 0.; }
-    explicit Pointf() {  }
-    explicit Pointf(coordf_t x, coordf_t y) { (*this)(0) = x; (*this)(1) = y; }
-    // This constructor allows you to construct Pointf from Eigen expressions
-    template<typename OtherDerived>
-    Pointf(const Eigen::MatrixBase<OtherDerived> &other) : Vec2d(other) {}
-
-    // This method allows you to assign Eigen expressions to MyVectorType
-    template<typename OtherDerived>
-    Pointf& operator=(const Eigen::MatrixBase<OtherDerived> &other)
-    {
-        this->Vec2d::operator=(other);
-        return *this;
-    }
-
-//    void    rotate(double angle);
-//    void    rotate(double angle, const Pointf &center);
-
-private:
-};
+std::ostream& operator<<(std::ostream &stm, const Vec2d &pointf);
 
 } // namespace Slic3r
 

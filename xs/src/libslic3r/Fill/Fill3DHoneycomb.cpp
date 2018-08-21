@@ -54,7 +54,7 @@ static std::vector<coordf_t> perpendPoints(const coordf_t offset, const size_t b
 // components that are outside these limits are set to the limits.
 static inline void trim(Pointfs &pts, coordf_t minX, coordf_t minY, coordf_t maxX, coordf_t maxY)
 {
-    for (Pointf &pt : pts) {
+    for (Vec2d &pt : pts) {
         pt(0) = clamp(minX, maxX, pt(0));
         pt(1) = clamp(minY, maxY, pt(1));
     }
@@ -66,7 +66,7 @@ static inline Pointfs zip(const std::vector<coordf_t> &x, const std::vector<coor
     Pointfs out;
     out.reserve(x.size());
     for (size_t i = 0; i < x.size(); ++ i)
-        out.push_back(Pointf(x[i], y[i]));
+        out.push_back(Vec2d(x[i], y[i]));
     return out;
 }
 

@@ -468,7 +468,7 @@ void applyResult(
         // appropriately
         auto off = item.translation();
         Radians rot = item.rotation();
-        Pointf foff(off.X*SCALING_FACTOR + batch_offset,
+        Vec2d foff(off.X*SCALING_FACTOR + batch_offset,
                     off.Y*SCALING_FACTOR);
 
         // write the tranformation data into the model instance

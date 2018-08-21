@@ -86,12 +86,12 @@ Pointfs FillArchimedeanChords::_generate(coord_t min_x, coord_t min_y, coord_t m
     coordf_t r = 1;
     Pointfs out;
     //FIXME Vojtech: If used as a solid infill, there is a gap left at the center.
-    out.push_back(Pointf(0, 0));
-    out.push_back(Pointf(1, 0));
+    out.push_back(Vec2d(0, 0));
+    out.push_back(Vec2d(1, 0));
     while (r < rmax) {
         theta += 1. / r;
         r = a + b * theta;
-        out.push_back(Pointf(r * cos(theta), r * sin(theta)));
+        out.push_back(Vec2d(r * cos(theta), r * sin(theta)));
     }
     return out;
 }
@@ -162,7 +162,7 @@ Pointfs FillHilbertCurve::_generate(coord_t min_x, coord_t min_y, coord_t max_x,
     line.reserve(sz2);
     for (size_t i = 0; i < sz2; ++ i) {
         Point p = hilbert_n_to_xy(i);
-        line.push_back(Pointf(p(0) + min_x, p(1) + min_y));
+        line.push_back(Vec2d(p(0) + min_x, p(1) + min_y));
     }
     return line;
 }
@@ -175,27 +175,27 @@ Pointfs FillOctagramSpiral::_generate(coord_t min_x, coord_t min_y, coord_t max_
     coordf_t r = 0;
     coordf_t r_inc = sqrt(2.);
     Pointfs out;
-    out.push_back(Pointf(0, 0));
+    out.push_back(Vec2d(0, 0));
     while (r < rmax) {
         r += r_inc;
         coordf_t rx = r / sqrt(2.);
         coordf_t r2 = r + rx;
-        out.push_back(Pointf( r,  0.));
-        out.push_back(Pointf( r2, rx));
-        out.push_back(Pointf( rx, rx));
-        out.push_back(Pointf( rx, r2));
-        out.push_back(Pointf(0.,  r));
-        out.push_back(Pointf(-rx, r2));
-        out.push_back(Pointf(-rx, rx));
-        out.push_back(Pointf(-r2, rx));
-        out.push_back(Pointf(-r,  0.));
-        out.push_back(Pointf(-r2, -rx));
-        out.push_back(Pointf(-rx, -rx));
-        out.push_back(Pointf(-rx, -r2));
-        out.push_back(Pointf(0., -r));
-        out.push_back(Pointf( rx, -r2));
-        out.push_back(Pointf( rx, -rx));
-        out.push_back(Pointf( r2+r_inc, -rx));
+        out.push_back(Vec2d( r,  0.));
+        out.push_back(Vec2d( r2, rx));
+        out.push_back(Vec2d( rx, rx));
+        out.push_back(Vec2d( rx, r2));
+        out.push_back(Vec2d(0.,  r));
+        out.push_back(Vec2d(-rx, r2));
+        out.push_back(Vec2d(-rx, rx));
+        out.push_back(Vec2d(-r2, rx));
+        out.push_back(Vec2d(-r,  0.));
+        out.push_back(Vec2d(-r2, -rx));
+        out.push_back(Vec2d(-rx, -rx));
+        out.push_back(Vec2d(-rx, -r2));
+        out.push_back(Vec2d(0., -r));
+        out.push_back(Vec2d( rx, -r2));
+        out.push_back(Vec2d( rx, -rx));
+        out.push_back(Vec2d( r2+r_inc, -rx));
     }
     return out;
 }

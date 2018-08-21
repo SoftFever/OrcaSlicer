@@ -213,7 +213,7 @@ public:
 //    Transform3d     transform;
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
-    Pointf offset;              // in unscaled coordinates
+    Vec2d offset;              // in unscaled coordinates
     
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
     EPrintVolumeState print_volume_state;
@@ -288,7 +288,7 @@ public:
     BoundingBoxf3 bounding_box() const;
     // Returns tight axis aligned bounding box of this model
     BoundingBoxf3 transformed_bounding_box() const;
-    void center_instances_around_point(const Pointf &point);
+    void center_instances_around_point(const Vec2d &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
     bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);

@@ -59,7 +59,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
-bool PrintObject::add_copy(const Pointf &point)
+bool PrintObject::add_copy(const Vec2d &point)
 {
     Points points = this->_copies;
     points.push_back(Point::new_scale(point(0), point(1)));

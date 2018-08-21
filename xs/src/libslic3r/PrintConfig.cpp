@@ -35,7 +35,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("bed_shape", coPoints);
 	def->label = L("Bed shape");
-    def->default_value = new ConfigOptionPoints { Pointf(0,0), Pointf(200,0), Pointf(200,200), Pointf(0,200) };
+    def->default_value = new ConfigOptionPoints { Vec2d(0,0), Vec2d(200,0), Vec2d(200,200), Vec2d(0,200) };
     
     def = this->add("bed_temperature", coInts);
     def->label = L("Other layers");
@@ -392,7 +392,7 @@ PrintConfigDef::PrintConfigDef()
                    "from the XY coordinate).");
     def->sidetext = L("mm");
     def->cli = "extruder-offset=s@";
-    def->default_value = new ConfigOptionPoints { Pointf(0,0) };
+    def->default_value = new ConfigOptionPoints { Vec2d(0,0) };
 
     def = this->add("extrusion_axis", coString);
     def->label = L("Extrusion axis");

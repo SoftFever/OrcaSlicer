@@ -138,7 +138,7 @@ public:
     const ModelObject*  model_object() const    { return this->_model_object; }
 
     const Points& copies() const { return this->_copies; }
-    bool add_copy(const Pointf &point);
+    bool add_copy(const Vec2d &point);
     bool delete_last_copy();
     bool delete_all_copies() { return this->set_copies(Points()); }
     bool set_copies(const Points &points);

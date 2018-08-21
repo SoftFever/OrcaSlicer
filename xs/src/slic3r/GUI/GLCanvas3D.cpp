@@ -317,7 +317,7 @@ bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     _calc_bounding_box();
 
     ExPolygon poly;
-    for (const Pointf& p : m_shape)
+    for (const Vec2d& p : m_shape)
     {
         poly.contour.append(Point(scale_(p(0)), scale_(p(1))));
     }
@@ -373,7 +373,7 @@ void GLCanvas3D::Bed::render(float theta) const
 void GLCanvas3D::Bed::_calc_bounding_box()
 {
     m_bounding_box = BoundingBoxf3();
-    for (const Pointf& p : m_shape)
+    for (const Vec2d& p : m_shape)
     {
         m_bounding_box.merge(Vec3d(p(0), p(1), 0.0));
     }
@@ -1168,7 +1168,7 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
-void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -1187,14 +1187,14 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Poin
         // we currently use circular icons for gizmo, so we check the radius
         if (it->second->get_state() != GLGizmoBase::On)
         {
-            bool inside = (mouse_pos - Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
+            bool inside = (mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
         }
         top_y += (tex_size + OverlayGapY);
     }
 }
 
-void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -1211,7 +1211,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if ((mouse_pos - Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
+        if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -1260,7 +1260,7 @@ void GLCanvas3D::Gizmos::set_hover_id(int id)
     }
 }
 
-bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
+bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const
 {
     if (!m_enabled)
         return false;
@@ -1277,7 +1277,7 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if ((mouse_pos - Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
+        if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
             return true;
 
         top_y += (tex_size + OverlayGapY);
@@ -1295,7 +1295,7 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
-void GLCanvas3D::Gizmos::update(const Pointf& mouse_pos)
+void GLCanvas3D::Gizmos::update(const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -2719,7 +2719,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Leaving())
     {
         // to remove hover on objects when the mouse goes out of this canvas
-        m_mouse.position = Pointf(-1.0, -1.0);
+        m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
     }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
@@ -2880,7 +2880,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.dragging = true;
 
         const Vec3d& cur_pos = _mouse_to_bed_3d(pos);
-        m_gizmos.update(Pointf(cur_pos(0), cur_pos(1)));
+        m_gizmos.update(Vec2d(cur_pos(0), cur_pos(1)));
 
         std::vector<GLVolume*> volumes;
         if (m_mouse.drag.gizmo_volume_idx != -1)
@@ -3052,7 +3052,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Moving())
     {
-        m_mouse.position = Pointf((coordf_t)pos(0), (coordf_t)pos(1));
+        m_mouse.position = Vec2d((coordf_t)pos(0), (coordf_t)pos(1));
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
             m_dirty = true;
@@ -3396,9 +3396,9 @@ void GLCanvas3D::_camera_tranform() const
 
 void GLCanvas3D::_picking_pass() const
 {
-    const Pointf& pos = m_mouse.position;
+    const Vec2d& pos = m_mouse.position;
 
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Pointf(DBL_MAX, DBL_MAX)))
+    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -4870,7 +4870,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
             // Move a regular object.
             ModelObject* model_object = m_model->objects[obj_idx];
             const Vec3d& origin = volume->get_origin();
-            model_object->instances[instance_idx]->offset = Pointf(origin(0), origin(1));
+            model_object->instances[instance_idx]->offset = Vec2d(origin(0), origin(1));
             model_object->invalidate_bounding_box();
             object_moved = true;
         }

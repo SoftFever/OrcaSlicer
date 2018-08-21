@@ -2057,8 +2057,8 @@ void LoopInterfaceProcessor::generate(MyLayerExtruded &top_contact_layer, const 
                         const Point &p1 = *(it-1);
                         const Point &p2 = *it;
                         // Intersection of a ray (p1, p2) with a circle placed at center_last, with radius of circle_distance.
-                        const Pointf v_seg(coordf_t(p2(0)) - coordf_t(p1(0)), coordf_t(p2(1)) - coordf_t(p1(1)));
-                        const Pointf v_cntr(coordf_t(p1(0) - center_last(0)), coordf_t(p1(1) - center_last(1)));
+                        const Vec2d v_seg(coordf_t(p2(0)) - coordf_t(p1(0)), coordf_t(p2(1)) - coordf_t(p1(1)));
+                        const Vec2d v_cntr(coordf_t(p1(0) - center_last(0)), coordf_t(p1(1) - center_last(1)));
                         coordf_t a = v_seg.squaredNorm();
                         coordf_t b = 2. * v_seg.dot(v_cntr);
                         coordf_t c = v_cntr.squaredNorm() - circle_distance * circle_distance;

@@ -81,7 +81,7 @@
 
     bool add_default_instances();
     Clone<BoundingBoxf3> bounding_box();
-    void center_instances_around_point(Pointf* point)
+    void center_instances_around_point(Vec2d* point)
         %code%{ THIS->center_instances_around_point(*point); %};
     void translate(double x, double y, double z);
     Clone<TriangleMesh> mesh();
@@ -357,14 +357,14 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->rotation; %};
     double scaling_factor()
         %code%{ RETVAL = THIS->scaling_factor; %};
-    Ref<Pointf> offset()
+    Ref<Vec2d> offset()
         %code%{ RETVAL = &THIS->offset; %};
 
     void set_rotation(double val)
         %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
     void set_scaling_factor(double val)
         %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
-    void set_offset(Pointf *offset)
+    void set_offset(Vec2d *offset)
         %code%{ THIS->offset = *offset; %};
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;

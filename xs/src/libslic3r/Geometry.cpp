@@ -345,7 +345,7 @@ linint(double value, double oldmin, double oldmax, double newmin, double newmax)
 // If the points have the same weight, sort them lexicographically by their positions.
 struct ArrangeItem {
     ArrangeItem() {}
-    Pointf    pos;
+    Vec2d    pos;
     coordf_t  weight;
     bool operator<(const ArrangeItem &other) const {
         return weight < other.weight ||
@@ -353,17 +353,17 @@ struct ArrangeItem {
     }
 };
 
-Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box)
+Pointfs arrange(size_t num_parts, const Vec2d &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box)
 {
     // Use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm.
-    const Pointf       cell_size(part_size(0) + gap, part_size(1) + gap);
+    const Vec2d       cell_size(part_size(0) + gap, part_size(1) + gap);
 
     const BoundingBoxf bed_bbox = (bed_bounding_box != NULL && bed_bounding_box->defined) ? 
         *bed_bounding_box :
         // Bogus bed size, large enough not to trigger the unsufficient bed size error.
         BoundingBoxf(
-            Pointf(0, 0),
-            Pointf(cell_size(0) * num_parts, cell_size(1) * num_parts));
+            Vec2d(0, 0),
+            Vec2d(cell_size(0) * num_parts, cell_size(1) * num_parts));
 
     // This is how many cells we have available into which to put parts.
     size_t cellw = size_t(floor((bed_bbox.size()(0) + gap) / cell_size(0)));
@@ -372,8 +372,8 @@ Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const B
         CONFESS(PRINTF_ZU " parts won't fit in your print area!\n", num_parts);
     
     // Get a bounding box of cellw x cellh cells, centered at the center of the bed.
-    Pointf       cells_size(cellw * cell_size(0) - gap, cellh * cell_size(1) - gap);
-    Pointf       cells_offset(bed_bbox.center() - 0.5 * cells_size);
+    Vec2d       cells_size(cellw * cell_size(0) - gap, cellh * cell_size(1) - gap);
+    Vec2d       cells_offset(bed_bbox.center() - 0.5 * cells_size);
     BoundingBoxf cells_bb(cells_offset, cells_size + cells_offset);
     
     // List of cells, sorted by distance from center.
@@ -405,13 +405,13 @@ Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const B
     Pointfs positions;
     positions.reserve(num_parts);
     for (std::vector<ArrangeItem>::const_iterator it = cellsorder.begin(); it != cellsorder.end(); ++ it)
-        positions.push_back(Pointf(it->pos(0) - 0.5 * part_size(0), it->pos(1) - 0.5 * part_size(1)));
+        positions.push_back(Vec2d(it->pos(0) - 0.5 * part_size(0), it->pos(1) - 0.5 * part_size(1)));
     return positions;
 }
 #else
 class ArrangeItem {
 public:
-    Pointf pos = Vec2d::Zero();
+    Vec2d pos = Vec2d::Zero();
     size_t index_x, index_y;
     coordf_t dist;
 };
@@ -423,17 +423,17 @@ public:
 };
 
 bool
-arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const BoundingBoxf* bb, Pointfs &positions)
+arrange(size_t total_parts, const Vec2d &part_size, coordf_t dist, const BoundingBoxf* bb, Pointfs &positions)
 {
     positions.clear();
 
-    Pointf part = part_size;
+    Vec2d part = part_size;
 
     // use actual part size (the largest) plus separation distance (half on each side) in spacing algorithm
     part(0) += dist;
     part(1) += dist;
     
-    Pointf area(Vec2d::Zero());
+    Vec2d area(Vec2d::Zero());
     if (bb != NULL && bb->defined) {
         area = bb->size();
     } else {
@@ -449,11 +449,11 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
         return false;
     
     // total space used by cells
-    Pointf cells(cellw * part(0), cellh * part(1));
+    Vec2d cells(cellw * part(0), cellh * part(1));
     
     // bounding box of total space used by cells
     BoundingBoxf cells_bb;
-    cells_bb.merge(Pointf(0,0)); // min
+    cells_bb.merge(Vec2d(0,0)); // min
     cells_bb.merge(cells);  // max
     
     // center bounding box to area
@@ -533,7 +533,7 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
         coordf_t cx = c.item.index_x - lx;
         coordf_t cy = c.item.index_y - ty;
         
-        positions.push_back(Pointf(cx * part(0), cy * part(1)));
+        positions.push_back(Vec2d(cx * part(0), cy * part(1)));
     }
     
     if (bb != NULL && bb->defined) {

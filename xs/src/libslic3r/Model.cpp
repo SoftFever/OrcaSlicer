@@ -243,7 +243,7 @@ BoundingBoxf3 Model::transformed_bounding_box() const
     return bb;
 }
 
-void Model::center_instances_around_point(const Pointf &point)
+void Model::center_instances_around_point(const Vec2d &point)
 {
 //    BoundingBoxf3 bb = this->bounding_box();
     BoundingBoxf3 bb;
@@ -251,7 +251,7 @@ void Model::center_instances_around_point(const Pointf &point)
         for (size_t i = 0; i < o->instances.size(); ++ i)
             bb.merge(o->instance_bounding_box(i, false));
 
-    Pointf shift = point - 0.5 * to_2d(bb.size()) - to_2d(bb.min);
+    Vec2d shift = point - 0.5 * to_2d(bb.size()) - to_2d(bb.min);
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances)
             i->offset += shift;
@@ -343,7 +343,7 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
         // make a copy of the pointers in order to avoid recursion when appending their copies
         ModelInstancePtrs instances = o->instances;
         for (const ModelInstance *i : instances) {
-            for (const Pointf &pos : positions) {
+            for (const Vec2d &pos : positions) {
                 ModelInstance *instance = o->add_instance(*i);
                 instance->offset += pos;
             }
