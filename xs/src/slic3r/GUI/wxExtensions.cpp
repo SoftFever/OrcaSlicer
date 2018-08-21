@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/statline.h>
 #include <wx/dcclient.h>
+#include <wx/numformatter.h>
 
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
@@ -761,7 +762,7 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
                                         long style,
                                         const wxValidator& val,
                                         const wxString& name) : 
-    wxControl(parent, id, pos, size, wxBORDER_NONE),
+    wxControl(parent, id, pos, size, wxWANTS_CHARS | wxBORDER_NONE),
     m_lower_value(lowerValue), m_higher_value (higherValue), 
     m_min_value(minValue), m_max_value(maxValue),
     m_style(style)
@@ -784,8 +785,10 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
     Bind(wxEVT_LEFT_DOWN,   &PrusaDoubleSlider::OnLeftDown, this);
     Bind(wxEVT_MOTION,      &PrusaDoubleSlider::OnMotion,   this);
     Bind(wxEVT_LEFT_UP,     &PrusaDoubleSlider::OnLeftUp,   this);
-    Bind(wxEVT_LEAVE_WINDOW,&PrusaDoubleSlider::OnLeftUp,   this);
     Bind(wxEVT_MOUSEWHEEL,  &PrusaDoubleSlider::OnWheel,    this);
+    Bind(wxEVT_ENTER_WINDOW,&PrusaDoubleSlider::OnEnterWin, this);
+    Bind(wxEVT_LEAVE_WINDOW,&PrusaDoubleSlider::OnLeaveWin,   this);
+    Bind(wxEVT_KEY_DOWN,    &PrusaDoubleSlider::OnKeyDown,  this);
 
     // control's view variables
     SLIDER_MARGIN     = 2 + (style == wxSL_HORIZONTAL ? m_thumb_higher.GetWidth() : m_thumb_higher.GetHeight());
@@ -865,9 +868,22 @@ void PrusaDoubleSlider::get_lower_and_higher_position(int& lower_pos, int& highe
     }
 }
 
-void PrusaDoubleSlider::OnPaint(wxPaintEvent& event)
+void PrusaDoubleSlider::draw_focus_rect()
+{
+    if (!m_is_focused) 
+        return;
+    const wxSize sz = GetSize();
+    wxPaintDC dc(this);
+    const wxPen pen = wxPen(wxColour(128, 128, 10), 1, wxPENSTYLE_DOT);
+    dc.SetPen(pen);
+    dc.SetBrush(wxBrush(wxColour(0, 0, 0), wxBRUSHSTYLE_TRANSPARENT));
+    dc.DrawRectangle(2, 2, sz.x - 4, sz.y - 4);
+}
+
+void PrusaDoubleSlider::render()
 {
     SetBackgroundColour(GetParent()->GetBackgroundColour());
+    draw_focus_rect();
 
     wxPaintDC dc(this);    
     int width, height;
@@ -888,6 +904,21 @@ void PrusaDoubleSlider::OnPaint(wxPaintEvent& event)
     draw_higher_thumb(dc, pos);
 }
 
+void PrusaDoubleSlider::draw_info_line(wxDC& dc, const wxPoint& pos, const wxSize& thumb_size, const SelectedSlider selection)
+{
+    if (m_selection == selection) {
+        dc.SetPen(DARK_ORANGE_PEN);
+        is_horizontal() ? dc.DrawLine(pos.x, pos.y - thumb_size.y, pos.x, pos.y + thumb_size.y):
+                          dc.DrawLine(pos.x - thumb_size.x, pos.y-1, pos.x + thumb_size.x, pos.y-1);
+    }
+}
+
+wxString PrusaDoubleSlider::get_label(const int value)
+{
+    return m_label_koef == 1.0 ? wxString::Format("%d", value) :
+                                 wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None);
+}
+
 void PrusaDoubleSlider::draw_lower_thumb(wxDC& dc, const wxPoint& pos)
 {
     // Draw thumb
@@ -902,13 +933,16 @@ void PrusaDoubleSlider::draw_lower_thumb(wxDC& dc, const wxPoint& pos)
         y_draw = pos.y;
     }
     dc.DrawBitmap(m_thumb_lower, x_draw, y_draw);
+    // Draw info_line
+    draw_info_line(dc, pos, thumb_size, ssLower);
 
     // Draw thumb text
     wxCoord text_width, text_height;
-    dc.GetTextExtent(wxString::Format("%d", m_lower_value), &text_width, &text_height);
+    wxString label = get_label(m_lower_value);
+    dc.GetTextExtent(label, &text_width, &text_height);
     wxPoint text_pos = is_horizontal() ? wxPoint(pos.x + 1, pos.y + thumb_size.x) :
-                                         wxPoint(pos.x + thumb_size.y, pos.y - 1 - text_height);
-    dc.DrawText(wxString::Format("%d", m_lower_value), text_pos);
+                                         wxPoint(pos.x + thumb_size.x+1, pos.y - 0.5*text_height - 1);
+    dc.DrawText(label, text_pos);
 
     // Update thumb rect
     m_rect_lower_thumb = wxRect(x_draw, y_draw, thumb_size.x, thumb_size.y);
@@ -928,13 +962,16 @@ void PrusaDoubleSlider::draw_higher_thumb(wxDC& dc, const wxPoint& pos)
         y_draw = pos.y - thumb_size.y;
     }
     dc.DrawBitmap(m_thumb_higher, x_draw, y_draw);
+    // Draw info_line
+    draw_info_line(dc, pos, thumb_size, ssHigher);
 
     // Draw thumb text
     wxCoord text_width, text_height;
-    dc.GetTextExtent(wxString::Format("%d", m_higher_value), &text_width, &text_height);
-    wxPoint text_pos = is_horizontal() ? wxPoint(pos.x - text_width-1,                pos.y - thumb_size.x - text_height) :
-                                         wxPoint(pos.x - text_width-1 - thumb_size.y, pos.y + 1);
-    dc.DrawText(wxString::Format("%d", m_higher_value), text_pos);
+    wxString label = get_label(m_higher_value);
+    dc.GetTextExtent(label, &text_width, &text_height);
+    wxPoint text_pos = is_horizontal() ? wxPoint(pos.x - text_width-1, pos.y - thumb_size.x - text_height) :
+                                         wxPoint(pos.x - text_width - 1 - thumb_size.x, pos.y - 0.5*text_height + 1);
+    dc.DrawText(label, text_pos);
 
     // Update thumb rect
     m_rect_higher_thumb = wxRect(x_draw, y_draw, thumb_size.x, thumb_size.y);
@@ -1033,6 +1070,9 @@ void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
 void PrusaDoubleSlider::OnLeftUp(wxMouseEvent& event)
 {
     m_is_left_down = false;
+    m_selection = ssUndef;
+    Refresh();
+    Update();
     event.Skip();
 
     wxCommandEvent e(wxEVT_SCROLL_CHANGED);
@@ -1040,18 +1080,29 @@ void PrusaDoubleSlider::OnLeftUp(wxMouseEvent& event)
     ProcessWindowEvent(e);
 }
 
-void PrusaDoubleSlider::OnWheel(wxMouseEvent& event)
+void PrusaDoubleSlider::OnEnterWin(wxMouseEvent& event)
 {
-    wxClientDC dc(this);
-    wxPoint pos = event.GetLogicalPosition(dc);
-    detect_selected_slider(pos, true);
+    m_is_focused = true;
+    Refresh();
+    Update();
+    event.Skip();
+}
 
-    if (m_selection == ssUndef)
-        return;
+void PrusaDoubleSlider::OnLeaveWin(wxMouseEvent& event)
+{
+    m_is_focused = false;
+    OnLeftUp(event);
+}
 
-    int delta = event.GetWheelRotation() > 0 ? -1 : 1;
+// "condition" have to be true for:
+//    -  value increase (if wxSL_VERTICAL)
+//    -  value decrease (if wxSL_HORIZONTAL) 
+void PrusaDoubleSlider::move_current_thumb(const bool condition)
+{
+    int delta = condition ? -1 : 1;
     if (is_horizontal())
         delta *= -1;
+
     if (m_selection == ssLower) {
         m_lower_value -= delta;
         correct_lower_value();
@@ -1067,4 +1118,38 @@ void PrusaDoubleSlider::OnWheel(wxMouseEvent& event)
     e.SetEventObject(this);
     ProcessWindowEvent(e);
 }
+
+void PrusaDoubleSlider::OnWheel(wxMouseEvent& event)
+{
+    wxClientDC dc(this);
+    wxPoint pos = event.GetLogicalPosition(dc);
+    detect_selected_slider(pos, true);
+
+    if (m_selection == ssUndef)
+        return;
+
+    move_current_thumb(event.GetWheelRotation() > 0);
+}
+
+void PrusaDoubleSlider::OnKeyDown(wxKeyEvent &event)
+{
+    if (is_horizontal())
+    {
+        if (event.GetKeyCode() == WXK_LEFT || event.GetKeyCode() == WXK_RIGHT)
+            move_current_thumb(event.GetKeyCode() == WXK_LEFT); 
+        else if (event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_DOWN){
+            m_selection = event.GetKeyCode() == WXK_UP ? ssHigher : ssLower;
+            Refresh();
+        }
+    }
+    else {
+        if (event.GetKeyCode() == WXK_LEFT || event.GetKeyCode() == WXK_RIGHT) {
+            m_selection = event.GetKeyCode() == WXK_LEFT ? ssHigher : ssLower;
+            Refresh();
+        }
+        else if (event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_DOWN)
+            move_current_thumb(event.GetKeyCode() == WXK_UP);
+    }
+}
+
 // *****************************************************************************

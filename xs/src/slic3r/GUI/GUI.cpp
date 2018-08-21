@@ -1057,7 +1057,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
     sizer->AddSpacer(5);
     sizer->Add(slider_h, 0, wxEXPAND | wxLEFT, 20);
     sizer->AddSpacer(5);
-    PrusaDoubleSlider* slider_v = new PrusaDoubleSlider(parent, wxID_ANY, 50, 70, 0, 100, wxDefaultPosition, wxSize(wxDefaultSize.x ,150), wxSL_VERTICAL);
+    PrusaDoubleSlider* slider_v = new PrusaDoubleSlider(parent, wxID_ANY, 5, 7, 0, 10, wxDefaultPosition, wxSize(wxDefaultSize.x ,150), wxSL_VERTICAL);
+    slider_v->SetKoefForLabels(0.15);
     sizer->AddSpacer(5);
     sizer->Add(slider_v, 0, wxLEFT, 20);
     sizer->AddSpacer(5);

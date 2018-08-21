@@ -525,27 +525,37 @@ public:
     }
     void SetLowerValue(int lower_val);
     void SetHigherValue(int higher_val);
+    void SetKoefForLabels(float koef){ m_label_koef = koef;}
 
     wxSize DoGetBestSize(){ return wxDefaultSize; }
 
-    void OnPaint(wxPaintEvent& event);
+    void OnPaint(wxPaintEvent& ){ render();}
     void OnLeftDown(wxMouseEvent& event);
     void OnMotion(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
+    void OnEnterWin(wxMouseEvent& event);
+    void OnLeaveWin(wxMouseEvent& event);
     void OnWheel(wxMouseEvent& event);
+    void OnKeyDown(wxKeyEvent &event);
 
 protected:
+ 
+    void    render();
+    void    draw_info_line(wxDC& dc, const wxPoint& pos, const wxSize& thumb_size, SelectedSlider selection);
+    wxString    get_label(const int value);
     void    correct_lower_value();
     void    correct_higher_value();
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     double  get_scroll_step();
     void    get_lower_and_higher_position(int& lower_pos, int& higher_pos);
-    void    draw_lower_thumb (wxDC& dc, const wxPoint& pos);
+    void    draw_focus_rect();
+    void    draw_lower_thumb(wxDC& dc, const wxPoint& pos);
     void    draw_higher_thumb(wxDC& dc, const wxPoint& pos);
     int     position_to_value(wxDC& dc, const wxCoord x, const wxCoord y);
     void    detect_selected_slider(const wxPoint& pt, const bool is_mouse_wheel = false);
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
+    void    move_current_thumb(const bool condition);
 
 private:
     int         m_min_value;
@@ -556,10 +566,12 @@ private:
     wxBitmap    m_thumb_lower;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
+    bool        m_is_focused = false;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
     long        m_style;
+    float       m_label_koef = 1.0;
 
 // control's view variables
     wxCoord SLIDER_MARGIN; // margin around slider
