@@ -879,10 +879,15 @@ void WipeTowerPrusaMM::toolchange_Load(
 
     writer.append("; CP TOOLCHANGE LOAD\n")
 		  .suppress_preview()
-		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
+		  /*.load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Acceleration
 		  .load_move_x_advanced(oldx,          0.5f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
 		  .load_move_x_advanced(turning_point, 0.2f * edist, 0.3f * m_filpar[m_current_tool].loading_speed)  // Slowing down
-		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow
+		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
+
+          .load(0.2f * edist, 60.f * m_filpar[m_current_tool].loading_speed_start)
+          .load_move_x_advanced(turning_point, 0.7f * edist,        m_filpar[m_current_tool].loading_speed)  // Fast phase
+		  .load_move_x_advanced(oldx,          0.1f * edist, 0.1f * m_filpar[m_current_tool].loading_speed)  // Super slow*/
+
           .travel(oldx, writer.y()) // in case last move was shortened to limit x feedrate
 		  .resume_preview();
 

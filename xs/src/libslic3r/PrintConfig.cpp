@@ -473,6 +473,14 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 28. };
 
+    def = this->add("filament_loading_speed_start", coFloats);
+    def->label = L("EXPERIMENTAL: Loading speed at the start");
+    def->tooltip = L("Speed used at the very beginning of loading phase. ");
+    def->sidetext = L("mm/s");
+    def->cli = "filament-loading-speed-start=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 9. };
+
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
     def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
