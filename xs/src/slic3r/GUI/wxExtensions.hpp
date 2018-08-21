@@ -8,7 +8,7 @@
 #include <wx/collpane.h>
 #include <wx/wupdlock.h>
 #include <wx/button.h>
-#include <wx/sizer.h>
+#include <wx/slider.h>
 
 #include <vector>
 #include <set>
@@ -496,7 +496,85 @@ private:
 	wxString m_value;
 };
 // ******************************* EXPERIMENTS **********************************************
+enum SelectedSlider {
+    ssUndef,
+    ssLower,
+    ssHigher
+};
+class PrusaDoubleSlider : public wxControl
+{
+public:
+    PrusaDoubleSlider(
+        wxWindow *parent,
+        wxWindowID id,
+        int lowerValue, 
+        int higherValue, 
+        int minValue, 
+        int maxValue,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize,
+        long style = wxSL_HORIZONTAL,
+        const wxValidator& val = wxDefaultValidator,
+        const wxString& name = wxEmptyString);
 
+    int GetLowerValue() {
+        return m_lower_value;
+    }
+    int GetHigherValue() {
+        return m_higher_value;
+    }
+    void SetLowerValue(int lower_val);
+    void SetHigherValue(int higher_val);
+
+    wxSize DoGetBestSize(){ return wxDefaultSize; }
+
+    void OnPaint(wxPaintEvent& event);
+    void OnLeftDown(wxMouseEvent& event);
+    void OnMotion(wxMouseEvent& event);
+    void OnLeftUp(wxMouseEvent& event);
+    void OnWheel(wxMouseEvent& event);
+
+protected:
+    void    correct_lower_value();
+    void    correct_higher_value();
+    void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
+    double  get_scroll_step();
+    void    get_lower_and_higher_position(int& lower_pos, int& higher_pos);
+    void    draw_lower_thumb (wxDC& dc, const wxPoint& pos);
+    void    draw_higher_thumb(wxDC& dc, const wxPoint& pos);
+    int     position_to_value(wxDC& dc, const wxCoord x, const wxCoord y);
+    void    detect_selected_slider(const wxPoint& pt, const bool is_mouse_wheel = false);
+    bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
+    bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
+
+private:
+    int         m_min_value;
+    int         m_max_value;
+    int         m_lower_value;
+    int         m_higher_value;
+    wxBitmap    m_thumb_higher;
+    wxBitmap    m_thumb_lower;
+    SelectedSlider  m_selection;
+    bool        m_is_left_down = false;
+
+    wxRect      m_rect_lower_thumb;
+    wxRect      m_rect_higher_thumb;
+    long        m_style;
+
+// control's view variables
+    wxCoord SLIDER_MARGIN; // margin around slider
+
+    wxPen   DARK_ORANGE_PEN;
+    wxPen   ORANGE_PEN;
+    wxPen   LIGHT_ORANGE_PEN;
+
+    wxPen   DARK_GREY_PEN;
+    wxPen   GREY_PEN;
+    wxPen   LIGHT_GREY_PEN;
+
+    std::vector<wxPen*> line_pens;
+    std::vector<wxPen*> segm_pens;
+};
 // ******************************************************************************************
 
 
