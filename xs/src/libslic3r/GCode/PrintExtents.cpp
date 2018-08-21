@@ -32,8 +32,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionPath &extrusio
     BoundingBox bbox = extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
-        bboxf.min = Pointf::new_unscale(bbox.min);
-        bboxf.max = Pointf::new_unscale(bbox.max);
+        bboxf.min = unscale(bbox.min);
+        bboxf.max = unscale(bbox.max);
 		bboxf.defined = true;
     }
     return bboxf;
@@ -46,8 +46,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionLoop &extrusio
         bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width)));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
-        bboxf.min = Pointf::new_unscale(bbox.min);
-        bboxf.max = Pointf::new_unscale(bbox.max);
+        bboxf.min = unscale(bbox.min);
+        bboxf.max = unscale(bbox.max);
 		bboxf.defined = true;
 	}
     return bboxf;
@@ -60,8 +60,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionMultiPath &ext
         bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width)));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
-        bboxf.min = Pointf::new_unscale(bbox.min);
-        bboxf.max = Pointf::new_unscale(bbox.max);
+        bboxf.min = unscale(bbox.min);
+        bboxf.max = unscale(bbox.max);
 		bboxf.defined = true;
 	}
     return bboxf;
@@ -123,7 +123,7 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
                 bbox_this.merge(extrusionentity_extents(extrusion_entity));
         for (const Point &offset : print_object._shifted_copies) {
             BoundingBoxf bbox_translated(bbox_this);
-            bbox_translated.translate(Pointf::new_unscale(offset));
+            bbox_translated.translate(unscale(offset));
             bbox.merge(bbox_translated);
         }
     }

@@ -792,7 +792,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     // define flow spacing according to requested density
     if (params.full_infill() && !params.dont_adjust) {
         line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
-        this->spacing = unscale(line_spacing);
+        this->spacing = unscale<double>(line_spacing);
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
         // Transform the reference point to the rotated coordinate system.

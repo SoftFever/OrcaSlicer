@@ -75,12 +75,12 @@ public:
 
         EType type;
         Metadata data;
-        Pointf3 start_position;
-        Pointf3 end_position;
+        Vec3d start_position;
+        Vec3d end_position;
         float delta_extruder;
 
-        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Pointf3& start_position, const Pointf3& end_position, float delta_extruder);
-        GCodeMove(EType type, const Metadata& data, const Pointf3& start_position, const Pointf3& end_position, float delta_extruder);
+        GCodeMove(EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder);
+        GCodeMove(EType type, const Metadata& data, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder);
     };
 
     typedef std::vector<GCodeMove> GCodeMovesList;
@@ -93,7 +93,7 @@ private:
         EPositioningType global_positioning_type;
         EPositioningType e_local_positioning_type;
         Metadata data;
-        Pointf3 start_position;
+        Vec3d start_position = Vec3d::Zero();
         float start_extrusion;
         float position[Num_Axis];
     };
@@ -206,15 +206,15 @@ private:
     // Sets axes position to zero
     void _reset_axes_position();
 
-    void _set_start_position(const Pointf3& position);
-    const Pointf3& _get_start_position() const;
+    void _set_start_position(const Vec3d& position);
+    const Vec3d& _get_start_position() const;
 
     void _set_start_extrusion(float extrusion);
     float _get_start_extrusion() const;
     float _get_delta_extrusion() const;
 
     // Returns current xyz position (from m_state.position[])
-    Pointf3 _get_end_position() const;
+    Vec3d _get_end_position() const;
 
     // Adds a new move with the given data
     void _store_move(GCodeMove::EType type);

@@ -289,9 +289,9 @@ ModelMaterial::attributes()
     void set_layer_height_profile(std::vector<double> profile)
         %code%{ THIS->layer_height_profile = profile; THIS->layer_height_profile_valid = true; %};
 
-    Ref<Pointf3> origin_translation()
+    Ref<Vec3d> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};
-    void set_origin_translation(Pointf3* point)
+    void set_origin_translation(Vec3d* point)
         %code%{ THIS->origin_translation = *point; %};
     
     bool needed_repair() const;
@@ -299,7 +299,7 @@ ModelMaterial::attributes()
     int facets_count();
     void center_around_origin();
     void translate(double x, double y, double z);
-    void scale_xyz(Pointf3* versor)
+    void scale_xyz(Vec3d* versor)
         %code{% THIS->scale(*versor); %};
     void rotate(float angle, Axis axis);
     void mirror(Axis axis);

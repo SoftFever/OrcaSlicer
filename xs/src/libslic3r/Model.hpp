@@ -84,7 +84,7 @@ public:
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
-    Pointf3                 origin_translation;
+    Vec3d                   origin_translation;
     
     Model* get_model() const { return m_model; };
     
@@ -120,9 +120,9 @@ public:
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     void center_around_origin();
-    void translate(const Vectorf3 &vector) { this->translate(vector(0), vector(1), vector(2)); }
+    void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
-    void scale(const Pointf3 &versor);
+    void scale(const Vec3d &versor);
     void rotate(float angle, const Axis &axis);
     void transform(const float* matrix3x4);
     void mirror(const Axis &axis);
@@ -138,7 +138,7 @@ public:
     void print_info() const;
     
 private:        
-    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), m_bounding_box_valid(false) {}
+    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
     ModelObject& operator= (ModelObject other);
     void swap(ModelObject &other);

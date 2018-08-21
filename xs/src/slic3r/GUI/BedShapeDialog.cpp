@@ -195,7 +195,7 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 			// all vertices are equidistant to center
 			m_shape_options_book->SetSelection(SHAPE_CIRCULAR);
 			auto optgroup = m_optgroups[SHAPE_CIRCULAR];
-			boost::any ret = wxNumberFormatter::ToString(unscale(avg_dist * 2), 0);
+			boost::any ret = wxNumberFormatter::ToString(unscale<double>(avg_dist * 2), 0);
  			optgroup->set_value("diameter", ret);
 			update_shape();
 			return;
@@ -332,7 +332,7 @@ void BedShapePanel::load_stl()
 	auto polygon = expolygons[0].contour;
 	std::vector<Pointf> points;
 	for (auto pt : polygon.points)
-		points.push_back(Pointf::new_unscale(pt));
+		points.push_back(unscale(pt));
 	m_canvas->m_bed_shape = points;
 	update_preview();
 }

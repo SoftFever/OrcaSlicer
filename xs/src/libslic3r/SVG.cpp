@@ -3,7 +3,7 @@
 
 #include <boost/nowide/cstdio.hpp>
 
-#define COORD(x) ((float)unscale((x))*10)
+#define COORD(x) (unscale<float>((x))*10)
 
 namespace Slic3r {
 

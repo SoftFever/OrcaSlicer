@@ -97,11 +97,11 @@ bool Line::intersection(const Line &l2, Point *intersection) const
     return false;  // not intersecting
 }
 
-Pointf3 Linef3::intersect_plane(double z) const
+Vec3d Linef3::intersect_plane(double z) const
 {
     auto   v = (this->b - this->a).cast<double>();
     double t = (z - this->a(2)) / v(2);
-    return Pointf3(this->a(0) + v(0) * t, this->a(1) + v(1) * t, z);
+    return Vec3d(this->a(0) + v(0) * t, this->a(1) + v(1) * t, z);
 }
 
 }

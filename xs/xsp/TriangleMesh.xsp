@@ -16,7 +16,7 @@
     void repair();
     void WriteOBJFile(char* output_file);
     void scale(float factor);
-    void scale_xyz(Pointf3* versor)
+    void scale_xyz(Vec3d* versor)
         %code{% THIS->scale(*versor); %};
     void translate(float x, float y, float z);
     void rotate_x(float angle);
@@ -33,7 +33,7 @@
     ExPolygons horizontal_projection();
     Clone<Polygon> convex_hull();
     Clone<BoundingBoxf3> bounding_box();
-    Clone<Pointf3> center()
+    Clone<Vec3d> center()
         %code{% RETVAL = THIS->bounding_box().center(); %};
     int facets_count();
     void reset_repair_stats();

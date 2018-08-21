@@ -119,7 +119,7 @@ public:
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
 
-    inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
+    inline void push_geometry(const Vec3d& p, const Vec3d& n) {
         push_geometry(p(0), p(1), p(2), n(0), n(1), n(2));
     }
 
@@ -255,7 +255,7 @@ public:
 
 private:
     // Offset of the volume to be rendered.
-    Pointf3               m_origin;
+    Vec3d                 m_origin;
     // Rotation around Z axis of the volume to be rendered.
     float                 m_angle_z;
     // Scale factor of the volume to be rendered.
@@ -319,8 +319,8 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-    const Pointf3& get_origin() const;
-    void set_origin(const Pointf3& origin);
+    const Vec3d& get_origin() const;
+    void set_origin(const Vec3d& origin);
     void set_angle_z(float angle_z);
     void set_scale_factor(float scale_factor);
 

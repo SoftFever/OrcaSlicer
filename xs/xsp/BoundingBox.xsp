@@ -96,17 +96,17 @@ new_from_points(CLASS, points)
     Clone<BoundingBoxf3> clone()
         %code{% RETVAL = THIS; %};
     void merge(BoundingBoxf3* bb) %code{% THIS->merge(*bb); %};
-    void merge_point(Pointf3* point) %code{% THIS->merge(*point); %};
+    void merge_point(Vec3d* point) %code{% THIS->merge(*point); %};
     void scale(double factor);
     void translate(double x, double y, double z);
     void offset(double delta);
-    bool contains_point(Pointf3* point) %code{% RETVAL = THIS->contains(*point); %};
-    Clone<Pointf3> size();
-    Clone<Pointf3> center();
+    bool contains_point(Vec3d* point) %code{% RETVAL = THIS->contains(*point); %};
+    Clone<Vec3d> size();
+    Clone<Vec3d> center();
     double radius();
     bool empty() %code{% RETVAL = empty(*THIS); %};
-    Clone<Pointf3> min_point() %code{% RETVAL = THIS->min; %};
-    Clone<Pointf3> max_point() %code{% RETVAL = THIS->max; %};
+    Clone<Vec3d> min_point() %code{% RETVAL = THIS->min; %};
+    Clone<Vec3d> max_point() %code{% RETVAL = THIS->max; %};
     double x_min() %code{% RETVAL = THIS->min(0); %};
     double x_max() %code{% RETVAL = THIS->max(0); %};
     double y_min() %code{% RETVAL = THIS->min(1); %};

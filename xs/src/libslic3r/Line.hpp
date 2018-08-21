@@ -81,13 +81,13 @@ public:
 class Linef3
 {
 public:
-    Linef3() {}
-    explicit Linef3(Pointf3 _a, Pointf3 _b): a(_a), b(_b) {}
-    Pointf3 intersect_plane(double z) const;
+    Linef3() : a(0., 0., 0.), b(0., 0., 0.) {}
+    explicit Linef3(Vec3d _a, Vec3d _b): a(_a), b(_b) {}
+    Vec3d   intersect_plane(double z) const;
     void    scale(double factor) { this->a *= factor; this->b *= factor; }
 
-    Pointf3 a;
-    Pointf3 b;
+    Vec3d a;
+    Vec3d b;
 };
 
 } // namespace Slic3r

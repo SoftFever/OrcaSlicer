@@ -121,10 +121,10 @@ Point::coincides_with(point_sv)
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf", (*THIS)(0), (*THIS)(1)); RETVAL = buf; %};
 };
 
-%name{Slic3r::Pointf3} class Pointf3 {
-    Pointf3(double _x = 0, double _y = 0, double _z = 0);
-    ~Pointf3();
-    Clone<Pointf3> clone()
+%name{Slic3r::Pointf3} class Vec3d {
+    Vec3d(double _x = 0, double _y = 0, double _z = 0);
+    ~Vec3d();
+    Clone<Vec3d> clone()
         %code{% RETVAL = THIS; %};
     double x()
         %code{% RETVAL = (*THIS)(0); %};
@@ -139,14 +139,14 @@ Point::coincides_with(point_sv)
     void set_z(double val)
         %code{% (*THIS)(2) = val; %};
     void translate(double x, double y, double z)
-        %code{% *THIS += Pointf3(x, y, z); %};
+        %code{% *THIS += Vec3d(x, y, z); %};
     void scale(double factor)
         %code{% *THIS *= factor; %};
-    double distance_to(Pointf3* point)
+    double distance_to(Vec3d* point)
         %code{% RETVAL = (*point - *THIS).norm(); %};
-    Pointf3* negative()
-        %code{% RETVAL = new Pointf3(- *THIS); %};
-    Pointf3* vector_to(Pointf3* point)
-        %code{% RETVAL = new Pointf3(*point - *THIS); %};
+    Vec3d* negative()
+        %code{% RETVAL = new Vec3d(- *THIS); %};
+    Vec3d* vector_to(Vec3d* point)
+        %code{% RETVAL = new Vec3d(*point - *THIS); %};
     std::string serialize() %code{% char buf[2048]; sprintf(buf, "%lf,%lf,%lf", (*THIS)(0), (*THIS)(1), (*THIS)(2)); RETVAL = buf; %};
 };

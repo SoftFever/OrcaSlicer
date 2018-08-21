@@ -78,15 +78,15 @@ Line::coincides_with(line_sv)
 
 
 %name{Slic3r::Linef3} class Linef3 {
-    Linef3(Pointf3* a, Pointf3* b)
+    Linef3(Vec3d* a, Vec3d* b)
         %code{% RETVAL = new Linef3(*a, *b); %};
     ~Linef3();
     Clone<Linef3> clone()
         %code{% RETVAL = THIS; %};
-    Ref<Pointf3> a()
+    Ref<Vec3d> a()
         %code{% RETVAL = &THIS->a; %};
-    Ref<Pointf3> b()
+    Ref<Vec3d> b()
         %code{% RETVAL = &THIS->b; %};
-    Clone<Pointf3> intersect_plane(double z);
+    Clone<Vec3d> intersect_plane(double z);
     void scale(double factor);
 };

@@ -14,7 +14,7 @@ static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float INCHES_TO_MM = 25.4f;
 static const float DEFAULT_FEEDRATE = 0.0f;
 static const unsigned int DEFAULT_EXTRUDER_ID = 0;
-static const Slic3r::Pointf3 DEFAULT_START_POSITION = Slic3r::Pointf3(0.0f, 0.0f, 0.0f);
+static const Slic3r::Vec3d DEFAULT_START_POSITION = Slic3r::Vec3d(0.0f, 0.0f, 0.0f);
 static const float DEFAULT_START_EXTRUSION = 0.0f;
 
 namespace Slic3r {
@@ -71,7 +71,7 @@ bool GCodeAnalyzer::Metadata::operator != (const GCodeAnalyzer::Metadata& other)
     return false;
 }
 
-GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Pointf3& start_position, const Pointf3& end_position, float delta_extruder)
+GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, ExtrusionRole extrusion_role, unsigned int extruder_id, double mm3_per_mm, float width, float height, float feedrate, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder)
     : type(type)
     , data(extrusion_role, extruder_id, mm3_per_mm, width, height, feedrate)
     , start_position(start_position)
@@ -80,7 +80,7 @@ GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, ExtrusionRole extrusi
 {
 }
 
-GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, const GCodeAnalyzer::Metadata& data, const Pointf3& start_position, const Pointf3& end_position, float delta_extruder)
+GCodeAnalyzer::GCodeMove::GCodeMove(GCodeMove::EType type, const GCodeAnalyzer::Metadata& data, const Vec3d& start_position, const Vec3d& end_position, float delta_extruder)
     : type(type)
     , data(data)
     , start_position(start_position)
@@ -587,12 +587,12 @@ void GCodeAnalyzer::_reset_axes_position()
     ::memset((void*)m_state.position, 0, Num_Axis * sizeof(float));
 }
 
-void GCodeAnalyzer::_set_start_position(const Pointf3& position)
+void GCodeAnalyzer::_set_start_position(const Vec3d& position)
 {
     m_state.start_position = position;
 }
 
-const Pointf3& GCodeAnalyzer::_get_start_position() const
+const Vec3d& GCodeAnalyzer::_get_start_position() const
 {
     return m_state.start_position;
 }
@@ -612,9 +612,9 @@ float GCodeAnalyzer::_get_delta_extrusion() const
     return _get_axis_position(E) - m_state.start_extrusion;
 }
 
-Pointf3 GCodeAnalyzer::_get_end_position() const
+Vec3d GCodeAnalyzer::_get_end_position() const
 {
-    return Pointf3(m_state.position[X], m_state.position[Y], m_state.position[Z]);
+    return Vec3d(m_state.position[X], m_state.position[Y], m_state.position[Z]);
 }
 
 void GCodeAnalyzer::_store_move(GCodeAnalyzer::GCodeMove::EType type)
@@ -673,7 +673,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
     Metadata data;
     float z = FLT_MAX;
     Polyline polyline;
-    Pointf3 position(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3d position(FLT_MAX, FLT_MAX, FLT_MAX);
     float volumetric_rate = FLT_MAX;
     GCodePreviewData::Range height_range;
     GCodePreviewData::Range width_range;
@@ -742,7 +742,7 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
         return;
 
     Polyline3 polyline;
-    Pointf3 position(FLT_MAX, FLT_MAX, FLT_MAX);
+    Vec3d position(FLT_MAX, FLT_MAX, FLT_MAX);
     GCodePreviewData::Travel::EType type = GCodePreviewData::Travel::Num_Types;
     GCodePreviewData::Travel::Polyline::EDirection direction = GCodePreviewData::Travel::Polyline::Num_Directions;
     float feedrate = FLT_MAX;

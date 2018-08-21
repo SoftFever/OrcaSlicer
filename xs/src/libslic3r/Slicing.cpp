@@ -607,7 +607,7 @@ int generate_layer_height_texture(
             // Intensity profile to visualize the layers.
             coordf_t intensity = cos(M_PI * 0.7 * (mid - z) / h);
             // Color mapping from layer height to RGB.
-            Pointf3 color(
+            Vec3d color(
                 intensity * lerp(coordf_t(color1(0)), coordf_t(color2(0)), t), 
                 intensity * lerp(coordf_t(color1(1)), coordf_t(color2(1)), t),
                 intensity * lerp(coordf_t(color1(2)), coordf_t(color2(2)), t));
@@ -639,7 +639,7 @@ int generate_layer_height_texture(
                 const Point3 &color1 = palette_raw[idx1];
                 const Point3 &color2 = palette_raw[idx2];
                 // Color mapping from layer height to RGB.
-                Pointf3 color(
+                Vec3d color(
                     lerp(coordf_t(color1(0)), coordf_t(color2(0)), t), 
                     lerp(coordf_t(color1(1)), coordf_t(color2(1)), t),
                     lerp(coordf_t(color1(2)), coordf_t(color2(2)), t));

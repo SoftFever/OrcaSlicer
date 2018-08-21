@@ -50,7 +50,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
         this->_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
-        Pointf3 size = modobj_bbox.size();
+        Vec3d size = modobj_bbox.size();
         this->size = Point3::new_scale(size(0), size(1), size(2));
     }
     
@@ -1121,7 +1121,7 @@ SlicingParameters PrintObject::slicing_parameters() const
 {
     return SlicingParameters::create_from_config(
         this->print()->config, this->config, 
-        unscale(this->size(2)), this->print()->object_extruders());
+        unscale<double>(this->size(2)), this->print()->object_extruders());
 }
 
 bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const
@@ -1335,7 +1335,7 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
                 // consider the first one
                 this->model_object()->instances.front()->transform_mesh(&mesh, true);
                 // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-                mesh.translate(- float(unscale(this->_copies_shift(0))), - float(unscale(this->_copies_shift(1))), -float(this->model_object()->bounding_box().min(2)));
+                mesh.translate(- unscale<float>(this->_copies_shift(0)), - unscale<float>(this->_copies_shift(1)), - float(this->model_object()->bounding_box().min(2)));
                 // perform actual slicing
                 TriangleMeshSlicer mslicer(&mesh);
                 mslicer.slice(z, &layers);

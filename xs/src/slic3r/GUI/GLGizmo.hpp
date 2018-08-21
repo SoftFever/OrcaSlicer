@@ -9,7 +9,6 @@
 namespace Slic3r {
 
 class BoundingBoxf3;
-class Pointf3;
 
 namespace GUI {
 

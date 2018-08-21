@@ -70,9 +70,9 @@ Pointf*                    O_OBJECT_SLIC3R
 Ref<Pointf>                O_OBJECT_SLIC3R_T
 Clone<Pointf>              O_OBJECT_SLIC3R_T
 
-Pointf3*                   O_OBJECT_SLIC3R
-Ref<Pointf3>               O_OBJECT_SLIC3R_T
-Clone<Pointf3>             O_OBJECT_SLIC3R_T
+Vec3d*                     O_OBJECT_SLIC3R
+Ref<Vec3d>                 O_OBJECT_SLIC3R_T
+Clone<Vec3d>               O_OBJECT_SLIC3R_T
 
 Line*                      O_OBJECT_SLIC3R
 Ref<Line>                  O_OBJECT_SLIC3R_T

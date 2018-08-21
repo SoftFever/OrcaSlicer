@@ -55,10 +55,10 @@
     int                 object_idx() const;
     int                 volume_idx() const;
     int                 instance_idx() const;
-    Clone<Pointf3>      origin() const
+    Clone<Vec3d>        origin() const
         %code%{ RETVAL = THIS->get_origin(); %};
     void                translate(double x, double y, double z)
-        %code%{ THIS->set_origin(THIS->get_origin() + Pointf3(x, y, z)); %};
+        %code%{ THIS->set_origin(THIS->get_origin() + Vec3d(x, y, z)); %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;

@@ -262,11 +262,10 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
-    const Pointf size = box.size().xy();
-    m_center = box.center().xy();
+    m_center = to_2d(box.center());
     if (!m_keep_radius)
     {
-        m_radius = Offset + ::sqrt(sqr(0.5f * size(0)) + sqr(0.5f * size(1)));
+        m_radius = Offset + 0.5 * to_2d(box.size()).norm();
         m_keep_radius = true;
     }
 

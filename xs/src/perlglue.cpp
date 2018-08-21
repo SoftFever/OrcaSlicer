@@ -43,7 +43,7 @@ REGISTER_CLASS(BridgeDetector, "BridgeDetector");
 REGISTER_CLASS(Point, "Point");
 REGISTER_CLASS(Point3, "Point3");
 REGISTER_CLASS(Pointf, "Pointf");
-REGISTER_CLASS(Pointf3, "Pointf3");
+__REGISTER_CLASS(Vec3d, "Pointf3");
 REGISTER_CLASS(DynamicPrintConfig, "Config");
 REGISTER_CLASS(StaticPrintConfig, "Config::Static");
 REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");

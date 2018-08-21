@@ -37,7 +37,7 @@ public:
     bool is_manifold() const;
     void WriteOBJFile(char* output_file);
     void scale(float factor);
-    void scale(const Pointf3 &versor);
+    void scale(const Vec3d &versor);
     void translate(float x, float y, float z);
     void rotate(float angle, const Axis &axis);
     void rotate_x(float angle);

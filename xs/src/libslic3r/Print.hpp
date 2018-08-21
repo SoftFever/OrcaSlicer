@@ -144,7 +144,7 @@ public:
     bool set_copies(const Points &points);
     bool reload_model_instances();
     // since the object is aligned to origin, bounding box coincides with size
-    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), this->size.xy()); }
+    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id) {

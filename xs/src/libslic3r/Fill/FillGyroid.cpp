@@ -71,10 +71,10 @@ static std::vector<Pointf> make_one_period(double width, double scaleFactor, dou
     for (unsigned int i=1;i<points.size()-1;++i) {
         auto& lp = points[i-1]; // left point
         auto& tp = points[i];   // this point
+        Vec2d lrv = tp - lp;
         auto& rp = points[i+1]; // right point
         // calculate distance of the point to the line:
-        double dist_mm = unscale(scaleFactor * std::abs( (rp(1) - lp(1))*tp(0) + (lp(0) - rp(0))*tp(1) + (rp(0)*lp(1) - rp(1)*lp(0)) ) / std::hypot((rp(1) - lp(1)),(lp(0) - rp(0))));
-
+        double dist_mm = unscale<double>(scaleFactor) * std::abs(cross2(rp, lp) - cross2(rp - lp, tp)) / lrv.norm();
         if (dist_mm > tolerance) {                               // if the difference from straight line is more than this
             double x = 0.5f * (points[i-1](0) + points[i](0));
             points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));

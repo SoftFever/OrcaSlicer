@@ -391,7 +391,7 @@ static bool prepare_infill_hatching_segments(
         // Full infill, adjust the line spacing to fit an integer number of lines.
         out.line_spacing = Fill::_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
         // Report back the adjusted line spacing.
-        fill_dir_params.spacing = float(unscale(line_spacing));
+        fill_dir_params.spacing = unscale<double>(line_spacing);
     } else {
         // Extend bounding box so that our pattern will be aligned with the other layers.
         // Transform the reference point to the rotated coordinate system.

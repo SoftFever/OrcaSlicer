@@ -27,7 +27,7 @@ void FillRectilinear::_fill_surface_single(
     // define flow spacing according to requested density
     if (params.density > 0.9999f && !params.dont_adjust) {
         this->_line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), this->_line_spacing);
-        this->spacing = unscale(this->_line_spacing);
+        this->spacing = unscale<double>(this->_line_spacing);
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
         // Transform the reference point to the rotated coordinate system.

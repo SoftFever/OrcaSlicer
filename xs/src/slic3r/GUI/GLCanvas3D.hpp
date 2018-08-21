@@ -120,7 +120,7 @@ public:
         float zoom;
         float phi;
 //        float distance;
-        Pointf3 target;
+        Vec3d target;
 
     private:
         float m_theta;
@@ -185,7 +185,7 @@ public:
 
     struct Axes
     {
-        Pointf3 origin;
+        Vec3d origin;
         float length;
 
         Axes();
@@ -299,11 +299,11 @@ public:
         struct Drag
         {
             static const Point Invalid_2D_Point;
-            static const Pointf3 Invalid_3D_Point;
+            static const Vec3d Invalid_3D_Point;
 
             Point start_position_2D;
-            Pointf3 start_position_3D;
-            Vectorf3 volume_center_offset;
+            Vec3d start_position_3D;
+            Vec3d volume_center_offset;
 
             bool move_with_shift;
             int move_volume_idx;
@@ -636,10 +636,10 @@ private:
 
     // Convert the screen space coordinate to an object space coordinate.
     // If the Z screen space coordinate is not provided, a depth buffer value is substituted.
-    Pointf3 _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
+    Vec3d _mouse_to_3d(const Point& mouse_pos, float* z = nullptr);
 
     // Convert the screen space coordinate to world coordinate on the bed.
-    Pointf3 _mouse_to_bed_3d(const Point& mouse_pos);
+    Vec3d _mouse_to_bed_3d(const Point& mouse_pos);
 
     void _start_timer();
     void _stop_timer();

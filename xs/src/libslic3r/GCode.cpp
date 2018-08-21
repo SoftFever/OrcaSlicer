@@ -64,7 +64,7 @@ std::string OozePrevention::pre_toolchange(GCode &gcodegen)
     // move to the nearest standby point
     if (!this->standby_points.empty()) {
         // get current position in print coordinates
-        Pointf3 writer_pos = gcodegen.writer().get_position();
+        Vec3d writer_pos = gcodegen.writer().get_position();
         Point pos = Point::new_scale(writer_pos(0), writer_pos(1));
         
         // find standby point
@@ -74,7 +74,7 @@ std::string OozePrevention::pre_toolchange(GCode &gcodegen)
         /*  We don't call gcodegen.travel_to() because we don't need retraction (it was already
             triggered by the caller) nor avoid_crossing_perimeters and also because the coordinates
             of the destination point must not be transformed by origin nor current extruder offset.  */
-        gcode += gcodegen.writer().travel_to_xy(Pointf::new_unscale(standby_point), 
+        gcode += gcodegen.writer().travel_to_xy(unscale(standby_point), 
             "move to standby position");
     }
     
@@ -831,7 +831,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                     final_extruder_id   = tool_ordering.last_extruder();
                     assert(final_extruder_id != (unsigned int)-1);
                 }
-                this->set_origin(unscale(copy(0)), unscale(copy(1)));
+                this->set_origin(unscale(copy));
                 if (finished_objects > 0) {
                     // Move to the origin position for the copy we're going to print.
                     // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
@@ -1547,7 +1547,7 @@ void GCode::process_layer(
                     if (m_last_obj_copy != this_object_copy)
                         m_avoid_crossing_perimeters.use_external_mp_once = true;
                     m_last_obj_copy = this_object_copy;
-                    this->set_origin(unscale(copy(0)), unscale(copy(1)));
+                    this->set_origin(unscale(copy));
                     if (object_by_extruder.support != nullptr && !print_wipe_extrusions) {
                         m_layer = layers[layer_id].support_layer;
                         gcode += this->extrude_support(
@@ -2621,9 +2621,7 @@ std::string GCode::set_extruder(unsigned int extruder_id)
 Pointf GCode::point_to_gcode(const Point &point) const
 {
     Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
-    return Pointf(
-        unscale(point(0)) + m_origin(0) - extruder_offset(0),
-        unscale(point(1)) + m_origin(1) - extruder_offset(1));
+    return unscale(point) + m_origin - extruder_offset;
 }
 
 // convert a model-space scaled point into G-code coordinates
@@ -2634,7 +2632,6 @@ Point GCode::gcode_to_point(const Pointf &point) const
         scale_(point(0) - m_origin(0) + extruder_offset(0)),
         scale_(point(1) - m_origin(1) + extruder_offset(1)));
 }
-
 
 // Goes through by_region std::vector and returns reference to a subvector of entities, that are to be printed
 // during infill/perimeter wiping, or normally (depends on wiping_entities parameter)

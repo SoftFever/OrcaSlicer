@@ -536,7 +536,7 @@ bool Print::has_skirt() const
 std::string Print::validate() const
 {
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(config.bed_shape.values));
-    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min(0)), unscale(bed_box_2D.min(1)), 0.0), Pointf3(unscale(bed_box_2D.max(0)), unscale(bed_box_2D.max(1)), config.max_print_height));
+	BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(config.max_print_height)));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
     print_volume.min(2) = -1e10;
     unsigned int printable_count = 0;
@@ -724,7 +724,7 @@ BoundingBox Print::bounding_box() const
     for (const PrintObject *object : this->objects)
         for (Point copy : object->_shifted_copies) {
             bb.merge(copy);
-            copy += object->size.xy();
+            copy += to_2d(object->size);
             bb.merge(copy);
         }
     return bb;
@@ -967,7 +967,7 @@ void Print::_make_skirt()
         this->skirt.append(eloop);
         if (this->config.min_skirt_length.value > 0) {
             // The skirt length is limited. Sum the total amount of filament length extruded, in mm.
-            extruded_length[extruder_idx] += unscale(loop.length()) * extruders_e_per_mm[extruder_idx];
+            extruded_length[extruder_idx] += unscale<double>(loop.length()) * extruders_e_per_mm[extruder_idx];
             if (extruded_length[extruder_idx] < this->config.min_skirt_length.value) {
                 // Not extruded enough yet with the current extruder. Add another loop.
                 if (i == 1)

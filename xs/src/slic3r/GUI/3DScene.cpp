@@ -195,7 +195,8 @@ const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
-    : m_angle_z(0.0f)
+    : m_origin(0, 0, 0)
+    , m_angle_z(0.0f)
     , m_scale_factor(1.0f)
     , m_dirty(true)
     , composite_id(-1)
@@ -252,12 +253,12 @@ void GLVolume::set_render_color()
         set_render_color(color, 4);
 }
 
-const Pointf3& GLVolume::get_origin() const
+const Vec3d& GLVolume::get_origin() const
 {
     return m_origin;
 }
 
-void GLVolume::set_origin(const Pointf3& origin)
+void GLVolume::set_origin(const Vec3d& origin)
 {
     m_origin = origin;
     m_dirty = true;
@@ -629,7 +630,7 @@ std::vector<int> GLVolumeCollection::load_object(
             }
             v.is_modifier = model_volume->modifier;
             v.shader_outside_printer_detection_enabled = !model_volume->modifier;
-            v.set_origin(Pointf3(instance->offset(0), instance->offset(1), 0.0));
+            v.set_origin(Vec3d(instance->offset(0), instance->offset(1), 0.0));
             v.set_angle_z(instance->rotation);
             v.set_scale_factor(instance->scaling_factor);
         }
@@ -667,7 +668,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
                                    {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11}};
         for (int i=0;i<16;++i)
-            points.push_back(Pointf3(out_points_idx[i][0] / (100.f/min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
+            points.push_back(Vec3d(out_points_idx[i][0] / (100.f/min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
         for (int i=0;i<28;++i)
             facets.push_back(Point3(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
         TriangleMesh tooth_mesh(points, facets);
@@ -680,7 +681,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
             tooth_mesh.translate(min_width, 0.f, 0.f);
         }
 
-        mesh.scale(Pointf3(width/(n*min_width), 1.f, height)); // Scaling to proper width
+        mesh.scale(Vec3d(width/(n*min_width), 1.f, height)); // Scaling to proper width
     }
     else
         mesh = make_cube(width, depth, height);
@@ -700,7 +701,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     else
         v.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
-    v.set_origin(Pointf3(pos_x, pos_y, 0.));
+    v.set_origin(Vec3d(pos_x, pos_y, 0.));
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();
@@ -786,7 +787,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-    BoundingBoxf3 print_volume(Pointf3(unscale(bed_box_2D.min(0)), unscale(bed_box_2D.min(1)), 0.0), Pointf3(unscale(bed_box_2D.max(0)), unscale(bed_box_2D.max(1)), config->opt_float("max_print_height")));
+    BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), unscale<double>(config->opt_float("max_print_height"))));
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
 
@@ -962,7 +963,7 @@ static void thick_lines_to_indexed_vertex_array(
     for (size_t ii = 0; ii < lines_end; ++ ii) {
         size_t i = (ii == lines.size()) ? 0 : ii;
         const Line &line = lines[i];
-        double len = unscale(line.length());
+        double len = unscale<double>(line.length());
         double inv_len = 1.0 / len;
         double bottom_z = top_z - heights[i];
         double middle_z = 0.5 * (top_z + bottom_z);
@@ -972,11 +973,11 @@ static void thick_lines_to_indexed_vertex_array(
         bool is_last = (ii == lines_end - 1);
         bool is_closing = closed && is_last;
 
-        Vectorf v = Vectorf::new_unscale(line.vector());
+        Vectorf v = unscale(line.vector());
         v *= inv_len;
 
-        Pointf a = Pointf::new_unscale(line.a);
-        Pointf b = Pointf::new_unscale(line.b);
+        Pointf a = unscale(line.a);
+        Pointf b = unscale(line.b);
         Pointf a1 = a;
         Pointf a2 = a;
         Pointf b1 = b;
@@ -993,7 +994,7 @@ static void thick_lines_to_indexed_vertex_array(
 
         // calculate new XY normals
         Vector n = line.normal();
-        Vectorf3 xy_right_normal = Vectorf3::new_unscale(n(0), n(1), 0);
+        Vec3d xy_right_normal = unscale(n(0), n(1), 0);
         xy_right_normal *= inv_len;
 
         int idx_a[4];
@@ -1196,15 +1197,15 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
     int      idx_initial[4] = { -1, -1, -1, -1 };
     int      idx_prev[4] = { -1, -1, -1, -1 };
     double   z_prev = 0.0;
-    Vectorf3 n_right_prev;
-    Vectorf3 n_top_prev;
-    Vectorf3 unit_v_prev;
+    Vec3d n_right_prev = Vec3d::Zero();
+    Vec3d n_top_prev = Vec3d::Zero();
+    Vec3d unit_v_prev = Vec3d::Zero();
     double   width_initial = 0.0;
 
     // new vertices around the line endpoints
     // left, right, top, bottom
-    Pointf3 a[4];
-    Pointf3 b[4];
+    Vec3d a[4] = { Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero() };
+    Vec3d b[4] = { Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero(), Vec3d::Zero() };
 
     // loop once more in case of closed loops
     size_t lines_end = closed ? (lines.size() + 1) : lines.size();
@@ -1216,17 +1217,17 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         double height = heights[i];
         double width = widths[i];
 
-        Vectorf3 unit_v = Vectorf3::new_unscale(line.vector()).normalized();
+        Vec3d unit_v = unscale(line.vector()).normalized();
 
-        Vectorf3 n_top;
-        Vectorf3 n_right;
-        Vectorf3 unit_positive_z(0.0, 0.0, 1.0);
+        Vec3d n_top = Vec3d::Zero();
+        Vec3d n_right = Vec3d::Zero();
+        Vec3d unit_positive_z(0.0, 0.0, 1.0);
 
         if ((line.a(0) == line.b(0)) && (line.a(1) == line.b(1)))
         {
             // vertical segment
-            n_right = (line.a(2) < line.b(2)) ? Vectorf3(-1.0, 0.0, 0.0) : Vectorf3(1.0, 0.0, 0.0);
-            n_top = Vectorf3(0.0, 1.0, 0.0);
+            n_right = (line.a(2) < line.b(2)) ? Vec3d(-1.0, 0.0, 0.0) : Vec3d(1.0, 0.0, 0.0);
+            n_top = Vec3d(0.0, 1.0, 0.0);
         }
         else
         {
@@ -1235,10 +1236,10 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
             n_top = n_right.cross(unit_v).normalized();
         }
 
-        Vectorf3 rl_displacement = 0.5 * width * n_right;
-        Vectorf3 tb_displacement = 0.5 * height * n_top;
-        Pointf3 l_a = Pointf3::new_unscale(line.a);
-        Pointf3 l_b = Pointf3::new_unscale(line.b);
+        Vec3d rl_displacement = 0.5 * width * n_right;
+        Vec3d tb_displacement = 0.5 * height * n_top;
+        Vec3d l_a = unscale(line.a);
+        Vec3d l_b = unscale(line.b);
 
         a[RIGHT] = l_a + rl_displacement;
         a[LEFT] = l_a - rl_displacement;
@@ -1249,8 +1250,8 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
         b[TOP] = l_b + tb_displacement;
         b[BOTTOM] = l_b - tb_displacement;
 
-        Vectorf3 n_bottom = -n_top;
-        Vectorf3 n_left = -n_right;
+        Vec3d n_bottom = -n_top;
+        Vec3d n_left = -n_right;
 
         int idx_a[4];
         int idx_b[4];
@@ -1316,9 +1317,9 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
                 // At the crease angle of 45 degrees, the overshot at the corner will be less than (1-1/cos(PI/8)) = 8.2% over an arc.
 
                 // averages normals
-                Vectorf3 average_n_right = 0.5 * (n_right + n_right_prev).normalized();
-                Vectorf3 average_n_left = -average_n_right;
-                Vectorf3 average_rl_displacement = 0.5 * width * average_n_right;
+                Vec3d average_n_right = 0.5 * (n_right + n_right_prev).normalized();
+                Vec3d average_n_left = -average_n_right;
+                Vec3d average_rl_displacement = 0.5 * width * average_n_right;
 
                 // updates vertices around a
                 a[RIGHT] = l_a + average_rl_displacement;
@@ -1448,7 +1449,7 @@ static void point_to_indexed_vertex_array(const Point3& point,
 {
     // builds a double piramid, with vertices on the local axes, around the point
 
-    Pointf3 center = Pointf3::new_unscale(point);
+    Vec3d center = unscale(point);
 
     double scale_factor = 1.0;
     double w = scale_factor * width;
@@ -1462,13 +1463,13 @@ static void point_to_indexed_vertex_array(const Point3& point,
         idxs[i] = idx_last + i;
     }
 
-    Vectorf3 displacement_x(w, 0.0, 0.0);
-    Vectorf3 displacement_y(0.0, w, 0.0);
-    Vectorf3 displacement_z(0.0, 0.0, h);
+    Vec3d displacement_x(w, 0.0, 0.0);
+    Vec3d displacement_y(0.0, w, 0.0);
+    Vec3d displacement_z(0.0, 0.0, h);
 
-    Vectorf3 unit_x(1.0, 0.0, 0.0);
-    Vectorf3 unit_y(0.0, 1.0, 0.0);
-    Vectorf3 unit_z(0.0, 0.0, 1.0);
+    Vec3d unit_x(1.0, 0.0, 0.0);
+    Vec3d unit_y(0.0, 1.0, 0.0);
+    Vec3d unit_z(0.0, 0.0, 1.0);
 
     // vertices
     volume.push_geometry(center - displacement_x, -unit_x); // idxs[0]

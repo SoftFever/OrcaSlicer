@@ -52,17 +52,17 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Point3>& fa
     for (int i = 0; i < stl.stats.number_of_facets; i++) {
         stl_facet facet;
 
-        const Pointf3& ref_f1 = points[facets[i](0)];
+        const Vec3d& ref_f1 = points[facets[i](0)];
         facet.vertex[0].x = ref_f1(0);
         facet.vertex[0].y = ref_f1(1);
         facet.vertex[0].z = ref_f1(2);
 
-        const Pointf3& ref_f2 = points[facets[i](1)];
+        const Vec3d& ref_f2 = points[facets[i](1)];
         facet.vertex[1].x = ref_f2(0);
         facet.vertex[1].y = ref_f2(1);
         facet.vertex[1].z = ref_f2(2);
 
-        const Pointf3& ref_f3 = points[facets[i](2)];
+        const Vec3d& ref_f3 = points[facets[i](2)];
         facet.vertex[2].x = ref_f3(0);
         facet.vertex[2].y = ref_f3(1);
         facet.vertex[2].z = ref_f3(2);
@@ -300,7 +300,7 @@ void TriangleMesh::scale(float factor)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
-void TriangleMesh::scale(const Pointf3 &versor)
+void TriangleMesh::scale(const Vec3d &versor)
 {
     float fversor[3];
     fversor[0] = versor(0);
@@ -1493,8 +1493,8 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
             facet.normal.y = 0;
             facet.normal.z = -1;
             for (size_t i = 0; i <= 2; ++i) {
-                facet.vertex[i].x = unscale(p.points[i](0));
-                facet.vertex[i].y = unscale(p.points[i](1));
+                facet.vertex[i].x = unscale<float>(p.points[i](0));
+                facet.vertex[i].y = unscale<float>(p.points[i](1));
                 facet.vertex[i].z = z;
             }
             stl_add_facet(&upper->stl, &facet);
@@ -1519,8 +1519,8 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
             facet.normal.y = 0;
             facet.normal.z = 1;
             for (size_t i = 0; i <= 2; ++i) {
-                facet.vertex[i].x = unscale(polygon->points[i](0));
-                facet.vertex[i].y = unscale(polygon->points[i](1));
+                facet.vertex[i].x = unscale<float>(polygon->points[i](0));
+                facet.vertex[i].y = unscale<float>(polygon->points[i](1));
                 facet.vertex[i].z = z;
             }
             stl_add_facet(&lower->stl, &facet);
@@ -1534,10 +1534,10 @@ void TriangleMeshSlicer::cut(float z, TriangleMesh* upper, TriangleMesh* lower) 
 
 // Generate the vertex list for a cube solid of arbitrary size in X/Y/Z.
 TriangleMesh make_cube(double x, double y, double z) {
-    Pointf3 pv[8] = { 
-        Pointf3(x, y, 0), Pointf3(x, 0, 0), Pointf3(0, 0, 0), 
-        Pointf3(0, y, 0), Pointf3(x, y, z), Pointf3(0, y, z), 
-        Pointf3(0, 0, z), Pointf3(x, 0, z) 
+    Vec3d pv[8] = { 
+        Vec3d(x, y, 0), Vec3d(x, 0, 0), Vec3d(0, 0, 0), 
+        Vec3d(0, y, 0), Vec3d(x, y, z), Vec3d(0, y, z), 
+        Vec3d(0, 0, z), Vec3d(x, 0, z) 
     };
     Point3 fv[12] = { 
         Point3(0, 1, 2), Point3(0, 2, 3), Point3(4, 5, 6), 
@@ -1561,8 +1561,8 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
     std::vector<Point3> facets;
 
     // 2 special vertices, top and bottom center, rest are relative to this
-    vertices.emplace_back(Pointf3(0.0, 0.0, 0.0));
-    vertices.emplace_back(Pointf3(0.0, 0.0, h));
+    vertices.emplace_back(Vec3d(0.0, 0.0, 0.0));
+    vertices.emplace_back(Vec3d(0.0, 0.0, h));
 
     // adjust via rounding to get an even multiple for any provided angle.
     double angle = (2*PI / floor(2*PI / fa));
@@ -1572,13 +1572,13 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
     // top and bottom.
     // Special case: Last line shares 2 vertices with the first line.
     unsigned id = vertices.size() - 1;
-    vertices.emplace_back(Pointf3(sin(0) * r , cos(0) * r, 0));
-    vertices.emplace_back(Pointf3(sin(0) * r , cos(0) * r, h));
+    vertices.emplace_back(Vec3d(sin(0) * r , cos(0) * r, 0));
+    vertices.emplace_back(Vec3d(sin(0) * r , cos(0) * r, h));
     for (double i = 0; i < 2*PI; i+=angle) {
         Pointf p(0, r);
         p.rotate(i);
-        vertices.emplace_back(Pointf3(p(0), p(1), 0.));
-        vertices.emplace_back(Pointf3(p(0), p(1), h));
+        vertices.emplace_back(Vec3d(p(0), p(1), 0.));
+        vertices.emplace_back(Vec3d(p(0), p(1), h));
         id = vertices.size() - 1;
         facets.emplace_back(Point3( 0, id - 1, id - 3)); // top
         facets.emplace_back(Point3(id,      1, id - 2)); // bottom
@@ -1619,7 +1619,7 @@ TriangleMesh make_sphere(double rho, double fa) {
 
     // special case: first ring connects to 0,0,0
     // insert and form facets.
-    vertices.emplace_back(Pointf3(0.0, 0.0, -rho));
+    vertices.emplace_back(Vec3d(0.0, 0.0, -rho));
     size_t id = vertices.size();
     for (size_t i = 0; i < ring.size(); i++) {
         // Fixed scaling 
@@ -1628,7 +1628,7 @@ TriangleMesh make_sphere(double rho, double fa) {
         const double r = sqrt(abs(rho*rho - z*z));
         Pointf b(0, r);
         b.rotate(ring[i]);
-        vertices.emplace_back(Pointf3(b(0), b(1), z));
+        vertices.emplace_back(Vec3d(b(0), b(1), z));
         facets.emplace_back((i == 0) ? Point3(1, 0, ring.size()) : Point3(id, 0, id - 1));
         ++ id;
     }
@@ -1641,7 +1641,7 @@ TriangleMesh make_sphere(double rho, double fa) {
         for (size_t i = 0; i < ring.size(); i++) {
             Pointf b(0, r);
             b.rotate(ring[i]); 
-            vertices.emplace_back(Pointf3(b(0), b(1), z));
+            vertices.emplace_back(Vec3d(b(0), b(1), z));
             if (i == 0) {
                 // wrap around
                 facets.emplace_back(Point3(id + ring.size() - 1 , id, id - 1)); 
@@ -1657,7 +1657,7 @@ TriangleMesh make_sphere(double rho, double fa) {
 
     // special case: last ring connects to 0,0,rho*2.0
     // only form facets.
-    vertices.emplace_back(Pointf3(0.0, 0.0, rho));
+    vertices.emplace_back(Vec3d(0.0, 0.0, rho));
     for (size_t i = 0; i < ring.size(); i++) {
         if (i == 0) {
             // third vertex is on the other side of the ring.

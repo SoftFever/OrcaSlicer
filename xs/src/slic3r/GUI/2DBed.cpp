@@ -91,8 +91,8 @@ void Bed_2D::repaint()
 	for (auto pl : polylines)
 	{
 		for (size_t i = 0; i < pl.points.size()-1; i++){
-			Point pt1 = to_pixels(Pointf::new_unscale(pl.points[i]));
-			Point pt2 = to_pixels(Pointf::new_unscale(pl.points[i+1]));
+			Point pt1 = to_pixels(unscale(pl.points[i]));
+			Point pt2 = to_pixels(unscale(pl.points[i+1]));
 			dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
