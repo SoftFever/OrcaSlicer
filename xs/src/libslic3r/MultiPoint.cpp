@@ -196,7 +196,7 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 
 void MultiPoint3::translate(double x, double y)
 {
-    for (Point3 &p : points) {
+    for (Vec3crd &p : points) {
         p(0) += x;
         p(1) += y;
     }

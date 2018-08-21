@@ -38,6 +38,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     typed_slices(false),
     _print(print),
     _model_object(model_object),
+    size(Vec3crd::Zero()),
     layer_height_profile_valid(false)
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
@@ -50,8 +51,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
         this->_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
-        Vec3d size = modobj_bbox.size();
-        this->size = Point3::new_scale(size(0), size(1), size(2));
+        this->size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
     }
     
     this->reload_model_instances();

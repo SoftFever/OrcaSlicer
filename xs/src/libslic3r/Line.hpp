@@ -58,14 +58,14 @@ public:
 class Line3
 {
 public:
-    Line3() {}
-    Line3(const Point3& _a, const Point3& _b) : a(_a), b(_b) {}
+    Line3() : a(Vec3crd::Zero()), b(Vec3crd::Zero()) {}
+    Line3(const Vec3crd& _a, const Vec3crd& _b) : a(_a), b(_b) {}
 
     double  length() const { return (this->a - this->b).cast<double>().norm(); }
-    Vector3 vector() const { return this->b - this->a; }
+    Vec3crd vector() const { return this->b - this->a; }
 
-    Point3 a;
-    Point3 b;
+    Vec3crd a;
+    Vec3crd b;
 };
 
 class Linef

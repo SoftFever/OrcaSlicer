@@ -768,12 +768,12 @@ void GCodeAnalyzer::_calc_gcode_preview_travel(GCodePreviewData& preview_data)
             polyline = Polyline3();
 
             // add both vertices of the move
-            polyline.append(Point3(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z())));
-            polyline.append(Point3(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
+            polyline.append(Vec3crd(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z())));
+            polyline.append(Vec3crd(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
         }
         else
             // append end vertex of the move to current polyline
-            polyline.append(Point3(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
+            polyline.append(Vec3crd(scale_(move.end_position.x()), scale_(move.end_position.y()), scale_(move.end_position.z())));
 
         // update current values
         position = move.end_position;
@@ -804,7 +804,7 @@ void GCodeAnalyzer::_calc_gcode_preview_retractions(GCodePreviewData& preview_da
     for (const GCodeMove& move : retraction_moves->second)
     {
         // store position
-        Point3 position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
+        Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.retraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }
@@ -818,7 +818,7 @@ void GCodeAnalyzer::_calc_gcode_preview_unretractions(GCodePreviewData& preview_
     for (const GCodeMove& move : unretraction_moves->second)
     {
         // store position
-        Point3 position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
+        Vec3crd position(scale_(move.start_position.x()), scale_(move.start_position.y()), scale_(move.start_position.z()));
         preview_data.unretraction.positions.emplace_back(position, move.data.width, move.data.height);
     }
 }

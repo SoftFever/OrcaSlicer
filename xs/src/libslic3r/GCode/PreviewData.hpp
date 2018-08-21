@@ -151,11 +151,11 @@ public:
 
         struct Position
         {
-            Point3 position;
+            Vec3crd position;
             float width;
             float height;
 
-            Position(const Point3& position, float width, float height);
+            Position(const Vec3crd& position, float width, float height);
         };
 
         typedef std::vector<Position> PositionsList;

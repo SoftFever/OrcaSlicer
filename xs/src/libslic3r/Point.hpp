@@ -16,9 +16,7 @@ namespace Slic3r {
 class Line;
 class MultiPoint;
 class Point;
-class Point3;
-typedef Point                       Vector;
-typedef Point3                      Vector3;
+typedef Point Vector;
 
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
@@ -36,7 +34,7 @@ typedef Eigen::Matrix<double,   3, 1, Eigen::DontAlign> Vec3d;
 typedef std::vector<Point>                              Points;
 typedef std::vector<Point*>                             PointPtrs;
 typedef std::vector<const Point*>                       PointConstPtrs;
-typedef std::vector<Point3>                             Points3;
+typedef std::vector<Vec3crd>                            Points3;
 typedef std::vector<Vec2d>                              Pointfs;
 typedef std::vector<Vec3d>                              Pointf3s;
 
@@ -219,27 +217,6 @@ private:
     coord_t  m_search_radius;
     coord_t  m_grid_resolution;
     coord_t  m_grid_log2;
-};
-
-class Point3 : public Vec3crd
-{
-public:
-    typedef coord_t coord_type;
-
-    explicit Point3() { (*this)(0) = (*this)(1) = (*this)(2) = 0; }
-    explicit Point3(coord_t x, coord_t y, coord_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
-    // This constructor allows you to construct Point3 from Eigen expressions
-    template<typename OtherDerived>
-    Point3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3crd(other) {}
-    static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
-
-    // This method allows you to assign Eigen expressions to MyVectorType
-    template<typename OtherDerived>
-    Point3& operator=(const Eigen::MatrixBase<OtherDerived> &other)
-    {
-        this->Vec3crd::operator=(other);
-        return *this;
-    }
 };
 
 std::ostream& operator<<(std::ostream &stm, const Vec2d &pointf);

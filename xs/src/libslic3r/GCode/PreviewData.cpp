@@ -226,7 +226,7 @@ void GCodePreviewData::Travel::set_default()
 
 const GCodePreviewData::Color GCodePreviewData::Retraction::Default_Color = GCodePreviewData::Color(1.0f, 1.0f, 1.0f, 1.0f);
 
-GCodePreviewData::Retraction::Position::Position(const Point3& position, float width, float height)
+GCodePreviewData::Retraction::Position::Position(const Vec3crd& position, float width, float height)
     : position(position)
     , width(width)
     , height(height)

@@ -36,7 +36,7 @@ TriangleMesh::TriangleMesh()
     stl_initialize(&this->stl);
 }
 
-TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Point3>& facets )
+TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets )
     : repaired(false)
 {
     stl_initialize(&this->stl);
@@ -1539,14 +1539,14 @@ TriangleMesh make_cube(double x, double y, double z) {
         Vec3d(0, y, 0), Vec3d(x, y, z), Vec3d(0, y, z), 
         Vec3d(0, 0, z), Vec3d(x, 0, z) 
     };
-    Point3 fv[12] = { 
-        Point3(0, 1, 2), Point3(0, 2, 3), Point3(4, 5, 6), 
-        Point3(4, 6, 7), Point3(0, 4, 7), Point3(0, 7, 1), 
-        Point3(1, 7, 6), Point3(1, 6, 2), Point3(2, 6, 5), 
-        Point3(2, 5, 3), Point3(4, 0, 3), Point3(4, 3, 5) 
+    Vec3crd fv[12] = { 
+        Vec3crd(0, 1, 2), Vec3crd(0, 2, 3), Vec3crd(4, 5, 6), 
+        Vec3crd(4, 6, 7), Vec3crd(0, 4, 7), Vec3crd(0, 7, 1), 
+        Vec3crd(1, 7, 6), Vec3crd(1, 6, 2), Vec3crd(2, 6, 5), 
+        Vec3crd(2, 5, 3), Vec3crd(4, 0, 3), Vec3crd(4, 3, 5) 
     };
 
-    std::vector<Point3> facets(&fv[0], &fv[0]+12);
+    std::vector<Vec3crd> facets(&fv[0], &fv[0]+12);
     Pointf3s vertices(&pv[0], &pv[0]+8);
 
     TriangleMesh mesh(vertices ,facets);
@@ -1558,7 +1558,7 @@ TriangleMesh make_cube(double x, double y, double z) {
 // Default is 360 sides, angle fa is in radians.
 TriangleMesh make_cylinder(double r, double h, double fa) {
     Pointf3s vertices;
-    std::vector<Point3> facets;
+    std::vector<Vec3crd> facets;
 
     // 2 special vertices, top and bottom center, rest are relative to this
     vertices.emplace_back(Vec3d(0.0, 0.0, 0.0));
@@ -1579,16 +1579,16 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
         vertices.emplace_back(Vec3d(p(0), p(1), 0.));
         vertices.emplace_back(Vec3d(p(0), p(1), h));
         id = vertices.size() - 1;
-        facets.emplace_back(Point3( 0, id - 1, id - 3)); // top
-        facets.emplace_back(Point3(id,      1, id - 2)); // bottom
-        facets.emplace_back(Point3(id, id - 2, id - 3)); // upper-right of side
-        facets.emplace_back(Point3(id, id - 3, id - 1)); // bottom-left of side
+        facets.emplace_back(Vec3crd( 0, id - 1, id - 3)); // top
+        facets.emplace_back(Vec3crd(id,      1, id - 2)); // bottom
+        facets.emplace_back(Vec3crd(id, id - 2, id - 3)); // upper-right of side
+        facets.emplace_back(Vec3crd(id, id - 3, id - 1)); // bottom-left of side
     }
     // Connect the last set of vertices with the first.
-    facets.emplace_back(Point3( 2, 0, id - 1));
-    facets.emplace_back(Point3( 1, 3,     id));
-    facets.emplace_back(Point3(id, 3,      2));
-    facets.emplace_back(Point3(id, 2, id - 1));
+    facets.emplace_back(Vec3crd( 2, 0, id - 1));
+    facets.emplace_back(Vec3crd( 1, 3,     id));
+    facets.emplace_back(Vec3crd(id, 3,      2));
+    facets.emplace_back(Vec3crd(id, 2, id - 1));
     
     TriangleMesh mesh(vertices, facets);
     return mesh;
@@ -1599,7 +1599,7 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
 // Default angle is 1 degree.
 TriangleMesh make_sphere(double rho, double fa) {
     Pointf3s vertices;
-    std::vector<Point3> facets;
+    std::vector<Vec3crd> facets;
 
     // Algorithm: 
     // Add points one-by-one to the sphere grid and form facets using relative coordinates.
@@ -1627,7 +1627,7 @@ TriangleMesh make_sphere(double rho, double fa) {
         const double r = sqrt(abs(rho*rho - z*z));
         Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
         vertices.emplace_back(Vec3d(b(0), b(1), z));
-        facets.emplace_back((i == 0) ? Point3(1, 0, ring.size()) : Point3(id, 0, id - 1));
+        facets.emplace_back((i == 0) ? Vec3crd(1, 0, ring.size()) : Vec3crd(id, 0, id - 1));
         ++ id;
     }
 
@@ -1641,11 +1641,11 @@ TriangleMesh make_sphere(double rho, double fa) {
             vertices.emplace_back(Vec3d(b(0), b(1), z));
             if (i == 0) {
                 // wrap around
-                facets.emplace_back(Point3(id + ring.size() - 1 , id, id - 1)); 
-                facets.emplace_back(Point3(id, id - ring.size(),  id - 1)); 
+                facets.emplace_back(Vec3crd(id + ring.size() - 1 , id, id - 1)); 
+                facets.emplace_back(Vec3crd(id, id - ring.size(),  id - 1)); 
             } else {
-                facets.emplace_back(Point3(id , id - ring.size(), (id - 1) - ring.size())); 
-                facets.emplace_back(Point3(id, id - 1 - ring.size() ,  id - 1)); 
+                facets.emplace_back(Vec3crd(id , id - ring.size(), (id - 1) - ring.size())); 
+                facets.emplace_back(Vec3crd(id, id - 1 - ring.size() ,  id - 1)); 
             }
             id++;
         } 
@@ -1658,9 +1658,9 @@ TriangleMesh make_sphere(double rho, double fa) {
     for (size_t i = 0; i < ring.size(); i++) {
         if (i == 0) {
             // third vertex is on the other side of the ring.
-            facets.emplace_back(Point3(id, id - ring.size(),  id - 1));
+            facets.emplace_back(Vec3crd(id, id - ring.size(),  id - 1));
         } else {
-            facets.emplace_back(Point3(id, id - ring.size() + i,  id - ring.size() + (i - 1)));
+            facets.emplace_back(Vec3crd(id, id - ring.size() + i,  id - ring.size() + (i - 1)));
         }
     }
     id++;

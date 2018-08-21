@@ -63,8 +63,6 @@ _constant()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     std::vector<double> layer_height_profile()
         %code%{ RETVAL = THIS->layer_height_profile; %};
-    Ref<Point3> size()
-        %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
     
     Points _shifted_copies()

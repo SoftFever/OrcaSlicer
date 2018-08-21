@@ -118,7 +118,7 @@ public:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool typed_slices;
 
-    Point3 size;           // XYZ in scaled coordinates
+    Vec3crd size;           // XYZ in scaled coordinates
 
     // scaled coordinates to add to copies (to compensate for the alignment
     // operated when creating the object but still preserving a coherent API

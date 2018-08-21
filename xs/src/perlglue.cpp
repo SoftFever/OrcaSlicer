@@ -41,7 +41,6 @@ REGISTER_CLASS(BoundingBoxf, "Geometry::BoundingBoxf");
 REGISTER_CLASS(BoundingBoxf3, "Geometry::BoundingBoxf3");
 REGISTER_CLASS(BridgeDetector, "BridgeDetector");
 REGISTER_CLASS(Point, "Point");
-REGISTER_CLASS(Point3, "Point3");
 __REGISTER_CLASS(Vec2d, "Pointf");
 __REGISTER_CLASS(Vec3d, "Pointf3");
 REGISTER_CLASS(DynamicPrintConfig, "Config");

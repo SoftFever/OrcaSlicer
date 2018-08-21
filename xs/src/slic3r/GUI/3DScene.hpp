@@ -553,7 +553,7 @@ public:
     static void extrusionentity_to_verts(const ExtrusionEntityCollection& extrusion_entity_collection, float print_z, const Point& copy, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionEntity* extrusion_entity, float print_z, const Point& copy, GLVolume& volume);
     static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume);
-    static void point3_to_verts(const Point3& point, double width, double height, GLVolume& volume);
+    static void point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume);
 };
 
 }

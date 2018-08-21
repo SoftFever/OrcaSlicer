@@ -661,7 +661,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
         // We'll now create the box with jagged edge. y-coordinates of the pre-generated model are shifted so that the front
         // edge has y=0 and centerline of the back edge has y=depth:
         Pointf3s points;
-        std::vector<Point3> facets;
+        std::vector<Vec3crd> facets;
         float out_points_idx[][3] = {{0, -depth, 0}, {0, 0, 0}, {38.453, 0, 0}, {61.547, 0, 0}, {100, 0, 0}, {100, -depth, 0}, {55.7735, -10, 0}, {44.2265, 10, 0},
                                      {38.453, 0, 1}, {0, 0, 1}, {0, -depth, 1}, {100, -depth, 1}, {100, 0, 1}, {61.547, 0, 1}, {55.7735, -10, 1}, {44.2265, 10, 1}};
         int out_facets_idx[][3] = {{0, 1, 2}, {3, 4, 5}, {6, 5, 0}, {3, 5, 6}, {6, 2, 7}, {6, 0, 2}, {8, 9, 10}, {11, 12, 13}, {10, 11, 14}, {14, 11, 13}, {15, 8, 14},
@@ -670,7 +670,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
         for (int i=0;i<16;++i)
             points.push_back(Vec3d(out_points_idx[i][0] / (100.f/min_width), out_points_idx[i][1] + depth, out_points_idx[i][2]));
         for (int i=0;i<28;++i)
-            facets.push_back(Point3(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
+            facets.push_back(Vec3crd(out_facets_idx[i][0], out_facets_idx[i][1], out_facets_idx[i][2]));
         TriangleMesh tooth_mesh(points, facets);
 
         // We have the mesh ready. It has one tooth and width of min_width. We will now append several of these together until we are close to
@@ -1442,7 +1442,7 @@ static void thick_lines_to_indexed_vertex_array(const Lines3& lines,
 #undef BOTTOM
 }
 
-static void point_to_indexed_vertex_array(const Point3& point,
+static void point_to_indexed_vertex_array(const Vec3crd& point,
     double width,
     double height,
     GLIndexedVertexArray& volume)
@@ -1512,7 +1512,7 @@ void _3DScene::thick_lines_to_verts(const Lines3& lines,
     thick_lines_to_indexed_vertex_array(lines, widths, heights, closed, volume.indexed_vertex_array);
 }
 
-static void thick_point_to_verts(const Point3& point,
+static void thick_point_to_verts(const Vec3crd& point,
     double width,
     double height,
     GLVolume& volume)
@@ -1618,7 +1618,7 @@ void _3DScene::polyline3_to_verts(const Polyline3& polyline, double width, doubl
     thick_lines_to_verts(lines, widths, heights, false, volume);
 }
 
-void _3DScene::point3_to_verts(const Point3& point, double width, double height, GLVolume& volume)
+void _3DScene::point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume)
 {
     thick_point_to_verts(point, width, height, volume);
 }

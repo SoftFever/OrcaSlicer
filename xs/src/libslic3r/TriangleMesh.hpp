@@ -21,7 +21,7 @@ class TriangleMesh
 {
 public:
     TriangleMesh();
-    TriangleMesh(const Pointf3s &points, const std::vector<Point3> &facets);
+    TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
     TriangleMesh(const TriangleMesh &other);
     TriangleMesh(TriangleMesh &&other);
     TriangleMesh& operator=(const TriangleMesh &other);

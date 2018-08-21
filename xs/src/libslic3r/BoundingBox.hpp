@@ -120,12 +120,12 @@ public:
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };
 
-class BoundingBox3  : public BoundingBox3Base<Point3> 
+class BoundingBox3  : public BoundingBox3Base<Vec3crd> 
 {
 public:
-    BoundingBox3() : BoundingBox3Base<Point3>() {};
-    BoundingBox3(const Point3 &pmin, const Point3 &pmax) : BoundingBox3Base<Point3>(pmin, pmax) {};
-    BoundingBox3(const Points3& points) : BoundingBox3Base<Point3>(points) {};
+    BoundingBox3() : BoundingBox3Base<Vec3crd>() {};
+    BoundingBox3(const Vec3crd &pmin, const Vec3crd &pmax) : BoundingBox3Base<Vec3crd>(pmin, pmax) {};
+    BoundingBox3(const Points3& points) : BoundingBox3Base<Vec3crd>(points) {};
 };
 
 class BoundingBoxf : public BoundingBoxBase<Vec2d> 
