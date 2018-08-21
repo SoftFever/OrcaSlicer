@@ -161,6 +161,7 @@ private:
     struct PlaneData {
         std::vector<Pointf3> vertices;
         Pointf3 normal;
+        float area;
     };
     struct SourceDataSummary {
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes

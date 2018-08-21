@@ -709,7 +709,8 @@ void GLGizmoFlatten::update_planes()
         // We will calculate area of the polygon and discard ones that are too small
         // The limit is more forgiving in case the normal is in the direction of the coordinate axes
         const float minimal_area = (std::abs(normal.x) > 0.999f || std::abs(normal.y) > 0.999f || std::abs(normal.z) > 0.999f) ? 1.f : 20.f;
-        float area = 0.f;
+        float& area = m_planes[polygon_id].area;
+        area = 0.f;
         for (unsigned int i = 0; i < polygon.size(); i++) // Shoelace formula
             area += polygon[i].x*polygon[i+1 < polygon.size() ? i+1 : 0 ].y - polygon[i+1 < polygon.size() ? i+1 : 0].x*polygon[i].y;
         area = std::abs(area/2.f);
@@ -770,6 +771,10 @@ void GLGizmoFlatten::update_planes()
             b = super_rotation(Pointf3(0,0,1), -angle_z, b);
         }
     }
+
+    // We'll sort the planes by area and only keep the 255 largest ones (because of the picking pass limitations):
+    std::sort(m_planes.rbegin(), m_planes.rend(), [](const PlaneData& a, const PlaneData& b) { return a.area < b.area; });
+    m_planes.resize(std::min((int)m_planes.size(), 255));
 
     // Planes are finished - let's save what we calculated it from:
     m_source_data.bounding_boxes.clear();
