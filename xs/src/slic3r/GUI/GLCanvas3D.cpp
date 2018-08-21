@@ -1411,22 +1411,13 @@ reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
 #endif // ENABLE_GIZMOS_3D
 }
 
-void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
+void GLCanvas3D::Gizmos::render_current_gizmo(const BoundingBoxf3& box) const
 {
     if (!m_enabled)
         return;
 
-    ::glDisable(GL_DEPTH_TEST);
-
     if (box.radius() > 0.0)
         _render_current_gizmo(box);
-
-    ::glPushMatrix();
-    ::glLoadIdentity();
-
-    _render_overlay(canvas);
-
-    ::glPopMatrix();
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const
@@ -1434,11 +1425,24 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBox
     if (!m_enabled)
         return;
 
-    ::glDisable(GL_DEPTH_TEST);
-
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->render_for_picking(box);
+}
+
+void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
+{
+    if (!m_enabled)
+        return;
+
+    ::glDisable(GL_DEPTH_TEST);
+
+    ::glPushMatrix();
+    ::glLoadIdentity();
+
+    _render_overlay(canvas);
+
+    ::glPopMatrix();
 }
 
 void GLCanvas3D::Gizmos::_reset()
@@ -2349,6 +2353,9 @@ void GLCanvas3D::render()
 
     _picking_pass();
     _render_background();
+
+    _render_current_gizmo();
+
     // untextured bed needs to be rendered before objects
     if (is_custom_bed)
     {
@@ -2357,6 +2364,7 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
+
     // textured bed needs to be rendered after objects
     if (!is_custom_bed)
     {
@@ -2364,9 +2372,9 @@ void GLCanvas3D::render()
         _render_bed(theta);
     }
     _render_cutting_plane();
+    _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
-    _render_gizmo();
     _render_toolbar();
     _render_layer_editing_overlay();
 
@@ -3816,8 +3824,8 @@ void GLCanvas3D::_picking_pass() const
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        _render_volumes(true);
         m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
+        _render_volumes(true);
 
         if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
@@ -3918,6 +3926,7 @@ void GLCanvas3D::_render_objects() const
         return;
 
     ::glEnable(GL_LIGHTING);
+    ::glEnable(GL_DEPTH_TEST);
 
     if (!m_shader_enabled)
         _render_volumes(false);
@@ -4059,9 +4068,14 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
         ::glDisable(GL_LIGHTING);
 }
 
-void GLCanvas3D::_render_gizmo() const
+void GLCanvas3D::_render_current_gizmo() const
 {
-    m_gizmos.render(*this, _selected_volumes_bounding_box());
+    m_gizmos.render_current_gizmo(_selected_volumes_bounding_box());
+}
+
+void GLCanvas3D::_render_gizmos_overlay() const
+{
+    m_gizmos.render_overlay(*this);
 }
 
 void GLCanvas3D::_render_toolbar() const

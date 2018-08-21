@@ -46,16 +46,29 @@ void GLGizmoBase::Grabber::render(bool hover) const
     else
         ::memcpy((void*)render_color, (const void*)color, 3 * sizeof(float));
 
+#if ENABLE_GIZMOS_3D
+    render(render_color, true);
+#else
     render(render_color);
+#endif // ENABLE_GIZMOS_3D
 }
 
+#if ENABLE_GIZMOS_3D
+void GLGizmoBase::Grabber::render(const float* render_color, bool use_lighting) const
+#else
 void GLGizmoBase::Grabber::render(const float* render_color) const
+#endif // ENABLE_GIZMOS_3D
 {
     float half_size = dragging ? HalfSize * DraggingScaleFactor : HalfSize;
+#if ENABLE_GIZMOS_3D
+    if (use_lighting)
+        ::glEnable(GL_LIGHTING);
+#else
     float min_x = -half_size;
     float max_x = +half_size;
     float min_y = -half_size;
     float max_y = +half_size;
+#endif // !ENABLE_GIZMOS_3D
 
     ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
 
@@ -67,6 +80,48 @@ void GLGizmoBase::Grabber::render(const float* render_color) const
     ::glRotatef((GLfloat)angle_y * rad_to_deg, 0.0f, 1.0f, 0.0f);
     ::glRotatef((GLfloat)angle_z * rad_to_deg, 0.0f, 0.0f, 1.0f);
 
+#if ENABLE_GIZMOS_3D
+    // face min x
+    ::glPushMatrix();
+    ::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f);
+    ::glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
+    render_face(half_size);
+    ::glPopMatrix();
+
+    // face max x
+    ::glPushMatrix();
+    ::glTranslatef((GLfloat)half_size, 0.0f, 0.0f);
+    ::glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+    render_face(half_size);
+    ::glPopMatrix();
+
+    // face min y
+    ::glPushMatrix();
+    ::glTranslatef(0.0f, -(GLfloat)half_size, 0.0f);
+    ::glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+    render_face(half_size);
+    ::glPopMatrix();
+
+    // face max y
+    ::glPushMatrix();
+    ::glTranslatef(0.0f, (GLfloat)half_size, 0.0f);
+    ::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+    render_face(half_size);
+    ::glPopMatrix();
+
+    // face min z
+    ::glPushMatrix();
+    ::glTranslatef(0.0f, 0.0f, -(GLfloat)half_size);
+    ::glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+    render_face(half_size);
+    ::glPopMatrix();
+
+    // face max z
+    ::glPushMatrix();
+    ::glTranslatef(0.0f, 0.0f, (GLfloat)half_size);
+    render_face(half_size);
+    ::glPopMatrix();
+#else
     ::glDisable(GL_CULL_FACE);
     ::glBegin(GL_TRIANGLES);
     ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
@@ -77,9 +132,30 @@ void GLGizmoBase::Grabber::render(const float* render_color) const
     ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
     ::glEnd();
     ::glEnable(GL_CULL_FACE);
+#endif // ENABLE_GIZMOS_3D
 
     ::glPopMatrix();
+
+#if ENABLE_GIZMOS_3D
+    if (use_lighting)
+        ::glDisable(GL_LIGHTING);
+#endif // ENABLE_GIZMOS_3D
 }
+
+#if ENABLE_GIZMOS_3D
+void GLGizmoBase::Grabber::render_face(float half_size) const
+{
+    ::glBegin(GL_TRIANGLES);
+    ::glNormal3f(0.0f, 0.0f, 1.0f);
+    ::glVertex3f(-(GLfloat)half_size, -(GLfloat)half_size, 0.0f);
+    ::glVertex3f((GLfloat)half_size, -(GLfloat)half_size, 0.0f);
+    ::glVertex3f((GLfloat)half_size, (GLfloat)half_size, 0.0f);
+    ::glVertex3f((GLfloat)half_size, (GLfloat)half_size, 0.0f);
+    ::glVertex3f(-(GLfloat)half_size, (GLfloat)half_size, 0.0f);
+    ::glVertex3f(-(GLfloat)half_size, -(GLfloat)half_size, 0.0f);
+    ::glEnd();
+}
+#endif // ENABLE_GIZMOS_3D
 
 GLGizmoBase::GLGizmoBase()
     : m_group_id(-1)
@@ -239,7 +315,11 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
+#if ENABLE_GIZMOS_3D
+    ::glEnable(GL_DEPTH_TEST);
+#else
     ::glDisable(GL_DEPTH_TEST);
+#endif // ENABLE_GIZMOS_3D
 
     if (!m_keep_initial_values)
     {
@@ -293,7 +373,11 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
 {
+#if ENABLE_GIZMOS_3D
+    ::glEnable(GL_DEPTH_TEST);
+#else
     ::glDisable(GL_DEPTH_TEST);
+#endif // ENABLE_GIZMOS_3D
 
     ::glPushMatrix();
     transform_to_local();
@@ -397,9 +481,7 @@ void GLGizmoRotate::render_angle() const
 void GLGizmoRotate::render_grabber() const
 {
     float grabber_radius = m_radius + GrabberOffset;
-    m_grabbers[0].center.x = ::cos(m_angle) * grabber_radius;
-    m_grabbers[0].center.y = ::sin(m_angle) * grabber_radius;
-    m_grabbers[0].center.z = 0.0f;
+    m_grabbers[0].center = Pointf3(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0f);
     m_grabbers[0].angle_z = m_angle;
 
 #if ENABLE_GIZMOS_3D
@@ -650,14 +732,10 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
     coordf_t min_y = box.min.y - (coordf_t)Offset;
     coordf_t max_y = box.max.y + (coordf_t)Offset;
 
-    m_grabbers[0].center.x = min_x;
-    m_grabbers[0].center.y = min_y;
-    m_grabbers[1].center.x = max_x;
-    m_grabbers[1].center.y = min_y;
-    m_grabbers[2].center.x = max_x;
-    m_grabbers[2].center.y = max_y;
-    m_grabbers[3].center.x = min_x;
-    m_grabbers[3].center.y = max_y;
+    m_grabbers[0].center = Pointf3(min_x, min_y, 0.0f);
+    m_grabbers[1].center = Pointf3(max_x, min_y, 0.0f);
+    m_grabbers[2].center = Pointf3(max_x, max_y, 0.0f);
+    m_grabbers[3].center = Pointf3(min_x, max_y, 0.0f);
 
     ::glLineWidth(2.0f);
     ::glColor3fv(m_drag_color);
@@ -720,7 +798,7 @@ bool GLGizmoScale3D::on_init()
     if (!m_textures[On].load_from_file(filename, false))
         return false;
 
-    for (unsigned int i = 0; i < 7; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         m_grabbers.push_back(Grabber());
     }
@@ -752,13 +830,13 @@ void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
         do_scale_y(mouse_ray);
     else if ((m_hover_id == 4) || (m_hover_id == 5))
         do_scale_z(mouse_ray);
-    else if (m_hover_id == 6)
+    else if (m_hover_id >= 6)
         do_scale_uniform(mouse_ray);
 }
 
 void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    ::glEnable(GL_DEPTH_TEST);
 
     Vectorf3 offset_vec((coordf_t)Offset, (coordf_t)Offset, (coordf_t)Offset);
 
@@ -766,89 +844,88 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     const Pointf3& center = m_box.center();
 
     // x axis
-    m_grabbers[0].center.x = m_box.min.x;
-    m_grabbers[0].center.y = center.y;
-    m_grabbers[0].center.z = center.z;
-    m_grabbers[1].center.x = m_box.max.x;
-    m_grabbers[1].center.y = center.y;
-    m_grabbers[1].center.z = center.z;
-
-    // y axis
-    m_grabbers[2].center.x = center.x;
-    m_grabbers[2].center.y = m_box.min.y;
-    m_grabbers[2].center.z = center.z;
-    m_grabbers[3].center.x = center.x;
-    m_grabbers[3].center.y = m_box.max.y;
-    m_grabbers[3].center.z = center.z;
-
-    // z axis
-    m_grabbers[4].center.x = center.x;
-    m_grabbers[4].center.y = center.y;
-    m_grabbers[4].center.z = m_box.min.z;
-    m_grabbers[5].center.x = center.x;
-    m_grabbers[5].center.y = center.y;
-    m_grabbers[5].center.z = m_box.max.z;
-
-    // uniform
-    m_grabbers[6].center = m_box.min;
-
+    m_grabbers[0].center = Pointf3(m_box.min.x, center.y, center.z);
+    m_grabbers[1].center = Pointf3(m_box.max.x, center.y, center.z);
     ::memcpy((void*)m_grabbers[0].color, (const void*)RED, 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[1].color, (const void*)RED, 3 * sizeof(float));
+
+    // y axis
+    m_grabbers[2].center = Pointf3(center.x, m_box.min.y, center.z);
+    m_grabbers[3].center = Pointf3(center.x, m_box.max.y, center.z);
     ::memcpy((void*)m_grabbers[2].color, (const void*)GREEN, 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[3].color, (const void*)GREEN, 3 * sizeof(float));
+
+    // z axis
+    m_grabbers[4].center = Pointf3(center.x, center.y, m_box.min.z);
+    m_grabbers[5].center = Pointf3(center.x, center.y, m_box.max.z);
     ::memcpy((void*)m_grabbers[4].color, (const void*)BLUE, 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[5].color, (const void*)BLUE, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[6].color, (const void*)m_highlight_color, 3 * sizeof(float));
 
-    ::glLineWidth(2.0f);
+    // uniform
+    m_grabbers[6].center = Pointf3(m_box.min.x, m_box.min.y, m_box.min.z);
+    m_grabbers[7].center = Pointf3(m_box.max.x, m_box.min.y, m_box.min.z);
+    m_grabbers[8].center = Pointf3(m_box.max.x, m_box.max.y, m_box.min.z);
+    m_grabbers[9].center = Pointf3(m_box.min.x, m_box.max.y, m_box.min.z);
+    for (int i = 6; i < 10; ++i)
+    {
+        ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
+    }
+
+    ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
     if (m_hover_id == -1)
     {
-        // draw box
         ::glColor3fv(m_base_color);
-        render_box_x_faces();
-        render_box_y_faces();
-        render_box_z_faces();
-
+        // draw box
+        render_box();
         // draw grabbers
         render_grabbers();
     }
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
-        ::glColor3fv(m_drag_color);
-        render_box_x_faces();
+        ::glColor3fv(m_grabbers[0].color);
+        // draw connection
+        render_grabbers_connection(0, 1);
+        // draw grabbers
         m_grabbers[0].render(true);
         m_grabbers[1].render(true);
     }
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
-        ::glColor3fv(m_drag_color);
-        render_box_y_faces();
+        ::glColor3fv(m_grabbers[2].color);
+        // draw connection
+        render_grabbers_connection(2, 3);
+        // draw grabbers
         m_grabbers[2].render(true);
         m_grabbers[3].render(true);
     }
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
-        ::glColor3fv(m_drag_color);
-        render_box_z_faces();
+        ::glColor3fv(m_grabbers[4].color);
+        // draw connection
+        render_grabbers_connection(4, 5);
+        // draw grabbers
         m_grabbers[4].render(true);
         m_grabbers[5].render(true);
     }
-    else if (m_hover_id == 6)
+    else if (m_hover_id >= 6)
     {
         ::glColor3fv(m_drag_color);
-        render_box_x_faces();
-        render_box_y_faces();
-        render_box_z_faces();
-        m_grabbers[6].render(true);
+        // draw box
+        render_box();
+        // draw grabbers
+        for (int i = 6; i < 10; ++i)
+        {
+            m_grabbers[i].render(true);
+        }
     }
 }
 
 void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    ::glEnable(GL_DEPTH_TEST);
 
-    for (unsigned int i = 0; i < 7; ++i)
+    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
         m_grabbers[i].color[0] = 1.0f;
         m_grabbers[i].color[1] = 1.0f;
@@ -858,52 +935,43 @@ void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
     render_grabbers_for_picking();
 }
 
-void GLGizmoScale3D::render_box_x_faces() const
+void GLGizmoScale3D::render_box() const
 {
+    // bottom face
     ::glBegin(GL_LINE_LOOP);
     ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glEnd();
+
+    // top face
+    ::glBegin(GL_LINE_LOOP);
     ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
     ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glEnd();
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
     ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glEnd();
+
+    // vertical edges
+    ::glBegin(GL_LINES);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
     ::glEnd();
 }
 
-void GLGizmoScale3D::render_box_y_faces() const
+void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
-    ::glEnd();
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glEnd();
-}
-
-void GLGizmoScale3D::render_box_z_faces() const
-{
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glEnd();
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glEnd();
+    unsigned int grabbers_count = (unsigned int)m_grabbers.size();
+    if ((id_1 < grabbers_count) && (id_2 < grabbers_count))
+    {
+        ::glBegin(GL_LINES);
+        ::glVertex3f((GLfloat)m_grabbers[id_1].center.x, (GLfloat)m_grabbers[id_1].center.y, (GLfloat)m_grabbers[id_1].center.z);
+        ::glVertex3f((GLfloat)m_grabbers[id_2].center.x, (GLfloat)m_grabbers[id_2].center.y, (GLfloat)m_grabbers[id_2].center.z);
+        ::glEnd();
+    }
 }
 
 Linef3 transform(const Linef3& line, const Eigen::Transform<float, 3, Eigen::Affine>& t)

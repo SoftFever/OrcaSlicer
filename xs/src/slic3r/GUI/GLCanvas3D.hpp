@@ -382,8 +382,9 @@ public:
         float get_angle_z() const;
         void set_angle_z(float angle_z);
 
-        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
+        void render_current_gizmo(const BoundingBoxf3& box) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
+        void render_overlay(const GLCanvas3D& canvas) const;
 
     private:
         void _reset();
@@ -681,7 +682,8 @@ private:
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
-    void _render_gizmo() const;
+    void _render_current_gizmo() const;
+    void _render_gizmos_overlay() const;
     void _render_toolbar() const;
 
     float _get_layers_editing_cursor_z_relative() const;

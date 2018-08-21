@@ -35,10 +35,21 @@ protected:
         Grabber();
 
         void render(bool hover) const;
+#if ENABLE_GIZMOS_3D
+        void render_for_picking() const { render(color, false); }
+#else
         void render_for_picking() const { render(color); }
+#endif // ENABLE_GIZMOS_3D
 
     private:
+#if ENABLE_GIZMOS_3D
+        void render(const float* render_color, bool use_lighting) const;
+#else
         void render(const float* render_color) const;
+#endif // ENABLE_GIZMOS_3D
+#if ENABLE_GIZMOS_3D
+        void render_face(float half_size) const;
+#endif // ENABLE_GIZMOS_3D
     };
 
 public:
@@ -281,9 +292,9 @@ protected:
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
-    void render_box_x_faces() const;
-    void render_box_y_faces() const;
-    void render_box_z_faces() const;
+private:
+    void render_box() const;
+    void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
     void do_scale_x(const Linef3& mouse_ray);
     void do_scale_y(const Linef3& mouse_ray);
