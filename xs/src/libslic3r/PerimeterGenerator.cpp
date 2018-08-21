@@ -366,99 +366,103 @@ ExtrusionEntityCollection PerimeterGenerator::_traverse_loops(
     return entities;
 }
 
-ExtrusionEntityCollection PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const
+static inline ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyline &thick_polyline, ExtrusionRole role, Flow &flow, const float tolerance)
 {
-    // this value determines granularity of adaptive width, as G-code does not allow
-    // variable extrusion within a single move; this value shall only affect the amount
-    // of segments, and any pruning shall be performed before we apply this tolerance
-    const double tolerance = scale_(0.05);
+    ExtrusionPaths paths;
+    ExtrusionPath path(role);
+    ThickLines lines = thick_polyline.thicklines();
     
-    ExtrusionEntityCollection coll;
-    for (const ThickPolyline &p : polylines) {
-        ExtrusionPaths paths;
-        ExtrusionPath path(role);
-        ThickLines lines = p.thicklines();
+    for (int i = 0; i < (int)lines.size(); ++i) {
+        const ThickLine& line = lines[i];
         
-        for (int i = 0; i < (int)lines.size(); ++i) {
-            const ThickLine& line = lines[i];
-            
-            const coordf_t line_len = line.length();
-            if (line_len < SCALED_EPSILON) continue;
-            
-            double thickness_delta = fabs(line.a_width - line.b_width);
-            if (thickness_delta > tolerance) {
-                const unsigned short segments = ceil(thickness_delta / tolerance);
-                const coordf_t seg_len = line_len / segments;
-                Points pp;
-                std::vector<coordf_t> width;
-                {
-                    pp.push_back(line.a);
-                    width.push_back(line.a_width);
-                    for (size_t j = 1; j < segments; ++j) {
-                        pp.push_back(line.point_at(j*seg_len));
-                        
-                        coordf_t w = line.a_width + (j*seg_len) * (line.b_width-line.a_width) / line_len;
-                        width.push_back(w);
-                        width.push_back(w);
-                    }
-                    pp.push_back(line.b);
-                    width.push_back(line.b_width);
+        const coordf_t line_len = line.length();
+        if (line_len < SCALED_EPSILON) continue;
+        
+        double thickness_delta = fabs(line.a_width - line.b_width);
+        if (thickness_delta > tolerance) {
+            const unsigned short segments = ceil(thickness_delta / tolerance);
+            const coordf_t seg_len = line_len / segments;
+            Points pp;
+            std::vector<coordf_t> width;
+            {
+                pp.push_back(line.a);
+                width.push_back(line.a_width);
+                for (size_t j = 1; j < segments; ++j) {
+                    pp.push_back((line.a.cast<double>() + (line.b - line.a).cast<double>().normalized() * (j * seg_len)).cast<coord_t>());
                     
-                    assert(pp.size() == segments + 1);
-                    assert(width.size() == segments*2);
+                    coordf_t w = line.a_width + (j*seg_len) * (line.b_width-line.a_width) / line_len;
+                    width.push_back(w);
+                    width.push_back(w);
                 }
+                pp.push_back(line.b);
+                width.push_back(line.b_width);
                 
-                // delete this line and insert new ones
-                lines.erase(lines.begin() + i);
-                for (size_t j = 0; j < segments; ++j) {
-                    ThickLine new_line(pp[j], pp[j+1]);
-                    new_line.a_width = width[2*j];
-                    new_line.b_width = width[2*j+1];
-                    lines.insert(lines.begin() + i + j, new_line);
-                }
-                
-                -- i;
-                continue;
+                assert(pp.size() == segments + 1);
+                assert(width.size() == segments*2);
             }
             
-            const double w = fmax(line.a_width, line.b_width);
-            if (path.polyline.points.empty()) {
-                path.polyline.append(line.a);
-                path.polyline.append(line.b);
-                // Convert from spacing to extrusion width based on the extrusion model
-                // of a square extrusion ended with semi circles.
-                flow.width = unscale(w) + flow.height * (1. - 0.25 * PI);
-                #ifdef SLIC3R_DEBUG
-                printf("  filling %f gap\n", flow.width);
-                #endif
-                path.mm3_per_mm  = flow.mm3_per_mm();
-                path.width       = flow.width;
-                path.height      = flow.height;
-            } else {
-                thickness_delta = fabs(scale_(flow.width) - w);
-                if (thickness_delta <= tolerance) {
-                    // the width difference between this line and the current flow width is 
-                    // within the accepted tolerance
-                    path.polyline.append(line.b);
-                } else {
-                    // we need to initialize a new line
-                    paths.emplace_back(std::move(path));
-                    path = ExtrusionPath(role);
-                    -- i;
-                }
+            // delete this line and insert new ones
+            lines.erase(lines.begin() + i);
+            for (size_t j = 0; j < segments; ++j) {
+                ThickLine new_line(pp[j], pp[j+1]);
+                new_line.a_width = width[2*j];
+                new_line.b_width = width[2*j+1];
+                lines.insert(lines.begin() + i + j, new_line);
             }
+            
+            -- i;
+            continue;
         }
-        if (path.polyline.is_valid())
-            paths.emplace_back(std::move(path));        
-        // Append paths to collection.
-        if (! paths.empty()) {
-            if (paths.front().first_point().coincides_with(paths.back().last_point()))
-                coll.append(ExtrusionLoop(paths));
-            else
-                coll.append(paths);
+        
+        const double w = fmax(line.a_width, line.b_width);
+        if (path.polyline.points.empty()) {
+            path.polyline.append(line.a);
+            path.polyline.append(line.b);
+            // Convert from spacing to extrusion width based on the extrusion model
+            // of a square extrusion ended with semi circles.
+            flow.width = unscale(w) + flow.height * (1. - 0.25 * PI);
+            #ifdef SLIC3R_DEBUG
+            printf("  filling %f gap\n", flow.width);
+            #endif
+            path.mm3_per_mm  = flow.mm3_per_mm();
+            path.width       = flow.width;
+            path.height      = flow.height;
+        } else {
+            thickness_delta = fabs(scale_(flow.width) - w);
+            if (thickness_delta <= tolerance) {
+                // the width difference between this line and the current flow width is 
+                // within the accepted tolerance
+                path.polyline.append(line.b);
+            } else {
+                // we need to initialize a new line
+                paths.emplace_back(std::move(path));
+                path = ExtrusionPath(role);
+                -- i;
+            }
         }
     }
-    
+    if (path.polyline.is_valid())
+        paths.emplace_back(std::move(path));
+    return paths;
+}
+
+ExtrusionEntityCollection PerimeterGenerator::_variable_width(const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const
+{
+    // This value determines granularity of adaptive width, as G-code does not allow
+    // variable extrusion within a single move; this value shall only affect the amount
+    // of segments, and any pruning shall be performed before we apply this tolerance.
+    ExtrusionEntityCollection coll;
+    const double tolerance = scale_(0.05);
+    for (const ThickPolyline &p : polylines) {
+        ExtrusionPaths paths = thick_polyline_to_extrusion_paths(p, role, flow, tolerance);
+        // Append paths to collection.
+        if (! paths.empty()) {
+            if (paths.front().first_point() == paths.back().last_point())
+                coll.append(ExtrusionLoop(std::move(paths)));
+            else
+                coll.append(std::move(paths));
+        }
+    }
     return coll;
 }
 

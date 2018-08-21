@@ -230,7 +230,7 @@ pload1(const typename unpacket_traits<Packet>::type  *a) { return pset1<Packet>(
   * duplicated to form: {from[0],from[0],from[1],from[1],from[2],from[2],from[3],from[3]}
   * Currently, this function is only used for scalar * complex products.
   */
-template<typename Packet> EIGEN_DEVICE_FUNC inline Packet
+template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet
 ploaddup(const typename unpacket_traits<Packet>::type* from) { return *from; }
 
 /** \internal \returns a packet with elements of \a *from quadrupled.
@@ -278,7 +278,7 @@ inline void pbroadcast2(const typename unpacket_traits<Packet>::type *a,
 }
 
 /** \internal \brief Returns a packet with coefficients (a,a+1,...,a+packet_size-1). */
-template<typename Packet> inline Packet
+template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet
 plset(const typename unpacket_traits<Packet>::type& a) { return a; }
 
 /** \internal copy the packet \a from to \a *to, \a to must be 16 bytes aligned */
@@ -482,7 +482,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE void pstoret(Scalar* to, const Packet& fro
   * by the current computation.
   */
 template<typename Packet, int LoadMode>
-inline Packet ploadt_ro(const typename unpacket_traits<Packet>::type* from)
+EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Packet ploadt_ro(const typename unpacket_traits<Packet>::type* from)
 {
   return ploadt<Packet, LoadMode>(from);
 }

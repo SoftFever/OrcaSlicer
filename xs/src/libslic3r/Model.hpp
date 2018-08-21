@@ -120,7 +120,7 @@ public:
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     void center_around_origin();
-    void translate(const Vectorf3 &vector) { this->translate(vector.x, vector.y, vector.z); }
+    void translate(const Vectorf3 &vector) { this->translate(vector(0), vector(1), vector(2)); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
     void rotate(float angle, const Axis &axis);
@@ -210,6 +210,7 @@ public:
 
     friend class ModelObject;
 
+//    Transform3d     transform;
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
     Pointf offset;              // in unscaled coordinates

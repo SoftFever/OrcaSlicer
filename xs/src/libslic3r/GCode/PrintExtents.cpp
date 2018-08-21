@@ -19,10 +19,10 @@ static inline BoundingBox extrusion_polyline_extents(const Polyline &polyline, c
     if (! polyline.points.empty())
         bbox.merge(polyline.points.front());
     for (const Point &pt : polyline.points) {
-        bbox.min.x = std::min(bbox.min.x, pt.x - radius);
-        bbox.min.y = std::min(bbox.min.y, pt.y - radius);
-        bbox.max.x = std::max(bbox.max.x, pt.x + radius);
-        bbox.max.y = std::max(bbox.max.y, pt.y + radius);
+        bbox.min(0) = std::min(bbox.min(0), pt(0) - radius);
+        bbox.min(1) = std::min(bbox.min(1), pt(1) - radius);
+        bbox.max(0) = std::max(bbox.max(0), pt(0) + radius);
+        bbox.max(1) = std::max(bbox.max(1), pt(1) + radius);
     }
     return bbox;
 }
@@ -150,16 +150,16 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
                     Pointf  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
                     Pointf  p2(e.pos.x, e.pos.y);
                     p1.rotate(wipe_tower_angle);
-                    p1.translate(wipe_tower_pos);
+                    p1 += wipe_tower_pos;
                     p2.rotate(wipe_tower_angle);
-                    p2.translate(wipe_tower_pos);
+                    p2 += wipe_tower_pos;
 
                     bbox.merge(p1);
                     coordf_t radius = 0.5 * e.width;
-                    bbox.min.x = std::min(bbox.min.x, std::min(p1.x, p2.x) - radius);
-                    bbox.min.y = std::min(bbox.min.y, std::min(p1.y, p2.y) - radius);
-                    bbox.max.x = std::max(bbox.max.x, std::max(p1.x, p2.x) + radius);
-                    bbox.max.y = std::max(bbox.max.y, std::max(p1.y, p2.y) + radius);
+                    bbox.min(0) = std::min(bbox.min(0), std::min(p1(0), p2(0)) - radius);
+                    bbox.min(1) = std::min(bbox.min(1), std::min(p1(1), p2(1)) - radius);
+                    bbox.max(0) = std::max(bbox.max(0), std::max(p1(0), p2(0)) + radius);
+                    bbox.max(1) = std::max(bbox.max(1), std::max(p1(1), p2(1)) + radius);
                 }
             }
         }
@@ -180,10 +180,10 @@ BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print)
                 Pointf  p2(e.pos.x, e.pos.y);
                 bbox.merge(p1);
                 coordf_t radius = 0.5 * e.width;
-                bbox.min.x = std::min(bbox.min.x, std::min(p1.x, p2.x) - radius);
-                bbox.min.y = std::min(bbox.min.y, std::min(p1.y, p2.y) - radius);
-                bbox.max.x = std::max(bbox.max.x, std::max(p1.x, p2.x) + radius);
-                bbox.max.y = std::max(bbox.max.y, std::max(p1.y, p2.y) + radius);
+                bbox.min(0) = std::min(bbox.min(0), std::min(p1(0), p2(0)) - radius);
+                bbox.min(1) = std::min(bbox.min(1), std::min(p1(1), p2(1)) - radius);
+                bbox.max(0) = std::max(bbox.max(0), std::max(p1(0), p2(0)) + radius);
+                bbox.max(1) = std::max(bbox.max(1), std::max(p1(1), p2(1)) + radius);
             }
         }
     }

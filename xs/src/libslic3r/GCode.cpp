@@ -49,11 +49,11 @@ Polyline AvoidCrossingPerimeters::travel_to(const GCode &gcodegen, const Point &
     // If use_external, then perform the path planning in the world coordinate system (correcting for the gcodegen offset).
     // Otherwise perform the path planning in the coordinate system of the active object.
     bool  use_external  = this->use_external_mp || this->use_external_mp_once;
-    Point scaled_origin = use_external ? Point::new_scale(gcodegen.origin().x, gcodegen.origin().y) : Point(0, 0);
+    Point scaled_origin = use_external ? Point::new_scale(gcodegen.origin()(0), gcodegen.origin()(1)) : Point(0, 0);
     Polyline result = (use_external ? m_external_mp.get() : m_layer_mp.get())->
         shortest_path(gcodegen.last_pos() + scaled_origin, point + scaled_origin);
     if (use_external)
-        result.translate(scaled_origin.negative());
+        result.translate(- scaled_origin);
     return result;
 }
 
@@ -65,7 +65,7 @@ std::string OozePrevention::pre_toolchange(GCode &gcodegen)
     if (!this->standby_points.empty()) {
         // get current position in print coordinates
         Pointf3 writer_pos = gcodegen.writer().get_position();
-        Point pos = Point::new_scale(writer_pos.x, writer_pos.y);
+        Point pos = Point::new_scale(writer_pos(0), writer_pos(1));
         
         // find standby point
         Point standby_point;
@@ -160,7 +160,7 @@ Wipe::wipe(GCode &gcodegen, bool toolchange)
 
 static inline Point wipe_tower_point_to_object_point(GCode &gcodegen, const WipeTower::xy &wipe_tower_pt)
 {
-    return Point(scale_(wipe_tower_pt.x - gcodegen.origin().x), scale_(wipe_tower_pt.y - gcodegen.origin().y));
+    return Point(scale_(wipe_tower_pt.x - gcodegen.origin()(0)), scale_(wipe_tower_pt.y - gcodegen.origin()(1)));
 }
 
 std::string WipeTowerIntegration::append_tcr(GCode &gcodegen, const WipeTower::ToolChangeResult &tcr, int new_extruder_id) const
@@ -325,7 +325,7 @@ std::string WipeTowerIntegration::tool_change(GCode &gcodegen, int extruder_id, 
 std::string WipeTowerIntegration::finalize(GCode &gcodegen)
 {
     std::string gcode;
-    if (std::abs(gcodegen.writer().get_position().z - m_final_purge.print_z) > EPSILON)
+    if (std::abs(gcodegen.writer().get_position()(2) - m_final_purge.print_z) > EPSILON)
         gcode += gcodegen.change_layer(m_final_purge.print_z);
     gcode += append_tcr(gcodegen, m_final_purge, -1);
     return gcode;
@@ -767,7 +767,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 for (const ExPolygon &expoly : layer->slices.expolygons)
                     for (const Point &copy : object->_shifted_copies) {
                         islands.emplace_back(expoly.contour);
-                        islands.back().translate(copy);
+                        islands.back().translate(- copy);
                     }
         //FIXME Mege the islands in parallel.
         m_avoid_crossing_perimeters.init_external_mp(union_ex(islands));
@@ -785,7 +785,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
             for (unsigned int extruder_id : print.extruders()) {
                 const Pointf &extruder_offset = print.config.extruder_offset.get_at(extruder_id);
                 Polygon s(outer_skirt);
-                s.translate(-scale_(extruder_offset.x), -scale_(extruder_offset.y));
+                s.translate(Point::new_scale(- extruder_offset(0), - extruder_offset(1)));
                 skirts.emplace_back(std::move(s));
             }
             m_ooze_prevention.enable = true;
@@ -814,7 +814,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         // Print objects from the smallest to the tallest to avoid collisions
         // when moving onto next object starting point.
         std::vector<PrintObject*> objects(printable_objects);
-        std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size.z < po2->size.z; });        
+        std::sort(objects.begin(), objects.end(), [](const PrintObject* po1, const PrintObject* po2) { return po1->size(2) < po2->size(2); });       
         size_t finished_objects = 0;
         for (size_t object_id = initial_print_object_id; object_id < objects.size(); ++ object_id) {
             const PrintObject &object = *objects[object_id];
@@ -831,7 +831,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                     final_extruder_id   = tool_ordering.last_extruder();
                     assert(final_extruder_id != (unsigned int)-1);
                 }
-                this->set_origin(unscale(copy.x), unscale(copy.y));
+                this->set_origin(unscale(copy(0)), unscale(copy(1)));
                 if (finished_objects > 0) {
                     // Move to the origin position for the copy we're going to print.
                     // This happens before Z goes down to layer 0 again, so that no collision happens hopefully.
@@ -940,7 +940,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     {
         DynamicConfig config;
         config.set_key_value("layer_num", new ConfigOptionInt(m_layer_index));
-        config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position().z - m_config.z_offset.value));
+        config.set_key_value("layer_z",   new ConfigOptionFloat(m_writer.get_position()(2) - m_config.z_offset.value));
         if (print.config.single_extruder_multi_material) {
             // Process the end_filament_gcode for the active filament only.
             _writeln(file, this->placeholder_parser_process("end_filament_gcode", print.config.end_filament_gcode.get_at(m_writer.extruder()->id()), m_writer.extruder()->id(), &config));
@@ -1396,8 +1396,8 @@ void GCode::process_layer(
                 layer_surface_bboxes.push_back(get_extents(expoly.contour));
             auto point_inside_surface = [&layer, &layer_surface_bboxes](const size_t i, const Point &point) { 
                 const BoundingBox &bbox = layer_surface_bboxes[i];
-                return point.x >= bbox.min.x && point.x < bbox.max.x &&
-                       point.y >= bbox.min.y && point.y < bbox.max.y &&
+                return point(0) >= bbox.min(0) && point(0) < bbox.max(0) &&
+                       point(1) >= bbox.min(1) && point(1) < bbox.max(1) &&
                        layer.slices.expolygons[i].contour.contains(point);
             };
 
@@ -1547,7 +1547,7 @@ void GCode::process_layer(
                     if (m_last_obj_copy != this_object_copy)
                         m_avoid_crossing_perimeters.use_external_mp_once = true;
                     m_last_obj_copy = this_object_copy;
-                    this->set_origin(unscale(copy.x), unscale(copy.y));
+                    this->set_origin(unscale(copy(0)), unscale(copy(1)));
                     if (object_by_extruder.support != nullptr && !print_wipe_extrusions) {
                         m_layer = layers[layer_id].support_layer;
                         gcode += this->extrude_support(
@@ -1636,10 +1636,10 @@ void GCode::set_origin(const Pointf &pointf)
 {    
     // if origin increases (goes towards right), last_pos decreases because it goes towards left
     const Point translate(
-        scale_(m_origin.x - pointf.x),
-        scale_(m_origin.y - pointf.y)
+        scale_(m_origin(0) - pointf(0)),
+        scale_(m_origin(1) - pointf(1))
     );
-    m_last_pos.translate(translate);
+    m_last_pos += translate;
     m_wipe.path.translate(translate);
     m_origin = pointf;
 }
@@ -1770,13 +1770,13 @@ static Points::iterator project_point_to_polygon_and_insert(Polygon &polygon, co
             j = 0;
         const Point &p1 = polygon.points[i];
         const Point &p2 = polygon.points[j];
-        const Slic3r::Point v_seg = p1.vector_to(p2);
-        const Slic3r::Point v_pt  = p1.vector_to(pt);
-        const int64_t l2_seg = int64_t(v_seg.x) * int64_t(v_seg.x) + int64_t(v_seg.y) * int64_t(v_seg.y);
-        int64_t t_pt = int64_t(v_seg.x) * int64_t(v_pt.x) + int64_t(v_seg.y) * int64_t(v_pt.y);
+        const Slic3r::Point v_seg = p2 - p1;
+        const Slic3r::Point v_pt  = pt - p1;
+        const int64_t l2_seg = int64_t(v_seg(0)) * int64_t(v_seg(0)) + int64_t(v_seg(1)) * int64_t(v_seg(1));
+        int64_t t_pt = int64_t(v_seg(0)) * int64_t(v_pt(0)) + int64_t(v_seg(1)) * int64_t(v_pt(1));
         if (t_pt < 0) {
             // Closest to p1.
-            double dabs = sqrt(int64_t(v_pt.x) * int64_t(v_pt.x) + int64_t(v_pt.y) * int64_t(v_pt.y));
+            double dabs = sqrt(int64_t(v_pt(0)) * int64_t(v_pt(0)) + int64_t(v_pt(1)) * int64_t(v_pt(1)));
             if (dabs < d_min) {
                 d_min  = dabs;
                 i_min  = i;
@@ -1789,7 +1789,7 @@ static Points::iterator project_point_to_polygon_and_insert(Polygon &polygon, co
         } else {
             // Closest to the segment.
             assert(t_pt >= 0 && t_pt <= l2_seg);
-            int64_t d_seg = int64_t(v_seg.y) * int64_t(v_pt.x) - int64_t(v_seg.x) * int64_t(v_pt.y);
+            int64_t d_seg = int64_t(v_seg(1)) * int64_t(v_pt(0)) - int64_t(v_seg(0)) * int64_t(v_pt(1));
             double d = double(d_seg) / sqrt(double(l2_seg));
             double dabs = std::abs(d);
             if (dabs < d_min) {
@@ -1798,15 +1798,15 @@ static Points::iterator project_point_to_polygon_and_insert(Polygon &polygon, co
                 // Evaluate the foot point.
                 pt_min = p1;
                 double linv = double(d_seg) / double(l2_seg);
-                pt_min.x = pt.x - coord_t(floor(double(v_seg.y) * linv + 0.5));
-				pt_min.y = pt.y + coord_t(floor(double(v_seg.x) * linv + 0.5));
+                pt_min(0) = pt(0) - coord_t(floor(double(v_seg(1)) * linv + 0.5));
+				pt_min(1) = pt(1) + coord_t(floor(double(v_seg(0)) * linv + 0.5));
 				assert(Line(p1, p2).distance_to(pt_min) < scale_(1e-5));
             }
         }
     }
 
 	assert(i_min != size_t(-1));
-    if (pt_min.distance_to(polygon.points[i_min]) > eps) {
+    if ((pt_min - polygon.points[i_min]).cast<double>().norm() > eps) {
         // Insert a new point on the segment i_min, i_min+1.
         return polygon.points.insert(polygon.points.begin() + (i_min + 1), pt_min);
     }
@@ -1818,8 +1818,8 @@ std::vector<float> polygon_parameter_by_length(const Polygon &polygon)
     // Parametrize the polygon by its length.
     std::vector<float> lengths(polygon.points.size()+1, 0.);
     for (size_t i = 1; i < polygon.points.size(); ++ i)
-        lengths[i] = lengths[i-1] + float(polygon.points[i].distance_to(polygon.points[i-1]));
-    lengths.back() = lengths[lengths.size()-2] + float(polygon.points.front().distance_to(polygon.points.back()));
+        lengths[i] = lengths[i-1] + (polygon.points[i] - polygon.points[i-1]).cast<float>().norm();
+    lengths.back() = lengths[lengths.size()-2] + (polygon.points.front() - polygon.points.back()).cast<float>().norm();
     return lengths;
 }
 
@@ -1867,10 +1867,10 @@ std::vector<float> polygon_angles_at_vertices(const Polygon &polygon, const std:
         const Point &p0 = polygon.points[idx_prev];
         const Point &p1 = polygon.points[idx_curr];
         const Point &p2 = polygon.points[idx_next];
-        const Point  v1 = p0.vector_to(p1);
-        const Point  v2 = p1.vector_to(p2);
-		int64_t dot   = int64_t(v1.x)*int64_t(v2.x) + int64_t(v1.y)*int64_t(v2.y);
-		int64_t cross = int64_t(v1.x)*int64_t(v2.y) - int64_t(v1.y)*int64_t(v2.x);
+        const Point  v1 = p1 - p0;
+        const Point  v2 = p2 - p1;
+		int64_t dot   = int64_t(v1(0))*int64_t(v2(0)) + int64_t(v1(1))*int64_t(v2(1));
+		int64_t cross = int64_t(v1(0))*int64_t(v2(1)) - int64_t(v1(1))*int64_t(v2(0));
 		float angle = float(atan2(double(cross), double(dot)));
         angles[idx_curr] = angle;
     }
@@ -1894,10 +1894,10 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             {
                 static int iRun = 0;
                 BoundingBox bbox = (*lower_layer_edge_grid)->bbox();
-                bbox.min.x -= scale_(5.f);
-                bbox.min.y -= scale_(5.f);
-                bbox.max.x += scale_(5.f);
-                bbox.max.y += scale_(5.f);
+                bbox.min(0) -= scale_(5.f);
+                bbox.min(1) -= scale_(5.f);
+                bbox.max(0) += scale_(5.f);
+                bbox.max(1) += scale_(5.f);
                 EdgeGrid::save_png(*(*lower_layer_edge_grid), bbox, scale_(0.1f), debug_out_path("GCode_extrude_loop_edge_grid-%d.png", iRun++));
             }
             #endif
@@ -1933,7 +1933,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             break;
         case spRear:
             last_pos = m_layer->object()->bounding_box().center();
-            last_pos.y += coord_t(3. * m_layer->object()->bounding_box().radius());
+            last_pos(1) += coord_t(3. * m_layer->object()->bounding_box().radius());
             last_pos_weight = 5.f;
             break;
         }
@@ -2066,7 +2066,7 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
             //FIXME Better parametrize the loop by its length.
             Polygon polygon = loop.polygon();
             Point centroid = polygon.centroid();
-            last_pos = Point(polygon.bounding_box().max.x, centroid.y);
+            last_pos = Point(polygon.bounding_box().max(0), centroid(1));
             last_pos.rotate(fmod((float)rand()/16.0, 2.0*PI), centroid);
         }
         // Find the closest point, avoid overhangs.
@@ -2123,19 +2123,17 @@ std::string GCode::extrude_loop(ExtrusionLoop loop, std::string description, dou
         // create the destination point along the first segment and rotate it
         // we make sure we don't exceed the segment length because we don't know
         // the rotation of the second segment so we might cross the object boundary
-        Line first_segment(
-            paths.front().polyline.points[0],
-            paths.front().polyline.points[1]
-        );
-        double distance = std::min<double>(
-            scale_(EXTRUDER_CONFIG(nozzle_diameter)),
-            first_segment.length()
-        );
-        Point point = first_segment.point_at(distance);
-        point.rotate(angle, first_segment.a);
-        
+        Vec2d  p1 = paths.front().polyline.points.front().cast<double>();
+        Vec2d  p2 = paths.front().polyline.points[1].cast<double>();
+        Vec2d  v  = p2 - p1;
+        double nd = scale_(EXTRUDER_CONFIG(nozzle_diameter));
+        double l2 = v.squaredNorm();
+        // Shift by no more than a nozzle diameter.
+        //FIXME Hiding the seams will not work nicely for very densely discretized contours!
+        Point  pt = ((nd * nd >= l2) ? p2 : (p1 + v * (nd / sqrt(l2)))).cast<coord_t>();
+        pt.rotate(angle, paths.front().polyline.points.front());
         // generate the travel move
-        gcode += m_writer.travel_to_xy(this->point_to_gcode(point), "move inwards before travel");
+        gcode += m_writer.travel_to_xy(this->point_to_gcode(pt), "move inwards before travel");
     }
     
     return gcode;
@@ -2305,7 +2303,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
     std::string gcode;
     
     // go to first point of extrusion path
-    if (!m_last_pos_defined || !m_last_pos.coincides_with(path.first_point())) {
+    if (!m_last_pos_defined || m_last_pos != path.first_point()) {
         gcode += this->travel_to(
             path.first_point(),
             path.role(),
@@ -2624,8 +2622,8 @@ Pointf GCode::point_to_gcode(const Point &point) const
 {
     Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Pointf(
-        unscale(point.x) + m_origin.x - extruder_offset.x,
-        unscale(point.y) + m_origin.y - extruder_offset.y);
+        unscale(point(0)) + m_origin(0) - extruder_offset(0),
+        unscale(point(1)) + m_origin(1) - extruder_offset(1));
 }
 
 // convert a model-space scaled point into G-code coordinates
@@ -2633,8 +2631,8 @@ Point GCode::gcode_to_point(const Pointf &point) const
 {
     Pointf extruder_offset = EXTRUDER_CONFIG(extruder_offset);
     return Point(
-        scale_(point.x - m_origin.x + extruder_offset.x),
-        scale_(point.y - m_origin.y + extruder_offset.y));
+        scale_(point(0) - m_origin(0) + extruder_offset(0)),
+        scale_(point(1) - m_origin(1) + extruder_offset(1)));
 }
 
 

@@ -29,7 +29,6 @@
     bool parallel_to_line(Line* line)
         %code{% RETVAL = THIS->parallel_to(*line); %};
     Clone<Point> midpoint();
-    Clone<Point> point_at(double distance);
     Clone<Point> intersection_infinite(Line* other)
         %code{%
             Point p;
@@ -37,8 +36,8 @@
             if (!res) CONFESS("Intersection failed");
             RETVAL = p;
         %};
-    Clone<Polyline> as_polyline()
-        %code{% RETVAL = Polyline(*THIS); %};
+    Polyline* as_polyline()
+        %code{% RETVAL = new Polyline(THIS->a, THIS->b); %};
     Clone<Point> normal();
     Clone<Point> vector();
     double ccw(Point* point)
@@ -70,7 +69,7 @@ Line::coincides_with(line_sv)
     CODE:
         Line line;
         from_SV_check(line_sv, &line);
-        RETVAL = THIS->coincides_with(line);
+        RETVAL = (*THIS) == line;
     OUTPUT:
         RETVAL
 

@@ -49,9 +49,10 @@
   #define EIGEN_USE_LAPACKE
 #endif
 
-#if defined(EIGEN_USE_MKL_VML)
+#if defined(EIGEN_USE_MKL_VML) && !defined(EIGEN_USE_MKL)
   #define EIGEN_USE_MKL
 #endif
+
 
 #if defined EIGEN_USE_MKL
 #   include <mkl.h> 
@@ -108,6 +109,10 @@
 #endif
 #endif
 
+#if defined(EIGEN_USE_BLAS) && !defined(EIGEN_USE_MKL)
+#include "../../misc/blas.h"
+#endif
+
 namespace Eigen {
 
 typedef std::complex<double> dcomplex;
@@ -121,8 +126,5 @@ typedef int BlasIndex;
 
 } // end namespace Eigen
 
-#if defined(EIGEN_USE_BLAS)
-#include "../../misc/blas.h"
-#endif
 
 #endif // EIGEN_MKL_SUPPORT_H

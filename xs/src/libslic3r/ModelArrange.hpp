@@ -44,11 +44,11 @@ std::string toString(const Model& model, bool holes = true) {
                 ss << "\t\t{\n";
 
                 for(auto v : expoly.contour.points) ss << "\t\t\t{"
-                                                    << v.x << ", "
-                                                    << v.y << "},\n";
+                                                    << v(0) << ", "
+                                                    << v(1) << "},\n";
                 {
                     auto v = expoly.contour.points.front();
-                    ss << "\t\t\t{" << v.x << ", " << v.y << "},\n";
+                    ss << "\t\t\t{" << v(0) << ", " << v(1) << "},\n";
                 }
                 ss << "\t\t},\n";
 
@@ -57,11 +57,11 @@ std::string toString(const Model& model, bool holes = true) {
                 if(holes) for(auto h : expoly.holes) {
                     ss << "\t\t\t{\n";
                     for(auto v : h.points) ss << "\t\t\t\t{"
-                                           << v.x << ", "
-                                           << v.y << "},\n";
+                                           << v(0) << ", "
+                                           << v(1) << "},\n";
                     {
                         auto v = h.points.front();
-                        ss << "\t\t\t\t{" << v.x << ", " << v.y << "},\n";
+                        ss << "\t\t\t\t{" << v(0) << ", " << v(1) << "},\n";
                     }
                     ss << "\t\t\t},\n";
                 }
@@ -427,8 +427,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     if(item.vertexCount() > 3) {
                         item.rotation(objinst->rotation);
                         item.translation( {
-                            ClipperLib::cInt(objinst->offset.x/SCALING_FACTOR),
-                            ClipperLib::cInt(objinst->offset.y/SCALING_FACTOR)
+                            ClipperLib::cInt(objinst->offset(0)/SCALING_FACTOR),
+                            ClipperLib::cInt(objinst->offset(1)/SCALING_FACTOR)
                         });
                         ret.emplace_back(objinst, item);
                     }
@@ -528,12 +528,12 @@ bool arrange(Model &model, coordf_t min_obj_distance,
     BoundingBox bbb(bed.points);
 
     auto binbb = Box({
-                         static_cast<libnest2d::Coord>(bbb.min.x),
-                         static_cast<libnest2d::Coord>(bbb.min.y)
+                         static_cast<libnest2d::Coord>(bbb.min(0)),
+                         static_cast<libnest2d::Coord>(bbb.min(1))
                      },
                      {
-                         static_cast<libnest2d::Coord>(bbb.max.x),
-                         static_cast<libnest2d::Coord>(bbb.max.y)
+                         static_cast<libnest2d::Coord>(bbb.max(0)),
+                         static_cast<libnest2d::Coord>(bbb.max(1))
                      });
 
     switch(bedhint) {

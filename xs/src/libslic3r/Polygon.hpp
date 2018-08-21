@@ -27,7 +27,7 @@ public:
 	static Polygon new_scale(std::vector<Pointf> points) { 
 		Points int_points;
 		for (auto pt : points)
-			int_points.push_back(Point::new_scale(pt.x, pt.y));
+			int_points.push_back(Point::new_scale(pt(0), pt(1)));
 		return Polygon(int_points);
 	}
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
@@ -54,7 +54,6 @@ public:
     void simplify(double tolerance, Polygons &polygons) const;
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
-    std::string wkt() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
     // Projection of a point onto the polygon.

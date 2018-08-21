@@ -34,15 +34,15 @@ void Bed_2D::repaint()
 
 	auto cbb = BoundingBoxf(Pointf(0, 0),Pointf(cw, ch));
 	// leave space for origin point
-	cbb.min.translate(4, 0);
-	cbb.max.translate(-4, -4);
+	cbb.min(0) += 4;
+	cbb.max -= Vec2d(4., 4.);
 
 	// leave space for origin label
-	cbb.max.translate(0, -13);
+	cbb.max(1) -= 13;
 
 	// read new size
-	cw = cbb.size().x;
-	ch = cbb.size().y;
+	cw = cbb.size()(0);
+	ch = cbb.size()(1);
 
 	auto ccenter = cbb.center();
 
@@ -51,19 +51,19 @@ void Bed_2D::repaint()
 	auto bed_polygon = Polygon::new_scale(m_bed_shape);
 	auto bb = BoundingBoxf(m_bed_shape);
 	bb.merge(Pointf(0, 0));  // origin needs to be in the visible area
-	auto bw = bb.size().x;
-	auto bh = bb.size().y;
+	auto bw = bb.size()(0);
+	auto bh = bb.size()(1);
 	auto bcenter = bb.center();
 
 	// calculate the scaling factor for fitting bed shape in canvas area
 	auto sfactor = std::min(cw/bw, ch/bh);
 	auto shift = Pointf(
-		ccenter.x - bcenter.x * sfactor,
-		ccenter.y - bcenter.y * sfactor
+		ccenter(0) - bcenter(0) * sfactor,
+		ccenter(1) - bcenter(1) * sfactor
 		);
 	m_scale_factor = sfactor;
-	m_shift = Pointf(shift.x + cbb.min.x,
-					shift.y - (cbb.max.y - GetSize().GetHeight()));
+	m_shift = Pointf(shift(0) + cbb.min(0),
+					shift(1) - (cbb.max(1) - GetSize().GetHeight()));
 
 	// draw bed fill
 	dc.SetBrush(wxBrush(wxColour(255, 255, 255), wxSOLID));
@@ -71,19 +71,19 @@ void Bed_2D::repaint()
 	for (auto pt: m_bed_shape)
 	{
 		Point pt_pix = to_pixels(pt);
-		pt_list.push_back(new wxPoint(pt_pix.x, pt_pix.y));
+		pt_list.push_back(new wxPoint(pt_pix(0), pt_pix(1)));
 	}
 	dc.DrawPolygon(&pt_list, 0, 0);
 
 	// draw grid
 	auto step = 10;  // 1cm grid
 	Polylines polylines;
-	for (auto x = bb.min.x - fmod(bb.min.x, step) + step; x < bb.max.x; x += step) {
-		Polyline pl = Polyline::new_scale({ Pointf(x, bb.min.y), Pointf(x, bb.max.y) });
+	for (auto x = bb.min(0) - fmod(bb.min(0), step) + step; x < bb.max(0); x += step) {
+		Polyline pl = Polyline::new_scale({ Pointf(x, bb.min(1)), Pointf(x, bb.max(1)) });
 		polylines.push_back(pl);
 	}
-	for (auto y = bb.min.y - fmod(bb.min.y, step) + step; y < bb.max.y; y += step) {
-		polylines.push_back(Polyline::new_scale({ Pointf(bb.min.x, y), Pointf(bb.max.x, y) }));
+	for (auto y = bb.min(1) - fmod(bb.min(1), step) + step; y < bb.max(1); y += step) {
+		polylines.push_back(Polyline::new_scale({ Pointf(bb.min(0), y), Pointf(bb.max(0), y) }));
 	}
 	polylines = intersection_pl(polylines, bed_polygon);
 
@@ -93,7 +93,7 @@ void Bed_2D::repaint()
 		for (size_t i = 0; i < pl.points.size()-1; i++){
 			Point pt1 = to_pixels(Pointf::new_unscale(pl.points[i]));
 			Point pt2 = to_pixels(Pointf::new_unscale(pl.points[i+1]));
-			dc.DrawLine(pt1.x, pt1.y, pt2.x, pt2.y);
+			dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
 		}
 	}
 
@@ -109,36 +109,36 @@ void Bed_2D::repaint()
 	auto arrow_len = 6;
 	auto arrow_angle = Geometry::deg2rad(45.0);
 	dc.SetPen(wxPen(wxColour(255, 0, 0), 2, wxSOLID));  // red
-	auto x_end = Pointf(origin_px.x + axes_len, origin_px.y);
-	dc.DrawLine(wxPoint(origin_px.x, origin_px.y), wxPoint(x_end.x, x_end.y));
+	auto x_end = Pointf(origin_px(0) + axes_len, origin_px(1));
+	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(x_end(0), x_end(1)));
 	for (auto angle : { -arrow_angle, arrow_angle }){
 		auto end = x_end;
-		end.translate(-arrow_len, 0);
+		end(0) -= arrow_len;
 		end.rotate(angle, x_end);
-		dc.DrawLine(wxPoint(x_end.x, x_end.y), wxPoint(end.x, end.y));
+		dc.DrawLine(wxPoint(x_end(0), x_end(1)), wxPoint(end(0), end(1)));
 	}
 
 	dc.SetPen(wxPen(wxColour(0, 255, 0), 2, wxSOLID));  // green
-	auto y_end = Pointf(origin_px.x, origin_px.y - axes_len);
-	dc.DrawLine(wxPoint(origin_px.x, origin_px.y), wxPoint(y_end.x, y_end.y));
+	auto y_end = Pointf(origin_px(0), origin_px(1) - axes_len);
+	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(y_end(0), y_end(1)));
 	for (auto angle : { -arrow_angle, arrow_angle }) {
 		auto end = y_end;
-		end.translate(0, +arrow_len);
+		end(1) += arrow_len;
 		end.rotate(angle, y_end);
-		dc.DrawLine(wxPoint(y_end.x, y_end.y), wxPoint(end.x, end.y));
+		dc.DrawLine(wxPoint(y_end(0), y_end(1)), wxPoint(end(0), end(1)));
 	}
 
 	// draw origin
 	dc.SetPen(wxPen(wxColour(0, 0, 0), 1, wxSOLID));
 	dc.SetBrush(wxBrush(wxColour(0, 0, 0), wxSOLID));
-	dc.DrawCircle(origin_px.x, origin_px.y, 3);
+	dc.DrawCircle(origin_px(0), origin_px(1), 3);
 
 	static const auto origin_label = wxString("(0,0)");
 	dc.SetTextForeground(wxColour(0, 0, 0));
 	dc.SetFont(wxFont(10, wxDEFAULT, wxNORMAL, wxNORMAL));
 	auto extent = dc.GetTextExtent(origin_label);
-	const auto origin_label_x = origin_px.x <= cw / 2 ? origin_px.x + 1 : origin_px.x - 1 - extent.GetWidth();
-	const auto origin_label_y = origin_px.y <= ch / 2 ? origin_px.y + 1 : origin_px.y - 1 - extent.GetHeight();
+	const auto origin_label_x = origin_px(0) <= cw / 2 ? origin_px(0) + 1 : origin_px(0) - 1 - extent.GetWidth();
+	const auto origin_label_y = origin_px(1) <= ch / 2 ? origin_px(1) + 1 : origin_px(1) - 1 - extent.GetHeight();
 	dc.DrawText(origin_label, origin_label_x, origin_label_y);
 
 	// draw current position
@@ -146,10 +146,10 @@ void Bed_2D::repaint()
 		auto pos_px = to_pixels(m_pos);
 		dc.SetPen(wxPen(wxColour(200, 0, 0), 2, wxSOLID));
 		dc.SetBrush(wxBrush(wxColour(200, 0, 0), wxTRANSPARENT));
-		dc.DrawCircle(pos_px.x, pos_px.y, 5);
+		dc.DrawCircle(pos_px(0), pos_px(1), 5);
 
-		dc.DrawLine(pos_px.x - 15, pos_px.y, pos_px.x + 15, pos_px.y);
-		dc.DrawLine(pos_px.x, pos_px.y - 15, pos_px.x, pos_px.y + 15);
+		dc.DrawLine(pos_px(0) - 15, pos_px(1), pos_px(0) + 15, pos_px(1));
+		dc.DrawLine(pos_px(0), pos_px(1) - 15, pos_px(0), pos_px(1) + 15);
 	}
 
 	m_painted = true;
@@ -157,10 +157,8 @@ void Bed_2D::repaint()
 
 // convert G - code coordinates into pixels
 Point Bed_2D::to_pixels(Pointf point){
-	auto p = Pointf(point);
-	p.scale(m_scale_factor);
-	p.translate(m_shift);
-	return Point(p.x, GetSize().GetHeight() - p.y); 
+	auto p = point * m_scale_factor + m_shift;
+	return Point(p(0), GetSize().GetHeight() - p(1)); 
 }
 
 void Bed_2D::mouse_event(wxMouseEvent event){
@@ -168,7 +166,7 @@ void Bed_2D::mouse_event(wxMouseEvent event){
 	if (!m_painted) return;
 
 	auto pos = event.GetPosition();
-	auto point = to_units(Point(pos.x, pos.y));  
+	auto point = to_units(Point(pos.x, pos.y));
 	if (event.LeftDown() || event.Dragging()) {
 		if (m_on_move)
 			m_on_move(point) ;
@@ -178,10 +176,7 @@ void Bed_2D::mouse_event(wxMouseEvent event){
 
 // convert pixels into G - code coordinates
 Pointf Bed_2D::to_units(Point point){
-	auto p = Pointf(point.x, GetSize().GetHeight() - point.y);
-	p.translate(m_shift.negative());
-	p.scale(1 / m_scale_factor);
-	return p;
+	return (Pointf(point(0), GetSize().GetHeight() - point(1)) - m_shift) * (1. / m_scale_factor);
 }
 
 void Bed_2D::set_pos(Pointf pos){

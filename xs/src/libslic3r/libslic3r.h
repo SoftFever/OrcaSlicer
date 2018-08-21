@@ -130,6 +130,17 @@ inline void append(std::vector<T>& dest, std::vector<T>&& src)
     src.shrink_to_fit();
 }
 
+// Casting an std::vector<> from one type to another type without warnings about a loss of accuracy.
+template<typename T_TO, typename T_FROM>
+std::vector<T_TO> cast(const std::vector<T_FROM> &src) 
+{
+    std::vector<T_TO> dst;
+    dst.reserve(src.size());
+    for (const T_FROM &a : src)
+        dst.emplace_back((T_TO)a);
+    return dst;
+}
+
 template <typename T>
 inline void remove_nulls(std::vector<T*> &vec)
 {

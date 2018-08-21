@@ -152,13 +152,28 @@ class LeastSquareDiagonalPreconditioner : public DiagonalPreconditioner<_Scalar>
     {
       // Compute the inverse squared-norm of each column of mat
       m_invdiag.resize(mat.cols());
-      for(Index j=0; j<mat.outerSize(); ++j)
+      if(MatType::IsRowMajor)
       {
-        RealScalar sum = mat.innerVector(j).squaredNorm();
-        if(sum>0)
-          m_invdiag(j) = RealScalar(1)/sum;
-        else
-          m_invdiag(j) = RealScalar(1);
+        m_invdiag.setZero();
+        for(Index j=0; j<mat.outerSize(); ++j)
+        {
+          for(typename MatType::InnerIterator it(mat,j); it; ++it)
+            m_invdiag(it.index()) += numext::abs2(it.value());
+        }
+        for(Index j=0; j<mat.cols(); ++j)
+          if(numext::real(m_invdiag(j))>RealScalar(0))
+            m_invdiag(j) = RealScalar(1)/numext::real(m_invdiag(j));
+      }
+      else
+      {
+        for(Index j=0; j<mat.outerSize(); ++j)
+        {
+          RealScalar sum = mat.col(j).squaredNorm();
+          if(sum>RealScalar(0))
+            m_invdiag(j) = RealScalar(1)/sum;
+          else
+            m_invdiag(j) = RealScalar(1);
+        }
       }
       Base::m_isInitialized = true;
       return *this;

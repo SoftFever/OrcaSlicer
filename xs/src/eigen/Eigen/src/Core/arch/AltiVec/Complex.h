@@ -224,23 +224,7 @@ template<> struct conj_helper<Packet2cf, Packet2cf, true,true>
   }
 };
 
-template<> struct conj_helper<Packet4f, Packet2cf, false,false>
-{
-  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet4f& x, const Packet2cf& y, const Packet2cf& c) const
-  { return padd(c, pmul(x,y)); }
-
-  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet4f& x, const Packet2cf& y) const
-  { return Packet2cf(internal::pmul<Packet4f>(x, y.v)); }
-};
-
-template<> struct conj_helper<Packet2cf, Packet4f, false,false>
-{
-  EIGEN_STRONG_INLINE Packet2cf pmadd(const Packet2cf& x, const Packet4f& y, const Packet2cf& c) const
-  { return padd(c, pmul(x,y)); }
-
-  EIGEN_STRONG_INLINE Packet2cf pmul(const Packet2cf& x, const Packet4f& y) const
-  { return Packet2cf(internal::pmul<Packet4f>(x.v, y)); }
-};
+EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet2cf,Packet4f)
 
 template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
@@ -416,23 +400,8 @@ template<> struct conj_helper<Packet1cd, Packet1cd, true,true>
     return pconj(internal::pmul(a, b));
   }
 };
-template<> struct conj_helper<Packet2d, Packet1cd, false,false>
-{
-  EIGEN_STRONG_INLINE Packet1cd pmadd(const Packet2d& x, const Packet1cd& y, const Packet1cd& c) const
-  { return padd(c, pmul(x,y)); }
 
-  EIGEN_STRONG_INLINE Packet1cd pmul(const Packet2d& x, const Packet1cd& y) const
-  { return Packet1cd(internal::pmul<Packet2d>(x, y.v)); }
-};
-
-template<> struct conj_helper<Packet1cd, Packet2d, false,false>
-{
-  EIGEN_STRONG_INLINE Packet1cd pmadd(const Packet1cd& x, const Packet2d& y, const Packet1cd& c) const
-  { return padd(c, pmul(x,y)); }
-
-  EIGEN_STRONG_INLINE Packet1cd pmul(const Packet1cd& x, const Packet2d& y) const
-  { return Packet1cd(internal::pmul<Packet2d>(x.v, y)); }
-};
+EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet1cd,Packet2d)
 
 template<> EIGEN_STRONG_INLINE Packet1cd pdiv<Packet1cd>(const Packet1cd& a, const Packet1cd& b)
 {

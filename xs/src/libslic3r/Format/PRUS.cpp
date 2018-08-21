@@ -207,8 +207,8 @@ bool load_prus(const char *path, Model *model)
                         for (size_t c = 0; c < 3; ++ c)
                             trafo[r][c] += mat_trafo(r, c);
                     }
-                    instance_offset.x = position[0] - zero[0];
-                    instance_offset.y = position[1] - zero[1];
+                    instance_offset(0) = position[0] - zero[0];
+                    instance_offset(1) = position[1] - zero[1];
                     trafo[2][3] = position[2] / instance_scaling_factor;
                     trafo_set = true;
                 }

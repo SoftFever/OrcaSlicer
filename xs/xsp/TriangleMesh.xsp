@@ -181,7 +181,7 @@ TriangleMesh::slice(z)
     std::vector<double> z
     CODE:
         // convert doubles to floats
-        std::vector<float> z_f(z.begin(), z.end());
+        std::vector<float> z_f = cast<float>(z);
         
         std::vector<ExPolygons> layers;
         TriangleMeshSlicer mslicer(THIS);

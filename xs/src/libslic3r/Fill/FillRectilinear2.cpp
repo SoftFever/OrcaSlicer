@@ -42,12 +42,12 @@ static inline coordf_t segment_length(const Polygon &poly, size_t seg1, const Po
         Point  px  = (i == 0) ? p1   : p2;
         Point  pa  = poly.points[((seg == 0) ? poly.points.size() : seg) - 1];
         Point  pb  = poly.points[seg];
-        if (pa.x > pb.x)
-            std::swap(pa.x, pb.x);
-        if (pa.y > pb.y)
-            std::swap(pa.y, pb.y);
-        assert(px.x >= pa.x && px.x <= pb.x);
-        assert(px.y >= pa.y && px.y <= pb.y);
+        if (pa(0) > pb(0))
+            std::swap(pa(0), pb(0));
+        if (pa(1) > pb(1))
+            std::swap(pa(1), pb(1));
+        assert(px(0) >= pa(0) && px(0) <= pb(0));
+        assert(px(1) >= pa(1) && px(1) <= pb(1));
     }
 #endif /* SLIC3R_DEBUG */
     const Point *pPrev = &p1;
@@ -55,14 +55,14 @@ static inline coordf_t segment_length(const Polygon &poly, size_t seg1, const Po
     coordf_t len = 0;
     if (seg1 <= seg2) {
         for (size_t i = seg1; i < seg2; ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
     } else {
         for (size_t i = seg1; i < poly.points.size(); ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
         for (size_t i = 0; i < seg2; ++ i, pPrev = pThis)
-           len += pPrev->distance_to(*(pThis = &poly.points[i]));
+           len += (*pPrev - *(pThis = &poly.points[i])).cast<double>().norm();
     }
-    len += pPrev->distance_to(p2);
+    len += (*pPrev - p2).cast<double>().norm();
     return len;
 }
 
@@ -791,7 +791,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 
     // define flow spacing according to requested density
     if (params.full_infill() && !params.dont_adjust) {
-        line_spacing = this->_adjust_solid_spacing(bounding_box.size().x, line_spacing);
+        line_spacing = this->_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
         this->spacing = unscale(line_spacing);
     } else {
         // extend bounding box so that our pattern will be aligned with other layers
@@ -799,7 +799,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         Point refpt = rotate_vector.second.rotated(- rotate_vector.first);
         // _align_to_grid will not work correctly with positive pattern_shift.
         coord_t pattern_shift_scaled = coord_t(scale_(pattern_shift)) % line_spacing;
-        refpt.x -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
+        refpt(0) -= (pattern_shift_scaled >= 0) ? pattern_shift_scaled : (line_spacing + pattern_shift_scaled);
         bounding_box.merge(_align_to_grid(
             bounding_box.min, 
             Point(line_spacing, line_spacing), 
@@ -808,8 +808,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
 
     // Intersect a set of euqally spaced vertical lines wiht expolygon.
     // n_vlines = ceil(bbox_width / line_spacing)
-    size_t  n_vlines = (bounding_box.max.x - bounding_box.min.x + line_spacing - 1) / line_spacing;
-	coord_t x0 = bounding_box.min.x;
+    size_t  n_vlines = (bounding_box.max(0) - bounding_box.min(0) + line_spacing - 1) / line_spacing;
+	coord_t x0 = bounding_box.min(0);
 	if (params.full_infill())
 		x0 += (line_spacing + SCALED_EPSILON) / 2;
 
@@ -842,8 +842,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             const Point &p1 = contour[iPrev];
             const Point &p2 = contour[iSegment];
             // Which of the equally spaced vertical lines is intersected by this segment?
-            coord_t l = p1.x;
-            coord_t r = p2.x;
+            coord_t l = p1(0);
+            coord_t r = p2(0);
             if (l > r)
                 std::swap(l, r);
             // il, ir are the left / right indices of vertical lines intersecting a segment
@@ -869,33 +869,33 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                 assert(l <= this_x);
                 assert(r >= this_x);
                 // Calculate the intersection position in y axis. x is known.
-                if (p1.x == this_x) {
-                    if (p2.x == this_x) {
+                if (p1(0) == this_x) {
+                    if (p2(0) == this_x) {
                         // Ignore strictly vertical segments.
                         continue;
                     }
-                    is.pos_p = p1.y;
+                    is.pos_p = p1(1);
                     is.pos_q = 1;
-                } else if (p2.x == this_x) {
-                    is.pos_p = p2.y;
+                } else if (p2(0) == this_x) {
+                    is.pos_p = p2(1);
                     is.pos_q = 1;
                 } else {
                     // First calculate the intersection parameter 't' as a rational number with non negative denominator.
-                    if (p2.x > p1.x) {
-                        is.pos_p = this_x - p1.x;
-                        is.pos_q = p2.x - p1.x;
+                    if (p2(0) > p1(0)) {
+                        is.pos_p = this_x - p1(0);
+                        is.pos_q = p2(0) - p1(0);
                     } else {
-                        is.pos_p = p1.x - this_x;
-                        is.pos_q = p1.x - p2.x;
+                        is.pos_p = p1(0) - this_x;
+                        is.pos_q = p1(0) - p2(0);
                     }
                     assert(is.pos_p >= 0 && is.pos_p <= is.pos_q);
                     // Make an intersection point from the 't'.
-                    is.pos_p *= int64_t(p2.y - p1.y);
-                    is.pos_p += p1.y * int64_t(is.pos_q);
+                    is.pos_p *= int64_t(p2(1) - p1(1));
+                    is.pos_p += p1(1) * int64_t(is.pos_q);
                 }
                 // +-1 to take rounding into account.
-                assert(is.pos() + 1 >= std::min(p1.y, p2.y));
-                assert(is.pos() <= std::max(p1.y, p2.y) + 1);
+                assert(is.pos() + 1 >= std::min(p1(1), p2(1)));
+                assert(is.pos() <= std::max(p1(1), p2(1)) + 1);
                 segs[i].intersections.push_back(is);
             }
         }
@@ -919,7 +919,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
             const Points &contour = poly_with_offset.contour(iContour).points;
             size_t iSegment = sil.intersections[i].iSegment;
             size_t iPrev    = ((iSegment == 0) ? contour.size() : iSegment) - 1;
-            coord_t dir = contour[iSegment].x - contour[iPrev].x;
+            coord_t dir = contour[iSegment](0) - contour[iPrev](0);
             bool low = dir > 0;
             sil.intersections[i].type = poly_with_offset.is_contour_outer(iContour) ? 
                 (low ? SegmentIntersection::OUTER_LOW : SegmentIntersection::OUTER_HIGH) :
@@ -1066,7 +1066,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
                                 intrsctn.consumed_vertical_up : 
                                 seg.intersections[i-1].consumed_vertical_up;
                             if (! consumed) {
-                                coordf_t dist2 = sqr(coordf_t(pointLast.x - seg.pos)) + sqr(coordf_t(pointLast.y - intrsctn.pos()));
+                                coordf_t dist2 = sqr(coordf_t(pointLast(0) - seg.pos)) + sqr(coordf_t(pointLast(1) - intrsctn.pos()));
                                 if (dist2 < dist2min) {
                                     dist2min = dist2;
                                     i_vline = i_vline2;
@@ -1356,8 +1356,8 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
         // Handle nearly zero length edges.
         if (polyline_current->points.size() <= 1 ||
         	(polyline_current->points.size() == 2 &&
-        		std::abs(polyline_current->points.front().x - polyline_current->points.back().x) < SCALED_EPSILON &&
-				std::abs(polyline_current->points.front().y - polyline_current->points.back().y) < SCALED_EPSILON))
+        		std::abs(polyline_current->points.front()(0) - polyline_current->points.back()(0)) < SCALED_EPSILON &&
+				std::abs(polyline_current->points.front()(1) - polyline_current->points.back()(1)) < SCALED_EPSILON))
             polylines_out.pop_back();
         intrsctn = NULL;
         i_intersection = -1;
@@ -1383,7 +1383,7 @@ bool FillRectilinear2::fill_surface_by_lines(const Surface *surface, const FillP
     // paths must be rotated back
     for (Polylines::iterator it = polylines_out.begin() + n_polylines_out_initial; it != polylines_out.end(); ++ it) {
         // No need to translate, the absolute position is irrelevant.
-        // it->translate(- rotate_vector.second.x, - rotate_vector.second.y);
+        // it->translate(- rotate_vector.second(0), - rotate_vector.second(1));
         assert(! it->has_duplicate_points());
         it->rotate(rotate_vector.first);
         //FIXME rather simplify the paths to avoid very short edges?

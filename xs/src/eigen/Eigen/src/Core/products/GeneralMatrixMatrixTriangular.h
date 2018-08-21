@@ -269,10 +269,13 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,false>
     enum {
       IsRowMajor = (internal::traits<MatrixType>::Flags&RowMajorBit) ? 1 : 0,
       LhsIsRowMajor = _ActualLhs::Flags&RowMajorBit ? 1 : 0,
-      RhsIsRowMajor = _ActualRhs::Flags&RowMajorBit ? 1 : 0
+      RhsIsRowMajor = _ActualRhs::Flags&RowMajorBit ? 1 : 0,
+      SkipDiag = (UpLo&(UnitDiag|ZeroDiag))!=0
     };
 
     Index size = mat.cols();
+    if(SkipDiag)
+      size--;
     Index depth = actualLhs.cols();
 
     typedef internal::gemm_blocking_space<IsRowMajor ? RowMajor : ColMajor,typename Lhs::Scalar,typename Rhs::Scalar,
@@ -283,10 +286,11 @@ struct general_product_to_triangular_selector<MatrixType,ProductType,UpLo,false>
     internal::general_matrix_matrix_triangular_product<Index,
       typename Lhs::Scalar, LhsIsRowMajor ? RowMajor : ColMajor, LhsBlasTraits::NeedToConjugate,
       typename Rhs::Scalar, RhsIsRowMajor ? RowMajor : ColMajor, RhsBlasTraits::NeedToConjugate,
-      IsRowMajor ? RowMajor : ColMajor, UpLo>
+      IsRowMajor ? RowMajor : ColMajor, UpLo&(Lower|Upper)>
       ::run(size, depth,
-            &actualLhs.coeffRef(0,0), actualLhs.outerStride(), &actualRhs.coeffRef(0,0), actualRhs.outerStride(),
-            mat.data(), mat.outerStride(), actualAlpha, blocking);
+            &actualLhs.coeffRef(SkipDiag&&(UpLo&Lower)==Lower ? 1 : 0,0), actualLhs.outerStride(),
+            &actualRhs.coeffRef(0,SkipDiag&&(UpLo&Upper)==Upper ? 1 : 0), actualRhs.outerStride(),
+            mat.data() + (SkipDiag ? (bool(IsRowMajor) != ((UpLo&Lower)==Lower) ? 1 : mat.outerStride() ) : 0), mat.outerStride(), actualAlpha, blocking);
   }
 };
 
@@ -294,6 +298,7 @@ template<typename MatrixType, unsigned int UpLo>
 template<typename ProductType>
 TriangularView<MatrixType,UpLo>& TriangularViewImpl<MatrixType,UpLo,Dense>::_assignProduct(const ProductType& prod, const Scalar& alpha, bool beta)
 {
+  EIGEN_STATIC_ASSERT((UpLo&UnitDiag)==0, WRITING_TO_TRIANGULAR_PART_WITH_UNIT_DIAGONAL_IS_NOT_SUPPORTED);
   eigen_assert(derived().nestedExpression().rows() == prod.rows() && derived().cols() == prod.cols());
   
   general_product_to_triangular_selector<MatrixType, ProductType, UpLo, internal::traits<ProductType>::InnerSize==1>::run(derived().nestedExpression().const_cast_derived(), prod, alpha, beta);

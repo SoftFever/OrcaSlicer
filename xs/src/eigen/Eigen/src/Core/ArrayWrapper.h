@@ -32,7 +32,8 @@ struct traits<ArrayWrapper<ExpressionType> >
   // Let's remove NestByRefBit
   enum {
     Flags0 = traits<typename remove_all<typename ExpressionType::Nested>::type >::Flags,
-    Flags = Flags0 & ~NestByRefBit
+    LvalueBitFlag = is_lvalue<ExpressionType>::value ? LvalueBit : 0,
+    Flags = (Flags0 & ~(NestByRefBit | LvalueBit)) | LvalueBitFlag
   };
 };
 }
@@ -129,7 +130,8 @@ struct traits<MatrixWrapper<ExpressionType> >
   // Let's remove NestByRefBit
   enum {
     Flags0 = traits<typename remove_all<typename ExpressionType::Nested>::type >::Flags,
-    Flags = Flags0 & ~NestByRefBit
+    LvalueBitFlag = is_lvalue<ExpressionType>::value ? LvalueBit : 0,
+    Flags = (Flags0 & ~(NestByRefBit | LvalueBit)) | LvalueBitFlag
   };
 };
 }

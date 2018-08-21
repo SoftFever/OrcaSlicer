@@ -34,54 +34,43 @@ ExPolygon::operator Polylines() const
     return to_polylines(*this);
 }
 
-void
-ExPolygon::scale(double factor)
+void ExPolygon::scale(double factor)
 {
     contour.scale(factor);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).scale(factor);
-    }
+    for (Polygon &hole : holes)
+        hole.scale(factor);
 }
 
-void
-ExPolygon::translate(double x, double y)
+void ExPolygon::translate(double x, double y)
 {
     contour.translate(x, y);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).translate(x, y);
-    }
+    for (Polygon &hole : holes)
+        hole.translate(x, y);
 }
 
-void
-ExPolygon::rotate(double angle)
+void ExPolygon::rotate(double angle)
 {
     contour.rotate(angle);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).rotate(angle);
-    }
+    for (Polygon &hole : holes)
+        hole.rotate(angle);
 }
 
-void
-ExPolygon::rotate(double angle, const Point &center)
+void ExPolygon::rotate(double angle, const Point &center)
 {
     contour.rotate(angle, center);
-    for (Polygons::iterator it = holes.begin(); it != holes.end(); ++it) {
-        (*it).rotate(angle, center);
-    }
+    for (Polygon &hole : holes)
+        hole.rotate(angle, center);
 }
 
-double
-ExPolygon::area() const
+double ExPolygon::area() const
 {
     double a = this->contour.area();
-    for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
-        a -= -(*it).area();  // holes have negative area
-    }
+    for (const Polygon &hole : holes)
+        a -= - hole.area();  // holes have negative area
     return a;
 }
 
-bool
-ExPolygon::is_valid() const
+bool ExPolygon::is_valid() const
 {
     if (!this->contour.is_valid() || !this->contour.is_counter_clockwise()) return false;
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
@@ -90,20 +79,17 @@ ExPolygon::is_valid() const
     return true;
 }
 
-bool
-ExPolygon::contains(const Line &line) const
+bool ExPolygon::contains(const Line &line) const
 {
-    return this->contains((Polyline)line);
+    return this->contains(Polyline(line.a, line.b));
 }
 
-bool
-ExPolygon::contains(const Polyline &polyline) const
+bool ExPolygon::contains(const Polyline &polyline) const
 {
     return diff_pl((Polylines)polyline, *this).empty();
 }
 
-bool
-ExPolygon::contains(const Polylines &polylines) const
+bool ExPolygon::contains(const Polylines &polylines) const
 {
     #if 0
     BoundingBox bbox = get_extents(polylines);
@@ -120,8 +106,7 @@ ExPolygon::contains(const Polylines &polylines) const
     return pl_out.empty();
 }
 
-bool
-ExPolygon::contains(const Point &point) const
+bool ExPolygon::contains(const Point &point) const
 {
     if (!this->contour.contains(point)) return false;
     for (Polygons::const_iterator it = this->holes.begin(); it != this->holes.end(); ++it) {
@@ -131,8 +116,7 @@ ExPolygon::contains(const Point &point) const
 }
 
 // inclusive version of contains() that also checks whether point is on boundaries
-bool
-ExPolygon::contains_b(const Point &point) const
+bool ExPolygon::contains_b(const Point &point) const
 {
     return this->contains(point) || this->has_boundary_point(point);
 }
@@ -243,25 +227,24 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
         Point new_front = polyline.points.front();
         Point new_back  = polyline.points.back();
         if (polyline.endpoints.first && !this->has_boundary_point(new_front)) {
-            Line line(polyline.points.front(), polyline.points[1]);
-            
+            Vec2d p1 = polyline.points.front().cast<double>();
+            Vec2d p2 = polyline.points[1].cast<double>();
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
-            if (polyline.points.size() == 2) line.b = line.midpoint();
-            
-            line.extend_start(max_width);
-            (void)this->contour.intersection(line, &new_front);
+            if (polyline.points.size() == 2)
+                p2 = (p1 + p2) * 0.5;
+            // Extend the start of the segment.
+            p1 -= (p2 - p1).normalized() * max_width;
+            this->contour.intersection(Line(p1.cast<coord_t>(), p2.cast<coord_t>()), &new_front);
         }
         if (polyline.endpoints.second && !this->has_boundary_point(new_back)) {
-            Line line(
-                *(polyline.points.end() - 2),
-                polyline.points.back()
-            );
-            
+            Vec2d p1 = (polyline.points.end() - 2)->cast<double>();
+            Vec2d p2 = polyline.points.back().cast<double>();
             // prevent the line from touching on the other side, otherwise intersection() might return that solution
-            if (polyline.points.size() == 2) line.a = line.midpoint();
-            line.extend_end(max_width);
-            
-            (void)this->contour.intersection(line, &new_back);
+            if (polyline.points.size() == 2)
+                p1 = (p1 + p2) * 0.5;
+            // Extend the start of the segment.
+            p2 += (p2 - p1).normalized() * max_width;
+            this->contour.intersection(Line(p1.cast<coord_t>(), p2.cast<coord_t>()), &new_back);
         }
         polyline.points.front() = new_front;
         polyline.points.back()  = new_back;
@@ -294,14 +277,14 @@ ExPolygon::medial_axis(double max_width, double min_width, ThickPolylines* polyl
             // find another polyline starting here
             for (size_t j = i+1; j < pp.size(); ++j) {
                 ThickPolyline& other = pp[j];
-                if (polyline.last_point().coincides_with(other.last_point())) {
+                if (polyline.last_point() == other.last_point()) {
                     other.reverse();
-                } else if (polyline.first_point().coincides_with(other.last_point())) {
+                } else if (polyline.first_point() == other.last_point()) {
                     polyline.reverse();
                     other.reverse();
-                } else if (polyline.first_point().coincides_with(other.first_point())) {
+                } else if (polyline.first_point() == other.first_point()) {
                     polyline.reverse();
-                } else if (!polyline.last_point().coincides_with(other.first_point())) {
+                } else if (polyline.last_point() != other.first_point()) {
                     continue;
                 }
                 
@@ -361,7 +344,7 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
     std::vector<coord_t> xx;
     xx.reserve(pp.size());
     for (Points::const_iterator p = pp.begin(); p != pp.end(); ++p)
-        xx.push_back(p->x);
+        xx.push_back(p->x());
     std::sort(xx.begin(), xx.end());
     
     // find trapezoids by looping from first to next-to-last coordinate
@@ -372,14 +355,14 @@ ExPolygon::get_trapezoids2(Polygons* polygons) const
         // build rectangle
         Polygon poly;
         poly.points.resize(4);
-        poly[0].x = *x;
-        poly[0].y = bb.min.y;
-        poly[1].x = next_x;
-        poly[1].y = bb.min.y;
-        poly[2].x = next_x;
-        poly[2].y = bb.max.y;
-        poly[3].x = *x;
-        poly[3].y = bb.max.y;
+        poly[0](0) = *x;
+        poly[0](1) = bb.min(1);
+        poly[1](0) = next_x;
+        poly[1](1) = bb.min(1);
+        poly[2](0) = next_x;
+        poly[2](1) = bb.max(1);
+        poly[3](0) = *x;
+        poly[3](1) = bb.max(1);
         
         // intersect with this expolygon
         // append results to return value
@@ -425,10 +408,11 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
             TPPLPoly p;
             p.Init(int(ex->contour.points.size()));
             //printf(PRINTF_ZU "\n0\n", ex->contour.points.size());
-            for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
-                p[ point-ex->contour.points.begin() ].x = point->x;
-                p[ point-ex->contour.points.begin() ].y = point->y;
-                //printf("%ld %ld\n", point->x, point->y);
+            for (const Point &point : ex->contour.points) {
+                size_t i = &point - &ex->contour.points.front();
+                p[i].x = point(0);
+                p[i].y = point(1);
+                //printf("%ld %ld\n", point->x(), point->y());
             }
             p.SetHole(false);
             input.push_back(p);
@@ -439,10 +423,11 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
             TPPLPoly p;
             p.Init(hole->points.size());
             //printf(PRINTF_ZU "\n1\n", hole->points.size());
-            for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
-                p[ point-hole->points.begin() ].x = point->x;
-                p[ point-hole->points.begin() ].y = point->y;
-                //printf("%ld %ld\n", point->x, point->y);
+            for (const Point &point : hole->points) {
+                size_t i = &point - &hole->points.front();
+                p[i].x = point(0);
+                p[i].y = point(1);
+                //printf("%ld %ld\n", point->x(), point->y());
             }
             p.SetHole(true);
             input.push_back(p);
@@ -460,8 +445,8 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
         Polygon p;
         p.points.resize(num_points);
         for (long i = 0; i < num_points; ++i) {
-            p.points[i].x = coord_t((*poly)[i].x);
-            p.points[i].y = coord_t((*poly)[i].y);
+            p.points[i](0) = coord_t((*poly)[i].x);
+            p.points[i](1) = coord_t((*poly)[i].y);
         }
         polygons->push_back(p);
     }
@@ -477,19 +462,17 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
 
         // contour
         std::vector<p2t::Point*> ContourPoints;
-        for (Points::const_iterator point = ex->contour.points.begin(); point != ex->contour.points.end(); ++point) {
+        for (const Point &pt : ex->contour.points)
             // We should delete each p2t::Point object
-            ContourPoints.push_back(new p2t::Point(point->x, point->y));
-        }
+            ContourPoints.push_back(new p2t::Point(pt(0), pt(1)));
         p2t::CDT cdt(ContourPoints);
 
         // holes
         for (Polygons::const_iterator hole = ex->holes.begin(); hole != ex->holes.end(); ++hole) {
             std::vector<p2t::Point*> points;
-            for (Points::const_iterator point = hole->points.begin(); point != hole->points.end(); ++point) {
+            for (const Point &pt : hole->points)
                 // will be destructed in SweepContext::~SweepContext
-                points.push_back(new p2t::Point(point->x, point->y));
-            }
+                points.push_back(new p2t::Point(pt(0), pt(1)));
             cdt.AddHole(points);
         }
         
@@ -506,9 +489,8 @@ ExPolygon::triangulate_p2t(Polygons* polygons) const
             polygons->push_back(p);
         }
 
-        for(std::vector<p2t::Point*>::iterator it = ContourPoints.begin(); it != ContourPoints.end(); ++it) {
-            delete *it;
-        }
+        for (p2t::Point *ptr : ContourPoints)
+            delete ptr;
     }
 }
 
@@ -521,17 +503,6 @@ ExPolygon::lines() const
         lines.insert(lines.end(), hole_lines.begin(), hole_lines.end());
     }
     return lines;
-}
-
-std::string
-ExPolygon::dump_perl() const
-{
-    std::ostringstream ret;
-    ret << "[" << this->contour.dump_perl();
-    for (Polygons::const_iterator h = this->holes.begin(); h != this->holes.end(); ++h)
-        ret << "," << h->dump_perl();
-    ret << "]";
-    return ret.str();
 }
 
 BoundingBox get_extents(const ExPolygon &expolygon)

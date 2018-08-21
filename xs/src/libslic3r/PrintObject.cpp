@@ -48,10 +48,10 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         // don't assume it's already aligned and we don't alter the original position in model.
         // We store the XY translation so that we can place copies correctly in the output G-code
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
-        this->_copies_shift = Point::new_scale(modobj_bbox.min.x, modobj_bbox.min.y);
+        this->_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
         Pointf3 size = modobj_bbox.size();
-        this->size = Point3::new_scale(size.x, size.y, size.z);
+        this->size = Point3::new_scale(size(0), size(1), size(2));
     }
     
     this->reload_model_instances();
@@ -62,7 +62,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
 bool PrintObject::add_copy(const Pointf &point)
 {
     Points points = this->_copies;
-    points.push_back(Point::new_scale(point.x, point.y));
+    points.push_back(Point::new_scale(point(0), point(1)));
     return this->set_copies(points);
 }
 
@@ -86,11 +86,8 @@ bool PrintObject::set_copies(const Points &points)
     std::vector<Points::size_type> ordered_copies;
     Slic3r::Geometry::chained_path(points, ordered_copies);
     
-    for (size_t point_idx : ordered_copies) {
-        Point copy = points[point_idx];
-        copy.translate(this->_copies_shift);
-        this->_shifted_copies.push_back(copy);
-    }
+    for (size_t point_idx : ordered_copies)
+        this->_shifted_copies.push_back(points[point_idx] + this->_copies_shift);
     
     bool invalidated = this->_print->invalidate_step(psSkirt);
     invalidated |= this->_print->invalidate_step(psBrim);
@@ -106,7 +103,7 @@ bool PrintObject::reload_model_instances()
     for (const ModelInstance *mi : this->_model_object->instances)
     {
         if (mi->is_printable())
-            copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
+            copies.emplace_back(Point::new_scale(mi->offset(0), mi->offset(1)));
     }
     return this->set_copies(copies);
 }
@@ -1124,7 +1121,7 @@ SlicingParameters PrintObject::slicing_parameters() const
 {
     return SlicingParameters::create_from_config(
         this->print()->config, this->config, 
-        unscale(this->size.z), this->print()->object_extruders());
+        unscale(this->size(2)), this->print()->object_extruders());
 }
 
 bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const
@@ -1338,7 +1335,7 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
                 // consider the first one
                 this->model_object()->instances.front()->transform_mesh(&mesh, true);
                 // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-                mesh.translate(- float(unscale(this->_copies_shift.x)), - float(unscale(this->_copies_shift.y)), -float(this->model_object()->bounding_box().min.z));
+                mesh.translate(- float(unscale(this->_copies_shift(0))), - float(unscale(this->_copies_shift(1))), -float(this->model_object()->bounding_box().min(2)));
                 // perform actual slicing
                 TriangleMeshSlicer mslicer(&mesh);
                 mslicer.slice(z, &layers);

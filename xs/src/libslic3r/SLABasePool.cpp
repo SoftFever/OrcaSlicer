@@ -19,8 +19,25 @@ using coord_t = Point::coord_type;
 inline coord_t mm(double v) { return coord_t(v/SCALING_FACTOR); }
 
 /// Get x and y coordinates (because we are eigenizing...)
-inline coord_t x(const Point& p) { return p.x; }
-inline coord_t y(const Point& p) { return p.y; }
+inline coord_t x(const Point& p) { return p(0); }
+inline coord_t y(const Point& p) { return p(1); }
+inline coord_t& x(Point& p) { return p(0); }
+inline coord_t& y(Point& p) { return p(1); }
+
+inline coordf_t x(const Pointf3& p) { return p(0); }
+inline coordf_t y(const Pointf3& p) { return p(1); }
+inline coordf_t z(const Pointf3& p) { return p(2); }
+inline coordf_t& x(Pointf3& p) { return p(0); }
+inline coordf_t& y(Pointf3& p) { return p(1); }
+inline coordf_t& z(Pointf3& p) { return p(2); }
+
+inline coord_t& x(Point3& p) { return p(0); }
+inline coord_t& y(Point3& p) { return p(1); }
+inline coord_t& z(Point3& p) { return p(2); }
+inline coord_t x(const Point3& p) { return p(0); }
+inline coord_t y(const Point3& p) { return p(1); }
+inline coord_t z(const Point3& p) { return p(2); }
+
 
 /// Intermediate struct for a 3D mesh
 struct Contour3D {
@@ -35,7 +52,7 @@ struct Contour3D {
         indices.insert(indices.end(), ctr.indices.begin(), ctr.indices.end());
 
         for(auto n = s; n < indices.size(); n++) {
-            auto& idx = indices[n]; idx.x += s3; idx.y += s3; idx.z += s3;
+            auto& idx = indices[n]; x(idx) += s3; y(idx) += s3; z(idx) += s3;
         }
     }
 };
@@ -476,8 +493,8 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
     concaveh.holes.clear();
 
     BoundingBox bb(concaveh);
-    coord_t w = bb.max.x - bb.min.x;
-    coord_t h = bb.max.y - bb.min.y;
+    coord_t w = x(bb.max) - x(bb.min);
+    coord_t h = y(bb.max) - y(bb.min);
 
     auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
 

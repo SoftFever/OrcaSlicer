@@ -247,6 +247,10 @@ void print_to(Print& print,
 
     std::string& dir = dirpath;
 
+    // Let's shadow this eigen interface
+    auto px = [](const Point& p) { return p(0); };
+    auto py = [](const Point& p) { return p(1); };
+
     // This map will hold the layers sorted by z coordinate. Layers on the
     // same height (from different objects) will be mapped to the same key and
     // rasterized to the same image.
@@ -270,16 +274,16 @@ void print_to(Print& print,
     auto print_bb = print.bounding_box();
 
     // If the print does not fit into the print area we should cry about it.
-    if(unscale(print_bb.size().x) > width_mm ||
-            unscale(print_bb.size().y) > height_mm) {
+    if(unscale(px(print_bb.size())) > width_mm ||
+            unscale(py(print_bb.size())) > height_mm) {
         BOOST_LOG_TRIVIAL(warning) << "Warning: Print will not fit!" << "\n"
-            << "Width needed: " << unscale(print_bb.size().x) << "\n"
-            << "Height needed: " << unscale(print_bb.size().y) << "\n";
+            << "Width needed: " << unscale(px(print_bb.size())) << "\n"
+            << "Height needed: " << unscale(py(print_bb.size())) << "\n";
     }
 
     // Offset for centering the print onto the print area
-    auto cx = scale_(width_mm)/2 - (print_bb.center().x - print_bb.min.x);
-    auto cy = scale_(height_mm)/2 - (print_bb.center().y - print_bb.min.y);
+    auto cx = scale_(width_mm)/2 - (px(print_bb.center()) - px(print_bb.min));
+    auto cy = scale_(height_mm)/2 - (py(print_bb.center()) - py(print_bb.min));
 
     // Create the actual printer, forward any additional arguments to it.
     FilePrinter<format> printer(width_mm, height_mm,
@@ -302,7 +306,7 @@ void print_to(Print& print,
     print.set_status(initstatus, jobdesc);
 
     // Method that prints one layer
-    auto process_layer = [&layers, &keys, &printer, &st_prev, &m,
+    auto process_layer = [px, py, &layers, &keys, &printer, &st_prev, &m,
             &jobdesc, print_bb, dir, cx, cy, &print, initstatus]
             (unsigned layer_id)
     {
@@ -322,7 +326,6 @@ void print_to(Print& print,
                                                                      true;
             });
 
-
             // Draw all the polygons in the slice to the actual layer.
             std::for_each(l.object()->_shifted_copies.begin(),
                           l.object()->_shifted_copies.end(),
@@ -332,8 +335,9 @@ void print_to(Print& print,
                               slices.expolygons.end(),
                               [&] (ExPolygon slice)
                 {
-                    slice.translate(d.x, d.y);
-                    slice.translate(-print_bb.min.x + cx, -print_bb.min.y + cy);
+                    slice.translate(px(d), py(d));
+                    slice.translate(-px(print_bb.min) + cx,
+                                    -py(print_bb.min) + cy);
 
                     printer.drawPolygon(slice, layer_id);
                 });

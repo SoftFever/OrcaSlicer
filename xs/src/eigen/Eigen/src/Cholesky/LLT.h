@@ -24,7 +24,7 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   *
   * \tparam _MatrixType the type of the matrix of which we are computing the LL^T Cholesky decomposition
   * \tparam _UpLo the triangular part that will be used for the decompositon: Lower (default) or Upper.
-  *             The other triangular part won't be read.
+  *               The other triangular part won't be read.
   *
   * This class performs a LL^T Cholesky decomposition of a symmetric, positive definite
   * matrix A such that A = LL^* = U^*U, where L is lower triangular.
@@ -41,13 +41,17 @@ template<typename MatrixType, int UpLo> struct LLT_Traits;
   * Example: \include LLT_example.cpp
   * Output: \verbinclude LLT_example.out
   *
+  * \b Performance: for best performance, it is recommended to use a column-major storage format
+  * with the Lower triangular part (the default), or, equivalently, a row-major storage format
+  * with the Upper triangular part. Otherwise, you might get a 20% slowdown for the full factorization
+  * step, and rank-updates can be up to 3 times slower.
+  *
   * This class supports the \link InplaceDecomposition inplace decomposition \endlink mechanism.
   *
+  * Note that during the decomposition, only the lower (or upper, as defined by _UpLo) triangular part of A is considered.
+  * Therefore, the strict lower part does not have to store correct values.
+  *
   * \sa MatrixBase::llt(), SelfAdjointView::llt(), class LDLT
-  */
- /* HEY THIS DOX IS DISABLED BECAUSE THERE's A BUG EITHER HERE OR IN LDLT ABOUT THAT (OR BOTH)
-  * Note that during the decomposition, only the upper triangular part of A is considered. Therefore,
-  * the strict lower part does not have to store correct values.
   */
 template<typename _MatrixType, int _UpLo> class LLT
 {
@@ -146,7 +150,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     template<typename Derived>
-    void solveInPlace(MatrixBase<Derived> &bAndX) const;
+    void solveInPlace(const MatrixBase<Derived> &bAndX) const;
 
     template<typename InputType>
     LLT& compute(const EigenBase<InputType>& matrix);
@@ -177,7 +181,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     /** \brief Reports whether previous computation was successful.
       *
       * \returns \c Success if computation was succesful,
-      *          \c NumericalIssue if the matrix.appears to be negative.
+      *          \c NumericalIssue if the matrix.appears not to be positive definite.
       */
     ComputationInfo info() const
     {
@@ -425,7 +429,8 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   eigen_assert(a.rows()==a.cols());
   const Index size = a.rows();
   m_matrix.resize(size, size);
-  m_matrix = a.derived();
+  if (!internal::is_same_dense(m_matrix, a.derived()))
+    m_matrix = a.derived();
 
   // Compute matrix L1 norm = max abs column sum.
   m_l1_norm = RealScalar(0);
@@ -485,11 +490,14 @@ void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
   *
   * This version avoids a copy when the right hand side matrix b is not needed anymore.
   *
+  * \warning The parameter is only marked 'const' to make the C++ compiler accept a temporary expression here.
+  * This function will const_cast it, so constness isn't honored here.
+  *
   * \sa LLT::solve(), MatrixBase::llt()
   */
 template<typename MatrixType, int _UpLo>
 template<typename Derived>
-void LLT<MatrixType,_UpLo>::solveInPlace(MatrixBase<Derived> &bAndX) const
+void LLT<MatrixType,_UpLo>::solveInPlace(const MatrixBase<Derived> &bAndX) const
 {
   eigen_assert(m_isInitialized && "LLT is not initialized.");
   eigen_assert(m_matrix.rows()==bAndX.rows());

@@ -70,7 +70,7 @@ inline void throw_std_bad_alloc()
     throw std::bad_alloc();
   #else
     std::size_t huge = static_cast<std::size_t>(-1);
-    new int[huge];
+    ::operator new(huge);
   #endif
 }
 
@@ -493,7 +493,7 @@ template<typename T> struct smart_copy_helper<T,true> {
     IntPtr size = IntPtr(end)-IntPtr(start);
     if(size==0) return;
     eigen_internal_assert(start!=0 && end!=0 && target!=0);
-    memcpy(target, start, size);
+    std::memcpy(target, start, size);
   }
 };
 
@@ -696,7 +696,15 @@ template<typename T> void swap(scoped_array<T> &a,scoped_array<T> &b)
 /** \class aligned_allocator
 * \ingroup Core_Module
 *
-* \brief STL compatible allocator to use with with 16 byte aligned types
+* \brief STL compatible allocator to use with types requiring a non standrad alignment.
+*
+* The memory is aligned as for dynamically aligned matrix/array types such as MatrixXd.
+* By default, it will thus provide at least 16 bytes alignment and more in following cases:
+*  - 32 bytes alignment if AVX is enabled.
+*  - 64 bytes alignment if AVX512 is enabled.
+*
+* This can be controled using the \c EIGEN_MAX_ALIGN_BYTES macro as documented
+* \link TopicPreprocessorDirectivesPerformance there \endlink.
 *
 * Example:
 * \code

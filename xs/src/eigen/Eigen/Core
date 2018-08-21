@@ -14,6 +14,22 @@
 // first thing Eigen does: stop the compiler from committing suicide
 #include "src/Core/util/DisableStupidWarnings.h"
 
+#if defined(__CUDACC__) && !defined(EIGEN_NO_CUDA)
+  #define EIGEN_CUDACC __CUDACC__
+#endif
+
+#if defined(__CUDA_ARCH__) && !defined(EIGEN_NO_CUDA)
+  #define EIGEN_CUDA_ARCH __CUDA_ARCH__
+#endif
+
+#if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
+#define EIGEN_CUDACC_VER  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
+#elif defined(__CUDACC_VER__)
+#define EIGEN_CUDACC_VER __CUDACC_VER__
+#else
+#define EIGEN_CUDACC_VER 0
+#endif
+
 // Handle NVCC/CUDA/SYCL
 #if defined(__CUDACC__) || defined(__SYCL_DEVICE_ONLY__)
   // Do not try asserts on CUDA and SYCL!
@@ -155,6 +171,9 @@
       #ifdef __AVX512DQ__
         #define EIGEN_VECTORIZE_AVX512DQ
       #endif
+      #ifdef __AVX512ER__
+        #define EIGEN_VECTORIZE_AVX512ER
+      #endif
     #endif
 
     // include files
@@ -229,7 +248,7 @@
 #if defined __CUDACC__
   #define EIGEN_VECTORIZE_CUDA
   #include <vector_types.h>
-  #if defined __CUDACC_VER__ && __CUDACC_VER__ >= 70500
+  #if EIGEN_CUDACC_VER >= 70500
     #define EIGEN_HAS_CUDA_FP16
   #endif
 #endif
@@ -352,6 +371,7 @@ using std::ptrdiff_t;
 #include "src/Core/MathFunctions.h"
 #include "src/Core/GenericPacketMath.h"
 #include "src/Core/MathFunctionsImpl.h"
+#include "src/Core/arch/Default/ConjHelper.h"
 
 #if defined EIGEN_VECTORIZE_AVX512
   #include "src/Core/arch/SSE/PacketMath.h"
@@ -367,6 +387,7 @@ using std::ptrdiff_t;
   #include "src/Core/arch/AVX/MathFunctions.h"
   #include "src/Core/arch/AVX/Complex.h"
   #include "src/Core/arch/AVX/TypeCasting.h"
+  #include "src/Core/arch/SSE/TypeCasting.h"
 #elif defined EIGEN_VECTORIZE_SSE
   #include "src/Core/arch/SSE/PacketMath.h"
   #include "src/Core/arch/SSE/MathFunctions.h"

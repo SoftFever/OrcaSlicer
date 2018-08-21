@@ -163,25 +163,25 @@ struct PointLike {
     template<class RawPoint>
     static TCoord<RawPoint> x(const RawPoint& p)
     {
-        return p.x();
+        return p(0);
     }
 
     template<class RawPoint>
     static TCoord<RawPoint> y(const RawPoint& p)
     {
-        return p.y();
+        return p(1);
     }
 
     template<class RawPoint>
     static TCoord<RawPoint>& x(RawPoint& p)
     {
-        return p.x();
+        return p(0);
     }
 
     template<class RawPoint>
     static TCoord<RawPoint>& y(RawPoint& p)
     {
-        return p.y();
+        return p(1);
     }
 
     template<class RawPoint>

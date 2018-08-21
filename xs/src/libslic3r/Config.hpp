@@ -637,9 +637,9 @@ public:
     std::string serialize() const override
     {
         std::ostringstream ss;
-        ss << this->value.x;
+        ss << this->value(0);
         ss << ",";
-        ss << this->value.y;
+        ss << this->value(1);
         return ss.str();
     }
     
@@ -647,8 +647,8 @@ public:
     {
         UNUSED(append);
         char dummy;
-        return sscanf(str.data(), " %lf , %lf %c", &this->value.x, &this->value.y, &dummy) == 2 ||
-               sscanf(str.data(), " %lf x %lf %c", &this->value.x, &this->value.y, &dummy) == 2;
+        return sscanf(str.data(), " %lf , %lf %c", &this->value(0), &this->value(1), &dummy) == 2 ||
+               sscanf(str.data(), " %lf x %lf %c", &this->value(0), &this->value(1), &dummy) == 2;
     }
 };
 
@@ -671,9 +671,9 @@ public:
         std::ostringstream ss;
         for (Pointfs::const_iterator it = this->values.begin(); it != this->values.end(); ++it) {
             if (it - this->values.begin() != 0) ss << ",";
-            ss << it->x;
+            ss << (*it)(0);
             ss << "x";
-            ss << it->y;
+            ss << (*it)(1);
         }
         return ss.str();
     }
@@ -700,9 +700,9 @@ public:
             std::istringstream iss(point_str);
             std::string coord_str;
             if (std::getline(iss, coord_str, 'x')) {
-                std::istringstream(coord_str) >> point.x;
+                std::istringstream(coord_str) >> point(0);
                 if (std::getline(iss, coord_str, 'x')) {
-                    std::istringstream(coord_str) >> point.y;
+                    std::istringstream(coord_str) >> point(1);
                 }
             }
             this->values.push_back(point);

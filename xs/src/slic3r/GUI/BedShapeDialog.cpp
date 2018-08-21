@@ -149,14 +149,14 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 			// okay, it's a rectangle
 			// find origin
             coordf_t x_min, x_max, y_min, y_max;
-            x_max = x_min = points->values[0].x;
-			y_max = y_min = points->values[0].y;
+            x_max = x_min = points->values[0](0);
+			y_max = y_min = points->values[0](1);
 			for (auto pt : points->values)
             {
-                x_min = std::min(x_min, pt.x);
-                x_max = std::max(x_max, pt.x);
-                y_min = std::min(y_min, pt.y);
-                y_max = std::max(y_max, pt.y);
+                x_min = std::min(x_min, pt(0));
+                x_max = std::max(x_max, pt(0));
+                y_min = std::min(y_min, pt(1));
+                y_max = std::max(y_max, pt(1));
             }
 
             auto origin = new ConfigOptionPoints{ Pointf(-x_min, -y_min) };
@@ -178,7 +178,7 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 		double avg_dist = 0;
 		for (auto pt: polygon.points)
 		{
-			double distance = center.distance_to(pt);
+			double distance = (pt - center).cast<double>().norm();
 			vertex_distances.push_back(distance);
 			avg_dist += distance;
 		}
@@ -241,8 +241,8 @@ void BedShapePanel::update_shape()
 		catch (const std::exception &e){
 			return;}
 		
-		auto x = rect_size.x;
-		auto y = rect_size.y;
+		auto x = rect_size(0);
+		auto y = rect_size(1);
 		// empty strings or '-' or other things
 		if (x == 0 || y == 0)	return;
 		double x0 = 0.0;
@@ -250,8 +250,8 @@ void BedShapePanel::update_shape()
 		double x1 = x;
 		double y1 = y;
 
-		auto dx = rect_origin.x;
-		auto dy = rect_origin.y;
+		auto dx = rect_origin(0);
+		auto dy = rect_origin(1);
 
 		x0 -= dx;
 		x1 -= dx;

@@ -58,11 +58,7 @@
     Clone<Pointf3>      origin() const
         %code%{ RETVAL = THIS->get_origin(); %};
     void                translate(double x, double y, double z)
-        %code%{
-                Pointf3 o = THIS->get_origin();
-                o.translate(x, y, z);
-                THIS->set_origin(o);
-             %};
+        %code%{ THIS->set_origin(THIS->get_origin() + Pointf3(x, y, z)); %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
     Clone<BoundingBoxf3> transformed_bounding_box() const;

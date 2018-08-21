@@ -14,6 +14,7 @@ namespace Eigen {
 
 namespace internal {
 
+#ifndef EIGEN_VECTORIZE_AVX
 template <>
 struct type_casting_traits<float, int> {
   enum {
@@ -22,11 +23,6 @@ struct type_casting_traits<float, int> {
     TgtCoeffRatio = 1
   };
 };
-
-template<> EIGEN_STRONG_INLINE Packet4i pcast<Packet4f, Packet4i>(const Packet4f& a) {
-  return _mm_cvttps_epi32(a);
-}
-
 
 template <>
 struct type_casting_traits<int, float> {
@@ -37,11 +33,6 @@ struct type_casting_traits<int, float> {
   };
 };
 
-template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet4i, Packet4f>(const Packet4i& a) {
-  return _mm_cvtepi32_ps(a);
-}
-
-
 template <>
 struct type_casting_traits<double, float> {
   enum {
@@ -51,10 +42,6 @@ struct type_casting_traits<double, float> {
   };
 };
 
-template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet2d, Packet4f>(const Packet2d& a, const Packet2d& b) {
-  return _mm_shuffle_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b), (1 << 2) | (1 << 6));
-}
-
 template <>
 struct type_casting_traits<float, double> {
   enum {
@@ -63,6 +50,19 @@ struct type_casting_traits<float, double> {
     TgtCoeffRatio = 2
   };
 };
+#endif
+
+template<> EIGEN_STRONG_INLINE Packet4i pcast<Packet4f, Packet4i>(const Packet4f& a) {
+  return _mm_cvttps_epi32(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet4i, Packet4f>(const Packet4i& a) {
+  return _mm_cvtepi32_ps(a);
+}
+
+template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet2d, Packet4f>(const Packet2d& a, const Packet2d& b) {
+  return _mm_shuffle_ps(_mm_cvtpd_ps(a), _mm_cvtpd_ps(b), (1 << 2) | (1 << 6));
+}
 
 template<> EIGEN_STRONG_INLINE Packet2d pcast<Packet4f, Packet2d>(const Packet4f& a) {
   // Simply discard the second half of the input

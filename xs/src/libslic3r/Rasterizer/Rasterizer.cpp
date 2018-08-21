@@ -100,11 +100,11 @@ public:
 
 private:
     double getPx(const Point& p) {
-        return p.x * SCALING_FACTOR/pxdim_.w_mm;
+        return p(0) * SCALING_FACTOR/pxdim_.w_mm;
     }
 
     double getPy(const Point& p) {
-        return p.y * SCALING_FACTOR/pxdim_.h_mm;
+        return p(1) * SCALING_FACTOR/pxdim_.h_mm;
     }
 
     agg::path_storage to_path(const Polygon& poly) {
