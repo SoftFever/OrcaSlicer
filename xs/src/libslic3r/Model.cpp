@@ -726,24 +726,22 @@ void ModelObject::center_around_origin()
         if (! v->modifier)
 			bb.merge(v->mesh.bounding_box());
     
-    // first align to origin on XYZ
-    Vec3d vector(-bb.min(0), -bb.min(1), -bb.min(2));
-    
-    // then center it on XY
+    // First align to origin on XYZ, then center it on XY.
     Vec3d size = bb.size();
-    vector(0) -= size(0)/2;
-    vector(1) -= size(1)/2;
+    size(2) = 0.;
+    Vec3d shift3 = - bb.min - 0.5 * size;
+    // Unaligned vector, for the Rotation2D to work on Visual Studio 2013.
+    Eigen::Vector2d shift2 = to_2d(shift3);
     
-    this->translate(vector);
-    this->origin_translation += vector;
+    this->translate(shift3);
+    this->origin_translation += shift3;
     
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
-            Vectorf v = - to_2d(vector);
-            v.rotate(i->rotation);
-            i->offset += v * i->scaling_factor;
+            Eigen::Rotation2Dd rot(i->rotation);
+            i->offset -= rot * shift2 * i->scaling_factor;
         }
         this->invalidate_bounding_box();
     }
@@ -762,7 +760,7 @@ void ModelObject::scale(const Vec3d &versor)
     for (ModelVolume *v : this->volumes)
         v->mesh.scale(versor);
     // reset origin translation since it doesn't make sense anymore
-    this->origin_translation = Vec3d(0,0,0);
+    this->origin_translation = Vec3d::Zero();
     this->invalidate_bounding_box();
 }
 
@@ -784,7 +782,7 @@ void ModelObject::rotate(float angle, const Axis &axis)
         }
     }
 
-    this->origin_translation = Vec3d(0, 0, 0);
+    this->origin_translation = Vec3d::Zero();
     this->invalidate_bounding_box();
 }
 

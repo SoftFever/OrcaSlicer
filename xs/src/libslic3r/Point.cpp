@@ -153,28 +153,6 @@ std::ostream& operator<<(std::ostream &stm, const Pointf &pointf)
     return stm << pointf(0) << "," << pointf(1);
 }
 
-void Pointf::rotate(double angle)
-{
-    double cur_x = (*this)(0);
-    double cur_y = (*this)(1);
-    double s     = ::sin(angle);
-    double c     = ::cos(angle);
-    (*this)(0) = c * cur_x - s * cur_y;
-    (*this)(1) = c * cur_y + s * cur_x;
-}
-
-void Pointf::rotate(double angle, const Pointf &center)
-{
-    double cur_x = (*this)(0);
-    double cur_y = (*this)(1);
-    double s     = ::sin(angle);
-    double c     = ::cos(angle);
-    double dx    = cur_x - center(0);
-    double dy    = cur_y - center(1);
-    (*this)(0) = center(0) + c * dx - s * dy;
-    (*this)(1) = center(1) + c * dy + s * dx;
-}
-
 namespace int128 {
 
 int orient(const Vec2crd &p1, const Vec2crd &p2, const Vec2crd &p3)

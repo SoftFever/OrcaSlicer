@@ -136,8 +136,9 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
 {
     // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
     // We need to get position and angle of the wipe tower to transform them to actual position.
-    Pointf wipe_tower_pos(print.config.wipe_tower_x.value, print.config.wipe_tower_y.value);
-    float wipe_tower_angle = print.config.wipe_tower_rotation_angle.value;
+    Transform2d trafo =
+        Eigen::Translation2d(print.config.wipe_tower_x.value, print.config.wipe_tower_y.value) *
+        Eigen::Rotation2Dd(print.config.wipe_tower_rotation_angle.value);
 
     BoundingBoxf bbox;
     for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.m_wipe_tower_tool_changes) {
@@ -147,19 +148,11 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
             for (size_t i = 1; i < tcr.extrusions.size(); ++ i) {
                 const WipeTower::Extrusion &e = tcr.extrusions[i];
                 if (e.width > 0) {
-                    Pointf  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
-                    Pointf  p2(e.pos.x, e.pos.y);
-                    p1.rotate(wipe_tower_angle);
-                    p1 += wipe_tower_pos;
-                    p2.rotate(wipe_tower_angle);
-                    p2 += wipe_tower_pos;
-
-                    bbox.merge(p1);
-                    coordf_t radius = 0.5 * e.width;
-                    bbox.min(0) = std::min(bbox.min(0), std::min(p1(0), p2(0)) - radius);
-                    bbox.min(1) = std::min(bbox.min(1), std::min(p1(1), p2(1)) - radius);
-                    bbox.max(0) = std::max(bbox.max(0), std::max(p1(0), p2(0)) + radius);
-                    bbox.max(1) = std::max(bbox.max(1), std::max(p1(1), p2(1)) + radius);
+                    Pointf delta = 0.5 * Vec2d(e.width, e.width);
+                    Pointf p1 = trafo * Vec2d((&e - 1)->pos.x, (&e - 1)->pos.y);
+                    Pointf p2 = trafo * Vec2d(e.pos.x, e.pos.y);
+                    bbox.merge(p1.cwiseMin(p2) - delta);
+                    bbox.merge(p1.cwiseMax(p2) + delta);
                 }
             }
         }

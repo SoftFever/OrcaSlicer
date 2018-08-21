@@ -125,6 +125,7 @@ private:
 class GCode {
 public:        
     GCode() : 
+    	m_origin(Vec2d::Zero()),
         m_enable_loop_clipping(true), 
         m_enable_cooling_markers(false), 
         m_enable_extrusion_role_markers(false), 

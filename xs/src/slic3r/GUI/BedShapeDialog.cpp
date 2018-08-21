@@ -230,11 +230,13 @@ void BedShapePanel::update_shape()
 {
 	auto page_idx = m_shape_options_book->GetSelection();
 	if (page_idx == SHAPE_RECTANGULAR) {
-		Pointf rect_size, rect_origin;
+		Pointf rect_size(Vec2d::Zero());
+		Pointf rect_origin(Vec2d::Zero());
 		try{
 			rect_size = boost::any_cast<Pointf>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_size")); }
 		catch (const std::exception &e){
-			return;}
+			return;
+		}
 		try{
 			rect_origin = boost::any_cast<Pointf>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_origin"));
 		}

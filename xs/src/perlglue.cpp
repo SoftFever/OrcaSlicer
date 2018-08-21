@@ -270,7 +270,7 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
-            Pointf point;
+            Pointf point(Vec2d::Zero());
             if (elem == NULL || !from_SV_check(*elem, &point)) return false;
             values.emplace_back(point);
         }

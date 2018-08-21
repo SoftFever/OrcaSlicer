@@ -79,8 +79,7 @@ void Bed_2D::repaint()
 	auto step = 10;  // 1cm grid
 	Polylines polylines;
 	for (auto x = bb.min(0) - fmod(bb.min(0), step) + step; x < bb.max(0); x += step) {
-		Polyline pl = Polyline::new_scale({ Pointf(x, bb.min(1)), Pointf(x, bb.max(1)) });
-		polylines.push_back(pl);
+		polylines.push_back(Polyline::new_scale({ Pointf(x, bb.min(1)), Pointf(x, bb.max(1)) }));
 	}
 	for (auto y = bb.min(1) - fmod(bb.min(1), step) + step; y < bb.max(1); y += step) {
 		polylines.push_back(Polyline::new_scale({ Pointf(bb.min(0), y), Pointf(bb.max(0), y) }));
@@ -112,9 +111,7 @@ void Bed_2D::repaint()
 	auto x_end = Pointf(origin_px(0) + axes_len, origin_px(1));
 	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(x_end(0), x_end(1)));
 	for (auto angle : { -arrow_angle, arrow_angle }){
-		auto end = x_end;
-		end(0) -= arrow_len;
-		end.rotate(angle, x_end);
+		auto end = Eigen::Translation2d(x_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- x_end) * Eigen::Vector2d(x_end(0) - arrow_len, x_end(1));
 		dc.DrawLine(wxPoint(x_end(0), x_end(1)), wxPoint(end(0), end(1)));
 	}
 
@@ -122,9 +119,7 @@ void Bed_2D::repaint()
 	auto y_end = Pointf(origin_px(0), origin_px(1) - axes_len);
 	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(y_end(0), y_end(1)));
 	for (auto angle : { -arrow_angle, arrow_angle }) {
-		auto end = y_end;
-		end(1) += arrow_len;
-		end.rotate(angle, y_end);
+		auto end = Eigen::Translation2d(y_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- y_end) * Eigen::Vector2d(y_end(0), y_end(1) + arrow_len);
 		dc.DrawLine(wxPoint(y_end(0), y_end(1)), wxPoint(end(0), end(1)));
 	}
 

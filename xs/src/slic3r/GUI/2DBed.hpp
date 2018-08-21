@@ -14,8 +14,8 @@ class Bed_2D : public wxPanel
 	bool		m_painted = false;
 	bool		m_interactive = false;
 	double		m_scale_factor;
-	Pointf		m_shift;
-	Pointf		m_pos;
+	Pointf		m_shift = Vec2d::Zero();
+	Pointf		m_pos = Vec2d::Zero();
 	std::function<void(Pointf)>	m_on_move = nullptr;
 
 	Point		to_pixels(Pointf point);

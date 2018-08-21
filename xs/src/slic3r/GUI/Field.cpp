@@ -667,7 +667,7 @@ void PointCtrl::set_value(const Pointf& value, bool change_event)
 
 void PointCtrl::set_value(const boost::any& value, bool change_event)
 {
-	Pointf pt;
+	Pointf pt(Vec2d::Zero());
 	const Pointf *ptf = boost::any_cast<Pointf>(&value);
 	if (!ptf)
 	{
@@ -681,13 +681,10 @@ void PointCtrl::set_value(const boost::any& value, bool change_event)
 
 boost::any& PointCtrl::get_value()
 {
-	Pointf ret_point;
-	double val;
-	x_textctrl->GetValue().ToDouble(&val);
-	ret_point(0) = val;
-	y_textctrl->GetValue().ToDouble(&val);
-	ret_point(1) = val;
-	return m_value = ret_point;
+	double x, y;
+	x_textctrl->GetValue().ToDouble(&x);
+	y_textctrl->GetValue().ToDouble(&y);
+	return m_value = Pointf(x, y);
 }
 
 void StaticText::BUILD()

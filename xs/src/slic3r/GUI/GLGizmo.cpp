@@ -396,6 +396,7 @@ GLGizmoScale::GLGizmoScale()
     : GLGizmoBase()
     , m_scale(1.0f)
     , m_starting_scale(1.0f)
+    , m_starting_drag_position(Vec2d::Zero())
 {
 }
 

@@ -18,7 +18,7 @@ public:
     BoundingBoxBase() : defined(false), min(PointClass::Zero()), max(PointClass::Zero()) {}
     BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
         min(pmin), max(pmax), defined(pmin(0) < pmax(0) && pmin(1) < pmax(1)) {}
-    BoundingBoxBase(const std::vector<PointClass>& points)
+    BoundingBoxBase(const std::vector<PointClass>& points) : min(PointClass::Zero()), max(PointClass::Zero())
     {
         if (points.empty())
             CONFESS("Empty point set supplied to BoundingBoxBase constructor");

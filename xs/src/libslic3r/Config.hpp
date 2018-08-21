@@ -696,7 +696,7 @@ public:
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
-            Pointf point;
+            Pointf point(Vec2d::Zero());
             std::istringstream iss(point_str);
             std::string coord_str;
             if (std::getline(iss, coord_str, 'x')) {

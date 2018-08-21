@@ -410,13 +410,13 @@ Pointfs arrange(size_t num_parts, const Pointf &part_size, coordf_t gap, const B
 }
 #else
 class ArrangeItem {
-    public:
-    Pointf pos;
+public:
+    Pointf pos = Vec2d::Zero();
     size_t index_x, index_y;
     coordf_t dist;
 };
 class ArrangeItemIndex {
-    public:
+public:
     coordf_t index;
     ArrangeItem item;
     ArrangeItemIndex(coordf_t _index, ArrangeItem _item) : index(_index), item(_item) {};
@@ -433,7 +433,7 @@ arrange(size_t total_parts, const Pointf &part_size, coordf_t dist, const Boundi
     part(0) += dist;
     part(1) += dist;
     
-    Pointf area;
+    Pointf area(Vec2d::Zero());
     if (bb != NULL && bb->defined) {
         area = bb->size();
     } else {

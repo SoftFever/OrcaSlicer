@@ -113,7 +113,7 @@ Point::coincides_with(point_sv)
     void scale(double factor)
         %code{% *THIS *= factor; %};
     void rotate(double angle, Pointf* center)
-        %code{% THIS->rotate(angle, *center); %};
+        %code{% *THIS = Eigen::Translation2d(*center) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- *center) * Eigen::Vector2d((*THIS)(0), (*THIS)(1)); %};
     Pointf* negative()
         %code{% RETVAL = new Pointf(- *THIS); %};
     Pointf* vector_to(Pointf* point)

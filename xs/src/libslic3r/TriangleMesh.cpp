@@ -1575,8 +1575,7 @@ TriangleMesh make_cylinder(double r, double h, double fa) {
     vertices.emplace_back(Vec3d(sin(0) * r , cos(0) * r, 0));
     vertices.emplace_back(Vec3d(sin(0) * r , cos(0) * r, h));
     for (double i = 0; i < 2*PI; i+=angle) {
-        Pointf p(0, r);
-        p.rotate(i);
+        Vec2d p = Eigen::Rotation2Dd(i) * Eigen::Vector2d(0, r);
         vertices.emplace_back(Vec3d(p(0), p(1), 0.));
         vertices.emplace_back(Vec3d(p(0), p(1), h));
         id = vertices.size() - 1;
@@ -1626,8 +1625,7 @@ TriangleMesh make_sphere(double rho, double fa) {
         const double z = -rho + increment*rho*2.0;
         // radius of the circle for this step.
         const double r = sqrt(abs(rho*rho - z*z));
-        Pointf b(0, r);
-        b.rotate(ring[i]);
+        Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
         vertices.emplace_back(Vec3d(b(0), b(1), z));
         facets.emplace_back((i == 0) ? Point3(1, 0, ring.size()) : Point3(id, 0, id - 1));
         ++ id;
@@ -1639,8 +1637,7 @@ TriangleMesh make_sphere(double rho, double fa) {
         const double r = sqrt(abs(rho*rho - z*z));
 
         for (size_t i = 0; i < ring.size(); i++) {
-            Pointf b(0, r);
-            b.rotate(ring[i]); 
+            Vec2d b = Eigen::Rotation2Dd(ring[i]) * Eigen::Vector2d(0, r);
             vertices.emplace_back(Vec3d(b(0), b(1), z));
             if (i == 0) {
                 // wrap around

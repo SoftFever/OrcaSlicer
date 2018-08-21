@@ -952,8 +952,8 @@ static void thick_lines_to_indexed_vertex_array(
     // right, left, top, bottom
     int     idx_prev[4]      = { -1, -1, -1, -1 };
     double  bottom_z_prev    = 0.;
-    Pointf  b1_prev;
-    Vectorf v_prev;
+    Pointf  b1_prev(Vec2d::Zero());
+    Vectorf v_prev(Vec2d::Zero());
     int     idx_initial[4]   = { -1, -1, -1, -1 };
     double  width_initial    = 0.;
     double  bottom_z_initial = 0.0;
@@ -1064,7 +1064,7 @@ static void thick_lines_to_indexed_vertex_array(
                 {
                     // Create a sharp corner with an overshot and average the left / right normals.
                     // At the crease angle of 45 degrees, the overshot at the corner will be less than (1-1/cos(PI/8)) = 8.2% over an arc.
-                    Pointf intersection;
+                    Pointf intersection(Vec2d::Zero());
                     Geometry::ray_ray_intersection(b1_prev, v_prev, a1, v, intersection);
                     a1 = intersection;
                     a2 = 2. * a - intersection;

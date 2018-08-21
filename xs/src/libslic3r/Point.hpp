@@ -47,6 +47,8 @@ typedef Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign> Transform2d
 typedef Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign> Transform3f;
 typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d;
 
+inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0) || (lhs(0) == rhs(0) && lhs(1) < rhs(1)); }
+
 inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline coord_t cross2(const Vec2crd &v1, const Vec2crd &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
@@ -249,7 +251,8 @@ class Pointf : public Vec2d
 public:
     typedef coordf_t coord_type;
 
-    explicit Pointf() { (*this)(0) = (*this)(1) = 0.; }
+//    explicit Pointf() { (*this)(0) = (*this)(1) = 0.; }
+    explicit Pointf() {  }
     explicit Pointf(coordf_t x, coordf_t y) { (*this)(0) = x; (*this)(1) = y; }
     // This constructor allows you to construct Pointf from Eigen expressions
     template<typename OtherDerived>
@@ -263,10 +266,10 @@ public:
         return *this;
     }
 
-    void    rotate(double angle);
-    void    rotate(double angle, const Pointf &center);
+//    void    rotate(double angle);
+//    void    rotate(double angle, const Pointf &center);
 
-    bool operator< (const Pointf& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
+private:
 };
 
 } // namespace Slic3r

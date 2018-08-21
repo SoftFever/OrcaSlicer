@@ -71,7 +71,7 @@ public:
 class Linef
 {
 public:
-    Linef() {}
+    Linef() : a(Vec2d::Zero()), b(Vec2d::Zero()) {}
     explicit Linef(Pointf _a, Pointf _b): a(_a), b(_b) {}
 
     Pointf a;

@@ -235,7 +235,7 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object), print_volume_state(PVS_Inside) {}
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), offset(Vec2d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), print_volume_state(PVS_Inside) {}
 };
