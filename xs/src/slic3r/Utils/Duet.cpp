@@ -230,7 +230,7 @@ std::string Duet::timestamp_str() const
 	auto tm = *std::localtime(&t);
 
 	char buffer[BUFFER_SIZE];
-	std::strftime(buffer, BUFFER_SIZE, "%Y-%d-%mT%H:%M:%S", &tm);
+	std::strftime(buffer, BUFFER_SIZE, "time=%Y-%d-%mT%H:%M:%S", &tm);
 
 	return std::string(buffer);
 }
