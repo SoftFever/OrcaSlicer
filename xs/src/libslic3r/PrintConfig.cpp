@@ -2144,9 +2144,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
         "seal_position", "vibration_limit", "bed_size", 
-        // Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-        // Commenting this out fixes github issue #869 for now.
-        // "octoprint_host",
         "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
     };
 
@@ -2156,7 +2153,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     
     if (! print_config_def.has(opt_key)) {
-        //printf("Unknown option %s\n", opt_key.c_str());
         opt_key = "";
         return;
     }

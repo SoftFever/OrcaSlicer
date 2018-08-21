@@ -62,7 +62,7 @@ struct Http::priv
 	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
 
 	void form_add_file(const char *name, const fs::path &path, const char* filename);
-	void postfield_add_file(const fs::path &path);
+	void set_post_body(const fs::path &path);
 
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
@@ -190,14 +190,11 @@ void Http::priv::form_add_file(const char *name, const fs::path &path, const cha
 	}
 }
 
-void Http::priv::postfield_add_file(const fs::path &path)
+void Http::priv::set_post_body(const fs::path &path)
 {
-	std::ifstream f (path.string());
-	std::string file_content { std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>() };
-	if (!postfields.empty()) {
-		postfields += "&";
-	}
-	postfields += file_content;
+	std::ifstream file(path.string());
+	std::string file_content { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+	postfields = file_content;
 }
 
 std::string Http::priv::curl_error(CURLcode curlcode)
@@ -356,9 +353,9 @@ Http& Http::form_add_file(const std::string &name, const fs::path &path, const s
 	return *this;
 }
 
-Http& Http::postfield_add_file(const fs::path &path)
+Http& Http::set_post_body(const fs::path &path)
 {
-	if (p) { p->postfield_add_file(path);}
+	if (p) { p->set_post_body(path);}
 	return *this;
 }
 

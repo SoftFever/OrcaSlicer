@@ -36,9 +36,7 @@ PrintHostSendDialog::PrintHostSendDialog(const fs::path &path, bool can_start_pr
 	wxString stem(path.stem().wstring());
 	txt_filename->SetSelection(0, stem.Length());
 
-	if (!can_start_print) {
-		box_print->Disable();
-	}
+	box_print->Enable(can_start_print);
 
 	Fit();
 }

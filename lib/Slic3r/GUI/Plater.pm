@@ -1585,7 +1585,7 @@ sub on_export_completed {
 
     # Send $self->{send_gcode_file} to OctoPrint.
     if ($send_gcode) {
-        my $host = Slic3r::PrintHostFactory::get_print_host($self->{config});
+        my $host = Slic3r::PrintHost::get_print_host($self->{config});
 
         if ($host->send_gcode($self->{send_gcode_file})) {
             $self->statusbar->SetStatusText(L("Upload to host finished."));

@@ -73,8 +73,10 @@ public:
 	// Same as above except also override the file's filename with a custom one
 	Http& form_add_file(const std::string &name, const boost::filesystem::path &path, const std::string &filename);
 
-	// Add the file as POSTFIELD to the request, this can be used for hosts which do not support multipart requests
-	Http& postfield_add_file(const boost::filesystem::path &path);
+	// Set the file contents as a POST request body.
+	// The data is used verbatim, it is not additionally encoded in any way.
+	// This can be used for hosts which do not support multipart requests.
+	Http& set_post_body(const boost::filesystem::path &path);
 
 	// Callback called on HTTP request complete
 	Http& on_complete(CompleteFn fn);

@@ -7,4 +7,6 @@
 
 %name{Slic3r::PrintHost} class PrintHost {
 	bool send_gcode(std::string filename) const;
+
+	static PrintHost* get_print_host(DynamicPrintConfig *config);
 };

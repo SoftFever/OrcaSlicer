@@ -5,7 +5,6 @@
 #include "../../libslic3r/Utils.hpp"
 
 #include "slic3r/Utils/Http.hpp"
-#include "slic3r/Utils/PrintHostFactory.hpp"
 #include "slic3r/Utils/PrintHost.hpp"
 #include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
@@ -1550,8 +1549,8 @@ void TabPrinter::build()
 			sizer->Add(btn);
 
 			btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
-				PrintHost *host = PrintHostFactory::get_print_host(m_config);
-				if (host == NULL) {
+				std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+				if (! host) {
 					const auto text = wxString::Format("%s",
 						_(L("Could not get a valid Printer Host reference")));
 					show_error(this, text);
@@ -1563,8 +1562,6 @@ void TabPrinter::build()
 				} else {
 					show_error(this, host->get_test_failed_msg(msg));
 				}
-
-				delete (host);
 			});
 
 			return sizer;
@@ -1905,11 +1902,12 @@ void TabPrinter::update(){
 			m_serial_test_btn->Disable();
 	}
 
-	PrintHost *host = PrintHostFactory::get_print_host(m_config);
-	m_print_host_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
-	m_printhost_browse_btn->Enable(host->have_auto_discovery());
-	delete (host);
-	
+	{
+		std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+		m_print_host_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
+		m_printhost_browse_btn->Enable(host->has_auto_discovery());
+	}
+
 	bool have_multiple_extruders = m_extruders_count > 1;
 	get_field("toolchange_gcode")->toggle(have_multiple_extruders);
 	get_field("single_extruder_multi_material")->toggle(have_multiple_extruders);

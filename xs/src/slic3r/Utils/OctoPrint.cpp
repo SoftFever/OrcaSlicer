@@ -19,6 +19,8 @@ OctoPrint::OctoPrint(DynamicPrintConfig *config) :
 	cafile(config->opt_string("printhost_cafile"))
 {}
 
+OctoPrint::~OctoPrint() {}
+
 bool OctoPrint::test(wxString &msg) const
 {
 	// Since the request is performed synchronously here,
@@ -125,7 +127,7 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	return res;
 }
 
-bool OctoPrint::have_auto_discovery() const
+bool OctoPrint::has_auto_discovery() const
 {
 	return true;
 }

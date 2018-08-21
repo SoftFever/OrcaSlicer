@@ -2,6 +2,7 @@
 #include "PrintHostSendDialog.hpp"
 
 #include <algorithm>
+#include <ctime>
 #include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
@@ -31,6 +32,8 @@ Duet::Duet(DynamicPrintConfig *config) :
 	password(config->opt_string("printhost_apikey"))
 {}
 
+Duet::~Duet() {}
+
 bool Duet::test(wxString &msg) const
 {
 	bool connected = connect(msg);
@@ -48,8 +51,7 @@ wxString Duet::get_test_ok_msg () const
 
 wxString Duet::get_test_failed_msg (wxString &msg) const
 {
-	return wxString::Format("%s: %s",
-						_(L("Could not connect to Duet")), msg);
+	return wxString::Format("%s: %s", _(L("Could not connect to Duet")), msg);
 }
 
 bool Duet::send_gcode(const std::string &filename) const
@@ -91,23 +93,17 @@ bool Duet::send_gcode(const std::string &filename) const
 		% upload_cmd;
 
 	auto http = Http::post(std::move(upload_cmd));
-	http.postfield_add_file(filename)
+	http.set_post_body(filename)
 		.on_complete([&](std::string body, unsigned status) {
 			BOOST_LOG_TRIVIAL(debug) << boost::format("Duet: File uploaded: HTTP %1%: %2%") % status % body;
 			progress_dialog.Update(PROGRESS_RANGE);
 
 			int err_code = get_err_code_from_body(body);
-			switch (err_code) {
-				case 0:
-					break;
-				default:
-					auto msg = format_error(body, L("Unknown error occured"), 0);
-					GUI::show_error(&progress_dialog, std::move(msg));
-					res = false;
-					break;
-			}
-
-			if (err_code == 0 && print) {
+			if (err_code != 0) {
+				auto msg = format_error(body, L("Unknown error occured"), 0);
+				GUI::show_error(&progress_dialog, std::move(msg));
+				res = false;
+			} else if (print) {
 				wxString errormsg;
 				res = start_print(errormsg, upload_filepath.string());
 				if (!res) {
@@ -139,7 +135,7 @@ bool Duet::send_gcode(const std::string &filename) const
 	return res;
 }
 
-bool Duet::have_auto_discovery() const
+bool Duet::has_auto_discovery() const
 {
 	return false;
 }
@@ -228,12 +224,15 @@ std::string Duet::get_base_url() const
 
 std::string Duet::timestamp_str() const
 {
+	enum { BUFFER_SIZE = 32 };
+
 	auto t = std::time(nullptr);
 	auto tm = *std::localtime(&t);
-	std::stringstream ss;
-	ss << "time=" << std::put_time(&tm, "%Y-%d-%mT%H:%M:%S");
 
-	return ss.str();
+	char buffer[BUFFER_SIZE];
+	std::strftime(buffer, BUFFER_SIZE, "%Y-%d-%mT%H:%M:%S", &tm);
+
+	return std::string(buffer);
 }
 
 wxString Duet::format_error(const std::string &body, const std::string &error, unsigned status)

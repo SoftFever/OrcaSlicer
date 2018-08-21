@@ -1,4 +1,3 @@
-#include "PrintHostFactory.hpp"
 #include "OctoPrint.hpp"
 #include "Duet.hpp"
 
@@ -7,7 +6,9 @@
 namespace Slic3r {
 
 
-PrintHost * PrintHostFactory::get_print_host(DynamicPrintConfig *config)
+PrintHost::~PrintHost() {}
+
+PrintHost* PrintHost::get_print_host(DynamicPrintConfig *config)
 {
 	PrintHostType kind = config->option<ConfigOptionEnum<PrintHostType>>("host_type")->value;
 	if (kind == htOctoPrint) {
@@ -15,7 +16,8 @@ PrintHost * PrintHostFactory::get_print_host(DynamicPrintConfig *config)
 	} else if (kind == htDuet) {
 		return new Duet(config);
 	}
-	return NULL;
+	return nullptr;
 }
+
 
 }

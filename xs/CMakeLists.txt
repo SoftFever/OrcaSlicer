@@ -257,8 +257,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
     ${LIBDIR}/slic3r/Utils/Duet.cpp
     ${LIBDIR}/slic3r/Utils/Duet.hpp
-    ${LIBDIR}/slic3r/Utils/PrintHostFactory.cpp
-    ${LIBDIR}/slic3r/Utils/PrintHostFactory.hpp
+    ${LIBDIR}/slic3r/Utils/PrintHost.cpp
+    ${LIBDIR}/slic3r/Utils/PrintHost.hpp
     ${LIBDIR}/slic3r/Utils/Bonjour.cpp
     ${LIBDIR}/slic3r/Utils/Bonjour.hpp
     ${LIBDIR}/slic3r/Utils/PresetUpdater.cpp
@@ -417,7 +417,6 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Surface.xsp
     ${XSP_DIR}/SurfaceCollection.xsp
     ${XSP_DIR}/TriangleMesh.xsp
-    ${XSP_DIR}/Utils_PrintHostFactory.xsp
     ${XSP_DIR}/Utils_PrintHost.xsp
     ${XSP_DIR}/Utils_PresetUpdater.xsp
     ${XSP_DIR}/AppController.xsp

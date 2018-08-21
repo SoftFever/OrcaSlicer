@@ -239,11 +239,7 @@ Ref<TabIface> 				O_OBJECT_SLIC3R_T
 PresetUpdater*              O_OBJECT_SLIC3R
 Ref<PresetUpdater>          O_OBJECT_SLIC3R_T
 
-PrintHostFactory*            O_OBJECT_SLIC3R
-Ref<PrintHostFactory>        O_OBJECT_SLIC3R_T
-Clone<PrintHostFactory>      O_OBJECT_SLIC3R_T
-
-PrintHost*                   O_OBJECT_SLIC3R
+PrintHost*                  O_OBJECT_SLIC3R
 
 Axis                  T_UV
 ExtrusionLoopRole     T_UV
