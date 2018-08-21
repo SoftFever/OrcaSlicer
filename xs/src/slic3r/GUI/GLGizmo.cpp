@@ -1,7 +1,6 @@
 #include "GLGizmo.hpp"
 
 #include "../../libslic3r/Utils.hpp"
-#include "../../libslic3r/BoundingBox.hpp"
 
 #include <Eigen/Dense>
 
@@ -12,6 +11,10 @@
 static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
+
+static const float RED[3] = { 1.0f, 0.0f, 0.0f };
+static const float GREEN[3] = { 0.0f, 1.0f, 0.0f };
+static const float BLUE[3] = { 0.0f, 0.0f, 1.0f };
 
 namespace Slic3r {
 namespace GUI {
@@ -44,11 +47,6 @@ void GLGizmoBase::Grabber::render(bool hover) const
         ::memcpy((void*)render_color, (const void*)color, 3 * sizeof(float));
 
     render(render_color);
-}
-
-void GLGizmoBase::Grabber::render_for_picking() const
-{
-    render(color);
 }
 
 void GLGizmoBase::Grabber::render(const float* render_color) const
@@ -94,16 +92,6 @@ GLGizmoBase::GLGizmoBase()
     ::memcpy((void*)m_highlight_color, (const void*)DEFAULT_HIGHLIGHT_COLOR, 3 * sizeof(float));
 }
 
-unsigned int GLGizmoBase::get_texture_id() const
-{
-    return m_textures[m_state].get_id();
-}
-
-int GLGizmoBase::get_textures_size() const
-{
-    return m_textures[Off].get_width();
-}
-
 void GLGizmoBase::set_hover_id(int id)
 {
     if (m_is_container || (id < (int)m_grabbers.size()))
@@ -143,21 +131,6 @@ void GLGizmoBase::update(const Linef3& mouse_ray)
 {
     if (m_hover_id != -1)
         on_update(mouse_ray);
-}
-
-void GLGizmoBase::refresh()
-{
-    on_refresh();
-}
-
-void GLGizmoBase::render(const BoundingBoxf3& box) const
-{
-    on_render(box);
-}
-
-void GLGizmoBase::render_for_picking(const BoundingBoxf3& box) const
-{
-    on_render_for_picking(box);
 }
 
 float GLGizmoBase::picking_color_component(unsigned int id) const
@@ -206,11 +179,6 @@ GLGizmoRotate::GLGizmoRotate(GLGizmoRotate::Axis axis)
 {
 }
 
-float GLGizmoRotate::get_angle() const
-{
-    return m_angle;
-}
-
 void GLGizmoRotate::set_angle(float angle)
 {
     if (std::abs(angle - 2.0f * PI) < EPSILON)
@@ -242,11 +210,6 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
-void GLGizmoRotate::on_set_state()
-{
-    m_keep_initial_values = (m_state == On) ? false : true;
-}
-
 void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 {
     Pointf mouse_pos = mouse_position_in_local_plane(mouse_ray);
@@ -272,11 +235,6 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
         theta = 0.0;
 
     m_angle = (float)theta;
-}
-
-void GLGizmoRotate::on_refresh()
-{
-    m_keep_initial_values = false;
 }
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
@@ -488,20 +446,22 @@ void GLGizmoRotate::transform_to_local() const
 
 Pointf GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) const
 {
+    float half_pi = 0.5f * (float)PI;
+
     Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
 
     switch (m_axis)
     {
     case X:
     {
-        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitZ()));
-        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitY()));
+        m.rotate(Eigen::AngleAxisf(-half_pi, Eigen::Vector3f::UnitZ()));
+        m.rotate(Eigen::AngleAxisf(-half_pi, Eigen::Vector3f::UnitY()));
         break;
     }
     case Y:
     {
         m.rotate(Eigen::AngleAxisf(-(float)PI, Eigen::Vector3f::UnitZ()));
-        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitX()));
+        m.rotate(Eigen::AngleAxisf(-half_pi, Eigen::Vector3f::UnitX()));
         break;
     }
     default:
@@ -540,48 +500,14 @@ GLGizmoRotate3D::GLGizmoRotate3D()
     m_z.set_group_id(2);
 }
 
-float GLGizmoRotate3D::get_angle_x() const
-{
-    return m_x.get_angle();
-}
-
-void GLGizmoRotate3D::set_angle_x(float angle)
-{
-    m_x.set_angle(angle);
-}
-
-float GLGizmoRotate3D::get_angle_y() const
-{
-    return m_y.get_angle();
-}
-
-void GLGizmoRotate3D::set_angle_y(float angle)
-{
-    m_y.set_angle(angle);
-}
-
-float GLGizmoRotate3D::get_angle_z() const
-{
-    return m_z.get_angle();
-}
-
-void GLGizmoRotate3D::set_angle_z(float angle)
-{
-    m_z.set_angle(angle);
-}
-
 bool GLGizmoRotate3D::on_init()
 {
     if (!m_x.init() || !m_y.init() || !m_z.init())
         return false;
 
-    float red[3] = { 1.0f, 0.0f, 0.0f };
-    float green[3] = { 0.0f, 1.0f, 0.0f };
-    float blue[3] = { 0.0f, 0.0f, 1.0f };
-
-    m_x.set_highlight_color(red);
-    m_y.set_highlight_color(green);
-    m_z.set_highlight_color(blue);
+    m_x.set_highlight_color(RED);
+    m_y.set_highlight_color(GREEN);
+    m_z.set_highlight_color(BLUE);
 
     std::string path = resources_dir() + "/icons/overlay/";
 
@@ -598,20 +524,6 @@ bool GLGizmoRotate3D::on_init()
         return false;
 
     return true;
-}
-
-void GLGizmoRotate3D::on_set_state()
-{
-    m_x.set_state(m_state);
-    m_y.set_state(m_state);
-    m_z.set_state(m_state);
-}
-
-void GLGizmoRotate3D::on_set_hover_id()
-{
-    m_x.set_hover_id(m_hover_id == 0 ? 0 : -1);
-    m_y.set_hover_id(m_hover_id == 1 ? 0 : -1);
-    m_z.set_hover_id(m_hover_id == 2 ? 0 : -1);
 }
 
 void GLGizmoRotate3D::on_start_dragging()
@@ -666,20 +578,6 @@ void GLGizmoRotate3D::on_stop_dragging()
     }
 }
 
-void GLGizmoRotate3D::on_update(const Linef3& mouse_ray)
-{
-    m_x.update(mouse_ray);
-    m_y.update(mouse_ray);
-    m_z.update(mouse_ray);
-}
-
-void GLGizmoRotate3D::on_refresh()
-{
-    m_x.refresh();
-    m_y.refresh();
-    m_z.refresh();
-}
-
 void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 {
     if ((m_hover_id == -1) || (m_hover_id == 0))
@@ -692,13 +590,6 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
         m_z.render(box);
 }
 
-void GLGizmoRotate3D::on_render_for_picking(const BoundingBoxf3& box) const
-{
-    m_x.render_for_picking(box);
-    m_y.render_for_picking(box);
-    m_z.render_for_picking(box);
-}
-
 const float GLGizmoScale::Offset = 5.0f;
 
 GLGizmoScale::GLGizmoScale()
@@ -706,16 +597,6 @@ GLGizmoScale::GLGizmoScale()
     , m_scale(1.0f)
     , m_starting_scale(1.0f)
 {
-}
-
-float GLGizmoScale::get_scale() const
-{
-    return m_scale;
-}
-
-void GLGizmoScale::set_scale(float scale)
-{
-    m_starting_scale = scale;
 }
 
 bool GLGizmoScale::on_init()
@@ -808,6 +689,310 @@ void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
         m_grabbers[i].color[2] = picking_color_component(i);
     }
     render_grabbers_for_picking();
+}
+
+const float GLGizmoScale3D::Offset = 5.0f;
+
+GLGizmoScale3D::GLGizmoScale3D()
+    : GLGizmoBase()
+    , m_scale_x(1.0f)
+    , m_scale_y(1.0f)
+    , m_scale_z(1.0f)
+    , m_starting_scale_x(1.0f)
+    , m_starting_scale_y(1.0f)
+    , m_starting_scale_z(1.0f)
+{
+}
+
+bool GLGizmoScale3D::on_init()
+{
+    std::string path = resources_dir() + "/icons/overlay/";
+
+    std::string filename = path + "scale_off.png";
+    if (!m_textures[Off].load_from_file(filename, false))
+        return false;
+
+    filename = path + "scale_hover.png";
+    if (!m_textures[Hover].load_from_file(filename, false))
+        return false;
+
+    filename = path + "scale_on.png";
+    if (!m_textures[On].load_from_file(filename, false))
+        return false;
+
+    for (unsigned int i = 0; i < 7; ++i)
+    {
+        m_grabbers.push_back(Grabber());
+    }
+
+    float half_pi = 0.5f * (float)PI;
+
+    // x axis
+    m_grabbers[0].angle_y = half_pi;
+    m_grabbers[1].angle_y = half_pi;
+
+    // y axis
+    m_grabbers[2].angle_x = half_pi;
+    m_grabbers[3].angle_x = half_pi;
+
+    return true;
+}
+
+void GLGizmoScale3D::on_start_dragging()
+{
+    if (m_hover_id != -1)
+        m_starting_drag_position = m_grabbers[m_hover_id].center;
+}
+
+void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
+{
+    if ((m_hover_id == 0) || (m_hover_id == 1))
+        do_scale_x(mouse_ray);
+    else if ((m_hover_id == 2) || (m_hover_id == 3))
+        do_scale_y(mouse_ray);
+    else if ((m_hover_id == 4) || (m_hover_id == 5))
+        do_scale_z(mouse_ray);
+    else if (m_hover_id == 6)
+        do_scale_uniform(mouse_ray);
+}
+
+void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
+{
+    ::glDisable(GL_DEPTH_TEST);
+
+    Vectorf3 offset_vec((coordf_t)Offset, (coordf_t)Offset, (coordf_t)Offset);
+
+    m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
+    const Pointf3& center = m_box.center();
+
+    // x axis
+    m_grabbers[0].center.x = m_box.min.x;
+    m_grabbers[0].center.y = center.y;
+    m_grabbers[0].center.z = center.z;
+    m_grabbers[1].center.x = m_box.max.x;
+    m_grabbers[1].center.y = center.y;
+    m_grabbers[1].center.z = center.z;
+
+    // y axis
+    m_grabbers[2].center.x = center.x;
+    m_grabbers[2].center.y = m_box.min.y;
+    m_grabbers[2].center.z = center.z;
+    m_grabbers[3].center.x = center.x;
+    m_grabbers[3].center.y = m_box.max.y;
+    m_grabbers[3].center.z = center.z;
+
+    // z axis
+    m_grabbers[4].center.x = center.x;
+    m_grabbers[4].center.y = center.y;
+    m_grabbers[4].center.z = m_box.min.z;
+    m_grabbers[5].center.x = center.x;
+    m_grabbers[5].center.y = center.y;
+    m_grabbers[5].center.z = m_box.max.z;
+
+    // uniform
+    m_grabbers[6].center = m_box.min;
+
+    ::memcpy((void*)m_grabbers[0].color, (const void*)RED, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (const void*)RED, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color, (const void*)GREEN, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[3].color, (const void*)GREEN, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[4].color, (const void*)BLUE, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[5].color, (const void*)BLUE, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[6].color, (const void*)m_highlight_color, 3 * sizeof(float));
+
+    ::glLineWidth(2.0f);
+
+    if (m_hover_id == -1)
+    {
+        // draw box
+        ::glColor3fv(m_base_color);
+        render_box_x_faces();
+        render_box_y_faces();
+        render_box_z_faces();
+
+        // draw grabbers
+        render_grabbers();
+    }
+    else if ((m_hover_id == 0) || (m_hover_id == 1))
+    {
+        ::glColor3fv(m_drag_color);
+        render_box_x_faces();
+        m_grabbers[0].render(true);
+        m_grabbers[1].render(true);
+    }
+    else if ((m_hover_id == 2) || (m_hover_id == 3))
+    {
+        ::glColor3fv(m_drag_color);
+        render_box_y_faces();
+        m_grabbers[2].render(true);
+        m_grabbers[3].render(true);
+    }
+    else if ((m_hover_id == 4) || (m_hover_id == 5))
+    {
+        ::glColor3fv(m_drag_color);
+        render_box_z_faces();
+        m_grabbers[4].render(true);
+        m_grabbers[5].render(true);
+    }
+    else if (m_hover_id == 6)
+    {
+        ::glColor3fv(m_drag_color);
+        render_box_x_faces();
+        render_box_y_faces();
+        render_box_z_faces();
+        m_grabbers[6].render(true);
+    }
+}
+
+void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
+{
+    ::glDisable(GL_DEPTH_TEST);
+
+    for (unsigned int i = 0; i < 7; ++i)
+    {
+        m_grabbers[i].color[0] = 1.0f;
+        m_grabbers[i].color[1] = 1.0f;
+        m_grabbers[i].color[2] = picking_color_component(i);
+    }
+
+    render_grabbers_for_picking();
+}
+
+void GLGizmoScale3D::render_box_x_faces() const
+{
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glEnd();
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glEnd();
+}
+
+void GLGizmoScale3D::render_box_y_faces() const
+{
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glEnd();
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glEnd();
+}
+
+void GLGizmoScale3D::render_box_z_faces() const
+{
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
+    ::glEnd();
+    ::glBegin(GL_LINE_LOOP);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
+    ::glEnd();
+}
+
+Linef3 transform(const Linef3& line, const Eigen::Transform<float, 3, Eigen::Affine>& t)
+{
+    Eigen::Matrix<float, 3, 2> world_line;
+    Eigen::Matrix<float, 3, 2> local_line;
+    world_line(0, 0) = (float)line.a.x;
+    world_line(1, 0) = (float)line.a.y;
+    world_line(2, 0) = (float)line.a.z;
+    world_line(0, 1) = (float)line.b.x;
+    world_line(1, 1) = (float)line.b.y;
+    world_line(2, 1) = (float)line.b.z;
+    local_line = t * world_line.colwise().homogeneous();
+
+    return Linef3(Pointf3(local_line(0, 0), local_line(1, 0), local_line(2, 0)), Pointf3(local_line(0, 1), local_line(1, 1), local_line(2, 1)));
+}
+
+void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
+{
+    // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the box center
+    const Pointf3& center = m_box.center();
+    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+
+    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
+
+    coordf_t orig_len = length(m_starting_drag_position - center);
+    coordf_t new_len = length(mouse_pos);
+    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+
+    m_scale_x = m_starting_scale_x * (float)ratio;
+}
+
+void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
+{
+    // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the box center
+    const Pointf3& center = m_box.center();
+    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+
+    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
+
+    coordf_t orig_len = length(m_starting_drag_position - center);
+    coordf_t new_len = length(mouse_pos);
+    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+
+    m_scale_x = m_starting_scale_y * (float)ratio;
+//    m_scale_y = m_starting_scale_y * (float)ratio;
+}
+
+void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
+{
+    // calculates the intersection of the mouse ray with the plane parallel to plane XZ and passing through the box center
+    const Pointf3& center = m_box.center();
+    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    m.rotate(Eigen::AngleAxisf(0.5f * (float)PI, Eigen::Vector3f::UnitX()));
+    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+
+    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
+
+    coordf_t orig_len = length(m_starting_drag_position - center);
+    coordf_t new_len = length(mouse_pos);
+    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+
+    m_scale_x = m_starting_scale_z * (float)ratio;
+//    m_scale_z = m_starting_scale_z * (float)ratio;
+
+    if (m_scale_x > 10.0)
+    {
+        int a = 0;
+    }
+}
+
+void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
+{
+    // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the box min point
+    const Pointf3& center = m_box.center();
+    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)m_box.min.z));
+
+    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
+
+    coordf_t orig_len = length(m_starting_drag_position - center);
+    coordf_t new_len = length(Vectorf3(mouse_pos.x, mouse_pos.y, m_box.min.z - center.z));
+    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+
+    m_scale_x = m_starting_scale_y * (float)ratio;
+    m_scale_y = m_starting_scale_y * (float)ratio;
+    m_scale_z = m_starting_scale_z * (float)ratio;
 }
 
 } // namespace GUI

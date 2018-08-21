@@ -3,10 +3,11 @@
 
 #include "../../slic3r/GUI/GLTexture.hpp"
 #include "../../libslic3r/Point.hpp"
+#include "../../libslic3r/BoundingBox.hpp"
 
 #include <vector>
 
-#define ENABLE_GIZMOS_3D 1
+#define ENABLE_GIZMOS_3D 0
 
 namespace Slic3r {
 
@@ -34,7 +35,7 @@ protected:
         Grabber();
 
         void render(bool hover) const;
-        void render_for_picking() const;
+        void render_for_picking() const { render(color); }
 
     private:
         void render(const float* render_color) const;
@@ -73,8 +74,8 @@ public:
     EState get_state() const { return m_state; }
     void set_state(EState state) { m_state = state; on_set_state(); }
 
-    unsigned int get_texture_id() const;
-    int get_textures_size() const;
+    unsigned int get_texture_id() const { return m_textures[m_state].get_id(); }
+    int get_textures_size() const { return m_textures[Off].get_width(); }
 
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
@@ -84,10 +85,10 @@ public:
     void start_dragging();
     void stop_dragging();
     void update(const Linef3& mouse_ray);
-    void refresh();
+    void refresh() { on_refresh(); }
 
-    void render(const BoundingBoxf3& box) const;
-    void render_for_picking(const BoundingBoxf3& box) const;
+    void render(const BoundingBoxf3& box) const { on_render(box); }
+    void render_for_picking(const BoundingBoxf3& box) const { on_render_for_picking(box); }
 
 protected:
     virtual bool on_init() = 0;
@@ -137,14 +138,14 @@ private:
 public:
     explicit GLGizmoRotate(Axis axis);
 
-    float get_angle() const;
+    float get_angle() const { return m_angle; }
     void set_angle(float angle);
 
 protected:
     virtual bool on_init();
-    virtual void on_set_state();
+    virtual void on_set_state() { m_keep_initial_values = (m_state == On) ? false : true; }
     virtual void on_update(const Linef3& mouse_ray);
-    virtual void on_refresh();
+    virtual void on_refresh() { m_keep_initial_values = false; }
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -169,25 +170,50 @@ class GLGizmoRotate3D : public GLGizmoBase
 public:
     GLGizmoRotate3D();
 
-    float get_angle_x() const;
-    void set_angle_x(float angle);
+    float get_angle_x() const { return m_x.get_angle(); }
+    void set_angle_x(float angle) { m_x.set_angle(angle); }
 
-    float get_angle_y() const;
-    void set_angle_y(float angle);
+    float get_angle_y() const { return m_y.get_angle(); }
+    void set_angle_y(float angle) { m_y.set_angle(angle); }
 
-    float get_angle_z() const;
-    void set_angle_z(float angle);
+    float get_angle_z() const { return m_z.get_angle(); }
+    void set_angle_z(float angle) { m_z.set_angle(angle); }
 
 protected:
     virtual bool on_init();
-    virtual void on_set_state();
-    virtual void on_set_hover_id();
+    virtual void on_set_state()
+    {
+        m_x.set_state(m_state);
+        m_y.set_state(m_state);
+        m_z.set_state(m_state);
+    }
+    virtual void on_set_hover_id()
+    {
+        m_x.set_hover_id(m_hover_id == 0 ? 0 : -1);
+        m_y.set_hover_id(m_hover_id == 1 ? 0 : -1);
+        m_z.set_hover_id(m_hover_id == 2 ? 0 : -1);
+    }
     virtual void on_start_dragging();
     virtual void on_stop_dragging();
-    virtual void on_update(const Linef3& mouse_ray);
-    virtual void on_refresh();
+    virtual void on_update(const Linef3& mouse_ray)
+    {
+        m_x.update(mouse_ray);
+        m_y.update(mouse_ray);
+        m_z.update(mouse_ray);
+    }
+    virtual void on_refresh()
+    {
+        m_x.refresh();
+        m_y.refresh();
+        m_z.refresh();
+    }
     virtual void on_render(const BoundingBoxf3& box) const;
-    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const
+    {
+        m_x.render_for_picking(box);
+        m_y.render_for_picking(box);
+        m_z.render_for_picking(box);
+    }
 };
 
 class GLGizmoScale : public GLGizmoBase
@@ -202,8 +228,8 @@ class GLGizmoScale : public GLGizmoBase
 public:
     GLGizmoScale();
 
-    float get_scale() const;
-    void set_scale(float scale);
+    float get_scale() const { return m_scale; }
+    void set_scale(float scale) { m_starting_scale = scale; }
 
 protected:
     virtual bool on_init();
@@ -211,6 +237,58 @@ protected:
     virtual void on_update(const Linef3& mouse_ray);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+};
+
+class GLGizmoScale3D : public GLGizmoBase
+{
+    static const float Offset;
+
+    mutable BoundingBoxf3 m_box;
+
+    float m_scale_x;
+    float m_scale_y;
+    float m_scale_z;
+
+    float m_starting_scale_x;
+    float m_starting_scale_y;
+    float m_starting_scale_z;
+
+    Pointf3 m_starting_drag_position;
+
+public:
+    GLGizmoScale3D();
+
+    float get_scale_x() const { return m_scale_x; }
+    void set_scale_x(float scale) { m_starting_scale_x = scale; }
+
+    float get_scale_y() const { return m_scale_y; }
+    void set_scale_y(float scale) { m_starting_scale_y = scale; }
+
+    float get_scale_z() const { return m_scale_z; }
+    void set_scale_z(float scale) { m_starting_scale_z = scale; }
+
+    void set_scale(float scale)
+    {
+        m_starting_scale_x = scale;
+        m_starting_scale_y = scale;
+        m_starting_scale_z = scale;
+    }
+
+protected:
+    virtual bool on_init();
+    virtual void on_start_dragging();
+    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+
+    void render_box_x_faces() const;
+    void render_box_y_faces() const;
+    void render_box_z_faces() const;
+
+    void do_scale_x(const Linef3& mouse_ray);
+    void do_scale_y(const Linef3& mouse_ray);
+    void do_scale_z(const Linef3& mouse_ray);
+    void do_scale_uniform(const Linef3& mouse_ray);
 };
 
 } // namespace GUI
