@@ -2805,9 +2805,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 // Rotate the object so the normal points downward:
                 Pointf3 normal = m_gizmos.get_flattening_normal();
                 if (normal.x != 0.f || normal.y != 0.f || normal.z != 0.f) {
-                    float angle_z = -atan2(normal.y, normal.x);
-                    float angle_y = M_PI - atan2(normal.x*cos(angle_z)-normal.y*sin(angle_z), normal.z);
-                    m_on_gizmo_rotate_callback.call((double)angle_z, (double)angle_y);
+                    Pointf3 axis = normal.z > 0.999f ? Pointf3(1, 0, 0) : cross(normal, Pointf3(0.f, 0.f, -1.f));
+                    float angle = -acos(-normal.z);
+                    m_on_gizmo_rotate_callback.call(angle, axis.x, axis.y, axis.z);
                 }
             }
         }
@@ -3093,7 +3093,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             case Gizmos::Rotate:
             {
-                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z(), 0.);
+                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
                 break;
             }
             default:

@@ -725,7 +725,7 @@ void ModelObject::scale(const Pointf3 &versor)
     this->invalidate_bounding_box();
 }
 
-void ModelObject::rotate(float angle, const Axis &axis)
+void ModelObject::rotate(float angle, const Pointf3& axis)
 {
     for (ModelVolume *v : this->volumes)
     {

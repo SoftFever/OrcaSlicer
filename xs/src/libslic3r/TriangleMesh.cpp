@@ -324,6 +324,17 @@ void TriangleMesh::translate(float x, float y, float z)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
+void TriangleMesh::rotate(float angle, Pointf3 axis)
+{
+    if (angle == 0.f)
+        return;
+
+    axis = normalize(axis);
+    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    m.rotate(Eigen::AngleAxisf(angle, Eigen::Vector3f(axis.x, axis.y, axis.z)));
+    stl_transform(&stl, (float*)m.data());
+}
+
 void TriangleMesh::rotate(float angle, const Axis &axis)
 {
     if (angle == 0.f)

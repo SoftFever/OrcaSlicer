@@ -706,12 +706,14 @@ void GLGizmoFlatten::update_planes()
         }
         polygon = Slic3r::Geometry::convex_hull(polygon); // To remove the inner points
 
-        // Calculate area of the polygon and discard ones that are too small
+        // We will calculate area of the polygon and discard ones that are too small
+        // The limit is more forgiving in case the normal is in the direction of the coordinate axes
+        const float minimal_area = (std::abs(normal.x) > 0.999f || std::abs(normal.y) > 0.999f || std::abs(normal.z) > 0.999f) ? 1.f : 20.f;
         float area = 0.f;
         for (unsigned int i = 0; i < polygon.size(); i++) // Shoelace formula
             area += polygon[i].x*polygon[i+1 < polygon.size() ? i+1 : 0 ].y - polygon[i+1 < polygon.size() ? i+1 : 0].x*polygon[i].y;
         area = std::abs(area/2.f);
-        if (area < 20.f) {
+        if (area < minimal_area) {
             m_planes.erase(m_planes.begin()+(polygon_id--));
             continue;
         }
