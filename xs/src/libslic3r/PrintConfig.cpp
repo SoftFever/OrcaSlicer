@@ -518,7 +518,7 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-minimal-purge-on-wipe-tower=f@";
     def->sidetext = L("mm³");
     def->min = 0;
-    def->default_value = new ConfigOptionFloats { 5.f };
+    def->default_value = new ConfigOptionFloats { 15.f };
 
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
@@ -572,10 +572,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("filament_type", coStrings);
     def->label = L("Filament type");
-    def->tooltip = L("If you want to process the output G-code through custom scripts, just list their "
-                   "absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed "
-                   "the absolute path to the G-code file as the first argument, and they can access "
-                   "the Slic3r config settings by reading environment variables.");
+    def->tooltip = L("The filament material type for use in custom G-codes.");
     def->cli = "filament_type=s@";
     def->gui_type = "f_enum_open";
     def->gui_flags = "show_value";
@@ -921,7 +918,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("remaining_times", coBool);
     def->label = L("Supports remaining times");
-    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in seconds] at 1 minute"
+    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute"
                      " intervals into the G-code to let the firmware show accurate remaining time."
                      " As of now only the Prusa i3 MK3 firmware recognizes M73."
                      " Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode.");
@@ -1140,25 +1137,37 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "nozzle-diameter=f@";
     def->default_value = new ConfigOptionFloats { 0.5 };
 
-    def = this->add("octoprint_apikey", coString);
-    def->label = L("API Key");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the API Key required for authentication.");
-    def->cli = "octoprint-apikey=s";
+    def = this->add("host_type", coEnum);
+    def->label = L("Host Type");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
+                   "the kind of the host.");
+    def->cli = "host-type=s";
+    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
+    def->enum_values.push_back("octoprint");
+    def->enum_values.push_back("duet");
+    def->enum_labels.push_back("OctoPrint");
+    def->enum_labels.push_back("Duet");
+    def->default_value = new ConfigOptionEnum<PrintHostType>(htOctoPrint);
+
+    def = this->add("printhost_apikey", coString);
+    def->label = L("API Key / Password");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the API Key or the password required for authentication.");
+    def->cli = "printhost-apikey=s";
     def->default_value = new ConfigOptionString("");
     
-    def = this->add("octoprint_cafile", coString);
+    def = this->add("printhost_cafile", coString);
     def->label = "HTTPS CA file";
     def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
                    "If left blank, the default OS CA certificate repository is used.";
-    def->cli = "octoprint-cafile=s";
+    def->cli = "printhost-cafile=s";
     def->default_value = new ConfigOptionString("");
 
-    def = this->add("octoprint_host", coString);
+    def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the hostname, IP address or URL of the OctoPrint instance.");
-    def->cli = "octoprint-host=s";
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the hostname, IP address or URL of the printer host instance.");
+    def->cli = "print-host=s";
     def->default_value = new ConfigOptionString("");
 
     def = this->add("only_retract_when_crossing_perimeters", coBool);
@@ -2110,10 +2119,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         std::ostringstream oss;
         oss << "0x0," << p.value.x << "x0," << p.value.x << "x" << p.value.y << ",0x" << p.value.y;
         value = oss.str();
-// Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-// Commenting this out fixes github issue #869 for now.
-//    } else if (opt_key == "octoprint_host" && !value.empty()) {
-//        opt_key = "print_host";
     } else if ((opt_key == "perimeter_acceleration" && value == "25")
         || (opt_key == "infill_acceleration" && value == "50")) {
         /*  For historical reasons, the world's full of configs having these very low values;
@@ -2124,6 +2129,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "support_material_pattern" && value == "pillars") {
         // Slic3r PE does not support the pillars. They never worked well.
         value = "rectilinear";
+    } else if (opt_key == "octoprint_host") {
+        opt_key = "print_host";
+    } else if (opt_key == "octoprint_cafile") {
+        opt_key = "printhost_cafile";
+    } else if (opt_key == "octoprint_apikey") {
+        opt_key = "printhost_apikey";
     }
     
     // Ignore the following obsolete configuration keys:
@@ -2133,9 +2144,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
         "seal_position", "vibration_limit", "bed_size", 
-        // Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-        // Commenting this out fixes github issue #869 for now.
-        // "octoprint_host",
         "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
     };
 
@@ -2145,7 +2153,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     
     if (! print_config_def.has(opt_key)) {
-        //printf("Unknown option %s\n", opt_key.c_str());
         opt_key = "";
         return;
     }

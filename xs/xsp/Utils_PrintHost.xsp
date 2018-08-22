@@ -1,0 +1,12 @@
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/Utils/PrintHost.hpp"
+%}
+
+%name{Slic3r::PrintHost} class PrintHost {
+	bool send_gcode(std::string filename) const;
+
+	static PrintHost* get_print_host(DynamicPrintConfig *config);
+};

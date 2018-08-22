@@ -64,9 +64,9 @@ REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(TabIface, "GUI::Tab");
 REGISTER_CLASS(PresetUpdater, "PresetUpdater");
-REGISTER_CLASS(OctoPrint, "OctoPrint");
 REGISTER_CLASS(AppController, "AppController");
 REGISTER_CLASS(PrintController, "PrintController");
+REGISTER_CLASS(PrintHost, "PrintHost");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {
