@@ -767,7 +767,9 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
     m_min_value(minValue), m_max_value(maxValue),
     m_style(style)
 {
+#ifndef __WXOSX__ // SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
     SetDoubleBuffered(true);
+#endif //__WXOSX__
 
     if (m_style != wxSL_HORIZONTAL && m_style != wxSL_VERTICAL)
         m_style = wxSL_HORIZONTAL;
