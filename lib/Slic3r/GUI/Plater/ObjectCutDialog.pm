@@ -137,7 +137,7 @@ sub new {
         # Adjust position / orientation of the split object halves.
         if ($self->{new_model_objects}{lower}) {
             if ($self->{cut_options}{rotate_lower}) {
-                $self->{new_model_objects}{lower}->rotate(PI, X);
+                $self->{new_model_objects}{lower}->rotate(PI, Slic3r::Pointf3->new(1,0,0));
                 $self->{new_model_objects}{lower}->center_around_origin;  # align to Z = 0
             }
         }
