@@ -642,24 +642,13 @@ BoundingBoxf3 ModelObject::tight_bounding_box(bool include_modifiers) const
                     {
                         // original point
                         const stl_vertex& v = facet.vertex[i];
-                        Vec3d p((double)v.x, (double)v.y, (double)v.z);
-
                         // scale
-                        p(0) *= inst->scaling_factor;
-                        p(1) *= inst->scaling_factor;
-                        p(2) *= inst->scaling_factor;
-
-                        // rotate Z
-                        double x = p(0);
-                        double y = p(1);
-                        p(0) = c * x - s * y;
-                        p(1) = s * x + c * y;
-
-                        // translate
-                        p(0) += inst->offset(0);
-                        p(1) += inst->offset(1);
-
-                        bb.merge(p);
+                        Vec3d p = v.cast<double>() * inst->scaling_factor;
+                        // rotate Z, translate
+                        Vec3d q(c * p(0) - s * p(1) + inst->offset(0),
+                                s * p(0) + c * p(1) + inst->offset(1), 
+                                p(2));
+                        bb.merge(q);
                     }
                 }
             }
@@ -770,7 +759,7 @@ void ModelObject::rotate(float angle, const Axis &axis)
     for (ModelVolume *v : this->volumes)
     {
         v->mesh.rotate(angle, axis);
-        min_z = std::min(min_z, v->mesh.stl.stats.min.z);
+        min_z = std::min(min_z, v->mesh.stl.stats.min(2));
     }
 
     if (min_z != 0.0f)
@@ -927,24 +916,13 @@ void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_
                     {
                         // original point
                         const stl_vertex& v = facet.vertex[i];
-                        Vec3d p((double)v.x, (double)v.y, (double)v.z);
-
                         // scale
-                        p(0) *= inst->scaling_factor;
-                        p(1) *= inst->scaling_factor;
-                        p(2) *= inst->scaling_factor;
-
+                        Vec3d p = v.cast<double>() * inst->scaling_factor;
                         // rotate Z
-                        double x = p(0);
-                        double y = p(1);
-                        p(0) = c * x - s * y;
-                        p(1) = s * x + c * y;
-
-                        // translate
-                        p(0) += inst->offset(0);
-                        p(1) += inst->offset(1);
-
-                        bb.merge(p);
+                        bb.merge(Vec3d(
+                            c * p(0) - s * p(1) + inst->offset(0),
+                            s * p(0) + c * p(1) + inst->offset(1), 
+                            p(2)));
                     }
                 }
 
@@ -1081,7 +1059,7 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
         const stl_facet &facet = mesh->stl.facet_start[i];
         for (int j = 0; j < 3; ++ j) {
             const stl_vertex &v = facet.vertex[j];
-			bbox.merge(Vec3d(c * v.x - s * v.y, s * v.x + c * v.y, v.z));
+			bbox.merge(Vec3d(c * v(0) - s * v(1), s * v(0) + c * v(1), v(2)));
         }
     }
     if (! empty(bbox)) {

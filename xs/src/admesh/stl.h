@@ -27,9 +27,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define STL_MAX(A,B) ((A)>(B)? (A):(B))
-#define STL_MIN(A,B) ((A)<(B)? (A):(B))
-#define ABS(X)  ((X) < 0 ? -(X) : (X))
+#include <Eigen/Geometry> 
 
 // Size of the binary STL header, free form.
 #define LABEL_SIZE             80
@@ -39,31 +37,16 @@
 #define HEADER_SIZE            84
 #define STL_MIN_FILE_SIZE      284
 #define ASCII_LINES_PER_FACET  7
-// Comparing an edge by memcmp, 2x3x4 bytes = 24
-#define SIZEOF_EDGE_SORT       24
 
-typedef struct {
-  float x;
-  float y;
-  float z;
-} stl_vertex;
-
+typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> stl_vertex;
+typedef Eigen::Matrix<float, 3, 1, Eigen::DontAlign> stl_normal;
 static_assert(sizeof(stl_vertex) == 12, "size of stl_vertex incorrect");
-
-typedef struct {
-  float x;
-  float y;
-  float z;
-} stl_normal;
-
 static_assert(sizeof(stl_normal) == 12, "size of stl_normal incorrect");
-
-typedef char stl_extra[2];
 
 typedef struct {
   stl_normal normal;
   stl_vertex vertex[3];
-  stl_extra  extra;
+  char       extra[2];
 } stl_facet;
 #define SIZEOF_STL_FACET       50
 
@@ -81,8 +64,12 @@ typedef struct {
 } stl_edge;
 
 typedef struct stl_hash_edge {
-  // Key of a hash edge: 2x binary copy of a floating point vertex.
-  uint32_t       key[6];
+  // Key of a hash edge: sorted vertices of the edge.
+  unsigned char key[2 * sizeof(stl_vertex)];
+  // Compare two keys.
+  bool operator==(const stl_hash_edge &rhs) { return memcmp(key, rhs.key, sizeof(key)) == 0; }
+  bool operator!=(const stl_hash_edge &rhs) { return ! (*this == rhs); }
+  int  hash(int M) const { return ((key[0] / 23 + key[1] / 19 + key[2] / 17 + key[3] /13  + key[4] / 11 + key[5] / 7 ) % M); }
   // Index of a facet owning this edge.
   int            facet_number;
   // Index of this edge inside the facet with an index of facet_number.
@@ -90,8 +77,6 @@ typedef struct stl_hash_edge {
   int            which_edge;
   struct stl_hash_edge  *next;
 } stl_hash_edge;
-
-static_assert(offsetof(stl_hash_edge, facet_number) == SIZEOF_EDGE_SORT, "size of stl_hash_edge.key incorrect");
 
 typedef struct {
   // Index of a neighbor facet.
@@ -179,8 +164,8 @@ extern void stl_fix_normal_values(stl_file *stl);
 extern void stl_reverse_all_facets(stl_file *stl);
 extern void stl_translate(stl_file *stl, float x, float y, float z);
 extern void stl_translate_relative(stl_file *stl, float x, float y, float z);
-extern void stl_scale_versor(stl_file *stl, float versor[3]);
-extern void stl_scale(stl_file *stl, float factor);
+extern void stl_scale_versor(stl_file *stl, const stl_vertex &versor);
+inline void stl_scale(stl_file *stl, float factor) { stl_scale_versor(stl, stl_vertex(factor, factor, factor)); }
 extern void stl_rotate_x(stl_file *stl, float angle);
 extern void stl_rotate_y(stl_file *stl, float angle);
 extern void stl_rotate_z(stl_file *stl, float angle);
@@ -195,8 +180,20 @@ extern void stl_write_obj(stl_file *stl, char *file);
 extern void stl_write_off(stl_file *stl, char *file);
 extern void stl_write_dxf(stl_file *stl, char *file, char *label);
 extern void stl_write_vrml(stl_file *stl, char *file);
-extern void stl_calculate_normal(float normal[], stl_facet *facet);
-extern void stl_normalize_vector(float v[]);
+inline void stl_calculate_normal(stl_normal &normal, stl_facet *facet) {
+  normal = (facet->vertex[1] - facet->vertex[0]).cross(facet->vertex[2] - facet->vertex[0]);
+}
+inline void stl_normalize_vector(stl_normal &normal) {
+  double length = normal.cast<double>().norm();
+  if (length < 0.000000000001)
+    normal = stl_normal::Zero();
+  else
+    normal *= (1.0 / length);
+}
+inline bool stl_vertex_lower(const stl_vertex &a, const stl_vertex &b) {
+  return (a(0) != b(0)) ? (a(0) < b(0)) :
+        ((a(1) != b(1)) ? (a(1) < b(1)) : (a(2) < b(2)));
+}
 extern void stl_calculate_volume(stl_file *stl);
 
 extern void stl_repair(stl_file *stl, int fixall_flag, int exact_flag, int tolerance_flag, float tolerance, int increment_flag, float increment, int nearby_flag, int iterations, int remove_unconnected_flag, int fill_holes_flag, int normal_directions_flag, int normal_values_flag, int reverse_all_flag, int verbose_flag);
@@ -204,8 +201,8 @@ extern void stl_repair(stl_file *stl, int fixall_flag, int exact_flag, int toler
 extern void stl_initialize(stl_file *stl);
 extern void stl_count_facets(stl_file *stl, const char *file);
 extern void stl_allocate(stl_file *stl);
-extern void stl_read(stl_file *stl, int first_facet, int first);
-extern void stl_facet_stats(stl_file *stl, stl_facet facet, int first);
+extern void stl_read(stl_file *stl, int first_facet, bool first);
+extern void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first);
 extern void stl_reallocate(stl_file *stl);
 extern void stl_add_facet(stl_file *stl, stl_facet *new_facet);
 extern void stl_get_size(stl_file *stl);

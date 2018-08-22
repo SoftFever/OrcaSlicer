@@ -1485,7 +1485,7 @@ namespace Slic3r {
                 stl_facet& facet = stl.facet_start[i];
                 for (unsigned int v = 0; v < 3; ++v)
                 {
-                    ::memcpy((void*)&facet.vertex[v].x, (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
+                    ::memcpy(facet.vertex[v].data(), (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
                 }
             }
 
@@ -1844,9 +1844,9 @@ namespace Slic3r {
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                stream << "x=\"" << stl.v_shared[i].x << "\" ";
-                stream << "y=\"" << stl.v_shared[i].y << "\" ";
-                stream << "z=\"" << stl.v_shared[i].z << "\" />\n";
+                stream << "x=\"" << stl.v_shared[i](0) << "\" ";
+                stream << "y=\"" << stl.v_shared[i](1) << "\" ";
+                stream << "z=\"" << stl.v_shared[i](2) << "\" />\n";
             }
         }
 

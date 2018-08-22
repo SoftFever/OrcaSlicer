@@ -27,12 +27,6 @@
 
 #include "stl.h"
 
-static void stl_reverse_vector(float v[]) {
-  v[0] *= -1;
-  v[1] *= -1;
-  v[2] *= -1;
-}
-
 static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_flag);
 
 static void
@@ -228,102 +222,52 @@ static int stl_check_normal_vector(stl_file *stl, int facet_num, int normal_fix_
   /* Returns 2 if the normal is not within tolerance and backwards */
   /* Returns 4 if the status is unknown. */
 
-  float normal[3];
-  float test_norm[3];
   stl_facet *facet;
 
   facet = &stl->facet_start[facet_num];
 
+  stl_normal normal;
   stl_calculate_normal(normal, facet);
   stl_normalize_vector(normal);
+  stl_normal normal_dif = (normal - facet->normal).cwiseAbs();
 
-  if(   (ABS(normal[0] - facet->normal.x) < 0.001)
-        && (ABS(normal[1] - facet->normal.y) < 0.001)
-        && (ABS(normal[2] - facet->normal.z) < 0.001)) {
+  const float eps = 0.001f;
+  if (normal_dif(0) < eps && normal_dif(1) < eps && normal_dif(2) < eps) {
     /* It is not really necessary to change the values here */
     /* but just for consistency, I will. */
-    facet->normal.x = normal[0];
-    facet->normal.y = normal[1];
-    facet->normal.z = normal[2];
+    facet->normal = normal;
     return 0;
   }
 
-  test_norm[0] = facet->normal.x;
-  test_norm[1] = facet->normal.y;
-  test_norm[2] = facet->normal.z;
-
+  stl_normal test_norm = facet->normal;
   stl_normalize_vector(test_norm);
-  if(   (ABS(normal[0] - test_norm[0]) < 0.001)
-        && (ABS(normal[1] - test_norm[1]) < 0.001)
-        && (ABS(normal[2] - test_norm[2]) < 0.001)) {
+  normal_dif = (normal - test_norm).cwiseAbs();
+  if (normal_dif(0) < eps && normal_dif(1) < eps && normal_dif(2) < eps) {
     if(normal_fix_flag) {
-      facet->normal.x = normal[0];
-      facet->normal.y = normal[1];
-      facet->normal.z = normal[2];
+      facet->normal = normal;
       stl->stats.normals_fixed += 1;
     }
     return 1;
   }
 
-  stl_reverse_vector(test_norm);
-  if(   (ABS(normal[0] - test_norm[0]) < 0.001)
-        && (ABS(normal[1] - test_norm[1]) < 0.001)
-        && (ABS(normal[2] - test_norm[2]) < 0.001)) {
-    /* Facet is backwards. */
+  test_norm *= -1.f;
+  normal_dif = (normal - test_norm).cwiseAbs();
+  if (normal_dif(0) < eps && normal_dif(1) < eps && normal_dif(2) < eps) {
+    // Facet is backwards.
     if(normal_fix_flag) {
-      facet->normal.x = normal[0];
-      facet->normal.y = normal[1];
-      facet->normal.z = normal[2];
+      facet->normal = normal;
       stl->stats.normals_fixed += 1;
     }
     return 2;
   }
   if(normal_fix_flag) {
-    facet->normal.x = normal[0];
-    facet->normal.y = normal[1];
-    facet->normal.z = normal[2];
+    facet->normal = normal;
     stl->stats.normals_fixed += 1;
   }
   return 4;
 }
 
-void stl_calculate_normal(float normal[], stl_facet *facet) {
-  float v1[3] = {
-    facet->vertex[1].x - facet->vertex[0].x,
-    facet->vertex[1].y - facet->vertex[0].y,
-    facet->vertex[1].z - facet->vertex[0].z
-  };
-  float v2[3] = {
-    facet->vertex[2].x - facet->vertex[0].x,
-    facet->vertex[2].y - facet->vertex[0].y,
-    facet->vertex[2].z - facet->vertex[0].z
-  };
-  normal[0] = (float)((double)v1[1] * (double)v2[2]) - ((double)v1[2] * (double)v2[1]);
-  normal[1] = (float)((double)v1[2] * (double)v2[0]) - ((double)v1[0] * (double)v2[2]);
-  normal[2] = (float)((double)v1[0] * (double)v2[1]) - ((double)v1[1] * (double)v2[0]);
-}
-
-void stl_normalize_vector(float v[]) {
-  double length;
-  double factor;
-  float min_normal_length;
-
-  length = sqrt((double)v[0] * (double)v[0] + (double)v[1] * (double)v[1] + (double)v[2] * (double)v[2]);
-  min_normal_length = 0.000000000001;
-  if(length < min_normal_length) {
-    v[0] = 0.0;
-    v[1] = 0.0;
-    v[2] = 0.0;
-    return;
-  }
-  factor = 1.0 / length;
-  v[0] *= factor;
-  v[1] *= factor;
-  v[2] *= factor;
-}
-
-void
-stl_fix_normal_values(stl_file *stl) {
+void stl_fix_normal_values(stl_file *stl) {
   int i;
 
   if (stl->error) return;
@@ -333,20 +277,16 @@ stl_fix_normal_values(stl_file *stl) {
   }
 }
 
-void
-stl_reverse_all_facets(stl_file *stl) {
-  int i;
-  float normal[3];
+void stl_reverse_all_facets(stl_file *stl)
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
+  stl_normal normal;
+  for(int i = 0; i < stl->stats.number_of_facets; i++) {
     stl_reverse_facet(stl, i);
     stl_calculate_normal(normal, &stl->facet_start[i]);
     stl_normalize_vector(normal);
-    stl->facet_start[i].normal.x = normal[0];
-    stl->facet_start[i].normal.y = normal[1];
-    stl->facet_start[i].normal.z = normal[2];
+    stl->facet_start[i].normal = normal;
   }
 }
-

@@ -39,7 +39,7 @@ void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
     for (int i = 0; i < mesh.stl.stats.number_of_facets; ++ i) {
         const stl_facet &facet = mesh.stl.facet_start[i];
         for (int j = 0; j < 3; ++ j)
-            this->push_geometry(facet.vertex[j].x, facet.vertex[j].y, facet.vertex[j].z, facet.normal.x, facet.normal.y, facet.normal.z);
+            this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
     }
 }
 
@@ -55,7 +55,7 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
     for (int i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
         const stl_facet &facet = mesh.stl.facet_start[i];
         for (int j = 0; j < 3; ++j)
-            this->push_geometry(facet.vertex[j].x, facet.vertex[j].y, facet.vertex[j].z, facet.normal.x, facet.normal.y, facet.normal.z);
+            this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
 
         this->push_triangle(vertices_count, vertices_count + 1, vertices_count + 2);
         vertices_count += 3;
