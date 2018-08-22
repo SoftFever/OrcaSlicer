@@ -362,7 +362,7 @@ void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first)
   // Now find the max and min values.
   for (size_t i = 0; i < 3; ++ i) {
   	stl->stats.min = stl->stats.min.cwiseMin(facet.vertex[i]);
-  	stl->stats.max = stl->stats.max.cwiseMin(facet.vertex[i]);
+  	stl->stats.max = stl->stats.max.cwiseMax(facet.vertex[i]);
   }
 }
 

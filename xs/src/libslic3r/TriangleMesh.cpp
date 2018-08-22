@@ -30,12 +30,6 @@
 
 namespace Slic3r {
 
-TriangleMesh::TriangleMesh()
-    : repaired(false)
-{
-    stl_initialize(&this->stl);
-}
-
 TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& facets )
     : repaired(false)
 {
@@ -67,20 +61,6 @@ TriangleMesh::TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd>& f
     stl_get_size(&stl);
 }
 
-TriangleMesh::TriangleMesh(const TriangleMesh &other) :
-    repaired(false)
-{
-    stl_initialize(&this->stl);
-    *this = other;
-}
-
-TriangleMesh::TriangleMesh(TriangleMesh &&other) : 
-    repaired(false)
-{
-    stl_initialize(&this->stl);
-    this->swap(other);
-}
-
 TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
 {
     stl_close(&this->stl);
@@ -108,42 +88,8 @@ TriangleMesh& TriangleMesh::operator=(const TriangleMesh &other)
     return *this;
 }
 
-TriangleMesh& TriangleMesh::operator=(TriangleMesh &&other)
+void TriangleMesh::repair()
 {
-    this->swap(other);
-    return *this;
-}
-
-void
-TriangleMesh::swap(TriangleMesh &other)
-{
-    std::swap(this->stl,      other.stl);
-    std::swap(this->repaired, other.repaired);
-}
-
-TriangleMesh::~TriangleMesh() {
-    stl_close(&this->stl);
-}
-
-void
-TriangleMesh::ReadSTLFile(const char* input_file) {
-    stl_open(&stl, input_file);
-}
-
-void
-TriangleMesh::write_ascii(const char* output_file)
-{
-    stl_write_ascii(&this->stl, output_file, "");
-}
-
-void
-TriangleMesh::write_binary(const char* output_file)
-{
-    stl_write_binary(&this->stl, output_file, "");
-}
-
-void
-TriangleMesh::repair() {
     if (this->repaired) return;
     
     // admesh fails when repairing empty meshes
@@ -240,13 +186,7 @@ void TriangleMesh::check_topology()
     }
 }
 
-bool TriangleMesh::is_manifold() const
-{
-    return this->stl.stats.connected_facets_3_edge == this->stl.stats.number_of_facets;
-}
-
-void
-TriangleMesh::reset_repair_stats() {
+void TriangleMesh::reset_repair_stats() {
     this->stl.stats.degenerate_facets   = 0;
     this->stl.stats.edges_fixed         = 0;
     this->stl.stats.facets_removed      = 0;
@@ -256,8 +196,7 @@ TriangleMesh::reset_repair_stats() {
     this->stl.stats.normals_fixed       = 0;
 }
 
-bool
-TriangleMesh::needed_repair() const
+bool TriangleMesh::needed_repair() const
 {
     return this->stl.stats.degenerate_facets    > 0
         || this->stl.stats.edges_fixed          > 0
@@ -267,14 +206,8 @@ TriangleMesh::needed_repair() const
         || this->stl.stats.backwards_edges      > 0;
 }
 
-size_t
-TriangleMesh::facets_count() const
+void TriangleMesh::WriteOBJFile(char* output_file)
 {
-    return this->stl.stats.number_of_facets;
-}
-
-void
-TriangleMesh::WriteOBJFile(char* output_file) {
     stl_generate_shared_vertices(&stl);
     stl_write_obj(&stl, output_file);
 }
@@ -317,21 +250,6 @@ void TriangleMesh::rotate(float angle, const Axis &axis)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
-void TriangleMesh::rotate_x(float angle)
-{
-    this->rotate(angle, X);
-}
-
-void TriangleMesh::rotate_y(float angle)
-{
-    this->rotate(angle, Y);
-}
-
-void TriangleMesh::rotate_z(float angle)
-{
-    this->rotate(angle, Z);
-}
-
 void TriangleMesh::mirror(const Axis &axis)
 {
     if (axis == X) {
@@ -342,21 +260,6 @@ void TriangleMesh::mirror(const Axis &axis)
         stl_mirror_xy(&this->stl);
     }
     stl_invalidate_shared_vertices(&this->stl);
-}
-
-void TriangleMesh::mirror_x()
-{
-    this->mirror(X);
-}
-
-void TriangleMesh::mirror_y()
-{
-    this->mirror(Y);
-}
-
-void TriangleMesh::mirror_z()
-{
-    this->mirror(Z);
 }
 
 void TriangleMesh::transform(const float* matrix3x4)
@@ -456,14 +359,14 @@ size_t TriangleMesh::number_of_patches() const
     return num_bodies;
 }
 
-TriangleMeshPtrs
-TriangleMesh::split() const
+TriangleMeshPtrs TriangleMesh::split() const
 {
-    TriangleMeshPtrs meshes;
-    std::set<int> seen_facets;
+    TriangleMeshPtrs            meshes;
+    std::vector<unsigned char>  facet_visited(this->stl.stats.number_of_facets, false);
     
     // we need neighbors
-    if (!this->repaired) CONFESS("split() requires repair()");
+    if (!this->repaired)
+        CONFESS("split() requires repair()");
     
     // loop while we have remaining facets
     for (;;) {
@@ -471,25 +374,26 @@ TriangleMesh::split() const
         std::queue<int> facet_queue;
         std::deque<int> facets;
         for (int facet_idx = 0; facet_idx < this->stl.stats.number_of_facets; facet_idx++) {
-            if (seen_facets.find(facet_idx) == seen_facets.end()) {
+            if (! facet_visited[facet_idx]) {
                 // if facet was not seen put it into queue and start searching
                 facet_queue.push(facet_idx);
                 break;
             }
         }
-        if (facet_queue.empty()) break;
-        
-        while (!facet_queue.empty()) {
+        if (facet_queue.empty())
+            break;
+
+        while (! facet_queue.empty()) {
             int facet_idx = facet_queue.front();
             facet_queue.pop();
-            if (seen_facets.find(facet_idx) != seen_facets.end()) continue;
-            facets.emplace_back(facet_idx);
-            for (int j = 0; j <= 2; j++) {
-                facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
+            if (! facet_visited[facet_idx]) {
+                facets.emplace_back(facet_idx);
+                for (int j = 0; j < 3; ++ j)
+                    facet_queue.push(this->stl.neighbors_start[facet_idx].neighbor[j]);
+                facet_visited[facet_idx] = true;
             }
-            seen_facets.insert(facet_idx);
         }
-        
+
         TriangleMesh* mesh = new TriangleMesh;
         meshes.emplace_back(mesh);
         mesh->stl.stats.type = inmemory;
@@ -499,18 +403,16 @@ TriangleMesh::split() const
         stl_allocate(&mesh->stl);
         
         bool first = true;
-        for (std::deque<int>::const_iterator facet = facets.begin(); facet != facets.end(); ++facet) {
+        for (std::deque<int>::const_iterator facet = facets.begin(); facet != facets.end(); ++ facet) {
             mesh->stl.facet_start[facet - facets.begin()] = this->stl.facet_start[*facet];
             stl_facet_stats(&mesh->stl, this->stl.facet_start[*facet], first);
-            first = 0;
         }
     }
     
     return meshes;
 }
 
-void
-TriangleMesh::merge(const TriangleMesh &mesh)
+void TriangleMesh::merge(const TriangleMesh &mesh)
 {
     // reset stats and metadata
     int number_of_facets = this->stl.stats.number_of_facets;
@@ -564,8 +466,7 @@ Polygon TriangleMesh::convex_hull()
     return Slic3r::Geometry::convex_hull(pp);
 }
 
-BoundingBoxf3
-TriangleMesh::bounding_box() const
+BoundingBoxf3 TriangleMesh::bounding_box() const
 {
     BoundingBoxf3 bb;
     bb.defined = true;
@@ -574,8 +475,7 @@ TriangleMesh::bounding_box() const
     return bb;
 }
 
-void
-TriangleMesh::require_shared_vertices()
+void TriangleMesh::require_shared_vertices()
 {
     BOOST_LOG_TRIVIAL(trace) << "TriangleMeshSlicer::require_shared_vertices - start";
     if (!this->repaired) 
@@ -670,8 +570,7 @@ TriangleMeshSlicer::TriangleMeshSlicer(TriangleMesh* _mesh) :
     }
 }
 
-void
-TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers) const
+void TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<Polygons>* layers) const
 {
     BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::slice";
 
