@@ -527,7 +527,7 @@ public:
     void SetHigherValue(int higher_val);
     void SetKoefForLabels(float koef){ m_label_koef = koef;}
 
-    wxSize DoGetBestSize(){ return wxDefaultSize; }
+    wxSize DoGetBestSize() const override;
 
     void OnPaint(wxPaintEvent& ){ render();}
     void OnLeftDown(wxMouseEvent& event);

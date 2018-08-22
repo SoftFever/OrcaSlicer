@@ -765,14 +765,11 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
     wxControl(parent, id, pos, size, wxWANTS_CHARS | wxBORDER_NONE),
     m_lower_value(lowerValue), m_higher_value (higherValue), 
     m_min_value(minValue), m_max_value(maxValue),
-    m_style(style)
+    m_style(style == wxSL_HORIZONTAL || style == wxSL_VERTICAL ? style: wxSL_HORIZONTAL)
 {
 #ifndef __WXOSX__ // SetDoubleBuffered exists on Win and Linux/GTK, but is missing on OSX
     SetDoubleBuffered(true);
 #endif //__WXOSX__
-
-    if (m_style != wxSL_HORIZONTAL && m_style != wxSL_VERTICAL)
-        m_style = wxSL_HORIZONTAL;
 
     m_thumb_higher = wxBitmap(style == wxSL_HORIZONTAL ? Slic3r::GUI::from_u8(Slic3r::var("right_half_circle.png")) :
                                                          Slic3r::GUI::from_u8(Slic3r::var("up_half_circle.png")), wxBITMAP_TYPE_PNG);
@@ -789,7 +786,7 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
     Bind(wxEVT_LEFT_UP,     &PrusaDoubleSlider::OnLeftUp,   this);
     Bind(wxEVT_MOUSEWHEEL,  &PrusaDoubleSlider::OnWheel,    this);
     Bind(wxEVT_ENTER_WINDOW,&PrusaDoubleSlider::OnEnterWin, this);
-    Bind(wxEVT_LEAVE_WINDOW,&PrusaDoubleSlider::OnLeaveWin,   this);
+    Bind(wxEVT_LEAVE_WINDOW,&PrusaDoubleSlider::OnLeaveWin, this);
     Bind(wxEVT_KEY_DOWN,    &PrusaDoubleSlider::OnKeyDown,  this);
 
     // control's view variables
@@ -805,6 +802,15 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
 
     line_pens = { &DARK_GREY_PEN, &GREY_PEN, &LIGHT_GREY_PEN };
     segm_pens = { &DARK_ORANGE_PEN, &ORANGE_PEN, &LIGHT_ORANGE_PEN };
+}
+
+wxSize PrusaDoubleSlider::DoGetBestSize() const
+{
+    wxSize size = wxControl::DoGetBestSize();
+    if (size.x > 1 && size.y > 1)
+        return size;
+    const int new_size = is_horizontal() ? 80 : 120;
+    return wxSize(new_size, new_size);
 }
 
 void PrusaDoubleSlider::SetLowerValue(const int lower_val)
