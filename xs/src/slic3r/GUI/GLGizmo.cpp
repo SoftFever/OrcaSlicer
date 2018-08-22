@@ -819,7 +819,10 @@ bool GLGizmoScale3D::on_init()
 void GLGizmoScale3D::on_start_dragging()
 {
     if (m_hover_id != -1)
+    {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
+        m_starting_center = m_box.center();
+    }
 }
 
 void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
@@ -991,76 +994,131 @@ Linef3 transform(const Linef3& line, const Eigen::Transform<float, 3, Eigen::Aff
 
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 {
-    // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the box center
-    const Pointf3& center = m_box.center();
-    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+    double ratio = calc_ratio(1, mouse_ray, m_starting_center);
 
-    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
-
-    coordf_t orig_len = length(m_starting_drag_position - center);
-    coordf_t new_len = length(mouse_pos);
-    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
-
-    m_scale_x = m_starting_scale_x * (float)ratio;
+    if (ratio > 0.0)
+        m_scale_x = m_starting_scale_x * (float)ratio;
 }
 
 void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 {
-    // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the box center
-    const Pointf3& center = m_box.center();
-    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+    double ratio = calc_ratio(2, mouse_ray, m_starting_center);
 
-    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
-
-    coordf_t orig_len = length(m_starting_drag_position - center);
-    coordf_t new_len = length(mouse_pos);
-    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
-
-    m_scale_x = m_starting_scale_y * (float)ratio;
-//    m_scale_y = m_starting_scale_y * (float)ratio;
+    if (ratio > 0.0)
+        m_scale_x = m_starting_scale_y * (float)ratio;
+//        m_scale_y = m_starting_scale_y * (float)ratio;
 }
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 {
-    // calculates the intersection of the mouse ray with the plane parallel to plane XZ and passing through the box center
-    const Pointf3& center = m_box.center();
-    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-    m.rotate(Eigen::AngleAxisf(0.5f * (float)PI, Eigen::Vector3f::UnitX()));
-    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+    double ratio = calc_ratio(1, mouse_ray, m_starting_center);
 
-    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
-
-    coordf_t orig_len = length(m_starting_drag_position - center);
-    coordf_t new_len = length(mouse_pos);
-    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
-
-    m_scale_x = m_starting_scale_z * (float)ratio;
-//    m_scale_z = m_starting_scale_z * (float)ratio;
-
-    if (m_scale_x > 10.0)
-    {
-        int a = 0;
-    }
+    if (ratio > 0.0)
+        m_scale_x = m_starting_scale_z * (float)ratio;
+//        m_scale_z = m_starting_scale_z * (float)ratio;
 }
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
-    // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the box min point
-    const Pointf3& center = m_box.center();
-    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-    m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)m_box.min.z));
+    Pointf3 center = m_starting_center;
+    center.z = m_box.min.z;
+    double ratio = calc_ratio(0, mouse_ray, center);
 
-    Pointf mouse_pos = transform(mouse_ray, m).intersect_plane(0.0);
+    if (ratio > 0.0)
+    {
+        m_scale_x = m_starting_scale_x * (float)ratio;
+        m_scale_y = m_starting_scale_y * (float)ratio;
+        m_scale_z = m_starting_scale_z * (float)ratio;
+    }
+}
 
-    coordf_t orig_len = length(m_starting_drag_position - center);
-    coordf_t new_len = length(Vectorf3(mouse_pos.x, mouse_pos.y, m_box.min.z - center.z));
-    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Pointf3& center) const
+{
+    double ratio = 0.0;
 
-    m_scale_x = m_starting_scale_y * (float)ratio;
-    m_scale_y = m_starting_scale_y * (float)ratio;
-    m_scale_z = m_starting_scale_z * (float)ratio;
+    Vectorf3 starting_vec = m_starting_drag_position - center;
+    double len_starting_vec = length(starting_vec);
+    if (len_starting_vec == 0.0)
+        return ratio;
+
+    Vectorf3 starting_vec_dir = normalize(starting_vec);
+    Vectorf3 mouse_dir = mouse_ray.unit_vector();
+    unsigned int plane_id = preferred_plane_id;
+
+    // 1st try to see if the mouse direction is close enough to the preferred plane normal
+    double dot_to_normal = 0.0;
+    switch (plane_id)
+    {
+    case 0:
+    {
+        dot_to_normal = std::abs(dot(mouse_dir, Vectorf3(0.0, 0.0, 1.0)));
+        break;
+    }
+    case 1:
+    {
+        dot_to_normal = std::abs(dot(mouse_dir, Vectorf3(0.0, -1.0, 0.0)));
+        break;
+    }
+    case 2:
+    {
+        dot_to_normal = std::abs(dot(mouse_dir, Vectorf3(1.0, 0.0, 0.0)));
+        break;
+    }
+    }
+
+    if (dot_to_normal < 0.1)
+    {
+        // if not, select the plane who's normal is closest to the mouse direction
+
+        typedef std::map<double, unsigned int> ProjsMap;
+        ProjsMap projs_map;
+
+        projs_map.insert(ProjsMap::value_type(std::abs(dot(mouse_dir, Vectorf3(0.0, 0.0, 1.0))), 0));  // plane xy
+        projs_map.insert(ProjsMap::value_type(std::abs(dot(mouse_dir, Vectorf3(0.0, -1.0, 0.0))), 1)); // plane xz
+        projs_map.insert(ProjsMap::value_type(std::abs(dot(mouse_dir, Vectorf3(1.0, 0.0, 0.0))), 2));  // plane yz
+        plane_id = projs_map.rbegin()->second;
+    }
+
+    switch (plane_id)
+    {
+    case 0:
+    {
+        // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the given center
+        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+        m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+        Pointf mouse_pos_2d = transform(mouse_ray, m).intersect_plane(0.0);
+
+        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
+        ratio = dot(Vectorf3(mouse_pos_2d.x, mouse_pos_2d.y, 0.0), starting_vec_dir) / len_starting_vec;
+        break;
+    }
+    case 1:
+    {
+        // calculates the intersection of the mouse ray with the plane parallel to plane XZ and passing through the given center
+        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitX()));
+        m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+        Pointf mouse_pos_2d = transform(mouse_ray, m).intersect_plane(0.0);
+
+        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
+        ratio = dot(Vectorf3(mouse_pos_2d.x, 0.0, mouse_pos_2d.y), starting_vec_dir) / len_starting_vec;
+        break;
+    }
+    case 2:
+    {
+        // calculates the intersection of the mouse ray with the plane parallel to plane YZ and passing through the given center
+        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitY()));
+        m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
+        Pointf mouse_pos_2d = transform(mouse_ray, m).intersect_plane(0.0);
+
+        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
+        ratio = dot(Vectorf3(0.0, mouse_pos_2d.y, -mouse_pos_2d.x), starting_vec_dir) / len_starting_vec;
+        break;
+    }
+    }
+
+    return ratio;
 }
 
 } // namespace GUI

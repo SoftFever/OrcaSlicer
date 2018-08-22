@@ -265,6 +265,7 @@ class GLGizmoScale3D : public GLGizmoBase
     float m_starting_scale_z;
 
     Pointf3 m_starting_drag_position;
+    Pointf3 m_starting_center;
 
 public:
     GLGizmoScale3D();
@@ -300,6 +301,8 @@ private:
     void do_scale_y(const Linef3& mouse_ray);
     void do_scale_z(const Linef3& mouse_ray);
     void do_scale_uniform(const Linef3& mouse_ray);
+
+    double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Pointf3& center) const;
 };
 
 } // namespace GUI
