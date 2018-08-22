@@ -102,7 +102,7 @@ inline TPoint<RawShape> leftmostDownVertex(const RawShape& sh)
     auto it = std::min_element(shapelike::cbegin(sh), shapelike::cend(sh),
                                __nfp::_vsort<RawShape>);
 
-    return *it;
+    return it == shapelike::cend(sh) ? TPoint<RawShape>() : *it;;
 }
 
 /**
@@ -118,7 +118,7 @@ TPoint<RawShape> rightmostUpVertex(const RawShape& sh)
     auto it = std::max_element(shapelike::cbegin(sh), shapelike::cend(sh),
                                __nfp::_vsort<RawShape>);
 
-    return *it;
+    return it == shapelike::cend(sh) ? TPoint<RawShape>() : *it;
 }
 
 /**

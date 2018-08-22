@@ -3,7 +3,7 @@
 
 #include "../libnest2d.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace placers {
 
 struct EmptyConfig {};
 

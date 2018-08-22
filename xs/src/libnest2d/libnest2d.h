@@ -30,12 +30,12 @@ using Rectangle = _Rectangle<PolygonImpl>;
 using PackGroup = _PackGroup<PolygonImpl>;
 using IndexedPackGroup = _IndexedPackGroup<PolygonImpl>;
 
-using FillerSelection = strategies::_FillerSelection<PolygonImpl>;
-using FirstFitSelection = strategies::_FirstFitSelection<PolygonImpl>;
-using DJDHeuristic  = strategies::_DJDHeuristic<PolygonImpl>;
+using FillerSelection = selections::_FillerSelection<PolygonImpl>;
+using FirstFitSelection = selections::_FirstFitSelection<PolygonImpl>;
+using DJDHeuristic  = selections::_DJDHeuristic<PolygonImpl>;
 
-using NfpPlacer = strategies::_NofitPolyPlacer<PolygonImpl>;
-using BottomLeftPlacer = strategies::_BottomLeftPlacer<PolygonImpl>;
+using NfpPlacer = placers::_NofitPolyPlacer<PolygonImpl>;
+using BottomLeftPlacer = placers::_BottomLeftPlacer<PolygonImpl>;
 
 }
 

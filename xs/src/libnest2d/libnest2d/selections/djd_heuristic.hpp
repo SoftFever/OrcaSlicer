@@ -8,7 +8,7 @@
 
 #include "selection_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace selections {
 
 /**
  * Selection heuristic based on [López-Camacho]\

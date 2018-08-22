@@ -4,7 +4,7 @@
 #include "../libnest2d.hpp"
 #include "selection_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace selections {
 
 template<class RawShape>
 class _FirstFitSelection: public SelectionBoilerplate<RawShape> {

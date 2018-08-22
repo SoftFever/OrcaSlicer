@@ -5,7 +5,7 @@
 
 #include "placer_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace placers {
 
 template<class T, class = T> struct Epsilon {};
 

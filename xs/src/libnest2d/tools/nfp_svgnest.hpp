@@ -32,14 +32,17 @@ template<class S> struct _alg {
 #define dNAN std::nan("")
 
     struct Vector {
-        Coord x, y;
+        Coord x = 0.0, y = 0.0;
         bool marked = false;
         Vector() = default;
         Vector(Coord X, Coord Y): x(X), y(Y) {}
-        Vector(const Point& p): x(getX(p)), y(getY(p)) {}
+        Vector(const Point& p): x(Coord(getX(p))), y(Coord(getY(p))) {}
         operator Point() const { return {iCoord(x), iCoord(y)}; }
         Vector& operator=(const Point& p) {
             x = getX(p), y = getY(p); return *this;
+        }
+        bool operator!=(const Vector& v) const {
+            return v.x != x || v.y != y;
         }
         Vector(std::initializer_list<Coord> il):
             x(*il.begin()), y(*std::next(il.begin())) {}
@@ -58,8 +61,10 @@ template<class S> struct _alg {
             v_.reserve(c.size());
             std::transform(c.begin(), c.end(), std::back_inserter(v_),
                            [](const Point& p) {
-                return Vector(double(x(p))/1e6, double(y(p))/1e6);
+                return Vector(double(x(p)) / 1e6, double(y(p)) / 1e6);
             });
+            std::reverse(v_.begin(), v_.end());
+            v_.pop_back();
         }
         Cntr() = default;
 
@@ -67,8 +72,10 @@ template<class S> struct _alg {
         Coord offsety = 0;
         size_t size() const { return v_.size(); }
         bool empty() const { return v_.empty(); }
-        typename Contour::const_iterator begin() const { return v_.cbegin(); }
-        typename Contour::const_iterator end() const { return v_.cend(); }
+        typename std::vector<Vector>::const_iterator cbegin() const { return v_.cbegin(); }
+        typename std::vector<Vector>::const_iterator cend() const { return v_.cend(); }
+        typename std::vector<Vector>::iterator begin() { return v_.begin(); }
+        typename std::vector<Vector>::iterator end() { return v_.end(); }
         Vector& operator[](size_t idx) { return v_[idx]; }
         const Vector& operator[](size_t idx) const { return v_[idx]; }
         template<class...Args>
@@ -83,12 +90,16 @@ template<class S> struct _alg {
 
         operator Contour() const {
             Contour cnt;
-            cnt.reserve(v_.size());
+            cnt.reserve(v_.size() + 1);
             std::transform(v_.begin(), v_.end(), std::back_inserter(cnt),
                            [](const Vector& vertex) {
-                return Point(iCoord(vertex.x*1e6), iCoord(vertex.y*1e6));
+                return Point(iCoord(vertex.x) * 1000000, iCoord(vertex.y) * 1000000);
             });
-            return cnt;
+            if(!cnt.empty()) cnt.emplace_back(cnt.front());
+            S sh = shapelike::create<S>(cnt);
+
+//            std::reverse(cnt.begin(), cnt.end());
+            return shapelike::getContour(sh);
         }
     };
 
@@ -235,11 +246,11 @@ template<class S> struct _alg {
             if ((_almostEqual(pdot, s1dot) && _almostEqual(pdot, s2dot)) &&
                     (pdotnorm>s1dotnorm && pdotnorm>s2dotnorm))
             {
-                return double(min(pdotnorm - s1dotnorm, pdotnorm - s2dotnorm));
+                return min(pdotnorm - s1dotnorm, pdotnorm - s2dotnorm);
             }
             if ((_almostEqual(pdot, s1dot) && _almostEqual(pdot, s2dot)) &&
                     (pdotnorm<s1dotnorm && pdotnorm<s2dotnorm)){
-                return double(-min(s1dotnorm-pdotnorm, s2dotnorm-pdotnorm));
+                return -min(s1dotnorm-pdotnorm, s2dotnorm-pdotnorm);
             }
         }
 
@@ -286,7 +297,7 @@ template<class S> struct _alg {
         auto EFmin = min(dotE, dotF);
 
         // segments that will merely touch at one point
-        if(_almostEqual(ABmax, EFmin,TOL) || _almostEqual(ABmin, EFmax,TOL)){
+        if(_almostEqual(ABmax, EFmin, TOL) || _almostEqual(ABmin, EFmax,TOL)) {
             return dNAN;
         }
         // segments miss eachother completely
@@ -362,7 +373,7 @@ template<class S> struct _alg {
                     d = dNAN;
                 }
             }
-            if(isnan(d)){
+            if(!isnan(d)){
                 distances.emplace_back(d);
             }
         }
@@ -392,7 +403,7 @@ template<class S> struct _alg {
             auto d = pointDistance(E,A,B,direction);
             if(!isnan(d) && _almostEqual(d, 0))
             { // crossF<crossE A currently touches EF, but AB is moving away from EF
-                auto dF = pointDistance(F,A,B,direction, true);
+                double dF = pointDistance(F,A,B,direction, true);
                 if(dF < 0 || _almostEqual(dF*overlap,0)){
                     d = dNAN;
                 }
@@ -407,7 +418,7 @@ template<class S> struct _alg {
             if(!isnan(d) && _almostEqual(d, 0))
             { // && crossE<crossF A currently touches EF,
               // but AB is moving away from EF
-                auto dE = pointDistance(E,A,B,direction, true);
+                double dE = pointDistance(E,A,B,direction, true);
                 if(dE < 0 || _almostEqual(dE*overlap,0)){
                     d = dNAN;
                 }
@@ -424,16 +435,28 @@ template<class S> struct _alg {
         return *std::min_element(distances.begin(), distances.end());
     }
 
-    static double polygonSlideDistance( const Cntr& A,
-                                        const Cntr& B,
+    static double polygonSlideDistance( const Cntr& AA,
+                                        const Cntr& BB,
                                         Vector direction,
                                         bool ignoreNegative)
     {
 //        Vector A1, A2, B1, B2;
+        Cntr A = AA;
+        Cntr B = BB;
+
         Coord Aoffsetx = A.offsetx;
         Coord Boffsetx = B.offsetx;
         Coord Aoffsety = A.offsety;
         Coord Boffsety = B.offsety;
+
+        // close the loop for polygons
+        if(A[0] != A[A.size()-1]){
+            A.emplace_back(AA[0]);
+        }
+
+        if(B[0] != B[B.size()-1]){
+            B.emplace_back(BB[0]);
+        }
 
         auto& edgeA = A;
         auto& edgeB = B;
@@ -457,7 +480,7 @@ template<class S> struct _alg {
                 Vector A1 = {x(edgeA[j]) + Aoffsetx, y(edgeA[j]) + Aoffsety };
                 Vector A2 = {x(edgeA[j+1]) + Aoffsetx, y(edgeA[j+1]) + Aoffsety};
                 Vector B1 = {x(edgeB[i]) + Boffsetx,  y(edgeB[i]) + Boffsety };
-                Vector B2 = {x(edgeB[i+1]) + Boffsety, y(edgeB[i+1]) + Boffsety};
+                Vector B2 = {x(edgeB[i+1]) + Boffsetx, y(edgeB[i+1]) + Boffsety};
 
                 if((_almostEqual(A1.x, A2.x) && _almostEqual(A1.y, A2.y)) ||
                    (_almostEqual(B1.x, B2.x) && _almostEqual(B1.y, B2.y))){
@@ -476,23 +499,26 @@ template<class S> struct _alg {
         return distance;
     }
 
-    static double polygonProjectionDistance(const Cntr& A,
-                                            const Cntr& B,
+    static double polygonProjectionDistance(const Cntr& AA,
+                                            const Cntr& BB,
                                             Vector direction)
     {
+        Cntr A = AA;
+        Cntr B = BB;
+
         auto Boffsetx = B.offsetx;
         auto Boffsety = B.offsety;
         auto Aoffsetx = A.offsetx;
         auto Aoffsety = A.offsety;
 
         // close the loop for polygons
-        /*if(A[0] != A[A.length-1]){
+        if(A[0] != A[A.size()-1]){
             A.push(A[0]);
         }
 
-        if(B[0] != B[B.length-1]){
+        if(B[0] != B[B.size()-1]){
             B.push(B[0]);
-        }*/
+        }
 
         auto& edgeA = A;
         auto& edgeB = B;
@@ -665,7 +691,7 @@ template<class S> struct _alg {
         A.offsetx = 0;
         A.offsety = 0;
 
-        unsigned i = 0, j = 0;
+        long i = 0, j = 0;
 
         auto minA = y(A[0]);
         long minAindex = 0;
@@ -709,7 +735,8 @@ template<class S> struct _alg {
 
         struct Touch {
             int type;
-            long A, B;
+            long A;
+            long B;
             Touch(int t, long a, long b): type(t), A(a), B(b) {}
         };
 
@@ -720,6 +747,15 @@ template<class S> struct _alg {
 
             // maintain a list of touching points/edges
             std::vector<Touch> touching;
+
+            struct V {
+                Coord x, y;
+                Vector *start, *end;
+                operator bool() {
+                    return start != nullptr && end != nullptr;
+                }
+                operator Vector() const { return {x, y}; }
+            } prevvector = {0, 0, nullptr, nullptr};
 
             Cntr NFP;
             NFP.emplace_back(x(B[0]) + B.offsetx, y(B[0]) + B.offsety);
@@ -736,10 +772,10 @@ template<class S> struct _alg {
 
                 // find touching vertices/edges
                 for(i = 0; i < A.size(); i++){
-                    auto nexti = (i == A.size() - 1) ? 0 : i + 1;
+                    long nexti = (i == A.size() - 1) ? 0 : i + 1;
                     for(j = 0; j < B.size(); j++){
 
-                        auto nextj = (j == B.size() - 1) ? 0 : j + 1;
+                        long nextj = (j == B.size() - 1) ? 0 : j + 1;
 
                         if( _almostEqual(A[i].x, B[j].x+B.offsetx) &&
                             _almostEqual(A[i].y, B[j].y+B.offsety))
@@ -761,15 +797,6 @@ template<class S> struct _alg {
                         }
                     }
                 }
-
-                struct V {
-                    Coord x, y;
-                    Vector *start, *end;
-                    operator bool() {
-                        return start != nullptr && end != nullptr;
-                    }
-                    operator Vector() const { return {x, y}; }
-                };
 
                 // generate translation vectors from touching vertices/edges
                 std::vector<V> vectors;
@@ -871,7 +898,6 @@ template<class S> struct _alg {
                 // will cause immediate intersection. For now just check them all
 
                 V translate = {0, 0, nullptr, nullptr};
-                V prevvector = {0, 0, nullptr, nullptr};
                 double maxd = 0;
 
                 for(i = 0; i < vectors.size(); i++) {
@@ -897,7 +923,8 @@ template<class S> struct _alg {
                         }
                     }
 
-                    double d = polygonSlideDistance(A, B, vectors[i], true);
+                    V vi = vectors[i];
+                    double d = polygonSlideDistance(A, B, vi, true);
                     double vecd2 = vectors[i].x*vectors[i].x + vectors[i].y*vectors[i].y;
 
                     if(isnan(d) || d*d > vecd2){
@@ -984,19 +1011,6 @@ template<class S> struct _alg {
 };
 
 template<class S> const double _alg<S>::TOL = std::pow(10, -9);
-
-//template<class S>
-//nfp::NfpResult<S> nfpSimpleSimple(const S& stat, const S& orb) {
-////    using Cntr = TContour<S>;
-//    using Point = TPoint<S>;
-////    using Coord = TCoord<Point>;
-////    using Shapes = nfp::Shapes<S>;
-
-//    namespace sl = shapelike;
-
-//    noFitPolygon(sl::getContour(stat), sl::getContour(orb), true, true);
-//    return {S(), Point()};
-//}
 
 }
 }

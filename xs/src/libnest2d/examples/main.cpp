@@ -54,7 +54,7 @@ void arrangeRectangles() {
 
     const int SCALE = 1000000;
 
-    std::vector<Item> rects(100,       {
+    std::vector<Item> rects(202,       {
                                      {-9945219, -3065619},
                                      {-9781479, -2031780},
                                      {-9510560, -1020730},
@@ -104,8 +104,6 @@ void arrangeRectangles() {
 //    input.insert(input.end(), prusaExParts().begin(), prusaExParts().end());
 //    input.insert(input.end(), stegoParts().begin(), stegoParts().end());
 //    input.insert(input.end(), rects.begin(), rects.end());
-//    input.insert(input.end(), proba.begin(), proba.end());
-//    input.insert(input.end(), crasher.begin(), crasher.end());
 
     Box bin(250*SCALE, 210*SCALE);
 //    PolygonImpl bin = {
@@ -123,11 +121,11 @@ void arrangeRectangles() {
 //        {}
 //    };
 
-//    _Circle<PointImpl> bin({0, 0}, 125*SCALE);
+//    Circle bin({0, 0}, 125*SCALE);
 
-    auto min_obj_distance = static_cast<Coord>(1.5*SCALE);
+    auto min_obj_distance = static_cast<Coord>(6*SCALE);
 
-    using Placer = strategies::_NofitPolyPlacer<PolygonImpl, decltype(bin)>;
+    using Placer = placers::_NofitPolyPlacer<PolygonImpl, decltype(bin)>;
     using Packer = Nester<Placer, FirstFitSelection>;
 
     Packer arrange(bin, min_obj_distance);
@@ -136,7 +134,7 @@ void arrangeRectangles() {
     pconf.alignment = Placer::Config::Alignment::CENTER;
     pconf.starting_point = Placer::Config::Alignment::CENTER;
     pconf.rotations = {0.0/*, Pi/2.0, Pi, 3*Pi/2*/};
-    pconf.accuracy = 0.5f;
+    pconf.accuracy = 0.65f;
     pconf.parallel = true;
 
     Packer::SelectionConfig sconf;
@@ -149,12 +147,6 @@ void arrangeRectangles() {
     arrange.configure(pconf, sconf);
 
     arrange.progressIndicator([&](unsigned r){
-//        svg::SVGWriter::Config conf;
-//        conf.mm_in_coord_units = SCALE;
-//        svg::SVGWriter svgw(conf);
-//        svgw.setSize(bin);
-//        svgw.writePackGroup(arrange.lastResult());
-//        svgw.save("debout");
         std::cout << "Remaining items: " << r << std::endl;
     });
 
@@ -201,10 +193,10 @@ void arrangeRectangles() {
     for(auto& r : result) { std::cout << r.size() << " "; total += r.size(); }
     std::cout << ") Total: " << total << std::endl;
 
-    for(auto& it : input) {
-        auto ret = sl::isValid(it.transformedShape());
-        std::cout << ret.second << std::endl;
-    }
+//    for(auto& it : input) {
+//        auto ret = sl::isValid(it.transformedShape());
+//        std::cout << ret.second << std::endl;
+//    }
 
     if(total != input.size()) std::cout << "ERROR " << "could not pack "
                                         << input.size() - total << " elements!"
@@ -222,7 +214,5 @@ void arrangeRectangles() {
 
 int main(void /*int argc, char **argv*/) {
     arrangeRectangles();
-////    findDegenerateCase();
-
     return EXIT_SUCCESS;
 }

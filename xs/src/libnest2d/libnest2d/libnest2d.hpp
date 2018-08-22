@@ -65,8 +65,8 @@ class _Item {
     mutable VertexConstIterator lmb_;    // leftmost bottom vertex
     mutable bool rmt_valid_ = false, lmb_valid_ = false;
     mutable struct BBCache {
-        Box bb; bool valid; Vertex tr;
-        BBCache(): valid(false), tr(0, 0) {}
+        Box bb; bool valid;
+        BBCache(): valid(false) {}
     } bb_cache_;
 
 public:
@@ -310,7 +310,7 @@ public:
     {
         if(translation_ != tr) {
             translation_ = tr; has_translation_ = true; tr_cache_valid_ = false;
-            bb_cache_.valid = false;
+            //bb_cache_.valid = false;
         }
     }
 
@@ -345,13 +345,19 @@ public:
 
     inline Box boundingBox() const {
         if(!bb_cache_.valid) {
-            bb_cache_.bb = sl::boundingBox(transformedShape());
-            bb_cache_.tr = {0, 0};
+            if(!has_rotation_)
+                bb_cache_.bb = sl::boundingBox(offsettedShape());
+            else {
+                // TODO make sure this works
+                auto rotsh = offsettedShape();
+                sl::rotate(rotsh, rotation_);
+                bb_cache_.bb = sl::boundingBox(rotsh);
+            }
             bb_cache_.valid = true;
         }
 
-        auto &bb = bb_cache_.bb; auto &tr = bb_cache_.tr;
-        return {bb.minCorner() + tr, bb.maxCorner() + tr};
+        auto &bb = bb_cache_.bb; auto &tr = translation_;
+        return {bb.minCorner() + tr, bb.maxCorner() + tr };
     }
 
     inline Vertex referenceVertex() const {

@@ -3,7 +3,7 @@
 
 #include "selection_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace selections {
 
 template<class RawShape>
 class _FillerSelection: public SelectionBoilerplate<RawShape> {

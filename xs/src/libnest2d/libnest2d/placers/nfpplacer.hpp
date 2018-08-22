@@ -21,6 +21,12 @@
 
 #include "tools/svgtools.hpp"
 
+#ifdef USE_TBB
+#include <tbb/parallel_for.h>
+#elif defined(_OPENMP)
+#include <omp.h>
+#endif
+
 namespace libnest2d {
 
 namespace __parallel {
@@ -33,19 +39,51 @@ using TIteratorValue = typename iterator_traits<It>::value_type;
 template<class Iterator>
 inline void enumerate(
         Iterator from, Iterator to,
-        function<void(TIteratorValue<Iterator>, unsigned)> fn,
+        function<void(TIteratorValue<Iterator>, size_t)> fn,
         std::launch policy = std::launch::deferred | std::launch::async)
 {
-    auto N = to-from;
+    using TN = size_t;
+    auto iN = to-from;
+    TN N = iN < 0? 0 : TN(iN);
+
+#ifdef USE_TBB
+    if((policy & std::launch::async) == std::launch::async) {
+        tbb::parallel_for<TN>(0, N, [from, fn] (TN n) { fn(*(from + n), n); } );
+    } else {
+        for(TN n = 0; n < N; n++) fn(*(from + n), n);
+    }
+#elif defined(_OPENMP)
+    if((policy & std::launch::async) == std::launch::async) {
+        #pragma omp parallel for
+        for(TN n = 0; n < N; n++) fn(*(from + n), n);
+    }
+    else {
+        for(TN n = 0; n < N; n++) fn(*(from + n), n);
+    }
+#else
     std::vector<std::future<void>> rets(N);
 
     auto it = from;
-    for(unsigned b = 0; b < N; b++) {
-        rets[b] = std::async(policy, fn, *it++, b);
+    for(TN b = 0; b < N; b++) {
+        rets[b] = std::async(policy, fn, *it++, unsigned(b));
     }
 
-    for(unsigned fi = 0; fi < rets.size(); ++fi) rets[fi].wait();
+    for(TN fi = 0; fi < N; ++fi) rets[fi].wait();
+#endif
 }
+
+class SpinLock {
+    static std::atomic_flag locked;
+public:
+    void lock() {
+        while (locked.test_and_set(std::memory_order_acquire)) { ; }
+    }
+    void unlock() {
+        locked.clear(std::memory_order_release);
+    }
+};
+
+std::atomic_flag SpinLock::locked = ATOMIC_FLAG_INIT ;
 
 }
 
@@ -98,7 +136,7 @@ using Hash = std::unordered_map<Key, nfp::NfpResult<S>>;
 
 }
 
-namespace strategies {
+namespace placers {
 
 template<class RawShape>
 struct NfpPConfig {
@@ -134,30 +172,12 @@ struct NfpPConfig {
      * that will optimize for the best pack efficiency. With a custom fitting
      * function you can e.g. influence the shape of the arranged pile.
      *
-     * \param shapes The first parameter is a container with all the placed
-     * polygons excluding the current candidate. You can calculate a bounding
-     * box or convex hull on this pile of polygons without the candidate item
-     * or push back the candidate item into the container and then calculate
-     * some features.
-     *
-     * \param item The second parameter is the candidate item.
-     *
-     * \param remaining A container with the remaining items waiting to be
-     * placed. You can use some features about the remaining items to alter to
-     * score of the current placement. If you know that you have to leave place
-     * for other items as well, that might influence your decision about where
-     * the current candidate should be placed. E.g. imagine three big circles
-     * which you want to place into a box: you might place them in a triangle
-     * shape which has the maximum pack density. But if there is a 4th big
-     * circle than you won't be able to pack it. If you knew apriori that
-     * there four circles are to be placed, you would have placed the first 3
-     * into an L shape. This parameter can be used to make these kind of
-     * decisions (for you or a more intelligent AI).
+     * \param item The only parameter is the candidate item which has info
+     * about its current position. Your job is to rate this position compared to
+     * the already packed items.
      *
      */
-    std::function<double(const nfp::Shapes<RawShape>&, const _Item<RawShape>&,
-                         const ItemGroup&)>
-    object_function;
+    std::function<double(const _Item<RawShape>&)> object_function;
 
     /**
      * @brief The quality of search for an optimal placement.
@@ -179,6 +199,34 @@ struct NfpPConfig {
      * @brief If true, use all CPUs available. Run on a single core otherwise.
      */
     bool parallel = true;
+
+    /**
+     * @brief before_packing Callback that is called just before a search for
+     * a new item's position is started. You can use this to create various
+     * cache structures and update them between subsequent packings.
+     *
+     * \param merged pile A polygon that is the union of all items in the bin.
+     *
+     * \param pile The items parameter is a container with all the placed
+     * polygons excluding the current candidate. You can for instance check the
+     * alignment with the candidate item or do anything else.
+     *
+     * \param remaining A container with the remaining items waiting to be
+     * placed. You can use some features about the remaining items to alter to
+     * score of the current placement. If you know that you have to leave place
+     * for other items as well, that might influence your decision about where
+     * the current candidate should be placed. E.g. imagine three big circles
+     * which you want to place into a box: you might place them in a triangle
+     * shape which has the maximum pack density. But if there is a 4th big
+     * circle than you won't be able to pack it. If you knew apriori that
+     * there four circles are to be placed, you would have placed the first 3
+     * into an L shape. This parameter can be used to make these kind of
+     * decisions (for you or a more intelligent AI).
+     */
+    std::function<void(const nfp::Shapes<RawShape>&, // merged pile
+                       const ItemGroup&,             // packed items
+                       const ItemGroup&              // remaining items
+                       )> before_packing;
 
     NfpPConfig(): rotations({0.0, Pi/2.0, Pi, 3*Pi/2}),
         alignment(Alignment::CENTER), starting_point(Alignment::CENTER) {}
@@ -428,7 +476,7 @@ Circle minimizeCircle(const RawShape& sh) {
 
 
     opt::StopCriteria stopcr;
-    stopcr.max_iterations = 100;
+    stopcr.max_iterations = 30;
     stopcr.relative_score_difference = 1e-3;
     opt::TOptimizer<opt::Method::L_SUBPLEX> solver(stopcr);
 
@@ -590,35 +638,25 @@ private:
     {
         using namespace nfp;
 
-        Shapes nfps;
+        Shapes nfps(items_.size());
         const Item& trsh = itsh.first;
-    //    nfps.reserve(polygons.size());
 
-//        unsigned idx = 0;
-        for(Item& sh : items_) {
-
-//            auto ik = item_keys_[idx++] + itsh.second;
-//            auto fnd = nfpcache_.find(ik);
-
-//            nfp::NfpResult<RawShape> subnfp_r;
-//            if(fnd == nfpcache_.end()) {
-
-                auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(
-                                sh.transformedShape(), trsh.transformedShape());
-//                nfpcache_[ik] = subnfp_r;
-//            } else {
-//                subnfp_r = fnd->second;
-//            }
-
+        __parallel::enumerate(items_.begin(), items_.end(),
+                              [&nfps, &trsh](const Item& sh, size_t n)
+        {
+            auto& fixedp = sh.transformedShape();
+            auto& orbp = trsh.transformedShape();
+            auto subnfp_r = noFitPolygon<NfpLevel::CONVEX_ONLY>(fixedp, orbp);
             correctNfpPosition(subnfp_r, sh, trsh);
+            nfps[n] = subnfp_r.first;
+        });
 
-    //        nfps.emplace_back(subnfp_r.first);
-            nfps = nfp::merge(nfps, subnfp_r.first);
-        }
+//        for(auto& n : nfps) {
+//            auto valid = sl::isValid(n);
+//            if(!valid.first) std::cout << "Warning: " << valid.second << std::endl;
+//        }
 
-    //    nfps = nfp::merge(nfps);
-
-        return nfps;
+        return nfp::merge(nfps);
     }
 
     template<class Level>
@@ -777,6 +815,21 @@ private:
         }
     };
 
+    static Box boundingBox(const Box& pilebb, const Box& ibb ) {
+        auto& pminc = pilebb.minCorner();
+        auto& pmaxc = pilebb.maxCorner();
+        auto& iminc = ibb.minCorner();
+        auto& imaxc = ibb.maxCorner();
+        Vertex minc, maxc;
+
+        setX(minc, std::min(getX(pminc), getX(iminc)));
+        setY(minc, std::min(getY(pminc), getY(iminc)));
+
+        setX(maxc, std::max(getX(pmaxc), getX(imaxc)));
+        setY(maxc, std::max(getY(pmaxc), getY(imaxc)));
+        return Box(minc, maxc);
+    }
+
     using Edges = EdgeCache<RawShape>;
 
     template<class Range = ConstItemRange<typename Base::DefaultIter>>
@@ -810,6 +863,7 @@ private:
 
                 item.translation(initial_tr);
                 item.rotation(initial_rot + rot);
+                item.boundingBox(); // fill the bb cache
 
                 // place the new item outside of the print bed to make sure
                 // it is disjunct from the current merged pile
@@ -840,21 +894,17 @@ private:
                 auto merged_pile = nfp::merge(pile);
                 auto& bin = bin_;
                 double norm = norm_;
+                auto pbb = sl::boundingBox(merged_pile);
+                auto binbb = sl::boundingBox(bin);
 
                 // This is the kernel part of the object function that is
                 // customizable by the library client
                 auto _objfunc = config_.object_function?
                             config_.object_function :
-                            [norm, /*pile_area,*/ bin, merged_pile](
-                                const Pile& /*pile*/,
-                                const Item& item,
-                                const ItemGroup& /*remaining*/)
+                            [norm, bin, binbb, pbb](const Item& item)
                 {
                     auto ibb = item.boundingBox();
-                    auto binbb = sl::boundingBox(bin);
-                    auto mp = merged_pile;
-                    mp.emplace_back(item.transformedShape());
-                    auto fullbb = sl::boundingBox(mp);
+                    auto fullbb = boundingBox(pbb, ibb);
 
                     double score = pl::distance(ibb.center(), binbb.center());
                     score /= norm;
@@ -868,15 +918,12 @@ private:
 
                 // Our object function for placement
                 auto rawobjfunc =
-                        [item, _objfunc, iv,
-                         startpos, remlist, pile] (Vertex v)
+                        [_objfunc, iv, startpos] (Vertex v, Item& itm)
                 {
                     auto d = v - iv;
                     d += startpos;
-                    Item itm = item;
                     itm.translation(d);
-
-                    return _objfunc(pile, itm, remlist);
+                    return _objfunc(itm);
                 };
 
                 auto getNfpPoint = [&ecache](const Optimum& opt)
@@ -906,6 +953,9 @@ private:
                 std::launch policy = std::launch::deferred;
                 if(config_.parallel) policy |= std::launch::async;
 
+                if(config_.before_packing)
+                    config_.before_packing(merged_pile, items_, remlist);
+
                 using OptResult = opt::Result<double>;
                 using OptResults = std::vector<OptResult>;
 
@@ -914,21 +964,27 @@ private:
                 for(unsigned ch = 0; ch < ecache.size(); ch++) {
                     auto& cache = ecache[ch];
 
-                    auto contour_ofn = [rawobjfunc, getNfpPoint, ch]
-                            (double relpos)
-                    {
-                        return rawobjfunc(getNfpPoint(Optimum(relpos, ch)));
-                    };
-
                     OptResults results(cache.corners().size());
+
+                    auto& rofn = rawobjfunc;
+                    auto& nfpoint = getNfpPoint;
 
                     __parallel::enumerate(
                                 cache.corners().begin(),
                                 cache.corners().end(),
-                                [&contour_ofn, &results]
-                                (double pos, unsigned n)
+                                [&results, &item, &rofn, &nfpoint, ch]
+                                (double pos, size_t n)
                     {
                         Optimizer solver;
+
+                        Item itemcpy = item;
+                        auto contour_ofn = [&rofn, &nfpoint, ch, &itemcpy]
+                                (double relpos)
+                        {
+                            Optimum op(relpos, ch);
+                            return rofn(nfpoint(op), itemcpy);
+                        };
+
                         try {
                             results[n] = solver.optimize_min(contour_ofn,
                                             opt::initvals<double>(pos),
@@ -959,24 +1015,27 @@ private:
                     }
 
                     for(unsigned hidx = 0; hidx < cache.holeCount(); ++hidx) {
-                        auto hole_ofn =
-                                [rawobjfunc, getNfpPoint, ch, hidx]
-                                (double pos)
-                        {
-                            Optimum opt(pos, ch, hidx);
-                            return rawobjfunc(getNfpPoint(opt));
-                        };
-
                         results.clear();
                         results.resize(cache.corners(hidx).size());
 
                         // TODO : use parallel for
                         __parallel::enumerate(cache.corners(hidx).begin(),
                                       cache.corners(hidx).end(),
-                                      [&hole_ofn, &results]
-                                      (double pos, unsigned n)
+                                      [&results, &item, &nfpoint,
+                                       &rofn, ch, hidx]
+                                      (double pos, size_t n)
                         {
                             Optimizer solver;
+
+                            Item itmcpy = item;
+                            auto hole_ofn =
+                                    [&rofn, &nfpoint, ch, hidx, &itmcpy]
+                                    (double pos)
+                            {
+                                Optimum opt(pos, ch, hidx);
+                                return rofn(nfpoint(opt), itmcpy);
+                            };
+
                             try {
                                 results[n] = solver.optimize_min(hole_ofn,
                                                 opt::initvals<double>(pos),

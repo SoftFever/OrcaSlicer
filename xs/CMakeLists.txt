@@ -729,6 +729,7 @@ add_custom_target(pot
 set(LIBNEST2D_UNITTESTS ON CACHE BOOL "Force generating unittests for libnest2d")
 
 add_subdirectory(${LIBDIR}/libnest2d)
+target_compile_definitions(libslic3r PUBLIC -DUSE_TBB)
 target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
 target_include_directories(libslic3r_gui PUBLIC BEFORE ${LIBNEST2D_INCLUDES})
 
