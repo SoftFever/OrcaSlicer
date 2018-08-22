@@ -536,6 +536,7 @@ public:
     void OnLeaveWin(wxMouseEvent& event);
     void OnWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent &event);
+    void OnRightDown(wxMouseEvent& event);
 
 protected:
  
@@ -543,6 +544,7 @@ protected:
     void    draw_focus_rect();
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
+    void    draw_ticks(wxDC& dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line(wxDC& dc, const wxPoint& pos, SelectedSlider selection) const;
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
@@ -560,6 +562,7 @@ protected:
     wxString    get_label(const SelectedSlider& selection) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
     int         position_to_value(wxDC& dc, const wxCoord x, const wxCoord y);
+    wxCoord     get_position_from_value(const int value);
 
 private:
     int         m_min_value;
@@ -591,6 +594,7 @@ private:
 
     std::vector<wxPen*> line_pens;
     std::vector<wxPen*> segm_pens;
+    std::set<int>       m_ticks;
 };
 // ******************************************************************************************
 

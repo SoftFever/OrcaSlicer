@@ -787,6 +787,7 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
     Bind(wxEVT_ENTER_WINDOW,&PrusaDoubleSlider::OnEnterWin, this);
     Bind(wxEVT_LEAVE_WINDOW,&PrusaDoubleSlider::OnLeaveWin, this);
     Bind(wxEVT_KEY_DOWN,    &PrusaDoubleSlider::OnKeyDown,  this);
+    Bind(wxEVT_RIGHT_DOWN,  &PrusaDoubleSlider::OnRightDown,this);
 
     // control's view variables
     SLIDER_MARGIN     = 2 + (style == wxSL_HORIZONTAL ? m_thumb_higher.GetWidth() : m_thumb_higher.GetHeight());
@@ -862,6 +863,14 @@ double PrusaDoubleSlider::get_scroll_step()
     return double(slider_len - SLIDER_MARGIN * 2) / (m_max_value - m_min_value);
 }
 
+// get position on the slider line from entered value
+wxCoord PrusaDoubleSlider::get_position_from_value(const int value)
+{
+    const double step = get_scroll_step();
+    const int val = is_horizontal() ? value : m_max_value - value;
+    return wxCoord(SLIDER_MARGIN + int(val*step + 0.5));
+}
+
 void PrusaDoubleSlider::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
 {
     const double step = get_scroll_step();
@@ -896,8 +905,8 @@ void PrusaDoubleSlider::render()
     int width, height;
     GetSize(&width, &height);
 
-    int lower_pos, higher_pos;
-    get_lower_and_higher_position(lower_pos, higher_pos);
+    const wxCoord lower_pos = get_position_from_value(m_lower_value);
+    const wxCoord higher_pos = get_position_from_value(m_higher_value);
 
     // draw line
     draw_scroll_line(dc, lower_pos, higher_pos);
@@ -907,6 +916,9 @@ void PrusaDoubleSlider::render()
 
     //higher slider:
     draw_thumb(dc, higher_pos, ssHigher);
+
+    //draw color print ticks
+    draw_ticks(dc);
 }
 
 void PrusaDoubleSlider::draw_info_line(wxDC& dc, const wxPoint& pos, const SelectedSlider selection) const
@@ -986,6 +998,23 @@ void PrusaDoubleSlider::draw_thumb(wxDC& dc, const wxCoord& pos_coord, const Sel
 
     // Draw thumb text
     draw_thumb_text(dc, pos, selection);
+}
+
+void PrusaDoubleSlider::draw_ticks(wxDC& dc)
+{
+    dc.SetPen(DARK_GREY_PEN);
+    int height, width;
+    GetSize(&width, &height);
+    const wxCoord mid = is_horizontal() ? 0.5*height : 0.5*width;
+    for (auto tick : m_ticks)
+    {
+        const wxCoord pos = get_position_from_value(tick);
+
+        is_horizontal() ?   dc.DrawLine(pos, mid-14, pos, mid-9) :
+                            dc.DrawLine(mid - 14, pos - 1, mid - 9, pos - 1);
+        is_horizontal() ?   dc.DrawLine(pos, mid+14, pos, mid+9) :
+                            dc.DrawLine(mid + 14, pos - 1, mid + 9, pos - 1);
+    }
 }
 
 void PrusaDoubleSlider::update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection)
@@ -1172,6 +1201,19 @@ void PrusaDoubleSlider::OnKeyDown(wxKeyEvent &event)
         else if (event.GetKeyCode() == WXK_UP || event.GetKeyCode() == WXK_DOWN)
             move_current_thumb(event.GetKeyCode() == WXK_UP);
     }
+}
+
+void PrusaDoubleSlider::OnRightDown(wxMouseEvent& event)
+{
+    if (m_selection == ssUndef)
+        return;
+
+    int new_tick = m_selection == ssLower ? m_lower_value : m_higher_value;
+
+    if (!m_ticks.insert(new_tick).second)
+        m_ticks.erase(new_tick);
+    Refresh();
+    Update();
 }
 
 // *****************************************************************************
