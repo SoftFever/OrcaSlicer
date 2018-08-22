@@ -523,11 +523,10 @@ public:
     int GetHigherValue() {
         return m_higher_value;
     }
+    wxSize DoGetBestSize() const override;
     void SetLowerValue(int lower_val);
     void SetHigherValue(int higher_val);
-    void SetKoefForLabels(float koef){ m_label_koef = koef;}
-
-    wxSize DoGetBestSize() const override;
+    void SetKoefForLabels(const double koef){ m_label_koef = koef;}
 
     void OnPaint(wxPaintEvent& ){ render();}
     void OnLeftDown(wxMouseEvent& event);
@@ -541,21 +540,26 @@ public:
 protected:
  
     void    render();
-    void    draw_info_line(wxDC& dc, const wxPoint& pos, const wxSize& thumb_size, SelectedSlider selection);
-    wxString    get_label(const int value);
+    void    draw_focus_rect();
+    void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
+    void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
+    void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
+    void    draw_info_line(wxDC& dc, const wxPoint& pos, SelectedSlider selection) const;
+    void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
+
+    void    update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection);
+    void    detect_selected_slider(const wxPoint& pt, const bool is_mouse_wheel = false);
     void    correct_lower_value();
     void    correct_higher_value();
-    void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
-    double  get_scroll_step();
-    void    get_lower_and_higher_position(int& lower_pos, int& higher_pos);
-    void    draw_focus_rect();
-    void    draw_lower_thumb(wxDC& dc, const wxPoint& pos);
-    void    draw_higher_thumb(wxDC& dc, const wxPoint& pos);
-    int     position_to_value(wxDC& dc, const wxCoord x, const wxCoord y);
-    void    detect_selected_slider(const wxPoint& pt, const bool is_mouse_wheel = false);
+    void    move_current_thumb(const bool condition);
+
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
-    void    move_current_thumb(const bool condition);
+
+    double      get_scroll_step();
+    wxString    get_label(const SelectedSlider& selection) const;
+    void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
+    int         position_to_value(wxDC& dc, const wxCoord x, const wxCoord y);
 
 private:
     int         m_min_value;
@@ -570,6 +574,7 @@ private:
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
+    wxSize      m_thumb_size;
     long        m_style;
     float       m_label_koef = 1.0;
 
