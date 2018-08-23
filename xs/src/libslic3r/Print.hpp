@@ -118,7 +118,7 @@ public:
     // so that next call to make_perimeters() performs a union() before computing loops
     bool typed_slices;
 
-    Point3 size;           // XYZ in scaled coordinates
+    Vec3crd size;           // XYZ in scaled coordinates
 
     // scaled coordinates to add to copies (to compensate for the alignment
     // operated when creating the object but still preserving a coherent API
@@ -138,13 +138,13 @@ public:
     const ModelObject*  model_object() const    { return this->_model_object; }
 
     const Points& copies() const { return this->_copies; }
-    bool add_copy(const Pointf &point);
+    bool add_copy(const Vec2d &point);
     bool delete_last_copy();
     bool delete_all_copies() { return this->set_copies(Points()); }
     bool set_copies(const Points &points);
     bool reload_model_instances();
     // since the object is aligned to origin, bounding box coincides with size
-    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), this->size); }
+    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id) {

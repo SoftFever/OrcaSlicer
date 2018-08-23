@@ -12,7 +12,6 @@
 namespace Slic3r {
 
 class BoundingBoxf3;
-class Pointf3;
 class Linef3;
 
 namespace GUI {
@@ -25,7 +24,7 @@ protected:
         static const float HalfSize;
         static const float DraggingScaleFactor;
 
-        Pointf3 center;
+        Vec3d center;
         float angle_x;
         float angle_y;
         float angle_z;
@@ -142,7 +141,7 @@ private:
     Axis m_axis;
     float m_angle;
 
-    mutable Pointf3 m_center;
+    mutable Vec3d m_center;
     mutable float m_radius;
     mutable bool m_keep_initial_values;
 
@@ -169,7 +168,8 @@ private:
     void render_grabber() const;
 
     void transform_to_local() const;
-    Pointf mouse_position_in_local_plane(const Linef3& mouse_ray) const;
+    // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
+    Vec3d mouse_position_in_local_plane(const Linef3& mouse_ray) const;
 };
 
 class GLGizmoRotate3D : public GLGizmoBase
@@ -234,7 +234,7 @@ class GLGizmoScale : public GLGizmoBase
     float m_scale;
     float m_starting_scale;
 
-    Pointf m_starting_drag_position;
+    Vec2d m_starting_drag_position;
 
 public:
     GLGizmoScale();
@@ -264,8 +264,8 @@ class GLGizmoScale3D : public GLGizmoBase
     float m_starting_scale_y;
     float m_starting_scale_z;
 
-    Pointf3 m_starting_drag_position;
-    Pointf3 m_starting_center;
+    Vec3d m_starting_drag_position;
+    Vec3d m_starting_center;
 
 public:
     GLGizmoScale3D();
@@ -302,7 +302,7 @@ private:
     void do_scale_z(const Linef3& mouse_ray);
     void do_scale_uniform(const Linef3& mouse_ray);
 
-    double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Pointf3& center) const;
+    double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const;
 };
 
 } // namespace GUI

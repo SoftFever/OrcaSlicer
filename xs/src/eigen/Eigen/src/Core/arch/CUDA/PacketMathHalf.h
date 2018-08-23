@@ -275,7 +275,7 @@ template<> __device__ EIGEN_STRONG_INLINE half2 plog1p<half2>(const half2& a) {
   return __floats2half2_rn(r1, r2);
 }
 
-#if defined __CUDACC_VER__ && __CUDACC_VER__ >= 80000 && defined __CUDA_ARCH__ && __CUDA_ARCH__ >= 530
+#if EIGEN_CUDACC_VER >= 80000 && defined EIGEN_CUDA_ARCH && EIGEN_CUDA_ARCH >= 530
 
 template<>  __device__ EIGEN_STRONG_INLINE
 half2 plog<half2>(const half2& a) {

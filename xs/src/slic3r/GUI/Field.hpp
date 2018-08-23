@@ -372,7 +372,7 @@ public:
 
 	void			BUILD()  override;
 
-	void			set_value(const Pointf& value, bool change_event = false);
+	void			set_value(const Vec2d& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any&		get_value() override;
 

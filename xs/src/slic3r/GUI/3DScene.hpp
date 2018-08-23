@@ -119,8 +119,8 @@ public:
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
 
-    inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
-        push_geometry(p.x, p.y, p.z, n.x, n.y, n.z);
+    inline void push_geometry(const Vec3d& p, const Vec3d& n) {
+        push_geometry(p(0), p(1), p(2), n(0), n(1), n(2));
     }
 
     inline void push_triangle(int idx1, int idx2, int idx3) {
@@ -176,17 +176,17 @@ public:
         BoundingBoxf3 bbox;
         if (! this->vertices_and_normals_interleaved.empty()) {
             bbox.defined = true;
-            bbox.min.x = bbox.max.x = this->vertices_and_normals_interleaved[3];
-            bbox.min.y = bbox.max.y = this->vertices_and_normals_interleaved[4];
-            bbox.min.z = bbox.max.z = this->vertices_and_normals_interleaved[5];
+            bbox.min(0) = bbox.max(0) = this->vertices_and_normals_interleaved[3];
+            bbox.min(1) = bbox.max(1) = this->vertices_and_normals_interleaved[4];
+            bbox.min(2) = bbox.max(2) = this->vertices_and_normals_interleaved[5];
             for (size_t i = 9; i < this->vertices_and_normals_interleaved.size(); i += 6) {
                 const float *verts = this->vertices_and_normals_interleaved.data() + i;
-                bbox.min.x = std::min<coordf_t>(bbox.min.x, verts[0]);
-                bbox.min.y = std::min<coordf_t>(bbox.min.y, verts[1]);
-                bbox.min.z = std::min<coordf_t>(bbox.min.z, verts[2]);
-                bbox.max.x = std::max<coordf_t>(bbox.max.x, verts[0]);
-                bbox.max.y = std::max<coordf_t>(bbox.max.y, verts[1]);
-                bbox.max.z = std::max<coordf_t>(bbox.max.z, verts[2]);
+                bbox.min(0) = std::min<coordf_t>(bbox.min(0), verts[0]);
+                bbox.min(1) = std::min<coordf_t>(bbox.min(1), verts[1]);
+                bbox.min(2) = std::min<coordf_t>(bbox.min(2), verts[2]);
+                bbox.max(0) = std::max<coordf_t>(bbox.max(0), verts[0]);
+                bbox.max(1) = std::max<coordf_t>(bbox.max(1), verts[1]);
+                bbox.max(2) = std::max<coordf_t>(bbox.max(2), verts[2]);
             }
         }
         return bbox;
@@ -255,7 +255,7 @@ public:
 
 private:
     // Offset of the volume to be rendered.
-    Pointf3               m_origin;
+    Vec3d                 m_origin;
     // Rotation around Z axis of the volume to be rendered.
     float                 m_angle_z;
     // Scale factor of the volume to be rendered.
@@ -323,8 +323,8 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-    const Pointf3& get_origin() const;
-    void set_origin(const Pointf3& origin);
+    const Vec3d& get_origin() const;
+    void set_origin(const Vec3d& origin);
     void set_angle_z(float angle_z);
     void set_scale_factor(float scale_factor);
     void set_convex_hull(const TriangleMesh& convex_hull);
@@ -333,7 +333,7 @@ public:
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
-    std::vector<float> world_matrix() const;
+    Transform3d         world_matrix() const;
     BoundingBoxf3       transformed_bounding_box() const;
     BoundingBoxf3       transformed_convex_hull_bounding_box() const;
 
@@ -577,7 +577,7 @@ public:
     static void extrusionentity_to_verts(const ExtrusionEntityCollection& extrusion_entity_collection, float print_z, const Point& copy, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionEntity* extrusion_entity, float print_z, const Point& copy, GLVolume& volume);
     static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume);
-    static void point3_to_verts(const Point3& point, double width, double height, GLVolume& volume);
+    static void point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume);
 };
 
 }

@@ -37,7 +37,7 @@ namespace Eigen {
 
 /** \internal Specialization for the data types supported by LAPACKe */
 
-#define EIGEN_LAPACKE_EIG_SELFADJ(EIGTYPE, LAPACKE_TYPE, LAPACKE_RTYPE, LAPACKE_NAME, EIGCOLROW, LAPACKE_COLROW ) \
+#define EIGEN_LAPACKE_EIG_SELFADJ_2(EIGTYPE, LAPACKE_TYPE, LAPACKE_RTYPE, LAPACKE_NAME, EIGCOLROW ) \
 template<> template<typename InputType> inline \
 SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >& \
 SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(const EigenBase<InputType>& matrix, int options) \
@@ -47,7 +47,7 @@ SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(c
           && (options&EigVecMask)!=EigVecMask \
           && "invalid option parameter"); \
   bool computeEigenvectors = (options&ComputeEigenvectors)==ComputeEigenvectors; \
-  lapack_int n = internal::convert_index<lapack_int>(matrix.cols()), lda, matrix_order, info; \
+  lapack_int n = internal::convert_index<lapack_int>(matrix.cols()), lda, info; \
   m_eivalues.resize(n,1); \
   m_subdiag.resize(n-1); \
   m_eivec = matrix; \
@@ -63,27 +63,24 @@ SelfAdjointEigenSolver<Matrix<EIGTYPE, Dynamic, Dynamic, EIGCOLROW> >::compute(c
   } \
 \
   lda = internal::convert_index<lapack_int>(m_eivec.outerStride()); \
-  matrix_order=LAPACKE_COLROW; \
   char jobz, uplo='L'/*, range='A'*/; \
   jobz = computeEigenvectors ? 'V' : 'N'; \
 \
-  info = LAPACKE_##LAPACKE_NAME( matrix_order, jobz, uplo, n, (LAPACKE_TYPE*)m_eivec.data(), lda, (LAPACKE_RTYPE*)m_eivalues.data() ); \
+  info = LAPACKE_##LAPACKE_NAME( LAPACK_COL_MAJOR, jobz, uplo, n, (LAPACKE_TYPE*)m_eivec.data(), lda, (LAPACKE_RTYPE*)m_eivalues.data() ); \
   m_info = (info==0) ? Success : NoConvergence; \
   m_isInitialized = true; \
   m_eigenvectorsOk = computeEigenvectors; \
   return *this; \
 }
 
+#define EIGEN_LAPACKE_EIG_SELFADJ(EIGTYPE, LAPACKE_TYPE, LAPACKE_RTYPE, LAPACKE_NAME )              \
+        EIGEN_LAPACKE_EIG_SELFADJ_2(EIGTYPE, LAPACKE_TYPE, LAPACKE_RTYPE, LAPACKE_NAME, ColMajor )  \
+        EIGEN_LAPACKE_EIG_SELFADJ_2(EIGTYPE, LAPACKE_TYPE, LAPACKE_RTYPE, LAPACKE_NAME, RowMajor ) 
 
-EIGEN_LAPACKE_EIG_SELFADJ(double,   double,                double, dsyev, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_LAPACKE_EIG_SELFADJ(float,    float,                 float,  ssyev, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_LAPACKE_EIG_SELFADJ(dcomplex, lapack_complex_double, double, zheev, ColMajor, LAPACK_COL_MAJOR)
-EIGEN_LAPACKE_EIG_SELFADJ(scomplex, lapack_complex_float,  float,  cheev, ColMajor, LAPACK_COL_MAJOR)
-
-EIGEN_LAPACKE_EIG_SELFADJ(double,   double,                double, dsyev, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_LAPACKE_EIG_SELFADJ(float,    float,                 float,  ssyev, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_LAPACKE_EIG_SELFADJ(dcomplex, lapack_complex_double, double, zheev, RowMajor, LAPACK_ROW_MAJOR)
-EIGEN_LAPACKE_EIG_SELFADJ(scomplex, lapack_complex_float,  float,  cheev, RowMajor, LAPACK_ROW_MAJOR)
+EIGEN_LAPACKE_EIG_SELFADJ(double,   double,                double, dsyev)
+EIGEN_LAPACKE_EIG_SELFADJ(float,    float,                 float,  ssyev)
+EIGEN_LAPACKE_EIG_SELFADJ(dcomplex, lapack_complex_double, double, zheev)
+EIGEN_LAPACKE_EIG_SELFADJ(scomplex, lapack_complex_float,  float,  cheev)
 
 } // end namespace Eigen
 

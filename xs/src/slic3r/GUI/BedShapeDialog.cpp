@@ -48,14 +48,14 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 	auto optgroup = init_shape_options_page(_(L("Rectangular")));
 		ConfigOptionDef def;
 		def.type = coPoints;
-		def.default_value = new ConfigOptionPoints{ Pointf(200, 200) };
+		def.default_value = new ConfigOptionPoints{ Vec2d(200, 200) };
 		def.label = L("Size");
 		def.tooltip = L("Size in X and Y of the rectangular plate.");
 		Option option(def, "rect_size");
 		optgroup->append_single_option_line(option);
 
 		def.type = coPoints;
-		def.default_value = new ConfigOptionPoints{ Pointf(0, 0) };
+		def.default_value = new ConfigOptionPoints{ Vec2d(0, 0) };
 		def.label = L("Origin");
 		def.tooltip = L("Distance of the 0,0 G-code coordinate from the front left corner of the rectangle.");
 		option = Option(def, "rect_origin");
@@ -149,21 +149,21 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 			// okay, it's a rectangle
 			// find origin
             coordf_t x_min, x_max, y_min, y_max;
-            x_max = x_min = points->values[0].x;
-			y_max = y_min = points->values[0].y;
+            x_max = x_min = points->values[0](0);
+			y_max = y_min = points->values[0](1);
 			for (auto pt : points->values)
             {
-                x_min = std::min(x_min, pt.x);
-                x_max = std::max(x_max, pt.x);
-                y_min = std::min(y_min, pt.y);
-                y_max = std::max(y_max, pt.y);
+                x_min = std::min(x_min, pt(0));
+                x_max = std::max(x_max, pt(0));
+                y_min = std::min(y_min, pt(1));
+                y_max = std::max(y_max, pt(1));
             }
 
-            auto origin = new ConfigOptionPoints{ Pointf(-x_min, -y_min) };
+            auto origin = new ConfigOptionPoints{ Vec2d(-x_min, -y_min) };
 
 			m_shape_options_book->SetSelection(SHAPE_RECTANGULAR);
 			auto optgroup = m_optgroups[SHAPE_RECTANGULAR];
-			optgroup->set_value("rect_size", new ConfigOptionPoints{ Pointf(x_max - x_min, y_max - y_min) });//[x_max - x_min, y_max - y_min]);
+			optgroup->set_value("rect_size", new ConfigOptionPoints{ Vec2d(x_max - x_min, y_max - y_min) });//[x_max - x_min, y_max - y_min]);
 			optgroup->set_value("rect_origin", origin);
 			update_shape();
 			return;
@@ -178,7 +178,7 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 		double avg_dist = 0;
 		for (auto pt: polygon.points)
 		{
-			double distance = center.distance_to(pt);
+			double distance = (pt - center).cast<double>().norm();
 			vertex_distances.push_back(distance);
 			avg_dist += distance;
 		}
@@ -195,7 +195,7 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 			// all vertices are equidistant to center
 			m_shape_options_book->SetSelection(SHAPE_CIRCULAR);
 			auto optgroup = m_optgroups[SHAPE_CIRCULAR];
-			boost::any ret = wxNumberFormatter::ToString(unscale(avg_dist * 2), 0);
+			boost::any ret = wxNumberFormatter::ToString(unscale<double>(avg_dist * 2), 0);
  			optgroup->set_value("diameter", ret);
 			update_shape();
 			return;
@@ -206,8 +206,8 @@ void BedShapePanel::set_shape(ConfigOptionPoints* points)
 		// Invalid polygon.Revert to default bed dimensions.
 		m_shape_options_book->SetSelection(SHAPE_RECTANGULAR);
 		auto optgroup = m_optgroups[SHAPE_RECTANGULAR];
-		optgroup->set_value("rect_size", new ConfigOptionPoints{ Pointf(200, 200) });
-		optgroup->set_value("rect_origin", new ConfigOptionPoints{ Pointf(0, 0) });
+		optgroup->set_value("rect_size", new ConfigOptionPoints{ Vec2d(200, 200) });
+		optgroup->set_value("rect_origin", new ConfigOptionPoints{ Vec2d(0, 0) });
 		update_shape();
 		return;
 	}
@@ -230,19 +230,21 @@ void BedShapePanel::update_shape()
 {
 	auto page_idx = m_shape_options_book->GetSelection();
 	if (page_idx == SHAPE_RECTANGULAR) {
-		Pointf rect_size, rect_origin;
+		Vec2d rect_size(Vec2d::Zero());
+		Vec2d rect_origin(Vec2d::Zero());
 		try{
-			rect_size = boost::any_cast<Pointf>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_size")); }
+			rect_size = boost::any_cast<Vec2d>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_size")); }
 		catch (const std::exception &e){
-			return;}
+			return;
+		}
 		try{
-			rect_origin = boost::any_cast<Pointf>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_origin"));
+			rect_origin = boost::any_cast<Vec2d>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_origin"));
 		}
 		catch (const std::exception &e){
 			return;}
 		
-		auto x = rect_size.x;
-		auto y = rect_size.y;
+		auto x = rect_size(0);
+		auto y = rect_size(1);
 		// empty strings or '-' or other things
 		if (x == 0 || y == 0)	return;
 		double x0 = 0.0;
@@ -250,17 +252,17 @@ void BedShapePanel::update_shape()
 		double x1 = x;
 		double y1 = y;
 
-		auto dx = rect_origin.x;
-		auto dy = rect_origin.y;
+		auto dx = rect_origin(0);
+		auto dy = rect_origin(1);
 
 		x0 -= dx;
 		x1 -= dx;
 		y0 -= dy;
 		y1 -= dy;
-		m_canvas->m_bed_shape = {	Pointf(x0, y0),
-									Pointf(x1, y0),
-									Pointf(x1, y1),
-									Pointf(x0, y1)};
+		m_canvas->m_bed_shape = {	Vec2d(x0, y0),
+									Vec2d(x1, y0),
+									Vec2d(x1, y1),
+									Vec2d(x0, y1)};
 	} 
 	else if(page_idx == SHAPE_CIRCULAR) {
 		double diameter;
@@ -274,10 +276,10 @@ void BedShapePanel::update_shape()
 		auto r = diameter / 2;
 		auto twopi = 2 * PI;
 		auto edges = 60;
-		std::vector<Pointf> points;
+		std::vector<Vec2d> points;
 		for (size_t i = 1; i <= 60; ++i){
 			auto angle = i * twopi / edges;
-			points.push_back(Pointf(r*cos(angle), r*sin(angle)));
+			points.push_back(Vec2d(r*cos(angle), r*sin(angle)));
 		}
 		m_canvas->m_bed_shape = points;
 	}
@@ -330,9 +332,9 @@ void BedShapePanel::load_stl()
 	}
 
 	auto polygon = expolygons[0].contour;
-	std::vector<Pointf> points;
+	std::vector<Vec2d> points;
 	for (auto pt : polygon.points)
-		points.push_back(Pointf::new_unscale(pt));
+		points.push_back(unscale(pt));
 	m_canvas->m_bed_shape = points;
 	update_preview();
 }

@@ -30,39 +30,39 @@ static inline double f(double x, double z_sin, double z_cos, bool vertical, bool
 }
 
 static inline Polyline make_wave(
-    const std::vector<Pointf>& one_period, double width, double height, double offset, double scaleFactor,
+    const std::vector<Vec2d>& one_period, double width, double height, double offset, double scaleFactor,
     double z_cos, double z_sin, bool vertical)
 {
-    std::vector<Pointf> points = one_period;
-    double period = points.back().x;
+    std::vector<Vec2d> points = one_period;
+    double period = points.back()(0);
     points.pop_back();
     int n = points.size();
     do {
-        points.emplace_back(Pointf(points[points.size()-n].x + period, points[points.size()-n].y));
-    } while (points.back().x < width);
-    points.back().x = width;
+        points.emplace_back(Vec2d(points[points.size()-n](0) + period, points[points.size()-n](1)));
+    } while (points.back()(0) < width);
+    points.back()(0) = width;
 
     // and construct the final polyline to return:
     Polyline polyline;
     for (auto& point : points) {
-        point.y += offset;
-        point.y = clamp(0., height, double(point.y));
+        point(1) += offset;
+        point(1) = clamp(0., height, double(point(1)));
         if (vertical)
-            std::swap(point.x, point.y);
-        polyline.points.emplace_back(convert_to<Point>(point * scaleFactor));
+            std::swap(point(0), point(1));
+        polyline.points.emplace_back((point * scaleFactor).cast<coord_t>());
     }
 
     return polyline;
 }
 
-static std::vector<Pointf> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip)
+static std::vector<Vec2d> make_one_period(double width, double scaleFactor, double z_cos, double z_sin, bool vertical, bool flip)
 {
-    std::vector<Pointf> points;
+    std::vector<Vec2d> points;
     double dx = M_PI_4; // very coarse spacing to begin with
     double limit = std::min(2*M_PI, width);
     for (double x = 0.; x < limit + EPSILON; x += dx) {  // so the last point is there too
         x = std::min(x, limit);
-        points.emplace_back(Pointf(x,f(x, z_sin,z_cos, vertical, flip)));
+        points.emplace_back(Vec2d(x,f(x, z_sin,z_cos, vertical, flip)));
     }
 
     // now we will check all internal points and in case some are too far from the line connecting its neighbours,
@@ -71,17 +71,19 @@ static std::vector<Pointf> make_one_period(double width, double scaleFactor, dou
     for (unsigned int i=1;i<points.size()-1;++i) {
         auto& lp = points[i-1]; // left point
         auto& tp = points[i];   // this point
+        Vec2d lrv = tp - lp;
         auto& rp = points[i+1]; // right point
         // calculate distance of the point to the line:
-        double dist_mm = unscale(scaleFactor * std::abs( (rp.y - lp.y)*tp.x + (lp.x - rp.x)*tp.y + (rp.x*lp.y - rp.y*lp.x) ) / std::hypot((rp.y - lp.y),(lp.x - rp.x)));
-
+        double dist_mm = unscale<double>(scaleFactor) * std::abs(cross2(rp, lp) - cross2(rp - lp, tp)) / lrv.norm();
         if (dist_mm > tolerance) {                               // if the difference from straight line is more than this
-            double x = 0.5f * (points[i-1].x + points[i].x);
-            points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));
-            x = 0.5f * (points[i+1].x + points[i].x);
-            points.emplace_back(Pointf(x, f(x, z_sin, z_cos, vertical, flip)));
-            std::sort(points.begin(), points.end());            // we added the points to the end, but need them all in order
-            --i;                                                // decrement i so we also check the first newly added point
+            double x = 0.5f * (points[i-1](0) + points[i](0));
+            points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
+            x = 0.5f * (points[i+1](0) + points[i](0));
+            points.emplace_back(Vec2d(x, f(x, z_sin, z_cos, vertical, flip)));
+            // we added the points to the end, but need them all in order
+            std::sort(points.begin(), points.end(), [](const Vec2d &lhs, const Vec2d &rhs){ return lhs < rhs; });
+            // decrement i so we also check the first newly added point
+            --i;
         }
     }
     return points;
@@ -107,7 +109,7 @@ static Polylines make_gyroid_waves(double gridZ, double density_adjusted, double
         std::swap(width,height);
     }
 
-    std::vector<Pointf> one_period = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
+    std::vector<Vec2d> one_period = make_one_period(width, scaleFactor, z_cos, z_sin, vertical, flip); // creates one period of the waves, so it doesn't have to be recalculated all the time
     Polylines result;
 
     for (double y0 = lower_bound; y0 < upper_bound+EPSILON; y0 += 2*M_PI)           // creates odd polylines
@@ -143,12 +145,12 @@ void FillGyroid::_fill_surface_single(
         scale_(this->z),
         density_adjusted,
         this->spacing,
-        ceil(bb.size().x / distance) + 1.,
-        ceil(bb.size().y / distance) + 1.);
+        ceil(bb.size()(0) / distance) + 1.,
+        ceil(bb.size()(1) / distance) + 1.);
     
     // move pattern in place
     for (Polyline &polyline : polylines)
-        polyline.translate(bb.min.x, bb.min.y);
+        polyline.translate(bb.min(0), bb.min(1));
 
     // clip pattern to boundaries
     polylines = intersection_pl(polylines, (Polygons)expolygon);
@@ -177,7 +179,7 @@ void FillGyroid::_fill_surface_single(
                 // TODO: we should also check that both points are on a fill_boundary to avoid 
                 // connecting paths on the boundaries of internal regions
                 // TODO: avoid crossing current infill path
-                if (first_point.distance_to(last_point) <= 5 * distance && 
+                if ((last_point - first_point).cast<double>().norm() <= 5 * distance && 
                     expolygon_off.contains(Line(last_point, first_point))) {
                     // Append the polyline.
                     pts_end.insert(pts_end.end(), polyline.points.begin(), polyline.points.end());

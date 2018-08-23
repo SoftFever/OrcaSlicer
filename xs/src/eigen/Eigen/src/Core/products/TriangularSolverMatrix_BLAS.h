@@ -38,7 +38,7 @@ namespace Eigen {
 namespace internal {
 
 // implements LeftSide op(triangular)^-1 * general
-#define EIGEN_BLAS_TRSM_L(EIGTYPE, BLASTYPE, BLASPREFIX) \
+#define EIGEN_BLAS_TRSM_L(EIGTYPE, BLASTYPE, BLASFUNC) \
 template <typename Index, int Mode, bool Conjugate, int TriStorageOrder> \
 struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorageOrder,ColMajor> \
 { \
@@ -80,18 +80,24 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheLeft,Mode,Conjugate,TriStorage
    } \
    if (IsUnitDiag) diag='U'; \
 /* call ?trsm*/ \
-   BLASPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
+   BLASFUNC(&side, &uplo, &transa, &diag, &m, &n, (const BLASTYPE*)&numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
  } \
 };
 
-EIGEN_BLAS_TRSM_L(double,   double, d)
-EIGEN_BLAS_TRSM_L(dcomplex, double, z)
-EIGEN_BLAS_TRSM_L(float,    float,  s)
-EIGEN_BLAS_TRSM_L(scomplex, float,  c)
-
+#ifdef EIGEN_USE_MKL
+EIGEN_BLAS_TRSM_L(double,   double, dtrsm)
+EIGEN_BLAS_TRSM_L(dcomplex, MKL_Complex16, ztrsm)
+EIGEN_BLAS_TRSM_L(float,    float,  strsm)
+EIGEN_BLAS_TRSM_L(scomplex, MKL_Complex8, ctrsm)
+#else
+EIGEN_BLAS_TRSM_L(double,   double, dtrsm_)
+EIGEN_BLAS_TRSM_L(dcomplex, double, ztrsm_)
+EIGEN_BLAS_TRSM_L(float,    float,  strsm_)
+EIGEN_BLAS_TRSM_L(scomplex, float,  ctrsm_)
+#endif
 
 // implements RightSide general * op(triangular)^-1
-#define EIGEN_BLAS_TRSM_R(EIGTYPE, BLASTYPE, BLASPREFIX) \
+#define EIGEN_BLAS_TRSM_R(EIGTYPE, BLASTYPE, BLASFUNC) \
 template <typename Index, int Mode, bool Conjugate, int TriStorageOrder> \
 struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor> \
 { \
@@ -133,16 +139,22 @@ struct triangular_solve_matrix<EIGTYPE,Index,OnTheRight,Mode,Conjugate,TriStorag
    } \
    if (IsUnitDiag) diag='U'; \
 /* call ?trsm*/ \
-   BLASPREFIX##trsm_(&side, &uplo, &transa, &diag, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
+   BLASFUNC(&side, &uplo, &transa, &diag, &m, &n, (const BLASTYPE*)&numext::real_ref(alpha), (const BLASTYPE*)a, &lda, (BLASTYPE*)_other, &ldb); \
    /*std::cout << "TRMS_L specialization!\n";*/ \
  } \
 };
 
-EIGEN_BLAS_TRSM_R(double,   double, d)
-EIGEN_BLAS_TRSM_R(dcomplex, double, z)
-EIGEN_BLAS_TRSM_R(float,    float,  s)
-EIGEN_BLAS_TRSM_R(scomplex, float,  c)
-
+#ifdef EIGEN_USE_MKL
+EIGEN_BLAS_TRSM_R(double,   double, dtrsm)
+EIGEN_BLAS_TRSM_R(dcomplex, MKL_Complex16, ztrsm)
+EIGEN_BLAS_TRSM_R(float,    float,  strsm)
+EIGEN_BLAS_TRSM_R(scomplex, MKL_Complex8,  ctrsm)
+#else
+EIGEN_BLAS_TRSM_R(double,   double, dtrsm_)
+EIGEN_BLAS_TRSM_R(dcomplex, double, ztrsm_)
+EIGEN_BLAS_TRSM_R(float,    float,  strsm_)
+EIGEN_BLAS_TRSM_R(scomplex, float,  ctrsm_)
+#endif
 
 } // end namespace internal
 

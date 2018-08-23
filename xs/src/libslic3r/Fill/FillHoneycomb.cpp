@@ -50,13 +50,13 @@ void FillHoneycomb::_fill_surface_single(
             bounding_box.merge(_align_to_grid(bounding_box.min, Point(m.hex_width, m.pattern_height)));
         }
 
-        coord_t x = bounding_box.min.x;
-        while (x <= bounding_box.max.x) {
+        coord_t x = bounding_box.min(0);
+        while (x <= bounding_box.max(0)) {
             Polygon p;
             coord_t ax[2] = { x + m.x_offset, x + m.distance - m.x_offset };
             for (size_t i = 0; i < 2; ++ i) {
                 std::reverse(p.points.begin(), p.points.end()); // turn first half upside down
-                for (coord_t y = bounding_box.min.y; y <= bounding_box.max.y; y += m.y_short + m.hex_side + m.y_short + m.hex_side) {
+                for (coord_t y = bounding_box.min(1); y <= bounding_box.max(1); y += m.y_short + m.hex_side + m.y_short + m.hex_side) {
                     p.points.push_back(Point(ax[1], y + m.y_offset));
                     p.points.push_back(Point(ax[0], y + m.y_short - m.y_offset));
                     p.points.push_back(Point(ax[0], y + m.y_short + m.hex_side + m.y_offset));
@@ -101,7 +101,7 @@ void FillHoneycomb::_fill_surface_single(
             for (Polylines::iterator it_path = chained.begin(); it_path != chained.end(); ++ it_path) {
                 if (! paths.empty()) {
                     // distance between first point of this path and last point of last path
-                    double distance = paths.back().last_point().distance_to(it_path->first_point());
+                    double distance = (it_path->first_point() - paths.back().last_point()).cast<double>().norm();
                     if (distance <= m.hex_width) {
                         paths.back().points.insert(paths.back().points.end(), it_path->points.begin(), it_path->points.end());
                         continue;

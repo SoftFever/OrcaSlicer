@@ -9,6 +9,7 @@
 #define EIGEN_CHOLESKY_MODULE_H
 
 #include "Core"
+#include "Jacobi"
 
 #include "src/Core/util/DisableStupidWarnings.h"
 
@@ -31,7 +32,11 @@
 #include "src/Cholesky/LLT.h"
 #include "src/Cholesky/LDLT.h"
 #ifdef EIGEN_USE_LAPACKE
+#ifdef EIGEN_USE_MKL
+#include "mkl_lapacke.h"
+#else
 #include "src/misc/lapacke.h"
+#endif
 #include "src/Cholesky/LLT_LAPACKE.h"
 #endif
 

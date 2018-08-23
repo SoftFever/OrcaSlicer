@@ -63,8 +63,6 @@ _constant()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     std::vector<double> layer_height_profile()
         %code%{ RETVAL = THIS->layer_height_profile; %};
-    Ref<Point3> size()
-        %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
     
     Points _shifted_copies()
@@ -72,7 +70,7 @@ _constant()
     void set_shifted_copies(Points value)
         %code%{ THIS->_shifted_copies = value; %};
 
-    bool add_copy(Pointf* point)
+    bool add_copy(Vec2d* point)
         %code%{ RETVAL = THIS->add_copy(*point); %};
     bool delete_last_copy();
     bool delete_all_copies();
@@ -176,15 +174,6 @@ _constant()
     void set_step_started(PrintStep step)
         %code%{ THIS->state.set_started(step); %};
     
-    void clear_filament_stats()
-        %code%{
-            THIS->filament_stats.clear();
-        %};
-    void set_filament_stats(int extruder_id, float length)
-        %code%{
-            THIS->filament_stats.insert(std::pair<size_t,float>(extruder_id, 0));
-            THIS->filament_stats[extruder_id] += length;
-        %};
     SV* filament_stats()
         %code%{
             HV* hv = newHV();

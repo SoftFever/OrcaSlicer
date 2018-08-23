@@ -311,7 +311,6 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
     // Aliases:
     Map<VectorType> v(reinterpret_cast<Scalar*>(m_tmp.data()), size);
     ComplexVectorType &cv = m_tmp;
-    const MatrixType &mZ = m_realQZ.matrixZ();
     const MatrixType &mS = m_realQZ.matrixS();
     const MatrixType &mT = m_realQZ.matrixT();
 
@@ -351,7 +350,7 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
               }
             }
           }
-          m_eivec.col(i).real().noalias() = mZ.transpose() * v;
+          m_eivec.col(i).real().noalias() = m_realQZ.matrixZ().transpose() * v;
           m_eivec.col(i).real().normalize();
           m_eivec.col(i).imag().setConstant(0);
         }
@@ -400,7 +399,7 @@ GeneralizedEigenSolver<MatrixType>::compute(const MatrixType& A, const MatrixTyp
                               / (alpha*mT.coeffRef(j,j) - static_cast<Scalar>(beta*mS.coeffRef(j,j)));
             }
           }
-          m_eivec.col(i+1).noalias() = (mZ.transpose() * cv);
+          m_eivec.col(i+1).noalias() = (m_realQZ.matrixZ().transpose() * cv);
           m_eivec.col(i+1).normalize();
           m_eivec.col(i) = m_eivec.col(i+1).conjugate();
         }

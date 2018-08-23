@@ -8,59 +8,52 @@ MultiPoint::operator Points() const
     return this->points;
 }
 
-void
-MultiPoint::scale(double factor)
+void MultiPoint::scale(double factor)
 {
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        (*it).scale(factor);
-    }
+    for (Point &pt : points)
+        pt *= factor;
 }
 
-void
-MultiPoint::translate(double x, double y)
+void MultiPoint::translate(double x, double y)
 {
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        (*it).translate(x, y);
-    }
+    Vector v(x, y);
+    for (Point &pt : points)
+        pt += v;
 }
 
-void
-MultiPoint::translate(const Point &vector)
+void MultiPoint::translate(const Point &v)
 {
-    this->translate(vector.x, vector.y);
+    for (Point &pt : points)
+        pt += v;
 }
 
 void MultiPoint::rotate(double cos_angle, double sin_angle)
 {
     for (Point &pt : this->points) {
-        double cur_x = double(pt.x);
-        double cur_y = double(pt.y);
-        pt.x = coord_t(round(cos_angle * cur_x - sin_angle * cur_y));
-        pt.y = coord_t(round(cos_angle * cur_y + sin_angle * cur_x));
+        double cur_x = double(pt(0));
+        double cur_y = double(pt(1));
+        pt(0) = coord_t(round(cos_angle * cur_x - sin_angle * cur_y));
+        pt(1) = coord_t(round(cos_angle * cur_y + sin_angle * cur_x));
     }
 }
 
-void
-MultiPoint::rotate(double angle, const Point &center)
+void MultiPoint::rotate(double angle, const Point &center)
 {
     double s = sin(angle);
     double c = cos(angle);
-    for (Points::iterator it = points.begin(); it != points.end(); ++it) {
-        double dx = double(it->x - center.x);
-        double dy = double(it->y - center.y);
-        it->x = (coord_t)round(double(center.x) + c * dx - s * dy);
-        it->y = (coord_t)round(double(center.y) + c * dy + s * dx);
+    for (Point &pt : points) {
+        Vec2crd v(pt - center);
+        pt(0) = (coord_t)round(double(center(0)) + c * v[0] - s * v[1]);
+        pt(1) = (coord_t)round(double(center(1)) + c * v[1] + s * v[0]);
     }
 }
 
-void
-MultiPoint::reverse()
+void MultiPoint::reverse()
 {
     std::reverse(this->points.begin(), this->points.end());
 }
 
-Point
-MultiPoint::first_point() const
+Point MultiPoint::first_point() const
 {
     return this->points.front();
 }
@@ -79,16 +72,16 @@ MultiPoint::length() const
 int
 MultiPoint::find_point(const Point &point) const
 {
-    for (Points::const_iterator it = this->points.begin(); it != this->points.end(); ++it) {
-        if (it->coincides_with(point)) return it - this->points.begin();
-    }
+    for (const Point &pt : this->points)
+        if (pt == point)
+            return &pt - &this->points.front();
     return -1;  // not found
 }
 
 bool
 MultiPoint::has_boundary_point(const Point &point) const
 {
-    double dist = point.distance_to(point.projection_onto(*this));
+    double dist = (point.projection_onto(*this) - point).cast<double>().norm();
     return dist < SCALED_EPSILON;
 }
 
@@ -102,7 +95,7 @@ bool
 MultiPoint::has_duplicate_points() const
 {
     for (size_t i = 1; i < points.size(); ++i)
-        if (points[i-1].coincides_with(points[i]))
+        if (points[i-1] == points[i])
             return true;
     return false;
 }
@@ -112,7 +105,7 @@ MultiPoint::remove_duplicate_points()
 {
     size_t j = 0;
     for (size_t i = 1; i < points.size(); ++i) {
-        if (points[j].coincides_with(points[i])) {
+        if (points[j] == points[i]) {
             // Just increase index i.
         } else {
             ++ j;
@@ -146,10 +139,10 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
         if (l.intersection(line, &ip)) {
             if (! found) {
                 found = true;
-                dmin = ip.distance_to(line.a);
+                dmin = (line.a - ip).cast<double>().norm();
                 *intersection = ip;
             } else {
-                double d = ip.distance_to(line.a);
+                double d = (line.a - ip).cast<double>().norm();
                 if (d < dmin) {
                     dmin = d;
                     *intersection = ip;
@@ -158,19 +151,6 @@ bool MultiPoint::first_intersection(const Line& line, Point* intersection) const
         }
     }
     return found;
-}
-
-std::string
-MultiPoint::dump_perl() const
-{
-    std::ostringstream ret;
-    ret << "[";
-    for (Points::const_iterator p = this->points.begin(); p != this->points.end(); ++p) {
-        ret << p->dump_perl();
-        if (p != this->points.end()-1) ret << ",";
-    }
-    ret << "]";
-    return ret.str();
 }
 
 //FIXME This is very inefficient in term of memory use.
@@ -185,7 +165,7 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
     Line full(points.front(), points.back());
     for (Points::const_iterator it = points.begin() + 1; it != points.end(); ++it) {
         // we use shortest distance, not perpendicular distance
-        double d = it->distance_to(full);
+        double d = full.distance_to(*it);
         if (d > dmax) {
             index = it - points.begin();
             dmax = d;
@@ -216,25 +196,22 @@ MultiPoint::_douglas_peucker(const Points &points, const double tolerance)
 
 void MultiPoint3::translate(double x, double y)
 {
-    for (Point3& p : points)
-    {
-        p.translate(x, y);
+    for (Vec3crd &p : points) {
+        p(0) += x;
+        p(1) += y;
     }
 }
 
 void MultiPoint3::translate(const Point& vector)
 {
-    translate(vector.x, vector.y);
+    this->translate(vector(0), vector(1));
 }
 
 double MultiPoint3::length() const
 {
-    Lines3 lines = this->lines();
     double len = 0.0;
-    for (const Line3& line : lines)
-    {
+    for (const Line3& line : this->lines())
         len += line.length();
-    }
     return len;
 }
 
@@ -246,15 +223,11 @@ BoundingBox3 MultiPoint3::bounding_box() const
 bool MultiPoint3::remove_duplicate_points()
 {
     size_t j = 0;
-    for (size_t i = 1; i < points.size(); ++i)
-    {
-        if (points[j].coincides_with(points[i]))
-        {
+    for (size_t i = 1; i < points.size(); ++i) {
+        if (points[j] == points[i]) {
             // Just increase index i.
-        }
-        else
-        {
-            ++j;
+        } else {
+            ++ j;
             if (j < i)
                 points[j] = points[i];
         }
@@ -281,19 +254,19 @@ BoundingBox get_extents_rotated(const Points &points, double angle)
         double s = sin(angle);
         double c = cos(angle);
         Points::const_iterator it = points.begin();
-        double cur_x = (double)it->x;
-        double cur_y = (double)it->y;
-        bbox.min.x = bbox.max.x = (coord_t)round(c * cur_x - s * cur_y);
-        bbox.min.y = bbox.max.y = (coord_t)round(c * cur_y + s * cur_x);
+        double cur_x = (double)(*it)(0);
+        double cur_y = (double)(*it)(1);
+        bbox.min(0) = bbox.max(0) = (coord_t)round(c * cur_x - s * cur_y);
+        bbox.min(1) = bbox.max(1) = (coord_t)round(c * cur_y + s * cur_x);
         for (++it; it != points.end(); ++it) {
-            double cur_x = (double)it->x;
-            double cur_y = (double)it->y;
+            double cur_x = (double)(*it)(0);
+            double cur_y = (double)(*it)(1);
             coord_t x = (coord_t)round(c * cur_x - s * cur_y);
             coord_t y = (coord_t)round(c * cur_y + s * cur_x);
-            bbox.min.x = std::min(x, bbox.min.x);
-            bbox.min.y = std::min(y, bbox.min.y);
-            bbox.max.x = std::max(x, bbox.max.x);
-            bbox.max.y = std::max(y, bbox.max.y);
+            bbox.min(0) = std::min(x, bbox.min(0));
+            bbox.min(1) = std::min(y, bbox.min(1));
+            bbox.max(0) = std::max(x, bbox.max(0));
+            bbox.max(1) = std::max(y, bbox.max(1));
         }
         bbox.defined = true;
     }

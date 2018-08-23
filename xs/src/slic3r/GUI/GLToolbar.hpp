@@ -8,9 +8,6 @@
 #include <vector>
 
 namespace Slic3r {
-
-class Pointf;
-
 namespace GUI {
 
 class GLCanvas3D;
@@ -148,10 +145,10 @@ public:
 
     bool is_item_pressed(const std::string& name) const;
 
-    void update_hover_state(const Pointf& mouse_pos);
+    void update_hover_state(const Vec2d& mouse_pos);
 
     // returns the id of the item under the given mouse position or -1 if none
-    int contains_mouse(const Pointf& mouse_pos) const;
+    int contains_mouse(const Vec2d& mouse_pos) const;
 
     void do_action(unsigned int item_id);
 
@@ -163,10 +160,11 @@ private:
     float _get_height_horizontal() const;
     float _get_height_vertical() const;
     float _get_main_size() const;
-    void _update_hover_state_horizontal(const Pointf& mouse_pos);
-    void _update_hover_state_vertical(const Pointf& mouse_pos);
-    int _contains_mouse_horizontal(const Pointf& mouse_pos) const;
-    int _contains_mouse_vertical(const Pointf& mouse_pos) const;
+    void _update_hover_state_horizontal(const Vec2d& mouse_pos);
+    void _update_hover_state_vertical(const Vec2d& mouse_pos);
+    int _contains_mouse_horizontal(const Vec2d& mouse_pos) const;
+    int _contains_mouse_vertical(const Vec2d& mouse_pos) const;
+
     void _render_horizontal() const;
     void _render_vertical() const;
 };

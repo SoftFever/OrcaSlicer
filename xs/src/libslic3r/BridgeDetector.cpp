@@ -102,16 +102,16 @@ bool BridgeDetector::detect_angle(double bridge_direction_override)
             // Get an oriented bounding box around _anchor_regions.
             BoundingBox bbox = get_extents_rotated(this->_anchor_regions, - angle);
             // Cover the region with line segments.
-            lines.reserve((bbox.max.y - bbox.min.y + this->spacing) / this->spacing);
+            lines.reserve((bbox.max(1) - bbox.min(1) + this->spacing) / this->spacing);
             double s = sin(angle);
             double c = cos(angle);
             //FIXME Vojtech: The lines shall be spaced half the line width from the edge, but then 
             // some of the test cases fail. Need to adjust the test cases then?
-//            for (coord_t y = bbox.min.y + this->spacing / 2; y <= bbox.max.y; y += this->spacing)
-            for (coord_t y = bbox.min.y; y <= bbox.max.y; y += this->spacing)
+//            for (coord_t y = bbox.min(1) + this->spacing / 2; y <= bbox.max(1); y += this->spacing)
+            for (coord_t y = bbox.min(1); y <= bbox.max(1); y += this->spacing)
                 lines.push_back(Line(
-                    Point((coord_t)round(c * bbox.min.x - s * y), (coord_t)round(c * y + s * bbox.min.x)),
-                    Point((coord_t)round(c * bbox.max.x - s * y), (coord_t)round(c * y + s * bbox.max.x))));
+                    Point((coord_t)round(c * bbox.min(0) - s * y), (coord_t)round(c * y + s * bbox.min(0))),
+                    Point((coord_t)round(c * bbox.max(0) - s * y), (coord_t)round(c * y + s * bbox.max(0)))));
         }
 
         double total_length = 0;
@@ -182,9 +182,9 @@ std::vector<double> BridgeDetector::bridge_direction_candidates() const
     
     /*  we also test angles of each open supporting edge
         (this finds the optimal angle for C-shaped supports) */
-    for (Polylines::const_iterator edge = this->_edges.begin(); edge != this->_edges.end(); ++edge)
-        if (! edge->first_point().coincides_with(edge->last_point()))
-            angles.push_back(Line(edge->first_point(), edge->last_point()).direction());
+    for (const Polyline &edge : this->_edges)
+        if (edge.first_point() != edge.last_point())
+            angles.push_back(Line(edge.first_point(), edge.last_point()).direction());
     
     // remove duplicates
     double min_resolution = PI/180.0;  // 1 degree
@@ -282,10 +282,12 @@ BridgeDetector::unsupported_edges(double angle, Polylines* unsupported) const
             extrusions would be anchored within such length (i.e. a slightly non-parallel bridging
             direction might still benefit from anchors if long enough)
             double angle_tolerance = PI / 180.0 * 5.0; */
-        for (Lines::const_iterator line = unsupported_lines.begin(); line != unsupported_lines.end(); ++line) {
-            if (!Slic3r::Geometry::directions_parallel(line->direction(), angle))
-                unsupported->push_back(*line);
-        }
+        for (const Line &line : unsupported_lines)
+            if (! Slic3r::Geometry::directions_parallel(line.direction(), angle)) {
+                unsupported->emplace_back(Polyline());
+                unsupported->back().points.emplace_back(line.a);
+                unsupported->back().points.emplace_back(line.b);
+            }
     }
     
     /*

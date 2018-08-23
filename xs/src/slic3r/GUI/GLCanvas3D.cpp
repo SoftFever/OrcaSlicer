@@ -71,8 +71,8 @@ bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool
     if (generate_tex_coords)
         m_tex_coords = std::vector<float>(t_size, 0.0f);
 
-    float min_x = (float)unscale(triangles[0].points[0].x);
-    float min_y = (float)unscale(triangles[0].points[0].y);
+    float min_x = unscale<float>(triangles[0].points[0](0));
+    float min_y = unscale<float>(triangles[0].points[0](1));
     float max_x = min_x;
     float max_y = min_y;
 
@@ -83,8 +83,8 @@ bool GeometryBuffer::set_from_triangles(const Polygons& triangles, float z, bool
         for (unsigned int v = 0; v < 3; ++v)
         {
             const Point& p = t.points[v];
-            float x = (float)unscale(p.x);
-            float y = (float)unscale(p.y);
+            float x = unscale<float>(p(0));
+            float y = unscale<float>(p(1));
 
             m_vertices[v_coord++] = x;
             m_vertices[v_coord++] = y;
@@ -137,11 +137,11 @@ bool GeometryBuffer::set_from_lines(const Lines& lines, float z)
     unsigned int coord = 0;
     for (const Line& l : lines)
     {
-        m_vertices[coord++] = (float)unscale(l.a.x);
-        m_vertices[coord++] = (float)unscale(l.a.y);
+        m_vertices[coord++] = unscale<float>(l.a(0));
+        m_vertices[coord++] = unscale<float>(l.a(1));
         m_vertices[coord++] = z;
-        m_vertices[coord++] = (float)unscale(l.b.x);
-        m_vertices[coord++] = (float)unscale(l.b.y);
+        m_vertices[coord++] = unscale<float>(l.b(0));
+        m_vertices[coord++] = unscale<float>(l.b(1));
         m_vertices[coord++] = z;
     }
 
@@ -317,9 +317,9 @@ bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     _calc_bounding_box();
 
     ExPolygon poly;
-    for (const Pointf& p : m_shape)
+    for (const Vec2d& p : m_shape)
     {
-        poly.contour.append(Point(scale_(p.x), scale_(p.y)));
+        poly.contour.append(Point(scale_(p(0)), scale_(p(1))));
     }
 
     _calc_triangles(poly);
@@ -373,9 +373,9 @@ void GLCanvas3D::Bed::render(float theta) const
 void GLCanvas3D::Bed::_calc_bounding_box()
 {
     m_bounding_box = BoundingBoxf3();
-    for (const Pointf& p : m_shape)
+    for (const Vec2d& p : m_shape)
     {
-        m_bounding_box.merge(Pointf3(p.x, p.y, 0.0));
+        m_bounding_box.merge(Vec3d(p(0), p(1), 0.0));
     }
 }
 
@@ -391,18 +391,18 @@ void GLCanvas3D::Bed::_calc_triangles(const ExPolygon& poly)
 void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& bed_bbox)
 {
     Polylines axes_lines;
-    for (coord_t x = bed_bbox.min.x; x <= bed_bbox.max.x; x += scale_(10.0))
+    for (coord_t x = bed_bbox.min(0); x <= bed_bbox.max(0); x += scale_(10.0))
     {
         Polyline line;
-        line.append(Point(x, bed_bbox.min.y));
-        line.append(Point(x, bed_bbox.max.y));
+        line.append(Point(x, bed_bbox.min(1)));
+        line.append(Point(x, bed_bbox.max(1)));
         axes_lines.push_back(line);
     }
-    for (coord_t y = bed_bbox.min.y; y <= bed_bbox.max.y; y += scale_(10.0))
+    for (coord_t y = bed_bbox.min(1); y <= bed_bbox.max(1); y += scale_(10.0))
     {
         Polyline line;
-        line.append(Point(bed_bbox.min.x, y));
-        line.append(Point(bed_bbox.max.x, y));
+        line.append(Point(bed_bbox.min(0), y));
+        line.append(Point(bed_bbox.max(0), y));
         axes_lines.push_back(line);
     }
 
@@ -591,7 +591,7 @@ bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 }
 
 GLCanvas3D::Axes::Axes()
-    : length(0.0f)
+    : origin(0, 0, 0), length(0.0f)
 {
 }
 
@@ -606,12 +606,12 @@ void GLCanvas3D::Axes::render(bool depth_test) const
     ::glBegin(GL_LINES);
     // draw line for x axis
     ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
-    ::glVertex3f((GLfloat)origin.x + length, (GLfloat)origin.y, (GLfloat)origin.z);
+    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2));
+    ::glVertex3f((GLfloat)origin(0) + length, (GLfloat)origin(1), (GLfloat)origin(2));
     // draw line for y axis
     ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
-    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y + length, (GLfloat)origin.z);
+    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2));
+    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1) + length, (GLfloat)origin(2));
     ::glEnd();
     // draw line for Z axis
     // (re-enable depth test so that axis is correctly shown when objects are behind it)
@@ -620,8 +620,8 @@ void GLCanvas3D::Axes::render(bool depth_test) const
 
     ::glBegin(GL_LINES);
     ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z);
-    ::glVertex3f((GLfloat)origin.x, (GLfloat)origin.y, (GLfloat)origin.z + length);
+    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2));
+    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2) + length);
     ::glEnd();
 }
 
@@ -655,10 +655,10 @@ void GLCanvas3D::CuttingPlane::_render_plane(const BoundingBoxf3& bb) const
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         float margin = 20.0f;
-        float min_x = bb.min.x - margin;
-        float max_x = bb.max.x + margin;
-        float min_y = bb.min.y - margin;
-        float max_y = bb.max.y + margin;
+        float min_x = bb.min(0) - margin;
+        float max_x = bb.max(0) + margin;
+        float min_y = bb.min(1) - margin;
+        float max_y = bb.max(1) + margin;
 
         ::glBegin(GL_QUADS);
         ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
@@ -869,8 +869,8 @@ float GLCanvas3D::LayersEditing::get_cursor_z_relative(const GLCanvas3D& canvas)
 {
     const Point& mouse_pos = canvas.get_local_mouse_position();
     const Rect& rect = get_bar_rect_screen(canvas);
-    float x = (float)mouse_pos.x;
-    float y = (float)mouse_pos.y;
+    float x = (float)mouse_pos(0);
+    float y = (float)mouse_pos(1);
     float t = rect.get_top();
     float b = rect.get_bottom();
 
@@ -979,7 +979,7 @@ void GLCanvas3D::LayersEditing::_render_reset_texture(const Rect& reset_rect) co
 
 void GLCanvas3D::LayersEditing::_render_active_object_annotations(const GLCanvas3D& canvas, const GLVolume& volume, const PrintObject& print_object, const Rect& bar_rect) const
 {
-    float max_z = print_object.model_object()->bounding_box().max.z;
+    float max_z = print_object.model_object()->bounding_box().max(2);
 
     m_shader.start_using();
 
@@ -1040,7 +1040,7 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
     layer_height_max *= 1.12;
 
-    coordf_t max_z = unscale(print_object.size.z);
+    coordf_t max_z = unscale<double>(print_object.size(2));
     double layer_height = dynamic_cast<const ConfigOptionFloat*>(print_object.config.option("layer_height"))->value;
     float l = bar_rect.get_left();
     float w = bar_rect.get_right() - l;
@@ -1075,11 +1075,12 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
 }
 
 const Point GLCanvas3D::Mouse::Drag::Invalid_2D_Point(INT_MAX, INT_MAX);
-const Pointf3 GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX);
+const Vec3d GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX);
 
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
+    , volume_center_offset(0, 0, 0)
     , move_with_shift(false)
     , move_volume_idx(-1)
     , gizmo_volume_idx(-1)
@@ -1175,7 +1176,7 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
-void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -1194,14 +1195,14 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Poin
         // we currently use circular icons for gizmo, so we check the radius
         if (it->second->get_state() != GLGizmoBase::On)
         {
-            bool inside = length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size;
+            bool inside = (mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
         }
         top_y += (tex_size + OverlayGapY);
     }
 }
 
-void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Pointf& mouse_pos)
+void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -1218,7 +1219,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Poi
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
+        if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -1267,7 +1268,7 @@ void GLCanvas3D::Gizmos::set_hover_id(int id)
     }
 }
 
-bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const
+bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const
 {
     if (!m_enabled)
         return false;
@@ -1284,7 +1285,7 @@ bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const 
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
-        if (length(Pointf(OverlayOffsetX + half_tex_size, top_y + half_tex_size).vector_to(mouse_pos)) < half_tex_size)
+        if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
             return true;
 
         top_y += (tex_size + OverlayGapY);
@@ -2078,7 +2079,7 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     bool new_shape = m_bed.set_shape(shape);
 
     // Set the origin and size for painting of the coordinate system axes.
-    m_axes.origin = Pointf3(0.0, 0.0, (coordf_t)GROUND_Z);
+    m_axes.origin = Vec3d(0.0, 0.0, (coordf_t)GROUND_Z);
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
 
     if (new_shape)
@@ -2098,19 +2099,19 @@ void GLCanvas3D::set_auto_bed_shape()
     // draw a default square bed around object center
     const BoundingBoxf3& bbox = volumes_bounding_box();
     coordf_t max_size = bbox.max_size();
-    const Pointf3& center = bbox.center();
+    const Vec3d center = bbox.center();
 
     Pointfs bed_shape;
     bed_shape.reserve(4);
-    bed_shape.emplace_back(center.x - max_size, center.y - max_size);
-    bed_shape.emplace_back(center.x + max_size, center.y - max_size);
-    bed_shape.emplace_back(center.x + max_size, center.y + max_size);
-    bed_shape.emplace_back(center.x - max_size, center.y + max_size);
+    bed_shape.emplace_back(center(0) - max_size, center(1) - max_size);
+    bed_shape.emplace_back(center(0) + max_size, center(1) - max_size);
+    bed_shape.emplace_back(center(0) + max_size, center(1) + max_size);
+    bed_shape.emplace_back(center(0) - max_size, center(1) + max_size);
 
     set_bed_shape(bed_shape);
 
     // Set the origin for painting of the coordinate system axes.
-    m_axes.origin = Pointf3(center.x, center.y, (coordf_t)GROUND_Z);
+    m_axes.origin = Vec3d(center(0), center(1), (coordf_t)GROUND_Z);
 }
 
 void GLCanvas3D::set_axes_length(float length)
@@ -2462,7 +2463,7 @@ void GLCanvas3D::reload_scene(bool force)
         if ((extruders_count > 1) && semm && wt && !co)
         {
             // Height of a print (Show at least a slab)
-            coordf_t height = std::max(m_model->bounding_box().max.z, 10.0);
+            coordf_t height = std::max(m_model->bounding_box().max(2), 10.0);
 
             float x = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_x"))->value;
             float y = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_y"))->value;
@@ -2948,7 +2949,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     else if (evt.Leaving())
     {
         // to remove hover on objects when the mouse goes out of this canvas
-        m_mouse.position = Pointf(-1.0, -1.0);
+        m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
     }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1))
@@ -2964,14 +2965,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // on a volume or not.
         int volume_idx = m_hover_volume_id;
         m_layers_editing.state = LayersEditing::Unknown;
-        if ((layer_editing_object_idx != -1) && m_layers_editing.bar_rect_contains(*this, pos.x, pos.y))
+        if ((layer_editing_object_idx != -1) && m_layers_editing.bar_rect_contains(*this, pos(0), pos(1)))
         {
             // A volume is selected and the mouse is inside the layer thickness bar.
             // Start editing the layer height.
             m_layers_editing.state = LayersEditing::Editing;
             _perform_layer_editing_action(&evt);
         }
-        else if ((layer_editing_object_idx != -1) && m_layers_editing.reset_rect_contains(*this, pos.x, pos.y))
+        else if ((layer_editing_object_idx != -1) && m_layers_editing.reset_rect_contains(*this, pos(0), pos(1)))
         {
             if (evt.LeftDown())
             {
@@ -3039,7 +3040,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
                     // an converts the screen space coordinate to unscaled object space.
-                    Pointf3 pos3d = (volume_idx == -1) ? Pointf3(DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
+                    Vec3d pos3d = (volume_idx == -1) ? Vec3d(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
 
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
@@ -3052,20 +3053,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                         m_mouse.drag.start_position_3D = pos3d;
                         // Remember the shift to to the object center.The object center will later be used
                         // to limit the object placement close to the bed.
-                        m_mouse.drag.volume_center_offset = pos3d.vector_to(volume_bbox.center());
+                        m_mouse.drag.volume_center_offset = volume_bbox.center() - pos3d;
                     }
                 }
                 else if (evt.RightDown())
                 {
                     // forces a frame render to ensure that m_hover_volume_id is updated even when the user right clicks while
                     // the context menu is already shown, ensuring it to disappear if the mouse is outside any volume
-                    m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
+                    m_mouse.position = Vec2d((double)pos(0), (double)pos(1));
                     render();
                     if (m_hover_volume_id != -1)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
                         if (m_volumes.volumes[volume_idx]->hover)
-                            m_on_right_click_callback.call(pos.x, pos.y);
+                            m_on_right_click_callback.call(pos(0), pos(1));
                     }
                 }
             }
@@ -3078,21 +3079,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Get new position at the same Z of the initial click point.
         float z0 = 0.0f;
         float z1 = 1.0f;
-        Pointf3 cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D.z);
+        Vec3d cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
 
         // Clip the new position, so the object center remains close to the bed.
-        cur_pos.translate(m_mouse.drag.volume_center_offset);
-        Point cur_pos2(scale_(cur_pos.x), scale_(cur_pos.y));
+        cur_pos += m_mouse.drag.volume_center_offset;
+        Point cur_pos2(scale_(cur_pos(0)), scale_(cur_pos(1)));
         if (!m_bed.contains(cur_pos2))
         {
             Point ip = m_bed.point_projection(cur_pos2);
-            cur_pos.x = unscale(ip.x);
-            cur_pos.y = unscale(ip.y);
+            cur_pos(0) = unscale<double>(ip(0));
+            cur_pos(1) = unscale<double>(ip(1));
         }
-        cur_pos.translate(m_mouse.drag.volume_center_offset.negative());
+        cur_pos -= m_mouse.drag.volume_center_offset;
 
         // Calculate the translation vector.
-        Vectorf3 vector = m_mouse.drag.start_position_3D.vector_to(cur_pos);
+        Vec3d vector = cur_pos - m_mouse.drag.start_position_3D;
         // Get the volume being dragged.
         GLVolume* volume = m_volumes.volumes[m_mouse.drag.move_volume_idx];
         // Get all volumes belonging to the same group, if any.
@@ -3114,11 +3115,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         // Apply new temporary volume origin and ignore Z.
         for (GLVolume* v : volumes)
-        {
-            Pointf3 origin = v->get_origin();
-            origin.translate(vector.x, vector.y, 0.0);
-            v->set_origin(origin);
-        }
+            v->set_origin(v->get_origin() + Vec3d(vector(0), vector(1), 0.0));
 
         m_mouse.drag.start_position_3D = cur_pos;
         m_gizmos.refresh();
@@ -3180,8 +3177,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 bb.merge(volume->transformed_bounding_box());
             }
-            const Pointf3& size = bb.size();
-            m_on_update_geometry_info_callback.call(size.x, size.y, size.z, m_gizmos.get_scale());
+            const Vec3d& size = bb.size();
+            m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
         }
 
         if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
@@ -3203,15 +3200,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // if dragging over blank area with left button, rotate
             if (m_mouse.is_start_position_3D_defined())
             {
-                const Pointf3& orig = m_mouse.drag.start_position_3D;
-                m_camera.phi += (((float)pos.x - (float)orig.x) * TRACKBALLSIZE);
-                m_camera.set_theta(m_camera.get_theta() - ((float)pos.y - (float)orig.y) * TRACKBALLSIZE);
+                const Vec3d& orig = m_mouse.drag.start_position_3D;
+                m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
+                m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE);
 
                 m_on_viewport_changed_callback.call();
 
                 m_dirty = true;
             }
-            m_mouse.drag.start_position_3D = Pointf3((coordf_t)pos.x, (coordf_t)pos.y, 0.0);
+            m_mouse.drag.start_position_3D = Vec3d((coordf_t)pos(0), (coordf_t)pos(1), 0.0);
         }
         else if (evt.MiddleIsDown() || evt.RightIsDown())
         {
@@ -3220,11 +3217,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 // get point in model space at Z = 0
                 float z = 0.0f;
-                const Pointf3& cur_pos = _mouse_to_3d(pos, &z);
-                Pointf3 orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
-                Pointf3 camera_target = m_camera.target;
-                camera_target.translate(orig.vector_to(cur_pos).negative());
-                m_camera.target = camera_target;
+                const Vec3d& cur_pos = _mouse_to_3d(pos, &z);
+                Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
+                m_camera.target += orig - cur_pos;
 
                 m_on_viewport_changed_callback.call();
 
@@ -3307,7 +3302,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Moving())
     {
-        m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
+        m_mouse.position = Vec2d((coordf_t)pos(0), (coordf_t)pos(1));
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
             m_dirty = true;
@@ -3676,25 +3671,25 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
 
     // camera axes
-    Pointf3 right((coordf_t)matrix[0], (coordf_t)matrix[4], (coordf_t)matrix[8]);
-    Pointf3 up((coordf_t)matrix[1], (coordf_t)matrix[5], (coordf_t)matrix[9]);
-    Pointf3 forward((coordf_t)matrix[2], (coordf_t)matrix[6], (coordf_t)matrix[10]);
+    Vec3d right((coordf_t)matrix[0], (coordf_t)matrix[4], (coordf_t)matrix[8]);
+    Vec3d up((coordf_t)matrix[1], (coordf_t)matrix[5], (coordf_t)matrix[9]);
+    Vec3d forward((coordf_t)matrix[2], (coordf_t)matrix[6], (coordf_t)matrix[10]);
 
-    Pointf3 bb_min = bbox.min;
-    Pointf3 bb_max = bbox.max;
-    Pointf3 bb_center = bbox.center();
+    Vec3d bb_min = bbox.min;
+    Vec3d bb_max = bbox.max;
+    Vec3d bb_center = bbox.center();
 
     // bbox vertices in world space
-    std::vector<Pointf3> vertices;
+    std::vector<Vec3d> vertices;
     vertices.reserve(8);
     vertices.push_back(bb_min);
-    vertices.emplace_back(bb_max.x, bb_min.y, bb_min.z);
-    vertices.emplace_back(bb_max.x, bb_max.y, bb_min.z);
-    vertices.emplace_back(bb_min.x, bb_max.y, bb_min.z);
-    vertices.emplace_back(bb_min.x, bb_min.y, bb_max.z);
-    vertices.emplace_back(bb_max.x, bb_min.y, bb_max.z);
+    vertices.emplace_back(bb_max(0), bb_min(1), bb_min(2));
+    vertices.emplace_back(bb_max(0), bb_max(1), bb_min(2));
+    vertices.emplace_back(bb_min(0), bb_max(1), bb_min(2));
+    vertices.emplace_back(bb_min(0), bb_min(1), bb_max(2));
+    vertices.emplace_back(bb_max(0), bb_min(1), bb_max(2));
     vertices.push_back(bb_max);
-    vertices.emplace_back(bb_min.x, bb_max.y, bb_max.z);
+    vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
 
     coordf_t max_x = 0.0;
     coordf_t max_y = 0.0;
@@ -3702,15 +3697,15 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     // margin factor to give some empty space around the bbox
     coordf_t margin_factor = 1.25;
 
-    for (const Pointf3 v : vertices)
+    for (const Vec3d v : vertices)
     {
         // project vertex on the plane perpendicular to camera forward axis
-        Pointf3 pos(v.x - bb_center.x, v.y - bb_center.y, v.z - bb_center.z);
-        Pointf3 proj_on_plane = pos - dot(pos, forward) * forward;
+        Vec3d pos(v(0) - bb_center(0), v(1) - bb_center(1), v(2) - bb_center(2));
+        Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
 
         // calculates vertex coordinate along camera xy axes
-        coordf_t x_on_plane = dot(proj_on_plane, right);
-        coordf_t y_on_plane = dot(proj_on_plane, up);
+        coordf_t x_on_plane = proj_on_plane.dot(right);
+        coordf_t y_on_plane = proj_on_plane.dot(up);
 
         max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
         max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
@@ -3802,15 +3797,15 @@ void GLCanvas3D::_camera_tranform() const
     ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
-    Pointf3 neg_target = m_camera.target.negative();
-    ::glTranslatef((GLfloat)neg_target.x, (GLfloat)neg_target.y, (GLfloat)neg_target.z);
+    Vec3d neg_target = - m_camera.target;
+    ::glTranslatef((GLfloat)neg_target(0), (GLfloat)neg_target(1), (GLfloat)neg_target(2));
 }
 
 void GLCanvas3D::_picking_pass() const
 {
-    const Pointf& pos = m_mouse.position;
+    const Vec2d& pos = m_mouse.position;
 
-    if (m_picking_enabled && !m_mouse.dragging && (pos != Pointf(DBL_MAX, DBL_MAX)))
+    if (m_picking_enabled && !m_mouse.dragging && (pos != Vec2d(DBL_MAX, DBL_MAX)))
     {
         // Render the object for picking.
         // FIXME This cannot possibly work in a multi - sampled context as the color gets mangled by the anti - aliasing.
@@ -3838,10 +3833,10 @@ void GLCanvas3D::_picking_pass() const
 
         GLubyte color[4] = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
-        bool inside = (0 <= pos.x) && (pos.x < cnv_size.get_width()) && (0 <= pos.y) && (pos.y < cnv_size.get_height());
+        bool inside = (0 <= pos(0)) && (pos(0) < cnv_size.get_width()) && (0 <= pos(1)) && (pos(1) < cnv_size.get_height());
         if (inside)
         {
-            ::glReadPixels(pos.x, cnv_size.get_height() - pos.y - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
+            ::glReadPixels(pos(0), cnv_size.get_height() - pos(1) - 1, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, (void*)color);
             volume_id = color[0] + color[1] * 256 + color[2] * 256 * 256;
         }
 
@@ -3939,7 +3934,7 @@ void GLCanvas3D::_render_objects() const
             if (m_config != nullptr)
             {
                 const BoundingBoxf3& bed_bb = m_bed.get_bounding_box();
-                m_volumes.set_print_box((float)bed_bb.min.x, (float)bed_bb.min.y, 0.0f, (float)bed_bb.max.x, (float)bed_bb.max.y, (float)m_config->opt_float("max_print_height"));
+                m_volumes.set_print_box((float)bed_bb.min(0), (float)bed_bb.min(1), 0.0f, (float)bed_bb.max(0), (float)bed_bb.max(1), (float)m_config->opt_float("max_print_height"));
                 m_volumes.check_outside_state(m_config, nullptr);
             }
             // do not cull backfaces to show broken geometry, if any
@@ -4107,7 +4102,7 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     {
         const Rect& rect = LayersEditing::get_bar_rect_screen(*this);
         float b = rect.get_bottom();
-        m_layers_editing.last_z = unscale(selected_obj->size.z) * (b - evt->GetY() - 1.0f) / (b - rect.get_top());
+        m_layers_editing.last_z = unscale<double>(selected_obj->size(2)) * (b - evt->GetY() - 1.0f) / (b - rect.get_top());
         m_layers_editing.last_action = evt->ShiftDown() ? (evt->RightIsDown() ? 3 : 2) : (evt->RightIsDown() ? 0 : 1);
     }
 
@@ -4137,10 +4132,10 @@ void GLCanvas3D::_perform_layer_editing_action(wxMouseEvent* evt)
     _start_timer();
 }
 
-Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
+Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
 {
     if (m_canvas == nullptr)
-        return Pointf3(DBL_MAX, DBL_MAX, DBL_MAX);
+        return Vec3d(DBL_MAX, DBL_MAX, DBL_MAX);
 
     _camera_tranform();
 
@@ -4151,19 +4146,19 @@ Pointf3 GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
     GLdouble projection_matrix[16];
     ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix);
 
-    GLint y = viewport[3] - (GLint)mouse_pos.y;
+    GLint y = viewport[3] - (GLint)mouse_pos(1);
     GLfloat mouse_z;
     if (z == nullptr)
-        ::glReadPixels((GLint)mouse_pos.x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z);
+        ::glReadPixels((GLint)mouse_pos(0), y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, (void*)&mouse_z);
     else
         mouse_z = *z;
 
     GLdouble out_x, out_y, out_z;
-    ::gluUnProject((GLdouble)mouse_pos.x, (GLdouble)y, (GLdouble)mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
-    return Pointf3((coordf_t)out_x, (coordf_t)out_y, (coordf_t)out_z);
+    ::gluUnProject((GLdouble)mouse_pos(0), (GLdouble)y, (GLdouble)mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
+    return Vec3d((coordf_t)out_x, (coordf_t)out_y, (coordf_t)out_z);
 }
 
-Pointf3 GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
+Vec3d GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
 {
     return mouse_ray(mouse_pos).intersect_plane(0.0);
 }
@@ -4883,7 +4878,7 @@ bool GLCanvas3D::_travel_paths_by_type(const GCodePreviewData& preview_data)
         TypesList::iterator type = std::find(types.begin(), types.end(), Type(polyline.type));
         if (type != types.end())
         {
-            type->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().min.z));
+            type->volume->print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
             type->volume->offsets.push_back(type->volume->indexed_vertex_array.quad_indices.size());
             type->volume->offsets.push_back(type->volume->indexed_vertex_array.triangle_indices.size());
 
@@ -4949,7 +4944,7 @@ bool GLCanvas3D::_travel_paths_by_feedrate(const GCodePreviewData& preview_data)
         FeedratesList::iterator feedrate = std::find(feedrates.begin(), feedrates.end(), Feedrate(polyline.feedrate));
         if (feedrate != feedrates.end())
         {
-            feedrate->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().min.z));
+            feedrate->volume->print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
             feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.quad_indices.size());
             feedrate->volume->offsets.push_back(feedrate->volume->indexed_vertex_array.triangle_indices.size());
 
@@ -5015,7 +5010,7 @@ bool GLCanvas3D::_travel_paths_by_tool(const GCodePreviewData& preview_data, con
         ToolsList::iterator tool = std::find(tools.begin(), tools.end(), Tool(polyline.extruder_id));
         if (tool != tools.end())
         {
-            tool->volume->print_zs.push_back(unscale(polyline.polyline.bounding_box().min.z));
+            tool->volume->print_zs.push_back(unscale<double>(polyline.polyline.bounding_box().min(2)));
             tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.quad_indices.size());
             tool->volume->offsets.push_back(tool->volume->indexed_vertex_array.triangle_indices.size());
 
@@ -5040,11 +5035,11 @@ void GLCanvas3D::_load_gcode_retractions(const GCodePreviewData& preview_data)
         m_volumes.volumes.emplace_back(volume);
 
         GCodePreviewData::Retraction::PositionsList copy(preview_data.retraction.positions);
-        std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position.z < p2.position.z; });
+        std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position(2) < p2.position(2); });
 
         for (const GCodePreviewData::Retraction::Position& position : copy)
         {
-            volume->print_zs.push_back(unscale(position.position.z));
+            volume->print_zs.push_back(unscale<double>(position.position(2)));
             volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
             volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
 
@@ -5071,11 +5066,11 @@ void GLCanvas3D::_load_gcode_unretractions(const GCodePreviewData& preview_data)
         m_volumes.volumes.emplace_back(volume);
 
         GCodePreviewData::Retraction::PositionsList copy(preview_data.unretraction.positions);
-        std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position.z < p2.position.z; });
+        std::sort(copy.begin(), copy.end(), [](const GCodePreviewData::Retraction::Position& p1, const GCodePreviewData::Retraction::Position& p2){ return p1.position(2) < p2.position(2); });
 
         for (const GCodePreviewData::Retraction::Position& position : copy)
         {
-            volume->print_zs.push_back(unscale(position.position.z));
+            volume->print_zs.push_back(unscale<double>(position.position(2)));
             volume->offsets.push_back(volume->indexed_vertex_array.quad_indices.size());
             volume->offsets.push_back(volume->indexed_vertex_array.triangle_indices.size());
 
@@ -5115,7 +5110,7 @@ void GLCanvas3D::_load_shells()
     }
 
     // adds wipe tower's volume
-    coordf_t max_z = m_print->objects[0]->model_object()->get_model()->bounding_box().max.z;
+    coordf_t max_z = m_print->objects[0]->model_object()->get_model()->bounding_box().max(2);
     const PrintConfig& config = m_print->config;
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
@@ -5198,9 +5193,9 @@ void GLCanvas3D::_update_toolpath_volumes_outside_state()
         if (opt != nullptr)
         {
             BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-            print_volume = BoundingBoxf3(Pointf3(unscale(bed_box_2D.min.x) - tolerance_x, unscale(bed_box_2D.min.y) - tolerance_y, 0.0), Pointf3(unscale(bed_box_2D.max.x) + tolerance_x, unscale(bed_box_2D.max.y) + tolerance_y, m_config->opt_float("max_print_height")));
+            print_volume = BoundingBoxf3(Vec3d(unscale<double>(bed_box_2D.min(0)) - tolerance_x, unscale<double>(bed_box_2D.min(1)) - tolerance_y, 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)) + tolerance_x, unscale<double>(bed_box_2D.max(1)) + tolerance_y, m_config->opt_float("max_print_height")));
             // Allow the objects to protrude below the print bed
-            print_volume.min.z = -1e10;
+            print_volume.min(2) = -1e10;
         }
     }
 
@@ -5231,7 +5226,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 
     std::set<std::string> done;  // prevent moving instances twice
     bool object_moved = false;
-    Pointf3 wipe_tower_origin(0.0, 0.0, 0.0);
+    Vec3d wipe_tower_origin(0.0, 0.0, 0.0);
     for (int volume_idx : volume_idxs)
     {
         GLVolume* volume = m_volumes.volumes[volume_idx];
@@ -5250,8 +5245,8 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         {
             // Move a regular object.
             ModelObject* model_object = m_model->objects[obj_idx];
-            const Pointf3& origin = volume->get_origin();
-            model_object->instances[instance_idx]->offset = Pointf(origin.x, origin.y);
+            const Vec3d& origin = volume->get_origin();
+            model_object->instances[instance_idx]->offset = Vec2d(origin(0), origin(1));
             model_object->invalidate_bounding_box();
             object_moved = true;
         }
@@ -5263,8 +5258,8 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     if (object_moved)
         m_on_instance_moved_callback.call();
 
-    if (wipe_tower_origin != Pointf3(0.0, 0.0, 0.0))
-        m_on_wipe_tower_moved_callback.call(wipe_tower_origin.x, wipe_tower_origin.y);
+    if (wipe_tower_origin != Vec3d(0.0, 0.0, 0.0))
+        m_on_wipe_tower_moved_callback.call(wipe_tower_origin(0), wipe_tower_origin(1));
 }
 
 void GLCanvas3D::_on_select(int volume_idx)

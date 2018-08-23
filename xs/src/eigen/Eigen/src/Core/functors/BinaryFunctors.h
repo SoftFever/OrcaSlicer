@@ -255,7 +255,7 @@ struct scalar_cmp_op<LhsScalar,RhsScalar, cmp_NEQ> : binary_op_base<LhsScalar,Rh
 
 
 /** \internal
-  * \brief Template functor to compute the hypot of two scalars
+  * \brief Template functor to compute the hypot of two \b positive \b and \b real scalars
   *
   * \sa MatrixBase::stableNorm(), class Redux
   */
@@ -263,22 +263,15 @@ template<typename Scalar>
 struct scalar_hypot_op<Scalar,Scalar> : binary_op_base<Scalar,Scalar>
 {
   EIGEN_EMPTY_STRUCT_CTOR(scalar_hypot_op)
-//   typedef typename NumTraits<Scalar>::Real result_type;
-  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar& _x, const Scalar& _y) const
+
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (const Scalar &x, const Scalar &y) const
   {
-    EIGEN_USING_STD_MATH(sqrt)
-    Scalar p, qp;
-    if(_x>_y)
-    {
-      p = _x;
-      qp = _y / p;
-    }
-    else
-    {
-      p = _y;
-      qp = _x / p;
-    }
-    return p * sqrt(Scalar(1) + qp*qp);
+    // This functor is used by hypotNorm only for which it is faster to first apply abs
+    // on all coefficients prior to reduction through hypot.
+    // This way we avoid calling abs on positive and real entries, and this also permits
+    // to seamlessly handle complexes. Otherwise we would have to handle both real and complexes
+    // through the same functor...
+    return internal::positive_real_hypot(x,y);
   }
 };
 template<typename Scalar>

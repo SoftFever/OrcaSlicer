@@ -1,5 +1,7 @@
+#include "../../libslic3r/point.hpp"
 #include "GLToolbar.hpp"
 
+#include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
 
 #include <GL/glew.h>
@@ -267,7 +269,7 @@ bool GLToolbar::is_item_pressed(const std::string& name) const
     return false;
 }
 
-void GLToolbar::update_hover_state(const Pointf& mouse_pos)
+void GLToolbar::update_hover_state(const Vec2d& mouse_pos)
 {
     if (!m_enabled)
         return;
@@ -288,7 +290,7 @@ void GLToolbar::update_hover_state(const Pointf& mouse_pos)
     }
 }
 
-int GLToolbar::contains_mouse(const Pointf& mouse_pos) const
+int GLToolbar::contains_mouse(const Vec2d& mouse_pos) const
 {
     if (!m_enabled)
         return -1;
@@ -342,7 +344,6 @@ void GLToolbar::do_action(unsigned int item_id)
 }
 
 void GLToolbar::render() const
-//void GLToolbar::render(const Pointf& mouse_pos) const
 {
     if (!m_enabled || m_items.empty())
         return;
@@ -407,13 +408,13 @@ float GLToolbar::_get_main_size() const
     return size;
 }
 
-void GLToolbar::_update_hover_state_horizontal(const Pointf& mouse_pos)
+void GLToolbar::_update_hover_state_horizontal(const Vec2d& mouse_pos)
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     Size cnv_size = m_parent.get_canvas_size();
-    Pointf scaled_mouse_pos((mouse_pos.x - 0.5f * (float)cnv_size.get_width()) * inv_zoom, (0.5f * (float)cnv_size.get_height() - mouse_pos.y) * inv_zoom);
+    Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
     float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
@@ -437,7 +438,7 @@ void GLToolbar::_update_hover_state_horizontal(const Pointf& mouse_pos)
             float bottom = top - scaled_icons_size;
 
             GLToolbarItem::EState state = item->get_state();
-            bool inside = (left <= scaled_mouse_pos.x) && (scaled_mouse_pos.x <= right) && (bottom <= scaled_mouse_pos.y) && (scaled_mouse_pos.y <= top);
+            bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
 
             switch (state)
             {
@@ -487,13 +488,13 @@ void GLToolbar::_update_hover_state_horizontal(const Pointf& mouse_pos)
     m_parent.set_tooltip(tooltip);
 }
 
-void GLToolbar::_update_hover_state_vertical(const Pointf& mouse_pos)
+void GLToolbar::_update_hover_state_vertical(const Vec2d& mouse_pos)
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     Size cnv_size = m_parent.get_canvas_size();
-    Pointf scaled_mouse_pos((mouse_pos.x - 0.5f * (float)cnv_size.get_width()) * inv_zoom, (0.5f * (float)cnv_size.get_height() - mouse_pos.y) * inv_zoom);
+    Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
     float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
@@ -517,7 +518,7 @@ void GLToolbar::_update_hover_state_vertical(const Pointf& mouse_pos)
             float bottom = top - scaled_icons_size;
 
             GLToolbarItem::EState state = item->get_state();
-            bool inside = (left <= scaled_mouse_pos.x) && (scaled_mouse_pos.x <= right) && (bottom <= scaled_mouse_pos.y) && (scaled_mouse_pos.y <= top);
+            bool inside = (left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top);
 
             switch (state)
             {
@@ -567,13 +568,13 @@ void GLToolbar::_update_hover_state_vertical(const Pointf& mouse_pos)
     m_parent.set_tooltip(tooltip);
 }
 
-int GLToolbar::_contains_mouse_horizontal(const Pointf& mouse_pos) const
+int GLToolbar::_contains_mouse_horizontal(const Vec2d& mouse_pos) const
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     Size cnv_size = m_parent.get_canvas_size();
-    Pointf scaled_mouse_pos((mouse_pos.x - 0.5f * (float)cnv_size.get_width()) * inv_zoom, (0.5f * (float)cnv_size.get_height() - mouse_pos.y) * inv_zoom);
+    Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
     float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
@@ -598,7 +599,7 @@ int GLToolbar::_contains_mouse_horizontal(const Pointf& mouse_pos) const
             float right = left + scaled_icons_size;
             float bottom = top - scaled_icons_size;
             
-            if ((left <= scaled_mouse_pos.x) && (scaled_mouse_pos.x <= right) && (bottom <= scaled_mouse_pos.y) && (scaled_mouse_pos.y <= top))
+            if ((left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top))
                 return id;
             
             left += icon_stride;
@@ -608,13 +609,13 @@ int GLToolbar::_contains_mouse_horizontal(const Pointf& mouse_pos) const
     return -1;
 }
 
-int GLToolbar::_contains_mouse_vertical(const Pointf& mouse_pos) const
+int GLToolbar::_contains_mouse_vertical(const Vec2d& mouse_pos) const
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
     Size cnv_size = m_parent.get_canvas_size();
-    Pointf scaled_mouse_pos((mouse_pos.x - 0.5f * (float)cnv_size.get_width()) * inv_zoom, (0.5f * (float)cnv_size.get_height() - mouse_pos.y) * inv_zoom);
+    Vec2d scaled_mouse_pos((mouse_pos(0) - 0.5 * (double)cnv_size.get_width()) * inv_zoom, (0.5 * (double)cnv_size.get_height() - mouse_pos(1)) * inv_zoom);
 
     float scaled_icons_size = (float)m_icons_texture.items_icon_size * inv_zoom;
     float scaled_separator_size = m_layout.separator_size * inv_zoom;
@@ -639,7 +640,7 @@ int GLToolbar::_contains_mouse_vertical(const Pointf& mouse_pos) const
             float right = left + scaled_icons_size;
             float bottom = top - scaled_icons_size;
 
-            if ((left <= scaled_mouse_pos.x) && (scaled_mouse_pos.x <= right) && (bottom <= scaled_mouse_pos.y) && (scaled_mouse_pos.y <= top))
+            if ((left <= (float)scaled_mouse_pos(0)) && ((float)scaled_mouse_pos(0) <= right) && (bottom <= (float)scaled_mouse_pos(1)) && ((float)scaled_mouse_pos(1) <= top))
                 return id;
 
             top -= icon_stride;

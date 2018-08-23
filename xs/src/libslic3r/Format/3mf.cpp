@@ -1352,8 +1352,8 @@ namespace Slic3r {
         double angle_z = (rotation.axis() == Eigen::Vector3d::UnitZ()) ? rotation.angle() : -rotation.angle();
 #endif 
 
-        instance.offset.x = offset_x;
-        instance.offset.y = offset_y;
+        instance.offset(0) = offset_x;
+        instance.offset(1) = offset_y;
         instance.scaling_factor = sx;
         instance.rotation = angle_z;
     }
@@ -1485,7 +1485,7 @@ namespace Slic3r {
                 stl_facet& facet = stl.facet_start[i];
                 for (unsigned int v = 0; v < 3; ++v)
                 {
-                    ::memcpy((void*)&facet.vertex[v].x, (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
+                    ::memcpy(facet.vertex[v].data(), (const void*)&geometry.vertices[geometry.triangles[src_start_id + ii + v] * 3], 3 * sizeof(float));
                 }
             }
 
@@ -1802,7 +1802,7 @@ namespace Slic3r {
             }
 
             Eigen::Affine3f transform;
-            transform = Eigen::Translation3f((float)instance->offset.x, (float)instance->offset.y, 0.0f) * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ()) * Eigen::Scaling((float)instance->scaling_factor);
+            transform = Eigen::Translation3f((float)instance->offset(0), (float)instance->offset(1), 0.0f) * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ()) * Eigen::Scaling((float)instance->scaling_factor);
             build_items.emplace_back(instance_id, transform.matrix());
 
             stream << "  </" << OBJECT_TAG << ">\n";
@@ -1845,9 +1845,9 @@ namespace Slic3r {
             for (int i = 0; i < stl.stats.shared_vertices; ++i)
             {
                 stream << "     <" << VERTEX_TAG << " ";
-                stream << "x=\"" << stl.v_shared[i].x << "\" ";
-                stream << "y=\"" << stl.v_shared[i].y << "\" ";
-                stream << "z=\"" << stl.v_shared[i].z << "\" />\n";
+                stream << "x=\"" << stl.v_shared[i](0) << "\" ";
+                stream << "y=\"" << stl.v_shared[i](1) << "\" ";
+                stream << "z=\"" << stl.v_shared[i](2) << "\" />\n";
             }
         }
 

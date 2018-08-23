@@ -35,7 +35,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("bed_shape", coPoints);
 	def->label = L("Bed shape");
-    def->default_value = new ConfigOptionPoints { Pointf(0,0), Pointf(200,0), Pointf(200,200), Pointf(0,200) };
+    def->default_value = new ConfigOptionPoints { Vec2d(0,0), Vec2d(200,0), Vec2d(200,200), Vec2d(0,200) };
     
     def = this->add("bed_temperature", coInts);
     def->label = L("Other layers");
@@ -392,7 +392,7 @@ PrintConfigDef::PrintConfigDef()
                    "from the XY coordinate).");
     def->sidetext = L("mm");
     def->cli = "extruder-offset=s@";
-    def->default_value = new ConfigOptionPoints { Pointf(0,0) };
+    def->default_value = new ConfigOptionPoints { Vec2d(0,0) };
 
     def = this->add("extrusion_axis", coString);
     def->label = L("Extrusion axis");
@@ -2117,7 +2117,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         ConfigOptionPoint p;
         p.deserialize(value);
         std::ostringstream oss;
-        oss << "0x0," << p.value.x << "x0," << p.value.x << "x" << p.value.y << ",0x" << p.value.y;
+        oss << "0x0," << p.value(0) << "x0," << p.value(0) << "x" << p.value(1) << ",0x" << p.value(1);
         value = oss.str();
     } else if ((opt_key == "perimeter_acceleration" && value == "25")
         || (opt_key == "infill_acceleration" && value == "50")) {

@@ -261,7 +261,7 @@ std::vector<float> Chart::get_ramming_speed(float sampling) const {
 std::vector<std::pair<float,float>> Chart::get_buttons() const {
     std::vector<std::pair<float, float>> buttons_out;
     for (const auto& button : m_buttons)
-        buttons_out.push_back(std::make_pair(button.get_pos().m_x,button.get_pos().m_y));            
+        buttons_out.push_back(std::make_pair(float(button.get_pos().m_x),float(button.get_pos().m_y)));
     return buttons_out;
 }
     

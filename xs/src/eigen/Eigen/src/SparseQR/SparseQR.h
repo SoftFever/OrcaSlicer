@@ -52,7 +52,7 @@ namespace internal {
   * rank-revealing permutations. Use colsPermutation() to get it.
   * 
   * Q is the orthogonal matrix represented as products of Householder reflectors. 
-  * Use matrixQ() to get an expression and matrixQ().transpose() to get the transpose.
+  * Use matrixQ() to get an expression and matrixQ().adjoint() to get the adjoint.
   * You can then apply it to a vector.
   * 
   * R is the sparse triangular or trapezoidal matrix. The later occurs when A is rank-deficient.
@@ -65,6 +65,7 @@ namespace internal {
   * \implsparsesolverconcept
   *
   * \warning The input sparse matrix A must be in compressed mode (see SparseMatrix::makeCompressed()).
+  * \warning For complex matrices matrixQ().transpose() will actually return the adjoint matrix.
   * 
   */
 template<typename _MatrixType, typename _OrderingType>
@@ -196,9 +197,9 @@ class SparseQR : public SparseSolverBase<SparseQR<_MatrixType,_OrderingType> >
 
       Index rank = this->rank();
       
-      // Compute Q^T * b;
+      // Compute Q^* * b;
       typename Dest::PlainObject y, b;
-      y = this->matrixQ().transpose() * B; 
+      y = this->matrixQ().adjoint() * B;
       b = y;
       
       // Solve with the triangular matrix R
@@ -604,7 +605,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
   // Get the references 
   SparseQR_QProduct(const SparseQRType& qr, const Derived& other, bool transpose) : 
   m_qr(qr),m_other(other),m_transpose(transpose) {}
-  inline Index rows() const { return m_transpose ? m_qr.rows() : m_qr.cols(); }
+  inline Index rows() const { return m_qr.matrixQ().rows(); }
   inline Index cols() const { return m_other.cols(); }
   
   // Assign to a vector
@@ -632,7 +633,10 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
     }
     else
     {
-      eigen_assert(m_qr.m_Q.rows() == m_other.rows() && "Non conforming object sizes");
+      eigen_assert(m_qr.matrixQ().cols() == m_other.rows() && "Non conforming object sizes");
+
+      res.conservativeResize(rows(), cols());
+
       // Compute res = Q * other column by column
       for(Index j = 0; j < res.cols(); j++)
       {
@@ -641,7 +645,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
           Scalar tau = Scalar(0);
           tau = m_qr.m_Q.col(k).dot(res.col(j));
           if(tau==Scalar(0)) continue;
-          tau = tau * m_qr.m_hcoeffs(k);
+          tau = tau * numext::conj(m_qr.m_hcoeffs(k));
           res.col(j) -= tau * m_qr.m_Q.col(k);
         }
       }
@@ -650,7 +654,7 @@ struct SparseQR_QProduct : ReturnByValue<SparseQR_QProduct<SparseQRType, Derived
   
   const SparseQRType& m_qr;
   const Derived& m_other;
-  bool m_transpose;
+  bool m_transpose; // TODO this actually means adjoint
 };
 
 template<typename SparseQRType>
@@ -668,13 +672,14 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   {
     return SparseQR_QProduct<SparseQRType,Derived>(m_qr,other.derived(),false);
   }
+  // To use for operations with the adjoint of Q
   SparseQRMatrixQTransposeReturnType<SparseQRType> adjoint() const
   {
     return SparseQRMatrixQTransposeReturnType<SparseQRType>(m_qr);
   }
   inline Index rows() const { return m_qr.rows(); }
-  inline Index cols() const { return (std::min)(m_qr.rows(),m_qr.cols()); }
-  // To use for operations with the transpose of Q
+  inline Index cols() const { return m_qr.rows(); }
+  // To use for operations with the transpose of Q FIXME this is the same as adjoint at the moment
   SparseQRMatrixQTransposeReturnType<SparseQRType> transpose() const
   {
     return SparseQRMatrixQTransposeReturnType<SparseQRType>(m_qr);
@@ -682,6 +687,7 @@ struct SparseQRMatrixQReturnType : public EigenBase<SparseQRMatrixQReturnType<Sp
   const SparseQRType& m_qr;
 };
 
+// TODO this actually represents the adjoint of Q
 template<typename SparseQRType>
 struct SparseQRMatrixQTransposeReturnType
 {
@@ -712,7 +718,7 @@ struct Assignment<DstXprType, SparseQRMatrixQReturnType<SparseQRType>, internal:
   typedef typename DstXprType::StorageIndex StorageIndex;
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &/*func*/)
   {
-    typename DstXprType::PlainObject idMat(src.m_qr.rows(), src.m_qr.rows());
+    typename DstXprType::PlainObject idMat(src.rows(), src.cols());
     idMat.setIdentity();
     // Sort the sparse householder reflectors if needed
     const_cast<SparseQRType *>(&src.m_qr)->_sort_matrix_Q();

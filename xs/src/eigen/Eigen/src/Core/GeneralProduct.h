@@ -24,12 +24,17 @@ template<int Rows, int Cols, int Depth> struct product_type_selector;
 
 template<int Size, int MaxSize> struct product_size_category
 {
-  enum { is_large = MaxSize == Dynamic ||
-                    Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ||
-                    (Size==Dynamic && MaxSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD),
-         value = is_large  ? Large
-               : Size == 1 ? 1
-                           : Small
+  enum {
+    #ifndef EIGEN_CUDA_ARCH
+    is_large = MaxSize == Dynamic ||
+               Size >= EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD ||
+               (Size==Dynamic && MaxSize>=EIGEN_CACHEFRIENDLY_PRODUCT_THRESHOLD),
+    #else
+    is_large = 0,
+    #endif
+    value = is_large  ? Large
+          : Size == 1 ? 1
+                      : Small
   };
 };
 
@@ -379,8 +384,6 @@ template<> struct gemv_dense_selector<OnTheRight,RowMajor,false>
   *
   * \sa lazyProduct(), operator*=(const MatrixBase&), Cwise::operator*()
   */
-#ifndef __CUDACC__
-
 template<typename Derived>
 template<typename OtherDerived>
 inline const Product<Derived, OtherDerived>
@@ -411,8 +414,6 @@ MatrixBase<Derived>::operator*(const MatrixBase<OtherDerived> &other) const
 
   return Product<Derived, OtherDerived>(derived(), other.derived());
 }
-
-#endif // __CUDACC__
 
 /** \returns an expression of the matrix product of \c *this and \a other without implicit evaluation.
   *

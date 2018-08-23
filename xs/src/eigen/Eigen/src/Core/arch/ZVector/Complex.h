@@ -336,6 +336,9 @@ template<> struct conj_helper<Packet2cf, Packet2cf, true,true>
   }
 };
 
+EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet2cf,Packet4f)
+EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet1cd,Packet2d)
+
 template<> EIGEN_STRONG_INLINE Packet1cd pdiv<Packet1cd>(const Packet1cd& a, const Packet1cd& b)
 {
   // TODO optimize it for AltiVec

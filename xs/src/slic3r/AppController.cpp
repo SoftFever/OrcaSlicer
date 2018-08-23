@@ -319,7 +319,7 @@ void AppController::arrange_model()
         auto& bedpoints = print_ctl()->config().bed_shape.values;
         Polyline bed; bed.points.reserve(bedpoints.size());
         for(auto& v : bedpoints)
-            bed.append(Point::new_scale(v.x, v.y));
+            bed.append(Point::new_scale(v(0), v(1)));
 
         if(pind) pind->update(0, _(L("Arranging objects...")));
 

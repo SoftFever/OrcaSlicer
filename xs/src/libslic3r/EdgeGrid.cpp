@@ -117,15 +117,15 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			m_bbox.merge(pts[j]);
 	}
 	coord_t eps = 16;
-	m_bbox.min.x -= eps;
-	m_bbox.min.y -= eps;
-	m_bbox.max.x += eps;
-	m_bbox.max.y += eps;
+	m_bbox.min(0) -= eps;
+	m_bbox.min(1) -= eps;
+	m_bbox.max(0) += eps;
+	m_bbox.max(1) += eps;
 
 	// 2) Initialize the edge grid.
 	m_resolution = resolution;
-	m_cols = (m_bbox.max.x - m_bbox.min.x + m_resolution - 1) / m_resolution;
-	m_rows = (m_bbox.max.y - m_bbox.min.y + m_resolution - 1) / m_resolution;
+	m_cols = (m_bbox.max(0) - m_bbox.min(0) + m_resolution - 1) / m_resolution;
+	m_rows = (m_bbox.max(1) - m_bbox.min(1) + m_resolution - 1) / m_resolution;
 	m_cells.assign(m_rows * m_cols, Cell());
 
 	// 3) First round of contour rasterization, count the edges per grid cell.
@@ -135,15 +135,15 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			// End points of the line segment.
 			Slic3r::Point p1(pts[j]);
 			Slic3r::Point p2 = pts[(j + 1 == pts.size()) ? 0 : j + 1];
-			p1.x -= m_bbox.min.x;
-			p1.y -= m_bbox.min.y;
-			p2.x -= m_bbox.min.x;
-			p2.y -= m_bbox.min.y;
+			p1(0) -= m_bbox.min(0);
+			p1(1) -= m_bbox.min(1);
+			p2(0) -= m_bbox.min(0);
+			p2(1) -= m_bbox.min(1);
 		   	// Get the cells of the end points.
-		    coord_t ix    = p1.x / m_resolution;
-		    coord_t iy    = p1.y / m_resolution;
-		    coord_t ixb   = p2.x / m_resolution;
-		    coord_t iyb   = p2.y / m_resolution;
+		    coord_t ix    = p1(0) / m_resolution;
+		    coord_t iy    = p1(1) / m_resolution;
+		    coord_t ixb   = p2(0) / m_resolution;
+		    coord_t iyb   = p2(1) / m_resolution;
 			assert(ix >= 0 && ix < m_cols);
 			assert(iy >= 0 && iy < m_rows);
 			assert(ixb >= 0 && ixb < m_cols);
@@ -154,13 +154,13 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				// Both ends fall into the same cell.
 				continue;
 		    // Raster the centeral part of the line.
-			coord_t dx = std::abs(p2.x - p1.x);
-			coord_t dy = std::abs(p2.y - p1.y);
-			if (p1.x < p2.x) {
-				int64_t ex = int64_t((ix + 1)*m_resolution - p1.x) * int64_t(dy);
-				if (p1.y < p2.y) {
+			coord_t dx = std::abs(p2(0) - p1(0));
+			coord_t dy = std::abs(p2(1) - p1(1));
+			if (p1(0) < p2(0)) {
+				int64_t ex = int64_t((ix + 1)*m_resolution - p1(0)) * int64_t(dy);
+				if (p1(1) < p2(1)) {
 					// x positive, y positive
-					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+					int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy <= iyb);
 						if (ex < ey) {
@@ -185,7 +185,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				}
 				else {
 					// x positive, y non positive
-					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+					int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy >= iyb);
 						if (ex <= ey) {
@@ -203,10 +203,10 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				}
 			}
 			else {
-				int64_t ex = int64_t(p1.x - ix*m_resolution) * int64_t(dy);
-				if (p1.y < p2.y) {
+				int64_t ex = int64_t(p1(0) - ix*m_resolution) * int64_t(dy);
+				if (p1(1) < p2(1)) {
 					// x non positive, y positive
-					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+					int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy <= iyb);
 						if (ex < ey) {
@@ -225,7 +225,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				}
 				else {
 					// x non positive, y non positive
-					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+					int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy >= iyb);
 						if (ex < ey) {
@@ -279,15 +279,15 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 			// End points of the line segment.
 			Slic3r::Point p1(pts[j]);
 			Slic3r::Point p2 = pts[(j + 1 == pts.size()) ? 0 : j + 1];
-			p1.x -= m_bbox.min.x;
-			p1.y -= m_bbox.min.y;
-			p2.x -= m_bbox.min.x;
-			p2.y -= m_bbox.min.y;
+			p1(0) -= m_bbox.min(0);
+			p1(1) -= m_bbox.min(1);
+			p2(0) -= m_bbox.min(0);
+			p2(1) -= m_bbox.min(1);
 			// Get the cells of the end points.
-			coord_t ix = p1.x / m_resolution;
-			coord_t iy = p1.y / m_resolution;
-			coord_t ixb = p2.x / m_resolution;
-			coord_t iyb = p2.y / m_resolution;
+			coord_t ix = p1(0) / m_resolution;
+			coord_t iy = p1(1) / m_resolution;
+			coord_t ixb = p2(0) / m_resolution;
+			coord_t iyb = p2(1) / m_resolution;
 			assert(ix >= 0 && ix < m_cols);
 			assert(iy >= 0 && iy < m_rows);
 			assert(ixb >= 0 && ixb < m_cols);
@@ -298,13 +298,13 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				// Both ends fall into the same cell.
 				continue;
 			// Raster the centeral part of the line.
-			coord_t dx = std::abs(p2.x - p1.x);
-			coord_t dy = std::abs(p2.y - p1.y);
-			if (p1.x < p2.x) {
-				int64_t ex = int64_t((ix + 1)*m_resolution - p1.x) * int64_t(dy);
-				if (p1.y < p2.y) {
+			coord_t dx = std::abs(p2(0) - p1(0));
+			coord_t dy = std::abs(p2(1) - p1(1));
+			if (p1(0) < p2(0)) {
+				int64_t ex = int64_t((ix + 1)*m_resolution - p1(0)) * int64_t(dy);
+				if (p1(1) < p2(1)) {
 					// x positive, y positive
-					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+					int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy <= iyb);
 						if (ex < ey) {
@@ -329,7 +329,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				}
 				else {
 					// x positive, y non positive
-					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+					int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix <= ixb && iy >= iyb);
 						if (ex <= ey) {
@@ -347,10 +347,10 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				}
 			}
 			else {
-				int64_t ex = int64_t(p1.x - ix*m_resolution) * int64_t(dy);
-				if (p1.y < p2.y) {
+				int64_t ex = int64_t(p1(0) - ix*m_resolution) * int64_t(dy);
+				if (p1(1) < p2(1)) {
 					// x non positive, y positive
-					int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+					int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy <= iyb);
 						if (ex < ey) {
@@ -369,7 +369,7 @@ void EdgeGrid::Grid::create_from_m_contours(coord_t resolution)
 				}
 				else {
 					// x non positive, y non positive
-					int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+					int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
 					do {
 						assert(ix >= ixb && iy >= iyb);
 						if (ex < ey) {
@@ -429,15 +429,15 @@ bool EdgeGrid::Grid::intersect(const MultiPoint &polyline, bool closed)
 		Point p1 = p1src;
 		Point p2 = p2src;
 		// Discretize the line segment p1, p2.
-		p1.x -= m_bbox.min.x;
-		p1.y -= m_bbox.min.y;
-		p2.x -= m_bbox.min.x;
-		p2.y -= m_bbox.min.y;
+		p1(0) -= m_bbox.min(0);
+		p1(1) -= m_bbox.min(1);
+		p2(0) -= m_bbox.min(0);
+		p2(1) -= m_bbox.min(1);
 		// Get the cells of the end points.
-		coord_t ix = div_floor(p1.x, m_resolution);
-		coord_t iy = div_floor(p1.y, m_resolution);
-		coord_t ixb = div_floor(p2.x, m_resolution);
-		coord_t iyb = div_floor(p2.y, m_resolution);
+		coord_t ix = div_floor(p1(0), m_resolution);
+		coord_t iy = div_floor(p1(1), m_resolution);
+		coord_t ixb = div_floor(p2(0), m_resolution);
+		coord_t iyb = div_floor(p2(1), m_resolution);
 //		assert(ix >= 0 && ix < m_cols);
 //		assert(iy >= 0 && iy < m_rows);
 //		assert(ixb >= 0 && ixb < m_cols);
@@ -449,12 +449,12 @@ bool EdgeGrid::Grid::intersect(const MultiPoint &polyline, bool closed)
 			// Both ends fall into the same cell.
 			continue;
 		// Raster the centeral part of the line.
-		coord_t dx = std::abs(p2.x - p1.x);
-		coord_t dy = std::abs(p2.y - p1.y);
-		if (p1.x < p2.x) {
-			int64_t ex = int64_t((ix + 1)*m_resolution - p1.x) * int64_t(dy);
-			if (p1.y < p2.y) {
-				int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+		coord_t dx = std::abs(p2(0) - p1(0));
+		coord_t dy = std::abs(p2(1) - p1(1));
+		if (p1(0) < p2(0)) {
+			int64_t ex = int64_t((ix + 1)*m_resolution - p1(0)) * int64_t(dy);
+			if (p1(1) < p2(1)) {
+				int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
 				do {
 					assert(ix <= ixb && iy <= iyb);
 					if (ex < ey) {
@@ -479,7 +479,7 @@ bool EdgeGrid::Grid::intersect(const MultiPoint &polyline, bool closed)
 				} while (ix != ixb || iy != iyb);
 			}
 			else {
-				int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+				int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
 				do {
 					assert(ix <= ixb && iy >= iyb);
 					if (ex <= ey) {
@@ -498,9 +498,9 @@ bool EdgeGrid::Grid::intersect(const MultiPoint &polyline, bool closed)
 			}
 		}
 		else {
-			int64_t ex = int64_t(p1.x - ix*m_resolution) * int64_t(dy);
-			if (p1.y < p2.y) {
-				int64_t ey = int64_t((iy + 1)*m_resolution - p1.y) * int64_t(dx);
+			int64_t ex = int64_t(p1(0) - ix*m_resolution) * int64_t(dy);
+			if (p1(1) < p2(1)) {
+				int64_t ey = int64_t((iy + 1)*m_resolution - p1(1)) * int64_t(dx);
 				do {
 					assert(ix >= ixb && iy <= iyb);
 					if (ex < ey) {
@@ -519,7 +519,7 @@ bool EdgeGrid::Grid::intersect(const MultiPoint &polyline, bool closed)
 				} while (ix != ixb || iy != iyb);
 			}
 			else {
-				int64_t ey = int64_t(p1.y - iy*m_resolution) * int64_t(dx);
+				int64_t ey = int64_t(p1(1) - iy*m_resolution) * int64_t(dx);
 				do {
 					assert(ix >= ixb && iy >= iyb);
 					if (ex < ey) {
@@ -556,8 +556,8 @@ bool EdgeGrid::Grid::line_cell_intersect(const Point &p1a, const Point &p2a, con
 {
 	BoundingBox bbox(p1a, p1a);
 	bbox.merge(p2a);
-	int64_t va_x = p2a.x - p1a.x;
-	int64_t va_y = p2a.y - p1a.y;
+	int64_t va_x = p2a(0) - p1a(0);
+	int64_t va_y = p2a(1) - p1a(1);
 	for (size_t i = cell.begin; i != cell.end; ++ i) {
 		const std::pair<size_t, size_t> &cell_data = m_cell_data[i];
 		// Contour indexed by the ith line of this cell.
@@ -576,21 +576,21 @@ bool EdgeGrid::Grid::line_cell_intersect(const Point &p1a, const Point &p2a, con
 		if (! bbox.overlap(bbox2))
 			continue;
 		// Now intersect the two line segments using exact arithmetics.
-		int64_t w1_x = p1b.x - p1a.x;
-		int64_t w1_y = p1b.y - p1a.y;
-		int64_t w2_x = p2b.x - p1a.x;
-		int64_t w2_y = p2b.y - p1a.y;
+		int64_t w1_x = p1b(0) - p1a(0);
+		int64_t w1_y = p1b(1) - p1a(1);
+		int64_t w2_x = p2b(0) - p1a(0);
+		int64_t w2_y = p2b(1) - p1a(1);
 		int64_t side1 = va_x * w1_y - va_y * w1_x;
 		int64_t side2 = va_x * w2_y - va_y * w2_x;
 		if (side1 == side2 && side1 != 0)
 			// The line segments don't intersect.
 			continue;
-		w1_x = p1a.x - p1b.x;
-		w1_y = p1a.y - p1b.y;
-		w2_x = p2a.x - p1b.x;
-		w2_y = p2a.y - p1b.y;
-		int64_t vb_x = p2b.x - p1b.x;
-		int64_t vb_y = p2b.y - p1b.y;
+		w1_x = p1a(0) - p1b(0);
+		w1_y = p1a(1) - p1b(1);
+		w2_x = p2a(0) - p1b(0);
+		w2_y = p2a(1) - p1b(1);
+		int64_t vb_x = p2b(0) - p1b(0);
+		int64_t vb_y = p2b(1) - p1b(1);
 		side1 = vb_x * w1_y - vb_y * w1_x;
 		side2 = vb_x * w2_y - vb_y * w2_x;
 		if (side1 == side2 && side1 != 0)
@@ -607,13 +607,13 @@ bool EdgeGrid::Grid::line_cell_intersect(const Point &p1a, const Point &p2a, con
 bool EdgeGrid::Grid::inside(const Point &pt_src)
 {
 	Point p = pt_src;
-	p.x -= m_bbox.min.x;
-	p.y -= m_bbox.min.y;
+	p(0) -= m_bbox.min(0);
+	p(1) -= m_bbox.min(1);
 	// Get the cell of the point.
-	if (p.x < 0 || p.y < 0)
+	if (p(0) < 0 || p(1) < 0)
 		return false;
-	coord_t ix = p.x / m_resolution;
-	coord_t iy = p.y / m_resolution;
+	coord_t ix = p(0) / m_resolution;
+	coord_t iy = p(1) / m_resolution;
 	if (ix >= this->m_cols || iy >= this->m_rows)
 		return false;
 
@@ -634,21 +634,21 @@ bool EdgeGrid::Grid::inside(const Point &pt_src)
 				idx2 = 0;
 			const Point &p1 = contour[idx1];
 			const Point &p2 = contour[idx2];
-			if (p1.y < p2.y) {
-				if (p.y < p1.y || p.y > p2.y)
+			if (p1(1) < p2(1)) {
+				if (p(1) < p1(1) || p(1) > p2(1))
 					continue;
 				//FIXME finish this!
 				int64_t vx = 0;// pt_src
 				//FIXME finish this!
 				int64_t det = 0;
-			} else if (p1.y != p2.y) {
-				assert(p1.y > p2.y);
-				if (p.y < p2.y || p.y > p1.y)
+			} else if (p1(1) != p2(1)) {
+				assert(p1(1) > p2(1));
+				if (p(1) < p2(1) || p(1) > p1(1))
 					continue;
 			} else {
-				assert(p1.y == p2.y);
-				if (p1.y == p.y) {
-					if (p.x >= p1.x && p.x <= p2.x)
+				assert(p1(1) == p2(1));
+				if (p1(1) == p(1)) {
+					if (p(0) >= p1(0) && p(0) <= p2(0))
 						// On the segment.
 						return true;
 					// Before or after the segment.
@@ -767,9 +767,9 @@ void EdgeGrid::Grid::calculate_sdf()
 				const Slic3r::Point &p1 = pts[ipt];
 				const Slic3r::Point &p2 = pts[(ipt + 1 == pts.size()) ? 0 : ipt + 1];
 				// Segment vector
-				const Slic3r::Point v_seg = p1.vector_to(p2);
+				const Slic3r::Point v_seg = p2 - p1;
 				// l2 of v_seg
-				const int64_t l2_seg = int64_t(v_seg.x) * int64_t(v_seg.x) + int64_t(v_seg.y) * int64_t(v_seg.y);
+				const int64_t l2_seg = int64_t(v_seg(0)) * int64_t(v_seg(0)) + int64_t(v_seg(1)) * int64_t(v_seg(1));
 				// For each corner of this cell and its 1 ring neighbours:
 				for (int corner_y = -1; corner_y < 3; ++ corner_y) {
 					coord_t corner_r = r + corner_y;
@@ -780,28 +780,28 @@ void EdgeGrid::Grid::calculate_sdf()
 						if (corner_c < 0 || corner_c >= ncols)
 							continue;
 						float  &d_min = m_signed_distance_field[corner_r * ncols + corner_c];
-						Slic3r::Point pt(m_bbox.min.x + corner_c * m_resolution, m_bbox.min.y + corner_r * m_resolution);
-						Slic3r::Point v_pt = p1.vector_to(pt);
+						Slic3r::Point pt(m_bbox.min(0) + corner_c * m_resolution, m_bbox.min(1) + corner_r * m_resolution);
+						Slic3r::Point v_pt = pt - p1;
 						// dot(p2-p1, pt-p1)
-						int64_t t_pt = int64_t(v_seg.x) * int64_t(v_pt.x) + int64_t(v_seg.y) * int64_t(v_pt.y);
+						int64_t t_pt = int64_t(v_seg(0)) * int64_t(v_pt(0)) + int64_t(v_seg(1)) * int64_t(v_pt(1));
 						if (t_pt < 0) {
 							// Closest to p1.
-							double dabs = sqrt(int64_t(v_pt.x) * int64_t(v_pt.x) + int64_t(v_pt.y) * int64_t(v_pt.y));
+							double dabs = sqrt(int64_t(v_pt(0)) * int64_t(v_pt(0)) + int64_t(v_pt(1)) * int64_t(v_pt(1)));
 							if (dabs < d_min) {
 								// Previous point.
 								const Slic3r::Point &p0 = pts[(ipt == 0) ? (pts.size() - 1) : ipt - 1];
-								Slic3r::Point v_seg_prev = p0.vector_to(p1);
-								int64_t t2_pt = int64_t(v_seg_prev.x) * int64_t(v_pt.x) + int64_t(v_seg_prev.y) * int64_t(v_pt.y);
+								Slic3r::Point v_seg_prev = p1 - p0;
+								int64_t t2_pt = int64_t(v_seg_prev(0)) * int64_t(v_pt(0)) + int64_t(v_seg_prev(1)) * int64_t(v_pt(1));
 								if (t2_pt > 0) {
 									// Inside the wedge between the previous and the next segment.
 									// Set the signum depending on whether the vertex is convex or reflex.
-									int64_t det = int64_t(v_seg_prev.x) * int64_t(v_seg.y) - int64_t(v_seg_prev.y) * int64_t(v_seg.x);
+									int64_t det = int64_t(v_seg_prev(0)) * int64_t(v_seg(1)) - int64_t(v_seg_prev(1)) * int64_t(v_seg(0));
 									assert(det != 0);
 									d_min = dabs;
 									// Fill in an unsigned vector towards the zero iso surface.
 									float *l = &L[(corner_r * ncols + corner_c) << 1];
-									l[0] = std::abs(v_pt.x);
-									l[1] = std::abs(v_pt.y);
+									l[0] = std::abs(v_pt(0));
+									l[1] = std::abs(v_pt(1));
 								#ifdef _DEBUG
 									double dabs2 = sqrt(l[0]*l[0]+l[1]*l[1]);
 									assert(std::abs(dabs-dabs2) < 1e-4 * std::max(dabs, dabs2));
@@ -816,7 +816,7 @@ void EdgeGrid::Grid::calculate_sdf()
 						} else {
 							// Closest to the segment.
 							assert(t_pt >= 0 && t_pt <= l2_seg);
-							int64_t d_seg = int64_t(v_seg.y) * int64_t(v_pt.x) - int64_t(v_seg.x) * int64_t(v_pt.y);
+							int64_t d_seg = int64_t(v_seg(1)) * int64_t(v_pt(0)) - int64_t(v_seg(0)) * int64_t(v_pt(1));
 							double d = double(d_seg) / sqrt(double(l2_seg));
 							double dabs = std::abs(d);
 							if (dabs < d_min) {
@@ -824,8 +824,8 @@ void EdgeGrid::Grid::calculate_sdf()
 								// Fill in an unsigned vector towards the zero iso surface.
 								float *l = &L[(corner_r * ncols + corner_c) << 1];
 								float linv = float(d_seg) / float(l2_seg);
-								l[0] = std::abs(float(v_seg.y) * linv);
-								l[1] = std::abs(float(v_seg.x) * linv);
+								l[0] = std::abs(float(v_seg(1)) * linv);
+								l[1] = std::abs(float(v_seg(0)) * linv);
 								#ifdef _DEBUG
 									double dabs2 = sqrt(l[0]*l[0]+l[1]*l[1]);
 									assert(std::abs(dabs-dabs2) <= 1e-4 * std::max(dabs, dabs2));
@@ -1059,8 +1059,8 @@ void EdgeGrid::Grid::calculate_sdf()
 
 float EdgeGrid::Grid::signed_distance_bilinear(const Point &pt) const
 {
-	coord_t x = pt.x - m_bbox.min.x;
-	coord_t y = pt.y - m_bbox.min.y;
+	coord_t x = pt(0) - m_bbox.min(0);
+	coord_t y = pt(1) - m_bbox.min(1);
 	coord_t w = m_resolution * m_cols;
 	coord_t h = m_resolution * m_rows;
 	bool    clamped = false;
@@ -1124,39 +1124,39 @@ float EdgeGrid::Grid::signed_distance_bilinear(const Point &pt) const
  
 bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radius, coordf_t &result_min_dist, bool *pon_segment) const {
 	BoundingBox bbox;
-	bbox.min = bbox.max = Point(pt.x - m_bbox.min.x, pt.y - m_bbox.min.y);
+	bbox.min = bbox.max = Point(pt(0) - m_bbox.min(0), pt(1) - m_bbox.min(1));
 	bbox.defined = true;
 	// Upper boundary, round to grid and test validity.
-	bbox.max.x += search_radius;
-	bbox.max.y += search_radius;
-	if (bbox.max.x < 0 || bbox.max.y < 0)
+	bbox.max(0) += search_radius;
+	bbox.max(1) += search_radius;
+	if (bbox.max(0) < 0 || bbox.max(1) < 0)
 		return false;
-	bbox.max.x /= m_resolution;
-	bbox.max.y /= m_resolution;
-	if (bbox.max.x >= m_cols)
-		bbox.max.x = m_cols - 1;
-	if (bbox.max.y >= m_rows)
-		bbox.max.y = m_rows - 1;
+	bbox.max(0) /= m_resolution;
+	bbox.max(1) /= m_resolution;
+	if (bbox.max(0) >= m_cols)
+		bbox.max(0) = m_cols - 1;
+	if (bbox.max(1) >= m_rows)
+		bbox.max(1) = m_rows - 1;
 	// Lower boundary, round to grid and test validity.
-	bbox.min.x -= search_radius;
-	bbox.min.y -= search_radius;
-	if (bbox.min.x < 0)
-		bbox.min.x = 0;
-	if (bbox.min.y < 0)
-		bbox.min.y = 0;
-	bbox.min.x /= m_resolution;
-	bbox.min.y /= m_resolution;
+	bbox.min(0) -= search_radius;
+	bbox.min(1) -= search_radius;
+	if (bbox.min(0) < 0)
+		bbox.min(0) = 0;
+	if (bbox.min(1) < 0)
+		bbox.min(1) = 0;
+	bbox.min(0) /= m_resolution;
+	bbox.min(1) /= m_resolution;
 	// Is the interval empty?
-	if (bbox.min.x > bbox.max.x ||
-		bbox.min.y > bbox.max.y)
+	if (bbox.min(0) > bbox.max(0) ||
+		bbox.min(1) > bbox.max(1))
 		return false;
 	// Traverse all cells in the bounding box.
 	float d_min = search_radius;
 	// Signum of the distance field at pt.
 	int sign_min = 0;
 	bool on_segment = false;
-	for (int r = bbox.min.y; r <= bbox.max.y; ++ r) {
-		for (int c = bbox.min.x; c <= bbox.max.x; ++ c) {
+	for (int r = bbox.min(1); r <= bbox.max(1); ++ r) {
+		for (int c = bbox.min(0); c <= bbox.max(0); ++ c) {
 			const Cell &cell = m_cells[r * m_cols + c];
 			for (size_t i = cell.begin; i < cell.end; ++ i) {
 				const Slic3r::Points &pts = *m_contours[m_cell_data[i].first];
@@ -1164,25 +1164,25 @@ bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radiu
 				// End points of the line segment.
 				const Slic3r::Point &p1 = pts[ipt];
 				const Slic3r::Point &p2 = pts[(ipt + 1 == pts.size()) ? 0 : ipt + 1];
-				Slic3r::Point v_seg = p1.vector_to(p2);
-				Slic3r::Point v_pt = p1.vector_to(pt);
+				Slic3r::Point v_seg = p2 - p1;
+				Slic3r::Point v_pt  = pt - p1;
 				// dot(p2-p1, pt-p1)
-				int64_t t_pt = int64_t(v_seg.x) * int64_t(v_pt.x) + int64_t(v_seg.y) * int64_t(v_pt.y);
+				int64_t t_pt = int64_t(v_seg(0)) * int64_t(v_pt(0)) + int64_t(v_seg(1)) * int64_t(v_pt(1));
 				// l2 of seg
-				int64_t l2_seg = int64_t(v_seg.x) * int64_t(v_seg.x) + int64_t(v_seg.y) * int64_t(v_seg.y);
+				int64_t l2_seg = int64_t(v_seg(0)) * int64_t(v_seg(0)) + int64_t(v_seg(1)) * int64_t(v_seg(1));
 				if (t_pt < 0) {
 					// Closest to p1.
-					double dabs = sqrt(int64_t(v_pt.x) * int64_t(v_pt.x) + int64_t(v_pt.y) * int64_t(v_pt.y));
+					double dabs = sqrt(int64_t(v_pt(0)) * int64_t(v_pt(0)) + int64_t(v_pt(1)) * int64_t(v_pt(1)));
 					if (dabs < d_min) {
 						// Previous point.
 						const Slic3r::Point &p0 = pts[(ipt == 0) ? (pts.size() - 1) : ipt - 1];
-						Slic3r::Point v_seg_prev = p0.vector_to(p1);
-						int64_t t2_pt = int64_t(v_seg_prev.x) * int64_t(v_pt.x) + int64_t(v_seg_prev.y) * int64_t(v_pt.y);
+						Slic3r::Point v_seg_prev = p1 - p0;
+						int64_t t2_pt = int64_t(v_seg_prev(0)) * int64_t(v_pt(0)) + int64_t(v_seg_prev(1)) * int64_t(v_pt(1));
 						if (t2_pt > 0) {
 							// Inside the wedge between the previous and the next segment.
 							d_min = dabs;
 							// Set the signum depending on whether the vertex is convex or reflex.
-							int64_t det = int64_t(v_seg_prev.x) * int64_t(v_seg.y) - int64_t(v_seg_prev.y) * int64_t(v_seg.x);
+							int64_t det = int64_t(v_seg_prev(0)) * int64_t(v_seg(1)) - int64_t(v_seg_prev(1)) * int64_t(v_seg(0));
 							assert(det != 0);
 							sign_min = (det > 0) ? 1 : -1;
 							on_segment = false;
@@ -1195,7 +1195,7 @@ bool EdgeGrid::Grid::signed_distance_edges(const Point &pt, coord_t search_radiu
 				} else {
 					// Closest to the segment.
 					assert(t_pt >= 0 && t_pt <= l2_seg);
-					int64_t d_seg = int64_t(v_seg.y) * int64_t(v_pt.x) - int64_t(v_seg.x) * int64_t(v_pt.y);
+					int64_t d_seg = int64_t(v_seg(1)) * int64_t(v_pt(0)) - int64_t(v_seg(0)) * int64_t(v_pt(1));
 					double d = double(d_seg) / sqrt(double(l2_seg));
 					double dabs = std::abs(d);
 					if (dabs < d_min) {
@@ -1307,7 +1307,7 @@ Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 					const Line &line_next = lines[it->second];
 					const Vector v1 = line_current.vector();
 					const Vector v2 = line_next.vector();
-					int64_t cross = int64_t(v1.x) * int64_t(v2.y) - int64_t(v2.x) * int64_t(v1.y);
+					int64_t cross = int64_t(v1(0)) * int64_t(v2(1)) - int64_t(v2(0)) * int64_t(v1(1));
 					if (cross > 0) {
 						// This has to be a convex right angle. There is no better next line.
 						i_next = it->second;
@@ -1328,10 +1328,10 @@ Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 		Polygon &poly = out[i];
 		for (size_t j = 0; j < poly.points.size(); ++ j) {
 			Point &p = poly.points[j];
-			p.x *= m_resolution;
-			p.y *= m_resolution;
-			p.x += m_bbox.min.x;
-			p.y += m_bbox.min.y;
+			p(0) *= m_resolution;
+			p(1) *= m_resolution;
+			p(0) += m_bbox.min(0);
+			p(1) += m_bbox.min(1);
 		}
 		// Shrink the contour slightly, so if the same contour gets discretized and simplified again, one will get the same result.
 		// Remove collineaer points.
@@ -1341,11 +1341,11 @@ Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 			size_t j0 = (j == 0) ? poly.points.size() - 1 : j - 1;
 			size_t j2 = (j + 1 == poly.points.size()) ? 0 : j + 1;
 			Point  v  = poly.points[j2] - poly.points[j0];
-			if (v.x != 0 && v.y != 0) {
+			if (v(0) != 0 && v(1) != 0) {
 				// This is a corner point. Copy it to the output contour.
 				Point p = poly.points[j];
-				p.y += (v.x < 0) ? - offset : offset;
-				p.x += (v.y > 0) ? - offset : offset;
+				p(1) += (v(0) < 0) ? - offset : offset;
+				p(0) += (v(1) > 0) ? - offset : offset;
 				pts.push_back(p);
 			} 
 		}
@@ -1357,8 +1357,8 @@ Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 #if 0
 void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coord_t resolution, const char *path)
 {
-	unsigned int w = (bbox.max.x - bbox.min.x + resolution - 1) / resolution;
-	unsigned int h = (bbox.max.y - bbox.min.y + resolution - 1) / resolution;
+	unsigned int w = (bbox.max(0) - bbox.min(0) + resolution - 1) / resolution;
+	unsigned int h = (bbox.max(1) - bbox.min(1) + resolution - 1) / resolution;
 	wxImage img(w, h);
     unsigned char *data = img.GetData();
     memset(data, 0, w * h * 3);
@@ -1371,7 +1371,7 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 	for (coord_t r = 0; r < h; ++r) {
     	for (coord_t c = 0; c < w; ++ c) {
 			unsigned char *pxl = data + (((h - r - 1) * w) + c) * 3;
-			Point pt(c * resolution + bbox.min.x, r * resolution + bbox.min.y);
+			Point pt(c * resolution + bbox.min(0), r * resolution + bbox.min(1));
 			coordf_t min_dist;
 			bool on_segment = true;
 			#if 0
@@ -1409,8 +1409,8 @@ void EdgeGrid::save_png(const EdgeGrid::Grid &grid, const BoundingBox &bbox, coo
 				pxl[2] = 0;
 			}
 
-			float gridx = float(pt.x - grid.bbox().min.x) / float(grid.resolution());
-			float gridy = float(pt.y - grid.bbox().min.y) / float(grid.resolution());
+			float gridx = float(pt(0) - grid.bbox().min(0)) / float(grid.resolution());
+			float gridy = float(pt(1) - grid.bbox().min(1)) / float(grid.resolution());
 			if (gridx >= -0.4f && gridy >= -0.4f && gridx <= grid.cols() + 0.4f && gridy <= grid.rows() + 0.4f) {
 				int ix = int(floor(gridx + 0.5f));
 				int iy = int(floor(gridy + 0.5f));

@@ -15,8 +15,8 @@ void SlicingAdaptive::clear()
 std::pair<float, float> face_z_span(const stl_facet *f)
 {
 	return std::pair<float, float>(
-		std::min(std::min(f->vertex[0].z, f->vertex[1].z), f->vertex[2].z),
-		std::max(std::max(f->vertex[0].z, f->vertex[1].z), f->vertex[2].z));
+		std::min(std::min(f->vertex[0](2), f->vertex[1](2)), f->vertex[2](2)),
+		std::max(std::max(f->vertex[0](2), f->vertex[1](2)), f->vertex[2](2)));
 }
 
 void SlicingAdaptive::prepare()
@@ -40,7 +40,7 @@ void SlicingAdaptive::prepare()
 	// 3) Generate Z components of the facet normals.
 	m_face_normal_z.assign(m_faces.size(), 0.f);
     for (size_t iface = 0; iface < m_faces.size(); ++ iface)
-    	m_face_normal_z[iface] = m_faces[iface]->normal.z;
+    	m_face_normal_z[iface] = m_faces[iface]->normal(2);
 }
 
 float SlicingAdaptive::cusp_height(float z, float cusp_value, int &current_facet)

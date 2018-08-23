@@ -402,7 +402,7 @@ void AMFParserContext::endElement(const char * /* name */)
         for (size_t i = 0; i < m_volume_facets.size();) {
             stl_facet &facet = stl.facet_start[i/3];
             for (unsigned int v = 0; v < 3; ++ v)
-                memcpy(&facet.vertex[v].x, &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
+                memcpy(facet.vertex[v].data(), &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
         }
         stl_get_size(&stl);
         m_volume->mesh.repair();
@@ -498,8 +498,8 @@ void AMFParserContext::endDocument()
         for (const Instance &instance : object.second.instances)
             if (instance.deltax_set && instance.deltay_set) {
                 ModelInstance *mi = m_model.objects[object.second.idx]->add_instance();
-                mi->offset.x = instance.deltax;
-                mi->offset.y = instance.deltay;
+                mi->offset(0) = instance.deltax;
+                mi->offset(1) = instance.deltay;
                 mi->rotation = instance.rz_set ? instance.rz : 0.f;
                 mi->scaling_factor = instance.scale_set ? instance.scale : 1.f;
             }
@@ -761,9 +761,9 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
             for (size_t i = 0; i < stl.stats.shared_vertices; ++ i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                stream << "             <x>" << stl.v_shared[i].x << "</x>\n";
-                stream << "             <y>" << stl.v_shared[i].y << "</y>\n";
-                stream << "             <z>" << stl.v_shared[i].z << "</z>\n";
+                stream << "             <x>" << stl.v_shared[i](0) << "</x>\n";
+                stream << "             <y>" << stl.v_shared[i](1) << "</y>\n";
+                stream << "             <z>" << stl.v_shared[i](2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }
@@ -804,8 +804,8 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     "      <scale>%lf</scale>\n"
                     "    </instance>\n",
                     object_id,
-                    instance->offset.x,
-                    instance->offset.y,
+                    instance->offset(0),
+                    instance->offset(1),
                     instance->rotation,
                     instance->scaling_factor);
                 //FIXME missing instance->scaling_factor

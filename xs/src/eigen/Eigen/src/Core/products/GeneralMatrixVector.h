@@ -183,8 +183,8 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,C
     alignmentPattern = AllAligned;
   }
 
-  const Index offset1 = (FirstAligned && alignmentStep==1)?3:1;
-  const Index offset3 = (FirstAligned && alignmentStep==1)?1:3;
+  const Index offset1 = (alignmentPattern==FirstAligned && alignmentStep==1)?3:1;
+  const Index offset3 = (alignmentPattern==FirstAligned && alignmentStep==1)?1:3;
 
   Index columnBound = ((cols-skipColumns)/columnsAtOnce)*columnsAtOnce + skipColumns;
   for (Index i=skipColumns; i<columnBound; i+=columnsAtOnce)
@@ -457,8 +457,8 @@ EIGEN_DONT_INLINE void general_matrix_vector_product<Index,LhsScalar,LhsMapper,R
     alignmentPattern = AllAligned;
   }
 
-  const Index offset1 = (FirstAligned && alignmentStep==1)?3:1;
-  const Index offset3 = (FirstAligned && alignmentStep==1)?1:3;
+  const Index offset1 = (alignmentPattern==FirstAligned && alignmentStep==1)?3:1;
+  const Index offset3 = (alignmentPattern==FirstAligned && alignmentStep==1)?1:3;
 
   Index rowBound = ((rows-skipRows)/rowsAtOnce)*rowsAtOnce + skipRows;
   for (Index i=skipRows; i<rowBound; i+=rowsAtOnce)

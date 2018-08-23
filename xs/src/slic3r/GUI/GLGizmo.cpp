@@ -23,7 +23,7 @@ const float GLGizmoBase::Grabber::HalfSize = 2.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
 GLGizmoBase::Grabber::Grabber()
-    : center(Pointf3(0.0, 0.0, 0.0))
+    : center(0.0, 0.0, 0.0)
     , angle_x(0.0f)
     , angle_y(0.0f)
     , angle_z(0.0f)
@@ -73,7 +73,7 @@ void GLGizmoBase::Grabber::render(const float* render_color) const
     ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
 
     ::glPushMatrix();
-    ::glTranslatef((GLfloat)center.x, (GLfloat)center.y, (GLfloat)center.z);
+    ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
 
     float rad_to_deg = 180.0f / (GLfloat)PI;
     ::glRotatef((GLfloat)angle_x * rad_to_deg, 1.0f, 0.0f, 0.0f);
@@ -249,7 +249,7 @@ GLGizmoRotate::GLGizmoRotate(GLGizmoRotate::Axis axis)
     : GLGizmoBase()
     , m_axis(axis)
     , m_angle(0.0f)
-    , m_center(Pointf3(0.0, 0.0, 0.0))
+    , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
     , m_keep_initial_values(false)
 {
@@ -287,18 +287,18 @@ bool GLGizmoRotate::on_init()
 }
 
 void GLGizmoRotate::on_update(const Linef3& mouse_ray)
-{
-    Pointf mouse_pos = mouse_position_in_local_plane(mouse_ray);
+{ 
+    Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(mouse_ray));
 
-    Vectorf orig_dir(1.0, 0.0);
-    Vectorf new_dir = normalize(mouse_pos);
+    Vec2d orig_dir = Vec2d::UnitX();
+    Vec2d new_dir = mouse_pos.normalized();
 
-    coordf_t theta = ::acos(clamp(-1.0, 1.0, dot(new_dir, orig_dir)));
-    if (cross(orig_dir, new_dir) < 0.0)
+    double theta = ::acos(clamp(-1.0, 1.0, new_dir.dot(orig_dir)));
+    if (cross2(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (coordf_t)PI - theta;
 
     // snap
-    double len = length(mouse_pos);
+    double len = mouse_pos.norm();
     double in_radius = (double)m_radius / 3.0;
     double out_radius = 2.0 * (double)in_radius;
     if ((in_radius <= len) && (len <= out_radius))
@@ -323,16 +323,16 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
     if (!m_keep_initial_values)
     {
-        const Pointf3& size = box.size();
         m_center = box.center();
 #if !ENABLE_GIZMOS_3D
-        m_center.z = 0.0;
+        const Vec3d& size = box.size();
+        m_center(2) = 0.0;
 #endif // !ENABLE_GIZMOS_3D
 
 #if ENABLE_GIZMOS_3D
         m_radius = Offset + box.radius();
 #else
-        m_radius = Offset + ::sqrt(sqr(0.5f * size.x) + sqr(0.5f * size.y));
+        m_radius = Offset + ::sqrt(sqr(0.5f * (float)size(0)) + sqr(0.5f * (float)size(1)));
 #endif // ENABLE_GIZMOS_3D
         m_keep_initial_values = true;
     }
@@ -481,7 +481,7 @@ void GLGizmoRotate::render_angle() const
 void GLGizmoRotate::render_grabber() const
 {
     float grabber_radius = m_radius + GrabberOffset;
-    m_grabbers[0].center = Pointf3(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0f);
+    m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angle_z = m_angle;
 
 #if ENABLE_GIZMOS_3D
@@ -492,7 +492,7 @@ void GLGizmoRotate::render_grabber() const
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)m_grabbers[0].center.x, (GLfloat)m_grabbers[0].center.y, (GLfloat)m_grabbers[0].center.z);
+    ::glVertex3f((GLfloat)m_grabbers[0].center(0), (GLfloat)m_grabbers[0].center(1), (GLfloat)m_grabbers[0].center(2));
     ::glEnd();
 
     ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 3 * sizeof(float));
@@ -501,7 +501,7 @@ void GLGizmoRotate::render_grabber() const
 
 void GLGizmoRotate::transform_to_local() const
 {
-    ::glTranslatef((GLfloat)m_center.x, (GLfloat)m_center.y, (GLfloat)m_center.z);
+    ::glTranslatef((GLfloat)m_center(0), (GLfloat)m_center(1), (GLfloat)m_center(2));
 
     switch (m_axis)
     {
@@ -526,24 +526,24 @@ void GLGizmoRotate::transform_to_local() const
     }
 }
 
-Pointf GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) const
+Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) const
 {
-    float half_pi = 0.5f * (float)PI;
+    double half_pi = 0.5 * (double)PI;
 
-    Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
+    Transform3d m = Transform3d::Identity();
 
     switch (m_axis)
     {
     case X:
     {
-        m.rotate(Eigen::AngleAxisf(-half_pi, Eigen::Vector3f::UnitZ()));
-        m.rotate(Eigen::AngleAxisf(-half_pi, Eigen::Vector3f::UnitY()));
+        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitZ()));
+        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitY()));
         break;
     }
     case Y:
     {
-        m.rotate(Eigen::AngleAxisf(-(float)PI, Eigen::Vector3f::UnitZ()));
-        m.rotate(Eigen::AngleAxisf(-half_pi, Eigen::Vector3f::UnitX()));
+        m.rotate(Eigen::AngleAxisd(-(double)PI, Vec3d::UnitZ()));
+        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitX()));
         break;
     }
     default:
@@ -554,19 +554,19 @@ Pointf GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) con
     }
     }
 
-    m.translate(Eigen::Vector3f((float)-m_center.x, (float)-m_center.y, (float)-m_center.z));
+    m.translate(-m_center);
 
-    Eigen::Matrix<float, 3, 2> world_ray;
-    Eigen::Matrix<float, 3, 2> local_ray;
-    world_ray(0, 0) = (float)mouse_ray.a.x;
-    world_ray(1, 0) = (float)mouse_ray.a.y;
-    world_ray(2, 0) = (float)mouse_ray.a.z;
-    world_ray(0, 1) = (float)mouse_ray.b.x;
-    world_ray(1, 1) = (float)mouse_ray.b.y;
-    world_ray(2, 1) = (float)mouse_ray.b.z;
+    Eigen::Matrix<double, 3, 2> world_ray;
+    Eigen::Matrix<double, 3, 2> local_ray;
+    world_ray(0, 0) = mouse_ray.a(0);
+    world_ray(1, 0) = mouse_ray.a(1);
+    world_ray(2, 0) = mouse_ray.a(2);
+    world_ray(0, 1) = mouse_ray.b(0);
+    world_ray(1, 1) = mouse_ray.b(1);
+    world_ray(2, 1) = mouse_ray.b(2);
     local_ray = m * world_ray.colwise().homogeneous();
 
-    return Linef3(Pointf3(local_ray(0, 0), local_ray(1, 0), local_ray(2, 0)), Pointf3(local_ray(0, 1), local_ray(1, 1), local_ray(2, 1))).intersect_plane(0.0);
+    return Linef3(Vec3d(local_ray(0, 0), local_ray(1, 0), local_ray(2, 0)), Vec3d(local_ray(0, 1), local_ray(1, 1), local_ray(2, 1))).intersect_plane(0.0);
 }
 
 GLGizmoRotate3D::GLGizmoRotate3D()
@@ -708,17 +708,17 @@ bool GLGizmoScale::on_init()
 void GLGizmoScale::on_start_dragging()
 {
     if (m_hover_id != -1)
-        m_starting_drag_position = m_grabbers[m_hover_id].center;
+        m_starting_drag_position = to_2d(m_grabbers[m_hover_id].center);
 }
 
 void GLGizmoScale::on_update(const Linef3& mouse_ray)
 {
-    Pointf mouse_pos = mouse_ray.intersect_plane(0.0);
-    Pointf center(0.5 * (m_grabbers[1].center.x + m_grabbers[0].center.x), 0.5 * (m_grabbers[3].center.y + m_grabbers[0].center.y));
+    Vec2d mouse_pos = to_2d(mouse_ray.intersect_plane(0.0));
+    Vec2d center(0.5 * (m_grabbers[1].center(0) + m_grabbers[0].center(0)), 0.5 * (m_grabbers[3].center(1) + m_grabbers[0].center(1)));
 
-    coordf_t orig_len = length(m_starting_drag_position - center);
-    coordf_t new_len = length(mouse_pos - center);
-    coordf_t ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
+    double orig_len = (m_starting_drag_position - center).norm();
+    double new_len = (mouse_pos - center).norm();
+    double ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
 
     m_scale = m_starting_scale * (float)ratio;
 }
@@ -727,15 +727,15 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
-    coordf_t min_x = box.min.x - (coordf_t)Offset;
-    coordf_t max_x = box.max.x + (coordf_t)Offset;
-    coordf_t min_y = box.min.y - (coordf_t)Offset;
-    coordf_t max_y = box.max.y + (coordf_t)Offset;
+    double min_x = box.min(0) - (double)Offset;
+    double max_x = box.max(0) + (double)Offset;
+    double min_y = box.min(1) - (double)Offset;
+    double max_y = box.max(1) + (double)Offset;
 
-    m_grabbers[0].center = Pointf3(min_x, min_y, 0.0f);
-    m_grabbers[1].center = Pointf3(max_x, min_y, 0.0f);
-    m_grabbers[2].center = Pointf3(max_x, max_y, 0.0f);
-    m_grabbers[3].center = Pointf3(min_x, max_y, 0.0f);
+    m_grabbers[0].center = Vec3d(min_x, min_y, 0.0);
+    m_grabbers[1].center = Vec3d(max_x, min_y, 0.0);
+    m_grabbers[2].center = Vec3d(max_x, max_y, 0.0);
+    m_grabbers[3].center = Vec3d(min_x, max_y, 0.0);
 
     ::glLineWidth(2.0f);
     ::glColor3fv(m_drag_color);
@@ -744,7 +744,7 @@ void GLGizmoScale::on_render(const BoundingBoxf3& box) const
     ::glBegin(GL_LINE_LOOP);
     for (unsigned int i = 0; i < 4; ++i)
     {
-        ::glVertex3f((GLfloat)m_grabbers[i].center.x, (GLfloat)m_grabbers[i].center.y, 0.0f);
+        ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), 0.0f);
     }
     ::glEnd();
 
@@ -841,34 +841,34 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
     ::glEnable(GL_DEPTH_TEST);
 
-    Vectorf3 offset_vec((coordf_t)Offset, (coordf_t)Offset, (coordf_t)Offset);
+    Vec3d offset_vec((double)Offset, (double)Offset, (double)Offset);
 
     m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
-    const Pointf3& center = m_box.center();
+    const Vec3d& center = m_box.center();
 
     // x axis
-    m_grabbers[0].center = Pointf3(m_box.min.x, center.y, center.z);
-    m_grabbers[1].center = Pointf3(m_box.max.x, center.y, center.z);
+    m_grabbers[0].center = Vec3d(m_box.min(0), center(1), center(2));
+    m_grabbers[1].center = Vec3d(m_box.max(0), center(1), center(2));
     ::memcpy((void*)m_grabbers[0].color, (const void*)RED, 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[1].color, (const void*)RED, 3 * sizeof(float));
 
     // y axis
-    m_grabbers[2].center = Pointf3(center.x, m_box.min.y, center.z);
-    m_grabbers[3].center = Pointf3(center.x, m_box.max.y, center.z);
+    m_grabbers[2].center = Vec3d(center(0), m_box.min(1), center(2));
+    m_grabbers[3].center = Vec3d(center(0), m_box.max(1), center(2));
     ::memcpy((void*)m_grabbers[2].color, (const void*)GREEN, 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[3].color, (const void*)GREEN, 3 * sizeof(float));
 
     // z axis
-    m_grabbers[4].center = Pointf3(center.x, center.y, m_box.min.z);
-    m_grabbers[5].center = Pointf3(center.x, center.y, m_box.max.z);
+    m_grabbers[4].center = Vec3d(center(0), center(1), m_box.min(2));
+    m_grabbers[5].center = Vec3d(center(0), center(1), m_box.max(2));
     ::memcpy((void*)m_grabbers[4].color, (const void*)BLUE, 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[5].color, (const void*)BLUE, 3 * sizeof(float));
 
     // uniform
-    m_grabbers[6].center = Pointf3(m_box.min.x, m_box.min.y, m_box.min.z);
-    m_grabbers[7].center = Pointf3(m_box.max.x, m_box.min.y, m_box.min.z);
-    m_grabbers[8].center = Pointf3(m_box.max.x, m_box.max.y, m_box.min.z);
-    m_grabbers[9].center = Pointf3(m_box.min.x, m_box.max.y, m_box.min.z);
+    m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), m_box.min(2));
+    m_grabbers[7].center = Vec3d(m_box.max(0), m_box.min(1), m_box.min(2));
+    m_grabbers[8].center = Vec3d(m_box.max(0), m_box.max(1), m_box.min(2));
+    m_grabbers[9].center = Vec3d(m_box.min(0), m_box.max(1), m_box.min(2));
     for (int i = 6; i < 10; ++i)
     {
         ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
@@ -942,26 +942,26 @@ void GLGizmoScale3D::render_box() const
 {
     // bottom face
     ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z);
+    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2));
+    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2));
+    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2));
+    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2));
     ::glEnd();
 
     // top face
     ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
     ::glEnd();
 
     // vertical edges
     ::glBegin(GL_LINES);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.min.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.max.y, (GLfloat)m_box.max.z);
-    ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.min.z); ::glVertex3f((GLfloat)m_box.max.x, (GLfloat)m_box.min.y, (GLfloat)m_box.max.z);
+    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
     ::glEnd();
 }
 
@@ -971,25 +971,25 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
     if ((id_1 < grabbers_count) && (id_2 < grabbers_count))
     {
         ::glBegin(GL_LINES);
-        ::glVertex3f((GLfloat)m_grabbers[id_1].center.x, (GLfloat)m_grabbers[id_1].center.y, (GLfloat)m_grabbers[id_1].center.z);
-        ::glVertex3f((GLfloat)m_grabbers[id_2].center.x, (GLfloat)m_grabbers[id_2].center.y, (GLfloat)m_grabbers[id_2].center.z);
+        ::glVertex3f((GLfloat)m_grabbers[id_1].center(0), (GLfloat)m_grabbers[id_1].center(1), (GLfloat)m_grabbers[id_1].center(2));
+        ::glVertex3f((GLfloat)m_grabbers[id_2].center(0), (GLfloat)m_grabbers[id_2].center(1), (GLfloat)m_grabbers[id_2].center(2));
         ::glEnd();
     }
 }
 
-Linef3 transform(const Linef3& line, const Eigen::Transform<float, 3, Eigen::Affine>& t)
+Linef3 transform(const Linef3& line, const Transform3d& t)
 {
-    Eigen::Matrix<float, 3, 2> world_line;
-    Eigen::Matrix<float, 3, 2> local_line;
-    world_line(0, 0) = (float)line.a.x;
-    world_line(1, 0) = (float)line.a.y;
-    world_line(2, 0) = (float)line.a.z;
-    world_line(0, 1) = (float)line.b.x;
-    world_line(1, 1) = (float)line.b.y;
-    world_line(2, 1) = (float)line.b.z;
+    Eigen::Matrix<double, 3, 2> world_line;
+    Eigen::Matrix<double, 3, 2> local_line;
+    world_line(0, 0) = line.a(0);
+    world_line(1, 0) = line.a(1);
+    world_line(2, 0) = line.a(2);
+    world_line(0, 1) = line.b(0);
+    world_line(1, 1) = line.b(1);
+    world_line(2, 1) = line.b(2);
     local_line = t * world_line.colwise().homogeneous();
 
-    return Linef3(Pointf3(local_line(0, 0), local_line(1, 0), local_line(2, 0)), Pointf3(local_line(0, 1), local_line(1, 1), local_line(2, 1)));
+    return Linef3(Vec3d(local_line(0, 0), local_line(1, 0), local_line(2, 0)), Vec3d(local_line(0, 1), local_line(1, 1), local_line(2, 1)));
 }
 
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
@@ -1020,8 +1020,8 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
-    Pointf3 center = m_starting_center;
-    center.z = m_box.min.z;
+    Vec3d center = m_starting_center;
+    center(2) = m_box.min(2);
     double ratio = calc_ratio(0, mouse_ray, center);
 
     if (ratio > 0.0)
@@ -1032,17 +1032,17 @@ void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
     }
 }
 
-double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Pointf3& center) const
+double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const
 {
     double ratio = 0.0;
 
-    Vectorf3 starting_vec = m_starting_drag_position - center;
-    double len_starting_vec = length(starting_vec);
+    Vec3d starting_vec = m_starting_drag_position - center;
+    double len_starting_vec = starting_vec.norm();
     if (len_starting_vec == 0.0)
         return ratio;
 
-    Vectorf3 starting_vec_dir = normalize(starting_vec);
-    Vectorf3 mouse_dir = mouse_ray.unit_vector();
+    Vec3d starting_vec_dir = starting_vec.normalized();
+    Vec3d mouse_dir = mouse_ray.unit_vector();
     unsigned int plane_id = preferred_plane_id;
 
     // 1st try to see if the mouse direction is close enough to the preferred plane normal
@@ -1051,17 +1051,17 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
     {
     case 0:
     {
-        dot_to_normal = std::abs(dot(mouse_dir, Vectorf3(0.0, 0.0, 1.0)));
+        dot_to_normal = std::abs(mouse_dir.dot(Vec3d::UnitZ()));
         break;
     }
     case 1:
     {
-        dot_to_normal = std::abs(dot(mouse_dir, Vectorf3(0.0, -1.0, 0.0)));
+        dot_to_normal = std::abs(mouse_dir.dot(-Vec3d::UnitY()));
         break;
     }
     case 2:
     {
-        dot_to_normal = std::abs(dot(mouse_dir, Vectorf3(1.0, 0.0, 0.0)));
+        dot_to_normal = std::abs(mouse_dir.dot(Vec3d::UnitX()));
         break;
     }
     }
@@ -1073,9 +1073,9 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
         typedef std::map<double, unsigned int> ProjsMap;
         ProjsMap projs_map;
 
-        projs_map.insert(ProjsMap::value_type(std::abs(dot(mouse_dir, Vectorf3(0.0, 0.0, 1.0))), 0));  // plane xy
-        projs_map.insert(ProjsMap::value_type(std::abs(dot(mouse_dir, Vectorf3(0.0, -1.0, 0.0))), 1)); // plane xz
-        projs_map.insert(ProjsMap::value_type(std::abs(dot(mouse_dir, Vectorf3(1.0, 0.0, 0.0))), 2));  // plane yz
+        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(Vec3d::UnitZ())), 0));  // plane xy
+        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(-Vec3d::UnitY())), 1)); // plane xz
+        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(Vec3d::UnitX())), 2));  // plane yz
         plane_id = projs_map.rbegin()->second;
     }
 
@@ -1084,36 +1084,36 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
     case 0:
     {
         // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the given center
-        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-        m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
-        Pointf mouse_pos_2d = transform(mouse_ray, m).intersect_plane(0.0);
+        Transform3d m = Transform3d::Identity();
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
 
         // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = dot(Vectorf3(mouse_pos_2d.x, mouse_pos_2d.y, 0.0), starting_vec_dir) / len_starting_vec;
+        ratio = starting_vec_dir.dot(Vec3d(mouse_pos_2d(0), mouse_pos_2d(1), 0.0)) / len_starting_vec;
         break;
     }
     case 1:
     {
         // calculates the intersection of the mouse ray with the plane parallel to plane XZ and passing through the given center
-        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitX()));
-        m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
-        Pointf mouse_pos_2d = transform(mouse_ray, m).intersect_plane(0.0);
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd(-0.5 * (double)PI, Vec3d::UnitX()));
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
 
         // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = dot(Vectorf3(mouse_pos_2d.x, 0.0, mouse_pos_2d.y), starting_vec_dir) / len_starting_vec;
+        ratio = starting_vec_dir.dot(Vec3d(mouse_pos_2d(0), 0.0, mouse_pos_2d(1))) / len_starting_vec;
         break;
     }
     case 2:
     {
         // calculates the intersection of the mouse ray with the plane parallel to plane YZ and passing through the given center
-        Eigen::Transform<float, 3, Eigen::Affine> m = Eigen::Transform<float, 3, Eigen::Affine>::Identity();
-        m.rotate(Eigen::AngleAxisf(-0.5f * (float)PI, Eigen::Vector3f::UnitY()));
-        m.translate(Eigen::Vector3f(-(float)center.x, -(float)center.y, -(float)center.z));
-        Pointf mouse_pos_2d = transform(mouse_ray, m).intersect_plane(0.0);
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd(-0.5f * (double)PI, Vec3d::UnitY()));
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
 
         // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = dot(Vectorf3(0.0, mouse_pos_2d.y, -mouse_pos_2d.x), starting_vec_dir) / len_starting_vec;
+        ratio = starting_vec_dir.dot(Vec3d(0.0, mouse_pos_2d(1), -mouse_pos_2d(0))) / len_starting_vec;
         break;
     }
     }

@@ -407,7 +407,7 @@ protected:
   */
 template<typename Derived>
 template<typename Func>
-typename internal::traits<Derived>::Scalar
+EIGEN_STRONG_INLINE typename internal::traits<Derived>::Scalar
 DenseBase<Derived>::redux(const Func& func) const
 {
   eigen_assert(this->rows()>0 && this->cols()>0 && "you are using an empty matrix");

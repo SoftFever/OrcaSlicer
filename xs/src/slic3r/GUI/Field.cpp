@@ -632,9 +632,9 @@ void PointCtrl::BUILD()
 	wxSize field_size(40, -1);
 
 	auto default_pt = static_cast<ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
-	double val = default_pt.x;
+	double val = default_pt(0);
 	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
-	val = default_pt.y;
+	val = default_pt(1);
 	wxString Y = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 
 	x_textctrl = new wxTextCtrl(m_parent, wxID_ANY, X, wxDefaultPosition, field_size);
@@ -655,13 +655,13 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::set_value(const Pointf& value, bool change_event)
+void PointCtrl::set_value(const Vec2d& value, bool change_event)
 {
 	m_disable_change_event = !change_event;
 
-	double val = value.x;
+	double val = value(0);
 	x_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
-	val = value.y;
+	val = value(1);
 	y_textctrl->SetValue(val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None));
 
 	m_disable_change_event = false;
@@ -669,8 +669,8 @@ void PointCtrl::set_value(const Pointf& value, bool change_event)
 
 void PointCtrl::set_value(const boost::any& value, bool change_event)
 {
-	Pointf pt;
-	const Pointf *ptf = boost::any_cast<Pointf>(&value);
+	Vec2d pt(Vec2d::Zero());
+	const Vec2d *ptf = boost::any_cast<Vec2d>(&value);
 	if (!ptf)
 	{
 		ConfigOptionPoints* pts = boost::any_cast<ConfigOptionPoints*>(value);
@@ -683,13 +683,10 @@ void PointCtrl::set_value(const boost::any& value, bool change_event)
 
 boost::any& PointCtrl::get_value()
 {
-	Pointf ret_point;
-	double val;
-	x_textctrl->GetValue().ToDouble(&val);
-	ret_point.x = val;
-	y_textctrl->GetValue().ToDouble(&val);
-	ret_point.y = val;
-	return m_value = ret_point;
+	double x, y;
+	x_textctrl->GetValue().ToDouble(&x);
+	y_textctrl->GetValue().ToDouble(&y);
+	return m_value = Vec2d(x, y);
 }
 
 void StaticText::BUILD()

@@ -166,7 +166,7 @@ bool load_prus(const char *path, Model *model)
             float  trafo[3][4] = { 0 };
             double instance_rotation = 0.;
             double instance_scaling_factor = 1.f;
-            Pointf instance_offset(0., 0.); 
+            Vec2d instance_offset(0., 0.); 
             bool   trafo_set = false;
             unsigned int group_id     = (unsigned int)-1;
             unsigned int extruder_id  = (unsigned int)-1;
@@ -207,8 +207,8 @@ bool load_prus(const char *path, Model *model)
                         for (size_t c = 0; c < 3; ++ c)
                             trafo[r][c] += mat_trafo(r, c);
                     }
-                    instance_offset.x = position[0] - zero[0];
-                    instance_offset.y = position[1] - zero[1];
+                    instance_offset(0) = position[0] - zero[0];
+                    instance_offset(1) = position[1] - zero[1];
                     trafo[2][3] = position[2] / instance_scaling_factor;
                     trafo_set = true;
                 }
@@ -260,8 +260,8 @@ bool load_prus(const char *path, Model *model)
 							mesh.repair();
 							// Transform the model.
 							stl_transform(&stl, &trafo[0][0]);
-							if (std::abs(stl.stats.min.z) < EPSILON)
-								stl.stats.min.z = 0.;
+							if (std::abs(stl.stats.min(2)) < EPSILON)
+								stl.stats.min(2) = 0.;
 							// Add a mesh to a model.
 							if (mesh.facets_count() > 0)
                                 mesh_valid = true;
@@ -309,11 +309,11 @@ bool load_prus(const char *path, Model *model)
 						assert(res_normal == 3);
                         int res_outer_loop	= line_reader.next_line_scanf(" outer loop");
 						assert(res_outer_loop == 0);
-						int res_vertex1 = line_reader.next_line_scanf(" vertex %f %f %f", &facet.vertex[0].x, &facet.vertex[0].y, &facet.vertex[0].z);
+						int res_vertex1 = line_reader.next_line_scanf(" vertex %f %f %f", &facet.vertex[0](0), &facet.vertex[0](1), &facet.vertex[0](2));
 						assert(res_vertex1 == 3);
-						int res_vertex2 = line_reader.next_line_scanf(" vertex %f %f %f", &facet.vertex[1].x, &facet.vertex[1].y, &facet.vertex[1].z);
+						int res_vertex2 = line_reader.next_line_scanf(" vertex %f %f %f", &facet.vertex[1](0), &facet.vertex[1](1), &facet.vertex[1](2));
 						assert(res_vertex2 == 3);
-						int res_vertex3 = line_reader.next_line_scanf(" vertex %f %f %f", &facet.vertex[2].x, &facet.vertex[2].y, &facet.vertex[2].z);
+						int res_vertex3 = line_reader.next_line_scanf(" vertex %f %f %f", &facet.vertex[2](0), &facet.vertex[2](1), &facet.vertex[2](2));
 						assert(res_vertex3 == 3);
 						int res_endloop = line_reader.next_line_scanf(" endloop");
 						assert(res_endloop == 0);
@@ -324,9 +324,9 @@ bool load_prus(const char *path, Model *model)
                             break;
                         }
                         // The facet normal has been parsed as a single string as to workaround for not a numbers in the normal definition.
-                        if (sscanf(normal_buf[0], "%f", &facet.normal.x) != 1 ||
-                            sscanf(normal_buf[1], "%f", &facet.normal.y) != 1 ||
-                            sscanf(normal_buf[2], "%f", &facet.normal.z) != 1) {
+                        if (sscanf(normal_buf[0], "%f", &facet.normal(0)) != 1 ||
+                            sscanf(normal_buf[1], "%f", &facet.normal(1)) != 1 ||
+                            sscanf(normal_buf[2], "%f", &facet.normal(2)) != 1) {
                             // Normal was mangled. Maybe denormals or "not a number" were stored?
                             // Just reset the normal and silently ignore it.
                             memset(&facet.normal, 0, sizeof(facet.normal));

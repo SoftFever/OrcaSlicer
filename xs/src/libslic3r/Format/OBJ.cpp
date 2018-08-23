@@ -57,14 +57,14 @@ bool load_obj(const char *path, Model *model, const char *object_name_in)
             continue;
         stl_facet &facet = stl.facet_start[i_face ++];
         size_t     num_normals = 0;
-        stl_normal normal = { 0.f };
+        stl_normal normal(stl_normal::Zero());
         for (unsigned int v = 0; v < 3; ++ v) {
             const ObjParser::ObjVertex &vertex = data.vertices[i++];
-            memcpy(&facet.vertex[v].x, &data.coordinates[vertex.coordIdx*4], 3 * sizeof(float));
+            memcpy(facet.vertex[v].data(), &data.coordinates[vertex.coordIdx*4], 3 * sizeof(float));
             if (vertex.normalIdx != -1) {
-                normal.x += data.normals[vertex.normalIdx*3];
-                normal.y += data.normals[vertex.normalIdx*3+1];
-                normal.z += data.normals[vertex.normalIdx*3+2];
+                normal(0) += data.normals[vertex.normalIdx*3];
+                normal(1) += data.normals[vertex.normalIdx*3+1];
+                normal(2) += data.normals[vertex.normalIdx*3+2];
                 ++ num_normals;
             }
         }
@@ -74,33 +74,27 @@ bool load_obj(const char *path, Model *model, const char *object_name_in)
             facet2.vertex[0] = facet.vertex[0];
             facet2.vertex[1] = facet.vertex[2];
 			const ObjParser::ObjVertex &vertex = data.vertices[i++];
-			memcpy(&facet2.vertex[2].x, &data.coordinates[vertex.coordIdx * 4], 3 * sizeof(float));
+			memcpy(facet2.vertex[2].data(), &data.coordinates[vertex.coordIdx * 4], 3 * sizeof(float));
 			if (vertex.normalIdx != -1) {
-                normal.x += data.normals[vertex.normalIdx*3];
-                normal.y += data.normals[vertex.normalIdx*3+1];
-                normal.z += data.normals[vertex.normalIdx*3+2];
+                normal(0) += data.normals[vertex.normalIdx*3];
+                normal(1) += data.normals[vertex.normalIdx*3+1];
+                normal(2) += data.normals[vertex.normalIdx*3+2];
                 ++ num_normals;
             }
             if (num_normals == 4) {
                 // Normalize an average normal of a quad.
-                float len = sqrt(facet.normal.x*facet.normal.x + facet.normal.y*facet.normal.y + facet.normal.z*facet.normal.z);
+                float len = facet.normal.norm();
                 if (len > EPSILON) {
-                    normal.x /= len;
-                    normal.y /= len;
-                    normal.z /= len;
+                    normal /= len;
                     facet.normal = normal;
                     facet2.normal = normal;
                 }
             }
         } else if (num_normals == 3) {
             // Normalize an average normal of a triangle.
-            float len = sqrt(facet.normal.x*facet.normal.x + facet.normal.y*facet.normal.y + facet.normal.z*facet.normal.z);
-            if (len > EPSILON) {
-                normal.x /= len;
-                normal.y /= len;
-                normal.z /= len;
-                facet.normal = normal;
-            }
+            float len = facet.normal.norm();
+            if (len > EPSILON)
+                facet.normal = normal / len;
         }
 	}
     stl_get_size(&stl);

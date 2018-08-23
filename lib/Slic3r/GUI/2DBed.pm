@@ -1,4 +1,5 @@
 # Bed shape dialog
+# still used by the Slic3r::GUI::Controller::ManualControlDialog Perl module.
 
 package Slic3r::GUI::2DBed;
 use strict;

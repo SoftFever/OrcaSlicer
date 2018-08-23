@@ -55,18 +55,18 @@ public:
     std::string toolchange_prefix() const;
     std::string toolchange(unsigned int extruder_id);
     std::string set_speed(double F, const std::string &comment = std::string(), const std::string &cooling_marker = std::string()) const;
-    std::string travel_to_xy(const Pointf &point, const std::string &comment = std::string());
-    std::string travel_to_xyz(const Pointf3 &point, const std::string &comment = std::string());
+    std::string travel_to_xy(const Vec2d &point, const std::string &comment = std::string());
+    std::string travel_to_xyz(const Vec3d &point, const std::string &comment = std::string());
     std::string travel_to_z(double z, const std::string &comment = std::string());
     bool        will_move_z(double z) const;
-    std::string extrude_to_xy(const Pointf &point, double dE, const std::string &comment = std::string());
-    std::string extrude_to_xyz(const Pointf3 &point, double dE, const std::string &comment = std::string());
+    std::string extrude_to_xy(const Vec2d &point, double dE, const std::string &comment = std::string());
+    std::string extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment = std::string());
     std::string retract(bool before_wipe = false);
     std::string retract_for_toolchange(bool before_wipe = false);
     std::string unretract();
     std::string lift();
     std::string unlift();
-    Pointf3     get_position() const { return m_pos; }
+    Vec3d       get_position() const { return m_pos; }
 
 private:
     std::vector<Extruder>    m_extruders;
@@ -81,7 +81,7 @@ private:
     unsigned int    m_last_bed_temperature;
     bool            m_last_bed_temperature_reached;
     double          m_lifted;
-    Pointf3         m_pos;
+    Vec3d           m_pos = Vec3d::Zero();
 
     std::string _travel_to_z(double z, const std::string &comment);
     std::string _retract(double length, double restart_extra, const std::string &comment);
