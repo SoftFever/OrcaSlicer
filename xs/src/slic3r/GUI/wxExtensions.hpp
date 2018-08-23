@@ -501,6 +501,10 @@ enum SelectedSlider {
     ssLower,
     ssHigher
 };
+enum TicksAction{
+    taAdd,
+    taDel
+};
 class PrusaDoubleSlider : public wxControl
 {
 public:
@@ -541,12 +545,13 @@ public:
 protected:
  
     void    render();
+    void draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end);
     void    draw_focus_rect();
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
     void    draw_ticks(wxDC& dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
-    void    draw_info_line(wxDC& dc, const wxPoint& pos, SelectedSlider selection) const;
+    void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
 
     void    update_thumb_rect(const wxCoord& begin_x, const wxCoord& begin_y, const SelectedSlider& selection);
@@ -554,6 +559,7 @@ protected:
     void    correct_lower_value();
     void    correct_higher_value();
     void    move_current_thumb(const bool condition);
+    void    action_tick(const TicksAction action);
 
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
@@ -571,13 +577,20 @@ private:
     int         m_higher_value;
     wxBitmap    m_thumb_higher;
     wxBitmap    m_thumb_lower;
+    wxBitmap    m_add_tick_on;
+    wxBitmap    m_add_tick_off;
+    wxBitmap    m_del_tick_on;
+    wxBitmap    m_del_tick_off;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
     bool        m_is_focused = false;
+    bool        m_is_action_icon_focesed = false;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
+    wxRect      m_rect_tick_action;
     wxSize      m_thumb_size;
+    int         m_tick_icon_dim;
     long        m_style;
     float       m_label_koef = 1.0;
 
