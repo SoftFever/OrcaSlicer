@@ -89,6 +89,10 @@ class Linef3
     explicit Linef3(Pointf3 _a, Pointf3 _b): a(_a), b(_b) {};
     Pointf3 intersect_plane(double z) const;
     void scale(double factor);
+
+    double length() const { return this->a.distance_to(this->b); }
+    Vectorf3 vector() const { return Vectorf3(this->b.x - this->a.x, this->b.y - this->a.y, this->b.z - this->a.z); }
+    Vectorf3 unit_vector() const { return (length() == 0.0) ? Vectorf3(0.0, 0.0, 0.0) : normalize(vector()); }
 };
 
 } // namespace Slic3r

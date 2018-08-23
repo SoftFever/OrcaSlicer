@@ -2,7 +2,7 @@
 #define slic3r_GLCanvas3D_hpp_
 
 #include "../../slic3r/GUI/3DScene.hpp"
-#include "../../slic3r/GUI/GLTexture.hpp"
+#include "../../slic3r/GUI/GLToolbar.hpp"
 
 class wxTimer;
 class wxSizeEvent;
@@ -365,7 +365,7 @@ public:
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Pointf& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Pointf& mouse_pos);
+        void update(const Linef3& mouse_ray);
         void refresh();
 
         EType get_current_type() const;
@@ -382,8 +382,9 @@ public:
         float get_angle_z() const;
         void set_angle_z(float angle_z);
 
-        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
+        void render_current_gizmo(const BoundingBoxf3& box) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
+        void render_overlay(const GLCanvas3D& canvas) const;
 
     private:
         void _reset();
@@ -400,8 +401,15 @@ public:
         static const unsigned char Background_Color[3];
         static const unsigned char Opacity;
 
+        int m_original_width;
+        int m_original_height;
+
     public:
+        WarningTexture();
+
         bool generate(const std::string& msg);
+
+        void render(const GLCanvas3D& canvas) const;
     };
 
     class LegendTexture : public GUI::GLTexture
@@ -415,8 +423,15 @@ public:
         static const unsigned char Background_Color[3];
         static const unsigned char Opacity;
 
+        int m_original_width;
+        int m_original_height;
+
     public:
+        LegendTexture();
+
         bool generate(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
+
+        void render(const GLCanvas3D& canvas) const;
     };
 
 private:
@@ -433,6 +448,7 @@ private:
     Shader m_shader;
     Mouse m_mouse;
     mutable Gizmos m_gizmos;
+    mutable GLToolbar m_toolbar;
 
     mutable GLVolumeCollection m_volumes;
     DynamicPrintConfig* m_config;
@@ -445,6 +461,7 @@ private:
     bool m_force_zoom_to_bed_enabled;
     bool m_apply_zoom_to_volumes_filter;
     mutable int m_hover_volume_id;
+    bool m_toolbar_action_running;
     bool m_warning_texture_enabled;
     bool m_legend_texture_enabled;
     bool m_picking_enabled;
@@ -481,6 +498,20 @@ private:
     PerlCallback m_on_gizmo_scale_uniformly_callback;
     PerlCallback m_on_gizmo_rotate_callback;
     PerlCallback m_on_update_geometry_info_callback;
+
+    PerlCallback m_action_add_callback;
+    PerlCallback m_action_delete_callback;
+    PerlCallback m_action_deleteall_callback;
+    PerlCallback m_action_arrange_callback;
+    PerlCallback m_action_more_callback;
+    PerlCallback m_action_fewer_callback;
+    PerlCallback m_action_ccw45_callback;
+    PerlCallback m_action_cw45_callback;
+    PerlCallback m_action_scale_callback;
+    PerlCallback m_action_split_callback;
+    PerlCallback m_action_cut_callback;
+    PerlCallback m_action_settings_callback;
+    PerlCallback m_action_layersediting_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas);
@@ -539,10 +570,14 @@ public:
     void enable_picking(bool enable);
     void enable_moving(bool enable);
     void enable_gizmos(bool enable);
+    void enable_toolbar(bool enable);
     void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
     void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
+
+    void enable_toolbar_item(const std::string& name, bool enable);
+    bool is_toolbar_item_pressed(const std::string& name) const;
 
     void zoom_to_bed();
     void zoom_to_volumes();
@@ -584,6 +619,20 @@ public:
     void register_on_gizmo_rotate_callback(void* callback);
     void register_on_update_geometry_info_callback(void* callback);
 
+    void register_action_add_callback(void* callback);
+    void register_action_delete_callback(void* callback);
+    void register_action_deleteall_callback(void* callback);
+    void register_action_arrange_callback(void* callback);
+    void register_action_more_callback(void* callback);
+    void register_action_fewer_callback(void* callback);
+    void register_action_ccw45_callback(void* callback);
+    void register_action_cw45_callback(void* callback);
+    void register_action_scale_callback(void* callback);
+    void register_action_split_callback(void* callback);
+    void register_action_cut_callback(void* callback);
+    void register_action_settings_callback(void* callback);
+    void register_action_layersediting_callback(void* callback);
+
     void bind_event_handlers();
     void unbind_event_handlers();
 
@@ -601,9 +650,13 @@ public:
 
     void reset_legend_texture();
 
+    void set_tooltip(const std::string& tooltip);
+
 private:
     bool _is_shown_on_screen() const;
     void _force_zoom_to_bed();
+
+    bool _init_toolbar();
 
     void _resize(unsigned int w, unsigned int h);
 
@@ -629,7 +682,9 @@ private:
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
-    void _render_gizmo() const;
+    void _render_current_gizmo() const;
+    void _render_gizmos_overlay() const;
+    void _render_toolbar() const;
 
     float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
@@ -640,6 +695,9 @@ private:
 
     // Convert the screen space coordinate to world coordinate on the bed.
     Pointf3 _mouse_to_bed_3d(const Point& mouse_pos);
+
+    // Returns the view ray line, in world coordinate, at the given mouse position.
+    Linef3 mouse_ray(const Point& mouse_pos);
 
     void _start_timer();
     void _stop_timer();
@@ -686,6 +744,8 @@ private:
     void _reset_warning_texture();
 
     bool _is_any_volume_outside() const;
+
+    void _resize_toolbar() const;
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

@@ -287,6 +287,7 @@ inline Pointf3 operator*(double scalar, const Pointf3& p) { return Pointf3(scala
 inline Pointf3 operator*(const Pointf3& p, double scalar) { return Pointf3(scalar * p.x, scalar * p.y, scalar * p.z); }
 inline Pointf3 cross(const Pointf3& v1, const Pointf3& v2) { return Pointf3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x); }
 inline coordf_t dot(const Pointf3& v1, const Pointf3& v2) { return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z; }
+inline double length(const Vectorf3 &v) { return ::sqrt(sqr(v.x) + sqr(v.y) + sqr(v.z)); }
 inline Pointf3 normalize(const Pointf3& v)
 {
     coordf_t len = ::sqrt(sqr(v.x) + sqr(v.y) + sqr(v.z));
