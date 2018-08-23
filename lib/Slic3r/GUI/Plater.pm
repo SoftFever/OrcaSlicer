@@ -1674,6 +1674,7 @@ sub print_info_box_show {
     $sizer->Show(1, $show);
 
     $self->Layout;
+    Wx::GetTopLevelParent($self)->Refresh; # temporary workaround for DoubleSlider on right panel
     $panel->Refresh;
 }
 

@@ -811,6 +811,13 @@ PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
     segm_pens = { &DARK_ORANGE_PEN, &ORANGE_PEN, &LIGHT_ORANGE_PEN };
 }
 
+int PrusaDoubleSlider::GetActiveValue() const
+{
+    return m_selection == ssLower ?
+    m_lower_value : m_selection == ssHigher ?
+                m_higher_value : -1;
+}
+
 wxSize PrusaDoubleSlider::DoGetBestSize() const
 {
     const wxSize size = wxControl::DoGetBestSize();
@@ -830,6 +837,13 @@ void PrusaDoubleSlider::SetLowerValue(const int lower_val)
 void PrusaDoubleSlider::SetHigherValue(const int higher_val)
 {
     m_higher_value = higher_val;
+    Refresh();
+    Update();
+}
+
+void PrusaDoubleSlider::SetMaxValue(int max_value)
+{
+    m_max_value = max_value;
     Refresh();
     Update();
 }
@@ -967,10 +981,12 @@ wxString PrusaDoubleSlider::get_label(const SelectedSlider& selection) const
 {
     const int value = selection == ssLower ? m_lower_value : m_higher_value;
 
-    if (m_label_koef == 1.0)
+    if (m_label_koef == 1.0 && m_values.empty())
         return wxString::Format("%d", value);
 
-    const wxString str = wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None);
+    const wxString str = m_values.empty() ? 
+                         wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
+                         wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
     return wxString::Format("%s\n(%d)", str, value);
 }
 

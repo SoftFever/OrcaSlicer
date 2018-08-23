@@ -521,16 +521,23 @@ public:
         const wxValidator& val = wxDefaultValidator,
         const wxString& name = wxEmptyString);
 
-    int GetLowerValue() {
+    int GetLowerValue() const {
         return m_lower_value;
     }
-    int GetHigherValue() {
+    int GetHigherValue() const {
         return m_higher_value;
     }
+    int GetActiveValue() const;
     wxSize DoGetBestSize() const override;
     void SetLowerValue(int lower_val);
     void SetHigherValue(int higher_val);
-    void SetKoefForLabels(const double koef){ m_label_koef = koef;}
+    void SetMaxValue(int max_value);
+    void SetKoefForLabels(const double koef) {
+        m_label_koef = koef;
+    }
+    void SetSliderValues(const std::vector<double>& values) {
+        m_values = values;
+    }
 
     void OnPaint(wxPaintEvent& ){ render();}
     void OnLeftDown(wxMouseEvent& event);
@@ -545,8 +552,8 @@ public:
 protected:
  
     void    render();
-    void draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end);
     void    draw_focus_rect();
+    void    draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end);
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
     void    draw_ticks(wxDC& dc);
@@ -608,6 +615,7 @@ private:
     std::vector<wxPen*> line_pens;
     std::vector<wxPen*> segm_pens;
     std::set<int>       m_ticks;
+    std::vector<double> m_values;
 };
 // ******************************************************************************************
 
