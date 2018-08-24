@@ -82,10 +82,10 @@ bool GLToolbarItem::is_separator() const
 
 void GLToolbarItem::render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const
 {
-    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, _get_uvs(texture_size, border_size, icon_size, gap_size));
+    GLTexture::render_sub_texture(tex_id, left, right, bottom, top, get_uvs(texture_size, border_size, icon_size, gap_size));
 }
 
-GLTexture::Quad_UVs GLToolbarItem::_get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const
+GLTexture::Quad_UVs GLToolbarItem::get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const
 {
     GLTexture::Quad_UVs uvs;
 
@@ -209,11 +209,11 @@ float GLToolbar::get_width() const
     default:
     case Layout::Horizontal:
     {
-        return _get_width_horizontal();
+        return get_width_horizontal();
     }
     case Layout::Vertical:
     {
-        return _get_width_vertical();
+        return get_width_vertical();
     }
     }
 }
@@ -225,11 +225,11 @@ float GLToolbar::get_height() const
     default:
     case Layout::Horizontal:
     {
-        return _get_height_horizontal();
+        return get_height_horizontal();
     }
     case Layout::Vertical:
     {
-        return _get_height_vertical();
+        return get_height_vertical();
     }
     }
 }
@@ -279,12 +279,12 @@ void GLToolbar::update_hover_state(const Vec2d& mouse_pos)
     default:
     case Layout::Horizontal:
     {
-        _update_hover_state_horizontal(mouse_pos);
+        update_hover_state_horizontal(mouse_pos);
         break;
     }
     case Layout::Vertical:
     {
-        _update_hover_state_vertical(mouse_pos);
+        update_hover_state_vertical(mouse_pos);
         break;
     }
     }
@@ -300,11 +300,11 @@ int GLToolbar::contains_mouse(const Vec2d& mouse_pos) const
     default:
     case Layout::Horizontal:
     {
-        return _contains_mouse_horizontal(mouse_pos);
+        return contains_mouse_horizontal(mouse_pos);
     }
     case Layout::Vertical:
     {
-        return _contains_mouse_vertical(mouse_pos);
+        return contains_mouse_vertical(mouse_pos);
     }
     }
 }
@@ -358,12 +358,12 @@ void GLToolbar::render() const
     default:
     case Layout::Horizontal:
     {
-        _render_horizontal();
+        render_horizontal();
         break;
     }
     case Layout::Vertical:
     {
-        _render_vertical();
+        render_vertical();
         break;
     }
     }
@@ -371,27 +371,27 @@ void GLToolbar::render() const
     ::glPopMatrix();
 }
 
-float GLToolbar::_get_width_horizontal() const
+float GLToolbar::get_width_horizontal() const
 {
-    return _get_main_size();
+    return get_main_size();
 }
 
-float GLToolbar::_get_width_vertical() const
-{
-    return m_icons_texture.items_icon_size;
-}
-
-float GLToolbar::_get_height_horizontal() const
+float GLToolbar::get_width_vertical() const
 {
     return m_icons_texture.items_icon_size;
 }
 
-float GLToolbar::_get_height_vertical() const
+float GLToolbar::get_height_horizontal() const
 {
-    return _get_main_size();
+    return m_icons_texture.items_icon_size;
 }
 
-float GLToolbar::_get_main_size() const
+float GLToolbar::get_height_vertical() const
+{
+    return get_main_size();
+}
+
+float GLToolbar::get_main_size() const
 {
     float size = 0.0f;
     for (unsigned int i = 0; i < (unsigned int)m_items.size(); ++i)
@@ -408,7 +408,7 @@ float GLToolbar::_get_main_size() const
     return size;
 }
 
-void GLToolbar::_update_hover_state_horizontal(const Vec2d& mouse_pos)
+void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -488,7 +488,7 @@ void GLToolbar::_update_hover_state_horizontal(const Vec2d& mouse_pos)
     m_parent.set_tooltip(tooltip);
 }
 
-void GLToolbar::_update_hover_state_vertical(const Vec2d& mouse_pos)
+void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -568,7 +568,7 @@ void GLToolbar::_update_hover_state_vertical(const Vec2d& mouse_pos)
     m_parent.set_tooltip(tooltip);
 }
 
-int GLToolbar::_contains_mouse_horizontal(const Vec2d& mouse_pos) const
+int GLToolbar::contains_mouse_horizontal(const Vec2d& mouse_pos) const
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -609,7 +609,7 @@ int GLToolbar::_contains_mouse_horizontal(const Vec2d& mouse_pos) const
     return -1;
 }
 
-int GLToolbar::_contains_mouse_vertical(const Vec2d& mouse_pos) const
+int GLToolbar::contains_mouse_vertical(const Vec2d& mouse_pos) const
 {
     float zoom = m_parent.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
@@ -650,7 +650,7 @@ int GLToolbar::_contains_mouse_vertical(const Vec2d& mouse_pos) const
     return -1;
 }
 
-void GLToolbar::_render_horizontal() const
+void GLToolbar::render_horizontal() const
 {
     unsigned int tex_id = m_icons_texture.texture.get_id();
     int tex_size = m_icons_texture.texture.get_width();
@@ -684,7 +684,7 @@ void GLToolbar::_render_horizontal() const
     }
 }
 
-void GLToolbar::_render_vertical() const
+void GLToolbar::render_vertical() const
 {
     unsigned int tex_id = m_icons_texture.texture.get_id();
     int tex_size = m_icons_texture.texture.get_width();

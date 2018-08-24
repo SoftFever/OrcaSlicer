@@ -69,7 +69,7 @@ public:
     void render(unsigned int tex_id, float left, float right, float bottom, float top, unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
 
 private:
-    GLTexture::Quad_UVs _get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
+    GLTexture::Quad_UVs get_uvs(unsigned int texture_size, unsigned int border_size, unsigned int icon_size, unsigned int gap_size) const;
 };
 
 class GLToolbar
@@ -155,18 +155,18 @@ public:
     void render() const;
 
 private:
-    float _get_width_horizontal() const;
-    float _get_width_vertical() const;
-    float _get_height_horizontal() const;
-    float _get_height_vertical() const;
-    float _get_main_size() const;
-    void _update_hover_state_horizontal(const Vec2d& mouse_pos);
-    void _update_hover_state_vertical(const Vec2d& mouse_pos);
-    int _contains_mouse_horizontal(const Vec2d& mouse_pos) const;
-    int _contains_mouse_vertical(const Vec2d& mouse_pos) const;
+    float get_width_horizontal() const;
+    float get_width_vertical() const;
+    float get_height_horizontal() const;
+    float get_height_vertical() const;
+    float get_main_size() const;
+    void update_hover_state_horizontal(const Vec2d& mouse_pos);
+    void update_hover_state_vertical(const Vec2d& mouse_pos);
+    int contains_mouse_horizontal(const Vec2d& mouse_pos) const;
+    int contains_mouse_vertical(const Vec2d& mouse_pos) const;
 
-    void _render_horizontal() const;
-    void _render_vertical() const;
+    void render_horizontal() const;
+    void render_vertical() const;
 };
 
 } // namespace GUI
