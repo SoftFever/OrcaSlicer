@@ -295,19 +295,31 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
     double theta = ::acos(clamp(-1.0, 1.0, new_dir.dot(orig_dir)));
     if (cross2(orig_dir, new_dir) < 0.0)
-        theta = 2.0 * (coordf_t)PI - theta;
+        theta = 2.0 * (double)PI - theta;
 
-    // snap
     double len = mouse_pos.norm();
+
+    // snap to snap region
     double in_radius = (double)m_radius / 3.0;
     double out_radius = 2.0 * (double)in_radius;
     if ((in_radius <= len) && (len <= out_radius))
     {
-        coordf_t step = 2.0 * (coordf_t)PI / (coordf_t)SnapRegionsCount;
-        theta = step * (coordf_t)std::round(theta / step);
+        double step = 2.0 * (double)PI / (double)SnapRegionsCount;
+        theta = step * (double)std::round(theta / step);
+    }
+    else
+    {
+        // snap to scale
+        in_radius = (double)m_radius;
+        out_radius = in_radius + (double)ScaleLongTooth;
+        if ((in_radius <= len) && (len <= out_radius))
+        {
+            double step = 2.0 * (double)PI / (double)ScaleStepsCount;
+            theta = step * (double)std::round(theta / step);
+        }
     }
 
-    if (theta == 2.0 * (coordf_t)PI)
+    if (theta == 2.0 * (double)PI)
         theta = 0.0;
 
     m_angle = (float)theta;
@@ -373,11 +385,7 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
 {
-#if ENABLE_GIZMOS_3D
-    ::glEnable(GL_DEPTH_TEST);
-#else
     ::glDisable(GL_DEPTH_TEST);
-#endif // ENABLE_GIZMOS_3D
 
     ::glPushMatrix();
     transform_to_local();
@@ -513,7 +521,7 @@ void GLGizmoRotate::transform_to_local() const
     }
     case Y:
     {
-        ::glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+        ::glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
         ::glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
         break;
     }
@@ -543,7 +551,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
     case Y:
     {
         m.rotate(Eigen::AngleAxisd(-(double)PI, Vec3d::UnitZ()));
-        m.rotate(Eigen::AngleAxisd(-half_pi, Vec3d::UnitX()));
+        m.rotate(Eigen::AngleAxisd(half_pi, Vec3d::UnitX()));
         break;
     }
     default:
@@ -841,7 +849,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
     ::glEnable(GL_DEPTH_TEST);
 
-    Vec3d offset_vec((double)Offset, (double)Offset, (double)Offset);
+    Vec3d offset_vec = (double)Offset * Vec3d::Ones();
 
     m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
     const Vec3d& center = m_box.center();
@@ -926,7 +934,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {

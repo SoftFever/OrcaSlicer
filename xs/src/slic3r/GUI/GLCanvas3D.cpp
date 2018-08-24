@@ -507,6 +507,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
     if (triangles_vcount > 0)
     {
         ::glEnable(GL_DEPTH_TEST);
+        ::glDepthMask(GL_FALSE);
 
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -535,6 +536,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glDisable(GL_TEXTURE_2D);
 
         ::glDisable(GL_BLEND);
+        ::glDepthMask(GL_TRUE);
     }
 }
 
@@ -1040,7 +1042,7 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
     // Make the vertical bar a bit wider so the layer height curve does not touch the edge of the bar region.
     layer_height_max *= 1.12;
 
-    coordf_t max_z = unscale<double>(print_object.size(2));
+    double max_z = unscale<double>(print_object.size(2));
     double layer_height = dynamic_cast<const ConfigOptionFloat*>(print_object.config.option("layer_height"))->value;
     float l = bar_rect.get_left();
     float w = bar_rect.get_right() - l;
@@ -1062,7 +1064,7 @@ void GLCanvas3D::LayersEditing::_render_profile(const PrintObject& print_object,
     const ModelObject* model_object = print_object.model_object();
     if (model_object->layer_height_profile_valid)
     {
-        const std::vector<coordf_t>& profile = model_object->layer_height_profile;
+        const std::vector<double>& profile = model_object->layer_height_profile;
 
         ::glColor3f(0.0f, 0.0f, 1.0f);
         ::glBegin(GL_LINE_STRIP);
@@ -2079,7 +2081,7 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
     bool new_shape = m_bed.set_shape(shape);
 
     // Set the origin and size for painting of the coordinate system axes.
-    m_axes.origin = Vec3d(0.0, 0.0, (coordf_t)GROUND_Z);
+    m_axes.origin = Vec3d(0.0, 0.0, (double)GROUND_Z);
     set_axes_length(0.3f * (float)m_bed.get_bounding_box().max_size());
 
     if (new_shape)
@@ -2098,7 +2100,7 @@ void GLCanvas3D::set_auto_bed_shape()
 {
     // draw a default square bed around object center
     const BoundingBoxf3& bbox = volumes_bounding_box();
-    coordf_t max_size = bbox.max_size();
+    double max_size = bbox.max_size();
     const Vec3d center = bbox.center();
 
     Pointfs bed_shape;
@@ -2111,7 +2113,7 @@ void GLCanvas3D::set_auto_bed_shape()
     set_bed_shape(bed_shape);
 
     // Set the origin for painting of the coordinate system axes.
-    m_axes.origin = Vec3d(center(0), center(1), (coordf_t)GROUND_Z);
+    m_axes.origin = Vec3d(center(0), center(1), (double)GROUND_Z);
 }
 
 void GLCanvas3D::set_axes_length(float length)
@@ -2352,13 +2354,13 @@ void GLCanvas3D::render()
     float theta = m_camera.get_theta();
     bool is_custom_bed = m_bed.is_custom();
 
+    // picking pass
     _picking_pass();
+
+    // draw scene
     _render_background();
 
-    _render_current_gizmo();
-
-    // untextured bed needs to be rendered before objects
-    if (is_custom_bed)
+    if (is_custom_bed) // untextured bed needs to be rendered before objects
     {
         _render_bed(theta);
         // disable depth testing so that axes are not covered by ground
@@ -2366,13 +2368,16 @@ void GLCanvas3D::render()
     }
     _render_objects();
 
-    // textured bed needs to be rendered after objects
-    if (!is_custom_bed)
+    if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
         _render_axes(true);
         _render_bed(theta);
     }
+
+    _render_current_gizmo();
     _render_cutting_plane();
+
+    // draw overlays
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
@@ -2463,7 +2468,7 @@ void GLCanvas3D::reload_scene(bool force)
         if ((extruders_count > 1) && semm && wt && !co)
         {
             // Height of a print (Show at least a slab)
-            coordf_t height = std::max(m_model->bounding_box().max(2), 10.0);
+            double height = std::max(m_model->bounding_box().max(2), 10.0);
 
             float x = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_x"))->value;
             float y = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_y"))->value;
@@ -3208,7 +3213,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                 m_dirty = true;
             }
-            m_mouse.drag.start_position_3D = Vec3d((coordf_t)pos(0), (coordf_t)pos(1), 0.0);
+            m_mouse.drag.start_position_3D = Vec3d((double)pos(0), (double)pos(1), 0.0);
         }
         else if (evt.MiddleIsDown() || evt.RightIsDown())
         {
@@ -3302,7 +3307,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Moving())
     {
-        m_mouse.position = Vec2d((coordf_t)pos(0), (coordf_t)pos(1));
+        m_mouse.position = Vec2d((double)pos(0), (double)pos(1));
         // Only refresh if picking is enabled, in that case the objects may get highlighted if the mouse cursor hovers over.
         if (m_picking_enabled)
             m_dirty = true;
@@ -3671,9 +3676,9 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     ::glGetFloatv(GL_MODELVIEW_MATRIX, matrix);
 
     // camera axes
-    Vec3d right((coordf_t)matrix[0], (coordf_t)matrix[4], (coordf_t)matrix[8]);
-    Vec3d up((coordf_t)matrix[1], (coordf_t)matrix[5], (coordf_t)matrix[9]);
-    Vec3d forward((coordf_t)matrix[2], (coordf_t)matrix[6], (coordf_t)matrix[10]);
+    Vec3d right((double)matrix[0], (double)matrix[4], (double)matrix[8]);
+    Vec3d up((double)matrix[1], (double)matrix[5], (double)matrix[9]);
+    Vec3d forward((double)matrix[2], (double)matrix[6], (double)matrix[10]);
 
     Vec3d bb_min = bbox.min;
     Vec3d bb_max = bbox.max;
@@ -3691,11 +3696,11 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     vertices.push_back(bb_max);
     vertices.emplace_back(bb_min(0), bb_max(1), bb_max(2));
 
-    coordf_t max_x = 0.0;
-    coordf_t max_y = 0.0;
+    double max_x = 0.0;
+    double max_y = 0.0;
 
     // margin factor to give some empty space around the bbox
-    coordf_t margin_factor = 1.25;
+    double margin_factor = 1.25;
 
     for (const Vec3d v : vertices)
     {
@@ -3704,8 +3709,8 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
         Vec3d proj_on_plane = pos - pos.dot(forward) * forward;
 
         // calculates vertex coordinate along camera xy axes
-        coordf_t x_on_plane = proj_on_plane.dot(right);
-        coordf_t y_on_plane = proj_on_plane.dot(up);
+        double x_on_plane = proj_on_plane.dot(right);
+        double y_on_plane = proj_on_plane.dot(up);
 
         max_x = std::max(max_x, margin_factor * std::abs(x_on_plane));
         max_y = std::max(max_y, margin_factor * std::abs(y_on_plane));
@@ -3718,7 +3723,7 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
     max_y *= 2.0;
 
     const Size& cnv_size = get_canvas_size();
-    return (float)std::min((coordf_t)cnv_size.get_width() / max_x, (coordf_t)cnv_size.get_height() / max_y);
+    return (float)std::min((double)cnv_size.get_width() / max_x, (double)cnv_size.get_height() / max_y);
 }
 
 void GLCanvas3D::_deregister_callbacks()
@@ -3819,8 +3824,8 @@ void GLCanvas3D::_picking_pass() const
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
         _render_volumes(true);
+        m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
 
         if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
@@ -4155,7 +4160,7 @@ Vec3d GLCanvas3D::_mouse_to_3d(const Point& mouse_pos, float* z)
 
     GLdouble out_x, out_y, out_z;
     ::gluUnProject((GLdouble)mouse_pos(0), (GLdouble)y, (GLdouble)mouse_z, modelview_matrix, projection_matrix, viewport, &out_x, &out_y, &out_z);
-    return Vec3d((coordf_t)out_x, (coordf_t)out_y, (coordf_t)out_z);
+    return Vec3d((double)out_x, (double)out_y, (double)out_z);
 }
 
 Vec3d GLCanvas3D::_mouse_to_bed_3d(const Point& mouse_pos)
@@ -5110,7 +5115,7 @@ void GLCanvas3D::_load_shells()
     }
 
     // adds wipe tower's volume
-    coordf_t max_z = m_print->objects[0]->model_object()->get_model()->bounding_box().max(2);
+    double max_z = m_print->objects[0]->model_object()->get_model()->bounding_box().max(2);
     const PrintConfig& config = m_print->config;
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects) {
@@ -5183,8 +5188,8 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
 void GLCanvas3D::_update_toolpath_volumes_outside_state()
 {
     // tolerance to avoid false detection at bed edges
-    static const coordf_t tolerance_x = 0.05;
-    static const coordf_t tolerance_y = 0.05;
+    static const double tolerance_x = 0.05;
+    static const double tolerance_y = 0.05;
 
     BoundingBoxf3 print_volume;
     if (m_config != nullptr)
