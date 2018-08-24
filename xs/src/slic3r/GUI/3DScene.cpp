@@ -258,6 +258,11 @@ const Vec3d& GLVolume::get_origin() const
     return m_origin;
 }
 
+float GLVolume::get_angle_z()
+{
+    return m_angle_z;
+}
+
 void GLVolume::set_origin(const Vec3d& origin)
 {
     if (m_origin != origin)

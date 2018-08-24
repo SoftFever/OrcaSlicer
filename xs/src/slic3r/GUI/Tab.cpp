@@ -687,8 +687,8 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 	}
 	if (opt_key == "fill_density")
 	{
-		boost::any val = get_optgroup()->get_config_value(*m_config, opt_key);
-		get_optgroup()->set_value(opt_key, val);
+		boost::any val = get_optgroup(ogFrequentlyChangingParameters)->get_config_value(*m_config, opt_key);
+		get_optgroup(ogFrequentlyChangingParameters)->set_value(opt_key, val);
 	}
 	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
 	{
@@ -697,12 +697,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 								m_config->opt_bool("support_material_buildplate_only") ?
 									_("Support on build plate only") :
 									_("Everywhere");
-		get_optgroup()->set_value("support", new_selection);
+		get_optgroup(ogFrequentlyChangingParameters)->set_value("support", new_selection);
 	}
 	if (opt_key == "brim_width")
 	{
 		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
-		get_optgroup()->set_value("brim", val);
+		get_optgroup(ogFrequentlyChangingParameters)->set_value("brim", val);
 	}
 
     if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
@@ -719,10 +719,8 @@ void Tab::update_wiping_button_visibility() {
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
     bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
 
-    if (wipe_tower_enabled && multiple_extruders && single_extruder_mm)
-        get_wiping_dialog_button()->Show();
-    else get_wiping_dialog_button()->Hide();
-
+	get_wiping_dialog_button()->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);
+	
     (get_wiping_dialog_button()->GetParent())->Layout();
 }
 
@@ -789,18 +787,18 @@ void Tab::update_preset_description_line()
 
 void Tab::update_frequently_changed_parameters()
 {
-	boost::any value = get_optgroup()->get_config_value(*m_config, "fill_density");
-	get_optgroup()->set_value("fill_density", value);
+	boost::any value = get_optgroup(ogFrequentlyChangingParameters)->get_config_value(*m_config, "fill_density");
+	get_optgroup(ogFrequentlyChangingParameters)->set_value("fill_density", value);
 
 	wxString new_selection = !m_config->opt_bool("support_material") ?
 							_("None") :
 							m_config->opt_bool("support_material_buildplate_only") ?
 								_("Support on build plate only") :
 								_("Everywhere");
-	get_optgroup()->set_value("support", new_selection);
+	get_optgroup(ogFrequentlyChangingParameters)->set_value("support", new_selection);
 
 	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
-	get_optgroup()->set_value("brim", val);
+	get_optgroup(ogFrequentlyChangingParameters)->set_value("brim", val);
 
 	update_wiping_button_visibility();
 }
@@ -1478,7 +1476,7 @@ void TabPrinter::build_fff()
 		Line line{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent){
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			//			btn->SetFont(Slic3r::GUI::small_font);
+			btn->SetFont(Slic3r::GUI::small_font());
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1546,7 +1544,7 @@ void TabPrinter::build_fff()
 			auto serial_test = [this](wxWindow* parent){
 				auto btn = m_serial_test_btn = new wxButton(parent, wxID_ANY,
 					_(L("Test")), wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-//				btn->SetFont($Slic3r::GUI::small_font);
+				btn->SetFont(Slic3r::GUI::small_font());
 				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
 				sizer->Add(btn);
@@ -1832,6 +1830,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	build_extruder_pages();
 	reload_config();
 	on_value_change("extruders_count", extruders_count);
+    update_objects_list_extruder_column(extruders_count);
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
@@ -2174,7 +2173,7 @@ void Tab::load_current_preset()
 		// checking out if this Tab exists till this moment
 		if (!checked_tab(this))
 			return;
-        update_tab_ui();
+		update_tab_ui();
 
         // update show/hide tabs
         if (m_name == "printer"){

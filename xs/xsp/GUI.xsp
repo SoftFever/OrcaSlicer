@@ -87,6 +87,80 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
                                                            (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
                                                            (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};
 
+void add_expert_mode_part(  SV *ui_parent, SV *ui_sizer, 
+                            Model *model,
+                            int event_object_selection_changed,
+                            int event_object_settings_changed,
+                            int event_remove_object, 
+                            int event_update_scene)
+    %code%{ Slic3r::GUI::add_expert_mode_part(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                                                (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"), 
+                                                *model,  
+                                                event_object_selection_changed,
+                                                event_object_settings_changed,
+                                                event_remove_object, 
+                                                event_update_scene); %};
+
+void set_objects_from_perl( SV *ui_parent, 
+                            SV *frequently_changed_parameters_sizer,
+                            SV *expert_mode_part_sizer,
+                            SV *scrolled_window_sizer,
+                            SV *btn_export_gcode,
+                            SV *btn_export_stl,
+                            SV *btn_reslice,
+                            SV *btn_print,
+                            SV *btn_send_gcode,
+                            SV *manifold_warning_icon)
+    %code%{ Slic3r::GUI::set_objects_from_perl(
+                            (wxWindow *)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ frequently_changed_parameters_sizer, "Wx::BoxSizer"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ expert_mode_part_sizer, "Wx::BoxSizer"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ scrolled_window_sizer, "Wx::BoxSizer"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_gcode, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_stl, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_reslice, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_print, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_send_gcode, "Wx::Button"),
+                            (wxStaticBitmap *)wxPli_sv_2_object(aTHX_ manifold_warning_icon, "Wx::StaticBitmap")); %};
+
+void set_show_print_info(bool show)
+    %code%{ Slic3r::GUI::set_show_print_info(show); %};
+
+void set_show_manifold_warning_icon(bool show)
+    %code%{ Slic3r::GUI::set_show_manifold_warning_icon(show); %};
+
+void update_mode()
+    %code%{ Slic3r::GUI::update_mode(); %};
+
+void add_object_to_list(const char *name, SV *object_model)
+    %code%{ Slic3r::GUI::add_object_to_list(
+                    name, 
+                    (ModelObject *)wxPli_sv_2_object(aTHX_ object_model, "Slic3r::Model::Object") ); %};
+
+void delete_object_from_list()
+    %code%{ Slic3r::GUI::delete_object_from_list(); %};
+
+void delete_all_objects_from_list()
+    %code%{ Slic3r::GUI::delete_all_objects_from_list(); %};
+
+void set_object_count(int idx, int count)
+    %code%{ Slic3r::GUI::set_object_count(idx, count); %};
+
+void set_object_scale(int idx, int scale)
+    %code%{ Slic3r::GUI::set_object_scale(idx, scale); %};
+
+void unselect_objects()
+    %code%{ Slic3r::GUI::unselect_objects(); %};
+
+void select_current_object(int idx)
+    %code%{ Slic3r::GUI::select_current_object(idx); %};
+
+void remove_obj()
+    %code%{ Slic3r::GUI::remove(); %};
+
+void update_rotation_value(double angle, const char *axis)
+    %code%{ Slic3r::GUI::update_rotation_value(angle, axis); %};
+
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
 

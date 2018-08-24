@@ -30,6 +30,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
                 opt.gui_type.compare("i_enum_closed") == 0) {
 		m_fields.emplace(id, STDMOVE(Choice::Create<Choice>(parent(), opt, id)));
     } else if (opt.gui_type.compare("slider") == 0) {
+		m_fields.emplace(id, STDMOVE(SliderCtrl::Create<SliderCtrl>(parent(), opt, id)));
     } else if (opt.gui_type.compare("i_spin") == 0) { // Spinctrl
     } else if (opt.gui_type.compare("legend") == 0) { // StaticText
 		m_fields.emplace(id, STDMOVE(StaticText::Create<StaticText>(parent(), opt, id)));
@@ -88,15 +89,21 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 		if (!this->m_disabled)
 			this->back_to_sys_value(opt_id);
 	};
-	if (!m_show_modified_btns) {
-		field->m_Undo_btn->Hide();
-		field->m_Undo_to_sys_btn->Hide();
-	}
-//	if (nonsys_btn_icon != nullptr)
-//		field->set_nonsys_btn_icon(*nonsys_btn_icon);
     
 	// assign function objects for callbacks, etc.
     return field;
+}
+
+void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field)
+{
+	if (!m_show_modified_btns) {
+		field->m_Undo_btn->Hide();
+		field->m_Undo_to_sys_btn->Hide();
+		return;
+	}
+
+	sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
+	sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 }
 
 void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* = nullptr*/) {
@@ -133,8 +140,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		const auto& field = build_field(option);
 
 		auto btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-		btn_sizer->Add(field->m_Undo_to_sys_btn);
-		btn_sizer->Add(field->m_Undo_btn);
+		add_undo_buttuns_to_sizer(btn_sizer, field);
 		tmp_sizer->Add(btn_sizer, 0, wxEXPAND | wxALL, 0);
 		if (is_window_field(field))
 			tmp_sizer->Add(field->getWindow(), 0, wxEXPAND | wxALL, wxOSX ? 0 : 5);
@@ -148,6 +154,18 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
         m_panel->SetSizer(m_grid_sizer);
         m_panel->Layout();
 #endif /* __WXGTK__ */
+
+	// if we have an extra column, build it
+	if (extra_column) {
+		if (extra_column) {
+			grid_sizer->Add(extra_column(parent(), line), 0, wxALIGN_CENTER_VERTICAL, 0);
+		}
+		else {
+			// if the callback provides no sizer for the extra cell, put a spacer
+			grid_sizer->AddSpacer(1);
+		}
+	}
+
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
@@ -163,7 +181,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 							wxDefaultPosition, wxSize(label_width, -1), label_style);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
-		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
+		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | 
+						(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
     }
@@ -177,28 +196,35 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 		return;
 	}
 	
-	// if we have a single option with no sidetext just add it directly to the grid sizer
-	auto sizer = new wxBoxSizer(wxHORIZONTAL);
-	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM|wxTOP|wxLEFT), staticbox ? 0 : 1);
+	// If we're here, we have more than one option or a single option with sidetext
+    // so we need a horizontal sizer to arrange these things
+	auto sizer = new wxBoxSizer(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxVERTICAL : wxHORIZONTAL);
+	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
+	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
 		option_set.front().side_widget == nullptr && line.get_extra_widgets().size() == 0) {
 		const auto& option = option_set.front();
 		const auto& field = build_field(option, label);
 
-		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL); 
-		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL);
+		add_undo_buttuns_to_sizer(sizer, field);
 		if (is_window_field(field)) 
 			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, (option.opt.full_width ? wxEXPAND : 0) |
 							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, (wxOSX||!staticbox) ? 0 : 2);
 		if (is_sizer_field(field)) 
-			sizer->Add(field->getSizer(), 0, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+			sizer->Add(field->getSizer(), 1, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
 		return;
 	}
 
-    // if we're here, we have more than one option or a single option with sidetext
-    // so we need a horizontal sizer to arrange these things
-	for (auto opt : option_set) {
+    for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
+		wxSizer* sizer_tmp;
+		if (m_flag == ogSIDE_OPTIONS_VERTICAL){
+			auto sz = new wxFlexGridSizer(1, 3, 2, 2);
+			sz->RemoveGrowableCol(2);
+			sizer_tmp = sz;
+		}
+    	else
+    		sizer_tmp = sizer;
 		// add label if any
 		if (option.label != "") {
 			wxString str_label = _(option.label);
@@ -208,34 +234,38 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 // 								L_str(option.label);
 			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			label->SetFont(label_font);
-			sizer->Add(label, 0, wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(label, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field
 		const Option& opt_ref = opt;
 		auto& field = build_field(opt_ref, label);
-		sizer->Add(field->m_Undo_to_sys_btn, 0, wxALIGN_CENTER_VERTICAL);
-		sizer->Add(field->m_Undo_btn, 0, wxALIGN_CENTER_VERTICAL, 0);
+		add_undo_buttuns_to_sizer(sizer_tmp, field);
 		is_sizer_field(field) ? 
-			sizer->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
-			sizer->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(field->getSizer(), 0, wxALIGN_CENTER_VERTICAL, 0) :
+			sizer_tmp->Add(field->getWindow(), 0, wxALIGN_CENTER_VERTICAL, 0);
 		
 		// add sidetext if any
 		if (option.sidetext != "") {
-			auto sidetext = new wxStaticText(parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, wxDefaultSize);
+			auto sidetext = new wxStaticText(	parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
+												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetFont(sidetext_font);
-			sizer->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
+			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, m_flag == ogSIDE_OPTIONS_VERTICAL ? 0 : 4);
+			field->set_side_text_ptr(sidetext);
 		}
 
 		// add side widget if any
 		if (opt.side_widget != nullptr) {
-			sizer->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
+			sizer_tmp->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
 		}
 
-		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
+		if (opt.opt_id != option_set.back().opt_id && m_flag != ogSIDE_OPTIONS_VERTICAL) //! istead of (opt != option_set.back())
 		{
-			sizer->AddSpacer(6);
+			sizer_tmp->AddSpacer(6);
 	    }
+
+		if (m_flag == ogSIDE_OPTIONS_VERTICAL)
+			sizer->Add(sizer_tmp, 0, wxALIGN_RIGHT|wxALL, 0);
 	}
 	// add extra sizers if any
 	for (auto extra_widget : line.get_extra_widgets()) {
@@ -259,7 +289,7 @@ void OptionsGroup::on_change_OG(const t_config_option_key& opt_id, const boost::
 Option ConfigOptionsGroup::get_option(const std::string& opt_key, int opt_index /*= -1*/)
 {
 	if (!m_config->has(opt_key)) {
-		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.";
+		std::cerr << "No " << opt_key << " in ConfigOptionsGroup config.\n";
 	}
 
 	std::string opt_id = opt_index == -1 ? opt_key : opt_key + "#" + std::to_string(opt_index);

@@ -38,6 +38,8 @@
 #include <wx/msgdlg.h>
 #include <wx/settings.h>
 #include <wx/display.h>
+#include <wx/collpane.h>
+#include <wx/wupdlock.h>
 
 #include "wxExtensions.hpp"
 
@@ -53,12 +55,15 @@
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
 #include "FirmwareDialog.hpp"
+#include "GUI_ObjectParts.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "../Config/Snapshot.hpp"
 
 #include "3DScene.hpp"
 #include "libslic3r/I18N.hpp"
+#include "Model.hpp"
+#include "LambdaObjectDialog.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -123,9 +128,25 @@ wxLocale*	g_wxLocale;
 wxFont		g_small_font;
 wxFont		g_bold_font;
 
-std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
-double m_brim_width = 0.0;
+std::vector <std::shared_ptr<ConfigOptionsGroup>> m_optgroups;
+double		m_brim_width = 0.0;
+size_t		m_label_width = 100;
 wxButton*	g_wiping_dialog_button = nullptr;
+
+//showed/hided controls according to the view mode
+wxWindow	*g_right_panel = nullptr;
+wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
+wxBoxSizer	*g_expert_mode_part_sizer = nullptr;
+wxBoxSizer	*g_scrolled_window_sizer = nullptr;
+wxBoxSizer	*g_object_list_sizer = nullptr;
+wxButton	*g_btn_export_gcode = nullptr;
+wxButton	*g_btn_export_stl = nullptr;
+wxButton	*g_btn_reslice = nullptr;
+wxButton	*g_btn_print = nullptr;
+wxButton	*g_btn_send_gcode = nullptr;
+wxStaticBitmap	*g_manifold_warning_icon = nullptr;
+bool		g_show_print_info = false;
+bool		g_show_manifold_warning_icon = false;
 
 static void init_label_colours()
 {
@@ -204,6 +225,39 @@ void set_preset_updater(PresetUpdater *updater)
 void set_3DScene(_3DScene *scene)
 {
 	g_3DScene = scene;
+}
+
+void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_parameters_sizer,
+							wxBoxSizer *expert_mode_part_sizer, wxBoxSizer *scrolled_window_sizer,
+							wxButton *btn_export_gcode,
+							wxButton *btn_export_stl, wxButton *btn_reslice, 
+							wxButton *btn_print, wxButton *btn_send_gcode,
+							wxStaticBitmap *manifold_warning_icon)
+{
+	g_right_panel = parent;
+	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
+	g_expert_mode_part_sizer = expert_mode_part_sizer;
+	g_scrolled_window_sizer = scrolled_window_sizer;
+	g_btn_export_gcode = btn_export_gcode;
+	g_btn_export_stl = btn_export_stl;
+	g_btn_reslice = btn_reslice;
+	g_btn_print = btn_print;
+	g_btn_send_gcode = btn_send_gcode;
+	g_manifold_warning_icon = manifold_warning_icon;
+}
+
+void set_show_print_info(bool show)
+{
+	g_show_print_info = show;
+}
+
+void set_show_manifold_warning_icon(bool show)
+{
+	g_show_manifold_warning_icon = show;
+}
+
+void set_objects_list_sizer(wxBoxSizer *objects_list_sizer){
+	g_object_list_sizer = objects_list_sizer;
 }
 
 std::vector<Tab *>& get_tabs_list()
@@ -332,10 +386,21 @@ enum ConfigMenuIDs {
 	ConfigMenuTakeSnapshot,
 	ConfigMenuUpdate,
 	ConfigMenuPreferences,
+	ConfigMenuModeSimple,
+	ConfigMenuModeExpert,
 	ConfigMenuLanguage,
 	ConfigMenuFlashFirmware,
 	ConfigMenuCnt,
 };
+	
+ConfigMenuIDs get_view_mode()
+{
+	if (!g_AppConfig->has("view_mode"))
+		return ConfigMenuModeSimple;
+
+	const auto mode = g_AppConfig->get("view_mode");
+	return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
+}
 
 static wxString dots("…", wxConvUTF8);
 
@@ -353,8 +418,15 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
    	local_menu->AppendSeparator();
    	local_menu->Append(config_id_base + ConfigMenuPreferences, 	_(L("Preferences"))+dots+"\tCtrl+,", 		_(L("Application preferences")));
-   	local_menu->Append(config_id_base + ConfigMenuLanguage, 	_(L("Change Application Language")));
+	local_menu->AppendSeparator();
+	auto mode_menu = new wxMenu();
+	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple,	_(L("&Simple")),					_(L("Simple View Mode")));
+	mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert,	_(L("&Expert")),					_(L("Expert View Mode")));
+	mode_menu->Check(config_id_base + get_view_mode(), true);
+	local_menu->AppendSubMenu(mode_menu,						_(L("&Mode")), 								_(L("Slic3r View Mode")));
    	local_menu->AppendSeparator();
+	local_menu->Append(config_id_base + ConfigMenuLanguage,		_(L("Change Application Language")));
+	local_menu->AppendSeparator();
 	local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
 	// TODO: for when we're able to flash dictionaries
 	// local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
@@ -421,12 +493,39 @@ void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_l
 			break;
 		}
 	});
+	mode_menu->Bind(wxEVT_MENU, [config_id_base](wxEvent& event) {
+		std::string mode =	event.GetId() - config_id_base == ConfigMenuModeExpert ?
+							"expert" : "simple";
+		g_AppConfig->set("view_mode", mode);
+		g_AppConfig->save();
+		update_mode();
+	});
 	menu->Append(local_menu, _(L("&Configuration")));
 }
 
 void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
     add_config_menu(menu, event_preferences_changed, event_language_change);
+}
+
+void open_model(wxWindow *parent, wxArrayString& input_files){
+	t_file_wild_card vec_FILE_WILDCARDS = get_file_wild_card();
+	std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "3mf", "prusa" };
+	wxString MODEL_WILDCARD;
+	for (auto file_type : file_types)
+		MODEL_WILDCARD += vec_FILE_WILDCARDS.at(file_type) + "|";
+
+	auto dlg_title = _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"));
+	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow(g_wxMainFrame)*/, dlg_title, 
+		g_AppConfig->get_last_dir(), "",
+		MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+	if (dialog->ShowModal() != wxID_OK) {
+		dialog->Destroy();
+		return ;
+	}
+	
+	dialog->GetPaths(input_files);
+	dialog->Destroy();
 }
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
@@ -757,6 +856,22 @@ unsigned get_colour_approx_luma(const wxColour &colour)
 	));
 }
 
+wxWindow* get_right_panel(){
+	return g_right_panel;
+}
+
+wxFrame* get_main_frame() {
+	return g_wxMainFrame;
+}
+
+wxNotebook * get_tab_panel() {
+	return g_wxTabPanel;
+}
+
+const size_t& label_width(){
+	return m_label_width;
+}
+
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
     if (comboCtrl == nullptr)
@@ -825,14 +940,37 @@ wxString from_u8(const std::string &str)
 	return wxString::FromUTF8(str.c_str());
 }
 
+void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
+							Model &model,
+							int event_object_selection_changed,
+							int event_object_settings_changed,
+							int event_remove_object, 
+							int event_update_scene)
+{
+	set_event_object_selection_changed(event_object_selection_changed);
+	set_event_object_settings_changed(event_object_settings_changed);
+	set_event_remove_object(event_remove_object);
+	set_event_update_scene(event_update_scene);
+	set_objects_from_model(model);
+	init_mesh_icons();
+
+// 	wxWindowUpdateLocker noUpdates(parent);
+
+// 	add_objects_list(parent, sizer);
+
+// 	add_collapsible_panes(parent, sizer);
+}
 
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
 {
 	DynamicPrintConfig*	config = &g_PresetBundle->prints.get_edited_preset().config;
-	m_optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
+	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
 	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	m_optgroup->label_width = ar.IsEmpty() ? 100 : ar.front()-4; // doesn't work
-	m_optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
+	m_label_width = ar.IsEmpty() ? 100 : ar.front()-4;
+	optgroup->label_width = m_label_width;
+
+	//Frequently changed parameters
+	optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
 		for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
 			Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
@@ -847,7 +985,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			return;
 
 		if (opt_key == "fill_density"){
-			value = m_optgroup->get_config_value(*config, opt_key);
+			value = m_optgroups[ogFrequentlyChangingParameters]->get_config_value(*config, opt_key);
 			tab_print->set_value(opt_key, value);
 			tab_print->update();
 		}
@@ -870,14 +1008,14 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			}
 			else{ //(opt_key == "support")
 				const wxString& selection = boost::any_cast<wxString>(value);
-				
+
 				auto support_material = selection == _("None") ? false : true;
 				new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
 
 				if (selection == _("Everywhere"))
 					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
 				else if (selection == _("Support on build plate only"))
-					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));				
+					new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));
 			}
 			tab_print->load_config(new_conf);
 		}
@@ -885,10 +1023,10 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		tab_print->update_dirty();
 	};
 
-	Option option = m_optgroup->get_option("fill_density");
+	Option option = optgroup->get_option("fill_density");
 	option.opt.sidetext = "";
 	option.opt.full_width = true;
-	m_optgroup->append_single_option_line(option);
+	optgroup->append_single_option_line(option);
 
 	ConfigOptionDef def;
 
@@ -907,7 +1045,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.default_value = new ConfigOptionStrings { selection };
 	option = Option(def, "support");
 	option.opt.full_width = true;
-	m_optgroup->append_single_option_line(option);
+	optgroup->append_single_option_line(option);
 
 	m_brim_width = config->opt_float("brim_width");
 	def.label = L("Brim");
@@ -916,7 +1054,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	def.gui_type = "";
 	def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
 	option = Option(def, "brim");
-	m_optgroup->append_single_option_line(option);
+	optgroup->append_single_option_line(option);
 
 
     Line line = { "", "" };
@@ -942,16 +1080,93 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 			}));
 			return sizer;
 		};
-		m_optgroup->append_line(line);
+		optgroup->append_line(line);
 
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 2);
 
+	m_optgroups.push_back(optgroup);// ogFrequentlyChangingParameters
 
-	sizer->Add(m_optgroup->sizer, 1, wxEXPAND | wxBOTTOM, 2);
+	// Object List
+	add_objects_list(parent, sizer);
+
+	// Frequently Object Settings
+	add_object_settings(parent, sizer);
 }
 
-ConfigOptionsGroup* get_optgroup()
+void show_frequently_changed_parameters(bool show)
 {
-	return m_optgroup.get();
+	g_frequently_changed_parameters_sizer->Show(show);
+	if (!show) return;
+
+	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
+		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
+		if (!tab)
+			continue;
+		tab->update_wiping_button_visibility();
+		break;
+	}
+}
+
+void show_buttons(bool show)
+{
+	g_btn_export_stl->Show(show);
+	g_btn_reslice->Show(show);
+	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
+		TabPrinter *tab = dynamic_cast<TabPrinter*>(g_wxTabPanel->GetPage(i));
+		if (!tab)
+			continue;
+		g_btn_print->Show(show && !tab->m_config->opt_string("serial_port").empty());
+		g_btn_send_gcode->Show(show && !tab->m_config->opt_string("octoprint_host").empty());
+		break;
+	}
+}
+
+void show_info_sizer(bool show)
+{
+	g_scrolled_window_sizer->Show(static_cast<size_t>(0), show); 
+	g_scrolled_window_sizer->Show(1, show && g_show_print_info);
+	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
+}
+
+void update_mode()
+{
+	wxWindowUpdateLocker noUpdates(g_right_panel);
+
+	// TODO There is a not the best place of it!
+	//*** Update style of the "Export G-code" button****
+	if (g_btn_export_gcode->GetFont() != bold_font()){
+		g_btn_export_gcode->SetBackgroundColour(wxColour(252, 77, 1));
+		g_btn_export_gcode->SetFont(bold_font());
+	}
+	// ***********************************
+
+	ConfigMenuIDs mode = get_view_mode();
+
+// 	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
+// 	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
+	g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
+	show_info_sizer(mode == ConfigMenuModeExpert);
+	show_buttons(mode == ConfigMenuModeExpert);
+
+	// TODO There is a not the best place of it!
+	// *** Update showing of the collpane_settings
+// 	show_collpane_settings(mode == ConfigMenuModeExpert);
+	// *************************
+	g_right_panel->GetParent()->Layout();
+	g_right_panel->Layout();
+}
+
+bool is_expert_mode(){
+	return get_view_mode() == ConfigMenuModeExpert;
+}
+
+ConfigOptionsGroup* get_optgroup(size_t i)
+{
+	return m_optgroups[i].get();
+}
+
+std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups() {
+	return m_optgroups;
 }
 
 wxButton* get_wiping_dialog_button()
