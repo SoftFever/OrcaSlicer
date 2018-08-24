@@ -373,11 +373,7 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
 {
-#if ENABLE_GIZMOS_3D
-    ::glEnable(GL_DEPTH_TEST);
-#else
     ::glDisable(GL_DEPTH_TEST);
-#endif // ENABLE_GIZMOS_3D
 
     ::glPushMatrix();
     transform_to_local();
@@ -926,7 +922,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {

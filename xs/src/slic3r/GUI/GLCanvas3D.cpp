@@ -2352,13 +2352,14 @@ void GLCanvas3D::render()
     float theta = m_camera.get_theta();
     bool is_custom_bed = m_bed.is_custom();
 
+    // picking pass
     _picking_pass();
-    _render_background();
 
+    // draw scene
+    _render_background();
     _render_current_gizmo();
 
-    // untextured bed needs to be rendered before objects
-    if (is_custom_bed)
+    if (is_custom_bed) // untextured bed needs to be rendered before objects
     {
         _render_bed(theta);
         // disable depth testing so that axes are not covered by ground
@@ -2366,13 +2367,15 @@ void GLCanvas3D::render()
     }
     _render_objects();
 
-    // textured bed needs to be rendered after objects
-    if (!is_custom_bed)
+    if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
         _render_axes(true);
         _render_bed(theta);
     }
+
     _render_cutting_plane();
+
+    // draw overlays
     _render_gizmos_overlay();
     _render_warning_texture();
     _render_legend_texture();
@@ -3819,8 +3822,8 @@ void GLCanvas3D::_picking_pass() const
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
         _render_volumes(true);
+        m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
 
         if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
