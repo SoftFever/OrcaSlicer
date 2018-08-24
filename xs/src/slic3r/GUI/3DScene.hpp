@@ -333,7 +333,7 @@ public:
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
-    Transform3d         world_matrix() const;
+    Transform3f         world_matrix() const;
     BoundingBoxf3       transformed_bounding_box() const;
     BoundingBoxf3       transformed_convex_hull_bounding_box() const;
 

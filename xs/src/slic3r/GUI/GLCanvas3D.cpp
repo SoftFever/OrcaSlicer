@@ -3625,7 +3625,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
             bb.merge(volume->bounding_box);
         }
 
-        bb = bb.transformed(selected_volumes[0]->world_matrix());
+        bb = bb.transformed(selected_volumes[0]->world_matrix().cast<double>());
     }
     else
     {

@@ -293,12 +293,12 @@ void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
     m_convex_hull = &convex_hull;
 }
 
-Transform3d GLVolume::world_matrix() const
+Transform3f GLVolume::world_matrix() const
 {
-    Transform3d matrix = Transform3d::Identity();
-    matrix.translate(m_origin);
-    matrix.rotate(Eigen::AngleAxisd((double)m_angle_z, Vec3d::UnitZ()));
-    matrix.scale((double)m_scale_factor);
+    Transform3f matrix = Transform3f::Identity();
+    matrix.translate(Vec3f((float)m_origin(0), (float)m_origin(1), (float)m_origin(2)));
+    matrix.rotate(Eigen::AngleAxisf(m_angle_z, Vec3f::UnitZ()));
+    matrix.scale(m_scale_factor);
     return matrix;
 }
 
@@ -306,7 +306,7 @@ BoundingBoxf3 GLVolume::transformed_bounding_box() const
 {
     if (m_transformed_bounding_box_dirty)
     {
-        m_transformed_bounding_box = bounding_box.transformed(world_matrix());
+        m_transformed_bounding_box = bounding_box.transformed(world_matrix().cast<double>());
         m_transformed_bounding_box_dirty = false;
     }
 
@@ -318,9 +318,9 @@ BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box() const
     if (m_transformed_convex_hull_bounding_box_dirty)
     {
         if ((m_convex_hull != nullptr) && (m_convex_hull->stl.stats.number_of_facets > 0))
-            m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix());
+            m_transformed_convex_hull_bounding_box = m_convex_hull->transformed_bounding_box(world_matrix().cast<double>());
         else
-            m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix());
+            m_transformed_convex_hull_bounding_box = bounding_box.transformed(world_matrix().cast<double>());
 
         m_transformed_convex_hull_bounding_box_dirty = false;
     }
@@ -818,10 +818,7 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-//############################################################################################################################################
-    BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), config->opt_float("max_print_height")));
-//    BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), unscale<double>(config->opt_float("max_print_height"))));
-//############################################################################################################################################
+    BoundingBoxf3 print_volume(Vec3d(unscale<double>(bed_box_2D.min(0)), unscale<double>(bed_box_2D.min(1)), 0.0), Vec3d(unscale<double>(bed_box_2D.max(0)), unscale<double>(bed_box_2D.max(1)), config->opt_float("max_print_height")));
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
 
