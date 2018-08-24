@@ -1131,12 +1131,12 @@ GLCanvas3D::Gizmos::~Gizmos()
     _reset();
 }
 
-bool GLCanvas3D::Gizmos::init()
+bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
 #if ENABLE_GIZMOS_3D
-    GLGizmoBase* gizmo = new GLGizmoScale3D;
+    GLGizmoBase* gizmo = new GLGizmoScale3D(parent);
 #else
-    GLGizmoBase* gizmo = new GLGizmoScale;
+    GLGizmoBase* gizmo = new GLGizmoScale(parent);
 #endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
         return false;
@@ -1147,9 +1147,9 @@ bool GLCanvas3D::Gizmos::init()
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
 #if ENABLE_GIZMOS_3D
-    gizmo = new GLGizmoRotate3D;
+    gizmo = new GLGizmoRotate3D(parent);
 #else
-    gizmo = new GLGizmoRotate(GLGizmoRotate::Z);
+    gizmo = new GLGizmoRotate(parent, GLGizmoRotate::Z);
 #endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
     {
@@ -1938,7 +1938,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!m_volumes.empty())
         m_volumes.finalize_geometry(m_use_VBOs);
 
-    if (m_gizmos.is_enabled() && !m_gizmos.init())
+    if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
         return false;
 
     if (!_init_toolbar())

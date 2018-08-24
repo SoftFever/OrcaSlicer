@@ -352,7 +352,7 @@ public:
         Gizmos();
         ~Gizmos();
 
-        bool init();
+        bool init(GLCanvas3D& parent);
 
         bool is_enabled() const;
         void set_enabled(bool enable);

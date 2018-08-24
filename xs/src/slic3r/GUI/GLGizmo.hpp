@@ -16,6 +16,8 @@ class Linef3;
 
 namespace GUI {
 
+class GLCanvas3D;
+
 class GLGizmoBase
 {
 protected:
@@ -61,6 +63,8 @@ public:
     };
 
 protected:
+    GLCanvas3D& m_parent;
+
     int m_group_id;
     EState m_state;
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
@@ -73,7 +77,7 @@ protected:
     bool m_is_container;
 
 public:
-    GLGizmoBase();
+    explicit GLGizmoBase(GLCanvas3D& parent);
     virtual ~GLGizmoBase() {}
 
     bool init() { return on_init(); }
@@ -114,6 +118,9 @@ protected:
     float picking_color_component(unsigned int id) const;
     void render_grabbers() const;
     void render_grabbers_for_picking() const;
+
+    void set_tooltip(const std::string& tooltip) const;
+    std::string format(float value, unsigned int decimals) const;
 };
 
 class GLGizmoRotate : public GLGizmoBase
@@ -146,7 +153,7 @@ private:
     mutable bool m_keep_initial_values;
 
 public:
-    explicit GLGizmoRotate(Axis axis);
+    GLGizmoRotate(GLCanvas3D& parent, Axis axis);
 
     float get_angle() const { return m_angle; }
     void set_angle(float angle);
@@ -179,7 +186,7 @@ class GLGizmoRotate3D : public GLGizmoBase
     GLGizmoRotate m_z;
 
 public:
-    GLGizmoRotate3D();
+    explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
     float get_angle_x() const { return m_x.get_angle(); }
     void set_angle_x(float angle) { m_x.set_angle(angle); }
@@ -237,7 +244,7 @@ class GLGizmoScale : public GLGizmoBase
     Vec2d m_starting_drag_position;
 
 public:
-    GLGizmoScale();
+    explicit GLGizmoScale(GLCanvas3D& parent);
 
     float get_scale() const { return m_scale; }
     void set_scale(float scale) { m_starting_scale = scale; }
@@ -268,7 +275,7 @@ class GLGizmoScale3D : public GLGizmoBase
     Vec3d m_starting_center;
 
 public:
-    GLGizmoScale3D();
+    explicit GLGizmoScale3D(GLCanvas3D& parent);
 
     float get_scale_x() const { return m_scale_x; }
     void set_scale_x(float scale) { m_starting_scale_x = scale; }
