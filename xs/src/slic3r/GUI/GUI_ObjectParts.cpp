@@ -101,7 +101,8 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
 {
 	auto options = get_options(is_part);
 
-    auto extruders_cnt = get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+                         get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
 	DynamicPrintConfig config;
 	for (auto& option : options)
@@ -855,7 +856,8 @@ void update_settings_list()
 		if (opt_keys.size() == 1 && opt_keys[0] == "extruder")
 			return;
 
-        auto extruders_cnt = get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+        auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+                             get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
 		for (auto& opt_key : opt_keys) {
 			auto category = (*m_config)->def()->get(opt_key)->category;
@@ -1625,8 +1627,11 @@ void on_drop(wxDataViewEvent &event)
     g_prevent_list_events = false;
 }
 
-void update_objects_list_extruder_column(const int extruders_count)
+void update_objects_list_extruder_column(int extruders_count)
 {
+    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+        extruders_count = 1;
+
     // delete old 3rd column
     m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumn(3));
     // insert new created 3rd column

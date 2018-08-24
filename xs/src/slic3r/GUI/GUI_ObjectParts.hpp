@@ -119,7 +119,7 @@ void on_drop_possible(wxDataViewEvent &event);
 void on_drop(wxDataViewEvent &event);
 
 // update extruder column for objects_ctrl according to extruders count
-void update_objects_list_extruder_column(const int extruders_count);
+void update_objects_list_extruder_column(int extruders_count);
 
 } //namespace GUI
 } //namespace Slic3r 

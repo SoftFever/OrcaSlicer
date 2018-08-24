@@ -1111,8 +1111,10 @@ void show_buttons(bool show)
 		TabPrinter *tab = dynamic_cast<TabPrinter*>(g_wxTabPanel->GetPage(i));
 		if (!tab)
 			continue;
-		g_btn_print->Show(show && !tab->m_config->opt_string("serial_port").empty());
-		g_btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
+        if (g_PresetBundle->printers.get_selected_preset().printer_technology() == ptFFF) {
+            g_btn_print->Show(show && !tab->m_config->opt_string("serial_port").empty());
+            g_btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
+        }
 		break;
 	}
 }
