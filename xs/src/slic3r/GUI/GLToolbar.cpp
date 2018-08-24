@@ -1,4 +1,4 @@
-#include "../../libslic3r/point.hpp"
+#include "../../libslic3r/Point.hpp"
 #include "GLToolbar.hpp"
 
 #include "../../libslic3r/libslic3r.h"
