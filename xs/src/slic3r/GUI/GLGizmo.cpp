@@ -680,6 +680,12 @@ void GLGizmoFlatten::update_planes()
             }
         }
         m_planes.back().normal = Pointf3(normal_ptr->x, normal_ptr->y, normal_ptr->z);
+
+        // if this is a just a very small triangle, remove it to speed up further calculations (it would be rejected anyway):
+        if (m_planes.back().vertices.size() == 3 &&
+             ( m_planes.back().vertices[0].distance_to(m_planes.back().vertices[1]) < 1.f
+            || m_planes.back().vertices[0].distance_to(m_planes.back().vertices[2]) < 1.f))
+            m_planes.pop_back();
     }
 
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
