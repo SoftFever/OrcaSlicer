@@ -502,6 +502,7 @@ enum SelectedSlider {
     ssHigher
 };
 enum TicksAction{
+    taOnIcon,
     taAdd,
     taDel
 };
@@ -529,9 +530,9 @@ public:
     }
     int GetActiveValue() const;
     wxSize DoGetBestSize() const override;
-    void SetLowerValue(int lower_val);
-    void SetHigherValue(int higher_val);
-    void SetMaxValue(int max_value);
+    void SetLowerValue(const int lower_val);
+    void SetHigherValue(const int higher_val);
+    void SetMaxValue(const int max_value);
     void SetKoefForLabels(const double koef) {
         m_label_koef = koef;
     }
@@ -543,11 +544,13 @@ public:
     void OnLeftDown(wxMouseEvent& event);
     void OnMotion(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
-    void OnEnterWin(wxMouseEvent& event);
-    void OnLeaveWin(wxMouseEvent& event);
+    void OnEnterWin(wxMouseEvent& event){ enter_window(event, true); }
+    void OnLeaveWin(wxMouseEvent& event){ enter_window(event, false); }
     void OnWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent &event);
+    void OnKeyUp(wxKeyEvent &event);
     void OnRightDown(wxMouseEvent& event);
+    void OnRightUp(wxMouseEvent& event);
 
 protected:
  
@@ -556,7 +559,9 @@ protected:
     void    draw_action_icon(wxDC& dc, const wxPoint pt_beg, const wxPoint pt_end);
     void    draw_scroll_line(wxDC& dc, const int lower_pos, const int higher_pos);
     void    draw_thumb(wxDC& dc, const wxCoord& pos_coord, const SelectedSlider& selection);
+    void    draw_thumbs(wxDC& dc, const wxCoord& lower_pos, const wxCoord& higher_pos);
     void    draw_ticks(wxDC& dc);
+    void    draw_one_layer_icon(wxDC& dc);
     void    draw_thumb_item(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection);
     void    draw_info_line_with_icon(wxDC& dc, const wxPoint& pos, SelectedSlider selection);
     void    draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const;
@@ -567,6 +572,7 @@ protected:
     void    correct_higher_value();
     void    move_current_thumb(const bool condition);
     void    action_tick(const TicksAction action);
+    void    enter_window(wxMouseEvent& event, const bool enter);
 
     bool    is_point_in_rect(const wxPoint& pt, const wxRect& rect);
     bool    is_horizontal() const { return m_style == wxSL_HORIZONTAL; }
@@ -574,30 +580,41 @@ protected:
     double      get_scroll_step();
     wxString    get_label(const SelectedSlider& selection) const;
     void        get_lower_and_higher_position(int& lower_pos, int& higher_pos);
-    int         position_to_value(wxDC& dc, const wxCoord x, const wxCoord y);
+    int         get_value_from_position(const wxCoord x, const wxCoord y);
     wxCoord     get_position_from_value(const int value);
+    wxSize      get_size();
+    void        get_size(int *w, int *h);
 
 private:
     int         m_min_value;
     int         m_max_value;
     int         m_lower_value;
     int         m_higher_value;
-    wxBitmap    m_thumb_higher;
-    wxBitmap    m_thumb_lower;
-    wxBitmap    m_add_tick_on;
-    wxBitmap    m_add_tick_off;
-    wxBitmap    m_del_tick_on;
-    wxBitmap    m_del_tick_off;
+    wxBitmap    m_bmp_thumb_higher;
+    wxBitmap    m_bmp_thumb_lower;
+    wxBitmap    m_bmp_add_tick_on;
+    wxBitmap    m_bmp_add_tick_off;
+    wxBitmap    m_bmp_del_tick_on;
+    wxBitmap    m_bmp_del_tick_off;
+    wxBitmap    m_bmp_one_layer_lock_on;
+    wxBitmap    m_bmp_one_layer_lock_off;
+    wxBitmap    m_bmp_one_layer_unlock_on;
+    wxBitmap    m_bmp_one_layer_unlock_off;
     SelectedSlider  m_selection;
     bool        m_is_left_down = false;
+    bool        m_is_right_down = false;
+    bool        m_is_one_layer = false;
     bool        m_is_focused = false;
     bool        m_is_action_icon_focesed = false;
+    bool        m_is_one_layer_icon_focesed = false;
 
     wxRect      m_rect_lower_thumb;
     wxRect      m_rect_higher_thumb;
     wxRect      m_rect_tick_action;
+    wxRect      m_rect_one_layer_icon;
     wxSize      m_thumb_size;
     int         m_tick_icon_dim;
+    int         m_lock_icon_dim = 16;
     long        m_style;
     float       m_label_koef = 1.0;
 
