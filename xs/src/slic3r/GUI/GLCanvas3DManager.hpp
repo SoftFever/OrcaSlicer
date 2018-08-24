@@ -167,9 +167,6 @@ public:
     void register_action_arrange_callback(wxGLCanvas* canvas, void* callback);
     void register_action_more_callback(wxGLCanvas* canvas, void* callback);
     void register_action_fewer_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_ccw45_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_cw45_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_scale_callback(wxGLCanvas* canvas, void* callback);
     void register_action_split_callback(wxGLCanvas* canvas, void* callback);
     void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
     void register_action_settings_callback(wxGLCanvas* canvas, void* callback);

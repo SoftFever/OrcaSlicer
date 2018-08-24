@@ -693,27 +693,6 @@ register_action_fewer_callback(canvas, callback)
         _3DScene::register_action_fewer_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 void
-register_action_ccw45_callback(canvas, callback)
-        SV *canvas;
-        SV *callback;
-    CODE:
-        _3DScene::register_action_ccw45_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-
-void
-register_action_cw45_callback(canvas, callback)
-        SV *canvas;
-        SV *callback;
-    CODE:
-        _3DScene::register_action_cw45_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-
-void
-register_action_scale_callback(canvas, callback)
-        SV *canvas;
-        SV *callback;
-    CODE:
-        _3DScene::register_action_scale_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
-
-void
 register_action_split_callback(canvas, callback)
         SV *canvas;
         SV *callback;

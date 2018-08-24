@@ -185,18 +185,6 @@ sub new {
         $self->decrease;
     };
 
-    my $on_action_ccw45 = sub {
-        $self->rotate(45, Z, 'relative');
-    };
-
-    my $on_action_cw45 = sub {
-        $self->rotate(-45, Z, 'relative');
-    };
-
-    my $on_action_scale = sub {
-        $self->changescale(undef);
-    };
-
     my $on_action_split = sub {
         $self->split_object;
     };
@@ -239,9 +227,6 @@ sub new {
         Slic3r::GUI::_3DScene::register_action_arrange_callback($self->{canvas3D}, $on_action_arrange);
         Slic3r::GUI::_3DScene::register_action_more_callback($self->{canvas3D}, $on_action_more);
         Slic3r::GUI::_3DScene::register_action_fewer_callback($self->{canvas3D}, $on_action_fewer);
-        Slic3r::GUI::_3DScene::register_action_ccw45_callback($self->{canvas3D}, $on_action_ccw45);
-        Slic3r::GUI::_3DScene::register_action_cw45_callback($self->{canvas3D}, $on_action_cw45);
-        Slic3r::GUI::_3DScene::register_action_scale_callback($self->{canvas3D}, $on_action_scale);
         Slic3r::GUI::_3DScene::register_action_split_callback($self->{canvas3D}, $on_action_split);
         Slic3r::GUI::_3DScene::register_action_cut_callback($self->{canvas3D}, $on_action_cut);
         Slic3r::GUI::_3DScene::register_action_settings_callback($self->{canvas3D}, $on_action_settings);
@@ -403,24 +388,11 @@ sub new {
     $self->{btn_send_gcode}->Hide;
     
     my %icons = qw(
-        add             brick_add.png
-        remove          brick_delete.png
-        reset           cross.png
-        arrange         bricks.png
         export_gcode    cog_go.png
         print           arrow_up.png
         send_gcode      arrow_up.png
         reslice         reslice.png
         export_stl      brick_go.png
-        
-        increase        add.png
-        decrease        delete.png
-        rotate45cw      arrow_rotate_clockwise.png
-        rotate45ccw     arrow_rotate_anticlockwise.png
-        changescale     arrow_out.png
-        split           shape_ungroup.png
-        cut             package.png
-        settings        cog.png
     );
     for (grep $self->{"btn_$_"}, keys %icons) {
         $self->{"btn_$_"}->SetBitmap(Wx::Bitmap->new(Slic3r::var($icons{$_}), wxBITMAP_TYPE_PNG));
@@ -2248,8 +2220,8 @@ sub selection_changed {
 #            $self->{"btn_decrease"}->Disable;
 #        }
 #    }
-    
-    for my $toolbar_item (qw(delete more fewer ccw45 cw45 scale split cut settings)) {
+
+    for my $toolbar_item (qw(delete more fewer split cut settings)) {
         Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, $toolbar_item, $have_sel);
     }
     

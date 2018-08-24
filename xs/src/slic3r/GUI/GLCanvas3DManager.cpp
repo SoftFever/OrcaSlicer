@@ -737,27 +737,6 @@ void GLCanvas3DManager::register_action_fewer_callback(wxGLCanvas* canvas, void*
         it->second->register_action_fewer_callback(callback);
 }
 
-void GLCanvas3DManager::register_action_ccw45_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_ccw45_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_cw45_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_cw45_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_scale_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_scale_callback(callback);
-}
-
 void GLCanvas3DManager::register_action_split_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
