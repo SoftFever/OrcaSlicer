@@ -1,5 +1,6 @@
 #include "GLCanvas3D.hpp"
 
+#include "../../admesh/stl.h"
 #include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
@@ -1154,6 +1155,18 @@ bool GLCanvas3D::Gizmos::init()
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
+    gizmo = new GLGizmoFlatten;
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        _reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
+
+
     return true;
 }
 
@@ -1387,22 +1400,46 @@ void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
         reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle_z(angle_z);
 }
 
-void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const
+Pointf3 GLCanvas3D::Gizmos::get_flattening_normal() const
+{
+    if (!m_enabled)
+        return Pointf3(0.f, 0.f, 0.f);
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Pointf3(0.f, 0.f, 0.f);
+}
+
+void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
+}
+
+void GLCanvas3D::Gizmos::render(const GLCanvas3D& canvas, const BoundingBoxf3& box, RenderOrder render_order) const
 {
     if (!m_enabled)
         return;
 
     ::glDisable(GL_DEPTH_TEST);
 
-    if (box.radius() > 0.0)
-        _render_current_gizmo(box);
+    if ((render_order == BeforeBed && dynamic_cast<GLGizmoFlatten*>(_get_current()))
+     || (render_order == AfterBed && !dynamic_cast<GLGizmoFlatten*>(_get_current()))) {
+        if (box.radius() > 0.0)
+            _render_current_gizmo(box);
+     }
 
-    ::glPushMatrix();
-    ::glLoadIdentity();
+    if  (render_order == AfterBed) {
+        ::glPushMatrix();
+        ::glLoadIdentity();
 
-    _render_overlay(canvas);
+        _render_overlay(canvas);
 
-    ::glPopMatrix();
+        ::glPopMatrix();
+    }
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const
@@ -2170,6 +2207,7 @@ void GLCanvas3D::update_gizmos_data()
             {
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
+                m_gizmos.set_flattening_data(model_object);
             }
         }
     }
@@ -2177,6 +2215,7 @@ void GLCanvas3D::update_gizmos_data()
     {
         m_gizmos.set_scale(1.0f);
         m_gizmos.set_angle_z(0.0f);
+        m_gizmos.set_flattening_data(nullptr);
     }
 }
 
@@ -2215,6 +2254,7 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
+    _render_gizmo(Gizmos::RenderOrder::BeforeBed);
     // textured bed needs to be rendered after objects
     if (!is_custom_bed)
     {
@@ -2224,7 +2264,7 @@ void GLCanvas3D::render()
     _render_cutting_plane();
     _render_warning_texture();
     _render_legend_texture();
-    _render_gizmo();
+    _render_gizmo(Gizmos::RenderOrder::AfterBed);
     _render_layer_editing_overlay();
 
     m_canvas->SwapBuffers();
@@ -2760,6 +2800,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_gizmos.start_dragging();
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
             m_dirty = true;
+
+            if (m_gizmos.get_current_type() == Gizmos::Flatten) {
+                // Rotate the object so the normal points downward:
+                Pointf3 normal = m_gizmos.get_flattening_normal();
+                if (normal.x != 0.f || normal.y != 0.f || normal.z != 0.f) {
+                    Pointf3 axis = normal.z > 0.999f ? Pointf3(1, 0, 0) : cross(normal, Pointf3(0.f, 0.f, -1.f));
+                    float angle = -acos(-normal.z);
+                    m_on_gizmo_rotate_callback.call(angle, axis.x, axis.y, axis.z);
+                }
+            }
         }
         else
         {
@@ -3017,6 +3067,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             
             _on_move(volume_idxs);
+
+            // force re-selection of the wipe tower, if needed
+            if ((volume_idxs.size() == 1) && m_volumes.volumes[volume_idxs[0]]->is_wipe_tower)
+                select_volume(volume_idxs[0]);
         }
         else if (!m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
@@ -3243,7 +3297,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
     {
         for (const GLVolume* volume : selected_volumes)
         {
-            bb.merge(volume->transformed_bounding_box());
+            bb.merge(volume->transformed_convex_hull_bounding_box());
         }
     }
 
@@ -3708,9 +3762,9 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
         ::glDisable(GL_LIGHTING);
 }
 
-void GLCanvas3D::_render_gizmo() const
+void GLCanvas3D::_render_gizmo(Gizmos::RenderOrder render_order) const
 {
-    m_gizmos.render(*this, _selected_volumes_bounding_box());
+    m_gizmos.render(*this, _selected_volumes_bounding_box(), render_order);
 }
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const

@@ -108,8 +108,10 @@ inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, co
     return true;
 }
 
+Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);
+
 void chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near);
 void chained_path(const Points &points, std::vector<Points::size_type> &retval);
 template<class T> void chained_path_items(Points &points, T &items, T &retval);

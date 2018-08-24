@@ -40,6 +40,7 @@ public:
     void scale(const Pointf3 &versor);
     void translate(float x, float y, float z);
     void rotate(float angle, const Axis &axis);
+    void rotate(float angle, Pointf3 axis);
     void rotate_x(float angle);
     void rotate_y(float angle);
     void rotate_z(float angle);
@@ -53,8 +54,13 @@ public:
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
+    const float* first_vertex() const;
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
+    // Returns the bbox of this TriangleMesh transformed by the given matrix
+    BoundingBoxf3 transformed_bounding_box(const std::vector<float>& matrix) const;
+    // Returns the convex hull of this TriangleMesh
+    TriangleMesh convex_hull_3d() const;
     void reset_repair_stats();
     bool needed_repair() const;
     size_t facets_count() const;
@@ -66,7 +72,7 @@ public:
     // Count disconnected triangle patches.
     size_t number_of_patches() const;
 
-    stl_file stl;
+    mutable stl_file stl;
     bool repaired;
     
 private:

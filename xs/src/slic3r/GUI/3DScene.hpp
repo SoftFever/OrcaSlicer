@@ -260,12 +260,16 @@ private:
     float                 m_angle_z;
     // Scale factor of the volume to be rendered.
     float                 m_scale_factor;
-    // World matrix of the volume to be rendered.
-    std::vector<float>    m_world_mat;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
-    // Whether or not is needed to recalculate the world matrix.
-    mutable bool          m_dirty;
+    // Whether or not is needed to recalculate the transformed bounding box.
+    mutable bool          m_transformed_bounding_box_dirty;
+    // Pointer to convex hull of the original mesh, if any.
+    const TriangleMesh*   m_convex_hull;
+    // Bounding box of this volume, in unscaled coordinates.
+    mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
+    // Whether or not is needed to recalculate the transformed convex hull bounding box.
+    mutable bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
 
@@ -323,13 +327,15 @@ public:
     void set_origin(const Pointf3& origin);
     void set_angle_z(float angle_z);
     void set_scale_factor(float scale_factor);
+    void set_convex_hull(const TriangleMesh& convex_hull);
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
-    const std::vector<float>& world_matrix() const;
+    std::vector<float> world_matrix() const;
     BoundingBoxf3       transformed_bounding_box() const;
+    BoundingBoxf3       transformed_convex_hull_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
     bool                indexed() const { return this->indexed_vertex_array.indexed(); }
