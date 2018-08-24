@@ -520,20 +520,21 @@ sub new {
     {
         my $presets;
         {
-            $presets = $self->{presets_sizer} = Wx::FlexGridSizer->new(3, 2, 1, 2);
+            $presets = $self->{presets_sizer} = Wx::FlexGridSizer->new(4, 2, 1, 2);
             $presets->AddGrowableCol(1, 1);
             $presets->SetFlexibleDirection(wxHORIZONTAL);
             my %group_labels = (
                 print       => L('Print settings'),
                 filament    => L('Filament'),
+                sla_material=> L('SLA material'),
                 printer     => L('Printer'),
             );
-            # UI Combo boxes for a print, multiple filaments, and a printer.
+            # UI Combo boxes for a print, multiple filaments, SLA material and a printer.
             # Initially a single filament combo box is created, but the number of combo boxes for the filament selection may increase,
             # once a printer preset with multiple extruders is activated.
             # $self->{preset_choosers}{$group}[$idx]
             $self->{preset_choosers} = {};
-            for my $group (qw(print filament printer)) {
+            for my $group (qw(print filament sla_material printer)) {
                 my $text = Wx::StaticText->new($self->{right_panel}, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
@@ -554,7 +555,7 @@ sub new {
             $presets->Layout;
         }
 
-        my $frequently_changed_parameters_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        my $frequently_changed_parameters_sizer = $self->{frequently_changed_parameters_sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
         Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
 
         my $object_info_sizer;
@@ -726,16 +727,17 @@ sub update_ui_from_settings
     }
 }
 
-# Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
+# Update preset combo boxes (Print settings, Filament, Material, Printer) from their respective tabs.
 # Called by 
 #       Slic3r::GUI::Tab::Print::_on_presets_changed
 #       Slic3r::GUI::Tab::Filament::_on_presets_changed
+#       Slic3r::GUI::Tab::Material::_on_presets_changed
 #       Slic3r::GUI::Tab::Printer::_on_presets_changed
 # when the presets are loaded or the user selects another preset.
 # For Print settings and Printer, synchronize the selection index with their tabs.
 # For Filament, synchronize the selection index for a single extruder printer only, otherwise keep the selection.
 sub update_presets {
-    # $group: one of qw(print filament printer)
+    # $group: one of qw(print filament sla_material printer)
     # $presets: PresetCollection
     my ($self, $group, $presets) = @_;
     my @choosers = @{$self->{preset_choosers}{$group}};
@@ -751,6 +753,8 @@ sub update_presets {
         }
     } elsif ($group eq 'print') {
         wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);
+    } elsif ($group eq 'sla_material') {
+        wxTheApp->{preset_bundle}->sla_material->update_platter_ui($choosers[0]);
     } elsif ($group eq 'printer') {
         # Update the print choosers to only contain the compatible presets, update the dirty flags.
         wxTheApp->{preset_bundle}->print->update_platter_ui($self->{preset_choosers}{print}->[0]);
@@ -1929,6 +1933,24 @@ sub update {
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
     $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+}
+
+# When a printer technology is changed, the UI needs to be updated to show/hide needed preset combo boxes.
+sub show_preset_comboboxes{
+    my ($self, $showSLA) = @_; #if showSLA is oposite value to "ptFFF"
+
+    my $choices = $self->{preset_choosers}{filament};    
+    my $print_filament_ctrls_cnt = 2 + 2 * ($#$choices+1);
+
+    foreach (0..$print_filament_ctrls_cnt-1){
+        $self->{presets_sizer}->Show($_, !$showSLA);
+    }
+    $self->{presets_sizer}->Show($print_filament_ctrls_cnt  , $showSLA);
+    $self->{presets_sizer}->Show($print_filament_ctrls_cnt+1, $showSLA);
+
+    $self->{frequently_changed_parameters_sizer}->Show(0,!$showSLA);
+
+    $self->Layout;
 }
 
 # When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.

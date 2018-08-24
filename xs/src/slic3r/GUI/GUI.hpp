@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "Config.hpp"
+#include "PrintConfig.hpp"
 #include "../../libslic3r/Utils.hpp"
 
 #include <wx/intl.h>
@@ -80,6 +80,13 @@ inline t_file_wild_card& get_file_wild_card() {
 	return FILE_WILDCARDS;
 }
 
+struct PresetTab {
+    std::string       name;
+    Tab*              panel;
+    PrinterTechnology technology;
+};
+
+
 void disable_screensaver();
 void enable_screensaver();
 bool debugged();
@@ -97,6 +104,7 @@ void set_3DScene(_3DScene *scene);
 AppConfig*	get_app_config();
 wxApp*		get_app();
 PresetBundle* get_preset_bundle();
+wxNotebook* get_tab_panel();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
@@ -107,6 +115,9 @@ void set_label_clr_sys(const wxColour& clr);
 
 const wxFont& small_font();
 const wxFont& bold_font();
+
+Tab*         get_tab(const std::string& name);
+const std::vector<PresetTab>& get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -130,7 +141,7 @@ void create_preset_tabs(bool no_controller, int event_value_change, int event_pr
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel);
+void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 

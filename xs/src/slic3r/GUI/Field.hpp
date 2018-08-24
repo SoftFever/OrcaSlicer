@@ -38,6 +38,7 @@ wxString double_to_string(double const value);
 
 class MyButton : public wxButton
 {
+    bool hidden = false; // never show button if it's hidden ones
 public:
 	MyButton() {}
 	MyButton(wxWindow* parent, wxWindowID id, const wxString& label = wxEmptyString,
@@ -52,6 +53,12 @@ public:
 	// overridden from wxWindow base class
 	virtual bool
 		AcceptsFocusFromKeyboard() const { return false; }
+
+    virtual bool Show(bool show = true) override {
+        if (!show)
+            hidden = true;
+        return wxButton::Show(!hidden);
+	}
 };
 
 class Field {

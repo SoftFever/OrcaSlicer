@@ -274,7 +274,7 @@ void CheckBox::BUILD() {
 
 	bool check_value =	m_opt.type == coBool ? 
 						m_opt.default_value->getBool() : m_opt.type == coBools ? 
-						static_cast<ConfigOptionBools*>(m_opt.default_value)->get_at(m_opt_idx) : 
+						static_cast<const ConfigOptionBools*>(m_opt.default_value)->get_at(m_opt_idx) : 
     					false;
 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size); 
@@ -599,7 +599,7 @@ void ColourPicker::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString clr(static_cast<ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
+	wxString clr(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
 		
 	// 	// recast as a wxWindow to fit the calling convention
@@ -631,7 +631,7 @@ void PointCtrl::BUILD()
 	// 
 	wxSize field_size(40, -1);
 
-	auto default_pt = static_cast<ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
+	auto default_pt = static_cast<const ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
 	double val = default_pt(0);
 	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 	val = default_pt(1);
@@ -695,7 +695,7 @@ void StaticText::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString legend(static_cast<ConfigOptionString*>(m_opt.default_value)->value);
+	wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
 	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
 	temp->SetFont(bold_font());
 

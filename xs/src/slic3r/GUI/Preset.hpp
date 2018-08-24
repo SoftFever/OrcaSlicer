@@ -52,6 +52,7 @@ public:
         PrinterModel() {}
         std::string                 id;
         std::string                 name;
+        PrinterTechnology           technology;
         std::vector<PrinterVariant> variants;
         PrinterVariant*       variant(const std::string &name) {
             for (auto &v : this->variants)
@@ -83,6 +84,7 @@ public:
         TYPE_INVALID,
         TYPE_PRINT,
         TYPE_FILAMENT,
+        TYPE_SLA_MATERIAL,
         TYPE_PRINTER,
     };
 
@@ -123,8 +125,7 @@ public:
     DynamicPrintConfig  config;
 
     // Load this profile for the following keys only.
-    // Throws std::runtime_error in case the file cannot be read.
-    DynamicPrintConfig& load(const std::vector<std::string> &keys);
+    DynamicPrintConfig& load(const std::vector<std::string> &keys, const StaticPrintConfig &defaults);
 
     void                save();
 
@@ -149,6 +150,10 @@ public:
     std::string&        compatible_printers_condition() { return Preset::compatible_printers_condition(this->config); }
     const std::string&  compatible_printers_condition() const { return Preset::compatible_printers_condition(const_cast<Preset*>(this)->config); }
 
+    static PrinterTechnology& printer_technology(DynamicPrintConfig &cfg) { return cfg.option<ConfigOptionEnum<PrinterTechnology>>("printer_technology", true)->value; }
+    PrinterTechnology&        printer_technology() { return Preset::printer_technology(this->config); }
+    const PrinterTechnology&  printer_technology() const { return Preset::printer_technology(const_cast<Preset*>(this)->config); }
+
     // Mark this preset as compatible if it is compatible with active_printer.
     bool                update_compatible_with_printer(const Preset &active_printer, const DynamicPrintConfig *extra_config);
 
@@ -167,6 +172,10 @@ public:
     static const std::vector<std::string>&  printer_options();
     // Nozzle options of the printer options.
     static const std::vector<std::string>&  nozzle_options();
+
+    static const std::vector<std::string>&  sla_printer_options();
+    static const std::vector<std::string>&  sla_material_options();
+
 	static void update_suffix_modified();
 
 protected:
@@ -184,21 +193,24 @@ class PresetCollection
 {
 public:
     // Initialize the PresetCollection with the "- default -" preset.
-    PresetCollection(Preset::Type type, const std::vector<std::string> &keys);
+    PresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name = "- default -");
     ~PresetCollection();
 
     typedef std::deque<Preset>::iterator Iterator;
     typedef std::deque<Preset>::const_iterator ConstIterator;
-    Iterator begin() { return m_presets.begin() + 1; }
-    ConstIterator begin() const { return m_presets.begin() + 1; }
-    Iterator end() { return m_presets.end(); }
-    ConstIterator end() const { return m_presets.end(); }
+    Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
+    ConstIterator   begin() const { return m_presets.begin() + m_num_default_presets; }
+    Iterator        end() { return m_presets.end(); }
+    ConstIterator   end() const { return m_presets.end(); }
 
     void            reset(bool delete_files);
 
     Preset::Type    type() const { return m_type; }
     std::string     name() const;
     const std::deque<Preset>& operator()() const { return m_presets; }
+
+    // Add default preset at the start of the collection, increment the m_default_preset counter.
+    void            add_default_preset(const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &preset_name);
 
     // Load ini files of the particular type from the provided directory path.
     void            load_presets(const std::string &dir_path, const std::string &subdir);
@@ -247,6 +259,8 @@ public:
     Preset&         get_selected_preset()       { return m_presets[m_idx_selected]; }
     const Preset&   get_selected_preset() const { return m_presets[m_idx_selected]; }
     int             get_selected_idx()    const { return m_idx_selected; }
+    // Returns the name of the selected preset, or an empty string if no preset is selected.
+    std::string     get_selected_preset_name() const { return (m_idx_selected == -1) ? std::string() : this->get_selected_preset().name; }
     // For the current edited preset, return the parent preset if there is one.
     // If there is no parent preset, nullptr is returned.
     // The parent preset may be a system preset or a user preset, which will be
@@ -283,7 +297,7 @@ public:
     template<typename PreferedCondition>
     size_t          first_compatible_idx(PreferedCondition prefered_condition) const
     {
-        size_t i = m_default_suppressed ? 1 : 0;
+        size_t i = m_default_suppressed ? m_num_default_presets : 0;
         size_t n = this->m_presets.size();
         size_t i_compatible = n;
         for (; i < n; ++ i)
@@ -309,7 +323,8 @@ public:
     const Preset&   first_compatible() const    { return this->preset(this->first_compatible_idx()); }
 
     // Return number of presets including the "- default -" preset.
-    size_t          size() const                { return this->m_presets.size(); }
+    size_t          size() const                { return m_presets.size(); }
+    bool            has_defaults_only() const   { return m_presets.size() <= m_num_default_presets; }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
     template<typename PreferedCondition>
@@ -327,11 +342,11 @@ public:
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return true if they differ.
     bool                        current_is_dirty() const { return ! this->current_dirty_options().empty(); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_dirty_options(const bool is_printer_type = false) const
-        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), is_printer_type); }
+    std::vector<std::string>    current_dirty_options(const bool deep_compare = false) const
+        { return dirty_options(&this->get_edited_preset(), &this->get_selected_preset(), deep_compare); }
     // Compare the content of get_selected_preset() with get_edited_preset() configs, return the list of keys where they differ.
-    std::vector<std::string>    current_different_from_parent_options(const bool is_printer_type = false) const
-        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), is_printer_type); }
+    std::vector<std::string>    current_different_from_parent_options(const bool deep_compare = false) const
+        { return dirty_options(&this->get_edited_preset(), this->get_selected_preset_parent(), deep_compare); }
 
     // Update the choice UI from the list of presets.
     // If show_incompatible, all presets are shown, otherwise only the compatible presets are shown.
@@ -374,8 +389,16 @@ private:
     std::deque<Preset>::iterator find_preset_internal(const std::string &name)
     {
         Preset key(m_type, name);
-        auto it = std::lower_bound(m_presets.begin() + 1, m_presets.end(), key);
-        return ((it == m_presets.end() || it->name != name) && m_presets.front().name == name) ? m_presets.begin() : it;
+        auto it = std::lower_bound(m_presets.begin() + m_num_default_presets, m_presets.end(), key);
+        if (it == m_presets.end() || it->name != name) {
+            // Preset has not been not found in the sorted list of non-default presets. Try the defaults.
+            for (size_t i = 0; i < m_num_default_presets; ++ i)
+                if (m_presets[i].name == name) {
+                    it = m_presets.begin() + i;
+                    break;
+                }
+        }
+        return it;
     }
     std::deque<Preset>::const_iterator find_preset_internal(const std::string &name) const
         { return const_cast<PresetCollection*>(this)->find_preset_internal(name); }
@@ -395,7 +418,8 @@ private:
     // Selected preset.
     int                     m_idx_selected;
     // Is the "- default -" preset suppressed?
-    bool                    m_default_suppressed = true;
+    bool                    m_default_suppressed  = true;
+    size_t                  m_num_default_presets = 0;
     // Compatible & incompatible marks, to be placed at the wxBitmapComboBox items of a Platter.
     // These bitmaps are not owned by PresetCollection, but by a PresetBundle.
     const wxBitmap         *m_bitmap_compatible   = nullptr;

@@ -496,20 +496,33 @@ void open_preferences_dialog(int event_preferences)
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
 {	
 	update_label_colours_from_appconfig();
-	add_created_tab(new TabPrint	(g_wxTabPanel, no_controller));
-	add_created_tab(new TabFilament	(g_wxTabPanel, no_controller));
-	add_created_tab(new TabPrinter	(g_wxTabPanel, no_controller));
-	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
-		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
-		if (! tab)
-			continue;
-		tab->set_event_value_change(wxEventType(event_value_change));
-		tab->set_event_presets_changed(wxEventType(event_presets_changed));
-	}
+	add_created_tab(new TabPrint	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabFilament	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabSLAMaterial  (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+}
+
+std::vector<PresetTab> preset_tabs = {
+    { "print",        nullptr, ptFFF },
+    { "filament",     nullptr, ptFFF },
+    { "sla_material", nullptr, ptSLA }
+};
+const std::vector<PresetTab>& get_preset_tabs() {
+    return preset_tabs;
+}
+
+Tab* get_tab(const std::string& name)
+{
+    std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
+                                                       [name](PresetTab& tab){ return name == tab.name; });
+    return it != preset_tabs.end() ? it->panel : nullptr;
 }
 
 TabIface* get_preset_tab_iface(char *name)
 {
+    Tab* tab = get_tab(name);
+    if (tab) return new TabIface(tab);
+
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++ i) {
 		Tab *tab = dynamic_cast<Tab*>(g_wxTabPanel->GetPage(i));
 		if (! tab)
@@ -629,13 +642,28 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 	}
 }
 
-void add_created_tab(Tab* panel)
+void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed)
 {
 	panel->create_preset_tab(g_PresetBundle);
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	panel->load_current_preset();
-	g_wxTabPanel->AddPage(panel, panel->title());
+
+    panel->set_event_value_change(wxEventType(event_value_change));
+    panel->set_event_presets_changed(wxEventType(event_presets_changed));
+
+    const wxString& tab_name = panel->GetName();
+    bool add_panel = true;
+
+    auto it = std::find_if( preset_tabs.begin(), preset_tabs.end(), 
+                           [tab_name](PresetTab& tab){return tab.name == tab_name; });
+    if (it != preset_tabs.end()) {
+        it->panel = panel;
+        add_panel = it->technology == g_PresetBundle->printers.get_edited_preset().printer_technology();
+    }
+
+    if (add_panel)
+	    g_wxTabPanel->AddPage(panel, panel->title());
 }
 
 void load_current_presets()
@@ -674,6 +702,10 @@ wxApp* get_app(){
 PresetBundle* get_preset_bundle()
 {
 	return g_PresetBundle;
+}
+
+wxNotebook* get_tab_panel() {
+    return g_wxTabPanel;
 }
 
 const wxColour& get_label_clr_modified() {

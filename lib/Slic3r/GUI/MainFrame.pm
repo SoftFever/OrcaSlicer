@@ -154,6 +154,10 @@ sub _init_tabpanel {
                 my $value = $event->GetInt();
                 $self->{plater}->on_extruders_change($value);
             }
+            if ($opt_key eq 'printer_technology'){
+                my $value = $event->GetInt();# 0 ~ "ptFFF"; 1 ~ "ptSLA"
+                $self->{plater}->show_preset_comboboxes($value);
+            }
         }
         # don't save while loading for the first time
         $self->config->save($Slic3r::GUI::autosave) if $Slic3r::GUI::autosave && $self->{loaded};        
@@ -166,7 +170,7 @@ sub _init_tabpanel {
 
         my $tab = Slic3r::GUI::get_preset_tab($tab_name);
         if ($self->{plater}) {
-            # Update preset combo boxes (Print settings, Filament, Printer) from their respective tabs.
+            # Update preset combo boxes (Print settings, Filament, Material, Printer) from their respective tabs.
             my $presets = $tab->get_presets;
             if (defined $presets){
                 my $reload_dependent_tabs = $tab->get_dependent_tabs;
@@ -174,7 +178,7 @@ sub _init_tabpanel {
                 $self->{plater}->{"selected_item_$tab_name"} = $tab->get_selected_preset_item;
                 if ($tab_name eq 'printer') {
                     # Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-                    for my $tab_name_other (qw(print filament)) {
+                    for my $tab_name_other (qw(print filament sla_material)) {
                         # If the printer tells us that the print or filament preset has been switched or invalidated,
                         # refresh the print or filament tab page. Otherwise just refresh the combo box.
                         my $update_action = ($reload_dependent_tabs && (first { $_ eq $tab_name_other } (@{$reload_dependent_tabs}))) 
@@ -190,7 +194,7 @@ sub _init_tabpanel {
     });
     Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
-    for my $tab_name (qw(print filament printer)) {
+    for my $tab_name (qw(print filament sla_material printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");
     }
     
@@ -202,8 +206,14 @@ sub _init_tabpanel {
         # load initial config
         my $full_config = wxTheApp->{preset_bundle}->full_config;
         $self->{plater}->on_config_change($full_config);
+
         # Show a correct number of filament fields.
-        $self->{plater}->on_extruders_change(int(@{$full_config->nozzle_diameter}));
+        if (defined $full_config->nozzle_diameter){ # nozzle_diameter is undefined when SLA printer is selected
+            $self->{plater}->on_extruders_change(int(@{$full_config->nozzle_diameter}));
+        }
+
+        # Show correct preset comboboxes according to the printer_technology
+        $self->{plater}->show_preset_comboboxes(($full_config->printer_technology eq "FFF") ? 0 : 1);
     }
 }
 
