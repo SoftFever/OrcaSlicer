@@ -352,7 +352,7 @@ public:
         Gizmos();
         ~Gizmos();
 
-        bool init();
+        bool init(GLCanvas3D& parent);
 
         bool is_enabled() const;
         void set_enabled(bool enable);
@@ -505,9 +505,6 @@ private:
     PerlCallback m_action_arrange_callback;
     PerlCallback m_action_more_callback;
     PerlCallback m_action_fewer_callback;
-    PerlCallback m_action_ccw45_callback;
-    PerlCallback m_action_cw45_callback;
-    PerlCallback m_action_scale_callback;
     PerlCallback m_action_split_callback;
     PerlCallback m_action_cut_callback;
     PerlCallback m_action_settings_callback;
@@ -625,9 +622,6 @@ public:
     void register_action_arrange_callback(void* callback);
     void register_action_more_callback(void* callback);
     void register_action_fewer_callback(void* callback);
-    void register_action_ccw45_callback(void* callback);
-    void register_action_cw45_callback(void* callback);
-    void register_action_scale_callback(void* callback);
     void register_action_split_callback(void* callback);
     void register_action_cut_callback(void* callback);
     void register_action_settings_callback(void* callback);

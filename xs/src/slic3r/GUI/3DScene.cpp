@@ -2051,21 +2051,6 @@ void _3DScene::register_action_fewer_callback(wxGLCanvas* canvas, void* callback
     s_canvas_mgr.register_action_fewer_callback(canvas, callback);
 }
 
-void _3DScene::register_action_ccw45_callback(wxGLCanvas* canvas, void* callback)
-{
-    s_canvas_mgr.register_action_ccw45_callback(canvas, callback);
-}
-
-void _3DScene::register_action_cw45_callback(wxGLCanvas* canvas, void* callback)
-{
-    s_canvas_mgr.register_action_cw45_callback(canvas, callback);
-}
-
-void _3DScene::register_action_scale_callback(wxGLCanvas* canvas, void* callback)
-{
-    s_canvas_mgr.register_action_scale_callback(canvas, callback);
-}
-
 void _3DScene::register_action_split_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_action_split_callback(canvas, callback);

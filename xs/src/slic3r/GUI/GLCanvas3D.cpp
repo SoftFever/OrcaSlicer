@@ -1131,12 +1131,12 @@ GLCanvas3D::Gizmos::~Gizmos()
     _reset();
 }
 
-bool GLCanvas3D::Gizmos::init()
+bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
 #if ENABLE_GIZMOS_3D
-    GLGizmoBase* gizmo = new GLGizmoScale3D;
+    GLGizmoBase* gizmo = new GLGizmoScale3D(parent);
 #else
-    GLGizmoBase* gizmo = new GLGizmoScale;
+    GLGizmoBase* gizmo = new GLGizmoScale(parent);
 #endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
         return false;
@@ -1147,9 +1147,9 @@ bool GLCanvas3D::Gizmos::init()
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
 #if ENABLE_GIZMOS_3D
-    gizmo = new GLGizmoRotate3D;
+    gizmo = new GLGizmoRotate3D(parent);
 #else
-    gizmo = new GLGizmoRotate(GLGizmoRotate::Z);
+    gizmo = new GLGizmoRotate(parent, GLGizmoRotate::Z);
 #endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
     {
@@ -1938,7 +1938,7 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!m_volumes.empty())
         m_volumes.finalize_geometry(m_use_VBOs);
 
-    if (m_gizmos.is_enabled() && !m_gizmos.init())
+    if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
         return false;
 
     if (!_init_toolbar())
@@ -2720,24 +2720,6 @@ void GLCanvas3D::register_action_fewer_callback(void* callback)
         m_action_fewer_callback.register_callback(callback);
 }
 
-void GLCanvas3D::register_action_ccw45_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_ccw45_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_cw45_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_cw45_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_scale_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_scale_callback.register_callback(callback);
-}
-
 void GLCanvas3D::register_action_split_callback(void* callback)
 {
     if (callback != nullptr)
@@ -3129,6 +3111,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Dragging() && m_gizmos.is_dragging())
     {
+        m_canvas->CaptureMouse();
+
         m_mouse.dragging = true;
         m_gizmos.update(mouse_ray(pos));
 
@@ -3307,6 +3291,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.dragging = false;
         m_toolbar_action_running = false;
         m_dirty = true;
+
+        if (m_canvas->HasCapture())
+            m_canvas->ReleaseMouse();
     }
     else if (evt.Moving())
     {
@@ -3462,33 +3449,9 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
-    item.name = "ccw45";
-    item.tooltip = GUI::L_str("Rotate CCW 45 degrees");
-    item.sprite_id = 6;
-    item.is_toggable = false;
-    item.action_callback = &m_action_ccw45_callback;
-    if (!m_toolbar.add_item(item))
-        return false;
-
-    item.name = "cw45";
-    item.tooltip = GUI::L_str("Rotate CW 45 degrees");
-    item.sprite_id = 7;
-    item.is_toggable = false;
-    item.action_callback = &m_action_cw45_callback;
-    if (!m_toolbar.add_item(item))
-        return false;
-
-    item.name = "scale";
-    item.tooltip = GUI::L_str("Scale...");
-    item.sprite_id = 8;
-    item.is_toggable = false;
-    item.action_callback = &m_action_scale_callback;
-    if (!m_toolbar.add_item(item))
-        return false;
-
     item.name = "split";
     item.tooltip = GUI::L_str("Split");
-    item.sprite_id = 9;
+    item.sprite_id = 6;
     item.is_toggable = false;
     item.action_callback = &m_action_split_callback;
     if (!m_toolbar.add_item(item))
@@ -3496,7 +3459,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "cut";
     item.tooltip = GUI::L_str("Cut...");
-    item.sprite_id = 10;
+    item.sprite_id = 7;
     item.is_toggable = false;
     item.action_callback = &m_action_cut_callback;
     if (!m_toolbar.add_item(item))
@@ -3507,7 +3470,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "settings";
     item.tooltip = GUI::L_str("Settings...");
-    item.sprite_id = 11;
+    item.sprite_id = 8;
     item.is_toggable = false;
     item.action_callback = &m_action_settings_callback;
     if (!m_toolbar.add_item(item))
@@ -3515,7 +3478,7 @@ bool GLCanvas3D::_init_toolbar()
 
     item.name = "layersediting";
     item.tooltip = GUI::L_str("Layers editing");
-    item.sprite_id = 12;
+    item.sprite_id = 9;
     item.is_toggable = true;
     item.action_callback = &m_action_layersediting_callback;
     if (!m_toolbar.add_item(item))
@@ -3756,9 +3719,6 @@ void GLCanvas3D::_deregister_callbacks()
     m_action_arrange_callback.deregister_callback();
     m_action_more_callback.deregister_callback();
     m_action_fewer_callback.deregister_callback();
-    m_action_ccw45_callback.deregister_callback();
-    m_action_cw45_callback.deregister_callback();
-    m_action_scale_callback.deregister_callback();
     m_action_split_callback.deregister_callback();
     m_action_cut_callback.deregister_callback();
     m_action_settings_callback.deregister_callback();
