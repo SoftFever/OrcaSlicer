@@ -2953,12 +2953,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Leaving())
     {
-        // to remove hover when mouse goes out of this canvas
-        m_mouse.position = Pointf((coordf_t)pos.x, (coordf_t)pos.y);
-        render();
-    }
-    else if (evt.Leaving())
-    {
         // to remove hover on objects when the mouse goes out of this canvas
         m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;

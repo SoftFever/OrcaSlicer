@@ -718,7 +718,7 @@ void SliderCtrl::BUILD()
 
 	auto temp = new wxBoxSizer(wxHORIZONTAL);
 
-	auto def_val = static_cast<ConfigOptionInt*>(m_opt.default_value)->value;
+	auto def_val = static_cast<const ConfigOptionInt*>(m_opt.default_value)->value;
 	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
 	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
 

@@ -386,12 +386,12 @@ sub new {
     $self->{btn_print}->Hide;
     $self->{btn_send_gcode}->Hide;
     
+#       export_gcode    cog_go.png
     my %icons = qw(
         add             brick_add.png
         remove          brick_delete.png
         reset           cross.png
         arrange         bricks.png
-        export_gcode    cog_go.png
         print           arrow_up.png
         send_gcode      arrow_up.png
         reslice         reslice.png
@@ -648,6 +648,8 @@ sub new {
         $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 10) if defined $expert_mode_part_sizer;
         $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM | wxTOP, 10);
         $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
+        # Show the box initially, let it be shown after the slicing is finished.
+        $self->print_info_box_show(0);
         $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -1727,7 +1729,7 @@ sub print_info_box_show {
 #    return if (!$show && ($scrolled_window_sizer->IsShown(2) == $show));
     my $panel = $self->{right_panel};
     my $sizer = $self->{info_sizer};
-    return if (!$show && ($sizer->IsShown(2) == $show));
+    return if (!$sizer || !$show && ($sizer->IsShown(1) == $show));
 
     Slic3r::GUI::set_show_print_info($show);
     return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
@@ -1772,8 +1774,8 @@ sub print_info_box_show {
 #    $scrolled_window_panel->Layout;
     $sizer->Show(1, $show);
 
-#?    $self->Layout;
-#?    $panel->Refresh;
+    $self->Layout;
+    $panel->Refresh;
 }
 
 sub do_print {

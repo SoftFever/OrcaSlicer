@@ -35,8 +35,8 @@ wxSlider*	m_mover_y = nullptr;
 wxSlider*	m_mover_z = nullptr;
 wxButton*	m_btn_move_up = nullptr;
 wxButton*	m_btn_move_down = nullptr;
-Point3		m_move_options;
-Point3		m_last_coords;
+Vec3d		m_move_options;
+Vec3d		m_last_coords;
 int			m_selected_object_id = -1;
 
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
@@ -387,12 +387,12 @@ void update_after_moving()
 	if (volume_id < 0)
 		return;
 
-	Point3 m = m_move_options;
-	Point3 l = m_last_coords;
+	Vec3d m = m_move_options;
+	Vec3d l = m_last_coords;
 
-	auto d = Pointf3(m.x - l.x, m.y - l.y, m.z - l.z);
+    auto d = Vec3d(m(0) - l(0), m(1) - l(1), m(2) - l(2));
 	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
-	volume->mesh.translate(d.x,d.y,d.z);
+    volume->mesh.translate(d(0), d(1), d(2));
 	m_last_coords = m;
 
 	m_parts_changed = true;
@@ -407,17 +407,17 @@ wxSizer* object_movers(wxWindow *win)
 	optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
 		int val = boost::any_cast<int>(value);
 		bool update = false;
-		if (opt_key == "x" && m_move_options.x != val){
+        if (opt_key == "x" && m_move_options(0) != val){
 			update = true;
-			m_move_options.x = val;
+            m_move_options(0) = val;
 		}
-		else if (opt_key == "y" && m_move_options.y != val){
+        else if (opt_key == "y" && m_move_options(1) != val){
 			update = true;
-			m_move_options.y = val;
+            m_move_options(1) = val;
 		}
-		else if (opt_key == "z" && m_move_options.z != val){
+        else if (opt_key == "z" && m_move_options(2) != val){
 			update = true;
-			m_move_options.z = val;
+            m_move_options(2) = val;
 		}
 		if (update) update_after_moving();
 	};
@@ -448,8 +448,8 @@ wxSizer* object_movers(wxWindow *win)
 	m_sizer_object_movers = optgroup->sizer;
 	m_sizer_object_movers->Show(false);
 
-	m_move_options = Point3(0, 0, 0);
-	m_last_coords = Point3(0, 0, 0);
+	m_move_options = Vec3d(0, 0, 0);
+	m_last_coords = Vec3d(0, 0, 0);
 
 	return optgroup->sizer;
 }
@@ -1122,9 +1122,9 @@ void load_part(	wxWindow* parent, ModelObject* model_object,
 				part_names.Add(new_volume->name);
 
 				// apply the same translation we applied to the object
-				new_volume->mesh.translate( model_object->origin_translation.x,
-											model_object->origin_translation.y, 
-											model_object->origin_translation.y );
+				new_volume->mesh.translate( model_object->origin_translation(0),
+											model_object->origin_translation(1), 
+											model_object->origin_translation(2) );
 				// set a default extruder value, since user can't add it manually
 				new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
@@ -1162,9 +1162,9 @@ void load_lambda(	wxWindow* parent, ModelObject* model_object,
 		break;}
 	case LambdaTypeSlab:{
 		const auto& size = model_object->bounding_box().size();
-		mesh = make_cube(size.x*1.5, size.y*1.5, params.slab_h);
+        mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
 		// box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
-		mesh.translate(-size.x*1.5 / 2.0, -size.y*1.5 / 2.0, params.slab_z);
+        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, params.slab_z);
 		name += "Slab";
 		break; }
 	default:
@@ -1514,7 +1514,7 @@ void update_scale_values()
                         (*m_objects)[m_selected_object_id]->instances[0]->scaling_factor);
 }
 
-void update_scale_values(const Pointf3& size, float scaling_factor)
+void update_scale_values(const Vec3d& size, float scaling_factor)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
 
@@ -1525,9 +1525,9 @@ void update_scale_values(const Pointf3& size, float scaling_factor)
         og->set_value("scale_z", int(scale));
     }
     else {
-        og->set_value("scale_x", int(size.x + 0.5));
-        og->set_value("scale_y", int(size.y + 0.5));
-        og->set_value("scale_z", int(size.z + 0.5));
+        og->set_value("scale_x", int(size(0) + 0.5));
+        og->set_value("scale_y", int(size(1) + 0.5));
+        og->set_value("scale_z", int(size(2) + 0.5));
     }
 }
 

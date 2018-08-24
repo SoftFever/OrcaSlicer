@@ -108,7 +108,7 @@ void set_extruder_column_hidden(bool hide);
 void update_extruder_in_config(const wxString& selection);
 // update scale values after scale unit changing or "gizmos"
 void update_scale_values();
-void update_scale_values(const Pointf3& size, float scale);
+void update_scale_values(const Vec3d& size, float scale);
 // update rotation values object selection changing
 void update_rotation_values();
 // update rotation value after "gizmos"

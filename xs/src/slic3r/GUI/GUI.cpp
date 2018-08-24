@@ -803,10 +803,6 @@ PresetBundle* get_preset_bundle()
 	return g_PresetBundle;
 }
 
-wxNotebook* get_tab_panel() {
-    return g_wxTabPanel;
-}
-
 const wxColour& get_label_clr_modified() {
 	return g_color_label_modified;
 }
@@ -1116,7 +1112,7 @@ void show_buttons(bool show)
 		if (!tab)
 			continue;
 		g_btn_print->Show(show && !tab->m_config->opt_string("serial_port").empty());
-		g_btn_send_gcode->Show(show && !tab->m_config->opt_string("octoprint_host").empty());
+		g_btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
 		break;
 	}
 }
