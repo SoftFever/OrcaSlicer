@@ -82,7 +82,7 @@ template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["octoprint"]       = htOctoPrint;
@@ -91,7 +91,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enu
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
