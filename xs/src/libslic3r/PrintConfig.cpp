@@ -474,12 +474,12 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloats { 28. };
 
     def = this->add("filament_loading_speed_start", coFloats);
-    def->label = L("EXPERIMENTAL: Loading speed at the start");
+    def->label = L("Loading speed at the start");
     def->tooltip = L("Speed used at the very beginning of loading phase. ");
     def->sidetext = L("mm/s");
     def->cli = "filament-loading-speed-start=f@";
     def->min = 0;
-    def->default_value = new ConfigOptionFloats { 9. };
+    def->default_value = new ConfigOptionFloats { 3. };
 
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
@@ -491,12 +491,12 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloats { 90. };
 
     def = this->add("filament_unloading_speed_start", coFloats);
-    def->label = L("EXPERIMENTAL: Unloading speed at the start");
+    def->label = L("Unloading speed at the start");
     def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming. ");
     def->sidetext = L("mm/s");
     def->cli = "filament-unloading-speed-start=f@";
     def->min = 0;
-    def->default_value = new ConfigOptionFloats { 83. };
+    def->default_value = new ConfigOptionFloats { 100. };
 
     def = this->add("filament_toolchange_delay", coFloats);
     def->label = L("Delay after unloading");
