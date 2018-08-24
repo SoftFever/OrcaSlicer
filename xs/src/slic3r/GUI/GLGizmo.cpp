@@ -297,14 +297,26 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
     if (cross2(orig_dir, new_dir) < 0.0)
         theta = 2.0 * (double)PI - theta;
 
-    // snap
     double len = mouse_pos.norm();
+
+    // snap to snap region
     double in_radius = (double)m_radius / 3.0;
     double out_radius = 2.0 * (double)in_radius;
     if ((in_radius <= len) && (len <= out_radius))
     {
         double step = 2.0 * (double)PI / (double)SnapRegionsCount;
         theta = step * (double)std::round(theta / step);
+    }
+    else
+    {
+        // snap to scale
+        in_radius = (double)m_radius;
+        out_radius = in_radius + (double)ScaleLongTooth;
+        if ((in_radius <= len) && (len <= out_radius))
+        {
+            double step = 2.0 * (double)PI / (double)ScaleStepsCount;
+            theta = step * (double)std::round(theta / step);
+        }
     }
 
     if (theta == 2.0 * (double)PI)
