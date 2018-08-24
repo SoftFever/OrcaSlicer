@@ -818,7 +818,10 @@ bool GLVolumeCollection::check_outside_state(const DynamicPrintConfig* config, M
         return false;
 
     BoundingBox bed_box_2D = get_extents(Polygon::new_scale(opt->values));
-    BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), unscale<double>(config->opt_float("max_print_height"))));
+//############################################################################################################################################
+    BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), config->opt_float("max_print_height")));
+//    BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), unscale<double>(config->opt_float("max_print_height"))));
+//############################################################################################################################################
     // Allow the objects to protrude below the print bed
     print_volume.min(2) = -1e10;
 
