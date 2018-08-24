@@ -295,7 +295,7 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
     double theta = ::acos(clamp(-1.0, 1.0, new_dir.dot(orig_dir)));
     if (cross2(orig_dir, new_dir) < 0.0)
-        theta = 2.0 * (coordf_t)PI - theta;
+        theta = 2.0 * (double)PI - theta;
 
     // snap
     double len = mouse_pos.norm();
@@ -303,11 +303,11 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
     double out_radius = 2.0 * (double)in_radius;
     if ((in_radius <= len) && (len <= out_radius))
     {
-        coordf_t step = 2.0 * (coordf_t)PI / (coordf_t)SnapRegionsCount;
-        theta = step * (coordf_t)std::round(theta / step);
+        double step = 2.0 * (double)PI / (double)SnapRegionsCount;
+        theta = step * (double)std::round(theta / step);
     }
 
-    if (theta == 2.0 * (coordf_t)PI)
+    if (theta == 2.0 * (double)PI)
         theta = 0.0;
 
     m_angle = (float)theta;
