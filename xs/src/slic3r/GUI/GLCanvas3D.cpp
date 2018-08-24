@@ -3111,6 +3111,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.Dragging() && m_gizmos.is_dragging())
     {
+        m_canvas->CaptureMouse();
+
         m_mouse.dragging = true;
         m_gizmos.update(mouse_ray(pos));
 
@@ -3286,6 +3288,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.dragging = false;
         m_toolbar_action_running = false;
         m_dirty = true;
+
+        if (m_canvas->HasCapture())
+            m_canvas->ReleaseMouse();
     }
     else if (evt.Moving())
     {

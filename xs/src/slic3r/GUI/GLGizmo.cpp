@@ -197,6 +197,8 @@ void GLGizmoBase::start_dragging()
 
 void GLGizmoBase::stop_dragging()
 {
+    set_tooltip("");
+
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         m_grabbers[i].dragging = false;
