@@ -837,7 +837,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
     ::glEnable(GL_DEPTH_TEST);
 
-    Vec3d offset_vec((double)Offset, (double)Offset, (double)Offset);
+    Vec3d offset_vec = (double)Offset * Vec3d::Ones();
 
     m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
     const Vec3d& center = m_box.center();

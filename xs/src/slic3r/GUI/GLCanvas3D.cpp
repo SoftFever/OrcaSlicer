@@ -507,6 +507,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
     if (triangles_vcount > 0)
     {
         ::glEnable(GL_DEPTH_TEST);
+        ::glDepthMask(GL_FALSE);
 
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -535,6 +536,7 @@ void GLCanvas3D::Bed::_render_prusa(float theta) const
         ::glDisable(GL_TEXTURE_2D);
 
         ::glDisable(GL_BLEND);
+        ::glDepthMask(GL_TRUE);
     }
 }
 
@@ -2357,7 +2359,6 @@ void GLCanvas3D::render()
 
     // draw scene
     _render_background();
-    _render_current_gizmo();
 
     if (is_custom_bed) // untextured bed needs to be rendered before objects
     {
@@ -2373,6 +2374,7 @@ void GLCanvas3D::render()
         _render_bed(theta);
     }
 
+    _render_current_gizmo();
     _render_cutting_plane();
 
     // draw overlays
