@@ -995,9 +995,10 @@ sub set_number_of_copies {
     my $model_object = $self->{model}->objects->[$obj_idx];
     
     # prompt user
-    my $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
+    my $copies = -1;
+    $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
     my $diff = $copies - $model_object->instances_count;
-    if ($diff == 0) {
+    if ($diff == 0 || $copies == -1) {
         # no variation
         $self->resume_background_process;
     } elsif ($diff > 0) {
