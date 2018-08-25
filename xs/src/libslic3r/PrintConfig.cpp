@@ -2059,7 +2059,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("wipe_into_infill", coBool);
     def->category = L("Extruders");
-    def->label = L("Purge into this object's infill");
+    def->label = L("Wipe into this object's infill");
     def->tooltip = L("Purging after toolchange will done inside this object's infills. "
                      "This lowers the amount of waste but may result in longer print time "
                      " due to additional travel moves.");
@@ -2068,7 +2068,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("wipe_into_objects", coBool);
     def->category = L("Extruders");
-    def->label = L("Purge into this object");
+    def->label = L("Wipe into this object");
     def->tooltip = L("Object will be used to purge the nozzle after a toolchange to save material "
                      "that would otherwise end up in the wipe tower and decrease print time. "
                      "Colours of the objects will be mixed as a result.");
