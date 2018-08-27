@@ -3297,7 +3297,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
     {
         for (const GLVolume* volume : selected_volumes)
         {
-            bb.merge(volume->transformed_convex_hull_bounding_box());
+            bb.merge(volume->transformed_bounding_box());
         }
     }
 
