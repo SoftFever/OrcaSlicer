@@ -144,6 +144,33 @@ void avrdude_progress_external(const char *task, unsigned progress)
     avrdude_progress_handler(task, progress, avrdude_progress_handler_user_p);
 }
 
+static void avrdude_oom_handler_null(const char *context, void *user_p)
+{
+    // Output a message and just exit
+    fputs("avrdude: Out of memory: ", stderr);
+    fputs(context, stderr);
+    exit(99);
+}
+
+static void *avrdude_oom_handler_user_p = NULL;
+static avrdude_oom_handler_t avrdude_oom_handler = avrdude_oom_handler_null;
+
+void avrdude_oom_handler_set(avrdude_oom_handler_t newhandler, void *user_p)
+{
+    if (newhandler != NULL) {
+        avrdude_oom_handler = newhandler;
+        avrdude_oom_handler_user_p = user_p;
+    } else {
+        avrdude_oom_handler = avrdude_oom_handler_null;
+        avrdude_oom_handler_user_p = NULL;
+    }
+}
+
+void avrdude_oom(const char *context)
+{
+    avrdude_oom_handler(context, avrdude_oom_handler_user_p);
+}
+
 void avrdude_cancel()
 {
     cancel_flag = true;

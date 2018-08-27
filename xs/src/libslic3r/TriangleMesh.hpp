@@ -40,6 +40,7 @@ public:
     void scale(const Vec3d &versor);
     void translate(float x, float y, float z);
     void rotate(float angle, const Axis &axis);
+    void rotate(float angle, const Vec3d& axis);
     void rotate_x(float angle) { this->rotate(angle, X); }
     void rotate_y(float angle) { this->rotate(angle, Y); }
     void rotate_z(float angle) { this->rotate(angle, Z); }
@@ -53,6 +54,7 @@ public:
     TriangleMeshPtrs split() const;
     void merge(const TriangleMesh &mesh);
     ExPolygons horizontal_projection() const;
+    const float* first_vertex() const;
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
     // Returns the bbox of this TriangleMesh transformed by the given transformation

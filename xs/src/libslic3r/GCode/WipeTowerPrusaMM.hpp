@@ -65,9 +65,9 @@ public:
 
 
 	// Set the extruder properties.
-	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, int cooling_moves, float cooling_initial_speed,
-                      float cooling_final_speed, std::string ramming_parameters, float nozzle_diameter)
+	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed, float loading_speed_start,
+                      float unloading_speed, float unloading_speed_start, float delay, int cooling_moves,
+                      float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float nozzle_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -76,7 +76,9 @@ public:
         m_filpar[idx].temperature = temp;
         m_filpar[idx].first_layer_temperature = first_layer_temp;
         m_filpar[idx].loading_speed = loading_speed;
+        m_filpar[idx].loading_speed_start = loading_speed_start;
         m_filpar[idx].unloading_speed = unloading_speed;
+        m_filpar[idx].unloading_speed_start = unloading_speed_start;
         m_filpar[idx].delay = delay;
         m_filpar[idx].cooling_moves = cooling_moves;
         m_filpar[idx].cooling_initial_speed = cooling_initial_speed;
@@ -216,7 +218,9 @@ private:
         int  			    temperature = 0;
         int  			    first_layer_temperature = 0;
         float               loading_speed = 0.f;
+        float               loading_speed_start = 0.f;
         float               unloading_speed = 0.f;
+        float               unloading_speed_start = 0.f;
         float               delay = 0.f ;
         int                 cooling_moves = 0;
         float               cooling_initial_speed = 0.f;

@@ -301,7 +301,8 @@ ModelMaterial::attributes()
     void translate(double x, double y, double z);
     void scale_xyz(Vec3d* versor)
         %code{% THIS->scale(*versor); %};
-    void rotate(float angle, Axis axis);
+    void rotate(float angle, Vec3d* axis)
+        %code{% THIS->rotate(angle, *axis); %};
     void mirror(Axis axis);
     
     Model* cut(double z)

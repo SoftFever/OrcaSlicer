@@ -1,5 +1,6 @@
 #include "GLCanvas3D.hpp"
 
+#include "../../admesh/stl.h"
 #include "../../libslic3r/libslic3r.h"
 #include "../../slic3r/GUI/3DScene.hpp"
 #include "../../slic3r/GUI/GLShader.hpp"
@@ -1165,6 +1166,18 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
+    gizmo = new GLGizmoFlatten(parent);
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        _reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
+
+
     return true;
 }
 
@@ -1414,10 +1427,31 @@ reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
 #endif // ENABLE_GIZMOS_3D
 }
 
+Vec3d GLCanvas3D::Gizmos::get_flattening_normal() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Vec3d::Zero();
+}
+
+void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
+}
+
 void GLCanvas3D::Gizmos::render_current_gizmo(const BoundingBoxf3& box) const
 {
     if (!m_enabled)
         return;
+
+    ::glDisable(GL_DEPTH_TEST);
 
     if (box.radius() > 0.0)
         _render_current_gizmo(box);
@@ -2319,6 +2353,7 @@ void GLCanvas3D::update_gizmos_data()
             {
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
+                m_gizmos.set_flattening_data(model_object);
             }
         }
     }
@@ -2326,6 +2361,7 @@ void GLCanvas3D::update_gizmos_data()
     {
         m_gizmos.set_scale(1.0f);
         m_gizmos.set_angle_z(0.0f);
+        m_gizmos.set_flattening_data(nullptr);
     }
 }
 
@@ -2367,7 +2403,6 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
-
     if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
         _render_axes(true);
@@ -2982,6 +3017,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             update_gizmos_data();
             m_gizmos.start_dragging();
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
+
+            if (m_gizmos.get_current_type() == Gizmos::Flatten) {
+                // Rotate the object so the normal points downward:
+                Vec3d normal = m_gizmos.get_flattening_normal();
+                if (normal != Vec3d::Zero()) {
+                    Vec3d axis = normal(2) > 0.999f ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ());
+                    float angle = -acos(-normal(2));
+                    m_on_gizmo_rotate_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
+                }
+            }
+
             m_dirty = true;
         }
         else if (toolbar_contains_mouse != -1)

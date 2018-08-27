@@ -338,6 +338,7 @@ public:
             Undefined,
             Scale,
             Rotate,
+            Flatten,
             Num_Types
         };
 
@@ -382,7 +383,11 @@ public:
         float get_angle_z() const;
         void set_angle_z(float angle_z);
 
+        void set_flattening_data(const ModelObject* model_object);
+        Vec3d get_flattening_normal() const;
+
         void render_current_gizmo(const BoundingBoxf3& box) const;
+
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
         void render_overlay(const GLCanvas3D& canvas) const;
 

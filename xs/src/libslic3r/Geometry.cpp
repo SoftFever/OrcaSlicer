@@ -195,44 +195,107 @@ using namespace boost::polygon;  // provides also high() and low()
 
 namespace Slic3r { namespace Geometry {
 
-static bool
-sort_points (Point a, Point b)
+static bool sort_points(const Point& a, const Point& b)
 {
     return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
 }
 
-/* This implementation is based on Andrew's monotone chain 2D convex hull algorithm */
+static bool sort_pointfs(const Vec3d& a, const Vec3d& b)
+{
+    return (a(0) < b(0)) || (a(0) == b(0) && a(1) < b(1));
+}
+
+// This implementation is based on Andrew's monotone chain 2D convex hull algorithm
 Polygon
 convex_hull(Points points)
 {
     assert(points.size() >= 3);
     // sort input points
     std::sort(points.begin(), points.end(), sort_points);
-    
+
     int n = points.size(), k = 0;
     Polygon hull;
 
     if (n >= 3) {
-        hull.points.resize(2*n);
+        hull.points.resize(2 * n);
 
         // Build lower hull
         for (int i = 0; i < n; i++) {
-            while (k >= 2 && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
-            hull.points[k++] = points[i];
+            while (k >= 2 && points[i].ccw(hull[k-2], hull[k-1]) <= 0) k--;
+            hull[k++] = points[i];
         }
 
         // Build upper hull
         for (int i = n-2, t = k+1; i >= 0; i--) {
-            while (k >= t && points[i].ccw(hull.points[k-2], hull.points[k-1]) <= 0) k--;
-            hull.points[k++] = points[i];
+            while (k >= t && points[i].ccw(hull[k-2], hull[k-1]) <= 0) k--;
+            hull[k++] = points[i];
         }
 
         hull.points.resize(k);
-        
-        assert( hull.points.front() == hull.points.back() );
+
+        assert(hull.points.front() == hull.points.back());
         hull.points.pop_back();
     }
     
+    return hull;
+}
+
+Pointf3s
+convex_hull(Pointf3s points)
+{
+    assert(points.size() >= 3);
+    // sort input points
+    std::sort(points.begin(), points.end(), sort_pointfs);
+
+    int n = points.size(), k = 0;
+    Pointf3s hull;
+
+    if (n >= 3)
+    {
+        hull.resize(2 * n);
+
+        // Build lower hull
+        for (int i = 0; i < n; ++i)
+        {
+            Point p = Point::new_scale(points[i](0), points[i](1));
+            while (k >= 2)
+            {
+                Point k1 = Point::new_scale(hull[k - 1](0), hull[k - 1](1));
+                Point k2 = Point::new_scale(hull[k - 2](0), hull[k - 2](1));
+
+                if (p.ccw(k2, k1) <= 0)
+                    --k;
+                else
+                    break;
+            }
+
+            hull[k++] = points[i];
+        }
+
+        // Build upper hull
+        for (int i = n - 2, t = k + 1; i >= 0; --i)
+        {
+            Point p = Point::new_scale(points[i](0), points[i](1));
+            while (k >= t)
+            {
+                Point k1 = Point::new_scale(hull[k - 1](0), hull[k - 1](1));
+                Point k2 = Point::new_scale(hull[k - 2](0), hull[k - 2](1));
+
+                if (p.ccw(k2, k1) <= 0)
+                    --k;
+                else
+                    break;
+            }
+
+            hull[k++] = points[i];
+        }
+
+        hull.resize(k);
+
+        assert(hull.front() == hull.back());
+        hull.pop_back();
+    }
+
     return hull;
 }
 
@@ -243,7 +306,7 @@ convex_hull(const Polygons &polygons)
     for (Polygons::const_iterator p = polygons.begin(); p != polygons.end(); ++p) {
         pp.insert(pp.end(), p->points.begin(), p->points.end());
     }
-    return convex_hull(pp);
+    return convex_hull(std::move(pp));
 }
 
 /* accepts an arrayref of points and returns a list of indices

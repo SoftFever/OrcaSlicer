@@ -13,6 +13,7 @@
 #include <utility>
 #include <algorithm>
 #include <math.h>
+#include <type_traits>
 
 #include <boost/log/trivial.hpp>
 
@@ -255,6 +256,17 @@ void TriangleMesh::rotate(float angle, const Axis &axis)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
+void TriangleMesh::rotate(float angle, const Vec3d& axis)
+{
+    if (angle == 0.f)
+        return;
+
+    Vec3f axis_norm = axis.cast<float>().normalized();
+    Transform3f m = Transform3f::Identity();
+    m.rotate(Eigen::AngleAxisf(angle, axis_norm));
+    stl_transform(&stl, (float*)m.data());
+}
+
 void TriangleMesh::mirror(const Axis &axis)
 {
     if (axis == X) {
@@ -459,6 +471,11 @@ ExPolygons TriangleMesh::horizontal_projection() const
     return union_ex(offset(pp, scale_(0.01)), true);
 }
 
+const float* TriangleMesh::first_vertex() const
+{
+    return this->stl.facet_start ? &this->stl.facet_start->vertex[0](0) : nullptr;
+}
+
 Polygon TriangleMesh::convex_hull()
 {
     this->require_shared_vertices();
@@ -597,6 +614,7 @@ TriangleMesh TriangleMesh::convex_hull_3d() const
 
     TriangleMesh output_mesh(dst_vertices, facets);
     output_mesh.repair();
+    output_mesh.require_shared_vertices();
     return output_mesh;
 }
 
