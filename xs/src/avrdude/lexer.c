@@ -2834,7 +2834,8 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
 	n = (yy_size_t) (_yybytes_len + 2);
 	buf = (char *) yyalloc( n  );
 	if ( ! buf )
-		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_bytes()" );
+		// YY_FATAL_ERROR( "out of dynamic memory in yy_scan_bytes()" );
+		avrdude_oom("out of dynamic memory in yy_scan_bytes()");
 
 	for ( i = 0; i < _yybytes_len; ++i )
 		buf[i] = yybytes[i];
@@ -2859,8 +2860,9 @@ YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len )
 
 static void yynoreturn yy_fatal_error (const char* msg )
 {
-			fprintf( stderr, "%s\n", msg );
-	exit( YY_EXIT_FAILURE );
+	fprintf( stderr, "%s\n", msg );
+	// exit( YY_EXIT_FAILURE );
+	abort();
 }
 
 /* Redefine yyless() so it works in section 3 code. */

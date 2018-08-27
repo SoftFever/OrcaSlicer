@@ -13,6 +13,7 @@ namespace Slic3r {
 
 class BoundingBoxf3;
 class Linef3;
+class ModelObject;
 
 namespace GUI {
 
@@ -74,7 +75,6 @@ protected:
     float m_drag_color[3];
     float m_highlight_color[3];
     mutable std::vector<Grabber> m_grabbers;
-    bool m_is_container;
 
 public:
     explicit GLGizmoBase(GLCanvas3D& parent);
@@ -310,6 +310,54 @@ private:
     void do_scale_uniform(const Linef3& mouse_ray);
 
     double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const;
+};
+
+class GLGizmoFlatten : public GLGizmoBase
+{
+// This gizmo does not use grabbers. The m_hover_id relates to polygon managed by the class itself.
+
+private:
+    mutable Vec3d m_normal;
+
+    struct PlaneData {
+        std::vector<Vec3d> vertices;
+        Vec3d normal;
+        float area;
+    };
+    struct SourceDataSummary {
+        std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
+        float scaling_factor;
+        float rotation;
+        Vec3d mesh_first_point;
+    };
+
+    // This holds information to decide whether recalculation is necessary:
+    SourceDataSummary m_source_data;
+
+    std::vector<PlaneData> m_planes;
+    std::vector<Vec2d> m_instances_positions;
+    mutable std::unique_ptr<Vec3d> m_center = nullptr;
+    const ModelObject* m_model_object = nullptr;
+
+    void update_planes();
+    bool is_plane_update_necessary() const;
+
+public:
+    explicit GLGizmoFlatten(GLCanvas3D& parent);
+
+    void set_flattening_data(const ModelObject* model_object);
+    Vec3d get_flattening_normal() const;
+
+protected:
+    virtual bool on_init();
+    virtual void on_start_dragging();
+    virtual void on_update(const Linef3& mouse_ray) {}
+    virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+    virtual void on_set_state() {
+        if (m_state == On && is_plane_update_necessary())
+            update_planes();
+    }
 };
 
 } // namespace GUI

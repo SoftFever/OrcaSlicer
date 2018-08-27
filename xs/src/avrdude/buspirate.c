@@ -1135,9 +1135,10 @@ static void buspirate_setup(struct programmer_t *pgm)
 {
 	/* Allocate private data */
 	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		avrdude_message(MSG_INFO, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
-		                progname);
-		exit(1);
+		// avrdude_message(MSG_INFO, "%s: buspirate_initpgm(): Out of memory allocating private data\n",
+		//                 progname);
+		// exit(1);
+		avrdude_oom("buspirate_initpgm(): Out of memory allocating private data\n");
 	}
 	PDATA(pgm)->serial_recv_timeout = 100;
 }

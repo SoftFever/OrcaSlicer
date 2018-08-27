@@ -715,7 +715,21 @@ void ModelObject::scale(const Vec3d &versor)
     this->invalidate_bounding_box();
 }
 
-void ModelObject::rotate(float angle, const Axis &axis)
+void ModelObject::rotate(float angle, const Axis& axis)
+{
+    for (ModelVolume *v : this->volumes)
+    {
+        v->mesh.rotate(angle, axis);
+        v->m_convex_hull.rotate(angle, axis);
+    }
+
+    center_around_origin();
+
+    this->origin_translation = Vec3d::Zero();
+    this->invalidate_bounding_box();
+}
+
+void ModelObject::rotate(float angle, const Vec3d& axis)
 {
     for (ModelVolume *v : this->volumes)
     {

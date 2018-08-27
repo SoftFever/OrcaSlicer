@@ -1326,7 +1326,9 @@ void TabFilament::build()
 		optgroup->append_line(line);
 
         optgroup = page->new_optgroup(_(L("Toolchange parameters with single extruder MM printers")));
-		optgroup->append_single_option_line("filament_loading_speed");
+		optgroup->append_single_option_line("filament_loading_speed_start");
+        optgroup->append_single_option_line("filament_loading_speed");
+        optgroup->append_single_option_line("filament_unloading_speed_start");
         optgroup->append_single_option_line("filament_unloading_speed");
 		optgroup->append_single_option_line("filament_load_time");
 		optgroup->append_single_option_line("filament_unload_time");

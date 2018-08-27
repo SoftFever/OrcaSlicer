@@ -149,9 +149,16 @@ sub new {
     };
     
     # callback to react to gizmo rotate
+    # omitting last three parameters means rotation around Z
+    # otherwise they are the components of the rotation axis vector
     my $on_gizmo_rotate = sub {
-        my ($angle_z) = @_;
-        $self->rotate(rad2deg($angle_z), Z, 'absolute');
+        my ($angle, $axis_x, $axis_y, $axis_z) = @_;
+        if (!defined $axis_x) {
+            $self->rotate(rad2deg($angle), Z, 'absolute');
+        }
+        else {
+            $self->rotate(rad2deg($angle), undef, 'absolute', $axis_x, $axis_y, $axis_z) if $angle != 0;
+        }
     };
 
     # callback to update object's geometry info while using gizmos
@@ -1077,9 +1084,10 @@ sub set_number_of_copies {
     my $model_object = $self->{model}->objects->[$obj_idx];
     
     # prompt user
-    my $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
+    my $copies = -1;
+    $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
     my $diff = $copies - $model_object->instances_count;
-    if ($diff == 0) {
+    if ($diff == 0 || $copies == -1) {
         # no variation
         $self->resume_background_process;
     } elsif ($diff > 0) {
@@ -1112,28 +1120,40 @@ sub _get_number_from_user {
 }
 
 sub rotate {
-    my ($self, $angle, $axis, $relative_key) = @_;
+    my ($self, $angle, $axis, $relative_key, $axis_x, $axis_y, $axis_z) = @_;
     $relative_key //= 'absolute'; # relative or absolute coordinates
-    $axis //= Z; # angle is in degrees
-
+    $axis_x //= 0;
+    $axis_y //= 0;
+    $axis_z //= 0;
     my $relative = $relative_key eq 'relative';    
-    
+
     my ($obj_idx, $object) = $self->selected_object;
     return if !defined $obj_idx;
-    
+
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $model_instance = $model_object->instances->[0];
-        
+
     if (!defined $angle) {
         my $axis_name = $axis == X ? 'X' : $axis == Y ? 'Y' : 'Z';
         my $default = $axis == Z ? rad2deg($model_instance->rotation) : 0;
         $angle = $self->_get_number_from_user(L("Enter the rotation angle:"), L("Rotate around ").$axis_name.(" axis"), L("Invalid rotation angle entered"), $default);
         return if $angle eq '';
     }
+
+    # Let's calculate vector of rotation axis (if we don't have it already)
+    # The minus is there so that the direction is the same as was established
+    if (defined $axis) {
+        if ($axis == X) {
+            $axis_x = -1;
+        }
+        if ($axis == Y) {
+            $axis_y = -1;
+        }
+    }
     
     $self->stop_background_process;
     
-    if ($axis == Z) {
+    if (defined $axis && $axis == Z) {
         my $new_angle = deg2rad($angle);
         foreach my $inst (@{ $model_object->instances }) {
             my $rotation = ($relative ? $inst->rotation : 0.) + $new_angle;
@@ -1148,19 +1168,24 @@ sub rotate {
         }
 #        $object->transform_thumbnail($self->{model}, $obj_idx);
     } else {
-        # rotation around X and Y needs to be performed on mesh
-        # so we first apply any Z rotation
-        if ($model_instance->rotation != 0) {
-            $model_object->rotate($model_instance->rotation, Z);
-            $_->set_rotation(0) for @{ $model_object->instances };
+        if (defined $axis) {
+            # rotation around X and Y needs to be performed on mesh
+            # so we first apply any Z rotation
+            if ($model_instance->rotation != 0) {
+                $model_object->rotate($model_instance->rotation, Slic3r::Pointf3->new(0, 0, -1));
+                $_->set_rotation(0) for @{ $model_object->instances };
+            }
         }
-        $model_object->rotate(deg2rad($angle), $axis);
+        $model_object->rotate(deg2rad($angle), Slic3r::Pointf3->new($axis_x, $axis_y, $axis_z));
         
 #        # realign object to Z = 0
 #        $model_object->center_around_origin;
 #        $self->reset_thumbnail($obj_idx);
     }
-    Slic3r::GUI::update_rotation_value(deg2rad($angle), $axis == X ? "x" : ($axis == Y ? "y" : "z"));
+    
+    if (defined $axis) {
+        Slic3r::GUI::update_rotation_value(deg2rad($angle), $axis == X ? "x" : ($axis == Y ? "y" : "z"));
+    }
     
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);
@@ -1181,7 +1206,7 @@ sub mirror {
     
     # apply Z rotation before mirroring
     if ($model_instance->rotation != 0) {
-        $model_object->rotate($model_instance->rotation, Z);
+        $model_object->rotate($model_instance->rotation, Slic3r::Pointf3->new(0, 0, 1));
         $_->set_rotation(0) for @{ $model_object->instances };
     }
     
@@ -1228,7 +1253,7 @@ sub changescale {
         
         # apply Z rotation before scaling
         if ($model_instance->rotation != 0) {
-            $model_object->rotate($model_instance->rotation, Z);
+            $model_object->rotate($model_instance->rotation, Slic3r::Pointf3->new(0, 0, 1));
             $_->set_rotation(0) for @{ $model_object->instances };
         }
         

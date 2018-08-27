@@ -357,10 +357,20 @@ inline ExPolygons unify(const ExPolygons& shapes) {
 }
 
 inline Point centroid(Points& pp) {
-    Polygon p;
-    p.points.swap(pp);
-    Point c = p.centroid();
-    pp.swap(p.points);
+    Point c;
+    switch(pp.size()) {
+    case 0: break;
+    case 1: c = pp.front(); break;
+    case 2: c = (pp[0] + pp[1]) / 2; break;
+    default: {
+        Polygon p;
+        p.points.swap(pp);
+        c = p.centroid();
+        pp.swap(p.points);
+        break;
+    }
+    }
+
     return c;
 }
 

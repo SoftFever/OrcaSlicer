@@ -246,10 +246,11 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	    newname = malloc(strlen("\\\\.\\") + strlen(port) + 1);
 
 	    if (newname == 0) {
-		avrdude_message(MSG_INFO, "%s: ser_open(): out of memory\n",
-                                progname);
-		exit(1);
-	    }
+		// avrdude_message(MSG_INFO, "%s: ser_open(): out of memory\n",
+		//                         progname);
+		// exit(1);
+			avrdude_oom("ser_open(): out of memory\n");
+		}
 	    strcpy(newname, "\\\\.\\");
 	    strcat(newname, port);
 

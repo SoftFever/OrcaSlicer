@@ -511,6 +511,14 @@ void PrintConfigDef::init_fff_params()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 28. };
 
+    def = this->add("filament_loading_speed_start", coFloats);
+    def->label = L("Loading speed at the start");
+    def->tooltip = L("Speed used at the very beginning of loading phase. ");
+    def->sidetext = L("mm/s");
+    def->cli = "filament-loading-speed-start=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 3. };
+
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
     def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
@@ -519,6 +527,14 @@ void PrintConfigDef::init_fff_params()
     def->cli = "filament-unloading-speed=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 90. };
+
+    def = this->add("filament_unloading_speed_start", coFloats);
+    def->label = L("Unloading speed at the start");
+    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming. ");
+    def->sidetext = L("mm/s");
+    def->cli = "filament-unloading-speed-start=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 100. };
 
     def = this->add("filament_toolchange_delay", coFloats);
     def->label = L("Delay after unloading");
@@ -2064,7 +2080,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_into_infill", coBool);
     def->category = L("Extruders");
-    def->label = L("Purge into this object's infill");
+    def->label = L("Wipe into this object's infill");
     def->tooltip = L("Purging after toolchange will done inside this object's infills. "
                      "This lowers the amount of waste but may result in longer print time "
                      " due to additional travel moves.");
@@ -2073,7 +2089,7 @@ void PrintConfigDef::init_fff_params()
 
     def = this->add("wipe_into_objects", coBool);
     def->category = L("Extruders");
-    def->label = L("Purge into this object");
+    def->label = L("Wipe into this object");
     def->tooltip = L("Object will be used to purge the nozzle after a toolchange to save material "
                      "that would otherwise end up in the wipe tower and decrease print time. "
                      "Colours of the objects will be mixed as a result.");
