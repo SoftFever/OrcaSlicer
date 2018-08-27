@@ -157,11 +157,6 @@ sub new {
             $self->rotate(rad2deg($angle), Z, 'absolute');
         }
         else {
-        
-        print "angle: ";
-        print $angle;
-        print "\n";
-        
             $self->rotate(rad2deg($angle), undef, 'absolute', $axis_x, $axis_y, $axis_z) if $angle != 0;
         }
     };
@@ -1187,7 +1182,10 @@ sub rotate {
 #        $model_object->center_around_origin;
 #        $self->reset_thumbnail($obj_idx);
     }
-    Slic3r::GUI::update_rotation_value(deg2rad($angle), $axis == X ? "x" : ($axis == Y ? "y" : "z"));
+    
+    if (defined $axis) {
+        Slic3r::GUI::update_rotation_value(deg2rad($angle), $axis == X ? "x" : ($axis == Y ? "y" : "z"));
+    }
     
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);
