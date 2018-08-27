@@ -10,6 +10,7 @@ namespace Slic3r {
 
 class BoundingBoxf3;
 class Pointf3;
+class ModelObject;
 
 namespace GUI {
 
@@ -101,7 +102,7 @@ class GLGizmoRotate : public GLGizmoBase
 
     mutable Pointf m_center;
     mutable float m_radius;
-    mutable bool m_keep_radius;
+    mutable bool m_keep_initial_values;
 
 public:
     GLGizmoRotate();
@@ -148,6 +149,56 @@ protected:
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 };
+
+
+class GLGizmoFlatten : public GLGizmoBase
+{
+// This gizmo does not use grabbers. The m_hover_id relates to polygon managed by the class itself.
+
+private:
+    mutable Pointf3 m_normal;
+
+    struct PlaneData {
+        std::vector<Pointf3> vertices;
+        Pointf3 normal;
+        float area;
+    };
+    struct SourceDataSummary {
+        std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
+        float scaling_factor;
+        float rotation;
+        Pointf3 mesh_first_point;
+    };
+
+    // This holds information to decide whether recalculation is necessary:
+    SourceDataSummary m_source_data;
+
+    std::vector<PlaneData> m_planes;
+    std::vector<Pointf> m_instances_positions;
+    mutable std::unique_ptr<Pointf3> m_center = nullptr;
+    const ModelObject* m_model_object = nullptr;
+    void update_planes();
+    bool is_plane_update_necessary() const;
+
+public:
+    GLGizmoFlatten();
+
+    void set_flattening_data(const ModelObject* model_object);
+    Pointf3 get_flattening_normal() const;
+
+protected:
+    bool on_init() override;
+    void on_start_dragging() override;
+    void on_update(const Pointf& mouse_pos) override {};
+    void on_render(const BoundingBoxf3& box) const override;
+    void on_render_for_picking(const BoundingBoxf3& box) const override;
+    void on_set_state() override {
+        if (m_state == On && is_plane_update_necessary())
+            update_planes();
+    }
+};
+
+
 
 } // namespace GUI
 } // namespace Slic3r

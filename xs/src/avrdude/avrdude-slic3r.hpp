@@ -11,8 +11,13 @@ namespace Slic3r {
 class AvrDude
 {
 public:
+	enum {
+		EXIT_SUCCEESS   = 0,
+		EXIT_EXCEPTION  = -1000,
+	};
+
 	typedef std::shared_ptr<AvrDude> Ptr;
-	typedef std::function<void()> RunFn;
+	typedef std::function<void(Ptr /* avrdude */)> RunFn;
 	typedef std::function<void(const char * /* msg */, unsigned /* size */)> MessageFn;
 	typedef std::function<void(const char * /* task */, unsigned /* progress */)> ProgressFn;
 	typedef std::function<void()> CompleteFn;
@@ -49,10 +54,18 @@ public:
 	// This has no effect when using run_sync().
 	AvrDude& on_complete(CompleteFn fn);
 
+	// Perform AvrDude invocation(s) synchronously on the current thread
 	int run_sync();
+
+	// Perform AvrDude invocation(s) on a background thread.
+	// Current instance is moved into a shared_ptr which is returned (and also passed in on_run, if any).
 	Ptr run();
 
+	// Cancel current operation
 	void cancel();
+
+	// If there is a background thread and it is joinable, join() it,
+	// that is, wait for it to finish.
 	void join();
 
 	bool cancelled();          // Whether avrdude run was cancelled

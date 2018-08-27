@@ -263,6 +263,12 @@ operator<<(std::ostream &stm, const Pointf &pointf)
     return stm << pointf.x << "," << pointf.y;
 }
 
+double
+Pointf::ccw(const Pointf &p1, const Pointf &p2) const
+{
+    return (double)(p2.x - p1.x)*(double)(this->y - p1.y) - (double)(p2.y - p1.y)*(double)(this->x - p1.x);
+}
+
 std::string
 Pointf::wkt() const
 {

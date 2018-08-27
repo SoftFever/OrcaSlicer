@@ -85,9 +85,10 @@ static void wiring_setup(PROGRAMMER * pgm)
    * Now prepare our data
    */
   if ((mycookie = malloc(sizeof(struct wiringpdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: wiring_setup(): Out of memory allocating private data\n",
-                    progname);
-    exit(1);
+    // avrdude_message(MSG_INFO, "%s: wiring_setup(): Out of memory allocating private data\n",
+    //                 progname);
+    // exit(1);
+    avrdude_oom("wiring_setup(): Out of memory allocating private data\n");
   }
   memset(mycookie, 0, sizeof(struct wiringpdata));
   WIRINGPDATA(mycookie)->snoozetime = 0;
