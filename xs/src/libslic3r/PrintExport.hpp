@@ -237,6 +237,12 @@ public:
     }
 };
 
+// Let's shadow this eigen interface
+inline coord_t px(const Point& p) { return p(0); }
+inline coord_t py(const Point& p) { return p(1); }
+inline coordf_t px(const Vec2d& p) { return p(0); }
+inline coordf_t py(const Vec2d& p) { return p(1); }
+
 template<FilePrinterFormat format, class...Args>
 void print_to(Print& print,
               std::string dirpath,
@@ -246,10 +252,6 @@ void print_to(Print& print,
 {
 
     std::string& dir = dirpath;
-
-    // Let's shadow this eigen interface
-    auto px = [](const Point& p) { return p(0); };
-    auto py = [](const Point& p) { return p(1); };
 
     // This map will hold the layers sorted by z coordinate. Layers on the
     // same height (from different objects) will be mapped to the same key and
@@ -272,13 +274,13 @@ void print_to(Print& print,
     });
 
     auto print_bb = print.bounding_box();
+    Vec2d punsc = unscale(print_bb.size());
 
     // If the print does not fit into the print area we should cry about it.
-    if(unscale(px(print_bb.size())) > width_mm ||
-            unscale(py(print_bb.size())) > height_mm) {
+    if(px(punsc) > width_mm || py(punsc) > height_mm) {
         BOOST_LOG_TRIVIAL(warning) << "Warning: Print will not fit!" << "\n"
-            << "Width needed: " << unscale(px(print_bb.size())) << "\n"
-            << "Height needed: " << unscale(py(print_bb.size())) << "\n";
+            << "Width needed: " << px(punsc) << "\n"
+            << "Height needed: " << py(punsc) << "\n";
     }
 
     // Offset for centering the print onto the print area
@@ -306,7 +308,7 @@ void print_to(Print& print,
     print.set_status(initstatus, jobdesc);
 
     // Method that prints one layer
-    auto process_layer = [px, py, &layers, &keys, &printer, &st_prev, &m,
+    auto process_layer = [&layers, &keys, &printer, &st_prev, &m,
             &jobdesc, print_bb, dir, cx, cy, &print, initstatus]
             (unsigned layer_id)
     {

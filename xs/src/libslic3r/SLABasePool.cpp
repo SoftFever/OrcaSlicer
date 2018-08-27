@@ -24,25 +24,26 @@ inline coord_t y(const Point& p) { return p(1); }
 inline coord_t& x(Point& p) { return p(0); }
 inline coord_t& y(Point& p) { return p(1); }
 
-inline coordf_t x(const Pointf3& p) { return p(0); }
-inline coordf_t y(const Pointf3& p) { return p(1); }
-inline coordf_t z(const Pointf3& p) { return p(2); }
-inline coordf_t& x(Pointf3& p) { return p(0); }
-inline coordf_t& y(Pointf3& p) { return p(1); }
-inline coordf_t& z(Pointf3& p) { return p(2); }
+inline coordf_t x(const Vec3d& p) { return p(0); }
+inline coordf_t y(const Vec3d& p) { return p(1); }
+inline coordf_t z(const Vec3d& p) { return p(2); }
+inline coordf_t& x(Vec3d& p) { return p(0); }
+inline coordf_t& y(Vec3d& p) { return p(1); }
+inline coordf_t& z(Vec3d& p) { return p(2); }
 
-inline coord_t& x(Point3& p) { return p(0); }
-inline coord_t& y(Point3& p) { return p(1); }
-inline coord_t& z(Point3& p) { return p(2); }
-inline coord_t x(const Point3& p) { return p(0); }
-inline coord_t y(const Point3& p) { return p(1); }
-inline coord_t z(const Point3& p) { return p(2); }
+inline coord_t& x(Vec3crd& p) { return p(0); }
+inline coord_t& y(Vec3crd& p) { return p(1); }
+inline coord_t& z(Vec3crd& p) { return p(2); }
+inline coord_t x(const Vec3crd& p) { return p(0); }
+inline coord_t y(const Vec3crd& p) { return p(1); }
+inline coord_t z(const Vec3crd& p) { return p(2); }
 
+using Indices = std::vector<Vec3crd>;
 
 /// Intermediate struct for a 3D mesh
 struct Contour3D {
     Pointf3s points;
-    std::vector<Point3> indices;
+    Indices indices;
 
     void merge(const Contour3D& ctr) {
         auto s3 = coord_t(points.size());
@@ -62,7 +63,7 @@ inline Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
 
     Pointf3s points;
     points.reserve(3*triangles.size());
-    std::vector<Point3> indices;
+    Indices indices;
     indices.reserve(points.size());
 
     for(auto& tr : triangles) {
@@ -70,7 +71,7 @@ inline Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
         if(dir) indices.emplace_back(a, b, c);
         else indices.emplace_back(c, b, a);
         for(auto& p : tr.points) {
-            points.emplace_back(Pointf3::new_unscale(x(p), y(p), z));
+            points.emplace_back(unscale(x(p), y(p), z));
         }
     }
 
@@ -125,11 +126,12 @@ inline Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
     {
         for(auto& p : pp.points)
             if(is_upper(p))
-                rp.emplace_back(Pointf3::new_unscale(x(p), y(p), mm(cz)));
-            else rp.emplace_back(Pointf3::new_unscale(x(p), y(p), mm(fz)));
+                rp.emplace_back(unscale(x(p), y(p), mm(cz)));
+            else rp.emplace_back(unscale(x(p), y(p), mm(fz)));
 
         coord_t a = idx++, b = idx++, c = idx++;
-        rpi.emplace_back(a, b, c);
+        if(fz > cz) rpi.emplace_back(c, b, a);
+        else rpi.emplace_back(a, b, c);
     });
 
     return ret;
@@ -217,6 +219,7 @@ inline Contour3D round_edges(const ExPolygon& base_plate,
     const int portion = int(steps*degrees / 90);
     const double ystep_mm = radius_mm/steps;
     coord_t s = dir? 1 : -1;
+    double xxprev = 0;
     for(int i = 0; i < portion; i++) {
         ob = base_plate;
 
@@ -235,11 +238,13 @@ inline Contour3D round_edges(const ExPolygon& base_plate,
         wh = ceilheight_mm - i*ystep_mm;
 
         Contour3D pwalls;
-        pwalls = walls(ob, ob_prev, wh, wh_prev);
+        if(xxprev < xx) pwalls = walls(ob, ob_prev, wh, wh_prev);
+        else pwalls = walls(ob_prev, ob, wh_prev, wh);
 
         curvedwalls.merge(pwalls);
         ob_prev = ob;
         wh_prev = wh;
+        xxprev = xx;
     }
 
     last_offset = std::move(ob);
@@ -264,7 +269,7 @@ inline Contour3D inner_bed(const ExPolygon& poly, double depth_mm,
 
     // Generate outer walls
     auto fp = [](const Point& p, Point::coord_type z) {
-        return Pointf3::new_unscale(x(p), y(p), z);
+        return unscale(x(p), y(p), z);
     };
 
     for(auto& l : lines) {
@@ -275,8 +280,8 @@ inline Contour3D inner_bed(const ExPolygon& poly, double depth_mm,
         bottom.points.emplace_back(fp(l.a, begin_h));
         bottom.points.emplace_back(fp(l.b, begin_h));
 
-        bottom.indices.emplace_back(s, s + 1, s + 3);
-        bottom.indices.emplace_back(s, s + 3, s + 2);
+        bottom.indices.emplace_back(s + 3, s + 1, s);
+        bottom.indices.emplace_back(s + 2, s + 3, s);
     }
 
     return bottom;
