@@ -32,7 +32,6 @@
 %name{Slic3r::GUI::PresetCollection} class PresetCollection {
 
     Ref<Preset>             preset(size_t idx) %code%{ RETVAL = &THIS->preset(idx); %};
-    Ref<Preset>             default_preset() %code%{ RETVAL = &THIS->default_preset(); %};
     size_t                  size() const;
     size_t                  num_visible() const;
     std::string             name() const;
@@ -133,6 +132,7 @@ PresetCollection::arrayref()
 
     Ref<PresetCollection>       print()    %code%{ RETVAL = &THIS->prints;   %};
     Ref<PresetCollection>       filament() %code%{ RETVAL = &THIS->filaments; %};
+    Ref<PresetCollection>       sla_material() %code%{ RETVAL = &THIS->sla_materials; %};
     Ref<PresetCollection>       printer()  %code%{ RETVAL = &THIS->printers;  %};
     Ref<DynamicPrintConfig>     project_config() %code%{ RETVAL = &THIS->project_config; %};
 

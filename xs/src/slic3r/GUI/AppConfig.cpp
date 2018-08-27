@@ -233,6 +233,7 @@ void AppConfig::reset_selections()
     if (it != m_storage.end()) {
         it->second.erase("print");
         it->second.erase("filament");
+        it->second.erase("sla_material");
         it->second.erase("printer");
         m_dirty = true;
     }

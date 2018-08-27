@@ -323,6 +323,7 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
+    float get_angle_z();
     const Vec3d& get_origin() const;
     void set_origin(const Vec3d& origin);
     void set_angle_z(float angle_z);

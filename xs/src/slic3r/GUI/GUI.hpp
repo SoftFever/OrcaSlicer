@@ -3,8 +3,9 @@
 
 #include <string>
 #include <vector>
-#include "Config.hpp"
+#include "PrintConfig.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "GUI_ObjectParts.hpp"
 
 #include <wx/intl.h>
 #include <wx/string.h>
@@ -12,7 +13,6 @@
 class wxApp;
 class wxWindow;
 class wxFrame;
-class wxFont;
 class wxMenuBar;
 class wxNotebook;
 class wxComboCtrl;
@@ -24,6 +24,8 @@ class wxBoxSizer;
 class wxFlexGridSizer;
 class wxButton;
 class wxFileDialog;
+class wxStaticBitmap;
+class wxFont;
 
 namespace Slic3r { 
 
@@ -67,18 +69,25 @@ typedef std::map<std::string, std::string> t_file_wild_card;
 inline t_file_wild_card& get_file_wild_card() {
 	static t_file_wild_card FILE_WILDCARDS;
 	if (FILE_WILDCARDS.empty()){
-		FILE_WILDCARDS["known"] = "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA";
-		FILE_WILDCARDS["stl"] = "STL files (*.stl)|*.stl;*.STL";
-		FILE_WILDCARDS["obj"] = "OBJ files (*.obj)|*.obj;*.OBJ";
-        FILE_WILDCARDS["amf"] = "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML";
-        FILE_WILDCARDS["3mf"] = "3MF files (*.3mf)|*.3mf;*.3MF;";
-        FILE_WILDCARDS["prusa"] = "Prusa Control files (*.prusa)|*.prusa;*.PRUSA";
-		FILE_WILDCARDS["ini"] = "INI files *.ini|*.ini;*.INI";
+		FILE_WILDCARDS["known"]	= "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA";
+		FILE_WILDCARDS["stl"]	= "STL files (*.stl)|*.stl;*.STL";
+		FILE_WILDCARDS["obj"]	= "OBJ files (*.obj)|*.obj;*.OBJ";
+        FILE_WILDCARDS["amf"]	= "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML";
+        FILE_WILDCARDS["3mf"]	= "3MF files (*.3mf)|*.3mf;*.3MF;";
+        FILE_WILDCARDS["prusa"]	= "Prusa Control files (*.prusa)|*.prusa;*.PRUSA";
+		FILE_WILDCARDS["ini"]	= "INI files *.ini|*.ini;*.INI";
 		FILE_WILDCARDS["gcode"] = "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC";
-		FILE_WILDCARDS["svg"] = "SVG files *.svg|*.svg;*.SVG";
+		FILE_WILDCARDS["svg"]	= "SVG files *.svg|*.svg;*.SVG";
 	}
 	return FILE_WILDCARDS;
 }
+
+struct PresetTab {
+    std::string       name;
+    Tab*              panel;
+    PrinterTechnology technology;
+};
+
 
 void disable_screensaver();
 void enable_screensaver();
@@ -93,10 +102,26 @@ void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
 void set_3DScene(_3DScene *scene);
+void set_objects_from_perl(	wxWindow* parent,
+							wxBoxSizer *frequently_changed_parameters_sizer,
+							wxBoxSizer *expert_mode_part_sizer,
+							wxBoxSizer *scrolled_window_sizer,
+							wxButton *btn_export_gcode,
+							wxButton *btn_export_stl,
+							wxButton *btn_reslice,
+							wxButton *btn_print,
+							wxButton *btn_send_gcode,
+							wxStaticBitmap *manifold_warning_icon);
+void set_show_print_info(bool show);
+void set_show_manifold_warning_icon(bool show);
+void set_objects_list_sizer(wxBoxSizer *objects_list_sizer);
 
-AppConfig*	get_app_config();
-wxApp*		get_app();
-PresetBundle* get_preset_bundle();
+AppConfig*		get_app_config();
+wxApp*			get_app();
+PresetBundle*	get_preset_bundle();
+wxFrame*		get_main_frame();
+wxNotebook *	get_tab_panel();
+wxNotebook*		get_tab_panel();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
@@ -107,6 +132,14 @@ void set_label_clr_sys(const wxColour& clr);
 
 const wxFont& small_font();
 const wxFont& bold_font();
+
+void open_model(wxWindow *parent, wxArrayString& input_files);
+
+wxWindow*			get_right_panel();
+const size_t&		label_width();
+
+Tab*         get_tab(const std::string& name);
+const std::vector<PresetTab>& get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -130,7 +163,7 @@ void create_preset_tabs(bool no_controller, int event_value_change, int event_pr
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel);
+void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
@@ -150,6 +183,8 @@ void save_language();
 void get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
 // select language from the list of installed languages
 bool select_language(wxArrayString & names, wxArrayLong & identifiers);
+// update right panel of the Plater according to view mode
+void update_mode();
 
 std::vector<Tab *>& get_tabs_list();
 bool checked_tab(Tab* tab);
@@ -169,13 +204,22 @@ wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
 
-
+void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
+							Model &model,
+							int event_object_selection_changed,
+							int event_object_settings_changed,
+							int event_remove_object, 
+							int event_update_scene);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
+// Update view mode according to selected menu 
+void update_mode();
+bool is_expert_mode();
 
 // Callback to trigger a configuration update timer on the Plater.
 static PerlCallback g_on_request_update_callback;
  
-ConfigOptionsGroup* get_optgroup();
+ConfigOptionsGroup* get_optgroup(size_t i); 
+std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups();
 wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);

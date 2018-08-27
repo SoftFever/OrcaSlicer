@@ -40,6 +40,7 @@ public:
 
     PresetCollection            prints;
     PresetCollection            filaments;
+    PresetCollection            sla_materials;
     PresetCollection            printers;
     // Filament preset names for a multi-extruder or multi-material print.
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
@@ -57,12 +58,13 @@ public:
     struct ObsoletePresets {
         std::vector<std::string> prints;
         std::vector<std::string> filaments;
+        std::vector<std::string> sla_materials;
         std::vector<std::string> printers;
     };
     ObsoletePresets             obsolete_presets;
 
     bool                        has_defauls_only() const 
-        { return prints.size() <= 1 && filaments.size() <= 1 && printers.size() <= 1; }
+        { return prints.has_defaults_only() && filaments.has_defaults_only() && printers.has_defaults_only(); }
 
     DynamicPrintConfig          full_config() const;
 
@@ -145,6 +147,9 @@ private:
     void                        load_config_file_config(const std::string &name_or_path, bool is_external, DynamicPrintConfig &&config);
     void                        load_config_file_config_bundle(const std::string &path, const boost::property_tree::ptree &tree);
     bool                        load_compatible_bitmaps();
+
+    DynamicPrintConfig          full_fff_config() const;
+    DynamicPrintConfig          full_sla_config() const;
 
     // Indicator, that the preset is compatible with the selected printer.
     wxBitmap                            *m_bitmapCompatible;

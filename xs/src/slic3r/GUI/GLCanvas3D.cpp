@@ -2967,7 +2967,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         m_mouse.set_start_position_2D_as_invalid();
 #endif
-    } 
+    }
     else if (evt.Leaving())
     {
         // to remove hover on objects when the mouse goes out of this canvas
@@ -3214,6 +3214,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             const Vec3d& size = bb.size();
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
+            update_scale_values(size, m_gizmos.get_scale());
+            update_rotation_value(volumes[0]->get_angle_z(), "z");
         }
 
         if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
@@ -3314,6 +3316,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Scale:
             {
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+                Slic3r::GUI::update_settings_value();
                 break;
             }
             case Gizmos::Rotate:
