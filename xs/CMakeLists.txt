@@ -204,9 +204,11 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.hpp
     ${LIBDIR}/slic3r/GUI/GLCanvas3DManager.cpp
     ${LIBDIR}/slic3r/GUI/GLGizmo.hpp
-    ${LIBDIR}/slic3r/GUI/GLGizmo.cpp    
+    ${LIBDIR}/slic3r/GUI/GLGizmo.cpp
     ${LIBDIR}/slic3r/GUI/GLTexture.hpp
-    ${LIBDIR}/slic3r/GUI/GLTexture.cpp    
+    ${LIBDIR}/slic3r/GUI/GLTexture.cpp
+    ${LIBDIR}/slic3r/GUI/GLToolbar.hpp
+    ${LIBDIR}/slic3r/GUI/GLToolbar.cpp
     ${LIBDIR}/slic3r/GUI/Preferences.cpp
     ${LIBDIR}/slic3r/GUI/Preferences.hpp
     ${LIBDIR}/slic3r/GUI/Preset.cpp
@@ -217,6 +219,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/PresetHints.hpp
     ${LIBDIR}/slic3r/GUI/GUI.cpp
     ${LIBDIR}/slic3r/GUI/GUI.hpp
+    ${LIBDIR}/slic3r/GUI/GUI_ObjectParts.cpp
+    ${LIBDIR}/slic3r/GUI/GUI_ObjectParts.hpp
+    ${LIBDIR}/slic3r/GUI/LambdaObjectDialog.cpp
+    ${LIBDIR}/slic3r/GUI/LambdaObjectDialog.hpp
     ${LIBDIR}/slic3r/GUI/Tab.cpp
     ${LIBDIR}/slic3r/GUI/Tab.hpp
     ${LIBDIR}/slic3r/GUI/TabIface.cpp
@@ -259,8 +265,14 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/FixModelByWin10.cpp
     ${LIBDIR}/slic3r/Utils/FixModelByWin10.hpp
+    ${LIBDIR}/slic3r/Utils/PrintHostSendDialog.cpp
+    ${LIBDIR}/slic3r/Utils/PrintHostSendDialog.hpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.cpp
     ${LIBDIR}/slic3r/Utils/OctoPrint.hpp
+    ${LIBDIR}/slic3r/Utils/Duet.cpp
+    ${LIBDIR}/slic3r/Utils/Duet.hpp
+    ${LIBDIR}/slic3r/Utils/PrintHost.cpp
+    ${LIBDIR}/slic3r/Utils/PrintHost.hpp
     ${LIBDIR}/slic3r/Utils/Bonjour.cpp
     ${LIBDIR}/slic3r/Utils/Bonjour.hpp
     ${LIBDIR}/slic3r/Utils/PresetUpdater.cpp
@@ -464,7 +476,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Surface.xsp
     ${XSP_DIR}/SurfaceCollection.xsp
     ${XSP_DIR}/TriangleMesh.xsp
-    ${XSP_DIR}/Utils_OctoPrint.xsp
+    ${XSP_DIR}/Utils_PrintHost.xsp
     ${XSP_DIR}/Utils_PresetUpdater.xsp
     ${XSP_DIR}/AppController.xsp
     ${XSP_DIR}/XS.xsp
@@ -513,7 +525,7 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver avrdude)
+target_link_libraries(XS libslic3r libslic3r_gui admesh miniz clipper nowide polypartition poly2tri semver avrdude qhull)
 if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
@@ -601,6 +613,10 @@ if (WIN32)
 endif()
 
 add_subdirectory(src/avrdude)
+
+add_subdirectory(src/qhull)
+include_directories(${LIBDIR}/qhull/src)
+message(STATUS ${LIBDIR}/qhull/src)
 
 ## REQUIRED packages
 

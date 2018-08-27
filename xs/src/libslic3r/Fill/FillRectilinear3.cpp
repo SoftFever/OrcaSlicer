@@ -217,11 +217,11 @@ Point SegmentIntersection::pos() const
     const Point   &seg_start = poly.points[(this->iSegment == 0) ? poly.points.size() - 1 : this->iSegment - 1];
     const Point   &seg_end   = poly.points[this->iSegment];
     // Point, vector of the segment.
-    const Pointf   p1(seg_start.cast<coordf_t>());
-    const Pointf   v1((seg_end - seg_start).cast<coordf_t>());
+    const Vec2d   p1(seg_start.cast<coordf_t>());
+    const Vec2d   v1((seg_end - seg_start).cast<coordf_t>());
     // Point, vector of this hatching line.
-    const Pointf   p2(line->pos.cast<coordf_t>());
-    const Pointf   v2(line->dir.cast<coordf_t>());
+    const Vec2d   p2(line->pos.cast<coordf_t>());
+    const Vec2d   v2(line->dir.cast<coordf_t>());
     // Intersect the two rays.
     double denom = v1(0) * v2(1) - v2(0) * v1(1);
     Point out;
@@ -391,7 +391,7 @@ static bool prepare_infill_hatching_segments(
         // Full infill, adjust the line spacing to fit an integer number of lines.
         out.line_spacing = Fill::_adjust_solid_spacing(bounding_box.size()(0), line_spacing);
         // Report back the adjusted line spacing.
-        fill_dir_params.spacing = float(unscale(line_spacing));
+        fill_dir_params.spacing = unscale<double>(line_spacing);
     } else {
         // Extend bounding box so that our pattern will be aligned with the other layers.
         // Transform the reference point to the rotated coordinate system.

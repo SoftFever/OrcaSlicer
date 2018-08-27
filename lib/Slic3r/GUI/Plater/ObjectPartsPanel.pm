@@ -157,7 +157,7 @@ sub new {
             my ($volume_idx) = @_;
             $self->reload_tree($volume_idx);
         });
-        Slic3r::GUI::_3DScene::load_model_object($canvas, $self->{model_object}, 0, [0]);
+        Slic3r::GUI::_3DScene::load_model_object($canvas, $self->{model_object}, 0, [0]);        
         Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
         Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
         $canvas->SetSize([500,700]);
@@ -377,7 +377,8 @@ sub on_btn_load {
             }
         }
     }
-    
+
+    $self->{model_object}->center_around_origin if $self->{parts_changed};
     $self->_parts_changed;
 }
 
@@ -479,7 +480,8 @@ sub on_btn_delete {
         $self->{model_object}->delete_volume($itemData->{volume_id});
         $self->{parts_changed} = 1;
     }
-    
+
+    $self->{model_object}->center_around_origin if $self->{parts_changed};
     $self->_parts_changed;
 }
 

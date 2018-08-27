@@ -35,9 +35,9 @@
             }
         %};
 
-    Ref<Pointf> origin()
+    Ref<Vec2d> origin()
         %code{% RETVAL = &(THIS->origin()); %};
-    void set_origin(Pointf* pointf)
+    void set_origin(Vec2d* pointf)
         %code{% THIS->set_origin(*pointf); %};
     Ref<Point> last_pos()
         %code{% RETVAL = &(THIS->last_pos()); %};

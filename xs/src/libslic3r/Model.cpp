@@ -235,15 +235,7 @@ BoundingBoxf3 Model::bounding_box() const
     return bb;
 }
 
-BoundingBoxf3 Model::transformed_bounding_box() const
-{
-    BoundingBoxf3 bb;
-    for (const ModelObject* obj : this->objects)
-        bb.merge(obj->tight_bounding_box(false));
-    return bb;
-}
-
-void Model::center_instances_around_point(const Pointf &point)
+void Model::center_instances_around_point(const Vec2d &point)
 {
 //    BoundingBoxf3 bb = this->bounding_box();
     BoundingBoxf3 bb;
@@ -251,7 +243,7 @@ void Model::center_instances_around_point(const Pointf &point)
         for (size_t i = 0; i < o->instances.size(); ++ i)
             bb.merge(o->instance_bounding_box(i, false));
 
-    Pointf shift = point - 0.5 * bb.size().xy() - bb.min.xy();
+    Vec2d shift = point - 0.5 * to_2d(bb.size()) - to_2d(bb.min);
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances)
             i->offset += shift;
@@ -309,8 +301,8 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
         for (size_t i = 0; i < o->instances.size(); ++ i) {
             // an accurate snug bounding box around the transformed mesh.
             BoundingBoxf3 bbox(o->instance_bounding_box(i, true));
-            instance_sizes.push_back(bbox.size().xy());
-            instance_centers.push_back(bbox.center().xy());
+            instance_sizes.emplace_back(to_2d(bbox.size()));
+            instance_centers.emplace_back(to_2d(bbox.center()));
         }
 
     Pointfs positions;
@@ -332,7 +324,7 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
 // Duplicate the entire model preserving instance relative positions.
 void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
 {
-    Pointfs model_sizes(copies_num-1, this->bounding_box().size().xy());
+    Pointfs model_sizes(copies_num-1, to_2d(this->bounding_box().size()));
     Pointfs positions;
     if (! _arrange(model_sizes, dist, bb, positions))
         CONFESS("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
@@ -343,7 +335,7 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
         // make a copy of the pointers in order to avoid recursion when appending their copies
         ModelInstancePtrs instances = o->instances;
         for (const ModelInstance *i : instances) {
-            for (const Pointf &pos : positions) {
+            for (const Vec2d &pos : positions) {
                 ModelInstance *instance = o->add_instance(*i);
                 instance->offset += pos;
             }
@@ -375,7 +367,7 @@ void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
     ModelObject* object = this->objects.front();
     object->clear_instances();
 
-    Sizef3 size = object->bounding_box().size();
+    Vec3d size = object->bounding_box().size();
 
     for (size_t x_copy = 1; x_copy <= x; ++x_copy) {
         for (size_t y_copy = 1; y_copy <= y; ++y_copy) {
@@ -621,54 +613,6 @@ const BoundingBoxf3& ModelObject::bounding_box() const
     return m_bounding_box;
 }
 
-BoundingBoxf3 ModelObject::tight_bounding_box(bool include_modifiers) const
-{
-    BoundingBoxf3 bb;
-
-    for (const ModelVolume* vol : this->volumes)
-    {
-        if (include_modifiers || !vol->modifier)
-        {
-            for (const ModelInstance* inst : this->instances)
-            {
-                double c = cos(inst->rotation);
-                double s = sin(inst->rotation);
-
-                for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
-                {
-                    const stl_facet& facet = vol->mesh.stl.facet_start[f];
-
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        // original point
-                        const stl_vertex& v = facet.vertex[i];
-                        Pointf3 p((double)v.x, (double)v.y, (double)v.z);
-
-                        // scale
-                        p(0) *= inst->scaling_factor;
-                        p(1) *= inst->scaling_factor;
-                        p(2) *= inst->scaling_factor;
-
-                        // rotate Z
-                        double x = p(0);
-                        double y = p(1);
-                        p(0) = c * x - s * y;
-                        p(1) = s * x + c * y;
-
-                        // translate
-                        p(0) += inst->offset(0);
-                        p(1) += inst->offset(1);
-
-                        bb.merge(p);
-                    }
-                }
-            }
-        }
-    }
-
-    return bb;
-}
-
 // A mesh containing all transformed instances of this object.
 TriangleMesh ModelObject::mesh() const
 {
@@ -726,24 +670,22 @@ void ModelObject::center_around_origin()
         if (! v->modifier)
 			bb.merge(v->mesh.bounding_box());
     
-    // first align to origin on XYZ
-    Vectorf3 vector(-bb.min(0), -bb.min(1), -bb.min(2));
+    // First align to origin on XYZ, then center it on XY.
+    Vec3d size = bb.size();
+    size(2) = 0.;
+    Vec3d shift3 = - bb.min - 0.5 * size;
+    // Unaligned vector, for the Rotation2D to work on Visual Studio 2013.
+    Eigen::Vector2d shift2 = to_2d(shift3);
     
-    // then center it on XY
-    Sizef3 size = bb.size();
-    vector(0) -= size(0)/2;
-    vector(1) -= size(1)/2;
-    
-    this->translate(vector);
-    this->origin_translation += vector;
+    this->translate(shift3);
+    this->origin_translation += shift3;
     
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
-            Vectorf v = - vector.xy();
-            v.rotate(i->rotation);
-            i->offset += v * i->scaling_factor;
+            Eigen::Rotation2Dd rot(i->rotation);
+            i->offset -= rot * shift2 * i->scaling_factor;
         }
         this->invalidate_bounding_box();
     }
@@ -752,39 +694,38 @@ void ModelObject::center_around_origin()
 void ModelObject::translate(coordf_t x, coordf_t y, coordf_t z)
 {
     for (ModelVolume *v : this->volumes)
+    {
         v->mesh.translate(float(x), float(y), float(z));
-    if (m_bounding_box_valid) 
+        v->m_convex_hull.translate(float(x), float(y), float(z));
+    }
+
+    if (m_bounding_box_valid)
         m_bounding_box.translate(x, y, z);
 }
 
-void ModelObject::scale(const Pointf3 &versor)
+void ModelObject::scale(const Vec3d &versor)
 {
     for (ModelVolume *v : this->volumes)
+    {
         v->mesh.scale(versor);
+        v->m_convex_hull.scale(versor);
+    }
     // reset origin translation since it doesn't make sense anymore
-    this->origin_translation = Pointf3(0,0,0);
+    this->origin_translation = Vec3d::Zero();
     this->invalidate_bounding_box();
 }
 
 void ModelObject::rotate(float angle, const Axis &axis)
 {
-    float min_z = FLT_MAX;
     for (ModelVolume *v : this->volumes)
     {
         v->mesh.rotate(angle, axis);
-        min_z = std::min(min_z, v->mesh.stl.stats.min.z);
+        v->m_convex_hull.rotate(angle, axis);
     }
 
-    if (min_z != 0.0f)
-    {
-        // translate the object so that its minimum z lays on the bed
-        for (ModelVolume *v : this->volumes)
-        {
-            v->mesh.translate(0.0f, 0.0f, -min_z);
-        }
-    }
+    center_around_origin();
 
-    this->origin_translation = Pointf3(0, 0, 0);
+    this->origin_translation = Vec3d::Zero();
     this->invalidate_bounding_box();
 }
 
@@ -796,17 +737,22 @@ void ModelObject::transform(const float* matrix3x4)
     for (ModelVolume* v : volumes)
     {
         v->mesh.transform(matrix3x4);
+        v->m_convex_hull.transform(matrix3x4);
     }
 
-    origin_translation = Pointf3(0.0, 0.0, 0.0);
-    invalidate_bounding_box();
+    this->origin_translation = Vec3d::Zero();
+    this->invalidate_bounding_box();
 }
 
 void ModelObject::mirror(const Axis &axis)
 {
     for (ModelVolume *v : this->volumes)
+    {
         v->mesh.mirror(axis);
-    this->origin_translation = Pointf3(0,0,0);
+        v->m_convex_hull.mirror(axis);
+    }
+
+    this->origin_translation = Vec3d::Zero();
     this->invalidate_bounding_box();
 }
 
@@ -910,45 +856,18 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 
 void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
 {
-    for (ModelVolume* vol : this->volumes)
+    for (const ModelVolume* vol : this->volumes)
     {
         if (!vol->modifier)
         {
             for (ModelInstance* inst : this->instances)
             {
-                BoundingBoxf3 bb;
+                Transform3d m = Transform3d::Identity();
+                m.translate(Vec3d(inst->offset(0), inst->offset(1), 0.0));
+                m.rotate(Eigen::AngleAxisd(inst->rotation, Vec3d::UnitZ()));
+                m.scale(inst->scaling_factor);
 
-                double c = cos(inst->rotation);
-                double s = sin(inst->rotation);
-
-                for (int f = 0; f < vol->mesh.stl.stats.number_of_facets; ++f)
-                {
-                    const stl_facet& facet = vol->mesh.stl.facet_start[f];
-
-                    for (int i = 0; i < 3; ++i)
-                    {
-                        // original point
-                        const stl_vertex& v = facet.vertex[i];
-                        Pointf3 p((double)v.x, (double)v.y, (double)v.z);
-
-                        // scale
-                        p(0) *= inst->scaling_factor;
-                        p(1) *= inst->scaling_factor;
-                        p(2) *= inst->scaling_factor;
-
-                        // rotate Z
-                        double x = p(0);
-                        double y = p(1);
-                        p(0) = c * x - s * y;
-                        p(1) = s * x + c * y;
-
-                        // translate
-                        p(0) += inst->offset(0);
-                        p(1) += inst->offset(1);
-
-                        bb.merge(p);
-                    }
-                }
+                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(m);
 
                 if (print_volume.contains(bb))
                     inst->print_volume_state = ModelInstance::PVS_Inside;
@@ -970,7 +889,7 @@ void ModelObject::print_info() const
     TriangleMesh mesh = this->raw_mesh();
     mesh.check_topology();
     BoundingBoxf3 bb = mesh.bounding_box();
-    Sizef3 size = bb.size();
+    Vec3d size = bb.size();
     cout << "size_x = " << size(0) << endl;
     cout << "size_y = " << size(1) << endl;
     cout << "size_z = " << size(2) << endl;
@@ -1031,6 +950,16 @@ ModelMaterial* ModelVolume::assign_unique_material()
     return model->add_material(this->_material_id);
 }
 
+void ModelVolume::calculate_convex_hull()
+{
+    m_convex_hull = mesh.convex_hull_3d();
+}
+
+const TriangleMesh& ModelVolume::get_convex_hull() const
+{
+    return m_convex_hull;
+}
+
 // Split this volume, append the result to the object owning this volume.
 // Return the number of volumes created from this one.
 // This is useful to assign different materials to different volumes of an object.
@@ -1082,30 +1011,20 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
     for (int i = 0; i < mesh->stl.stats.number_of_facets; ++ i) {
         const stl_facet &facet = mesh->stl.facet_start[i];
         for (int j = 0; j < 3; ++ j) {
-            stl_vertex v = facet.vertex[j];
-            double xold = v.x;
-            double yold = v.y;
-            v.x = float(c * xold - s * yold);
-            v.y = float(s * xold + c * yold);
-            bbox.merge(Pointf3(v.x, v.y, v.z));
+            const stl_vertex &v = facet.vertex[j];
+			bbox.merge(Vec3d(c * v(0) - s * v(1), s * v(0) + c * v(1), v(2)));
         }
     }
     if (! empty(bbox)) {
         // Scale the bounding box uniformly.
         if (std::abs(this->scaling_factor - 1.) > EPSILON) {
-            bbox.min(0) *= float(this->scaling_factor);
-            bbox.min(1) *= float(this->scaling_factor);
-            bbox.min(2) *= float(this->scaling_factor);
-            bbox.max(0) *= float(this->scaling_factor);
-            bbox.max(1) *= float(this->scaling_factor);
-            bbox.max(2) *= float(this->scaling_factor);
+            bbox.min *= this->scaling_factor;
+			bbox.max *= this->scaling_factor;
         }
         // Translate the bounding box.
         if (! dont_translate) {
-            bbox.min(0) += float(this->offset(0));
-            bbox.min(1) += float(this->offset(1));
-            bbox.max(0) += float(this->offset(0));
-            bbox.max(1) += float(this->offset(1));
+            Eigen::Map<Vec2d>(bbox.min.data()) += this->offset;
+            Eigen::Map<Vec2d>(bbox.max.data()) += this->offset;
         }
     }
     return bbox;
@@ -1113,10 +1032,11 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    auto matrix = Transform3f::Identity();
+    Transform3d matrix = Transform3d::Identity();
     if (!dont_translate)
-        matrix.translate(Vec3f((float)offset(0), (float)offset(1), 0.0f));
-    matrix.rotate(Eigen::AngleAxisf(rotation, Vec3f::UnitZ()));
+        matrix.translate(Vec3d(offset(0), offset(1), 0.0));
+
+    matrix.rotate(Eigen::AngleAxisd(rotation, Vec3d::UnitZ()));
     matrix.scale(scaling_factor);
     return bbox.transformed(matrix);
 }

@@ -402,10 +402,11 @@ void AMFParserContext::endElement(const char * /* name */)
         for (size_t i = 0; i < m_volume_facets.size();) {
             stl_facet &facet = stl.facet_start[i/3];
             for (unsigned int v = 0; v < 3; ++ v)
-                memcpy(&facet.vertex[v].x, &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
+                memcpy(facet.vertex[v].data(), &m_object_vertices[m_volume_facets[i ++] * 3], 3 * sizeof(float));
         }
         stl_get_size(&stl);
         m_volume->mesh.repair();
+        m_volume->calculate_convex_hull();
         m_volume_facets.clear();
         m_volume = nullptr;
         break;
@@ -760,9 +761,9 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
             for (size_t i = 0; i < stl.stats.shared_vertices; ++ i) {
                 stream << "         <vertex>\n";
                 stream << "           <coordinates>\n";
-                stream << "             <x>" << stl.v_shared[i].x << "</x>\n";
-                stream << "             <y>" << stl.v_shared[i].y << "</y>\n";
-                stream << "             <z>" << stl.v_shared[i].z << "</z>\n";
+                stream << "             <x>" << stl.v_shared[i](0) << "</x>\n";
+                stream << "             <y>" << stl.v_shared[i](1) << "</y>\n";
+                stream << "             <z>" << stl.v_shared[i](2) << "</z>\n";
                 stream << "           </coordinates>\n";
                 stream << "         </vertex>\n";
             }

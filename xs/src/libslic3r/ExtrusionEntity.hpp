@@ -149,7 +149,7 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const { return this->mm3_per_mm; }
     Polyline as_polyline() const { return this->polyline; }
-    virtual double total_volume() const { return mm3_per_mm * unscale(length()); }
+    virtual double total_volume() const { return mm3_per_mm * unscale<double>(length()); }
 
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;

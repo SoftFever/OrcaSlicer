@@ -84,7 +84,7 @@ public:
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
-    Pointf3                 origin_translation;
+    Vec3d                   origin_translation;
     
     Model* get_model() const { return m_model; };
     
@@ -105,9 +105,6 @@ public:
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
     void invalidate_bounding_box() { m_bounding_box_valid = false; }
-    // Returns a snug bounding box of the transformed instances.
-    // This bounding box is not being cached.
-    BoundingBoxf3 tight_bounding_box(bool include_modifiers) const;
 
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
@@ -120,9 +117,9 @@ public:
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     void center_around_origin();
-    void translate(const Vectorf3 &vector) { this->translate(vector(0), vector(1), vector(2)); }
+    void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
-    void scale(const Pointf3 &versor);
+    void scale(const Vec3d &versor);
     void rotate(float angle, const Axis &axis);
     void transform(const float* matrix3x4);
     void mirror(const Axis &axis);
@@ -138,7 +135,7 @@ public:
     void print_info() const;
     
 private:        
-    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), m_bounding_box_valid(false) {}
+    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
     ModelObject& operator= (ModelObject other);
     void swap(ModelObject &other);
@@ -157,6 +154,10 @@ private:
 class ModelVolume
 {
     friend class ModelObject;
+
+    // The convex hull of this model's mesh.
+    TriangleMesh m_convex_hull;
+
 public:
     std::string name;
     // The triangular model.
@@ -180,19 +181,32 @@ public:
 
     ModelMaterial* assign_unique_material();
     
+    void calculate_convex_hull();
+    const TriangleMesh& get_convex_hull() const;
+
 private:
     // Parent object owning this ModelVolume.
     ModelObject* object;
     t_model_material_id _material_id;
     
-    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object) {}
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh) : mesh(std::move(mesh)), modifier(false), object(object) {}
-    ModelVolume(ModelObject *object, const ModelVolume &other) : 
-        name(other.name), mesh(other.mesh), config(other.config), modifier(other.modifier), object(object)
-        { this->material_id(other.material_id()); }
-    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) : 
+    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object)
+    {
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), modifier(false), object(object) {}
+    ModelVolume(ModelObject *object, const ModelVolume &other) :
+        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), modifier(other.modifier), object(object)
+    {
+        this->material_id(other.material_id());
+    }
+    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), mesh(std::move(mesh)), config(other.config), modifier(other.modifier), object(object)
-        { this->material_id(other.material_id()); }
+    {
+        this->material_id(other.material_id());
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
 };
 
 // A single instance of a ModelObject.
@@ -213,7 +227,7 @@ public:
 //    Transform3d     transform;
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
-    Pointf offset;              // in unscaled coordinates
+    Vec2d offset;              // in unscaled coordinates
     
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
     EPrintVolumeState print_volume_state;
@@ -235,7 +249,7 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object), print_volume_state(PVS_Inside) {}
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), offset(Vec2d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), print_volume_state(PVS_Inside) {}
 };
@@ -286,9 +300,7 @@ public:
     bool add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
-    // Returns tight axis aligned bounding box of this model
-    BoundingBoxf3 transformed_bounding_box() const;
-    void center_instances_around_point(const Pointf &point);
+    void center_instances_around_point(const Vec2d &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
     bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);

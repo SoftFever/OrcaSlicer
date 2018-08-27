@@ -7,9 +7,9 @@
 namespace Slic3r {
 
 template BoundingBoxBase<Point>::BoundingBoxBase(const std::vector<Point> &points);
-template BoundingBoxBase<Pointf>::BoundingBoxBase(const std::vector<Pointf> &points);
+template BoundingBoxBase<Vec2d>::BoundingBoxBase(const std::vector<Vec2d> &points);
 
-template BoundingBox3Base<Pointf3>::BoundingBox3Base(const std::vector<Pointf3> &points);
+template BoundingBox3Base<Vec3d>::BoundingBox3Base(const std::vector<Vec3d> &points);
 
 BoundingBox::BoundingBox(const Lines &lines)
 {
@@ -22,8 +22,7 @@ BoundingBox::BoundingBox(const Lines &lines)
     *this = BoundingBox(points);
 }
 
-void
-BoundingBox::polygon(Polygon* polygon) const
+void BoundingBox::polygon(Polygon* polygon) const
 {
     polygon->points.clear();
     polygon->points.resize(4);
@@ -37,8 +36,7 @@ BoundingBox::polygon(Polygon* polygon) const
     polygon->points[3](1) = this->max(1);
 }
 
-Polygon
-BoundingBox::polygon() const
+Polygon BoundingBox::polygon() const
 {
     Polygon p;
     this->polygon(&p);
@@ -72,24 +70,23 @@ BoundingBoxBase<PointClass>::scale(double factor)
     this->max *= factor;
 }
 template void BoundingBoxBase<Point>::scale(double factor);
-template void BoundingBoxBase<Pointf>::scale(double factor);
-template void BoundingBoxBase<Pointf3>::scale(double factor);
+template void BoundingBoxBase<Vec2d>::scale(double factor);
+template void BoundingBoxBase<Vec3d>::scale(double factor);
 
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const PointClass &point)
 {
     if (this->defined) {
-        this->min(0) = std::min(point(0), this->min(0));
-        this->min(1) = std::min(point(1), this->min(1));
-        this->max(0) = std::max(point(0), this->max(0));
-        this->max(1) = std::max(point(1), this->max(1));
+        this->min = this->min.cwiseMin(point);
+        this->max = this->max.cwiseMax(point);
     } else {
-        this->min = this->max = point;
+        this->min = point;
+        this->max = point;
         this->defined = true;
     }
 }
 template void BoundingBoxBase<Point>::merge(const Point &point);
-template void BoundingBoxBase<Pointf>::merge(const Pointf &point);
+template void BoundingBoxBase<Vec2d>::merge(const Vec2d &point);
 
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const std::vector<PointClass> &points)
@@ -97,7 +94,7 @@ BoundingBoxBase<PointClass>::merge(const std::vector<PointClass> &points)
     this->merge(BoundingBoxBase(points));
 }
 template void BoundingBoxBase<Point>::merge(const Points &points);
-template void BoundingBoxBase<Pointf>::merge(const Pointfs &points);
+template void BoundingBoxBase<Vec2d>::merge(const Pointfs &points);
 
 template <class PointClass> void
 BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
@@ -105,10 +102,8 @@ BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
     assert(bb.defined || bb.min(0) >= bb.max(0) || bb.min(1) >= bb.max(1));
     if (bb.defined) {
         if (this->defined) {
-            this->min(0) = std::min(bb.min(0), this->min(0));
-            this->min(1) = std::min(bb.min(1), this->min(1));
-            this->max(0) = std::max(bb.max(0), this->max(0));
-            this->max(1) = std::max(bb.max(1), this->max(1));
+            this->min = this->min.cwiseMin(bb.min);
+            this->max = this->max.cwiseMax(bb.max);
         } else {
             this->min = bb.min;
             this->max = bb.max;
@@ -117,25 +112,28 @@ BoundingBoxBase<PointClass>::merge(const BoundingBoxBase<PointClass> &bb)
     }
 }
 template void BoundingBoxBase<Point>::merge(const BoundingBoxBase<Point> &bb);
-template void BoundingBoxBase<Pointf>::merge(const BoundingBoxBase<Pointf> &bb);
+template void BoundingBoxBase<Vec2d>::merge(const BoundingBoxBase<Vec2d> &bb);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const PointClass &point)
 {
     if (this->defined) {
-        this->min(2) = std::min(point(2), this->min(2));
-        this->max(2) = std::max(point(2), this->max(2));
+        this->min = this->min.cwiseMin(point);
+        this->max = this->max.cwiseMax(point);
+    } else {
+        this->min = point;
+        this->max = point;
+        this->defined = true;
     }
-    BoundingBoxBase<PointClass>::merge(point);
 }
-template void BoundingBox3Base<Pointf3>::merge(const Pointf3 &point);
+template void BoundingBox3Base<Vec3d>::merge(const Vec3d &point);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const std::vector<PointClass> &points)
 {
     this->merge(BoundingBox3Base(points));
 }
-template void BoundingBox3Base<Pointf3>::merge(const Pointf3s &points);
+template void BoundingBox3Base<Vec3d>::merge(const Pointf3s &points);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::merge(const BoundingBox3Base<PointClass> &bb)
@@ -143,13 +141,16 @@ BoundingBox3Base<PointClass>::merge(const BoundingBox3Base<PointClass> &bb)
     assert(bb.defined || bb.min(0) >= bb.max(0) || bb.min(1) >= bb.max(1) || bb.min(2) >= bb.max(2));
     if (bb.defined) {
         if (this->defined) {
-            this->min(2) = std::min(bb.min(2), this->min(2));
-            this->max(2) = std::max(bb.max(2), this->max(2));
+            this->min = this->min.cwiseMin(bb.min);
+            this->max = this->max.cwiseMax(bb.max);
+        } else {
+            this->min = bb.min;
+            this->max = bb.max;
+            this->defined = true;
         }
-        BoundingBoxBase<PointClass>::merge(bb);
     }
 }
-template void BoundingBox3Base<Pointf3>::merge(const BoundingBox3Base<Pointf3> &bb);
+template void BoundingBox3Base<Vec3d>::merge(const BoundingBox3Base<Vec3d> &bb);
 
 template <class PointClass> PointClass
 BoundingBoxBase<PointClass>::size() const
@@ -157,14 +158,14 @@ BoundingBoxBase<PointClass>::size() const
     return PointClass(this->max(0) - this->min(0), this->max(1) - this->min(1));
 }
 template Point BoundingBoxBase<Point>::size() const;
-template Pointf BoundingBoxBase<Pointf>::size() const;
+template Vec2d BoundingBoxBase<Vec2d>::size() const;
 
 template <class PointClass> PointClass
 BoundingBox3Base<PointClass>::size() const
 {
     return PointClass(this->max(0) - this->min(0), this->max(1) - this->min(1), this->max(2) - this->min(2));
 }
-template Pointf3 BoundingBox3Base<Pointf3>::size() const;
+template Vec3d BoundingBox3Base<Vec3d>::size() const;
 
 template <class PointClass> double BoundingBoxBase<PointClass>::radius() const
 {
@@ -174,7 +175,7 @@ template <class PointClass> double BoundingBoxBase<PointClass>::radius() const
     return 0.5 * sqrt(x*x+y*y);
 }
 template double BoundingBoxBase<Point>::radius() const;
-template double BoundingBoxBase<Pointf>::radius() const;
+template double BoundingBoxBase<Vec2d>::radius() const;
 
 template <class PointClass> double BoundingBox3Base<PointClass>::radius() const
 {
@@ -183,7 +184,7 @@ template <class PointClass> double BoundingBox3Base<PointClass>::radius() const
     double z = this->max(2) - this->min(2);
     return 0.5 * sqrt(x*x+y*y+z*z);
 }
-template double BoundingBox3Base<Pointf3>::radius() const;
+template double BoundingBox3Base<Vec3d>::radius() const;
 
 template <class PointClass> void
 BoundingBoxBase<PointClass>::offset(coordf_t delta)
@@ -193,7 +194,7 @@ BoundingBoxBase<PointClass>::offset(coordf_t delta)
     this->max += v;
 }
 template void BoundingBoxBase<Point>::offset(coordf_t delta);
-template void BoundingBoxBase<Pointf>::offset(coordf_t delta);
+template void BoundingBoxBase<Vec2d>::offset(coordf_t delta);
 
 template <class PointClass> void
 BoundingBox3Base<PointClass>::offset(coordf_t delta)
@@ -202,29 +203,22 @@ BoundingBox3Base<PointClass>::offset(coordf_t delta)
     this->min -= v;
     this->max += v;
 }
-template void BoundingBox3Base<Pointf3>::offset(coordf_t delta);
+template void BoundingBox3Base<Vec3d>::offset(coordf_t delta);
 
 template <class PointClass> PointClass
 BoundingBoxBase<PointClass>::center() const
 {
-    return PointClass(
-        (this->max(0) + this->min(0))/2,
-        (this->max(1) + this->min(1))/2
-    );
+    return (this->min + this->max) / 2;
 }
 template Point BoundingBoxBase<Point>::center() const;
-template Pointf BoundingBoxBase<Pointf>::center() const;
+template Vec2d BoundingBoxBase<Vec2d>::center() const;
 
 template <class PointClass> PointClass
 BoundingBox3Base<PointClass>::center() const
 {
-    return PointClass(
-        (this->max(0) + this->min(0))/2,
-        (this->max(1) + this->min(1))/2,
-        (this->max(2) + this->min(2))/2
-    );
+    return (this->min + this->max) / 2;
 }
-template Pointf3 BoundingBox3Base<Pointf3>::center() const;
+template Vec3d BoundingBox3Base<Vec3d>::center() const;
 
 template <class PointClass> coordf_t
 BoundingBox3Base<PointClass>::max_size() const
@@ -232,7 +226,7 @@ BoundingBox3Base<PointClass>::max_size() const
     PointClass s = size();
     return std::max(s(0), std::max(s(1), s(2)));
 }
-template coordf_t BoundingBox3Base<Pointf3>::max_size() const;
+template coordf_t BoundingBox3Base<Vec3d>::max_size() const;
 
 // Align a coordinate to a grid. The coordinate may be negative,
 // the aligned value will never be bigger than the original one.
@@ -255,39 +249,35 @@ void BoundingBox::align_to_grid(const coord_t cell_size)
     }
 }
 
-BoundingBoxf3 BoundingBoxf3::transformed(const Transform3f& matrix) const
+BoundingBoxf3 BoundingBoxf3::transformed(const Transform3d& matrix) const
 {
-    Eigen::Matrix<float, 3, 8, Eigen::DontAlign> vertices;
+    typedef Eigen::Matrix<double, 3, 8, Eigen::DontAlign> Vertices;
 
-    vertices(0, 0) = (float)min(0); vertices(1, 0) = (float)min(1); vertices(2, 0) = (float)min(2);
-    vertices(0, 1) = (float)max(0); vertices(1, 1) = (float)min(1); vertices(2, 1) = (float)min(2);
-    vertices(0, 2) = (float)max(0); vertices(1, 2) = (float)max(1); vertices(2, 2) = (float)min(2);
-    vertices(0, 3) = (float)min(0); vertices(1, 3) = (float)max(1); vertices(2, 3) = (float)min(2);
-    vertices(0, 4) = (float)min(0); vertices(1, 4) = (float)min(1); vertices(2, 4) = (float)max(2);
-    vertices(0, 5) = (float)max(0); vertices(1, 5) = (float)min(1); vertices(2, 5) = (float)max(2);
-    vertices(0, 6) = (float)max(0); vertices(1, 6) = (float)max(1); vertices(2, 6) = (float)max(2);
-    vertices(0, 7) = (float)min(0); vertices(1, 7) = (float)max(1); vertices(2, 7) = (float)max(2);
+    Vertices src_vertices;
+    src_vertices(0, 0) = min(0); src_vertices(1, 0) = min(1); src_vertices(2, 0) = min(2);
+    src_vertices(0, 1) = max(0); src_vertices(1, 1) = min(1); src_vertices(2, 1) = min(2);
+    src_vertices(0, 2) = max(0); src_vertices(1, 2) = max(1); src_vertices(2, 2) = min(2);
+    src_vertices(0, 3) = min(0); src_vertices(1, 3) = max(1); src_vertices(2, 3) = min(2);
+    src_vertices(0, 4) = min(0); src_vertices(1, 4) = min(1); src_vertices(2, 4) = max(2);
+    src_vertices(0, 5) = max(0); src_vertices(1, 5) = min(1); src_vertices(2, 5) = max(2);
+    src_vertices(0, 6) = max(0); src_vertices(1, 6) = max(1); src_vertices(2, 6) = max(2);
+    src_vertices(0, 7) = min(0); src_vertices(1, 7) = max(1); src_vertices(2, 7) = max(2);
 
-    Eigen::Matrix<float, 3, 8, Eigen::DontAlign> transf_vertices = matrix * vertices.colwise().homogeneous();
+    Vertices dst_vertices = matrix * src_vertices.colwise().homogeneous();
 
-    float min_x = transf_vertices(0, 0);
-    float max_x = transf_vertices(0, 0);
-    float min_y = transf_vertices(1, 0);
-    float max_y = transf_vertices(1, 0);
-    float min_z = transf_vertices(2, 0);
-    float max_z = transf_vertices(2, 0);
+    Vec3d v_min(dst_vertices(0, 0), dst_vertices(1, 0), dst_vertices(2, 0));
+    Vec3d v_max = v_min;
 
     for (int i = 1; i < 8; ++i)
     {
-        min_x = std::min(min_x, transf_vertices(0, i));
-        max_x = std::max(max_x, transf_vertices(0, i));
-        min_y = std::min(min_y, transf_vertices(1, i));
-        max_y = std::max(max_y, transf_vertices(1, i));
-        min_z = std::min(min_z, transf_vertices(2, i));
-        max_z = std::max(max_z, transf_vertices(2, i));
+        for (int j = 0; j < 3; ++j)
+        {
+            v_min(j) = std::min(v_min(j), dst_vertices(j, i));
+            v_max(j) = std::max(v_max(j), dst_vertices(j, i));
+        }
     }
 
-    return BoundingBoxf3(Pointf3((coordf_t)min_x, (coordf_t)min_y, (coordf_t)min_z), Pointf3((coordf_t)max_x, (coordf_t)max_y, (coordf_t)max_z));
+    return BoundingBoxf3(v_min, v_max);
 }
 
 }

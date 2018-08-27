@@ -49,9 +49,9 @@ enum ConfigOptionType {
     coPercents      = coPercent + coVectorType,
     // a fraction or an absolute value
     coFloatOrPercent = 5,
-    // single 2d point. Currently not used.
+    // single 2d point (Point2f). Currently not used.
     coPoint         = 6,
-    // vector of 2d points. Currently used for the definition of the print bed and for the extruder offsets.
+    // vector of 2d points (Point2f). Currently used for the definition of the print bed and for the extruder offsets.
     coPoints        = coPoint + coVectorType,
     // single boolean value
     coBool          = 7,
@@ -622,11 +622,11 @@ public:
     }
 };
 
-class ConfigOptionPoint : public ConfigOptionSingle<Pointf>
+class ConfigOptionPoint : public ConfigOptionSingle<Vec2d>
 {
 public:
-    ConfigOptionPoint() : ConfigOptionSingle<Pointf>(Pointf(0,0)) {}
-    explicit ConfigOptionPoint(const Pointf &value) : ConfigOptionSingle<Pointf>(value) {}
+    ConfigOptionPoint() : ConfigOptionSingle<Vec2d>(Vec2d(0,0)) {}
+    explicit ConfigOptionPoint(const Vec2d &value) : ConfigOptionSingle<Vec2d>(value) {}
     
     static ConfigOptionType static_type() { return coPoint; }
     ConfigOptionType        type()  const override { return static_type(); }
@@ -652,13 +652,13 @@ public:
     }
 };
 
-class ConfigOptionPoints : public ConfigOptionVector<Pointf>
+class ConfigOptionPoints : public ConfigOptionVector<Vec2d>
 {
 public:
-    ConfigOptionPoints() : ConfigOptionVector<Pointf>() {}
-    explicit ConfigOptionPoints(size_t n, const Pointf &value) : ConfigOptionVector<Pointf>(n, value) {}
-    explicit ConfigOptionPoints(std::initializer_list<Pointf> il) : ConfigOptionVector<Pointf>(std::move(il)) {}
-    explicit ConfigOptionPoints(const std::vector<Pointf> &values) : ConfigOptionVector<Pointf>(values) {}
+    ConfigOptionPoints() : ConfigOptionVector<Vec2d>() {}
+    explicit ConfigOptionPoints(size_t n, const Vec2d &value) : ConfigOptionVector<Vec2d>(n, value) {}
+    explicit ConfigOptionPoints(std::initializer_list<Vec2d> il) : ConfigOptionVector<Vec2d>(std::move(il)) {}
+    explicit ConfigOptionPoints(const std::vector<Vec2d> &values) : ConfigOptionVector<Vec2d>(values) {}
 
     static ConfigOptionType static_type() { return coPoints; }
     ConfigOptionType        type()  const override { return static_type(); }
@@ -696,7 +696,7 @@ public:
         std::istringstream is(str);
         std::string point_str;
         while (std::getline(is, point_str, ',')) {
-            Pointf point;
+            Vec2d point(Vec2d::Zero());
             std::istringstream iss(point_str);
             std::string coord_str;
             if (std::getline(iss, coord_str, 'x')) {
@@ -821,12 +821,7 @@ public:
     bool deserialize(const std::string &str, bool append = false) override
     {
         UNUSED(append);
-        const t_config_enum_values &enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
-        auto it = enum_keys_map.find(str);
-        if (it == enum_keys_map.end())
-            return false;
-        this->value = static_cast<T>(it->second);
-        return true;
+        return from_string(str, this->value);
     }
 
     static bool has(T value) 
@@ -838,7 +833,7 @@ public:
     }
 
     // Map from an enum name to an enum integer value.
-    static t_config_enum_names& get_enum_names() 
+    static const t_config_enum_names& get_enum_names() 
     {
         static t_config_enum_names names;
         if (names.empty()) {
@@ -855,7 +850,17 @@ public:
         return names;
     }
     // Map from an enum name to an enum integer value.
-    static t_config_enum_values& get_enum_values();
+    static const t_config_enum_values& get_enum_values();
+
+    static bool from_string(const std::string &str, T &value)
+    {
+        const t_config_enum_values &enum_keys_map = ConfigOptionEnum<T>::get_enum_values();
+        auto it = enum_keys_map.find(str);
+        if (it == enum_keys_map.end())
+            return false;
+        value = static_cast<T>(it->second);
+        return true;
+    }
 };
 
 // Generic enum configuration value.
@@ -900,7 +905,7 @@ public:
     // What type? bool, int, string etc.
     ConfigOptionType                    type            = coNone;
     // Default value of this option. The default value object is owned by ConfigDef, it is released in its destructor.
-    ConfigOption                       *default_value   = nullptr;
+    const ConfigOption                 *default_value   = nullptr;
 
     // Usually empty. 
     // Special values - "i_enum_open", "f_enum_open" to provide combo box for int or float selection,
@@ -958,7 +963,7 @@ public:
     std::vector<std::string>            enum_labels;
     // For enums (when type == coEnum). Maps enum_values to enums.
     // Initialized by ConfigOptionEnum<xxx>::get_enum_values()
-    t_config_enum_values               *enum_keys_map   = nullptr;
+    const t_config_enum_values         *enum_keys_map   = nullptr;
 
     bool has_enum_value(const std::string &value) const {
         for (const std::string &v : enum_values)

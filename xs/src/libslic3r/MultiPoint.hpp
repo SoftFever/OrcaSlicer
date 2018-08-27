@@ -85,7 +85,7 @@ class MultiPoint3
 public:
     Points3 points;
 
-    void append(const Point3& point) { this->points.push_back(point); }
+    void append(const Vec3crd& point) { this->points.push_back(point); }
 
     void translate(double x, double y);
     void translate(const Point& vector);

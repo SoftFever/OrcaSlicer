@@ -7,11 +7,6 @@
 
 namespace Slic3r {
 
-typedef Point   Size;
-typedef Point3  Size3;
-typedef Pointf  Sizef;
-typedef Pointf3 Sizef3;
-
 template <class PointClass>
 class BoundingBoxBase
 {
@@ -20,23 +15,20 @@ public:
     PointClass max;
     bool defined;
     
-    BoundingBoxBase() : defined(false) {};
+    BoundingBoxBase() : defined(false), min(PointClass::Zero()), max(PointClass::Zero()) {}
     BoundingBoxBase(const PointClass &pmin, const PointClass &pmax) : 
         min(pmin), max(pmax), defined(pmin(0) < pmax(0) && pmin(1) < pmax(1)) {}
-    BoundingBoxBase(const std::vector<PointClass>& points)
+    BoundingBoxBase(const std::vector<PointClass>& points) : min(PointClass::Zero()), max(PointClass::Zero())
     {
         if (points.empty())
             CONFESS("Empty point set supplied to BoundingBoxBase constructor");
 
         typename std::vector<PointClass>::const_iterator it = points.begin();
-        this->min(0) = this->max(0) = (*it)(0);
-        this->min(1) = this->max(1) = (*it)(1);
-        for (++it; it != points.end(); ++it)
-        {
-            this->min(0) = std::min((*it)(0), this->min(0));
-            this->min(1) = std::min((*it)(1), this->min(1));
-            this->max(0) = std::max((*it)(0), this->max(0));
-            this->max(1) = std::max((*it)(1), this->max(1));
+        this->min = *it;
+        this->max = *it;
+        for (++ it; it != points.end(); ++ it) {
+            this->min = this->min.cwiseMin(*it);
+            this->max = this->max.cwiseMax(*it);
         }
         this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1));
     }
@@ -47,7 +39,7 @@ public:
     PointClass size() const;
     double radius() const;
     void translate(coordf_t x, coordf_t y) { assert(this->defined); PointClass v(x, y); this->min += v; this->max += v; }
-    void translate(const Pointf &v) { this->min += v; this->max += v; }
+    void translate(const Vec2d &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
     PointClass center() const;
     bool contains(const PointClass &point) const {
@@ -71,19 +63,17 @@ public:
         BoundingBoxBase<PointClass>(pmin, pmax) 
         { if (pmin(2) >= pmax(2)) BoundingBoxBase<PointClass>::defined = false; }
     BoundingBox3Base(const std::vector<PointClass>& points)
-        : BoundingBoxBase<PointClass>(points)
     {
         if (points.empty())
             CONFESS("Empty point set supplied to BoundingBox3Base constructor");
-
         typename std::vector<PointClass>::const_iterator it = points.begin();
-        this->min(2) = this->max(2) = (*it)(2);
-        for (++it; it != points.end(); ++it)
-        {
-            this->min(2) = std::min((*it)(2), this->min(2));
-            this->max(2) = std::max((*it)(2), this->max(2));
+        this->min = *it;
+        this->max = *it;
+        for (++ it; it != points.end(); ++ it) {
+            this->min = this->min.cwiseMin(*it);
+            this->max = this->max.cwiseMax(*it);
         }
-        this->defined &= (this->min(2) < this->max(2));
+        this->defined = (this->min(0) < this->max(0)) && (this->min(1) < this->max(1)) && (this->min(2) < this->max(2));
     }
     void merge(const PointClass &point);
     void merge(const std::vector<PointClass> &points);
@@ -91,7 +81,7 @@ public:
     PointClass size() const;
     double radius() const;
     void translate(coordf_t x, coordf_t y, coordf_t z) { assert(this->defined); PointClass v(x, y, z); this->min += v; this->max += v; }
-    void translate(const Pointf3 &v) { this->min += v; this->max += v; }
+    void translate(const Vec3d &v) { this->min += v; this->max += v; }
     void offset(coordf_t delta);
     PointClass center() const;
     coordf_t max_size() const;
@@ -130,30 +120,30 @@ public:
     friend BoundingBox get_extents_rotated(const Points &points, double angle);
 };
 
-class BoundingBox3  : public BoundingBox3Base<Point3> 
+class BoundingBox3  : public BoundingBox3Base<Vec3crd> 
 {
 public:
-    BoundingBox3() : BoundingBox3Base<Point3>() {};
-    BoundingBox3(const Point3 &pmin, const Point3 &pmax) : BoundingBox3Base<Point3>(pmin, pmax) {};
-    BoundingBox3(const Points3& points) : BoundingBox3Base<Point3>(points) {};
+    BoundingBox3() : BoundingBox3Base<Vec3crd>() {};
+    BoundingBox3(const Vec3crd &pmin, const Vec3crd &pmax) : BoundingBox3Base<Vec3crd>(pmin, pmax) {};
+    BoundingBox3(const Points3& points) : BoundingBox3Base<Vec3crd>(points) {};
 };
 
-class BoundingBoxf : public BoundingBoxBase<Pointf> 
+class BoundingBoxf : public BoundingBoxBase<Vec2d> 
 {
 public:
-    BoundingBoxf() : BoundingBoxBase<Pointf>() {};
-    BoundingBoxf(const Pointf &pmin, const Pointf &pmax) : BoundingBoxBase<Pointf>(pmin, pmax) {};
-    BoundingBoxf(const std::vector<Pointf> &points) : BoundingBoxBase<Pointf>(points) {};
+    BoundingBoxf() : BoundingBoxBase<Vec2d>() {};
+    BoundingBoxf(const Vec2d &pmin, const Vec2d &pmax) : BoundingBoxBase<Vec2d>(pmin, pmax) {};
+    BoundingBoxf(const std::vector<Vec2d> &points) : BoundingBoxBase<Vec2d>(points) {};
 };
 
-class BoundingBoxf3 : public BoundingBox3Base<Pointf3> 
+class BoundingBoxf3 : public BoundingBox3Base<Vec3d> 
 {
 public:
-    BoundingBoxf3() : BoundingBox3Base<Pointf3>() {};
-    BoundingBoxf3(const Pointf3 &pmin, const Pointf3 &pmax) : BoundingBox3Base<Pointf3>(pmin, pmax) {};
-    BoundingBoxf3(const std::vector<Pointf3> &points) : BoundingBox3Base<Pointf3>(points) {};
+    BoundingBoxf3() : BoundingBox3Base<Vec3d>() {};
+    BoundingBoxf3(const Vec3d &pmin, const Vec3d &pmax) : BoundingBox3Base<Vec3d>(pmin, pmax) {};
+    BoundingBoxf3(const std::vector<Vec3d> &points) : BoundingBox3Base<Vec3d>(points) {};
 
-    BoundingBoxf3 transformed(const Transform3f& matrix) const;
+    BoundingBoxf3 transformed(const Transform3d& matrix) const;
 };
 
 template<typename VT>

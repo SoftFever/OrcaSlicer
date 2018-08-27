@@ -23,12 +23,11 @@ public:
     explicit Polyline(const Point &p1, const Point &p2) { points.reserve(2); points.emplace_back(p1); points.emplace_back(p2); }
     Polyline& operator=(const Polyline &other) { points = other.points; return *this; }
     Polyline& operator=(Polyline &&other) { points = std::move(other.points); return *this; }
-	static Polyline new_scale(std::vector<Pointf> points) {
+	static Polyline new_scale(const std::vector<Vec2d> &points) {
 		Polyline pl;
-		Points int_points;
-		for (auto pt : points)
-			int_points.push_back(Point::new_scale(pt(0), pt(1)));
-		pl.append(int_points);
+		pl.points.reserve(points.size());
+		for (const Vec2d &pt : points)
+			pl.points.emplace_back(Point::new_scale(pt(0), pt(1)));
 		return pl;
     }
     

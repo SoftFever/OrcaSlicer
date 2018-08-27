@@ -132,7 +132,11 @@ namespace Slic3r { namespace GUI {
 				break;
 			}
 			double val;
-			str.ToCDouble(&val);
+			if(!str.ToCDouble(&val))
+			{
+				show_error(m_parent, _(L("Input value contains incorrect symbol(s).\nUse, please, only digits")));
+				set_value(double_to_string(val), true);
+			}
 			if (m_opt.min > val || val > m_opt.max)
 			{
 				show_error(m_parent, _(L("Input value is out of range")));
@@ -274,7 +278,7 @@ void CheckBox::BUILD() {
 
 	bool check_value =	m_opt.type == coBool ? 
 						m_opt.default_value->getBool() : m_opt.type == coBools ? 
-						static_cast<ConfigOptionBools*>(m_opt.default_value)->get_at(m_opt_idx) : 
+						static_cast<const ConfigOptionBools*>(m_opt.default_value)->get_at(m_opt_idx) : 
     					false;
 
 	auto temp = new wxCheckBox(m_parent, wxID_ANY, wxString(""), wxDefaultPosition, size); 
@@ -330,9 +334,7 @@ void SpinCtrl::BUILD() {
 		break;
 	}
 
-	const int min_val = m_opt_id == "standby_temperature_delta" ? 
-						-500 : m_opt.min > 0 ? 
-						m_opt.min : 0;
+    const int min_val = m_opt.min == INT_MIN ? 0: m_opt.min;
 	const int max_val = m_opt.max < 2147483647 ? m_opt.max : 2147483647;
 
 	auto temp = new wxSpinCtrl(m_parent, wxID_ANY, text_value, wxDefaultPosition, size,
@@ -558,8 +560,11 @@ boost::any& Choice::get_value()
 // 	boost::any m_value;
 	wxString ret_str = static_cast<wxComboBox*>(window)->GetValue();	
 
-	if (m_opt_id == "support")
-		return m_value = boost::any(ret_str);//ret_str;
+	// options from right panel
+	std::vector <std::string> right_panel_options{ "support", "scale_unit" };
+	for (auto rp_option: right_panel_options)
+		if (m_opt_id == rp_option)
+			return m_value = boost::any(ret_str);
 
 	if (m_opt.type != coEnum)
 		/*m_value = */get_value_by_opt_type(ret_str);
@@ -586,6 +591,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<SupportMaterialPattern>(ret_enum);
 		else if (m_opt_id.compare("seam_position") == 0)
 			m_value = static_cast<SeamPosition>(ret_enum);
+		else if (m_opt_id.compare("host_type") == 0)
+			m_value = static_cast<PrintHostType>(ret_enum);
 	}	
 
 	return m_value;
@@ -597,7 +604,7 @@ void ColourPicker::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString clr(static_cast<ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
+	wxString clr(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
 		
 	// 	// recast as a wxWindow to fit the calling convention
@@ -629,7 +636,7 @@ void PointCtrl::BUILD()
 	// 
 	wxSize field_size(40, -1);
 
-	auto default_pt = static_cast<ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
+	auto default_pt = static_cast<const ConfigOptionPoints*>(m_opt.default_value)->values.at(0);
 	double val = default_pt(0);
 	wxString X = val - int(val) == 0 ? wxString::Format(_T("%i"), int(val)) : wxNumberFormatter::ToString(val, 2, wxNumberFormatter::Style_None);
 	val = default_pt(1);
@@ -653,7 +660,7 @@ void PointCtrl::BUILD()
 	y_textctrl->SetToolTip(get_tooltip_text(X+", "+Y));
 }
 
-void PointCtrl::set_value(const Pointf& value, bool change_event)
+void PointCtrl::set_value(const Vec2d& value, bool change_event)
 {
 	m_disable_change_event = !change_event;
 
@@ -667,8 +674,8 @@ void PointCtrl::set_value(const Pointf& value, bool change_event)
 
 void PointCtrl::set_value(const boost::any& value, bool change_event)
 {
-	Pointf pt;
-	const Pointf *ptf = boost::any_cast<Pointf>(&value);
+	Vec2d pt(Vec2d::Zero());
+	const Vec2d *ptf = boost::any_cast<Vec2d>(&value);
 	if (!ptf)
 	{
 		ConfigOptionPoints* pts = boost::any_cast<ConfigOptionPoints*>(value);
@@ -681,13 +688,10 @@ void PointCtrl::set_value(const boost::any& value, bool change_event)
 
 boost::any& PointCtrl::get_value()
 {
-	Pointf ret_point;
-	double val;
-	x_textctrl->GetValue().ToDouble(&val);
-	ret_point(0) = val;
-	y_textctrl->GetValue().ToDouble(&val);
-	ret_point(1) = val;
-	return m_value = ret_point;
+	double x, y;
+	x_textctrl->GetValue().ToDouble(&x);
+	y_textctrl->GetValue().ToDouble(&y);
+	return m_value = Vec2d(x, y);
 }
 
 void StaticText::BUILD()
@@ -696,7 +700,7 @@ void StaticText::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString legend(static_cast<ConfigOptionString*>(m_opt.default_value)->value);
+	wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
 	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
 	temp->SetFont(bold_font());
 
@@ -705,6 +709,69 @@ void StaticText::BUILD()
 
 	temp->SetToolTip(get_tooltip_text(legend));
 }
+
+void SliderCtrl::BUILD()
+{
+	auto size = wxSize(wxDefaultSize);
+	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
+	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
+
+	auto temp = new wxBoxSizer(wxHORIZONTAL);
+
+	auto def_val = static_cast<const ConfigOptionInt*>(m_opt.default_value)->value;
+	auto min = m_opt.min == INT_MIN ? 0 : m_opt.min;
+	auto max = m_opt.max == INT_MAX ? 100 : m_opt.max;
+
+	m_slider = new wxSlider(m_parent, wxID_ANY, def_val * m_scale,
+							min * m_scale, max * m_scale,
+							wxDefaultPosition, size);
+ 	wxSize field_size(40, -1);
+
+	m_textctrl = new wxTextCtrl(m_parent, wxID_ANY, wxString::Format("%d", m_slider->GetValue()/m_scale), 
+								wxDefaultPosition, field_size);
+
+	temp->Add(m_slider, 1, wxEXPAND | wxALIGN_CENTER_VERTICAL, 0);
+	temp->Add(m_textctrl, 0, wxALIGN_CENTER_VERTICAL, 0);
+
+	m_slider->Bind(wxEVT_SLIDER, ([this](wxCommandEvent e) {
+		if (!m_disable_change_event){
+			int val = boost::any_cast<int>(get_value());
+			m_textctrl->SetLabel(wxString::Format("%d", val));
+			on_change_field();
+		}
+	}), m_slider->GetId());
+
+	m_textctrl->Bind(wxEVT_TEXT, ([this](wxCommandEvent e) {
+		std::string value = e.GetString().utf8_str().data();
+		if (is_matched(value, "^-?\\d+(\\.\\d*)?$")){
+			m_disable_change_event = true;
+			m_slider->SetValue(stoi(value)*m_scale);
+			m_disable_change_event = false;
+			on_change_field();
+		}
+	}), m_textctrl->GetId());
+
+	m_sizer = dynamic_cast<wxSizer*>(temp);
+}
+
+void SliderCtrl::set_value(const boost::any& value, bool change_event)
+{
+	m_disable_change_event = !change_event;
+
+	m_slider->SetValue(boost::any_cast<int>(value)*m_scale);
+	int val = boost::any_cast<int>(get_value());
+	m_textctrl->SetLabel(wxString::Format("%d", val));
+
+	m_disable_change_event = false;
+}
+
+boost::any& SliderCtrl::get_value()
+{
+// 	int ret_val;
+// 	x_textctrl->GetValue().ToDouble(&val);
+	return m_value = int(m_slider->GetValue()/m_scale);
+}
+
 
 } // GUI
 } // Slic3r

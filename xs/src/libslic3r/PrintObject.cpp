@@ -38,6 +38,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     typed_slices(false),
     _print(print),
     _model_object(model_object),
+    size(Vec3crd::Zero()),
     layer_height_profile_valid(false)
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
@@ -50,8 +51,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
         this->_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
-        Pointf3 size = modobj_bbox.size();
-        this->size = Point3::new_scale(size(0), size(1), size(2));
+        this->size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
     }
     
     this->reload_model_instances();
@@ -59,7 +59,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
-bool PrintObject::add_copy(const Pointf &point)
+bool PrintObject::add_copy(const Vec2d &point)
 {
     Points points = this->_copies;
     points.push_back(Point::new_scale(point(0), point(1)));
@@ -1121,7 +1121,7 @@ SlicingParameters PrintObject::slicing_parameters() const
 {
     return SlicingParameters::create_from_config(
         this->print()->config, this->config, 
-        unscale(this->size(2)), this->print()->object_extruders());
+        unscale<double>(this->size(2)), this->print()->object_extruders());
 }
 
 bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const
@@ -1335,7 +1335,7 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
                 // consider the first one
                 this->model_object()->instances.front()->transform_mesh(&mesh, true);
                 // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-                mesh.translate(- float(unscale(this->_copies_shift(0))), - float(unscale(this->_copies_shift(1))), -float(this->model_object()->bounding_box().min(2)));
+                mesh.translate(- unscale<float>(this->_copies_shift(0)), - unscale<float>(this->_copies_shift(1)), - float(this->model_object()->bounding_box().min(2)));
                 // perform actual slicing
                 TriangleMeshSlicer mslicer(&mesh);
                 mslicer.slice(z, &layers);

@@ -22,12 +22,12 @@
 %typemap{Point3*};
 %typemap{Ref<Point3>}{simple};
 %typemap{Clone<Point3>}{simple};
-%typemap{Pointf*};
-%typemap{Ref<Pointf>}{simple};
-%typemap{Clone<Pointf>}{simple};
-%typemap{Pointf3*};
-%typemap{Ref<Pointf3>}{simple};
-%typemap{Clone<Pointf3>}{simple};
+%typemap{Vec2d*};
+%typemap{Ref<Vec2d>}{simple};
+%typemap{Clone<Vec2d>}{simple};
+%typemap{Vec3d*};
+%typemap{Ref<Vec3d>}{simple};
+%typemap{Clone<Vec3d>}{simple};
 %typemap{BoundingBox*};
 %typemap{Ref<BoundingBox>}{simple};
 %typemap{Clone<BoundingBox>}{simple};
@@ -270,3 +270,4 @@
 };
 %typemap{AppController*};
 %typemap{PrintController*};
+%typemap{PrintHost*};

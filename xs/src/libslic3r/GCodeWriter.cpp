@@ -276,7 +276,7 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
     return gcode.str();
 }
 
-std::string GCodeWriter::travel_to_xy(const Pointf &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment)
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
@@ -290,7 +290,7 @@ std::string GCodeWriter::travel_to_xy(const Pointf &point, const std::string &co
     return gcode.str();
 }
 
-std::string GCodeWriter::travel_to_xyz(const Pointf3 &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
 {
     /*  If target Z is lower than current Z but higher than nominal Z we
         don't perform the Z move but we only move in the XY plane and
@@ -299,7 +299,7 @@ std::string GCodeWriter::travel_to_xyz(const Pointf3 &point, const std::string &
     if (!this->will_move_z(point(2))) {
         double nominal_z = m_pos(2) - m_lifted;
         m_lifted = m_lifted - (point(2) - nominal_z);
-        return this->travel_to_xy(point.xy());
+        return this->travel_to_xy(to_2d(point));
     }
     
     /*  In all the other cases, we perform an actual XYZ move and cancel
@@ -358,7 +358,7 @@ bool GCodeWriter::will_move_z(double z) const
     return true;
 }
 
-std::string GCodeWriter::extrude_to_xy(const Pointf &point, double dE, const std::string &comment)
+std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std::string &comment)
 {
     m_pos(0) = point(0);
     m_pos(1) = point(1);
@@ -373,7 +373,7 @@ std::string GCodeWriter::extrude_to_xy(const Pointf &point, double dE, const std
     return gcode.str();
 }
 
-std::string GCodeWriter::extrude_to_xyz(const Pointf3 &point, double dE, const std::string &comment)
+std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment)
 {
     m_pos = point;
     m_lifted = 0;

@@ -41,9 +41,8 @@ REGISTER_CLASS(BoundingBoxf, "Geometry::BoundingBoxf");
 REGISTER_CLASS(BoundingBoxf3, "Geometry::BoundingBoxf3");
 REGISTER_CLASS(BridgeDetector, "BridgeDetector");
 REGISTER_CLASS(Point, "Point");
-REGISTER_CLASS(Point3, "Point3");
-REGISTER_CLASS(Pointf, "Pointf");
-REGISTER_CLASS(Pointf3, "Pointf3");
+__REGISTER_CLASS(Vec2d, "Pointf");
+__REGISTER_CLASS(Vec3d, "Pointf3");
 REGISTER_CLASS(DynamicPrintConfig, "Config");
 REGISTER_CLASS(StaticPrintConfig, "Config::Static");
 REGISTER_CLASS(PrintObjectConfig, "Config::PrintObject");
@@ -64,9 +63,9 @@ REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(TabIface, "GUI::Tab");
 REGISTER_CLASS(PresetUpdater, "PresetUpdater");
-REGISTER_CLASS(OctoPrint, "OctoPrint");
 REGISTER_CLASS(AppController, "AppController");
 REGISTER_CLASS(PrintController, "PrintController");
+REGISTER_CLASS(PrintHost, "PrintHost");
 
 SV* ConfigBase__as_hash(ConfigBase* THIS)
 {
@@ -133,7 +132,7 @@ SV* ConfigOption_to_SV(const ConfigOption &opt, const ConfigOptionDef &def)
         auto optv = static_cast<const ConfigOptionPoints*>(&opt);
         AV* av = newAV();
         av_fill(av, optv->values.size()-1);
-        for (const Pointf &v : optv->values)
+        for (const Vec2d &v : optv->values)
             av_store(av, &v - optv->values.data(), perl_to_SV_clone_ref(v));
         return newRV_noinc((SV*)av);
     }
@@ -263,14 +262,14 @@ bool ConfigBase__set(ConfigBase* THIS, const t_config_option_key &opt_key, SV* v
         return from_SV_check(value, &static_cast<ConfigOptionPoint*>(opt)->value);
     case coPoints:
     {
-        std::vector<Pointf> &values = static_cast<ConfigOptionPoints*>(opt)->values;
+        std::vector<Vec2d> &values = static_cast<ConfigOptionPoints*>(opt)->values;
         AV* av = (AV*)SvRV(value);
         const size_t len = av_len(av)+1;
         values.clear();
         values.reserve(len);
         for (size_t i = 0; i < len; i++) {
             SV** elem = av_fetch(av, i, 0);
-            Pointf point;
+            Vec2d point(Vec2d::Zero());
             if (elem == NULL || !from_SV_check(*elem, &point)) return false;
             values.emplace_back(point);
         }
@@ -509,7 +508,7 @@ void from_SV_check(SV* point_sv, Point* point)
     }
 }
 
-SV* to_SV_pureperl(const Pointf* point)
+SV* to_SV_pureperl(const Vec2d* point)
 {
     AV* av = newAV();
     av_fill(av, 1);
@@ -518,23 +517,23 @@ SV* to_SV_pureperl(const Pointf* point)
     return newRV_noinc((SV*)av);
 }
 
-bool from_SV(SV* point_sv, Pointf* point)
+bool from_SV(SV* point_sv, Vec2d* point)
 {
     AV* point_av = (AV*)SvRV(point_sv);
     SV* sv_x = *av_fetch(point_av, 0, 0);
     SV* sv_y = *av_fetch(point_av, 1, 0);
     if (!looks_like_number(sv_x) || !looks_like_number(sv_y)) return false;
     
-    *point = Pointf(SvNV(sv_x), SvNV(sv_y));
+    *point = Vec2d(SvNV(sv_x), SvNV(sv_y));
     return true;
 }
 
-bool from_SV_check(SV* point_sv, Pointf* point)
+bool from_SV_check(SV* point_sv, Vec2d* point)
 {
     if (sv_isobject(point_sv) && (SvTYPE(SvRV(point_sv)) == SVt_PVMG)) {
         if (!sv_isa(point_sv, perl_class_name(point)) && !sv_isa(point_sv, perl_class_name_ref(point)))
             CONFESS("Not a valid %s object (got %s)", perl_class_name(point), HvNAME(SvSTASH(SvRV(point_sv))));
-        *point = *(Pointf*)SvIV((SV*)SvRV( point_sv ));
+        *point = *(Vec2d*)SvIV((SV*)SvRV( point_sv ));
         return true;
     } else {
         return from_SV(point_sv, point);

@@ -19,7 +19,7 @@ class Line
 {
 public:
     Line() {}
-    explicit Line(Point _a, Point _b): a(_a), b(_b) {}
+    Line(const Point& _a, const Point& _b) : a(_a), b(_b) {}
     explicit operator Lines() const { Lines lines; lines.emplace_back(*this); return lines; }
     void   scale(double factor) { this->a *= factor; this->b *= factor; }
     void   translate(double x, double y) { Vector v(x, y); this->a += v; this->b += v; }
@@ -49,45 +49,49 @@ class ThickLine : public Line
 {
 public:
     ThickLine() : a_width(0), b_width(0) {}
-    ThickLine(Point a, Point b) : Line(a, b), a_width(0), b_width(0) {}
-    ThickLine(Point a, Point b, double wa, double wb) : Line(a, b), a_width(wa), b_width(wb) {}
+    ThickLine(const Point& a, const Point& b) : Line(a, b), a_width(0), b_width(0) {}
+    ThickLine(const Point& a, const Point& b, double wa, double wb) : Line(a, b), a_width(wa), b_width(wb) {}
 
-    coordf_t a_width, b_width;    
+    double a_width, b_width;
 };
 
 class Line3
 {
 public:
-    Line3() {}
-    Line3(const Point3& _a, const Point3& _b) : a(_a), b(_b) {}
+    Line3() : a(Vec3crd::Zero()), b(Vec3crd::Zero()) {}
+    Line3(const Vec3crd& _a, const Vec3crd& _b) : a(_a), b(_b) {}
 
     double  length() const { return (this->a - this->b).cast<double>().norm(); }
-    Vector3 vector() const { return this->b - this->a; }
+    Vec3crd vector() const { return this->b - this->a; }
 
-    Point3 a;
-    Point3 b;
+    Vec3crd a;
+    Vec3crd b;
 };
 
 class Linef
 {
 public:
-    Linef() {}
-    explicit Linef(Pointf _a, Pointf _b): a(_a), b(_b) {}
+    Linef() : a(Vec2d::Zero()), b(Vec2d::Zero()) {}
+    Linef(const Vec2d& _a, const Vec2d& _b) : a(_a), b(_b) {}
 
-    Pointf a;
-    Pointf b;
+    Vec2d a;
+    Vec2d b;
 };
 
 class Linef3
 {
 public:
-    Linef3() {}
-    explicit Linef3(Pointf3 _a, Pointf3 _b): a(_a), b(_b) {}
-    Pointf3 intersect_plane(double z) const;
-    void    scale(double factor) { this->a *= factor; this->b *= factor; }
+    Linef3() : a(Vec3d::Zero()), b(Vec3d::Zero()) {}
+    Linef3(const Vec3d& _a, const Vec3d& _b) : a(_a), b(_b) {}
 
-    Pointf3 a;
-    Pointf3 b;
+    Vec3d   intersect_plane(double z) const;
+    void    scale(double factor) { this->a *= factor; this->b *= factor; }
+    Vec3d   vector() const { return this->b - this->a; }
+    Vec3d   unit_vector() const { return (length() == 0.0) ? Vec3d::Zero() : vector().normalized(); }
+    double  length() const { return vector().norm(); }
+
+    Vec3d a;
+    Vec3d b;
 };
 
 } // namespace Slic3r

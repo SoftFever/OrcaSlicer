@@ -18,8 +18,50 @@ namespace Slic3r {
 
 PrintConfigDef::PrintConfigDef()
 {
+    this->init_common_params();
+    this->init_fff_params();
+    this->init_sla_params();
+}
+
+void PrintConfigDef::init_common_params()
+{
     t_optiondef_map &Options = this->options;
+    ConfigOptionDef* def;
+
+    def = this->add("printer_technology", coEnum);
+    def->label = L("Printer technology");
+    def->tooltip = L("Printer technology");
+    def->cli = "printer-technology=s";
+    def->enum_keys_map = &ConfigOptionEnum<PrinterTechnology>::get_enum_values();
+    def->enum_values.push_back("FFF");
+    def->enum_values.push_back("SLA");
+    def->default_value = new ConfigOptionEnum<PrinterTechnology>(ptFFF);
+
+    def = this->add("bed_shape", coPoints);
+    def->label = L("Bed shape");
+    def->default_value = new ConfigOptionPoints{ Vec2d(0, 0), Vec2d(200, 0), Vec2d(200, 200), Vec2d(0, 200) };
     
+    def = this->add("layer_height", coFloat);
+    def->label = L("Layer height");
+    def->category = L("Layers and Perimeters");
+    def->tooltip = L("This setting controls the height (and thus the total number) of the slices/layers. "
+                   "Thinner layers give better accuracy but take more time to print.");
+    def->sidetext = L("mm");
+    def->cli = "layer-height=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.3);
+
+    def = this->add("max_print_height", coFloat);
+    def->label = L("Max print height");
+    def->tooltip = L("Set this to the maximum height that can be reached by your extruder while printing.");
+    def->sidetext = L("mm");
+    def->cli = "max-print-height=f";
+    def->default_value = new ConfigOptionFloat(200.0);
+}
+
+void PrintConfigDef::init_fff_params()
+{
+    t_optiondef_map &Options = this->options;
     ConfigOptionDef* def;
 
     // Maximum extruder temperature, bumped to 1500 to support printing of glass.
@@ -33,10 +75,6 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "avoid-crossing-perimeters!";
     def->default_value = new ConfigOptionBool(false);
 
-    def = this->add("bed_shape", coPoints);
-	def->label = L("Bed shape");
-    def->default_value = new ConfigOptionPoints { Pointf(0,0), Pointf(200,0), Pointf(200,200), Pointf(0,200) };
-    
     def = this->add("bed_temperature", coInts);
     def->label = L("Other layers");
     def->tooltip = L("Bed temperature for layers after the first one. "
@@ -392,7 +430,7 @@ PrintConfigDef::PrintConfigDef()
                    "from the XY coordinate).");
     def->sidetext = L("mm");
     def->cli = "extruder-offset=s@";
-    def->default_value = new ConfigOptionPoints { Pointf(0,0) };
+    def->default_value = new ConfigOptionPoints { Vec2d(0,0) };
 
     def = this->add("extrusion_axis", coString);
     def->label = L("Extrusion axis");
@@ -906,16 +944,6 @@ PrintConfigDef::PrintConfigDef()
     def->height = 50;
     def->default_value = new ConfigOptionString("");
 
-    def = this->add("layer_height", coFloat);
-    def->label = L("Layer height");
-    def->category = L("Layers and Perimeters");
-    def->tooltip = L("This setting controls the height (and thus the total number) of the slices/layers. "
-                   "Thinner layers give better accuracy but take more time to print.");
-    def->sidetext = L("mm");
-    def->cli = "layer-height=f";
-    def->min = 0;
-    def->default_value = new ConfigOptionFloat(0.3);
-
     def = this->add("remaining_times", coBool);
     def->label = L("Supports remaining times");
     def->tooltip = L("Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute"
@@ -1036,13 +1064,6 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 0. };
 
-    def = this->add("max_print_height", coFloat);
-    def->label = L("Max print height");
-    def->tooltip = L("Set this to the maximum height that can be reached by your extruder while printing.");
-    def->sidetext = L("mm");
-    def->cli = "max-print-height=f";
-    def->default_value = new ConfigOptionFloat(200.0);
-
     def = this->add("max_print_speed", coFloat);
     def->label = L("Max print speed");
     def->tooltip = L("When setting other speed settings to 0 Slic3r will autocalculate the optimal speed "
@@ -1137,25 +1158,37 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "nozzle-diameter=f@";
     def->default_value = new ConfigOptionFloats { 0.5 };
 
-    def = this->add("octoprint_apikey", coString);
-    def->label = L("API Key");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the API Key required for authentication.");
-    def->cli = "octoprint-apikey=s";
+    def = this->add("host_type", coEnum);
+    def->label = L("Host Type");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
+                   "the kind of the host.");
+    def->cli = "host-type=s";
+    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
+    def->enum_values.push_back("octoprint");
+    def->enum_values.push_back("duet");
+    def->enum_labels.push_back("OctoPrint");
+    def->enum_labels.push_back("Duet");
+    def->default_value = new ConfigOptionEnum<PrintHostType>(htOctoPrint);
+
+    def = this->add("printhost_apikey", coString);
+    def->label = L("API Key / Password");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the API Key or the password required for authentication.");
+    def->cli = "printhost-apikey=s";
     def->default_value = new ConfigOptionString("");
     
-    def = this->add("octoprint_cafile", coString);
+    def = this->add("printhost_cafile", coString);
     def->label = "HTTPS CA file";
     def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
                    "If left blank, the default OS CA certificate repository is used.";
-    def->cli = "octoprint-cafile=s";
+    def->cli = "printhost-cafile=s";
     def->default_value = new ConfigOptionString("");
 
-    def = this->add("octoprint_host", coString);
+    def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the hostname, IP address or URL of the OctoPrint instance.");
-    def->cli = "octoprint-host=s";
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the hostname, IP address or URL of the printer host instance.");
+    def->cli = "print-host=s";
     def->default_value = new ConfigOptionString("");
 
     def = this->add("only_retract_when_crossing_perimeters", coBool);
@@ -2121,6 +2154,103 @@ PrintConfigDef::PrintConfigDef()
     def->default_value = new ConfigOptionFloat(35.);
 }
 
+void PrintConfigDef::init_sla_params()
+{
+    t_optiondef_map &Options = this->options;    
+    ConfigOptionDef* def;
+
+    // SLA Printer settings
+    def = this->add("display_width", coFloat);
+    def->label = L("Display width");
+    def->tooltip = L("Width of the display");
+    def->cli = "display-width=f";
+    def->min = 1;
+    def->default_value = new ConfigOptionFloat(150.);
+
+    def = this->add("display_height", coFloat);
+    def->label = L("Display height");
+    def->tooltip = L("Height of the display");
+    def->cli = "display-height=f";
+    def->min = 1;
+    def->default_value = new ConfigOptionFloat(100.);
+
+    def = this->add("display_pixels_x", coInt);
+    def->full_label = L("Number of pixels in");
+    def->label = ("X");
+    def->tooltip = L("Number of pixels in X");
+    def->cli = "display-pixels-x=i";
+    def->min = 100;
+    def->default_value = new ConfigOptionInt(2000);
+
+    def = this->add("display_pixels_y", coInt);
+    def->label = ("Y");
+    def->tooltip = L("Number of pixels in Y");
+    def->cli = "display-pixels-y=i";
+    def->min = 100;
+    def->default_value = new ConfigOptionInt(1000);
+
+    def = this->add("printer_correction", coFloats);
+    def->full_label = L("Printer scaling correction");
+    def->tooltip  = L("Printer scaling correction");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats( { 1., 1., 1. } );
+
+    // SLA Material settings.
+    def = this->add("initial_layer_height", coFloat);
+    def->label = L("Initial layer height");
+    def->tooltip = L("Initial layer height");
+    def->sidetext = L("mm");
+    def->cli = "initial-layer-height=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(0.3);
+
+    def = this->add("exposure_time", coFloat);
+    def->label = L("Exposure time");
+    def->tooltip = L("Exposure time");
+    def->sidetext = L("s");
+    def->cli = "exposure-time=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(10);
+
+    def = this->add("initial_exposure_time", coFloat);
+    def->label = L("Initial exposure time");
+    def->tooltip = L("Initial exposure time");
+    def->sidetext = L("s");
+    def->cli = "initial-exposure-time=f";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloat(15);
+
+    def = this->add("material_correction_printing", coFloats);
+    def->full_label = L("Correction for expansion when printing");
+    def->tooltip  = L("Correction for expansion when printing");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
+
+    def = this->add("material_correction_curing", coFloats);
+    def->full_label = L("Correction for expansion after curing");
+    def->tooltip  = L("Correction for expansion after curing");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats( { 1. , 1., 1. } );
+
+    def = this->add("material_notes", coString);
+    def->label = L("SLA print material notes");
+    def->tooltip = L("You can put your notes regarding the SLA print material here.");
+    def->cli = "material-notes=s";
+    def->multiline = true;
+    def->full_width = true;
+    def->height = 130;
+    def->default_value = new ConfigOptionString("");
+
+    def = this->add("default_sla_material_profile", coString);
+    def->label = L("Default SLA material profile");
+    def->tooltip = L("Default print profile associated with the current printer profile. "
+                   "On selection of the current printer profile, this print profile will be activated.");
+    def->default_value = new ConfigOptionString();
+
+    def = this->add("sla_material_settings_id", coString);
+    def->default_value = new ConfigOptionString("");
+}
+
 void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &value)
 {
     // handle legacy options
@@ -2153,10 +2283,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         std::ostringstream oss;
         oss << "0x0," << p.value(0) << "x0," << p.value(0) << "x" << p.value(1) << ",0x" << p.value(1);
         value = oss.str();
-// Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-// Commenting this out fixes github issue #869 for now.
-//    } else if (opt_key == "octoprint_host" && !value.empty()) {
-//        opt_key = "print_host";
     } else if ((opt_key == "perimeter_acceleration" && value == "25")
         || (opt_key == "infill_acceleration" && value == "50")) {
         /*  For historical reasons, the world's full of configs having these very low values;
@@ -2167,6 +2293,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "support_material_pattern" && value == "pillars") {
         // Slic3r PE does not support the pillars. They never worked well.
         value = "rectilinear";
+    } else if (opt_key == "octoprint_host") {
+        opt_key = "print_host";
+    } else if (opt_key == "octoprint_cafile") {
+        opt_key = "printhost_cafile";
+    } else if (opt_key == "octoprint_apikey") {
+        opt_key = "printhost_apikey";
     }
     
     // Ignore the following obsolete configuration keys:
@@ -2176,9 +2308,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
         "seal_position", "vibration_limit", "bed_size", 
-        // Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-        // Commenting this out fixes github issue #869 for now.
-        // "octoprint_host",
         "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
     };
 
@@ -2188,7 +2317,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     
     if (! print_config_def.has(opt_key)) {
-        //printf("Unknown option %s\n", opt_key.c_str());
         opt_key = "";
         return;
     }
@@ -2445,5 +2573,9 @@ StaticPrintConfig::StaticCache<class Slic3r::GCodeConfig>       GCodeConfig::s_c
 StaticPrintConfig::StaticCache<class Slic3r::PrintConfig>       PrintConfig::s_cache_PrintConfig;
 StaticPrintConfig::StaticCache<class Slic3r::HostConfig>        HostConfig::s_cache_HostConfig;
 StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig::s_cache_FullPrintConfig;
+
+StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>  SLAMaterialConfig::s_cache_SLAMaterialConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>   SLAPrinterConfig::s_cache_SLAPrinterConfig;
+StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig> SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
 
 }

@@ -21,7 +21,7 @@ void FillConcentric::_fill_surface_single(
     
     if (params.density > 0.9999f && !params.dont_adjust) {
         distance = this->_adjust_solid_spacing(bounding_box.size()(0), distance);
-        this->spacing = unscale(distance);
+        this->spacing = unscale<double>(distance);
     }
 
     Polygons loops = (Polygons)expolygon;

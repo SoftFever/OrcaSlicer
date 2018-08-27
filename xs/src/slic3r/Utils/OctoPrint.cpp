@@ -1,21 +1,11 @@
 #include "OctoPrint.hpp"
+#include "PrintHostSendDialog.hpp"
 
 #include <algorithm>
-#include <boost/filesystem/path.hpp>
 #include <boost/format.hpp>
 #include <boost/log/trivial.hpp>
 
-#include <wx/frame.h>
-#include <wx/event.h>
-#include <wx/progdlg.h>
-#include <wx/sizer.h>
-#include <wx/stattext.h>
-#include <wx/textctrl.h>
-#include <wx/checkbox.h>
-
 #include "libslic3r/PrintConfig.hpp"
-#include "slic3r/GUI/GUI.hpp"
-#include "slic3r/GUI/MsgDialog.hpp"
 #include "Http.hpp"
 
 namespace fs = boost::filesystem;
@@ -23,48 +13,13 @@ namespace fs = boost::filesystem;
 
 namespace Slic3r {
 
-
-struct SendDialog : public GUI::MsgDialog
-{
-	wxTextCtrl *txt_filename;
-	wxCheckBox *box_print;
-
-	SendDialog(const fs::path &path) :
-		MsgDialog(nullptr, _(L("Send G-Code to printer")), _(L("Upload to OctoPrint with the following filename:")), wxID_NONE),
-		txt_filename(new wxTextCtrl(this, wxID_ANY, path.filename().wstring())),
-		box_print(new wxCheckBox(this, wxID_ANY, _(L("Start printing after upload"))))
-	{
-		auto *label_dir_hint = new wxStaticText(this, wxID_ANY, _(L("Use forward slashes ( / ) as a directory separator if needed.")));
-		label_dir_hint->Wrap(CONTENT_WIDTH);
-
-		content_sizer->Add(txt_filename, 0, wxEXPAND);
-		content_sizer->Add(label_dir_hint);
-		content_sizer->AddSpacer(VERT_SPACING);
-		content_sizer->Add(box_print, 0, wxBOTTOM, 2*VERT_SPACING);
-
-		btn_sizer->Add(CreateStdDialogButtonSizer(wxOK | wxCANCEL));
-
-		txt_filename->SetFocus();
-		wxString stem(path.stem().wstring());
-		txt_filename->SetSelection(0, stem.Length());
-
-		Fit();
-	}
-
-	fs::path filename() const {
-		return fs::path(txt_filename->GetValue().wx_str());
-	}
-
-	bool print() const { return box_print->GetValue(); }
-};
-
-
-
 OctoPrint::OctoPrint(DynamicPrintConfig *config) :
-	host(config->opt_string("octoprint_host")),
-	apikey(config->opt_string("octoprint_apikey")),
-	cafile(config->opt_string("octoprint_cafile"))
+	host(config->opt_string("print_host")),
+	apikey(config->opt_string("printhost_apikey")),
+	cafile(config->opt_string("printhost_cafile"))
 {}
+
+OctoPrint::~OctoPrint() {}
 
 bool OctoPrint::test(wxString &msg) const
 {
@@ -91,6 +46,17 @@ bool OctoPrint::test(wxString &msg) const
 	return res;
 }
 
+wxString OctoPrint::get_test_ok_msg () const
+{
+	return wxString::Format("%s", _(L("Connection to OctoPrint works correctly.")));
+}
+
+wxString OctoPrint::get_test_failed_msg (wxString &msg) const
+{
+	return wxString::Format("%s: %s\n\n%s",
+						_(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required.")));
+}
+
 bool OctoPrint::send_gcode(const std::string &filename) const
 {
 	enum { PROGRESS_RANGE = 1000 };
@@ -98,7 +64,7 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 	const auto errortitle = _(L("Error while uploading to the OctoPrint server"));
 	fs::path filepath(filename);
 
-	SendDialog send_dialog(filepath.filename());
+	PrintHostSendDialog send_dialog(filepath.filename(), true);
 	if (send_dialog.ShowModal() != wxID_OK) { return false; }
 
 	const bool print = send_dialog.print();
@@ -159,6 +125,16 @@ bool OctoPrint::send_gcode(const std::string &filename) const
 		.perform_sync();
 
 	return res;
+}
+
+bool OctoPrint::has_auto_discovery() const
+{
+	return true;
+}
+
+bool OctoPrint::can_test() const
+{
+	return true;
 }
 
 void OctoPrint::set_auth(Http &http) const

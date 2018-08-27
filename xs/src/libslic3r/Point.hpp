@@ -16,19 +16,7 @@ namespace Slic3r {
 class Line;
 class MultiPoint;
 class Point;
-class Point3;
-class Pointf;
-class Pointf3;
-typedef Point                       Vector;
-typedef Point3                      Vector3;
-typedef Pointf                      Vectorf;
-typedef Pointf3                     Vectorf3;
-typedef std::vector<Point>          Points;
-typedef std::vector<Point*>         PointPtrs;
-typedef std::vector<const Point*>   PointConstPtrs;
-typedef std::vector<Point3>         Points3;
-typedef std::vector<Pointf>         Pointfs;
-typedef std::vector<Pointf3>        Pointf3s;
+typedef Point Vector;
 
 // Eigen types, to replace the Slic3r's own types in the future.
 // Vector types with a fixed point coordinate base type.
@@ -43,15 +31,36 @@ typedef Eigen::Matrix<float,    3, 1, Eigen::DontAlign> Vec3f;
 typedef Eigen::Matrix<double,   2, 1, Eigen::DontAlign> Vec2d;
 typedef Eigen::Matrix<double,   3, 1, Eigen::DontAlign> Vec3d;
 
+typedef std::vector<Point>                              Points;
+typedef std::vector<Point*>                             PointPtrs;
+typedef std::vector<const Point*>                       PointConstPtrs;
+typedef std::vector<Vec3crd>                            Points3;
+typedef std::vector<Vec2d>                              Pointfs;
+typedef std::vector<Vec3d>                              Pointf3s;
+
 typedef Eigen::Transform<float,  2, Eigen::Affine, Eigen::DontAlign> Transform2f;
 typedef Eigen::Transform<double, 2, Eigen::Affine, Eigen::DontAlign> Transform2d;
 typedef Eigen::Transform<float,  3, Eigen::Affine, Eigen::DontAlign> Transform3f;
 typedef Eigen::Transform<double, 3, Eigen::Affine, Eigen::DontAlign> Transform3d;
 
+inline bool operator<(const Vec2d &lhs, const Vec2d &rhs) { return lhs(0) < rhs(0) || (lhs(0) == rhs(0) && lhs(1) < rhs(1)); }
+
 inline int64_t cross2(const Vec2i64 &v1, const Vec2i64 &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline coord_t cross2(const Vec2crd &v1, const Vec2crd &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline float   cross2(const Vec2f   &v1, const Vec2f   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
 inline double  cross2(const Vec2d   &v1, const Vec2d   &v2) { return v1(0) * v2(1) - v1(1) * v2(0); }
+
+inline Vec2crd to_2d(const Vec3crd &pt3) { return Vec2crd(pt3(0), pt3(1)); }
+inline Vec2i64 to_2d(const Vec3i64 &pt3) { return Vec2i64(pt3(0), pt3(1)); }
+inline Vec2f   to_2d(const Vec3f   &pt3) { return Vec2f  (pt3(0), pt3(1)); }
+inline Vec2d   to_2d(const Vec3d   &pt3) { return Vec2d  (pt3(0), pt3(1)); }
+
+inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }
+inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt(0)), unscale<double>(pt(1))); }
+inline Vec2d   unscale(const Vec2d   &pt) { return Vec2d(unscale<double>(pt(0)), unscale<double>(pt(1))); }
+inline Vec3d   unscale(coord_t x, coord_t y, coord_t z) { return Vec3d(unscale<double>(x), unscale<double>(y), unscale<double>(z)); }
+inline Vec3d   unscale(const Vec3crd &pt) { return Vec3d(unscale<double>(pt(0)), unscale<double>(pt(1)), unscale<double>(pt(2))); }
+inline Vec3d   unscale(const Vec3d   &pt) { return Vec3d(unscale<double>(pt(0)), unscale<double>(pt(1)), unscale<double>(pt(2))); }
 
 inline std::string to_string(const Vec2crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
 inline std::string to_string(const Vec2d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + "]"; }
@@ -210,81 +219,7 @@ private:
     coord_t  m_grid_log2;
 };
 
-class Point3 : public Vec3crd
-{
-public:
-    typedef coord_t coord_type;
-
-    explicit Point3() { (*this)(0) = (*this)(1) = (*this)(2) = 0; }
-    explicit Point3(coord_t x, coord_t y, coord_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
-    // This constructor allows you to construct Point3 from Eigen expressions
-    template<typename OtherDerived>
-    Point3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3crd(other) {}
-    static Point3 new_scale(coordf_t x, coordf_t y, coordf_t z) { return Point3(coord_t(scale_(x)), coord_t(scale_(y)), coord_t(scale_(z))); }
-
-    // This method allows you to assign Eigen expressions to MyVectorType
-    template<typename OtherDerived>
-    Point3& operator=(const Eigen::MatrixBase<OtherDerived> &other)
-    {
-        this->Vec3crd::operator=(other);
-        return *this;
-    }
-
-    Point xy() const { return Point((*this)(0), (*this)(1)); }
-};
-
-std::ostream& operator<<(std::ostream &stm, const Pointf &pointf);
-
-class Pointf : public Vec2d
-{
-public:
-    typedef coordf_t coord_type;
-
-    explicit Pointf() { (*this)(0) = (*this)(1) = 0.; }
-    explicit Pointf(coordf_t x, coordf_t y) { (*this)(0) = x; (*this)(1) = y; }
-    // This constructor allows you to construct Pointf from Eigen expressions
-    template<typename OtherDerived>
-    Pointf(const Eigen::MatrixBase<OtherDerived> &other) : Vec2d(other) {}
-    static Pointf new_unscale(coord_t x, coord_t y) { return Pointf(unscale(x), unscale(y)); }
-    static Pointf new_unscale(const Point &p) { return Pointf(unscale(p(0)), unscale(p(1))); }
-
-    // This method allows you to assign Eigen expressions to MyVectorType
-    template<typename OtherDerived>
-    Pointf& operator=(const Eigen::MatrixBase<OtherDerived> &other)
-    {
-        this->Vec2d::operator=(other);
-        return *this;
-    }
-
-    void    rotate(double angle);
-    void    rotate(double angle, const Pointf &center);
-
-    bool operator< (const Pointf& rhs) const { return (*this)(0) < rhs(0) || ((*this)(0) == rhs(0) && (*this)(1) < rhs(1)); }
-};
-
-class Pointf3 : public Vec3d
-{
-public:
-    typedef coordf_t coord_type;
-
-    explicit Pointf3() { (*this)(0) = (*this)(1) = (*this)(2) = 0.; }
-    explicit Pointf3(coordf_t x, coordf_t y, coordf_t z) { (*this)(0) = x; (*this)(1) = y; (*this)(2) = z; }
-    // This constructor allows you to construct Pointf from Eigen expressions
-    template<typename OtherDerived>
-    Pointf3(const Eigen::MatrixBase<OtherDerived> &other) : Vec3d(other) {}
-    static Pointf3 new_unscale(coord_t x, coord_t y, coord_t z) { return Pointf3(unscale(x), unscale(y), unscale(z)); }
-    static Pointf3 new_unscale(const Point3& p) { return Pointf3(unscale(p(0)), unscale(p(1)), unscale(p(2))); }
-
-    // This method allows you to assign Eigen expressions to MyVectorType
-    template<typename OtherDerived>
-    Pointf3& operator=(const Eigen::MatrixBase<OtherDerived> &other)
-    {
-        this->Vec3d::operator=(other);
-        return *this;
-    }
-
-    Pointf xy() const { return Pointf((*this)(0), (*this)(1)); }
-};
+std::ostream& operator<<(std::ostream &stm, const Vec2d &pointf);
 
 } // namespace Slic3r
 

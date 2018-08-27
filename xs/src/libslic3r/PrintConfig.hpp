@@ -22,9 +22,21 @@
 
 namespace Slic3r {
 
+enum PrinterTechnology
+{
+    // Fused Filament Fabrication
+    ptFFF,
+    // Stereolitography
+    ptSLA,
+};
+
 enum GCodeFlavor {
     gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit, 
     gcfSmoothie, gcfNoExtrusion,
+};
+
+enum PrintHostType {
+    htOctoPrint, htDuet,
 };
 
 enum InfillPattern {
@@ -44,7 +56,16 @@ enum FilamentType {
     ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
 };
 
-template<> inline t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["FFF"]             = ptFFF;
+        keys_map["SLA"]             = ptSLA;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["reprap"]          = gcfRepRap;
@@ -61,7 +82,16 @@ template<> inline t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["octoprint"]       = htOctoPrint;
+        keys_map["duet"]            = htDuet;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
@@ -81,7 +111,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enu
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = smpRectilinear;
@@ -91,7 +121,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["random"]              = spRandom;
@@ -102,7 +132,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["PLA"]             = ftPLA;
@@ -126,6 +156,11 @@ public:
     PrintConfigDef();
 
     static void handle_legacy(t_config_option_key &opt_key, std::string &value);
+
+private:
+    void init_common_params();
+    void init_fff_params();
+    void init_sla_params();
 };
 
 // The one and only global definition of SLic3r configuration options.
@@ -801,18 +836,20 @@ class HostConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(HostConfig)
 public:
-    ConfigOptionString              octoprint_host;
-    ConfigOptionString              octoprint_apikey;
-    ConfigOptionString              octoprint_cafile;
+    ConfigOptionEnum<PrintHostType> host_type;
+    ConfigOptionString              print_host;
+    ConfigOptionString              printhost_apikey;
+    ConfigOptionString              printhost_cafile;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
-        OPT_PTR(octoprint_host);
-        OPT_PTR(octoprint_apikey);
-        OPT_PTR(octoprint_cafile);
+        OPT_PTR(host_type);
+        OPT_PTR(print_host);
+        OPT_PTR(printhost_apikey);
+        OPT_PTR(printhost_cafile);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
     }
@@ -841,6 +878,73 @@ protected:
         this->PrintRegionConfig::initialize(cache, base_ptr);
         this->PrintConfig      ::initialize(cache, base_ptr);
         this->HostConfig       ::initialize(cache, base_ptr);
+    }
+};
+
+class SLAMaterialConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(SLAMaterialConfig)
+public:
+    ConfigOptionFloat                       layer_height;
+    ConfigOptionFloat                       initial_layer_height;
+    ConfigOptionFloat                       exposure_time;
+    ConfigOptionFloat                       initial_exposure_time;
+    ConfigOptionFloats                      material_correction_printing;
+    ConfigOptionFloats                      material_correction_curing;
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(layer_height);
+        OPT_PTR(initial_layer_height);
+        OPT_PTR(exposure_time);
+        OPT_PTR(initial_exposure_time);
+        OPT_PTR(material_correction_printing);
+        OPT_PTR(material_correction_curing);
+    }
+};
+
+class SLAPrinterConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(SLAPrinterConfig)
+public:
+    ConfigOptionEnum<PrinterTechnology>     printer_technology;
+    ConfigOptionPoints                      bed_shape;
+    ConfigOptionFloat                       max_print_height;
+    ConfigOptionFloat                       display_width;
+    ConfigOptionFloat                       display_height;
+    ConfigOptionInt                         display_pixels_x;
+    ConfigOptionInt                         display_pixels_y;
+    ConfigOptionFloats                      printer_correction;
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(printer_technology);
+        OPT_PTR(bed_shape);
+        OPT_PTR(max_print_height);
+        OPT_PTR(display_width);
+        OPT_PTR(display_height);
+        OPT_PTR(display_pixels_x);
+        OPT_PTR(display_pixels_y);
+        OPT_PTR(printer_correction);
+    }
+};
+
+class SLAFullPrintConfig : public SLAPrinterConfig, public SLAMaterialConfig
+{
+    STATIC_PRINT_CONFIG_CACHE_DERIVED(SLAFullPrintConfig)
+    SLAFullPrintConfig() : SLAPrinterConfig(0), SLAMaterialConfig(0) { initialize_cache(); *this = s_cache_SLAFullPrintConfig.defaults(); }
+
+public:
+    // Validate the SLAFullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
+//    std::string                 validate();
+
+protected:
+    // Protected constructor to be called to initialize ConfigCache::m_default.
+    SLAFullPrintConfig(int) : SLAPrinterConfig(0), SLAMaterialConfig(0) {}
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        this->SLAPrinterConfig ::initialize(cache, base_ptr);
+        this->SLAMaterialConfig::initialize(cache, base_ptr);
     }
 };
 

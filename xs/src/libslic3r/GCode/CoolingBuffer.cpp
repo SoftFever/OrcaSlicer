@@ -23,7 +23,7 @@ CoolingBuffer::CoolingBuffer(GCode &gcodegen) : m_gcodegen(gcodegen), m_current_
 void CoolingBuffer::reset()
 {
     m_current_pos.assign(5, 0.f);
-    Pointf3 pos = m_gcodegen.writer().get_position();
+    Vec3d pos = m_gcodegen.writer().get_position();
     m_current_pos[0] = float(pos(0));
     m_current_pos[1] = float(pos(1));
     m_current_pos[2] = float(pos(2));

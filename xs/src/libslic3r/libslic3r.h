@@ -45,7 +45,6 @@ typedef double  coordf_t;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
-#define unscale(val) ((val) * SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)
 /* Implementation of CONFESS("foo"): */
 #ifdef _MSC_VER
@@ -101,6 +100,9 @@ inline std::string debug_out_path(const char *name, ...)
 // #define SLIC3R_DEBUG_SLICE_PROCESSING
 
 namespace Slic3r {
+
+template<typename T, typename Q>
+inline T unscale(Q v) { return T(v) * T(SCALING_FACTOR); }
 
 enum Axis { X=0, Y, Z, E, F, NUM_AXES };
 

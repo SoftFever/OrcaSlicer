@@ -40,7 +40,7 @@ stl_open(stl_file *stl, const char *file) {
   stl_initialize(stl);
   stl_count_facets(stl, file);
   stl_allocate(stl);
-  stl_read(stl, 0, 1);
+  stl_read(stl, 0, true);
   if (!stl->error) fclose(stl->fp);
 }
 
@@ -227,7 +227,7 @@ stl_open_merge(stl_file *stl, char *file_to_merge) {
      Start at num_facets_so_far, the index to the first unused facet.  Also say
      that this isn't our first time so we should augment stats like min and max
      instead of erasing them. */
-  stl_read(stl, num_facets_so_far, 0);
+  stl_read(stl, num_facets_so_far, false);
 
   /* Restore the stl information we overwrote (for stl_read) so that it still accurately
      reflects the subject part: */
@@ -255,8 +255,7 @@ stl_reallocate(stl_file *stl) {
 /* Reads the contents of the file pointed to by stl->fp into the stl structure,
    starting at facet first_facet.  The second argument says if it's our first
    time running this for the stl and therefore we should reset our max and min stats. */
-void
-stl_read(stl_file *stl, int first_facet, int first) {
+void stl_read(stl_file *stl, int first_facet, bool first) {
   stl_facet facet;
   int   i;
 
@@ -294,11 +293,11 @@ stl_read(stl_file *stl, int first_facet, int first) {
       assert(res_normal == 3);
       int res_outer_loop = fscanf(stl->fp, " outer loop");
       assert(res_outer_loop == 0);
-      int res_vertex1    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[0].x, &facet.vertex[0].y, &facet.vertex[0].z);
+      int res_vertex1    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[0](0), &facet.vertex[0](1), &facet.vertex[0](2));
       assert(res_vertex1 == 3);
-      int res_vertex2    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[1].x, &facet.vertex[1].y, &facet.vertex[1].z);
+      int res_vertex2    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[1](0), &facet.vertex[1](1), &facet.vertex[1](2));
       assert(res_vertex2 == 3);
-      int res_vertex3    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[2].x, &facet.vertex[2].y, &facet.vertex[2].z);
+      int res_vertex3    = fscanf(stl->fp, " vertex %f %f %f", &facet.vertex[2](0), &facet.vertex[2](1), &facet.vertex[2](2));
       assert(res_vertex3 == 3);
       int res_endloop    = fscanf(stl->fp, " endloop");
       assert(res_endloop == 0);
@@ -311,9 +310,9 @@ stl_read(stl_file *stl, int first_facet, int first) {
       }
 
       // The facet normal has been parsed as a single string as to workaround for not a numbers in the normal definition.
-	  if (sscanf(normal_buf[0], "%f", &facet.normal.x) != 1 ||
-		  sscanf(normal_buf[1], "%f", &facet.normal.y) != 1 ||
-		  sscanf(normal_buf[2], "%f", &facet.normal.z) != 1) {
+	  if (sscanf(normal_buf[0], "%f", &facet.normal(0)) != 1 ||
+		  sscanf(normal_buf[1], "%f", &facet.normal(1)) != 1 ||
+		  sscanf(normal_buf[2], "%f", &facet.normal(2)) != 1) {
 		  // Normal was mangled. Maybe denormals or "not a number" were stored?
 		  // Just reset the normal and silently ignore it.
 		  memset(&facet.normal, 0, sizeof(facet.normal));
@@ -326,104 +325,45 @@ stl_read(stl_file *stl, int first_facet, int first) {
       // It may be worth to round these numbers to zero during loading to reduce the number of errors reported
       // during the STL import.
       for (size_t j = 0; j < 3; ++ j) {
-        if (facet.vertex[j].x > -1e-12f && facet.vertex[j].x < 1e-12f)
-            printf("stl_read: facet %d.x = %e\r\n", j, facet.vertex[j].x);
-        if (facet.vertex[j].y > -1e-12f && facet.vertex[j].y < 1e-12f)
-            printf("stl_read: facet %d.y = %e\r\n", j, facet.vertex[j].y);
-        if (facet.vertex[j].z > -1e-12f && facet.vertex[j].z < 1e-12f)
-            printf("stl_read: facet %d.z = %e\r\n", j, facet.vertex[j].z);
+        if (facet.vertex[j](0) > -1e-12f && facet.vertex[j](0) < 1e-12f)
+            printf("stl_read: facet %d(0) = %e\r\n", j, facet.vertex[j](0));
+        if (facet.vertex[j](1) > -1e-12f && facet.vertex[j](1) < 1e-12f)
+            printf("stl_read: facet %d(1) = %e\r\n", j, facet.vertex[j](1));
+        if (facet.vertex[j](2) > -1e-12f && facet.vertex[j](2) < 1e-12f)
+            printf("stl_read: facet %d(2) = %e\r\n", j, facet.vertex[j](2));
       }
 #endif
 
-#if 1
-    {
-      // Positive and negative zeros are possible in the floats, which are considered equal by the FP unit.
-      // When using a memcmp on raw floats, those numbers report to be different.
-      // Unify all +0 and -0 to +0 to make the floats equal under memcmp.
-      uint32_t *f = (uint32_t*)&facet;
-      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
-        if (*f == 0x80000000)
-          // Negative zero, switch to positive zero.
-          *f = 0;
-    }
-#else
-    {
-      // Due to the nature of the floating point numbers, close to zero values may be represented with singificantly higher precision 
-      // than the rest of the vertices. Round them to zero.
-      float *f = (float*)&facet;
-      for (int j = 0; j < 12; ++ j, ++ f) // 3x vertex + normal: 4x3 = 12 floats
-        if (*f > -1e-12f && *f < 1e-12f)
-          // Negative zero, switch to positive zero.
-          *f = 0;
-    }
-#endif
     /* Write the facet into memory. */
-    memcpy(stl->facet_start+i, &facet, SIZEOF_STL_FACET);
+    stl->facet_start[i] = facet;
     stl_facet_stats(stl, facet, first);
-    first = 0;
   }
-  stl->stats.size.x = stl->stats.max.x - stl->stats.min.x;
-  stl->stats.size.y = stl->stats.max.y - stl->stats.min.y;
-  stl->stats.size.z = stl->stats.max.z - stl->stats.min.z;
-  stl->stats.bounding_diameter = sqrt(
-                                   stl->stats.size.x * stl->stats.size.x +
-                                   stl->stats.size.y * stl->stats.size.y +
-                                   stl->stats.size.z * stl->stats.size.z
-                                 );
+  stl->stats.size = stl->stats.max - stl->stats.min;
+  stl->stats.bounding_diameter = stl->stats.size.norm();
 }
 
-void
-stl_facet_stats(stl_file *stl, stl_facet facet, int first) {
-  float diff_x;
-  float diff_y;
-  float diff_z;
-  float max_diff;
+void stl_facet_stats(stl_file *stl, stl_facet facet, bool &first)
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
+  // While we are going through all of the facets, let's find the
+  // maximum and minimum values for x, y, and z
 
-  /* while we are going through all of the facets, let's find the  */
-  /* maximum and minimum values for x, y, and z  */
-
-  /* Initialize the max and min values the first time through*/
   if (first) {
-    stl->stats.max.x = facet.vertex[0].x;
-    stl->stats.min.x = facet.vertex[0].x;
-    stl->stats.max.y = facet.vertex[0].y;
-    stl->stats.min.y = facet.vertex[0].y;
-    stl->stats.max.z = facet.vertex[0].z;
-    stl->stats.min.z = facet.vertex[0].z;
-
-    diff_x = ABS(facet.vertex[0].x - facet.vertex[1].x);
-    diff_y = ABS(facet.vertex[0].y - facet.vertex[1].y);
-    diff_z = ABS(facet.vertex[0].z - facet.vertex[1].z);
-    max_diff = STL_MAX(diff_x, diff_y);
-    max_diff = STL_MAX(diff_z, max_diff);
-    stl->stats.shortest_edge = max_diff;
-
-    first = 0;
+	// Initialize the max and min values the first time through
+    stl->stats.min = facet.vertex[0];
+    stl->stats.max = facet.vertex[0];
+    stl_vertex diff = (facet.vertex[1] - facet.vertex[0]).cwiseAbs();
+    stl->stats.shortest_edge = std::max(diff(0), std::max(diff(1), diff(2)));
+    first = false;
   }
 
-  /* now find the max and min values */
-  stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[0].x);
-  stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[0].x);
-  stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[0].y);
-  stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[0].y);
-  stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[0].z);
-  stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[0].z);
-
-  stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[1].x);
-  stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[1].x);
-  stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[1].y);
-  stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[1].y);
-  stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[1].z);
-  stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[1].z);
-
-  stl->stats.max.x = STL_MAX(stl->stats.max.x, facet.vertex[2].x);
-  stl->stats.min.x = STL_MIN(stl->stats.min.x, facet.vertex[2].x);
-  stl->stats.max.y = STL_MAX(stl->stats.max.y, facet.vertex[2].y);
-  stl->stats.min.y = STL_MIN(stl->stats.min.y, facet.vertex[2].y);
-  stl->stats.max.z = STL_MAX(stl->stats.max.z, facet.vertex[2].z);
-  stl->stats.min.z = STL_MIN(stl->stats.min.z, facet.vertex[2].z);
+  // Now find the max and min values.
+  for (size_t i = 0; i < 3; ++ i) {
+  	stl->stats.min = stl->stats.min.cwiseMin(facet.vertex[i]);
+  	stl->stats.max = stl->stats.max.cwiseMax(facet.vertex[i]);
+  }
 }
 
 void

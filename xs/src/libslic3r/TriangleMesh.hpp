@@ -20,33 +20,33 @@ typedef std::vector<TriangleMesh*> TriangleMeshPtrs;
 class TriangleMesh
 {
 public:
-    TriangleMesh();
-    TriangleMesh(const Pointf3s &points, const std::vector<Point3> &facets);
-    TriangleMesh(const TriangleMesh &other);
-    TriangleMesh(TriangleMesh &&other);
+    TriangleMesh() : repaired(false) { stl_initialize(&this->stl); }
+    TriangleMesh(const Pointf3s &points, const std::vector<Vec3crd> &facets);
+    TriangleMesh(const TriangleMesh &other) : repaired(false) { stl_initialize(&this->stl); *this = other; }
+    TriangleMesh(TriangleMesh &&other) : repaired(false) { stl_initialize(&this->stl); this->swap(other); }
+    ~TriangleMesh() { stl_close(&this->stl); }
     TriangleMesh& operator=(const TriangleMesh &other);
-    TriangleMesh& operator=(TriangleMesh &&other);
-    void swap(TriangleMesh &other);
-    ~TriangleMesh();
-    void ReadSTLFile(const char* input_file);
-    void write_ascii(const char* output_file);
-    void write_binary(const char* output_file);
+    TriangleMesh& operator=(TriangleMesh &&other) { this->swap(other); return *this; }
+    void swap(TriangleMesh &other) { std::swap(this->stl, other.stl); std::swap(this->repaired, other.repaired); }
+    void ReadSTLFile(const char* input_file) { stl_open(&stl, input_file); }
+    void write_ascii(const char* output_file) { stl_write_ascii(&this->stl, output_file, ""); }
+    void write_binary(const char* output_file) { stl_write_binary(&this->stl, output_file, ""); }
     void repair();
     float volume();
     void check_topology();
-    bool is_manifold() const;
+    bool is_manifold() const { return this->stl.stats.connected_facets_3_edge == this->stl.stats.number_of_facets; }
     void WriteOBJFile(char* output_file);
     void scale(float factor);
-    void scale(const Pointf3 &versor);
+    void scale(const Vec3d &versor);
     void translate(float x, float y, float z);
     void rotate(float angle, const Axis &axis);
-    void rotate_x(float angle);
-    void rotate_y(float angle);
-    void rotate_z(float angle);
+    void rotate_x(float angle) { this->rotate(angle, X); }
+    void rotate_y(float angle) { this->rotate(angle, Y); }
+    void rotate_z(float angle) { this->rotate(angle, Z); }
     void mirror(const Axis &axis);
-    void mirror_x();
-    void mirror_y();
-    void mirror_z();
+    void mirror_x() { this->mirror(X); }
+    void mirror_y() { this->mirror(Y); }
+    void mirror_z() { this->mirror(Z); }
     void transform(const float* matrix3x4);
     void align_to_origin();
     void rotate(double angle, Point* center);
@@ -55,9 +55,13 @@ public:
     ExPolygons horizontal_projection() const;
     Polygon convex_hull();
     BoundingBoxf3 bounding_box() const;
+    // Returns the bbox of this TriangleMesh transformed by the given transformation
+    BoundingBoxf3 transformed_bounding_box(const Transform3d& t) const;
+    // Returns the convex hull of this TriangleMesh
+    TriangleMesh convex_hull_3d() const;
     void reset_repair_stats();
     bool needed_repair() const;
-    size_t facets_count() const;
+    size_t facets_count() const { return this->stl.stats.number_of_facets; }
 
     // Returns true, if there are two and more connected patches in the mesh.
     // Returns false, if one or zero connected patch is in the mesh.
@@ -66,7 +70,7 @@ public:
     // Count disconnected triangle patches.
     size_t number_of_patches() const;
 
-    stl_file stl;
+    mutable stl_file stl;
     bool repaired;
     
 private:

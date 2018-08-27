@@ -243,7 +243,7 @@ void PerimeterGenerator::process()
                 perimeter_spacing / 2;
         // only apply infill overlap if we actually have one perimeter
         if (inset > 0)
-            inset -= scale_(this->config->get_abs_value("infill_overlap", unscale(inset + solid_infill_spacing / 2)));
+            inset -= scale_(this->config->get_abs_value("infill_overlap", unscale<double>(inset + solid_infill_spacing / 2)));
         // simplify infill contours according to resolution
         Polygons pp;
         for (ExPolygon &ex : last)
@@ -420,7 +420,7 @@ static inline ExtrusionPaths thick_polyline_to_extrusion_paths(const ThickPolyli
             path.polyline.append(line.b);
             // Convert from spacing to extrusion width based on the extrusion model
             // of a square extrusion ended with semi circles.
-            flow.width = unscale(w) + flow.height * (1. - 0.25 * PI);
+            flow.width = unscale<float>(w) + flow.height * (1. - 0.25 * PI);
             #ifdef SLIC3R_DEBUG
             printf("  filling %f gap\n", flow.width);
             #endif

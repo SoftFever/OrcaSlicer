@@ -119,7 +119,7 @@ public:
         push_geometry(float(x), float(y), float(z), float(nx), float(ny), float(nz));
     }
 
-    inline void push_geometry(const Pointf3& p, const Vectorf3& n) {
+    inline void push_geometry(const Vec3d& p, const Vec3d& n) {
         push_geometry(p(0), p(1), p(2), n(0), n(1), n(2));
     }
 
@@ -255,17 +255,21 @@ public:
 
 private:
     // Offset of the volume to be rendered.
-    Pointf3               m_origin;
+    Vec3d                 m_origin;
     // Rotation around Z axis of the volume to be rendered.
     float                 m_angle_z;
     // Scale factor of the volume to be rendered.
     float                 m_scale_factor;
-    // World matrix of the volume to be rendered.
-    mutable Transform3f   m_world_mat;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
-    // Whether or not is needed to recalculate the world matrix.
-    mutable bool          m_dirty;
+    // Whether or not is needed to recalculate the transformed bounding box.
+    mutable bool          m_transformed_bounding_box_dirty;
+    // Pointer to convex hull of the original mesh, if any.
+    const TriangleMesh*   m_convex_hull;
+    // Bounding box of this volume, in unscaled coordinates.
+    mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
+    // Whether or not is needed to recalculate the transformed convex hull bounding box.
+    mutable bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
 
@@ -319,17 +323,20 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-    const Pointf3& get_origin() const;
-    void set_origin(const Pointf3& origin);
+    float get_angle_z();
+    const Vec3d& get_origin() const;
+    void set_origin(const Vec3d& origin);
     void set_angle_z(float angle_z);
     void set_scale_factor(float scale_factor);
+    void set_convex_hull(const TriangleMesh& convex_hull);
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
-    const Transform3f&  world_matrix() const;
+    Transform3f         world_matrix() const;
     BoundingBoxf3       transformed_bounding_box() const;
+    BoundingBoxf3       transformed_convex_hull_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
     bool                indexed() const { return this->indexed_vertex_array.indexed(); }
@@ -497,10 +504,14 @@ public:
     static void enable_picking(wxGLCanvas* canvas, bool enable);
     static void enable_moving(wxGLCanvas* canvas, bool enable);
     static void enable_gizmos(wxGLCanvas* canvas, bool enable);
+    static void enable_toolbar(wxGLCanvas* canvas, bool enable);
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
     static void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
+
+    static void enable_toolbar_item(wxGLCanvas* canvas, const std::string& name, bool enable);
+    static bool is_toolbar_item_pressed(wxGLCanvas* canvas, const std::string& name);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
     static void zoom_to_volumes(wxGLCanvas* canvas);
@@ -534,6 +545,17 @@ public:
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
+    static void register_action_add_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_delete_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_deleteall_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_arrange_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_more_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_fewer_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_split_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
+
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
 
@@ -553,7 +575,7 @@ public:
     static void extrusionentity_to_verts(const ExtrusionEntityCollection& extrusion_entity_collection, float print_z, const Point& copy, GLVolume& volume);
     static void extrusionentity_to_verts(const ExtrusionEntity* extrusion_entity, float print_z, const Point& copy, GLVolume& volume);
     static void polyline3_to_verts(const Polyline3& polyline, double width, double height, GLVolume& volume);
-    static void point3_to_verts(const Point3& point, double width, double height, GLVolume& volume);
+    static void point3_to_verts(const Vec3crd& point, double width, double height, GLVolume& volume);
 };
 
 }

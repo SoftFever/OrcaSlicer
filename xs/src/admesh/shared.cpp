@@ -169,7 +169,7 @@ stl_write_off(stl_file *stl, char *file) {
 
   for(i = 0; i < stl->stats.shared_vertices; i++) {
     fprintf(fp, "\t%f %f %f\n",
-            stl->v_shared[i].x, stl->v_shared[i].y, stl->v_shared[i].z);
+            stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
   }
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     fprintf(fp, "\t3 %d %d %d\n", stl->v_indices[i].vertex[0],
@@ -216,10 +216,10 @@ stl_write_vrml(stl_file *stl, char *file) {
 
   for(i = 0; i < (stl->stats.shared_vertices - 1); i++) {
     fprintf(fp, "\t\t\t\t%f %f %f,\n",
-            stl->v_shared[i].x, stl->v_shared[i].y, stl->v_shared[i].z);
+            stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
   }
   fprintf(fp, "\t\t\t\t%f %f %f]\n",
-          stl->v_shared[i].x, stl->v_shared[i].y, stl->v_shared[i].z);
+          stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
   fprintf(fp, "\t\t}\n");
   fprintf(fp, "\t\tDEF STLTriangles IndexedFaceSet {\n");
   fprintf(fp, "\t\t\tcoordIndex [\n");
@@ -254,7 +254,7 @@ void stl_write_obj (stl_file *stl, char *file) {
   }
 
   for (i = 0; i < stl->stats.shared_vertices; i++) {
-    fprintf(fp, "v %f %f %f\n", stl->v_shared[i].x, stl->v_shared[i].y, stl->v_shared[i].z);
+    fprintf(fp, "v %f %f %f\n", stl->v_shared[i](0), stl->v_shared[i](1), stl->v_shared[i](2));
   }
   for (i = 0; i < stl->stats.number_of_facets; i++) {
     fprintf(fp, "f %d %d %d\n", stl->v_indices[i].vertex[0]+1, stl->v_indices[i].vertex[1]+1, stl->v_indices[i].vertex[2]+1);

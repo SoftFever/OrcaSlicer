@@ -38,6 +38,7 @@ wxString double_to_string(double const value);
 
 class MyButton : public wxButton
 {
+    bool hidden = false; // never show button if it's hidden ones
 public:
 	MyButton() {}
 	MyButton(wxWindow* parent, wxWindowID id, const wxString& label = wxEmptyString,
@@ -52,6 +53,12 @@ public:
 	// overridden from wxWindow base class
 	virtual bool
 		AcceptsFocusFromKeyboard() const { return false; }
+
+    virtual bool Show(bool show = true) override {
+        if (!show)
+            hidden = true;
+        return wxButton::Show(!hidden);
+	}
 };
 
 class Field {
@@ -189,6 +196,10 @@ public:
 		return false;
 	}
 
+	void	set_side_text_ptr(wxStaticText* side_text) {
+		m_side_text = side_text;
+    }
+
 protected:
 	MyButton*			m_Undo_btn = nullptr;
 	// Bitmap and Tooltip text for m_Undo_btn. The wxButton will be updated only if the new wxBitmap pointer differs from the currently rendered one.
@@ -203,6 +214,8 @@ protected:
 	// Color for Label. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
 	const wxColour*		m_label_color = nullptr;
 
+	wxStaticText*		m_side_text = nullptr;
+
 	// current value
 	boost::any			m_value;
 
@@ -214,7 +227,7 @@ protected:
 inline bool is_bad_field(const t_field& obj) { return obj->getSizer() == nullptr && obj->getWindow() == nullptr; }
 
 /// Covenience function to determine whether this field is a valid window field.
-inline bool is_window_field(const t_field& obj) { return !is_bad_field(obj) && obj->getWindow() != nullptr; }
+inline bool is_window_field(const t_field& obj) { return !is_bad_field(obj) && obj->getWindow() != nullptr && obj->getSizer() == nullptr; }
 
 /// Covenience function to determine whether this field is a valid sizer field.
 inline bool is_sizer_field(const t_field& obj) { return !is_bad_field(obj) && obj->getSizer() != nullptr; }
@@ -372,7 +385,7 @@ public:
 
 	void			BUILD()  override;
 
-	void			set_value(const Pointf& value, bool change_event = false);
+	void			set_value(const Vec2d& value, bool change_event = false);
 	void			set_value(const boost::any& value, bool change_event = false);
 	boost::any&		get_value() override;
 
@@ -408,9 +421,42 @@ public:
 
 	boost::any&		get_value()override { return m_value; }
 
-	void			enable() override { dynamic_cast<wxColourPickerCtrl*>(window)->Enable(); };
-	void			disable() override{ dynamic_cast<wxColourPickerCtrl*>(window)->Disable(); };
+	void			enable() override { dynamic_cast<wxStaticText*>(window)->Enable(); };
+	void			disable() override{ dynamic_cast<wxStaticText*>(window)->Disable(); };
 	wxWindow*		getWindow() override { return window; }
+};
+
+class SliderCtrl : public Field {
+	using Field::Field;
+public:
+	SliderCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt, id) {}
+	SliderCtrl(wxWindow* parent, const ConfigOptionDef& opt, const t_config_option_key& id) : Field(parent, opt, id) {}
+	~SliderCtrl() {}
+
+	wxSizer*		m_sizer{ nullptr };
+	wxTextCtrl*		m_textctrl{ nullptr };
+	wxSlider*		m_slider{ nullptr };
+
+	int				m_scale = 10;
+
+	void			BUILD()  override;
+
+	void			set_value(const int value, bool change_event = false);
+	void			set_value(const boost::any& value, bool change_event = false);
+	boost::any&		get_value() override;
+
+	void			enable() override {
+		m_slider->Enable();
+		m_textctrl->Enable();
+		m_textctrl->SetEditable(true);
+	}
+	void			disable() override{
+		m_slider->Disable();
+		m_textctrl->Disable();
+		m_textctrl->SetEditable(false);
+	}
+	wxSizer*		getSizer() override { return m_sizer; }
+	wxWindow*		getWindow() override { return dynamic_cast<wxWindow*>(m_slider); }
 };
 
 } // GUI

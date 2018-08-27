@@ -66,7 +66,7 @@ static inline bool is_ccw(const Polygon &poly)
     return o == ORIENTATION_CCW;
 }
 
-inline bool ray_ray_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
+inline bool ray_ray_intersection(const Vec2d &p1, const Vec2d &v1, const Vec2d &p2, const Vec2d &v2, Vec2d &res)
 {
     double denom = v1(0) * v2(1) - v2(0) * v1(1);
     if (std::abs(denom) < EPSILON)
@@ -77,7 +77,7 @@ inline bool ray_ray_intersection(const Pointf &p1, const Vectorf &v1, const Poin
     return true;
 }
 
-inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
+inline bool segment_segment_intersection(const Vec2d &p1, const Vec2d &v1, const Vec2d &p2, const Vec2d &v2, Vec2d &res)
 {
     double denom = v1(0) * v2(1) - v2(0) * v1(1);
     if (std::abs(denom) < EPSILON)
@@ -123,7 +123,7 @@ void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* ret
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);
 bool arrange(
     // input
-    size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box, 
+    size_t num_parts, const Vec2d &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box, 
     // output
     Pointfs &positions);
 

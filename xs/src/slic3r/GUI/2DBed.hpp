@@ -14,15 +14,15 @@ class Bed_2D : public wxPanel
 	bool		m_painted = false;
 	bool		m_interactive = false;
 	double		m_scale_factor;
-	Pointf		m_shift;
-	Pointf		m_pos;
-	std::function<void(Pointf)>	m_on_move = nullptr;
+	Vec2d		m_shift = Vec2d::Zero();
+	Vec2d		m_pos = Vec2d::Zero();
+	std::function<void(Vec2d)>	m_on_move = nullptr;
 
-	Point		to_pixels(Pointf point);
-	Pointf		to_units(Point point);
+	Point		to_pixels(Vec2d point);
+	Vec2d		to_units(Point point);
 	void		repaint();
 	void		mouse_event(wxMouseEvent event);
-	void		set_pos(Pointf pos);
+	void		set_pos(Vec2d pos);
 
 public:
 	Bed_2D(wxWindow* parent) 
@@ -41,7 +41,7 @@ public:
 	}
 	~Bed_2D(){}
 
-	std::vector<Pointf>		m_bed_shape;
+	std::vector<Vec2d>		m_bed_shape;
 		
 };
 

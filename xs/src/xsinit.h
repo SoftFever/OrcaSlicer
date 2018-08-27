@@ -197,9 +197,9 @@ void from_SV_check(SV* poly_sv, Polyline* THIS);
 SV* to_SV_pureperl(const Point* THIS);
 void from_SV(SV* point_sv, Point* point);
 void from_SV_check(SV* point_sv, Point* point);
-SV* to_SV_pureperl(const Pointf* point);
-bool from_SV(SV* point_sv, Pointf* point);
-bool from_SV_check(SV* point_sv, Pointf* point);
+SV* to_SV_pureperl(const Vec2d* point);
+bool from_SV(SV* point_sv, Vec2d* point);
+bool from_SV_check(SV* point_sv, Vec2d* point);
 void from_SV_check(SV* surface_sv, Surface* THIS);
 SV* to_SV(TriangleMesh* THIS);
 
