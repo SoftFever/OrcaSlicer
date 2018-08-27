@@ -38,6 +38,14 @@ inline coord_t x(const Vec3crd& p) { return p(0); }
 inline coord_t y(const Vec3crd& p) { return p(1); }
 inline coord_t z(const Vec3crd& p) { return p(2); }
 
+inline void triangulate(const ExPolygon& expoly, Polygons& triangles) {
+    expoly.triangulate_p2t(&triangles);
+}
+
+inline Polygons triangulate(const ExPolygon& expoly) {
+    Polygons tri; triangulate(expoly, tri); return tri;
+}
+
 using Indices = std::vector<Vec3crd>;
 
 /// Intermediate struct for a 3D mesh
@@ -81,8 +89,7 @@ inline Contour3D convert(const Polygons& triangles, coord_t z, bool dir) {
 /// Only a debug function to generate top and bottom plates from a 2D shape.
 /// It is not used in the algorithm directly.
 inline Contour3D roofs(const ExPolygon& poly, coord_t z_distance) {
-    Polygons triangles;
-    poly.triangulate_pp(&triangles);
+    Polygons triangles = triangulate(poly);
 
     auto lower = convert(triangles, 0, false);
     auto upper = convert(triangles, z_distance, true);
@@ -99,8 +106,7 @@ inline Contour3D walls(const ExPolygon& floor_plate, const ExPolygon& ceiling,
     poly.holes.emplace_back(ceiling.contour);
     auto& h = poly.holes.front();
     std::reverse(h.points.begin(), h.points.end());
-    Polygons tri;
-    poly.triangulate_p2t(&tri);
+    Polygons tri = triangulate(poly);
 
     Contour3D ret;
     ret.points.reserve(tri.size() * 3);
@@ -258,8 +264,7 @@ inline Contour3D round_edges(const ExPolygon& base_plate,
 inline Contour3D inner_bed(const ExPolygon& poly, double depth_mm,
                            double begin_h_mm = 0) {
 
-    Polygons triangles;
-    poly.triangulate_p2t(&triangles);
+    Polygons triangles = triangulate(poly);
 
     coord_t depth = mm(depth_mm);
     coord_t begin_h = mm(begin_h_mm);
@@ -367,14 +372,13 @@ inline Point centroid(const ExPolygon& poly) {
 /// with explicit bridges. Bridges are generated from each shape's centroid
 /// to the center of the "scene" which is the centroid calculated from the shape
 /// centroids (a star is created...)
-inline ExPolygon concave_hull(const ExPolygons& polys) {
-    if(polys.empty()) return ExPolygon();
+inline ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 0)
+{
+    if(polys.empty()) return ExPolygons();
 
     ExPolygons punion = unify(polys);   // could be redundant
 
-    ExPolygon ret;
-
-    if(punion.size() == 1) return punion.front();
+    if(punion.size() == 1) return punion;
 
     // We get the centroids of all the islands in the 2D slice
     Points centroids; centroids.reserve(punion.size());
@@ -389,11 +393,13 @@ inline ExPolygon concave_hull(const ExPolygons& polys) {
 
     std::transform(centroids.begin(), centroids.end(),
                    std::back_inserter(punion),
-                   [cc](const Point& c) {
+                   [cc, max_dist_mm](const Point& c) {
 
         double dx = x(c) - x(cc), dy = y(c) - y(cc);
         double l = std::sqrt(dx * dx + dy * dy);
         double nx = dx / l, ny = dy / l;
+
+        if(l < max_dist_mm) return ExPolygon();
 
         ExPolygon r;
         auto& ctour = r.contour.points;
@@ -414,9 +420,7 @@ inline ExPolygon concave_hull(const ExPolygons& polys) {
     if(punion.size() != 1)
         BOOST_LOG_TRIVIAL(error) << "Cannot generate correct SLA base pool!";
 
-    if(!punion.empty()) ret = punion.front();
-
-    return ret;
+    return punion;
 }
 
 }
@@ -437,127 +441,75 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       double min_wall_thickness_mm,
                       double min_wall_height_mm)
 {
-//    Contour3D pool;
+    auto concavehs = concave_hull(ground_layer);
+    for(ExPolygon& concaveh : concavehs) {
+        if(concaveh.contour.points.empty()) return;
+        concaveh.holes.clear();
 
-//    auto& poly = ground_layer.front();
-//    auto floor_poly = poly;
-//    offset(floor_poly, mm(5));
+        BoundingBox bb(concaveh);
+        coord_t w = x(bb.max) - x(bb.min);
+        coord_t h = y(bb.max) - y(bb.min);
 
-//    Polygons floor_plate;
-//    floor_poly.triangulate_p2t(&floor_plate);
-//    auto floor_mesh = convert(floor_plate, mm(20), false);
-//    pool.merge(floor_mesh);
+        auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
 
-//    Polygons ceil_plate;
-//    poly.triangulate_p2t(&ceil_plate);
-//    auto ceil_mesh = convert(ceil_plate, mm(0), true);
-//    pool.merge(ceil_mesh);
+        const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) +
+                                       wall_thickness;
 
-//    auto ob = floor_poly;
-//    auto ob_prev = ob;
-//    double wh = 20, wh_prev = wh;
-//    Contour3D curvedwalls;
+        const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
+        const coord_t HEIGHT = mm(min_wall_height_mm);
 
-//    const size_t steps = 6;
-//    const double radius_mm = 1;
-//    const double ystep_mm = radius_mm/steps;
-//    const double ceilheight_mm = 20;
-//    for(int i = 0; i < 1.5*steps; i++) {
-//        ob = floor_poly;
+        auto outer_base = concaveh;
+        offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
+        auto inner_base = outer_base;
+        offset(inner_base, -WALL_THICKNESS);
+        inner_base.holes.clear(); outer_base.holes.clear();
 
-//        // The offset is given by the equation: x = sqrt(r^2 - y^2)
-//        // which can be derived from the circle equation. y is the current
-//        // height for which the offset is calculated and x is the offset itself
-//        // r is the radius of the circle that is used to smooth the edges
+        ExPolygon top_poly;
+        top_poly.contour = outer_base.contour;
+        top_poly.holes.emplace_back(inner_base.contour);
+        auto& tph = top_poly.holes.back().points;
+        std::reverse(tph.begin(), tph.end());
 
-//        double r2 = radius_mm * radius_mm;
-//        double y2 = steps*ystep_mm - i*ystep_mm;
-//        y2 *= y2;
+        Contour3D pool;
 
-//        double x = sqrt(r2 - y2);
-//        offset(ob, mm(x));
-//        wh = ceilheight_mm - i*ystep_mm;
+        ExPolygon ob = outer_base; double wh = 0;
+        auto curvedwalls = round_edges(ob,
+                                       1,    // radius 1 mm
+                                       170,  // 170 degrees
+                                       0,    // z position of the input plane
+                                       true,
+                                       ob, wh);
+        pool.merge(curvedwalls);
 
-//        Contour3D pwalls;
-//        pwalls = walls(ob, ob_prev, wh, wh_prev);
+        ExPolygon ob_contr = ob;
+        ob_contr.holes.clear();
 
-//        curvedwalls.merge(pwalls);
-//        ob_prev = ob;
-//        wh_prev = wh;
-//    }
+        auto pwalls = walls(ob_contr, inner_base, wh, -min_wall_height_mm);
+        pool.merge(pwalls);
 
-//    auto w = walls(ob, poly, wh, 0);
+        Polygons top_triangles, bottom_triangles;
+        triangulate(top_poly, top_triangles);
+        triangulate(inner_base, bottom_triangles);
+        auto top_plate = convert(top_triangles, 0, false);
+        auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
 
-//    pool.merge(w);
-//    pool.merge(curvedwalls);
-
-//    out = mesh(pool);
-
-    auto concaveh = concave_hull(ground_layer);
-    if(concaveh.contour.points.empty()) return;
-    concaveh.holes.clear();
-
-    BoundingBox bb(concaveh);
-    coord_t w = x(bb.max) - x(bb.min);
-    coord_t h = y(bb.max) - y(bb.min);
-
-    auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
-
-    const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) + wall_thickness;
-    const coord_t WALL_DISTANCE = coord_t(0.3*WALL_THICKNESS);
-    const coord_t HEIGHT = mm(min_wall_height_mm);
-
-    auto outer_base = concaveh;
-    offset(outer_base, WALL_THICKNESS+WALL_DISTANCE);
-    auto inner_base = outer_base;
-    offset(inner_base, -WALL_THICKNESS);
-    inner_base.holes.clear(); outer_base.holes.clear();
-
-    ExPolygon top_poly;
-    top_poly.contour = outer_base.contour;
-    top_poly.holes.emplace_back(inner_base.contour);
-    auto& tph = top_poly.holes.back().points;
-    std::reverse(tph.begin(), tph.end());
-
-    Contour3D pool;
-
-    ExPolygon ob = outer_base; double wh = 0;
-    auto curvedwalls = round_edges(ob,
+        ob = inner_base; wh = 0;
+        curvedwalls = round_edges(ob,
                                   1,    // radius 1 mm
-                                  170,  // 170 degrees
+                                  90,  // 170 degrees
                                   0,    // z position of the input plane
-                                  true,
+                                  false,
                                   ob, wh);
-    pool.merge(curvedwalls);
+        pool.merge(curvedwalls);
 
-    ExPolygon ob_contr = ob;
-    ob_contr.holes.clear();
+        auto innerbed = inner_bed(ob, min_wall_height_mm/2 + wh, wh);
 
-    auto pwalls = walls(ob_contr, inner_base, wh, -min_wall_height_mm);
-    pool.merge(pwalls);
+        pool.merge(top_plate);
+        pool.merge(bottom_plate);
+        pool.merge(innerbed);
 
-    Polygons top_triangles, bottom_triangles;
-    top_poly.triangulate_p2t(&top_triangles);
-    inner_base.triangulate_p2t(&bottom_triangles);
-    auto top_plate = convert(top_triangles, 0, false);
-    auto bottom_plate = convert(bottom_triangles, -HEIGHT, true);
-
-    ob = inner_base; wh = 0;
-    curvedwalls = round_edges(ob,
-                               1,    // radius 1 mm
-                               90,  // 170 degrees
-                               0,    // z position of the input plane
-                               false,
-                               ob, wh);
-    pool.merge(curvedwalls);
-
-    auto innerbed = inner_bed(ob, min_wall_height_mm/2 + wh, wh);
-
-    pool.merge(top_plate);
-    pool.merge(bottom_plate);
-    pool.merge(innerbed);
-
-    out = mesh(pool);
+        out.merge(mesh(pool));
+    }
 }
 
 }
