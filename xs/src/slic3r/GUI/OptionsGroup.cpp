@@ -189,7 +189,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
             // so we need a horizontal sizer to arrange these things
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
-            sizer->Add(line.near_label_widget(parent()), 0, wxRIGHT, 2);
+            sizer->Add(line.near_label_widget(parent()), 0, wxRIGHT, 7);
             sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) |
                 (m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
         }

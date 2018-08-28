@@ -782,9 +782,14 @@ void object_ctrl_context_menu()
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
-    m_objects_ctrl->HitTest(get_mouse_position_in_control(), item, col);
-    wxString title = col->GetTitle();
+    printf("object_ctrl_context_menu\n");
+    const wxPoint pt = get_mouse_position_in_control();
+    printf("mouse_position_in_control: x = %d, y = %d\n", pt.x, pt.y);
+    m_objects_ctrl->HitTest(pt, item, col);
     if (!item) return;
+    printf("item exists\n");
+    const wxString title = col->GetTitle();
+    printf("title = *%s*\n", title.data().AsChar());
 
     if (title == " ")
         show_context_menu();
