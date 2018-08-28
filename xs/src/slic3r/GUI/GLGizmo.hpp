@@ -26,9 +26,7 @@ protected:
         static const float DraggingScaleFactor;
 
         Vec3d center;
-        float angle_x;
-        float angle_y;
-        float angle_z;
+        Vec3d angles;
         float color[3];
         bool dragging;
 
@@ -134,7 +132,7 @@ public:
 
 private:
     Axis m_axis;
-    float m_angle;
+    double m_angle;
 
     mutable Vec3d m_center;
     mutable float m_radius;
@@ -143,8 +141,8 @@ private:
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
 
-    float get_angle() const { return m_angle; }
-    void set_angle(float angle);
+    double get_angle() const { return m_angle; }
+    void set_angle(double angle);
 
 protected:
     virtual bool on_init();
@@ -176,14 +174,14 @@ class GLGizmoRotate3D : public GLGizmoBase
 public:
     explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
-    float get_angle_x() const { return m_x.get_angle(); }
-    void set_angle_x(float angle) { m_x.set_angle(angle); }
+    double get_angle_x() const { return m_x.get_angle(); }
+    void set_angle_x(double angle) { m_x.set_angle(angle); }
 
-    float get_angle_y() const { return m_y.get_angle(); }
-    void set_angle_y(float angle) { m_y.set_angle(angle); }
+    double get_angle_y() const { return m_y.get_angle(); }
+    void set_angle_y(double angle) { m_y.set_angle(angle); }
 
-    float get_angle_z() const { return m_z.get_angle(); }
-    void set_angle_z(float angle) { m_z.set_angle(angle); }
+    double get_angle_z() const { return m_z.get_angle(); }
+    void set_angle_z(double angle) { m_z.set_angle(angle); }
 
 protected:
     virtual bool on_init();
@@ -228,35 +226,25 @@ class GLGizmoScale3D : public GLGizmoBase
 
     mutable BoundingBoxf3 m_box;
 
-    float m_scale_x;
-    float m_scale_y;
-    float m_scale_z;
+    Vec3d m_scale;
 
-    float m_starting_scale_x;
-    float m_starting_scale_y;
-    float m_starting_scale_z;
-
+    Vec3d m_starting_scale;
     Vec3d m_starting_drag_position;
     Vec3d m_starting_center;
 
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
 
-    float get_scale_x() const { return m_scale_x; }
-    void set_scale_x(float scale) { m_starting_scale_x = scale; }
+    double get_scale_x() const { return m_scale(0); }
+    void set_scale_x(double scale) { m_starting_scale(0) = scale; }
 
-    float get_scale_y() const { return m_scale_y; }
-    void set_scale_y(float scale) { m_starting_scale_y = scale; }
+    double get_scale_y() const { return m_scale(1); }
+    void set_scale_y(double scale) { m_starting_scale(1) = scale; }
 
-    float get_scale_z() const { return m_scale_z; }
-    void set_scale_z(float scale) { m_starting_scale_z = scale; }
+    double get_scale_z() const { return m_scale(2); }
+    void set_scale_z(double scale) { m_starting_scale(2) = scale; }
 
-    void set_scale(float scale)
-    {
-        m_starting_scale_x = scale;
-        m_starting_scale_y = scale;
-        m_starting_scale_z = scale;
-    }
+    void set_scale(double scale) { m_starting_scale = scale * Vec3d::Ones(); }
 
 protected:
     virtual bool on_init();

@@ -26,10 +26,8 @@ const float GLGizmoBase::Grabber::HalfSize = 2.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
 GLGizmoBase::Grabber::Grabber()
-    : center(0.0, 0.0, 0.0)
-    , angle_x(0.0f)
-    , angle_y(0.0f)
-    , angle_z(0.0f)
+    : center(Vec3d::Zero())
+    , angles(Vec3d::Zero())
     , dragging(false)
 {
     color[0] = 1.0f;
@@ -64,9 +62,9 @@ void GLGizmoBase::Grabber::render(const float* render_color, bool use_lighting) 
     ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
 
     float rad_to_deg = 180.0f / (GLfloat)PI;
-    ::glRotatef((GLfloat)angle_x * rad_to_deg, 1.0f, 0.0f, 0.0f);
-    ::glRotatef((GLfloat)angle_y * rad_to_deg, 0.0f, 1.0f, 0.0f);
-    ::glRotatef((GLfloat)angle_z * rad_to_deg, 0.0f, 0.0f, 1.0f);
+    ::glRotatef((GLfloat)angles(0) * rad_to_deg, 1.0f, 0.0f, 0.0f);
+    ::glRotatef((GLfloat)angles(1) * rad_to_deg, 0.0f, 1.0f, 0.0f);
+    ::glRotatef((GLfloat)angles(2) * rad_to_deg, 0.0f, 0.0f, 1.0f);
 
     // face min x
     ::glPushMatrix();
@@ -233,17 +231,17 @@ const float GLGizmoRotate::GrabberOffset = 5.0f;
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent)
     , m_axis(axis)
-    , m_angle(0.0f)
+    , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
     , m_keep_initial_values(false)
 {
 }
 
-void GLGizmoRotate::set_angle(float angle)
+void GLGizmoRotate::set_angle(double angle)
 {
-    if (std::abs(angle - 2.0f * PI) < EPSILON)
-        angle = 0.0f;
+    if (std::abs(angle - 2.0 * (double)PI) < EPSILON)
+        angle = 0.0;
 
     m_angle = angle;
 }
@@ -290,7 +288,7 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
     if (theta == 2.0 * (double)PI)
         theta = 0.0;
 
-    m_angle = (float)theta;
+    m_angle = theta;
 }
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
@@ -420,7 +418,7 @@ void GLGizmoRotate::render_reference_radius() const
 
 void GLGizmoRotate::render_angle() const
 {
-    float step_angle = m_angle / AngleResolution;
+    float step_angle = (float)m_angle / AngleResolution;
     float ex_radius = m_radius + GrabberOffset;
 
     ::glBegin(GL_LINE_STRIP);
@@ -437,9 +435,9 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber() const
 {
-    float grabber_radius = m_radius + GrabberOffset;
+    double grabber_radius = (double)(m_radius + GrabberOffset);
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
-    m_grabbers[0].angle_z = m_angle;
+    m_grabbers[0].angles(2) = m_angle;
 
     ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
 
@@ -509,17 +507,7 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
 
     m.translate(-m_center);
 
-    Eigen::Matrix<double, 3, 2> world_ray;
-    Eigen::Matrix<double, 3, 2> local_ray;
-    world_ray(0, 0) = mouse_ray.a(0);
-    world_ray(1, 0) = mouse_ray.a(1);
-    world_ray(2, 0) = mouse_ray.a(2);
-    world_ray(0, 1) = mouse_ray.b(0);
-    world_ray(1, 1) = mouse_ray.b(1);
-    world_ray(2, 1) = mouse_ray.b(2);
-    local_ray = m * world_ray.colwise().homogeneous();
-
-    return Linef3(Vec3d(local_ray(0, 0), local_ray(1, 0), local_ray(2, 0)), Vec3d(local_ray(0, 1), local_ray(1, 1), local_ray(2, 1))).intersect_plane(0.0);
+    return transform(mouse_ray, m).intersect_plane(0.0);
 }
 
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent)
@@ -627,12 +615,9 @@ const float GLGizmoScale3D::Offset = 5.0f;
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
-    , m_scale_x(1.0f)
-    , m_scale_y(1.0f)
-    , m_scale_z(1.0f)
-    , m_starting_scale_x(1.0f)
-    , m_starting_scale_y(1.0f)
-    , m_starting_scale_z(1.0f)
+    , m_scale(Vec3d::Ones())
+    , m_starting_scale(Vec3d::Ones())
+    , m_starting_center(Vec3d::Zero())
 {
 }
 
@@ -657,15 +642,15 @@ bool GLGizmoScale3D::on_init()
         m_grabbers.push_back(Grabber());
     }
 
-    float half_pi = 0.5f * (float)PI;
+    double half_pi = 0.5 * (double)PI;
 
     // x axis
-    m_grabbers[0].angle_y = half_pi;
-    m_grabbers[1].angle_y = half_pi;
+    m_grabbers[0].angles(1) = half_pi;
+    m_grabbers[1].angles(1) = half_pi;
 
     // y axis
-    m_grabbers[2].angle_x = half_pi;
-    m_grabbers[3].angle_x = half_pi;
+    m_grabbers[2].angles(0) = half_pi;
+    m_grabbers[3].angles(0) = half_pi;
 
     return true;
 }
@@ -694,16 +679,16 @@ void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
 void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
     if (m_grabbers[0].dragging || m_grabbers[1].dragging)
-        set_tooltip("X: " + format(100.0f * m_scale_x, 4) + "%");
+        set_tooltip("X: " + format(100.0f * m_scale(0), 4) + "%");
     else if (m_grabbers[2].dragging || m_grabbers[3].dragging)
-        set_tooltip("Y: " + format(100.0f * m_scale_y, 4) + "%");
+        set_tooltip("Y: " + format(100.0f * m_scale(1), 4) + "%");
     else if (m_grabbers[4].dragging || m_grabbers[5].dragging)
-        set_tooltip("Z: " + format(100.0f * m_scale_z, 4) + "%");
+        set_tooltip("Z: " + format(100.0f * m_scale(2), 4) + "%");
     else if (m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
     {
-        std::string tooltip = "X: " + format(100.0f * m_scale_x, 4) + "%\n";
-        tooltip += "Y: " + format(100.0f * m_scale_y, 4) + "%\n";
-        tooltip += "Z: " + format(100.0f * m_scale_z, 4) + "%";
+        std::string tooltip = "X: " + format(100.0f * m_scale(0), 4) + "%\n";
+        tooltip += "Y: " + format(100.0f * m_scale(1), 4) + "%\n";
+        tooltip += "Z: " + format(100.0f * m_scale(2), 4) + "%";
         set_tooltip(tooltip);
     }
 
@@ -850,7 +835,7 @@ void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
     double ratio = calc_ratio(1, mouse_ray, m_starting_center);
 
     if (ratio > 0.0)
-        m_scale_x = m_starting_scale_x * (float)ratio;
+        m_scale(0) = m_starting_scale(0) * ratio;
 }
 
 void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
@@ -858,8 +843,8 @@ void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
     double ratio = calc_ratio(2, mouse_ray, m_starting_center);
 
     if (ratio > 0.0)
-        m_scale_x = m_starting_scale_y * (float)ratio; // << this is temporary
-//        m_scale_y = m_starting_scale_y * (float)ratio;
+        m_scale(0) = m_starting_scale(1) * ratio; // << this is temporary
+//        m_scale(1) = m_starting_scale(1) * ratio;
 }
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
@@ -867,8 +852,8 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
     double ratio = calc_ratio(1, mouse_ray, m_starting_center);
 
     if (ratio > 0.0)
-        m_scale_x = m_starting_scale_z * (float)ratio; // << this is temporary
-//        m_scale_z = m_starting_scale_z * (float)ratio;
+        m_scale(0) = m_starting_scale(2) * ratio; // << this is temporary
+//        m_scale(2) = m_starting_scale(2) * ratio;
 }
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
@@ -878,11 +863,7 @@ void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
     double ratio = calc_ratio(0, mouse_ray, center);
 
     if (ratio > 0.0)
-    {
-        m_scale_x = m_starting_scale_x * (float)ratio;
-        m_scale_y = m_starting_scale_y * (float)ratio;
-        m_scale_z = m_starting_scale_z * (float)ratio;
-    }
+        m_scale = m_starting_scale * ratio;
 }
 
 double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const
