@@ -198,6 +198,8 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     : m_origin(0, 0, 0)
     , m_angle_z(0.0f)
     , m_scale_factor(1.0f)
+    , m_world_matrix(Transform3f::Identity())
+    , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
@@ -268,6 +270,7 @@ void GLVolume::set_origin(const Vec3d& origin)
     if (m_origin != origin)
     {
         m_origin = origin;
+        m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
@@ -278,6 +281,7 @@ void GLVolume::set_angle_z(float angle_z)
     if (m_angle_z != angle_z)
     {
         m_angle_z = angle_z;
+        m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
@@ -288,6 +292,7 @@ void GLVolume::set_scale_factor(float scale_factor)
     if (m_scale_factor != scale_factor)
     {
         m_scale_factor = scale_factor;
+        m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
@@ -298,16 +303,20 @@ void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
     m_convex_hull = &convex_hull;
 }
 
-Transform3f GLVolume::world_matrix() const
+const Transform3f& GLVolume::world_matrix() const
 {
-    Transform3f matrix = Transform3f::Identity();
-    matrix.translate(Vec3f((float)m_origin(0), (float)m_origin(1), (float)m_origin(2)));
-    matrix.rotate(Eigen::AngleAxisf(m_angle_z, Vec3f::UnitZ()));
-    matrix.scale(m_scale_factor);
-    return matrix;
+    if (m_world_matrix_dirty)
+    {
+        m_world_matrix = Transform3f::Identity();
+        m_world_matrix.translate(Vec3f((float)m_origin(0), (float)m_origin(1), (float)m_origin(2)));
+        m_world_matrix.rotate(Eigen::AngleAxisf(m_angle_z, Vec3f::UnitZ()));
+        m_world_matrix.scale(m_scale_factor);
+        m_world_matrix_dirty = false;
+    }
+    return m_world_matrix;
 }
 
-BoundingBoxf3 GLVolume::transformed_bounding_box() const
+const BoundingBoxf3& GLVolume::transformed_bounding_box() const
 {
     if (m_transformed_bounding_box_dirty)
     {
@@ -318,7 +327,7 @@ BoundingBoxf3 GLVolume::transformed_bounding_box() const
     return m_transformed_bounding_box;
 }
 
-BoundingBoxf3 GLVolume::transformed_convex_hull_bounding_box() const
+const BoundingBoxf3& GLVolume::transformed_convex_hull_bounding_box() const
 {
     if (m_transformed_convex_hull_bounding_box_dirty)
     {
