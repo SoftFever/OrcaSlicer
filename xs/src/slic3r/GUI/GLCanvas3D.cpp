@@ -4491,7 +4491,7 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
     if (m_print->m_wipe_tower_final_purge)
         ctxt.final.emplace_back(*m_print->m_wipe_tower_final_purge.get());
 
-    ctxt.wipe_tower_angle = ctxt.print->config.wipe_tower_rotation_angle.value/180.f * M_PI;
+    ctxt.wipe_tower_angle = ctxt.print->config.wipe_tower_rotation_angle.value/180.f * PI;
     ctxt.wipe_tower_pos = WipeTower::xy(ctxt.print->config.wipe_tower_x.value, ctxt.print->config.wipe_tower_y.value);
 
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";

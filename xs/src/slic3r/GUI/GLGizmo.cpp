@@ -1020,21 +1020,6 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
     }
 }
 
-Linef3 transform(const Linef3& line, const Transform3d& t)
-{
-    Eigen::Matrix<double, 3, 2> world_line;
-    Eigen::Matrix<double, 3, 2> local_line;
-    world_line(0, 0) = line.a(0);
-    world_line(1, 0) = line.a(1);
-    world_line(2, 0) = line.a(2);
-    world_line(0, 1) = line.b(0);
-    world_line(1, 1) = line.b(1);
-    world_line(2, 1) = line.b(2);
-    local_line = t * world_line.colwise().homogeneous();
-
-    return Linef3(Vec3d(local_line(0, 0), local_line(1, 0), local_line(2, 0)), Vec3d(local_line(0, 1), local_line(1, 1), local_line(2, 1)));
-}
-
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 {
     double ratio = calc_ratio(1, mouse_ray, m_starting_center);
@@ -1219,10 +1204,13 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 
         for (Vec2d offset : m_instances_positions) {
             offset += to_2d(dragged_offset);
+            ::glPushMatrix();
+            ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
-                ::glVertex3f((GLfloat)(vertex(0) + offset(0)), (GLfloat)(vertex(1) + offset(1)), (GLfloat)vertex(2));
+                ::glVertex3f((GLfloat)vertex(0), (GLfloat)vertex(1), (GLfloat)vertex(2));
             ::glEnd();
+            ::glPopMatrix();
         }
     }
 
@@ -1234,43 +1222,23 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 
 void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    static const GLfloat INV_255 = 1.0f / 255.0f;
-
     ::glDisable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
-        ::glColor3f(1.0f, 1.0f, (254.0f - (float)i) * INV_255);
+        // FIXME: the color assignement will fail if the planes count is greater than 254
+        //        use the other color components in that case !!
+        ::glColor3f(1.0f, 1.0f, picking_color_component(i));
         for (const Vec2d& offset : m_instances_positions) {
+            ::glPushMatrix();
+            ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
-                ::glVertex3f((GLfloat)(vertex(0) + offset(0)), (GLfloat)vertex(1) + offset(1), (GLfloat)vertex(2));
+                ::glVertex3f((GLfloat)vertex(0), (GLfloat)vertex(1), (GLfloat)vertex(2));
             ::glEnd();
+            ::glPopMatrix();
         }
     }
-}
-
-// TODO - remove and use Eigen instead
-static Vec3d super_rotation(Vec3d axis, float angle, const Vec3d& point)
-{
-    axis.normalize();
-    float x = (float)axis(0);
-    float y = (float)axis(1);
-    float z = (float)axis(2);
-    float s = sin(angle);
-    float c = cos(angle);
-    float D = 1 - c;
-    float matrix[3][3] = { { c + x*x*D, x*y*D - z*s, x*z*D + y*s },
-    { y*x*D + z*s, c + y*y*D, y*z*D - x*s },
-    { z*x*D - y*s, z*y*D + x*s, c + z*z*D } };
-    float in[3] = { (float)point(0), (float)point(1), (float)point(2) };
-    float out[3] = { 0, 0, 0 };
-
-    for (unsigned char i = 0; i<3; ++i)
-        for (unsigned char j = 0; j<3; ++j)
-            out[i] += matrix[i][j] * in[j];
-
-    return Vec3d((double)out[0], (double)out[1], (double)out[2]);
 }
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
@@ -1359,14 +1327,15 @@ void GLGizmoFlatten::update_planes()
             angle_y = -atan2(normal(0)*cos(angle_z) - normal(1)*sin(angle_z), normal(2)); // angle to rotate to make normal point upwards
         else {
             // In case it already was in z-direction, we must ensure it is not the wrong way:
-            angle_y = normal(2) > 0.f ? 0 : -PI;
+            angle_y = normal(2) > 0.f ? 0.f : -PI;
         }
 
         // Rotate all points to the xy plane:
-        for (auto& vertex : polygon) {
-            vertex = super_rotation(Vec3d::UnitZ(), angle_z, vertex);
-            vertex = super_rotation(Vec3d::UnitY(), angle_y, vertex);
-        }
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd((double)angle_y, Vec3d::UnitY()));
+        m.rotate(Eigen::AngleAxisd((double)angle_z, Vec3d::UnitZ()));
+        polygon = transform(polygon, m);
+
         polygon = Slic3r::Geometry::convex_hull(polygon); // To remove the inner points
 
         // We will calculate area of the polygon and discard ones that are too small
@@ -1429,10 +1398,11 @@ void GLGizmoFlatten::update_planes()
 
         // Transform back to 3D;
         for (auto& b : polygon) {
-            b(0) += 0.1f; // raise a bit above the object surface to avoid flickering
-            b = super_rotation(Vec3d::UnitY(), -angle_y, b);
-            b = super_rotation(Vec3d::UnitZ(), -angle_z, b);
+            b(2) += 0.1f; // raise a bit above the object surface to avoid flickering
         }
+
+        m = m.inverse();
+        polygon = transform(polygon, m);
     }
 
     // We'll sort the planes by area and only keep the 255 largest ones (because of the picking pass limitations):

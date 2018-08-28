@@ -67,6 +67,9 @@ inline std::string to_string(const Vec2d   &pt) { return std::string("[") + std:
 inline std::string to_string(const Vec3crd &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
 inline std::string to_string(const Vec3d   &pt) { return std::string("[") + std::to_string(pt(0)) + ", " + std::to_string(pt(1)) + ", " + std::to_string(pt(2)) + "]"; }
 
+std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t);
+Pointf3s transform(const Pointf3s& points, const Transform3d& t);
+
 class Point : public Vec2crd
 {
 public:

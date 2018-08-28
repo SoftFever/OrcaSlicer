@@ -6,6 +6,44 @@
 
 namespace Slic3r {
 
+std::vector<Vec3f> transform(const std::vector<Vec3f>& points, const Transform3f& t)
+{
+    unsigned int vertices_count = (unsigned int)points.size();
+    if (vertices_count == 0)
+        return std::vector<Vec3f>();
+
+    unsigned int data_size = 3 * vertices_count * sizeof(float);
+
+    Eigen::MatrixXf src(3, vertices_count);
+    ::memcpy((void*)src.data(), (const void*)points.data(), data_size);
+
+    Eigen::MatrixXf dst(3, vertices_count);
+    dst = t * src.colwise().homogeneous();
+
+    std::vector<Vec3f> ret_points(vertices_count, Vec3f::Zero());
+    ::memcpy((void*)ret_points.data(), (const void*)dst.data(), data_size);
+    return ret_points;
+}
+
+Pointf3s transform(const Pointf3s& points, const Transform3d& t)
+{
+    unsigned int vertices_count = (unsigned int)points.size();
+    if (vertices_count == 0)
+        return Pointf3s();
+
+    unsigned int data_size = 3 * vertices_count * sizeof(double);
+
+    Eigen::MatrixXd src(3, vertices_count);
+    ::memcpy((void*)src.data(), (const void*)points.data(), data_size);
+
+    Eigen::MatrixXd dst(3, vertices_count);
+    dst = t * src.colwise().homogeneous();
+
+    Pointf3s ret_points(vertices_count, Vec3d::Zero());
+    ::memcpy((void*)ret_points.data(), (const void*)dst.data(), data_size);
+    return ret_points;
+}
+
 void Point::rotate(double angle)
 {
     double cur_x = (double)(*this)(0);

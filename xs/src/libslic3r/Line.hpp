@@ -15,6 +15,8 @@ typedef std::vector<Line> Lines;
 typedef std::vector<Line3> Lines3;
 typedef std::vector<ThickLine> ThickLines;
 
+Linef3 transform(const Linef3& line, const Transform3d& t);
+
 class Line
 {
 public:
