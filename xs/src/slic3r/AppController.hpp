@@ -190,7 +190,7 @@ protected:
     };
 
     // Should display a dialog with the input fields for printing to png
-    PngExportData query_png_export_data();
+    PngExportData query_png_export_data(const DynamicPrintConfig&);
 
     // The previous export data, to pre-populate the dialog
     PngExportData prev_expdata_;

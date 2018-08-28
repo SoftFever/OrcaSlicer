@@ -214,6 +214,35 @@ void PrintController::gen_support_material(PrintObject *pobj)
     }
 }
 
+PrintController::PngExportData
+PrintController::query_png_export_data(const DynamicPrintConfig& conf)
+{
+    PngExportData ret;
+
+    auto zippath = query_destination_path("Output zip file", "*.zip", "out");
+
+    ret.zippath = zippath;
+
+    ret.width_mm = conf.opt_float("display_width");
+    ret.height_mm = conf.opt_float("display_height");
+
+    ret.width_px = conf.opt_int("display_pixels_x");
+    ret.height_px = conf.opt_int("display_pixels_y");
+
+    auto opt_corr = conf.opt<ConfigOptionFloats>("printer_correction");
+
+    if(opt_corr) {
+        ret.corr_x = opt_corr->values[0];
+        ret.corr_y = opt_corr->values[1];
+        ret.corr_z = opt_corr->values[2];
+    }
+
+    ret.exp_time_first_s = conf.opt_float("initial_exposure_time");
+    ret.exp_time_s = conf.opt_float("exposure_time");
+
+    return ret;
+}
+
 void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 {
     auto st = pri->state();
@@ -262,17 +291,22 @@ void PrintController::slice_to_png()
 {
     using Pointf3 = Vec3d;
 
-    auto exd = query_png_export_data();
-
-    if(exd.zippath.empty()) return;
-
     auto presetbundle = GUI::get_preset_bundle();
 
     assert(presetbundle);
 
-    auto conf = presetbundle->full_config();
+    auto pt = presetbundle->printers.get_selected_preset().printer_technology();
+    if(pt != ptSLA) {
+        report_issue(IssueType::ERR, _("Printer technology is not SLA!"),
+                     _("Error"));
+        return;
+    }
 
+    auto conf = presetbundle->full_config();
     conf.validate();
+
+    auto exd = query_png_export_data(conf);
+    if(exd.zippath.empty()) return;
 
     try {
         print_->apply_config(conf);
