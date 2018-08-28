@@ -743,21 +743,6 @@ void ModelObject::rotate(float angle, const Vec3d& axis)
     this->invalidate_bounding_box();
 }
 
-void ModelObject::transform(const float* matrix3x4)
-{
-    if (matrix3x4 == nullptr)
-        return;
-
-    for (ModelVolume* v : volumes)
-    {
-        v->mesh.transform(matrix3x4);
-        v->m_convex_hull.transform(matrix3x4);
-    }
-
-    this->origin_translation = Vec3d::Zero();
-    this->invalidate_bounding_box();
-}
-
 void ModelObject::mirror(const Axis &axis)
 {
     for (ModelVolume *v : this->volumes)
