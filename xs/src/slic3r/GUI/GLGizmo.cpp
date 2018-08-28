@@ -49,29 +49,14 @@ void GLGizmoBase::Grabber::render(bool hover) const
     else
         ::memcpy((void*)render_color, (const void*)color, 3 * sizeof(float));
 
-#if ENABLE_GIZMOS_3D
     render(render_color, true);
-#else
-    render(render_color);
-#endif // ENABLE_GIZMOS_3D
 }
 
-#if ENABLE_GIZMOS_3D
 void GLGizmoBase::Grabber::render(const float* render_color, bool use_lighting) const
-#else
-void GLGizmoBase::Grabber::render(const float* render_color) const
-#endif // ENABLE_GIZMOS_3D
 {
     float half_size = dragging ? HalfSize * DraggingScaleFactor : HalfSize;
-#if ENABLE_GIZMOS_3D
     if (use_lighting)
         ::glEnable(GL_LIGHTING);
-#else
-    float min_x = -half_size;
-    float max_x = +half_size;
-    float min_y = -half_size;
-    float max_y = +half_size;
-#endif // !ENABLE_GIZMOS_3D
 
     ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
 
@@ -83,7 +68,6 @@ void GLGizmoBase::Grabber::render(const float* render_color) const
     ::glRotatef((GLfloat)angle_y * rad_to_deg, 0.0f, 1.0f, 0.0f);
     ::glRotatef((GLfloat)angle_z * rad_to_deg, 0.0f, 0.0f, 1.0f);
 
-#if ENABLE_GIZMOS_3D
     // face min x
     ::glPushMatrix();
     ::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f);
@@ -124,28 +108,13 @@ void GLGizmoBase::Grabber::render(const float* render_color) const
     ::glTranslatef(0.0f, 0.0f, (GLfloat)half_size);
     render_face(half_size);
     ::glPopMatrix();
-#else
-    ::glDisable(GL_CULL_FACE);
-    ::glBegin(GL_TRIANGLES);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)min_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)max_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)max_y, 0.0f);
-    ::glVertex3f((GLfloat)min_x, (GLfloat)min_y, 0.0f);
-    ::glEnd();
-    ::glEnable(GL_CULL_FACE);
-#endif // ENABLE_GIZMOS_3D
 
     ::glPopMatrix();
 
-#if ENABLE_GIZMOS_3D
     if (use_lighting)
         ::glDisable(GL_LIGHTING);
-#endif // ENABLE_GIZMOS_3D
 }
 
-#if ENABLE_GIZMOS_3D
 void GLGizmoBase::Grabber::render_face(float half_size) const
 {
     ::glBegin(GL_TRIANGLES);
@@ -158,7 +127,6 @@ void GLGizmoBase::Grabber::render_face(float half_size) const
     ::glVertex3f(-(GLfloat)half_size, -(GLfloat)half_size, 0.0f);
     ::glEnd();
 }
-#endif // ENABLE_GIZMOS_3D
 
 GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
@@ -282,24 +250,7 @@ void GLGizmoRotate::set_angle(float angle)
 
 bool GLGizmoRotate::on_init()
 {
-#if !ENABLE_GIZMOS_3D
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    std::string filename = path + "rotate_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
-        return false;
-    
-    filename = path + "rotate_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
-        return false;
-    
-    filename = path + "rotate_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
-        return false;
-#endif // !ENABLE_GIZMOS_3D
-
     m_grabbers.push_back(Grabber());
-
     return true;
 }
 
@@ -347,55 +298,33 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     if (m_grabbers[0].dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
 
-#if ENABLE_GIZMOS_3D
     ::glEnable(GL_DEPTH_TEST);
-#else
-    ::glDisable(GL_DEPTH_TEST);
-#endif // ENABLE_GIZMOS_3D
 
     if (!m_keep_initial_values)
     {
         m_center = box.center();
-#if !ENABLE_GIZMOS_3D
-        const Vec3d& size = box.size();
-        m_center(2) = 0.0;
-#endif // !ENABLE_GIZMOS_3D
-
-#if ENABLE_GIZMOS_3D
         m_radius = Offset + box.radius();
-#else
-        m_radius = Offset + ::sqrt(sqr(0.5f * (float)size(0)) + sqr(0.5f * (float)size(1)));
-#endif // ENABLE_GIZMOS_3D
         m_keep_initial_values = true;
     }
 
     ::glPushMatrix();
     transform_to_local();
 
-#if ENABLE_GIZMOS_3D
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
     ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
-#else
-    ::glLineWidth(2.0f);
-    ::glColor3fv(m_drag_color);
-#endif // ENABLE_GIZMOS_3D
 
     render_circle();
-#if ENABLE_GIZMOS_3D
+
     if (m_hover_id != -1)
     {
-#endif // ENABLE_GIZMOS_3D
         render_scale();
         render_snap_radii();
         render_reference_radius();
-#if ENABLE_GIZMOS_3D
     }
-#endif // ENABLE_GIZMOS_3D
 
     ::glColor3fv(m_highlight_color);
-#if ENABLE_GIZMOS_3D
+
     if (m_hover_id != -1)
-#endif // ENABLE_GIZMOS_3D
         render_angle();
 
     render_grabber();
@@ -512,11 +441,7 @@ void GLGizmoRotate::render_grabber() const
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angle_z = m_angle;
 
-#if ENABLE_GIZMOS_3D
     ::glColor3fv((m_hover_id != -1) ? m_drag_color : m_highlight_color);
-#else
-    ::glColor3fv(m_drag_color);
-#endif // ENABLE_GIZMOS_3D
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
@@ -696,106 +621,6 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 
     if ((m_hover_id == -1) || (m_hover_id == 2))
         m_z.render(box);
-}
-
-const float GLGizmoScale::Offset = 5.0f;
-
-GLGizmoScale::GLGizmoScale(GLCanvas3D& parent)
-    : GLGizmoBase(parent)
-    , m_scale(1.0f)
-    , m_starting_scale(1.0f)
-{
-}
-
-bool GLGizmoScale::on_init()
-{
-    std::string path = resources_dir() + "/icons/overlay/";
-
-    std::string filename = path + "scale_off.png";
-    if (!m_textures[Off].load_from_file(filename, false))
-        return false;
-
-    filename = path + "scale_hover.png";
-    if (!m_textures[Hover].load_from_file(filename, false))
-        return false;
-
-    filename = path + "scale_on.png";
-    if (!m_textures[On].load_from_file(filename, false))
-        return false;
-
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-        m_grabbers.push_back(Grabber());
-    }
-
-    return true;
-}
-
-void GLGizmoScale::on_start_dragging()
-{
-    if (m_hover_id != -1)
-        m_starting_drag_position = to_2d(m_grabbers[m_hover_id].center);
-}
-
-void GLGizmoScale::on_update(const Linef3& mouse_ray)
-{
-    Vec2d mouse_pos = to_2d(mouse_ray.intersect_plane(0.0));
-    Vec2d center(0.5 * (m_grabbers[1].center(0) + m_grabbers[0].center(0)), 0.5 * (m_grabbers[3].center(1) + m_grabbers[0].center(1)));
-
-    double orig_len = (m_starting_drag_position - center).norm();
-    double new_len = (mouse_pos - center).norm();
-    double ratio = (orig_len != 0.0) ? new_len / orig_len : 1.0;
-
-    m_scale = m_starting_scale * (float)ratio;
-}
-
-void GLGizmoScale::on_render(const BoundingBoxf3& box) const
-{
-    if (m_grabbers[0].dragging || m_grabbers[1].dragging || m_grabbers[2].dragging || m_grabbers[3].dragging)
-        set_tooltip(format(100.0f * m_scale, 4) + "%");
-
-    ::glDisable(GL_DEPTH_TEST);
-
-    double min_x = box.min(0) - (double)Offset;
-    double max_x = box.max(0) + (double)Offset;
-    double min_y = box.min(1) - (double)Offset;
-    double max_y = box.max(1) + (double)Offset;
-
-    m_grabbers[0].center = Vec3d(min_x, min_y, 0.0);
-    m_grabbers[1].center = Vec3d(max_x, min_y, 0.0);
-    m_grabbers[2].center = Vec3d(max_x, max_y, 0.0);
-    m_grabbers[3].center = Vec3d(min_x, max_y, 0.0);
-
-    ::glLineWidth(2.0f);
-    ::glColor3fv(m_drag_color);
-
-    // draw outline
-    ::glBegin(GL_LINE_LOOP);
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-        ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), 0.0f);
-    }
-    ::glEnd();
-
-    // draw grabbers
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-        ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
-    }
-    render_grabbers();
-}
-
-void GLGizmoScale::on_render_for_picking(const BoundingBoxf3& box) const
-{
-    ::glDisable(GL_DEPTH_TEST);
-
-    for (unsigned int i = 0; i < 4; ++i)
-    {
-        m_grabbers[i].color[0] = 1.0f;
-        m_grabbers[i].color[1] = 1.0f;
-        m_grabbers[i].color[2] = picking_color_component(i);
-    }
-    render_grabbers_for_picking();
 }
 
 const float GLGizmoScale3D::Offset = 5.0f;

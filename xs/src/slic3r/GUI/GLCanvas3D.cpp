@@ -1134,11 +1134,7 @@ GLCanvas3D::Gizmos::~Gizmos()
 
 bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
-#if ENABLE_GIZMOS_3D
     GLGizmoBase* gizmo = new GLGizmoScale3D(parent);
-#else
-    GLGizmoBase* gizmo = new GLGizmoScale(parent);
-#endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
         return false;
 
@@ -1147,11 +1143,7 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
-#if ENABLE_GIZMOS_3D
     gizmo = new GLGizmoRotate3D(parent);
-#else
-    gizmo = new GLGizmoRotate(parent, GLGizmoRotate::Z);
-#endif // ENABLE_GIZMOS_3D
     if (gizmo == nullptr)
     {
         _reset();
@@ -1379,11 +1371,7 @@ float GLCanvas3D::Gizmos::get_scale() const
         return 1.0f;
 
     GizmosMap::const_iterator it = m_gizmos.find(Scale);
-#if ENABLE_GIZMOS_3D
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale3D*>(it->second)->get_scale_x() : 1.0f;
-#else
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale*>(it->second)->get_scale() : 1.0f;
-#endif // ENABLE_GIZMOS_3D
 }
 
 void GLCanvas3D::Gizmos::set_scale(float scale)
@@ -1393,11 +1381,7 @@ void GLCanvas3D::Gizmos::set_scale(float scale)
 
     GizmosMap::const_iterator it = m_gizmos.find(Scale);
     if (it != m_gizmos.end())
-#if ENABLE_GIZMOS_3D
         reinterpret_cast<GLGizmoScale3D*>(it->second)->set_scale(scale);
-#else
-        reinterpret_cast<GLGizmoScale*>(it->second)->set_scale(scale);
-#endif // ENABLE_GIZMOS_3D
 }
 
 float GLCanvas3D::Gizmos::get_angle_z() const
@@ -1406,11 +1390,7 @@ float GLCanvas3D::Gizmos::get_angle_z() const
         return 0.0f;
 
     GizmosMap::const_iterator it = m_gizmos.find(Rotate);
-#if ENABLE_GIZMOS_3D
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate3D*>(it->second)->get_angle_z() : 0.0f;
-#else
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate*>(it->second)->get_angle() : 0.0f;
-#endif // ENABLE_GIZMOS_3D
 }
 
 void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
@@ -1420,11 +1400,7 @@ void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
 
     GizmosMap::const_iterator it = m_gizmos.find(Rotate);
     if (it != m_gizmos.end())
-#if ENABLE_GIZMOS_3D
-reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
-#else
-        reinterpret_cast<GLGizmoRotate*>(it->second)->set_angle(angle_z);
-#endif // ENABLE_GIZMOS_3D
+        reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
 }
 
 Vec3d GLCanvas3D::Gizmos::get_flattening_normal() const

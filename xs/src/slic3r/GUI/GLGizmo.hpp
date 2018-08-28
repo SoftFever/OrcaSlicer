@@ -7,8 +7,6 @@
 
 #include <vector>
 
-#define ENABLE_GIZMOS_3D 1
-
 namespace Slic3r {
 
 class BoundingBoxf3;
@@ -37,21 +35,11 @@ protected:
         Grabber();
 
         void render(bool hover) const;
-#if ENABLE_GIZMOS_3D
         void render_for_picking() const { render(color, false); }
-#else
-        void render_for_picking() const { render(color); }
-#endif // ENABLE_GIZMOS_3D
 
     private:
-#if ENABLE_GIZMOS_3D
         void render(const float* render_color, bool use_lighting) const;
-#else
-        void render(const float* render_color) const;
-#endif // ENABLE_GIZMOS_3D
-#if ENABLE_GIZMOS_3D
         void render_face(float half_size) const;
-#endif // ENABLE_GIZMOS_3D
     };
 
 public:
@@ -232,29 +220,6 @@ protected:
         m_y.render_for_picking(box);
         m_z.render_for_picking(box);
     }
-};
-
-class GLGizmoScale : public GLGizmoBase
-{
-    static const float Offset;
-
-    float m_scale;
-    float m_starting_scale;
-
-    Vec2d m_starting_drag_position;
-
-public:
-    explicit GLGizmoScale(GLCanvas3D& parent);
-
-    float get_scale() const { return m_scale; }
-    void set_scale(float scale) { m_starting_scale = scale; }
-
-protected:
-    virtual bool on_init();
-    virtual void on_start_dragging();
-    virtual void on_update(const Linef3& mouse_ray);
-    virtual void on_render(const BoundingBoxf3& box) const;
-    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 };
 
 class GLGizmoScale3D : public GLGizmoBase
