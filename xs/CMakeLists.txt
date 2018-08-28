@@ -2,6 +2,10 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Enable C11 language standard.
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 
@@ -156,6 +160,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/PolylineCollection.hpp
     ${LIBDIR}/libslic3r/Print.cpp
     ${LIBDIR}/libslic3r/Print.hpp
+    ${LIBDIR}/libslic3r/PrintExport.hpp
     ${LIBDIR}/libslic3r/PrintConfig.cpp
     ${LIBDIR}/libslic3r/PrintConfig.hpp
     ${LIBDIR}/libslic3r/PrintObject.cpp
@@ -174,8 +179,11 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/SVG.hpp
     ${LIBDIR}/libslic3r/TriangleMesh.cpp
     ${LIBDIR}/libslic3r/TriangleMesh.hpp
+    ${LIBDIR}/libslic3r/SLABasePool.hpp
+    ${LIBDIR}/libslic3r/SLABasePool.cpp
 #    ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/libslic3r/Utils.hpp
+
 )
 
 add_library(libslic3r_gui STATIC
@@ -271,6 +279,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/PresetUpdater.hpp
     ${LIBDIR}/slic3r/Utils/Time.cpp
     ${LIBDIR}/slic3r/Utils/Time.hpp
+    ${LIBDIR}/slic3r/GUI/PngExportDialog.hpp
+    ${LIBDIR}/slic3r/GUI/PngExportDialog.cpp
     ${LIBDIR}/slic3r/Utils/HexFile.cpp
     ${LIBDIR}/slic3r/Utils/HexFile.hpp
     ${LIBDIR}/slic3r/IProgressIndicator.hpp
@@ -373,6 +383,49 @@ add_library(semver STATIC
     ${LIBDIR}/semver/semver.c
 )
 
+# ##############################################################################
+# Configure rasterizer target
+# ##############################################################################
+
+find_package(PNG QUIET)
+
+option(RASTERIZER_FORCE_BUILTIN_LIBPNG "Force the usage of builting libpng instead of the system version." OFF)
+
+add_library(rasterizer STATIC
+    ${LIBDIR}/libslic3r/Rasterizer/Rasterizer.hpp
+    ${LIBDIR}/libslic3r/Rasterizer/Rasterizer.cpp
+)
+
+if(PNG_FOUND AND NOT RASTERIZER_FORCE_BUILTIN_LIBPNG)
+    message(STATUS "Using system libpng.")
+    target_link_libraries(rasterizer PRIVATE ${PNG_LIBRARIES})
+    target_include_directories(rasterizer PRIVATE ${PNG_INCLUDE_DIRS})
+    target_compile_definitions(rasterizer PRIVATE ${PNG_DEFINITIONS})
+else()
+    set(ZLIB_LIBRARY "")
+    message(WARNING "Using builtin libpng. This can cause crashes on some platforms.")
+    add_subdirectory( ${LIBDIR}/png/zlib)
+
+    set(ZLIB_INCLUDE_DIR
+        ${LIBDIR}/png/zlib
+        ${CMAKE_CURRENT_BINARY_DIR}/src/png/zlib
+        )
+
+    add_subdirectory( ${LIBDIR}/png/libpng )
+    set_target_properties(zlibstatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    set_target_properties(png_static PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+    target_include_directories(rasterizer PRIVATE
+        ${LIBDIR}/png/libpng
+        ${CMAKE_CURRENT_BINARY_DIR}/src/png/libpng
+        )
+    target_link_libraries(rasterizer PRIVATE png_static zlibstatic)
+
+endif()
+
+target_link_libraries(libslic3r rasterizer )
+
+# ##############################################################################
 
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
@@ -715,9 +768,14 @@ if(APPLE)
 endif()
 
 # Create a slic3r executable
-add_executable(slic3r ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
+add_executable(slic3r EXCLUDE_FROM_ALL ${PROJECT_SOURCE_DIR}/src/slic3r.cpp)
 target_include_directories(XS PRIVATE src src/libslic3r)
 target_link_libraries(slic3r libslic3r libslic3r_gui admesh miniz ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
+
+add_executable(slabasebed ${PROJECT_SOURCE_DIR}/src/slabasebed.cpp)
+target_include_directories(slabasebed PRIVATE src src/libslic3r)
+target_link_libraries(slabasebed libslic3r libslic3r_gui qhull admesh miniz ${Boost_LIBRARIES} clipper ${EXPAT_LIBRARIES} ${GLEW_LIBRARIES} polypartition poly2tri ${TBB_LIBRARIES} ${wxWidgets_LIBRARIES})
+
 if(SLIC3R_PROFILE)
     target_link_libraries(Shiny)
 endif()

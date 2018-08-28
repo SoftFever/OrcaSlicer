@@ -114,13 +114,37 @@ sub export_gcode {
     }
 }
 
+sub export_png {
+    my $self = shift;
+    my %params = @_;
+
+    my @sobjects =  @{$self->objects};
+    my $objnum = scalar @sobjects;
+    for(my $oi = 0; $oi < $objnum; $oi++)
+    { 
+        $sobjects[$oi]->slice;
+        $self->status_cb->(($oi + 1)*100/$objnum - 1, "Slicing...");
+    }
+
+    my $fh = $params{output_file};
+    $self->status_cb->(90, "Exporting zipped archive...");
+    $self->print_to_png($fh);
+    $self->status_cb->(100, "Done.");
+}
+
 # Export SVG slices for the offline SLA printing.
 # The export_svg is expected to be executed inside an eval block.
 sub export_svg {
     my $self = shift;
     my %params = @_;
     
-    $_->slice for @{$self->objects};
+    my @sobjects =  @{$self->objects};
+    my $objnum = scalar @sobjects;
+    for(my $oi = 0; $oi < $objnum; $oi++)
+    { 
+        $sobjects[$oi]->slice;
+        $self->status_cb->(($oi + 1)*100/$objnum - 1, "Slicing...");
+    }
     
     my $fh = $params{output_fh};
     if (!$fh) {

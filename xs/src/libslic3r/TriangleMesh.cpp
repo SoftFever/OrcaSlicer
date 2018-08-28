@@ -858,7 +858,7 @@ TriangleMeshSlicer::slice(const std::vector<float> &z, std::vector<ExPolygons>* 
 #ifdef SLIC3R_TRIANGLEMESH_DEBUG
     			printf("Layer " PRINTF_ZU " (slice_z = %.2f):\n", layer_id, z[layer_id]);
 #endif
-    			this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
+                this->make_expolygons(layers_p[layer_id], &(*layers)[layer_id]);
     		}
     	});
 	BOOST_LOG_TRIVIAL(debug) << "TriangleMeshSlicer::make_expolygons in parallel - end";
@@ -1205,8 +1205,8 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                 if ((ip1.edge_id  != -1 && ip1.edge_id  == ip2.edge_id) ||
                     (ip1.point_id != -1 && ip1.point_id == ip2.point_id)) {
                     // The current loop is complete. Add it to the output.
-                    assert(opl.points.front().point_id == opl.points.back().point_id);
-                    assert(opl.points.front().edge_id  == opl.points.back().edge_id);
+                    /*assert(opl.points.front().point_id == opl.points.back().point_id);
+                    assert(opl.points.front().edge_id  == opl.points.back().edge_id);*/
                     // Remove the duplicate last point.
                     opl.points.pop_back();
                     if (opl.points.size() >= 3) {

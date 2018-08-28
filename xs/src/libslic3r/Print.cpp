@@ -11,6 +11,10 @@
 #include <unordered_set>
 #include <boost/filesystem.hpp>
 #include <boost/lexical_cast.hpp>
+#include <boost/log/trivial.hpp>
+
+#include "slic3r/IProgressIndicator.hpp"
+#include "PrintExport.hpp"
 
 //! macro used to mark string used at localization, 
 //! return same string
@@ -1230,7 +1234,22 @@ std::string Print::output_filepath(const std::string &path)
 
 void Print::set_status(int percent, const std::string &message)
 {
-    printf("Print::status %d => %s\n", percent, message.c_str());
+    if(progressindicator) progressindicator->update(unsigned(percent), message);
+    else {
+        printf("Print::status %d => %s\n", percent, message.c_str());
+        std::cout.flush();
+    }
+}
+
+void Print::print_to_png(std::string dirpath) {
+    print_to<FilePrinterFormat::PNG>(*this,
+        dirpath,
+        float(this->config.bed_size_x.value),
+        float(this->config.bed_size_y.value),
+        int(this->config.pixel_width.value),
+        int(this->config.pixel_height.value),
+        float(this->config.exp_time.value),
+        float(this->config.exp_time_first.value));
 }
 
 // Returns extruder this eec should be printed with, according to PrintRegion config

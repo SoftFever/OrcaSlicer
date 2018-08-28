@@ -1,0 +1,60 @@
+Version 0.2.7:
+
+  - Added solid_pixel_buffer (patch by Andrey Potapov).
+
+  - Fixed some compilation problems on Win32.
+
+Version 0.2.5:
+
+  - Fixed compatibility with newer libpng versions (>= 1.4)
+
+  - Fixed compilation on FreeBSD.
+
+  - Fixed tRNS handling with transformations.
+
+  - Added IO transformation debugging facility.
+
+  - Better organized test suite.
+
+Version 0.2.3:
+
+  - Fixed numerous `already defined' errors due to require_color_space
+    implementation.
+
+  - Added `config.hpp'.
+
+  - Fixed `strerror' usage.
+
+  - Minor docs fixes.
+
+
+Version 0.2.1:
+
+  - Added support for tRNS chunk.
+
+  - Added non-std IO streams support.
+
+  - Fixed 16-bit endianness problems.
+
+  - Improved test script.
+
+
+Version 0.2.0:
+
+  - Added support for 16-bit data (RGB, RGBA, Grayscale and Gray+Alpha
+    color types)
+
+  - Added support for packed 1-, 2- or 4-bit pixels (Grayscale and
+    Indexed colors)
+
+  - Fixed interlace handling code which was severely broken
+
+  - Added possibility to process images without reading the entire
+    image into memory
+
+  - Internals are refactored while the client interface is mostly
+    unchanged
+
+  - Added intensive test suite
+
+  - Added documentation

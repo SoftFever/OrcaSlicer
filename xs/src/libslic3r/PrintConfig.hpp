@@ -750,6 +750,12 @@ public:
     ConfigOptionFloats              wiping_volumes_matrix;
     ConfigOptionFloats              wiping_volumes_extruders;
     ConfigOptionFloat               z_offset;
+    ConfigOptionFloat               bed_size_x;
+    ConfigOptionFloat               bed_size_y;
+    ConfigOptionInt                 pixel_width;
+    ConfigOptionInt                 pixel_height;
+    ConfigOptionFloat               exp_time;
+    ConfigOptionFloat               exp_time_first;
     
 protected:
     PrintConfig(int) : GCodeConfig(1) {}
@@ -821,6 +827,12 @@ protected:
         OPT_PTR(wiping_volumes_matrix);
         OPT_PTR(wiping_volumes_extruders);
         OPT_PTR(z_offset);
+        OPT_PTR(bed_size_x);
+        OPT_PTR(bed_size_y);
+        OPT_PTR(pixel_width);
+        OPT_PTR(pixel_height);
+        OPT_PTR(exp_time);
+        OPT_PTR(exp_time_first);
     }
 };
 

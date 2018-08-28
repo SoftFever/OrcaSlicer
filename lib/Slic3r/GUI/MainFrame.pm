@@ -9,7 +9,7 @@ use File::Basename qw(basename dirname);
 use FindBin;
 use List::Util qw(min first);
 use Slic3r::Geometry qw(X Y);
-use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog
+use Wx qw(:frame :bitmap :id :misc :notebook :panel :sizer :menu :dialog :filedialog :dirdialog
     :font :icon wxTheApp);
 use Wx::Event qw(EVT_CLOSE EVT_COMMAND EVT_MENU EVT_NOTEBOOK_PAGE_CHANGED);
 use base 'Wx::Frame';
@@ -40,7 +40,7 @@ sub new {
         
     my $self = $class->SUPER::new(undef, -1, $Slic3r::FORK_NAME . ' - ' . $Slic3r::VERSION, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE);
         Slic3r::GUI::set_main_frame($self);
-    
+        
     $appController = Slic3r::AppController->new();
 
     if ($^O eq 'MSWin32') {
@@ -73,6 +73,15 @@ sub new {
     $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new($self, Wx::NewId);
     $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
     $self->SetStatusBar($self->{statusbar});
+
+    # Make the global status bar and its progress indicator available in C++
+    $appController->set_global_progress_indicator(
+        $self->{statusbar}->{prog}->GetId(),
+        $self->{statusbar}->GetId(),
+    );
+
+    $appController->set_model($self->{plater}->{model});
+    $appController->set_print($self->{plater}->{print});
     
     # Make the global status bar and its progress indicator available in C++
     $appController->set_global_progress_indicator(
@@ -311,6 +320,9 @@ sub _init_menubar {
         $self->_append_menu_item($fileMenu, L("Slice to SV&G…\tCtrl+G"), L('Slice file to a multi-layer SVG'), sub {
             $self->quick_slice(save_as => 1, export_svg => 1);
         }, undef, 'shape_handles.png');
+        $self->_append_menu_item($fileMenu, L("Slice to PNG…"), L('Slice file to a set of PNG files'), sub {
+            $self->slice_to_png; #$self->quick_slice(save_as => 0, export_png => 1);
+        }, undef, 'shape_handles.png');
         $self->{menu_item_reslice_now} = $self->_append_menu_item(
             $fileMenu, L("(&Re)Slice Now\tCtrl+S"), L('Start new slicing process'), 
             sub { $self->reslice_now; }, undef, 'shape_handles.png');
@@ -456,6 +468,13 @@ sub on_plater_selection_changed {
         for $self->{object_menu}->GetMenuItems;
 }
 
+sub slice_to_png {
+    my $self = shift;
+    $self->{plater}->stop_background_process;
+    $self->{plater}->async_apply_config;
+    $appController->print_ctl()->slice_to_png();
+}
+
 # To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
 sub quick_slice {
     my ($self, %params) = @_;
@@ -537,11 +556,24 @@ sub quick_slice {
             $qs_last_output_file = $output_file unless $params{export_svg};
             wxTheApp->{app_config}->update_last_output_dir(dirname($output_file));
             $dlg->Destroy;
+        } elsif($params{export_png}) {
+            $output_file = $sprint->output_filepath;
+            $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.zip/;
+            # my $dlg = Wx::DirDialog->new($self, L('Choose output directory'));
+            my $dlg = Wx::FileDialog->new($self, L('Save zip file as:'),
+                wxTheApp->{app_config}->get_last_output_dir(dirname($output_file)),
+                basename($output_file), '*.zip', wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+            if ($dlg->ShowModal != wxID_OK) {
+                $dlg->Destroy;
+                return;
+            }
+            $output_file = $dlg->GetPath;
+            $dlg->Destroy;
         }
         
         # show processbar dialog
         $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
-            100, $self, 0);
+            100, $self, 4);
         $progress_dialog->Pulse;
         
         {
@@ -551,7 +583,11 @@ sub quick_slice {
             $sprint->output_file($output_file);
             if ($params{export_svg}) {
                 $sprint->export_svg;
-            } else {
+            } 
+            elsif($params{export_png}) {
+                $sprint->export_png;
+            } 
+            else {
                 $sprint->export_gcode;
             }
             $sprint->status_cb(undef);

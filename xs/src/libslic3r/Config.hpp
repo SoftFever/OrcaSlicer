@@ -1035,7 +1035,7 @@ public:
     TYPE* option(const t_config_option_key &opt_key, bool create = false)
     { 
         ConfigOption *opt = this->optptr(opt_key, create);
-        assert(opt == nullptr || opt->type() == TYPE::static_type());
+//        assert(opt == nullptr || opt->type() == TYPE::static_type());
         return (opt == nullptr || opt->type() != TYPE::static_type()) ? nullptr : static_cast<TYPE*>(opt);
     }
     template<typename TYPE>

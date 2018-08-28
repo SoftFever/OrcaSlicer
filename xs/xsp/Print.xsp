@@ -199,6 +199,8 @@ _constant()
                 croak("%s\n", e.what());
             }
         %};
+        
+    void print_to_png(std::string dirpath);
     
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig* config)

@@ -227,6 +227,9 @@ private:
 typedef std::vector<PrintObject*> PrintObjectPtrs;
 typedef std::vector<PrintRegion*> PrintRegionPtrs;
 
+class IProgressIndicator;
+using ProgressIndicatorPtr = std::shared_ptr<IProgressIndicator>;
+
 // The complete print tray with possibly multiple objects.
 class Print
 {
@@ -237,7 +240,10 @@ public:
     PrintObjectPtrs objects;
     PrintRegionPtrs regions;
     PlaceholderParser placeholder_parser;
+
     // TODO: status_cb
+    ProgressIndicatorPtr            progressindicator;
+
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
     double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
@@ -322,8 +328,10 @@ public:
     // Has the calculation been canceled?
     bool canceled() { return m_canceled; }
 
+    void print_to_png(std::string dirpath);
 
 private:
+
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig _region_config_from_model_volume(const ModelVolume &volume);
 

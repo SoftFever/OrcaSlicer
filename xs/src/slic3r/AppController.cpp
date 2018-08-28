@@ -11,11 +11,13 @@
 #include <ModelArrange.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
-#include <Geometry.hpp>
 #include <PrintConfig.hpp>
 #include <Print.hpp>
+#include <PrintExport.hpp>
+#include <Geometry.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
+#include <SLABasePool.hpp>
 
 namespace Slic3r {
 
@@ -254,6 +256,115 @@ void PrintController::slice()
     auto pri = global_progress_indicator();
     if(!pri) pri = create_progress_indicator(100, L("Slicing"));
     slice(pri);
+}
+
+void PrintController::slice_to_png()
+{
+    using Pointf3 = Vec3d;
+
+    auto exd = query_png_export_data();
+
+    if(exd.zippath.empty()) return;
+
+    auto presetbundle = GUI::get_preset_bundle();
+
+    assert(presetbundle);
+
+    auto conf = presetbundle->full_config();
+
+    conf.validate();
+
+    try {
+        print_->apply_config(conf);
+        print_->validate();
+    } catch(std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), "Error");
+        return;
+    }
+
+    // TODO: copy the model and work with the copy only
+    bool correction = false;
+    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
+        correction = true;
+        print_->invalidate_all_steps();
+
+        for(auto po : print_->objects) {
+            po->model_object()->scale(
+                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
+                        );
+            po->model_object()->invalidate_bounding_box();
+            po->reload_model_instances();
+            po->invalidate_all_steps();
+        }
+    }
+
+    // Turn back the correction scaling on the model.
+    auto scale_back = [this, correction, exd]() {
+        if(correction) { // scale the model back
+            print_->invalidate_all_steps();
+            for(auto po : print_->objects) {
+                po->model_object()->scale(
+                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+                );
+                po->model_object()->invalidate_bounding_box();
+                po->reload_model_instances();
+                po->invalidate_all_steps();
+            }
+        }
+    };
+
+    auto print_bb = print_->bounding_box();
+    Vec2d punsc = unscale(print_bb.size());
+
+    // If the print does not fit into the print area we should cry about it.
+    if(px(punsc) > exd.width_mm || py(punsc) > exd.height_mm) {
+        std::stringstream ss;
+
+        ss << _(L("Print will not fit and will be truncated!")) << "\n"
+           << _(L("Width needed: ")) << px(punsc) << " mm\n"
+           << _(L("Height needed: ")) << py(punsc) << " mm\n";
+
+       if(!report_issue(IssueType::WARN_Q, ss.str(), _(L("Warning"))))  {
+           scale_back();
+           return;
+       }
+    }
+
+//    std::async(supports_asynch()? std::launch::async : std::launch::deferred,
+//                   [this, exd, scale_back]()
+//    {
+
+        auto pri = create_progress_indicator(
+                    200, _(L("Slicing to zipped png files...")));
+
+        try {
+            pri->update(0, _(L("Slicing...")));
+            slice(pri);
+        } catch (std::exception& e) {
+            pri->cancel();
+            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+            scale_back();
+            return;
+        }
+
+        auto pbak = print_->progressindicator;
+        print_->progressindicator = pri;
+
+        try {
+            print_to<FilePrinterFormat::PNG>( *print_, exd.zippath,
+                        exd.width_mm, exd.height_mm,
+                        exd.width_px, exd.height_px,
+                        exd.exp_time_s, exd.exp_time_first_s);
+
+        } catch (std::exception& e) {
+            pri->cancel();
+            report_issue(IssueType::ERR, e.what(), _(L("Exception occured")));
+        }
+
+        print_->progressindicator = pbak;
+        scale_back();
+
+//    });
 }
 
 void IProgressIndicator::message_fmt(

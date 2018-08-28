@@ -11,6 +11,7 @@
 
     PrintController(Print *print);
 
+    void slice_to_png(); 
     void slice();
 };
 
