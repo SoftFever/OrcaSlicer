@@ -521,6 +521,7 @@ public:
         long style = wxSL_HORIZONTAL,
         const wxValidator& val = wxDefaultValidator,
         const wxString& name = wxEmptyString);
+    ~PrusaDoubleSlider(){}
 
     int GetLowerValue() const {
         return m_lower_value;
@@ -614,7 +615,7 @@ private:
     wxRect      m_rect_one_layer_icon;
     wxSize      m_thumb_size;
     int         m_tick_icon_dim;
-    int         m_lock_icon_dim = 16;
+    int         m_lock_icon_dim;
     long        m_style;
     float       m_label_koef = 1.0;
 
@@ -633,6 +634,41 @@ private:
     std::vector<wxPen*> segm_pens;
     std::set<int>       m_ticks;
     std::vector<double> m_values;
+};
+
+
+// ----------------------------------------------------------------------------
+// PrusaLockButton
+// ----------------------------------------------------------------------------
+
+class PrusaLockButton : public wxButton
+{
+public:
+    PrusaLockButton(
+        wxWindow *parent,
+        wxWindowID id,
+        const wxPoint& pos = wxDefaultPosition,
+        const wxSize& size = wxDefaultSize);
+    ~PrusaLockButton(){}
+
+    void    OnButton(wxCommandEvent& event);
+    void    OnEnterBtn(wxMouseEvent& event){ enter_button(true); event.Skip(); }
+    void    OnLeaveBtn(wxMouseEvent& event){ enter_button(false); event.Skip(); }
+
+    bool    IsLocked() const { return m_is_pushed; }
+
+protected:
+    void    enter_button(const bool enter);
+
+private:
+    bool        m_is_pushed = false;
+
+    wxBitmap    m_bmp_lock_on;
+    wxBitmap    m_bmp_lock_off;
+    wxBitmap    m_bmp_unlock_on;
+    wxBitmap    m_bmp_unlock_off;
+
+    int         m_lock_icon_dim;
 };
 // ******************************************************************************************
 
