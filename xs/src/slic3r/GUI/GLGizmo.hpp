@@ -230,7 +230,8 @@ class GLGizmoScale3D : public GLGizmoBase
 
     Vec3d m_starting_scale;
     Vec3d m_starting_drag_position;
-    Vec3d m_starting_center;
+    bool m_show_starting_box;
+    BoundingBoxf3 m_starting_box;
 
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
@@ -249,12 +250,13 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_start_dragging();
+    virtual void on_stop_dragging() { m_show_starting_box = false; }
     virtual void on_update(const Linef3& mouse_ray);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
 private:
-    void render_box() const;
+    void render_box(const BoundingBoxf3& box) const;
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
     void do_scale_x(const Linef3& mouse_ray);

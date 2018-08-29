@@ -617,7 +617,7 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_scale(Vec3d::Ones())
     , m_starting_scale(Vec3d::Ones())
-    , m_starting_center(Vec3d::Zero())
+    , m_show_starting_box(false)
 {
 }
 
@@ -660,7 +660,8 @@ void GLGizmoScale3D::on_start_dragging()
     if (m_hover_id != -1)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
-        m_starting_center = m_box.center();
+        m_show_starting_box = true;
+        m_starting_box = m_box;
     }
 }
 
@@ -731,16 +732,25 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     if (m_hover_id == -1)
     {
-        ::glColor3fv(m_base_color);
         // draw box
-        render_box();
+        ::glColor3fv(m_base_color);
+        render_box(m_box);
         // draw grabbers
         render_grabbers();
     }
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
-        ::glColor3fv(m_grabbers[0].color);
+        // draw starting box
+        if (m_show_starting_box)
+        {
+            ::glColor3fv(m_base_color);
+            render_box(m_starting_box);
+        }
+        // draw current box
+        ::glColor3fv(m_drag_color);
+        render_box(m_box);
         // draw connection
+        ::glColor3fv(m_grabbers[0].color);
         render_grabbers_connection(0, 1);
         // draw grabbers
         m_grabbers[0].render(true);
@@ -748,8 +758,17 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
-        ::glColor3fv(m_grabbers[2].color);
+        // draw starting box
+        if (m_show_starting_box)
+        {
+            ::glColor3fv(m_base_color);
+            render_box(m_starting_box);
+        }
+        // draw current box
+        ::glColor3fv(m_drag_color);
+        render_box(m_box);
         // draw connection
+        ::glColor3fv(m_grabbers[2].color);
         render_grabbers_connection(2, 3);
         // draw grabbers
         m_grabbers[2].render(true);
@@ -757,8 +776,17 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
-        ::glColor3fv(m_grabbers[4].color);
+        // draw starting box
+        if (m_show_starting_box)
+        {
+            ::glColor3fv(m_base_color);
+            render_box(m_starting_box);
+        }
+        // draw current box
+        ::glColor3fv(m_drag_color);
+        render_box(m_box);
         // draw connection
+        ::glColor3fv(m_grabbers[4].color);
         render_grabbers_connection(4, 5);
         // draw grabbers
         m_grabbers[4].render(true);
@@ -766,9 +794,15 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
     else if (m_hover_id >= 6)
     {
+        // draw starting box
+        if (m_show_starting_box)
+        {
+            ::glColor3fv(m_base_color);
+            render_box(m_starting_box);
+        }
+        // draw current box
         ::glColor3fv(m_drag_color);
-        // draw box
-        render_box();
+        render_box(m_box);
         // draw grabbers
         for (int i = 6; i < 10; ++i)
         {
@@ -791,30 +825,30 @@ void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
     render_grabbers_for_picking();
 }
 
-void GLGizmoScale3D::render_box() const
+void GLGizmoScale3D::render_box(const BoundingBoxf3& box) const
 {
     // bottom face
     ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2));
-    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2));
-    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2));
-    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2));
+    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.min(2));
+    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.min(2));
+    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.min(2));
+    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.min(2));
     ::glEnd();
 
     // top face
     ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
-    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
-    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
-    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
+    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
+    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
+    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
     ::glEnd();
 
     // vertical edges
     ::glBegin(GL_LINES);
-    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
-    ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.min(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
-    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.max(1), (GLfloat)m_box.max(2));
-    ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.min(2)); ::glVertex3f((GLfloat)m_box.max(0), (GLfloat)m_box.min(1), (GLfloat)m_box.max(2));
+    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
+    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
+    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
+    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
     ::glEnd();
 }
 
@@ -832,7 +866,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
 
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 {
-    double ratio = calc_ratio(1, mouse_ray, m_starting_center);
+    double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
 
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(0) * ratio;
@@ -840,7 +874,7 @@ void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 {
-    double ratio = calc_ratio(2, mouse_ray, m_starting_center);
+    double ratio = calc_ratio(2, mouse_ray, m_starting_box.center());
 
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(1) * ratio; // << this is temporary
@@ -849,7 +883,7 @@ void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 {
-    double ratio = calc_ratio(1, mouse_ray, m_starting_center);
+    double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
 
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(2) * ratio; // << this is temporary
@@ -858,7 +892,7 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
-    Vec3d center = m_starting_center;
+    Vec3d center = m_starting_box.center();
     center(2) = m_box.min(2);
     double ratio = calc_ratio(0, mouse_ray, center);
 
