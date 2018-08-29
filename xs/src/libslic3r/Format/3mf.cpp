@@ -601,6 +601,8 @@ namespace Slic3r {
 
             if (!_generate_volumes(*object.second, obj_geometry->second, *volumes_ptr))
                 return false;
+
+            object.second->center_around_origin();
         }
 
         // fixes the min z of the model if negative
