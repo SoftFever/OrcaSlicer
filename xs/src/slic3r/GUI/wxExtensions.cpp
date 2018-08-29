@@ -750,8 +750,12 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	return count;
 }
 
-// ************************************** EXPERIMENTS ***************************************
-PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
+
+// ----------------------------------------------------------------------------
+// PrusaDoubleSlider
+// ----------------------------------------------------------------------------
+
+PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
                                         wxWindowID id,
                                         int lowerValue, 
                                         int higherValue, 
@@ -1449,5 +1453,9 @@ void PrusaLockButton::enter_button(const bool enter)
     Update();
 }
 
+// ************************************** EXPERIMENTS ***************************************
+
 // *****************************************************************************
+
+
 
