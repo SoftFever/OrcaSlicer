@@ -10,7 +10,7 @@ namespace Slic3r {
 /**
  * @brief Generic progress indication interface.
  */
-class IProgressIndicator {
+class ProgressIndicator {
 public:
     using CancelFn = std::function<void(void)>; // Cancel functio signature.
 
@@ -20,7 +20,7 @@ private:
 
 public:
 
-    inline virtual ~IProgressIndicator() {}
+    inline virtual ~ProgressIndicator() {}
 
     /// Get the maximum of the progress range.
     float max() const { return max_; }

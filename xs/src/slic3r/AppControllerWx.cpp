@@ -104,10 +104,10 @@ namespace  {
  * the main thread as well.
  */
 class GuiProgressIndicator:
-        public IProgressIndicator, public wxEvtHandler {
+        public ProgressIndicator, public wxEvtHandler {
 
     wxProgressDialog gauge_;
-    using Base = IProgressIndicator;
+    using Base = ProgressIndicator;
     wxString message_;
     int range_; wxString title_;
     bool is_asynch_ = false;
@@ -153,7 +153,7 @@ public:
 
     virtual void cancel() override {
         update(max(), "Abort");
-        IProgressIndicator::cancel();
+        ProgressIndicator::cancel();
     }
 
     virtual void state(float val) override {
@@ -211,10 +211,10 @@ AppControllerBoilerplate::create_progress_indicator(unsigned statenum,
 namespace {
 
 // A wrapper progress indicator class around the statusbar created in perl.
-class Wrapper: public IProgressIndicator, public wxEvtHandler {
+class Wrapper: public ProgressIndicator, public wxEvtHandler {
     wxGauge *gauge_;
     wxStatusBar *stbar_;
-    using Base = IProgressIndicator;
+    using Base = ProgressIndicator;
     std::string message_;
     AppControllerBoilerplate& ctl_;
 
@@ -223,7 +223,7 @@ class Wrapper: public IProgressIndicator, public wxEvtHandler {
     }
 
     void _state(unsigned st) {
-        if( st <= IProgressIndicator::max() ) {
+        if( st <= ProgressIndicator::max() ) {
             Base::state(st);
 
             if(!gauge_->IsShown()) showProgress(true);
@@ -266,7 +266,7 @@ public:
     virtual void max(float val) override {
         if(val > 1.0) {
             gauge_->SetRange(static_cast<int>(val));
-            IProgressIndicator::max(val);
+            ProgressIndicator::max(val);
         }
     }
 

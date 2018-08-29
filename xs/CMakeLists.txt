@@ -247,6 +247,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
     ${LIBDIR}/slic3r/GUI/FirmwareDialog.cpp
     ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
+    ${LIBDIR}/slic3r/GUI/ProgressStatusBar.hpp
+    ${LIBDIR}/slic3r/GUI/ProgressStatusBar.cpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
     ${LIBDIR}/slic3r/Utils/Http.hpp
     ${LIBDIR}/slic3r/Utils/FixModelByWin10.cpp
@@ -267,7 +269,7 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/Time.hpp
     ${LIBDIR}/slic3r/Utils/HexFile.cpp
     ${LIBDIR}/slic3r/Utils/HexFile.hpp
-    ${LIBDIR}/slic3r/IProgressIndicator.hpp
+    ${LIBDIR}/slic3r/ProgressIndicator.hpp
     ${LIBDIR}/slic3r/AppController.hpp
     ${LIBDIR}/slic3r/AppController.cpp
     ${LIBDIR}/slic3r/AppControllerWx.cpp
@@ -420,6 +422,7 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Utils_PrintHost.xsp
     ${XSP_DIR}/Utils_PresetUpdater.xsp
     ${XSP_DIR}/AppController.xsp
+    ${XSP_DIR}/ProgressStatusBar.xsp
     ${XSP_DIR}/XS.xsp
 )
 foreach (file ${XS_XSP_FILES})

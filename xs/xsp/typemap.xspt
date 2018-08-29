@@ -213,6 +213,7 @@
 %typemap{PresetHints*};
 %typemap{Ref<PresetHints>}{simple};
 %typemap{TabIface*};
+%typemap{ProgressStatusBar*};
 
 %typemap{PrintRegionPtrs*};
 %typemap{PrintObjectPtrs*};

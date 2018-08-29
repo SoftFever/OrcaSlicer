@@ -7,7 +7,7 @@
 #include <atomic>
 #include <iostream>
 
-#include "IProgressIndicator.hpp"
+#include "ProgressIndicator.hpp"
 
 namespace Slic3r {
 
@@ -33,7 +33,7 @@ class AppControllerBoilerplate {
 public:
 
     /// A Progress indicator object smart pointer
-    using ProgresIndicatorPtr = std::shared_ptr<IProgressIndicator>;
+    using ProgresIndicatorPtr = std::shared_ptr<ProgressIndicator>;
 
 private:
     class PriData;   // Some structure to store progress indication data

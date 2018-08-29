@@ -63,6 +63,7 @@ REGISTER_CLASS(Preset, "GUI::Preset");
 REGISTER_CLASS(PresetCollection, "GUI::PresetCollection");
 REGISTER_CLASS(PresetBundle, "GUI::PresetBundle");
 REGISTER_CLASS(TabIface, "GUI::Tab");
+REGISTER_CLASS(ProgressStatusBar, "GUI::ProgressStatusBar");
 REGISTER_CLASS(PresetUpdater, "PresetUpdater");
 REGISTER_CLASS(AppController, "AppController");
 REGISTER_CLASS(PrintController, "PrintController");
