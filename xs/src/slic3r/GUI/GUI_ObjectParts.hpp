@@ -9,6 +9,7 @@ class wxArrayString;
 class wxMenu;
 class wxDataViewEvent;
 class wxKeyEvent;
+class wxControl;
 
 namespace Slic3r {
 class ModelObject;
@@ -61,14 +62,14 @@ void delete_object_from_list();
 void delete_all_objects_from_list();
 // Set count of object on c++ side
 void set_object_count(int idx, int count);
-// Set object scale on c++ side
-void set_object_scale(int idx, int scale);
 // Unselect all objects in the list on c++ side
 void unselect_objects();
 // Select current object in the list on c++ side
 void select_current_object(int idx);
 // Remove objects/sub-object from the list
 void remove();
+
+//void create_double_slider(wxWindow* parent, wxControl* slider);
 
 void object_ctrl_selection_changed();
 void object_ctrl_context_menu();

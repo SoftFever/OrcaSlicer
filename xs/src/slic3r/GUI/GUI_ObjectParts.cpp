@@ -226,7 +226,7 @@ wxDataViewColumn* object_ctrl_create_extruder_column(int extruders_count)
         choices.Add(wxString::Format("%d", i));
     wxDataViewChoiceRenderer *c =
         new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 3, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 2, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
     return column;
 }
 
@@ -246,7 +246,7 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
 	// column 0(Icon+Text) of the view control:
-	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 120,
+	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 200,
 		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
@@ -254,14 +254,10 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 2 of the view control:
-	m_objects_ctrl->AppendTextColumn(_(L("Scale")), 2, wxDATAVIEW_CELL_INERT, 55,
-		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-
-	// column 3 of the view control:
     m_objects_ctrl->AppendColumn(object_ctrl_create_extruder_column(4));
 
-	// column 4 of the view control:
-	m_objects_ctrl->AppendBitmapColumn(" ", 4, wxDATAVIEW_CELL_INERT, 25,
+	// column 3 of the view control:
+	m_objects_ctrl->AppendBitmapColumn(" ", 3, wxDATAVIEW_CELL_INERT, 25,
 		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 }
 
@@ -659,8 +655,7 @@ void show_collpane_settings(bool expert_mode)
 void add_object_to_list(const std::string &name, ModelObject* model_object)
 {
 	wxString item_name = name;
-	int scale = model_object->instances[0]->scaling_factor * 100;
-	auto item = m_objects_model->Add(item_name, model_object->instances.size(), scale);
+	auto item = m_objects_model->Add(item_name, model_object->instances.size());
 	m_objects_ctrl->Select(item);
 
 	// Add error icon if detected auto-repaire
@@ -697,6 +692,8 @@ void delete_object_from_list()
 // 	m_objects_ctrl->Select(m_objects_model->Delete(item));
 	m_objects_model->Delete(item);
 
+    part_selection_changed();
+
 // 	if (m_objects_model->IsEmpty())
 // 		m_collpane_settings->Show(false);
 }
@@ -704,18 +701,14 @@ void delete_object_from_list()
 void delete_all_objects_from_list()
 {
 	m_objects_model->DeleteAll();
+
+    part_selection_changed();
 // 	m_collpane_settings->Show(false);
 }
 
 void set_object_count(int idx, int count)
 {
 	m_objects_model->SetValue(wxString::Format("%d", count), idx, 1);
-	m_objects_ctrl->Refresh();
-}
-
-void set_object_scale(int idx, int scale)
-{
-	m_objects_model->SetValue(wxString::Format("%d%%", scale), idx, 2);
 	m_objects_ctrl->Refresh();
 }
 
@@ -834,10 +827,10 @@ void object_ctrl_key_event(wxKeyEvent& event)
 
 void object_ctrl_item_value_change(wxDataViewEvent& event)
 {
-    if (event.GetColumn() == 3)
+    if (event.GetColumn() == 2)
     {
         wxVariant variant;
-        m_objects_model->GetValue(variant, event.GetItem(), 3);
+        m_objects_model->GetValue(variant, event.GetItem(), 2);
 #ifdef __WXOSX__
         g_selected_extruder = variant.GetString();
 #else // --> for Linux
@@ -930,8 +923,8 @@ void update_settings_list()
 	no_updates.reset(nullptr);
 #endif
 
-    get_right_panel()->Layout();
-	get_right_panel()->GetParent()->Layout();
+    /*get_right_panel()*/parent->Layout();
+    get_right_panel()->GetParent()->GetParent()->Layout();
 }
 
 void get_settings_choice(wxMenu *menu, int id, bool is_part)
@@ -1523,7 +1516,7 @@ void part_selection_changed()
 
 void set_extruder_column_hidden(bool hide)
 {
-	m_objects_ctrl->GetColumn(3)->SetHidden(hide);
+	m_objects_ctrl->GetColumn(2)->SetHidden(hide);
 }
 
 void update_extruder_in_config(const wxString& selection)
@@ -1668,9 +1661,9 @@ void update_objects_list_extruder_column(int extruders_count)
         extruders_count = 1;
 
     // delete old 3rd column
-    m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumn(3));
+    m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumn(2));
     // insert new created 3rd column
-    m_objects_ctrl->InsertColumn(3, object_ctrl_create_extruder_column(extruders_count));
+    m_objects_ctrl->InsertColumn(2, object_ctrl_create_extruder_column(extruders_count));
     // set show/hide for this column 
     set_extruder_column_hidden(extruders_count <= 1);
 }

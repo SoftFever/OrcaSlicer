@@ -146,9 +146,6 @@ void delete_all_objects_from_list()
 void set_object_count(int idx, int count)
     %code%{ Slic3r::GUI::set_object_count(idx, count); %};
 
-void set_object_scale(int idx, int scale)
-    %code%{ Slic3r::GUI::set_object_scale(idx, scale); %};
-
 void unselect_objects()
     %code%{ Slic3r::GUI::unselect_objects(); %};
 
@@ -184,4 +181,8 @@ void register_on_request_update_callback(SV* callback)
 
 void deregister_on_request_update_callback()
     %code%{ Slic3r::GUI::g_on_request_update_callback.deregister_callback(); %};
+
+//void create_double_slider(SV *ui_parent, SV *ui_ds)
+//    %code%{ Slic3r::GUI::create_double_slider(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+//                                                (wxControl*)wxPli_sv_2_object(aTHX_ ui_ds, "Wx::Control")); %};
 

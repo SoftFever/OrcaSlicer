@@ -136,7 +136,7 @@ sub new {
         $_->set_scaling_factor($scale) for @{ $model_object->instances };
         
         # Set object scale on c++ side
-        Slic3r::GUI::set_object_scale($obj_idx, $model_object->instances->[0]->scaling_factor * 100); 
+#        Slic3r::GUI::set_object_scale($obj_idx, $model_object->instances->[0]->scaling_factor * 100); 
 
 #        $object->transform_thumbnail($self->{model}, $obj_idx);
     
@@ -1278,7 +1278,7 @@ sub changescale {
         }
 
         # Set object scale on c++ side
-        Slic3r::GUI::set_object_scale($obj_idx, $scale);
+#        Slic3r::GUI::set_object_scale($obj_idx, $scale);
         $scale /= 100;  # turn percent into factor
         
         my $variation = $scale / $model_instance->scaling_factor;
