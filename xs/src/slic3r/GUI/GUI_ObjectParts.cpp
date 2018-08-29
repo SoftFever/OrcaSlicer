@@ -786,14 +786,25 @@ void object_ctrl_context_menu()
     const wxPoint pt = get_mouse_position_in_control();
     printf("mouse_position_in_control: x = %d, y = %d\n", pt.x, pt.y);
     m_objects_ctrl->HitTest(pt, item, col);
-    if (!item) return;
+    if (!item)
+#ifdef __WXOSX__ // #ys_FIXME temporary workaround for OSX 
+                 // after Yosemite OS X version, HitTest return undefined item
+        item = m_objects_ctrl->GetSelection();
+    if (item) 
+        show_context_menu();
+    else
+        printf("undefined item\n");
+    return;
+#else
+        return;
+#endif // __WXOSX__
     printf("item exists\n");
     const wxString title = col->GetTitle();
     printf("title = *%s*\n", title.data().AsChar());
 
     if (title == " ")
         show_context_menu();
-// ys_FIXME
+// #ys_FIXME
 //         else if (title == _("Name") && pt.x >15 &&
 //                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
 //         {

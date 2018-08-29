@@ -1158,6 +1158,7 @@ void update_mode()
 	// *** Update showing of the collpane_settings
 // 	show_collpane_settings(mode == ConfigMenuModeExpert);
 	// *************************
+    g_right_panel->Layout();
 	g_right_panel->GetParent()->GetParent()->Layout();
 }
 
