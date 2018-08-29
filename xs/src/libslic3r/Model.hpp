@@ -122,7 +122,6 @@ public:
     void scale(const Vec3d &versor);
     void rotate(float angle, const Axis &axis);
     void rotate(float angle, const Vec3d& axis);
-    void transform(const float* matrix3x4); // <<<<<<<<< FIXME (using eigen)
     void mirror(const Axis &axis);
     size_t materials_count() const;
     size_t facets_count() const;

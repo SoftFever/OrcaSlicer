@@ -294,6 +294,8 @@ inline Contour3D inner_bed(const ExPolygon& poly, double depth_mm,
 
 /// Unification of polygons (with clipper) preserving holes as well.
 inline ExPolygons unify(const ExPolygons& shapes) {
+    using ClipperLib::ptSubject;
+
     ExPolygons retv;
 
     bool closed = true;
@@ -303,11 +305,15 @@ inline ExPolygons unify(const ExPolygons& shapes) {
 
     for(auto& path : shapes) {
         auto clipperpath = Slic3rMultiPoint_to_ClipperPath(path.contour);
-        valid &= clipper.AddPath(clipperpath, ClipperLib::ptSubject, closed);
+
+        if(!clipperpath.empty())
+            valid &= clipper.AddPath(clipperpath, ptSubject, closed);
 
         auto clipperholes = Slic3rMultiPoints_to_ClipperPaths(path.holes);
+
         for(auto& hole : clipperholes) {
-            valid &= clipper.AddPath(hole, ClipperLib::ptSubject, closed);
+            if(!hole.empty())
+                valid &= clipper.AddPath(hole, ptSubject, closed);
         }
     }
 
@@ -382,7 +388,7 @@ inline Point centroid(const ExPolygon& poly) {
 /// with explicit bridges. Bridges are generated from each shape's centroid
 /// to the center of the "scene" which is the centroid calculated from the shape
 /// centroids (a star is created...)
-inline ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 0)
+inline ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 50)
 {
     if(polys.empty()) return ExPolygons();
 
@@ -408,8 +414,9 @@ inline ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 0)
         double dx = x(c) - x(cc), dy = y(c) - y(cc);
         double l = std::sqrt(dx * dx + dy * dy);
         double nx = dx / l, ny = dy / l;
+        double max_dist = mm(max_dist_mm);
 
-        if(l < max_dist_mm) return ExPolygon();
+        if(l > max_dist) return ExPolygon();
 
         ExPolygon r;
         auto& ctour = r.contour.points;
@@ -426,9 +433,6 @@ inline ExPolygons concave_hull(const ExPolygons& polys, double max_dist_mm = 0)
     });
 
     punion = unify(punion);
-
-    if(punion.size() != 1)
-        BOOST_LOG_TRIVIAL(error) << "Cannot generate correct SLA base pool!";
 
     return punion;
 }
@@ -449,9 +453,10 @@ void ground_layer(const TriangleMesh &mesh, ExPolygons &output, float h)
 
 void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
                       double min_wall_thickness_mm,
-                      double min_wall_height_mm)
+                      double min_wall_height_mm,
+                      double max_merge_distance_mm)
 {
-    auto concavehs = concave_hull(ground_layer);
+    auto concavehs = concave_hull(ground_layer, max_merge_distance_mm);
     for(ExPolygon& concaveh : concavehs) {
         if(concaveh.contour.points.empty()) return;
         concaveh.holes.clear();
@@ -460,7 +465,7 @@ void create_base_pool(const ExPolygons &ground_layer, TriangleMesh& out,
         coord_t w = x(bb.max) - x(bb.min);
         coord_t h = y(bb.max) - y(bb.min);
 
-        auto wall_thickness = coord_t(std::pow((w+h)*0.1, 0.8));
+        auto wall_thickness = coord_t((w+h)*0.01);
 
         const coord_t WALL_THICKNESS = mm(min_wall_thickness_mm) +
                                        wall_thickness;

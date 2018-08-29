@@ -87,8 +87,6 @@ const char* INVALID_OBJECT_TYPES[] =
     "other"
 };
 
-typedef Eigen::Matrix<float, 4, 4, Eigen::RowMajor> Matrix4x4;
-
 const char* get_attribute_value_charptr(const char** attributes, unsigned int attributes_size, const char* attribute_key)
 {
     if ((attributes == nullptr) || (attributes_size == 0) || (attributes_size % 2 != 0) || (attribute_key == nullptr))
@@ -121,11 +119,11 @@ int get_attribute_value_int(const char** attributes, unsigned int attributes_siz
     return (text != nullptr) ? ::atoi(text) : 0;
 }
 
-Matrix4x4 get_matrix_from_string(const std::string& mat_str)
+Slic3r::Transform3d get_transform_from_string(const std::string& mat_str)
 {
     if (mat_str.empty())
         // empty string means default identity matrix
-        return Matrix4x4::Identity();
+        return Slic3r::Transform3d::Identity();
 
     std::vector<std::string> mat_elements_str;
     boost::split(mat_elements_str, mat_str, boost::is_any_of(" "), boost::token_compress_on);
@@ -133,9 +131,9 @@ Matrix4x4 get_matrix_from_string(const std::string& mat_str)
     unsigned int size = (unsigned int)mat_elements_str.size();
     if (size != 12)
         // invalid data, return identity matrix
-        return Matrix4x4::Identity();
+        return Slic3r::Transform3d::Identity();
 
-    Matrix4x4 ret = Matrix4x4::Identity();
+    Slic3r::Transform3d ret = Slic3r::Transform3d::Identity();
     unsigned int i = 0;
     // matrices are stored into 3mf files as 4x3
     // we need to transpose them
@@ -143,7 +141,7 @@ Matrix4x4 get_matrix_from_string(const std::string& mat_str)
     {
         for (unsigned int r = 0; r < 3; ++r)
         {
-            ret(r, c) = (float)::atof(mat_elements_str[i++].c_str());
+            ret(r, c) = ::atof(mat_elements_str[i++].c_str());
         }
     }
     return ret;
@@ -209,17 +207,17 @@ namespace Slic3r {
         struct Component
         {
             int object_id;
-            Matrix4x4 matrix;
+            Transform3d transform;
 
             explicit Component(int object_id)
                 : object_id(object_id)
-                , matrix(Matrix4x4::Identity())
+                , transform(Transform3d::Identity())
             {
             }
 
-            Component(int object_id, const Matrix4x4& matrix)
+            Component(int object_id, const Transform3d& transform)
                 : object_id(object_id)
-                , matrix(matrix)
+                , transform(transform)
             {
             }
         };
@@ -273,11 +271,11 @@ namespace Slic3r {
         struct Instance
         {
             ModelInstance* instance;
-            Matrix4x4 matrix;
+            Transform3d transform;
 
-            Instance(ModelInstance* instance, const Matrix4x4& matrix)
+            Instance(ModelInstance* instance, const Transform3d& transform)
                 : instance(instance)
-                , matrix(matrix)
+                , transform(transform)
             {
             }
         };
@@ -405,9 +403,9 @@ namespace Slic3r {
         bool _handle_start_metadata(const char** attributes, unsigned int num_attributes);
         bool _handle_end_metadata();
 
-        bool _create_object_instance(int object_id, const Matrix4x4& matrix, unsigned int recur_counter);
+        bool _create_object_instance(int object_id, const Transform3d& transform, unsigned int recur_counter);
 
-        void _apply_transform(ModelInstance& instance, const Matrix4x4& matrix);
+        void _apply_transform(ModelInstance& instance, const Transform3d& transform);
 
         bool _handle_start_config(const char** attributes, unsigned int num_attributes);
         bool _handle_end_config();
@@ -934,8 +932,8 @@ namespace Slic3r {
                 ModelObject* object = instance.instance->get_object();
                 if (object != nullptr)
                 {
-                    // apply the matrix to the instance
-                    _apply_transform(*instance.instance, instance.matrix);
+                    // apply the transform to the instance
+                    _apply_transform(*instance.instance, instance.transform);
                 }
             }
         }
@@ -1119,7 +1117,7 @@ namespace Slic3r {
     bool _3MF_Importer::_handle_start_component(const char** attributes, unsigned int num_attributes)
     {
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
-        Matrix4x4 matrix = get_matrix_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
 
         IdToModelObjectMap::iterator object_item = m_objects.find(object_id);
         if (object_item == m_objects.end())
@@ -1132,7 +1130,7 @@ namespace Slic3r {
             }
         }
 
-        m_curr_object.components.emplace_back(object_id, matrix);
+        m_curr_object.components.emplace_back(object_id, transform);
 
         return true;
     }
@@ -1165,9 +1163,9 @@ namespace Slic3r {
         // see specifications
 
         int object_id = get_attribute_value_int(attributes, num_attributes, OBJECTID_ATTR);
-        Matrix4x4 matrix = get_matrix_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
+        Transform3d transform = get_transform_from_string(get_attribute_value_string(attributes, num_attributes, TRANSFORM_ATTR));
 
-        return _create_object_instance(object_id, matrix, 1);
+        return _create_object_instance(object_id, transform, 1);
     }
 
     bool _3MF_Importer::_handle_end_item()
@@ -1195,7 +1193,7 @@ namespace Slic3r {
         return true;
     }
 
-    bool _3MF_Importer::_create_object_instance(int object_id, const Matrix4x4& matrix, unsigned int recur_counter)
+    bool _3MF_Importer::_create_object_instance(int object_id, const Transform3d& transform, unsigned int recur_counter)
     {
         static const unsigned int MAX_RECURSIONS = 10;
 
@@ -1232,7 +1230,7 @@ namespace Slic3r {
                     return false;
                 }
 
-                m_instances.emplace_back(instance, matrix);
+                m_instances.emplace_back(instance, transform);
             }
         }
         else
@@ -1240,7 +1238,7 @@ namespace Slic3r {
             // recursively process nested components
             for (const Component& component : it->second)
             {
-                if (!_create_object_instance(component.object_id, matrix * component.matrix, recur_counter + 1))
+                if (!_create_object_instance(component.object_id, transform * component.transform, recur_counter + 1))
                     return false;
             }
         }
@@ -1248,20 +1246,20 @@ namespace Slic3r {
         return true;
     }
 
-    void _3MF_Importer::_apply_transform(ModelInstance& instance, const Matrix4x4& matrix)
+    void _3MF_Importer::_apply_transform(ModelInstance& instance, const Transform3d& transform)
     {
         // slic3r ModelInstance cannot be transformed using a matrix
         // we extract from the given matrix only the values currently used
 
         // translation
-        double offset_x = (double)matrix(0, 3);
-        double offset_y = (double)matrix(1, 3);
-        double offset_z = (double)matrix(2, 3);
+        double offset_x = transform(0, 3);
+        double offset_y = transform(1, 3);
+        double offset_z = transform(2, 3);
 
         // scale
-        double sx = ::sqrt(sqr((double)matrix(0, 0)) + sqr((double)matrix(1, 0)) + sqr((double)matrix(2, 0)));
-        double sy = ::sqrt(sqr((double)matrix(0, 1)) + sqr((double)matrix(1, 1)) + sqr((double)matrix(2, 1)));
-        double sz = ::sqrt(sqr((double)matrix(0, 2)) + sqr((double)matrix(1, 2)) + sqr((double)matrix(2, 2)));
+        double sx = ::sqrt(sqr(transform(0, 0)) + sqr(transform(1, 0)) + sqr(transform(2, 0)));
+        double sy = ::sqrt(sqr(transform(0, 1)) + sqr(transform(1, 1)) + sqr(transform(2, 1)));
+        double sz = ::sqrt(sqr(transform(0, 2)) + sqr(transform(1, 2)) + sqr(transform(2, 2)));
 
         // invalid scale value, return
         if ((sx == 0.0) || (sy == 0.0) || (sz == 0.0))
@@ -1271,86 +1269,23 @@ namespace Slic3r {
         if ((std::abs(sx - sy) > 0.00001) || (std::abs(sx - sz) > 0.00001))
             return;
 
-#if 0 // use quaternions
-        // rotations (extracted using quaternion)
-        double inv_sx = 1.0 / sx;
-        double inv_sy = 1.0 / sy;
-        double inv_sz = 1.0 / sz;
-        
-        Eigen::Matrix<double, 3, 3, Eigen::RowMajor> m3x3;
-        m3x3 << (double)matrix(0, 0) * inv_sx, (double)matrix(0, 1) * inv_sy, (double)matrix(0, 2) * inv_sz,
-                (double)matrix(1, 0) * inv_sx, (double)matrix(1, 1) * inv_sy, (double)matrix(1, 2) * inv_sz,
-                (double)matrix(2, 0) * inv_sx, (double)matrix(2, 1) * inv_sy, (double)matrix(2, 2) * inv_sz;
-
-        double qw = 0.5 * ::sqrt(std::max(0.0, 1.0 + m3x3(0, 0) + m3x3(1, 1) + m3x3(2, 2)));
-        double qx = 0.5 * ::sqrt(std::max(0.0, 1.0 + m3x3(0, 0) - m3x3(1, 1) - m3x3(2, 2)));
-        double qy = 0.5 * ::sqrt(std::max(0.0, 1.0 - m3x3(0, 0) + m3x3(1, 1) - m3x3(2, 2)));
-        double qz = 0.5 * ::sqrt(std::max(0.0, 1.0 - m3x3(0, 0) - m3x3(1, 1) + m3x3(2, 2)));
-
-        double q_magnitude = ::sqrt(sqr(qw) + sqr(qx) + sqr(qy) + sqr(qz));
-
-        // invalid length, return
-        if (q_magnitude == 0.0)
-            return;
-
-        double inv_q_magnitude = 1.0 / q_magnitude;
-
-        qw *= inv_q_magnitude;
-        qx *= inv_q_magnitude;
-        qy *= inv_q_magnitude;
-        qz *= inv_q_magnitude;
-
-        double test = qx * qy + qz * qw;
-        double angle_x, angle_y, angle_z;
-
-        if (test > 0.499)
-        {
-            // singularity at north pole
-            angle_x = 0.0;
-            angle_y = 2.0 * ::atan2(qx, qw);
-            angle_z = 0.5 * PI;
-        }
-        else if (test < -0.499)
-        {
-            // singularity at south pole
-            angle_x = 0.0;
-            angle_y = -2.0 * ::atan2(qx, qw);
-            angle_z = -0.5 * PI;
-        }
-        else
-        {
-            angle_x = ::atan2(2.0 * qx * qw - 2.0 * qy * qz, 1.0 - 2.0 * sqr(qx) - 2.0 * sqr(qz));
-            angle_y = ::atan2(2.0 * qy * qw - 2.0 * qx * qz, 1.0 - 2.0 * sqr(qy) - 2.0 * sqr(qz));
-            angle_z = ::asin(2.0 * qx * qy + 2.0 * qz * qw);
-
-            if (angle_x < 0.0)
-                angle_x += 2.0 * PI;
-
-            if (angle_y < 0.0)
-                angle_y += 2.0 * PI;
-
-            if (angle_z < 0.0)
-                angle_z += 2.0 * PI;
-        }
-#else // use eigen library
         double inv_sx = 1.0 / sx;
         double inv_sy = 1.0 / sy;
         double inv_sz = 1.0 / sz;
 
         Eigen::Matrix3d m3x3;
-        m3x3 << (double)matrix(0, 0) * inv_sx, (double)matrix(0, 1) * inv_sy, (double)matrix(0, 2) * inv_sz,
-                (double)matrix(1, 0) * inv_sx, (double)matrix(1, 1) * inv_sy, (double)matrix(1, 2) * inv_sz,
-                (double)matrix(2, 0) * inv_sx, (double)matrix(2, 1) * inv_sy, (double)matrix(2, 2) * inv_sz;
+        m3x3 << transform(0, 0) * inv_sx, transform(0, 1) * inv_sy, transform(0, 2) * inv_sz,
+                transform(1, 0) * inv_sx, transform(1, 1) * inv_sy, transform(1, 2) * inv_sz,
+                transform(2, 0) * inv_sx, transform(2, 1) * inv_sy, transform(2, 2) * inv_sz;
 
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(m3x3);
 
         // invalid rotation axis, we currently handle only rotations around Z axis
-        if ((rotation.angle() != 0.0) && (rotation.axis() != Eigen::Vector3d::UnitZ()) && (rotation.axis() != -Eigen::Vector3d::UnitZ()))
+        if ((rotation.angle() != 0.0) && (rotation.axis() != Vec3d::UnitZ()) && (rotation.axis() != -Vec3d::UnitZ()))
             return;
 
-        double angle_z = (rotation.axis() == Eigen::Vector3d::UnitZ()) ? rotation.angle() : -rotation.angle();
-#endif 
+        double angle_z = (rotation.axis() == Vec3d::UnitZ()) ? rotation.angle() : -rotation.angle();
 
         instance.offset(0) = offset_x;
         instance.offset(1) = offset_y;
@@ -1548,11 +1483,11 @@ namespace Slic3r {
         struct BuildItem
         {
             unsigned int id;
-            Matrix4x4 matrix;
+            Transform3d transform;
 
-            BuildItem(unsigned int id, const Matrix4x4& matrix)
+            BuildItem(unsigned int id, const Transform3d& transform)
                 : id(id)
-                , matrix(matrix)
+                , transform(transform)
             {
             }
         };
@@ -1801,9 +1736,11 @@ namespace Slic3r {
                 stream << "   </" << COMPONENTS_TAG << ">\n";
             }
 
-            Eigen::Affine3f transform;
-            transform = Eigen::Translation3f((float)instance->offset(0), (float)instance->offset(1), 0.0f) * Eigen::AngleAxisf((float)instance->rotation, Eigen::Vector3f::UnitZ()) * Eigen::Scaling((float)instance->scaling_factor);
-            build_items.emplace_back(instance_id, transform.matrix());
+            Transform3d t = Transform3d::Identity();
+            t.translate(Vec3d(instance->offset(0), instance->offset(1), 0.0));
+            t.rotate(Eigen::AngleAxisd(instance->rotation, Vec3d::UnitZ()));
+            t.scale(instance->scaling_factor);
+            build_items.emplace_back(instance_id, t);
 
             stream << "  </" << OBJECT_TAG << ">\n";
 
@@ -1904,7 +1841,7 @@ namespace Slic3r {
             {
                 for (unsigned r = 0; r < 3; ++r)
                 {
-                    stream << item.matrix(r, c);
+                    stream << item.transform(r, c);
                     if ((r != 2) || (c != 3))
                         stream << " ";
                 }

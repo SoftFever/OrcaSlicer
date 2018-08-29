@@ -279,15 +279,6 @@ void TriangleMesh::mirror(const Axis &axis)
     stl_invalidate_shared_vertices(&this->stl);
 }
 
-void TriangleMesh::transform(const float* matrix3x4)
-{
-    if (matrix3x4 == nullptr)
-        return;
-
-    stl_transform(&stl, const_cast<float*>(matrix3x4));
-    stl_invalidate_shared_vertices(&stl);
-}
-
 void TriangleMesh::align_to_origin()
 {
     this->translate(
