@@ -362,7 +362,7 @@ void  PrusaObjectDataViewModelNode::set_part_action_icon() {
 // PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
-wxDataViewItem PrusaObjectDataViewModel::Add(wxString &name)
+wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name)
 {
 	auto root = new PrusaObjectDataViewModelNode(name);
 	m_objects.push_back(root);
@@ -373,9 +373,9 @@ wxDataViewItem PrusaObjectDataViewModel::Add(wxString &name)
 	return child;
 }
 
-wxDataViewItem PrusaObjectDataViewModel::Add(wxString &name, int instances_count, int scale)
+wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int instances_count/*, int scale*/)
 {
-	auto root = new PrusaObjectDataViewModelNode(name, instances_count, scale);
+	auto root = new PrusaObjectDataViewModelNode(name, instances_count);
 	m_objects.push_back(root);
 	// notify control
 	wxDataViewItem child((void*)root);
@@ -562,15 +562,6 @@ wxString PrusaObjectDataViewModel::GetCopy(const wxDataViewItem &item) const
 	return node->m_copy;
 }
 
-wxString PrusaObjectDataViewModel::GetScale(const wxDataViewItem &item) const
-{
-	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-	if (!node)      // happens if item.IsOk()==false
-		return wxEmptyString;
-
-	return node->m_scale;
-}
-
 wxIcon& PrusaObjectDataViewModel::GetIcon(const wxDataViewItem &item) const
 {
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
@@ -592,12 +583,9 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 		variant = node->m_copy;
 		break;
 	case 2:
-		variant = node->m_scale;
-		break;
-	case 3:
 		variant = node->m_extruder;
 		break;
-	case 4:
+	case 3:
 		variant << node->m_action_icon;
 		break;
 	default:
@@ -750,8 +738,12 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	return count;
 }
 
-// ************************************** EXPERIMENTS ***************************************
-PrusaDoubleSlider::PrusaDoubleSlider(   wxWindow *parent,
+
+// ----------------------------------------------------------------------------
+// PrusaDoubleSlider
+// ----------------------------------------------------------------------------
+
+PrusaDoubleSlider::PrusaDoubleSlider(wxWindow *parent,
                                         wxWindowID id,
                                         int lowerValue, 
                                         int higherValue, 
@@ -1012,8 +1004,8 @@ wxString PrusaDoubleSlider::get_label(const SelectedSlider& selection) const
 
     const wxString str = m_values.empty() ? 
                          wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
-                         wxNumberFormatter::ToString(m_values[value], 2, wxNumberFormatter::Style_None);
-    return wxString::Format("%s\n(%d)", str, value);
+                         wxNumberFormatter::ToString(m_values[value].second, 2, wxNumberFormatter::Style_None);
+    return wxString::Format("%s\n(%d)", str, m_values.empty() ? value : m_values[value].first);
 }
 
 void PrusaDoubleSlider::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
@@ -1449,5 +1441,9 @@ void PrusaLockButton::enter_button(const bool enter)
     Update();
 }
 
+// ************************************** EXPERIMENTS ***************************************
+
 // *****************************************************************************
+
+
 

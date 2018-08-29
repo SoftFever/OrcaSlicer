@@ -157,11 +157,10 @@ class PrusaObjectDataViewModelNode
 	MyObjectTreeModelNodePtrArray   m_children;
     wxIcon                          m_empty_icon; 
 public:
-	PrusaObjectDataViewModelNode(const wxString &name, int instances_count=1, int scale=100) {
+	PrusaObjectDataViewModelNode(const wxString &name, const int instances_count=1) {
 		m_parent	= NULL;
 		m_name		= name;
 		m_copy		= wxString::Format("%d", instances_count);
-		m_scale		= wxString::Format("%d%%", scale);
 		m_type		= "object";
 		m_volume_id	= -1;
 #ifdef __WXGTK__
@@ -181,7 +180,6 @@ public:
 		m_parent	= parent;
 		m_name		= sub_obj_name;
 		m_copy		= wxEmptyString;
-		m_scale		= wxEmptyString;
 		m_icon		= icon;
 		m_type		= "volume";
 		m_volume_id = volume_id;
@@ -203,7 +201,6 @@ public:
 	wxString				m_name;
 	wxIcon&					m_icon = m_empty_icon;
 	wxString				m_copy;
-	wxString				m_scale;
 	std::string				m_type;
 	int						m_volume_id;
 	bool					m_container = false;
@@ -270,12 +267,9 @@ public:
 			m_copy = variant.GetString();
 			return true;
 		case 2:
-			m_scale = variant.GetString();
-			return true;
-		case 3:
 			m_extruder = variant.GetString();
 			return true;
-		case 4:
+		case 3:
 			m_action_icon << variant;
 			return true;
 		default:
@@ -349,8 +343,8 @@ public:
 			delete object;		
 	}
 
-	wxDataViewItem Add(wxString &name);
-	wxDataViewItem Add(wxString &name, int instances_count, int scale);
+	wxDataViewItem Add(const wxString &name);
+	wxDataViewItem Add(const wxString &name, const int instances_count);
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const wxIcon& icon,
@@ -368,7 +362,6 @@ public:
 
 	wxString GetName(const wxDataViewItem &item) const;
 	wxString GetCopy(const wxDataViewItem &item) const;
-	wxString GetScale(const wxDataViewItem &item) const;
 	wxIcon&  GetIcon(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
@@ -495,7 +488,12 @@ public:
 private:
 	wxString m_value;
 };
-// ******************************* EXPERIMENTS **********************************************
+
+
+// ----------------------------------------------------------------------------
+// PrusaDoubleSlider
+// ----------------------------------------------------------------------------
+
 enum SelectedSlider {
     ssUndef,
     ssLower,
@@ -537,7 +535,7 @@ public:
     void SetKoefForLabels(const double koef) {
         m_label_koef = koef;
     }
-    void SetSliderValues(const std::vector<double>& values) {
+    void SetSliderValues(const std::vector<std::pair<int, double>>& values) {
         m_values = values;
     }
 
@@ -633,7 +631,7 @@ private:
     std::vector<wxPen*> line_pens;
     std::vector<wxPen*> segm_pens;
     std::set<int>       m_ticks;
-    std::vector<double> m_values;
+    std::vector<std::pair<int,double>> m_values;
 };
 
 
@@ -670,6 +668,9 @@ private:
 
     int         m_lock_icon_dim;
 };
+
+
+// ******************************* EXPERIMENTS **********************************************
 // ******************************************************************************************
 
 
