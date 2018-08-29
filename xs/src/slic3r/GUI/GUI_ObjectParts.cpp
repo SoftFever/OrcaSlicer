@@ -43,8 +43,7 @@ bool		g_prevent_list_events = false;		// We use this flag to avoid circular even
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
 bool        g_is_percent_scale = false;         // It indicates if scale unit is percentage
-int         g_rotation_x = 0;                   // Last value of the rotation around the X axis
-int         g_rotation_y = 0;                   // Last value of the rotation around the Y axis
+bool        g_is_uniform_scale = false;         // It indicates if scale is uniform
 ModelObjectPtrs*			m_objects;
 std::shared_ptr<DynamicPrintConfig*> m_config;
 std::shared_ptr<DynamicPrintConfig> m_default_config;
@@ -492,12 +491,21 @@ void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
 Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value = 0)
 {
 	Line line = { _(option_name), "" };
+    if (option_name == "Scale") {
+        line.near_label_widget = [](wxWindow* parent) {
+            auto btn = new PrusaLockButton(parent, wxID_ANY);
+            btn->Bind(wxEVT_BUTTON, [btn](wxCommandEvent &event){
+                event.Skip();
+                wxTheApp->CallAfter([btn]() { set_uniform_scaling(btn->IsLocked()); });
+            });
+            return btn;
+        };
+    }
 
 	ConfigOptionDef def;
 	def.type = coInt;
 	def.default_value = new ConfigOptionInt(def_value);
-	def.sidetext = sidetext;
-	def.width = 70;
+	def.width = 55;
 
     if (option_name == "Rotation")
         def.min = -360;
@@ -506,7 +514,8 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 
 	std::vector<std::string> axes{ "x", "y", "z" };
 	for (auto axis : axes) {
-		def.label = boost::algorithm::to_upper_copy(axis);
+        if (axis == "z" && option_name != "Scale")
+            def.sidetext = sidetext;
 		Option option = Option(def, lower_name + "_" + axis);
 		option.opt.full_width = true;
 		line.append_option(option);
@@ -514,15 +523,14 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 
 	if (option_name == "Scale")
 	{
-		def.label = L("Units");
-		def.type = coStrings;
+	    def.width = 45;
+		def.type = coStrings; 
 		def.gui_type = "select_open";
 		def.enum_labels.push_back(L("%"));
 		def.enum_labels.push_back(L("mm"));
-		def.default_value = new ConfigOptionStrings{ "%" };
-		def.sidetext = " ";
+		def.default_value = new ConfigOptionStrings{ "mm" };
 
-		Option option = Option(def, lower_name + "_unit");
+		const Option option = Option(def, lower_name + "_unit");
 		line.append_option(option);
 	}
 
@@ -549,15 +557,9 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 		}
 	};
 
-// 	def.label = L("Name");
-// 	def.type = coString;
-// 	def.tooltip = L("Object name");
-// 	def.full_width = true;
-// 	def.default_value = new ConfigOptionString{ "BlaBla_object.stl" };
-// 	optgroup->append_single_option_line(Option(def, "object_name"));
-
 	ConfigOptionDef def;
 
+    // Objects(sub-objects) name
 	def.label = L("Name");
 // 	def.type = coString;
     def.gui_type = "legend";
@@ -566,14 +568,28 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 	def.default_value = new ConfigOptionString{ " " };
 	optgroup->append_single_option_line(Option(def, "object_name"));
 
-	optgroup->set_flag(ogSIDE_OPTIONS_VERTICAL);
-	optgroup->sidetext_width = 25;
 
+    // Legend for object modification
+    auto line = Line{ "", "" };
+    def.label = "";
+    def.type = coString;
+    def.width = 55;
+
+    std::vector<std::string> axes{ "x", "y", "z" };
+    for (const auto axis : axes) {
+		const auto label = boost::algorithm::to_upper_copy(axis);
+        def.default_value = new ConfigOptionString{ "   "+label };
+        Option option = Option(def, axis + "_axis_legend");
+        line.append_option(option);
+    }
+    optgroup->append_line(line);
+
+
+    // Settings table
 	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
 	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°"));
-	optgroup->append_line(add_og_to_object_settings(L("Scale"), "%"));
+	optgroup->append_line(add_og_to_object_settings(L("Scale"), "mm"));
 
-	optgroup->set_flag(ogDEFAULT);
 
 	def.label = L("Place on bed");
 	def.type = coBool;
@@ -591,8 +607,6 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 	optgroup->disable();
 
 	get_optgroups().push_back(optgroup);  // ogFrequentlyObjectSettings
-
-// 	add_current_settings();
 }
 
 
@@ -768,13 +782,29 @@ void object_ctrl_context_menu()
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
-    m_objects_ctrl->HitTest(get_mouse_position_in_control(), item, col);
-    wxString title = col->GetTitle();
-    if (!item) return;
+    printf("object_ctrl_context_menu\n");
+    const wxPoint pt = get_mouse_position_in_control();
+    printf("mouse_position_in_control: x = %d, y = %d\n", pt.x, pt.y);
+    m_objects_ctrl->HitTest(pt, item, col);
+    if (!item)
+#ifdef __WXOSX__ // #ys_FIXME temporary workaround for OSX 
+                 // after Yosemite OS X version, HitTest return undefined item
+        item = m_objects_ctrl->GetSelection();
+    if (item) 
+        show_context_menu();
+    else
+        printf("undefined item\n");
+    return;
+#else
+        return;
+#endif // __WXOSX__
+    printf("item exists\n");
+    const wxString title = col->GetTitle();
+    printf("title = *%s*\n", title.data().AsChar());
 
     if (title == " ")
         show_context_menu();
-// ys_FIXME
+// #ys_FIXME
 //         else if (title == _("Name") && pt.x >15 &&
 //                     m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData())
 //         {
@@ -1555,6 +1585,11 @@ void update_rotation_value(const double angle, const std::string& axis)
 //     if (deg>180) deg -= 360;
 
     og->set_value("rotation_"+axis, deg);
+}
+
+void set_uniform_scaling(const bool uniform_scale)
+{
+    g_is_uniform_scale = uniform_scale;
 }
 
 void on_begin_drag(wxDataViewEvent &event)

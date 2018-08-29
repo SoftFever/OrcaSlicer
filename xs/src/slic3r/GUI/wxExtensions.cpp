@@ -1402,4 +1402,52 @@ void PrusaDoubleSlider::OnRightUp(wxMouseEvent& event)
     event.Skip();
 }
 
+
+// ----------------------------------------------------------------------------
+// PrusaLockButton
+// ----------------------------------------------------------------------------
+
+PrusaLockButton::PrusaLockButton(   wxWindow *parent, 
+                                    wxWindowID id, 
+                                    const wxPoint& pos /*= wxDefaultPosition*/, 
+                                    const wxSize& size /*= wxDefaultSize*/):
+                                    wxButton(parent, id, wxEmptyString, pos, size, wxBU_EXACTFIT | wxNO_BORDER)
+{
+    m_bmp_lock_on = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_lock_on.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_lock_off = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_lock_off.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_unlock_on = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_unlock_on.png")), wxBITMAP_TYPE_PNG);
+    m_bmp_unlock_off = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("one_layer_unlock_off.png")), wxBITMAP_TYPE_PNG);
+    m_lock_icon_dim = m_bmp_lock_on.GetSize().x;
+
+#ifdef __WXMSW__
+    SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
+    SetBitmap(m_bmp_unlock_on);
+
+    //button events
+    Bind(wxEVT_BUTTON,          &PrusaLockButton::OnButton, this);
+    Bind(wxEVT_ENTER_WINDOW,    &PrusaLockButton::OnEnterBtn, this);
+    Bind(wxEVT_LEAVE_WINDOW,    &PrusaLockButton::OnLeaveBtn, this);
+}
+
+void PrusaLockButton::OnButton(wxCommandEvent& event)
+{
+    m_is_pushed = !m_is_pushed;
+    enter_button(true);
+
+    event.Skip();
+}
+
+void PrusaLockButton::enter_button(const bool enter)
+{
+    wxBitmap* icon = m_is_pushed ?
+        enter ? &m_bmp_lock_off     : &m_bmp_lock_on :
+        enter ? &m_bmp_unlock_off   : &m_bmp_unlock_on;
+    SetBitmap(*icon);
+
+    Refresh();
+    Update();
+}
+
 // *****************************************************************************
+

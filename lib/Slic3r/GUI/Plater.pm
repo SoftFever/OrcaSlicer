@@ -2236,7 +2236,7 @@ sub changed_object_settings {
         # recenter and re-align to Z = 0
         my $model_object = $self->{model}->objects->[$obj_idx];
         $model_object->center_around_origin;
-        $self->reset_thumbnail($obj_idx);
+#        $self->reset_thumbnail($obj_idx);
     }
     
     # update print

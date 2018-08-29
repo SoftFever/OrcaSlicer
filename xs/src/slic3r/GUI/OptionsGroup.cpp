@@ -181,8 +181,18 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 							wxDefaultPosition, wxSize(label_width, -1), label_style);
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
-		grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | 
-						(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
+        if (!line.near_label_widget)
+		    grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | 
+						    (m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
+        else {
+            // If we're here, we have some widget near the label
+            // so we need a horizontal sizer to arrange these things
+            auto sizer = new wxBoxSizer(wxHORIZONTAL);
+            grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
+            sizer->Add(line.near_label_widget(parent()), 0, wxRIGHT, 7);
+            sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) |
+                (m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
+        }
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
     }

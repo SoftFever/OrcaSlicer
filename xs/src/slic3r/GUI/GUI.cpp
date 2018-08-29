@@ -1126,6 +1126,13 @@ void show_info_sizer(bool show)
 	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
 }
 
+void show_object_name(bool show)
+{
+    wxGridSizer* grid_sizer = get_optgroup(ogFrequentlyObjectSettings)->get_grid_sizer();
+    grid_sizer->Show(static_cast<size_t>(0), show);
+    grid_sizer->Show(static_cast<size_t>(1), show);
+}
+
 void update_mode()
 {
 	wxWindowUpdateLocker noUpdates(g_right_panel);
@@ -1145,13 +1152,14 @@ void update_mode()
 	g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
 	show_info_sizer(mode == ConfigMenuModeExpert);
 	show_buttons(mode == ConfigMenuModeExpert);
+    show_object_name(mode == ConfigMenuModeSimple);
 
 	// TODO There is a not the best place of it!
 	// *** Update showing of the collpane_settings
 // 	show_collpane_settings(mode == ConfigMenuModeExpert);
 	// *************************
-	g_right_panel->GetParent()->Layout();
-	g_right_panel->Layout();
+    g_right_panel->Layout();
+	g_right_panel->GetParent()->GetParent()->Layout();
 }
 
 bool is_expert_mode(){

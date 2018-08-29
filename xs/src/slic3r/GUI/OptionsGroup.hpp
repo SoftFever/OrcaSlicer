@@ -57,6 +57,7 @@ public:
     size_t		full_width {0}; 
     wxSizer*	sizer {nullptr};
     widget_t	widget {nullptr};
+    std::function<wxWindow*(wxWindow*)>	near_label_widget{ nullptr };
 
     void append_option(const Option& option) {
         m_options.push_back(option);
@@ -177,6 +178,8 @@ public:
         sizer->Add(m_grid_sizer, 0, wxEXPAND | wxALL, wxOSX||!staticbox ? 0: 5);
 #endif /* __WXGTK__ */
     }
+
+    wxGridSizer*        get_grid_sizer(){ return m_grid_sizer; }
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;

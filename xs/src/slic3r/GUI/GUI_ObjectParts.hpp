@@ -113,6 +113,7 @@ void update_scale_values(const Vec3d& size, float scale);
 void update_rotation_values();
 // update rotation value after "gizmos"
 void update_rotation_value(const double angle, const std::string& axis);
+void set_uniform_scaling(const bool uniform_scale);
 
 void on_begin_drag(wxDataViewEvent &event);
 void on_drop_possible(wxDataViewEvent &event);
