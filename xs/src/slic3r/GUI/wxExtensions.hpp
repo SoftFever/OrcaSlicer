@@ -540,6 +540,7 @@ public:
     void SetSliderValues(const std::vector<std::pair<int, double>>& values) {
         m_values = values;
     }
+    void ChangeOneLayerLock();
 
     void OnPaint(wxPaintEvent& ){ render();}
     void OnLeftDown(wxMouseEvent& event);

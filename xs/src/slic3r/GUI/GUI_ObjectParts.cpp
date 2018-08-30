@@ -1679,6 +1679,7 @@ void create_double_slider(wxWindow* parent, wxBoxSizer* sizer, wxGLCanvas* canva
     sizer->Add(m_slider, 0, wxEXPAND, 0);
 
     m_preview_canvas = canvas;
+    m_preview_canvas->Bind(wxEVT_KEY_DOWN, update_double_slider_from_canvas);
 
     m_slider->Bind(wxEVT_SCROLL_CHANGED, [parent](wxEvent& event) {
         _3DScene::set_toolpaths_range(m_preview_canvas, m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
@@ -1710,7 +1711,9 @@ void set_double_slider_thumbs(  const bool force_sliders_full_range,
                                 const std::vector<double> &layers_z, 
                                 const double z_low, const double z_high)
 {
-    if (force_sliders_full_range) {
+    // Force slider full range only when slider is created.
+    // Support selected diapason on the all next steps
+    if (/*force_sliders_full_range*/z_high == 0.0) { 
         m_slider->SetLowerValue(0);
         m_slider->SetHigherValue(layers_z.size() - 1);
         return;
@@ -1746,6 +1749,26 @@ void reset_double_slider()
 {
     m_slider->SetHigherValue(0);
     m_slider->SetLowerValue(0);
+}
+
+void update_double_slider_from_canvas(wxKeyEvent& event)
+{
+    if (event.HasModifiers()) {
+        event.Skip();
+        return;
+    }
+
+    const auto key = event.GetKeyCode();
+
+    if (key == 'U' || key == 'D') {
+        const int new_pos = key == 'U' ? m_slider->GetHigherValue() + 1 : m_slider->GetHigherValue() - 1;
+        m_slider->SetHigherValue(new_pos);
+        if (event.ShiftDown()) m_slider->SetLowerValue(m_slider->GetHigherValue());
+    }
+    else if (key == 'S')
+        m_slider->ChangeOneLayerLock();
+    else
+        event.Skip();
 }
 
 } //namespace GUI

@@ -126,6 +126,8 @@ void update_objects_list_extruder_column(int extruders_count);
 void create_double_slider(wxWindow* parent, wxBoxSizer* sizer, wxGLCanvas* canvas);
 void update_double_slider(bool force_sliders_full_range);
 void reset_double_slider();
+// update DoubleSlider after keyDown in canvas
+void update_double_slider_from_canvas(wxKeyEvent& event);
 
 } //namespace GUI
 } //namespace Slic3r 

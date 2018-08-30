@@ -829,7 +829,9 @@ wxSize PrusaDoubleSlider::DoGetBestSize() const
 
 void PrusaDoubleSlider::SetLowerValue(const int lower_val)
 {
+    m_selection = ssLower;
     m_lower_value = lower_val;
+    correct_lower_value();
     Refresh();
     Update();
 
@@ -840,7 +842,9 @@ void PrusaDoubleSlider::SetLowerValue(const int lower_val)
 
 void PrusaDoubleSlider::SetHigherValue(const int higher_val)
 {
+    m_selection = ssHigher;
     m_higher_value = higher_val;
+    correct_higher_value();
     Refresh();
     Update();
 
@@ -1191,6 +1195,20 @@ bool PrusaDoubleSlider::is_point_in_rect(const wxPoint& pt, const wxRect& rect)
         rect.GetTop()  <= pt.y && pt.y <= rect.GetBottom())
         return true;
     return false;
+}
+
+void PrusaDoubleSlider::ChangeOneLayerLock()
+{
+    m_is_one_layer = !m_is_one_layer;
+    m_selection == ssLower ? correct_lower_value() : correct_higher_value();
+    if (!m_selection) m_selection = ssHigher;
+
+    Refresh();
+    Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::OnLeftDown(wxMouseEvent& event)
