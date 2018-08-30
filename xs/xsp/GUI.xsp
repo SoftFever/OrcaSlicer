@@ -173,16 +173,21 @@ void desktop_open_datadir_folder()
 void fix_model_by_win10_sdk_gui(ModelObject *model_object_src, Print *print, Model *model_dst)
     %code%{ Slic3r::fix_model_by_win10_sdk_gui(*model_object_src, *print, *model_dst); %};
 
-void set_3DScene(SV *scene)
-    %code%{ Slic3r::GUI::set_3DScene((_3DScene *)wxPli_sv_2_object(aTHX_ scene, "Slic3r::Model::3DScene") ); %};
-
 void register_on_request_update_callback(SV* callback)
     %code%{ Slic3r::GUI::g_on_request_update_callback.register_callback(callback); %};
 
 void deregister_on_request_update_callback()
     %code%{ Slic3r::GUI::g_on_request_update_callback.deregister_callback(); %};
 
-//void create_double_slider(SV *ui_parent, SV *ui_ds)
-//    %code%{ Slic3r::GUI::create_double_slider(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
-//                                                (wxControl*)wxPli_sv_2_object(aTHX_ ui_ds, "Wx::Control")); %};
+void create_double_slider(SV *ui_parent, SV *ui_sizer, SV *ui_canvas)
+    %code%{ Slic3r::GUI::create_double_slider(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                                                (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
+                                                (wxGLCanvas*)wxPli_sv_2_object(aTHX_ ui_canvas, "Wx::GLCanvas")); %};
+
+void update_double_slider(bool force_sliders_full_range)
+    %code%{ Slic3r::GUI::update_double_slider(force_sliders_full_range); %};
+
+void reset_double_slider()
+    %code%{ Slic3r::GUI::reset_double_slider(); %};
+
 

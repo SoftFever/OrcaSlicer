@@ -9,13 +9,14 @@ class wxArrayString;
 class wxMenu;
 class wxDataViewEvent;
 class wxKeyEvent;
-class wxControl;
+class wxGLCanvas;
 
 namespace Slic3r {
 class ModelObject;
 class Model;
 
 namespace GUI {
+//class wxGLCanvas;
 
 enum ogGroup{
 	ogFrequentlyChangingParameters,
@@ -69,8 +70,6 @@ void select_current_object(int idx);
 // Remove objects/sub-object from the list
 void remove();
 
-//void create_double_slider(wxWindow* parent, wxControl* slider);
-
 void object_ctrl_selection_changed();
 void object_ctrl_context_menu();
 void object_ctrl_key_event(wxKeyEvent& event);
@@ -122,6 +121,11 @@ void on_drop(wxDataViewEvent &event);
 
 // update extruder column for objects_ctrl according to extruders count
 void update_objects_list_extruder_column(int extruders_count);
+
+// Create/Update/Reset double slider on 3dPreview
+void create_double_slider(wxWindow* parent, wxBoxSizer* sizer, wxGLCanvas* canvas);
+void update_double_slider(bool force_sliders_full_range);
+void reset_double_slider();
 
 } //namespace GUI
 } //namespace Slic3r 

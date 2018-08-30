@@ -10,7 +10,7 @@ use base qw(Wx::Panel Class::Accessor);
 
 use Wx::Locale gettext => 'L';
 
-__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer));
+__PACKAGE__->mk_accessors(qw(print gcode_preview_data enabled _loaded canvas slider_low slider_high single_layer double_slider_sizer));
 
 sub new {
     my $class = shift;
@@ -102,6 +102,12 @@ sub new {
                         .L("Wipe tower")."|"
                         .L("Custom");
     Slic3r::GUI::create_combochecklist($combochecklist_features, $feature_text, $feature_items, 1);
+
+    # ****************  EXP  ******************
+    my $double_slider_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+    Slic3r::GUI::create_double_slider($self, $double_slider_sizer, $self->canvas);
+    $self->double_slider_sizer($double_slider_sizer);
+    # ****************  EXP  ******************
     
     my $checkbox_travel         = $self->{checkbox_travel}          = Wx::CheckBox->new($self, -1, L("Travel"));
     my $checkbox_retractions    = $self->{checkbox_retractions}     = Wx::CheckBox->new($self, -1, L("Retractions"));    
@@ -120,6 +126,9 @@ sub new {
     $vsizer->Add($z_label_high_idx, 0, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer->Add($z_label_high, 0, 0, 0);
     $hsizer->Add($vsizer, 0, wxEXPAND, 0);
+    # ****************  EXP  ******************
+    $hsizer->Add($double_slider_sizer, 0, wxEXPAND, 0);
+    # ****************  EXP  ******************
     $vsizer_outer->Add($hsizer, 3, wxALIGN_CENTER_HORIZONTAL, 0);
     $vsizer_outer->Add($checkbox_singlelayer, 0, wxTOP | wxALIGN_CENTER_HORIZONTAL, 5);
 
@@ -385,6 +394,7 @@ sub load_print {
        }
 
         $self->update_sliders($n_layers) if ($n_layers > 0);
+        Slic3r::GUI::update_double_slider($self->{force_sliders_full_range}) if ($n_layers > 0);
         $self->_loaded(1);
     }
 }
@@ -399,6 +409,9 @@ sub reset_sliders {
     $self->{z_label_high}->SetLabel("");
     $self->{z_label_low_idx}->SetLabel("");
     $self->{z_label_high_idx}->SetLabel("");
+
+    Slic3r::GUI::reset_double_slider();
+    $self->double_slider_sizer->Hide(0);
 }
 
 sub update_sliders
@@ -448,6 +461,9 @@ sub update_sliders
     $self->slider_low->Show;
     $self->slider_high->Show;
     $self->set_z_range($self->{layers_z}[$z_idx_low], $self->{layers_z}[$z_idx_high]);
+
+    $self->double_slider_sizer->Show(0);
+
     $self->Layout;    
 }
 

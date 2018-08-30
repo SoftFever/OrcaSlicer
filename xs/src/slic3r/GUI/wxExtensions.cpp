@@ -832,6 +832,10 @@ void PrusaDoubleSlider::SetLowerValue(const int lower_val)
     m_lower_value = lower_val;
     Refresh();
     Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::SetHigherValue(const int higher_val)
@@ -839,6 +843,10 @@ void PrusaDoubleSlider::SetHigherValue(const int higher_val)
     m_higher_value = higher_val;
     Refresh();
     Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::SetMaxValue(const int max_value)
@@ -903,6 +911,13 @@ void PrusaDoubleSlider::get_size(int *w, int *h)
 {
     GetSize(w, h);
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
+}
+
+double PrusaDoubleSlider::get_double_value(const SelectedSlider& selection) const
+{
+    if (m_values.empty())
+        return 0.0;
+    return m_values[selection == ssLower ? m_lower_value : m_higher_value].second;
 }
 
 void PrusaDoubleSlider::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
@@ -1245,6 +1260,10 @@ void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
     Refresh();
     Update();
     event.Skip();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::OnLeftUp(wxMouseEvent& event)

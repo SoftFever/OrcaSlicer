@@ -35,7 +35,6 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
-class _3DScene;
 
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
@@ -101,7 +100,6 @@ void set_tab_panel(wxNotebook *tab_panel);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
-void set_3DScene(_3DScene *scene);
 void set_objects_from_perl(	wxWindow* parent,
 							wxBoxSizer *frequently_changed_parameters_sizer,
 							wxBoxSizer *expert_mode_part_sizer,

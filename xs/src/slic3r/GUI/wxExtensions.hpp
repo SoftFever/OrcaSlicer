@@ -516,7 +516,7 @@ public:
         int maxValue,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
-        long style = wxSL_HORIZONTAL,
+        long style = wxSL_VERTICAL,
         const wxValidator& val = wxDefaultValidator,
         const wxString& name = wxEmptyString);
     ~PrusaDoubleSlider(){}
@@ -528,6 +528,8 @@ public:
         return m_higher_value;
     }
     int GetActiveValue() const;
+    double GetLowerValueD()  const { return get_double_value(ssLower); }
+    double GetHigherValueD() const { return get_double_value(ssHigher); }
     wxSize DoGetBestSize() const override;
     void SetLowerValue(const int lower_val);
     void SetHigherValue(const int higher_val);
@@ -583,6 +585,7 @@ protected:
     wxCoord     get_position_from_value(const int value);
     wxSize      get_size();
     void        get_size(int *w, int *h);
+    double      get_double_value(const SelectedSlider& selection) const;
 
 private:
     int         m_min_value;

@@ -13,6 +13,9 @@
 #include "Geometry.hpp"
 #include "slic3r/Utils/FixModelByWin10.hpp"
 
+#include <wx/glcanvas.h>
+#include "3DScene.hpp"
+
 namespace Slic3r
 {
 namespace GUI
@@ -23,6 +26,8 @@ wxSizer		*m_sizer_object_movers = nullptr;
 wxDataViewCtrl				*m_objects_ctrl = nullptr;
 PrusaObjectDataViewModel	*m_objects_model = nullptr;
 wxCollapsiblePane			*m_collpane_settings = nullptr;
+PrusaDoubleSlider           *m_slider = nullptr;
+wxGLCanvas                  *m_preview_canvas = nullptr;
 
 wxIcon		m_icon_modifiermesh;
 wxIcon		m_icon_solidmesh;
@@ -1666,6 +1671,81 @@ void update_objects_list_extruder_column(int extruders_count)
     m_objects_ctrl->InsertColumn(2, object_ctrl_create_extruder_column(extruders_count));
     // set show/hide for this column 
     set_extruder_column_hidden(extruders_count <= 1);
+}
+
+void create_double_slider(wxWindow* parent, wxBoxSizer* sizer, wxGLCanvas* canvas)
+{
+    m_slider = new PrusaDoubleSlider(parent, wxID_ANY, 0, 0, 0, 100);
+    sizer->Add(m_slider, 0, wxEXPAND, 0);
+
+    m_preview_canvas = canvas;
+
+    m_slider->Bind(wxEVT_SCROLL_CHANGED, [parent](wxEvent& event) {
+        _3DScene::set_toolpaths_range(m_preview_canvas, m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
+        if (parent->IsShown())
+            m_preview_canvas->Refresh();
+    });
+}
+
+void fill_slider_values(std::vector<std::pair<int, double>> &values, 
+                        const std::vector<double> &layers_z)
+{
+    std::vector<double> layers_all_z = _3DScene::get_current_print_zs(m_preview_canvas, false);
+    if (layers_all_z.size() == layers_z.size())
+        for (int i = 0; i < layers_z.size(); i++)
+            values.push_back(std::pair<int, double>(i+1, layers_z[i]));
+    else if (layers_all_z.size() > layers_z.size()) {
+        int cur_id = 0;
+        for (int i = 0; i < layers_z.size(); i++)
+            for (int j = cur_id; j < layers_all_z.size(); j++)
+                if (layers_z[i] - 1e-6 < layers_all_z[j] && layers_all_z[j] < layers_z[i] + 1e-6) {
+                    values.push_back(std::pair<int, double>(j+1, layers_z[i]));
+                    cur_id = j;
+                    break;
+                }
+    }
+}
+
+void set_double_slider_thumbs(  const bool force_sliders_full_range, 
+                                const std::vector<double> &layers_z, 
+                                const double z_low, const double z_high)
+{
+    if (force_sliders_full_range) {
+        m_slider->SetLowerValue(0);
+        m_slider->SetHigherValue(layers_z.size() - 1);
+        return;
+    }
+    
+    for (int i = layers_z.size() - 1; i >= 0; i--)
+        if (z_low >= layers_z[i]) {
+            m_slider->SetLowerValue(i);
+            break;
+        }
+    for (int i = layers_z.size() - 1; i >= 0 ; i--)
+        if (z_high >= layers_z[i]) {
+            m_slider->SetHigherValue(i);
+            break;
+        }
+}
+
+void update_double_slider(bool force_sliders_full_range)
+{
+    std::vector<std::pair<int, double>> values;
+    std::vector<double> layers_z = _3DScene::get_current_print_zs(m_preview_canvas, true);
+    fill_slider_values(values, layers_z);
+
+    const double z_low = m_slider->GetLowerValueD();
+    const double z_high = m_slider->GetHigherValueD();
+    m_slider->SetMaxValue(layers_z.size() - 1);
+    m_slider->SetSliderValues(values);
+
+    set_double_slider_thumbs(force_sliders_full_range, layers_z, z_low, z_high);
+}
+
+void reset_double_slider()
+{
+    m_slider->SetHigherValue(0);
+    m_slider->SetLowerValue(0);
 }
 
 } //namespace GUI
