@@ -5,6 +5,7 @@
 #include "slic3r/AppController.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
+#include "slic3r/GUI/ProgressStatusBar.hpp"
 %}
 
 %name{Slic3r::PrintController} class PrintController {
@@ -21,7 +22,7 @@
     PrintController *print_ctl();
     void set_model(Model *model);
     void set_print(Print *print);
-    void set_global_progress_indicator(unsigned gauge_id, unsigned statusbar_id);
+    void set_global_progress_indicator(ProgressStatusBar *prs);
 
     void arrange_model();
 };

@@ -305,6 +305,10 @@ void AppController::arrange_model()
         // Set the range of the progress to the object count
         pind->max(count);
 
+        pind->on_cancel([](){
+            std::cout << "Cannot be cancelled!" << std::endl;
+        });
+
     }
 
         auto dist = print_ctl()->config().min_object_distance();
@@ -353,7 +357,7 @@ void AppController::arrange_model()
                      bed,
                      arr::BOX,
                      false, // create many piles not just one pile
-                     [pind, count](unsigned rem) {
+                     [this, pind, count](unsigned rem) {
             if(pind)
                 pind->update(count - rem, _(L("Arranging objects...")));
         });
@@ -369,6 +373,7 @@ void AppController::arrange_model()
     if(pind) {
         pind->max(pmax);
         pind->update(0, _(L("Arranging done.")));
+        pind->on_cancel(/*remove cancel function*/);
     }
 }
 

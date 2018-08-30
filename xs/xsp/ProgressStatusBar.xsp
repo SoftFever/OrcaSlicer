@@ -33,9 +33,16 @@
     void Run(int rate)
         %code%{ THIS->run(rate); %};
 
-    void Embed();
-    void SetStatusText(std::string txt);
-    int  GetId();
-    int  GetProgId();
+    void Embed()
+        %code%{ THIS->embed(); %};
+
+    void SetStatusText(std::string txt)
+        %code%{ THIS->set_status_text(txt); %};
+
+    void ShowCancelButton()
+        %code%{ THIS->show_cancel_button(); %};
+
+    void HideCancelButton()
+        %code%{ THIS->hide_cancel_button(); %};
 
 };

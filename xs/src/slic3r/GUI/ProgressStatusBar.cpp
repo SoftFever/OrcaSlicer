@@ -30,7 +30,6 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
     prog_->Hide();
     cancelbutton_->Hide();
 
-
     self->SetFieldsCount(3);
     int w[] = {-1, 150, 155};
     self->SetStatusWidths(3, w);
@@ -60,11 +59,6 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
     });
 }
 
-//ProgressStatusBar::ProgressStatusBar(): ProgressStatusBar(nullptr, wxID_ANY)
-//{
-
-//}
-
 ProgressStatusBar::~ProgressStatusBar() {
     if(timer_->IsRunning()) timer_->Stop();
 }
@@ -84,6 +78,11 @@ void ProgressStatusBar::set_progress(int val)
     } else {
         prog_->SetValue(val);
     }
+}
+
+int ProgressStatusBar::get_range() const
+{
+    return prog_->GetRange();
 }
 
 void ProgressStatusBar::set_range(int val)
@@ -129,28 +128,25 @@ void ProgressStatusBar::run(int rate)
     }
 }
 
-void ProgressStatusBar::Embed()
+void ProgressStatusBar::embed(wxFrame *frame)
 {
-    std::cout << "Embedding" << std::endl;
-    wxFrame* mf = GUI::get_main_frame();
-    std::cout << mf->GetName() << std::endl;
-    std::cout << self->GetName() << std::endl;
+    wxFrame* mf = frame? frame : GUI::get_main_frame();
     mf->SetStatusBar(self);
 }
 
-void ProgressStatusBar::SetStatusText(std::string txt)
+void ProgressStatusBar::set_status_text(const std::string& txt)
 {
     self->SetStatusText(txt);
 }
 
-int ProgressStatusBar::GetId()
+void ProgressStatusBar::show_cancel_button()
 {
-    return self->GetId();
+    cancelbutton_->Show();
 }
 
-int ProgressStatusBar::GetProgId()
+void ProgressStatusBar::hide_cancel_button()
 {
-    return prog_->GetId();
+    cancelbutton_->Hide();
 }
 
 }

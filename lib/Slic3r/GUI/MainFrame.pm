@@ -63,15 +63,11 @@ sub new {
     
     # initialize status bar
     $self->{statusbar} = Slic3r::GUI::ProgressStatusBar->new();
-    # $self->{statusbar}->SetParent($self, Wx::NewId);
     $self->{statusbar}->Embed;
     $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
 
     # Make the global status bar and its progress indicator available in C++
-    $appController->set_global_progress_indicator(
-        $self->{statusbar}->GetProgId(),
-        $self->{statusbar}->GetId(),
-    );
+    $appController->set_global_progress_indicator($self->{statusbar});
 
     $appController->set_model($self->{plater}->{model});
     $appController->set_print($self->{plater}->{print});

@@ -15,6 +15,7 @@ class Model;
 class Print;
 class PrintObject;
 class PrintConfig;
+class ProgressStatusBar;
 
 
 /**
@@ -255,8 +256,7 @@ public:
      * @param gauge_id The ID of the gague widget of the status bar.
      * @param statusbar_id The ID of the status bar.
      */
-    void set_global_progress_indicator(unsigned gauge_id,
-                                          unsigned statusbar_id);
+    void set_global_progress_indicator(ProgressStatusBar *prs);
 
     void arrange_model();
 };

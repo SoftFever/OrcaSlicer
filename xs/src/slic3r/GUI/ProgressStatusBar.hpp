@@ -10,6 +10,7 @@ class wxButton;
 class wxTimerEvent;
 class wxStatusBar;
 class wxWindow;
+class wxFrame;
 
 namespace Slic3r {
 
@@ -33,19 +34,21 @@ public:
 
     int  get_progress() const;
     void set_progress(int);
+    int  get_range() const;
     void set_range(int = 100);
     void show_progress(bool);
     void start_busy(int = 100);
     void stop_busy();
     inline bool is_busy() const { return busy_; }
-    void set_cancel_callback(CancelFn);
+    void set_cancel_callback(CancelFn = CancelFn());
+    inline void remove_cancel_callback() { set_cancel_callback(); }
     void run(int rate);
+    void embed(wxFrame *frame = nullptr);
+    void set_status_text(const std::string& txt);
 
     // Temporary methods to satisfy Perl side
-    void Embed();
-    void SetStatusText(std::string txt);
-    int  GetId();
-    int  GetProgId();
+    void show_cancel_button();
+    void hide_cancel_button();
 
 private:
     bool busy_ = false;

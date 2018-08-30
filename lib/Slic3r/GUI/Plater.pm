@@ -1569,7 +1569,9 @@ sub on_progress_event {
     my ($self, $percent, $message) = @_;
     
     $self->statusbar->SetProgress($percent);
-    $self->statusbar->SetStatusText("$message…");
+    # TODO: three dot character is not properly translated into C++
+    # $self->statusbar->SetStatusText("$message…");
+    $self->statusbar->SetStatusText("$message...");
 }
 
 # Called when the G-code export finishes, either successfully or with an error.
