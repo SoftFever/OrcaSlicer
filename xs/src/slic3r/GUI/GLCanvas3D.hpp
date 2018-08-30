@@ -162,7 +162,8 @@ public:
         bool is_custom() const;
 
         const Pointfs& get_shape() const;
-        void set_shape(const Pointfs& shape);
+        // Return true if the bed shape changed, so the calee will update the UI.
+        bool set_shape(const Pointfs& shape);
 
         const BoundingBoxf3& get_bounding_box() const;
         bool contains(const Point& point) const;
@@ -337,7 +338,12 @@ public:
             Undefined,
             Scale,
             Rotate,
+            Flatten,
             Num_Types
+        };
+        enum RenderOrder : unsigned char {
+            BeforeBed,
+            AfterBed
         };
 
     private:
@@ -381,7 +387,10 @@ public:
         float get_angle_z() const;
         void set_angle_z(float angle_z);
 
-        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box) const;
+        void set_flattening_data(const ModelObject* model_object);
+        Pointf3 get_flattening_normal() const;
+
+        void render(const GLCanvas3D& canvas, const BoundingBoxf3& box, RenderOrder render_order) const;
         void render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const;
 
     private:
@@ -449,6 +458,7 @@ private:
     bool m_picking_enabled;
     bool m_moving_enabled;
     bool m_shader_enabled;
+    bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
 
     std::string m_color_by;
@@ -495,7 +505,7 @@ public:
     void deselect_volumes();
     void select_volume(unsigned int id);
     void update_volumes_selection(const std::vector<int>& selections);
-    bool check_volumes_outside_state(const DynamicPrintConfig* config) const;
+    int check_volumes_outside_state(const DynamicPrintConfig* config) const;
     bool move_volume_up(unsigned int id);
     bool move_volume_down(unsigned int id);
 
@@ -539,6 +549,7 @@ public:
     void enable_gizmos(bool enable);
     void enable_shader(bool enable);
     void enable_force_zoom_to_bed(bool enable);
+    void enable_dynamic_background(bool enable);
     void allow_multisample(bool allow);
 
     void zoom_to_bed();
@@ -559,16 +570,8 @@ public:
 
     void reload_scene(bool force);
 
-    // Create 3D thick extrusion lines for a skirt and brim.
-    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
-    void load_print_toolpaths();
-    // Create 3D thick extrusion lines for object forming extrusions.
-    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
-    // one for perimeters, one for infill and one for supports.
-    void load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors);
-    // Create 3D thick extrusion lines for wipe tower extrusions
-    void load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
+    void load_preview(const std::vector<std::string>& str_tool_colors);
 
     void register_on_viewport_changed_callback(void* callback);
     void register_on_double_click_callback(void* callback);
@@ -634,7 +637,7 @@ private:
     void _render_legend_texture() const;
     void _render_layer_editing_overlay() const;
     void _render_volumes(bool fake_colors) const;
-    void _render_gizmo() const;
+    void _render_gizmo(Gizmos::RenderOrder render_order) const;
 
     float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
@@ -650,7 +653,17 @@ private:
     void _stop_timer();
 
     int _get_first_selected_object_id() const;
-    int _get_first_selected_volume_id() const;
+    int _get_first_selected_volume_id(int object_id) const;
+
+    // Create 3D thick extrusion lines for a skirt and brim.
+    // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
+    void _load_print_toolpaths();
+    // Create 3D thick extrusion lines for object forming extrusions.
+    // Adds a new Slic3r::GUI::3DScene::Volume to $self->volumes,
+    // one for perimeters, one for infill and one for supports.
+    void _load_print_object_toolpaths(const PrintObject& print_object, const std::vector<std::string>& str_tool_colors);
+    // Create 3D thick extrusion lines for wipe tower extrusions
+    void _load_wipe_tower_toolpaths(const std::vector<std::string>& str_tool_colors);
 
     // generates gcode extrusion paths geometry
     void _load_gcode_extrusion_paths(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
@@ -667,6 +680,8 @@ private:
     void _load_shells();
     // sets gcode geometry visibility according to user selection
     void _update_gcode_volumes_visibility(const GCodePreviewData& preview_data);
+    void _update_toolpath_volumes_outside_state();
+    void _show_warning_texture_if_needed();
 
     void _on_move(const std::vector<int>& volume_idxs);
     void _on_select(int volume_idx);
@@ -677,6 +692,8 @@ private:
     // generates a warning texture containing the given message
     void _generate_warning_texture(const std::string& msg);
     void _reset_warning_texture();
+
+    bool _is_any_volume_outside() const;
 
     static std::vector<float> _parse_colors(const std::vector<std::string>& colors);
 };

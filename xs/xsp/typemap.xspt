@@ -270,3 +270,4 @@
 };
 %typemap{AppController*};
 %typemap{PrintController*};
+%typemap{PrintHost*};

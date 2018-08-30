@@ -167,6 +167,7 @@ public:
     static const std::vector<std::string>&  printer_options();
     // Nozzle options of the printer options.
     static const std::vector<std::string>&  nozzle_options();
+	static void update_suffix_modified();
 
 protected:
     friend class        PresetCollection;
@@ -260,7 +261,7 @@ public:
 	// used to update preset_choice from Tab
 	const std::deque<Preset>&	get_presets()	{ return m_presets; }
 	int						get_idx_selected()	{ return m_idx_selected; }
-	const std::string&		get_suffix_modified();
+	static const std::string&	get_suffix_modified();
 
     // Return a preset possibly with modifications.
 	Preset&			default_preset()			{ return m_presets.front(); }

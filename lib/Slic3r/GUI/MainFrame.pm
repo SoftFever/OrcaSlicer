@@ -107,6 +107,7 @@ sub new {
         wxTheApp->{app_config}->save;
         $self->{plater}->{print} = undef if($self->{plater});
         Slic3r::GUI::_3DScene::remove_all_canvases();
+        Slic3r::GUI::deregister_on_request_update_callback();
         # propagate event
         $event->Skip;
     });

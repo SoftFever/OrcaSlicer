@@ -250,6 +250,7 @@ bool select_language(wxArrayString & names,
 		g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 		g_wxLocale->AddCatalog(g_wxApp->GetAppName());
 		wxSetlocale(LC_NUMERIC, "C");
+		Preset::update_suffix_modified();
 		return true;
 	}
 	return false;
@@ -275,6 +276,7 @@ bool load_language()
 			g_wxLocale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
 			g_wxLocale->AddCatalog(g_wxApp->GetAppName());
 			wxSetlocale(LC_NUMERIC, "C");
+			Preset::update_suffix_modified();
 			return true;
 		}
 	}
@@ -602,6 +604,8 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				config.set_key_value(opt_key, new ConfigOptionEnum<SupportMaterialPattern>(boost::any_cast<SupportMaterialPattern>(value)));
 			else if (opt_key.compare("seam_position") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<SeamPosition>(boost::any_cast<SeamPosition>(value)));
+			else if (opt_key.compare("host_type") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<PrintHostType>(boost::any_cast<PrintHostType>(value)));
 			}
 			break;
 		case coPoints:{
@@ -901,6 +905,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
                     std::vector<float> extruders = dlg.get_extruders();
                     (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(),matrix.end());
                     (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(),extruders.end());
+                    g_on_request_update_callback.call();
                 }
 			}));
 			return sizer;
@@ -916,7 +921,6 @@ ConfigOptionsGroup* get_optgroup()
 {
 	return m_optgroup.get();
 }
-
 
 wxButton* get_wiping_dialog_button()
 {

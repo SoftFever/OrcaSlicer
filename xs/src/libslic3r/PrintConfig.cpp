@@ -473,6 +473,14 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 28. };
 
+    def = this->add("filament_loading_speed_start", coFloats);
+    def->label = L("Loading speed at the start");
+    def->tooltip = L("Speed used at the very beginning of loading phase. ");
+    def->sidetext = L("mm/s");
+    def->cli = "filament-loading-speed-start=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 3. };
+
     def = this->add("filament_unloading_speed", coFloats);
     def->label = L("Unloading speed");
     def->tooltip = L("Speed used for unloading the filament on the wipe tower (does not affect "
@@ -481,6 +489,14 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-unloading-speed=f@";
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 90. };
+
+    def = this->add("filament_unloading_speed_start", coFloats);
+    def->label = L("Unloading speed at the start");
+    def->tooltip = L("Speed used for unloading the tip of the filament immediately after ramming. ");
+    def->sidetext = L("mm/s");
+    def->cli = "filament-unloading-speed-start=f@";
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 100. };
 
     def = this->add("filament_toolchange_delay", coFloats);
     def->label = L("Delay after unloading");
@@ -504,18 +520,37 @@ PrintConfigDef::PrintConfigDef()
     def = this->add("filament_cooling_initial_speed", coFloats);
     def->label = L("Speed of the first cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating beginning at this speed. ");
-    def->cli = "filament-cooling-initial-speed=i@";
+    def->cli = "filament-cooling-initial-speed=f@";
     def->sidetext = L("mm/s");
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 2.2f };
 
+    def = this->add("filament_minimal_purge_on_wipe_tower", coFloats);
+    def->label = L("Minimal purge on wipe tower");
+    def->tooltip = L("After a tool change, the exact position of the newly loaded filament inside "
+                     "the nozzle may not be known, and the filament pressure is likely not yet stable. "
+                     "Before purging the print head into an infill or a sacrificial object, Slic3r will always prime "
+                     "this amount of material into the wipe tower to produce successive infill or sacrificial object extrusions reliably.");
+    def->cli = "filament-minimal-purge-on-wipe-tower=f@";
+    def->sidetext = L("mm³");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 15.f };
+
     def = this->add("filament_cooling_final_speed", coFloats);
     def->label = L("Speed of the last cooling move");
     def->tooltip = L("Cooling moves are gradually accelerating towards this speed. ");
-    def->cli = "filament-cooling-final-speed=i@";
+    def->cli = "filament-cooling-final-speed=f@";
     def->sidetext = L("mm/s");
     def->min = 0;
     def->default_value = new ConfigOptionFloats { 3.4f };
+
+    def = this->add("filament_load_time", coFloats);
+    def->label = L("Filament load time");
+    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to load a new filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->cli = "filament-load-time=i@";
+    def->sidetext = L("s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0.0f };
 
     def = this->add("filament_ramming_parameters", coStrings);
     def->label = L("Ramming parameters");
@@ -523,6 +558,14 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "filament-ramming-parameters=s@";
     def->default_value = new ConfigOptionStrings { "120 100 6.6 6.8 7.2 7.6 7.9 8.2 8.7 9.4 9.9 10.0|"
 	   " 0.05 6.6 0.45 6.8 0.95 7.8 1.45 8.3 1.95 9.7 2.45 10 2.95 7.6 3.45 7.6 3.95 7.6 4.45 7.6 4.95 7.6" };
+
+    def = this->add("filament_unload_time", coFloats);
+    def->label = L("Filament unload time");
+    def->tooltip = L("Time for the printer firmware (or the Multi Material Unit 2.0) to unload a filament during a tool change (when executing the T code). This time is added to the total print time by the G-code time estimator.");
+    def->cli = "filament-unload-time=i@";
+    def->sidetext = L("s");
+    def->min = 0;
+    def->default_value = new ConfigOptionFloats { 0.0f };
 
     def = this->add("filament_diameter", coFloats);
     def->label = L("Diameter");
@@ -545,10 +588,7 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("filament_type", coStrings);
     def->label = L("Filament type");
-    def->tooltip = L("If you want to process the output G-code through custom scripts, just list their "
-                   "absolute paths here. Separate multiple scripts with a semicolon. Scripts will be passed "
-                   "the absolute path to the G-code file as the first argument, and they can access "
-                   "the Slic3r config settings by reading environment variables.");
+    def->tooltip = L("The filament material type for use in custom G-codes.");
     def->cli = "filament_type=s@";
     def->gui_type = "f_enum_open";
     def->gui_flags = "show_value";
@@ -892,8 +932,16 @@ PrintConfigDef::PrintConfigDef()
     def->min = 0;
     def->default_value = new ConfigOptionFloat(0.3);
 
+    def = this->add("remaining_times", coBool);
+    def->label = L("Supports remaining times");
+    def->tooltip = L("Emit M73 P[percent printed] R[remaining time in minutes] at 1 minute"
+                     " intervals into the G-code to let the firmware show accurate remaining time."
+                     " As of now only the Prusa i3 MK3 firmware recognizes M73."
+                     " Also the i3 MK3 firmware supports M73 Qxx Sxx for the silent mode.");
+    def->default_value = new ConfigOptionBool(false);
+
 	def = this->add("silent_mode", coBool);
-	def->label = L("Support silent mode");
+	def->label = L("Supports silent mode");
 	def->tooltip = L("Set silent mode for the G-code flavor");
 	def->default_value = new ConfigOptionBool(true);
 
@@ -1105,25 +1153,37 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "nozzle-diameter=f@";
     def->default_value = new ConfigOptionFloats { 0.5 };
 
-    def = this->add("octoprint_apikey", coString);
-    def->label = L("API Key");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the API Key required for authentication.");
-    def->cli = "octoprint-apikey=s";
+    def = this->add("host_type", coEnum);
+    def->label = L("Host Type");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field must contain "
+                   "the kind of the host.");
+    def->cli = "host-type=s";
+    def->enum_keys_map = &ConfigOptionEnum<PrintHostType>::get_enum_values();
+    def->enum_values.push_back("octoprint");
+    def->enum_values.push_back("duet");
+    def->enum_labels.push_back("OctoPrint");
+    def->enum_labels.push_back("Duet");
+    def->default_value = new ConfigOptionEnum<PrintHostType>(htOctoPrint);
+
+    def = this->add("printhost_apikey", coString);
+    def->label = L("API Key / Password");
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the API Key or the password required for authentication.");
+    def->cli = "printhost-apikey=s";
     def->default_value = new ConfigOptionString("");
     
-    def = this->add("octoprint_cafile", coString);
+    def = this->add("printhost_cafile", coString);
     def->label = "HTTPS CA file";
     def->tooltip = "Custom CA certificate file can be specified for HTTPS OctoPrint connections, in crt/pem format. "
                    "If left blank, the default OS CA certificate repository is used.";
-    def->cli = "octoprint-cafile=s";
+    def->cli = "printhost-cafile=s";
     def->default_value = new ConfigOptionString("");
 
-    def = this->add("octoprint_host", coString);
+    def = this->add("print_host", coString);
     def->label = L("Hostname, IP or URL");
-    def->tooltip = L("Slic3r can upload G-code files to OctoPrint. This field should contain "
-                   "the hostname, IP address or URL of the OctoPrint instance.");
-    def->cli = "octoprint-host=s";
+    def->tooltip = L("Slic3r can upload G-code files to a printer host. This field should contain "
+                   "the hostname, IP address or URL of the printer host instance.");
+    def->cli = "print-host=s";
     def->default_value = new ConfigOptionString("");
 
     def = this->add("only_retract_when_crossing_perimeters", coBool);
@@ -1623,6 +1683,12 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "single-extruder-multi-material!";
 	def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("single_extruder_multi_material_priming", coBool);
+    def->label = L("Prime all printing extruders");
+    def->tooltip = L("If enabled, all printing extruders will be primed at the front edge of the print bed at the start of the print.");
+    def->cli = "single-extruder-multi-material-priming!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("support_material", coBool);
     def->label = L("Generate support material");
     def->category = L("Support material");
@@ -1993,8 +2059,8 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("wipe_into_infill", coBool);
     def->category = L("Extruders");
-    def->label = L("Purging into infill");
-    def->tooltip = L("Wiping after toolchange will be preferentially done inside infills. "
+    def->label = L("Wipe into this object's infill");
+    def->tooltip = L("Purging after toolchange will done inside this object's infills. "
                      "This lowers the amount of waste but may result in longer print time "
                      " due to additional travel moves.");
     def->cli = "wipe-into-infill!";
@@ -2002,8 +2068,8 @@ PrintConfigDef::PrintConfigDef()
 
     def = this->add("wipe_into_objects", coBool);
     def->category = L("Extruders");
-    def->label = L("Purging into objects");
-    def->tooltip = L("Objects will be used to wipe the nozzle after a toolchange to save material "
+    def->label = L("Wipe into this object");
+    def->tooltip = L("Object will be used to purge the nozzle after a toolchange to save material "
                      "that would otherwise end up in the wipe tower and decrease print time. "
                      "Colours of the objects will be mixed as a result.");
     def->cli = "wipe-into-objects!";
@@ -2069,10 +2135,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         std::ostringstream oss;
         oss << "0x0," << p.value.x << "x0," << p.value.x << "x" << p.value.y << ",0x" << p.value.y;
         value = oss.str();
-// Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-// Commenting this out fixes github issue #869 for now.
-//    } else if (opt_key == "octoprint_host" && !value.empty()) {
-//        opt_key = "print_host";
     } else if ((opt_key == "perimeter_acceleration" && value == "25")
         || (opt_key == "infill_acceleration" && value == "50")) {
         /*  For historical reasons, the world's full of configs having these very low values;
@@ -2083,6 +2145,12 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     } else if (opt_key == "support_material_pattern" && value == "pillars") {
         // Slic3r PE does not support the pillars. They never worked well.
         value = "rectilinear";
+    } else if (opt_key == "octoprint_host") {
+        opt_key = "print_host";
+    } else if (opt_key == "octoprint_cafile") {
+        opt_key = "printhost_cafile";
+    } else if (opt_key == "octoprint_apikey") {
+        opt_key = "printhost_apikey";
     }
     
     // Ignore the following obsolete configuration keys:
@@ -2092,9 +2160,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
         "standby_temperature", "scale", "rotate", "duplicate", "duplicate_grid",
         "start_perimeters_at_concave_points", "start_perimeters_at_non_overhang", "randomize_start", 
         "seal_position", "vibration_limit", "bed_size", 
-        // Maybe one day we will rename octoprint_host to print_host as it has been done in the upstream Slic3r.
-        // Commenting this out fixes github issue #869 for now.
-        // "octoprint_host",
         "print_center", "g0", "threads", "pressure_advance", "wipe_tower_per_color_wipe"
     };
 
@@ -2104,7 +2169,6 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
     
     if (! print_config_def.has(opt_key)) {
-        //printf("Unknown option %s\n", opt_key.c_str());
         opt_key = "";
         return;
     }

@@ -39,6 +39,12 @@ typedef void (*avrdude_progress_handler_t)(const char *task, unsigned progress, 
 void avrdude_progress_handler_set(avrdude_progress_handler_t newhandler, void *user_p);
 void avrdude_progress_external(const char *task, unsigned progress);
 
+// OOM handler
+typedef void (*avrdude_oom_handler_t)(const char *context, void *user_p);
+void avrdude_oom_handler_set(avrdude_oom_handler_t newhandler, void *user_p);
+void avrdude_oom(const char *context);
+
+
 // Cancellation
 void avrdude_cancel();
 

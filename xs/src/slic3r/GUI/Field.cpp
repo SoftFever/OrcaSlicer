@@ -95,9 +95,10 @@ namespace Slic3r { namespace GUI {
 		wxString tooltip_text("");
 		wxString tooltip = _(m_opt.tooltip);
 		if (tooltip.length() > 0)
-			tooltip_text = tooltip + "(" + _(L("default")) + ": " +
-							(boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + 
-							default_string + ")";
+            tooltip_text = tooltip + "\n" + _(L("default value")) + "\t: " +
+            (boost::iends_with(m_opt_id, "_gcode") ? "\n" : "") + default_string +
+            (boost::iends_with(m_opt_id, "_gcode") ? "" : "\n") + 
+            _(L("parameter name")) + "\t: " + m_opt_id;
 
 		return tooltip_text;
 	}
@@ -585,6 +586,8 @@ boost::any& Choice::get_value()
 			m_value = static_cast<SupportMaterialPattern>(ret_enum);
 		else if (m_opt_id.compare("seam_position") == 0)
 			m_value = static_cast<SeamPosition>(ret_enum);
+		else if (m_opt_id.compare("host_type") == 0)
+			m_value = static_cast<PrintHostType>(ret_enum);
 	}	
 
 	return m_value;

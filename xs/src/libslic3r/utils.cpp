@@ -387,4 +387,31 @@ unsigned get_current_pid()
 #endif
 }
 
+std::string xml_escape(std::string text)
+{
+    std::string::size_type pos = 0;
+    for (;;)
+    {
+        pos = text.find_first_of("\"\'&<>", pos);
+        if (pos == std::string::npos)
+            break;
+
+        std::string replacement;
+        switch (text[pos])
+        {
+        case '\"': replacement = "&quot;"; break;
+        case '\'': replacement = "&apos;"; break;
+        case '&':  replacement = "&amp;";  break;
+        case '<':  replacement = "&lt;";   break;
+        case '>':  replacement = "&gt;";   break;
+        default: break;
+        }
+
+        text.replace(pos, 1, replacement);
+        pos += replacement.size();
+    }
+
+    return text;
+}
+
 }; // namespace Slic3r

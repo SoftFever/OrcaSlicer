@@ -21,7 +21,7 @@ struct PolygonImpl {
     PathImpl Contour;
     HoleStore Holes;
 
-    inline PolygonImpl() {}
+    inline PolygonImpl() = default;
 
     inline explicit PolygonImpl(const PathImpl& cont): Contour(cont) {}
     inline explicit PolygonImpl(const HoleStore& holes):
@@ -66,6 +66,19 @@ inline PointImpl operator-(const PointImpl& p1, const PointImpl& p2) {
     ret -= p2;
     return ret;
 }
+
+inline PointImpl& operator *=(PointImpl& p, const PointImpl& pa ) {
+    p.X *= pa.X;
+    p.Y *= pa.Y;
+    return p;
+}
+
+inline PointImpl operator*(const PointImpl& p1, const PointImpl& p2) {
+    PointImpl ret = p1;
+    ret *= p2;
+    return ret;
+}
+
 }
 
 namespace libnest2d {
@@ -135,7 +148,7 @@ inline void ShapeLike::reserve(PolygonImpl& sh, size_t vertex_capacity)
 
 namespace _smartarea {
 template<Orientation o>
-inline double area(const PolygonImpl& sh) {
+inline double area(const PolygonImpl& /*sh*/) {
     return std::nan("");
 }
 
@@ -219,22 +232,6 @@ inline void ShapeLike::offset(PolygonImpl& sh, TCoord<PointImpl> distance) {
         }
     }
 }
-
-//template<> // TODO make it support holes if this method will ever be needed.
-//inline PolygonImpl Nfp::minkowskiDiff(const PolygonImpl& sh,
-//                                      const PolygonImpl& other)
-//{
-//    #define DISABLE_BOOST_MINKOWSKI_ADD
-
-//    ClipperLib::Paths solution;
-
-//    ClipperLib::MinkowskiDiff(sh.Contour, other.Contour, solution);
-
-//    PolygonImpl ret;
-//    ret.Contour = solution.front();
-
-//    return sh;
-//}
 
 // Tell libnest2d how to make string out of a ClipperPolygon object
 template<> inline std::string ShapeLike::toString(const PolygonImpl& sh) {
@@ -406,35 +403,12 @@ inline void ShapeLike::rotate(PolygonImpl& sh, const Radians& rads)
 }
 
 #define DISABLE_BOOST_NFP_MERGE
-template<> inline Nfp::Shapes<PolygonImpl>
-Nfp::merge(const Nfp::Shapes<PolygonImpl>& shapes, const PolygonImpl& sh)
-{
+inline Nfp::Shapes<PolygonImpl> _merge(ClipperLib::Clipper& clipper) {
     Nfp::Shapes<PolygonImpl> retv;
 
-    ClipperLib::Clipper clipper(ClipperLib::ioReverseSolution);
-
-    bool closed = true;
-    bool valid = false;
-
-    valid = clipper.AddPath(sh.Contour, ClipperLib::ptSubject, closed);
-
-    for(auto& hole : sh.Holes) {
-        valid &= clipper.AddPath(hole, ClipperLib::ptSubject, closed);
-    }
-
-    for(auto& path : shapes) {
-        valid &= clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
-
-        for(auto& hole : path.Holes) {
-            valid &= clipper.AddPath(hole, ClipperLib::ptSubject, closed);
-        }
-    }
-
-    if(!valid) throw GeometryException(GeomErr::MERGE);
-
     ClipperLib::PolyTree result;
-    clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNonZero);
-    retv.reserve(result.Total());
+    clipper.Execute(ClipperLib::ctUnion, result, ClipperLib::pftNegative);
+    retv.reserve(static_cast<size_t>(result.Total()));
 
     std::function<void(ClipperLib::PolyNode*, PolygonImpl&)> processHole;
 
@@ -445,7 +419,8 @@ Nfp::merge(const Nfp::Shapes<PolygonImpl>& shapes, const PolygonImpl& sh)
         retv.push_back(poly);
     };
 
-    processHole = [&processPoly](ClipperLib::PolyNode *pptr, PolygonImpl& poly) {
+    processHole = [&processPoly](ClipperLib::PolyNode *pptr, PolygonImpl& poly)
+    {
         poly.Holes.push_back(pptr->Contour);
         poly.Holes.back().push_back(poly.Holes.back().front());
         for(auto c : pptr->Childs) processPoly(c);
@@ -461,6 +436,27 @@ Nfp::merge(const Nfp::Shapes<PolygonImpl>& shapes, const PolygonImpl& sh)
     traverse(&result);
 
     return retv;
+}
+
+template<> inline Nfp::Shapes<PolygonImpl>
+Nfp::merge(const Nfp::Shapes<PolygonImpl>& shapes)
+{
+    ClipperLib::Clipper clipper(ClipperLib::ioReverseSolution);
+
+    bool closed = true;
+    bool valid = true;
+
+    for(auto& path : shapes) {
+        valid &= clipper.AddPath(path.Contour, ClipperLib::ptSubject, closed);
+
+        for(auto& hole : path.Holes) {
+            valid &= clipper.AddPath(hole, ClipperLib::ptSubject, closed);
+        }
+    }
+
+    if(!valid) throw GeometryException(GeomErr::MERGE);
+
+    return _merge(clipper);
 }
 
 }

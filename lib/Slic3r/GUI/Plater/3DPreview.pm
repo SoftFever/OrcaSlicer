@@ -25,6 +25,7 @@ sub new {
     # init GUI elements
     my $canvas = Slic3r::GUI::3DScene->new($self);
     Slic3r::GUI::_3DScene::enable_shader($canvas, 1);
+    Slic3r::GUI::_3DScene::set_config($canvas, $config);
     $self->canvas($canvas);
     my $slider_low = Wx::Slider->new(
         $self, -1,
@@ -365,16 +366,8 @@ sub load_print {
         if ($self->gcode_preview_data->empty) {
             # load skirt and brim
             Slic3r::GUI::_3DScene::set_print($self->canvas, $self->print);
-            Slic3r::GUI::_3DScene::load_print_toolpaths($self->canvas);
-            Slic3r::GUI::_3DScene::load_wipe_tower_toolpaths($self->canvas, \@colors);
-            foreach my $object (@{$self->print->objects}) {
-                Slic3r::GUI::_3DScene::load_print_object_toolpaths($self->canvas, $object, \@colors);
-                # Show the objects in very transparent color.
-                #my @volume_ids = $self->canvas->load_object($object->model_object);
-                #$self->canvas->volumes->[$_]->color->[3] = 0.2 for @volume_ids;
-            }
+            Slic3r::GUI::_3DScene::load_preview($self->canvas, \@colors);
             $self->show_hide_ui_elements('simple');
-            Slic3r::GUI::_3DScene::reset_legend_texture();
         } else {
             $self->{force_sliders_full_range} = (Slic3r::GUI::_3DScene::get_volumes_count($self->canvas) == 0);
             Slic3r::GUI::_3DScene::set_print($self->canvas, $self->print);

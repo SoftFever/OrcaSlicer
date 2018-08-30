@@ -5,7 +5,7 @@
 #include "../../libslic3r/Utils.hpp"
 
 #include "slic3r/Utils/Http.hpp"
-#include "slic3r/Utils/OctoPrint.hpp"
+#include "slic3r/Utils/PrintHost.hpp"
 #include "slic3r/Utils/Serial.hpp"
 #include "BonjourDialog.hpp"
 #include "WipeTowerDialog.hpp"
@@ -919,6 +919,7 @@ void TabPrint::build()
 		optgroup->append_single_option_line("wipe_tower_width");
 		optgroup->append_single_option_line("wipe_tower_rotation_angle");
         optgroup->append_single_option_line("wipe_tower_bridging");
+        optgroup->append_single_option_line("single_extruder_multi_material_priming");
 
 		optgroup = page->new_optgroup(_(L("Advanced")));
 		optgroup->append_single_option_line("interface_shells");
@@ -1289,12 +1290,17 @@ void TabFilament::build()
 		optgroup->append_line(line);
 
         optgroup = page->new_optgroup(_(L("Toolchange parameters with single extruder MM printers")));
-		optgroup->append_single_option_line("filament_loading_speed");
+		optgroup->append_single_option_line("filament_loading_speed_start");
+        optgroup->append_single_option_line("filament_loading_speed");
+        optgroup->append_single_option_line("filament_unloading_speed_start");
         optgroup->append_single_option_line("filament_unloading_speed");
+		optgroup->append_single_option_line("filament_load_time");
+		optgroup->append_single_option_line("filament_unload_time");
         optgroup->append_single_option_line("filament_toolchange_delay");
         optgroup->append_single_option_line("filament_cooling_moves");
         optgroup->append_single_option_line("filament_cooling_initial_speed");
         optgroup->append_single_option_line("filament_cooling_final_speed");
+        optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
         line = { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
@@ -1517,10 +1523,12 @@ void TabPrinter::build()
 			optgroup->append_line(line);
 		}
 
-		optgroup = page->new_optgroup(_(L("OctoPrint upload")));
+		optgroup = page->new_optgroup(_(L("Printer Host upload")));
 
-		auto octoprint_host_browse = [this, optgroup] (wxWindow* parent) {
-			auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
+		optgroup->append_single_option_line("host_type");
+
+		auto printhost_browse = [this, optgroup] (wxWindow* parent) {
+			auto btn = m_printhost_browse_btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
@@ -1528,47 +1536,50 @@ void TabPrinter::build()
 			btn->Bind(wxEVT_BUTTON, [this, parent, optgroup](wxCommandEvent e) {
 				BonjourDialog dialog(parent);
 				if (dialog.show_and_lookup()) {
-					optgroup->set_value("octoprint_host", std::move(dialog.get_selected()), true);
+					optgroup->set_value("print_host", std::move(dialog.get_selected()), true);
 				}
 			});
 
 			return sizer;
 		};
 
-		auto octoprint_host_test = [this](wxWindow* parent) {
-			auto btn = m_octoprint_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
+		auto print_host_test = [this](wxWindow* parent) {
+			auto btn = m_print_host_test_btn = new wxButton(parent, wxID_ANY, _(L("Test")), 
 				wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("wrench.png")), wxBITMAP_TYPE_PNG));
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(btn);
 
 			btn->Bind(wxEVT_BUTTON, [this](wxCommandEvent e) {
-				OctoPrint octoprint(m_config);
-				wxString msg;
-				if (octoprint.test(msg)) {
-					show_info(this, _(L("Connection to OctoPrint works correctly.")), _(L("Success!")));
-				} else {
-					const auto text = wxString::Format("%s: %s\n\n%s",
-						_(L("Could not connect to OctoPrint")), msg, _(L("Note: OctoPrint version at least 1.1.0 is required."))
-					);
+				std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+				if (! host) {
+					const auto text = wxString::Format("%s",
+						_(L("Could not get a valid Printer Host reference")));
 					show_error(this, text);
+					return;
+				}
+				wxString msg;
+				if (host->test(msg)) {
+					show_info(this, host->get_test_ok_msg(), _(L("Success!")));
+				} else {
+					show_error(this, host->get_test_failed_msg(msg));
 				}
 			});
 
 			return sizer;
 		};
 
-		Line host_line = optgroup->create_single_option_line("octoprint_host");
-		host_line.append_widget(octoprint_host_browse);
-		host_line.append_widget(octoprint_host_test);
+		Line host_line = optgroup->create_single_option_line("print_host");
+		host_line.append_widget(printhost_browse);
+		host_line.append_widget(print_host_test);
 		optgroup->append_line(host_line);
-		optgroup->append_single_option_line("octoprint_apikey");
+		optgroup->append_single_option_line("printhost_apikey");
 
 		if (Http::ca_file_supported()) {
 
-			Line cafile_line = optgroup->create_single_option_line("octoprint_cafile");
+			Line cafile_line = optgroup->create_single_option_line("printhost_cafile");
 
-			auto octoprint_cafile_browse = [this, optgroup] (wxWindow* parent) {
+			auto printhost_cafile_browse = [this, optgroup] (wxWindow* parent) {
 				auto btn = new wxButton(parent, wxID_ANY, _(L(" Browse "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 				btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("zoom.png")), wxBITMAP_TYPE_PNG));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1578,17 +1589,17 @@ void TabPrinter::build()
 					static const auto filemasks = _(L("Certificate files (*.crt, *.pem)|*.crt;*.pem|All files|*.*"));
 					wxFileDialog openFileDialog(this, _(L("Open CA certificate file")), "", "", filemasks, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 					if (openFileDialog.ShowModal() != wxID_CANCEL) {
-						optgroup->set_value("octoprint_cafile", std::move(openFileDialog.GetPath()), true);
+						optgroup->set_value("printhost_cafile", std::move(openFileDialog.GetPath()), true);
 					}
 				});
 
 				return sizer;
 			};
 
-			cafile_line.append_widget(octoprint_cafile_browse);
+			cafile_line.append_widget(printhost_cafile_browse);
 			optgroup->append_line(cafile_line);
 
-			auto octoprint_cafile_hint = [this, optgroup] (wxWindow* parent) {
+			auto printhost_cafile_hint = [this, optgroup] (wxWindow* parent) {
 				auto txt = new wxStaticText(parent, wxID_ANY, 
 					_(L("HTTPS CA file is optional. It is only needed if you use HTTPS with a self-signed certificate.")));
 				auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1598,7 +1609,7 @@ void TabPrinter::build()
 
 			Line cafile_hint { "", "" };
 			cafile_hint.full_width = 1;
-			cafile_hint.widget = std::move(octoprint_cafile_hint);
+			cafile_hint.widget = std::move(printhost_cafile_hint);
 			optgroup->append_line(cafile_hint);
 
 		}
@@ -1606,6 +1617,7 @@ void TabPrinter::build()
 		optgroup = page->new_optgroup(_(L("Firmware")));
 		optgroup->append_single_option_line("gcode_flavor");
 		optgroup->append_single_option_line("silent_mode");
+		optgroup->append_single_option_line("remaining_times");
 
 		optgroup->m_on_change = [this, optgroup](t_config_option_key opt_key, boost::any value){
 			wxTheApp->CallAfter([this, opt_key, value](){
@@ -1892,8 +1904,12 @@ void TabPrinter::update(){
 			m_serial_test_btn->Disable();
 	}
 
-	m_octoprint_host_test_btn->Enable(!m_config->opt_string("octoprint_host").empty());
-	
+	{
+		std::unique_ptr<PrintHost> host(PrintHost::get_print_host(m_config));
+		m_print_host_test_btn->Enable(!m_config->opt_string("print_host").empty() && host->can_test());
+		m_printhost_browse_btn->Enable(host->has_auto_discovery());
+	}
+
 	bool have_multiple_extruders = m_extruders_count > 1;
 	get_field("toolchange_gcode")->toggle(have_multiple_extruders);
 	get_field("single_extruder_multi_material")->toggle(have_multiple_extruders);
@@ -2728,7 +2744,7 @@ void SavePresetWindow::accept()
 		const char* unusable_symbols = "<>:/\\|?*\"";
 		bool is_unusable_symbol = false;
 		bool is_unusable_postfix = false;
-		const std::string unusable_postfix = "(modified)";
+		const std::string unusable_postfix = PresetCollection::get_suffix_modified();//"(modified)";
 		for (size_t i = 0; i < std::strlen(unusable_symbols); i++){
 			if (m_chosen_name.find_first_of(unusable_symbols[i]) != std::string::npos){
 				is_unusable_symbol = true;
@@ -2743,8 +2759,9 @@ void SavePresetWindow::accept()
 							_(L("the following characters are not allowed:")) + " <>:/\\|?*\"");
 		}
 		else if (is_unusable_postfix){
-			show_error(this,	_(L("The supplied name is not valid;")) + "\n" + 
-								_(L("the following postfix are not allowed:")) + "\n\t" + unusable_postfix);
+			show_error(this,_(L("The supplied name is not valid;")) + "\n" +
+							_(L("the following postfix are not allowed:")) + "\n\t" + //unusable_postfix);
+							wxString::FromUTF8(unusable_postfix.c_str()));
 		}
 		else if (m_chosen_name.compare("- default -") == 0) {
 			show_error(this, _(L("The supplied name is not available.")));

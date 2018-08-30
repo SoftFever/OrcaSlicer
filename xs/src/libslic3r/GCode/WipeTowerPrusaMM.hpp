@@ -65,9 +65,9 @@ public:
 
 
 	// Set the extruder properties.
-	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed,
-                      float unloading_speed, float delay, int cooling_moves, float cooling_initial_speed,
-                      float cooling_final_speed, std::string ramming_parameters, float nozzle_diameter)
+	void set_extruder(size_t idx, material_type material, int temp, int first_layer_temp, float loading_speed, float loading_speed_start,
+                      float unloading_speed, float unloading_speed_start, float delay, int cooling_moves,
+                      float cooling_initial_speed, float cooling_final_speed, std::string ramming_parameters, float nozzle_diameter)
 	{
         //while (m_filpar.size() < idx+1)   // makes sure the required element is in the vector
         m_filpar.push_back(FilamentParameters());
@@ -76,7 +76,9 @@ public:
         m_filpar[idx].temperature = temp;
         m_filpar[idx].first_layer_temperature = first_layer_temp;
         m_filpar[idx].loading_speed = loading_speed;
+        m_filpar[idx].loading_speed_start = loading_speed_start;
         m_filpar[idx].unloading_speed = unloading_speed;
+        m_filpar[idx].unloading_speed_start = unloading_speed_start;
         m_filpar[idx].delay = delay;
         m_filpar[idx].cooling_moves = cooling_moves;
         m_filpar[idx].cooling_initial_speed = cooling_initial_speed;
@@ -101,6 +103,8 @@ public:
 
 	// Iterates through prepared m_plan, generates ToolChangeResults and appends them to "result"
 	void generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result);
+
+    float get_depth() const { return m_wipe_tower_depth; }
 
 
 
@@ -189,6 +193,7 @@ private:
 	float  m_wipe_tower_width; 			// Width of the wipe tower.
 	float  m_wipe_tower_depth 	= 0.f; 	// Depth of the wipe tower
 	float  m_wipe_tower_rotation_angle = 0.f; // Wipe tower rotation angle in degrees (with respect to x axis)
+    float  m_internal_rotation  = 0.f;
 	float  m_y_shift			= 0.f;  // y shift passed to writer
 	float  m_z_pos 				= 0.f;  // Current Z position.
 	float  m_layer_height 		= 0.f; 	// Current layer height.
@@ -213,7 +218,9 @@ private:
         int  			    temperature = 0;
         int  			    first_layer_temperature = 0;
         float               loading_speed = 0.f;
+        float               loading_speed_start = 0.f;
         float               unloading_speed = 0.f;
+        float               unloading_speed_start = 0.f;
         float               delay = 0.f ;
         int                 cooling_moves = 0;
         float               cooling_initial_speed = 0.f;

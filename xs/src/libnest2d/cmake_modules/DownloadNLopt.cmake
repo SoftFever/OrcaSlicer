@@ -27,5 +27,6 @@ set(NLOPT_LINK_PYTHON OFF CACHE BOOL "" FORCE)
 add_subdirectory(${nlopt_SOURCE_DIR} ${nlopt_BINARY_DIR})
 
 set(NLopt_LIBS nlopt)
-set(NLopt_INCLUDE_DIR ${nlopt_BINARY_DIR})
+set(NLopt_INCLUDE_DIR ${nlopt_BINARY_DIR} 
+                      ${nlopt_BINARY_DIR}/src/api)
 set(SHARED_LIBS_STATE ${SHARED_STATE})

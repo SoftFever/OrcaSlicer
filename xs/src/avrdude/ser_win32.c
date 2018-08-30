@@ -246,10 +246,11 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 	    newname = malloc(strlen("\\\\.\\") + strlen(port) + 1);
 
 	    if (newname == 0) {
-		avrdude_message(MSG_INFO, "%s: ser_open(): out of memory\n",
-                                progname);
-		exit(1);
-	    }
+		// avrdude_message(MSG_INFO, "%s: ser_open(): out of memory\n",
+		//                         progname);
+		// exit(1);
+			avrdude_oom("ser_open(): out of memory\n");
+		}
 	    strcpy(newname, "\\\\.\\");
 	    strcat(newname, port);
 
@@ -311,8 +312,10 @@ static int ser_open(char * port, union pinfo pinfo, union filedescriptor *fdp)
 static void ser_close(union filedescriptor *fd)
 {
 	if (serial_over_ethernet) {
+#ifdef HAVE_LIBWS2_32
 		closesocket(fd->ifd);
 		WSACleanup();
+#endif
 	} else {
 		HANDLE hComPort=(HANDLE)fd->pfd;
 		if (hComPort != INVALID_HANDLE_VALUE)

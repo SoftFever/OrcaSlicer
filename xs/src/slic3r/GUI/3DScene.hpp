@@ -260,12 +260,16 @@ private:
     float                 m_angle_z;
     // Scale factor of the volume to be rendered.
     float                 m_scale_factor;
-    // World matrix of the volume to be rendered.
-    std::vector<float>    m_world_mat;
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
-    // Whether or not is needed to recalculate the world matrix.
-    mutable bool          m_dirty;
+    // Whether or not is needed to recalculate the transformed bounding box.
+    mutable bool          m_transformed_bounding_box_dirty;
+    // Pointer to convex hull of the original mesh, if any.
+    const TriangleMesh*   m_convex_hull;
+    // Bounding box of this volume, in unscaled coordinates.
+    mutable BoundingBoxf3 m_transformed_convex_hull_bounding_box;
+    // Whether or not is needed to recalculate the transformed convex hull bounding box.
+    mutable bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
 
@@ -289,8 +293,8 @@ public:
     bool                is_active;
     // Whether or not to use this volume when applying zoom_to_volumes()
     bool                zoom_to_volumes;
-    // Wheter or not this volume is enabled for outside print volume detection.
-    bool                outside_printer_detection_enabled;
+    // Wheter or not this volume is enabled for outside print volume detection in shader.
+    bool                shader_outside_printer_detection_enabled;
     // Wheter or not this volume is outside print volume.
     bool                is_outside;
     // Boolean: Is mouse over this object?
@@ -299,6 +303,8 @@ public:
     bool                is_modifier;
     // Wheter or not this volume has been generated from the wipe tower
     bool                is_wipe_tower;
+    // Wheter or not this volume has been generated from an extrusion path
+    bool                is_extrusion_path;
 
     // Interleaved triangles & normals with indexed triangles & quads.
     GLIndexedVertexArray        indexed_vertex_array;
@@ -321,13 +327,15 @@ public:
     void set_origin(const Pointf3& origin);
     void set_angle_z(float angle_z);
     void set_scale_factor(float scale_factor);
+    void set_convex_hull(const TriangleMesh& convex_hull);
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
-    const std::vector<float>& world_matrix() const;
+    std::vector<float> world_matrix() const;
     BoundingBoxf3       transformed_bounding_box() const;
+    BoundingBoxf3       transformed_convex_hull_bounding_box() const;
 
     bool                empty() const { return this->indexed_vertex_array.empty(); }
     bool                indexed() const { return this->indexed_vertex_array.indexed(); }
@@ -399,7 +407,7 @@ public:
         bool                     use_VBOs);
 
     int load_wipe_tower_preview(
-        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs);
+        int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);
 
     // Render the volumes by OpenGL.
     void render_VBOs() const;
@@ -460,7 +468,7 @@ public:
     static void deselect_volumes(wxGLCanvas* canvas);
     static void select_volume(wxGLCanvas* canvas, unsigned int id);
     static void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
-    static bool check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
+    static int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config);
     static bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     static bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
@@ -497,6 +505,7 @@ public:
     static void enable_gizmos(wxGLCanvas* canvas, bool enable);
     static void enable_shader(wxGLCanvas* canvas, bool enable);
     static void enable_force_zoom_to_bed(wxGLCanvas* canvas, bool enable);
+    static void enable_dynamic_background(wxGLCanvas* canvas, bool enable);
     static void allow_multisample(wxGLCanvas* canvas, bool allow);
 
     static void zoom_to_bed(wxGLCanvas* canvas);
@@ -536,10 +545,8 @@ public:
 
     static void reload_scene(wxGLCanvas* canvas, bool force);
 
-    static void load_print_toolpaths(wxGLCanvas* canvas);
-    static void load_print_object_toolpaths(wxGLCanvas* canvas, const PrintObject* print_object, const std::vector<std::string>& str_tool_colors);
-    static void load_wipe_tower_toolpaths(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
+    static void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
     static void reset_legend_texture();
 

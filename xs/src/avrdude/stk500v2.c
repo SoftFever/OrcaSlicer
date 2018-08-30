@@ -295,9 +295,10 @@ static int stk600_xprog_program_enable(PROGRAMMER * pgm, AVRPART * p);
 void stk500v2_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    avrdude_message(MSG_INFO, "%s: stk500v2_setup(): Out of memory allocating private data\n",
-                    progname);
-    exit(1);
+    // avrdude_message(MSG_INFO, "%s: stk500v2_setup(): Out of memory allocating private data\n",
+    //                 progname);
+    // exit(1);
+    avrdude_oom("stk500v2_setup(): Out of memory allocating private data\n");
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;

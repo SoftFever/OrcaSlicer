@@ -105,9 +105,6 @@ public:
     // This bounding box is being cached.
     const BoundingBoxf3& bounding_box() const;
     void invalidate_bounding_box() { m_bounding_box_valid = false; }
-    // Returns a snug bounding box of the transformed instances.
-    // This bounding box is not being cached.
-    BoundingBoxf3 tight_bounding_box(bool include_modifiers) const;
 
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
@@ -123,7 +120,7 @@ public:
     void translate(const Vectorf3 &vector) { this->translate(vector.x, vector.y, vector.z); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Pointf3 &versor);
-    void rotate(float angle, const Axis &axis);
+    void rotate(float angle, const Pointf3& axis);
     void transform(const float* matrix3x4);
     void mirror(const Axis &axis);
     size_t materials_count() const;
@@ -157,6 +154,10 @@ private:
 class ModelVolume
 {
     friend class ModelObject;
+
+    // The convex hull of this model's mesh.
+    TriangleMesh m_convex_hull;
+
 public:
     std::string name;
     // The triangular model.
@@ -180,19 +181,32 @@ public:
 
     ModelMaterial* assign_unique_material();
     
+    void calculate_convex_hull();
+    const TriangleMesh& get_convex_hull() const;
+
 private:
     // Parent object owning this ModelVolume.
     ModelObject* object;
     t_model_material_id _material_id;
     
-    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object) {}
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh) : mesh(std::move(mesh)), modifier(false), object(object) {}
-    ModelVolume(ModelObject *object, const ModelVolume &other) : 
-        name(other.name), mesh(other.mesh), config(other.config), modifier(other.modifier), object(object)
-        { this->material_id(other.material_id()); }
-    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) : 
+    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object)
+    {
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), modifier(false), object(object) {}
+    ModelVolume(ModelObject *object, const ModelVolume &other) :
+        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), modifier(other.modifier), object(object)
+    {
+        this->material_id(other.material_id());
+    }
+    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), mesh(std::move(mesh)), config(other.config), modifier(other.modifier), object(object)
-        { this->material_id(other.material_id()); }
+    {
+        this->material_id(other.material_id());
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
 };
 
 // A single instance of a ModelObject.
@@ -285,13 +299,10 @@ public:
     bool add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
-    // Returns tight axis aligned bounding box of this model
-    BoundingBoxf3 transformed_bounding_box() const;
     void center_instances_around_point(const Pointf &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
-    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL,
-                         std::function<void(unsigned)> progressind = [](unsigned){});
+    bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
     // Croaks if the duplicated objects do not fit the print bed.
     void duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);
     void duplicate_objects(size_t copies_num, coordf_t dist, const BoundingBoxf* bb = NULL);

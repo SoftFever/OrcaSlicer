@@ -221,6 +221,7 @@ public:
     static Pointf new_unscale(const Point &p) {
         return Pointf(unscale(p.x), unscale(p.y));
     };
+    double ccw(const Pointf &p1, const Pointf &p2) const;
     std::string wkt() const;
     std::string dump_perl() const;
     void scale(double factor);

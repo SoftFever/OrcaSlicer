@@ -451,9 +451,8 @@ float WipingExtrusions::mark_wiping_extrusions(const Print& print, unsigned int 
         return volume_to_wipe;      // Soluble filament cannot be wiped in a random infill, neither the filament after it
 
     // we will sort objects so that dedicated for wiping are at the beginning:
-    PrintObjectPtrs object_list = print.objects;
+    PrintObjectPtrs object_list = print.get_printable_objects();
     std::sort(object_list.begin(), object_list.end(), [](const PrintObject* a, const PrintObject* b) { return a->config.wipe_into_objects; });
-
 
     // We will now iterate through
     //  - first the dedicated objects to mark perimeters or infills (depending on infill_first)
@@ -548,7 +547,8 @@ void WipingExtrusions::ensure_perimeters_infills_order(const Print& print)
     unsigned int first_nonsoluble_extruder = first_nonsoluble_extruder_on_layer(print.config);
     unsigned int last_nonsoluble_extruder = last_nonsoluble_extruder_on_layer(print.config);
 
-    for (const PrintObject* object : print.objects) {
+    PrintObjectPtrs printable_objects = print.get_printable_objects();
+    for (const PrintObject* object : printable_objects) {
         // Finds this layer:
         auto this_layer_it = std::find_if(object->layers.begin(), object->layers.end(), [&lt](const Layer* lay) { return std::abs(lt.print_z - lay->print_z)<EPSILON; });
         if (this_layer_it == object->layers.end())

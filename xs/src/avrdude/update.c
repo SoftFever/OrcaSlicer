@@ -38,8 +38,9 @@ UPDATE * parse_op(char * s)
 
   upd = (UPDATE *)malloc(sizeof(UPDATE));
   if (upd == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
+    // avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
+    // exit(1);
+    avrdude_oom("parse_op: out of memory\n");
   }
 
   i = 0;
@@ -53,8 +54,9 @@ UPDATE * parse_op(char * s)
     upd->op = DEVICE_WRITE;
     upd->filename = (char *)malloc(strlen(buf) + 1);
     if (upd->filename == NULL) {
-        avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-        exit(1);
+        // avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
+        // exit(1);
+        avrdude_oom("parse_op: out of memory\n");
     }
     strcpy(upd->filename, buf);
     upd->format = FMT_AUTO;
@@ -63,8 +65,9 @@ UPDATE * parse_op(char * s)
 
   upd->memtype = (char *)malloc(strlen(buf)+1);
   if (upd->memtype == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
+    // avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
+    // exit(1);
+    avrdude_oom("parse_op: out of memory\n");
   }
   strcpy(upd->memtype, buf);
 
@@ -101,22 +104,22 @@ UPDATE * parse_op(char * s)
 
   p++;
 
-  // Extension: Parse file contents offset
-  size_t offset = 0;
+  // Extension: Parse file section number
+  unsigned section = 0;
 
   for (; *p != ':'; p++) {
     if (*p >= '0' && *p <= '9') {
-      offset *= 10;
-      offset += *p - 0x30;
+      section *= 10;
+      section += *p - 0x30;
     } else {
-      avrdude_message(MSG_INFO, "%s: invalid update specification: offset is not a number\n", progname);
+      avrdude_message(MSG_INFO, "%s: invalid update specification: <section> is not a number\n", progname);
       free(upd->memtype);
       free(upd);
       return NULL;
     }
   }
 
-  upd->offset = offset;
+  upd->section = section;
   p++;
 
   /*
@@ -179,8 +182,9 @@ UPDATE * dup_update(UPDATE * upd)
 
   u = (UPDATE *)malloc(sizeof(UPDATE));
   if (u == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
+    // avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
+    // exit(1);
+    avrdude_oom("dup_update: out of memory\n");
   }
 
   memcpy(u, upd, sizeof(UPDATE));
@@ -194,21 +198,22 @@ UPDATE * dup_update(UPDATE * upd)
   return u;
 }
 
-UPDATE * new_update(int op, char * memtype, int filefmt, char * filename, size_t offset)
+UPDATE * new_update(int op, char * memtype, int filefmt, char * filename, unsigned section)
 {
   UPDATE * u;
 
   u = (UPDATE *)malloc(sizeof(UPDATE));
   if (u == NULL) {
-    avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
-    exit(1);
+    // avrdude_message(MSG_INFO, "%s: out of memory\n", progname);
+    // exit(1);
+    avrdude_oom("new_update: out of memory\n");
   }
 
   u->memtype = strdup(memtype);
   u->filename = strdup(filename);
   u->op = op;
   u->format = filefmt;
-  u->offset = offset;
+  u->section = section;
 
   return u;
 }
@@ -286,7 +291,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
                       progname,
                       strcmp(upd->filename, "-")==0 ? "<stdin>" : upd->filename);
     }
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1, upd->offset);
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1, upd->section);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file '%s' failed\n",
               progname, upd->filename);
@@ -351,7 +356,7 @@ int do_op(PROGRAMMER * pgm, struct avrpart * p, UPDATE * upd, enum updateflags f
             progname, mem->desc, upd->filename);
     }
 
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1, upd->offset);
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1, upd->section);
     if (rc < 0) {
       avrdude_message(MSG_INFO, "%s: read from file '%s' failed\n",
               progname, upd->filename);

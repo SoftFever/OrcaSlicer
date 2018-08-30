@@ -134,6 +134,11 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
 // The projection does not contain the priming regions.
 BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_t max_print_z)
 {
+    // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
+    // We need to get position and angle of the wipe tower to transform them to actual position.
+    Pointf wipe_tower_pos(print.config.wipe_tower_x.value, print.config.wipe_tower_y.value);
+    float wipe_tower_angle = print.config.wipe_tower_rotation_angle.value;
+
     BoundingBoxf bbox;
     for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.m_wipe_tower_tool_changes) {
         if (! tool_changes.empty() && tool_changes.front().print_z > max_print_z)
@@ -144,6 +149,11 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
                 if (e.width > 0) {
                     Pointf  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
                     Pointf  p2(e.pos.x, e.pos.y);
+                    p1.rotate(wipe_tower_angle);
+                    p1.translate(wipe_tower_pos);
+                    p2.rotate(wipe_tower_angle);
+                    p2.translate(wipe_tower_pos);
+
                     bbox.merge(p1);
                     coordf_t radius = 0.5 * e.width;
                     bbox.min.x = std::min(bbox.min.x, std::min(p1.x, p2.x) - radius);
