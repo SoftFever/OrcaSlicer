@@ -181,6 +181,8 @@ void set_main_frame(wxFrame *main_frame)
     g_wxMainFrame = main_frame;
 }
 
+wxFrame* get_main_frame() { return g_wxMainFrame; }
+
 void set_tab_panel(wxNotebook *tab_panel)
 {
     g_wxTabPanel = tab_panel;

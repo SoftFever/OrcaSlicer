@@ -256,7 +256,7 @@ void PrintController::slice()
     slice(pri);
 }
 
-void IProgressIndicator::message_fmt(
+void ProgressIndicator::message_fmt(
         const string &fmtstr, ...) {
     std::stringstream ss;
     va_list args;
@@ -311,35 +311,7 @@ void AppController::arrange_model()
 
     }
 
-        auto dist = print_ctl()->config().min_object_distance();
-
-        // Create the arranger config
-        auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
-
-        auto& bedpoints = print_ctl()->config().bed_shape.values;
-        Polyline bed; bed.points.reserve(bedpoints.size());
-        for(auto& v : bedpoints)
-            bed.append(Point::new_scale(v.x, v.y));
-
-        if(pind) pind->update(0, _(L("Arranging objects...")));
-
-        try {
-            arr::arrange(*model_,
-                         min_obj_distance,
-                         bed,
-                         arr::BOX,
-                         false, // create many piles not just one pile
-                         [pind, count](unsigned rem) {
-                if(pind)
-                    pind->update(count - rem, _(L("Arranging objects...")));
-            });
-        } catch(std::exception& e) {
-            std::cerr << e.what() << std::endl;
-            report_issue(IssueType::ERR,
-                         _(L("Could not arrange model objects! "
-                         "Some geometries may be invalid.")),
-                         _(L("Exception occurred")));
-        }
+    auto dist = print_ctl()->config().min_object_distance();
 
     // Create the arranger config
     auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
@@ -347,7 +319,7 @@ void AppController::arrange_model()
     auto& bedpoints = print_ctl()->config().bed_shape.values;
     Polyline bed; bed.points.reserve(bedpoints.size());
     for(auto& v : bedpoints)
-        bed.append(Point::new_scale(v(0), v(1)));
+        bed.append(Point::new_scale(v.x, v.y));
 
     if(pind) pind->update(0, _(L("Arranging objects...")));
 
@@ -357,7 +329,7 @@ void AppController::arrange_model()
                      bed,
                      arr::BOX,
                      false, // create many piles not just one pile
-                     [this, pind, count](unsigned rem) {
+                     [pind, count](unsigned rem) {
             if(pind)
                 pind->update(count - rem, _(L("Arranging objects...")));
         });

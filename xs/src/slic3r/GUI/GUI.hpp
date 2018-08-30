@@ -97,6 +97,7 @@ void set_3DScene(_3DScene *scene);
 AppConfig*	get_app_config();
 wxApp*		get_app();
 PresetBundle* get_preset_bundle();
+wxFrame* get_main_frame();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
