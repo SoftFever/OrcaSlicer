@@ -3,7 +3,7 @@
 
 #include "selection_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace selections {
 
 template<class RawShape>
 class _FillerSelection: public SelectionBoilerplate<RawShape> {
@@ -56,18 +56,13 @@ public:
 
         std::sort(store_.begin(), store_.end(), sortfunc);
 
-//        Container a = {store_[0], store_[1], store_[4], store_[5] };
-////        a.insert(a.end(), store_.end()-10, store_.end());
-//        store_ = a;
-
         PlacementStrategyLike<TPlacer> placer(bin);
         placer.configure(pconfig);
 
         auto it = store_.begin();
         while(it != store_.end()) {
-            if(!placer.pack(*it))  {
+            if(!placer.pack(*it, {std::next(it), store_.end()}))  {
                 if(packed_bins_.back().empty()) ++it;
-//                makeProgress(placer);
                 placer.clearItems();
                 packed_bins_.emplace_back();
             } else {
@@ -76,9 +71,6 @@ public:
             }
         }
 
-//        if(was_packed) {
-//            packed_bins_.push_back(placer.getItems());
-//        }
     }
 };
 

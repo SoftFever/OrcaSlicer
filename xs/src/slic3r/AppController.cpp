@@ -433,6 +433,7 @@ const PrintConfig &PrintController::config() const
     return print_->config;
 }
 
+
 void AppController::arrange_model()
 {
     using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
@@ -468,21 +469,25 @@ void AppController::arrange_model()
     if(pind) pind->update(0, _(L("Arranging objects...")));
 
     try {
+        arr::BedShapeHint hint;
+        // TODO: from Sasha from GUI
+        hint.type = arr::BedShapeType::WHO_KNOWS;
+
         arr::arrange(*model_,
-                     min_obj_distance,
-                     bed,
-                     arr::BOX,
-                     false, // create many piles not just one pile
-                     [this, pind, count](unsigned rem) {
+                      min_obj_distance,
+                      bed,
+                      hint,
+                      false, // create many piles not just one pile
+                      [pind, count](unsigned rem) {
             if(pind)
                 pind->update(count - rem, _(L("Arranging objects...")));
         });
     } catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
         report_issue(IssueType::ERR,
-                     _(L("Could not arrange model objects! "
-                     "Some geometries may be invalid.")),
-                     _(L("Exception occurred")));
+                        _(L("Could not arrange model objects! "
+                        "Some geometries may be invalid.")),
+                        _(L("Exception occurred")));
     }
 
     // Restore previous max value

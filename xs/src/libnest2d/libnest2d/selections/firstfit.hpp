@@ -4,7 +4,7 @@
 #include "../libnest2d.hpp"
 #include "selection_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace selections {
 
 template<class RawShape>
 class _FirstFitSelection: public SelectionBoilerplate<RawShape> {
@@ -40,6 +40,7 @@ public:
         packed_bins_.clear();
 
         std::vector<Placer> placers;
+        placers.reserve(last-first);
 
         std::copy(first, last, std::back_inserter(store_));
 
@@ -66,21 +67,25 @@ public:
             }
         }
 
-        for(auto& item : store_ ) {
-            bool was_packed = false;
-            while(!was_packed) {
+        auto it = store_.begin();
 
-                for(size_t j = 0; j < placers.size() && !was_packed; j++) {
-                    if((was_packed = placers[j].pack(item)))
-                        makeProgress(placers[j], j);
+        while(it != store_.end()) {
+            bool was_packed = false;
+            size_t j = 0;
+            while(!was_packed) {
+                for(; j < placers.size() && !was_packed; j++) {
+                    if((was_packed = placers[j].pack(*it, rem(it, store_) )))
+                            makeProgress(placers[j], j);
                 }
 
                 if(!was_packed) {
                     placers.emplace_back(bin);
                     placers.back().configure(pconfig);
                     packed_bins_.emplace_back();
+                    j = placers.size() - 1;
                 }
             }
+            ++it;
         }
     }
 
