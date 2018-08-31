@@ -238,7 +238,7 @@ wxDataViewColumn* object_ctrl_create_extruder_column(int extruders_count)
 void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 {
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	m_objects_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+	m_objects_ctrl->SetMinSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
 
 	objects_sz = new wxBoxSizer(wxVERTICAL);
 	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT, 20);
@@ -1304,7 +1304,8 @@ void on_btn_split(const bool split_part)
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(parent, model_object->volumes[id]->name,
                                       model_object->volumes[id]->modifier ? m_icon_modifiermesh : m_icon_solidmesh,
-                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value, 
+                                      model_object->volumes[id]->config.has("extruder") ?
+                                        model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
                                       false);
 
         m_objects_ctrl->Expand(parent);
@@ -1313,7 +1314,8 @@ void on_btn_split(const bool split_part)
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(item, model_object->volumes[id]->name, 
                                       m_icon_solidmesh,
-                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value, 
+                                      model_object->volumes[id]->config.has("extruder") ?
+                                        model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0, 
                                       false);
         m_objects_ctrl->Expand(item);
     }
