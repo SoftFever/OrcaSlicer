@@ -135,14 +135,9 @@ wxButton*	g_wiping_dialog_button = nullptr;
 //showed/hided controls according to the view mode
 wxWindow	*g_right_panel = nullptr;
 wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
-wxBoxSizer	*g_expert_mode_part_sizer = nullptr;
-wxBoxSizer	*g_scrolled_window_sizer = nullptr;
+wxBoxSizer	*g_info_sizer = nullptr;
 wxBoxSizer	*g_object_list_sizer = nullptr;
-wxButton	*g_btn_export_gcode = nullptr;
-wxButton	*g_btn_export_stl = nullptr;
-wxButton	*g_btn_reslice = nullptr;
-wxButton	*g_btn_print = nullptr;
-wxButton	*g_btn_send_gcode = nullptr;
+std::vector<wxButton*> g_buttons;
 wxStaticBitmap	*g_manifold_warning_icon = nullptr;
 bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
@@ -221,22 +216,36 @@ void set_preset_updater(PresetUpdater *updater)
 	g_PresetUpdater = updater;
 }
 
-void set_objects_from_perl(	wxWindow* parent, wxBoxSizer *frequently_changed_parameters_sizer,
-							wxBoxSizer *expert_mode_part_sizer, wxBoxSizer *scrolled_window_sizer,
+enum ActionButtons
+{
+    abExportGCode,
+    abReslice,
+    abPrint,
+    abSendGCode,
+};
+
+void set_objects_from_perl(	wxWindow* parent, 
+                            wxBoxSizer *frequently_changed_parameters_sizer,
+							wxBoxSizer *info_sizer,
 							wxButton *btn_export_gcode,
-							wxButton *btn_export_stl, wxButton *btn_reslice, 
-							wxButton *btn_print, wxButton *btn_send_gcode,
+                            wxButton *btn_reslice, 
+							wxButton *btn_print, 
+                            wxButton *btn_send_gcode,
 							wxStaticBitmap *manifold_warning_icon)
 {
-	g_right_panel = parent;
+	g_right_panel = parent->GetParent();
 	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
-	g_expert_mode_part_sizer = expert_mode_part_sizer;
-	g_scrolled_window_sizer = scrolled_window_sizer;
-	g_btn_export_gcode = btn_export_gcode;
-	g_btn_export_stl = btn_export_stl;
-	g_btn_reslice = btn_reslice;
-	g_btn_print = btn_print;
-	g_btn_send_gcode = btn_send_gcode;
+	g_info_sizer = info_sizer;
+
+    g_buttons.push_back(btn_export_gcode);
+    g_buttons.push_back(btn_reslice);
+    g_buttons.push_back(btn_print);
+    g_buttons.push_back(btn_send_gcode);
+
+    // Update font style for buttons
+    for (auto btn : g_buttons)
+        btn->SetFont(bold_font());
+
 	g_manifold_warning_icon = manifold_warning_icon;
 }
 
@@ -930,12 +939,11 @@ wxString from_u8(const std::string &str)
 	return wxString::FromUTF8(str.c_str());
 }
 
-void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
-							Model &model,
-							int event_object_selection_changed,
-							int event_object_settings_changed,
-							int event_remove_object, 
-							int event_update_scene)
+void set_model_events_from_perl(Model &model,
+							    int event_object_selection_changed,
+							    int event_object_settings_changed,
+							    int event_remove_object, 
+							    int event_update_scene)
 {
 	set_event_object_selection_changed(event_object_selection_changed);
 	set_event_object_settings_changed(event_object_settings_changed);
@@ -1072,7 +1080,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 		};
 		optgroup->append_line(line);
 
-	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxBOTTOM, 2);
+	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT, 2);
 
 	m_optgroups.push_back(optgroup);// ogFrequentlyChangingParameters
 
@@ -1099,15 +1107,14 @@ void show_frequently_changed_parameters(bool show)
 
 void show_buttons(bool show)
 {
-	g_btn_export_stl->Show(show);
-	g_btn_reslice->Show(show);
+    g_buttons[abReslice]->Show(show);
 	for (size_t i = 0; i < g_wxTabPanel->GetPageCount(); ++i) {
 		TabPrinter *tab = dynamic_cast<TabPrinter*>(g_wxTabPanel->GetPage(i));
 		if (!tab)
 			continue;
         if (g_PresetBundle->printers.get_selected_preset().printer_technology() == ptFFF) {
-            g_btn_print->Show(show && !tab->m_config->opt_string("serial_port").empty());
-            g_btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
+            g_buttons[abPrint]->Show(show && !tab->m_config->opt_string("serial_port").empty());
+            g_buttons[abSendGCode]->Show(show && !tab->m_config->opt_string("print_host").empty());
         }
 		break;
 	}
@@ -1115,8 +1122,8 @@ void show_buttons(bool show)
 
 void show_info_sizer(bool show)
 {
-	g_scrolled_window_sizer->Show(static_cast<size_t>(0), show); 
-	g_scrolled_window_sizer->Show(1, show && g_show_print_info);
+	g_info_sizer->Show(static_cast<size_t>(0), show); 
+	g_info_sizer->Show(1, show && g_show_print_info);
 	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
 }
 
@@ -1129,20 +1136,10 @@ void show_object_name(bool show)
 
 void update_mode()
 {
-	wxWindowUpdateLocker noUpdates(g_right_panel);
-
-	// TODO There is a not the best place of it!
-	//*** Update style of the "Export G-code" button****
-	if (g_btn_export_gcode->GetFont() != bold_font()){
-		g_btn_export_gcode->SetBackgroundColour(wxColour(252, 77, 1));
-		g_btn_export_gcode->SetFont(bold_font());
-	}
-	// ***********************************
+    wxWindowUpdateLocker noUpdates(g_right_panel->GetParent());
 
 	ConfigMenuIDs mode = get_view_mode();
 
-// 	show_frequently_changed_parameters(mode >= ConfigMenuModeRegular);
-// 	g_expert_mode_part_sizer->Show(mode == ConfigMenuModeExpert);
 	g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
 	show_info_sizer(mode == ConfigMenuModeExpert);
 	show_buttons(mode == ConfigMenuModeExpert);
@@ -1153,7 +1150,7 @@ void update_mode()
 // 	show_collpane_settings(mode == ConfigMenuModeExpert);
 	// *************************
     g_right_panel->Layout();
-	g_right_panel->GetParent()->GetParent()->Layout();
+	g_right_panel->GetParent()->Layout();
 }
 
 bool is_expert_mode(){
@@ -1227,6 +1224,20 @@ void get_current_screen_size(unsigned &width, unsigned &height)
 	const auto disp_size = display.GetClientArea();
 	width = disp_size.GetWidth();
 	height = disp_size.GetHeight();
+}
+
+void enable_action_buttons(bool enable)
+{
+    if (g_buttons.empty())
+        return;
+
+    // Update background colour for buttons
+    const wxColour bgrd_color = enable ? wxColour(255, 96, 0) : wxColour(204, 204, 204);
+
+    for (auto btn : g_buttons) {
+        btn->Enable(enable);
+        btn->SetBackgroundColour(bgrd_color);
+    }
 }
 
 void about()
