@@ -5,11 +5,26 @@
 
 #include "placer_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace placers {
+
+template<class T, class = T> struct Epsilon {};
+
+template<class T>
+struct Epsilon<T, enable_if_t<std::is_integral<T>::value, T> > {
+    static const T Value = 1;
+};
+
+template<class T>
+struct Epsilon<T, enable_if_t<std::is_floating_point<T>::value, T> > {
+    static const T Value = 1e-3;
+};
 
 template<class RawShape>
 struct BLConfig {
-    TCoord<TPoint<RawShape>> min_obj_distance = 0;
+    DECLARE_MAIN_TYPES(RawShape);
+
+    Coord min_obj_distance = 0;
+    Coord epsilon = Epsilon<Coord>::Value;
     bool allow_rotations = false;
 };
 
@@ -27,9 +42,13 @@ public:
 
     explicit _BottomLeftPlacer(const BinType& bin): Base(bin) {}
 
-    PackResult trypack(Item& item) {
+    template<class Range = ConstItemRange<typename Base::DefaultIter>>
+    PackResult trypack(Item& item,
+                       const Range& = Range())
+    {
         auto r = _trypack(item);
         if(!r && Base::config_.allow_rotations) {
+
             item.rotate(Degrees(90));
             r =_trypack(item);
         }
@@ -65,20 +84,21 @@ protected:
         setInitialPosition(item);
 
         Unit d = availableSpaceDown(item);
-        bool can_move = d > 1 /*std::numeric_limits<Unit>::epsilon()*/;
+        auto eps = config_.epsilon;
+        bool can_move = d > eps;
         bool can_be_packed = can_move;
         bool left = true;
 
         while(can_move) {
             if(left) { // write previous down move and go down
-                item.translate({0, -d+1});
+                item.translate({0, -d+eps});
                 d = availableSpaceLeft(item);
-                can_move = d > 1/*std::numeric_limits<Unit>::epsilon()*/;
+                can_move = d > eps;
                 left = false;
             } else { // write previous left move and go down
-                item.translate({-d+1, 0});
+                item.translate({-d+eps, 0});
                 d = availableSpaceDown(item);
-                can_move = d > 1/*std::numeric_limits<Unit>::epsilon()*/;
+                can_move = d > eps;
                 left = true;
             }
         }
@@ -112,10 +132,10 @@ protected:
                   const RawShape& scanpoly)
     {
         auto tsh = other.transformedShape();
-        return ( ShapeLike::intersects(tsh, scanpoly) ||
-                 ShapeLike::isInside(tsh, scanpoly) ) &&
-               ( !ShapeLike::intersects(tsh, item.rawShape()) &&
-                 !ShapeLike::isInside(tsh, item.rawShape()) );
+        return ( sl::intersects(tsh, scanpoly) ||
+                 sl::isInside(tsh, scanpoly) ) &&
+               ( !sl::intersects(tsh, item.rawShape()) &&
+                 !sl::isInside(tsh, item.rawShape()) );
     }
 
     template<class C = Coord>
@@ -126,25 +146,25 @@ protected:
     {
         auto tsh = other.transformedShape();
 
-        bool inters_scanpoly = ShapeLike::intersects(tsh, scanpoly) &&
-                !ShapeLike::touches(tsh, scanpoly);
-        bool inters_item = ShapeLike::intersects(tsh, item.rawShape()) &&
-                !ShapeLike::touches(tsh, item.rawShape());
+        bool inters_scanpoly = sl::intersects(tsh, scanpoly) &&
+                !sl::touches(tsh, scanpoly);
+        bool inters_item = sl::intersects(tsh, item.rawShape()) &&
+                !sl::touches(tsh, item.rawShape());
 
         return ( inters_scanpoly ||
-                 ShapeLike::isInside(tsh, scanpoly)) &&
+                 sl::isInside(tsh, scanpoly)) &&
                ( !inters_item &&
-                 !ShapeLike::isInside(tsh, item.rawShape())
+                 !sl::isInside(tsh, item.rawShape())
                  );
     }
 
-    Container itemsInTheWayOf(const Item& item, const Dir dir) {
+    ItemGroup itemsInTheWayOf(const Item& item, const Dir dir) {
         // Get the left or down polygon, that has the same area as the shadow
         // of input item reflected to the left or downwards
         auto&& scanpoly = dir == Dir::LEFT? leftPoly(item) :
                                             downPoly(item);
 
-        Container ret;    // packed items 'in the way' of item
+        ItemGroup ret;    // packed items 'in the way' of item
         ret.reserve(items_.size());
 
         // Predicate to find items that are 'in the way' for left (down) move
@@ -173,18 +193,18 @@ protected:
 
         if(dir == Dir::LEFT) {
             getCoord = [](const Vertex& v) { return getX(v); };
-            availableDistance = PointLike::horizontalDistance<Vertex>;
+            availableDistance = pointlike::horizontalDistance<Vertex>;
             availableDistanceSV = [](const Segment& s, const Vertex& v) {
-                auto ret = PointLike::horizontalDistance<Vertex>(v, s);
+                auto ret = pointlike::horizontalDistance<Vertex>(v, s);
                 if(ret.second) ret.first = -ret.first;
                 return ret;
             };
         }
         else {
             getCoord = [](const Vertex& v) { return getY(v); };
-            availableDistance = PointLike::verticalDistance<Vertex>;
+            availableDistance = pointlike::verticalDistance<Vertex>;
             availableDistanceSV = [](const Segment& s, const Vertex& v) {
-                auto ret = PointLike::verticalDistance<Vertex>(v, s);
+                auto ret = pointlike::verticalDistance<Vertex>(v, s);
                 if(ret.second) ret.first = -ret.first;
                 return ret;
             };
@@ -214,9 +234,9 @@ protected:
                 assert(pleft.vertexCount() > 0);
 
                 auto trpleft = pleft.transformedShape();
-                auto first = ShapeLike::begin(trpleft);
+                auto first = sl::begin(trpleft);
                 auto next = first + 1;
-                auto endit = ShapeLike::end(trpleft);
+                auto endit = sl::end(trpleft);
 
                 while(next != endit) {
                     Segment seg(*(first++), *(next++));
@@ -340,16 +360,16 @@ protected:
 
         // reserve for all vertices plus 2 for the left horizontal wall, 2 for
         // the additional vertices for maintaning min object distance
-        ShapeLike::reserve(rsh, finish-start+4);
+        sl::reserve(rsh, finish-start+4);
 
         /*auto addOthers = [&rsh, finish, start, &item](){
             for(size_t i = start+1; i < finish; i++)
-                ShapeLike::addVertex(rsh, item.vertex(i));
+                sl::addVertex(rsh, item.vertex(i));
         };*/
 
         auto reverseAddOthers = [&rsh, finish, start, &item](){
             for(auto i = finish-1; i > start; i--)
-                ShapeLike::addVertex(rsh, item.vertex(
+                sl::addVertex(rsh, item.vertex(
                                          static_cast<unsigned long>(i)));
         };
 
@@ -361,25 +381,25 @@ protected:
 
         // Clockwise polygon construction
 
-        ShapeLike::addVertex(rsh, topleft_vertex);
+        sl::addVertex(rsh, topleft_vertex);
 
         if(dir == Dir::LEFT) reverseAddOthers();
         else {
-            ShapeLike::addVertex(rsh, getX(topleft_vertex), 0);
-            ShapeLike::addVertex(rsh, getX(bottomleft_vertex), 0);
+            sl::addVertex(rsh, getX(topleft_vertex), 0);
+            sl::addVertex(rsh, getX(bottomleft_vertex), 0);
         }
 
-        ShapeLike::addVertex(rsh, bottomleft_vertex);
+        sl::addVertex(rsh, bottomleft_vertex);
 
         if(dir == Dir::LEFT) {
-            ShapeLike::addVertex(rsh, 0, getY(bottomleft_vertex));
-            ShapeLike::addVertex(rsh, 0, getY(topleft_vertex));
+            sl::addVertex(rsh, 0, getY(bottomleft_vertex));
+            sl::addVertex(rsh, 0, getY(topleft_vertex));
         }
         else reverseAddOthers();
 
 
         // Close the polygon
-        ShapeLike::addVertex(rsh, topleft_vertex);
+        sl::addVertex(rsh, topleft_vertex);
 
         return rsh;
     }

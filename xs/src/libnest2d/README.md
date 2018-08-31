@@ -9,18 +9,28 @@ with templated geometry types. These geometries can have custom or already
 existing implementation to avoid copying or having unnecessary dependencies.
 
 A default backend is provided if the user of the library just wants to use it 
-out of the box without additional integration. The default backend is reasonably 
+out of the box without additional integration. This backend is reasonably 
 fast and robust, being built on top of boost geometry and the 
 [polyclipping](http://www.angusj.com/delphi/clipper.php) library. Usage of 
-this default backend implies the dependency on these packages as well as the 
-compilation of the backend itself (The default backend is not yet header only).
+this default backend implies the dependency on these packages but its header 
+only as well.
 
 This software is currently under construction and lacks a throughout 
 documentation and some essential algorithms as well. At this stage it works well
 for rectangles and convex closed polygons without considering holes and 
 concavities.
 
-Holes and non-convex polygons will be usable in the near future as well.
+Holes and non-convex polygons will be usable in the near future as well. The 
+no fit polygon based placer module combined with the first fit selection 
+strategy is now used in the [Slic3r](https://github.com/prusa3d/Slic3r) 
+application's arrangement feature. It uses local optimization techniques to find
+the best placement of each new item based on some features of the arrangement.
+
+In the near future I would like to use machine learning to evaluate the 
+placements and (or) the order if items in which they are placed and see what 
+results can be obtained. This is a different approach than that of SVGnest which 
+uses genetic algorithms to find better and better selection orders. Maybe the 
+two approaches can be combined as well.
 
 # References
 - [SVGNest](https://github.com/Jack000/SVGnest)

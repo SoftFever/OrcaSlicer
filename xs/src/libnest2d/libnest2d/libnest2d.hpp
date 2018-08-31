@@ -9,9 +9,11 @@
 #include <functional>
 
 #include "geometry_traits.hpp"
-#include "optimizer.hpp"
 
 namespace libnest2d {
+
+namespace sl = shapelike;
+namespace pl = pointlike;
 
 /**
  * \brief An item to be placed on a bin.
@@ -28,7 +30,8 @@ class _Item {
     using Coord = TCoord<TPoint<RawShape>>;
     using Vertex = TPoint<RawShape>;
     using Box = _Box<Vertex>;
-    using sl = ShapeLike;
+
+    using VertexConstIterator = typename TContour<RawShape>::const_iterator;
 
     // The original shape that gets encapsulated.
     RawShape sh_;
@@ -38,7 +41,7 @@ class _Item {
     Radians rotation_;
     Coord offset_distance_;
 
-    // Info about whether the tranformations will have to take place
+    // Info about whether the transformations will have to take place
     // This is needed because if floating point is used, it is hard to say
     // that a zero angle is not a rotation because of testing for equality.
     bool has_rotation_ = false, has_translation_ = false, has_offset_ = false;
@@ -58,12 +61,12 @@ class _Item {
     };
 
     mutable Convexity convexity_ = Convexity::UNCHECKED;
-    mutable TVertexConstIterator<RawShape> rmt_;    // rightmost top vertex
-    mutable TVertexConstIterator<RawShape> lmb_;    // leftmost bottom vertex
+    mutable VertexConstIterator rmt_;    // rightmost top vertex
+    mutable VertexConstIterator lmb_;    // leftmost bottom vertex
     mutable bool rmt_valid_ = false, lmb_valid_ = false;
     mutable struct BBCache {
-        Box bb; bool valid; Vertex tr;
-        BBCache(): valid(false), tr(0, 0) {}
+        Box bb; bool valid;
+        BBCache(): valid(false) {}
     } bb_cache_;
 
 public:
@@ -80,7 +83,7 @@ public:
      * supports. Giving out a non const iterator would make it impossible to
      * perform correct cache invalidation.
      */
-    using Iterator = TVertexConstIterator<RawShape>;
+    using Iterator = VertexConstIterator;
 
     /**
      * @brief Get the orientation of the polygon.
@@ -109,7 +112,7 @@ public:
     explicit inline _Item(RawShape&& sh): sh_(std::move(sh)) {}
 
     /**
-     * @brief Create an item from an initilizer list.
+     * @brief Create an item from an initializer list.
      * @param il The initializer list of vertices.
      */
     inline _Item(const std::initializer_list< Vertex >& il):
@@ -159,7 +162,7 @@ public:
     }
 
     /**
-     * @brief Get a copy of an outer vertex whithin the carried shape.
+     * @brief Get a copy of an outer vertex within the carried shape.
      *
      * Note that the vertex considered here is taken from the original shape
      * that this item is constructed from. This means that no transformation is
@@ -244,7 +247,7 @@ public:
      * @param p
      * @return
      */
-    inline bool isPointInside(const Vertex& p) const
+    inline bool isInside(const Vertex& p) const
     {
         return sl::isInside(p, transformedShape());
     }
@@ -307,7 +310,7 @@ public:
     {
         if(translation_ != tr) {
             translation_ = tr; has_translation_ = true; tr_cache_valid_ = false;
-            bb_cache_.valid = false;
+            //bb_cache_.valid = false;
         }
     }
 
@@ -342,13 +345,19 @@ public:
 
     inline Box boundingBox() const {
         if(!bb_cache_.valid) {
-            bb_cache_.bb = sl::boundingBox(transformedShape());
-            bb_cache_.tr = {0, 0};
+            if(!has_rotation_)
+                bb_cache_.bb = sl::boundingBox(offsettedShape());
+            else {
+                // TODO make sure this works
+                auto rotsh = offsettedShape();
+                sl::rotate(rotsh, rotation_);
+                bb_cache_.bb = sl::boundingBox(rotsh);
+            }
             bb_cache_.valid = true;
         }
 
-        auto &bb = bb_cache_.bb; auto &tr = bb_cache_.tr;
-        return {bb.minCorner() + tr, bb.maxCorner() + tr};
+        auto &bb = bb_cache_.bb; auto &tr = translation_;
+        return {bb.minCorner() + tr, bb.maxCorner() + tr };
     }
 
     inline Vertex referenceVertex() const {
@@ -438,7 +447,7 @@ public:
     inline _Rectangle(Unit width, Unit height,
                       // disable this ctor if o != CLOCKWISE
                       enable_if_t< o == TO::CLOCKWISE, int> = 0 ):
-        _Item<RawShape>( ShapeLike::create<RawShape>( {
+        _Item<RawShape>( sl::create<RawShape>( {
                                                         {0, 0},
                                                         {0, height},
                                                         {width, height},
@@ -452,7 +461,7 @@ public:
     inline _Rectangle(Unit width, Unit height,
                       // disable this ctor if o != COUNTER_CLOCKWISE
                       enable_if_t< o == TO::COUNTER_CLOCKWISE, int> = 0 ):
-        _Item<RawShape>( ShapeLike::create<RawShape>( {
+        _Item<RawShape>( sl::create<RawShape>( {
                                                         {0, 0},
                                                         {width, 0},
                                                         {width, height},
@@ -473,18 +482,38 @@ public:
 
 template<class RawShape>
 inline bool _Item<RawShape>::isInside(const _Box<TPoint<RawShape>>& box) const {
-    return ShapeLike::isInside<RawShape>(boundingBox(), box);
+    return sl::isInside<RawShape>(boundingBox(), box);
 }
 
 template<class RawShape> inline bool
 _Item<RawShape>::isInside(const _Circle<TPoint<RawShape>>& circ) const {
-    return ShapeLike::isInside<RawShape>(transformedShape(), circ);
+    return sl::isInside<RawShape>(transformedShape(), circ);
+}
+
+
+template<class I> using _ItemRef = std::reference_wrapper<I>;
+template<class I> using _ItemGroup = std::vector<_ItemRef<I>>;
+
+template<class Iterator>
+struct ConstItemRange {
+    Iterator from;
+    Iterator to;
+    bool valid = false;
+
+    ConstItemRange() = default;
+    ConstItemRange(Iterator f, Iterator t): from(f), to(t), valid(true) {}
+};
+
+template<class Container>
+inline ConstItemRange<typename Container::const_iterator>
+rem(typename Container::const_iterator it, const Container& cont) {
+    return {std::next(it), cont.end()};
 }
 
 /**
  * \brief A wrapper interface (trait) class for any placement strategy provider.
  *
- * If a client want's to use its own placement algorithm, all it has to do is to
+ * If a client wants to use its own placement algorithm, all it has to do is to
  * specialize this class template and define all the ten methods it has. It can
  * use the strategies::PlacerBoilerplace class for creating a new placement
  * strategy where only the constructor and the trypack method has to be provided
@@ -515,8 +544,9 @@ public:
      */
     using PackResult = typename PlacementStrategy::PackResult;
 
-    using ItemRef = std::reference_wrapper<Item>;
-    using ItemGroup = std::vector<ItemRef>;
+    using ItemRef = _ItemRef<Item>;
+    using ItemGroup = _ItemGroup<Item>;
+    using DefaultIterator = typename ItemGroup::const_iterator;
 
     /**
      * @brief Constructor taking the bin and an optional configuration.
@@ -536,29 +566,32 @@ public:
      * Note that it depends on the particular placer implementation how it
      * reacts to config changes in the middle of a calculation.
      *
-     * @param config The configuration object defined by the placement startegy.
+     * @param config The configuration object defined by the placement strategy.
      */
     inline void configure(const Config& config) { impl_.configure(config); }
 
     /**
-     * @brief A method that tries to pack an item and returns an object
-     * describing the pack result.
+     * Try to pack an item with a result object that contains the packing
+     * information for later accepting it.
      *
-     * The result can be casted to bool and used as an argument to the accept
-     * method to accept a succesfully packed item. This way the next packing
-     * will consider the accepted item as well. The PackResult should carry the
-     * transformation info so that if the tried item is later modified or tried
-     * multiple times, the result object should set it to the originally
-     * determied position. An implementation can be found in the
-     * strategies::PlacerBoilerplate::PackResult class.
-     *
-     * @param item Ithe item to be packed.
-     * @return The PackResult object that can be implicitly casted to bool.
+     * \param item_store A container of items that are intended to be packed
+     * later. Can be used by the placer to switch tactics. When it's knows that
+     * many items will come a greedy strategy may not be the best.
+     * \param from The iterator to the item from which the packing should start,
+     * including the pointed item
+     * \param count How many items should be packed. If the value is 1, than
+     * just the item pointed to by "from" argument should be packed.
      */
-    inline PackResult trypack(Item& item) { return impl_.trypack(item); }
+    template<class Iter = DefaultIterator>
+    inline PackResult trypack(
+            Item& item,
+            const ConstItemRange<Iter>& remaining = ConstItemRange<Iter>())
+    {
+        return impl_.trypack(item, remaining);
+    }
 
     /**
-     * @brief A method to accept a previously tried item.
+     * @brief A method to accept a previously tried item (or items).
      *
      * If the pack result is a failure the method should ignore it.
      * @param r The result of a previous trypack call.
@@ -566,19 +599,25 @@ public:
     inline void accept(PackResult& r) { impl_.accept(r); }
 
     /**
-     * @brief pack Try to pack an item and immediately accept it on success.
+     * @brief pack Try to pack and immediately accept it on success.
      *
      * A default implementation would be to call
-     * { auto&& r = trypack(item); accept(r); return r; } but we should let the
+     * { auto&& r = trypack(...); accept(r); return r; } but we should let the
      * implementor of the placement strategy to harvest any optimizations from
-     * the absence of an intermadiate step. The above version can still be used
+     * the absence of an intermediate step. The above version can still be used
      * in the implementation.
      *
      * @param item The item to pack.
      * @return Returns true if the item was packed or false if it could not be
      * packed.
      */
-    inline bool pack(Item& item) { return impl_.pack(item); }
+    template<class Range = ConstItemRange<DefaultIterator>>
+    inline bool pack(
+            Item& item,
+            const Range& remaining = Range())
+    {
+        return impl_.pack(item, remaining);
+    }
 
     /// Unpack the last element (remove it from the list of packed items).
     inline void unpackLast() { impl_.unpackLast(); }
@@ -596,13 +635,6 @@ public:
     inline void clearItems() { impl_.clearItems(); }
 
     inline double filledArea() const { return impl_.filledArea(); }
-
-#ifndef NDEBUG
-    inline auto getDebugItems() -> decltype(impl_.debug_items_)&
-    {
-        return impl_.debug_items_;
-    }
-#endif
 
 };
 
@@ -628,15 +660,15 @@ public:
      * Note that it depends on the particular placer implementation how it
      * reacts to config changes in the middle of a calculation.
      *
-     * @param config The configuration object defined by the selection startegy.
+     * @param config The configuration object defined by the selection strategy.
      */
     inline void configure(const Config& config) {
         impl_.configure(config);
     }
 
     /**
-     * @brief A function callback which should be called whenewer an item or
-     * a group of items where succesfully packed.
+     * @brief A function callback which should be called whenever an item or
+     * a group of items where successfully packed.
      * @param fn A function callback object taking one unsigned integer as the
      * number of the remaining items to pack.
      */
@@ -649,7 +681,7 @@ public:
      * placer compatible with the PlacementStrategyLike interface.
      *
      * \param first, last The first and last iterator if the input sequence. It
-     * can be only an iterator of a type converitible to Item.
+     * can be only an iterator of a type convertible to Item.
      * \param bin. The shape of the bin. It has to be supported by the placement
      * strategy.
      * \param An optional config object for the placer.
@@ -681,7 +713,7 @@ public:
     /**
      * @brief Get the items for a particular bin.
      * @param binIndex The index of the requested bin.
-     * @return Returns a list of allitems packed into the requested bin.
+     * @return Returns a list of all items packed into the requested bin.
      */
     inline ItemGroup itemsForBin(size_t binIndex) {
         return impl_.itemsForBin(binIndex);
@@ -723,15 +755,14 @@ using _IndexedPackGroup = std::vector<
                           >;
 
 /**
- * The Arranger is the frontend class for the binpack2d library. It takes the
+ * The Arranger is the front-end class for the libnest2d library. It takes the
  * input items and outputs the items with the proper transformations to be
  * inside the provided bin.
  */
 template<class PlacementStrategy, class SelectionStrategy >
-class Arranger {
+class Nester {
     using TSel = SelectionStrategyLike<SelectionStrategy>;
     TSel selector_;
-    bool use_min_bb_rotation_ = false;
 public:
     using Item = typename PlacementStrategy::Item;
     using ItemRef = std::reference_wrapper<Item>;
@@ -769,7 +800,7 @@ public:
     template<class TBinType = BinType,
              class PConf = PlacementConfig,
              class SConf = SelectionConfig>
-    Arranger( TBinType&& bin,
+    Nester( TBinType&& bin,
               Unit min_obj_distance = 0,
               PConf&& pconfig = PConf(),
               SConf&& sconfig = SConf()):
@@ -802,9 +833,9 @@ public:
      * the selection algorithm.
      */
     template<class TIterator>
-    inline PackGroup arrange(TIterator from, TIterator to)
+    inline PackGroup execute(TIterator from, TIterator to)
     {
-        return _arrange(from, to);
+        return _execute(from, to);
     }
 
     /**
@@ -815,20 +846,20 @@ public:
      * input sequence size.
      */
     template<class TIterator>
-    inline IndexedPackGroup arrangeIndexed(TIterator from, TIterator to)
+    inline IndexedPackGroup executeIndexed(TIterator from, TIterator to)
     {
-        return _arrangeIndexed(from, to);
+        return _executeIndexed(from, to);
     }
 
     /// Shorthand to normal arrange method.
     template<class TIterator>
     inline PackGroup operator() (TIterator from, TIterator to)
     {
-        return _arrange(from, to);
+        return _execute(from, to);
     }
 
-    /// Set a progress indicatior function object for the selector.
-    inline Arranger& progressIndicator(ProgressFunction func)
+    /// Set a progress indicator function object for the selector.
+    inline Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
     }
@@ -842,24 +873,20 @@ public:
         return ret;
     }
 
-    inline Arranger& useMinimumBoundigBoxRotation(bool s = true) {
-        use_min_bb_rotation_ = s; return *this;
-    }
-
 private:
 
     template<class TIterator,
              class IT = remove_cvref_t<typename TIterator::value_type>,
 
-             // This funtion will be used only if the iterators are pointing to
-             // a type compatible with the binpack2d::_Item template.
+             // This function will be used only if the iterators are pointing to
+             // a type compatible with the libnets2d::_Item template.
              // This way we can use references to input elements as they will
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline PackGroup _arrange(TIterator from, TIterator to, bool = false)
+    inline PackGroup _execute(TIterator from, TIterator to, bool = false)
     {
-        __arrange(from, to);
+        __execute(from, to);
         return lastResult();
     }
 
@@ -867,28 +894,28 @@ private:
              class IT = remove_cvref_t<typename TIterator::value_type>,
              class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline PackGroup _arrange(TIterator from, TIterator to, int = false)
+    inline PackGroup _execute(TIterator from, TIterator to, int = false)
     {
         item_cache_ = {from, to};
 
-        __arrange(item_cache_.begin(), item_cache_.end());
+        __execute(item_cache_.begin(), item_cache_.end());
         return lastResult();
     }
 
     template<class TIterator,
              class IT = remove_cvref_t<typename TIterator::value_type>,
 
-             // This funtion will be used only if the iterators are pointing to
-             // a type compatible with the binpack2d::_Item template.
+             // This function will be used only if the iterators are pointing to
+             // a type compatible with the libnest2d::_Item template.
              // This way we can use references to input elements as they will
              // have to exist for the lifetime of this call.
              class T = enable_if_t< std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline IndexedPackGroup _arrangeIndexed(TIterator from,
+    inline IndexedPackGroup _executeIndexed(TIterator from,
                                             TIterator to,
                                             bool = false)
     {
-        __arrange(from, to);
+        __execute(from, to);
         return createIndexedPackGroup(from, to, selector_);
     }
 
@@ -896,12 +923,12 @@ private:
              class IT = remove_cvref_t<typename TIterator::value_type>,
              class T = enable_if_t<!std::is_convertible<IT, TPItem>::value, IT>
              >
-    inline IndexedPackGroup _arrangeIndexed(TIterator from,
+    inline IndexedPackGroup _executeIndexed(TIterator from,
                                             TIterator to,
                                             int = false)
     {
         item_cache_ = {from, to};
-        __arrange(item_cache_.begin(), item_cache_.end());
+        __execute(item_cache_.begin(), item_cache_.end());
         return createIndexedPackGroup(from, to, selector_);
     }
 
@@ -933,36 +960,11 @@ private:
         return pg;
     }
 
-    Radians findBestRotation(Item& item) {
-        opt::StopCriteria stopcr;
-        stopcr.absolute_score_difference = 0.01;
-        stopcr.max_iterations = 10000;
-        opt::TOptimizer<opt::Method::G_GENETIC> solver(stopcr);
-
-        auto orig_rot = item.rotation();
-
-        auto result = solver.optimize_min([&item, &orig_rot](Radians rot){
-            item.rotation(orig_rot + rot);
-            auto bb = item.boundingBox();
-            return std::sqrt(bb.height()*bb.width());
-        }, opt::initvals(Radians(0)), opt::bound<Radians>(-Pi/2, Pi/2));
-
-        item.rotation(orig_rot);
-
-        return std::get<0>(result.optimum);
-    }
-
-    template<class TIter> inline void __arrange(TIter from, TIter to)
+    template<class TIter> inline void __execute(TIter from, TIter to)
     {
         if(min_obj_distance_ > 0) std::for_each(from, to, [this](Item& item) {
             item.addOffset(static_cast<Unit>(std::ceil(min_obj_distance_/2.0)));
         });
-
-        if(use_min_bb_rotation_)
-            std::for_each(from, to, [this](Item& item){
-                Radians rot = findBestRotation(item);
-                item.rotate(rot);
-            });
 
         selector_.template packItems<PlacementStrategy>(
                     from, to, bin_, pconfig_);
