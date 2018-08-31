@@ -233,8 +233,10 @@ PresetCollection*	      	O_OBJECT_SLIC3R
 Ref<PresetCollection>      	O_OBJECT_SLIC3R_T
 PresetBundle*	    		O_OBJECT_SLIC3R
 Ref<PresetBundle>    		O_OBJECT_SLIC3R_T
-TabIface*	   				O_OBJECT_SLIC3R
-Ref<TabIface> 				O_OBJECT_SLIC3R_T
+TabIface*                       O_OBJECT_SLIC3R
+Ref<TabIface> 			O_OBJECT_SLIC3R_T
+ProgressStatusBar*              O_OBJECT_SLIC3R
+Ref<ProgressStatusBar>          O_OBJECT_SLIC3R_T
 
 PresetUpdater*              O_OBJECT_SLIC3R
 Ref<PresetUpdater>          O_OBJECT_SLIC3R_T
