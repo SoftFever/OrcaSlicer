@@ -195,7 +195,7 @@ public:
 
     PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent) :
                                     m_parent(parent),
-                                    m_name("SETTINGS LIST"),
+                                    m_name("Settings to modified"),
                                     m_copy(wxEmptyString),
                                     m_type("settings"),
                                     m_extruder(wxEmptyString) {}
@@ -362,7 +362,7 @@ public:
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const wxIcon& icon,
-                            const int = 0,
+                            const int extruder = 0,
                             const bool create_frst_child = true);
 	wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
 	wxDataViewItem Delete(const wxDataViewItem &item);
@@ -409,7 +409,8 @@ public:
 	// In our case it is an item with all columns 
 	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
 
-    bool    HasSettings(const wxDataViewItem &item) const;
+    wxDataViewItem    HasSettings(const wxDataViewItem &item) const;
+    bool    IsSettingsItem(const wxDataViewItem &item) const;
 };
 
 

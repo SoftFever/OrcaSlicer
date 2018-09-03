@@ -1975,7 +1975,7 @@ sub _get_export_file {
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub update {
     my ($self, $force_autocenter) = @_;
-
+    $self->Freeze;
     if (wxTheApp->{app_config}->get("autocenter") || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
@@ -2001,6 +2001,7 @@ sub update {
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
     $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+    $self->Thaw;
 }
 
 # When a printer technology is changed, the UI needs to be updated to show/hide needed preset combo boxes.

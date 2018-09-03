@@ -397,23 +397,26 @@ wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
 
-    wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+    const wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
 
-    if (root->GetChildren().Count() == 0 && create_frst_child)
+    if (create_frst_child && (root->GetChildren().Count() == 0 || 
+                             (root->GetChildren().Count() == 1 && root->GetChildren().Item(0)->m_type == "settings")))
 	{
-		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
-		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, extruder_str, 0);
+		const auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);
+		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, extruder_str, 0);
 		root->Append(node);
 		// notify control
-		wxDataViewItem child((void*)node);
+		const wxDataViewItem child((void*)node);
 		ItemAdded(parent_item, child);
 	}
 
-	auto volume_id = root->GetChildCount();
-	auto node = new PrusaObjectDataViewModelNode(root, name, icon, extruder_str, volume_id);
+    const auto volume_id =  root->GetChildren().Item(0)->m_type == "settings" ? 
+                            root->GetChildCount() - 1 : root->GetChildCount();
+
+	const auto node = new PrusaObjectDataViewModelNode(root, name, icon, extruder_str, volume_id);
 	root->Append(node);
 	// notify control
-	wxDataViewItem child((void*)node);
+	const wxDataViewItem child((void*)node);
 	ItemAdded(parent_item, child);
 	return child;
 }
@@ -455,7 +458,7 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 
 		//update volume_id value for remaining child-nodes
 		auto children = node_parent->GetChildren();
-		for (size_t i = 0; i < node_parent->GetChildCount(); i++)
+        for (size_t i = 0; i < node_parent->GetChildCount() && v_id>=0; i++)
 		{
 			auto volume_id = children[i]->GetVolumeId();
 			if (volume_id > v_id)
@@ -684,20 +687,25 @@ wxDataViewItem PrusaObjectDataViewModel::ReorganizeChildren(int current_volume_i
     if (!node_parent)      // happens if item.IsOk()==false
         return ret_item;
 
-    PrusaObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id);
+    const size_t shift = node_parent->GetChildren().Item(0)->m_type == "settings" ? 1 : 0;
+
+    PrusaObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id+shift);
     node_parent->GetChildren().Remove(deleted_node);
     ItemDeleted(parent, wxDataViewItem(deleted_node));
-    node_parent->Insert(deleted_node, new_volume_id);
+    node_parent->Insert(deleted_node, new_volume_id+shift);
     ItemAdded(parent, wxDataViewItem(deleted_node));
+    const auto settings_item = HasSettings(wxDataViewItem(deleted_node));
+    if (settings_item)
+        ItemAdded(wxDataViewItem(deleted_node), settings_item);
 
     //update volume_id value for child-nodes
     auto children = node_parent->GetChildren();
     int id_frst = current_volume_id < new_volume_id ? current_volume_id : new_volume_id;
     int id_last = current_volume_id > new_volume_id ? current_volume_id : new_volume_id;
     for (int id = id_frst; id <= id_last; ++id)
-        children[id]->SetVolumeId(id);
+        children[id+shift]->SetVolumeId(id);
 
-    return wxDataViewItem(node_parent->GetNthChild(new_volume_id));
+    return wxDataViewItem(node_parent->GetNthChild(new_volume_id+shift));
 }
 
 bool PrusaObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
@@ -759,20 +767,28 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	return count;
 }
 
-bool PrusaObjectDataViewModel::HasSettings(const wxDataViewItem &item) const
+wxDataViewItem PrusaObjectDataViewModel::HasSettings(const wxDataViewItem &item) const
 {
     if (!item.IsOk())
-        return false;
+        return wxDataViewItem(0);
 
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
     if (node->GetChildCount() == 0)
-        return false;
+        return wxDataViewItem(0);
 
     auto& children = node->GetChildren();
     if (children[0]->m_type == "settings")
-        return true;
+        return wxDataViewItem((void*)children[0]);;
 
-    return false;
+    return wxDataViewItem(0);
+}
+
+bool PrusaObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const
+{
+    if (!item.IsOk())
+        return false;
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    return node->m_type == "settings";
 }
 
 // ----------------------------------------------------------------------------
