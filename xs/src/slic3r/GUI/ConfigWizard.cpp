@@ -409,11 +409,10 @@ PageFirmware::PageFirmware(ConfigWizard *parent) :
 
 void PageFirmware::apply_custom_config(DynamicPrintConfig &config)
 {
-	ConfigOptionEnum<GCodeFlavor> opt;
-
 	auto sel = gcode_picker->GetSelection();
-	if (sel != wxNOT_FOUND && opt.deserialize(gcode_picker->GetString(sel).ToStdString())) {
-		config.set_key_value("gcode_flavor", &opt);
+	if (sel >= 0 && sel < gcode_opt.enum_labels.size()) {
+		auto *opt = new ConfigOptionEnum<GCodeFlavor>(static_cast<GCodeFlavor>(sel));
+		config.set_key_value("gcode_flavor", opt);
 	}
 }
 
