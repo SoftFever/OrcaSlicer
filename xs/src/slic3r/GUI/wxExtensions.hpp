@@ -183,9 +183,22 @@ public:
 		m_icon		= icon;
 		m_type		= "volume";
 		m_volume_id = volume_id;
-        m_extruder  = extruder;
+        m_extruder = extruder;
+#ifdef __WXGTK__
+        // it's necessary on GTK because of control have to know if this item will be container
+        // in another case you couldn't to add subitem for this item
+        // it will be produce "segmentation fault"
+        m_container = true;
+#endif  //__WXGTK__
 		set_part_action_icon();
-	}
+    }
+
+    PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent) :
+                                    m_parent(parent),
+                                    m_name("SETTINGS LIST"),
+                                    m_copy(wxEmptyString),
+                                    m_type("settings"),
+                                    m_extruder(wxEmptyString) {}
 
 	~PrusaObjectDataViewModelNode()
 	{
@@ -202,7 +215,7 @@ public:
 	wxIcon&					m_icon = m_empty_icon;
 	wxString				m_copy;
 	std::string				m_type;
-	int						m_volume_id;
+	int						m_volume_id = -2;
 	bool					m_container = false;
 	wxString				m_extruder = "default";
 	wxBitmap				m_action_icon;
@@ -326,6 +339,7 @@ public:
 	// Set action icons for node
 	void set_object_action_icon();
 	void set_part_action_icon();
+    void set_settings_list_icon(const wxIcon& icon);
 };
 
 // ----------------------------------------------------------------------------
@@ -350,6 +364,7 @@ public:
                             const wxIcon& icon,
                             const int = 0,
                             const bool create_frst_child = true);
+	wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
 	wxDataViewItem Delete(const wxDataViewItem &item);
 	void DeleteAll();
     void DeleteChildren(wxDataViewItem& parent);
@@ -383,8 +398,7 @@ public:
                                       int new_volume_id,
                                       const wxDataViewItem &parent);
 
-// 	virtual bool IsEnabled(const wxDataViewItem &item,
-// 		unsigned int col) const override;
+	virtual bool IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
 
 	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override;
 	virtual bool IsContainer(const wxDataViewItem &item) const override;
@@ -394,6 +408,8 @@ public:
 	// Is the container just a header or an item with all columns
 	// In our case it is an item with all columns 
 	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
+
+    bool    HasSettings(const wxDataViewItem &item) const;
 };
 
 

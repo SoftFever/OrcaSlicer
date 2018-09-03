@@ -357,6 +357,10 @@ void  PrusaObjectDataViewModelNode::set_part_action_icon() {
 	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
 }
 
+void PrusaObjectDataViewModelNode::set_settings_list_icon(const wxIcon& icon) {
+    m_icon = icon;
+}
+
 // *****************************************************************************
 // ----------------------------------------------------------------------------
 // PrusaObjectDataViewModel
@@ -412,6 +416,19 @@ wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_
 	wxDataViewItem child((void*)node);
 	ItemAdded(parent_item, child);
 	return child;
+}
+
+wxDataViewItem PrusaObjectDataViewModel::AddSettingsChild(const wxDataViewItem &parent_item)
+{
+    PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
+    if (!root) return wxDataViewItem(0);
+
+    const auto node = new PrusaObjectDataViewModelNode(root);
+    root->Insert(node, 0);
+    // notify control
+    const wxDataViewItem child((void*)node);
+    ItemAdded(parent_item, child);
+    return child;
 }
 
 wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
@@ -683,10 +700,14 @@ wxDataViewItem PrusaObjectDataViewModel::ReorganizeChildren(int current_volume_i
     return wxDataViewItem(node_parent->GetNthChild(new_volume_id));
 }
 
-// bool MyObjectTreeModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
-// {
-// 
-// }
+bool PrusaObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
+{
+    wxASSERT(item.IsOk());
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+
+    // disable extruder selection for the "Settings" item
+    return !(col == 2 && node->m_extruder.IsEmpty());
+}
 
 wxDataViewItem PrusaObjectDataViewModel::GetParent(const wxDataViewItem &item) const
 {
@@ -738,6 +759,21 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	return count;
 }
 
+bool PrusaObjectDataViewModel::HasSettings(const wxDataViewItem &item) const
+{
+    if (!item.IsOk())
+        return false;
+
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    if (node->GetChildCount() == 0)
+        return false;
+
+    auto& children = node->GetChildren();
+    if (children[0]->m_type == "settings")
+        return true;
+
+    return false;
+}
 
 // ----------------------------------------------------------------------------
 // PrusaDoubleSlider
@@ -1029,7 +1065,7 @@ wxString PrusaDoubleSlider::get_label(const SelectedSlider& selection) const
 
 void PrusaDoubleSlider::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
 {
-    if (m_is_one_layer && selection != m_selection || !selection) 
+    if ((m_is_one_layer || m_higher_value==m_lower_value) && selection != m_selection || !selection) 
         return;
     wxCoord text_width, text_height;
     const wxString label = get_label(selection);

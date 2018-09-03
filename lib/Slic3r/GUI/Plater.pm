@@ -2061,6 +2061,7 @@ sub on_extruders_change {
         $choices->[-1]->Destroy;
         pop @$choices;
     }
+    $self->{right_panel}->Layout;
     $self->Layout;
 }
 

@@ -870,8 +870,11 @@ void update_settings_list()
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
-			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("erase.png")), wxBITMAP_TYPE_PNG),
+			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
 				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+#ifdef __WXMSW__
+            btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
 			btn->Bind(wxEVT_BUTTON, [opt_key](wxEvent &event){
 				(*m_config)->erase(opt_key);
 				wxTheApp->CallAfter([]() { update_settings_list(); });
@@ -928,8 +931,8 @@ void update_settings_list()
 	no_updates.reset(nullptr);
 #endif
 
-    /*get_right_panel()*/parent->Layout();
-    get_right_panel()->GetParent()->GetParent()->Layout();
+    parent->Layout();
+    get_right_panel()->GetParent()->Layout();
 }
 
 void get_settings_choice(wxMenu *menu, int id, bool is_part)
@@ -981,6 +984,16 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 				find(selected_options.begin(), selected_options.end(), opt_key) != selected_options.end())
 			(*m_config)->set_key_value(opt_key, m_default_config.get()->option(opt_key)->clone());
 	}
+
+
+    // ***  EXPERIMINT  ***
+//     const auto item = m_objects_ctrl->GetSelection();
+//     if (item)
+//     {
+//         if (!m_objects_model->HasSettings(item))
+//             m_objects_model->AddSettingsChild(item);
+//     }
+    // ********************
 
 	update_settings_list();
 }
@@ -1108,17 +1121,13 @@ wxMenu *create_add_settings_popupmenu(bool is_part)
 
 void show_context_menu()
 {
-    auto item = m_objects_ctrl->GetSelection();
+    const auto item = m_objects_ctrl->GetSelection();
     if (item)
     {
-        if (m_objects_model->GetParent(item) == wxDataViewItem(0))				{
-            auto menu = create_add_part_popupmenu();
-            get_tab_panel()->GetPage(0)->PopupMenu(menu);
-        }
-        else {
-            auto menu = create_part_settings_popupmenu();
-            get_tab_panel()->GetPage(0)->PopupMenu(menu);
-        }
+        const auto menu = m_objects_model->GetParent(item) == wxDataViewItem(0) ? 
+                            create_add_part_popupmenu() : 
+                            create_part_settings_popupmenu();
+        get_tab_panel()->GetPage(0)->PopupMenu(menu);
     }
 }
 
@@ -1319,6 +1328,9 @@ void on_btn_split(const bool split_part)
                                       false);
         m_objects_ctrl->Expand(item);
     }
+
+    m_parts_changed = true;
+    parts_changed(m_selected_object_id);
 }
 
 void on_btn_move_up(){
@@ -1658,6 +1670,9 @@ void on_drop(wxDataViewEvent &event)
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id+=delta, cnt++)
         std::swap(volumes[id], volumes[id +delta]);
+
+    m_parts_changed = true;
+    parts_changed(m_selected_object_id);
 
     g_prevent_list_events = false;
 }
