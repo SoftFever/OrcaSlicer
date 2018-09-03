@@ -525,6 +525,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
         ++ m_num_tool_changes;
     }
 
+    m_old_temperature = -1; // If the priming is turned off in config, the temperature changing commands will not actually appear
+                            // in the output gcode - we should not remember emitting them (we will output them twice in the worst case)
+
 	// Reset the extruder current to a normal value.
 	writer.set_extruder_trimpot(550)
 		  .feedrate(6000)
