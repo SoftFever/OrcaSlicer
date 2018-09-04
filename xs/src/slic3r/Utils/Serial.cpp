@@ -231,7 +231,12 @@ std::vector<SerialPortInfo> scan_serial_ports_extended()
                 spi.port = path;
 #ifdef __linux__
 				auto friendly_name = sysfs_tty_prop(name, "product");
-				spi.friendly_name = friendly_name ? (boost::format("%1% (%2%)") % *friendly_name % path).str() : path;
+				if (friendly_name) {
+					spi.is_printer = looks_like_printer(*friendly_name);
+					spi.friendly_name = (boost::format("%1% (%2%)") % *friendly_name % path).str();
+				} else {
+					spi.friendly_name = path;
+				}
 				auto vid = sysfs_tty_prop_hex(name, "idVendor");
 				auto pid = sysfs_tty_prop_hex(name, "idProduct");
 				if (vid && pid) {
