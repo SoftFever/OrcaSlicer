@@ -243,6 +243,8 @@ public:
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
 
+    Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
+
     bool is_printable() const { return print_volume_state == PVS_Inside; }
 
 private:
