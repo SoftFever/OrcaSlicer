@@ -264,7 +264,7 @@ void TriangleMesh::rotate(float angle, const Vec3d& axis)
     Vec3f axis_norm = axis.cast<float>().normalized();
     Transform3f m = Transform3f::Identity();
     m.rotate(Eigen::AngleAxisf(angle, axis_norm));
-    stl_transform(&stl, (float*)m.data());
+    stl_transform(&stl, m);
 }
 
 void TriangleMesh::mirror(const Axis &axis)
@@ -277,6 +277,11 @@ void TriangleMesh::mirror(const Axis &axis)
         stl_mirror_xy(&this->stl);
     }
     stl_invalidate_shared_vertices(&this->stl);
+}
+
+void TriangleMesh::transform(const Transform3f& t)
+{
+    stl_transform(&stl, t);
 }
 
 void TriangleMesh::align_to_origin()
@@ -523,9 +528,9 @@ BoundingBoxf3 TriangleMesh::transformed_bounding_box(const Transform3d& t) const
                 src_vertices(0, v_id) = (double)facet_ptr->vertex[i](0);
                 src_vertices(1, v_id) = (double)facet_ptr->vertex[i](1);
                 src_vertices(2, v_id) = (double)facet_ptr->vertex[i](2);
+                ++v_id;
             }
             facet_ptr += 1;
-            ++v_id;
         }
     }
 

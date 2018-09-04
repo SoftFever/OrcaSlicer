@@ -1141,13 +1141,12 @@ sub rotate {
     }
 
     # Let's calculate vector of rotation axis (if we don't have it already)
-    # The minus is there so that the direction is the same as was established
     if (defined $axis) {
         if ($axis == X) {
-            $axis_x = -1;
+            $axis_x = 1;
         }
         if ($axis == Y) {
-            $axis_y = -1;
+            $axis_y = 1;
         }
     }
     
