@@ -8,6 +8,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/algorithm/string/replace.hpp>
 
 #include <wx/frame.h>
 #include <wx/event.h>
@@ -197,7 +198,7 @@ std::string Duet::get_upload_url(const std::string &filename) const
 {
 	return (boost::format("%1%rr_upload?name=0:/gcodes/%2%&%3%")
 			% get_base_url()
-			% filename 
+			% Http::url_encode(filename) 
 			% timestamp_str()).str();
 }
 
@@ -248,9 +249,10 @@ wxString Duet::format_error(const std::string &body, const std::string &error, u
 bool Duet::start_print(wxString &msg, const std::string &filename) const 
 {
 	bool res = false;
+	
 	auto url = (boost::format("%1%rr_gcode?gcode=M32%%20\"%2%\"")
 			% get_base_url()
-			% filename).str();
+			% Http::url_encode(filename)).str();
 
 	auto http = Http::get(std::move(url));
 	http.on_error([&](std::string body, std::string error, unsigned status) {
@@ -274,6 +276,5 @@ int Duet::get_err_code_from_body(const std::string &body) const
 
 	return root.get<int>("err", 0);
 }
-
 
 }
