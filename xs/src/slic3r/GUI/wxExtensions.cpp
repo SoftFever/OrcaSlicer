@@ -480,9 +480,10 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 	delete node;
 
 	// set m_containet to FALSE if parent has no child
-	if (node_parent && node_parent->GetChildCount() == 0){
+	if (node_parent) {
 #ifndef __WXGTK__
-		node_parent->m_container = false;
+        if (node_parent->GetChildCount() == 0)
+            node_parent->m_container = false;
 #endif //__WXGTK__
 		ret_item = parent;
 	}

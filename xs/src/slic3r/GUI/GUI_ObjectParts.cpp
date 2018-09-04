@@ -877,7 +877,6 @@ void update_settings_list()
     const auto item = m_objects_ctrl->GetSelection();
 	if (m_config && m_objects_model->IsSettingsItem(item)) 
 	{
-        show_manipulations = false;
         auto extra_column = [](wxWindow* parent, const Line& line)
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
@@ -896,8 +895,8 @@ void update_settings_list()
 
 		std::map<std::string, std::vector<std::string>> cat_options;
 		auto opt_keys = (*m_config)->keys();
-        if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))
-            // 			return;
+        m_og_settings.resize(0);
+        if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
         {
             auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
                 get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
@@ -915,8 +914,6 @@ void update_settings_list()
                     cat_options[category] = cat_opt;
             }
 
-
-            m_og_settings.resize(0);
             for (auto& cat : cat_options) {
                 if (cat.second.size() == 1 && cat.second[0] == "extruder")
                     continue;
@@ -937,12 +934,14 @@ void update_settings_list()
                 m_option_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
                 m_og_settings.push_back(optgroup);
             }
-
-            if (m_og_settings.empty()) {
-                m_objects_ctrl->Select(m_objects_model->Delete(item));
-                show_manipulations = true;
-            }
         }
+
+        if (m_og_settings.empty()) {
+            m_objects_ctrl->Select(m_objects_model->Delete(item));
+            part_selection_changed();
+        }
+        else
+            show_manipulations = false;
 	}
 
     show_manipulation_og(show_manipulations);
@@ -1012,6 +1011,7 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
         const auto settings_item = m_objects_model->HasSettings(item);
         m_objects_ctrl->Select(settings_item ? settings_item : 
                                m_objects_model->AddSettingsChild(item));
+        part_selection_changed();
     }
     // ********************
 
