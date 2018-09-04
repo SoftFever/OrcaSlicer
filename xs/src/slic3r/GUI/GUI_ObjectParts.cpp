@@ -69,8 +69,6 @@ bool m_part_settings_changed = false;
     wxString g_selected_extruder = "";
 #endif //__WXOSX__
 
-// typedef std::map<std::string, std::string> t_category_icon;
-typedef std::map<std::string, wxBitmap> t_category_icon;
 inline t_category_icon& get_category_icon() {
 	static t_category_icon CATEGORY_ICON;
 	if (CATEGORY_ICON.empty()){
@@ -896,6 +894,7 @@ void update_settings_list()
 		std::map<std::string, std::vector<std::string>> cat_options;
 		auto opt_keys = (*m_config)->keys();
         m_og_settings.resize(0);
+        std::vector<std::string> categories;
         if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
         {
             auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
@@ -933,6 +932,8 @@ void update_settings_list()
                 optgroup->reload_config();
                 m_option_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
                 m_og_settings.push_back(optgroup);
+
+                categories.push_back(cat.first);
             }
         }
 
@@ -940,11 +941,15 @@ void update_settings_list()
             m_objects_ctrl->Select(m_objects_model->Delete(item));
             part_selection_changed();
         }
-        else
+        else {
+            if (!categories.empty())
+                m_objects_model->UpdateSettingsDigest(item, categories);
             show_manipulations = false;
+        }
 	}
 
     show_manipulation_og(show_manipulations);
+    show_info_sizer(show_manipulations);
 
 #ifdef __linux__
 	no_updates.reset(nullptr);
@@ -1032,11 +1037,11 @@ wxMenuItem* menu_item_split(wxMenu* menu, int id) {
     return menu_item;
 }
 
-wxMenuItem* menu_item_settings(wxMenu* menu, int id) {
+wxMenuItem* menu_item_settings(wxMenu* menu, int id, const bool is_part) {
     auto  menu_item = new wxMenuItem(menu, id, _(L("Add settings")));
     menu_item->SetBitmap(m_bmp_cog);
 
-    auto sub_menu = create_add_settings_popupmenu(false);
+    auto sub_menu = create_add_settings_popupmenu(is_part);
     menu_item->SetSubMenu(sub_menu);
     return menu_item;
 }
@@ -1063,7 +1068,7 @@ wxMenu *create_add_part_popupmenu()
 
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + i + 1));
+    menu->Append(menu_item_settings(menu, config_id_base + i + 1, false));
 
 	wxWindow* win = get_tab_panel()->GetPage(0);
 
@@ -1099,7 +1104,7 @@ wxMenu *create_part_settings_popupmenu()
 
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + 1));
+    menu->Append(menu_item_settings(menu, config_id_base + 1, true));
 
     menu->Bind(wxEVT_MENU, [config_id_base, menu](wxEvent &event){
         switch (event.GetId() - config_id_base) {

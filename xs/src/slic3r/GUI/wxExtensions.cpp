@@ -2,6 +2,7 @@
 
 #include "GUI.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "BitmapCache.hpp"
 
 #include <wx/sizer.h>
 #include <wx/statline.h>
@@ -361,10 +362,51 @@ void PrusaObjectDataViewModelNode::set_settings_list_icon(const wxIcon& icon) {
     m_icon = icon;
 }
 
+Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
+bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std::string>& categories)
+{
+    if (m_type != "settings" || m_opt_categories == categories)
+        return false;
+
+    m_opt_categories = categories;
+    m_name = wxEmptyString;
+    m_icon = m_empty_icon;
+
+    auto categories_icon = Slic3r::GUI::get_category_icon();
+
+    for (auto& cat : m_opt_categories)
+        m_name += cat + "; ";
+
+    wxBitmap *bmp = m_bitmap_cache->find(m_name.ToStdString());
+    if (bmp == nullptr) {
+        std::vector<wxBitmap> bmps;
+        for (auto& cat : m_opt_categories)
+            bmps.emplace_back(categories_icon.find(cat) == categories_icon.end() ?
+                              wxNullBitmap : categories_icon.at(cat));
+        bmp = m_bitmap_cache->insert(m_name.ToStdString(), bmps);
+    }
+    m_icon.CopyFromBitmap(*bmp);
+
+    return true;
+}
+
 // *****************************************************************************
 // ----------------------------------------------------------------------------
 // PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
+
+PrusaObjectDataViewModel::PrusaObjectDataViewModel()
+{
+    m_bitmap_cache = new Slic3r::GUI::BitmapCache;
+}
+
+PrusaObjectDataViewModel::~PrusaObjectDataViewModel()
+{
+    for (auto object : m_objects)
+			delete object;
+    delete m_bitmap_cache;
+    m_bitmap_cache = nullptr;
+}
 
 wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name)
 {
@@ -790,6 +832,18 @@ bool PrusaObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const
         return false;
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
     return node->m_type == "settings";
+}
+
+
+
+void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item, 
+                                                    const std::vector<std::string>& categories)
+{
+    if (!item.IsOk()) return;
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    if (!node->update_settings_digest(categories))
+        return;
+    ItemChanged(item);
 }
 
 // ----------------------------------------------------------------------------

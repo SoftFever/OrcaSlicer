@@ -155,7 +155,8 @@ class PrusaObjectDataViewModelNode
 {
 	PrusaObjectDataViewModelNode*	m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
-    wxIcon                          m_empty_icon; 
+    wxIcon                          m_empty_icon;
+    std::vector< std::string >      m_opt_categories;
 public:
 	PrusaObjectDataViewModelNode(const wxString &name, const int instances_count=1) {
 		m_parent	= NULL;
@@ -340,6 +341,7 @@ public:
 	void set_object_action_icon();
 	void set_part_action_icon();
     void set_settings_list_icon(const wxIcon& icon);
+    bool update_settings_digest(const std::vector<std::string>& categories);
 };
 
 // ----------------------------------------------------------------------------
@@ -350,12 +352,8 @@ class PrusaObjectDataViewModel :public wxDataViewModel
 {
 	std::vector<PrusaObjectDataViewModelNode*> m_objects;
 public:
-	PrusaObjectDataViewModel(){}
-	~PrusaObjectDataViewModel()
-	{
-		for (auto object : m_objects)
-			delete object;		
-	}
+    PrusaObjectDataViewModel();
+    ~PrusaObjectDataViewModel();
 
 	wxDataViewItem Add(const wxString &name);
 	wxDataViewItem Add(const wxString &name, const int instances_count);
@@ -411,6 +409,7 @@ public:
 
     wxDataViewItem    HasSettings(const wxDataViewItem &item) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
+    void    UpdateSettingsDigest(const wxDataViewItem &item, const std::vector<std::string>& categories);
 };
 
 

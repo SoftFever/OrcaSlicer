@@ -10,6 +10,7 @@ class wxMenu;
 class wxDataViewEvent;
 class wxKeyEvent;
 class wxGLCanvas;
+class wxBitmap;
 
 namespace Slic3r {
 class ModelObject;
@@ -44,6 +45,9 @@ struct OBJECT_PARAMETERS
 	double			slab_h = 1.0;
 	double			slab_z = 0.0;
 };
+
+typedef std::map<std::string, wxBitmap> t_category_icon;
+inline t_category_icon& get_category_icon();
 
 void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer);
 void add_objects_list(wxWindow* parent, wxBoxSizer* sizer);
