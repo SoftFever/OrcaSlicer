@@ -1031,8 +1031,6 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 
     Vec3d dragged_offset = box.center() - *m_center;
 
-    bool blending_was_enabled = ::glIsEnabled(GL_BLEND);
-    bool depth_test_was_enabled = ::glIsEnabled(GL_DEPTH_TEST);
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
@@ -1053,16 +1051,11 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
             ::glPopMatrix();
         }
     }
-
-    if (!blending_was_enabled)
-        ::glDisable(GL_BLEND);
-    if (!depth_test_was_enabled)
-        ::glDisable(GL_DEPTH_TEST);
 }
 
 void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    ::glEnable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
