@@ -231,20 +231,17 @@ namespace Slic3r { namespace GUI {
 		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
 		{
 #ifdef __WXGTK__
-            if (bChangedValueEvent)
-                change_field_value(evt);
-            else
-			    bChangedValueEvent = true;
-#else
-			on_change_field();
+			if (bChangedValueEvent)
 #endif //__WXGTK__
+			on_change_field();
 		}), temp->GetId());
 
 #ifdef __WXGTK__
-        // to correct value update on GTK we should call on_change_field() on 
-        // wxEVT_KEY_UP or wxEVT_TEXT_PASTE instead of wxEVT_TEXT
+        // to correct value updating on GTK we should:
+        // call on_change_field() on wxEVT_KEY_UP instead of wxEVT_TEXT
+        // and prevent value updating on wxEVT_KEY_DOWN
+        temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
         temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
-        temp->Bind(wxEVT_TEXT_PASTE, &TextCtrl::change_field_value, this);
 #endif //__WXGTK__
 
 		// select all text using Ctrl+A
@@ -273,12 +270,8 @@ namespace Slic3r { namespace GUI {
 #ifdef __WXGTK__
     void TextCtrl::change_field_value(wxEvent& event)
     {
-        if (event.GetEventType() == wxEVT_TEXT_PASTE)
-            bChangedValueEvent = true;
-        else if (bChangedValueEvent) {
-            on_change_field();
-            bChangedValueEvent = false;
-        }
+    	if (bChangedValueEvent = event.GetEventType()==wxEVT_KEY_UP)
+    		on_change_field();
         event.Skip();
     };
 #endif //__WXGTK__
