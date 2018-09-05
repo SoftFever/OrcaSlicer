@@ -236,6 +236,7 @@ class TextCtrl : public Field {
     using Field::Field;
 #ifdef __WXGTK__
 	bool	bChangedValueEvent = false;
+    void    change_field_value(wxEvent& event);
 #endif //__WXGTK__
 public:
 	TextCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt,  id) {}
