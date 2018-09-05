@@ -195,9 +195,9 @@ const float GLVolume::OUTSIDE_COLOR[4] = { 0.0f, 0.38f, 0.8f, 1.0f };
 const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
-    : m_origin(0, 0, 0)
-    , m_angle_z(0.0f)
-    , m_scale_factor(1.0f)
+    : m_offset(Vec3d::Zero())
+    , m_rotation(0.0)
+    , m_scaling_factor(1.0)
     , m_world_matrix(Transform3f::Identity())
     , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
@@ -255,43 +255,43 @@ void GLVolume::set_render_color()
         set_render_color(color, 4);
 }
 
-const Vec3d& GLVolume::get_origin() const
+double GLVolume::get_rotation()
 {
-    return m_origin;
+    return m_rotation;
 }
 
-float GLVolume::get_angle_z()
+void GLVolume::set_rotation(double rotation)
 {
-    return m_angle_z;
-}
-
-void GLVolume::set_origin(const Vec3d& origin)
-{
-    if (m_origin != origin)
+    if (m_rotation != rotation)
     {
-        m_origin = origin;
+        m_rotation = rotation;
         m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
 }
 
-void GLVolume::set_angle_z(float angle_z)
+const Vec3d& GLVolume::get_offset() const
 {
-    if (m_angle_z != angle_z)
+    return m_offset;
+}
+
+void GLVolume::set_offset(const Vec3d& offset)
+{
+    if (m_offset != offset)
     {
-        m_angle_z = angle_z;
+        m_offset = offset;
         m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
 }
 
-void GLVolume::set_scale_factor(float scale_factor)
+void GLVolume::set_scaling_factor(double factor)
 {
-    if (m_scale_factor != scale_factor)
+    if (m_scaling_factor != factor)
     {
-        m_scale_factor = scale_factor;
+        m_scaling_factor = factor;
         m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
@@ -308,9 +308,9 @@ const Transform3f& GLVolume::world_matrix() const
     if (m_world_matrix_dirty)
     {
         m_world_matrix = Transform3f::Identity();
-        m_world_matrix.translate(Vec3f((float)m_origin(0), (float)m_origin(1), (float)m_origin(2)));
-        m_world_matrix.rotate(Eigen::AngleAxisf(m_angle_z, Vec3f::UnitZ()));
-        m_world_matrix.scale(m_scale_factor);
+        m_world_matrix.translate(m_offset.cast<float>());
+        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation, Vec3f::UnitZ()));
+        m_world_matrix.scale((float)m_scaling_factor);
         m_world_matrix_dirty = false;
     }
     return m_world_matrix;
@@ -384,9 +384,9 @@ void GLVolume::render() const
 
     ::glCullFace(GL_BACK);
     ::glPushMatrix();
-    ::glTranslated(m_origin(0), m_origin(1), m_origin(2));
-    ::glRotatef(m_angle_z * 180.0f / PI, 0.0f, 0.0f, 1.0f);
-    ::glScalef(m_scale_factor, m_scale_factor, m_scale_factor);
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+    ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+    ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
     if (this->indexed_vertex_array.indexed())
         this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
     else
@@ -510,9 +510,9 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
 
     ::glPushMatrix();
-    ::glTranslated(m_origin(0), m_origin(1), m_origin(2));
-    ::glRotatef(m_angle_z * 180.0f / PI, 0.0f, 0.0f, 1.0f);
-    ::glScalef(m_scale_factor, m_scale_factor, m_scale_factor);
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+    ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+    ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 
     if (n_triangles > 0)
     {
@@ -555,9 +555,9 @@ void GLVolume::render_legacy() const
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data());
 
     ::glPushMatrix();
-    ::glTranslated(m_origin(0), m_origin(1), m_origin(2));
-    ::glRotatef(m_angle_z * 180.0f / PI, 0.0f, 0.0f, 1.0f);
-    ::glScalef(m_scale_factor, m_scale_factor, m_scale_factor);
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+    ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+    ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 
     if (n_triangles > 0)
         ::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, indexed_vertex_array.triangle_indices.data() + tverts_range.first);
@@ -675,9 +675,9 @@ std::vector<int> GLVolumeCollection::load_object(
             }
             v.is_modifier = model_volume->modifier;
             v.shader_outside_printer_detection_enabled = !model_volume->modifier;
-            v.set_origin(Vec3d(instance->offset(0), instance->offset(1), 0.0));
-            v.set_angle_z(instance->rotation);
-            v.set_scale_factor(instance->scaling_factor);
+            v.set_offset(Vec3d(instance->offset(0), instance->offset(1), 0.0));
+            v.set_rotation(instance->rotation);
+            v.set_scaling_factor(instance->scaling_factor);
         }
     }
     
@@ -746,7 +746,7 @@ int GLVolumeCollection::load_wipe_tower_preview(
     else
         v.indexed_vertex_array.load_mesh_flat_shading(mesh);
 
-    v.set_origin(Vec3d(pos_x, pos_y, 0.));
+    v.set_offset(Vec3d(pos_x, pos_y, 0.0));
 
     // finalize_geometry() clears the vertex arrays, therefore the bounding box has to be computed before finalize_geometry().
     v.bounding_box = v.indexed_vertex_array.bounding_box();

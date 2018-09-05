@@ -56,9 +56,9 @@
     int                 volume_idx() const;
     int                 instance_idx() const;
     Clone<Vec3d>        origin() const
-        %code%{ RETVAL = THIS->get_origin(); %};
+        %code%{ RETVAL = THIS->get_offset(); %};
     void                translate(double x, double y, double z)
-        %code%{ THIS->set_origin(THIS->get_origin() + Vec3d(x, y, z)); %};
+        %code%{ THIS->set_offset(THIS->get_offset() + Vec3d(x, y, z)); %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
 

@@ -237,7 +237,6 @@ BoundingBoxf3 Model::bounding_box() const
 
 void Model::center_instances_around_point(const Vec2d &point)
 {
-//    BoundingBoxf3 bb = this->bounding_box();
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
         for (size_t i = 0; i < o->instances.size(); ++ i)
@@ -995,7 +994,7 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
-    copy.transform(world_matrix(dont_translate, false, true).cast<float>());
+    copy.transform(world_matrix(true, false, true).cast<float>());
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
