@@ -2999,9 +2999,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
                 // Rotate the object so the normal points downward:
                 Vec3d normal = m_gizmos.get_flattening_normal();
-                if (normal != Vec3d::Zero()) {
-                    Vec3d axis = normal(2) > 0.999f ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ());
-                    float angle = acos(-normal(2));
+                if (normal(0) != 0.0 || normal(1) != 0.0 || normal(2) != 0.0) {
+                    Vec3d axis = normal(2) > 0.999 ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ()).normalized();
+                    float angle = acos(clamp(-1.0, 1.0, -normal(2)));
                     m_on_gizmo_rotate_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
                 }
             }
