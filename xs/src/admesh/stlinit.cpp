@@ -287,7 +287,7 @@ stl_read(stl_file *stl, int first_facet, int first) {
     {
       // skip solid/endsolid
       // (in this order, otherwise it won't work when they are paired in the middle of a file)
-      fscanf(stl->fp, "endsolid\n");
+      fscanf(stl->fp, "endsolid%*[^\n]\n");
       fscanf(stl->fp, "solid%*[^\n]\n");  // name might contain spaces so %*s doesn't work and it also can be empty (just "solid")
       // Leading space in the fscanf format skips all leading white spaces including numerous new lines and tabs.
       int res_normal     = fscanf(stl->fp, " facet normal %31s %31s %31s", normal_buf[0], normal_buf[1], normal_buf[2]);
