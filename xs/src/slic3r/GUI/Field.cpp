@@ -228,7 +228,7 @@ namespace Slic3r { namespace GUI {
 		{
 #ifdef __WXGTK__
             if (bChangedValueEvent)
-                change_field_value(ent);
+                change_field_value(evt);
             else
 			    bChangedValueEvent = true;
 #else
