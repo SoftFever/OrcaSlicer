@@ -1648,13 +1648,26 @@ sub print_info_box_show {
         $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
         my @info = (
             L("Used Filament (m)")
-                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000),
+                => $self->{print}->total_wipe_tower_filament > 0 ?
+                       sprintf("%.2f  (%.2f %s + %.2f %s)" , $self->{print}->total_used_filament / 1000,
+                                                            ($self->{print}->total_used_filament - $self->{print}->total_wipe_tower_filament) / 1000,
+                                                             L("objects"),
+							     $self->{print}->total_wipe_tower_filament / 1000,
+                                                             L("wipe_tower")) :
+                       sprintf("%.2f" , $self->{print}->total_used_filament / 1000),
+
             L("Used Filament (mm³)")
                 => sprintf("%.2f" , $self->{print}->total_extruded_volume),
             L("Used Filament (g)"),
                 => sprintf("%.2f" , $self->{print}->total_weight),
             L("Cost"),
-                => sprintf("%.2f" , $self->{print}->total_cost),
+                => $self->{print}->total_wipe_tower_cost > 0 ?
+                       sprintf("%.2f  (%.2f %s + %.2f %s)" , $self->{print}->total_cost,
+                                                            ($self->{print}->total_cost - $self->{print}->total_wipe_tower_cost),
+                                                             L("objects"),
+							     $self->{print}->total_wipe_tower_cost,
+                                                             L("wipe_tower")) :
+                       sprintf("%.2f" , $self->{print}->total_cost),
             L("Estimated printing time (normal mode)")
                 => $self->{print}->estimated_normal_print_time,
             L("Estimated printing time (silent mode)")

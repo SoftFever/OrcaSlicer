@@ -111,9 +111,10 @@ public:
 	const WipeTower::xy	 start_pos_rotated() const { return m_start_pos; }
 	const WipeTower::xy  pos_rotated() const { return WipeTower::xy(m_current_pos, 0.f, m_y_shift).rotate(m_wipe_tower_width, m_wipe_tower_depth, m_internal_angle); }
 	float 				 elapsed_time() const { return m_elapsed_time; }
+    float                get_and_reset_used_filament_length() { float temp = m_used_filament_length; m_used_filament_length = 0.f; return temp; }
 
 	// Extrude with an explicitely provided amount of extrusion.
-	Writer& extrude_explicit(float x, float y, float e, float f = 0.f) 
+	Writer& extrude_explicit(float x, float y, float e, float f = 0.f, bool record_length = false)
 	{
 		if (x == m_current_pos.x && y == m_current_pos.y && e == 0.f && (f == 0.f || f == m_current_feedrate))
 			// Neither extrusion nor a travel move.
@@ -122,6 +123,8 @@ public:
 		float dx = x - m_current_pos.x;
 		float dy = y - m_current_pos.y;
 		double len = sqrt(dx*dx+dy*dy);
+        if (record_length)
+            m_used_filament_length += e;
 
 
 		// Now do the "internal rotation" with respect to the wipe tower center
@@ -162,8 +165,8 @@ public:
 		return *this;
 	}
 
-	Writer& extrude_explicit(const WipeTower::xy &dest, float e, float f = 0.f) 
-		{ return extrude_explicit(dest.x, dest.y, e, f); }
+	Writer& extrude_explicit(const WipeTower::xy &dest, float e, float f = 0.f, bool record_length = false)
+		{ return extrude_explicit(dest.x, dest.y, e, f, record_length); }
 
 	// Travel to a new XY position. f=0 means use the current value.
 	Writer& travel(float x, float y, float f = 0.f)
@@ -177,7 +180,7 @@ public:
 	{
 		float dx = x - m_current_pos.x;
 		float dy = y - m_current_pos.y;
-		return extrude_explicit(x, y, sqrt(dx*dx+dy*dy) * m_extrusion_flow, f);
+		return extrude_explicit(x, y, sqrt(dx*dx+dy*dy) * m_extrusion_flow, f, true);
 	}
 
 	Writer& extrude(const WipeTower::xy &dest, const float f = 0.f) 
@@ -259,8 +262,8 @@ public:
 	// extrude quickly amount e to x2 with feed f.
 	Writer& ram(float x1, float x2, float dy, float e0, float e, float f)
 	{
-		extrude_explicit(x1, m_current_pos.y + dy, e0, f);
-		extrude_explicit(x2, m_current_pos.y, e);
+		extrude_explicit(x1, m_current_pos.y + dy, e0, f, true);
+		extrude_explicit(x2, m_current_pos.y, e, 0.f, true);
 		return *this;
 	}
 
@@ -404,6 +407,7 @@ private:
 	float		  m_last_fan_speed = 0.f;
     int           current_temp = -1;
     const float   m_default_analyzer_line_width;
+    float         m_used_filament_length = 0.f;
 
 	std::string   set_format_X(float x)
 	{
@@ -537,6 +541,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	// so that tool_change() will know to extrude the wipe tower brim:
 	m_print_brim = true;
 
+    // Ask our writer about how much material was consumed:
+    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+
 	ToolChangeResult result;
     result.priming      = true;
 	result.print_z 	  	= this->m_z_pos;
@@ -632,6 +639,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
                   ";------------------\n"
                   "\n\n");
 
+    // Ask our writer about how much material was consumed:
+    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+
 	ToolChangeResult result;
     result.priming      = false;
 	result.print_z 	  	= this->m_z_pos;
@@ -682,6 +692,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(bool sideOnly, flo
                   ";-----------------------------------\n");
 
     m_print_brim = false;  // Mark the brim as extruded
+
+    // Ask our writer about how much material was consumed:
+    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
@@ -849,6 +862,9 @@ void WipeTowerPrusaMM::toolchange_Change(
 	const unsigned int 	new_tool, 
 	material_type 		new_material)
 {
+    // Ask the writer about how much of the old filament we consumed:
+    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+
 	// Speed override for the material. Go slow for flex and soluble materials.
 	int speed_override;
 	switch (new_material) {
@@ -911,7 +927,6 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 	const float& xl = cleaning_box.ld.x;
 	const float& xr = cleaning_box.rd.x;
 
-
 	// Variables x_to_wipe and traversed_x are here to be able to make sure it always wipes at least
     //   the ordered volume, even if it means violating the box. This can later be removed and simply
     // wipe until the end of the assigned area.
@@ -926,7 +941,6 @@ void WipeTowerPrusaMM::toolchange_Wipe(
         m_left_to_right = !m_left_to_right;
     }
     
-
     // now the wiping itself:
 	for (int i = 0; true; ++i)	{
 		if (i!=0) {
@@ -935,7 +949,7 @@ void WipeTowerPrusaMM::toolchange_Wipe(
 			else if (wipe_speed < 2210.f) wipe_speed = 4200.f;
 			else wipe_speed = std::min(4800.f, wipe_speed + 50.f);
 		}
-		
+
 		float traversed_x = writer.x();
 		if (m_left_to_right)
 			writer.extrude(xr - (i % 4 == 0 ? 0 : 1.5*m_perimeter_width), writer.y(), wipe_speed * wipe_coeff);
@@ -1049,6 +1063,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
                   ";------------------\n\n\n\n\n\n\n");
 
     m_depth_traversed = m_wipe_tower_depth-m_perimeter_width;
+
+    // Ask our writer about how much material was consumed:
+    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
@@ -1167,6 +1184,8 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 
     m_layer_info = m_plan.begin();
     m_current_tool = (unsigned int)(-2); // we don't know which extruder to start with - we'll set it according to the first toolchange
+    for (auto& used : m_used_filament_length) // reset used filament stats
+        used = 0.f;
 
     std::vector<WipeTower::ToolChangeResult> layer_result;
 	for (auto layer : m_plan)
@@ -1208,9 +1227,6 @@ void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeRes
 	}
 }
 
-
-
-
 void WipeTowerPrusaMM::make_wipe_tower_square()
 {
 	const float width = m_wipe_tower_width - 3 * m_perimeter_width;
@@ -1234,7 +1250,6 @@ void WipeTowerPrusaMM::make_wipe_tower_square()
 	plan_tower();				// propagates depth downwards again (width has changed)
 	for (auto& lay : m_plan)	// depths set, now the spacing
 		lay.extra_spacing = lay.depth / lay.toolchanges_depth();
-
 }
 
 

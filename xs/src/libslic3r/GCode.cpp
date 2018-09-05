@@ -276,7 +276,6 @@ std::string WipeTowerIntegration::rotate_wipe_tower_moves(const std::string& gco
 }
 
 
-
 std::string WipeTowerIntegration::prime(GCode &gcodegen)
 {
     assert(m_layer_idx == 0);
@@ -960,17 +959,20 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 
     // Get filament stats.
     print.filament_stats.clear();
-    print.total_used_filament    = 0.;
-    print.total_extruded_volume  = 0.;
-    print.total_weight           = 0.;
-    print.total_cost             = 0.;
+    print.total_used_filament       = 0.;
+    print.total_extruded_volume     = 0.;
+    print.total_weight              = 0.;
+    print.total_cost                = 0.;
+    print.total_wipe_tower_cost     = 0.;
+    print.total_wipe_tower_filament = 0.;
     print.estimated_normal_print_time = m_normal_time_estimator.get_time_dhms();
     print.estimated_silent_print_time = m_silent_time_estimator_enabled ? m_silent_time_estimator.get_time_dhms() : "N/A";
     for (const Extruder &extruder : m_writer.extruders()) {
-        double used_filament   = extruder.used_filament();
-        double extruded_volume = extruder.extruded_volume();
+        double used_filament   = extruder.used_filament() + (has_wipe_tower ? print.m_wipe_tower_used_filament[extruder.id()] : 0.f);
+        double extruded_volume = extruder.extruded_volume() + (has_wipe_tower ? print.m_wipe_tower_used_filament[extruder.id()] * 2.4052f : 0.f); // assumes 1.75mm filament diameter
         double filament_weight = extruded_volume * extruder.filament_density() * 0.001;
         double filament_cost   = filament_weight * extruder.filament_cost()    * 0.001;
+
         print.filament_stats.insert(std::pair<size_t, float>(extruder.id(), (float)used_filament));
         _write_format(file, "; filament used = %.1lfmm (%.1lfcm3)\n", used_filament, extruded_volume * 0.001);
         if (filament_weight > 0.) {
@@ -981,8 +983,10 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
                 _write_format(file, "; filament cost = %.1lf\n", filament_cost);
             }
         }
-        print.total_used_filament = print.total_used_filament + used_filament;
-        print.total_extruded_volume = print.total_extruded_volume + extruded_volume;
+        print.total_used_filament += used_filament;
+        print.total_extruded_volume += extruded_volume;
+        print.total_wipe_tower_filament += has_wipe_tower ? used_filament - extruder.used_filament() : 0.;
+        print.total_wipe_tower_cost += has_wipe_tower ? (extruded_volume - extruder.extruded_volume())* extruder.filament_density() * 0.001 * extruder.filament_cost() * 0.001 : 0.;
     }
     _write_format(file, "; total filament cost = %.1lf\n", print.total_cost);
     _write_format(file, "; estimated printing time (normal mode) = %s\n", m_normal_time_estimator.get_time_dhms().c_str());

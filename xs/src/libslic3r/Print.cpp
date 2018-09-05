@@ -1193,6 +1193,8 @@ void Print::_make_wipe_tower()
     }
     m_wipe_tower_final_purge = Slic3r::make_unique<WipeTower::ToolChangeResult>(
 		wipe_tower.tool_change((unsigned int)-1, false));
+
+    m_wipe_tower_used_filament = wipe_tower.get_used_filament();
 }
 
 std::string Print::output_filename()

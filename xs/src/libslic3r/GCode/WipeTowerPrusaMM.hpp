@@ -94,6 +94,8 @@ public:
         m_filpar[idx].ramming_step_multiplicator /= 100;
         while (stream >> speed)
             m_filpar[idx].ramming_speed.push_back(speed);
+
+        m_used_filament_length.resize(std::max(m_used_filament_length.size(), idx + 1)); // makes sure that the vector is big enough so we don't have to check later
 	}
 
 
@@ -171,6 +173,8 @@ public:
 	virtual bool 			 layer_finished() const {
 		return ( (m_is_first_layer ? m_wipe_tower_depth - m_perimeter_width : m_layer_info->depth) - WT_EPSILON < m_depth_traversed);
 	}
+
+    virtual std::vector<float> get_used_filament() const { return m_used_filament_length; }
 
 
 private:
@@ -330,6 +334,9 @@ private:
 
 	std::vector<WipeTowerInfo> m_plan; 	// Stores information about all layers and toolchanges for the future wipe tower (filled by plan_toolchange(...))
 	std::vector<WipeTowerInfo>::iterator m_layer_info = m_plan.end();
+
+    // Stores information about used filament length per extruder:
+    std::vector<float> m_used_filament_length;
 
 
 	// Returns gcode for wipe tower brim
