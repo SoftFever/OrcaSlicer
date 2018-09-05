@@ -107,6 +107,7 @@ void update_settings_value();
 void set_extruder_column_hidden(bool hide);
 // update extruder in current config
 void update_extruder_in_config(const wxString& selection);
+void update_position_values();
 // update scale values after scale unit changing or "gizmos"
 void update_scale_values();
 void update_scale_values(const Vec3d& size, float scale);
