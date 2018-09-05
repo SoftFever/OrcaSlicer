@@ -1280,7 +1280,7 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
 }
 
 Vec3d GLGizmoFlatten::get_flattening_normal() const {
-    Vec3d normal = m_model_object->instances.front()->world_matrix().matrix().block(0, 0, 3, 3) * m_normal;
+    Vec3d normal = m_model_object->instances.front()->world_matrix(true).matrix().block(0, 0, 3, 3).inverse() * m_normal;
     m_normal = Vec3d::Zero();
     return normal.normalized();
 }
