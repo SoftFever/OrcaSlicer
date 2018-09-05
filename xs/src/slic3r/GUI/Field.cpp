@@ -224,10 +224,13 @@ namespace Slic3r { namespace GUI {
 		}), temp->GetId());
 #endif // __WXGTK__
 
-		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent)
+		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
 		{
 #ifdef __WXGTK__
-			bChangedValueEvent = true;
+            if (bChangedValueEvent)
+                change_field_value(ent);
+            else
+			    bChangedValueEvent = true;
 #else
 			on_change_field();
 #endif //__WXGTK__
@@ -266,7 +269,9 @@ namespace Slic3r { namespace GUI {
 #ifdef __WXGTK__
     void TextCtrl::change_field_value(wxEvent& event)
     {
-        if (bChangedValueEvent)	{
+        if (event.GetEventType() == wxEVT_TEXT_PASTE)
+            bChangedValueEvent = true;
+        else if (bChangedValueEvent) {
             on_change_field();
             bChangedValueEvent = false;
         }
