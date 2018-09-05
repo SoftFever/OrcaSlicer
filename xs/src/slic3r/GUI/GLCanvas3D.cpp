@@ -3130,6 +3130,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             v->set_offset(v->get_offset() + Vec3d(vector(0), vector(1), 0.0));
         }
 
+        update_position_values(volume->get_offset());
         m_mouse.drag.start_position_3D = cur_pos;
         m_gizmos.refresh();
 
@@ -3169,6 +3170,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             for (GLVolume* v : volumes)
             {
                 v->set_scaling_factor((double)scale_factor);
+                update_scale_values((double)scale_factor);
             }
             break;
         }
@@ -3179,6 +3181,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             for (GLVolume* v : volumes)
             {
                 v->set_rotation((double)angle_z);
+                update_rotation_value((double)angle_z, Z);
             }
             break;
         }
@@ -3195,8 +3198,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             const Vec3d& size = bb.size();
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
-            update_scale_values(size, m_gizmos.get_scale());
-            update_rotation_value(volumes[0]->get_rotation(), "z");
         }
 
         if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
@@ -3297,7 +3298,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Scale:
             {
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
-                Slic3r::GUI::update_settings_value();
                 break;
             }
             case Gizmos::Rotate:
@@ -3309,6 +3309,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
+            Slic3r::GUI::update_settings_value();
         }
 
         m_mouse.drag.move_volume_idx = -1;

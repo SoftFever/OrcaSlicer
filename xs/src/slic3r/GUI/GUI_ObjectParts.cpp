@@ -1547,7 +1547,7 @@ void update_scale_values()
     auto size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
 
     if (g_is_percent_scale) {
-        auto scale = instance->scaling_factor * 100;
+        auto scale = instance->scaling_factor * 100.0;
         og->set_value("scale_x", int(scale));
         og->set_value("scale_y", int(scale));
         og->set_value("scale_z", int(scale));
@@ -1569,21 +1569,31 @@ void update_position_values()
     og->set_value("position_z", 0);
 }
 
-void update_scale_values(const Vec3d& size, float scaling_factor)
+void update_position_values(const Vec3d& position)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
+
+    og->set_value("position_x", int(position(0)));
+    og->set_value("position_y", int(position(1)));
+    og->set_value("position_z", int(position(2)));
+}
+
+void update_scale_values(double scaling_factor)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
 
-    if (g_is_percent_scale) {
-        auto scale = scaling_factor * 100;
-        og->set_value("scale_x", int(scale));
-        og->set_value("scale_y", int(scale));
-        og->set_value("scale_z", int(scale));
-    }
-    else {
-        og->set_value("scale_x", int(size(0) + 0.5));
-        og->set_value("scale_y", int(size(1) + 0.5));
-        og->set_value("scale_z", int(size(2) + 0.5));
-    }
+    // this is temporary
+    // to be able to update the values as size
+    // we need to store somewhere the original size
+    // or have it passed as parameter
+    if (!g_is_percent_scale)
+        og->set_value("scale_unit", _("%"));
+
+    auto scale = scaling_factor * 100.0;
+    og->set_value("scale_x", int(scale));
+    og->set_value("scale_y", int(scale));
+    og->set_value("scale_z", int(scale));
 }
 
 void update_rotation_values()
@@ -1595,14 +1605,31 @@ void update_rotation_values()
     og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
 }
 
-void update_rotation_value(const double angle, const std::string& axis)
+void update_rotation_value(double angle, Axis axis)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
-    
-    int deg = int(Geometry::rad2deg(angle));
-//     if (deg>180) deg -= 360;
 
-    og->set_value("rotation_"+axis, deg);
+    std::string axis_str;
+    switch (axis)
+    {
+    case X:
+    {
+        axis_str = "rotation_x";
+        break;
+    }
+    case Y:
+    {
+        axis_str = "rotation_y";
+        break;
+    }
+    case Z:
+    {
+        axis_str = "rotation_z";
+        break;
+    }
+    }
+
+    og->set_value(axis_str, int(Geometry::rad2deg(angle)));
 }
 
 void set_uniform_scaling(const bool uniform_scale)
