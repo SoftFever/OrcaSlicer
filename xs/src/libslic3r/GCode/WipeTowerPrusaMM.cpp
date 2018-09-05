@@ -807,8 +807,9 @@ void WipeTowerPrusaMM::toolchange_Unload(
           .load_move_x_advanced(old_x,         -0.10f * total_retraction_distance, 0.3f * m_filpar[m_current_tool].unloading_speed)
           .travel(old_x, writer.y()) // in case previous move was shortened to limit feedrate*/
           .resume_preview();
-
-    if (new_temperature != 0 && new_temperature != m_old_temperature ) { 	// Set the extruder temperature, but don't wait.
+    if (new_temperature != 0 && (new_temperature != m_old_temperature || m_is_first_layer) ) { 	// Set the extruder temperature, but don't wait.
+        // If the required temperature is the same as last time, don't emit the M104 again (if user adjusted the value, it would be reset)
+        // However, always change temperatures on the first layer (this is to avoid issues with priming lines turned off).
 		writer.set_extruder_temp(new_temperature, false);
         m_old_temperature = new_temperature;
     }
