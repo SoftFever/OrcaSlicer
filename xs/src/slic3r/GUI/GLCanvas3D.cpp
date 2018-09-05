@@ -5243,6 +5243,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
             const Vec3d& offset = volume->get_offset();
             model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
             model_object->invalidate_bounding_box();
+            update_position_values();
             object_moved = true;
         }
         else if (obj_idx == 1000)
