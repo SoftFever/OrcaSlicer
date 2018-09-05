@@ -255,11 +255,11 @@ public:
 
 private:
     // Offset of the volume to be rendered.
-    Vec3d                 m_origin;
+    Vec3d                 m_offset;
     // Rotation around Z axis of the volume to be rendered.
-    float                 m_angle_z;
+    double                m_rotation;
     // Scale factor of the volume to be rendered.
-    float                 m_scale_factor;
+    double                m_scaling_factor;
     // World matrix of the volume to be rendered.
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
@@ -327,11 +327,14 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-    float get_angle_z();
-    const Vec3d& get_origin() const;
-    void set_origin(const Vec3d& origin);
-    void set_angle_z(float angle_z);
-    void set_scale_factor(float scale_factor);
+    double get_rotation();
+    void set_rotation(double rotation);
+
+    const Vec3d& get_offset() const;
+    void set_offset(const Vec3d& offset);
+
+    void set_scaling_factor(double factor);
+
     void set_convex_hull(const TriangleMesh& convex_hull);
 
     int                 object_idx() const { return this->composite_id / 1000000; }

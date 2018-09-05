@@ -3001,7 +3001,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 Vec3d normal = m_gizmos.get_flattening_normal();
                 if (normal != Vec3d::Zero()) {
                     Vec3d axis = normal(2) > 0.999f ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ());
-                    float angle = -acos(-normal(2));
+                    float angle = acos(-normal(2));
                     m_on_gizmo_rotate_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
                 }
             }
@@ -3126,7 +3126,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         // Apply new temporary volume origin and ignore Z.
         for (GLVolume* v : volumes)
-            v->set_origin(v->get_origin() + Vec3d(vector(0), vector(1), 0.0));
+        {
+            v->set_offset(v->get_offset() + Vec3d(vector(0), vector(1), 0.0));
+        }
 
         m_mouse.drag.start_position_3D = cur_pos;
         m_gizmos.refresh();
@@ -3166,7 +3168,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             float scale_factor = m_gizmos.get_scale();
             for (GLVolume* v : volumes)
             {
-                v->set_scale_factor(scale_factor);
+                v->set_scaling_factor((double)scale_factor);
             }
             break;
         }
@@ -3176,7 +3178,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             float angle_z = m_gizmos.get_angle_z();
             for (GLVolume* v : volumes)
             {
-                v->set_angle_z(angle_z);
+                v->set_rotation((double)angle_z);
             }
             break;
         }
@@ -3194,7 +3196,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const Vec3d& size = bb.size();
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
             update_scale_values(size, m_gizmos.get_scale());
-            update_rotation_value(volumes[0]->get_angle_z(), "z");
+            update_rotation_value(volumes[0]->get_rotation(), "z");
         }
 
         if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
@@ -5219,7 +5221,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 
     std::set<std::string> done;  // prevent moving instances twice
     bool object_moved = false;
-    Vec3d wipe_tower_origin(0.0, 0.0, 0.0);
+    Vec3d wipe_tower_origin = Vec3d::Zero();
     for (int volume_idx : volume_idxs)
     {
         GLVolume* volume = m_volumes.volumes[volume_idx];
@@ -5238,20 +5240,20 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         {
             // Move a regular object.
             ModelObject* model_object = m_model->objects[obj_idx];
-            const Vec3d& origin = volume->get_origin();
-            model_object->instances[instance_idx]->offset = Vec2d(origin(0), origin(1));
+            const Vec3d& offset = volume->get_offset();
+            model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
             model_object->invalidate_bounding_box();
             object_moved = true;
         }
         else if (obj_idx == 1000)
             // Move a wipe tower proxy.
-            wipe_tower_origin = volume->get_origin();
+            wipe_tower_origin = volume->get_offset();
     }
 
     if (object_moved)
         m_on_instance_moved_callback.call();
 
-    if (wipe_tower_origin != Vec3d(0.0, 0.0, 0.0))
+    if (wipe_tower_origin != Vec3d::Zero())
         m_on_wipe_tower_moved_callback.call(wipe_tower_origin(0), wipe_tower_origin(1));
 }
 

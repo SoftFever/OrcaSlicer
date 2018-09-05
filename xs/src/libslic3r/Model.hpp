@@ -224,7 +224,6 @@ public:
 
     friend class ModelObject;
 
-//    Transform3d     transform;
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
     Vec2d offset;              // in unscaled coordinates
