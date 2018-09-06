@@ -91,13 +91,14 @@ void set_objects_from_model(Model &model);
 bool is_parts_changed();
 bool is_part_settings_changed();
 
-void load_part(	wxWindow* parent, ModelObject* model_object, 
+void load_part(	ModelObject* model_object, 
 				wxArrayString& part_names, const bool is_modifier); 
 
-void load_lambda(wxWindow* parent, ModelObject* model_object, 
-				wxArrayString& part_names, const bool is_modifier);
+void load_lambda( ModelObject* model_object, 
+				wxArrayString& part_names, const bool is_modifier); 
+void load_lambda( const std::string& type_name);
 
-void on_btn_load(wxWindow* parent, bool is_modifier = false, bool is_lambda = false);
+void on_btn_load(bool is_modifier = false, bool is_lambda = false);
 void on_btn_del();
 void on_btn_split(const bool split_part);
 void on_btn_move_up();

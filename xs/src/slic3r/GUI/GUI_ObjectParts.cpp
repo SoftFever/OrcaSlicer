@@ -319,15 +319,15 @@ wxBoxSizer* create_edit_object_buttons(wxWindow* win)
 
 	//*** button's functions
 	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-		on_btn_load(win);
+// 		on_btn_load(win);
 	});
 
 	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-		on_btn_load(win, true);
+// 		on_btn_load(win, true);
 	});
 
 	btn_load_lambda_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-		on_btn_load(win, true, true);
+// 		on_btn_load(win, true, true);
 	});
 
 	btn_delete		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_del(); });
@@ -1010,7 +1010,7 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 	}
 
 
-    // ***  EXPERIMINT  ***
+    // Add settings item for object
     const auto item = m_objects_ctrl->GetSelection();
     if (item) {
         const auto settings_item = m_objects_model->HasSettings(item);
@@ -1018,9 +1018,18 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
                                m_objects_model->AddSettingsChild(item));
         part_selection_changed();
     }
-    // ********************
 
 	update_settings_list();
+}
+
+void menu_item_add_generic(wxMenuItem* &menu, int id) {
+    auto sub_menu = new wxMenu;
+
+    std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
+    for (auto& item : menu_items)
+        sub_menu->Append(new wxMenuItem(sub_menu, ++id, _(item)));
+
+    menu->SetSubMenu(sub_menu);
 }
 
 wxMenuItem* menu_item_split(wxMenu* menu, int id) {
@@ -1043,39 +1052,45 @@ wxMenu *create_add_part_popupmenu()
 	wxMenu *menu = new wxMenu;
 	std::vector<std::string> menu_items = { L("Add part"), L("Add modifier"), L("Add generic") };
 
-	wxWindowID config_id_base = wxWindow::NewControlId(menu_items.size()+2);
+	wxWindowID config_id_base = wxWindow::NewControlId(menu_items.size()+4+2);
 
 	int i = 0;
 	for (auto& item : menu_items) {
 		auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
 		menu_item->SetBitmap(i == 0 ? m_icon_solidmesh : m_icon_modifiermesh);
-		menu->Append(menu_item);
+        if (item == "Add generic")
+            menu_item_add_generic(menu_item, config_id_base + i);
+        menu->Append(menu_item);
 		i++;
     }
 
     menu->AppendSeparator();
-    auto menu_item = menu_item_split(menu, config_id_base + i);
+    auto menu_item = menu_item_split(menu, config_id_base + i + 4);
     menu->Append(menu_item);
     menu_item->Enable(is_splittable_object(false));
 
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + i + 1, false));
+    menu->Append(menu_item_settings(menu, config_id_base + i + 5, false));
 
-	wxWindow* win = get_tab_panel()->GetPage(0);
-
-	menu->Bind(wxEVT_MENU, [config_id_base, win, menu](wxEvent &event){
+	menu->Bind(wxEVT_MENU, [config_id_base, menu](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case 0:
-			on_btn_load(win);
+			on_btn_load();
 			break;
 		case 1:
-			on_btn_load(win, true);
+			on_btn_load(true);
 			break;
 		case 2:
-			on_btn_load(win, true, true);
+// 			on_btn_load(true, true);
 			break;
-		case 3:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+            load_lambda(menu->GetLabel(event.GetId()).ToStdString());
+            break;
+ 	    case 7: //3:
 			on_btn_split(false);
 			break;
 		default:{
@@ -1154,9 +1169,11 @@ void show_context_menu()
 
 // ******
 
-void load_part(	wxWindow* parent, ModelObject* model_object, 
+void load_part(	ModelObject* model_object, 
 				wxArrayString& part_names, const bool is_modifier)
 {
+    wxWindow* parent = get_tab_panel()->GetPage(0);
+
 	wxArrayString input_files;
 	open_model(parent, input_files);
 	for (int i = 0; i < input_files.size(); ++i) {
@@ -1194,10 +1211,10 @@ void load_part(	wxWindow* parent, ModelObject* model_object,
 	}
 }
 
-void load_lambda(	wxWindow* parent, ModelObject* model_object,
+void load_lambda(	ModelObject* model_object,
 					wxArrayString& part_names, const bool is_modifier)
 {
-	auto dlg = new LambdaObjectDialog(parent);
+    auto dlg = new LambdaObjectDialog(m_objects_ctrl->GetMainWindow());
 	if (dlg->ShowModal() == wxID_CANCEL) {
 		return;
 	}
@@ -1243,7 +1260,49 @@ void load_lambda(	wxWindow* parent, ModelObject* model_object,
 	m_parts_changed = true;
 }
 
-void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/* = false*/)
+void load_lambda(const std::string& type_name)
+{
+    if (m_selected_object_id < 0) return;
+
+    auto dlg = new LambdaObjectDialog(m_objects_ctrl->GetMainWindow(), type_name);
+    if (dlg->ShowModal() == wxID_CANCEL)
+        return;
+
+    const std::string name = "lambda-"+type_name;
+    TriangleMesh mesh;
+
+    const auto params = dlg->ObjectParameters();
+    if (type_name == _("Box"))
+        mesh = make_cube(params.dim[0], params.dim[1], params.dim[2]);
+    else if (type_name == _("Cylinder"))
+        mesh = make_cylinder(params.cyl_r, params.cyl_h);
+    else if (type_name == _("Sphere"))
+        mesh = make_sphere(params.sph_rho);
+    else if (type_name == _("Slab")){
+        const auto& size = (*m_objects)[m_selected_object_id]->bounding_box().size();
+        mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
+        // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
+        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, params.slab_z);
+    }
+    mesh.repair();
+
+    auto new_volume = (*m_objects)[m_selected_object_id]->add_volume(mesh);
+    new_volume->modifier = true;
+    new_volume->name = name;
+    // set a default extruder value, since user can't add it manually
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+
+    m_parts_changed = true;
+    parts_changed(m_selected_object_id);
+
+    m_objects_ctrl->Select(m_objects_model->AddChild(m_objects_ctrl->GetSelection(), 
+                                                     name, m_icon_modifiermesh));
+#ifdef __WXMSW__
+    object_ctrl_selection_changed();
+#endif //__WXMSW__
+}
+
+void on_btn_load(bool is_modifier /*= false*/, bool is_lambda/* = false*/)
 {
 	auto item = m_objects_ctrl->GetSelection();
 	if (!item)
@@ -1257,9 +1316,9 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 	if (obj_idx < 0) return;
 	wxArrayString part_names;
 	if (is_lambda)
-		load_lambda(parent, (*m_objects)[obj_idx], part_names, is_modifier);
+		load_lambda((*m_objects)[obj_idx], part_names, is_modifier);
 	else
-		load_part(parent, (*m_objects)[obj_idx], part_names, is_modifier);
+		load_part((*m_objects)[obj_idx], part_names, is_modifier);
 
 	parts_changed(obj_idx);
 
