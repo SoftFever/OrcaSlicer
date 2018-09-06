@@ -59,7 +59,7 @@ coordf_t PrintRegion::nozzle_dmr_avg(const PrintConfig &print_config) const
 
 coordf_t PrintRegion::bridging_height_avg(const PrintConfig &print_config) const
 {
-    return this->nozzle_dmr_avg(print_config) * this->config.bridge_flow_ratio.value;
+    return this->nozzle_dmr_avg(print_config) * sqrt(this->config.bridge_flow_ratio.value);
 }
 
 }

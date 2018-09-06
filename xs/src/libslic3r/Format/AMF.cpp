@@ -458,9 +458,14 @@ void AMFParserContext::endElement(const char * /* name */)
 					p = end + 1;
                 }
                 m_object->layer_height_profile_valid = true;
-            } else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume && strcmp(opt_key, "modifier") == 0) {
-                // Is this volume a modifier volume?
-                m_volume->modifier = atoi(m_value[1].c_str()) == 1;
+            } else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume) {
+                if (strcmp(opt_key, "modifier") == 0) {
+                    // Is this volume a modifier volume?
+                    // "modifier" flag comes first in the XML file, so it may be later overwritten by the "type" flag.
+                    m_volume->set_type((atoi(m_value[1].c_str()) == 1) ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
+                } else if (strcmp(opt_key, "volume_type") == 0) {
+                    m_volume->set_type(ModelVolume::type_from_string(m_value[1]));
+                }
             }
         } else if (m_path.size() == 3) {
             if (m_path[1] == NODE_TYPE_MATERIAL) {
@@ -781,8 +786,9 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                 stream << "        <metadata type=\"slic3r." << key << "\">" << volume->config.serialize(key) << "</metadata>\n";
             if (!volume->name.empty())
                 stream << "        <metadata type=\"name\">" << xml_escape(volume->name) << "</metadata>\n";
-            if (volume->modifier)
+            if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
+            stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
             for (int i = 0; i < volume->mesh.stl.stats.number_of_facets; ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)

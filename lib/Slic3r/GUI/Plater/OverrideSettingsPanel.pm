@@ -7,14 +7,19 @@ use warnings;
 use utf8;
 
 use List::Util qw(first);
-use Wx qw(:misc :sizer :button wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG
-    wxTheApp);
-use Wx::Event qw(EVT_BUTTON EVT_LEFT_DOWN EVT_MENU);
+use Wx qw(:misc :sizer :button :combobox wxTAB_TRAVERSAL wxSUNKEN_BORDER wxBITMAP_TYPE_PNG wxTheApp);
+use Wx::Event qw(EVT_BUTTON EVT_COMBOBOX EVT_LEFT_DOWN EVT_MENU);
 use base 'Wx::ScrolledWindow';
 
 use constant ICON_MATERIAL      => 0;
 use constant ICON_SOLIDMESH     => 1;
 use constant ICON_MODIFIERMESH  => 2;
+
+use constant TYPE_OBJECT        => -1;
+use constant TYPE_PART          => 0;
+use constant TYPE_MODIFIER      => 1;
+use constant TYPE_SUPPORT_ENFORCER => 2;
+use constant TYPE_SUPPORT_BLOCKER => 3;
 
 my %icons = (
     'Advanced'              => 'wand.png',
@@ -36,13 +41,14 @@ sub new {
     $self->{config} = Slic3r::Config->new;
     # On change callback.
     $self->{on_change} = $params{on_change};
+    $self->{type} = TYPE_OBJECT;
     $self->{fixed_options} = {};
     
     $self->{sizer} = Wx::BoxSizer->new(wxVERTICAL);
     
     $self->{options_sizer} = Wx::BoxSizer->new(wxVERTICAL);
     $self->{sizer}->Add($self->{options_sizer}, 0, wxEXPAND | wxALL, 0);
-    
+
     # option selector
     {
         # create the button
@@ -110,6 +116,16 @@ sub set_opt_keys {
     $self->{options} = [ sort { $self->{option_labels}{$a} cmp $self->{option_labels}{$b} } @$opt_keys ];
 }
 
+sub set_type {
+    my ($self, $type) = @_;
+    $self->{type} = $type;
+    if ($type == TYPE_SUPPORT_ENFORCER || $type == TYPE_SUPPORT_BLOCKER) {
+        $self->{btn_add}->Hide;
+    } else {
+        $self->{btn_add}->Show;
+    }
+}
+
 sub set_fixed_options {
     my ($self, $opt_keys) = @_;
     $self->{fixed_options} = { map {$_ => 1} @$opt_keys };
@@ -121,12 +137,28 @@ sub update_optgroup {
     
     $self->{options_sizer}->Clear(1);
     return if !defined $self->{config};
-    
+
+    if ($self->{type} != TYPE_OBJECT) {
+        my $label = Wx::StaticText->new($self, -1, "Type:"),
+        my $selection = [ "Part", "Modifier", "Support Enforcer", "Support Blocker" ];
+        my $field = Wx::ComboBox->new($self, -1, $selection->[$self->{type}], wxDefaultPosition, Wx::Size->new(160, -1), $selection, wxCB_READONLY);
+        my $sizer = Wx::BoxSizer->new(wxHORIZONTAL);
+        $sizer->Add($label, 1, wxEXPAND | wxALL, 5);
+        $sizer->Add($field, 0, wxALL, 5);
+        EVT_COMBOBOX($self, $field, sub {
+            my $idx = $field->GetSelection;  # get index of selected value
+            $self->{on_change}->("part_type", $idx) if $self->{on_change};
+        });
+        $self->{options_sizer}->Add($sizer, 0, wxEXPAND | wxBOTTOM, 0);
+    }
+
     my %categories = ();
-    foreach my $opt_key (@{$self->{config}->get_keys}) {
-        my $category = $Slic3r::Config::Options->{$opt_key}{category};
-        $categories{$category} ||= [];
-        push @{$categories{$category}}, $opt_key;
+    if ($self->{type} != TYPE_SUPPORT_ENFORCER && $self->{type} != TYPE_SUPPORT_BLOCKER) {
+        foreach my $opt_key (@{$self->{config}->get_keys}) {
+            my $category = $Slic3r::Config::Options->{$opt_key}{category};
+            $categories{$category} ||= [];
+            push @{$categories{$category}}, $opt_key;
+        }
     }
     foreach my $category (sort keys %categories) {
         my $optgroup = Slic3r::GUI::ConfigOptionsGroup->new(

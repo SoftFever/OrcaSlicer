@@ -12,6 +12,7 @@ class PrintConfig;
 class PrintObjectConfig;
 
 // how much we extend support around the actual contact area
+//FIXME this should be dependent on the nozzle diameter!
 #define SUPPORT_MATERIAL_MARGIN 1.5	
 
 // This class manages raft and supports for a single PrintObject.

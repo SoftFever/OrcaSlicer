@@ -1227,6 +1227,8 @@ bool EdgeGrid::Grid::signed_distance(const Point &pt, coord_t search_radius, coo
 
 Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 {
+	assert(std::abs(2 * offset) < m_resolution);
+
 	typedef std::unordered_multimap<Point, int, PointHash> EndPointMapType;
 	// 0) Prepare a binary grid.
 	size_t cell_rows = m_rows + 2;

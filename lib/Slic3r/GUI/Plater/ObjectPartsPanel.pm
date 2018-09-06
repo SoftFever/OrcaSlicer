@@ -16,6 +16,8 @@ use base 'Wx::Panel';
 use constant ICON_OBJECT        => 0;
 use constant ICON_SOLIDMESH     => 1;
 use constant ICON_MODIFIERMESH  => 2;
+use constant ICON_SUPPORT_ENFORCER => 3;
+use constant ICON_SUPPORT_BLOCKER => 4;
 
 sub new {
     my ($class, $parent, %params) = @_;
@@ -35,7 +37,7 @@ sub new {
         y               => 0,
         z               => 0,
     };
-    
+
     # create TreeCtrl
     my $tree = $self->{tree} = Wx::TreeCtrl->new($self, -1, wxDefaultPosition, [300, 100], 
         wxTR_NO_BUTTONS | wxSUNKEN_BORDER | wxTR_HAS_VARIABLE_ROW_HEIGHT
@@ -46,6 +48,8 @@ sub new {
         $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("brick.png"), wxBITMAP_TYPE_PNG));     # ICON_OBJECT
         $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("package.png"), wxBITMAP_TYPE_PNG));   # ICON_SOLIDMESH
         $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("plugin.png"), wxBITMAP_TYPE_PNG));    # ICON_MODIFIERMESH
+        $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("support_enforcer.png"), wxBITMAP_TYPE_PNG));    # ICON_SUPPORT_ENFORCER
+        $self->{tree_icons}->Add(Wx::Bitmap->new(Slic3r::var("support_blocker.png"), wxBITMAP_TYPE_PNG));    # ICON_SUPPORT_BLOCKER
         
         my $rootId = $tree->AddRoot("Object", ICON_OBJECT);
         $tree->SetPlData($rootId, { type => 'object' });
@@ -89,7 +93,14 @@ sub new {
     $self->{btn_move_down}->SetFont($Slic3r::GUI::small_font);
     
     # part settings panel
-    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub { $self->{part_settings_changed} = 1; $self->_update_canvas; });
+    $self->{settings_panel} = Slic3r::GUI::Plater::OverrideSettingsPanel->new($self, on_change => sub {
+        my ($key, $value) = @_;
+        wxTheApp->CallAfter(sub { 
+            $self->set_part_type($value) if ($key eq "part_type");
+            $self->{part_settings_changed} = 1;
+            $self->_update_canvas; 
+        });
+    });
     my $settings_sizer = Wx::StaticBoxSizer->new($self->{staticbox} = Wx::StaticBox->new($self, -1, "Part Settings"), wxVERTICAL);
     $settings_sizer->Add($self->{settings_panel}, 1, wxEXPAND | wxALL, 0);
 
@@ -225,8 +236,11 @@ sub reload_tree {
     my $selectedId = $rootId;
     foreach my $volume_id (0..$#{$object->volumes}) {
         my $volume = $object->volumes->[$volume_id];
-        
-        my $icon = $volume->modifier ? ICON_MODIFIERMESH : ICON_SOLIDMESH;
+        my $icon = 
+            $volume->modifier ? ICON_MODIFIERMESH : 
+            $volume->support_enforcer ? ICON_SUPPORT_ENFORCER :
+            $volume->support_blocker ? ICON_SUPPORT_BLOCKER :
+            ICON_SOLIDMESH;
         my $itemId = $tree->AppendItem($rootId, $volume->name || $volume_id, $icon);
         if ($volume_id == $selected_volume_idx) {
             $selectedId = $itemId;
@@ -288,6 +302,8 @@ sub selection_changed {
     
     if (my $itemData = $self->get_selection) {
         my ($config, @opt_keys);
+        my $type = Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_OBJECT;
+        my $support = 0;
         if ($itemData->{type} eq 'volume') {
             # select volume in 3D preview
             if ($self->{canvas}) {
@@ -301,16 +317,24 @@ sub selection_changed {
             # attach volume config to settings panel
             my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
    
-            if ($volume->modifier) {
+            if (! $volume->model_part) {
                 $self->{optgroup_movers}->enable;
+                if ($volume->support_enforcer || $volume->support_blocker) {
+                    $support = 1;
+                    $type = $volume->support_enforcer ? 
+                        Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_SUPPORT_ENFORCER :
+                        Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_SUPPORT_BLOCKER;
+                } else {
+                    $type = Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_MODIFIER;
+                }
             } else {
+                $type = Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_PART;
                 $self->{optgroup_movers}->disable;
             }
             $config = $volume->config;
             $self->{staticbox}->SetLabel('Part Settings');
-            
             # get default values
-            @opt_keys = @{Slic3r::Config::PrintRegion->new->get_keys};
+            @opt_keys = $support ? () : @{Slic3r::Config::PrintRegion->new->get_keys};
         } elsif ($itemData->{type} eq 'object') {
             # select nothing in 3D preview
             
@@ -323,31 +347,52 @@ sub selection_changed {
         # get default values
         my $default_config = Slic3r::Config::new_from_defaults_keys(\@opt_keys);
 
-       # decide which settings will be shown by default
+        # decide which settings will be shown by default
         if ($itemData->{type} eq 'object') {
             $config->set_ifndef('wipe_into_objects', 0);
             $config->set_ifndef('wipe_into_infill', 0);
         }
 
         # append default extruder
-        push @opt_keys, 'extruder';
-        $default_config->set('extruder', 0);
-        $config->set_ifndef('extruder', 0);
+        if (! $support) {
+            push @opt_keys, 'extruder';
+            $default_config->set('extruder', 0);
+            $config->set_ifndef('extruder', 0);
+        }
+        $self->{settings_panel}->set_type($type);
         $self->{settings_panel}->set_default_config($default_config);
         $self->{settings_panel}->set_config($config);
         $self->{settings_panel}->set_opt_keys(\@opt_keys);
 
         # disable minus icon to remove the settings
-        if ($itemData->{type} eq 'object') {
-            $self->{settings_panel}->set_fixed_options([qw(extruder), qw(wipe_into_infill), qw(wipe_into_objects)]);
-	} else {
-            $self->{settings_panel}->set_fixed_options([qw(extruder)]);
-        }
-
+        my $fixed_options = 
+            ($itemData->{type} eq 'object') ? [qw(extruder), qw(wipe_into_infill), qw(wipe_into_objects)] :
+            $support ? [] : [qw(extruder)];
+        $self->{settings_panel}->set_fixed_options($fixed_options);
         $self->{settings_panel}->enable;
     }
     
     Slic3r::GUI::_3DScene::render($self->{canvas}) if $self->{canvas};
+}
+
+sub set_part_type
+{
+    my ($self, $part_type) = @_;
+    if (my $itemData = $self->get_selection) {
+        if ($itemData->{type} eq 'volume') {
+            my $volume = $self->{model_object}->volumes->[ $itemData->{volume_id} ];
+            if ($part_type == Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_MODIFIER ||
+                $part_type == Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_PART) {            
+                $volume->set_modifier($part_type == Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_MODIFIER);
+            } elsif ($part_type == Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_SUPPORT_ENFORCER) {
+                $volume->set_support_enforcer;
+            } elsif ($part_type == Slic3r::GUI::Plater::OverrideSettingsPanel->TYPE_SUPPORT_BLOCKER) {
+                $volume->set_support_blocker;
+            }
+            # We want the icon of the selected item to be changed as well.
+            $self->reload_tree($itemData->{volume_id});
+        }
+    }
 }
 
 sub on_btn_load {

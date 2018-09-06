@@ -1734,7 +1734,7 @@ PrintConfigDef::PrintConfigDef()
                    "for the first object layer.");
     def->sidetext = L("mm");
     def->cli = "support-material-contact-distance=f";
-    def->min = 0;
+//    def->min = 0;
     def->enum_values.push_back("0");
     def->enum_values.push_back("0.2");
 	def->enum_labels.push_back((boost::format("0 (%1%)") % L("soluble")).str());
