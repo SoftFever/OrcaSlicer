@@ -424,11 +424,14 @@ bool Http::ca_file_supported()
 std::string Http::url_encode(const std::string &str)
 {
 	::CURL *curl = ::curl_easy_init();
+	if (curl == nullptr) {
+		return str;
+	}
 	char *ce = ::curl_easy_escape(curl, str.c_str(), str.length());
 	std::string encoded = std::string(ce);
 
 	::curl_free(ce);
-	if (curl != nullptr) { ::curl_easy_cleanup(curl); }
+	::curl_easy_cleanup(curl);
 
 	return encoded;
 }

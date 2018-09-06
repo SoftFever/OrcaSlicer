@@ -8,7 +8,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <boost/algorithm/string/replace.hpp>
 
 #include <wx/frame.h>
 #include <wx/event.h>
