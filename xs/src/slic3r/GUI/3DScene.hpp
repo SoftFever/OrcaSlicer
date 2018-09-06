@@ -337,6 +337,8 @@ public:
 
     void set_convex_hull(const TriangleMesh& convex_hull);
 
+    void set_select_group_id(const std::string& select_by);
+
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
@@ -446,6 +448,8 @@ public:
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);
 
+    void set_select_by(const std::string& select_by);
+
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs(bool active_only) const;
 
@@ -498,6 +502,8 @@ public:
     static void set_color_by(wxGLCanvas* canvas, const std::string& value);
     static void set_select_by(wxGLCanvas* canvas, const std::string& value);
     static void set_drag_by(wxGLCanvas* canvas, const std::string& value);
+
+    static std::string get_select_by(wxGLCanvas* canvas);
 
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
     static bool is_layers_editing_allowed(wxGLCanvas* canvas);
@@ -562,9 +568,12 @@ public:
     static void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
+
+    static int get_first_volume_id(wxGLCanvas* canvas, int obj_idx);
 
     static void reload_scene(wxGLCanvas* canvas, bool force);
 

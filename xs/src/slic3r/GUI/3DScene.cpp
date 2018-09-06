@@ -303,6 +303,16 @@ void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
     m_convex_hull = &convex_hull;
 }
 
+void GLVolume::set_select_group_id(const std::string& select_by)
+{
+    if (select_by == "object")
+        select_group_id = object_idx() * 1000000;
+    else if (select_by == "volume")
+        select_group_id = object_idx() * 1000000 + volume_idx() * 1000;
+    else if (select_by == "instance")
+        select_group_id = composite_id;
+}
+
 const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
@@ -655,12 +665,7 @@ std::vector<int> GLVolumeCollection::load_object(
             v.bounding_box = v.indexed_vertex_array.bounding_box();
             v.indexed_vertex_array.finalize_geometry(use_VBOs);
             v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
-            if (select_by == "object")
-                v.select_group_id = obj_idx * 1000000;
-            else if (select_by == "volume")
-                v.select_group_id = obj_idx * 1000000 + volume_idx * 1000;
-            else if (select_by == "instance")
-                v.select_group_id = v.composite_id;
+            v.set_select_group_id(select_by);
             if (drag_by == "object")
                 v.drag_group_id = obj_idx * 1000;
             else if (drag_by == "instance")
@@ -946,6 +951,15 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
                 volume->color[i] = (float)color.rgb[i] * inv_255;
             }
         }
+    }
+}
+
+void GLVolumeCollection::set_select_by(const std::string& select_by)
+{
+    for (GLVolume *vol : this->volumes)
+    {
+        if (vol != nullptr)
+            vol->set_select_group_id(select_by);
     }
 }
 
@@ -1772,12 +1786,12 @@ void _3DScene::set_model(wxGLCanvas* canvas, Model* model)
 
 void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
 {
-    return s_canvas_mgr.set_bed_shape(canvas, shape);
+    s_canvas_mgr.set_bed_shape(canvas, shape);
 }
 
 void _3DScene::set_auto_bed_shape(wxGLCanvas* canvas)
 {
-    return s_canvas_mgr.set_auto_bed_shape(canvas);
+    s_canvas_mgr.set_auto_bed_shape(canvas);
 }
 
 BoundingBoxf3 _3DScene::get_volumes_bounding_box(wxGLCanvas* canvas)
@@ -1792,22 +1806,27 @@ void _3DScene::set_axes_length(wxGLCanvas* canvas, float length)
 
 void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
 {
-    return s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
+    s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
 }
 
 void _3DScene::set_color_by(wxGLCanvas* canvas, const std::string& value)
 {
-    return s_canvas_mgr.set_color_by(canvas, value);
+    s_canvas_mgr.set_color_by(canvas, value);
 }
 
 void _3DScene::set_select_by(wxGLCanvas* canvas, const std::string& value)
 {
-    return s_canvas_mgr.set_select_by(canvas, value);
+    s_canvas_mgr.set_select_by(canvas, value);
 }
 
 void _3DScene::set_drag_by(wxGLCanvas* canvas, const std::string& value)
 {
-    return s_canvas_mgr.set_drag_by(canvas, value);
+    s_canvas_mgr.set_drag_by(canvas, value);
+}
+
+std::string _3DScene::get_select_by(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_select_by(canvas);
 }
 
 bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
@@ -2080,6 +2099,11 @@ void _3DScene::register_action_layersediting_callback(wxGLCanvas* canvas, void* 
     s_canvas_mgr.register_action_layersediting_callback(canvas, callback);
 }
 
+void _3DScene::register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_action_selectbyparts_callback(canvas, callback);
+}
+
 static inline int hex_digit_to_int(const char c)
 {
     return 
@@ -2115,6 +2139,11 @@ std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const ModelObject* mo
 std::vector<int> _3DScene::load_object(wxGLCanvas* canvas, const Model* model, int obj_idx)
 {
     return s_canvas_mgr.load_object(canvas, model, obj_idx);
+}
+
+int _3DScene::get_first_volume_id(wxGLCanvas* canvas, int obj_idx)
+{
+    return s_canvas_mgr.get_first_volume_id(canvas, obj_idx);
 }
 
 void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)

@@ -1572,7 +1572,6 @@ void update_position_values()
 void update_position_values(const Vec3d& position)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
-    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
 
     og->set_value("position_x", int(position(0)));
     og->set_value("position_y", int(position(1)));

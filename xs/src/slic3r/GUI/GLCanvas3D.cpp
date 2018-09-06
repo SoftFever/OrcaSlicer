@@ -2018,6 +2018,9 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
     if (m_model == nullptr)
         return;
 
+    if (selections.empty())
+        return;
+
     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
     {
         if ((selections[obj_idx] == 1) && (obj_idx < (unsigned int)m_objects_volumes_idxs.size()))
@@ -2144,11 +2147,17 @@ void GLCanvas3D::set_color_by(const std::string& value)
 void GLCanvas3D::set_select_by(const std::string& value)
 {
     m_select_by = value;
+    m_volumes.set_select_by(value);
 }
 
 void GLCanvas3D::set_drag_by(const std::string& value)
 {
     m_drag_by = value;
+}
+
+const std::string& GLCanvas3D::get_select_by() const
+{
+    return m_select_by;
 }
 
 float GLCanvas3D::get_camera_zoom() const
@@ -2430,6 +2439,17 @@ std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
     }
 
     return std::vector<int>();
+}
+
+int GLCanvas3D::get_first_volume_id(int obj_idx) const
+{
+    for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
+    {
+        if ((m_volumes.volumes[i] != nullptr) && (m_volumes.volumes[i]->object_idx() == obj_idx))
+            return i;
+    }
+
+    return -1;
 }
 
 void GLCanvas3D::reload_scene(bool force)
@@ -2757,6 +2777,12 @@ void GLCanvas3D::register_action_layersediting_callback(void* callback)
         m_action_layersediting_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_action_selectbyparts_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_action_selectbyparts_callback.register_callback(callback);
+}
+
 void GLCanvas3D::bind_event_handlers()
 {
     if (m_canvas != nullptr)
@@ -3043,7 +3069,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             // propagate event through callback
             if (m_picking_enabled && (volume_idx != -1))
-                _on_select(volume_idx);
+                _on_select(volume_idx, selected_object_idx);
 
             if (volume_idx != -1)
             {
@@ -3287,7 +3313,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_picking_enabled && !m_toolbar_action_running)
             {
                 deselect_volumes();
-                _on_select(-1);
+                _on_select(-1, -1);
                 update_gizmos_data();
             }
         }
@@ -3509,6 +3535,17 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 9;
     item.is_toggable = true;
     item.action_callback = &m_action_layersediting_callback;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    if (!m_toolbar.add_separator())
+        return false;
+
+    item.name = "selectbyparts";
+    item.tooltip = GUI::L_str("Select by parts");
+    item.sprite_id = 10;
+    item.is_toggable = true;
+    item.action_callback = &m_action_selectbyparts_callback;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3751,6 +3788,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_action_cut_callback.deregister_callback();
     m_action_settings_callback.deregister_callback();
     m_action_layersediting_callback.deregister_callback();
+    m_action_selectbyparts_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -5262,17 +5300,35 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         m_on_wipe_tower_moved_callback.call(wipe_tower_origin(0), wipe_tower_origin(1));
 }
 
-void GLCanvas3D::_on_select(int volume_idx)
+void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 {
-    int id = -1;
+    int vol_id = -1;
+    int obj_id = -1;
+
     if ((volume_idx != -1) && (volume_idx < (int)m_volumes.volumes.size()))
     {
         if (m_select_by == "volume")
-            id = m_volumes.volumes[volume_idx]->volume_idx();
+        {
+            if (m_volumes.volumes[volume_idx]->object_idx() != object_idx)
+            {
+                set_select_by("object");
+                obj_id = m_volumes.volumes[volume_idx]->object_idx();
+                vol_id = -1;
+            }
+            else
+            {
+                obj_id = object_idx;
+                vol_id = m_volumes.volumes[volume_idx]->volume_idx();
+            }
+        }
         else if (m_select_by == "object")
-            id = m_volumes.volumes[volume_idx]->object_idx();
+        {
+            obj_id = m_volumes.volumes[volume_idx]->object_idx();
+            vol_id = -1;
+        }
     }
-    m_on_select_object_callback.call(id);
+
+    m_on_select_object_callback.call(obj_id, vol_id);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

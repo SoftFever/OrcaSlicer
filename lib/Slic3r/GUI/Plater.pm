@@ -85,9 +85,13 @@ sub new {
     
     # Initialize handlers for canvases
     my $on_select_object = sub {
-        my ($obj_idx) = @_;
-        # Ignore the special objects (the wipe tower proxy and such).
-        $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
+        my ($obj_idx, $vol_idx) = @_;
+                        
+        if (($obj_idx != -1) && ($vol_idx == -1)) {
+            # Ignore the special objects (the wipe tower proxy and such).
+            $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
+            $self->item_changed_selection($obj_idx) if (defined($obj_idx));
+        }
     };
     my $on_double_click = sub {
         $self->object_settings_dialog if $self->selected_object;
@@ -217,6 +221,29 @@ sub new {
         my $state = Slic3r::GUI::_3DScene::is_toolbar_item_pressed($self->{canvas3D}, "layersediting");
         $self->on_layer_editing_toggled($state);
     };
+
+    my $on_action_selectbyparts = sub {
+        my $curr = Slic3r::GUI::_3DScene::get_select_by($self->{canvas3D});
+        if ($curr eq 'volume') {
+            Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'object');
+            my $selections = $self->collect_selections;
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);        
+        }
+        elsif ($curr eq 'object') {
+            Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'volume');
+            my $selections = [];
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);      
+
+            my ($obj_idx, $object) = $self->selected_object;
+            if (defined $obj_idx) {            
+                my $vol_idx = Slic3r::GUI::_3DScene::get_first_volume_id($self->{canvas3D}, $obj_idx);                 
+                Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx) if ($vol_idx != -1);
+            }
+        }
+    };
         
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
@@ -247,6 +274,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_action_cut_callback($self->{canvas3D}, $on_action_cut);
         Slic3r::GUI::_3DScene::register_action_settings_callback($self->{canvas3D}, $on_action_settings);
         Slic3r::GUI::_3DScene::register_action_layersediting_callback($self->{canvas3D}, $on_action_layersediting);
+        Slic3r::GUI::_3DScene::register_action_selectbyparts_callback($self->{canvas3D}, $on_action_selectbyparts);
         Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_toolbar($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
@@ -2331,12 +2359,24 @@ sub selection_changed {
     }
     
     Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", $layers_height_allowed);
+
+    my $can_select_by_parts = 0;
     
     if ($have_sel) {
         my $model_object = $self->{model}->objects->[$obj_idx];
+        $can_select_by_parts = ($obj_idx >= 0) && ($obj_idx < 1000) && ($model_object->volumes_count > 1);
         Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "fewer", $model_object->instances_count > 1);
     }
     
+    if ($can_select_by_parts) {
+        # first disable to let the item in the toolbar to switch to the unpressed state
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "selectbyparts", 0);
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "selectbyparts", 1);
+    } else {
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "selectbyparts", 0);
+        Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'object');
+    }
+        
     if ($self->{object_info_size}) { # have we already loaded the info pane?
         if ($have_sel) {
             my $model_object = $self->{model}->objects->[$obj_idx];
