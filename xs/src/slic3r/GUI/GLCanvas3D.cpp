@@ -5241,11 +5241,14 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
         {
             // Move a regular object.
             ModelObject* model_object = m_model->objects[obj_idx];
-            const Vec3d& offset = volume->get_offset();
-            model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
-            model_object->invalidate_bounding_box();
-            update_position_values();
-            object_moved = true;
+            if (model_object != nullptr)
+            {
+                const Vec3d& offset = volume->get_offset();
+                model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
+                model_object->invalidate_bounding_box();
+                update_position_values();
+                object_moved = true;
+            }
         }
         else if (obj_idx == 1000)
             // Move a wipe tower proxy.

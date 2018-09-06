@@ -1016,6 +1016,11 @@ BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, b
     return bbox.transformed(world_matrix(dont_translate));
 }
 
+Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
+{
+    return world_matrix(dont_translate) * v;
+}
+
 void ModelInstance::transform_polygon(Polygon* polygon) const
 {
     polygon->rotate(this->rotation);                // rotate around polygon origin

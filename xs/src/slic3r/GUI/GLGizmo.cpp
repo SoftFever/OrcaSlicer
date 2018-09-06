@@ -1061,8 +1061,6 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
-        // FIXME: the color assignement will fail if the planes count is greater than 254
-        //        use the other color components in that case !!
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
         for (const Vec2d& offset : m_instances_positions) {
             ::glPushMatrix();
@@ -1240,9 +1238,9 @@ void GLGizmoFlatten::update_planes()
         polygon = transform(polygon, m);
     }
 
-    // We'll sort the planes by area and only keep the 255 largest ones (because of the picking pass limitations):
+    // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
     std::sort(m_planes.rbegin(), m_planes.rend(), [](const PlaneData& a, const PlaneData& b) { return a.area < b.area; });
-    m_planes.resize(std::min((int)m_planes.size(), 255));
+    m_planes.resize(std::min((int)m_planes.size(), 254));
 
     // Planes are finished - let's save what we calculated it from:
     m_source_data.bounding_boxes.clear();
