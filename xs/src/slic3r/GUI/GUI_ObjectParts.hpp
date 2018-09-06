@@ -79,6 +79,7 @@ void object_ctrl_context_menu();
 void object_ctrl_key_event(wxKeyEvent& event);
 void object_ctrl_item_value_change(wxDataViewEvent& event);
 void show_context_menu();
+bool is_splittable_object(const bool split_part);
 
 void init_mesh_icons();
 void set_event_object_selection_changed(const int& event);

@@ -1023,14 +1023,6 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 	update_settings_list();
 }
 
-bool cur_item_hase_children()
-{
-    wxDataViewItemArray children;
-    if (m_objects_model->GetChildren(m_objects_ctrl->GetSelection(), children) > 0)
-        return true;
-    return false;
-}
-
 wxMenuItem* menu_item_split(wxMenu* menu, int id) {
     auto menu_item = new wxMenuItem(menu, id, _(L("Split to parts")));
     menu_item->SetBitmap(m_bmp_split);
@@ -1064,7 +1056,7 @@ wxMenu *create_add_part_popupmenu()
     menu->AppendSeparator();
     auto menu_item = menu_item_split(menu, config_id_base + i);
     menu->Append(menu_item);
-    menu_item->Enable(!cur_item_hase_children());
+    menu_item->Enable(is_splittable_object(false));
 
     menu->AppendSeparator();
     // Append settings popupmenu
@@ -1100,7 +1092,9 @@ wxMenu *create_part_settings_popupmenu()
     wxMenu *menu = new wxMenu;
     wxWindowID config_id_base = wxWindow::NewControlId(2);
 
-    menu->Append(menu_item_split(menu, config_id_base));
+    auto menu_item = menu_item_split(menu, config_id_base);
+    menu->Append(menu_item);
+    menu_item->Enable(is_splittable_object(true));
 
     menu->AppendSeparator();
     // Append settings popupmenu
@@ -1332,23 +1326,54 @@ void on_btn_del()
 	part_selection_changed();
 }
 
+bool get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
+{
+    if (!item || m_selected_object_id < 0)
+        return false;
+    const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+    if (volume_id < 0) {
+        if (split_part) return false;
+        volume = (*m_objects)[m_selected_object_id]->volumes[0]; 
+    }
+    else
+        volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+    if (volume)
+        return true;
+    return false;
+}
+
+bool is_splittable_object(const bool split_part)
+{
+    const wxDataViewItem item = m_objects_ctrl->GetSelection();
+    if (!item) return false;
+
+    wxDataViewItemArray children;
+    if (!split_part && m_objects_model->GetChildren(item, children) > 0)
+        return false;
+
+    ModelVolume* volume;
+    if (!get_volume_by_item(split_part, item, volume) || !volume)
+        return false;
+
+    TriangleMeshPtrs meshptrs = volume->mesh.split();
+    if (meshptrs.size() <= 1) {
+        delete meshptrs.front();
+        return false;
+    }
+
+    return true;
+}
+
 void on_btn_split(const bool split_part)
 {
-	auto item = m_objects_ctrl->GetSelection();
+	const auto item = m_objects_ctrl->GetSelection();
 	if (!item || m_selected_object_id<0)
 		return;
-	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
     ModelVolume* volume;
-    if (volume_id < 0) {
-        if (split_part) return;
-        else
-            volume = (*m_objects)[m_selected_object_id]->volumes[0]; }
-    else
-	    volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
- 	DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
-    auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-    auto split_rez = volume->split(nozzle_dmrs_cnt);
-    if (split_rez == 1) {
+    if (!get_volume_by_item(split_part, item, volume)) return;
+    DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
+    const auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    if (volume->split(nozzle_dmrs_cnt) == 1) {
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
     }
