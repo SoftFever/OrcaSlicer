@@ -669,10 +669,9 @@ void ModelObject::center_around_origin()
         if (! v->modifier)
 			bb.merge(v->mesh.bounding_box());
     
-    // First align to origin on XYZ, then center it on XY.
-    Vec3d size = bb.size();
-    size(2) = 0.0;
-    Vec3d shift = -bb.min - 0.5 * size;
+    // Shift is the vector from the center of the bottom face of the bounding box to the origin
+    Vec3d shift = -bb.center();
+    shift(2) = -bb.min(2);
 
     this->translate(shift);
     this->origin_translation += shift;
