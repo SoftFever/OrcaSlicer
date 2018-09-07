@@ -1031,7 +1031,7 @@ void menu_item_add_generic(wxMenuItem* &menu, int id) {
 
 #ifndef __WXMSW__
     sub_menu->Bind(wxEVT_MENU, [sub_menu](wxEvent &event) {
-        load_lambda(menu->GetLabel(event.GetId()).ToStdString());
+        load_lambda(sub_menu->GetLabel(event.GetId()).ToStdString());
     });
 #endif //no __WXMSW__
 
