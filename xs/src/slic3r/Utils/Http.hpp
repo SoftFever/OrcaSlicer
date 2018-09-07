@@ -98,6 +98,9 @@ public:
 
 	// Tells whether current backend supports seting up a CA file using ca_file()
 	static bool ca_file_supported();
+
+	// converts the given string to an url_encoded_string
+	static std::string url_encode(const std::string &str);
 private:
 	Http(const std::string &url);
 
