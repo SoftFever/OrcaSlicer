@@ -281,7 +281,7 @@ wxBoxSizer* create_objects_list(wxWindow *win)
 
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event) {
         object_ctrl_context_menu();
-		event.Skip();
+//		event.Skip();
 	});
 
     m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event) { object_ctrl_key_event(event); }); // doesn't work on OSX
@@ -1018,7 +1018,7 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
                                m_objects_model->AddSettingsChild(item));
         part_selection_changed();
     }
-
+    else
 	update_settings_list();
 }
 
@@ -1028,6 +1028,12 @@ void menu_item_add_generic(wxMenuItem* &menu, int id) {
     std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
     for (auto& item : menu_items)
         sub_menu->Append(new wxMenuItem(sub_menu, ++id, _(item)));
+
+#ifndef __WXMSW__
+    sub_menu->Bind(wxEVT_MENU, [sub_menu](wxEvent &event) {
+        load_lambda(menu->GetLabel(event.GetId()).ToStdString());
+    });
+#endif //no __WXMSW__
 
     menu->SetSubMenu(sub_menu);
 }
@@ -1088,14 +1094,18 @@ wxMenu *create_add_part_popupmenu()
         case 4:
         case 5:
         case 6:
-            load_lambda(menu->GetLabel(event.GetId()).ToStdString());
+#ifdef __WXMSW__
+		    load_lambda(menu->GetLabel(event.GetId()).ToStdString());
+#endif // __WXMSW__
             break;
- 	    case 7: //3:
+		case 7: //3:
 			on_btn_split(false);
 			break;
-		default:{
+		default:
+#ifdef __WXMSW__
 			get_settings_choice(menu, event.GetId(), false);
-			break;}
+#endif // __WXMSW__
+			break;
 		}
 	});
 
@@ -1145,11 +1155,11 @@ wxMenu *create_add_settings_popupmenu(bool is_part)
 								wxNullBitmap : categories.at(cat.first));
 		menu->Append(menu_item);
 	}
-
+#ifndef __WXMSW__
 	menu->Bind(wxEVT_MENU, [menu](wxEvent &event) {
 		get_settings_choice(menu, event.GetId(), true);
 	});
-
+#endif //no __WXMSW__
 	return menu;
 }
 
@@ -1297,9 +1307,9 @@ void load_lambda(const std::string& type_name)
 
     m_objects_ctrl->Select(m_objects_model->AddChild(m_objects_ctrl->GetSelection(), 
                                                      name, m_icon_modifiermesh));
-#ifdef __WXMSW__
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     object_ctrl_selection_changed();
-#endif //__WXMSW__
+#endif //no __WXOSX__ //__WXMSW__
 }
 
 void on_btn_load(bool is_modifier /*= false*/, bool is_lambda/* = false*/)
@@ -1325,10 +1335,9 @@ void on_btn_load(bool is_modifier /*= false*/, bool is_lambda/* = false*/)
 	for (int i = 0; i < part_names.size(); ++i)
 		m_objects_ctrl->Select(	m_objects_model->AddChild(item, part_names.Item(i), 
 								is_modifier ? m_icon_modifiermesh : m_icon_solidmesh));
-// 	part_selection_changed();
-#ifdef __WXMSW__
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
 	object_ctrl_selection_changed();
-#endif //__WXMSW__
+#endif //no __WXOSX__//__WXMSW__
 }
 
 void remove_settings_from_config()

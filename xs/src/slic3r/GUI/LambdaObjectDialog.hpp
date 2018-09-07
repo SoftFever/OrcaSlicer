@@ -7,6 +7,8 @@
 #include <wx/sizer.h>
 #include <wx/choicebk.h>
 
+class wxPanel;
+
 namespace Slic3r
 {
 namespace GUI
