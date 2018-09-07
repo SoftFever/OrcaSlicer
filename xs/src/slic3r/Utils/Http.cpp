@@ -421,6 +421,21 @@ bool Http::ca_file_supported()
 	return res;
 }
 
+std::string Http::url_encode(const std::string &str)
+{
+	::CURL *curl = ::curl_easy_init();
+	if (curl == nullptr) {
+		return str;
+	}
+	char *ce = ::curl_easy_escape(curl, str.c_str(), str.length());
+	std::string encoded = std::string(ce);
+
+	::curl_free(ce);
+	::curl_easy_cleanup(curl);
+
+	return encoded;
+}
+
 std::ostream& operator<<(std::ostream &os, const Http::Progress &progress)
 {
 	os << "Http::Progress("
