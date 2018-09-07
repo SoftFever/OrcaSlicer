@@ -331,6 +331,8 @@ public:
 //    ConfigOptionFloat               seam_preferred_direction;
 //    ConfigOptionFloat               seam_preferred_direction_jitter;
     ConfigOptionBool                support_material;
+    // Automatic supports (generated based on support_material_threshold).
+    ConfigOptionBool                support_material_auto;
     // Direction of the support pattern (in XY plane).
     ConfigOptionFloat               support_material_angle;
     ConfigOptionBool                support_material_buildplate_only;
@@ -372,6 +374,7 @@ protected:
 //        OPT_PTR(seam_preferred_direction);
 //        OPT_PTR(seam_preferred_direction_jitter);
         OPT_PTR(support_material);
+        OPT_PTR(support_material_auto);
         OPT_PTR(support_material_angle);
         OPT_PTR(support_material_buildplate_only);
         OPT_PTR(support_material_contact_distance);

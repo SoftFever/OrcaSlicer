@@ -1696,6 +1696,14 @@ PrintConfigDef::PrintConfigDef()
     def->cli = "support-material!";
     def->default_value = new ConfigOptionBool(false);
 
+    def = this->add("support_material_auto", coBool);
+    def->label = L("Auto generated supports");
+    def->category = L("Support material");
+    def->tooltip = L("If checked, supports will be generated automatically based on the overhang threshold value."\
+                     " If unchecked, supports will be generated inside the \"Support Enforcer\" volumes only.");
+    def->cli = "support-material-auto!";
+    def->default_value = new ConfigOptionBool(true);
+
     def = this->add("support_material_xy_spacing", coFloatOrPercent);
     def->label = L("XY separation between an object and its support");
     def->category = L("Support material");

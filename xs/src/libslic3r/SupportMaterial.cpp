@@ -495,12 +495,12 @@ public:
     // and trim the extracted polygons by trimming_polygons.
     // Trimming by the trimming_polygons may split the extracted polygons into pieces.
     // Remove all the pieces, which do not contain any of the island_samples.
-    Polygons extract_support(const coord_t offset_in_grid)
+    Polygons extract_support(const coord_t offset_in_grid, bool fill_holes)
     {
         // Generate islands, so each island may be tested for overlap with m_island_samples.
         assert(std::abs(2 * offset_in_grid) < m_grid.resolution());
         ExPolygons islands = diff_ex(
-            m_grid.contours_simplified(offset_in_grid),
+            m_grid.contours_simplified(offset_in_grid, fill_holes),
             *m_trimming_polygons, false);
 
         // Extract polygons, which contain some of the m_island_samples.
@@ -812,6 +812,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     // Output layers, sorted by top Z.
     MyLayersPtr contact_out;
 
+    const bool   support_auto  = m_object_config->support_material_auto.value;
     // If user specified a custom angle threshold, convert it to radians.
     // Zero means automatic overhang detection.
     const double threshold_rad = (m_object_config->support_material_threshold.value > 0) ? 
@@ -851,7 +852,8 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
     contact_out.assign(num_layers * 2, nullptr);
     tbb::spin_mutex layer_storage_mutex;
     tbb::parallel_for(tbb::blocked_range<size_t>(this->has_raft() ? 0 : 1, num_layers),
-        [this, &object, &buildplate_covered, &enforcers, &blockers, threshold_rad, &layer_storage, &layer_storage_mutex, &contact_out](const tbb::blocked_range<size_t>& range) {
+        [this, &object, &buildplate_covered, &enforcers, &blockers, support_auto, threshold_rad, &layer_storage, &layer_storage_mutex, &contact_out]
+        (const tbb::blocked_range<size_t>& range) {
             for (size_t layer_id = range.begin(); layer_id < range.end(); ++ layer_id) 
             {
                 const Layer &layer = *object.layers[layer_id];
@@ -901,34 +903,35 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 diff_polygons = diff(diff_polygons, buildplate_covered[layer_id]);
                             }
                         } else {
-                            // Get the regions needing a suport, collapse very tiny spots.
-                            //FIXME cache the lower layer offset if this layer has multiple regions.
-#if 1
-                            diff_polygons = offset2(
-                                diff(layerm_polygons,
-                                     offset2(lower_layer_polygons, - 0.5f * fw, lower_layer_offset + 0.5f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS)), 
-                                //FIXME This offset2 is targeted to reduce very thin regions to support, but it may lead to
-                                // no support at all for not so steep overhangs.
-                                - 0.1f * fw, 0.1f * fw);
-#else
-                            diff_polygons = 
-                                diff(layerm_polygons,
-                                     offset(lower_layer_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
-#endif
-                            if (! buildplate_covered.empty()) {
-                                // Don't support overhangs above the top surfaces.
-                                // This step is done before the contact surface is calculated by growing the overhang region.
-                                diff_polygons = diff(diff_polygons, buildplate_covered[layer_id]);
+                            if (support_auto) {
+                                // Get the regions needing a suport, collapse very tiny spots.
+                                //FIXME cache the lower layer offset if this layer has multiple regions.
+    #if 1
+                                diff_polygons = offset2(
+                                    diff(layerm_polygons,
+                                         offset2(lower_layer_polygons, - 0.5f * fw, lower_layer_offset + 0.5f * fw, SUPPORT_SURFACES_OFFSET_PARAMETERS)), 
+                                    //FIXME This offset2 is targeted to reduce very thin regions to support, but it may lead to
+                                    // no support at all for not so steep overhangs.
+                                    - 0.1f * fw, 0.1f * fw);
+    #else
+                                diff_polygons = 
+                                    diff(layerm_polygons,
+                                         offset(lower_layer_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS));
+    #endif
+                                if (! buildplate_covered.empty()) {
+                                    // Don't support overhangs above the top surfaces.
+                                    // This step is done before the contact surface is calculated by growing the overhang region.
+                                    diff_polygons = diff(diff_polygons, buildplate_covered[layer_id]);
+                                }
+                                if (! diff_polygons.empty()) {
+    	                            // Offset the support regions back to a full overhang, restrict them to the full overhang.
+    	                            // This is done to increase size of the supporting columns below, as they are calculated by 
+    	                            // propagating these contact surfaces downwards.
+    	                            diff_polygons = diff(
+    	                                intersection(offset(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), 
+    	                                lower_layer_polygons);
+    							}
                             }
-                            if (! diff_polygons.empty()) {
-	                            // Offset the support regions back to a full overhang, restrict them to the full overhang.
-	                            // This is done to increase size of the supporting columns below, as they are calculated by 
-	                            // propagating these contact surfaces downwards.
-	                            diff_polygons = diff(
-	                                intersection(offset(diff_polygons, lower_layer_offset, SUPPORT_SURFACES_OFFSET_PARAMETERS), layerm_polygons), 
-	                                lower_layer_polygons);
-							}
-
                             if (! enforcers.empty()) {
                                 // Apply the "support enforcers".
                                 //FIXME add the "enforcers" to the sparse support regions only.
@@ -1000,7 +1003,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 slices_margin_cached_offset = slices_margin_offset;
                                 slices_margin_cached = (slices_margin_offset == 0.f) ? 
                                     lower_layer_polygons :
-                                    offset2(to_polygons(lower_layer.slices.expolygons), - scale_(- no_interface_offset * 0.5f), slices_margin_offset + scale_(- no_interface_offset * 0.5f), SUPPORT_SURFACES_OFFSET_PARAMETERS);
+                                    offset2(to_polygons(lower_layer.slices.expolygons), - no_interface_offset * 0.5f, slices_margin_offset + no_interface_offset * 0.5f, SUPPORT_SURFACES_OFFSET_PARAMETERS);
                                 if (! buildplate_covered.empty()) {
                                     // Trim the inflated contact surfaces by the top surfaces as well.
                                     polygons_append(slices_margin_cached, buildplate_covered[layer_id]);
@@ -1102,16 +1105,18 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                         m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
                         Geometry::deg2rad(m_object_config->support_material_angle.value));
                     // 1) Contact polygons will be projected down. To keep the interface and base layers from growing, return a contour a tiny bit smaller than the grid cells.
-                    new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3));
+                    new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3, true));
                     // 2) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
                     if (layer_id == 0) {
                     // if (no_interface_offset == 0.f) {
-                        new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5);
+                        new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, true);
                     } else  {
-                        //Polygons dense_interface_polygons = diff(overhang_polygons, offset(lower_layer_polygons, scale_(no_interface_offset * 0.7f)));
                         Polygons dense_interface_polygons = diff(overhang_polygons, 
-                            offset2(lower_layer_polygons, scale_(- no_interface_offset * 0.5f), scale_(no_interface_offset * (0.7f + 0.5f)), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+                            offset2(lower_layer_polygons, - no_interface_offset * 0.5f, no_interface_offset * (0.6f + 0.5f), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+//                            offset(lower_layer_polygons, no_interface_offset * 0.6f, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                         if (! dense_interface_polygons.empty()) {
+                            //FIXME do it for non-soluble support interfaces only.
+                            //FIXME do it for the bridges only?
                             SupportGridPattern support_grid_pattern(
                                 // Support islands, to be stretched into a grid.
                                 dense_interface_polygons, 
@@ -1120,7 +1125,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                                 // Grid resolution.
                                 m_object_config->support_material_spacing.value + m_support_material_flow.spacing(),
                                 Geometry::deg2rad(m_object_config->support_material_angle.value));                        
-                            new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5);
+                            new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, false);
                         }
                     }
 
@@ -1407,7 +1412,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                     , &layer
         #endif /* SLIC3R_DEBUG */
                     ] {
-                    layer_support_area = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 25);
+                    layer_support_area = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 25, true);
         #ifdef SLIC3R_DEBUG
                     Slic3r::SVG::export_expolygons(
                         debug_out_path("support-layer_support_area-gridded-%d-%lf.svg", iRun, layer.print_z),
@@ -1421,7 +1426,7 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::bottom_conta
                     , &layer
         #endif /* SLIC3R_DEBUG */
                     ] {
-                    projection_new = support_grid_pattern.extract_support(-5);
+                    projection_new = support_grid_pattern.extract_support(-5, true);
         #ifdef SLIC3R_DEBUG
                     Slic3r::SVG::export_expolygons(
                         debug_out_path("support-projection_new-gridded-%d-%lf.svg", iRun, layer.print_z),
