@@ -1687,6 +1687,7 @@ sub print_info_box_show {
 
     $scrolled_window_sizer->Show(2, $show);
     $scrolled_window_panel->Layout;
+    $self->Layout;
 }
 
 sub do_print {
