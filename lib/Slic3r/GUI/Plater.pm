@@ -2129,17 +2129,18 @@ sub on_config_change {
     $self->schedule_background_process;
 }
 
-sub item_changed_selection{
+sub item_changed_selection {
     my ($self, $obj_idx) = @_;
 
-#    $self->{canvas}->Refresh;
-    if ($self->{canvas3D}) {
-        Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
-        if ($obj_idx >= 0){
-            my $selections = $self->collect_selections;
-            Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+    if (($obj_idx >= 0) && ($obj_idx < 1000)) { # skip if wipe tower selected
+        if ($self->{canvas3D}) {
+            Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+            if ($obj_idx >= 0) {
+                my $selections = $self->collect_selections;
+                Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+            }
+#            Slic3r::GUI::_3DScene::render($self->{canvas3D});
         }
-        Slic3r::GUI::_3DScene::render($self->{canvas3D});
     }
 }
 
