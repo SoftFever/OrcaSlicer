@@ -1182,7 +1182,7 @@ static void thick_lines_to_indexed_vertex_array(
         b1_prev = b1;
         v_prev = v;
 
-        if (bottom_z_different)
+        if (bottom_z_different && (closed || (!is_first && !is_last)))
         {
             // Found a change of the layer thickness -> Add a cap at the beginning of this segment.
             volume.push_quad(idx_a[BOTTOM], idx_a[RIGHT], idx_a[TOP], idx_a[LEFT]);
@@ -1190,10 +1190,10 @@ static void thick_lines_to_indexed_vertex_array(
 
         if (! closed) {
             // Terminate open paths with caps.
-            if (is_first && !bottom_z_different)
+            if (is_first)
                 volume.push_quad(idx_a[BOTTOM], idx_a[RIGHT], idx_a[TOP], idx_a[LEFT]);
             // We don't use 'else' because both cases are true if we have only one line.
-            if (is_last && !bottom_z_different)
+            if (is_last)
                 volume.push_quad(idx_b[BOTTOM], idx_b[LEFT], idx_b[TOP], idx_b[RIGHT]);
         }
 
