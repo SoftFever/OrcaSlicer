@@ -224,24 +224,20 @@ namespace Slic3r { namespace GUI {
 		}), temp->GetId());
 #endif // __WXGTK__
 
-		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent)
+		temp->Bind(wxEVT_TEXT, ([this](wxCommandEvent& evt)
 		{
 #ifdef __WXGTK__
-			bChangedValueEvent = true;
-#else
-			on_change_field();
+			if (bChangedValueEvent)
 #endif //__WXGTK__
+			on_change_field();
 		}), temp->GetId());
 
 #ifdef __WXGTK__
-		temp->Bind(wxEVT_KEY_UP, [this](wxKeyEvent& event)
-		{
-			if (bChangedValueEvent)	{
-				on_change_field();
-				bChangedValueEvent = false;
-			}
-			event.Skip();
-		});
+        // to correct value updating on GTK we should:
+        // call on_change_field() on wxEVT_KEY_UP instead of wxEVT_TEXT
+        // and prevent value updating on wxEVT_KEY_DOWN
+        temp->Bind(wxEVT_KEY_DOWN, &TextCtrl::change_field_value, this);
+        temp->Bind(wxEVT_KEY_UP, &TextCtrl::change_field_value, this);
 #endif //__WXGTK__
 
 		// select all text using Ctrl+A
@@ -266,6 +262,15 @@ namespace Slic3r { namespace GUI {
 
 	void TextCtrl::enable() { dynamic_cast<wxTextCtrl*>(window)->Enable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(true); }
     void TextCtrl::disable() { dynamic_cast<wxTextCtrl*>(window)->Disable(); dynamic_cast<wxTextCtrl*>(window)->SetEditable(false); }
+
+#ifdef __WXGTK__
+    void TextCtrl::change_field_value(wxEvent& event)
+    {
+    	if (bChangedValueEvent = event.GetEventType()==wxEVT_KEY_UP)
+    		on_change_field();
+        event.Skip();
+    };
+#endif //__WXGTK__
 
 void CheckBox::BUILD() {
 	auto size = wxSize(wxDefaultSize);

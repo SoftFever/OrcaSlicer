@@ -222,7 +222,8 @@ inline bool is_sizer_field(const t_field& obj) { return !is_bad_field(obj) && ob
 class TextCtrl : public Field {
     using Field::Field;
 #ifdef __WXGTK__
-	bool	bChangedValueEvent = false;
+	bool	bChangedValueEvent = true;
+    void    change_field_value(wxEvent& event);
 #endif //__WXGTK__
 public:
 	TextCtrl(const ConfigOptionDef& opt, const t_config_option_key& id) : Field(opt,  id) {}
