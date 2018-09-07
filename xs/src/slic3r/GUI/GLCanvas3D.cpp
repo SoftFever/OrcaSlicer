@@ -2978,7 +2978,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
     }
-    else if (evt.LeftDClick() && (m_hover_volume_id != -1))
+    else if (evt.LeftDClick() && (m_hover_volume_id != -1) && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1))
         m_on_double_click_callback.call();
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
