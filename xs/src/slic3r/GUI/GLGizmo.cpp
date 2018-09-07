@@ -15,9 +15,7 @@ static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
 
-static const float RED[3] = { 1.0f, 0.0f, 0.0f };
-static const float GREEN[3] = { 0.0f, 1.0f, 0.0f };
-static const float BLUE[3] = { 0.0f, 0.0f, 1.0f };
+static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
 
 namespace Slic3r {
 namespace GUI {
@@ -525,9 +523,9 @@ bool GLGizmoRotate3D::on_init()
     if (!m_x.init() || !m_y.init() || !m_z.init())
         return false;
 
-    m_x.set_highlight_color(RED);
-    m_y.set_highlight_color(GREEN);
-    m_z.set_highlight_color(BLUE);
+    m_x.set_highlight_color(AXES_COLOR[0]);
+    m_y.set_highlight_color(AXES_COLOR[1]);
+    m_z.set_highlight_color(AXES_COLOR[2]);
 
     std::string path = resources_dir() + "/icons/overlay/";
 
@@ -702,20 +700,20 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     // x axis
     m_grabbers[0].center = Vec3d(m_box.min(0), center(1), center(2));
     m_grabbers[1].center = Vec3d(m_box.max(0), center(1), center(2));
-    ::memcpy((void*)m_grabbers[0].color, (const void*)RED, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[1].color, (const void*)RED, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
 
     // y axis
     m_grabbers[2].center = Vec3d(center(0), m_box.min(1), center(2));
     m_grabbers[3].center = Vec3d(center(0), m_box.max(1), center(2));
-    ::memcpy((void*)m_grabbers[2].color, (const void*)GREEN, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[3].color, (const void*)GREEN, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[3].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
 
     // z axis
     m_grabbers[4].center = Vec3d(center(0), center(1), m_box.min(2));
     m_grabbers[5].center = Vec3d(center(0), center(1), m_box.max(2));
-    ::memcpy((void*)m_grabbers[4].color, (const void*)BLUE, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[5].color, (const void*)BLUE, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[4].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[5].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
 
     // uniform
     m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), m_box.min(2));
@@ -734,6 +732,13 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         // draw box
         ::glColor3fv(m_base_color);
         render_box(m_box);
+        // draw connections
+        ::glColor3fv(m_grabbers[0].color);
+        render_grabbers_connection(0, 1);
+        ::glColor3fv(m_grabbers[2].color);
+        render_grabbers_connection(2, 3);
+        ::glColor3fv(m_grabbers[4].color);
+        render_grabbers_connection(4, 5);
         // draw grabbers
         render_grabbers();
     }
