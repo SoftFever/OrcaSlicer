@@ -665,6 +665,14 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         _write_format(file, "\n");
     }
     
+    // adds tags for time estimators
+    if (print.config.remaining_times.value)
+    {
+        _writeln(file, GCodeTimeEstimator::Normal_First_M73_Output_Placeholder_Tag);
+        if (m_silent_time_estimator_enabled)
+            _writeln(file, GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag);
+    }
+
     // Prepare the helper object for replacing placeholders in custom G-code and output filename.
     m_placeholder_parser = print.placeholder_parser;
     m_placeholder_parser.update_timestamp();
@@ -724,7 +732,6 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     m_placeholder_parser.set("has_wipe_tower", has_wipe_tower);
     m_placeholder_parser.set("has_single_extruder_multi_material_priming", has_wipe_tower && print.config.single_extruder_multi_material_priming);
     std::string start_gcode = this->placeholder_parser_process("start_gcode", print.config.start_gcode.value, initial_extruder_id);
-    
     // Set bed temperature if the start G-code does not contain any bed temp control G-codes.
     this->_print_first_layer_bed_temperature(file, print, start_gcode, initial_extruder_id, true);
     // Set extruder(s) temperature before and after start G-code.

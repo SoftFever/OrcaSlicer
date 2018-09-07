@@ -17,6 +17,9 @@ namespace Slic3r {
     class GCodeTimeEstimator
     {
     public:
+        static const std::string Normal_First_M73_Output_Placeholder_Tag;
+        static const std::string Silent_First_M73_Output_Placeholder_Tag;
+
         enum EMode : unsigned char
         {
             Normal,
