@@ -267,11 +267,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/Time.hpp
     ${LIBDIR}/slic3r/Utils/HexFile.cpp
     ${LIBDIR}/slic3r/Utils/HexFile.hpp
-    ${LIBDIR}/slic3r/IProgressIndicator.hpp
+    ${LIBDIR}/slic3r/ProgressIndicator.hpp
     ${LIBDIR}/slic3r/AppController.hpp
     ${LIBDIR}/slic3r/AppController.cpp
     ${LIBDIR}/slic3r/AppControllerWx.cpp
-    ${LIBDIR}/slic3r/Strings.hpp
 )
 
 add_library(admesh STATIC
