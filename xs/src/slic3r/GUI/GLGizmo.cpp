@@ -199,8 +199,11 @@ void GLGizmoBase::render_grabbers() const
 
 void GLGizmoBase::render_grabbers_for_picking() const
 {
-    for (int i = 0; i < (int)m_grabbers.size(); ++i)
+    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
+        m_grabbers[i].color[0] = 1.0f;
+        m_grabbers[i].color[1] = 1.0f;
+        m_grabbers[i].color[2] = picking_color_component(i);
         m_grabbers[i].render_for_picking();
     }
 }
@@ -335,12 +338,8 @@ void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
     ::glDisable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
+
     transform_to_local();
-
-    m_grabbers[0].color[0] = 1.0f;
-    m_grabbers[0].color[1] = 1.0f;
-    m_grabbers[0].color[2] = picking_color_component(0);
-
     render_grabbers_for_picking();
 
     ::glPopMatrix();
@@ -814,13 +813,6 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
-
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
-    {
-        m_grabbers[i].color[0] = 1.0f;
-        m_grabbers[i].color[1] = 1.0f;
-        m_grabbers[i].color[2] = picking_color_component(i);
-    }
 
     render_grabbers_for_picking();
 }
