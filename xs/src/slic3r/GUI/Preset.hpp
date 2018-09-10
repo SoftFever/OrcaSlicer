@@ -181,7 +181,7 @@ public:
     const Preset&   first_compatible() const    { return this->preset(this->first_compatible_idx()); }
 
     // Return number of presets including the "- default -" preset.
-    size_t          size() const                { return this->m_presets.size(); }
+    size_t          size() const                { return m_presets.size(); }
 
     // For Print / Filament presets, disable those, which are not compatible with the printer.
     void            update_compatible_with_printer(const Preset &active_printer, bool select_other_if_incompatible);

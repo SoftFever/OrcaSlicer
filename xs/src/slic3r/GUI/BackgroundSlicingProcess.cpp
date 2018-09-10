@@ -131,7 +131,7 @@ bool BackgroundSlicingProcess::stop()
 bool BackgroundSlicingProcess::apply_config(const DynamicPrintConfig &config)
 {
 	this->stop();
-	bool invalidated = this->m_print->apply_config(config);
+	bool invalidated = m_print->apply_config(config);
 	return invalidated;
 }
 

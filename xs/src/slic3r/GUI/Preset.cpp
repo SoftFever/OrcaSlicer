@@ -399,10 +399,10 @@ Preset* PresetCollection::find_preset(const std::string &name, bool first_visibl
 size_t PresetCollection::first_visible_idx() const
 {
     size_t idx = m_default_suppressed ? 1 : 0;
-    for (; idx < this->m_presets.size(); ++ idx)
+    for (; idx < m_presets.size(); ++ idx)
         if (m_presets[idx].is_visible)
             break;
-    if (idx == this->m_presets.size())
+    if (idx == m_presets.size())
         idx = 0;
     return idx;
 }
@@ -411,10 +411,10 @@ size_t PresetCollection::first_visible_idx() const
 size_t PresetCollection::first_compatible_idx() const
 {
     size_t idx = m_default_suppressed ? 1 : 0;
-    for (; idx < this->m_presets.size(); ++ idx)
+    for (; idx < m_presets.size(); ++ idx)
         if (m_presets[idx].is_compatible)
             break;
-    if (idx == this->m_presets.size())
+    if (idx == m_presets.size())
         idx = 0;
     return idx;
 }
@@ -465,8 +465,8 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
     // Otherwise fill in the list from scratch.
     ui->Freeze();
     ui->Clear();
-    for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
-        const Preset &preset = this->m_presets[i];
+    for (size_t i = m_presets.front().is_visible ? 0 : 1; i < m_presets.size(); ++ i) {
+        const Preset &preset = m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
             continue;
         const wxBitmap *bmp = (i == 0 || preset.is_compatible) ? m_bitmap_main_frame : m_bitmap_incompatible;
@@ -484,8 +484,8 @@ void PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompatibl
         return;
     ui->Freeze();
     ui->Clear();
-    for (size_t i = this->m_presets.front().is_visible ? 0 : 1; i < this->m_presets.size(); ++ i) {
-        const Preset &preset = this->m_presets[i];
+    for (size_t i = m_presets.front().is_visible ? 0 : 1; i < m_presets.size(); ++ i) {
+        const Preset &preset = m_presets[i];
         if (! preset.is_visible || (! show_incompatible && ! preset.is_compatible && i != m_idx_selected))
             continue;
         const wxBitmap *bmp = preset.is_compatible ? m_bitmap_compatible : m_bitmap_incompatible;

@@ -151,6 +151,7 @@ public:
     const Layer*    layer() const { return m_layer; }
     GCodeWriter&    writer() { return m_writer; }
     PlaceholderParser& placeholder_parser() { return m_placeholder_parser; }
+    const PlaceholderParser& placeholder_parser() const { return m_placeholder_parser; }
     // Process a template through the placeholder parser, collect error messages to be reported
     // inside the generated string and after the G-code export finishes.
     std::string     placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override = nullptr);

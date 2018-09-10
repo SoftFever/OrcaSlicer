@@ -66,12 +66,12 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 	field->m_on_change = [this](std::string opt_id, boost::any value){
 			//! This function will be called from Field.					
 			//! Call OptionGroup._on_change(...)
-			if (!this->m_disabled) 
+			if (!m_disabled) 
 				this->on_change_OG(opt_id, value);
 	};
 	field->m_on_kill_focus = [this](){
 			//! This function will be called from Field.					
-			if (!this->m_disabled) 
+			if (!m_disabled) 
 				this->on_kill_focus();
 	};
     field->m_parent = parent();
@@ -79,7 +79,7 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 	//! Label to change background color, when option is modified
 	field->m_Label = label;
 	field->m_back_to_initial_value = [this](std::string opt_id){
-		if (!this->m_disabled)
+		if (!m_disabled)
 			this->back_to_initial_value(opt_id);
 	};
 	if (!m_is_tab_opt) field->m_Undo_btn->Hide();

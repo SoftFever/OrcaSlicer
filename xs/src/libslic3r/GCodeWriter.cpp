@@ -18,7 +18,7 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
 {
     this->config.apply(print_config, true);
     m_extrusion_axis = this->config.get_extrusion_axis();
-    this->m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
+    m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
 }
 
 void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
@@ -85,7 +85,7 @@ std::string GCodeWriter::set_temperature(unsigned int temperature, bool wait, in
     }
     gcode << temperature;
     if (tool != -1 && 
-        ( (this->multiple_extruders && ! this->m_single_extruder_multi_material) ||
+        ( (this->multiple_extruders && ! m_single_extruder_multi_material) ||
           FLAVOR_IS(gcfMakerWare) || FLAVOR_IS(gcfSailfish)) ) {
         gcode << " T" << tool;
     }
