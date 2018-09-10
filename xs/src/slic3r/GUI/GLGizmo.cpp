@@ -20,7 +20,90 @@ static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f
 namespace Slic3r {
 namespace GUI {
 
-const float GLGizmoBase::Grabber::HalfSize = 2.0f;
+    // returns the intersection of the given ray with the plane parallel to plane XY and passing through the given center
+    // coordinates are local to the plane
+    Vec3d intersection_on_plane_xy(const Linef3& ray, const Vec3d& center)
+    {
+        Transform3d m = Transform3d::Identity();
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
+        return Vec3d(mouse_pos_2d(0), mouse_pos_2d(1), 0.0);
+    }
+
+    // returns the intersection of the given ray with the plane parallel to plane XZ and passing through the given center
+    // coordinates are local to the plane
+    Vec3d intersection_on_plane_xz(const Linef3& ray, const Vec3d& center)
+    {
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd(-0.5 * (double)PI, Vec3d::UnitX()));
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
+        return Vec3d(mouse_pos_2d(0), 0.0, mouse_pos_2d(1));
+    }
+
+    // returns the intersection of the given ray with the plane parallel to plane YZ and passing through the given center
+    // coordinates are local to the plane
+    Vec3d intersection_on_plane_yz(const Linef3& ray, const Vec3d& center)
+    {
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd(-0.5f * (double)PI, Vec3d::UnitY()));
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
+
+        return Vec3d(0.0, mouse_pos_2d(1), -mouse_pos_2d(0));
+    }
+
+    // return an index:
+    // 0 for plane XY
+    // 1 for plane XZ
+    // 2 for plane YZ
+    // which indicates which plane is best suited for intersecting the given unit vector
+    // giving precedence to the plane with the given index
+    unsigned int select_best_plane(const Vec3d& unit_vector, unsigned int preferred_plane)
+    {
+        unsigned int ret = preferred_plane;
+
+        // 1st checks if the given vector is not parallel to the given preferred plane
+        double dot_to_normal = 0.0;
+        switch (ret)
+        {
+        case 0: // plane xy
+        {
+            dot_to_normal = std::abs(unit_vector.dot(Vec3d::UnitZ()));
+            break;
+        }
+        case 1: // plane xz
+        {
+            dot_to_normal = std::abs(unit_vector.dot(-Vec3d::UnitY()));
+            break;
+        }
+        case 2: // plane yz
+        {
+            dot_to_normal = std::abs(unit_vector.dot(Vec3d::UnitX()));
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+
+        // if almost parallel, select the plane whose normal direction is closest to the given vector direction,
+        // otherwise return the given preferred plane index
+        if (dot_to_normal < 0.1)
+        {
+            typedef std::map<double, unsigned int> ProjsMap;
+            ProjsMap projs_map;
+            projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(Vec3d::UnitZ())), 0));  // plane xy
+            projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(-Vec3d::UnitY())), 1)); // plane xz
+            projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(Vec3d::UnitX())), 2));  // plane yz
+            ret = projs_map.rbegin()->second;
+        }
+
+        return ret;
+    }
+    
+    const float GLGizmoBase::Grabber::HalfSize = 2.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
 GLGizmoBase::Grabber::Grabber()
@@ -881,77 +964,24 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 
     Vec3d starting_vec_dir = starting_vec.normalized();
     Vec3d mouse_dir = mouse_ray.unit_vector();
-    unsigned int plane_id = preferred_plane_id;
 
-    // 1st try to see if the mouse direction is close enough to the preferred plane normal
-    double dot_to_normal = 0.0;
+    unsigned int plane_id = select_best_plane(mouse_dir, preferred_plane_id);
+    // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
     switch (plane_id)
     {
     case 0:
     {
-        dot_to_normal = std::abs(mouse_dir.dot(Vec3d::UnitZ()));
+        ratio = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, center)) / len_starting_vec;
         break;
     }
     case 1:
     {
-        dot_to_normal = std::abs(mouse_dir.dot(-Vec3d::UnitY()));
+        ratio = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, center)) / len_starting_vec;
         break;
     }
     case 2:
     {
-        dot_to_normal = std::abs(mouse_dir.dot(Vec3d::UnitX()));
-        break;
-    }
-    }
-
-    if (dot_to_normal < 0.1)
-    {
-        // if not, select the plane who's normal is closest to the mouse direction
-
-        typedef std::map<double, unsigned int> ProjsMap;
-        ProjsMap projs_map;
-
-        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(Vec3d::UnitZ())), 0));  // plane xy
-        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(-Vec3d::UnitY())), 1)); // plane xz
-        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(Vec3d::UnitX())), 2));  // plane yz
-        plane_id = projs_map.rbegin()->second;
-    }
-
-    switch (plane_id)
-    {
-    case 0:
-    {
-        // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the given center
-        Transform3d m = Transform3d::Identity();
-        m.translate(-center);
-        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
-
-        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = starting_vec_dir.dot(Vec3d(mouse_pos_2d(0), mouse_pos_2d(1), 0.0)) / len_starting_vec;
-        break;
-    }
-    case 1:
-    {
-        // calculates the intersection of the mouse ray with the plane parallel to plane XZ and passing through the given center
-        Transform3d m = Transform3d::Identity();
-        m.rotate(Eigen::AngleAxisd(-0.5 * (double)PI, Vec3d::UnitX()));
-        m.translate(-center);
-        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
-
-        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = starting_vec_dir.dot(Vec3d(mouse_pos_2d(0), 0.0, mouse_pos_2d(1))) / len_starting_vec;
-        break;
-    }
-    case 2:
-    {
-        // calculates the intersection of the mouse ray with the plane parallel to plane YZ and passing through the given center
-        Transform3d m = Transform3d::Identity();
-        m.rotate(Eigen::AngleAxisd(-0.5f * (double)PI, Vec3d::UnitY()));
-        m.translate(-center);
-        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
-
-        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = starting_vec_dir.dot(Vec3d(0.0, mouse_pos_2d(1), -mouse_pos_2d(0))) / len_starting_vec;
+        ratio = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, center)) / len_starting_vec;
         break;
     }
     }
@@ -963,7 +993,7 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_normal(Vec3d::Zero())
-    , m_center(Vec3d::Zero())
+    , m_starting_center(Vec3d::Zero())
 {
 }
 
@@ -991,7 +1021,7 @@ void GLGizmoFlatten::on_start_dragging(const BoundingBoxf3& box)
     if (m_hover_id != -1)
     {
         m_normal = m_planes[m_hover_id].normal;
-        m_center = box.center();
+        m_starting_center = box.center();
     }
 }
 
@@ -1002,7 +1032,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
     // does not work correctly when there are multiple copies.
     Vec3d dragged_offset(Vec3d::Zero());
     if (m_dragging)
-        dragged_offset = box.center() - m_center;
+        dragged_offset = box.center() - m_starting_center;
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);

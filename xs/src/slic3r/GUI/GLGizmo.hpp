@@ -286,7 +286,7 @@ private:
 
     std::vector<PlaneData> m_planes;
     std::vector<Vec2d> m_instances_positions;
-    Vec3d m_center;
+    Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
     void update_planes();
