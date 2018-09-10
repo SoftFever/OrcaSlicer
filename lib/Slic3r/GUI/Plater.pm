@@ -767,6 +767,15 @@ sub load_files {
             $model->convert_multipart_object(scalar(@$nozzle_dmrs)) if $dialog->ShowModal() == wxID_YES;
         }
         
+        # objects imported from 3mf require a call to center_around_origin to have gizmos working properly and this call
+        # need to be done after looks_like_multipart_object detection
+        if ($input_file =~ /.3[mM][fF]$/)
+        {
+            foreach my $model_object (@{$model->objects}) {
+                $model_object->center_around_origin;  # also aligns object to Z = 0
+            }
+        }
+        
         if ($one_by_one) {
             push @obj_idx, $self->load_model_objects(@{$model->objects});
         } else {
