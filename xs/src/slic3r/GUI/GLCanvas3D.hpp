@@ -367,14 +367,13 @@ public:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Linef3& mouse_ray);
-        void refresh();
 
         EType get_current_type() const;
 
         bool is_running() const;
 
         bool is_dragging() const;
-        void start_dragging();
+        void start_dragging(const BoundingBoxf3& box);
         void stop_dragging();
 
         float get_scale() const;

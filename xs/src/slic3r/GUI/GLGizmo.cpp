@@ -129,6 +129,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_hover_id(-1)
+    , m_dragging(false)
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));
@@ -150,18 +151,21 @@ void GLGizmoBase::set_highlight_color(const float* color)
         ::memcpy((void*)m_highlight_color, (const void*)color, 3 * sizeof(float));
 }
 
-void GLGizmoBase::start_dragging()
+void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
 {
+    m_dragging = true;
+
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
-    on_start_dragging();
+    on_start_dragging(box);
 }
 
 void GLGizmoBase::stop_dragging()
 {
+    m_dragging = false;
     set_tooltip("");
 
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
@@ -235,7 +239,6 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
-    , m_keep_initial_values(false)
 {
 }
 
@@ -251,6 +254,12 @@ bool GLGizmoRotate::on_init()
 {
     m_grabbers.push_back(Grabber());
     return true;
+}
+
+void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
+{
+    m_center = box.center();
+    m_radius = Offset + box.radius();
 }
 
 void GLGizmoRotate::on_update(const Linef3& mouse_ray)
@@ -294,17 +303,15 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
-    if (m_grabbers[0].dragging)
+    if (m_dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
-
-    ::glEnable(GL_DEPTH_TEST);
-
-    if (!m_keep_initial_values)
+    else
     {
         m_center = box.center();
         m_radius = Offset + box.radius();
-        m_keep_initial_values = true;
     }
+
+    ::glEnable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
     transform_to_local();
@@ -509,23 +516,29 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
 
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
-    , m_x(parent, GLGizmoRotate::X)
-    , m_y(parent, GLGizmoRotate::Y)
-    , m_z(parent, GLGizmoRotate::Z)
 {
-    m_x.set_group_id(0);
-    m_y.set_group_id(1);
-    m_z.set_group_id(2);
+    m_gizmos.emplace_back(parent, GLGizmoRotate::X);
+    m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
+    m_gizmos.emplace_back(parent, GLGizmoRotate::Z);
+
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+        m_gizmos[i].set_group_id(i);
+    }
 }
 
 bool GLGizmoRotate3D::on_init()
 {
-    if (!m_x.init() || !m_y.init() || !m_z.init())
-        return false;
+    for (GLGizmoRotate& g : m_gizmos)
+    {
+        if (!g.init())
+            return false;
+    }
 
-    m_x.set_highlight_color(AXES_COLOR[0]);
-    m_y.set_highlight_color(AXES_COLOR[1]);
-    m_z.set_highlight_color(AXES_COLOR[2]);
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+        m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
+    }
 
     std::string path = resources_dir() + "/icons/overlay/";
 
@@ -544,68 +557,28 @@ bool GLGizmoRotate3D::on_init()
     return true;
 }
 
-void GLGizmoRotate3D::on_start_dragging()
+void GLGizmoRotate3D::on_start_dragging(const BoundingBoxf3& box)
 {
-    switch (m_hover_id)
-    {
-    case 0:
-    {
-        m_x.start_dragging();
-        break;
-    }
-    case 1:
-    {
-        m_y.start_dragging();
-        break;
-    }
-    case 2:
-    {
-        m_z.start_dragging();
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    if ((0 <= m_hover_id) && (m_hover_id < 3))
+        m_gizmos[m_hover_id].start_dragging(box);
 }
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
-    switch (m_hover_id)
-    {
-    case 0:
-    {
-        m_x.stop_dragging();
-        break;
-    }
-    case 1:
-    {
-        m_y.stop_dragging();
-        break;
-    }
-    case 2:
-    {
-        m_z.stop_dragging();
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    if ((0 <= m_hover_id) && (m_hover_id < 3))
+        m_gizmos[m_hover_id].stop_dragging();
 }
 
 void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 {
     if ((m_hover_id == -1) || (m_hover_id == 0))
-        m_x.render(box);
+        m_gizmos[X].render(box);
 
     if ((m_hover_id == -1) || (m_hover_id == 1))
-        m_y.render(box);
+        m_gizmos[Y].render(box);
 
     if ((m_hover_id == -1) || (m_hover_id == 2))
-        m_z.render(box);
+        m_gizmos[Z].render(box);
 }
 
 const float GLGizmoScale3D::Offset = 5.0f;
@@ -652,13 +625,13 @@ bool GLGizmoScale3D::on_init()
     return true;
 }
 
-void GLGizmoScale3D::on_start_dragging()
+void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
 {
     if (m_hover_id != -1)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_show_starting_box = true;
-        m_starting_box = m_box;
+        m_starting_box = box;
     }
 }
 
@@ -989,7 +962,8 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
-    , m_normal(0.0, 0.0, 0.0)
+    , m_normal(Vec3d::Zero())
+    , m_center(Vec3d::Zero())
 {
 }
 
@@ -1012,10 +986,13 @@ bool GLGizmoFlatten::on_init()
     return true;
 }
 
-void GLGizmoFlatten::on_start_dragging()
+void GLGizmoFlatten::on_start_dragging(const BoundingBoxf3& box)
 {
     if (m_hover_id != -1)
+    {
         m_normal = m_planes[m_hover_id].normal;
+        m_center = box.center();
+    }
 }
 
 void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
@@ -1023,10 +1000,9 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
     // the dragged_offset is a vector measuring where was the object moved
     // with the gizmo being on. This is reset in set_flattening_data and
     // does not work correctly when there are multiple copies.
-    if (!m_center) // this is the first bounding box that we see
-        m_center.reset(new Vec3d(box.center()));
-
-    Vec3d dragged_offset = box.center() - *m_center;
+    Vec3d dragged_offset(Vec3d::Zero());
+    if (m_dragging)
+        dragged_offset = box.center() - m_center;
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
@@ -1073,7 +1049,6 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
-    m_center.release(); // object is not being dragged (this would not be called otherwise) - we must forget about the bounding box position...
     m_model_object = model_object;
 
     // ...and save the updated positions of the object instances:

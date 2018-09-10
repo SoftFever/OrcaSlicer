@@ -57,6 +57,7 @@ protected:
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
+    bool m_dragging;
     float m_base_color[3];
     float m_drag_color[3];
     float m_highlight_color[3];
@@ -82,10 +83,11 @@ public:
 
     void set_highlight_color(const float* color);
 
-    void start_dragging();
+    void start_dragging(const BoundingBoxf3& box);
     void stop_dragging();
+    bool is_dragging() const { return m_dragging; }
+
     void update(const Linef3& mouse_ray);
-    void refresh() { on_refresh(); }
 
     void render(const BoundingBoxf3& box) const { on_render(box); }
     void render_for_picking(const BoundingBoxf3& box) const { on_render_for_picking(box); }
@@ -94,10 +96,9 @@ protected:
     virtual bool on_init() = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
-    virtual void on_start_dragging() {}
+    virtual void on_start_dragging(const BoundingBoxf3& box) {}
     virtual void on_stop_dragging() {}
     virtual void on_update(const Linef3& mouse_ray) = 0;
-    virtual void on_refresh() {}
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
@@ -136,7 +137,6 @@ private:
 
     mutable Vec3d m_center;
     mutable float m_radius;
-    mutable bool m_keep_initial_values;
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
@@ -146,9 +146,8 @@ public:
 
 protected:
     virtual bool on_init();
-    virtual void on_set_state() { m_keep_initial_values = (m_state == On) ? false : true; }
+    virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_update(const Linef3& mouse_ray);
-    virtual void on_refresh() { m_keep_initial_values = false; }
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -167,56 +166,52 @@ private:
 
 class GLGizmoRotate3D : public GLGizmoBase
 {
-    GLGizmoRotate m_x;
-    GLGizmoRotate m_y;
-    GLGizmoRotate m_z;
+    std::vector<GLGizmoRotate> m_gizmos;
 
 public:
     explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
-    double get_angle_x() const { return m_x.get_angle(); }
-    void set_angle_x(double angle) { m_x.set_angle(angle); }
+    double get_angle_x() const { return m_gizmos[X].get_angle(); }
+    void set_angle_x(double angle) { m_gizmos[X].set_angle(angle); }
 
-    double get_angle_y() const { return m_y.get_angle(); }
-    void set_angle_y(double angle) { m_y.set_angle(angle); }
+    double get_angle_y() const { return m_gizmos[Y].get_angle(); }
+    void set_angle_y(double angle) { m_gizmos[Y].set_angle(angle); }
 
-    double get_angle_z() const { return m_z.get_angle(); }
-    void set_angle_z(double angle) { m_z.set_angle(angle); }
+    double get_angle_z() const { return m_gizmos[Z].get_angle(); }
+    void set_angle_z(double angle) { m_gizmos[Z].set_angle(angle); }
 
 protected:
     virtual bool on_init();
     virtual void on_set_state()
     {
-        m_x.set_state(m_state);
-        m_y.set_state(m_state);
-        m_z.set_state(m_state);
+        for (GLGizmoRotate& g : m_gizmos)
+        {
+            g.set_state(m_state);
+        }
     }
     virtual void on_set_hover_id()
     {
-        m_x.set_hover_id(m_hover_id == 0 ? 0 : -1);
-        m_y.set_hover_id(m_hover_id == 1 ? 0 : -1);
-        m_z.set_hover_id(m_hover_id == 2 ? 0 : -1);
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
+        }
     }
-    virtual void on_start_dragging();
+    virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging();
     virtual void on_update(const Linef3& mouse_ray)
     {
-        m_x.update(mouse_ray);
-        m_y.update(mouse_ray);
-        m_z.update(mouse_ray);
-    }
-    virtual void on_refresh()
-    {
-        m_x.refresh();
-        m_y.refresh();
-        m_z.refresh();
+        for (GLGizmoRotate& g : m_gizmos)
+        {
+            g.update(mouse_ray);
+        }
     }
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const
     {
-        m_x.render_for_picking(box);
-        m_y.render_for_picking(box);
-        m_z.render_for_picking(box);
+        for (const GLGizmoRotate& g : m_gizmos)
+        {
+            g.render_for_picking(box);
+        }
     }
 };
 
@@ -249,7 +244,7 @@ public:
 
 protected:
     virtual bool on_init();
-    virtual void on_start_dragging();
+    virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging() { m_show_starting_box = false; }
     virtual void on_update(const Linef3& mouse_ray);
     virtual void on_render(const BoundingBoxf3& box) const;
@@ -291,7 +286,7 @@ private:
 
     std::vector<PlaneData> m_planes;
     std::vector<Vec2d> m_instances_positions;
-    mutable std::unique_ptr<Vec3d> m_center = nullptr;
+    Vec3d m_center;
     const ModelObject* m_model_object = nullptr;
 
     void update_planes();
@@ -305,11 +300,12 @@ public:
 
 protected:
     virtual bool on_init();
-    virtual void on_start_dragging();
+    virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_update(const Linef3& mouse_ray) {}
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
-    virtual void on_set_state() {
+    virtual void on_set_state()
+    {
         if (m_state == On && is_plane_update_necessary())
             update_planes();
     }

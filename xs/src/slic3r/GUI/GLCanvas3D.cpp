@@ -1320,16 +1320,6 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
         curr->update(mouse_ray);
 }
 
-void GLCanvas3D::Gizmos::refresh()
-{
-    if (!m_enabled)
-        return;
-
-    GLGizmoBase* curr = _get_current();
-    if (curr != nullptr)
-        curr->refresh();
-}
-
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
     return m_current;
@@ -1349,12 +1339,12 @@ bool GLCanvas3D::Gizmos::is_dragging() const
     return m_dragging;
 }
 
-void GLCanvas3D::Gizmos::start_dragging()
+void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 {
     m_dragging = true;
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->start_dragging();
+        curr->start_dragging(box);
 }
 
 void GLCanvas3D::Gizmos::stop_dragging()
@@ -2487,8 +2477,6 @@ void GLCanvas3D::reload_scene(bool force)
     if (!m_objects_selections.empty())
         update_gizmos_data();
 
-    m_gizmos.refresh();
-
     if (m_config->has("nozzle_diameter"))
     {
         // Should the wipe tower be visualized ?
@@ -3019,7 +3007,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
         {
             update_gizmos_data();
-            m_gizmos.start_dragging();
+            m_gizmos.start_dragging(_selected_volumes_bounding_box());
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
@@ -3062,7 +3050,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
 
                     update_gizmos_data();
-                    m_gizmos.refresh();
                     m_dirty = true;
                 }
             }
@@ -3158,7 +3145,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         update_position_values(volume->get_offset());
         m_mouse.drag.start_position_3D = cur_pos;
-        m_gizmos.refresh();
 
         m_dirty = true;
     }
@@ -3225,9 +3211,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const Vec3d& size = bb.size();
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
         }
-
-        if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
-            m_gizmos.refresh();
 
         m_dirty = true;
     }
