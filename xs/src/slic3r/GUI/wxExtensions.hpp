@@ -240,6 +240,8 @@ public:
 	}
 	void Insert(PrusaObjectDataViewModelNode* child, unsigned int n)
 	{
+		if (!m_container)
+			m_container = true;
 		m_children.Insert(child, n);
 	}
 	void Append(PrusaObjectDataViewModelNode* child)

@@ -1553,6 +1553,7 @@ void part_selection_changed()
     wxString object_name = wxEmptyString;
 	if (item)
 	{
+        printf("item exists\n");
         const bool is_settings_item = m_objects_model->IsSettingsItem(item);
 		bool is_part = false;
         wxString og_name = wxEmptyString;
