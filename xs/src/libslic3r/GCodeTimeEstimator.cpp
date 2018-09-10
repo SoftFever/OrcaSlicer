@@ -301,7 +301,7 @@ namespace Slic3r {
             if (((_mode == Normal) && (gcode_line == Normal_First_M73_Output_Placeholder_Tag)) ||
                 ((_mode == Silent) && (gcode_line == Silent_First_M73_Output_Placeholder_Tag)))
             {
-                sprintf(time_line, time_mask.c_str(), std::to_string(0), _get_time_minutes(_time).c_str());
+                sprintf(time_line, time_mask.c_str(), "0", _get_time_minutes(_time).c_str());
                 gcode_line = time_line;
             }
             else
