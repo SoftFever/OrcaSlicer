@@ -2044,6 +2044,11 @@ void _3DScene::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callb
     s_canvas_mgr.register_on_gizmo_rotate_callback(canvas, callback);
 }
 
+void _3DScene::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_gizmo_flatten_callback(canvas, callback);
+}
+
 void _3DScene::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_update_geometry_info_callback(canvas, callback);

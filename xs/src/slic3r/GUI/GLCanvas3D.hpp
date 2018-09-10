@@ -501,6 +501,7 @@ private:
     PerlCallback m_on_enable_action_buttons_callback;
     PerlCallback m_on_gizmo_scale_uniformly_callback;
     PerlCallback m_on_gizmo_rotate_callback;
+    PerlCallback m_on_gizmo_flatten_callback;
     PerlCallback m_on_update_geometry_info_callback;
 
     PerlCallback m_action_add_callback;
@@ -623,6 +624,7 @@ public:
     void register_on_enable_action_buttons_callback(void* callback);
     void register_on_gizmo_scale_uniformly_callback(void* callback);
     void register_on_gizmo_rotate_callback(void* callback);
+    void register_on_gizmo_flatten_callback(void* callback);
     void register_on_update_geometry_info_callback(void* callback);
 
     void register_action_add_callback(void* callback);

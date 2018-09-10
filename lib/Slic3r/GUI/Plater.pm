@@ -153,16 +153,15 @@ sub new {
     };
     
     # callback to react to gizmo rotate
-    # omitting last three parameters means rotation around Z
-    # otherwise they are the components of the rotation axis vector
     my $on_gizmo_rotate = sub {
+        my ($angle) = @_;
+        $self->rotate(rad2deg($angle), Z, 'absolute');
+    };
+    
+    # callback to react to gizmo flatten
+    my $on_gizmo_flatten = sub {
         my ($angle, $axis_x, $axis_y, $axis_z) = @_;
-        if (!defined $axis_x) {
-            $self->rotate(rad2deg($angle), Z, 'absolute');
-        }
-        else {
-            $self->rotate(rad2deg($angle), undef, 'absolute', $axis_x, $axis_y, $axis_z) if $angle != 0;
-        }
+        $self->rotate(rad2deg($angle), undef, 'absolute', $axis_x, $axis_y, $axis_z) if $angle != 0;
     };
 
     # callback to update object's geometry info while using gizmos
@@ -263,6 +262,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
         Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
+        Slic3r::GUI::_3DScene::register_on_gizmo_flatten_callback($self->{canvas3D}, $on_gizmo_flatten);
         Slic3r::GUI::_3DScene::register_on_update_geometry_info_callback($self->{canvas3D}, $on_update_geometry_info);
         Slic3r::GUI::_3DScene::register_action_add_callback($self->{canvas3D}, $on_action_add);
         Slic3r::GUI::_3DScene::register_action_delete_callback($self->{canvas3D}, $on_action_delete);

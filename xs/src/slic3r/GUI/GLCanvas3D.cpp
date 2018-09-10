@@ -2699,6 +2699,12 @@ void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
         m_on_gizmo_rotate_callback.register_callback(callback);
 }
 
+void GLCanvas3D::register_on_gizmo_flatten_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_flatten_callback.register_callback(callback);
+}
+
 void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
 {
     if (callback != nullptr)
@@ -3016,7 +3022,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (normal(0) != 0.0 || normal(1) != 0.0 || normal(2) != 0.0) {
                     Vec3d axis = normal(2) > 0.999 ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ()).normalized();
                     float angle = acos(clamp(-1.0, 1.0, -normal(2)));
-                    m_on_gizmo_rotate_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
+                    m_on_gizmo_flatten_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
                 }
             }
 
@@ -3759,6 +3765,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_enable_action_buttons_callback.deregister_callback();
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
     m_on_gizmo_rotate_callback.deregister_callback();
+    m_on_gizmo_flatten_callback.deregister_callback();
     m_on_update_geometry_info_callback.deregister_callback();
 
     m_action_add_callback.deregister_callback();
