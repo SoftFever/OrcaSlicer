@@ -146,7 +146,7 @@ void SparseLUImpl<Scalar,StorageIndex>::panel_bmod(const Index m, const Index w,
       
       Index ldl = internal::first_multiple<Index>(nrow, PacketSize);
       Index offset = (PacketSize-internal::first_default_aligned(B.data(), PacketSize)) % PacketSize;
-      MappedMatrixBlock L(tempv.data()+w*ldu+offset, nrow, u_cols, OuterStride<>(ldl));
+      auto L = MappedMatrixBlock(tempv.data()+w*ldu+offset, nrow, u_cols, OuterStride<>(ldl));
       
       L.setZero();
       internal::sparselu_gemm<Scalar>(L.rows(), L.cols(), B.cols(), B.data(), B.outerStride(), U.data(), U.outerStride(), L.data(), L.outerStride());

@@ -682,6 +682,7 @@ private:
     void _render_bed(float theta) const;
     void _render_axes(bool depth_test) const;
     void _render_objects() const;
+    void _render_sla_support_points() const;
     void _render_cutting_plane() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;

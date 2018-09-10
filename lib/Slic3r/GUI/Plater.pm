@@ -32,6 +32,7 @@ use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
 use constant TB_LAYER_EDITING => &Wx::NewId;
+use constant TB_SLA_SUPPORTS => &Wx::NewId;
 
 use Wx::Locale gettext => 'L';
 

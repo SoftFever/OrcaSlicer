@@ -13,6 +13,8 @@
 #include "../../libslic3r/GCode/PreviewData.hpp"
 
 #include <GL/glew.h>
+#include <igl/unproject_onto_mesh.h>
+#include <admesh/stl.h>
 
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
@@ -2388,6 +2390,9 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
+
+    _render_sla_support_points();
+
     if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
         _render_axes(true);
@@ -3077,7 +3082,50 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
                     // an converts the screen space coordinate to unscaled object space.
+
                     Vec3d pos3d = (volume_idx == -1) ? Vec3d(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
+                    
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                    
+                    int id = _get_first_selected_object_id();
+                    if ((id != -1) && (m_model != nullptr))
+                    {
+                        ModelObject* model_object = m_model->objects[id];
+                        stl_file stl = model_object->mesh().stl;
+                        
+                        Eigen::MatrixXf V; // vertices
+                        Eigen::MatrixXi F;// facets indices
+                        V.resize(3*stl.stats.number_of_facets, 3);
+                        F.resize(stl.stats.number_of_facets, 3);
+                        for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+                            const stl_facet* facet = stl.facet_start+i;
+                            V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
+                            V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
+                            V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+                            F(i, 0) = 3*i+0;
+                            F(i, 1) = 3*i+1;
+                            F(i, 2) = 3*i+2;
+                        }
+                        
+                        Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
+                        ::glGetIntegerv(GL_VIEWPORT, viewport.data());
+                        Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
+                        ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+                        Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
+                        ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
+                        
+                        int fid = 0;
+                        Vec3f bc(0, 0, 0);
+    
+                        if (igl::unproject_onto_mesh(Vec2f(pos(0), viewport(3)-pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), V, F, fid, bc)
+                            && (stl.facet_start + fid)->normal(2) < 0.f) {
+                            const Vec3f& a = (stl.facet_start+fid)->vertex[0];
+                            const Vec3f& b = (stl.facet_start+fid)->vertex[1];
+                            const Vec3f& c = (stl.facet_start+fid)->vertex[2];
+                            model_object->sla_support_points.emplace_back(bc(0)*a + bc(1)*b + bc(2)*c);
+                        }
+                    }
+                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
@@ -4018,9 +4066,64 @@ void GLCanvas3D::_render_legend_texture() const
     m_legend_texture.render(*this);
 }
 
-void GLCanvas3D::_render_layer_editing_overlay() const
+
+
+
+
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+void GLCanvas3D::_render_sla_support_points() const
 {
     if (m_print == nullptr)
+        return;
+
+    GLVolume* volume = nullptr;
+
+    for (GLVolume* vol : m_volumes.volumes) {
+        if ((vol != nullptr) && vol->selected) {
+            volume = vol;
+            break;
+        }
+    }
+
+    if (volume == nullptr)
+        return;
+
+    // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
+    // and an update by Platter::async_apply_config.
+    int object_idx = int(volume->select_group_id / 1000000);
+    if ((int)m_print->objects.size() < object_idx)
+        return;
+
+    const PrintObject* print_object = m_print->get_object(object_idx);
+    if (print_object == nullptr)
+        return;
+        
+    const ModelObject* model_object = print_object->model_object();
+    if (!model_object->instances.empty()) {
+        for (const auto& point : model_object->sla_support_points) {
+            ::glColor4f(0.9f, 0.f, 0.f, 0.75f);
+            ::glPushMatrix();
+            ::glTranslatef(point(0), point(1), point(2));
+            GLUquadricObj *quadric;
+            quadric = ::gluNewQuadric();
+
+            ::gluQuadricDrawStyle(quadric, GLU_FILL );
+            ::gluSphere( quadric , 0.5 , 36 , 18 );
+            ::gluDeleteQuadric(quadric);
+            ::glPopMatrix();
+        }
+    }
+}
+//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
+
+
+
+void GLCanvas3D::_render_layer_editing_overlay() const
+{
+    if (m_print == nullptr)    
         return;
 
     GLVolume* volume = nullptr;
