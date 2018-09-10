@@ -386,10 +386,6 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
         bmp = m_bitmap_cache->insert(m_name.ToStdString(), bmps);
     }
     m_icon.CopyFromBitmap(*bmp);
-#ifdef __WXOSX__
-    m_icon.SetHeight(bmp->GetHeight());
-    m_icon.SetWidth(bmp->GetWidth());
-#endif // __WXOSX__
 
     return true;
 }
@@ -477,6 +473,9 @@ wxDataViewItem PrusaObjectDataViewModel::AddSettingsChild(const wxDataViewItem &
     // notify control
     const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
+
+    if (child)
+        printf("SettingsChild is created\n");
     return child;
 }
 

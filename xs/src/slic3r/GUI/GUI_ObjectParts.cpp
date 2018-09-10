@@ -1014,9 +1014,12 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
     const auto item = m_objects_ctrl->GetSelection();
     if (item) {
         const auto settings_item = m_objects_model->HasSettings(item);
+        settings_item ? printf("settings_item exist\n") : printf("settings_item will be created\n");
         m_objects_ctrl->Select(settings_item ? settings_item : 
                                m_objects_model->AddSettingsChild(item));
+#ifndef __WXOSX__
         part_selection_changed();
+#endif //no __WXOSX__
     }
     else
 	update_settings_list();
