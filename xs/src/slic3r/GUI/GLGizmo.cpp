@@ -15,14 +15,95 @@ static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
 static const float DEFAULT_HIGHLIGHT_COLOR[3] = { 1.0f, 0.38f, 0.0f };
 
-static const float RED[3] = { 1.0f, 0.0f, 0.0f };
-static const float GREEN[3] = { 0.0f, 1.0f, 0.0f };
-static const float BLUE[3] = { 0.0f, 0.0f, 1.0f };
+static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f } };
 
 namespace Slic3r {
 namespace GUI {
 
-const float GLGizmoBase::Grabber::HalfSize = 2.0f;
+    // returns the intersection of the given ray with the plane parallel to plane XY and passing through the given center
+    // coordinates are local to the plane
+    Vec3d intersection_on_plane_xy(const Linef3& ray, const Vec3d& center)
+    {
+        Transform3d m = Transform3d::Identity();
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
+        return Vec3d(mouse_pos_2d(0), mouse_pos_2d(1), 0.0);
+    }
+
+    // returns the intersection of the given ray with the plane parallel to plane XZ and passing through the given center
+    // coordinates are local to the plane
+    Vec3d intersection_on_plane_xz(const Linef3& ray, const Vec3d& center)
+    {
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd(-0.5 * (double)PI, Vec3d::UnitX()));
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
+        return Vec3d(mouse_pos_2d(0), 0.0, mouse_pos_2d(1));
+    }
+
+    // returns the intersection of the given ray with the plane parallel to plane YZ and passing through the given center
+    // coordinates are local to the plane
+    Vec3d intersection_on_plane_yz(const Linef3& ray, const Vec3d& center)
+    {
+        Transform3d m = Transform3d::Identity();
+        m.rotate(Eigen::AngleAxisd(-0.5f * (double)PI, Vec3d::UnitY()));
+        m.translate(-center);
+        Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
+
+        return Vec3d(0.0, mouse_pos_2d(1), -mouse_pos_2d(0));
+    }
+
+    // return an index:
+    // 0 for plane XY
+    // 1 for plane XZ
+    // 2 for plane YZ
+    // which indicates which plane is best suited for intersecting the given unit vector
+    // giving precedence to the plane with the given index
+    unsigned int select_best_plane(const Vec3d& unit_vector, unsigned int preferred_plane)
+    {
+        unsigned int ret = preferred_plane;
+
+        // 1st checks if the given vector is not parallel to the given preferred plane
+        double dot_to_normal = 0.0;
+        switch (ret)
+        {
+        case 0: // plane xy
+        {
+            dot_to_normal = std::abs(unit_vector.dot(Vec3d::UnitZ()));
+            break;
+        }
+        case 1: // plane xz
+        {
+            dot_to_normal = std::abs(unit_vector.dot(-Vec3d::UnitY()));
+            break;
+        }
+        case 2: // plane yz
+        {
+            dot_to_normal = std::abs(unit_vector.dot(Vec3d::UnitX()));
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+
+        // if almost parallel, select the plane whose normal direction is closest to the given vector direction,
+        // otherwise return the given preferred plane index
+        if (dot_to_normal < 0.1)
+        {
+            typedef std::map<double, unsigned int> ProjsMap;
+            ProjsMap projs_map;
+            projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(Vec3d::UnitZ())), 0));  // plane xy
+            projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(-Vec3d::UnitY())), 1)); // plane xz
+            projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(Vec3d::UnitX())), 2));  // plane yz
+            ret = projs_map.rbegin()->second;
+        }
+
+        return ret;
+    }
+    
+    const float GLGizmoBase::Grabber::HalfSize = 2.0f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
 
 GLGizmoBase::Grabber::Grabber()
@@ -131,6 +212,7 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     , m_group_id(-1)
     , m_state(Off)
     , m_hover_id(-1)
+    , m_dragging(false)
 {
     ::memcpy((void*)m_base_color, (const void*)DEFAULT_BASE_COLOR, 3 * sizeof(float));
     ::memcpy((void*)m_drag_color, (const void*)DEFAULT_DRAG_COLOR, 3 * sizeof(float));
@@ -152,18 +234,21 @@ void GLGizmoBase::set_highlight_color(const float* color)
         ::memcpy((void*)m_highlight_color, (const void*)color, 3 * sizeof(float));
 }
 
-void GLGizmoBase::start_dragging()
+void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
 {
+    m_dragging = true;
+
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
-    on_start_dragging();
+    on_start_dragging(box);
 }
 
 void GLGizmoBase::stop_dragging()
 {
+    m_dragging = false;
     set_tooltip("");
 
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
@@ -199,8 +284,11 @@ void GLGizmoBase::render_grabbers() const
 
 void GLGizmoBase::render_grabbers_for_picking() const
 {
-    for (int i = 0; i < (int)m_grabbers.size(); ++i)
+    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
+        m_grabbers[i].color[0] = 1.0f;
+        m_grabbers[i].color[1] = 1.0f;
+        m_grabbers[i].color[2] = picking_color_component(i);
         m_grabbers[i].render_for_picking();
     }
 }
@@ -234,7 +322,6 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
-    , m_keep_initial_values(false)
 {
 }
 
@@ -250,6 +337,12 @@ bool GLGizmoRotate::on_init()
 {
     m_grabbers.push_back(Grabber());
     return true;
+}
+
+void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
+{
+    m_center = box.center();
+    m_radius = Offset + box.radius();
 }
 
 void GLGizmoRotate::on_update(const Linef3& mouse_ray)
@@ -293,17 +386,15 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
-    if (m_grabbers[0].dragging)
+    if (m_dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
-
-    ::glEnable(GL_DEPTH_TEST);
-
-    if (!m_keep_initial_values)
+    else
     {
         m_center = box.center();
         m_radius = Offset + box.radius();
-        m_keep_initial_values = true;
     }
+
+    ::glEnable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
     transform_to_local();
@@ -335,12 +426,8 @@ void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
     ::glDisable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
+
     transform_to_local();
-
-    m_grabbers[0].color[0] = 1.0f;
-    m_grabbers[0].color[1] = 1.0f;
-    m_grabbers[0].color[2] = picking_color_component(0);
-
     render_grabbers_for_picking();
 
     ::glPopMatrix();
@@ -512,23 +599,29 @@ Vec3d GLGizmoRotate::mouse_position_in_local_plane(const Linef3& mouse_ray) cons
 
 GLGizmoRotate3D::GLGizmoRotate3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
-    , m_x(parent, GLGizmoRotate::X)
-    , m_y(parent, GLGizmoRotate::Y)
-    , m_z(parent, GLGizmoRotate::Z)
 {
-    m_x.set_group_id(0);
-    m_y.set_group_id(1);
-    m_z.set_group_id(2);
+    m_gizmos.emplace_back(parent, GLGizmoRotate::X);
+    m_gizmos.emplace_back(parent, GLGizmoRotate::Y);
+    m_gizmos.emplace_back(parent, GLGizmoRotate::Z);
+
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+        m_gizmos[i].set_group_id(i);
+    }
 }
 
 bool GLGizmoRotate3D::on_init()
 {
-    if (!m_x.init() || !m_y.init() || !m_z.init())
-        return false;
+    for (GLGizmoRotate& g : m_gizmos)
+    {
+        if (!g.init())
+            return false;
+    }
 
-    m_x.set_highlight_color(RED);
-    m_y.set_highlight_color(GREEN);
-    m_z.set_highlight_color(BLUE);
+    for (unsigned int i = 0; i < 3; ++i)
+    {
+        m_gizmos[i].set_highlight_color(AXES_COLOR[i]);
+    }
 
     std::string path = resources_dir() + "/icons/overlay/";
 
@@ -547,68 +640,28 @@ bool GLGizmoRotate3D::on_init()
     return true;
 }
 
-void GLGizmoRotate3D::on_start_dragging()
+void GLGizmoRotate3D::on_start_dragging(const BoundingBoxf3& box)
 {
-    switch (m_hover_id)
-    {
-    case 0:
-    {
-        m_x.start_dragging();
-        break;
-    }
-    case 1:
-    {
-        m_y.start_dragging();
-        break;
-    }
-    case 2:
-    {
-        m_z.start_dragging();
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    if ((0 <= m_hover_id) && (m_hover_id < 3))
+        m_gizmos[m_hover_id].start_dragging(box);
 }
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
-    switch (m_hover_id)
-    {
-    case 0:
-    {
-        m_x.stop_dragging();
-        break;
-    }
-    case 1:
-    {
-        m_y.stop_dragging();
-        break;
-    }
-    case 2:
-    {
-        m_z.stop_dragging();
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    if ((0 <= m_hover_id) && (m_hover_id < 3))
+        m_gizmos[m_hover_id].stop_dragging();
 }
 
 void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 {
     if ((m_hover_id == -1) || (m_hover_id == 0))
-        m_x.render(box);
+        m_gizmos[X].render(box);
 
     if ((m_hover_id == -1) || (m_hover_id == 1))
-        m_y.render(box);
+        m_gizmos[Y].render(box);
 
     if ((m_hover_id == -1) || (m_hover_id == 2))
-        m_z.render(box);
+        m_gizmos[Z].render(box);
 }
 
 const float GLGizmoScale3D::Offset = 5.0f;
@@ -655,13 +708,13 @@ bool GLGizmoScale3D::on_init()
     return true;
 }
 
-void GLGizmoScale3D::on_start_dragging()
+void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
 {
     if (m_hover_id != -1)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_show_starting_box = true;
-        m_starting_box = m_box;
+        m_starting_box = box;
     }
 }
 
@@ -703,20 +756,20 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     // x axis
     m_grabbers[0].center = Vec3d(m_box.min(0), center(1), center(2));
     m_grabbers[1].center = Vec3d(m_box.max(0), center(1), center(2));
-    ::memcpy((void*)m_grabbers[0].color, (const void*)RED, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[1].color, (const void*)RED, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
 
     // y axis
     m_grabbers[2].center = Vec3d(center(0), m_box.min(1), center(2));
     m_grabbers[3].center = Vec3d(center(0), m_box.max(1), center(2));
-    ::memcpy((void*)m_grabbers[2].color, (const void*)GREEN, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[3].color, (const void*)GREEN, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[3].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
 
     // z axis
     m_grabbers[4].center = Vec3d(center(0), center(1), m_box.min(2));
     m_grabbers[5].center = Vec3d(center(0), center(1), m_box.max(2));
-    ::memcpy((void*)m_grabbers[4].color, (const void*)BLUE, 3 * sizeof(float));
-    ::memcpy((void*)m_grabbers[5].color, (const void*)BLUE, 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[4].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+    ::memcpy((void*)m_grabbers[5].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
 
     // uniform
     m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), m_box.min(2));
@@ -735,6 +788,13 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         // draw box
         ::glColor3fv(m_base_color);
         render_box(m_box);
+        // draw connections
+        ::glColor3fv(m_grabbers[0].color);
+        render_grabbers_connection(0, 1);
+        ::glColor3fv(m_grabbers[2].color);
+        render_grabbers_connection(2, 3);
+        ::glColor3fv(m_grabbers[4].color);
+        render_grabbers_connection(4, 5);
         // draw grabbers
         render_grabbers();
     }
@@ -814,13 +874,6 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
-
-    for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
-    {
-        m_grabbers[i].color[0] = 1.0f;
-        m_grabbers[i].color[1] = 1.0f;
-        m_grabbers[i].color[2] = picking_color_component(i);
-    }
 
     render_grabbers_for_picking();
 }
@@ -911,77 +964,24 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 
     Vec3d starting_vec_dir = starting_vec.normalized();
     Vec3d mouse_dir = mouse_ray.unit_vector();
-    unsigned int plane_id = preferred_plane_id;
 
-    // 1st try to see if the mouse direction is close enough to the preferred plane normal
-    double dot_to_normal = 0.0;
+    unsigned int plane_id = select_best_plane(mouse_dir, preferred_plane_id);
+    // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
     switch (plane_id)
     {
     case 0:
     {
-        dot_to_normal = std::abs(mouse_dir.dot(Vec3d::UnitZ()));
+        ratio = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, center)) / len_starting_vec;
         break;
     }
     case 1:
     {
-        dot_to_normal = std::abs(mouse_dir.dot(-Vec3d::UnitY()));
+        ratio = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, center)) / len_starting_vec;
         break;
     }
     case 2:
     {
-        dot_to_normal = std::abs(mouse_dir.dot(Vec3d::UnitX()));
-        break;
-    }
-    }
-
-    if (dot_to_normal < 0.1)
-    {
-        // if not, select the plane who's normal is closest to the mouse direction
-
-        typedef std::map<double, unsigned int> ProjsMap;
-        ProjsMap projs_map;
-
-        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(Vec3d::UnitZ())), 0));  // plane xy
-        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(-Vec3d::UnitY())), 1)); // plane xz
-        projs_map.insert(ProjsMap::value_type(std::abs(mouse_dir.dot(Vec3d::UnitX())), 2));  // plane yz
-        plane_id = projs_map.rbegin()->second;
-    }
-
-    switch (plane_id)
-    {
-    case 0:
-    {
-        // calculates the intersection of the mouse ray with the plane parallel to plane XY and passing through the given center
-        Transform3d m = Transform3d::Identity();
-        m.translate(-center);
-        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
-
-        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = starting_vec_dir.dot(Vec3d(mouse_pos_2d(0), mouse_pos_2d(1), 0.0)) / len_starting_vec;
-        break;
-    }
-    case 1:
-    {
-        // calculates the intersection of the mouse ray with the plane parallel to plane XZ and passing through the given center
-        Transform3d m = Transform3d::Identity();
-        m.rotate(Eigen::AngleAxisd(-0.5 * (double)PI, Vec3d::UnitX()));
-        m.translate(-center);
-        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
-
-        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = starting_vec_dir.dot(Vec3d(mouse_pos_2d(0), 0.0, mouse_pos_2d(1))) / len_starting_vec;
-        break;
-    }
-    case 2:
-    {
-        // calculates the intersection of the mouse ray with the plane parallel to plane YZ and passing through the given center
-        Transform3d m = Transform3d::Identity();
-        m.rotate(Eigen::AngleAxisd(-0.5f * (double)PI, Vec3d::UnitY()));
-        m.translate(-center);
-        Vec2d mouse_pos_2d = to_2d(transform(mouse_ray, m).intersect_plane(0.0));
-
-        // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-        ratio = starting_vec_dir.dot(Vec3d(0.0, mouse_pos_2d(1), -mouse_pos_2d(0))) / len_starting_vec;
+        ratio = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, center)) / len_starting_vec;
         break;
     }
     }
@@ -992,7 +992,8 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
-    , m_normal(0.0, 0.0, 0.0)
+    , m_normal(Vec3d::Zero())
+    , m_starting_center(Vec3d::Zero())
 {
 }
 
@@ -1015,10 +1016,13 @@ bool GLGizmoFlatten::on_init()
     return true;
 }
 
-void GLGizmoFlatten::on_start_dragging()
+void GLGizmoFlatten::on_start_dragging(const BoundingBoxf3& box)
 {
     if (m_hover_id != -1)
+    {
         m_normal = m_planes[m_hover_id].normal;
+        m_starting_center = box.center();
+    }
 }
 
 void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
@@ -1026,13 +1030,10 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
     // the dragged_offset is a vector measuring where was the object moved
     // with the gizmo being on. This is reset in set_flattening_data and
     // does not work correctly when there are multiple copies.
-    if (!m_center) // this is the first bounding box that we see
-        m_center.reset(new Vec3d(box.center()));
+    Vec3d dragged_offset(Vec3d::Zero());
+    if (m_dragging)
+        dragged_offset = box.center() - m_starting_center;
 
-    Vec3d dragged_offset = box.center() - *m_center;
-
-    bool blending_was_enabled = ::glIsEnabled(GL_BLEND);
-    bool depth_test_was_enabled = ::glIsEnabled(GL_DEPTH_TEST);
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
@@ -1054,20 +1055,15 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
         }
     }
 
-    if (!blending_was_enabled)
-        ::glDisable(GL_BLEND);
-    if (!depth_test_was_enabled)
-        ::glDisable(GL_DEPTH_TEST);
+    ::glDisable(GL_BLEND);
 }
 
 void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 {
-    ::glDisable(GL_DEPTH_TEST);
+    ::glEnable(GL_DEPTH_TEST);
 
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
-        // FIXME: the color assignement will fail if the planes count is greater than 254
-        //        use the other color components in that case !!
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
         for (const Vec2d& offset : m_instances_positions) {
             ::glPushMatrix();
@@ -1083,7 +1079,6 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
-    m_center.release(); // object is not being dragged (this would not be called otherwise) - we must forget about the bounding box position...
     m_model_object = model_object;
 
     // ...and save the updated positions of the object instances:
@@ -1245,9 +1240,9 @@ void GLGizmoFlatten::update_planes()
         polygon = transform(polygon, m);
     }
 
-    // We'll sort the planes by area and only keep the 255 largest ones (because of the picking pass limitations):
+    // We'll sort the planes by area and only keep the 254 largest ones (because of the picking pass limitations):
     std::sort(m_planes.rbegin(), m_planes.rend(), [](const PlaneData& a, const PlaneData& b) { return a.area < b.area; });
-    m_planes.resize(std::min((int)m_planes.size(), 255));
+    m_planes.resize(std::min((int)m_planes.size(), 254));
 
     // Planes are finished - let's save what we calculated it from:
     m_source_data.bounding_boxes.clear();
@@ -1285,11 +1280,9 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
 }
 
 Vec3d GLGizmoFlatten::get_flattening_normal() const {
-    Transform3d m = Transform3d::Identity();
-    m.rotate(Eigen::AngleAxisd(-m_model_object->instances.front()->rotation, Vec3d::UnitZ()));
-    Vec3d normal = m * m_normal;
+    Vec3d normal = m_model_object->instances.front()->world_matrix(true).matrix().block(0, 0, 3, 3).inverse() * m_normal;
     m_normal = Vec3d::Zero();
-    return normal;
+    return normal.normalized();
 }
 
 } // namespace GUI

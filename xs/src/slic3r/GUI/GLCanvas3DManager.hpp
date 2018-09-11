@@ -98,6 +98,8 @@ public:
     void set_select_by(wxGLCanvas* canvas, const std::string& value);
     void set_drag_by(wxGLCanvas* canvas, const std::string& value);
 
+    std::string get_select_by(wxGLCanvas* canvas) const;
+
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
     bool is_shader_enabled(wxGLCanvas* canvas) const;
@@ -135,6 +137,8 @@ public:
     std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
 
+    int get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const;
+
     void reload_scene(wxGLCanvas* canvas, bool force);
 
     void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
@@ -171,6 +175,7 @@ public:
     void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
     void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
     void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
+    void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
 
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);

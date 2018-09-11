@@ -56,9 +56,9 @@
     int                 volume_idx() const;
     int                 instance_idx() const;
     Clone<Vec3d>        origin() const
-        %code%{ RETVAL = THIS->get_origin(); %};
+        %code%{ RETVAL = THIS->get_offset(); %};
     void                translate(double x, double y, double z)
-        %code%{ THIS->set_origin(THIS->get_origin() + Vec3d(x, y, z)); %};
+        %code%{ THIS->set_offset(THIS->get_offset() + Vec3d(x, y, z)); %};
     Clone<BoundingBoxf3> bounding_box() const
         %code%{ RETVAL = THIS->bounding_box; %};
 
@@ -336,6 +336,14 @@ set_drag_by(canvas, value)
         std::string value;
     CODE:
         _3DScene::set_drag_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), value);
+
+std::string
+get_select_by(canvas)
+        SV *canvas;
+    CODE:
+        RETVAL = _3DScene::get_select_by((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"));
+    OUTPUT:
+        RETVAL
 
 bool
 is_layers_editing_enabled(canvas)
@@ -721,6 +729,13 @@ register_action_layersediting_callback(canvas, callback)
         _3DScene::register_action_layersediting_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
 
 void
+register_action_selectbyparts_callback(canvas, callback)
+        SV *canvas;
+        SV *callback;
+    CODE:
+        _3DScene::register_action_selectbyparts_callback((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), (void*)callback);
+        
+void
 reset_legend_texture()
     CODE:
         _3DScene::reset_legend_texture();
@@ -733,6 +748,15 @@ load_model_object(canvas, model_object, obj_idx, instance_idxs)
         std::vector<int> instance_idxs;
     CODE:
         RETVAL = _3DScene::load_object((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), model_object, obj_idx, instance_idxs);
+    OUTPUT:
+        RETVAL
+
+int
+get_first_volume_id(canvas, obj_idx)
+        SV  *canvas;
+        int obj_idx;
+    CODE:
+        RETVAL = _3DScene::get_first_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), obj_idx);
     OUTPUT:
         RETVAL
 

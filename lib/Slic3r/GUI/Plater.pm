@@ -85,9 +85,13 @@ sub new {
     
     # Initialize handlers for canvases
     my $on_select_object = sub {
-        my ($obj_idx) = @_;
-        # Ignore the special objects (the wipe tower proxy and such).
-        $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
+        my ($obj_idx, $vol_idx) = @_;
+                        
+        if (($obj_idx != -1) && ($vol_idx == -1)) {
+            # Ignore the special objects (the wipe tower proxy and such).
+            $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
+            $self->item_changed_selection($obj_idx) if (defined($obj_idx));
+        }
     };
     my $on_double_click = sub {
         $self->object_settings_dialog if $self->selected_object;
@@ -217,6 +221,29 @@ sub new {
         my $state = Slic3r::GUI::_3DScene::is_toolbar_item_pressed($self->{canvas3D}, "layersediting");
         $self->on_layer_editing_toggled($state);
     };
+
+    my $on_action_selectbyparts = sub {
+        my $curr = Slic3r::GUI::_3DScene::get_select_by($self->{canvas3D});
+        if ($curr eq 'volume') {
+            Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'object');
+            my $selections = $self->collect_selections;
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);        
+        }
+        elsif ($curr eq 'object') {
+            Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'volume');
+            my $selections = [];
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);      
+
+            my ($obj_idx, $object) = $self->selected_object;
+            if (defined $obj_idx) {            
+                my $vol_idx = Slic3r::GUI::_3DScene::get_first_volume_id($self->{canvas3D}, $obj_idx);                 
+                Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx) if ($vol_idx != -1);
+            }
+        }
+    };
         
     # Initialize 3D plater
     if ($Slic3r::GUI::have_OpenGL) {
@@ -247,6 +274,7 @@ sub new {
         Slic3r::GUI::_3DScene::register_action_cut_callback($self->{canvas3D}, $on_action_cut);
         Slic3r::GUI::_3DScene::register_action_settings_callback($self->{canvas3D}, $on_action_settings);
         Slic3r::GUI::_3DScene::register_action_layersediting_callback($self->{canvas3D}, $on_action_layersediting);
+        Slic3r::GUI::_3DScene::register_action_selectbyparts_callback($self->{canvas3D}, $on_action_selectbyparts);
         Slic3r::GUI::_3DScene::enable_gizmos($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_toolbar($self->{canvas3D}, 1);
         Slic3r::GUI::_3DScene::enable_shader($self->{canvas3D}, 1);
@@ -1141,13 +1169,12 @@ sub rotate {
     }
 
     # Let's calculate vector of rotation axis (if we don't have it already)
-    # The minus is there so that the direction is the same as was established
     if (defined $axis) {
         if ($axis == X) {
-            $axis_x = -1;
+            $axis_x = 1;
         }
         if ($axis == Y) {
-            $axis_y = -1;
+            $axis_y = 1;
         }
     }
     
@@ -1182,11 +1209,7 @@ sub rotate {
 #        $model_object->center_around_origin;
 #        $self->reset_thumbnail($obj_idx);
     }
-    
-    if (defined $axis) {
-        Slic3r::GUI::update_rotation_value(deg2rad($angle), $axis == X ? "x" : ($axis == Y ? "y" : "z"));
-    }
-    
+        
     # update print and start background processing
     $self->{print}->add_model_object($model_object, $obj_idx);
     
@@ -2106,17 +2129,18 @@ sub on_config_change {
     $self->schedule_background_process;
 }
 
-sub item_changed_selection{
+sub item_changed_selection {
     my ($self, $obj_idx) = @_;
 
-#    $self->{canvas}->Refresh;
-    if ($self->{canvas3D}) {
-        Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
-        if ($obj_idx >= 0){
-            my $selections = $self->collect_selections;
-            Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+    if (($obj_idx >= 0) && ($obj_idx < 1000)) { # skip if wipe tower selected
+        if ($self->{canvas3D}) {
+            Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+            if ($obj_idx >= 0) {
+                my $selections = $self->collect_selections;
+                Slic3r::GUI::_3DScene::update_volumes_selection($self->{canvas3D}, \@$selections);
+            }
+#            Slic3r::GUI::_3DScene::render($self->{canvas3D});
         }
-        Slic3r::GUI::_3DScene::render($self->{canvas3D});
     }
 }
 
@@ -2336,12 +2360,24 @@ sub selection_changed {
     }
     
     Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "layersediting", $layers_height_allowed);
+
+    my $can_select_by_parts = 0;
     
     if ($have_sel) {
         my $model_object = $self->{model}->objects->[$obj_idx];
+        $can_select_by_parts = ($obj_idx >= 0) && ($obj_idx < 1000) && ($model_object->volumes_count > 1);
         Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "fewer", $model_object->instances_count > 1);
     }
     
+    if ($can_select_by_parts) {
+        # first disable to let the item in the toolbar to switch to the unpressed state
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "selectbyparts", 0);
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "selectbyparts", 1);
+    } else {
+        Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "selectbyparts", 0);
+        Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'object');
+    }
+        
     if ($self->{object_info_size}) { # have we already loaded the info pane?
         if ($have_sel) {
             my $model_object = $self->{model}->objects->[$obj_idx];

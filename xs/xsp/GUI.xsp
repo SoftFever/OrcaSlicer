@@ -154,10 +154,7 @@ void select_current_object(int idx)
 
 void remove_obj()
     %code%{ Slic3r::GUI::remove(); %};
-
-void update_rotation_value(double angle, const char *axis)
-    %code%{ Slic3r::GUI::update_rotation_value(angle, axis); %};
-
+    
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
 
