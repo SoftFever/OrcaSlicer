@@ -12,24 +12,24 @@ namespace Slic3r {
 Layer::~Layer()
 {
     this->lower_layer = this->upper_layer = nullptr;
-    for (LayerRegion *region : this->regions)
+    for (LayerRegion *region : m_regions)
         delete region;
-    this->regions.clear();
+    m_regions.clear();
 }
 
 LayerRegion* Layer::add_region(PrintRegion* print_region)
 {
-    this->regions.emplace_back(new LayerRegion(this, print_region));
-    return this->regions.back();
+    m_regions.emplace_back(new LayerRegion(this, print_region));
+    return m_regions.back();
 }
 
 // merge all regions' slices to get islands
 void Layer::make_slices()
 {
     ExPolygons slices;
-    if (this->regions.size() == 1) {
+    if (m_regions.size() == 1) {
         // optimization: if we only have one region, take its slices
-        slices = this->regions.front()->slices;
+        slices = m_regions.front()->slices;
     } else {
         Polygons slices_p;
         FOREACH_LAYERREGION(this, layerm) {
@@ -58,10 +58,10 @@ void Layer::make_slices()
 
 void Layer::merge_slices()
 {
-    if (this->regions.size() == 1) {
+    if (m_regions.size() == 1) {
         // Optimization, also more robust. Don't merge classified pieces of layerm->slices,
         // but use the non-split islands of a layer. For a single region print, these shall be equal.
-        this->regions.front()->slices.set(this->slices.expolygons, stInternal);
+        m_regions.front()->slices.set(this->slices.expolygons, stInternal);
     } else {
         FOREACH_LAYERREGION(this, layerm) {
             // without safety offset, artifacts are generated (GH #2494)
@@ -81,18 +81,18 @@ void Layer::make_perimeters()
     std::set<size_t> done;
     
     FOREACH_LAYERREGION(this, layerm) {
-        size_t region_id = layerm - this->regions.begin();
+        size_t region_id = layerm - m_regions.begin();
         if (done.find(region_id) != done.end()) continue;
         BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;
         done.insert(region_id);
-        const PrintRegionConfig &config = (*layerm)->region()->config;
+        const PrintRegionConfig &config = (*layerm)->region()->config();
         
         // find compatible regions
         LayerRegionPtrs layerms;
         layerms.push_back(*layerm);
-        for (LayerRegionPtrs::const_iterator it = layerm + 1; it != this->regions.end(); ++it) {
+        for (LayerRegionPtrs::const_iterator it = layerm + 1; it != m_regions.end(); ++it) {
             LayerRegion* other_layerm = *it;
-            const PrintRegionConfig &other_config = other_layerm->region()->config;
+            const PrintRegionConfig &other_config = other_layerm->region()->config();
             
             if (config.perimeter_extruder   == other_config.perimeter_extruder
                 && config.perimeters        == other_config.perimeters
@@ -104,7 +104,7 @@ void Layer::make_perimeters()
                 && config.thin_walls        == other_config.thin_walls
                 && config.external_perimeters_first == other_config.external_perimeters_first) {
                 layerms.push_back(other_layerm);
-                done.insert(it - this->regions.begin());
+                done.insert(it - m_regions.begin());
             }
         }
         
@@ -150,7 +150,7 @@ void Layer::make_fills()
     #ifdef SLIC3R_DEBUG
     printf("Making fills for layer " PRINTF_ZU "\n", this->id());
     #endif
-    for (LayerRegion *layerm : regions) {
+    for (LayerRegion *layerm : m_regions) {
         layerm->fills.clear();
         make_fill(*layerm, layerm->fills);
 #ifndef NDEBUG
@@ -163,18 +163,18 @@ void Layer::make_fills()
 void Layer::export_region_slices_to_svg(const char *path) const
 {
     BoundingBox bbox;
-    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
-        for (Surfaces::const_iterator surface = (*region)->slices.surfaces.begin(); surface != (*region)->slices.surfaces.end(); ++surface)
-            bbox.merge(get_extents(surface->expolygon));
+    for (const auto *region : m_regions)
+        for (const auto &surface : region->slices.surfaces)
+            bbox.merge(get_extents(surface.expolygon));
     Point legend_size = export_surface_type_legend_to_svg_box_size();
     Point legend_pos(bbox.min.x, bbox.max.y);
     bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
 
     SVG svg(path, bbox);
     const float transparency = 0.5f;
-    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
-        for (Surfaces::const_iterator surface = (*region)->slices.surfaces.begin(); surface != (*region)->slices.surfaces.end(); ++surface)
-            svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+    for (const auto *region : m_regions)
+        for (const auto &surface : region->slices.surfaces)
+            svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close(); 
 }
@@ -189,18 +189,18 @@ void Layer::export_region_slices_to_svg_debug(const char *name) const
 void Layer::export_region_fill_surfaces_to_svg(const char *path) const
 {
     BoundingBox bbox;
-    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
-        for (Surfaces::const_iterator surface = (*region)->fill_surfaces.surfaces.begin(); surface != (*region)->fill_surfaces.surfaces.end(); ++surface)
-            bbox.merge(get_extents(surface->expolygon));
+    for (const auto *region : m_regions)
+        for (const auto &surface : region->slices.surfaces)
+            bbox.merge(get_extents(surface.expolygon));
     Point legend_size = export_surface_type_legend_to_svg_box_size();
     Point legend_pos(bbox.min.x, bbox.max.y);
     bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
 
     SVG svg(path, bbox);
     const float transparency = 0.5f;
-    for (LayerRegionPtrs::const_iterator region = this->regions.begin(); region != this->regions.end(); ++region)
-        for (Surfaces::const_iterator surface = (*region)->fill_surfaces.surfaces.begin(); surface != (*region)->fill_surfaces.surfaces.end(); ++surface)
-            svg.draw(surface->expolygon, surface_type_to_color_name(surface->surface_type), transparency);
+    for (const auto *region : m_regions)
+        for (const auto &surface : region->slices.surfaces)
+            svg.draw(surface.expolygon, surface_type_to_color_name(surface.surface_type), transparency);
     export_surface_type_legend_to_svg(svg, legend_pos);
     svg.Close();
 }

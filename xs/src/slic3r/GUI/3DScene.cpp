@@ -1670,30 +1670,30 @@ void _3DScene::_load_print_toolpaths(
     // The skirt and brim steps should be marked as done, so their paths are valid.
     assert(print->is_step_done(psSkirt) && print->is_step_done(psBrim));
 
-    if (!print->has_skirt() && print->config.brim_width.value == 0)
+    if (!print->has_skirt() && print->config().brim_width.value == 0)
         return;
     
     const float color[] = { 0.5f, 1.0f, 0.5f, 1.f }; // greenish
 
     // number of skirt layers
     size_t total_layer_count = 0;
-    for (const PrintObject *print_object : print->objects)
+    for (const PrintObject *print_object : print->objects())
         total_layer_count = std::max(total_layer_count, print_object->total_layer_count());
     size_t skirt_height = print->has_infinite_skirt() ? 
         total_layer_count :
-        std::min<size_t>(print->config.skirt_height.value, total_layer_count);
-    if (skirt_height == 0 && print->config.brim_width.value > 0)
+        std::min<size_t>(print->config().skirt_height.value, total_layer_count);
+    if (skirt_height == 0 && print->config().brim_width.value > 0)
         skirt_height = 1;
 
     // get first skirt_height layers (maybe this should be moved to a PrintObject method?)
-    const PrintObject *object0 = print->objects.front();
+    const PrintObject *object0 = print->objects().front();
     std::vector<float> print_zs;
     print_zs.reserve(skirt_height * 2);
-    for (size_t i = 0; i < std::min(skirt_height, object0->layers.size()); ++ i)
-        print_zs.push_back(float(object0->layers[i]->print_z));
+    for (size_t i = 0; i < std::min(skirt_height, object0->layers().size()); ++ i)
+        print_zs.push_back(float(object0->layers()[i]->print_z));
     //FIXME why there are support layers?
-    for (size_t i = 0; i < std::min(skirt_height, object0->support_layers.size()); ++ i)
-        print_zs.push_back(float(object0->support_layers[i]->print_z));
+    for (size_t i = 0; i < std::min(skirt_height, object0->support_layers().size()); ++ i)
+        print_zs.push_back(float(object0->support_layers()[i]->print_z));
     sort_remove_duplicates(print_zs);
     if (print_zs.size() > skirt_height)
         print_zs.erase(print_zs.begin() + skirt_height, print_zs.end());
@@ -1705,8 +1705,8 @@ void _3DScene::_load_print_toolpaths(
         volume.offsets.push_back(volume.indexed_vertex_array.quad_indices.size());
         volume.offsets.push_back(volume.indexed_vertex_array.triangle_indices.size());
         if (i == 0)
-            extrusionentity_to_verts(print->brim, print_zs[i], Point(0, 0), volume);
-        extrusionentity_to_verts(print->skirt, print_zs[i], Point(0, 0), volume);
+            extrusionentity_to_verts(print->brim(), print_zs[i], Point(0, 0), volume);
+        extrusionentity_to_verts(print->skirt(), print_zs[i], Point(0, 0), volume);
     }
     volume.bounding_box = volume.indexed_vertex_array.bounding_box();
     volume.indexed_vertex_array.finalize_geometry(use_VBOs);
@@ -1753,10 +1753,10 @@ void _3DScene::_load_print_object_toolpaths(
     ctxt.shifted_copies = &print_object->_shifted_copies;
 
     // order layers by print_z
-    ctxt.layers.reserve(print_object->layers.size() + print_object->support_layers.size());
-    for (const Layer *layer : print_object->layers)
+    ctxt.layers.reserve(print_object->layers().size() + print_object->support_layers().size());
+    for (const Layer *layer : print_object->layers())
         ctxt.layers.push_back(layer);
-    for (const Layer *layer : print_object->support_layers)
+    for (const Layer *layer : print_object->support_layers())
         ctxt.layers.push_back(layer);
     std::sort(ctxt.layers.begin(), ctxt.layers.end(), [](const Layer *l1, const Layer *l2) { return l1->print_z < l2->print_z; });
 
@@ -1803,10 +1803,10 @@ void _3DScene::_load_print_object_toolpaths(
                     }
                 }
                 for (const Point &copy: *ctxt.shifted_copies) {
-                    for (const LayerRegion *layerm : layer->regions) {
+                    for (const LayerRegion *layerm : layer->regions()) {
                         if (ctxt.has_perimeters)
                             extrusionentity_to_verts(layerm->perimeters, float(layer->print_z), copy, 
-                                *vols[ctxt.volume_idx(layerm->region()->config.perimeter_extruder.value, 0)]);
+                                *vols[ctxt.volume_idx(layerm->region()->config().perimeter_extruder.value, 0)]);
                         if (ctxt.has_infill) {
                             for (const ExtrusionEntity *ee : layerm->fills.entities) {
                                 // fill represents infill extrusions of a single island.
@@ -1815,8 +1815,8 @@ void _3DScene::_load_print_object_toolpaths(
                                     extrusionentity_to_verts(*fill, float(layer->print_z), copy, 
                                         *vols[ctxt.volume_idx(
                                             is_solid_infill(fill->entities.front()->role()) ? 
-                                                layerm->region()->config.solid_infill_extruder : 
-                                                layerm->region()->config.infill_extruder,
+                                                layerm->region()->config().solid_infill_extruder : 
+                                                layerm->region()->config().infill_extruder,
                                         1)]);
                             }
                         }
@@ -1828,8 +1828,8 @@ void _3DScene::_load_print_object_toolpaths(
                                 extrusionentity_to_verts(extrusion_entity, float(layer->print_z), copy, 
                                     *vols[ctxt.volume_idx(
                                             (extrusion_entity->role() == erSupportMaterial) ? 
-                                                support_layer->object()->config.support_material_extruder : 
-                                                support_layer->object()->config.support_material_interface_extruder,
+                                                support_layer->object()->config().support_material_extruder : 
+                                                support_layer->object()->config().support_material_interface_extruder,
                                             2)]);
                         }
                     }
@@ -1877,7 +1877,7 @@ void _3DScene::_load_wipe_tower_toolpaths(
     const std::vector<std::string> &tool_colors_str,
     bool                            use_VBOs)
 {
-    if (print->m_wipe_tower_tool_changes.empty())
+    if (print->wipe_tower_data().tool_changes.empty())
         return;
 
     std::vector<float> tool_colors = parse_colors(tool_colors_str);
@@ -1902,8 +1902,8 @@ void _3DScene::_load_wipe_tower_toolpaths(
 
         const std::vector<WipeTower::ToolChangeResult>& tool_change(size_t idx) { 
             return priming.empty() ? 
-                ((idx == print->m_wipe_tower_tool_changes.size()) ? final : print->m_wipe_tower_tool_changes[idx]) :
-                ((idx == 0) ? priming : (idx == print->m_wipe_tower_tool_changes.size() + 1) ? final : print->m_wipe_tower_tool_changes[idx - 1]);
+                ((idx == print->wipe_tower_data().tool_changes.size()) ? final : print->wipe_tower_data().tool_changes[idx]) :
+                ((idx == 0) ? priming : (idx == print->wipe_tower_data().tool_changes.size() + 1) ? final : print->wipe_tower_data().tool_changes[idx - 1]);
         }
         std::vector<WipeTower::ToolChangeResult> priming;
         std::vector<WipeTower::ToolChangeResult> final;
@@ -1911,15 +1911,15 @@ void _3DScene::_load_wipe_tower_toolpaths(
 
     ctxt.print          = print;
     ctxt.tool_colors    = tool_colors.empty() ? nullptr : &tool_colors;
-	if (print->m_wipe_tower_priming)
-		ctxt.priming.emplace_back(*print->m_wipe_tower_priming.get());
-	if (print->m_wipe_tower_final_purge)
-		ctxt.final.emplace_back(*print->m_wipe_tower_final_purge.get());
+	if (print->wipe_tower_data().priming != nullptr)
+		ctxt.priming.emplace_back(*print->wipe_tower_data().priming);
+	if (print->wipe_tower_data().final_purge)
+		ctxt.final.emplace_back(*print->wipe_tower_data().final_purge);
     
     BOOST_LOG_TRIVIAL(debug) << "Loading wipe tower toolpaths in parallel - start";
 
     //FIXME Improve the heuristics for a grain size.
-    size_t          n_items    = print->m_wipe_tower_tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
+    size_t          n_items    = print->wipe_tower_data().tool_changes.size() + (ctxt.priming.empty() ? 0 : 1);
     size_t          grain_size = std::max(n_items / 128, size_t(1));
     tbb::spin_mutex new_volume_mutex;
     auto            new_volume = [volumes, &new_volume_mutex](const float *color) -> GLVolume* {
@@ -2554,13 +2554,13 @@ void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, boo
     size_t initial_volumes_count = volumes.volumes.size();
     s_gcode_preview_volume_index.first_volumes.emplace_back(GCodePreviewVolumeIndex::Shell, 0, (unsigned int)initial_volumes_count);
 
-    if (print.objects.empty())
+    if (print.objects().empty())
         // nothing to render, return
         return;
 
     // adds objects' volumes 
     unsigned int object_id = 0;
-    for (PrintObject* obj : print.objects)
+    for (PrintObject* obj : print.objects())
     {
         ModelObject* model_obj = obj->model_object();
 
@@ -2579,8 +2579,8 @@ void _3DScene::_load_shells(const Print& print, GLVolumeCollection& volumes, boo
     }
 
     // adds wipe tower's volume
-    coordf_t max_z = print.objects[0]->model_object()->get_model()->bounding_box().max.z;
-    const PrintConfig& config = print.config;
+    coordf_t max_z = print.objects().front()->model_object()->get_model()->bounding_box().max.z;
+    const PrintConfig& config = print.config();
     unsigned int extruders_count = config.nozzle_diameter.size();
     if ((extruders_count > 1) && config.single_extruder_multi_material && config.wipe_tower && !config.complete_objects)
         volumes.load_wipe_tower_preview(1000, config.wipe_tower_x, config.wipe_tower_y, config.wipe_tower_width, config.wipe_tower_per_color_wipe * (extruders_count - 1), max_z, use_VBOs);

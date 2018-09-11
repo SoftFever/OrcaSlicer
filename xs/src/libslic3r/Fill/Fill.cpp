@@ -34,7 +34,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
 {    
 //    Slic3r::debugf "Filling layer %d:\n", $layerm->layer->id;
     
-    double  fill_density           = layerm.region()->config.fill_density;
+    double  fill_density           = layerm.region()->config().fill_density;
     Flow    infill_flow            = layerm.flow(frInfill);
     Flow    solid_infill_flow      = layerm.flow(frSolidInfill);
     Flow    top_solid_infill_flow  = layerm.flow(frTopSolidInfill);
@@ -69,7 +69,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
                 if (surface.is_solid() && (!surface.is_bridge() || layerm.layer()->id() == 0)) {
                     group_attrib[i].is_solid = true;
                     group_attrib[i].flow_width = (surface.surface_type == stTop) ? top_solid_infill_flow.width : solid_infill_flow.width;
-                    group_attrib[i].pattern = surface.is_external() ? layerm.region()->config.external_fill_pattern.value : ipRectilinear;
+                    group_attrib[i].pattern = surface.is_external() ? layerm.region()->config().external_fill_pattern.value : ipRectilinear;
                 }
             }
             // Loop through solid groups, find compatible groups and append them to this one.
@@ -152,7 +152,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
     for (const Surface &surface : surfaces) {
         if (surface.surface_type == stInternalVoid)
             continue;
-        InfillPattern  fill_pattern = layerm.region()->config.fill_pattern.value;
+        InfillPattern  fill_pattern = layerm.region()->config().fill_pattern.value;
         double         density      = fill_density;
         FlowRole role = (surface.surface_type == stTop) ? frTopSolidInfill :
             (surface.is_solid() ? frSolidInfill : frInfill);
@@ -161,7 +161,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         if (surface.is_solid()) {
             density = 100.;
             fill_pattern = (surface.is_external() && ! is_bridge) ? 
-                layerm.region()->config.external_fill_pattern.value :
+                layerm.region()->config().external_fill_pattern.value :
                 ipRectilinear;
         } else if (density <= 0)
             continue;
@@ -190,7 +190,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
             // layer height
             Flow internal_flow = layerm.region()->flow(
                 frInfill,
-                layerm.layer()->object()->config.layer_height.value,  // TODO: handle infill_every_layers?
+                layerm.layer()->object()->config().layer_height.value,  // TODO: handle infill_every_layers?
                 false,  // no bridge
                 false,  // no first layer
                 -1,     // auto width
@@ -205,7 +205,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
         double link_max_length = 0.;
         if (! is_bridge) {
 #if 0
-            link_max_length = layerm.region()->config.get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
+            link_max_length = layerm.region()->config().get_abs_value(surface.is_external() ? "external_fill_link_max_length" : "fill_link_max_length", flow.spacing());
 //            printf("flow spacing: %f,  is_external: %d, link_max_length: %lf\n", flow.spacing(), int(surface.is_external()), link_max_length);
 #else
             if (density > 80.) // 80%
@@ -215,7 +215,7 @@ void make_fill(LayerRegion &layerm, ExtrusionEntityCollection &out)
 
         f->layer_id = layerm.layer()->id();
         f->z = layerm.layer()->print_z;
-        f->angle = float(Geometry::deg2rad(layerm.region()->config.fill_angle.value));
+        f->angle = float(Geometry::deg2rad(layerm.region()->config().fill_angle.value));
         // Maximum length of the perimeter segment linking two infill lines.
         f->link_max_length = scale_(link_max_length);
         // Used by the concentric infill pattern to clip the loops to create extrusion paths.

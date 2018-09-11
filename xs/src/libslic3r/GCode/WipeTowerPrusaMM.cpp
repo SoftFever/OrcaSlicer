@@ -396,8 +396,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	}
 
 	this->set_layer(first_layer_height, first_layer_height, tools.size(), true, false);
-	this->m_num_layer_changes 	= 0;
-	this->m_current_tool 		= tools.front();
+	m_num_layer_changes 	= 0;
+	m_current_tool 		= tools.front();
 
     // The Prusa i3 MK2 has a working space of [0, -2.2] to [250, 210].
     // Due to the XYZ calibration, this working space may shrink slightly from all directions,
@@ -439,9 +439,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 				if (last_wipe_inside_wipe_tower) {
 					// Shrink the last wipe area to the area of the other purge areas,
 					// remember the last initial wipe width to be purged into the 1st layer of the wipe tower.
-					this->m_initial_extra_wipe = std::max(0.f, wipe_area - (y_end + 0.5f * 0.85f * m_perimeter_width - cleaning_box.ld.y));
-					cleaning_box.lu.y -= this->m_initial_extra_wipe;
-					cleaning_box.ru.y -= this->m_initial_extra_wipe;
+					m_initial_extra_wipe = std::max(0.f, wipe_area - (y_end + 0.5f * 0.85f * m_perimeter_width - cleaning_box.ld.y));
+					cleaning_box.lu.y -= m_initial_extra_wipe;
+					cleaning_box.ru.y -= m_initial_extra_wipe;
 				}
 				toolchange_Wipe(writer, cleaning_box, false);
 			} else {
@@ -471,8 +471,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::prime(
 	m_idx_tool_change_in_layer = (unsigned int)(-1);
 
 	ToolChangeResult result;
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
+	result.print_z 	  	= m_z_pos;
+	result.layer_height = m_layer_height;
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
@@ -612,8 +612,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
 	}
 
 	ToolChangeResult result;
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
+	result.print_z 	  	= m_z_pos;
+	result.layer_height = m_layer_height;
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
@@ -718,8 +718,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::toolchange_Brim(Purpose purpose, b
 	}
 
 	ToolChangeResult result;
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
+	result.print_z 	  	= m_z_pos;
+	result.layer_height = m_layer_height;
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();
@@ -1040,8 +1040,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer(Purpose purpose)
 	}
 
 	ToolChangeResult result;
-	result.print_z 	  	= this->m_z_pos;
-	result.layer_height = this->m_layer_height;
+	result.print_z 	  	= m_z_pos;
+	result.layer_height = m_layer_height;
 	result.gcode   	  	= writer.gcode();
 	result.elapsed_time = writer.elapsed_time();
 	result.extrusions 	= writer.extrusions();

@@ -99,19 +99,19 @@ static BoundingBoxf extrusionentity_extents(const ExtrusionEntity *extrusion_ent
 
 BoundingBoxf get_print_extrusions_extents(const Print &print)
 {
-    BoundingBoxf bbox(extrusionentity_extents(print.brim));
-    bbox.merge(extrusionentity_extents(print.skirt));
+    BoundingBoxf bbox(extrusionentity_extents(print.brim()));
+    bbox.merge(extrusionentity_extents(print.skirt()));
     return bbox;
 }
 
 BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object, const coordf_t max_print_z)
 {
     BoundingBoxf bbox;
-    for (const Layer *layer : print_object.layers) {
+    for (const Layer *layer : print_object.layers()) {
         if (layer->print_z > max_print_z)
             break;
         BoundingBoxf bbox_this;
-        for (const LayerRegion *layerm : layer->regions) {
+        for (const LayerRegion *layerm : layer->regions()) {
             bbox_this.merge(extrusionentity_extents(layerm->perimeters));
             for (const ExtrusionEntity *ee : layerm->fills.entities)
                 // fill represents infill extrusions of a single island.
@@ -135,7 +135,7 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
 BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_t max_print_z)
 {
     BoundingBoxf bbox;
-    for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.m_wipe_tower_tool_changes) {
+    for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.wipe_tower_data().tool_changes) {
         if (! tool_changes.empty() && tool_changes.front().print_z > max_print_z)
             break;
         for (const WipeTower::ToolChangeResult &tcr : tool_changes) {
@@ -161,8 +161,8 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
 BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print)
 {
     BoundingBoxf bbox;
-    if (print.m_wipe_tower_priming) {
-        const WipeTower::ToolChangeResult &tcr = *print.m_wipe_tower_priming.get();
+    if (print.wipe_tower_data().priming != nullptr) {
+        const WipeTower::ToolChangeResult &tcr = *print.wipe_tower_data().priming;
         for (size_t i = 1; i < tcr.extrusions.size(); ++ i) {
             const WipeTower::Extrusion &e = tcr.extrusions[i];
             if (e.width > 0) {

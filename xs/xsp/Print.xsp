@@ -31,7 +31,7 @@ _constant()
     // owned by Print, no constructor/destructor
 
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &THIS->config(); %};
     Ref<Print> print();
     
     Clone<Flow> flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, PrintObject* object)
@@ -42,12 +42,12 @@ _constant()
     // owned by Print, no constructor/destructor
 
     int region_count()
-        %code%{ RETVAL = THIS->print()->regions.size(); %};
+        %code%{ RETVAL = THIS->print()->regions().size(); %};
 
     Ref<Print> print();
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &THIS->config(); %};
     Points copies();
     t_layer_height_ranges layer_height_ranges()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
@@ -95,32 +95,41 @@ _constant()
     ~Print();
 
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config; %};
+        %code%{ RETVAL = &THIS->config(); %};
     Ref<PlaceholderParser> placeholder_parser()
-        %code%{ RETVAL = &THIS->placeholder_parser; %};
+        %code%{ RETVAL = &THIS->placeholder_parser(); %};
     Ref<ExtrusionEntityCollection> skirt()
-        %code%{ RETVAL = &THIS->skirt; %};
+        %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
-        %code%{ RETVAL = &THIS->brim; %};
+        %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->brim()); %};
     std::string estimated_print_time()
-        %code%{ RETVAL = THIS->estimated_print_time; %};
+        %code%{ RETVAL = THIS->print_statistics().estimated_print_time; %};
+    double total_used_filament()
+        %code%{ RETVAL = THIS->print_statistics().total_used_filament; %};
+    double total_extruded_volume()
+        %code%{ RETVAL = THIS->print_statistics().total_extruded_volume; %};
+    double total_weight()
+        %code%{ RETVAL = THIS->print_statistics().total_weight; %};
+    double total_cost()
+        %code%{ RETVAL = THIS->print_statistics().total_cost; %};
 
     PrintObjectPtrs* objects()
-        %code%{ RETVAL = &THIS->objects; %};
+        %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
     void clear_objects();
-    Ref<PrintObject> get_object(int idx);
+    Ref<PrintObject> get_object(int idx)
+        %code%{ RETVAL = THIS->objects()[idx]; %};
     void delete_object(int idx);
     void reload_object(int idx);
     bool reload_model_instances();
     size_t object_count()
-        %code%{ RETVAL = THIS->objects.size(); %};
+        %code%{ RETVAL = THIS->objects().size(); %};
 
     PrintRegionPtrs* regions()
-        %code%{ RETVAL = &THIS->regions; %};
-    Ref<PrintRegion> get_region(int idx);
-    Ref<PrintRegion> add_region();
+        %code%{ RETVAL = const_cast<PrintRegionPtrs*>(&THIS->regions()); %};
+    Ref<PrintRegion> get_region(int idx)
+        %code%{ RETVAL = THIS->regions()[idx]; %};
     size_t region_count()
-        %code%{ RETVAL = THIS->regions.size(); %};
+        %code%{ RETVAL = THIS->regions().size(); %};
     
     bool step_done(PrintStep step)
         %code%{ RETVAL = THIS->is_step_done(step); %};
@@ -130,7 +139,7 @@ _constant()
     SV* filament_stats()
         %code%{
             HV* hv = newHV();
-            for (std::map<size_t,float>::const_iterator it = THIS->filament_stats.begin(); it != THIS->filament_stats.end(); ++it) {
+            for (std::map<size_t,float>::const_iterator it = THIS->print_statistics().filament_stats.begin(); it != THIS->print_statistics().filament_stats.end(); ++it) {
                 // stringify extruder_id
                 std::ostringstream ss;
                 ss << it->first;
@@ -194,47 +203,4 @@ _constant()
             }
         %};
 
-%{
-
-double
-Print::total_used_filament(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_used_filament = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_used_filament;
-    OUTPUT:
-        RETVAL
-
-double
-Print::total_extruded_volume(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_extruded_volume = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_extruded_volume;
-    OUTPUT:
-        RETVAL
-
-
-double
-Print::total_weight(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_weight = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_weight;
-    OUTPUT:
-        RETVAL
-
-double
-Print::total_cost(...)
-    CODE:
-        if (items > 1) {
-            THIS->total_cost = (double)SvNV(ST(1));
-        }
-        RETVAL = THIS->total_cost;
-    OUTPUT:
-        RETVAL        
-%}
 };

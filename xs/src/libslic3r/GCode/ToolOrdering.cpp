@@ -16,19 +16,19 @@
 namespace Slic3r {
 
 // For the use case when each object is printed separately
-// (print.config.complete_objects is true).
+// (print.config().complete_objects is true).
 ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extruder, bool prime_multi_material)
 {
-    if (object.layers.empty())
+    if (object.layers().empty())
         return;
 
     // Initialize the print layers for just a single object.
     {
         std::vector<coordf_t> zs;
-        zs.reserve(zs.size() + object.layers.size() + object.support_layers.size());
-        for (auto layer : object.layers)
+        zs.reserve(zs.size() + object.layers().size() + object.support_layers().size());
+        for (auto layer : object.layers())
             zs.emplace_back(layer->print_z);
-        for (auto layer : object.support_layers)
+        for (auto layer : object.support_layers())
             zs.emplace_back(layer->print_z);
         this->initialize_layers(zs);
     }
@@ -39,39 +39,39 @@ ToolOrdering::ToolOrdering(const PrintObject &object, unsigned int first_extrude
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions(object.print()->config, object.layers.front()->print_z - object.layers.front()->height);
+    this->fill_wipe_tower_partitions(object.print()->config(), object.layers().front()->print_z - object.layers().front()->height);
 
     this->collect_extruder_statistics(prime_multi_material);
 }
 
 // For the use case when all objects are printed at once.
-// (print.config.complete_objects is false).
+// (print.config().complete_objects is false).
 ToolOrdering::ToolOrdering(const Print &print, unsigned int first_extruder, bool prime_multi_material)
 {
     // Initialize the print layers for all objects and all layers.
     coordf_t object_bottom_z = 0.;
     {
         std::vector<coordf_t> zs;
-        for (auto object : print.objects) {
-            zs.reserve(zs.size() + object->layers.size() + object->support_layers.size());
-            for (auto layer : object->layers)
+        for (auto object : print.objects()) {
+            zs.reserve(zs.size() + object->layers().size() + object->support_layers().size());
+            for (auto layer : object->layers())
                 zs.emplace_back(layer->print_z);
-            for (auto layer : object->support_layers)
+            for (auto layer : object->support_layers())
                 zs.emplace_back(layer->print_z);
-            if (! object->layers.empty())
-                object_bottom_z = object->layers.front()->print_z - object->layers.front()->height;
+            if (! object->layers().empty())
+                object_bottom_z = object->layers().front()->print_z - object->layers().front()->height;
         }
         this->initialize_layers(zs);
     }
 
     // Collect extruders reuqired to print the layers.
-    for (auto object : print.objects)
+    for (auto object : print.objects())
         this->collect_extruders(*object);
 
     // Reorder the extruders to minimize tool switches.
     this->reorder_extruders(first_extruder);
 
-    this->fill_wipe_tower_partitions(print.config, object_bottom_z);
+    this->fill_wipe_tower_partitions(print.config(), object_bottom_z);
 
     this->collect_extruder_statistics(prime_multi_material);
 }
@@ -111,13 +111,13 @@ void ToolOrdering::initialize_layers(std::vector<coordf_t> &zs)
 void ToolOrdering::collect_extruders(const PrintObject &object)
 {
     // Collect the support extruders.
-    for (auto support_layer : object.support_layers) {
+    for (auto support_layer : object.support_layers()) {
         LayerTools   &layer_tools = this->tools_for_layer(support_layer->print_z);
         ExtrusionRole role = support_layer->support_fills.role();
         bool         has_support        = role == erMixed || role == erSupportMaterial;
         bool         has_interface      = role == erMixed || role == erSupportMaterialInterface;
-        unsigned int extruder_support   = object.config.support_material_extruder.value;
-        unsigned int extruder_interface = object.config.support_material_interface_extruder.value;
+        unsigned int extruder_support   = object.config().support_material_extruder.value;
+        unsigned int extruder_interface = object.config().support_material_interface_extruder.value;
         if (has_support)
             layer_tools.extruders.push_back(extruder_support);
         if (has_interface)
@@ -126,16 +126,16 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
             layer_tools.has_support = true;
     }
     // Collect the object extruders.
-    for (auto layer : object.layers) {
+    for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
         // What extruders are required to print this object layer?
-        for (size_t region_id = 0; region_id < object.print()->regions.size(); ++ region_id) {
-			const LayerRegion *layerm = (region_id < layer->regions.size()) ? layer->regions[region_id] : nullptr;
+        for (size_t region_id = 0; region_id < object.print()->regions().size(); ++ region_id) {
+			const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
             if (layerm == nullptr)
                 continue;
-            const PrintRegion &region = *object.print()->regions[region_id];
+            const PrintRegion &region = *object.print()->regions()[region_id];
             if (! layerm->perimeters.entities.empty()) {
-                layer_tools.extruders.push_back(region.config.perimeter_extruder.value);
+                layer_tools.extruders.push_back(region.config().perimeter_extruder.value);
                 layer_tools.has_object = true;
             }
             bool has_infill       = false;
@@ -150,9 +150,9 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
                     has_infill = true;
             }
             if (has_solid_infill)
-                layer_tools.extruders.push_back(region.config.solid_infill_extruder);
+                layer_tools.extruders.push_back(region.config().solid_infill_extruder);
             if (has_infill)
-                layer_tools.extruders.push_back(region.config.infill_extruder);
+                layer_tools.extruders.push_back(region.config().infill_extruder);
             if (has_solid_infill || has_infill)
                 layer_tools.has_object = true;
         }

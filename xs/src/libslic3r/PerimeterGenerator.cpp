@@ -6,8 +6,7 @@
 
 namespace Slic3r {
 
-void
-PerimeterGenerator::process()
+void PerimeterGenerator::process()
 {
     // other perimeters
     this->_mm3_per_mm               = this->perimeter_flow.mm3_per_mm();

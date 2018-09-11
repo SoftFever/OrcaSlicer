@@ -18,13 +18,13 @@ namespace Slic3r {
 Flow
 LayerRegion::flow(FlowRole role, bool bridge, double width) const
 {
-    return this->_region->flow(
+    return m_region->flow(
         role,
-        this->_layer->height,
+        m_layer->height,
         bridge,
-        this->_layer->id() == 0,
+        m_layer->id() == 0,
         width,
-        *this->_layer->object()
+        *m_layer->object()
     );
 }
 
@@ -61,9 +61,9 @@ void LayerRegion::make_perimeters(const SurfaceCollection &slices, SurfaceCollec
         &slices,
         this->layer()->height,
         this->flow(frPerimeter),
-        &this->region()->config,
-        &this->layer()->object()->config,
-        &this->layer()->object()->print()->config,
+        &this->region()->config(),
+        &this->layer()->object()->config(),
+        &this->layer()->object()->print()->config(),
         
         // output:
         &this->perimeters,
@@ -116,7 +116,7 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
     {
         // bottom_polygons are used to trim inflated top surfaces.
         fill_boundaries.reserve(number_polygons(surfaces));
-        bool has_infill = this->region()->config.fill_density.value > 0.;
+        bool has_infill = this->region()->config().fill_density.value > 0.;
         for (const Surface &surface : this->fill_surfaces.surfaces) {
             if (surface.surface_type == stTop) {
                 // Collect the top surfaces, inflate them and trim them by the bottom surfaces.
@@ -259,9 +259,9 @@ void LayerRegion::process_external_surfaces(const Layer* lower_layer)
                 #ifdef SLIC3R_DEBUG
                 printf("Processing bridge at layer " PRINTF_ZU ":\n", this->layer()->id());
                 #endif
-                if (bd.detect_angle(Geometry::deg2rad(this->region()->config.bridge_angle.value))) {
+                if (bd.detect_angle(Geometry::deg2rad(this->region()->config().bridge_angle.value))) {
                     bridges[idx_last].bridge_angle = bd.angle;
-                    if (this->layer()->object()->config.support_material) {
+                    if (this->layer()->object()->config().support_material) {
                         polygons_append(this->bridged, bd.coverage());
                         this->unsupported_bridge_edges.append(bd.unsupported_edges()); 
                     }
@@ -351,13 +351,13 @@ void LayerRegion::prepare_fill_surfaces()
         the only meaningful information returned by psPerimeters. */
     
     // if no solid layers are requested, turn top/bottom surfaces to internal
-    if (this->region()->config.top_solid_layers == 0) {
+    if (this->region()->config().top_solid_layers == 0) {
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface)
             if (surface->surface_type == stTop)
-                surface->surface_type = (this->layer()->object()->config.infill_only_where_needed) ? 
+                surface->surface_type = (this->layer()->object()->config().infill_only_where_needed) ? 
                     stInternalVoid : stInternal;
     }
-    if (this->region()->config.bottom_solid_layers == 0) {
+    if (this->region()->config().bottom_solid_layers == 0) {
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
             if (surface->surface_type == stBottom || surface->surface_type == stBottomBridge)
                 surface->surface_type = stInternal;
@@ -365,9 +365,9 @@ void LayerRegion::prepare_fill_surfaces()
     }
         
     // turn too small internal regions into solid regions according to the user setting
-    if (this->region()->config.fill_density.value > 0) {
+    if (this->region()->config().fill_density.value > 0) {
         // scaling an area requires two calls!
-        double min_area = scale_(scale_(this->region()->config.solid_infill_below_area.value));
+        double min_area = scale_(scale_(this->region()->config().solid_infill_below_area.value));
         for (Surfaces::iterator surface = this->fill_surfaces.surfaces.begin(); surface != this->fill_surfaces.surfaces.end(); ++surface) {
             if (surface->surface_type == stInternal && surface->area() <= min_area)
                 surface->surface_type = stInternalSolid;
