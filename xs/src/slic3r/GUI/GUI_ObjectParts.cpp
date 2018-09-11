@@ -951,7 +951,7 @@ void update_settings_list()
 	}
 
     show_manipulation_og(show_manipulations);
-    show_info_sizer(show_manipulations);
+    show_info_sizer(show_manipulations, true);
 
 #ifdef __linux__
 	no_updates.reset(nullptr);

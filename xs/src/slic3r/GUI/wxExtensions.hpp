@@ -424,7 +424,7 @@ class PrusaIconTextRenderer : public wxDataViewCustomRenderer
 public:
     PrusaIconTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
                             int align = wxDVR_DEFAULT_ALIGNMENT): 
-                            wxDataViewCustomRenderer(wxT("wxDataViewIconText"), mode, wxALIGN_CENTER) {}
+                            wxDataViewCustomRenderer(wxT("wxDataViewIconText"), mode, align) {}
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;

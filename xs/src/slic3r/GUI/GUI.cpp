@@ -1118,11 +1118,11 @@ void show_buttons(bool show)
 	}
 }
 
-void show_info_sizer(bool show)
+void show_info_sizer(const bool show, const bool is_update_settings/* = false*/)
 {
 	g_info_sizer->Show(static_cast<size_t>(0), show); 
 	g_info_sizer->Show(1, show && g_show_print_info);
-	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
+	g_manifold_warning_icon->Show(show && (!is_update_settings && g_show_manifold_warning_icon));
 }
 
 void show_object_name(bool show)

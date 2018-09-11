@@ -386,12 +386,12 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
         bmp = m_bitmap_cache->insert(m_name.ToStdString(), bmps);
     }
 
-    m_icon.CopyFromBitmap(*bmp);
-
 #ifdef __WXOSX__
-    if (m_icon.GetWidth() != m_icon.GetHeight())
-        m_icon.SetHeight(m_icon.GetWidth());
+    if (bmp->GetWidth() != bmp->GetHeight())
+        bmp->SetHeight(bmp->GetWidth());
 #endif // __WXOSX__
+
+    m_icon.CopyFromBitmap(*bmp);
     return true;
 }
 
