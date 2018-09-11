@@ -28,7 +28,7 @@ bool AppControllerBoilerplate::supports_asynch() const
 
 void AppControllerBoilerplate::process_events()
 {
-    wxSafeYield();
+    wxYieldIfNeeded();
 }
 
 AppControllerBoilerplate::PathList

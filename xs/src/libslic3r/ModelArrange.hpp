@@ -299,7 +299,8 @@ protected:
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
-             std::function<void(unsigned)> progressind):
+             std::function<void(unsigned)> progressind,
+             std::function<bool(void)> stopcond):
        pck_(bin, dist), bin_area_(sl::area(bin)),
        norm_(std::sqrt(sl::area(bin)))
     {
@@ -330,6 +331,7 @@ public:
         };
 
         pck_.progressIndicator(progressind);
+        pck_.stopCondition(stopcond);
     }
 
     template<class...Args> inline IndexedPackGroup operator()(Args&&...args) {
@@ -343,8 +345,9 @@ class AutoArranger<Box>: public _ArrBase<Box> {
 public:
 
     AutoArranger(const Box& bin, Distance dist,
-                 std::function<void(unsigned)> progressind):
-        _ArrBase<Box>(bin, dist, progressind)
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<Box>(bin, dist, progressind, stopcond)
     {
 
         pconf_.object_function = [this, bin] (const Item &item) {
@@ -380,8 +383,9 @@ class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
 public:
 
     AutoArranger(const lnCircle& bin, Distance dist,
-                 std::function<void(unsigned)> progressind):
-        _ArrBase<lnCircle>(bin, dist, progressind) {
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
 
         pconf_.object_function = [this, &bin] (const Item &item) {
 
@@ -421,8 +425,9 @@ template<>
 class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
 public:
     AutoArranger(const PolygonImpl& bin, Distance dist,
-                 std::function<void(unsigned)> progressind):
-        _ArrBase<PolygonImpl>(bin, dist, progressind)
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<PolygonImpl>(bin, dist, progressind, stopcond)
     {
         pconf_.object_function = [this, &bin] (const Item &item) {
 
@@ -449,8 +454,9 @@ template<> // Specialization with no bin
 class AutoArranger<bool>: public _ArrBase<Box> {
 public:
 
-    AutoArranger(Distance dist, std::function<void(unsigned)> progressind):
-        _ArrBase<Box>(Box(0, 0), dist, progressind)
+    AutoArranger(Distance dist, std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<Box>(Box(0, 0), dist, progressind, stopcond)
     {
         this->pconf_.object_function = [this] (const Item &item) {
 
@@ -680,12 +686,16 @@ void applyResult(
  * remaining items which do not fit onto the print area next to the print
  * bed or leave them untouched (let the user arrange them by hand or remove
  * them).
+ * \param progressind Progress indicator callback called when an object gets
+ * packed. The unsigned argument is the number of items remaining to pack.
+ * \param stopcondition A predicate returning true if abort is needed.
  */
 bool arrange(Model &model, coordf_t min_obj_distance,
              const Slic3r::Polyline& bed,
              BedShapeHint bedhint,
              bool first_bin_only,
-             std::function<void(unsigned)> progressind)
+             std::function<void(unsigned)> progressind,
+             std::function<bool(void)> stopcondition)
 {
     using ArrangeResult = _IndexedPackGroup<PolygonImpl>;
 
@@ -710,6 +720,8 @@ bool arrange(Model &model, coordf_t min_obj_distance,
 
     BoundingBox bbb(bed);
 
+    auto& cfn = stopcondition;
+
     auto binbb = Box({
                          static_cast<libnest2d::Coord>(bbb.min(0)),
                          static_cast<libnest2d::Coord>(bbb.min(1))
@@ -723,7 +735,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
     case BedShapeType::BOX: {
 
         // Create the arranger for the box shaped bed
-        AutoArranger<Box> arrange(binbb, min_obj_distance, progressind);
+        AutoArranger<Box> arrange(binbb, min_obj_distance, progressind, cfn);
 
         // Arrange and return the items with their respective indices within the
         // input sequence.
@@ -735,7 +747,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         auto c = bedhint.shape.circ;
         auto cc = lnCircle(c);
 
-        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind);
+        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind, cfn);
         result = arrange(shapes.begin(), shapes.end());
         break;
     }
@@ -747,7 +759,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
         P irrbed = sl::create<PolygonImpl>(std::move(ctour));
 
-        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind);
+        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind, cfn);
 
         // Arrange and return the items with their respective indices within the
         // input sequence.
@@ -756,7 +768,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
     }
     };
 
-    if(result.empty()) return false;
+    if(result.empty() || stopcondition()) return false;
 
     if(first_bin_only) {
         applyResult(result.front(), 0, shapemap);

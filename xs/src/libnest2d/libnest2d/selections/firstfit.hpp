@@ -56,10 +56,12 @@ public:
             this->progress_(static_cast<unsigned>(--total));
         };
 
+        auto& cancelled = this->stopcond_;
+
         // Safety test: try to pack each item into an empty bin. If it fails
         // then it should be removed from the list
         { auto it = store_.begin();
-            while (it != store_.end()) {
+            while (it != store_.end() && !cancelled()) {
                 Placer p(bin); p.configure(pconfig);
                 if(!p.pack(*it)) {
                     it = store_.erase(it);
@@ -67,13 +69,14 @@ public:
             }
         }
 
+
         auto it = store_.begin();
 
-        while(it != store_.end()) {
+        while(it != store_.end() && !cancelled()) {
             bool was_packed = false;
             size_t j = 0;
-            while(!was_packed) {
-                for(; j < placers.size() && !was_packed; j++) {
+            while(!was_packed && !cancelled()) {
+                for(; j < placers.size() && !was_packed && !cancelled(); j++) {
                     if((was_packed = placers[j].pack(*it, rem(it, store_) )))
                             makeProgress(placers[j], j);
                 }

@@ -2,6 +2,7 @@
 #define SELECTION_BOILERPLATE_HPP
 
 #include "../libnest2d.hpp"
+#include <atomic>
 
 namespace libnest2d { namespace selections {
 
@@ -25,14 +26,15 @@ public:
         return packed_bins_[binIndex];
     }
 
-    inline void progressIndicator(ProgressFunction fn) {
-        progress_ = fn;
-    }
+    inline void progressIndicator(ProgressFunction fn) { progress_ = fn; }
+
+    inline void stopCondition(StopCondition cond) { stopcond_ = cond; }
 
 protected:
 
     PackGroup packed_bins_;
     ProgressFunction progress_ = [](unsigned){};
+    StopCondition stopcond_ = [](){ return false; };
 };
 
 }
