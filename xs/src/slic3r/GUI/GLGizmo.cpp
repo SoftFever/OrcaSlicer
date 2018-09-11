@@ -110,6 +110,7 @@ GLGizmoBase::Grabber::Grabber()
     : center(Vec3d::Zero())
     , angles(Vec3d::Zero())
     , dragging(false)
+    , enabled(true)
 {
     color[0] = 1.0f;
     color[1] = 1.0f;
@@ -234,6 +235,22 @@ void GLGizmoBase::set_highlight_color(const float* color)
         ::memcpy((void*)m_highlight_color, (const void*)color, 3 * sizeof(float));
 }
 
+void GLGizmoBase::enable_grabber(unsigned int id)
+{
+    if ((0 <= id) && (id < (unsigned int)m_grabbers.size()))
+        m_grabbers[id].enabled = true;
+
+    on_enable_grabber(id);
+}
+
+void GLGizmoBase::disable_grabber(unsigned int id)
+{
+    if ((0 <= id) && (id < (unsigned int)m_grabbers.size()))
+        m_grabbers[id].enabled = false;
+
+    on_disable_grabber(id);
+}
+
 void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
 {
     m_dragging = true;
@@ -278,7 +295,8 @@ void GLGizmoBase::render_grabbers() const
 {
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
-        m_grabbers[i].render(m_hover_id == i);
+        if (m_grabbers[i].enabled)
+            m_grabbers[i].render(m_hover_id == i);
     }
 }
 
@@ -286,10 +304,13 @@ void GLGizmoBase::render_grabbers_for_picking() const
 {
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
-        m_grabbers[i].color[0] = 1.0f;
-        m_grabbers[i].color[1] = 1.0f;
-        m_grabbers[i].color[2] = picking_color_component(i);
-        m_grabbers[i].render_for_picking();
+        if (m_grabbers[i].enabled)
+        {
+            m_grabbers[i].color[0] = 1.0f;
+            m_grabbers[i].color[1] = 1.0f;
+            m_grabbers[i].color[2] = picking_color_component(i);
+            m_grabbers[i].render_for_picking();
+        }
     }
 }
 
@@ -386,6 +407,9 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 {
+    if (!m_grabbers[0].enabled)
+        return;
+
     if (m_dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
     else
@@ -789,12 +813,21 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         ::glColor3fv(m_base_color);
         render_box(m_box);
         // draw connections
-        ::glColor3fv(m_grabbers[0].color);
-        render_grabbers_connection(0, 1);
-        ::glColor3fv(m_grabbers[2].color);
-        render_grabbers_connection(2, 3);
-        ::glColor3fv(m_grabbers[4].color);
-        render_grabbers_connection(4, 5);
+        if (m_grabbers[0].enabled && m_grabbers[1].enabled)
+        {
+            ::glColor3fv(m_grabbers[0].color);
+            render_grabbers_connection(0, 1);
+        }
+        if (m_grabbers[2].enabled && m_grabbers[3].enabled)
+        {
+            ::glColor3fv(m_grabbers[2].color);
+            render_grabbers_connection(2, 3);
+        }
+        if (m_grabbers[4].enabled && m_grabbers[5].enabled)
+        {
+            ::glColor3fv(m_grabbers[4].color);
+            render_grabbers_connection(4, 5);
+        }
         // draw grabbers
         render_grabbers();
     }
@@ -1074,11 +1107,14 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
         // draw axes
         for (unsigned int i = 0; i < 3; ++i)
         {
-            ::glColor3fv(AXES_COLOR[i]);
-            ::glBegin(GL_LINES);
-            ::glVertex3f(center(0), center(1), center(2));
-            ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), (GLfloat)m_grabbers[i].center(2));
-            ::glEnd();
+            if (m_grabbers[i].enabled)
+            {
+                ::glColor3fv(AXES_COLOR[i]);
+                ::glBegin(GL_LINES);
+                ::glVertex3f(center(0), center(1), center(2));
+                ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), (GLfloat)m_grabbers[i].center(2));
+                ::glEnd();
+            }
         }
 
         // draw grabbers
