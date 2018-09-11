@@ -989,6 +989,157 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
     return ratio;
 }
 
+const double GLGizmoMove3D::Offset = 10.0;
+
+GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
+    : GLGizmoBase(parent)
+    , m_position(Vec3d::Zero())
+    , m_starting_drag_position(Vec3d::Zero())
+    , m_starting_box_center(Vec3d::Zero())
+{
+}
+
+bool GLGizmoMove3D::on_init()
+{
+    std::string path = resources_dir() + "/icons/overlay/";
+
+    std::string filename = path + "move_off.png";
+    if (!m_textures[Off].load_from_file(filename, false))
+        return false;
+
+    filename = path + "move_hover.png";
+    if (!m_textures[Hover].load_from_file(filename, false))
+        return false;
+
+    filename = path + "move_on.png";
+    if (!m_textures[On].load_from_file(filename, false))
+        return false;
+
+    for (int i = 0; i < 3; ++i)
+    {
+        m_grabbers.push_back(Grabber());
+    }
+
+    return true;
+}
+
+void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
+{
+    if (m_hover_id != -1)
+    {
+        m_starting_drag_position = m_grabbers[m_hover_id].center;
+        m_starting_box_center = box.center();
+    }
+}
+
+void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
+{
+    if (m_hover_id == 0)
+        m_position(0) = 2.0 * m_starting_box_center(0) + calc_displacement(1, mouse_ray) - m_starting_drag_position(0);
+    else if (m_hover_id == 1)
+        m_position(1) = 2.0 * m_starting_box_center(1) + calc_displacement(2, mouse_ray) - m_starting_drag_position(1);
+    else if (m_hover_id == 2)
+        m_position(2) = 2.0 * m_starting_box_center(2) + calc_displacement(1, mouse_ray) - m_starting_drag_position(2);
+}
+
+void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
+{
+    if (m_grabbers[0].dragging)
+        set_tooltip("X: " + format(m_position(0), 2));
+    else if (m_grabbers[1].dragging)
+        set_tooltip("Y: " + format(m_position(1), 2));
+    else if (m_grabbers[2].dragging)
+        set_tooltip("Z: " + format(m_position(2), 2));
+
+    ::glEnable(GL_DEPTH_TEST);
+
+    const Vec3d& center = box.center();
+
+    // x axis
+    m_grabbers[0].center = Vec3d(box.max(0) + Offset, center(1), center(2));
+    ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
+
+    // y axis
+    m_grabbers[1].center = Vec3d(center(0), box.max(1) + Offset, center(2));
+    ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
+
+    // z axis
+    m_grabbers[2].center = Vec3d(center(0), center(1), box.max(2) + Offset);
+    ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
+
+    ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
+
+    if (m_hover_id == -1)
+    {
+        // draw axes
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            ::glColor3fv(AXES_COLOR[i]);
+            ::glBegin(GL_LINES);
+            ::glVertex3f(center(0), center(1), center(2));
+            ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), (GLfloat)m_grabbers[i].center(2));
+            ::glEnd();
+        }
+
+        // draw grabbers
+        render_grabbers();
+    }
+    else
+    {
+        // draw axis
+        ::glColor3fv(AXES_COLOR[m_hover_id]);
+        ::glBegin(GL_LINES);
+        ::glVertex3f(center(0), center(1), center(2));
+        ::glVertex3f((GLfloat)m_grabbers[m_hover_id].center(0), (GLfloat)m_grabbers[m_hover_id].center(1), (GLfloat)m_grabbers[m_hover_id].center(2));
+        ::glEnd();
+
+        // draw grabber
+        m_grabbers[m_hover_id].render(true);
+    }
+}
+
+void GLGizmoMove3D::on_render_for_picking(const BoundingBoxf3& box) const
+{
+    ::glDisable(GL_DEPTH_TEST);
+
+    render_grabbers_for_picking();
+}
+
+double GLGizmoMove3D::calc_displacement(unsigned int preferred_plane_id, const Linef3& mouse_ray) const
+{
+    double displacement = 0.0;
+
+    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
+    double len_starting_vec = starting_vec.norm();
+    if (len_starting_vec == 0.0)
+        return displacement;
+
+    Vec3d starting_vec_dir = starting_vec.normalized();
+    Vec3d mouse_dir = mouse_ray.unit_vector();
+
+    unsigned int plane_id = select_best_plane(mouse_dir, preferred_plane_id);
+
+    switch (plane_id)
+    {
+    case 0:
+    {
+        displacement = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, m_starting_box_center));
+        break;
+    }
+    case 1:
+    {
+        displacement = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, m_starting_box_center));
+        break;
+    }
+    case 2:
+    {
+        displacement = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, m_starting_box_center));
+        break;
+    }
+    }
+
+    return displacement;
+}
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)

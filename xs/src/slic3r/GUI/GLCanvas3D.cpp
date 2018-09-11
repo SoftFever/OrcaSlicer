@@ -1123,7 +1123,6 @@ const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
     , m_current(Undefined)
-    , m_dragging(false)
 {
 }
 
@@ -1134,7 +1133,16 @@ GLCanvas3D::Gizmos::~Gizmos()
 
 bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
-    GLGizmoBase* gizmo = new GLGizmoScale3D(parent);
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent);
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init())
+        return false;
+
+    m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
+
+    gizmo = new GLGizmoScale3D(parent);
     if (gizmo == nullptr)
         return false;
 
@@ -1336,12 +1344,12 @@ bool GLCanvas3D::Gizmos::is_running() const
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
-    return m_dragging;
+    GLGizmoBase* curr = _get_current();
+    return (curr != nullptr) ? curr->is_dragging() : false;
 }
 
 void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 {
-    m_dragging = true;
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->start_dragging(box);
@@ -1349,10 +1357,28 @@ void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 
 void GLCanvas3D::Gizmos::stop_dragging()
 {
-    m_dragging = false;
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->stop_dragging();
+}
+
+Vec3d GLCanvas3D::Gizmos::get_position() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Move);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoMove3D*>(it->second)->get_position() : Vec3d::Zero();
+}
+
+void GLCanvas3D::Gizmos::set_position(const Vec3d& position)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Move);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoMove3D*>(it->second)->set_position(position);
 }
 
 float GLCanvas3D::Gizmos::get_scale() const
@@ -2143,11 +2169,17 @@ void GLCanvas3D::set_select_by(const std::string& value)
 void GLCanvas3D::set_drag_by(const std::string& value)
 {
     m_drag_by = value;
+    m_volumes.set_drag_by(value);
 }
 
 const std::string& GLCanvas3D::get_select_by() const
 {
     return m_select_by;
+}
+
+const std::string& GLCanvas3D::get_drag_by() const
+{
+    return m_drag_by;
 }
 
 float GLCanvas3D::get_camera_zoom() const
@@ -2326,6 +2358,7 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
+                m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
                 m_gizmos.set_flattening_data(model_object);
@@ -2334,6 +2367,7 @@ void GLCanvas3D::update_gizmos_data()
     }
     else
     {
+        m_gizmos.set_position(Vec3d::Zero());
         m_gizmos.set_scale(1.0f);
         m_gizmos.set_angle_z(0.0f);
         m_gizmos.set_flattening_data(nullptr);
@@ -3181,6 +3215,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         switch (m_gizmos.get_current_type())
         {
+        case Gizmos::Move:
+        {
+            // Apply new temporary offset
+            GLVolume* volume = m_volumes.volumes[m_mouse.drag.gizmo_volume_idx];
+            Vec3d offset = m_gizmos.get_position() - volume->get_offset();
+            for (GLVolume* v : volumes)
+            {
+                v->set_offset(v->get_offset() + offset);
+            }
+            update_position_values(volume->get_offset());
+            break;
+        }
         case Gizmos::Scale:
         {
             // Apply new temporary scale factor
@@ -3188,8 +3234,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             for (GLVolume* v : volumes)
             {
                 v->set_scaling_factor((double)scale_factor);
-                update_scale_values((double)scale_factor);
             }
+            update_scale_values((double)scale_factor);
             break;
         }
         case Gizmos::Rotate:
@@ -3199,8 +3245,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             for (GLVolume* v : volumes)
             {
                 v->set_rotation((double)angle_z);
-                update_rotation_value((double)angle_z, Z);
             }
+            update_rotation_value((double)angle_z, Z);
             break;
         }
         default:
@@ -3310,6 +3356,27 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             switch (m_gizmos.get_current_type())
             {
+            case Gizmos::Move:
+            {
+                // get all volumes belonging to the same group, if any
+                std::vector<int> volume_idxs;
+                int vol_id = m_mouse.drag.gizmo_volume_idx;
+                int group_id = m_volumes.volumes[vol_id]->select_group_id;
+                if (group_id == -1)
+                    volume_idxs.push_back(vol_id);
+                else
+                {
+                    for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
+                    {
+                        if (m_volumes.volumes[i]->select_group_id == group_id)
+                            volume_idxs.push_back(i);
+                    }
+                }
+
+                _on_move(volume_idxs);
+
+                break;
+            }
             case Gizmos::Scale:
             {
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());

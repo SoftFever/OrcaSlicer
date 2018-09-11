@@ -262,6 +262,31 @@ private:
     double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const;
 };
 
+class GLGizmoMove3D : public GLGizmoBase
+{
+    static const double Offset;
+
+    Vec3d m_position;
+    Vec3d m_starting_drag_position;
+    Vec3d m_starting_box_center;
+
+public:
+    explicit GLGizmoMove3D(GLCanvas3D& parent);
+
+    const Vec3d& get_position() const { return m_position; }
+    void set_position(const Vec3d& position) { m_position = position; }
+
+protected:
+    virtual bool on_init();
+    virtual void on_start_dragging(const BoundingBoxf3& box);
+    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+
+private:
+    double calc_displacement(unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
+};
+
 class GLGizmoFlatten : public GLGizmoBase
 {
 // This gizmo does not use grabbers. The m_hover_id relates to polygon managed by the class itself.

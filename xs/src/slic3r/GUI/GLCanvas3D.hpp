@@ -336,6 +336,7 @@ public:
         enum EType : unsigned char
         {
             Undefined,
+            Move,
             Scale,
             Rotate,
             Flatten,
@@ -347,7 +348,6 @@ public:
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
         EType m_current;
-        bool m_dragging;
 
     public:
         Gizmos();
@@ -375,6 +375,9 @@ public:
         bool is_dragging() const;
         void start_dragging(const BoundingBoxf3& box);
         void stop_dragging();
+
+        Vec3d get_position() const;
+        void set_position(const Vec3d& position);
 
         float get_scale() const;
         void set_scale(float scale);
@@ -558,6 +561,7 @@ public:
     void set_drag_by(const std::string& value);
 
     const std::string& get_select_by() const;
+    const std::string& get_drag_by() const;
 
     float get_camera_zoom() const;
 
