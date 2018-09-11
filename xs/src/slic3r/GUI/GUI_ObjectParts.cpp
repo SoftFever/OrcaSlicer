@@ -249,10 +249,8 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
 	// column 0(Icon+Text) of the view control:
-    wxDataViewColumn *ret = new wxDataViewColumn(_(L("Name")),
-        new PrusaIconTextRenderer(wxT("PrusaDataViewIconText")),
-        0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
-    m_objects_ctrl->AppendColumn(ret);
+    m_objects_ctrl->AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaIconTextRenderer(),
+                                 0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 // 	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 200,
 // 		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
 

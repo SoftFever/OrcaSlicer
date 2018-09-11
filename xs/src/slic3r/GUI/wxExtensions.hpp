@@ -422,9 +422,9 @@ public:
 class PrusaIconTextRenderer : public wxDataViewCustomRenderer
 {
 public:
-    PrusaIconTextRenderer(  const wxString &varianttype = wxT("PrusaDataViewIconText"),
-                            wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
-                            int align = wxDVR_DEFAULT_ALIGNMENT) {}
+    PrusaIconTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
+                            int align = wxDVR_DEFAULT_ALIGNMENT): 
+                            wxDataViewCustomRenderer(wxT("wxDataViewIconText"), mode, wxALIGN_CENTER) {}
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;
