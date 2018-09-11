@@ -112,13 +112,16 @@ void update_settings_value();
 void set_extruder_column_hidden(bool hide);
 // update extruder in current config
 void update_extruder_in_config(const wxString& selection);
+// update position values displacements or "gizmos"
+void update_position_values();
+void update_position_values(const Vec3d& position);
 // update scale values after scale unit changing or "gizmos"
 void update_scale_values();
-void update_scale_values(const Vec3d& size, float scale);
+void update_scale_values(double scaling_factor);
 // update rotation values object selection changing
 void update_rotation_values();
 // update rotation value after "gizmos"
-void update_rotation_value(const double angle, const std::string& axis);
+void update_rotation_value(double angle, Axis axis);
 void set_uniform_scaling(const bool uniform_scale);
 
 void on_begin_drag(wxDataViewEvent &event);

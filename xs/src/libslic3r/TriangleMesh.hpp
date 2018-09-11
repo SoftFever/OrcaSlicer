@@ -48,6 +48,7 @@ public:
     void mirror_x() { this->mirror(X); }
     void mirror_y() { this->mirror(Y); }
     void mirror_z() { this->mirror(Z); }
+    void transform(const Transform3f& t);
     void align_to_origin();
     void rotate(double angle, Point* center);
     TriangleMeshPtrs split() const;

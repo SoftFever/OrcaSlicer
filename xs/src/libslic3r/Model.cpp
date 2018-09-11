@@ -237,7 +237,6 @@ BoundingBoxf3 Model::bounding_box() const
 
 void Model::center_instances_around_point(const Vec2d &point)
 {
-//    BoundingBoxf3 bb = this->bounding_box();
     BoundingBoxf3 bb;
     for (ModelObject *o : this->objects)
         for (size_t i = 0; i < o->instances.size(); ++ i)
@@ -670,22 +669,19 @@ void ModelObject::center_around_origin()
         if (! v->modifier)
 			bb.merge(v->mesh.bounding_box());
     
-    // First align to origin on XYZ, then center it on XY.
-    Vec3d size = bb.size();
-    size(2) = 0.;
-    Vec3d shift3 = - bb.min - 0.5 * size;
-    // Unaligned vector, for the Rotation2D to work on Visual Studio 2013.
-    Eigen::Vector2d shift2 = to_2d(shift3);
-    
-    this->translate(shift3);
-    this->origin_translation += shift3;
-    
+    // Shift is the vector from the center of the bottom face of the bounding box to the origin
+    Vec3d shift = -bb.center();
+    shift(2) = -bb.min(2);
+
+    this->translate(shift);
+    this->origin_translation += shift;
+
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
-            Eigen::Rotation2Dd rot(i->rotation);
-            i->offset -= rot * shift2 * i->scaling_factor;
+            Vec3d i_shift = i->world_matrix(true) * shift;
+            i->offset -= to_2d(i_shift);
         }
         this->invalidate_bounding_box();
     }
@@ -861,12 +857,7 @@ void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_
         {
             for (ModelInstance* inst : this->instances)
             {
-                Transform3d m = Transform3d::Identity();
-                m.translate(Vec3d(inst->offset(0), inst->offset(1), 0.0));
-                m.rotate(Eigen::AngleAxisd(inst->rotation, Vec3d::UnitZ()));
-                m.scale(inst->scaling_factor);
-
-                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(m);
+                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(inst->world_matrix());
 
                 if (print_volume.contains(bb))
                     inst->print_volume_state = ModelInstance::PVS_Inside;
@@ -995,26 +986,17 @@ size_t ModelVolume::split(unsigned int max_extruders)
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
-    mesh->rotate_z(this->rotation);                 // rotate around mesh origin
-    mesh->scale(this->scaling_factor);              // scale around mesh origin
-    if (!dont_translate)
-        mesh->translate(this->offset(0), this->offset(1), 0);
+    mesh->transform(world_matrix(dont_translate).cast<float>());
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
 {
     // Rotate around mesh origin.
-    double c = cos(this->rotation);
-    double s = sin(this->rotation);
-    BoundingBoxf3 bbox;
-    for (int i = 0; i < mesh->stl.stats.number_of_facets; ++ i) {
-        const stl_facet &facet = mesh->stl.facet_start[i];
-        for (int j = 0; j < 3; ++ j) {
-            const stl_vertex &v = facet.vertex[j];
-			bbox.merge(Vec3d(c * v(0) - s * v(1), s * v(0) + c * v(1), v(2)));
-        }
-    }
-    if (! empty(bbox)) {
+    TriangleMesh copy(*mesh);
+    copy.transform(world_matrix(true, false, true).cast<float>());
+    BoundingBoxf3 bbox = copy.bounding_box();
+
+    if (!empty(bbox)) {
         // Scale the bounding box uniformly.
         if (std::abs(this->scaling_factor - 1.) > EPSILON) {
             bbox.min *= this->scaling_factor;
@@ -1031,19 +1013,34 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    Transform3d matrix = Transform3d::Identity();
-    if (!dont_translate)
-        matrix.translate(Vec3d(offset(0), offset(1), 0.0));
+    return bbox.transformed(world_matrix(dont_translate));
+}
 
-    matrix.rotate(Eigen::AngleAxisd(rotation, Vec3d::UnitZ()));
-    matrix.scale(scaling_factor);
-    return bbox.transformed(matrix);
+Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
+{
+    return world_matrix(dont_translate) * v;
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const
 {
     polygon->rotate(this->rotation);                // rotate around polygon origin
     polygon->scale(this->scaling_factor);           // scale around polygon origin
+}
+
+Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
+{
+    Transform3d m = Transform3d::Identity();
+
+    if (!dont_translate)
+        m.translate(Vec3d(offset(0), offset(1), 0.0));
+
+    if (!dont_rotate)
+        m.rotate(Eigen::AngleAxisd(rotation, Vec3d::UnitZ()));
+
+    if (!dont_scale)
+        m.scale(scaling_factor);
+
+    return m;
 }
 
 }

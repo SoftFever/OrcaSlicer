@@ -1533,13 +1533,20 @@ void update_settings_value()
 {
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
 	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id) {
-		og->set_value("scale_x", 0);
+        og->set_value("position_x", 0);
+        og->set_value("position_y", 0);
+        og->set_value("position_z", 0);
+        og->set_value("scale_x", 0);
 		og->set_value("scale_y", 0);
 		og->set_value("scale_z", 0);
+        og->set_value("rotation_x", 0);
+        og->set_value("rotation_y", 0);
+        og->set_value("rotation_z", 0);
         og->disable();
 		return;
 	}
     g_is_percent_scale = boost::any_cast<wxString>(og->get_value("scale_unit")) == _("%");
+    update_position_values();
     update_scale_values();
     update_rotation_values();
     og->enable();
@@ -1716,49 +1723,93 @@ void update_extruder_in_config(const wxString& selection)
 
 void update_scale_values()
 {
-    update_scale_values((*m_objects)[m_selected_object_id]->instance_bounding_box(0).size(),
-                        (*m_objects)[m_selected_object_id]->instances[0]->scaling_factor);
-}
-
-void update_scale_values(const Vec3d& size, float scaling_factor)
-{
     auto og = get_optgroup(ogFrequentlyObjectSettings);
+    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
+    auto size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
 
     if (g_is_percent_scale) {
-        auto scale = scaling_factor * 100;
+        auto scale = instance->scaling_factor * 100.0;
         og->set_value("scale_x", int(scale));
         og->set_value("scale_y", int(scale));
         og->set_value("scale_z", int(scale));
     }
     else {
-        og->set_value("scale_x", int(size(0) + 0.5));
-        og->set_value("scale_y", int(size(1) + 0.5));
-        og->set_value("scale_z", int(size(2) + 0.5));
+        og->set_value("scale_x", int(instance->scaling_factor * size(0) + 0.5));
+        og->set_value("scale_y", int(instance->scaling_factor * size(1) + 0.5));
+        og->set_value("scale_z", int(instance->scaling_factor * size(2) + 0.5));
     }
+}
+
+void update_position_values()
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
+
+    og->set_value("position_x", int(instance->offset(0)));
+    og->set_value("position_y", int(instance->offset(1)));
+    og->set_value("position_z", 0);
+}
+
+void update_position_values(const Vec3d& position)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+
+    og->set_value("position_x", int(position(0)));
+    og->set_value("position_y", int(position(1)));
+    og->set_value("position_z", int(position(2)));
+}
+
+void update_scale_values(double scaling_factor)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+
+    // this is temporary
+    // to be able to update the values as size
+    // we need to store somewhere the original size
+    // or have it passed as parameter
+    if (!g_is_percent_scale)
+        og->set_value("scale_unit", _("%"));
+
+    auto scale = scaling_factor * 100.0;
+    og->set_value("scale_x", int(scale));
+    og->set_value("scale_y", int(scale));
+    og->set_value("scale_z", int(scale));
 }
 
 void update_rotation_values()
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
-
+    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
     og->set_value("rotation_x", 0);
     og->set_value("rotation_y", 0);
-
-    auto rotation_z = (*m_objects)[m_selected_object_id]->instances[0]->rotation;
-    auto deg = int(Geometry::rad2deg(rotation_z));
-//     if (deg > 180) deg -= 360;
-
-    og->set_value("rotation_z", deg);
+    og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
 }
 
-void update_rotation_value(const double angle, const std::string& axis)
+void update_rotation_value(double angle, Axis axis)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
-    
-    int deg = int(Geometry::rad2deg(angle));
-//     if (deg>180) deg -= 360;
 
-    og->set_value("rotation_"+axis, deg);
+    std::string axis_str;
+    switch (axis)
+    {
+    case X:
+    {
+        axis_str = "rotation_x";
+        break;
+    }
+    case Y:
+    {
+        axis_str = "rotation_y";
+        break;
+    }
+    case Z:
+    {
+        axis_str = "rotation_z";
+        break;
+    }
+    }
+
+    og->set_value(axis_str, int(Geometry::rad2deg(angle)));
 }
 
 void set_uniform_scaling(const bool uniform_scale)

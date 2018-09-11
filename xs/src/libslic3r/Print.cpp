@@ -13,7 +13,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/log/trivial.hpp>
 
-#include "slic3r/IProgressIndicator.hpp"
+#include "slic3r/ProgressIndicator.hpp"
 #include "PrintExport.hpp"
 
 //! macro used to mark string used at localization, 

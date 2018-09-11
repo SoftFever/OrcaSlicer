@@ -255,11 +255,11 @@ public:
 
 private:
     // Offset of the volume to be rendered.
-    Vec3d                 m_origin;
+    Vec3d                 m_offset;
     // Rotation around Z axis of the volume to be rendered.
-    float                 m_angle_z;
+    double                m_rotation;
     // Scale factor of the volume to be rendered.
-    float                 m_scale_factor;
+    double                m_scaling_factor;
     // World matrix of the volume to be rendered.
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
@@ -327,12 +327,18 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-    float get_angle_z();
-    const Vec3d& get_origin() const;
-    void set_origin(const Vec3d& origin);
-    void set_angle_z(float angle_z);
-    void set_scale_factor(float scale_factor);
+    double get_rotation();
+    void set_rotation(double rotation);
+
+    const Vec3d& get_offset() const;
+    void set_offset(const Vec3d& offset);
+
+    void set_scaling_factor(double factor);
+
     void set_convex_hull(const TriangleMesh& convex_hull);
+
+    void set_select_group_id(const std::string& select_by);
+    void set_drag_group_id(const std::string& drag_by);
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
@@ -443,6 +449,9 @@ public:
 
     void update_colors_by_extruder(const DynamicPrintConfig* config);
 
+    void set_select_by(const std::string& select_by);
+    void set_drag_by(const std::string& drag_by);
+
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs(bool active_only) const;
 
@@ -496,6 +505,8 @@ public:
     static void set_select_by(wxGLCanvas* canvas, const std::string& value);
     static void set_drag_by(wxGLCanvas* canvas, const std::string& value);
 
+    static std::string get_select_by(wxGLCanvas* canvas);
+
     static bool is_layers_editing_enabled(wxGLCanvas* canvas);
     static bool is_layers_editing_allowed(wxGLCanvas* canvas);
     static bool is_shader_enabled(wxGLCanvas* canvas);
@@ -547,6 +558,7 @@ public:
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     static void register_action_add_callback(wxGLCanvas* canvas, void* callback);
@@ -559,9 +571,12 @@ public:
     static void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
+    static void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
 
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
+
+    static int get_first_volume_id(wxGLCanvas* canvas, int obj_idx);
 
     static void reload_scene(wxGLCanvas* canvas, bool force);
 

@@ -1,8 +1,14 @@
 min_slic3r_version = 1.41.0-alpha
+0.2.2 Edited MMU2 Single mode purge line
+0.2.1 Added PET and BVOH settings for MMU2
+0.2.0-beta5 Fixed MMU1 ramming parameters
+0.2.0-beta4 Added filament loading speed at start, increased minimal purge on wipe tower
+0.2.0-beta3 Edited ramming parameters and filament cooling moves for MMU2
+0.2.0-beta2 Edited first layer speed and wipe tower position
 0.2.0-beta Removed limit on the MK3MMU2 height, added legacy M204 S T format to the MK2 profiles
 0.2.0-alpha8 Added filament_load/unload_time for the PLA/ABS MMU2 filament presets.
-0.2.0-alpha7 Fixed the *MK3* references
-0.2.0-alpha6
+0.2.0-alpha7 Vojtech's fix the incorrect *MK3* references
+0.2.0-alpha6 Jindra's way to fix the 0.2.0-alpha5 version
 0.2.0-alpha5 Bumped up firmware versions for MK2.5/MK3 to 3.3.1, disabled priming areas for MK3MMU2
 0.2.0-alpha4 Extended the custom start/end G-codes of the MMU2.0 printers for no priming towers.
 0.2.0-alpha3 Adjusted machine limits for time estimates, added filament density and cost

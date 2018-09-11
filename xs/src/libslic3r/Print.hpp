@@ -227,8 +227,8 @@ private:
 typedef std::vector<PrintObject*> PrintObjectPtrs;
 typedef std::vector<PrintRegion*> PrintRegionPtrs;
 
-class IProgressIndicator;
-using ProgressIndicatorPtr = std::shared_ptr<IProgressIndicator>;
+class ProgressIndicator;
+using ProgressIndicatorPtr = std::shared_ptr<ProgressIndicator>;
 
 // The complete print tray with possibly multiple objects.
 class Print

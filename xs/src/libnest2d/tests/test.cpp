@@ -5,6 +5,7 @@
 #include "printer_parts.h"
 #include <libnest2d/geometry_traits_nfp.hpp>
 //#include "../tools/libnfpglue.hpp"
+//#include "../tools/nfp_svgnest_glue.hpp"
 
 std::vector<libnest2d::Item>& prusaParts() {
     static std::vector<libnest2d::Item> ret;
@@ -99,6 +100,43 @@ TEST(BasicFunctionality, creationAndDestruction)
 
 }
 
+TEST(GeometryAlgorithms, boundingCircle) {
+    using namespace libnest2d;
+    using placers::boundingCircle;
+
+    PolygonImpl p = {{{0, 10}, {10, 0}, {0, -10}, {0, 10}}, {}};
+    Circle c = boundingCircle(p);
+
+    ASSERT_EQ(c.center().X, 0);
+    ASSERT_EQ(c.center().Y, 0);
+    ASSERT_DOUBLE_EQ(c.radius(), 10);
+
+    shapelike::translate(p, PointImpl{10, 10});
+    c = boundingCircle(p);
+
+    ASSERT_EQ(c.center().X, 10);
+    ASSERT_EQ(c.center().Y, 10);
+    ASSERT_DOUBLE_EQ(c.radius(), 10);
+
+    auto parts = prusaParts();
+
+    int i = 0;
+    for(auto& part : parts) {
+        c = boundingCircle(part.transformedShape());
+        if(std::isnan(c.radius())) std::cout << "fail: radius is nan" << std::endl;
+
+        else for(auto v : shapelike::getContour(part.transformedShape()) ) {
+            auto d = pointlike::distance(v, c.center());
+            if(d > c.radius() ) {
+                auto e = std::abs( 1.0 - d/c.radius());
+                ASSERT_LE(e, 1e-3);
+            }
+        }
+        i++;
+    }
+
+}
+
 TEST(GeometryAlgorithms, Distance) {
     using namespace libnest2d;
 
@@ -107,14 +145,14 @@ TEST(GeometryAlgorithms, Distance) {
     Point p2 = {10, 0};
     Point p3 = {10, 10};
 
-    ASSERT_DOUBLE_EQ(PointLike::distance(p1, p2), 10);
-    ASSERT_DOUBLE_EQ(PointLike::distance(p1, p3), sqrt(200));
+    ASSERT_DOUBLE_EQ(pointlike::distance(p1, p2), 10);
+    ASSERT_DOUBLE_EQ(pointlike::distance(p1, p3), sqrt(200));
 
     Segment seg(p1, p3);
 
-    ASSERT_DOUBLE_EQ(PointLike::distance(p2, seg), 7.0710678118654755);
+    ASSERT_DOUBLE_EQ(pointlike::distance(p2, seg), 7.0710678118654755);
 
-    auto result = PointLike::horizontalDistance(p2, seg);
+    auto result = pointlike::horizontalDistance(p2, seg);
 
     auto check = [](Coord val, Coord expected) {
         if(std::is_floating_point<Coord>::value)
@@ -127,11 +165,11 @@ TEST(GeometryAlgorithms, Distance) {
     ASSERT_TRUE(result.second);
     check(result.first, 10);
 
-    result = PointLike::verticalDistance(p2, seg);
+    result = pointlike::verticalDistance(p2, seg);
     ASSERT_TRUE(result.second);
     check(result.first, -10);
 
-    result = PointLike::verticalDistance(Point{10, 20}, seg);
+    result = pointlike::verticalDistance(Point{10, 20}, seg);
     ASSERT_TRUE(result.second);
     check(result.first, 10);
 
@@ -139,12 +177,12 @@ TEST(GeometryAlgorithms, Distance) {
     Point p4 = {80, 0};
     Segment seg2 = { {0, 0}, {0, 40} };
 
-    result = PointLike::horizontalDistance(p4, seg2);
+    result = pointlike::horizontalDistance(p4, seg2);
 
     ASSERT_TRUE(result.second);
     check(result.first, 80);
 
-    result = PointLike::verticalDistance(p4, seg2);
+    result = pointlike::verticalDistance(p4, seg2);
     // Point should not be related to the segment
     ASSERT_FALSE(result.second);
 
@@ -172,7 +210,7 @@ TEST(GeometryAlgorithms, Area) {
         {61, 97}
     };
 
-    ASSERT_TRUE(ShapeLike::area(item.transformedShape()) > 0 );
+    ASSERT_TRUE(shapelike::area(item.transformedShape()) > 0 );
 }
 
 TEST(GeometryAlgorithms, IsPointInsidePolygon) {
@@ -182,21 +220,21 @@ TEST(GeometryAlgorithms, IsPointInsidePolygon) {
 
     Point p = {1, 1};
 
-    ASSERT_TRUE(rect.isPointInside(p));
+    ASSERT_TRUE(rect.isInside(p));
 
     p = {11, 11};
 
-    ASSERT_FALSE(rect.isPointInside(p));
+    ASSERT_FALSE(rect.isInside(p));
 
 
     p = {11, 12};
 
-    ASSERT_FALSE(rect.isPointInside(p));
+    ASSERT_FALSE(rect.isInside(p));
 
 
     p = {3, 3};
 
-    ASSERT_TRUE(rect.isPointInside(p));
+    ASSERT_TRUE(rect.isInside(p));
 
 }
 
@@ -250,7 +288,7 @@ TEST(GeometryAlgorithms, LeftAndDownPolygon)
 
     Item leftp(placer.leftPoly(item));
 
-    ASSERT_TRUE(ShapeLike::isValid(leftp.rawShape()).first);
+    ASSERT_TRUE(shapelike::isValid(leftp.rawShape()).first);
     ASSERT_EQ(leftp.vertexCount(), leftControl.vertexCount());
 
     for(unsigned long i = 0; i < leftControl.vertexCount(); i++) {
@@ -260,7 +298,7 @@ TEST(GeometryAlgorithms, LeftAndDownPolygon)
 
     Item downp(placer.downPoly(item));
 
-    ASSERT_TRUE(ShapeLike::isValid(downp.rawShape()).first);
+    ASSERT_TRUE(shapelike::isValid(downp.rawShape()).first);
     ASSERT_EQ(downp.vertexCount(), downControl.vertexCount());
 
     for(unsigned long i = 0; i < downControl.vertexCount(); i++) {
@@ -297,7 +335,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesTight)
         {20, 20} };
 
 
-    Arranger<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250));
+    Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250));
 
     auto groups = arrange(rects.begin(), rects.end());
 
@@ -350,7 +388,7 @@ TEST(GeometryAlgorithms, ArrangeRectanglesLoose)
 
     Coord min_obj_distance = 5;
 
-    Arranger<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250),
+    Nester<BottomLeftPlacer, DJDHeuristic> arrange(Box(210, 250),
                                                      min_obj_distance);
 
     auto groups = arrange(rects.begin(), rects.end());
@@ -401,7 +439,7 @@ R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                 setX(v, getX(v)/SCALE);
                 rbin.setVertex(i, v);
             }
-            out << ShapeLike::serialize<Formats::SVG>(rbin.rawShape()) << std::endl;
+            out << shapelike::serialize<Formats::SVG>(rbin.rawShape()) << std::endl;
             for(Item& sh : r) {
                 Item tsh(sh.transformedShape());
                 for(unsigned i = 0; i < tsh.vertexCount(); i++) {
@@ -410,7 +448,7 @@ R"raw(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                     setX(v, getX(v)/SCALE);
                     tsh.setVertex(i, v);
                 }
-                out << ShapeLike::serialize<Formats::SVG>(tsh.rawShape()) << std::endl;
+                out << shapelike::serialize<Formats::SVG>(tsh.rawShape()) << std::endl;
             }
             out << "\n</svg>" << std::endl;
         }
@@ -664,7 +702,7 @@ std::vector<ItemPair> nfp_concave_testdata = {
     }
 };
 
-template<NfpLevel lvl, Coord SCALE>
+template<nfp::NfpLevel lvl, Coord SCALE>
 void testNfp(const std::vector<ItemPair>& testdata) {
     using namespace libnest2d;
 
@@ -674,29 +712,33 @@ void testNfp(const std::vector<ItemPair>& testdata) {
 
     auto& exportfun = exportSVG<SCALE, Box>;
 
-    auto onetest = [&](Item& orbiter, Item& stationary){
+    auto onetest = [&](Item& orbiter, Item& stationary, unsigned testidx){
         testcase++;
 
         orbiter.translate({210*SCALE, 0});
 
-        auto&& nfp = Nfp::noFitPolygon<lvl>(stationary.rawShape(),
+        auto&& nfp = nfp::noFitPolygon<lvl>(stationary.rawShape(),
                                             orbiter.transformedShape());
 
-        strategies::correctNfpPosition(nfp, stationary, orbiter);
+        placers::correctNfpPosition(nfp, stationary, orbiter);
 
-        auto v = ShapeLike::isValid(nfp.first);
+        auto valid = shapelike::isValid(nfp.first);
 
-        if(!v.first) {
-            std::cout << v.second << std::endl;
-        }
+        /*Item infp(nfp.first);
+        if(!valid.first) {
+            std::cout << "test instance: " << testidx << " "
+                      << valid.second << std::endl;
+            std::vector<std::reference_wrapper<Item>> inp = {std::ref(infp)};
+            exportfun(inp, bin, testidx);
+        }*/
 
-        ASSERT_TRUE(v.first);
+        ASSERT_TRUE(valid.first);
 
         Item infp(nfp.first);
 
         int i = 0;
         auto rorbiter = orbiter.transformedShape();
-        auto vo = Nfp::referenceVertex(rorbiter);
+        auto vo = nfp::referenceVertex(rorbiter);
 
         ASSERT_TRUE(stationary.isInside(infp));
 
@@ -710,7 +752,7 @@ void testNfp(const std::vector<ItemPair>& testdata) {
 
             bool touching = Item::touches(tmp, stationary);
 
-            if(!touching) {
+            if(!touching || !valid.first) {
                 std::vector<std::reference_wrapper<Item>> inp = {
                     std::ref(stationary), std::ref(tmp), std::ref(infp)
                 };
@@ -722,22 +764,24 @@ void testNfp(const std::vector<ItemPair>& testdata) {
         }
     };
 
+    unsigned tidx = 0;
     for(auto& td : testdata) {
         auto orbiter = td.orbiter;
         auto stationary = td.stationary;
-        onetest(orbiter, stationary);
+        onetest(orbiter, stationary, tidx++);
     }
 
+    tidx = 0;
     for(auto& td : testdata) {
         auto orbiter = td.stationary;
         auto stationary = td.orbiter;
-        onetest(orbiter, stationary);
+        onetest(orbiter, stationary, tidx++);
     }
 }
 }
 
 TEST(GeometryAlgorithms, nfpConvexConvex) {
-    testNfp<NfpLevel::CONVEX_ONLY, 1>(nfp_testdata);
+    testNfp<nfp::NfpLevel::CONVEX_ONLY, 1>(nfp_testdata);
 }
 
 //TEST(GeometryAlgorithms, nfpConcaveConcave) {
@@ -758,7 +802,7 @@ TEST(GeometryAlgorithms, pointOnPolygonContour) {
 
     Rectangle input(10, 10);
 
-    strategies::EdgeCache<PolygonImpl> ecache(input);
+    placers::EdgeCache<PolygonImpl> ecache(input);
 
     auto first = *input.begin();
     ASSERT_TRUE(getX(first) == getX(ecache.coords(0)));
@@ -770,7 +814,7 @@ TEST(GeometryAlgorithms, pointOnPolygonContour) {
 
     for(int i = 0; i <= 100; i++) {
         auto v = ecache.coords(i*(0.01));
-        ASSERT_TRUE(ShapeLike::touches(v, input.transformedShape()));
+        ASSERT_TRUE(shapelike::touches(v, input.transformedShape()));
     }
 }
 
@@ -784,17 +828,17 @@ TEST(GeometryAlgorithms, mergePileWithPolygon) {
     rect2.translate({10, 0});
     rect3.translate({25, 0});
 
-    ShapeLike::Shapes<PolygonImpl> pile;
+    shapelike::Shapes<PolygonImpl> pile;
     pile.push_back(rect1.transformedShape());
     pile.push_back(rect2.transformedShape());
 
-    auto result = Nfp::merge(pile, rect3.transformedShape());
+    auto result = nfp::merge(pile, rect3.transformedShape());
 
     ASSERT_EQ(result.size(), 1);
 
     Rectangle ref(45, 15);
 
-    ASSERT_EQ(ShapeLike::area(result.front()), ref.area());
+    ASSERT_EQ(shapelike::area(result.front()), ref.area());
 }
 
 int main(int argc, char **argv) {

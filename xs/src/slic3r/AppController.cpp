@@ -401,7 +401,7 @@ void PrintController::slice_to_png()
 //    });
 }
 
-void IProgressIndicator::message_fmt(
+void ProgressIndicator::message_fmt(
         const string &fmtstr, ...) {
     std::stringstream ss;
     va_list args;
@@ -433,69 +433,68 @@ const PrintConfig &PrintController::config() const
     return print_->config;
 }
 
+
 void AppController::arrange_model()
 {
-    auto ftr = std::async(
-               supports_asynch()? std::launch::async : std::launch::deferred,
-               [this]()
-    {
-        using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
+    using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
 
-        unsigned count = 0;
-        for(auto obj : model_->objects) count += obj->instances.size();
+    unsigned count = 0;
+    for(auto obj : model_->objects) count += obj->instances.size();
 
-        auto pind = global_progress_indicator();
+    auto pind = global_progress_indicator();
 
-        float pmax = 1.0;
+    float pmax = 1.0;
 
-        if(pind) {
-            pmax = pind->max();
+    if(pind) {
+        pmax = pind->max();
 
-            // Set the range of the progress to the object count
-            pind->max(count);
+        // Set the range of the progress to the object count
+        pind->max(count);
 
-        }
+        pind->on_cancel([](){
+            std::cout << "Cannot be cancelled!" << std::endl;
+        });
+    }
 
-        auto dist = print_ctl()->config().min_object_distance();
+    auto dist = print_ctl()->config().min_object_distance();
 
-        // Create the arranger config
-        auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
+    // Create the arranger config
+    auto min_obj_distance = static_cast<Coord>(dist/SCALING_FACTOR);
 
-        auto& bedpoints = print_ctl()->config().bed_shape.values;
-        Polyline bed; bed.points.reserve(bedpoints.size());
-        for(auto& v : bedpoints)
-            bed.append(Point::new_scale(v(0), v(1)));
+    auto& bedpoints = print_ctl()->config().bed_shape.values;
+    Polyline bed; bed.points.reserve(bedpoints.size());
+    for(auto& v : bedpoints)
+        bed.append(Point::new_scale(v(0), v(1)));
 
-        if(pind) pind->update(0, _(L("Arranging objects...")));
+    if(pind) pind->update(0, _(L("Arranging objects...")));
 
-        try {
-            arr::arrange(*model_,
-                         min_obj_distance,
-                         bed,
-                         arr::BOX,
-                         false, // create many piles not just one pile
-                         [pind, count](unsigned rem) {
-                if(pind)
-                    pind->update(count - rem, _(L("Arranging objects...")));
-            });
-        } catch(std::exception& e) {
-            std::cerr << e.what() << std::endl;
-            report_issue(IssueType::ERR,
-                         _(L("Could not arrange model objects! "
-                         "Some geometries may be invalid.")),
-                         _(L("Exception occurred")));
-        }
+    try {
+        arr::BedShapeHint hint;
+        // TODO: from Sasha from GUI
+        hint.type = arr::BedShapeType::WHO_KNOWS;
 
-        // Restore previous max value
-        if(pind) {
-            pind->max(pmax);
-            pind->update(0, _(L("Arranging done.")));
-        }
-    });
+        arr::arrange(*model_,
+                      min_obj_distance,
+                      bed,
+                      hint,
+                      false, // create many piles not just one pile
+                      [pind, count](unsigned rem) {
+            if(pind)
+                pind->update(count - rem, _(L("Arranging objects...")));
+        });
+    } catch(std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        report_issue(IssueType::ERR,
+                        _(L("Could not arrange model objects! "
+                        "Some geometries may be invalid.")),
+                        _(L("Exception occurred")));
+    }
 
-    while( ftr.wait_for(std::chrono::milliseconds(10))
-           != std::future_status::ready) {
-        process_events();
+    // Restore previous max value
+    if(pind) {
+        pind->max(pmax);
+        pind->update(0, _(L("Arranging done.")));
+        pind->on_cancel(/*remove cancel function*/);
     }
 }
 

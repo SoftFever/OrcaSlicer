@@ -166,6 +166,7 @@ sub thread_cleanup {
     *Slic3r::GUI::Tab::DESTROY              = sub {};
     *Slic3r::GUI::PresetHints::DESTROY      = sub {};
     *Slic3r::GUI::TabIface::DESTROY         = sub {};
+    *Slic3r::GUI::ProgressStatusBar::DESTROY= sub {};
     *Slic3r::OctoPrint::DESTROY             = sub {};
     *Slic3r::Duet::DESTROY                  = sub {};
     *Slic3r::PresetUpdater::DESTROY         = sub {};

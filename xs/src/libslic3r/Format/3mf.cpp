@@ -1736,10 +1736,7 @@ namespace Slic3r {
                 stream << "   </" << COMPONENTS_TAG << ">\n";
             }
 
-            Transform3d t = Transform3d::Identity();
-            t.translate(Vec3d(instance->offset(0), instance->offset(1), 0.0));
-            t.rotate(Eigen::AngleAxisd(instance->rotation, Vec3d::UnitZ()));
-            t.scale(instance->scaling_factor);
+            Transform3d t = instance->world_matrix();
             build_items.emplace_back(instance_id, t);
 
             stream << "  </" << OBJECT_TAG << ">\n";

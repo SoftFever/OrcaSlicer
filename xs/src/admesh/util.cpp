@@ -155,6 +155,47 @@ void stl_transform(stl_file *stl, float *trafo3x4) {
   calculate_normals(stl);
 }
 
+void stl_transform(stl_file *stl, const Eigen::Transform<float, 3, Eigen::Affine, Eigen::DontAlign>& t)
+{
+    if (stl->error)
+        return;
+
+    unsigned int vertices_count = 3 * (unsigned int)stl->stats.number_of_facets;
+    if (vertices_count == 0)
+        return;
+
+    Eigen::MatrixXf src_vertices(3, vertices_count);
+    stl_facet* facet_ptr = stl->facet_start;
+    unsigned int v_id = 0;
+    while (facet_ptr < stl->facet_start + stl->stats.number_of_facets)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            ::memcpy((void*)src_vertices.col(v_id).data(), (const void*)&facet_ptr->vertex[i], 3 * sizeof(float));
+            ++v_id;
+        }
+        facet_ptr += 1;
+    }
+
+    Eigen::MatrixXf dst_vertices(3, vertices_count);
+    dst_vertices = t * src_vertices.colwise().homogeneous();
+
+    facet_ptr = stl->facet_start;
+    v_id = 0;
+    while (facet_ptr < stl->facet_start + stl->stats.number_of_facets)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            ::memcpy((void*)&facet_ptr->vertex[i], (const void*)dst_vertices.col(v_id).data(), 3 * sizeof(float));
+            ++v_id;
+        }
+        facet_ptr += 1;
+    }
+
+    stl_get_size(stl);
+    calculate_normals(stl);
+}
+
 void
 stl_rotate_x(stl_file *stl, float angle) {
   int i;

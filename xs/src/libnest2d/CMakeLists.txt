@@ -31,6 +31,7 @@ set(LIBNEST2D_SRCFILES
     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/common.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/metaloop.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/rotfinder.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/placer_boilerplate.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/bottomleftplacer.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/nfpplacer.hpp
@@ -89,14 +90,39 @@ if(LIBNEST2D_UNITTESTS)
 endif()
 
 if(LIBNEST2D_BUILD_EXAMPLES)
+
     add_executable(example examples/main.cpp
 #                           tools/libnfpglue.hpp
 #                           tools/libnfpglue.cpp
+                           tools/nfp_svgnest.hpp
+                           tools/nfp_svgnest_glue.hpp
                            tools/svgtools.hpp
                            tests/printer_parts.cpp
                            tests/printer_parts.h
-                           ${LIBNEST2D_SRCFILES})
+                           ${LIBNEST2D_SRCFILES}
+                           )
+    set(TBB_STATIC ON)
+    find_package(TBB QUIET)
+    if(TBB_FOUND)
+        message(STATUS "Parallelization with Intel TBB")
+        target_include_directories(example PUBLIC ${TBB_INCLUDE_DIRS})
+        target_compile_definitions(example PUBLIC ${TBB_DEFINITIONS} -DUSE_TBB)
+        if(MSVC)
+           # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
+           target_compile_definitions(example PUBLIC -D__TBB_NO_IMPLICIT_LINKAGE)
+        endif()
+        # The Intel TBB library will use the std::exception_ptr feature of C++11.
+        target_compile_definitions(example PUBLIC -DTBB_USE_CAPTURED_EXCEPTION=1)
 
+        target_link_libraries(example ${TBB_LIBRARIES})
+   else()
+       find_package(OpenMP QUIET)
+       if(OpenMP_CXX_FOUND)
+           message(STATUS "Parallelization with OpenMP")
+           target_include_directories(example PUBLIC OpenMP::OpenMP_CXX)
+           target_link_libraries(example OpenMP::OpenMP_CXX)
+       endif()
+   endif()
 
     target_link_libraries(example ${LIBNEST2D_LIBRARIES})
     target_include_directories(example PUBLIC ${LIBNEST2D_HEADERS})

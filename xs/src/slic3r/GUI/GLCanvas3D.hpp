@@ -336,6 +336,7 @@ public:
         enum EType : unsigned char
         {
             Undefined,
+            Move,
             Scale,
             Rotate,
             Flatten,
@@ -347,7 +348,6 @@ public:
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
         EType m_current;
-        bool m_dragging;
 
     public:
         Gizmos();
@@ -367,15 +367,17 @@ public:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Linef3& mouse_ray);
-        void refresh();
 
         EType get_current_type() const;
 
         bool is_running() const;
 
         bool is_dragging() const;
-        void start_dragging();
+        void start_dragging(const BoundingBoxf3& box);
         void stop_dragging();
+
+        Vec3d get_position() const;
+        void set_position(const Vec3d& position);
 
         float get_scale() const;
         void set_scale(float scale);
@@ -502,6 +504,7 @@ private:
     PerlCallback m_on_enable_action_buttons_callback;
     PerlCallback m_on_gizmo_scale_uniformly_callback;
     PerlCallback m_on_gizmo_rotate_callback;
+    PerlCallback m_on_gizmo_flatten_callback;
     PerlCallback m_on_update_geometry_info_callback;
 
     PerlCallback m_action_add_callback;
@@ -514,6 +517,7 @@ private:
     PerlCallback m_action_cut_callback;
     PerlCallback m_action_settings_callback;
     PerlCallback m_action_layersediting_callback;
+    PerlCallback m_action_selectbyparts_callback;
 
 public:
     GLCanvas3D(wxGLCanvas* canvas);
@@ -556,6 +560,9 @@ public:
     void set_select_by(const std::string& value);
     void set_drag_by(const std::string& value);
 
+    const std::string& get_select_by() const;
+    const std::string& get_drag_by() const;
+
     float get_camera_zoom() const;
 
     BoundingBoxf3 volumes_bounding_box() const;
@@ -597,6 +604,8 @@ public:
     std::vector<int> load_object(const ModelObject& model_object, int obj_idx, std::vector<int> instance_idxs);
     std::vector<int> load_object(const Model& model, int obj_idx);
 
+    int get_first_volume_id(int obj_idx) const;
+
     void reload_scene(bool force);
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
@@ -619,6 +628,7 @@ public:
     void register_on_enable_action_buttons_callback(void* callback);
     void register_on_gizmo_scale_uniformly_callback(void* callback);
     void register_on_gizmo_rotate_callback(void* callback);
+    void register_on_gizmo_flatten_callback(void* callback);
     void register_on_update_geometry_info_callback(void* callback);
 
     void register_action_add_callback(void* callback);
@@ -631,6 +641,7 @@ public:
     void register_action_cut_callback(void* callback);
     void register_action_settings_callback(void* callback);
     void register_action_layersediting_callback(void* callback);
+    void register_action_selectbyparts_callback(void* callback);
 
     void bind_event_handlers();
     void unbind_event_handlers();
@@ -733,7 +744,7 @@ private:
     void _show_warning_texture_if_needed();
 
     void _on_move(const std::vector<int>& volume_idxs);
-    void _on_select(int volume_idx);
+    void _on_select(int volume_idx, int object_idx);
 
     // generates the legend texture in dependence of the current shown view type
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);

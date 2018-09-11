@@ -338,6 +338,12 @@ void GLCanvas3DManager::set_drag_by(wxGLCanvas* canvas, const std::string& value
         it->second->set_drag_by(value);
 }
 
+std::string GLCanvas3DManager::get_select_by(wxGLCanvas* canvas) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_select_by() : "";
+}
+
 bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
@@ -536,6 +542,12 @@ std::vector<int> GLCanvas3DManager::load_object(wxGLCanvas* canvas, const Model*
     return (it != m_canvases.end()) ? it->second->load_object(*model, obj_idx) : std::vector<int>();
 }
 
+int GLCanvas3DManager::get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_first_volume_id(obj_idx) : -1;
+}
+
 void GLCanvas3DManager::reload_scene(wxGLCanvas* canvas, bool force)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -688,6 +700,13 @@ void GLCanvas3DManager::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, vo
         it->second->register_on_gizmo_rotate_callback(callback);
 }
 
+void GLCanvas3DManager::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_gizmo_flatten_callback(callback);
+}
+
 void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -763,6 +782,13 @@ void GLCanvas3DManager::register_action_layersediting_callback(wxGLCanvas* canva
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_action_layersediting_callback(callback);
+}
+
+void GLCanvas3DManager::register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_action_selectbyparts_callback(callback);
 }
 
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)

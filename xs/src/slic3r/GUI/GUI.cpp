@@ -196,6 +196,8 @@ void set_main_frame(wxFrame *main_frame)
     g_wxMainFrame = main_frame;
 }
 
+wxFrame* get_main_frame() { return g_wxMainFrame; }
+
 void set_tab_panel(wxNotebook *tab_panel)
 {
     g_wxTabPanel = tab_panel;
@@ -857,10 +859,6 @@ unsigned get_colour_approx_luma(const wxColour &colour)
 
 wxWindow* get_right_panel(){
 	return g_right_panel;
-}
-
-wxFrame* get_main_frame() {
-	return g_wxMainFrame;
 }
 
 wxNotebook * get_tab_panel() {

@@ -224,7 +224,6 @@ public:
 
     friend class ModelObject;
 
-//    Transform3d     transform;
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
     Vec2d offset;              // in unscaled coordinates
@@ -240,8 +239,12 @@ public:
     BoundingBoxf3 transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate = false) const;
     // Transform an external bounding box.
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
+    // Transform an external vector.
+    Vec3d transform_vector(const Vec3d& v, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
+
+    Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
 
