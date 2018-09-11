@@ -1232,11 +1232,11 @@ void enable_action_buttons(bool enable)
         return;
 
     // Update background colour for buttons
-//     const wxColour bgrd_color = enable ? wxColour(255, 96, 0) : wxColour(204, 204, 204);
+    const wxColour bgrd_color = enable ? wxColour(224, 224, 224/*255, 96, 0*/) : wxColour(204, 204, 204);
 
     for (auto btn : g_buttons) {
         btn->Enable(enable);
-//         btn->SetBackgroundColour(bgrd_color);
+        btn->SetBackgroundColour(bgrd_color);
     }
 }
 

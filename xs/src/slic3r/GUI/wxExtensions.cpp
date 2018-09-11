@@ -473,9 +473,6 @@ wxDataViewItem PrusaObjectDataViewModel::AddSettingsChild(const wxDataViewItem &
     // notify control
     const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
-
-    if (child)
-        printf("SettingsChild is created\n");
     return child;
 }
 
@@ -848,6 +845,52 @@ void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item,
         return;
     ItemChanged(item);
 }
+
+
+// ---------------------------------------------------------
+// PrusaIconTextRenderer
+// ---------------------------------------------------------
+
+bool PrusaIconTextRenderer::SetValue(const wxVariant &value)
+{
+    m_value << value;
+    return true;
+}
+
+bool PrusaIconTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
+{
+    return false;
+}
+
+bool PrusaIconTextRenderer::Render(wxRect rect, wxDC *dc, int state)
+{
+    int xoffset = 0;
+
+    const wxIcon& icon = m_value.GetIcon();
+    if (icon.IsOk())
+    {
+        dc->DrawIcon(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
+        xoffset = icon.GetWidth() + 4;
+    }
+
+    RenderText(m_value.GetText(), xoffset, rect, dc, state);
+
+    return true;
+}
+
+wxSize PrusaIconTextRenderer::GetSize() const
+{
+    if (!m_value.GetText().empty())
+    {
+        wxSize size = GetTextExtent(m_value.GetText());
+
+        if (m_value.GetIcon().IsOk())
+            size.x += m_value.GetIcon().GetWidth() + 4;
+        return size;
+    }
+    return wxSize(80, 20);
+}
+
 
 // ----------------------------------------------------------------------------
 // PrusaDoubleSlider

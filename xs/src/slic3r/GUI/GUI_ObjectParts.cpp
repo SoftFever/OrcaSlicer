@@ -249,8 +249,12 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
 	// column 0(Icon+Text) of the view control:
-	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 200,
-		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+    wxDataViewColumn *ret = new wxDataViewColumn(_(L("Name")),
+        new PrusaIconTextRenderer(wxT("PrusaDataViewIconText")),
+        0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+    m_objects_ctrl->AppendColumn(ret);
+// 	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 200,
+// 		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
 	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
@@ -1014,7 +1018,6 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
     const auto item = m_objects_ctrl->GetSelection();
     if (item) {
         const auto settings_item = m_objects_model->HasSettings(item);
-        settings_item ? printf("settings_item exist\n") : printf("settings_item will be created\n");
         m_objects_ctrl->Select(settings_item ? settings_item : 
                                m_objects_model->AddSettingsChild(item));
 #ifndef __WXOSX__
@@ -1553,7 +1556,6 @@ void part_selection_changed()
     wxString object_name = wxEmptyString;
 	if (item)
 	{
-        printf("item exists\n");
         const bool is_settings_item = m_objects_model->IsSettingsItem(item);
 		bool is_part = false;
         wxString og_name = wxEmptyString;

@@ -415,6 +415,29 @@ public:
 };
 
 
+// ----------------------------------------------------------------------------
+// PrusaIconTextRenderer
+// ----------------------------------------------------------------------------
+
+class PrusaIconTextRenderer : public wxDataViewCustomRenderer
+{
+public:
+    PrusaIconTextRenderer(  const wxString &varianttype = wxT("PrusaDataViewIconText"),
+                            wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
+                            int align = wxDVR_DEFAULT_ALIGNMENT) {}
+
+    bool SetValue(const wxVariant &value);
+    bool GetValue(wxVariant &value) const;
+
+    virtual bool Render(wxRect cell, wxDC *dc, int state);
+    virtual wxSize GetSize() const;
+
+    virtual bool HasEditorCtrl() const { return false; }
+
+private:
+    wxDataViewIconText   m_value;
+};
+
 
 // ----------------------------------------------------------------------------
 // MyCustomRenderer
