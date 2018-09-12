@@ -48,6 +48,7 @@
 #include "AboutDialog.hpp"
 #include "AppConfig.hpp"
 #include "ConfigSnapshotDialog.hpp"
+#include "ProgressStatusBar.hpp"
 #include "Utils.hpp"
 #include "MsgDialog.hpp"
 #include "ConfigWizard.hpp"
@@ -114,6 +115,7 @@ void break_to_debugger()
 // Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
 wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
+ProgressStatusBar *g_progress_status_bar = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
 wxPanel 	*g_wxPlater 	= nullptr;
 AppConfig	*g_AppConfig	= nullptr;
@@ -206,6 +208,13 @@ void set_main_frame(wxFrame *main_frame)
 }
 
 wxFrame* get_main_frame() { return g_wxMainFrame; }
+
+void set_progress_status_bar(ProgressStatusBar *prsb)
+{
+	g_progress_status_bar = prsb;
+}
+
+ProgressStatusBar* get_progress_status_bar() { return g_progress_status_bar; }
 
 void set_tab_panel(wxNotebook *tab_panel)
 {

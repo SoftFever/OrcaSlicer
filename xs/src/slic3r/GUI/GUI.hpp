@@ -33,6 +33,7 @@ namespace Slic3r {
 class PresetBundle;
 class PresetCollection;
 class Print;
+class ProgressStatusBar;
 class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
@@ -99,6 +100,7 @@ void break_to_debugger();
 // Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
 void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
+void set_progress_status_bar(ProgressStatusBar *prsb);
 void set_tab_panel(wxNotebook *tab_panel);
 void set_plater(wxPanel *plater);
 void set_app_config(AppConfig *app_config);
@@ -123,6 +125,7 @@ AppConfig*		get_app_config();
 wxApp*			get_app();
 PresetBundle*	get_preset_bundle();
 wxFrame*		get_main_frame();
+ProgressStatusBar* get_progress_status_bar();
 wxNotebook *	get_tab_panel();
 wxNotebook*		get_tab_panel();
 

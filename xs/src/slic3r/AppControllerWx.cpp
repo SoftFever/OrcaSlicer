@@ -33,7 +33,7 @@ void AppControllerBoilerplate::process_events()
 
 AppControllerBoilerplate::PathList
 AppControllerBoilerplate::query_destination_paths(
-        const string &title,
+        const wxString &title,
         const std::string &extensions) const
 {
 
@@ -53,7 +53,7 @@ AppControllerBoilerplate::query_destination_paths(
 
 AppControllerBoilerplate::Path
 AppControllerBoilerplate::query_destination_path(
-        const string &title,
+        const wxString &title,
         const std::string &extensions,
         const std::string& hint) const
 {
@@ -72,8 +72,8 @@ AppControllerBoilerplate::query_destination_path(
 }
 
 bool AppControllerBoilerplate::report_issue(IssueType issuetype,
-                                 const string &description,
-                                 const string &brief)
+                                 const wxString &description,
+                                 const wxString &brief)
 {
     auto icon = wxICON_INFORMATION;
     auto style = wxOK|wxCENTRE;
@@ -91,9 +91,9 @@ bool AppControllerBoilerplate::report_issue(IssueType issuetype,
 
 bool AppControllerBoilerplate::report_issue(
         AppControllerBoilerplate::IssueType issuetype,
-        const string &description)
+        const wxString &description)
 {
-    return report_issue(issuetype, description, string());
+    return report_issue(issuetype, description, wxString());
 }
 
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
@@ -137,8 +137,8 @@ public:
     /// Get the mode of parallel operation.
     inline bool asynch() const { return is_asynch_; }
 
-    inline GuiProgressIndicator(int range, const string& title,
-                                const string& firstmsg) :
+    inline GuiProgressIndicator(int range, const wxString& title,
+                                const wxString& firstmsg) :
         gauge_(title, firstmsg, range, wxTheApp->GetTopWindow(),
                wxPD_APP_MODAL | wxPD_AUTO_HIDE),
         message_(firstmsg),
@@ -171,18 +171,18 @@ public:
         } else _state(st);
     }
 
-    virtual void message(const string & msg) override {
+    virtual void message(const wxString & msg) override {
         message_ = msg;
     }
 
-    virtual void messageFmt(const string& fmt, ...) {
+    virtual void messageFmt(const wxString& fmt, ...) {
         va_list arglist;
         va_start(arglist, fmt);
         message_ = wxString::Format(wxString(fmt), arglist);
         va_end(arglist);
     }
 
-    virtual void title(const string & title) override {
+    virtual void title(const wxString & title) override {
         title_ = title;
     }
 };
@@ -190,7 +190,7 @@ public:
 
 AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::create_progress_indicator(
-        unsigned statenum, const string& title, const string& firstmsg) const
+        unsigned statenum, const wxString& title, const wxString& firstmsg) const
 {
     auto pri =
             std::make_shared<GuiProgressIndicator>(statenum, title, firstmsg);
@@ -204,9 +204,9 @@ AppControllerBoilerplate::create_progress_indicator(
 
 AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::create_progress_indicator(unsigned statenum,
-                                                    const string &title) const
+                                                    const wxString &title) const
 {
-    return create_progress_indicator(statenum, title, string());
+    return create_progress_indicator(statenum, title, wxString());
 }
 
 namespace {
@@ -271,18 +271,18 @@ public:
         }
     }
 
-    virtual void message(const string & msg) override {
+    virtual void message(const wxString & msg) override {
         message_ = msg;
     }
 
-    virtual void message_fmt(const string& fmt, ...) override {
+    virtual void message_fmt(const wxString& fmt, ...) override {
         va_list arglist;
         va_start(arglist, fmt);
         message_ = wxString::Format(fmt, arglist);
         va_end(arglist);
     }
 
-    virtual void title(const string & /*title*/) override {}
+    virtual void title(const wxString & /*title*/) override {}
 
     virtual void on_cancel(CancelFn fn) override {
         sbar_->set_cancel_callback(fn);

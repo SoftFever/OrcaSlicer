@@ -11,7 +11,6 @@
 #include <ModelArrange.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
-#include <PrintConfig.hpp>
 #include <Print.hpp>
 #include <PrintExport.hpp>
 #include <Geometry.hpp>
@@ -409,7 +408,7 @@ const PrintConfig &PrintController::config() const
 #endif
 
 void ProgressIndicator::message_fmt(
-        const string &fmtstr, ...) {
+        const wxString &fmtstr, ...) {
     std::stringstream ss;
     va_list args;
     va_start(args, fmtstr);

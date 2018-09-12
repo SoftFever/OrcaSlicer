@@ -20,6 +20,7 @@
 #include <wx/image.h>
 #include <wx/settings.h>
 
+// Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "../../libslic3r/Print.hpp"
 
 #include <tbb/parallel_for.h>

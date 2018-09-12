@@ -135,7 +135,7 @@ void ProgressStatusBar::embed(wxFrame *frame)
 
 void ProgressStatusBar::set_status_text(const std::string& txt)
 {
-    self->SetStatusText(txt);
+    self->SetStatusText(wxString::FromUTF8(txt.c_str()));
 }
 
 void ProgressStatusBar::show_cancel_button()

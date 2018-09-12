@@ -36,7 +36,7 @@
     void Embed()
         %code%{ THIS->embed(); %};
 
-    void SetStatusText(std::string txt)
+    void SetStatusText(const char *txt)
         %code%{ THIS->set_status_text(txt); %};
 
     void ShowCancelButton()

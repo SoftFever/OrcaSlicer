@@ -7,7 +7,9 @@
 #include <atomic>
 #include <iostream>
 
-#include "ProgressIndicator.hpp"
+#include "GUI/ProgressIndicator.hpp"
+
+#include <PrintConfig.hpp>
 
 namespace Slic3r {
 
@@ -46,7 +48,7 @@ public:
     AppControllerBoilerplate();
     ~AppControllerBoilerplate();
 
-    using Path = string;
+    using Path = wxString;
     using PathList = std::vector<Path>;
 
     /// Common runtime issue types
@@ -67,20 +69,20 @@ public:
      * @return Returns a list of paths choosed by the user.
      */
     PathList query_destination_paths(
-            const string& title,
+            const wxString& title,
             const std::string& extensions) const;
 
     /**
      * @brief Same as query_destination_paths but works for directories only.
      */
     PathList query_destination_dirs(
-            const string& title) const;
+            const wxString& title) const;
 
     /**
      * @brief Same as query_destination_paths but returns only one path.
      */
     Path query_destination_path(
-            const string& title,
+            const wxString& title,
             const std::string& extensions,
             const std::string& hint = "") const;
 
@@ -95,11 +97,11 @@ public:
      * title.
      */
     bool report_issue(IssueType issuetype,
-                      const string& description,
-                      const string& brief);
+                      const wxString& description,
+                      const wxString& brief);
 
     bool report_issue(IssueType issuetype,
-                      const string& description);
+                      const wxString& description);
 
     /**
      * @brief Return the global progress indicator for the current controller.
@@ -150,12 +152,12 @@ protected:
      */
     ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
-            const string& title,
-            const string& firstmsg) const;
+            const wxString& title,
+            const wxString& firstmsg) const;
 
     ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
-            const string& title) const;
+            const wxString& title) const;
 
     // This is a global progress indicator placeholder. In the Slic3r UI it can
     // contain the progress indicator on the statusbar.
