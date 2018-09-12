@@ -220,13 +220,11 @@ public:
 	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
 									const wxString& sub_obj_name, 
 									const wxBitmap& bmp, 
-// 									const wxIcon& icon, 
                                     const wxString& extruder, 
 									const int volume_id=-1) {
 		m_parent	= parent;
 		m_name		= sub_obj_name;
 		m_copy		= wxEmptyString;
-// 		m_icon		= icon;
 		m_bmp		= bmp;
 		m_type		= "volume";
 		m_volume_id = volume_id;
@@ -321,10 +319,8 @@ public:
 		switch (col)
 		{
 		case 0:{
-// 			wxDataViewIconText data;
             PrusaDataViewBitmapText data;
 			data << variant;
-// 			m_icon = data.GetIcon();
             m_bmp = data.GetBitmap();
 			m_name = data.GetText();
 			return true;}
@@ -414,7 +410,6 @@ public:
 	wxDataViewItem Add(const wxString &name, const int instances_count);
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
-//                            const wxIcon& icon,
                             const wxBitmap& icon,
                             const int extruder = 0,
                             const bool create_frst_child = true);
@@ -478,7 +473,7 @@ class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
 public:
     PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
                             int align = wxDVR_DEFAULT_ALIGNMENT): 
-                            wxDataViewCustomRenderer(wxT("PrusaDataViewIconBitmapText"/*"wxDataViewIconText"*/), mode, align) {}
+                            wxDataViewCustomRenderer(wxT("wxObject"), mode, align) {}
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;

@@ -29,9 +29,9 @@ wxCollapsiblePane			*m_collpane_settings = nullptr;
 PrusaDoubleSlider           *m_slider = nullptr;
 wxGLCanvas                  *m_preview_canvas = nullptr;
 
-wxBitmap/*Icon*/		m_icon_modifiermesh;
-wxBitmap/*Icon*/		m_icon_solidmesh;
-wxBitmap/*Icon*/		m_icon_manifold_warning;
+wxBitmap	m_icon_modifiermesh;
+wxBitmap	m_icon_solidmesh;
+wxBitmap	m_icon_manifold_warning;
 wxBitmap	m_bmp_cog;
 wxBitmap	m_bmp_split;
 
@@ -141,11 +141,11 @@ void set_objects_from_model(Model &model) {
 }
 
 void init_mesh_icons(){
-    m_icon_modifiermesh = wxBitmap/*wxIcon*/(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
-    m_icon_solidmesh = wxBitmap/*wxIcon*/(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+    m_icon_modifiermesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+    m_icon_solidmesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
 	// init icon for manifold warning
-    m_icon_manifold_warning = wxBitmap/*wxIcon*/(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+    m_icon_manifold_warning = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
 
 	// init bitmap for "Split to sub-objects" context menu
     m_bmp_split = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("split.png")), wxBITMAP_TYPE_PNG);
@@ -248,11 +248,10 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 	m_objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
-	// column 0(Icon+Text) of the view control:
+	// column 0(Icon+Text) of the view control: 
+    // And Icon can be consisting of several bitmaps
     m_objects_ctrl->AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
                                  0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-// 	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 200,
-// 		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
 
 	// column 1 of the view control:
 	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
@@ -668,7 +667,6 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 	int errors =	stats.degenerate_facets + stats.edges_fixed + stats.facets_removed + 
 					stats.facets_added + stats.facets_reversed + stats.backwards_edges;
 	if (errors > 0)		{
-//		const wxDataViewIconText data(item_name, m_icon_manifold_warning);
         const PrusaDataViewBitmapText data(item_name, m_icon_manifold_warning);
 		wxVariant variant;
 		variant << data;

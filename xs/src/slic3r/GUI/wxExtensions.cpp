@@ -383,7 +383,6 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
     }
 
     m_bmp = *bmp;
-//     m_icon.CopyFromBitmap(*bmp);
 
     return true;
 }
@@ -430,7 +429,6 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int ins
 
 wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_item,
 													const wxString &name,
-// 													const wxIcon& icon,
                                                     const wxBitmap& icon,
                                                     const int extruder/* = 0*/,
                                                     const bool create_frst_child/* = true*/)
@@ -644,7 +642,6 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	switch (col)
 	{
 	case 0:{
-// 		const wxDataViewIconText data(node->m_name, node->m_icon);
         const PrusaDataViewBitmapText data(node->m_name, node->m_bmp);
         variant << data;
 		break;}
@@ -872,10 +869,9 @@ bool PrusaBitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
 {
     int xoffset = 0;
 
-    const /*wxIcon*/wxBitmap& icon = m_value.GetBitmap();// GetIcon();
+    const wxBitmap& icon = m_value.GetBitmap();
     if (icon.IsOk())
     {
-//         dc->DrawIcon(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
         dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
         xoffset = icon.GetWidth() + 4;
     }
@@ -891,8 +887,8 @@ wxSize PrusaBitmapTextRenderer::GetSize() const
     {
         wxSize size = GetTextExtent(m_value.GetText());
 
-        if (m_value.GetBitmap()/*GetIcon()*/.IsOk())
-            size.x += m_value.GetBitmap()/*GetIcon()*/.GetWidth() + 4;
+        if (m_value.GetBitmap().IsOk())
+            size.x += m_value.GetBitmap().GetWidth() + 4;
         return size;
     }
     return wxSize(80, 20);
