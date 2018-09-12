@@ -297,6 +297,16 @@ Print::total_wipe_tower_filament(...)
         }
         RETVAL = THIS->total_wipe_tower_filament;
     OUTPUT:
+        RETVAL
+
+int
+Print::m_wipe_tower_number_of_toolchanges(...)
+    CODE:
+        if (items > 1) {
+            THIS->m_wipe_tower_number_of_toolchanges = (double)SvNV(ST(1));
+        }
+        RETVAL = THIS->m_wipe_tower_number_of_toolchanges;
+    OUTPUT:
         RETVAL        
 %}
 };

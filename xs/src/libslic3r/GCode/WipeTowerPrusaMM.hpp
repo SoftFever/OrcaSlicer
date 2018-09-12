@@ -46,7 +46,7 @@ public:
 	WipeTowerPrusaMM(float x, float y, float width, float rotation_angle, float cooling_tube_retraction,
                      float cooling_tube_length, float parking_pos_retraction, float extra_loading_move, float bridging,
                      const std::vector<std::vector<float>>& wiping_matrix, unsigned int initial_tool) :
-		m_wipe_tower_pos(x, y),
+    m_wipe_tower_pos(x, y),
 		m_wipe_tower_width(width),
 		m_wipe_tower_rotation_angle(rotation_angle),
 		m_y_shift(0.f),
@@ -174,7 +174,8 @@ public:
 		return ( (m_is_first_layer ? m_wipe_tower_depth - m_perimeter_width : m_layer_info->depth) - WT_EPSILON < m_depth_traversed);
 	}
 
-    virtual std::vector<float> get_used_filament() const { return m_used_filament_length; }
+    virtual std::vector<float> get_used_filament() const override { return m_used_filament_length; }
+    virtual int get_number_of_toolchanges() const override { return m_num_tool_changes; }
 
 
 private:

@@ -613,10 +613,10 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
         toolchange_Load(writer, cleaning_box);
         writer.travel(writer.x(),writer.y()-m_perimeter_width); // cooling and loading were done a bit down the road
         toolchange_Wipe(writer, cleaning_box, wipe_volume);     // Wipe the newly loaded filament until the end of the assigned wipe area.
+        ++ m_num_tool_changes;
     } else
         toolchange_Unload(writer, cleaning_box, m_filpar[m_current_tool].material, m_filpar[m_current_tool].temperature);
 
-    ++ m_num_tool_changes;
     m_depth_traversed += wipe_area;
 
     if (last_change_in_layer) {// draw perimeter line

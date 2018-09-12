@@ -310,6 +310,7 @@ public:
     std::vector<std::vector<WipeTower::ToolChangeResult>> m_wipe_tower_tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          m_wipe_tower_final_purge;
     std::vector<float>                                    m_wipe_tower_used_filament;
+    int                                                   m_wipe_tower_number_of_toolchanges = -1;
 
     std::string output_filename();
     std::string output_filepath(const std::string &path);
