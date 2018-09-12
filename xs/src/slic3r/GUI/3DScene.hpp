@@ -338,6 +338,7 @@ public:
     void set_convex_hull(const TriangleMesh& convex_hull);
 
     void set_select_group_id(const std::string& select_by);
+    void set_drag_group_id(const std::string& drag_by);
 
     int                 object_idx() const { return this->composite_id / 1000000; }
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
@@ -449,6 +450,7 @@ public:
     void update_colors_by_extruder(const DynamicPrintConfig* config);
 
     void set_select_by(const std::string& select_by);
+    void set_drag_by(const std::string& drag_by);
 
     // Returns a vector containing the sorted list of all the print_zs of the volumes contained in this collection
     std::vector<double> get_current_print_zs(bool active_only) const;
@@ -556,6 +558,7 @@ public:
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     static void register_action_add_callback(wxGLCanvas* canvas, void* callback);

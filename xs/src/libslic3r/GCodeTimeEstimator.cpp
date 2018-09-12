@@ -168,6 +168,9 @@ namespace Slic3r {
     }
 #endif // ENABLE_MOVE_STATS
 
+    const std::string GCodeTimeEstimator::Normal_First_M73_Output_Placeholder_Tag = "; NORMAL_FIRST_M73_OUTPUT_PLACEHOLDER";
+    const std::string GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag = "; SILENT_FIRST_M73_OUTPUT_PLACEHOLDER";
+
     GCodeTimeEstimator::GCodeTimeEstimator(EMode mode)
         : _mode(mode)
     {
@@ -294,7 +297,15 @@ namespace Slic3r {
                 throw std::runtime_error(std::string("Remaining times export failed.\nError while reading from file.\n"));
             }
 
-            gcode_line += "\n";
+            // replaces placeholders for initial line M73 with the real lines
+            if (((_mode == Normal) && (gcode_line == Normal_First_M73_Output_Placeholder_Tag)) ||
+                ((_mode == Silent) && (gcode_line == Silent_First_M73_Output_Placeholder_Tag)))
+            {
+                sprintf(time_line, time_mask.c_str(), "0", _get_time_minutes(_time).c_str());
+                gcode_line = time_line;
+            }
+            else
+               gcode_line += "\n";
 
             // add remaining time lines where needed
             _parser.parse_line(gcode_line,

@@ -336,6 +336,7 @@ public:
         enum EType : unsigned char
         {
             Undefined,
+            Move,
             Scale,
             Rotate,
             Flatten,
@@ -347,7 +348,6 @@ public:
         typedef std::map<EType, GLGizmoBase*> GizmosMap;
         GizmosMap m_gizmos;
         EType m_current;
-        bool m_dragging;
 
     public:
         Gizmos();
@@ -367,15 +367,17 @@ public:
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Linef3& mouse_ray);
-        void refresh();
 
         EType get_current_type() const;
 
         bool is_running() const;
 
         bool is_dragging() const;
-        void start_dragging();
+        void start_dragging(const BoundingBoxf3& box);
         void stop_dragging();
+
+        Vec3d get_position() const;
+        void set_position(const Vec3d& position);
 
         float get_scale() const;
         void set_scale(float scale);
@@ -502,6 +504,7 @@ private:
     PerlCallback m_on_enable_action_buttons_callback;
     PerlCallback m_on_gizmo_scale_uniformly_callback;
     PerlCallback m_on_gizmo_rotate_callback;
+    PerlCallback m_on_gizmo_flatten_callback;
     PerlCallback m_on_update_geometry_info_callback;
 
     PerlCallback m_action_add_callback;
@@ -558,6 +561,7 @@ public:
     void set_drag_by(const std::string& value);
 
     const std::string& get_select_by() const;
+    const std::string& get_drag_by() const;
 
     float get_camera_zoom() const;
 
@@ -624,6 +628,7 @@ public:
     void register_on_enable_action_buttons_callback(void* callback);
     void register_on_gizmo_scale_uniformly_callback(void* callback);
     void register_on_gizmo_rotate_callback(void* callback);
+    void register_on_gizmo_flatten_callback(void* callback);
     void register_on_update_geometry_info_callback(void* callback);
 
     void register_action_add_callback(void* callback);

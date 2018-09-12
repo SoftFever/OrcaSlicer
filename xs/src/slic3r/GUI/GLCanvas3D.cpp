@@ -1125,7 +1125,6 @@ const float GLCanvas3D::Gizmos::OverlayGapY = 5.0f * OverlayTexturesScale;
 GLCanvas3D::Gizmos::Gizmos()
     : m_enabled(false)
     , m_current(Undefined)
-    , m_dragging(false)
 {
 }
 
@@ -1136,12 +1135,34 @@ GLCanvas3D::Gizmos::~Gizmos()
 
 bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 {
-    GLGizmoBase* gizmo = new GLGizmoScale3D(parent);
+    GLGizmoBase* gizmo = new GLGizmoMove3D(parent);
     if (gizmo == nullptr)
         return false;
 
     if (!gizmo->init())
         return false;
+
+    // temporary disable z grabber
+    gizmo->disable_grabber(2);
+
+    m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
+
+    gizmo = new GLGizmoScale3D(parent);
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init())
+        return false;
+
+    // temporary disable x grabbers
+    gizmo->disable_grabber(0);
+    gizmo->disable_grabber(1);
+    // temporary disable y grabbers
+    gizmo->disable_grabber(2);
+    gizmo->disable_grabber(3);
+    // temporary disable z grabbers
+    gizmo->disable_grabber(4);
+    gizmo->disable_grabber(5);
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
@@ -1157,6 +1178,10 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
         _reset();
         return false;
     }
+
+    // temporary disable x and y grabbers
+    gizmo->disable_grabber(0);
+    gizmo->disable_grabber(1);
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
@@ -1322,16 +1347,6 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
         curr->update(mouse_ray);
 }
 
-void GLCanvas3D::Gizmos::refresh()
-{
-    if (!m_enabled)
-        return;
-
-    GLGizmoBase* curr = _get_current();
-    if (curr != nullptr)
-        curr->refresh();
-}
-
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
     return m_current;
@@ -1348,23 +1363,41 @@ bool GLCanvas3D::Gizmos::is_running() const
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
-    return m_dragging;
+    GLGizmoBase* curr = _get_current();
+    return (curr != nullptr) ? curr->is_dragging() : false;
 }
 
-void GLCanvas3D::Gizmos::start_dragging()
+void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 {
-    m_dragging = true;
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->start_dragging();
+        curr->start_dragging(box);
 }
 
 void GLCanvas3D::Gizmos::stop_dragging()
 {
-    m_dragging = false;
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->stop_dragging();
+}
+
+Vec3d GLCanvas3D::Gizmos::get_position() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Move);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoMove3D*>(it->second)->get_position() : Vec3d::Zero();
+}
+
+void GLCanvas3D::Gizmos::set_position(const Vec3d& position)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Move);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoMove3D*>(it->second)->set_position(position);
 }
 
 float GLCanvas3D::Gizmos::get_scale() const
@@ -2155,11 +2188,17 @@ void GLCanvas3D::set_select_by(const std::string& value)
 void GLCanvas3D::set_drag_by(const std::string& value)
 {
     m_drag_by = value;
+    m_volumes.set_drag_by(value);
 }
 
 const std::string& GLCanvas3D::get_select_by() const
 {
     return m_select_by;
+}
+
+const std::string& GLCanvas3D::get_drag_by() const
+{
+    return m_drag_by;
 }
 
 float GLCanvas3D::get_camera_zoom() const
@@ -2338,6 +2377,7 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
+                m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
                 m_gizmos.set_flattening_data(model_object);
@@ -2346,6 +2386,7 @@ void GLCanvas3D::update_gizmos_data()
     }
     else
     {
+        m_gizmos.set_position(Vec3d::Zero());
         m_gizmos.set_scale(1.0f);
         m_gizmos.set_angle_z(0.0f);
         m_gizmos.set_flattening_data(nullptr);
@@ -2491,8 +2532,6 @@ void GLCanvas3D::reload_scene(bool force)
     // 2nd call to restore selection, if any
     if (!m_objects_selections.empty())
         update_gizmos_data();
-
-    m_gizmos.refresh();
 
     if (m_config->has("nozzle_diameter"))
     {
@@ -2714,6 +2753,12 @@ void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
 {
     if (callback != nullptr)
         m_on_gizmo_rotate_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_gizmo_flatten_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_flatten_callback.register_callback(callback);
 }
 
 void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
@@ -3024,7 +3069,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
         {
             update_gizmos_data();
-            m_gizmos.start_dragging();
+            m_gizmos.start_dragging(_selected_volumes_bounding_box());
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
@@ -3033,7 +3078,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 if (normal(0) != 0.0 || normal(1) != 0.0 || normal(2) != 0.0) {
                     Vec3d axis = normal(2) > 0.999 ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ()).normalized();
                     float angle = acos(clamp(-1.0, 1.0, -normal(2)));
-                    m_on_gizmo_rotate_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
+                    m_on_gizmo_flatten_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
                 }
             }
 
@@ -3067,7 +3112,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
 
                     update_gizmos_data();
-                    m_gizmos.refresh();
                     m_dirty = true;
                 }
             }
@@ -3206,7 +3250,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         update_position_values(volume->get_offset());
         m_mouse.drag.start_position_3D = cur_pos;
-        m_gizmos.refresh();
 
         m_dirty = true;
     }
@@ -3237,6 +3280,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
         switch (m_gizmos.get_current_type())
         {
+        case Gizmos::Move:
+        {
+            // Apply new temporary offset
+            GLVolume* volume = m_volumes.volumes[m_mouse.drag.gizmo_volume_idx];
+            Vec3d offset = m_gizmos.get_position() - volume->get_offset();
+            for (GLVolume* v : volumes)
+            {
+                v->set_offset(v->get_offset() + offset);
+            }
+            update_position_values(volume->get_offset());
+            break;
+        }
         case Gizmos::Scale:
         {
             // Apply new temporary scale factor
@@ -3244,8 +3299,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             for (GLVolume* v : volumes)
             {
                 v->set_scaling_factor((double)scale_factor);
-                update_scale_values((double)scale_factor);
             }
+            update_scale_values((double)scale_factor);
             break;
         }
         case Gizmos::Rotate:
@@ -3255,8 +3310,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             for (GLVolume* v : volumes)
             {
                 v->set_rotation((double)angle_z);
-                update_rotation_value((double)angle_z, Z);
             }
+            update_rotation_value((double)angle_z, Z);
             break;
         }
         default:
@@ -3273,9 +3328,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const Vec3d& size = bb.size();
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
         }
-
-        if ((m_gizmos.get_current_type() != Gizmos::Rotate) && (volumes.size() > 1))
-            m_gizmos.refresh();
 
         m_dirty = true;
     }
@@ -3369,6 +3421,27 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             switch (m_gizmos.get_current_type())
             {
+            case Gizmos::Move:
+            {
+                // get all volumes belonging to the same group, if any
+                std::vector<int> volume_idxs;
+                int vol_id = m_mouse.drag.gizmo_volume_idx;
+                int group_id = m_volumes.volumes[vol_id]->select_group_id;
+                if (group_id == -1)
+                    volume_idxs.push_back(vol_id);
+                else
+                {
+                    for (int i = 0; i < (int)m_volumes.volumes.size(); ++i)
+                    {
+                        if (m_volumes.volumes[i]->select_group_id == group_id)
+                            volume_idxs.push_back(i);
+                    }
+                }
+
+                _on_move(volume_idxs);
+
+                break;
+            }
             case Gizmos::Scale:
             {
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
@@ -3824,6 +3897,7 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_enable_action_buttons_callback.deregister_callback();
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
     m_on_gizmo_rotate_callback.deregister_callback();
+    m_on_gizmo_flatten_callback.deregister_callback();
     m_on_update_geometry_info_callback.deregister_callback();
 
     m_action_add_callback.deregister_callback();
