@@ -1140,6 +1140,9 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     if (!gizmo->init())
         return false;
 
+    // temporary disable z grabber
+    gizmo->disable_grabber(2);
+
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
     gizmo = new GLGizmoScale3D(parent);
@@ -1148,6 +1151,16 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     if (!gizmo->init())
         return false;
+
+    // temporary disable x grabbers
+    gizmo->disable_grabber(0);
+    gizmo->disable_grabber(1);
+    // temporary disable y grabbers
+    gizmo->disable_grabber(2);
+    gizmo->disable_grabber(3);
+    // temporary disable z grabbers
+    gizmo->disable_grabber(4);
+    gizmo->disable_grabber(5);
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
@@ -1163,6 +1176,10 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
         _reset();
         return false;
     }
+
+    // temporary disable x and y grabbers
+    gizmo->disable_grabber(0);
+    gizmo->disable_grabber(1);
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 

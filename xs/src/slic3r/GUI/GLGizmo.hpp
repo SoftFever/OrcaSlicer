@@ -22,21 +22,23 @@ class GLGizmoBase
 protected:
     struct Grabber
     {
-        static const float HalfSize;
+        static const float SizeFactor;
+        static const float MinHalfSize;
         static const float DraggingScaleFactor;
 
         Vec3d center;
         Vec3d angles;
         float color[3];
+        bool enabled;
         bool dragging;
 
         Grabber();
 
-        void render(bool hover) const;
-        void render_for_picking() const { render(color, false); }
+        void render(bool hover, const BoundingBoxf3& box) const;
+        void render_for_picking(const BoundingBoxf3& box) const { render(box, color, false); }
 
     private:
-        void render(const float* render_color, bool use_lighting) const;
+        void render(const BoundingBoxf3& box, const float* render_color, bool use_lighting) const;
         void render_face(float half_size) const;
     };
 
@@ -80,8 +82,11 @@ public:
 
     int get_hover_id() const { return m_hover_id; }
     void set_hover_id(int id);
-
+    
     void set_highlight_color(const float* color);
+
+    void enable_grabber(unsigned int id);
+    void disable_grabber(unsigned int id);
 
     void start_dragging(const BoundingBoxf3& box);
     void stop_dragging();
@@ -96,6 +101,8 @@ protected:
     virtual bool on_init() = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
+    virtual void on_enable_grabber(unsigned int id) {}
+    virtual void on_disable_grabber(unsigned int id) {}
     virtual void on_start_dragging(const BoundingBoxf3& box) {}
     virtual void on_stop_dragging() {}
     virtual void on_update(const Linef3& mouse_ray) = 0;
@@ -103,8 +110,8 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
     float picking_color_component(unsigned int id) const;
-    void render_grabbers() const;
-    void render_grabbers_for_picking() const;
+    void render_grabbers(const BoundingBoxf3& box) const;
+    void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     void set_tooltip(const std::string& tooltip) const;
     std::string format(float value, unsigned int decimals) const;
@@ -157,7 +164,7 @@ private:
     void render_snap_radii() const;
     void render_reference_radius() const;
     void render_angle() const;
-    void render_grabber() const;
+    void render_grabber(const BoundingBoxf3& box) const;
 
     void transform_to_local() const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
@@ -196,6 +203,16 @@ protected:
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
         }
     }
+    virtual void on_enable_grabber(unsigned int id)
+    {
+        if ((0 <= id) && (id < 3))
+            m_gizmos[id].enable_grabber(0);
+    }
+    virtual void on_disable_grabber(unsigned int id)
+    {
+        if ((0 <= id) && (id < 3))
+            m_gizmos[id].disable_grabber(0);
+    }
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging();
     virtual void on_update(const Linef3& mouse_ray)
@@ -218,6 +235,7 @@ protected:
 class GLGizmoScale3D : public GLGizmoBase
 {
     static const float Offset;
+    static const Vec3d OffsetVec;
 
     mutable BoundingBoxf3 m_box;
 
