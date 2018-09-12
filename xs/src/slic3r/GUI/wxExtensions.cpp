@@ -358,10 +358,6 @@ void  PrusaObjectDataViewModelNode::set_part_action_icon() {
 	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
 }
 
-void PrusaObjectDataViewModelNode::set_settings_list_icon(const wxIcon& icon) {
-    m_icon = icon;
-}
-
 Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
 bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std::string>& categories)
 {
@@ -386,12 +382,9 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
         bmp = m_bitmap_cache->insert(m_name.ToStdString(), bmps);
     }
 
-#ifdef __WXOSX__
-    if (bmp->GetWidth() != bmp->GetHeight())
-        bmp->SetHeight(bmp->GetWidth());
-#endif // __WXOSX__
+    m_bmp = *bmp;
+//     m_icon.CopyFromBitmap(*bmp);
 
-    m_icon.CopyFromBitmap(*bmp);
     return true;
 }
 
@@ -437,7 +430,8 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int ins
 
 wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_item,
 													const wxString &name,
-													const wxIcon& icon,
+// 													const wxIcon& icon,
+                                                    const wxBitmap& icon,
                                                     const int extruder/* = 0*/,
                                                     const bool create_frst_child/* = true*/)
 {
@@ -636,6 +630,12 @@ wxIcon& PrusaObjectDataViewModel::GetIcon(const wxDataViewItem &item) const
     return node->m_icon;
 }
 
+wxBitmap& PrusaObjectDataViewModel::GetBitmap(const wxDataViewItem &item) const
+{
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    return node->m_bmp;
+}
+
 void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &item, unsigned int col) const
 {
 	wxASSERT(item.IsOk());
@@ -644,8 +644,9 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	switch (col)
 	{
 	case 0:{
-		const wxDataViewIconText data(node->m_name, node->m_icon);
-		variant << data;
+// 		const wxDataViewIconText data(node->m_name, node->m_icon);
+        const PrusaDataViewBitmapText data(node->m_name, node->m_bmp);
+        variant << data;
 		break;}
 	case 1:
 		variant = node->m_copy;
@@ -851,30 +852,31 @@ void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item,
     ItemChanged(item);
 }
 
-
+IMPLEMENT_VARIANT_OBJECT(PrusaDataViewBitmapText)
 // ---------------------------------------------------------
 // PrusaIconTextRenderer
 // ---------------------------------------------------------
 
-bool PrusaIconTextRenderer::SetValue(const wxVariant &value)
+bool PrusaBitmapTextRenderer::SetValue(const wxVariant &value)
 {
     m_value << value;
     return true;
 }
 
-bool PrusaIconTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
+bool PrusaBitmapTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
 {
     return false;
 }
 
-bool PrusaIconTextRenderer::Render(wxRect rect, wxDC *dc, int state)
+bool PrusaBitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
 {
     int xoffset = 0;
 
-    const wxIcon& icon = m_value.GetIcon();
+    const /*wxIcon*/wxBitmap& icon = m_value.GetBitmap();// GetIcon();
     if (icon.IsOk())
     {
-        dc->DrawIcon(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
+//         dc->DrawIcon(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
+        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
         xoffset = icon.GetWidth() + 4;
     }
 
@@ -883,14 +885,14 @@ bool PrusaIconTextRenderer::Render(wxRect rect, wxDC *dc, int state)
     return true;
 }
 
-wxSize PrusaIconTextRenderer::GetSize() const
+wxSize PrusaBitmapTextRenderer::GetSize() const
 {
     if (!m_value.GetText().empty())
     {
         wxSize size = GetTextExtent(m_value.GetText());
 
-        if (m_value.GetIcon().IsOk())
-            size.x += m_value.GetIcon().GetWidth() + 4;
+        if (m_value.GetBitmap()/*GetIcon()*/.IsOk())
+            size.x += m_value.GetBitmap()/*GetIcon()*/.GetWidth() + 4;
         return size;
     }
     return wxSize(80, 20);

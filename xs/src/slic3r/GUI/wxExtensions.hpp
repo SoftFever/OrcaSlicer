@@ -144,6 +144,49 @@ public:
 #endif //__WXMSW__
 
 // *****************************************************************************
+
+// ----------------------------------------------------------------------------
+// PrusaDataViewBitmapText: helper class used by PrusaBitmapTextRenderer
+// ----------------------------------------------------------------------------
+
+class PrusaDataViewBitmapText : public wxObject
+{
+public:
+    PrusaDataViewBitmapText(const wxString &text = wxEmptyString,
+        const wxBitmap& bmp = wxNullBitmap) :
+        m_text(text), m_bmp(bmp)
+    { }
+
+    PrusaDataViewBitmapText(const PrusaDataViewBitmapText &other)
+        : wxObject(),
+        m_text(other.m_text),
+        m_bmp(other.m_bmp)
+    { }
+
+    void SetText(const wxString &text)      { m_text = text; }
+    wxString GetText() const                { return m_text; }
+    void SetBitmap(const wxIcon &icon)      { m_bmp = icon; }
+    const wxBitmap &GetBitmap() const       { return m_bmp; }
+
+    bool IsSameAs(const PrusaDataViewBitmapText& other) const {
+        return m_text == other.m_text && m_bmp.IsSameAs(other.m_bmp);
+    }
+
+    bool operator==(const PrusaDataViewBitmapText& other) const {
+        return IsSameAs(other);
+    }
+
+    bool operator!=(const PrusaDataViewBitmapText& other) const {
+        return !IsSameAs(other);
+    }
+
+private:
+    wxString    m_text;
+    wxBitmap    m_bmp;
+};
+DECLARE_VARIANT_OBJECT(PrusaDataViewBitmapText)
+
+
 // ----------------------------------------------------------------------------
 // PrusaObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
@@ -156,6 +199,7 @@ class PrusaObjectDataViewModelNode
 	PrusaObjectDataViewModelNode*	m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
     wxIcon                          m_empty_icon;
+    wxBitmap                        m_empty_bmp;
     std::vector< std::string >      m_opt_categories;
 public:
 	PrusaObjectDataViewModelNode(const wxString &name, const int instances_count=1) {
@@ -175,13 +219,15 @@ public:
 
 	PrusaObjectDataViewModelNode(	PrusaObjectDataViewModelNode* parent,
 									const wxString& sub_obj_name, 
-									const wxIcon& icon, 
+									const wxBitmap& bmp, 
+// 									const wxIcon& icon, 
                                     const wxString& extruder, 
 									const int volume_id=-1) {
 		m_parent	= parent;
 		m_name		= sub_obj_name;
 		m_copy		= wxEmptyString;
-		m_icon		= icon;
+// 		m_icon		= icon;
+		m_bmp		= bmp;
 		m_type		= "volume";
 		m_volume_id = volume_id;
         m_extruder = extruder;
@@ -214,6 +260,7 @@ public:
 	
 	wxString				m_name;
 	wxIcon&					m_icon = m_empty_icon;
+    wxBitmap&               m_bmp = m_empty_bmp;
 	wxString				m_copy;
 	std::string				m_type;
 	int						m_volume_id = -2;
@@ -274,9 +321,11 @@ public:
 		switch (col)
 		{
 		case 0:{
-			wxDataViewIconText data;
+// 			wxDataViewIconText data;
+            PrusaDataViewBitmapText data;
 			data << variant;
-			m_icon = data.GetIcon();
+// 			m_icon = data.GetIcon();
+            m_bmp = data.GetBitmap();
 			m_name = data.GetText();
 			return true;}
 		case 1:
@@ -296,6 +345,11 @@ public:
 	void SetIcon(const wxIcon &icon)
 	{
 		m_icon = icon;
+	}
+
+	void SetBitmap(const wxBitmap &icon)
+	{
+		m_bmp = icon;
 	}
 	
 	void SetType(const std::string& type){
@@ -342,7 +396,6 @@ public:
 	// Set action icons for node
 	void set_object_action_icon();
 	void set_part_action_icon();
-    void set_settings_list_icon(const wxIcon& icon);
     bool update_settings_digest(const std::vector<std::string>& categories);
 };
 
@@ -361,7 +414,8 @@ public:
 	wxDataViewItem Add(const wxString &name, const int instances_count);
 	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
-                            const wxIcon& icon,
+//                            const wxIcon& icon,
+                            const wxBitmap& icon,
                             const int extruder = 0,
                             const bool create_frst_child = true);
 	wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
@@ -378,6 +432,7 @@ public:
 	wxString GetName(const wxDataViewItem &item) const;
 	wxString GetCopy(const wxDataViewItem &item) const;
 	wxIcon&  GetIcon(const wxDataViewItem &item) const;
+    wxBitmap& GetBitmap(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
 
@@ -414,17 +469,16 @@ public:
     void    UpdateSettingsDigest(const wxDataViewItem &item, const std::vector<std::string>& categories);
 };
 
-
 // ----------------------------------------------------------------------------
-// PrusaIconTextRenderer
+// PrusaBitmapTextRenderer
 // ----------------------------------------------------------------------------
 
-class PrusaIconTextRenderer : public wxDataViewCustomRenderer
+class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
 {
 public:
-    PrusaIconTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
+    PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
                             int align = wxDVR_DEFAULT_ALIGNMENT): 
-                            wxDataViewCustomRenderer(wxT("wxDataViewIconText"), mode, align) {}
+                            wxDataViewCustomRenderer(wxT("PrusaDataViewIconBitmapText"/*"wxDataViewIconText"*/), mode, align) {}
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;
@@ -435,7 +489,8 @@ public:
     virtual bool HasEditorCtrl() const { return false; }
 
 private:
-    wxDataViewIconText   m_value;
+//      wxDataViewIconText   m_value;
+    PrusaDataViewBitmapText m_value;
 };
 
 
