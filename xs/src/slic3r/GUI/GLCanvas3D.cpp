@@ -1196,6 +1196,17 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
+    gizmo = new GLGizmoSlaSupports(parent);
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        _reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
+
 
     return true;
 }
@@ -1457,6 +1468,26 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
+void GLCanvas3D::Gizmos::set_model_object_ptr(const ModelObject* model_object)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_model_object_ptr(model_object);
+}
+
+void GLCanvas3D::Gizmos::move_current_point(const Vec2d& mouse_position)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->move_current_point(mouse_position);
+}
+
 void GLCanvas3D::Gizmos::render_current_gizmo(const BoundingBoxf3& box) const
 {
     if (!m_enabled)
@@ -1519,6 +1550,8 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
+        /*if (dynamic_cast<const GLGizmoSlaSupports*>(it->second)) // don't render sla gizmo overlay for FDM
+            continue;*/
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
         top_y -= (tex_size + scaled_gap_y);
@@ -2381,6 +2414,7 @@ void GLCanvas3D::update_gizmos_data()
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
                 m_gizmos.set_flattening_data(model_object);
+                m_gizmos.set_model_object_ptr(model_object);
             }
         }
     }
@@ -2431,8 +2465,6 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
-
-    _render_sla_support_points();
 
     if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
@@ -3129,48 +3161,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
                     Vec3d pos3d = (volume_idx == -1) ? Vec3d(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
                     
-                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@                    
-                    int id = _get_first_selected_object_id();
-                    if ((id != -1) && (m_model != nullptr))
-                    {
-                        ModelObject* model_object = m_model->objects[id];
-                        stl_file stl = model_object->mesh().stl;
-                        
-                        Eigen::MatrixXf V; // vertices
-                        Eigen::MatrixXi F;// facets indices
-                        V.resize(3*stl.stats.number_of_facets, 3);
-                        F.resize(stl.stats.number_of_facets, 3);
-                        for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
-                            const stl_facet* facet = stl.facet_start+i;
-                            V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-                            V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-                            V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
-                            F(i, 0) = 3*i+0;
-                            F(i, 1) = 3*i+1;
-                            F(i, 2) = 3*i+2;
-                        }
-                        
-                        Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
-                        ::glGetIntegerv(GL_VIEWPORT, viewport.data());
-                        Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-                        ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-                        Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
-                        ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
-                        
-                        int fid = 0;
-                        Vec3f bc(0, 0, 0);
-    
-                        if (igl::unproject_onto_mesh(Vec2f(pos(0), viewport(3)-pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), V, F, fid, bc)
-                            && (stl.facet_start + fid)->normal(2) < 0.f) {
-                            const Vec3f& a = (stl.facet_start+fid)->vertex[0];
-                            const Vec3f& b = (stl.facet_start+fid)->vertex[1];
-                            const Vec3f& c = (stl.facet_start+fid)->vertex[2];
-                            model_object->sla_support_points.emplace_back(bc(0)*a + bc(1)*b + bc(2)*c);
-                        }
-                    }
-                    //@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
                     // Only accept the initial position, if it is inside the volume bounding box.
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
                     volume_bbox.offset(1.0);
@@ -3314,6 +3304,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             update_rotation_value((double)angle_z, Z);
             break;
         }
+        case Gizmos::SlaSupports:
+        {
+            m_gizmos.move_current_point(Vec2d(pos(0), pos(1)));
+            break;
+        }
         default:
             break;
         }
@@ -3406,6 +3401,44 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // force re-selection of the wipe tower, if needed
             if ((volume_idxs.size() == 1) && m_volumes.volumes[volume_idxs[0]]->is_wipe_tower)
                 select_volume(volume_idxs[0]);
+        }
+        else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
+        {
+            int id = _get_first_selected_object_id();
+            if ((id != -1) && (m_model != nullptr)) {
+                ModelObject* model_object = m_model->objects[id];
+                const stl_file& stl = model_object->mesh().stl;
+                Eigen::MatrixXf V; // vertices
+                Eigen::MatrixXi F;// facets indices
+                V.resize(3*stl.stats.number_of_facets, 3);
+                F.resize(stl.stats.number_of_facets, 3);
+                for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+                    const stl_facet* facet = stl.facet_start+i;
+                    V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
+                    V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
+                    V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+                    F(i, 0) = 3*i+0;
+                    F(i, 1) = 3*i+1;
+                    F(i, 2) = 3*i+2;
+                }
+
+                Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
+                ::glGetIntegerv(GL_VIEWPORT, viewport.data());
+                Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
+                ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+                Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
+                ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
+
+                int fid = 0;
+                Vec3f bc(0, 0, 0);
+                if (igl::unproject_onto_mesh(Vec2f(pos(0), viewport(3)-pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), V, F, fid, bc)
+                    && (stl.facet_start + fid)->normal(2) < 0.f) {
+                    const Vec3f& a = (stl.facet_start+fid)->vertex[0];
+                    const Vec3f& b = (stl.facet_start+fid)->vertex[1];
+                    const Vec3f& c = (stl.facet_start+fid)->vertex[2];
+                    model_object->sla_support_points.emplace_back(bc(0)*a + bc(1)*b + bc(2)*c);
+                }
+            }
         }
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {

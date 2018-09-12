@@ -340,6 +340,7 @@ public:
             Scale,
             Rotate,
             Flatten,
+            SlaSupports,
             Num_Types
         };
 
@@ -387,6 +388,9 @@ public:
 
         void set_flattening_data(const ModelObject* model_object);
         Vec3d get_flattening_normal() const;
+
+        void set_model_object_ptr(const ModelObject* model_object);
+        void move_current_point(const Vec2d& mouse_position);
 
         void render_current_gizmo(const BoundingBoxf3& box) const;
 

@@ -353,6 +353,25 @@ protected:
     }
 };
 
+class GLGizmoSlaSupports : public GLGizmoBase
+{
+// This gizmo does not use grabbers. The m_hover_id relates to shape managed by the class itself.
+private:
+    const ModelObject* m_model_object = nullptr;
+
+public:
+    explicit GLGizmoSlaSupports(GLCanvas3D& parent);
+    void set_model_object_ptr(const ModelObject* model_object) { m_model_object = model_object; }
+    void move_current_point(const Vec2d& mouse_position);
+
+protected:
+    virtual bool on_init();
+    virtual void on_start_dragging();
+    virtual void on_update(const Linef3& mouse_ray) {}
+    virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+};
+
 } // namespace GUI
 } // namespace Slic3r
 

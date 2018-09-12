@@ -6,6 +6,7 @@
 #include <Eigen/Dense>
 #include "../../libslic3r/Geometry.hpp"
 
+#include <igl/unproject_onto_mesh.h>
 #include <GL/glew.h>
 
 #include <iostream>
@@ -1475,6 +1476,128 @@ Vec3d GLGizmoFlatten::get_flattening_normal() const {
     m_normal = Vec3d::Zero();
     return normal.normalized();
 }
+
+
+
+
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
+    : GLGizmoBase(parent)
+{
+}
+
+bool GLGizmoSlaSupports::on_init()
+{
+    std::string path = resources_dir() + "/icons/overlay/";
+
+    std::string filename = path + "layflat_off.png";
+    if (!m_textures[Off].load_from_file(filename, false))
+        return false;
+
+    filename = path + "layflat_hover.png";
+    if (!m_textures[Hover].load_from_file(filename, false))
+        return false;
+
+    filename = path + "layflat_on.png";
+    if (!m_textures[On].load_from_file(filename, false))
+        return false;
+
+    return true;
+}
+
+
+
+void GLGizmoSlaSupports::on_start_dragging()
+{
+    if (m_hover_id != -1)
+        ;//m_normal = m_planes[m_hover_id].normal;
+}
+
+void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
+{
+    ::glEnable(GL_BLEND);
+    ::glEnable(GL_DEPTH_TEST);
+
+    if (m_model_object && !m_model_object->instances.empty()) {
+        for (int i=0; i<(int)m_model_object->sla_support_points.size(); ++i) {
+            const auto& point = m_model_object->sla_support_points[i];
+            if (i == m_hover_id)
+                ::glColor4f(0.9f, 0.f, 0.f, 0.75f);
+            else
+                ::glColor4f(0.5f, 0.f, 0.f, 0.75f);
+
+            ::glPushMatrix();
+            ::glTranslatef(point(0), point(1), point(2));
+            GLUquadricObj *quadric;
+            quadric = ::gluNewQuadric();
+            ::gluQuadricDrawStyle(quadric, GLU_FILL );
+            ::gluSphere( quadric , 0.5 , 36 , 18 );
+            ::gluDeleteQuadric(quadric);
+            ::glPopMatrix();
+        }
+    }
+
+    ::glDisable(GL_BLEND);
+}
+
+void GLGizmoSlaSupports::on_render_for_picking(const BoundingBoxf3& box) const
+{
+    ::glEnable(GL_DEPTH_TEST);
+
+    if (m_model_object && !m_model_object->instances.empty()) {
+        for (unsigned int i=0; i<m_model_object->sla_support_points.size(); ++i) {
+            const auto& point = m_model_object->sla_support_points[i];
+            ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+            ::glPushMatrix();
+            ::glTranslatef(point(0), point(1), point(2));
+            GLUquadricObj *quadric;
+            quadric = ::gluNewQuadric();
+
+            ::gluQuadricDrawStyle(quadric, GLU_FILL );
+            ::gluSphere( quadric , 0.5 , 36 , 18 );
+            ::gluDeleteQuadric(quadric);
+            ::glPopMatrix();
+        }
+    }
+}
+
+void GLGizmoSlaSupports::move_current_point(const Vec2d& mouse_position)
+{
+    const stl_file& stl = m_model_object->mesh().stl;
+    Eigen::MatrixXf V; // vertices
+    Eigen::MatrixXi F;// facets indices
+    V.resize(3*stl.stats.number_of_facets, 3);
+    F.resize(stl.stats.number_of_facets, 3);
+    for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+        const stl_facet* facet = stl.facet_start+i;
+        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
+        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
+        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+        F(i, 0) = 3*i+0;
+        F(i, 1) = 3*i+1;
+        F(i, 2) = 3*i+2;
+    }
+
+    Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
+    ::glGetIntegerv(GL_VIEWPORT, viewport.data());
+    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
+    ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
+
+    int fid = 0;
+    Vec3f bc(0, 0, 0);
+    Vec3f final_pos;
+    if (igl::unproject_onto_mesh(Vec2f(mouse_position(0), viewport(3)-mouse_position(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), V, F, fid, bc)
+        && (stl.facet_start + fid)->normal(2) < 0.f) {
+        const Vec3f& a = (stl.facet_start+fid)->vertex[0];
+        const Vec3f& b = (stl.facet_start+fid)->vertex[1];
+        const Vec3f& c = (stl.facet_start+fid)->vertex[2];
+        final_pos = bc(0)*a + bc(1)*b + bc(2)*c;
+        const_cast<ModelObject*>(m_model_object)->sla_support_points[m_hover_id] = final_pos;
+    }
+}
+
+
 
 } // namespace GUI
 } // namespace Slic3r
