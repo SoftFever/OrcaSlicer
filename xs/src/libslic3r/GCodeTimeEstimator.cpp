@@ -4,15 +4,20 @@
 
 #include <Shiny/Shiny.h>
 
+#include <boost/nowide/fstream.hpp>
+#include <boost/nowide/cstdio.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+
 static const float MMMIN_TO_MMSEC = 1.0f / 60.0f;
 static const float MILLISEC_TO_SEC = 0.001f;
 static const float INCHES_TO_MM = 25.4f;
+
 static const float DEFAULT_FEEDRATE = 1500.0f; // from Prusa Firmware (Marlin_main.cpp)
 static const float DEFAULT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 static const float DEFAULT_RETRACT_ACCELERATION = 1500.0f; // Prusa Firmware 1_75mm_MK2
 static const float DEFAULT_AXIS_MAX_FEEDRATE[] = { 500.0f, 500.0f, 12.0f, 120.0f }; // Prusa Firmware 1_75mm_MK2
 static const float DEFAULT_AXIS_MAX_ACCELERATION[] = { 9000.0f, 9000.0f, 500.0f, 10000.0f }; // Prusa Firmware 1_75mm_MK2
-static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.2f, 2.5f }; // from Prusa Firmware (Configuration.h)
+static const float DEFAULT_AXIS_MAX_JERK[] = { 10.0f, 10.0f, 0.4f, 2.5f }; // from Prusa Firmware (Configuration.h)
 static const float DEFAULT_MINIMUM_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 static const float DEFAULT_MINIMUM_TRAVEL_FEEDRATE = 0.0f; // from Prusa Firmware (Configuration_adv.h)
 static const float DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE = 1.0f; // 100 percent
@@ -71,6 +76,10 @@ namespace Slic3r {
         // to avoid invalid negative numbers due to numerical imprecision 
         float value = std::max(0.0f, sqr(initial_feedrate) + 2.0f * acceleration * distance);
         return ::sqrt(value);
+    }
+
+    GCodeTimeEstimator::Block::Block()
+    {
     }
 
     float GCodeTimeEstimator::Block::move_length() const
@@ -159,61 +168,14 @@ namespace Slic3r {
     }
 #endif // ENABLE_MOVE_STATS
 
-    GCodeTimeEstimator::GCodeTimeEstimator()
+    const std::string GCodeTimeEstimator::Normal_First_M73_Output_Placeholder_Tag = "; NORMAL_FIRST_M73_OUTPUT_PLACEHOLDER";
+    const std::string GCodeTimeEstimator::Silent_First_M73_Output_Placeholder_Tag = "; SILENT_FIRST_M73_OUTPUT_PLACEHOLDER";
+
+    GCodeTimeEstimator::GCodeTimeEstimator(EMode mode)
+        : _mode(mode)
     {
         reset();
         set_default();
-    }
-
-    void GCodeTimeEstimator::calculate_time_from_text(const std::string& gcode)
-    {
-        reset();
-
-        _parser.parse_buffer(gcode,
-            [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
-        { this->_process_gcode_line(reader, line); });
-
-        _calculate_time();
-
-#if ENABLE_MOVE_STATS
-        _log_moves_stats();
-#endif // ENABLE_MOVE_STATS
-
-        _reset_blocks();
-        _reset();
-    }
-
-    void GCodeTimeEstimator::calculate_time_from_file(const std::string& file)
-    {
-        reset();
-
-        _parser.parse_file(file, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
-        _calculate_time();
-
-#if ENABLE_MOVE_STATS
-        _log_moves_stats();
-#endif // ENABLE_MOVE_STATS
-
-        _reset_blocks();
-        _reset();
-    }
-
-    void GCodeTimeEstimator::calculate_time_from_lines(const std::vector<std::string>& gcode_lines)
-    {
-        reset();
-
-        auto action = [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
-        { this->_process_gcode_line(reader, line); };
-        for (const std::string& line : gcode_lines)
-            _parser.parse_line(line, action);
-        _calculate_time();
-
-#if ENABLE_MOVE_STATS
-        _log_moves_stats();
-#endif // ENABLE_MOVE_STATS
-
-        _reset_blocks();
-        _reset();
     }
 
     void GCodeTimeEstimator::add_gcode_line(const std::string& gcode_line)
@@ -236,17 +198,181 @@ namespace Slic3r {
         }
     }
 
-    void GCodeTimeEstimator::calculate_time()
+    void GCodeTimeEstimator::calculate_time(bool start_from_beginning)
     {
         PROFILE_FUNC();
+        if (start_from_beginning)
+        {
+            _reset_time();
+            _last_st_synchronized_block_id = -1;
+        }
         _calculate_time();
 
 #if ENABLE_MOVE_STATS
         _log_moves_stats();
 #endif // ENABLE_MOVE_STATS
+    }
 
-        _reset_blocks();
-        _reset();
+    void GCodeTimeEstimator::calculate_time_from_text(const std::string& gcode)
+    {
+        reset();
+
+        _parser.parse_buffer(gcode,
+            [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+        { this->_process_gcode_line(reader, line); });
+
+        _calculate_time();
+
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
+    }
+
+    void GCodeTimeEstimator::calculate_time_from_file(const std::string& file)
+    {
+        reset();
+
+        _parser.parse_file(file, boost::bind(&GCodeTimeEstimator::_process_gcode_line, this, _1, _2));
+        _calculate_time();
+
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
+    }
+
+    void GCodeTimeEstimator::calculate_time_from_lines(const std::vector<std::string>& gcode_lines)
+    {
+        reset();
+
+        auto action = [this](GCodeReader &reader, const GCodeReader::GCodeLine &line)
+        { this->_process_gcode_line(reader, line); };
+        for (const std::string& line : gcode_lines)
+            _parser.parse_line(line, action);
+        _calculate_time();
+
+#if ENABLE_MOVE_STATS
+        _log_moves_stats();
+#endif // ENABLE_MOVE_STATS
+    }
+
+    bool GCodeTimeEstimator::post_process_remaining_times(const std::string& filename, float interval)
+    {
+        boost::nowide::ifstream in(filename);
+        if (!in.good())
+            throw std::runtime_error(std::string("Remaining times export failed.\nCannot open file for reading.\n"));
+
+        std::string path_tmp = filename + ".times";
+
+        FILE* out = boost::nowide::fopen(path_tmp.c_str(), "wb");
+        if (out == nullptr)
+            throw std::runtime_error(std::string("Remaining times export failed.\nCannot open file for writing.\n"));
+
+        std::string time_mask;
+        switch (_mode)
+        {
+        default:
+        case Normal:
+        {
+            time_mask = "M73 P%s R%s\n";
+            break;
+        }
+        case Silent:
+        {
+            time_mask = "M73 Q%s S%s\n";
+            break;
+        }
+        }
+
+        unsigned int g1_lines_count = 0;
+        float last_recorded_time = 0.0f;
+        std::string gcode_line;
+        // buffer line to export only when greater than 64K to reduce writing calls
+        std::string export_line;
+        char time_line[64];
+        while (std::getline(in, gcode_line))
+        {
+            if (!in.good())
+            {
+                fclose(out);
+                throw std::runtime_error(std::string("Remaining times export failed.\nError while reading from file.\n"));
+            }
+
+            // replaces placeholders for initial line M73 with the real lines
+            if (((_mode == Normal) && (gcode_line == Normal_First_M73_Output_Placeholder_Tag)) ||
+                ((_mode == Silent) && (gcode_line == Silent_First_M73_Output_Placeholder_Tag)))
+            {
+                sprintf(time_line, time_mask.c_str(), "0", _get_time_minutes(_time).c_str());
+                gcode_line = time_line;
+            }
+            else
+               gcode_line += "\n";
+
+            // add remaining time lines where needed
+            _parser.parse_line(gcode_line,
+                [this, &g1_lines_count, &last_recorded_time, &time_line, &gcode_line, time_mask, interval](GCodeReader& reader, const GCodeReader::GCodeLine& line)
+            {
+                if (line.cmd_is("G1"))
+                {
+                    ++g1_lines_count;
+
+                    if (!line.has_e())
+                        return;
+
+                    G1LineIdToBlockIdMap::const_iterator it = _g1_line_ids.find(g1_lines_count);
+                    if ((it != _g1_line_ids.end()) && (it->second < (unsigned int)_blocks.size()))
+                    {
+                        const Block& block = _blocks[it->second];
+                        if (block.elapsed_time != -1.0f)
+                        {
+                            float block_remaining_time = _time - block.elapsed_time;
+                            if (std::abs(last_recorded_time - block_remaining_time) > interval)
+                            {
+                                sprintf(time_line, time_mask.c_str(), std::to_string((int)(100.0f * block.elapsed_time / _time)).c_str(), _get_time_minutes(block_remaining_time).c_str());
+                                gcode_line += time_line;
+
+                                last_recorded_time = block_remaining_time;
+                            }
+                        }
+                    }
+                }
+            });
+
+            export_line += gcode_line;
+            if (export_line.length() > 65535)
+            {
+                fwrite((const void*)export_line.c_str(), 1, export_line.length(), out);
+                if (ferror(out))
+                {
+                    in.close();
+                    fclose(out);
+                    boost::nowide::remove(path_tmp.c_str());
+                    throw std::runtime_error(std::string("Remaining times export failed.\nIs the disk full?\n"));
+                }
+                export_line.clear();
+            }
+        }
+
+        if (export_line.length() > 0)
+        {
+            fwrite((const void*)export_line.c_str(), 1, export_line.length(), out);
+            if (ferror(out))
+            {
+                in.close();
+                fclose(out);
+                boost::nowide::remove(path_tmp.c_str());
+                throw std::runtime_error(std::string("Remaining times export failed.\nIs the disk full?\n"));
+            }
+        }
+
+        fclose(out);
+        in.close();
+
+        boost::nowide::remove(filename.c_str());
+        if (boost::nowide::rename(path_tmp.c_str(), filename.c_str()) != 0)
+            throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + filename + '\n' +
+            "Is " + path_tmp + " locked?" + '\n');
+
+        return true;
     }
 
     void GCodeTimeEstimator::set_axis_position(EAxis axis, float position)
@@ -301,12 +427,27 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::set_acceleration(float acceleration_mm_sec2)
     {
-        _state.acceleration = acceleration_mm_sec2;
+        _state.acceleration = (_state.max_acceleration == 0) ? 
+            acceleration_mm_sec2 : 
+            // Clamp the acceleration with the maximum.
+            std::min(_state.max_acceleration, acceleration_mm_sec2);
     }
 
     float GCodeTimeEstimator::get_acceleration() const
     {
         return _state.acceleration;
+    }
+
+    void GCodeTimeEstimator::set_max_acceleration(float acceleration_mm_sec2)
+    {
+        _state.max_acceleration = acceleration_mm_sec2;
+        if (acceleration_mm_sec2 > 0)
+            _state.acceleration = acceleration_mm_sec2;
+    }
+
+    float GCodeTimeEstimator::get_max_acceleration() const
+    {
+        return _state.max_acceleration;
     }
 
     void GCodeTimeEstimator::set_retract_acceleration(float acceleration_mm_sec2)
@@ -339,6 +480,40 @@ namespace Slic3r {
         return _state.minimum_travel_feedrate;
     }
 
+    void GCodeTimeEstimator::set_filament_load_times(const std::vector<double> &filament_load_times)
+    {
+        _state.filament_load_times.clear();
+        for (double t : filament_load_times)
+            _state.filament_load_times.push_back(t);
+    }
+
+    void GCodeTimeEstimator::set_filament_unload_times(const std::vector<double> &filament_unload_times)
+    {
+        _state.filament_unload_times.clear();
+        for (double t : filament_unload_times)
+            _state.filament_unload_times.push_back(t);
+    }
+
+    float GCodeTimeEstimator::get_filament_load_time(unsigned int id_extruder)
+    {
+        return
+            (_state.filament_load_times.empty() || id_extruder == _state.extruder_id_unloaded) ? 
+                0 :
+                (_state.filament_load_times.size() <= id_extruder) ?
+                    _state.filament_load_times.front() : 
+                    _state.filament_load_times[id_extruder];
+    }
+
+    float GCodeTimeEstimator::get_filament_unload_time(unsigned int id_extruder)
+    {
+        return
+            (_state.filament_unload_times.empty() || id_extruder == _state.extruder_id_unloaded) ? 
+                0 :
+                (_state.filament_unload_times.size() <= id_extruder) ?
+                    _state.filament_unload_times.front() : 
+                    _state.filament_unload_times[id_extruder];
+    }
+
     void GCodeTimeEstimator::set_extrude_factor_override_percentage(float percentage)
     {
         _state.extrude_factor_override_percentage = percentage;
@@ -356,6 +531,7 @@ namespace Slic3r {
 
     GCodeFlavor GCodeTimeEstimator::get_dialect() const
     {
+        PROFILE_FUNC();
         return _state.dialect;
     }
 
@@ -369,28 +545,61 @@ namespace Slic3r {
         return _state.units;
     }
 
-    void GCodeTimeEstimator::set_positioning_xyz_type(GCodeTimeEstimator::EPositioningType type)
+    void GCodeTimeEstimator::set_global_positioning_type(GCodeTimeEstimator::EPositioningType type)
     {
-        _state.positioning_xyz_type = type;
+        _state.global_positioning_type = type;
     }
 
-    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_positioning_xyz_type() const
+    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_global_positioning_type() const
     {
-        return _state.positioning_xyz_type;
+        return _state.global_positioning_type;
     }
 
-    void GCodeTimeEstimator::set_positioning_e_type(GCodeTimeEstimator::EPositioningType type)
+    void GCodeTimeEstimator::set_e_local_positioning_type(GCodeTimeEstimator::EPositioningType type)
     {
-        _state.positioning_e_type = type;
+        _state.e_local_positioning_type = type;
     }
 
-    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_positioning_e_type() const
+    GCodeTimeEstimator::EPositioningType GCodeTimeEstimator::get_e_local_positioning_type() const
     {
-        return _state.positioning_e_type;
+        return _state.e_local_positioning_type;
+    }
+
+    int GCodeTimeEstimator::get_g1_line_id() const
+    {
+        return _state.g1_line_id;
+    }
+
+    void GCodeTimeEstimator::increment_g1_line_id()
+    {
+        ++_state.g1_line_id;
+    }
+
+    void GCodeTimeEstimator::reset_g1_line_id()
+    {
+        _state.g1_line_id = 0;
+    }
+
+    void GCodeTimeEstimator::set_extruder_id(unsigned int id)
+    {
+        _state.extruder_id = id;
+    }
+
+    unsigned int GCodeTimeEstimator::get_extruder_id() const
+    {
+        return _state.extruder_id;
+    }
+
+    void GCodeTimeEstimator::reset_extruder_id()
+    {
+        // Set the initial extruder ID to unknown. For the multi-material setup it means
+        // that all the filaments are parked in the MMU and no filament is loaded yet.
+        _state.extruder_id = _state.extruder_id_unloaded;
     }
 
     void GCodeTimeEstimator::add_additional_time(float timeSec)
     {
+        PROFILE_FUNC();
         _state.additional_time += timeSec;
     }
 
@@ -408,16 +617,19 @@ namespace Slic3r {
     {
         set_units(Millimeters);
         set_dialect(gcfRepRap);
-        set_positioning_xyz_type(Absolute);
-        set_positioning_e_type(Relative);
+        set_global_positioning_type(Absolute);
+        set_e_local_positioning_type(Absolute);
 
         set_feedrate(DEFAULT_FEEDRATE);
+        // Setting the maximum acceleration to zero means that the there is no limit and the G-code
+        // is allowed to set excessive values.
+        set_max_acceleration(0);
         set_acceleration(DEFAULT_ACCELERATION);
         set_retract_acceleration(DEFAULT_RETRACT_ACCELERATION);
         set_minimum_feedrate(DEFAULT_MINIMUM_FEEDRATE);
         set_minimum_travel_feedrate(DEFAULT_MINIMUM_TRAVEL_FEEDRATE);
         set_extrude_factor_override_percentage(DEFAULT_EXTRUDE_FACTOR_OVERRIDE_PERCENTAGE);
-
+        
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
             EAxis axis = (EAxis)a;
@@ -425,11 +637,14 @@ namespace Slic3r {
             set_axis_max_acceleration(axis, DEFAULT_AXIS_MAX_ACCELERATION[a]);
             set_axis_max_jerk(axis, DEFAULT_AXIS_MAX_JERK[a]);
         }
+
+        _state.filament_load_times.clear();
+        _state.filament_unload_times.clear();
     }
 
     void GCodeTimeEstimator::reset()
     {
-        _time = 0.0f;
+        _reset_time();
 #if ENABLE_MOVE_STATS
         _moves_stats.clear();
 #endif // ENABLE_MOVE_STATS
@@ -442,23 +657,14 @@ namespace Slic3r {
         return _time;
     }
 
-    std::string GCodeTimeEstimator::get_time_hms() const
+    std::string GCodeTimeEstimator::get_time_dhms() const
     {
-        float timeinsecs = get_time();
-        int hours = (int)(timeinsecs / 3600.0f);
-        timeinsecs -= (float)hours * 3600.0f;
-        int minutes = (int)(timeinsecs / 60.0f);
-        timeinsecs -= (float)minutes * 60.0f;
+        return _get_time_dhms(get_time());
+    }
 
-        char buffer[64];
-        if (hours > 0)
-            ::sprintf(buffer, "%dh %dm %ds", hours, minutes, (int)timeinsecs);
-        else if (minutes > 0)
-            ::sprintf(buffer, "%dm %ds", minutes, (int)timeinsecs);
-        else
-            ::sprintf(buffer, "%ds", (int)timeinsecs);
-
-        return buffer;
+    std::string GCodeTimeEstimator::get_time_minutes() const
+    {
+        return _get_time_minutes(get_time());
     }
 
     void GCodeTimeEstimator::_reset()
@@ -471,6 +677,17 @@ namespace Slic3r {
         set_axis_position(Z, 0.0f);
 
         set_additional_time(0.0f);
+
+        reset_extruder_id();
+        reset_g1_line_id();
+        _g1_line_ids.clear();
+
+        _last_st_synchronized_block_id = -1;
+    }
+
+    void GCodeTimeEstimator::_reset_time()
+    {
+        _time = 0.0f;
     }
 
     void GCodeTimeEstimator::_reset_blocks()
@@ -478,22 +695,27 @@ namespace Slic3r {
         _blocks.clear();
     }
 
+
     void GCodeTimeEstimator::_calculate_time()
     {
+        PROFILE_FUNC();
         _forward_pass();
         _reverse_pass();
         _recalculate_trapezoids();
 
         _time += get_additional_time();
 
-        for (const Block& block : _blocks)
+        for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size(); ++i)
         {
+            Block& block = _blocks[i];
+
 #if ENABLE_MOVE_STATS
             float block_time = 0.0f;
             block_time += block.acceleration_time();
             block_time += block.cruise_time();
             block_time += block.deceleration_time();
             _time += block_time;
+            block.elapsed_time = _time;
 
             MovesStatsMap::iterator it = _moves_stats.find(block.move_type);
             if (it == _moves_stats.end())
@@ -505,8 +727,13 @@ namespace Slic3r {
             _time += block.acceleration_time();
             _time += block.cruise_time();
             _time += block.deceleration_time();
+            block.elapsed_time = _time;
 #endif // ENABLE_MOVE_STATS
         }
+
+        _last_st_synchronized_block_id = _blocks.size() - 1;
+        // The additional time has been consumed (added to the total time), reset it to zero.
+        set_additional_time(0.);
     }
 
     void GCodeTimeEstimator::_process_gcode_line(GCodeReader&, const GCodeReader::GCodeLine& line)
@@ -619,8 +846,18 @@ namespace Slic3r {
                             _processM566(line);
                             break;
                         }
+                    case 702: // MK3 MMU2: Process the final filament unload.
+                        {
+                            _processM702(line);
+                            break;
+                        }
                     }
 
+                    break;
+                }
+            case 'T': // Select Tools
+                {
+                    _processT(line);
                     break;
                 }
             }
@@ -628,13 +865,13 @@ namespace Slic3r {
     }
 
     // Returns the new absolute position on the given axis in dependence of the given parameters
-    float axis_absolute_position_from_G1_line(GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeTimeEstimator::EUnits units, GCodeTimeEstimator::EPositioningType type, float current_absolute_position)
+    float axis_absolute_position_from_G1_line(GCodeTimeEstimator::EAxis axis, const GCodeReader::GCodeLine& lineG1, GCodeTimeEstimator::EUnits units, bool is_relative, float current_absolute_position)
     {
         float lengthsScaleFactor = (units == GCodeTimeEstimator::Inches) ? INCHES_TO_MM : 1.0f;
         if (lineG1.has(Slic3r::Axis(axis)))
         {
             float ret = lineG1.value(Slic3r::Axis(axis)) * lengthsScaleFactor;
-            return (type == GCodeTimeEstimator::Absolute) ? ret : current_absolute_position + ret;
+            return is_relative ? current_absolute_position + ret : ret;
         }
         else
             return current_absolute_position;
@@ -642,12 +879,19 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG1(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
+        increment_g1_line_id();
+
         // updates axes positions from line
         EUnits units = get_units();
         float new_pos[Num_Axis];
         for (unsigned char a = X; a < Num_Axis; ++a)
         {
-            new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, (a == E) ? get_positioning_e_type() : get_positioning_xyz_type(), get_axis_position((EAxis)a));
+            bool is_relative = (get_global_positioning_type() == Relative);
+            if (a == E)
+                is_relative |= (get_e_local_positioning_type() == Relative);
+
+            new_pos[a] = axis_absolute_position_from_G1_line((EAxis)a, line, units, is_relative, get_axis_position((EAxis)a));
         }
 
         // updates feedrate from line, if present
@@ -686,13 +930,16 @@ namespace Slic3r {
             if (_curr.abs_axis_feedrate[a] > 0.0f)
                 min_feedrate_factor = std::min(min_feedrate_factor, get_axis_max_feedrate((EAxis)a) / _curr.abs_axis_feedrate[a]);
         }
-    
+        
         block.feedrate.cruise = min_feedrate_factor * _curr.feedrate;
 
-        for (unsigned char a = X; a < Num_Axis; ++a)
+        if (min_feedrate_factor < 1.0f)
         {
-            _curr.axis_feedrate[a] *= min_feedrate_factor;
-            _curr.abs_axis_feedrate[a] *= min_feedrate_factor;
+            for (unsigned char a = X; a < Num_Axis; ++a)
+            {
+                _curr.axis_feedrate[a] *= min_feedrate_factor;
+                _curr.abs_axis_feedrate[a] *= min_feedrate_factor;
+            }
         }
 
         // calculates block acceleration
@@ -825,10 +1072,12 @@ namespace Slic3r {
 
         // adds block to blocks list
         _blocks.emplace_back(block);
+        _g1_line_ids.insert(G1LineIdToBlockIdMap::value_type(get_g1_line_id(), (unsigned int)_blocks.size() - 1));
     }
 
     void GCodeTimeEstimator::_processG4(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         GCodeFlavor dialect = get_dialect();
 
         float value;
@@ -850,33 +1099,37 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processG20(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_units(Inches);
     }
 
     void GCodeTimeEstimator::_processG21(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         set_units(Millimeters);
     }
 
     void GCodeTimeEstimator::_processG28(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         // TODO
     }
 
     void GCodeTimeEstimator::_processG90(const GCodeReader::GCodeLine& line)
     {
-        set_positioning_xyz_type(Absolute);
+        PROFILE_FUNC();
+        set_global_positioning_type(Absolute);
     }
 
     void GCodeTimeEstimator::_processG91(const GCodeReader::GCodeLine& line)
     {
-        // TODO: THERE ARE DIALECT VARIANTS
-
-        set_positioning_xyz_type(Relative);
+        PROFILE_FUNC();
+        set_global_positioning_type(Relative);
     }
 
     void GCodeTimeEstimator::_processG92(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         float lengthsScaleFactor = (get_units() == Inches) ? INCHES_TO_MM : 1.0f;
         bool anyFound = false;
 
@@ -917,26 +1170,31 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM1(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         _simulate_st_synchronize();
     }
 
     void GCodeTimeEstimator::_processM82(const GCodeReader::GCodeLine& line)
     {
-        set_positioning_e_type(Absolute);
+        PROFILE_FUNC();
+        set_e_local_positioning_type(Absolute);
     }
 
     void GCodeTimeEstimator::_processM83(const GCodeReader::GCodeLine& line)
     {
-        set_positioning_e_type(Relative);
+        PROFILE_FUNC();
+        set_e_local_positioning_type(Relative);
     }
 
     void GCodeTimeEstimator::_processM109(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         // TODO
     }
 
     void GCodeTimeEstimator::_processM201(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         GCodeFlavor dialect = get_dialect();
 
         // see http://reprap.org/wiki/G-code#M201:_Set_max_printing_acceleration
@@ -957,6 +1215,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM203(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         GCodeFlavor dialect = get_dialect();
 
         // see http://reprap.org/wiki/G-code#M203:_Set_maximum_feedrate
@@ -981,16 +1240,32 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM204(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         float value;
-        if (line.has_value('S', value))
+        if (line.has_value('S', value)) {
+            // Legacy acceleration format. This format is used by the legacy Marlin, MK2 or MK3 firmware,
+            // and it is also generated by Slic3r to control acceleration per extrusion type
+            // (there is a separate acceleration settings in Slicer for perimeter, first layer etc).
             set_acceleration(value);
-
-        if (line.has_value('T', value))
-            set_retract_acceleration(value);
+            if (line.has_value('T', value))
+                set_retract_acceleration(value);
+        } else {
+            // New acceleration format, compatible with the upstream Marlin.
+            if (line.has_value('P', value))
+                set_acceleration(value);
+            if (line.has_value('R', value))
+                set_retract_acceleration(value);
+            if (line.has_value('T', value)) {
+                // Interpret the T value as the travel acceleration in the new Marlin format.
+                //FIXME Prusa3D firmware currently does not support travel acceleration value independent from the extruding acceleration value.
+                // set_travel_acceleration(value);
+            }
+        }
     }
 
     void GCodeTimeEstimator::_processM205(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         if (line.has_x())
         {
             float max_jerk = line.x();
@@ -1017,6 +1292,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM221(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         float value_s;
         float value_t;
         if (line.has_value('S', value_s) && !line.has_value('T', value_t))
@@ -1025,6 +1301,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_processM566(const GCodeReader::GCodeLine& line)
     {
+        PROFILE_FUNC();
         if (line.has_x())
             set_axis_max_jerk(X, line.x() * MMMIN_TO_MMSEC);
 
@@ -1038,17 +1315,49 @@ namespace Slic3r {
             set_axis_max_jerk(E, line.e() * MMMIN_TO_MMSEC);
     }
 
+    void GCodeTimeEstimator::_processM702(const GCodeReader::GCodeLine& line)
+    {
+        PROFILE_FUNC();
+        if (line.has('C')) {
+            // MK3 MMU2 specific M code:
+            // M702 C is expected to be sent by the custom end G-code when finalizing a print.
+            // The MK3 unit shall unload and park the active filament into the MMU2 unit.
+            add_additional_time(get_filament_unload_time(get_extruder_id()));
+            reset_extruder_id();
+            _simulate_st_synchronize();
+        }
+    }
+
+    void GCodeTimeEstimator::_processT(const GCodeReader::GCodeLine& line)
+    {
+        std::string cmd = line.cmd();
+        if (cmd.length() > 1)
+        {
+            unsigned int id = (unsigned int)::strtol(cmd.substr(1).c_str(), nullptr, 10);
+            if (get_extruder_id() != id)
+            {
+                // Specific to the MK3 MMU2: The initial extruder ID is set to -1 indicating
+                // that the filament is parked in the MMU2 unit and there is nothing to be unloaded yet.
+                add_additional_time(get_filament_unload_time(get_extruder_id()));
+                set_extruder_id(id);
+                add_additional_time(get_filament_load_time(get_extruder_id()));
+                _simulate_st_synchronize();
+            }
+        }
+    }
+
     void GCodeTimeEstimator::_simulate_st_synchronize()
     {
+        PROFILE_FUNC();
         _calculate_time();
-        _reset_blocks();
     }
 
     void GCodeTimeEstimator::_forward_pass()
     {
+        PROFILE_FUNC();
         if (_blocks.size() > 1)
         {
-            for (unsigned int i = 0; i < (unsigned int)_blocks.size() - 1; ++i)
+            for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size() - 1; ++i)
             {
                 _planner_forward_pass_kernel(_blocks[i], _blocks[i + 1]);
             }
@@ -1057,9 +1366,10 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_reverse_pass()
     {
+        PROFILE_FUNC();
         if (_blocks.size() > 1)
         {
-            for (int i = (int)_blocks.size() - 1; i >= 1;  --i)
+            for (int i = (int)_blocks.size() - 1; i >= _last_st_synchronized_block_id + 2; --i)
             {
                 _planner_reverse_pass_kernel(_blocks[i - 1], _blocks[i]);
             }
@@ -1068,6 +1378,7 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_planner_forward_pass_kernel(Block& prev, Block& curr)
     {
+        PROFILE_FUNC();
         // If the previous block is an acceleration block, but it is not long enough to complete the
         // full speed change within the block, we need to adjust the entry speed accordingly. Entry
         // speeds have already been reset, maximized, and reverse planned by reverse planner.
@@ -1108,11 +1419,14 @@ namespace Slic3r {
 
     void GCodeTimeEstimator::_recalculate_trapezoids()
     {
+        PROFILE_FUNC();
         Block* curr = nullptr;
         Block* next = nullptr;
 
-        for (Block& b : _blocks)
+        for (int i = _last_st_synchronized_block_id + 1; i < (int)_blocks.size(); ++i)
         {
+            Block& b = _blocks[i];
+
             curr = next;
             next = &b;
 
@@ -1140,6 +1454,33 @@ namespace Slic3r {
             next->trapezoid = block.trapezoid;
             next->flags.recalculate = false;
         }
+    }
+
+    std::string GCodeTimeEstimator::_get_time_dhms(float time_in_secs)
+    {
+        int days = (int)(time_in_secs / 86400.0f);
+        time_in_secs -= (float)days * 86400.0f;
+        int hours = (int)(time_in_secs / 3600.0f);
+        time_in_secs -= (float)hours * 3600.0f;
+        int minutes = (int)(time_in_secs / 60.0f);
+        time_in_secs -= (float)minutes * 60.0f;
+
+        char buffer[64];
+        if (days > 0)
+            ::sprintf(buffer, "%dd %dh %dm %ds", days, hours, minutes, (int)time_in_secs);
+        else if (hours > 0)
+            ::sprintf(buffer, "%dh %dm %ds", hours, minutes, (int)time_in_secs);
+        else if (minutes > 0)
+            ::sprintf(buffer, "%dm %ds", minutes, (int)time_in_secs);
+        else
+            ::sprintf(buffer, "%ds", (int)time_in_secs);
+
+        return buffer;
+    }
+
+    std::string GCodeTimeEstimator::_get_time_minutes(float time_in_secs)
+    {
+        return std::to_string((int)(::roundf(time_in_secs / 60.0f)));
     }
 
 #if ENABLE_MOVE_STATS

@@ -136,7 +136,7 @@ sub update_optgroup {
             full_labels     => 1,
             label_font      => $Slic3r::GUI::small_font,
             sidetext_font   => $Slic3r::GUI::small_font,
-            label_width     => 120,
+            label_width     => 150,
             on_change       => sub { $self->{on_change}->() if $self->{on_change} },
             extra_column    => sub {
                 my ($line) = @_;

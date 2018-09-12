@@ -14,7 +14,7 @@
 #include <boost/thread.hpp>
 
 #define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
-#define SLIC3R_VERSION "1.39.0"
+#define SLIC3R_VERSION "1.41.0"
 #define SLIC3R_BUILD "UNKNOWN"
 
 typedef int32_t coord_t;
@@ -45,7 +45,6 @@ typedef double  coordf_t;
 //FIXME Better to use an inline function with an explicit return type.
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
-#define unscale(val) ((val) * SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)
 /* Implementation of CONFESS("foo"): */
 #ifdef _MSC_VER
@@ -102,6 +101,9 @@ inline std::string debug_out_path(const char *name, ...)
 
 namespace Slic3r {
 
+template<typename T, typename Q>
+inline T unscale(Q v) { return T(v) * T(SCALING_FACTOR); }
+
 enum Axis { X=0, Y, Z, E, F, NUM_AXES };
 
 template <class T>
@@ -128,6 +130,17 @@ inline void append(std::vector<T>& dest, std::vector<T>&& src)
         std::move(std::begin(src), std::end(src), std::back_inserter(dest));
     src.clear();
     src.shrink_to_fit();
+}
+
+// Casting an std::vector<> from one type to another type without warnings about a loss of accuracy.
+template<typename T_TO, typename T_FROM>
+std::vector<T_TO> cast(const std::vector<T_FROM> &src) 
+{
+    std::vector<T_TO> dst;
+    dst.reserve(src.size());
+    for (const T_FROM &a : src)
+        dst.emplace_back((T_TO)a);
+    return dst;
 }
 
 template <typename T>

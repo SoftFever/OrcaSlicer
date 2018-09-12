@@ -19,10 +19,10 @@ static inline BoundingBox extrusion_polyline_extents(const Polyline &polyline, c
     if (! polyline.points.empty())
         bbox.merge(polyline.points.front());
     for (const Point &pt : polyline.points) {
-        bbox.min.x = std::min(bbox.min.x, pt.x - radius);
-        bbox.min.y = std::min(bbox.min.y, pt.y - radius);
-        bbox.max.x = std::max(bbox.max.x, pt.x + radius);
-        bbox.max.y = std::max(bbox.max.y, pt.y + radius);
+        bbox.min(0) = std::min(bbox.min(0), pt(0) - radius);
+        bbox.min(1) = std::min(bbox.min(1), pt(1) - radius);
+        bbox.max(0) = std::max(bbox.max(0), pt(0) + radius);
+        bbox.max(1) = std::max(bbox.max(1), pt(1) + radius);
     }
     return bbox;
 }
@@ -32,8 +32,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionPath &extrusio
     BoundingBox bbox = extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
-        bboxf.min = Pointf::new_unscale(bbox.min);
-        bboxf.max = Pointf::new_unscale(bbox.max);
+        bboxf.min = unscale(bbox.min);
+        bboxf.max = unscale(bbox.max);
 		bboxf.defined = true;
     }
     return bboxf;
@@ -46,8 +46,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionLoop &extrusio
         bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width)));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
-        bboxf.min = Pointf::new_unscale(bbox.min);
-        bboxf.max = Pointf::new_unscale(bbox.max);
+        bboxf.min = unscale(bbox.min);
+        bboxf.max = unscale(bbox.max);
 		bboxf.defined = true;
 	}
     return bboxf;
@@ -60,8 +60,8 @@ static inline BoundingBoxf extrusionentity_extents(const ExtrusionMultiPath &ext
         bbox.merge(extrusion_polyline_extents(extrusion_path.polyline, scale_(0.5 * extrusion_path.width)));
     BoundingBoxf bboxf;
     if (! empty(bbox)) {
-        bboxf.min = Pointf::new_unscale(bbox.min);
-        bboxf.max = Pointf::new_unscale(bbox.max);
+        bboxf.min = unscale(bbox.min);
+        bboxf.max = unscale(bbox.max);
 		bboxf.defined = true;
 	}
     return bboxf;
@@ -121,9 +121,9 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
         if (support_layer)
             for (const ExtrusionEntity *extrusion_entity : support_layer->support_fills.entities)
                 bbox_this.merge(extrusionentity_extents(extrusion_entity));
-        for (const Point &offset : print_object._shifted_copies) {
+        for (const Point &offset : print_object.copies()) {
             BoundingBoxf bbox_translated(bbox_this);
-            bbox_translated.translate(Pointf::new_unscale(offset));
+            bbox_translated.translate(unscale(offset));
             bbox.merge(bbox_translated);
         }
     }
@@ -134,6 +134,12 @@ BoundingBoxf get_print_object_extrusions_extents(const PrintObject &print_object
 // The projection does not contain the priming regions.
 BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_t max_print_z)
 {
+    // Wipe tower extrusions are saved as if the tower was at the origin with no rotation
+    // We need to get position and angle of the wipe tower to transform them to actual position.
+    Transform2d trafo =
+        Eigen::Translation2d(print.config().wipe_tower_x.value, print.config().wipe_tower_y.value) *
+        Eigen::Rotation2Dd(print.config().wipe_tower_rotation_angle.value);
+
     BoundingBoxf bbox;
     for (const std::vector<WipeTower::ToolChangeResult> &tool_changes : print.wipe_tower_data().tool_changes) {
         if (! tool_changes.empty() && tool_changes.front().print_z > max_print_z)
@@ -142,14 +148,11 @@ BoundingBoxf get_wipe_tower_extrusions_extents(const Print &print, const coordf_
             for (size_t i = 1; i < tcr.extrusions.size(); ++ i) {
                 const WipeTower::Extrusion &e = tcr.extrusions[i];
                 if (e.width > 0) {
-                    Pointf  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
-                    Pointf  p2(e.pos.x, e.pos.y);
-                    bbox.merge(p1);
-                    coordf_t radius = 0.5 * e.width;
-                    bbox.min.x = std::min(bbox.min.x, std::min(p1.x, p2.x) - radius);
-                    bbox.min.y = std::min(bbox.min.y, std::min(p1.y, p2.y) - radius);
-                    bbox.max.x = std::max(bbox.max.x, std::max(p1.x, p2.x) + radius);
-                    bbox.max.y = std::max(bbox.max.y, std::max(p1.y, p2.y) + radius);
+                    Vec2d delta = 0.5 * Vec2d(e.width, e.width);
+                    Vec2d p1 = trafo * Vec2d((&e - 1)->pos.x, (&e - 1)->pos.y);
+                    Vec2d p2 = trafo * Vec2d(e.pos.x, e.pos.y);
+                    bbox.merge(p1.cwiseMin(p2) - delta);
+                    bbox.merge(p1.cwiseMax(p2) + delta);
                 }
             }
         }
@@ -166,14 +169,14 @@ BoundingBoxf get_wipe_tower_priming_extrusions_extents(const Print &print)
         for (size_t i = 1; i < tcr.extrusions.size(); ++ i) {
             const WipeTower::Extrusion &e = tcr.extrusions[i];
             if (e.width > 0) {
-                Pointf  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
-                Pointf  p2(e.pos.x, e.pos.y);
+                Vec2d  p1((&e - 1)->pos.x, (&e - 1)->pos.y);
+                Vec2d  p2(e.pos.x, e.pos.y);
                 bbox.merge(p1);
                 coordf_t radius = 0.5 * e.width;
-                bbox.min.x = std::min(bbox.min.x, std::min(p1.x, p2.x) - radius);
-                bbox.min.y = std::min(bbox.min.y, std::min(p1.y, p2.y) - radius);
-                bbox.max.x = std::max(bbox.max.x, std::max(p1.x, p2.x) + radius);
-                bbox.max.y = std::max(bbox.max.y, std::max(p1.y, p2.y) + radius);
+                bbox.min(0) = std::min(bbox.min(0), std::min(p1(0), p2(0)) - radius);
+                bbox.min(1) = std::min(bbox.min(1), std::min(p1(1), p2(1)) - radius);
+                bbox.max(0) = std::max(bbox.max(0), std::max(p1(0), p2(0)) + radius);
+                bbox.max(1) = std::max(bbox.max(1), std::max(p1(1), p2(1)) + radius);
             }
         }
     }

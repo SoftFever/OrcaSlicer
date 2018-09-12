@@ -22,9 +22,21 @@
 
 namespace Slic3r {
 
+enum PrinterTechnology
+{
+    // Fused Filament Fabrication
+    ptFFF,
+    // Stereolitography
+    ptSLA,
+};
+
 enum GCodeFlavor {
     gcfRepRap, gcfRepetier, gcfTeacup, gcfMakerWare, gcfMarlin, gcfSailfish, gcfMach3, gcfMachinekit, 
     gcfSmoothie, gcfNoExtrusion,
+};
+
+enum PrintHostType {
+    htOctoPrint, htDuet,
 };
 
 enum InfillPattern {
@@ -44,7 +56,16 @@ enum FilamentType {
     ftPLA, ftABS, ftPET, ftHIPS, ftFLEX, ftSCAFF, ftEDGE, ftNGEN, ftPVA
 };
 
-template<> inline t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<PrinterTechnology>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["FFF"]             = ptFFF;
+        keys_map["SLA"]             = ptSLA;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["reprap"]          = gcfRepRap;
@@ -61,7 +82,16 @@ template<> inline t_config_enum_values& ConfigOptionEnum<GCodeFlavor>::get_enum_
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<PrintHostType>::get_enum_values() {
+    static t_config_enum_values keys_map;
+    if (keys_map.empty()) {
+        keys_map["octoprint"]       = htOctoPrint;
+        keys_map["duet"]            = htDuet;
+    }
+    return keys_map;
+}
+
+template<> inline const t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = ipRectilinear;
@@ -81,7 +111,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<InfillPattern>::get_enu
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["rectilinear"]         = smpRectilinear;
@@ -91,7 +121,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<SupportMaterialPattern>
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["random"]              = spRandom;
@@ -102,7 +132,7 @@ template<> inline t_config_enum_values& ConfigOptionEnum<SeamPosition>::get_enum
     return keys_map;
 }
 
-template<> inline t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
+template<> inline const t_config_enum_values& ConfigOptionEnum<FilamentType>::get_enum_values() {
     static t_config_enum_values keys_map;
     if (keys_map.empty()) {
         keys_map["PLA"]             = ftPLA;
@@ -126,6 +156,11 @@ public:
     PrintConfigDef();
 
     static void handle_legacy(t_config_option_key &opt_key, std::string &value);
+
+private:
+    void init_common_params();
+    void init_fff_params();
+    void init_sla_params();
 };
 
 // The one and only global definition of SLic3r configuration options.
@@ -154,6 +189,13 @@ public:
 
     // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string         validate();
+
+    // Verify whether the opt_key has not been obsoleted or renamed.
+    // Both opt_key and value may be modified by handle_legacy().
+    // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by handle_legacy().
+    // handle_legacy() is called internally by set_deserialize().
+    void                handle_legacy(t_config_option_key &opt_key, std::string &value) const override
+        { PrintConfigDef::handle_legacy(opt_key, value); }
 };
 
 template<typename CONFIG>
@@ -329,7 +371,8 @@ public:
     ConfigOptionBool                support_material_with_sheath;
     ConfigOptionFloatOrPercent      support_material_xy_spacing;
     ConfigOptionFloat               xy_size_compensation;
-    
+    ConfigOptionBool                wipe_into_objects;
+
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -365,6 +408,7 @@ protected:
         OPT_PTR(support_material_threshold);
         OPT_PTR(support_material_with_sheath);
         OPT_PTR(xy_size_compensation);
+        OPT_PTR(wipe_into_objects);
     }
 };
 
@@ -407,7 +451,8 @@ public:
     ConfigOptionFloatOrPercent      top_infill_extrusion_width;
     ConfigOptionInt                 top_solid_layers;
     ConfigOptionFloatOrPercent      top_solid_infill_speed;
-
+    ConfigOptionBool                wipe_into_infill;
+    
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
@@ -445,6 +490,57 @@ protected:
         OPT_PTR(top_infill_extrusion_width);
         OPT_PTR(top_solid_infill_speed);
         OPT_PTR(top_solid_layers);
+        OPT_PTR(wipe_into_infill);
+    }
+};
+
+class MachineEnvelopeConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(MachineEnvelopeConfig)
+public:
+    // M201 X... Y... Z... E... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_x;
+    ConfigOptionFloats              machine_max_acceleration_y;
+    ConfigOptionFloats              machine_max_acceleration_z;
+    ConfigOptionFloats              machine_max_acceleration_e;
+    // M203 X... Y... Z... E... [mm/sec]
+    ConfigOptionFloats              machine_max_feedrate_x;
+    ConfigOptionFloats              machine_max_feedrate_y;
+    ConfigOptionFloats              machine_max_feedrate_z;
+    ConfigOptionFloats              machine_max_feedrate_e;
+    // M204 S... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_extruding;
+    // M204 T... [mm/sec^2]
+    ConfigOptionFloats              machine_max_acceleration_retracting;
+    // M205 X... Y... Z... E... [mm/sec]
+    ConfigOptionFloats              machine_max_jerk_x;
+    ConfigOptionFloats              machine_max_jerk_y;
+    ConfigOptionFloats              machine_max_jerk_z;
+    ConfigOptionFloats              machine_max_jerk_e;
+    // M205 T... [mm/sec]
+    ConfigOptionFloats              machine_min_travel_rate;
+    // M205 S... [mm/sec]
+    ConfigOptionFloats              machine_min_extruding_rate;
+
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(machine_max_acceleration_x);
+        OPT_PTR(machine_max_acceleration_y);
+        OPT_PTR(machine_max_acceleration_z);
+        OPT_PTR(machine_max_acceleration_e);
+        OPT_PTR(machine_max_feedrate_x);
+        OPT_PTR(machine_max_feedrate_y);
+        OPT_PTR(machine_max_feedrate_z);
+        OPT_PTR(machine_max_feedrate_e);
+        OPT_PTR(machine_max_acceleration_extruding);
+        OPT_PTR(machine_max_acceleration_retracting);
+        OPT_PTR(machine_max_jerk_x);
+        OPT_PTR(machine_max_jerk_y);
+        OPT_PTR(machine_max_jerk_z);
+        OPT_PTR(machine_max_jerk_e);
+        OPT_PTR(machine_min_travel_rate);
+        OPT_PTR(machine_min_extruding_rate);
     }
 };
 
@@ -466,6 +562,18 @@ public:
     ConfigOptionBools               filament_soluble;
     ConfigOptionFloats              filament_cost;
     ConfigOptionFloats              filament_max_volumetric_speed;
+    ConfigOptionFloats              filament_loading_speed;
+    ConfigOptionFloats              filament_loading_speed_start;
+    ConfigOptionFloats              filament_load_time;
+    ConfigOptionFloats              filament_unloading_speed;
+    ConfigOptionFloats              filament_unloading_speed_start;
+    ConfigOptionFloats              filament_toolchange_delay;
+    ConfigOptionFloats              filament_unload_time;
+    ConfigOptionInts                filament_cooling_moves;
+    ConfigOptionFloats              filament_cooling_initial_speed;
+    ConfigOptionFloats              filament_minimal_purge_on_wipe_tower;
+    ConfigOptionFloats              filament_cooling_final_speed;
+    ConfigOptionStrings             filament_ramming_parameters;
     ConfigOptionBool                gcode_comments;
     ConfigOptionEnum<GCodeFlavor>   gcode_flavor;
     ConfigOptionString              layer_gcode;
@@ -485,13 +593,20 @@ public:
     ConfigOptionString              start_gcode;
     ConfigOptionStrings             start_filament_gcode;
     ConfigOptionBool                single_extruder_multi_material;
+    ConfigOptionBool                single_extruder_multi_material_priming;
     ConfigOptionString              toolchange_gcode;
     ConfigOptionFloat               travel_speed;
     ConfigOptionBool                use_firmware_retraction;
     ConfigOptionBool                use_relative_e_distances;
     ConfigOptionBool                use_volumetric_e;
     ConfigOptionBool                variable_layer_height;
-    
+    ConfigOptionFloat               cooling_tube_retraction;
+    ConfigOptionFloat               cooling_tube_length;
+    ConfigOptionFloat               parking_pos_retraction;
+    ConfigOptionBool                remaining_times;
+    ConfigOptionBool                silent_mode;
+    ConfigOptionFloat               extra_loading_move;
+
     std::string get_extrusion_axis() const
     {
         return
@@ -515,6 +630,18 @@ protected:
         OPT_PTR(filament_soluble);
         OPT_PTR(filament_cost);
         OPT_PTR(filament_max_volumetric_speed);
+        OPT_PTR(filament_loading_speed);
+        OPT_PTR(filament_loading_speed_start);
+        OPT_PTR(filament_load_time);
+        OPT_PTR(filament_unloading_speed);
+        OPT_PTR(filament_unloading_speed_start);
+        OPT_PTR(filament_unload_time);
+        OPT_PTR(filament_toolchange_delay);
+        OPT_PTR(filament_cooling_moves);
+        OPT_PTR(filament_cooling_initial_speed);
+        OPT_PTR(filament_minimal_purge_on_wipe_tower);
+        OPT_PTR(filament_cooling_final_speed);
+        OPT_PTR(filament_ramming_parameters);
         OPT_PTR(gcode_comments);
         OPT_PTR(gcode_flavor);
         OPT_PTR(layer_gcode);
@@ -532,6 +659,7 @@ protected:
         OPT_PTR(retract_restart_extra_toolchange);
         OPT_PTR(retract_speed);
         OPT_PTR(single_extruder_multi_material);
+        OPT_PTR(single_extruder_multi_material_priming);
         OPT_PTR(start_gcode);
         OPT_PTR(start_filament_gcode);
         OPT_PTR(toolchange_gcode);
@@ -540,11 +668,17 @@ protected:
         OPT_PTR(use_relative_e_distances);
         OPT_PTR(use_volumetric_e);
         OPT_PTR(variable_layer_height);
+        OPT_PTR(cooling_tube_retraction);
+        OPT_PTR(cooling_tube_length);
+        OPT_PTR(parking_pos_retraction);
+        OPT_PTR(remaining_times);
+        OPT_PTR(silent_mode);
+        OPT_PTR(extra_loading_move);
     }
 };
 
 // This object is mapped to Perl as Slic3r::Config::Print.
-class PrintConfig : public GCodeConfig
+class PrintConfig : public MachineEnvelopeConfig, public GCodeConfig
 {
     STATIC_PRINT_CONFIG_CACHE_DERIVED(PrintConfig)
     PrintConfig() : GCodeConfig(0) { initialize_cache(); *this = s_cache_PrintConfig.defaults(); }
@@ -592,6 +726,7 @@ public:
     ConfigOptionString              output_filename_format;
     ConfigOptionFloat               perimeter_acceleration;
     ConfigOptionStrings             post_process;
+    ConfigOptionString              printer_model;
     ConfigOptionString              printer_notes;
     ConfigOptionFloat               resolution;
     ConfigOptionFloats              retract_before_travel;
@@ -610,12 +745,23 @@ public:
     ConfigOptionFloat               wipe_tower_y;
     ConfigOptionFloat               wipe_tower_width;
     ConfigOptionFloat               wipe_tower_per_color_wipe;
+    ConfigOptionFloat               wipe_tower_rotation_angle;
+    ConfigOptionFloat               wipe_tower_bridging;
+    ConfigOptionFloats              wiping_volumes_matrix;
+    ConfigOptionFloats              wiping_volumes_extruders;
     ConfigOptionFloat               z_offset;
+    ConfigOptionFloat               bed_size_x;
+    ConfigOptionFloat               bed_size_y;
+    ConfigOptionInt                 pixel_width;
+    ConfigOptionInt                 pixel_height;
+    ConfigOptionFloat               exp_time;
+    ConfigOptionFloat               exp_time_first;
     
 protected:
     PrintConfig(int) : GCodeConfig(1) {}
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
+        this->MachineEnvelopeConfig::initialize(cache, base_ptr);
         this->GCodeConfig::initialize(cache, base_ptr);
         OPT_PTR(avoid_crossing_perimeters);
         OPT_PTR(bed_shape);
@@ -657,6 +803,7 @@ protected:
         OPT_PTR(output_filename_format);
         OPT_PTR(perimeter_acceleration);
         OPT_PTR(post_process);
+        OPT_PTR(printer_model);
         OPT_PTR(printer_notes);
         OPT_PTR(resolution);
         OPT_PTR(retract_before_travel);
@@ -675,7 +822,17 @@ protected:
         OPT_PTR(wipe_tower_y);
         OPT_PTR(wipe_tower_width);
         OPT_PTR(wipe_tower_per_color_wipe);
+        OPT_PTR(wipe_tower_rotation_angle);
+        OPT_PTR(wipe_tower_bridging);
+        OPT_PTR(wiping_volumes_matrix);
+        OPT_PTR(wiping_volumes_extruders);
         OPT_PTR(z_offset);
+        OPT_PTR(bed_size_x);
+        OPT_PTR(bed_size_y);
+        OPT_PTR(pixel_width);
+        OPT_PTR(pixel_height);
+        OPT_PTR(exp_time);
+        OPT_PTR(exp_time_first);
     }
 };
 
@@ -683,18 +840,20 @@ class HostConfig : public StaticPrintConfig
 {
     STATIC_PRINT_CONFIG_CACHE(HostConfig)
 public:
-    ConfigOptionString              octoprint_host;
-    ConfigOptionString              octoprint_apikey;
-    ConfigOptionString              octoprint_cafile;
+    ConfigOptionEnum<PrintHostType> host_type;
+    ConfigOptionString              print_host;
+    ConfigOptionString              printhost_apikey;
+    ConfigOptionString              printhost_cafile;
     ConfigOptionString              serial_port;
     ConfigOptionInt                 serial_speed;
     
 protected:
     void initialize(StaticCacheBase &cache, const char *base_ptr)
     {
-        OPT_PTR(octoprint_host);
-        OPT_PTR(octoprint_apikey);
-        OPT_PTR(octoprint_cafile);
+        OPT_PTR(host_type);
+        OPT_PTR(print_host);
+        OPT_PTR(printhost_apikey);
+        OPT_PTR(printhost_cafile);
         OPT_PTR(serial_port);
         OPT_PTR(serial_speed);
     }
@@ -713,6 +872,7 @@ class FullPrintConfig :
 public:
     // Validate the FullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string                 validate();
+
 protected:
     // Protected constructor to be called to initialize ConfigCache::m_default.
     FullPrintConfig(int) : PrintObjectConfig(0), PrintRegionConfig(0), PrintConfig(0), HostConfig(0) {}
@@ -722,6 +882,73 @@ protected:
         this->PrintRegionConfig::initialize(cache, base_ptr);
         this->PrintConfig      ::initialize(cache, base_ptr);
         this->HostConfig       ::initialize(cache, base_ptr);
+    }
+};
+
+class SLAMaterialConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(SLAMaterialConfig)
+public:
+    ConfigOptionFloat                       layer_height;
+    ConfigOptionFloat                       initial_layer_height;
+    ConfigOptionFloat                       exposure_time;
+    ConfigOptionFloat                       initial_exposure_time;
+    ConfigOptionFloats                      material_correction_printing;
+    ConfigOptionFloats                      material_correction_curing;
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(layer_height);
+        OPT_PTR(initial_layer_height);
+        OPT_PTR(exposure_time);
+        OPT_PTR(initial_exposure_time);
+        OPT_PTR(material_correction_printing);
+        OPT_PTR(material_correction_curing);
+    }
+};
+
+class SLAPrinterConfig : public StaticPrintConfig
+{
+    STATIC_PRINT_CONFIG_CACHE(SLAPrinterConfig)
+public:
+    ConfigOptionEnum<PrinterTechnology>     printer_technology;
+    ConfigOptionPoints                      bed_shape;
+    ConfigOptionFloat                       max_print_height;
+    ConfigOptionFloat                       display_width;
+    ConfigOptionFloat                       display_height;
+    ConfigOptionInt                         display_pixels_x;
+    ConfigOptionInt                         display_pixels_y;
+    ConfigOptionFloats                      printer_correction;
+protected:
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        OPT_PTR(printer_technology);
+        OPT_PTR(bed_shape);
+        OPT_PTR(max_print_height);
+        OPT_PTR(display_width);
+        OPT_PTR(display_height);
+        OPT_PTR(display_pixels_x);
+        OPT_PTR(display_pixels_y);
+        OPT_PTR(printer_correction);
+    }
+};
+
+class SLAFullPrintConfig : public SLAPrinterConfig, public SLAMaterialConfig
+{
+    STATIC_PRINT_CONFIG_CACHE_DERIVED(SLAFullPrintConfig)
+    SLAFullPrintConfig() : SLAPrinterConfig(0), SLAMaterialConfig(0) { initialize_cache(); *this = s_cache_SLAFullPrintConfig.defaults(); }
+
+public:
+    // Validate the SLAFullPrintConfig. Returns an empty string on success, otherwise an error message is returned.
+//    std::string                 validate();
+
+protected:
+    // Protected constructor to be called to initialize ConfigCache::m_default.
+    SLAFullPrintConfig(int) : SLAPrinterConfig(0), SLAMaterialConfig(0) {}
+    void initialize(StaticCacheBase &cache, const char *base_ptr)
+    {
+        this->SLAPrinterConfig ::initialize(cache, base_ptr);
+        this->SLAMaterialConfig::initialize(cache, base_ptr);
     }
 };
 

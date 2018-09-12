@@ -114,6 +114,28 @@ void GCodeReader::parse_file(const std::string &file, callback_t callback)
         this->parse_line(line, callback);
 }
 
+bool GCodeReader::GCodeLine::has(char axis) const
+{
+    const char *c = m_raw.c_str();
+    // Skip the whitespaces.
+    c = skip_whitespaces(c);
+    // Skip the command.
+    c = skip_word(c);
+    // Up to the end of line or comment.
+    while (! is_end_of_gcode_line(*c)) {
+        // Skip whitespaces.
+        c = skip_whitespaces(c);
+        if (is_end_of_gcode_line(*c))
+            break;
+        // Check the name of the axis.
+        if (*c == axis)
+            return true;
+        // Skip the rest of the word.
+        c = skip_word(c);
+    }
+    return false;
+}
+
 bool GCodeReader::GCodeLine::has_value(char axis, float &value) const
 {
     const char *c = m_raw.c_str();

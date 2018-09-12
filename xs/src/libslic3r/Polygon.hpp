@@ -24,11 +24,12 @@ public:
     explicit Polygon(const Points &points): MultiPoint(points) {}
     Polygon(const Polygon &other) : MultiPoint(other.points) {}
     Polygon(Polygon &&other) : MultiPoint(std::move(other.points)) {}
-	static Polygon new_scale(std::vector<Pointf> points) { 
-		Points int_points;
-		for (auto pt : points)
-			int_points.push_back(Point::new_scale(pt.x, pt.y));
-		return Polygon(int_points);
+	static Polygon new_scale(const std::vector<Vec2d> &points) { 
+        Polygon pgn;
+        pgn.points.reserve(points.size());
+        for (const Vec2d &pt : points)
+            pgn.points.emplace_back(Point::new_scale(pt(0), pt(1)));
+		return pgn;
 	}
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
     Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
@@ -54,7 +55,6 @@ public:
     void simplify(double tolerance, Polygons &polygons) const;
     void triangulate_convex(Polygons* polygons) const;
     Point centroid() const;
-    std::string wkt() const;
     Points concave_points(double angle = PI) const;
     Points convex_points(double angle = PI) const;
     // Projection of a point onto the polygon.

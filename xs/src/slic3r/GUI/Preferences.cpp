@@ -5,15 +5,22 @@
 namespace Slic3r {
 namespace GUI {
 
+PreferencesDialog::PreferencesDialog(wxWindow* parent, int event_preferences) : 
+	wxDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, wxDefaultSize), 
+	m_event_preferences(event_preferences) {
+		build();
+	}
+
 void PreferencesDialog::build()
 {
 	auto app_config = get_app_config();
 	m_optgroup = std::make_shared<ConfigOptionsGroup>(this, _(L("General")));
-	m_optgroup->label_width = 200;
+	m_optgroup->label_width = 400;
 	m_optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 		m_values[opt_key] = boost::any_cast<bool>(value) ? "1" : "0";
 	};
 
+	// TODO
 //    $optgroup->append_single_option_line(Slic3r::GUI::OptionsGroup::Option->new(
 //        opt_id = > 'version_check',
 //        type = > 'bool',
@@ -28,8 +35,8 @@ void PreferencesDialog::build()
 	def.type = coBool;
 	def.tooltip = L("If this is enabled, Slic3r will prompt the last output directory "
 					  "instead of the one containing the input files.");
-	def.default_value = new ConfigOptionBool{ app_config->get("remember_output_path")[0] == '1' }; // 1;
-	Option option(def, "remember_output_path");
+    def.default_value = new ConfigOptionBool{ app_config->has("remember_output_path") ? app_config->get("remember_output_path")[0] == '1' : true }; // 1;
+    Option option(def, "remember_output_path");
 	m_optgroup->append_single_option_line(option);
 
 	def.label = L("Auto-center parts");
@@ -46,6 +53,22 @@ void PreferencesDialog::build()
 					  "as they\'re loaded in order to save time when exporting G-code.");
 	def.default_value = new ConfigOptionBool{ app_config->get("background_processing")[0] == '1' }; // 1;
 	option = Option (def,"background_processing");
+	m_optgroup->append_single_option_line(option);
+
+	// Please keep in sync with ConfigWizard
+	def.label = L("Check for application updates");
+	def.type = coBool;
+	def.tooltip = L("If enabled, Slic3r checks for new versions of Slic3r PE online. When a new version becomes available a notification is displayed at the next application startup (never during program usage). This is only a notification mechanisms, no automatic installation is done.");
+	def.default_value = new ConfigOptionBool(app_config->get("version_check") == "1");
+	option = Option (def, "version_check");
+	m_optgroup->append_single_option_line(option);
+
+	// Please keep in sync with ConfigWizard
+	def.label = L("Update built-in Presets automatically");
+	def.type = coBool;
+	def.tooltip = L("If enabled, Slic3r downloads updates of built-in system presets in the background. These updates are downloaded into a separate temporary location. When a new preset version becomes available it is offered at application startup.");
+	def.default_value = new ConfigOptionBool(app_config->get("preset_update") == "1");
+	option = Option (def, "preset_update");
 	m_optgroup->append_single_option_line(option);
 
 	def.label = L("Disable USB/serial connection");

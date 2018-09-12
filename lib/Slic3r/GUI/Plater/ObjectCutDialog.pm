@@ -9,6 +9,7 @@ use utf8;
 use Slic3r::Geometry qw(PI X);
 use Wx qw(wxTheApp :dialog :id :misc :sizer wxTAB_TRAVERSAL);
 use Wx::Event qw(EVT_CLOSE EVT_BUTTON);
+use List::Util qw(max);
 use base 'Wx::Dialog';
 
 sub new {
@@ -60,7 +61,7 @@ sub new {
         label       => 'Z',
         default     => $self->{cut_options}{z},
         min         => 0,
-        max         => $self->{model_object}->bounding_box->size->z * $self->{model_object}->instances->[0]->scaling_factor,
+        max         => $self->{model_object}->bounding_box->size->z,
         full_width  => 1,
     ));
     {
@@ -112,11 +113,13 @@ sub new {
     my $canvas;
     if ($Slic3r::GUI::have_OpenGL) {
         $canvas = $self->{canvas} = Slic3r::GUI::3DScene->new($self);
-        $canvas->load_object($self->{model_object}, undef, undef, [0]);
-        $canvas->set_auto_bed_shape;
+        Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $self->{model_object}, 0, [0]);
+        Slic3r::GUI::_3DScene::set_auto_bed_shape($canvas);
+        Slic3r::GUI::_3DScene::set_axes_length($canvas, 2.0 * max(@{ Slic3r::GUI::_3DScene::get_volumes_bounding_box($canvas)->size }));
         $canvas->SetSize([500,500]);
         $canvas->SetMinSize($canvas->GetSize);
-        $canvas->zoom_to_volumes;
+        Slic3r::GUI::_3DScene::set_config($canvas, $self->GetParent->{config});
+        Slic3r::GUI::_3DScene::enable_force_zoom_to_bed($canvas, 1);
     }
     
     $self->{sizer} = Wx::BoxSizer->new(wxHORIZONTAL);
@@ -134,7 +137,7 @@ sub new {
         # Adjust position / orientation of the split object halves.
         if ($self->{new_model_objects}{lower}) {
             if ($self->{cut_options}{rotate_lower}) {
-                $self->{new_model_objects}{lower}->rotate(PI, X);
+                $self->{new_model_objects}{lower}->rotate(PI, Slic3r::Pointf3->new(1,0,0));
                 $self->{new_model_objects}{lower}->center_around_origin;  # align to Z = 0
             }
         }
@@ -145,6 +148,7 @@ sub new {
         # Note that the window was already closed, so a pending update will not be executed.
         $self->{already_closed} = 1;
         $self->EndModal(wxID_OK);
+        $self->{canvas}->Destroy;
         $self->Destroy();
     });
 
@@ -152,6 +156,7 @@ sub new {
         # Note that the window was already closed, so a pending update will not be executed.
         $self->{already_closed} = 1;
         $self->EndModal(wxID_CANCEL);
+        $self->{canvas}->Destroy;
         $self->Destroy();
     });
 
@@ -227,12 +232,14 @@ sub _update {
                 push @objects, $self->{model_object};
             }
         
+            my $z_cut = $z + $self->{model_object}->bounding_box->z_min;        
+        
             # get section contour
             my @expolygons = ();
             foreach my $volume (@{$self->{model_object}->volumes}) {
                 next if !$volume->mesh;
                 next if $volume->modifier;
-                my $expp = $volume->mesh->slice([ $z + $volume->mesh->bounding_box->z_min ])->[0];
+                my $expp = $volume->mesh->slice([ $z_cut ])->[0];
                 push @expolygons, @$expp;
             }
             foreach my $expolygon (@expolygons) {
@@ -240,14 +247,12 @@ sub _update {
                     for @$expolygon;
                 $expolygon->translate(map Slic3r::Geometry::scale($_), @{ $self->{model_object}->instances->[0]->offset });
             }
-            
-            $self->{canvas}->reset_objects;
-            $self->{canvas}->load_object($_, undef, undef, [0]) for @objects;
-            $self->{canvas}->SetCuttingPlane(
-                $self->{cut_options}{z},
-                [@expolygons],
-            );
-            $self->{canvas}->Render;
+
+            Slic3r::GUI::_3DScene::reset_volumes($self->{canvas});
+            Slic3r::GUI::_3DScene::load_model_object($self->{canvas}, $_, 0, [0]) for @objects;
+            Slic3r::GUI::_3DScene::set_cutting_plane($self->{canvas}, $self->{cut_options}{z}, [@expolygons]);
+            Slic3r::GUI::_3DScene::update_volumes_colors_by_extruder($self->{canvas});
+            Slic3r::GUI::_3DScene::render($self->{canvas});
         }
     }
     

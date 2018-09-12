@@ -35,12 +35,35 @@ sub run_post_process_scripts {
                 die "The configured post-processing script is not executable: check permissions. ($script)\n";
             }
             if ($^O eq 'MSWin32' && $script =~ /\.[pP][lL]/) {
-                system($^X, $script, $output_file);
+                # The current process (^X) may be slic3r.exe or slic3r-console.exe.
+                # Replace it with the current perl interpreter.
+                my($filename, $directories, $suffix) = fileparse($^X);
+                $filename =~ s/^slic3r.*$/perl5\.24\.0\.exe/;
+                my $interpreter = $directories . $filename;
+                system($interpreter, $script, $output_file);
             } else {
                 system($script, $output_file);
             }
         }
     }
+}
+
+sub export_png {
+    my $self = shift;
+    my %params = @_;
+
+    my @sobjects =  @{$self->objects};
+    my $objnum = scalar @sobjects;
+    for(my $oi = 0; $oi < $objnum; $oi++)
+    { 
+        $sobjects[$oi]->slice;
+        $self->status_cb->(($oi + 1)*100/$objnum - 1, "Slicing...");
+    }
+
+    my $fh = $params{output_file};
+    $self->status_cb->(90, "Exporting zipped archive...");
+    $self->print_to_png($fh);
+    $self->status_cb->(100, "Done.");
 }
 
 # Export SVG slices for the offline SLA printing.
@@ -49,7 +72,13 @@ sub export_svg {
     my $self = shift;
     my %params = @_;
     
-    $_->slice for @{$self->objects};
+    my @sobjects =  @{$self->objects};
+    my $objnum = scalar @sobjects;
+    for(my $oi = 0; $oi < $objnum; $oi++)
+    { 
+        $sobjects[$oi]->slice;
+        $self->status_cb->(($oi + 1)*100/$objnum - 1, "Slicing...");
+    }
     
     my $fh = $params{output_fh};
     if (!$fh) {

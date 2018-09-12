@@ -84,7 +84,7 @@ public:
         center_around_origin() method. Callers might want to apply the same translation
         to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
-    Pointf3                 origin_translation;
+    Vec3d                   origin_translation;
     
     Model* get_model() const { return m_model; };
     
@@ -103,11 +103,8 @@ public:
     // Returns the bounding box of the transformed instances.
     // This bounding box is approximate and not snug.
     // This bounding box is being cached.
-    const BoundingBoxf3& bounding_box();
+    const BoundingBoxf3& bounding_box() const;
     void invalidate_bounding_box() { m_bounding_box_valid = false; }
-    // Returns a snug bounding box of the transformed instances.
-    // This bounding box is not being cached.
-    BoundingBoxf3 tight_bounding_box(bool include_modifiers) const;
 
     // A mesh containing all transformed instances of this object.
     TriangleMesh mesh() const;
@@ -120,11 +117,11 @@ public:
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     void center_around_origin();
-    void translate(const Vectorf3 &vector) { this->translate(vector.x, vector.y, vector.z); }
+    void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
-    void scale(const Pointf3 &versor);
+    void scale(const Vec3d &versor);
     void rotate(float angle, const Axis &axis);
-    void transform(const float* matrix3x4);
+    void rotate(float angle, const Vec3d& axis);
     void mirror(const Axis &axis);
     size_t materials_count() const;
     size_t facets_count() const;
@@ -132,11 +129,13 @@ public:
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
 
+    void check_instances_print_volume_state(const BoundingBoxf3& print_volume);
+
     // Print object statistics to console.
     void print_info() const;
     
 private:        
-    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), m_bounding_box_valid(false) {}
+    ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
     ModelObject& operator= (ModelObject other);
     void swap(ModelObject &other);
@@ -145,8 +144,9 @@ private:
     // Parent object, owning this ModelObject.
     Model          *m_model;
     // Bounding box, cached.
-    BoundingBoxf3   m_bounding_box;
-    bool            m_bounding_box_valid;
+
+    mutable BoundingBoxf3 m_bounding_box;
+    mutable bool          m_bounding_box_valid;
 };
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
@@ -154,6 +154,10 @@ private:
 class ModelVolume
 {
     friend class ModelObject;
+
+    // The convex hull of this model's mesh.
+    TriangleMesh m_convex_hull;
+
 public:
     std::string name;
     // The triangular model.
@@ -173,36 +177,61 @@ public:
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
-    size_t split();
-    
+    size_t split(unsigned int max_extruders);
+
     ModelMaterial* assign_unique_material();
     
+    void calculate_convex_hull();
+    const TriangleMesh& get_convex_hull() const;
+
 private:
     // Parent object owning this ModelVolume.
     ModelObject* object;
     t_model_material_id _material_id;
     
-    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object) {}
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh) : mesh(std::move(mesh)), modifier(false), object(object) {}
-    ModelVolume(ModelObject *object, const ModelVolume &other) : 
-        name(other.name), mesh(other.mesh), config(other.config), modifier(other.modifier), object(object)
-        { this->material_id(other.material_id()); }
-    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) : 
+    ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), modifier(false), object(object)
+    {
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), modifier(false), object(object) {}
+    ModelVolume(ModelObject *object, const ModelVolume &other) :
+        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), modifier(other.modifier), object(object)
+    {
+        this->material_id(other.material_id());
+    }
+    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
         name(other.name), mesh(std::move(mesh)), config(other.config), modifier(other.modifier), object(object)
-        { this->material_id(other.material_id()); }
+    {
+        this->material_id(other.material_id());
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
 };
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
 class ModelInstance
 {
-    friend class ModelObject;
 public:
+    enum EPrintVolumeState : unsigned char
+    {
+        PVS_Inside,
+        PVS_Partly_Outside,
+        PVS_Fully_Outside,
+        Num_BedStates
+    };
+
+    friend class ModelObject;
+
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
-    Pointf offset;              // in unscaled coordinates
+    Vec2d offset;              // in unscaled coordinates
     
-    ModelObject* get_object() const { return this->object; };
+    // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
+    EPrintVolumeState print_volume_state;
+
+    ModelObject* get_object() const { return this->object; }
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -210,16 +239,22 @@ public:
     BoundingBoxf3 transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate = false) const;
     // Transform an external bounding box.
     BoundingBoxf3 transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate = false) const;
+    // Transform an external vector.
+    Vec3d transform_vector(const Vec3d& v, bool dont_translate = false) const;
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
-    
+
+    Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
+
+    bool is_printable() const { return print_volume_state == PVS_Inside; }
+
 private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), object(object) {}
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), offset(Vec2d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
-        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object) {}
+        rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), print_volume_state(PVS_Inside) {}
 };
 
 
@@ -230,6 +265,8 @@ private:
 // all objects may share mutliple materials.
 class Model
 {
+    static unsigned int s_auto_extruder_id;
+
 public:
     // Materials are owned by a model and referenced by objects through t_model_material_id.
     // Single material may be shared by multiple models.
@@ -266,9 +303,7 @@ public:
     bool add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
-    // Returns tight axis aligned bounding box of this model
-    BoundingBoxf3 transformed_bounding_box() const;
-    void center_instances_around_point(const Pointf &point);
+    void center_instances_around_point(const Vec2d &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;
     bool arrange_objects(coordf_t dist, const BoundingBoxf* bb = NULL);
@@ -278,16 +313,16 @@ public:
     void duplicate_objects_grid(size_t x, size_t y, coordf_t dist);
 
     bool looks_like_multipart_object() const;
-    void convert_multipart_object();
+    void convert_multipart_object(unsigned int max_extruders);
 
     // Ensures that the min z of the model is not negative
     void adjust_min_z();
 
-    // Returs true if this model is contained into the print volume defined inside the given config
-    bool fits_print_volume(const DynamicPrintConfig* config) const;
-    bool fits_print_volume(const FullPrintConfig &config) const;
-
     void print_info() const { for (const ModelObject *o : this->objects) o->print_info(); }
+
+    static unsigned int get_auto_extruder_id(unsigned int max_extruders);
+    static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
+    static void reset_auto_extruder_id();
 };
 
 }

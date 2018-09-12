@@ -52,7 +52,7 @@ struct general_matrix_matrix_triangular_product<Index,Scalar,LhsStorageOrder,Con
   static EIGEN_STRONG_INLINE void run(Index size, Index depth,const Scalar* lhs, Index lhsStride, \
                           const Scalar* rhs, Index rhsStride, Scalar* res, Index resStride, Scalar alpha, level3_blocking<Scalar, Scalar>& blocking) \
   { \
-    if (lhs==rhs) { \
+    if ( lhs==rhs && ((UpLo&(Lower|Upper)==UpLo)) ) { \
       general_matrix_matrix_rankupdate<Index,Scalar,LhsStorageOrder,ConjugateLhs,ColMajor,UpLo> \
       ::run(size,depth,lhs,lhsStride,rhs,rhsStride,res,resStride,alpha,blocking); \
     } else { \
@@ -88,7 +88,7 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
    BlasIndex lda=convert_index<BlasIndex>(lhsStride), ldc=convert_index<BlasIndex>(resStride), n=convert_index<BlasIndex>(size), k=convert_index<BlasIndex>(depth); \
    char uplo=((IsLower) ? 'L' : 'U'), trans=((AStorageOrder==RowMajor) ? 'T':'N'); \
    EIGTYPE beta(1); \
-   BLASFUNC(&uplo, &trans, &n, &k, &numext::real_ref(alpha), lhs, &lda, &numext::real_ref(beta), res, &ldc); \
+   BLASFUNC(&uplo, &trans, &n, &k, (const BLASTYPE*)&numext::real_ref(alpha), lhs, &lda, (const BLASTYPE*)&numext::real_ref(beta), res, &ldc); \
   } \
 };
 
@@ -125,9 +125,13 @@ struct general_matrix_matrix_rankupdate<Index,EIGTYPE,AStorageOrder,ConjugateA,C
   } \
 };
 
-
+#ifdef EIGEN_USE_MKL
+EIGEN_BLAS_RANKUPDATE_R(double, double, dsyrk)
+EIGEN_BLAS_RANKUPDATE_R(float,  float,  ssyrk)
+#else
 EIGEN_BLAS_RANKUPDATE_R(double, double, dsyrk_)
 EIGEN_BLAS_RANKUPDATE_R(float,  float,  ssyrk_)
+#endif
 
 // TODO hanlde complex cases
 // EIGEN_BLAS_RANKUPDATE_C(dcomplex, double, double, zherk_)

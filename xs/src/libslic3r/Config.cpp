@@ -20,6 +20,7 @@
 
 namespace Slic3r {
 
+// Escape \n, \r and backslash
 std::string escape_string_cstyle(const std::string &str)
 {
     // Allocate a buffer twice the input string length,
@@ -28,9 +29,15 @@ std::string escape_string_cstyle(const std::string &str)
     char *outptr = out.data();
     for (size_t i = 0; i < str.size(); ++ i) {
         char c = str[i];
-        if (c == '\n' || c == '\r') {
+        if (c == '\r') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = 'r';
+        } else if (c == '\n') {
             (*outptr ++) = '\\';
             (*outptr ++) = 'n';
+        } else if (c == '\\') {
+            (*outptr ++) = '\\';
+            (*outptr ++) = '\\';
         } else
             (*outptr ++) = c;
     }
@@ -69,7 +76,10 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
                 if (c == '\\' || c == '"') {
                     (*outptr ++) = '\\';
                     (*outptr ++) = c;
-                } else if (c == '\n' || c == '\r') {
+                } else if (c == '\r') {
+                    (*outptr ++) = '\\';
+                    (*outptr ++) = 'r';
+                } else if (c == '\n') {
                     (*outptr ++) = '\\';
                     (*outptr ++) = 'n';
                 } else
@@ -84,6 +94,7 @@ std::string escape_strings_cstyle(const std::vector<std::string> &strs)
     return std::string(out.data(), outptr - out.data());
 }
 
+// Unescape \n, \r and backslash
 bool unescape_string_cstyle(const std::string &str, std::string &str_out)
 {
     std::vector<char> out(str.size(), 0);
@@ -94,8 +105,12 @@ bool unescape_string_cstyle(const std::string &str, std::string &str_out)
             if (++ i == str.size())
                 return false;
             c = str[i];
-            if (c == 'n')
+            if (c == 'r')
+                (*outptr ++) = '\r';
+            else if (c == 'n')
                 (*outptr ++) = '\n';
+            else
+                (*outptr ++) = c;
         } else
             (*outptr ++) = c;
     }
@@ -134,7 +149,9 @@ bool unescape_strings_cstyle(const std::string &str, std::vector<std::string> &o
                     if (++ i == str.size())
                         return false;
                     c = str[i];
-                    if (c == 'n')
+                    if (c == 'r')
+                        c = '\r';
+                    else if (c == 'n')
                         c = '\n';
                 }
                 buf.push_back(c);
@@ -185,10 +202,13 @@ void ConfigBase::apply_only(const ConfigBase &other, const t_config_option_keys 
             // This is only possible if other is of DynamicConfig type.
             if (ignore_nonexistent)
                 continue;
-            throw UnknownOptionException();
+            throw UnknownOptionException(opt_key);
         }
 		const ConfigOption *other_opt = other.option(opt_key);
-        if (other_opt != nullptr)
+		if (other_opt == nullptr) {
+            // The key was not found in the source config, therefore it will not be initialized!
+//			printf("Not found, therefore not initialized: %s\n", opt_key.c_str());
+		} else
             my_opt->set(other_opt);
     }
 }
@@ -204,6 +224,56 @@ t_config_option_keys ConfigBase::diff(const ConfigBase &other) const
             diff.emplace_back(opt_key);
     }
     return diff;
+}
+
+template<class T>
+void add_correct_opts_to_diff(const std::string &opt_key, t_config_option_keys& vec, const ConfigBase &other, const ConfigBase *this_c)
+{
+	const T* opt_init = static_cast<const T*>(other.option(opt_key));
+	const T* opt_cur = static_cast<const T*>(this_c->option(opt_key));
+	int opt_init_max_id = opt_init->values.size() - 1;
+	for (int i = 0; i < opt_cur->values.size(); i++)
+	{
+		int init_id = i <= opt_init_max_id ? i : 0;
+		if (opt_cur->values[i] != opt_init->values[init_id])
+			vec.emplace_back(opt_key + "#" + std::to_string(i));
+	}
+}
+
+t_config_option_keys ConfigBase::deep_diff(const ConfigBase &other) const
+{
+    t_config_option_keys diff;
+    for (const t_config_option_key &opt_key : this->keys()) {
+        const ConfigOption *this_opt  = this->option(opt_key);
+        const ConfigOption *other_opt = other.option(opt_key);
+		if (this_opt != nullptr && other_opt != nullptr && *this_opt != *other_opt)
+		{
+			if (opt_key == "bed_shape"){ diff.emplace_back(opt_key);		continue; }
+			switch (other_opt->type())
+			{
+			case coInts:	add_correct_opts_to_diff<ConfigOptionInts		>(opt_key, diff, other, this);	break;
+			case coBools:	add_correct_opts_to_diff<ConfigOptionBools		>(opt_key, diff, other, this);	break;
+			case coFloats:	add_correct_opts_to_diff<ConfigOptionFloats		>(opt_key, diff, other, this);	break;
+			case coStrings:	add_correct_opts_to_diff<ConfigOptionStrings	>(opt_key, diff, other, this);	break;
+			case coPercents:add_correct_opts_to_diff<ConfigOptionPercents	>(opt_key, diff, other, this);	break;
+			case coPoints:	add_correct_opts_to_diff<ConfigOptionPoints		>(opt_key, diff, other, this);	break;
+			default:		diff.emplace_back(opt_key);		break;
+			}
+		}
+    }
+    return diff;
+}
+
+t_config_option_keys ConfigBase::equal(const ConfigBase &other) const
+{
+    t_config_option_keys equal;
+    for (const t_config_option_key &opt_key : this->keys()) {
+        const ConfigOption *this_opt  = this->option(opt_key);
+        const ConfigOption *other_opt = other.option(opt_key);
+        if (this_opt != nullptr && other_opt != nullptr && *this_opt == *other_opt)
+            equal.emplace_back(opt_key);
+    }
+    return equal;
 }
 
 std::string ConfigBase::serialize(const t_config_option_key &opt_key) const
@@ -232,7 +302,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
     // Try to deserialize the option by its name.
     const ConfigDef       *def    = this->def();
     if (def == nullptr)
-        throw NoDefinitionException();
+        throw NoDefinitionException(opt_key);
     const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr) {
         // If we didn't find an option, look for any other option having this as an alias.
@@ -248,7 +318,7 @@ bool ConfigBase::set_deserialize_raw(const t_config_option_key &opt_key_src, con
                 break;
         }
         if (optdef == nullptr)
-            throw UnknownOptionException();
+            throw UnknownOptionException(opt_key);
     }
     
     if (! optdef->shortcut.empty()) {
@@ -278,7 +348,7 @@ double ConfigBase::get_abs_value(const t_config_option_key &opt_key) const
         // Get option definition.
         const ConfigDef *def = this->def();
         if (def == nullptr)
-            throw NoDefinitionException();
+            throw NoDefinitionException(opt_key);
         const ConfigOptionDef *opt_def = def->get(opt_key);
         assert(opt_def != nullptr);
         // Compute absolute value over the absolute value of the base option.
@@ -468,7 +538,7 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
     // Try to create a new ConfigOption.
     const ConfigDef       *def    = this->def();
     if (def == nullptr)
-        throw NoDefinitionException();
+        throw NoDefinitionException(opt_key);
     const ConfigOptionDef *optdef = def->get(opt_key);
     if (optdef == nullptr)
 //        throw std::runtime_error(std::string("Invalid option name: ") + opt_key);
@@ -522,7 +592,7 @@ void StaticConfig::set_defaults()
 t_config_option_keys StaticConfig::keys() const 
 {
     t_config_option_keys keys;
-	assert(this->def != nullptr);
+    assert(this->def() != nullptr);
     for (const auto &opt_def : this->def()->options)
         if (this->option(opt_def.first) != nullptr) 
             keys.push_back(opt_def.first);

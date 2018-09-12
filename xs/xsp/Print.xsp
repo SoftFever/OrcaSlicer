@@ -44,6 +44,8 @@ _constant()
     int region_count()
         %code%{ RETVAL = THIS->print()->regions().size(); %};
 
+    int region_volumes_count()
+        %code%{ RETVAL = THIS->region_volumes.size(); %};
     Ref<Print> print();
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()
@@ -53,14 +55,12 @@ _constant()
         %code%{ RETVAL = THIS->layer_height_ranges; %};
     std::vector<double> layer_height_profile()
         %code%{ RETVAL = THIS->layer_height_profile; %};
-    Ref<Point3> size()
-        %code%{ RETVAL = &THIS->size; %};
     Clone<BoundingBox> bounding_box();
     
     Points _shifted_copies()
-        %code%{ RETVAL = THIS->_shifted_copies; %};
+        %code%{ RETVAL = THIS->copies(); %};
 
-    bool add_copy(Pointf* point)
+    bool add_copy(Vec2d* point)
         %code%{ RETVAL = THIS->add_copy(*point); %};
     bool delete_last_copy();
     bool reload_model_instances();
@@ -76,17 +76,6 @@ _constant()
     bool step_done(PrintObjectStep step)
         %code%{ RETVAL = THIS->is_step_done(step); %};
 
-    void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
-        %code%{
-            THIS->update_layer_height_profile(THIS->model_object()->layer_height_profile);
-            adjust_layer_height_profile(
-                THIS->slicing_parameters(), THIS->model_object()->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
-            THIS->model_object()->layer_height_profile_valid = true;
-            THIS->layer_height_profile_valid = false;
-        %};
-
-    void reset_layer_height_profile();
-
     void slice();
 };
 
@@ -95,15 +84,17 @@ _constant()
     ~Print();
 
     Ref<StaticPrintConfig> config()
-        %code%{ RETVAL = &THIS->config(); %};
+        %code%{ RETVAL = const_cast<GCodeConfig*>(static_cast<const GCodeConfig*>(&THIS->config())); %};
     Ref<PlaceholderParser> placeholder_parser()
         %code%{ RETVAL = &THIS->placeholder_parser(); %};
     Ref<ExtrusionEntityCollection> skirt()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->skirt()); %};
     Ref<ExtrusionEntityCollection> brim()
         %code%{ RETVAL = const_cast<ExtrusionEntityCollection*>(&THIS->brim()); %};
-    std::string estimated_print_time()
-        %code%{ RETVAL = THIS->print_statistics().estimated_print_time; %};
+    std::string estimated_normal_print_time()
+        %code%{ RETVAL = THIS->print_statistics().estimated_normal_print_time; %};
+    std::string estimated_silent_print_time()
+        %code%{ RETVAL = THIS->print_statistics().estimated_silent_print_time; %};
     double total_used_filament()
         %code%{ RETVAL = THIS->print_statistics().total_used_filament; %};
     double total_extruded_volume()
@@ -112,7 +103,6 @@ _constant()
         %code%{ RETVAL = THIS->print_statistics().total_weight; %};
     double total_cost()
         %code%{ RETVAL = THIS->print_statistics().total_cost; %};
-
     PrintObjectPtrs* objects()
         %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
     void clear_objects();
@@ -157,9 +147,11 @@ _constant()
             try {
                 RETVAL = THIS->output_filepath(path);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
+        
+    void print_to_png(std::string dirpath);
     
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig* config)

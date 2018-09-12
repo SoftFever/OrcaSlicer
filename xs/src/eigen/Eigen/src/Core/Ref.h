@@ -95,6 +95,8 @@ protected:
   template<typename Expression>
   EIGEN_DEVICE_FUNC void construct(Expression& expr)
   {
+    EIGEN_STATIC_ASSERT_SAME_MATRIX_SIZE(PlainObjectType,Expression);
+
     if(PlainObjectType::RowsAtCompileTime==1)
     {
       eigen_assert(expr.rows()==1 || expr.cols()==1);

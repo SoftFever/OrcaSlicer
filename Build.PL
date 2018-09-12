@@ -12,6 +12,7 @@ my %prereqs = qw(
     ExtUtils::ParseXS               3.22
     ExtUtils::XSpp                  0
     ExtUtils::Typemaps              0
+    ExtUtils::Typemaps::Basic       0
     File::Basename                  0
     File::Spec                      0
     Getopt::Long                    0
@@ -35,7 +36,6 @@ if ($gui) {
     %prereqs = qw(
     Class::Accessor                 0
     Wx                              0.9918
-    Socket                          2.016
     );
     %recommends = qw(
     Wx::GLCanvas                    0

@@ -17,6 +17,15 @@ namespace Slic3r {
     class GCodeTimeEstimator
     {
     public:
+        static const std::string Normal_First_M73_Output_Placeholder_Tag;
+        static const std::string Silent_First_M73_Output_Placeholder_Tag;
+
+        enum EMode : unsigned char
+        {
+            Normal,
+            Silent
+        };
+
         enum EUnits : unsigned char
         {
             Millimeters,
@@ -61,16 +70,27 @@ namespace Slic3r {
         {
             GCodeFlavor dialect;
             EUnits units;
-            EPositioningType positioning_xyz_type;
-            EPositioningType positioning_e_type;
+            EPositioningType global_positioning_type;
+            EPositioningType e_local_positioning_type;
             Axis axis[Num_Axis];
             float feedrate;                     // mm/s
             float acceleration;                 // mm/s^2
+            // hard limit for the acceleration, to which the firmware will clamp.
+            float max_acceleration;             // mm/s^2
             float retract_acceleration;         // mm/s^2
             float additional_time;              // s
             float minimum_feedrate;             // mm/s
             float minimum_travel_feedrate;      // mm/s
-            float extrude_factor_override_percentage; 
+            float extrude_factor_override_percentage;
+            // Additional load / unload times for a filament exchange sequence.
+            std::vector<float> filament_load_times;
+            std::vector<float> filament_unload_times;
+            unsigned int g1_line_id;
+            // extruder_id is currently used to correctly calculate filament load / unload times 
+            // into the total print time. This is currently only really used by the MK3 MMU2:
+            // Extruder id (-1) means no filament is loaded yet, all the filaments are parked in the MK3 MMU2 unit.
+            static const unsigned int extruder_id_unloaded = (unsigned int)-1;
+            unsigned int extruder_id;
         };
 
     public:
@@ -121,7 +141,6 @@ namespace Slic3r {
                 bool nominal_length;
             };
 
-
 #if ENABLE_MOVE_STATS
             EMoveType move_type;
 #endif // ENABLE_MOVE_STATS
@@ -134,6 +153,9 @@ namespace Slic3r {
 
             FeedrateProfile feedrate;
             Trapezoid trapezoid;
+            float elapsed_time;
+
+            Block();
 
             // Returns the length of the move covered by this block, in mm
             float move_length() const;
@@ -187,19 +209,39 @@ namespace Slic3r {
         typedef std::map<Block::EMoveType, MoveStats> MovesStatsMap;
 #endif // ENABLE_MOVE_STATS
 
+        typedef std::map<unsigned int, unsigned int> G1LineIdToBlockIdMap;
+
     private:
+        EMode _mode;
         GCodeReader _parser;
         State _state;
         Feedrates _curr;
         Feedrates _prev;
         BlocksList _blocks;
+        // Map between g1 line id and blocks id, used to speed up export of remaining times
+        G1LineIdToBlockIdMap _g1_line_ids;
+        // Index of the last block already st_synchronized
+        int _last_st_synchronized_block_id;
         float _time; // s
+
 #if ENABLE_MOVE_STATS
         MovesStatsMap _moves_stats;
 #endif // ENABLE_MOVE_STATS
 
     public:
-        GCodeTimeEstimator();
+        explicit GCodeTimeEstimator(EMode mode);
+
+        // Adds the given gcode line
+        void add_gcode_line(const std::string& gcode_line);
+
+        void add_gcode_block(const char *ptr);
+        void add_gcode_block(const std::string &str) { this->add_gcode_block(str.c_str()); }
+
+        // Calculates the time estimate from the gcode lines added using add_gcode_line() or add_gcode_block()
+        // start_from_beginning:
+        // if set to true all blocks will be used to calculate the time estimate,
+        // if set to false only the blocks not yet processed will be used and the calculated time will be added to the current calculated time
+        void calculate_time(bool start_from_beginning);
 
         // Calculates the time estimate from the given gcode in string format
         void calculate_time_from_text(const std::string& gcode);
@@ -210,14 +252,12 @@ namespace Slic3r {
         // Calculates the time estimate from the gcode contained in given list of gcode lines
         void calculate_time_from_lines(const std::vector<std::string>& gcode_lines);
 
-        // Adds the given gcode line
-        void add_gcode_line(const std::string& gcode_line);
-
-        void add_gcode_block(const char *ptr);
-        void add_gcode_block(const std::string &str) { this->add_gcode_block(str.c_str()); }
-
-        // Calculates the time estimate from the gcode lines added using add_gcode_line()
-        void calculate_time();
+        // Process the gcode contained in the file with the given filename, 
+        // placing in it new lines (M73) containing the remaining time, at the given interval in seconds
+        // and saving the result back in the same file
+        // This time estimator should have been already used to calculate the time estimate for the gcode
+        // contained in the given file before to call this method
+        bool post_process_remaining_times(const std::string& filename, float interval_sec);
 
         // Set current position on the given axis with the given value
         void set_axis_position(EAxis axis, float position);
@@ -239,6 +279,10 @@ namespace Slic3r {
         void set_acceleration(float acceleration_mm_sec2);
         float get_acceleration() const;
 
+        // Maximum acceleration for the machine. The firmware simulator will clamp the M204 Sxxx to this maximum.
+        void set_max_acceleration(float acceleration_mm_sec2);
+        float get_max_acceleration() const;
+
         void set_retract_acceleration(float acceleration_mm_sec2);
         float get_retract_acceleration() const;
 
@@ -247,6 +291,11 @@ namespace Slic3r {
 
         void set_minimum_travel_feedrate(float feedrate_mm_sec);
         float get_minimum_travel_feedrate() const;
+
+        void set_filament_load_times(const std::vector<double> &filament_load_times);
+        void set_filament_unload_times(const std::vector<double> &filament_unload_times);
+        float get_filament_load_time(unsigned int id_extruder);
+        float get_filament_unload_time(unsigned int id_extruder);
 
         void set_extrude_factor_override_percentage(float percentage);
         float get_extrude_factor_override_percentage() const;
@@ -257,11 +306,19 @@ namespace Slic3r {
         void set_units(EUnits units);
         EUnits get_units() const;
 
-        void set_positioning_xyz_type(EPositioningType type);
-        EPositioningType get_positioning_xyz_type() const;
+        void set_global_positioning_type(EPositioningType type);
+        EPositioningType get_global_positioning_type() const;
 
-        void set_positioning_e_type(EPositioningType type);
-        EPositioningType get_positioning_e_type() const;
+        void set_e_local_positioning_type(EPositioningType type);
+        EPositioningType get_e_local_positioning_type() const;
+
+        int get_g1_line_id() const;
+        void increment_g1_line_id();
+        void reset_g1_line_id();
+
+        void set_extruder_id(unsigned int id);
+        unsigned int get_extruder_id() const;
+        void reset_extruder_id();
 
         void add_additional_time(float timeSec);
         void set_additional_time(float timeSec);
@@ -275,11 +332,15 @@ namespace Slic3r {
         // Returns the estimated time, in seconds
         float get_time() const;
 
-        // Returns the estimated time, in format HHh MMm SSs
-        std::string get_time_hms() const;
+        // Returns the estimated time, in format DDd HHh MMm SSs
+        std::string get_time_dhms() const;
+
+        // Returns the estimated time, in minutes (integer)
+        std::string get_time_minutes() const;
 
     private:
         void _reset();
+        void _reset_time();
         void _reset_blocks();
 
         // Calculates the time estimate
@@ -342,6 +403,12 @@ namespace Slic3r {
         // Set allowable instantaneous speed change
         void _processM566(const GCodeReader::GCodeLine& line);
 
+        // Unload the current filament into the MK3 MMU2 unit at the end of print.
+        void _processM702(const GCodeReader::GCodeLine& line);
+
+        // Processes T line (Select Tool)
+        void _processT(const GCodeReader::GCodeLine& line);
+
         // Simulates firmware st_synchronize() call
         void _simulate_st_synchronize();
 
@@ -352,6 +419,12 @@ namespace Slic3r {
         void _planner_reverse_pass_kernel(Block& curr, Block& next);
 
         void _recalculate_trapezoids();
+
+        // Returns the given time is seconds in format DDd HHh MMm SSs
+        static std::string _get_time_dhms(float time_in_secs);
+
+        // Returns the given, in minutes (integer)
+        static std::string _get_time_minutes(float time_in_secs);
 
 #if ENABLE_MOVE_STATS
         void _log_moves_stats() const;

@@ -24,9 +24,8 @@ public:
     // Children contour, may be both CCW and CW oriented (outer contours or holes).
     std::vector<PerimeterGeneratorLoop> children;
     
-    PerimeterGeneratorLoop(Polygon polygon, unsigned short depth)
-        : polygon(polygon), is_contour(false), depth(depth)
-        {};
+    PerimeterGeneratorLoop(Polygon polygon, unsigned short depth, bool is_contour) : 
+        polygon(polygon), is_contour(is_contour), depth(depth) {}
     // External perimeter. It may be CCW or CW oriented (outer contour or hole contour).
     bool is_external() const { return this->depth == 0; }
     // An island, which may have holes, but it does not have another internal island.

@@ -165,12 +165,13 @@ MatrixBase<Derived>::stableNorm() const
   
   typedef typename internal::nested_eval<Derived,2>::type DerivedCopy;
   typedef typename internal::remove_all<DerivedCopy>::type DerivedCopyClean;
-  DerivedCopy copy(derived());
+  const DerivedCopy copy(derived());
   
   enum {
     CanAlign = (   (int(DerivedCopyClean::Flags)&DirectAccessBit)
                 || (int(internal::evaluator<DerivedCopyClean>::Alignment)>0) // FIXME Alignment)>0 might not be enough
-               ) && (blockSize*sizeof(Scalar)*2<EIGEN_STACK_ALLOCATION_LIMIT) // ifwe cannot allocate on the stack, then let's not bother about this optimization
+               ) && (blockSize*sizeof(Scalar)*2<EIGEN_STACK_ALLOCATION_LIMIT)
+                 && (EIGEN_MAX_STATIC_ALIGN_BYTES>0) // if we cannot allocate on the stack, then let's not bother about this optimization
   };
   typedef typename internal::conditional<CanAlign, Ref<const Matrix<Scalar,Dynamic,1,0,blockSize,1>, internal::evaluator<DerivedCopyClean>::Alignment>,
                                                    typename DerivedCopyClean::ConstSegmentReturnType>::type SegmentWrapper;

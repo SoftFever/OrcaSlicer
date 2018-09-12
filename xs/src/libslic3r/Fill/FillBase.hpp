@@ -121,11 +121,11 @@ public:
         return aligned;
     }
     static Point   _align_to_grid(Point   coord, Point   spacing) 
-        { return Point(_align_to_grid(coord.x, spacing.x), _align_to_grid(coord.y, spacing.y)); }
+        { return Point(_align_to_grid(coord(0), spacing(0)), _align_to_grid(coord(1), spacing(1))); }
     static coord_t _align_to_grid(coord_t coord, coord_t spacing, coord_t base) 
         { return base + _align_to_grid(coord - base, spacing); }
     static Point   _align_to_grid(Point   coord, Point   spacing, Point   base)
-        { return Point(_align_to_grid(coord.x, spacing.x, base.x), _align_to_grid(coord.y, spacing.y, base.y)); }
+        { return Point(_align_to_grid(coord(0), spacing(0), base(0)), _align_to_grid(coord(1), spacing(1), base(1))); }
 };
 
 } // namespace Slic3r

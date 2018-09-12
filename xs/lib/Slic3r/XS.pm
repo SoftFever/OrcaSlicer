@@ -12,7 +12,9 @@ our $VERSION = '0.01';
 BEGIN {
     if ($^O eq 'MSWin32') {
         eval "use Wx";
-#        eval "use Wx::Html";
+        eval "use Wx::GLCanvas";
+        eval "use Wx::GLContext";
+        eval "use Wx::Html";
         eval "use Wx::Print";  # because of some Wx bug, thread creation fails if we don't have this (looks like Wx::Printout is hard-coded in some thread cleanup code)
     }
 }
@@ -30,16 +32,6 @@ package Slic3r::Point;
 use overload
     '@{}' => sub { $_[0]->arrayref },
     'fallback' => 1;
-
-package Slic3r::Point3;
-use overload
-    '@{}' => sub { [ $_[0]->x, $_[0]->y, $_[0]->z ] },  #,
-    'fallback' => 1;
-
-sub pp {
-    my ($self) = @_;
-    return [ @$self ];
-}
 
 package Slic3r::Pointf;
 use overload
@@ -273,6 +265,7 @@ for my $class (qw(
         Slic3r::Geometry::BoundingBox
         Slic3r::Geometry::BoundingBoxf
         Slic3r::Geometry::BoundingBoxf3
+        Slic3r::GUI::_3DScene::GLShader        
         Slic3r::GUI::_3DScene::GLVolume
         Slic3r::GUI::Preset
         Slic3r::GUI::PresetCollection

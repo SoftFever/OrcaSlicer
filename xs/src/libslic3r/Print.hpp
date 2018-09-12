@@ -158,31 +158,23 @@ class PrintObject
 public:
     // vector of (vectors of volume ids), indexed by region_id
     std::vector<std::vector<int>> region_volumes;
-    t_layer_height_ranges layer_height_ranges;
+    t_layer_height_ranges   layer_height_ranges;
 
     // Profile of increasing z to a layer height, to be linearly interpolated when calculating the layers.
     // The pairs of <z, layer_height> are packed into a 1D array to simplify handling by the Perl XS.
     // layer_height_profile must not be set by the background thread.
-    std::vector<coordf_t> layer_height_profile;
+    std::vector<coordf_t>   layer_height_profile;
     // There is a layer_height_profile at both PrintObject and ModelObject. The layer_height_profile at the ModelObject
     // is used for interactive editing and for loading / storing into a project file (AMF file as of today).
     // This flag indicates that the layer_height_profile at the UI has been updated, therefore the backend needs to get it.
     // This flag is necessary as we cannot safely clear the layer_height_profile if the background calculation is running.
-    bool                  layer_height_profile_valid;
+    bool                    layer_height_profile_valid;
     
     // this is set to true when LayerRegion->slices is split in top/internal/bottom
     // so that next call to make_perimeters() performs a union() before computing loops
-    bool typed_slices;
+    bool                    typed_slices;
 
-    Point3 size;           // XYZ in scaled coordinates
-
-    // scaled coordinates to add to copies (to compensate for the alignment
-    // operated when creating the object but still preserving a coherent API
-    // for external callers)
-    Point _copies_shift;
-
-    // Slic3r::Point objects in scaled G-code coordinates in our coordinates
-    Points _shifted_copies;
+    Vec3crd                 size;           // XYZ in scaled coordinates
 
     Print*                  print()                 { return m_print; }
     const Print*            print() const           { return m_print; }
@@ -195,13 +187,13 @@ public:
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
 
     const Points& copies() const { return m_copies; }
-    bool add_copy(const Pointf &point);
+    bool add_copy(const Vec2d &point);
     bool delete_last_copy();
     bool delete_all_copies() { return this->set_copies(Points()); }
     bool set_copies(const Points &points);
     bool reload_model_instances();
     // since the object is aligned to origin, bounding box coincides with size
-    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), this->size); }
+    BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
 
     // adds region_id, too, if necessary
     void add_region_volume(unsigned int region_id, int volume_id) {
@@ -244,6 +236,8 @@ public:
 
     void reset_layer_height_profile();
 
+    void adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action);
+
     // Collect the slicing parameters, to be used by variable layer thickness algorithm,
     // by the interactive layer height editor and by the printing process itself.
     // The slicing parameters are dependent on various configuration values
@@ -262,6 +256,7 @@ private:
     void _slice();
     std::string _fix_slicing_errors();
     void _simplify_slices(double distance);
+    void _make_perimeters();
     bool has_support_material() const;
     void detect_surfaces_type();
     void process_external_surfaces();
@@ -272,11 +267,17 @@ private:
     void combine_infill();
     void _generate_support_material();
 
+    bool is_printable() const { return ! m_copies.empty(); }
+
     Print                                  *m_print;
     ModelObject                            *m_model_object;
     PrintObjectConfig                       m_config;
     // Slic3r::Point objects in scaled G-code coordinates
     Points                                  m_copies;
+    // scaled coordinates to add to copies (to compensate for the alignment
+    // operated when creating the object but still preserving a coherent API
+    // for external callers)
+    Point                                   m_copies_shift;
 
     LayerPtrs                               m_layers;
     SupportLayerPtrs                        m_support_layers;
@@ -308,18 +309,23 @@ struct WipeTowerData
     std::vector<std::vector<WipeTower::ToolChangeResult>> tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          final_purge;
 
+    // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
+    float                                                 depth;
+
     void clear() {
         tool_ordering.clear();
         priming.reset(nullptr);
         tool_changes.clear();
         final_purge.reset(nullptr);
+        depth = 0.f;
     }
 };
 
 struct PrintStatistics
 {
     PrintStatistics() { clear(); }
-    std::string                     estimated_print_time;
+    std::string                     estimated_normal_print_time;
+    std::string                     estimated_silent_print_time;
     double                          total_used_filament;
     double                          total_extruded_volume;
     double                          total_cost;
@@ -327,11 +333,12 @@ struct PrintStatistics
     std::map<size_t, float>         filament_stats;
 
     void clear() {
-        estimated_print_time.clear();
+        estimated_normal_print_time.clear();
+        estimated_silent_print_time.clear();
         total_used_filament    = 0.;
         total_extruded_volume  = 0.;
-        total_weight           = 0.;
         total_cost             = 0.;
+        total_weight           = 0.;
         filament_stats.clear();
     }
 };
@@ -345,7 +352,7 @@ class Print
 public:
     Print() { restart(); }
     ~Print() { clear_objects(); }
-    
+
     // Methods, which change the state of Print / PrintObject / PrintRegion.
     // The following methods are synchronized with process() and export_gcode(),
     // so that process() and export_gcode() may be called from a background thread.
@@ -359,6 +366,8 @@ public:
     bool                apply_config(DynamicPrintConfig config);
     void                process();
     void                export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
+    // SLA export, temporary.
+    void                print_to_png(const std::string &dirpath);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return m_state.is_done(step); }
@@ -366,6 +375,9 @@ public:
 
     bool                has_infinite_skirt() const;
     bool                has_skirt() const;
+    PrintObjectPtrs     get_printable_objects() const;
+    float               get_wipe_tower_depth() const { return m_wipe_tower_data.depth; }
+
     // Returns an empty string if valid, otherwise returns an error message.
     std::string         validate() const;
     BoundingBox         bounding_box() const;
@@ -386,8 +398,12 @@ public:
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
     const PrintObjectPtrs&      objects() const { return m_objects; }
+    const PrintObject*          get_object(int idx) const { return m_objects[idx]; }
     const PrintRegionPtrs&      regions() const { return m_regions; }
     const PlaceholderParser&    placeholder_parser() const { return m_placeholder_parser; }
+
+    // Returns extruder this eec should be printed with, according to PrintRegion config:
+    static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region);
 
     const ExtrusionEntityCollection& skirt() const { return m_skirt; }
     const ExtrusionEntityCollection& brim() const { return m_brim; }
@@ -458,6 +474,7 @@ private:
     // The mutex will be used to guard the worker thread against entering a stage
     // while the data influencing the stage is modified.
     tbb::mutex                              m_mutex;
+
     // Has the calculation been canceled?
     tbb::atomic<bool>                       m_canceled;
     // Callback to be evoked regularly to update state of the UI thread.
@@ -488,6 +505,7 @@ private:
     // Allow PrintObject to access m_mutex and m_cancel_callback.
     friend class PrintObject;
 };
+
 
 #define FOREACH_BASE(type, container, iterator) for (type::const_iterator iterator = (container).begin(); iterator != (container).end(); ++iterator)
 #define FOREACH_OBJECT(print, object)       FOREACH_BASE(PrintObjectPtrs, (print)->m_objects, object)

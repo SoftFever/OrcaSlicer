@@ -66,13 +66,13 @@ Point3*                    O_OBJECT_SLIC3R
 Ref<Point3>                O_OBJECT_SLIC3R_T
 Clone<Point3>              O_OBJECT_SLIC3R_T
 
-Pointf*                    O_OBJECT_SLIC3R
-Ref<Pointf>                O_OBJECT_SLIC3R_T
-Clone<Pointf>              O_OBJECT_SLIC3R_T
+Vec2d*                     O_OBJECT_SLIC3R
+Ref<Vec2d>                 O_OBJECT_SLIC3R_T
+Clone<Vec2d>               O_OBJECT_SLIC3R_T
 
-Pointf3*                   O_OBJECT_SLIC3R
-Ref<Pointf3>               O_OBJECT_SLIC3R_T
-Clone<Pointf3>             O_OBJECT_SLIC3R_T
+Vec3d*                     O_OBJECT_SLIC3R
+Ref<Vec3d>                 O_OBJECT_SLIC3R_T
+Clone<Vec3d>               O_OBJECT_SLIC3R_T
 
 Line*                      O_OBJECT_SLIC3R
 Ref<Line>                  O_OBJECT_SLIC3R_T
@@ -216,6 +216,8 @@ Ref<PrintObjectSupportMaterial>   O_OBJECT_SLIC3R_T
 Clone<PrintObjectSupportMaterial> O_OBJECT_SLIC3R_T
 
 AppConfig*	                O_OBJECT_SLIC3R
+AppController*              O_OBJECT_SLIC3R
+PrintController*            O_OBJECT_SLIC3R
 Ref<AppConfig>         		O_OBJECT_SLIC3R_T
 BackgroundSlicingProcess*   O_OBJECT_SLIC3R
 Ref<BackgroundSlicingProcess> O_OBJECT_SLIC3R_T
@@ -233,14 +235,15 @@ PresetCollection*	      	O_OBJECT_SLIC3R
 Ref<PresetCollection>      	O_OBJECT_SLIC3R_T
 PresetBundle*	    		O_OBJECT_SLIC3R
 Ref<PresetBundle>    		O_OBJECT_SLIC3R_T
-PresetHints*	    		O_OBJECT_SLIC3R
-Ref<PresetHints>    		O_OBJECT_SLIC3R_T
-TabIface*	   				O_OBJECT_SLIC3R
-Ref<TabIface> 				O_OBJECT_SLIC3R_T
+TabIface*                       O_OBJECT_SLIC3R
+Ref<TabIface> 			O_OBJECT_SLIC3R_T
+ProgressStatusBar*              O_OBJECT_SLIC3R
+Ref<ProgressStatusBar>          O_OBJECT_SLIC3R_T
 
-OctoPrint*                  O_OBJECT_SLIC3R
-Ref<OctoPrint>              O_OBJECT_SLIC3R_T
-Clone<OctoPrint>            O_OBJECT_SLIC3R_T
+PresetUpdater*              O_OBJECT_SLIC3R
+Ref<PresetUpdater>          O_OBJECT_SLIC3R_T
+
+PrintHost*                  O_OBJECT_SLIC3R
 
 Axis                  T_UV
 ExtrusionLoopRole     T_UV

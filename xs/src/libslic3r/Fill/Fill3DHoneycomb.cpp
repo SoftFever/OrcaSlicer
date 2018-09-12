@@ -54,9 +54,9 @@ static std::vector<coordf_t> perpendPoints(const coordf_t offset, const size_t b
 // components that are outside these limits are set to the limits.
 static inline void trim(Pointfs &pts, coordf_t minX, coordf_t minY, coordf_t maxX, coordf_t maxY)
 {
-    for (Pointfs::iterator it = pts.begin(); it != pts.end(); ++ it) {
-        it->x = clamp(minX, maxX, it->x);
-        it->y = clamp(minY, maxY, it->y);
+    for (Vec2d &pt : pts) {
+        pt(0) = clamp(minX, maxX, pt(0));
+        pt(1) = clamp(minY, maxY, pt(1));
     }
 }
 
@@ -66,7 +66,7 @@ static inline Pointfs zip(const std::vector<coordf_t> &x, const std::vector<coor
     Pointfs out;
     out.reserve(x.size());
     for (size_t i = 0; i < x.size(); ++ i)
-        out.push_back(Pointf(x[i], y[i]));
+        out.push_back(Vec2d(x[i], y[i]));
     return out;
 }
 
@@ -128,7 +128,7 @@ static Polylines makeGrid(coord_t z, coord_t gridSize, size_t gridWidth, size_t 
         result.push_back(Polyline());
         Polyline &polyline = result.back();
         for (Pointfs::const_iterator it = it_polylines->begin(); it != it_polylines->end(); ++ it)
-            polyline.points.push_back(Point(coord_t(it->x * scaleFactor), coord_t(it->y * scaleFactor)));
+            polyline.points.push_back(Point(coord_t((*it)(0) * scaleFactor), coord_t((*it)(1) * scaleFactor)));
     }
     return result;
 }
@@ -153,13 +153,13 @@ void Fill3DHoneycomb::_fill_surface_single(
     Polylines   polylines = makeGrid(
         scale_(this->z),
         distance,
-        ceil(bb.size().x / distance) + 1,
-        ceil(bb.size().y / distance) + 1,
+        ceil(bb.size()(0) / distance) + 1,
+        ceil(bb.size()(1) / distance) + 1,
         ((this->layer_id/thickness_layers) % 2) + 1);
     
     // move pattern in place
     for (Polylines::iterator it = polylines.begin(); it != polylines.end(); ++ it)
-        it->translate(bb.min.x, bb.min.y);
+        it->translate(bb.min(0), bb.min(1));
 
     // clip pattern to boundaries
     polylines = intersection_pl(polylines, (Polygons)expolygon);
@@ -187,7 +187,7 @@ void Fill3DHoneycomb::_fill_surface_single(
                 const Point &last_point = pts_end.back();
                 // TODO: we should also check that both points are on a fill_boundary to avoid 
                 // connecting paths on the boundaries of internal regions
-                if (first_point.distance_to(last_point) <= 1.5 * distance && 
+                if ((last_point - first_point).cast<double>().norm() <= 1.5 * distance && 
                     expolygon_off.contains(Line(last_point, first_point))) {
                     // Append the polyline.
                     pts_end.insert(pts_end.end(), it_polyline->points.begin(), it_polyline->points.end());

@@ -1,3 +1,5 @@
+#ifndef slic3r_BedShapeDialog_hpp_
+#define slic3r_BedShapeDialog_hpp_
 // The bed shape dialog.
 // The dialog opens from Print Settins tab->Bed Shape : Set...
 
@@ -32,7 +34,7 @@ public:
 	void		load_stl();
 	
 	// Returns the resulting bed shape polygon. This value will be stored to the ini file.
-	std::vector<Pointf>	GetValue() { return m_canvas->m_bed_shape; }
+	std::vector<Vec2d>	GetValue() { return m_canvas->m_bed_shape; }
 };
 
 class BedShapeDialog : public wxDialog
@@ -44,8 +46,11 @@ public:
 	~BedShapeDialog(){  }
 
 	void		build_dialog(ConfigOptionPoints* default_pt);
-	std::vector<Pointf>	GetValue() { return m_panel->GetValue(); }
+	std::vector<Vec2d>	GetValue() { return m_panel->GetValue(); }
 };
 
 } // GUI
 } // Slic3r
+
+
+#endif  /* slic3r_BedShapeDialog_hpp_ */

@@ -1,4 +1,4 @@
-use Test::More tests => 77;
+use Test::More tests => 81;
 use strict;
 use warnings;
 
@@ -49,7 +49,7 @@ use Slic3r::Test;
     my $parser = Slic3r::GCode::PlaceholderParser->new;
     my $config = Slic3r::Config::new_from_defaults;
     $config->set('printer_notes', '  PRINTER_VENDOR_PRUSA3D  PRINTER_MODEL_MK2  ');
-    $config->set('nozzle_diameter', [0.6, 0.6, 0.6, 0.6]);
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $parser->apply_config($config);
     $parser->set('foo' => 0);
     $parser->set('bar' => 2);
@@ -71,6 +71,10 @@ use Slic3r::Test;
     is $parser->process('{2*foo*(3-12)}'), '0', 'math: 2*foo*(3-12)';
     is $parser->process('{2*bar*(3-12)}'), '-36', 'math: 2*bar*(3-12)';
     ok abs($parser->process('{2.5*bar*(3-12)}') - -45) < 1e-7, 'math: 2.5*bar*(3-12)';
+    is $parser->process('{min(12, 14)}'), '12', 'math: min(12, 14)';
+    is $parser->process('{max(12, 14)}'), '14', 'math: max(12, 14)';
+    is $parser->process('{min(13.4, -1238.1)}'), '-1238.1', 'math: min(13.4, -1238.1)';
+    is $parser->process('{max(13.4, -1238.1)}'), '13.4', 'math: max(13.4, -1238.1)';
 
     # Test the boolean expression parser.
     is $parser->evaluate_boolean_expression('12 == 12'), 1, 'boolean expression parser: 12 == 12';
@@ -123,6 +127,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('extruder', 2);
     $config->set('first_layer_temperature', [200,205]);
     
@@ -204,6 +209,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6,0.6]);
     $config->set('start_gcode', qq!
 ;substitution:{if infill_extruder==1}if block
          {elsif infill_extruder==2}elsif block 1
@@ -228,6 +234,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('start_gcode', 
         ';substitution:{if infill_extruder==1}{if perimeter_extruder==1}block11{else}block12{endif}' .
         '{elsif infill_extruder==2}{if perimeter_extruder==1}block21{else}block22{endif}' .

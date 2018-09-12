@@ -4,6 +4,7 @@
 #include "Geometry.hpp"
 #include "SupportMaterial.hpp"
 #include "Surface.hpp"
+#include "Slicing.hpp"
 
 #include <utility>
 #include <boost/log/trivial.hpp>
@@ -37,6 +38,7 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     typed_slices(false),
     m_print(print),
     m_model_object(model_object),
+    size(Vec3crd::Zero()),
     layer_height_profile_valid(false)
 {
     // Compute the translation to be applied to our meshes so that we work with smaller coordinates
@@ -47,10 +49,9 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
         // don't assume it's already aligned and we don't alter the original position in model.
         // We store the XY translation so that we can place copies correctly in the output G-code
         // (copies are expressed in G-code coordinates and this translation is not publicly exposed).
-        this->_copies_shift = Point::new_scale(modobj_bbox.min.x, modobj_bbox.min.y);
+        m_copies_shift = Point::new_scale(modobj_bbox.min(0), modobj_bbox.min(1));
         // Scale the object size and store it
-        Pointf3 size = modobj_bbox.size();
-        this->size = Point3::new_scale(size.x, size.y, size.z);
+        this->size = (modobj_bbox.size() * (1. / SCALING_FACTOR)).cast<coord_t>();
     }
     
     this->reload_model_instances();
@@ -58,10 +59,10 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
-bool PrintObject::add_copy(const Pointf &point)
+bool PrintObject::add_copy(const Vec2d &point)
 {
     Points points = m_copies;
-    points.push_back(Point::new_scale(point.x, point.y));
+    points.push_back(Point::new_scale(point(0), point(1)));
     return this->set_copies(points);
 }
 
@@ -74,24 +75,23 @@ bool PrintObject::delete_last_copy()
 
 bool PrintObject::set_copies(const Points &points)
 {
-    m_copies = points;
+    bool copies_num_changed = m_copies.size() != points.size();
     
     // order copies with a nearest neighbor search and translate them by _copies_shift
-    this->_shifted_copies.clear();
-    this->_shifted_copies.reserve(points.size());
+    m_copies.clear();
+    m_copies.reserve(points.size());
     
     // order copies with a nearest-neighbor search
     std::vector<Points::size_type> ordered_copies;
     Slic3r::Geometry::chained_path(points, ordered_copies);
     
-    for (size_t point_idx : ordered_copies) {
-        Point copy = points[point_idx];
-        copy.translate(this->_copies_shift);
-        this->_shifted_copies.push_back(copy);
-    }
+    for (size_t point_idx : ordered_copies)
+        m_copies.push_back(points[point_idx] + m_copies_shift);
     
     bool invalidated = m_print->invalidate_step(psSkirt);
     invalidated |= m_print->invalidate_step(psBrim);
+    if (copies_num_changed)
+        invalidated |= m_print->invalidate_step(psWipeTower);
     return invalidated;
 }
 
@@ -100,7 +100,8 @@ bool PrintObject::reload_model_instances()
     Points copies;
     copies.reserve(m_model_object->instances.size());
     for (const ModelInstance *mi : m_model_object->instances)
-        copies.emplace_back(Point::new_scale(mi->offset.x, mi->offset.y));
+        if (mi->is_printable())
+            copies.emplace_back(Point::new_scale(mi->offset(0), mi->offset(1)));
     return this->set_copies(copies);
 }
 
@@ -115,7 +116,7 @@ bool PrintObject::reload_model_instances()
 // this should be idempotent
 void PrintObject::slice()
 {
-    if (m_state.is_done(posSlice))
+    if (this->is_step_done(posSlice))
         return;
     this->set_started(posSlice);
     m_print->set_status(10, "Processing triangulated mesh");
@@ -143,7 +144,7 @@ void PrintObject::make_perimeters()
     // prerequisites
     this->slice();
 
-    if (m_state.is_done(posPerimeters))
+    if (this->is_step_done(posPerimeters))
         return;
 
     this->set_started(posPerimeters);
@@ -168,12 +169,8 @@ void PrintObject::make_perimeters()
     // inside the object - infill_only_where_needed should be the method of choice for printing
     // hollow objects
     for (size_t region_id = 0; region_id < m_print->regions().size(); ++ region_id) {
-        const PrintRegion &region = *m_print->regions()[region_id];
-                
-        if (!region.config().extra_perimeters
-            || region.config().perimeters == 0
-            || region.config().fill_density == 0
-            || this->layer_count() < 2)
+        const PrintRegion &region = *m_print->regions()[region_id];    
+        if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().fill_density == 0 || this->layer_count() < 2)
             continue;
         
         BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
@@ -259,7 +256,7 @@ void PrintObject::make_perimeters()
 
 void PrintObject::prepare_infill()
 {
-    if (m_state.is_done(posPrepareInfill))
+    if (this->is_step_done(posPrepareInfill))
         return;
 
     this->set_started(posPrepareInfill);
@@ -375,10 +372,13 @@ void PrintObject::prepare_infill()
 
 void PrintObject::infill()
 {
+    if (! this->is_printable())
+        return;
+
     // prerequisites
     this->prepare_infill();
 
-    if (! m_state.is_done(posInfill)) {
+    if (! this->is_step_done(posInfill)) {
         this->set_started(posInfill);        
         BOOST_LOG_TRIVIAL(debug) << "Filling layers in parallel - start";
         tbb::parallel_for(
@@ -401,7 +401,7 @@ void PrintObject::infill()
 
 void PrintObject::generate_support_material()
 {
-    if (! m_state.is_done(posSupportMaterial)) {
+    if (! this->is_step_done(posSupportMaterial)) {
         this->set_started(posSupportMaterial);
         this->clear_support_layers();
         if ((m_config.support_material || m_config.raft_layers > 0) && m_layers.size() > 1) {
@@ -545,7 +545,10 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             || opt_key == "perimeter_speed"
             || opt_key == "small_perimeter_speed"
             || opt_key == "solid_infill_speed"
-            || opt_key == "top_solid_infill_speed") {
+            || opt_key == "top_solid_infill_speed"
+            || opt_key == "wipe_into_infill"    // when these these two are changed, we only need to invalidate the wipe tower,
+            || opt_key == "wipe_into_objects"   // which we already did at the very beginning - nothing more to be done
+            ) {
             // these options only affect G-code export, so nothing to invalidate
         } else {
             // for legacy, if we can't handle this option let's invalidate all steps
@@ -585,6 +588,8 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     }
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
+    // It also decides about what the wipe_into_infill / wipe_into_object features will do,
+    // and that too depends on many of the settings.
     invalidated |= m_print->invalidate_step(psWipeTower);
     return invalidated;
 }
@@ -1341,7 +1346,7 @@ SlicingParameters PrintObject::slicing_parameters() const
 {
     return SlicingParameters::create_from_config(
         this->print()->config(), m_config, 
-        unscale(this->size.z), this->print()->object_extruders());
+        unscale<double>(this->size(2)), this->print()->object_extruders());
 }
 
 bool PrintObject::update_layer_height_profile(std::vector<coordf_t> &layer_height_profile) const
@@ -1402,8 +1407,8 @@ void PrintObject::_slice()
 
     this->typed_slices = false;
 
-#if 0
-    // Disable parallelization for debugging purposes.
+#ifdef SLIC3R_PROFILE
+    // Disable parallelization so the Shiny profiler works
     static tbb::task_scheduler_init *tbb_init = nullptr;
     tbb_init = new tbb::task_scheduler_init(1);
 #endif
@@ -1461,7 +1466,7 @@ void PrintObject::_slice()
                 if (region_id == other_region_id)
                     continue;
                 for (size_t layer_id = 0; layer_id < expolygons_by_layer.size(); ++ layer_id) {
-                    Layer       *layer = this->layers()[layer_id];
+                    Layer       *layer = m_layers[layer_id];
                     LayerRegion *layerm = layer->m_regions[region_id];
                     LayerRegion *other_layerm = layer->m_regions[other_region_id];
                     if (layerm == nullptr || other_layerm == nullptr)
@@ -1563,7 +1568,7 @@ std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::
                 // consider the first one
                 this->model_object()->instances.front()->transform_mesh(&mesh, true);
                 // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-                mesh.translate(- float(unscale(this->_copies_shift.x)), - float(unscale(this->_copies_shift.y)), -float(this->model_object()->bounding_box().min.z));
+                mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), - float(this->model_object()->bounding_box().min(2)));
                 // perform actual slicing
 				TriangleMeshSlicer mslicer;
 				Print *print = this->print();
@@ -1678,6 +1683,113 @@ void PrintObject::_simplify_slices(double distance)
             }
         });
     BOOST_LOG_TRIVIAL(debug) << "Slicing objects - siplifying slices in parallel - end";
+}
+
+void PrintObject::_make_perimeters()
+{
+    if (!this->is_printable())
+        return;
+
+    if (this->is_step_done(posPerimeters))
+        return;
+    this->set_started(posPerimeters);
+
+    BOOST_LOG_TRIVIAL(info) << "Generating perimeters...";
+    
+    // merge slices if they were split into types
+    if (this->typed_slices) {
+        FOREACH_LAYER(this, layer_it)
+            (*layer_it)->merge_slices();
+        this->typed_slices = false;
+        this->invalidate_step(posPrepareInfill);
+    }
+    
+    // compare each layer to the one below, and mark those slices needing
+    // one additional inner perimeter, like the top of domed objects-
+    
+    // this algorithm makes sure that at least one perimeter is overlapping
+    // but we don't generate any extra perimeter if fill density is zero, as they would be floating
+    // inside the object - infill_only_where_needed should be the method of choice for printing
+    // hollow objects
+    for (size_t region_id = 0; region_id < m_print->regions().size(); ++ region_id) {
+        const PrintRegion &region = *m_print->regions()[region_id];
+        if (! region.config().extra_perimeters || region.config().perimeters == 0 || region.config().fill_density == 0 || this->layer_count() < 2)
+            continue;
+        
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - start";
+        tbb::parallel_for(
+            tbb::blocked_range<size_t>(0, m_layers.size() - 1),
+            [this, &region, region_id](const tbb::blocked_range<size_t>& range) {
+                for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx) {
+                    LayerRegion &layerm                     = *m_layers[layer_idx]->regions()[region_id];
+                    const LayerRegion &upper_layerm         = *m_layers[layer_idx+1]->regions()[region_id];
+                    const Polygons upper_layerm_polygons    = upper_layerm.slices;
+                    // Filter upper layer polygons in intersection_ppl by their bounding boxes?
+                    // my $upper_layerm_poly_bboxes= [ map $_->bounding_box, @{$upper_layerm_polygons} ];
+                    const double total_loop_length      = total_length(upper_layerm_polygons);
+                    const coord_t perimeter_spacing     = layerm.flow(frPerimeter).scaled_spacing();
+                    const Flow ext_perimeter_flow       = layerm.flow(frExternalPerimeter);
+                    const coord_t ext_perimeter_width   = ext_perimeter_flow.scaled_width();
+                    const coord_t ext_perimeter_spacing = ext_perimeter_flow.scaled_spacing();
+
+                    for (Surface &slice : layerm.slices.surfaces) {
+                        for (;;) {
+                            // compute the total thickness of perimeters
+                            const coord_t perimeters_thickness = ext_perimeter_width/2 + ext_perimeter_spacing/2
+                                + (region.config().perimeters-1 + slice.extra_perimeters) * perimeter_spacing;
+                            // define a critical area where we don't want the upper slice to fall into
+                            // (it should either lay over our perimeters or outside this area)
+                            const coord_t critical_area_depth = coord_t(perimeter_spacing * 1.5);
+                            const Polygons critical_area = diff(
+                                offset(slice.expolygon, float(- perimeters_thickness)),
+                                offset(slice.expolygon, float(- perimeters_thickness - critical_area_depth))
+                            );
+                            // check whether a portion of the upper slices falls inside the critical area
+                            const Polylines intersection = intersection_pl(to_polylines(upper_layerm_polygons), critical_area);
+                            // only add an additional loop if at least 30% of the slice loop would benefit from it
+                            if (total_length(intersection) <=  total_loop_length*0.3)
+                                break;
+                            /*
+                            if (0) {
+                                require "Slic3r/SVG.pm";
+                                Slic3r::SVG::output(
+                                    "extra.svg",
+                                    no_arrows   => 1,
+                                    expolygons  => union_ex($critical_area),
+                                    polylines   => [ map $_->split_at_first_point, map $_->p, @{$upper_layerm->slices} ],
+                                );
+                            }
+                            */
+                            ++ slice.extra_perimeters;
+                        }
+                        #ifdef DEBUG
+                            if (slice.extra_perimeters > 0)
+                                printf("  adding %d more perimeter(s) at layer %zu\n", slice.extra_perimeters, layer_idx);
+                        #endif
+                    }
+                }
+            });
+        BOOST_LOG_TRIVIAL(debug) << "Generating extra perimeters for region " << region_id << " in parallel - end";
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - start";
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, m_layers.size()),
+        [this](const tbb::blocked_range<size_t>& range) {
+            for (size_t layer_idx = range.begin(); layer_idx < range.end(); ++ layer_idx)
+                m_layers[layer_idx]->make_perimeters();
+        }
+    );
+    BOOST_LOG_TRIVIAL(debug) << "Generating perimeters in parallel - end";
+
+    /*
+        simplify slices (both layer and region slices),
+        we only need the max resolution for perimeters
+    ### This makes this method not-idempotent, so we keep it disabled for now.
+    ###$self->_simplify_slices(&Slic3r::SCALED_RESOLUTION);
+    */
+    
+    this->set_done(posPerimeters);
 }
 
 // Only active if config->infill_only_where_needed. This step trims the sparse infill,
@@ -2069,6 +2181,9 @@ void PrintObject::combine_infill()
 
 void PrintObject::_generate_support_material()
 {
+    if (!this->is_printable())
+        return;
+
     PrintObjectSupportMaterial support_material(this, PrintObject::slicing_parameters());
     support_material.generate(*this);
 }
@@ -2081,6 +2196,14 @@ void PrintObject::reset_layer_height_profile()
     // Reset the source layer_height_profile if it exists at the ModelObject.
     this->model_object()->layer_height_profile.clear();
     this->model_object()->layer_height_profile_valid = false;
+}
+
+void PrintObject::adjust_layer_height_profile(coordf_t z, coordf_t layer_thickness_delta, coordf_t band_width, int action)
+{
+    update_layer_height_profile(m_model_object->layer_height_profile);
+    Slic3r::adjust_layer_height_profile(slicing_parameters(), m_model_object->layer_height_profile, z, layer_thickness_delta, band_width, LayerHeightEditActionType(action));
+    m_model_object->layer_height_profile_valid = true;
+    layer_height_profile_valid = false;
 }
 
 } // namespace Slic3r

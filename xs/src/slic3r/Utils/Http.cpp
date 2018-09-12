@@ -3,12 +3,16 @@
 #include <cstdlib>
 #include <functional>
 #include <thread>
-#include <tuple>
+#include <deque>
+#include <sstream>
+#include <boost/filesystem/fstream.hpp>
 #include <boost/format.hpp>
 
 #include <curl/curl.h>
 
 #include "../../libslic3r/libslic3r.h"
+
+namespace fs = boost::filesystem;
 
 
 namespace Slic3r {
@@ -34,18 +38,32 @@ struct Http::priv
 	::curl_httppost *form;
 	::curl_httppost *form_end;
 	::curl_slist *headerlist;
+	// Used for reading the body
 	std::string buffer;
+	// Used for storing file streams added as multipart form parts
+	// Using a deque here because unlike vector it doesn't ivalidate pointers on insertion
+	std::deque<fs::ifstream> form_files;
+	std::string postfields;
 	size_t limit;
+	bool cancel;
 
 	std::thread io_thread;
 	Http::CompleteFn completefn;
 	Http::ErrorFn errorfn;
+	Http::ProgressFn progressfn;
 
 	priv(const std::string &url);
 	~priv();
 
 	static bool ca_file_supported(::CURL *curl);
 	static size_t writecb(void *data, size_t size, size_t nmemb, void *userp);
+	static int xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow);
+	static int xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow);
+	static size_t form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp);
+
+	void form_add_file(const char *name, const fs::path &path, const char* filename);
+	void set_post_body(const fs::path &path);
+
 	std::string curl_error(CURLcode curlcode);
 	std::string body_size_error();
 	void http_perform();
@@ -55,7 +73,9 @@ Http::priv::priv(const std::string &url) :
 	curl(::curl_easy_init()),
 	form(nullptr),
 	form_end(nullptr),
-	headerlist(nullptr)
+	headerlist(nullptr),
+	limit(0),
+	cancel(false)
 {
 	if (curl == nullptr) {
 		throw std::runtime_error(std::string("Could not construct Curl object"));
@@ -112,6 +132,71 @@ size_t Http::priv::writecb(void *data, size_t size, size_t nmemb, void *userp)
 	return realsize;
 }
 
+int Http::priv::xfercb(void *userp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow)
+{
+	auto self = static_cast<priv*>(userp);
+	bool cb_cancel = false;
+
+	if (self->progressfn) {
+		Progress progress(dltotal, dlnow, ultotal, ulnow);
+		self->progressfn(progress, cb_cancel);
+	}
+
+	return self->cancel || cb_cancel;
+}
+
+int Http::priv::xfercb_legacy(void *userp, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+	return xfercb(userp, dltotal, dlnow, ultotal, ulnow);
+}
+
+size_t Http::priv::form_file_read_cb(char *buffer, size_t size, size_t nitems, void *userp)
+{
+	auto stream = reinterpret_cast<fs::ifstream*>(userp);
+
+	try {
+		stream->read(buffer, size * nitems);
+	} catch (...) {
+		return CURL_READFUNC_ABORT;
+	}
+
+	return stream->gcount();
+}
+
+void Http::priv::form_add_file(const char *name, const fs::path &path, const char* filename)
+{
+	// We can't use CURLFORM_FILECONTENT, because curl doesn't support Unicode filenames on Windows
+	// and so we use CURLFORM_STREAM with boost ifstream to read the file.
+
+	if (filename == nullptr) {
+		filename = path.string().c_str();
+	}
+
+	form_files.emplace_back(path, std::ios::in | std::ios::binary);
+	auto &stream = form_files.back();
+	stream.seekg(0, std::ios::end);
+	size_t size = stream.tellg();
+	stream.seekg(0);
+
+	if (filename != nullptr) {
+		::curl_formadd(&form, &form_end,
+			CURLFORM_COPYNAME, name,
+			CURLFORM_FILENAME, filename,
+			CURLFORM_CONTENTTYPE, "application/octet-stream",
+			CURLFORM_STREAM, static_cast<void*>(&stream),
+			CURLFORM_CONTENTSLENGTH, static_cast<long>(size),
+			CURLFORM_END
+		);
+	}
+}
+
+void Http::priv::set_post_body(const fs::path &path)
+{
+	std::ifstream file(path.string());
+	std::string file_content { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+	postfields = file_content;
+}
+
 std::string Http::priv::curl_error(CURLcode curlcode)
 {
 	return (boost::format("%1% (%2%)")
@@ -127,10 +212,20 @@ std::string Http::priv::body_size_error()
 
 void Http::priv::http_perform()
 {
-	::curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
 	::curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	::curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writecb);
 	::curl_easy_setopt(curl, CURLOPT_WRITEDATA, static_cast<void*>(this));
+	::curl_easy_setopt(curl, CURLOPT_READFUNCTION, form_file_read_cb);
+
+	::curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 32
+	::curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, xfercb);
+	::curl_easy_setopt(curl, CURLOPT_XFERINFODATA, static_cast<void*>(this));
+	(void)xfercb_legacy;   // prevent unused function warning
+#else
+	::curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, xfercb);
+	::curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, static_cast<void*>(this));
+#endif
 
 #ifndef NDEBUG
 	::curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
@@ -144,24 +239,38 @@ void Http::priv::http_perform()
 		::curl_easy_setopt(curl, CURLOPT_HTTPPOST, form);
 	}
 
+	if (!postfields.empty()) {
+		::curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postfields.c_str());
+		::curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE_LARGE, postfields.size());
+	}
+
 	CURLcode res = ::curl_easy_perform(curl);
-	long http_status = 0;
-	::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
 
 	if (res != CURLE_OK) {
-		std::string error;
-		if (res == CURLE_WRITE_ERROR) {
-			error = std::move(body_size_error());
-		} else {
-			error = std::move(curl_error(res));
-		};
-
-		if (errorfn) {
-			errorfn(std::move(buffer), std::move(error), http_status);
+		if (res == CURLE_ABORTED_BY_CALLBACK) {
+			if (cancel) {
+				// The abort comes from the request being cancelled programatically
+				Progress dummyprogress(0, 0, 0, 0);
+				bool cancel = true;
+				if (progressfn) { progressfn(dummyprogress, cancel); }
+			} else {
+				// The abort comes from the CURLOPT_READFUNCTION callback, which means reading file failed
+				if (errorfn) { errorfn(std::move(buffer), "Error reading file for file upload", 0); }
+			}
 		}
+		else if (res == CURLE_WRITE_ERROR) {
+			if (errorfn) { errorfn(std::move(buffer), body_size_error(), 0); }
+		} else {
+			if (errorfn) { errorfn(std::move(buffer), curl_error(res), 0); }
+		};
 	} else {
-		if (completefn) {
-			completefn(std::move(buffer), http_status);
+		long http_status = 0;
+		::curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status);
+		
+		if (http_status >= 400) {
+			if (errorfn) { errorfn(std::move(buffer), std::string(), http_status); }
+		} else {
+			if (completefn) { completefn(std::move(buffer), http_status); }
 		}
 	}
 }
@@ -232,17 +341,21 @@ Http& Http::form_add(const std::string &name, const std::string &contents)
 	return *this;
 }
 
-Http& Http::form_add_file(const std::string &name, const std::string &filename)
+Http& Http::form_add_file(const std::string &name, const fs::path &path)
 {
-	if (p) {
-		::curl_formadd(&p->form, &p->form_end,
-			CURLFORM_COPYNAME, name.c_str(),
-			CURLFORM_FILE, filename.c_str(),
-			CURLFORM_CONTENTTYPE, "application/octet-stream",
-			CURLFORM_END
-		);
-	}
+	if (p) { p->form_add_file(name.c_str(), path.c_str(), nullptr); }
+	return *this;
+}
 
+Http& Http::form_add_file(const std::string &name, const fs::path &path, const std::string &filename)
+{
+	if (p) { p->form_add_file(name.c_str(), path.c_str(), filename.c_str()); }
+	return *this;
+}
+
+Http& Http::set_post_body(const fs::path &path)
+{
+	if (p) { p->set_post_body(path);}
 	return *this;
 }
 
@@ -255,6 +368,12 @@ Http& Http::on_complete(CompleteFn fn)
 Http& Http::on_error(ErrorFn fn)
 {
 	if (p) { p->errorfn = std::move(fn); }
+	return *this;
+}
+
+Http& Http::on_progress(ProgressFn fn)
+{
+	if (p) { p->progressfn = std::move(fn); }
 	return *this;
 }
 
@@ -277,6 +396,11 @@ void Http::perform_sync()
 	if (p) { p->http_perform(); }
 }
 
+void Http::cancel()
+{
+	if (p) { p->cancel = true; }
+}
+
 Http Http::get(std::string url)
 {
 	return std::move(Http{std::move(url)});
@@ -295,6 +419,32 @@ bool Http::ca_file_supported()
 	bool res = priv::ca_file_supported(curl);
 	if (curl != nullptr) { ::curl_easy_cleanup(curl); }
 	return res;
+}
+
+std::string Http::url_encode(const std::string &str)
+{
+	::CURL *curl = ::curl_easy_init();
+	if (curl == nullptr) {
+		return str;
+	}
+	char *ce = ::curl_easy_escape(curl, str.c_str(), str.length());
+	std::string encoded = std::string(ce);
+
+	::curl_free(ce);
+	::curl_easy_cleanup(curl);
+
+	return encoded;
+}
+
+std::ostream& operator<<(std::ostream &os, const Http::Progress &progress)
+{
+	os << "Http::Progress("
+		<< "dltotal = " << progress.dltotal
+		<< ", dlnow = " << progress.dlnow
+		<< ", ultotal = " << progress.ultotal
+		<< ", ulnow = " << progress.ulnow
+		<< ")";
+	return os;
 }
 
 

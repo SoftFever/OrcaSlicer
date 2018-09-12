@@ -4,10 +4,15 @@
 #include <xsinit.h>
 #include "slic3r/GUI/GUI.hpp"
 #include "slic3r/Utils/ASCIIFolding.hpp"
+#include "slic3r/Utils/FixModelByWin10.hpp"
+#include "slic3r/Utils/Serial.hpp"
 %}
 
 
 %package{Slic3r::GUI};
+
+void about()
+    %code{% Slic3r::GUI::about(); %};
 
 void disable_screensaver()
     %code{% Slic3r::GUI::disable_screensaver(); %};
@@ -16,13 +21,16 @@ void enable_screensaver()
     %code{% Slic3r::GUI::enable_screensaver(); %};
 
 std::vector<std::string> scan_serial_ports()
-    %code{% RETVAL=Slic3r::GUI::scan_serial_ports(); %};
+    %code{% RETVAL=Slic3r::Utils::scan_serial_ports(); %};
 
 bool debugged()
     %code{% RETVAL=Slic3r::GUI::debugged(); %};
 
 void break_to_debugger()
     %code{% Slic3r::GUI::break_to_debugger(); %};
+
+bool is_windows10()
+    %code{% RETVAL=Slic3r::is_windows10(); %};
 
 void set_wxapp(SV *ui)
     %code%{ Slic3r::GUI::set_wxapp((wxApp*)wxPli_sv_2_object(aTHX_ ui, "Wx::App")); %};
@@ -35,14 +43,17 @@ void set_tab_panel(SV *ui)
 
 void set_plater(SV *ui)
     %code%{ Slic3r::GUI::set_plater((wxPanel*)wxPli_sv_2_object(aTHX_ ui, "Wx::Panel")); %};
-    
-void add_debug_menu(SV *ui, int event_language_change)
-    %code%{ Slic3r::GUI::add_debug_menu((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_language_change); %};
+
+void add_menus(SV *ui, int event_preferences_changed, int event_language_change)    
+    %code%{ Slic3r::GUI::add_menus((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
 
 void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
     %code%{ Slic3r::GUI::create_preset_tabs(no_controller, event_value_change, event_presets_changed); %};
 
-Ref<TabIface> get_preset_tab(char *name)
+void show_error_id(int id, std::string msg)
+    %code%{ Slic3r::GUI::show_error_id(id, msg); %};
+
+TabIface* get_preset_tab(char *name)
     %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};
 
 bool load_language()
@@ -57,11 +68,22 @@ int combochecklist_get_flags(SV *ui)
 void set_app_config(AppConfig *app_config)
     %code%{ Slic3r::GUI::set_app_config(app_config); %};
 
+bool check_unsaved_changes()
+    %code%{ RETVAL=Slic3r::GUI::check_unsaved_changes(); %};
+
+bool config_wizard_startup(int app_config_exists)
+    %code%{
+        RETVAL=Slic3r::GUI::config_wizard_startup(app_config_exists != 0);
+    %};
+
 void open_preferences_dialog(int preferences_event)
     %code%{ Slic3r::GUI::open_preferences_dialog(preferences_event); %};
 
 void set_preset_bundle(PresetBundle *preset_bundle)
     %code%{ Slic3r::GUI::set_preset_bundle(preset_bundle); %};
+
+void set_preset_updater(PresetUpdater* updater)
+    %code%{ Slic3r::GUI::set_preset_updater(updater); %};
 
 void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_sizer)
     %code%{ Slic3r::GUI::add_frequently_changed_parameters((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
@@ -71,5 +93,99 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
 void set_print_callback_event(Print *print, int id)
     %code%{ Slic3r::GUI::set_print_callback_event(print, id); %};
 
+void add_expert_mode_part(  SV *ui_parent, SV *ui_sizer, 
+                            Model *model,
+                            int event_object_selection_changed,
+                            int event_object_settings_changed,
+                            int event_remove_object, 
+                            int event_update_scene)
+    %code%{ Slic3r::GUI::add_expert_mode_part(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                                                (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"), 
+                                                *model,  
+                                                event_object_selection_changed,
+                                                event_object_settings_changed,
+                                                event_remove_object, 
+                                                event_update_scene); %};
+
+void set_objects_from_perl( SV *ui_parent, 
+                            SV *frequently_changed_parameters_sizer,
+                            SV *expert_mode_part_sizer,
+                            SV *scrolled_window_sizer,
+                            SV *btn_export_gcode,
+                            SV *btn_export_stl,
+                            SV *btn_reslice,
+                            SV *btn_print,
+                            SV *btn_send_gcode,
+                            SV *manifold_warning_icon)
+    %code%{ Slic3r::GUI::set_objects_from_perl(
+                            (wxWindow *)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ frequently_changed_parameters_sizer, "Wx::BoxSizer"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ expert_mode_part_sizer, "Wx::BoxSizer"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ scrolled_window_sizer, "Wx::BoxSizer"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_gcode, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_stl, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_reslice, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_print, "Wx::Button"),
+                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_send_gcode, "Wx::Button"),
+                            (wxStaticBitmap *)wxPli_sv_2_object(aTHX_ manifold_warning_icon, "Wx::StaticBitmap")); %};
+
+void set_show_print_info(bool show)
+    %code%{ Slic3r::GUI::set_show_print_info(show); %};
+
+void set_show_manifold_warning_icon(bool show)
+    %code%{ Slic3r::GUI::set_show_manifold_warning_icon(show); %};
+
+void update_mode()
+    %code%{ Slic3r::GUI::update_mode(); %};
+
+void add_object_to_list(const char *name, SV *object_model)
+    %code%{ Slic3r::GUI::add_object_to_list(
+                    name, 
+                    (ModelObject *)wxPli_sv_2_object(aTHX_ object_model, "Slic3r::Model::Object") ); %};
+
+void delete_object_from_list()
+    %code%{ Slic3r::GUI::delete_object_from_list(); %};
+
+void delete_all_objects_from_list()
+    %code%{ Slic3r::GUI::delete_all_objects_from_list(); %};
+
+void set_object_count(int idx, int count)
+    %code%{ Slic3r::GUI::set_object_count(idx, count); %};
+
+void unselect_objects()
+    %code%{ Slic3r::GUI::unselect_objects(); %};
+
+void select_current_object(int idx)
+    %code%{ Slic3r::GUI::select_current_object(idx); %};
+
+void remove_obj()
+    %code%{ Slic3r::GUI::remove(); %};
+    
 std::string fold_utf8_to_ascii(const char *src)
     %code%{ RETVAL = Slic3r::fold_utf8_to_ascii(src); %};
+
+void add_export_option(SV *ui, std::string format)
+    %code%{ Slic3r::GUI::add_export_option((wxFileDialog*)wxPli_sv_2_object(aTHX_ ui, "Wx::FileDialog"), format); %};
+    
+int get_export_option(SV *ui)
+    %code%{ RETVAL = Slic3r::GUI::get_export_option((wxFileDialog*)wxPli_sv_2_object(aTHX_ ui, "Wx::FileDialog")); %};
+    
+void desktop_open_datadir_folder()
+    %code%{ Slic3r::GUI::desktop_open_datadir_folder(); %};
+
+void fix_model_by_win10_sdk_gui(ModelObject *model_object_src, Print *print, Model *model_dst)
+    %code%{ Slic3r::fix_model_by_win10_sdk_gui(*model_object_src, *print, *model_dst); %};
+
+void set_3DScene(SV *scene)
+    %code%{ Slic3r::GUI::set_3DScene((_3DScene *)wxPli_sv_2_object(aTHX_ scene, "Slic3r::Model::3DScene") ); %};
+
+void register_on_request_update_callback(SV* callback)
+    %code%{ Slic3r::GUI::g_on_request_update_callback.register_callback(callback); %};
+
+void deregister_on_request_update_callback()
+    %code%{ Slic3r::GUI::g_on_request_update_callback.deregister_callback(); %};
+
+//void create_double_slider(SV *ui_parent, SV *ui_ds)
+//    %code%{ Slic3r::GUI::create_double_slider(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+//                                                (wxControl*)wxPli_sv_2_object(aTHX_ ui_ds, "Wx::Control")); %};
+

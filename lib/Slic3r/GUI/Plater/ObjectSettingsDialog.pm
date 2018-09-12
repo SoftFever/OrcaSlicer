@@ -36,6 +36,7 @@ sub new {
         wxTheApp->save_window_pos($self, "object_settings");
         
         $self->EndModal(wxID_OK);
+        $self->{parts}->Destroy;
         $self->Destroy;
     });
     
@@ -45,6 +46,8 @@ sub new {
     
     $self->SetSizer($sizer);
     $self->SetMinSize($self->GetSize);
+    
+    $self->Layout;
     
     wxTheApp->restore_window_pos($self, "object_settings");
     

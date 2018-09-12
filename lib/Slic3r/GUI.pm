@@ -7,9 +7,6 @@ use File::Basename qw(basename);
 use FindBin;
 use List::Util qw(first);
 use Slic3r::GUI::2DBed;
-use Slic3r::GUI::AboutDialog;
-use Slic3r::GUI::BedShapeDialog;
-use Slic3r::GUI::ConfigWizard;
 use Slic3r::GUI::Controller;
 use Slic3r::GUI::Controller::ManualControlDialog;
 use Slic3r::GUI::Controller::PrinterPanel;
@@ -70,6 +67,8 @@ our $grey = Wx::Colour->new(200,200,200);
 our $LANGUAGE_CHANGE_EVENT  = Wx::NewEventType;
 # 2) To inform about a change of Preferences.
 our $PREFERENCES_EVENT      = Wx::NewEventType;
+# To inform AppConfig about Slic3r version available online
+our $VERSION_ONLINE_EVENT   = Wx::NewEventType;
 
 sub OnInit {
     my ($self) = @_;
@@ -86,7 +85,9 @@ sub OnInit {
     Slic3r::GUI::set_wxapp($self);
 
     $self->{app_config} = Slic3r::GUI::AppConfig->new;
+    Slic3r::GUI::set_app_config($self->{app_config});
     $self->{preset_bundle} = Slic3r::GUI::PresetBundle->new;
+    Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
 
     # just checking for existence of Slic3r::data_dir is not enough: it may be an empty directory
     # supplied as argument to --datadir; in that case we should still run the wizard
@@ -95,28 +96,27 @@ sub OnInit {
         warn $@ . "\n";
         fatal_error(undef, $@);
     }
-    my $run_wizard = ! $self->{app_config}->exists;
+    my $app_conf_exists = $self->{app_config}->exists;
     # load settings
-    $self->{app_config}->load if ! $run_wizard;
+    $self->{app_config}->load if $app_conf_exists;
     $self->{app_config}->set('version', $Slic3r::VERSION);
     $self->{app_config}->save;
 
-    Slic3r::GUI::set_app_config($self->{app_config});
+    $self->{preset_updater} = Slic3r::PresetUpdater->new($VERSION_ONLINE_EVENT);
+    Slic3r::GUI::set_preset_updater($self->{preset_updater});
+
     Slic3r::GUI::load_language();
 
     # Suppress the '- default -' presets.
     $self->{preset_bundle}->set_default_suppressed($self->{app_config}->get('no_defaults') ? 1 : 0);
-    eval { $self->{preset_bundle}->load_presets };
+    eval { $self->{preset_bundle}->load_presets($self->{app_config}); };
     if ($@) {
         warn $@ . "\n";
         show_error(undef, $@);
     }
-    eval { $self->{preset_bundle}->load_selections($self->{app_config}) };
-    $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
 
-    Slic3r::GUI::set_preset_bundle($self->{preset_bundle});
-    
     # application frame
+    print STDERR "Creating main frame...\n";
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
         # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
@@ -127,7 +127,7 @@ sub OnInit {
     );
     $self->SetTopWindow($frame);
 
-    #EVT_IDLE($frame, sub {
+    # This makes CallAfter() work
     EVT_IDLE($self->{mainframe}, sub {
         while (my $cb = shift @cb) {
             $cb->();
@@ -135,17 +135,32 @@ sub OnInit {
         $self->{app_config}->save if $self->{app_config}->dirty;
     });
 
-    if ($run_wizard) {
-        # On OSX the UI was not initialized correctly if the wizard was called
-        # before the UI was up and running.
-        $self->CallAfter(sub {
-            # Run the config wizard, don't offer the "reset user profile" checkbox.
-            $self->{mainframe}->config_wizard(1);
-        });
-    }
+    # On OS X the UI tends to freeze in weird ways if modal dialogs (config wizard, update notifications, ...)
+    # are shown before or in the same event callback with the main frame creation.
+    # Therefore we schedule them for later using CallAfter.
+    $self->CallAfter(sub {
+        eval {
+            if (! $self->{preset_updater}->config_update()) {
+                $self->{mainframe}->Close;
+            }
+        };
+        if ($@) {
+            show_error(undef, $@);
+            $self->{mainframe}->Close;
+        }
+    });
+
+    $self->CallAfter(sub {
+        if (! Slic3r::GUI::config_wizard_startup($app_conf_exists)) {
+            # Only notify if there was not wizard so as not to bother too much ...
+            $self->{preset_updater}->slic3r_update_notify();
+        }
+        $self->{preset_updater}->sync($self->{preset_bundle});
+    });
 
     # The following event is emited by the C++ menu implementation of application language change.
     EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{
+        print STDERR "LANGUAGE_CHANGE_EVENT\n";
         $self->recreate_GUI;
     });
 
@@ -154,10 +169,20 @@ sub OnInit {
         $self->update_ui_from_settings;
     });
     
+    # The following event is emited by PresetUpdater (C++) to inform about
+    # the newer Slic3r application version avaiable online.
+    EVT_COMMAND($self, -1, $VERSION_ONLINE_EVENT, sub {
+        my ($self, $event) = @_;
+        my $version = $event->GetString;
+        $self->{app_config}->set('version_online', $version);
+        $self->{app_config}->save;
+    });
+
     return 1;
 }
 
 sub recreate_GUI{
+    print STDERR "recreate_GUI\n";
     my ($self) = @_;
     my $topwindow = $self->GetTopWindow();
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
@@ -174,22 +199,19 @@ sub recreate_GUI{
         $topwindow->Destroy;
     }
 
-    my $run_wizard = 1 if $self->{preset_bundle}->has_defauls_only;
-    if ($run_wizard) {
-        # On OSX the UI was not initialized correctly if the wizard was called
-        # before the UI was up and running.
-        $self->CallAfter(sub {
-            # Run the config wizard, don't offer the "reset user profile" checkbox.
-            $self->{mainframe}->config_wizard(1);
-        });
-    }
-}
+    EVT_IDLE($self->{mainframe}, sub {
+        while (my $cb = shift @cb) {
+            $cb->();
+        }
+        $self->{app_config}->save if $self->{app_config}->dirty;
+    });
 
-sub about {
-    my ($self) = @_;
-    my $about = Slic3r::GUI::AboutDialog->new(undef);
-    $about->ShowModal;
-    $about->Destroy;
+    # On OSX the UI was not initialized correctly if the wizard was called
+    # before the UI was up and running.
+    $self->CallAfter(sub {
+        # Run the config wizard, don't offer the "reset user profile" checkbox.
+        Slic3r::GUI::config_wizard_startup(1);
+    });
 }
 
 sub system_info {
@@ -201,8 +223,8 @@ sub system_info {
     my $opengl_info_txt = '';
     if (defined($self->{mainframe}) && defined($self->{mainframe}->{plater}) &&
         defined($self->{mainframe}->{plater}->{canvas3D})) {
-        $opengl_info = $self->{mainframe}->{plater}->{canvas3D}->opengl_info(format => 'html');
-        $opengl_info_txt = $self->{mainframe}->{plater}->{canvas3D}->opengl_info;
+        $opengl_info = Slic3r::GUI::_3DScene::get_gl_info(1, 1);
+        $opengl_info_txt = Slic3r::GUI::_3DScene::get_gl_info(0, 1);
     }
     my $about = Slic3r::GUI::SystemInfo->new(
         parent      => undef, 
@@ -232,7 +254,7 @@ sub catch_error {
 # static method accepting a wxWindow object as first parameter
 sub show_error {
     my ($parent, $message) = @_;
-    Wx::MessageDialog->new($parent, $message, 'Error', wxOK | wxICON_ERROR)->ShowModal;
+    Slic3r::GUI::show_error_id($parent ? $parent->GetId() : 0, $message);
 }
 
 # static method accepting a wxWindow object as first parameter

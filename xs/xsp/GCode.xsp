@@ -23,7 +23,7 @@
             try {
                 THIS->do_export(print, path);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
     void do_export_w_preview(Print *print, const char *path, GCodePreviewData *preview_data)
@@ -31,13 +31,13 @@
             try {
                 THIS->do_export(print, path, preview_data);
             } catch (std::exception& e) {
-                croak(e.what());
+                croak("%s\n", e.what());
             }
         %};
 
-    Ref<Pointf> origin()
+    Ref<Vec2d> origin()
         %code{% RETVAL = &(THIS->origin()); %};
-    void set_origin(Pointf* pointf)
+    void set_origin(Vec2d* pointf)
         %code{% THIS->set_origin(*pointf); %};
     Ref<Point> last_pos()
         %code{% RETVAL = &(THIS->last_pos()); %};

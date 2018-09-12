@@ -2,6 +2,9 @@
 
 #include "GLShader.hpp"
 
+#include "../../libslic3r/Utils.hpp"
+#include <boost/nowide/fstream.hpp>
+
 #include <string>
 #include <utility>
 #include <assert.h>
@@ -22,7 +25,7 @@ inline std::string gl_get_string_safe(GLenum param)
     return std::string(value ? value : "N/A");
 }
 
-bool GLShader::load(const char *fragment_shader, const char *vertex_shader)
+bool GLShader::load_from_text(const char *fragment_shader, const char *vertex_shader)
 {
     std::string gl_version = gl_get_string_safe(GL_VERSION);
     int major = atoi(gl_version.c_str());
@@ -123,6 +126,41 @@ bool GLShader::load(const char *fragment_shader, const char *vertex_shader)
     return true;
 }
 
+bool GLShader::load_from_file(const char* fragment_shader_filename, const char* vertex_shader_filename)
+{
+    const std::string& path = resources_dir() + "/shaders/";
+
+    boost::nowide::ifstream vs(path + std::string(vertex_shader_filename), boost::nowide::ifstream::binary);
+    if (!vs.good())
+        return false;
+
+    vs.seekg(0, vs.end);
+    int file_length = vs.tellg();
+    vs.seekg(0, vs.beg);
+    std::string vertex_shader(file_length, '\0');
+    vs.read(const_cast<char*>(vertex_shader.data()), file_length);
+    if (!vs.good())
+        return false;
+
+    vs.close();
+
+    boost::nowide::ifstream fs(path + std::string(fragment_shader_filename), boost::nowide::ifstream::binary);
+    if (!fs.good())
+        return false;
+
+    fs.seekg(0, fs.end);
+    file_length = fs.tellg();
+    fs.seekg(0, fs.beg);
+    std::string fragment_shader(file_length, '\0');
+    fs.read(const_cast<char*>(fragment_shader.data()), file_length);
+    if (!fs.good())
+        return false;
+
+    fs.close();
+
+    return load_from_text(fragment_shader.c_str(), vertex_shader.c_str());
+}
+
 void GLShader::release()
 {
     if (this->shader_program_id) {
@@ -171,6 +209,17 @@ bool GLShader::set_uniform(const char *name, float value) const
     int id = this->get_uniform_location(name);
     if (id >= 0) { 
         glUniform1fARB(id, value);
+        return true;
+    }
+    return false;
+}
+
+bool GLShader::set_uniform(const char* name, const float* matrix) const
+{
+    int id = get_uniform_location(name);
+    if (id >= 0)
+    {
+        ::glUniformMatrix4fv(id, 1, GL_FALSE, (const GLfloat*)matrix);
         return true;
     }
     return false;

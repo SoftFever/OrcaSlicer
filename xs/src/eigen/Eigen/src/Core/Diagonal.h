@@ -70,7 +70,10 @@ template<typename MatrixType, int _DiagIndex> class Diagonal
     EIGEN_DENSE_PUBLIC_INTERFACE(Diagonal)
 
     EIGEN_DEVICE_FUNC
-    explicit inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(a_index) {}
+    explicit inline Diagonal(MatrixType& matrix, Index a_index = DiagIndex) : m_matrix(matrix), m_index(a_index)
+    {
+      eigen_assert( a_index <= m_matrix.cols() && -a_index <= m_matrix.rows() );
+    }
 
     EIGEN_INHERIT_ASSIGNMENT_OPERATORS(Diagonal)
 

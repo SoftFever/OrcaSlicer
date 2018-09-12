@@ -67,7 +67,7 @@ template<> struct unpacket_traits<Packet2cf> { typedef std::complex<float> type;
 template<> EIGEN_STRONG_INLINE Packet2cf pset1<Packet2cf>(const std::complex<float>&  from)
 {
   float32x2_t r64;
-  r64 = vld1_f32((float *)&from);
+  r64 = vld1_f32((const float *)&from);
 
   return Packet2cf(vcombine_f32(r64, r64));
 }
@@ -142,7 +142,7 @@ template<> EIGEN_DEVICE_FUNC inline void pscatter<std::complex<float>, Packet2cf
   to[stride*1] = std::complex<float>(vgetq_lane_f32(from.v, 2), vgetq_lane_f32(from.v, 3));
 }
 
-template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::complex<float> *   addr) { EIGEN_ARM_PREFETCH((float *)addr); }
+template<> EIGEN_STRONG_INLINE void prefetch<std::complex<float> >(const std::complex<float> *   addr) { EIGEN_ARM_PREFETCH((const float *)addr); }
 
 template<> EIGEN_STRONG_INLINE std::complex<float>  pfirst<Packet2cf>(const Packet2cf& a)
 {
@@ -265,6 +265,8 @@ template<> struct conj_helper<Packet2cf, Packet2cf, true,true>
   }
 };
 
+EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet2cf,Packet4f)
+
 template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, const Packet2cf& b)
 {
   // TODO optimize it for NEON
@@ -275,7 +277,7 @@ template<> EIGEN_STRONG_INLINE Packet2cf pdiv<Packet2cf>(const Packet2cf& a, con
   s = vmulq_f32(b.v, b.v);
   rev_s = vrev64q_f32(s);
 
-  return Packet2cf(pdiv(res.v, vaddq_f32(s,rev_s)));
+  return Packet2cf(pdiv<Packet4f>(res.v, vaddq_f32(s,rev_s)));
 }
 
 EIGEN_DEVICE_FUNC inline void
@@ -381,7 +383,7 @@ template<> EIGEN_STRONG_INLINE Packet1cd ploaddup<Packet1cd>(const std::complex<
 template<> EIGEN_STRONG_INLINE void pstore <std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_ALIGNED_STORE pstore((double*)to, from.v); }
 template<> EIGEN_STRONG_INLINE void pstoreu<std::complex<double> >(std::complex<double> *   to, const Packet1cd& from) { EIGEN_DEBUG_UNALIGNED_STORE pstoreu((double*)to, from.v); }
 
-template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::complex<double> *   addr) { EIGEN_ARM_PREFETCH((double *)addr); }
+template<> EIGEN_STRONG_INLINE void prefetch<std::complex<double> >(const std::complex<double> *   addr) { EIGEN_ARM_PREFETCH((const double *)addr); }
 
 template<> EIGEN_DEVICE_FUNC inline Packet1cd pgather<std::complex<double>, Packet1cd>(const std::complex<double>* from, Index stride)
 {
@@ -455,6 +457,8 @@ template<> struct conj_helper<Packet1cd, Packet1cd, true,true>
     return pconj(internal::pmul(a, b));
   }
 };
+
+EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet1cd,Packet2d)
 
 template<> EIGEN_STRONG_INLINE Packet1cd pdiv<Packet1cd>(const Packet1cd& a, const Packet1cd& b)
 {

@@ -19,6 +19,8 @@ void GCodeWriter::apply_print_config(const PrintConfig &print_config)
     this->config.apply(print_config, true);
     m_extrusion_axis = this->config.get_extrusion_axis();
     m_single_extruder_multi_material = print_config.single_extruder_multi_material.value;
+    m_max_acceleration = (print_config.gcode_flavor.value == gcfMarlin) ?
+        print_config.machine_max_acceleration_extruding.values.front() : 0;
 }
 
 void GCodeWriter::set_extruders(const std::vector<unsigned int> &extruder_ids)
@@ -170,6 +172,10 @@ std::string GCodeWriter::set_fan(unsigned int speed, bool dont_save)
 
 std::string GCodeWriter::set_acceleration(unsigned int acceleration)
 {
+    // Clamp the acceleration to the allowed maximum.
+    if (m_max_acceleration > 0 && acceleration > m_max_acceleration)
+        acceleration = m_max_acceleration;
+
     if (acceleration == 0 || acceleration == m_last_acceleration)
         return std::string();
     
@@ -270,30 +276,30 @@ std::string GCodeWriter::set_speed(double F, const std::string &comment, const s
     return gcode.str();
 }
 
-std::string GCodeWriter::travel_to_xy(const Pointf &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xy(const Vec2d &point, const std::string &comment)
 {
-    m_pos.x = point.x;
-    m_pos.y = point.y;
+    m_pos(0) = point(0);
+    m_pos(1) = point(1);
     
     std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point.x)
-          <<   " Y" << XYZF_NUM(point.y)
+    gcode << "G1 X" << XYZF_NUM(point(0))
+          <<   " Y" << XYZF_NUM(point(1))
           <<   " F" << XYZF_NUM(this->config.travel_speed.value * 60.0);
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
 }
 
-std::string GCodeWriter::travel_to_xyz(const Pointf3 &point, const std::string &comment)
+std::string GCodeWriter::travel_to_xyz(const Vec3d &point, const std::string &comment)
 {
     /*  If target Z is lower than current Z but higher than nominal Z we
         don't perform the Z move but we only move in the XY plane and
         adjust the nominal Z by reducing the lift amount that will be 
         used for unlift. */
-    if (!this->will_move_z(point.z)) {
-        double nominal_z = m_pos.z - m_lifted;
-        m_lifted = m_lifted - (point.z - nominal_z);
-        return this->travel_to_xy(point);
+    if (!this->will_move_z(point(2))) {
+        double nominal_z = m_pos(2) - m_lifted;
+        m_lifted = m_lifted - (point(2) - nominal_z);
+        return this->travel_to_xy(to_2d(point));
     }
     
     /*  In all the other cases, we perform an actual XYZ move and cancel
@@ -302,9 +308,9 @@ std::string GCodeWriter::travel_to_xyz(const Pointf3 &point, const std::string &
     m_pos = point;
     
     std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point.x)
-          <<   " Y" << XYZF_NUM(point.y)
-          <<   " Z" << XYZF_NUM(point.z)
+    gcode << "G1 X" << XYZF_NUM(point(0))
+          <<   " Y" << XYZF_NUM(point(1))
+          <<   " Z" << XYZF_NUM(point(2))
           <<   " F" << XYZF_NUM(this->config.travel_speed.value * 60.0);
     COMMENT(comment);
     gcode << "\n";
@@ -317,7 +323,7 @@ std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
         we don't perform the move but we only adjust the nominal Z by
         reducing the lift amount that will be used for unlift. */
     if (!this->will_move_z(z)) {
-        double nominal_z = m_pos.z - m_lifted;
+        double nominal_z = m_pos(2) - m_lifted;
         m_lifted = m_lifted - (z - nominal_z);
         return "";
     }
@@ -330,7 +336,7 @@ std::string GCodeWriter::travel_to_z(double z, const std::string &comment)
 
 std::string GCodeWriter::_travel_to_z(double z, const std::string &comment)
 {
-    m_pos.z = z;
+    m_pos(2) = z;
     
     std::ostringstream gcode;
     gcode << "G1 Z" << XYZF_NUM(z)
@@ -345,38 +351,38 @@ bool GCodeWriter::will_move_z(double z) const
     /* If target Z is lower than current Z but higher than nominal Z
         we don't perform an actual Z move. */
     if (m_lifted > 0) {
-        double nominal_z = m_pos.z - m_lifted;
-        if (z >= nominal_z && z <= m_pos.z)
+        double nominal_z = m_pos(2) - m_lifted;
+        if (z >= nominal_z && z <= m_pos(2))
             return false;
     }
     return true;
 }
 
-std::string GCodeWriter::extrude_to_xy(const Pointf &point, double dE, const std::string &comment)
+std::string GCodeWriter::extrude_to_xy(const Vec2d &point, double dE, const std::string &comment)
 {
-    m_pos.x = point.x;
-    m_pos.y = point.y;
+    m_pos(0) = point(0);
+    m_pos(1) = point(1);
     m_extruder->extrude(dE);
     
     std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point.x)
-          <<   " Y" << XYZF_NUM(point.y)
+    gcode << "G1 X" << XYZF_NUM(point(0))
+          <<   " Y" << XYZF_NUM(point(1))
           <<    " " << m_extrusion_axis << E_NUM(m_extruder->E());
     COMMENT(comment);
     gcode << "\n";
     return gcode.str();
 }
 
-std::string GCodeWriter::extrude_to_xyz(const Pointf3 &point, double dE, const std::string &comment)
+std::string GCodeWriter::extrude_to_xyz(const Vec3d &point, double dE, const std::string &comment)
 {
     m_pos = point;
     m_lifted = 0;
     m_extruder->extrude(dE);
     
     std::ostringstream gcode;
-    gcode << "G1 X" << XYZF_NUM(point.x)
-          <<   " Y" << XYZF_NUM(point.y)
-          <<   " Z" << XYZF_NUM(point.z)
+    gcode << "G1 X" << XYZF_NUM(point(0))
+          <<   " Y" << XYZF_NUM(point(1))
+          <<   " Z" << XYZF_NUM(point(2))
           <<    " " << m_extrusion_axis << E_NUM(m_extruder->E());
     COMMENT(comment);
     gcode << "\n";
@@ -480,12 +486,12 @@ std::string GCodeWriter::lift()
     {
         double above = this->config.retract_lift_above.get_at(m_extruder->id());
         double below = this->config.retract_lift_below.get_at(m_extruder->id());
-        if (m_pos.z >= above && (below == 0 || m_pos.z <= below))
+        if (m_pos(2) >= above && (below == 0 || m_pos(2) <= below))
             target_lift = this->config.retract_lift.get_at(m_extruder->id());
     }
     if (m_lifted == 0 && target_lift > 0) {
         m_lifted = target_lift;
-        return this->_travel_to_z(m_pos.z + target_lift, "lift Z");
+        return this->_travel_to_z(m_pos(2) + target_lift, "lift Z");
     }
     return "";
 }
@@ -494,7 +500,7 @@ std::string GCodeWriter::unlift()
 {
     std::string gcode;
     if (m_lifted > 0) {
-        gcode += this->_travel_to_z(m_pos.z - m_lifted, "restore layer Z");
+        gcode += this->_travel_to_z(m_pos(2) - m_lifted, "restore layer Z");
         m_lifted = 0;
     }
     return gcode;

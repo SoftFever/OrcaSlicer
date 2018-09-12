@@ -167,8 +167,8 @@ void Layer::export_region_slices_to_svg(const char *path) const
         for (const auto &surface : region->slices.surfaces)
             bbox.merge(get_extents(surface.expolygon));
     Point legend_size = export_surface_type_legend_to_svg_box_size();
-    Point legend_pos(bbox.min.x, bbox.max.y);
-    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
 
     SVG svg(path, bbox);
     const float transparency = 0.5f;
@@ -193,8 +193,8 @@ void Layer::export_region_fill_surfaces_to_svg(const char *path) const
         for (const auto &surface : region->slices.surfaces)
             bbox.merge(get_extents(surface.expolygon));
     Point legend_size = export_surface_type_legend_to_svg_box_size();
-    Point legend_pos(bbox.min.x, bbox.max.y);
-    bbox.merge(Point(std::max(bbox.min.x + legend_size.x, bbox.max.x), bbox.max.y + legend_size.y));
+    Point legend_pos(bbox.min(0), bbox.max(1));
+    bbox.merge(Point(std::max(bbox.min(0) + legend_size(0), bbox.max(0)), bbox.max(1) + legend_size(1)));
 
     SVG svg(path, bbox);
     const float transparency = 0.5f;

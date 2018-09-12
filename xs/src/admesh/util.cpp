@@ -62,7 +62,7 @@ stl_verify_neighbors(stl_file *stl) {
         edge_b.p1 = stl->facet_start[neighbor].vertex[(vnot + 1) % 3];
         edge_b.p2 = stl->facet_start[neighbor].vertex[(vnot + 2) % 3];
       }
-      if(memcmp(&edge_a, &edge_b, SIZEOF_EDGE_SORT) != 0) {
+      if (edge_a.p1 != edge_b.p1 || edge_a.p2 != edge_b.p2) {
         /* These edges should match but they don't.  Print results. */
         printf("edge %d of facet %d doesn't match edge %d of facet %d\n",
                j, i, vnot + 1, neighbor);
@@ -73,114 +73,67 @@ stl_verify_neighbors(stl_file *stl) {
   }
 }
 
-void
-stl_translate(stl_file *stl, float x, float y, float z) {
-  int i;
-  int j;
+void stl_translate(stl_file *stl, float x, float y, float z)
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j].x -= (stl->stats.min.x - x);
-      stl->facet_start[i].vertex[j].y -= (stl->stats.min.y - y);
-      stl->facet_start[i].vertex[j].z -= (stl->stats.min.z - z);
-    }
-  }
-  stl->stats.max.x -= (stl->stats.min.x - x);
-  stl->stats.max.y -= (stl->stats.min.y - y);
-  stl->stats.max.z -= (stl->stats.min.z - z);
-  stl->stats.min.x = x;
-  stl->stats.min.y = y;
-  stl->stats.min.z = z;
-
+  stl_vertex new_min(x, y, z);
+  stl_vertex shift = new_min - stl->stats.min;
+  for (int i = 0; i < stl->stats.number_of_facets; ++ i)
+    for (int j = 0; j < 3; ++ j)
+      stl->facet_start[i].vertex[j] += shift;
+  stl->stats.min = new_min;
+  stl->stats.max += shift;
   stl_invalidate_shared_vertices(stl);
 }
 
 /* Translates the stl by x,y,z, relatively from wherever it is currently */
-void
-stl_translate_relative(stl_file *stl, float x, float y, float z) {
-  int i;
-  int j;
+void stl_translate_relative(stl_file *stl, float x, float y, float z)
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j].x += x;
-      stl->facet_start[i].vertex[j].y += y;
-      stl->facet_start[i].vertex[j].z += z;
-    }
-  }
-  stl->stats.min.x += x;
-  stl->stats.min.y += y;
-  stl->stats.min.z += z;
-  stl->stats.max.x += x;
-  stl->stats.max.y += y;
-  stl->stats.max.z += z;
-
+  stl_vertex shift(x, y, z);
+  for (int i = 0; i < stl->stats.number_of_facets; ++ i)
+    for (int j = 0; j < 3; ++ j)
+      stl->facet_start[i].vertex[j] += shift;
+  stl->stats.min += shift;
+  stl->stats.max += shift;
   stl_invalidate_shared_vertices(stl);
 }
 
-void
-stl_scale_versor(stl_file *stl, float versor[3]) {
-  int i;
-  int j;
+void stl_scale_versor(stl_file *stl, const stl_vertex &versor)
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
-
-  /* scale extents */
-  stl->stats.min.x *= versor[0];
-  stl->stats.min.y *= versor[1];
-  stl->stats.min.z *= versor[2];
-  stl->stats.max.x *= versor[0];
-  stl->stats.max.y *= versor[1];
-  stl->stats.max.z *= versor[2];
-
-  /* scale size */
-  stl->stats.size.x *= versor[0];
-  stl->stats.size.y *= versor[1];
-  stl->stats.size.z *= versor[2];
-
-  /* scale volume */
-  if (stl->stats.volume > 0.0) {
-    stl->stats.volume *= (versor[0] * versor[1] * versor[2]);
-  }
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j].x *= versor[0];
-      stl->facet_start[i].vertex[j].y *= versor[1];
-      stl->facet_start[i].vertex[j].z *= versor[2];
-    }
-  }
-
+  // Scale extents.
+  auto s = versor.array();
+  stl->stats.min.array() *= s;
+  stl->stats.max.array() *= s;
+  // Scale size.
+  stl->stats.size.array() *= s;
+  // Scale volume.
+  if (stl->stats.volume > 0.0)
+    stl->stats.volume *= versor(0) * versor(1) * versor(2);
+  // Scale the mesh.
+  for (int i = 0; i < stl->stats.number_of_facets; ++ i)
+    for (int j = 0; j < 3; ++ j)
+      stl->facet_start[i].vertex[j].array() *= s;
   stl_invalidate_shared_vertices(stl);
 }
 
-void
-stl_scale(stl_file *stl, float factor) {
-  float versor[3];
+static void calculate_normals(stl_file *stl) 
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
-
-  versor[0] = factor;
-  versor[1] = factor;
-  versor[2] = factor;
-  stl_scale_versor(stl, versor);
-}
-
-static void calculate_normals(stl_file *stl) {
-  float normal[3];
-
-  if (stl->error) return;
-
+  stl_normal normal;
   for(uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
     stl_calculate_normal(normal, &stl->facet_start[i]);
     stl_normalize_vector(normal);
-    stl->facet_start[i].normal.x = normal[0];
-    stl->facet_start[i].normal.y = normal[1];
-    stl->facet_start[i].normal.z = normal[2];
+    stl->facet_start[i].normal = normal;
   }
 }
 
@@ -193,13 +146,54 @@ void stl_transform(stl_file *stl, float *trafo3x4) {
     for (i_vertex = 0; i_vertex < 3; ++ i_vertex) {
       stl_vertex &v_dst = vertices[i_vertex];
       stl_vertex  v_src = v_dst;
-      v_dst.x = trafo3x4[0] * v_src.x + trafo3x4[1] * v_src.y + trafo3x4[2]  * v_src.z + trafo3x4[3];
-      v_dst.y = trafo3x4[4] * v_src.x + trafo3x4[5] * v_src.y + trafo3x4[6]  * v_src.z + trafo3x4[7];
-      v_dst.z = trafo3x4[8] * v_src.x + trafo3x4[9] * v_src.y + trafo3x4[10] * v_src.z + trafo3x4[11];
+      v_dst(0) = trafo3x4[0] * v_src(0) + trafo3x4[1] * v_src(1) + trafo3x4[2]  * v_src(2) + trafo3x4[3];
+      v_dst(1) = trafo3x4[4] * v_src(0) + trafo3x4[5] * v_src(1) + trafo3x4[6]  * v_src(2) + trafo3x4[7];
+      v_dst(2) = trafo3x4[8] * v_src(0) + trafo3x4[9] * v_src(1) + trafo3x4[10] * v_src(2) + trafo3x4[11];
     }
   }
   stl_get_size(stl);
   calculate_normals(stl);
+}
+
+void stl_transform(stl_file *stl, const Eigen::Transform<float, 3, Eigen::Affine, Eigen::DontAlign>& t)
+{
+    if (stl->error)
+        return;
+
+    unsigned int vertices_count = 3 * (unsigned int)stl->stats.number_of_facets;
+    if (vertices_count == 0)
+        return;
+
+    Eigen::MatrixXf src_vertices(3, vertices_count);
+    stl_facet* facet_ptr = stl->facet_start;
+    unsigned int v_id = 0;
+    while (facet_ptr < stl->facet_start + stl->stats.number_of_facets)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            ::memcpy((void*)src_vertices.col(v_id).data(), (const void*)&facet_ptr->vertex[i], 3 * sizeof(float));
+            ++v_id;
+        }
+        facet_ptr += 1;
+    }
+
+    Eigen::MatrixXf dst_vertices(3, vertices_count);
+    dst_vertices = t * src_vertices.colwise().homogeneous();
+
+    facet_ptr = stl->facet_start;
+    v_id = 0;
+    while (facet_ptr < stl->facet_start + stl->stats.number_of_facets)
+    {
+        for (int i = 0; i < 3; ++i)
+        {
+            ::memcpy((void*)&facet_ptr->vertex[i], (const void*)dst_vertices.col(v_id).data(), 3 * sizeof(float));
+            ++v_id;
+        }
+        facet_ptr += 1;
+    }
+
+    stl_get_size(stl);
+    calculate_normals(stl);
 }
 
 void
@@ -214,8 +208,8 @@ stl_rotate_x(stl_file *stl, float angle) {
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
-      stl_rotate(&stl->facet_start[i].vertex[j].y,
-                 &stl->facet_start[i].vertex[j].z, c, s);
+      stl_rotate(&stl->facet_start[i].vertex[j](1),
+                 &stl->facet_start[i].vertex[j](2), c, s);
     }
   }
   stl_get_size(stl);
@@ -234,8 +228,8 @@ stl_rotate_y(stl_file *stl, float angle) {
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
-      stl_rotate(&stl->facet_start[i].vertex[j].z,
-                 &stl->facet_start[i].vertex[j].x, c, s);
+      stl_rotate(&stl->facet_start[i].vertex[j](2),
+                 &stl->facet_start[i].vertex[j](0), c, s);
     }
   }
   stl_get_size(stl);
@@ -254,8 +248,8 @@ stl_rotate_z(stl_file *stl, float angle) {
 
   for(i = 0; i < stl->stats.number_of_facets; i++) {
     for(j = 0; j < 3; j++) {
-      stl_rotate(&stl->facet_start[i].vertex[j].x,
-                 &stl->facet_start[i].vertex[j].y, c, s);
+      stl_rotate(&stl->facet_start[i].vertex[j](0),
+                 &stl->facet_start[i].vertex[j](1), c, s);
     }
   }
   stl_get_size(stl);
@@ -272,142 +266,98 @@ stl_rotate(float *x, float *y, const double c, const double s) {
   *y = float(s * xold + c * yold);
 }
 
-extern void
-stl_get_size(stl_file *stl) {
-  int i;
-  int j;
-
-  if (stl->error) return;
-  if (stl->stats.number_of_facets == 0) return;
-
-  stl->stats.min.x = stl->facet_start[0].vertex[0].x;
-  stl->stats.min.y = stl->facet_start[0].vertex[0].y;
-  stl->stats.min.z = stl->facet_start[0].vertex[0].z;
-  stl->stats.max.x = stl->facet_start[0].vertex[0].x;
-  stl->stats.max.y = stl->facet_start[0].vertex[0].y;
-  stl->stats.max.z = stl->facet_start[0].vertex[0].z;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->stats.min.x = STL_MIN(stl->stats.min.x,
-                                 stl->facet_start[i].vertex[j].x);
-      stl->stats.min.y = STL_MIN(stl->stats.min.y,
-                                 stl->facet_start[i].vertex[j].y);
-      stl->stats.min.z = STL_MIN(stl->stats.min.z,
-                                 stl->facet_start[i].vertex[j].z);
-      stl->stats.max.x = STL_MAX(stl->stats.max.x,
-                                 stl->facet_start[i].vertex[j].x);
-      stl->stats.max.y = STL_MAX(stl->stats.max.y,
-                                 stl->facet_start[i].vertex[j].y);
-      stl->stats.max.z = STL_MAX(stl->stats.max.z,
-                                 stl->facet_start[i].vertex[j].z);
+void stl_get_size(stl_file *stl)
+{
+  if (stl->error || stl->stats.number_of_facets == 0)
+  	return;
+  stl->stats.min = stl->facet_start[0].vertex[0];
+  stl->stats.max = stl->stats.min;
+  for (int i = 0; i < stl->stats.number_of_facets; ++ i) {
+  	const stl_facet &face = stl->facet_start[i];
+    for (int j = 0; j < 3; ++ j) {
+      stl->stats.min = stl->stats.min.cwiseMin(face.vertex[j]);
+      stl->stats.max = stl->stats.max.cwiseMax(face.vertex[j]);
     }
   }
-  stl->stats.size.x = stl->stats.max.x - stl->stats.min.x;
-  stl->stats.size.y = stl->stats.max.y - stl->stats.min.y;
-  stl->stats.size.z = stl->stats.max.z - stl->stats.min.z;
-  stl->stats.bounding_diameter = sqrt(
-                                   stl->stats.size.x * stl->stats.size.x +
-                                   stl->stats.size.y * stl->stats.size.y +
-                                   stl->stats.size.z * stl->stats.size.z
-                                 );
+  stl->stats.size = stl->stats.max - stl->stats.min;
+  stl->stats.bounding_diameter = stl->stats.size.norm();
 }
 
-void
-stl_mirror_xy(stl_file *stl) {
-  int i;
-  int j;
-  float temp_size;
+void stl_mirror_xy(stl_file *stl)
+{
+  if (stl->error) 
+  	return;
 
-  if (stl->error) return;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j].z *= -1.0;
+  for(int i = 0; i < stl->stats.number_of_facets; i++) {
+    for(int j = 0; j < 3; j++) {
+      stl->facet_start[i].vertex[j](2) *= -1.0;
     }
   }
-  temp_size = stl->stats.min.z;
-  stl->stats.min.z = stl->stats.max.z;
-  stl->stats.max.z = temp_size;
-  stl->stats.min.z *= -1.0;
-  stl->stats.max.z *= -1.0;
+  float temp_size = stl->stats.min(2);
+  stl->stats.min(2) = stl->stats.max(2);
+  stl->stats.max(2) = temp_size;
+  stl->stats.min(2) *= -1.0;
+  stl->stats.max(2) *= -1.0;
   stl_reverse_all_facets(stl);
   stl->stats.facets_reversed -= stl->stats.number_of_facets;  /* for not altering stats */
 }
 
-void
-stl_mirror_yz(stl_file *stl) {
-  int i;
-  int j;
-  float temp_size;
-
+void stl_mirror_yz(stl_file *stl)
+{
   if (stl->error) return;
 
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j].x *= -1.0;
+  for (int i = 0; i < stl->stats.number_of_facets; i++) {
+    for (int j = 0; j < 3; j++) {
+      stl->facet_start[i].vertex[j](0) *= -1.0;
     }
   }
-  temp_size = stl->stats.min.x;
-  stl->stats.min.x = stl->stats.max.x;
-  stl->stats.max.x = temp_size;
-  stl->stats.min.x *= -1.0;
-  stl->stats.max.x *= -1.0;
+  float temp_size = stl->stats.min(0);
+  stl->stats.min(0) = stl->stats.max(0);
+  stl->stats.max(0) = temp_size;
+  stl->stats.min(0) *= -1.0;
+  stl->stats.max(0) *= -1.0;
   stl_reverse_all_facets(stl);
   stl->stats.facets_reversed -= stl->stats.number_of_facets;  /* for not altering stats */
 }
 
-void
-stl_mirror_xz(stl_file *stl) {
-  int i;
-  int j;
-  float temp_size;
+void stl_mirror_xz(stl_file *stl)
+{
+  if (stl->error)
+  	return;
 
-  if (stl->error) return;
-
-  for(i = 0; i < stl->stats.number_of_facets; i++) {
-    for(j = 0; j < 3; j++) {
-      stl->facet_start[i].vertex[j].y *= -1.0;
+  for (int i = 0; i < stl->stats.number_of_facets; i++) {
+    for (int j = 0; j < 3; j++) {
+      stl->facet_start[i].vertex[j](1) *= -1.0;
     }
   }
-  temp_size = stl->stats.min.y;
-  stl->stats.min.y = stl->stats.max.y;
-  stl->stats.max.y = temp_size;
-  stl->stats.min.y *= -1.0;
-  stl->stats.max.y *= -1.0;
+  float temp_size = stl->stats.min(1);
+  stl->stats.min(1) = stl->stats.max(1);
+  stl->stats.max(1) = temp_size;
+  stl->stats.min(1) *= -1.0;
+  stl->stats.max(1) *= -1.0;
   stl_reverse_all_facets(stl);
   stl->stats.facets_reversed -= stl->stats.number_of_facets;  /* for not altering stats */
 }
 
-static float get_volume(stl_file *stl) {
-  stl_vertex p0;
-  stl_vertex p;
-  stl_normal n;
-  float height;
-  float area;
-  float volume = 0.0;
+static float get_volume(stl_file *stl)
+{
+  if (stl->error)
+  	return 0;
 
-  if (stl->error) return 0;
-
-  /* Choose a point, any point as the reference */
-  p0.x = stl->facet_start[0].vertex[0].x;
-  p0.y = stl->facet_start[0].vertex[0].y;
-  p0.z = stl->facet_start[0].vertex[0].z;
-
-  for(uint32_t i = 0; i < stl->stats.number_of_facets; i++) {
-    p.x = stl->facet_start[i].vertex[0].x - p0.x;
-    p.y = stl->facet_start[i].vertex[0].y - p0.y;
-    p.z = stl->facet_start[i].vertex[0].z - p0.z;
-    /* Do dot product to get distance from point to plane */
-    n = stl->facet_start[i].normal;
-    height = (n.x * p.x) + (n.y * p.y) + (n.z * p.z);
-    area = get_area(&stl->facet_start[i]);
+  // Choose a point, any point as the reference.
+  stl_vertex p0 = stl->facet_start[0].vertex[0];
+  float volume = 0.f;
+  for(uint32_t i = 0; i < stl->stats.number_of_facets; ++ i) {
+    // Do dot product to get distance from point to plane.
+    float height = stl->facet_start[i].normal.dot(stl->facet_start[i].vertex[0] - p0);
+    float area   = get_area(&stl->facet_start[i]);
     volume += (area * height) / 3.0f;
   }
   return volume;
 }
 
-void stl_calculate_volume(stl_file *stl) {
+void stl_calculate_volume(stl_file *stl)
+{
   if (stl->error) return;
   stl->stats.volume = get_volume(stl);
   if(stl->stats.volume < 0.0) {
@@ -416,35 +366,32 @@ void stl_calculate_volume(stl_file *stl) {
   }
 }
 
-static float get_area(stl_facet *facet) {
-  double cross[3][3];
-  float sum[3];
-  float n[3];
-  float area;
-  int i;
-
+static float get_area(stl_facet *facet)
+{
   /* cast to double before calculating cross product because large coordinates
      can result in overflowing product
     (bad area is responsible for bad volume and bad facets reversal) */
-  for(i = 0; i < 3; i++) {
-    cross[i][0]=(((double)facet->vertex[i].y * (double)facet->vertex[(i + 1) % 3].z) -
-                 ((double)facet->vertex[i].z * (double)facet->vertex[(i + 1) % 3].y));
-    cross[i][1]=(((double)facet->vertex[i].z * (double)facet->vertex[(i + 1) % 3].x) -
-                 ((double)facet->vertex[i].x * (double)facet->vertex[(i + 1) % 3].z));
-    cross[i][2]=(((double)facet->vertex[i].x * (double)facet->vertex[(i + 1) % 3].y) -
-                 ((double)facet->vertex[i].y * (double)facet->vertex[(i + 1) % 3].x));
+  double cross[3][3];
+  for (int i = 0; i < 3; i++) {
+    cross[i][0]=(((double)facet->vertex[i](1) * (double)facet->vertex[(i + 1) % 3](2)) -
+                 ((double)facet->vertex[i](2) * (double)facet->vertex[(i + 1) % 3](1)));
+    cross[i][1]=(((double)facet->vertex[i](2) * (double)facet->vertex[(i + 1) % 3](0)) -
+                 ((double)facet->vertex[i](0) * (double)facet->vertex[(i + 1) % 3](2)));
+    cross[i][2]=(((double)facet->vertex[i](0) * (double)facet->vertex[(i + 1) % 3](1)) -
+                 ((double)facet->vertex[i](1) * (double)facet->vertex[(i + 1) % 3](0)));
   }
 
-  sum[0] = cross[0][0] + cross[1][0] + cross[2][0];
-  sum[1] = cross[0][1] + cross[1][1] + cross[2][1];
-  sum[2] = cross[0][2] + cross[1][2] + cross[2][2];
+  stl_normal sum;
+  sum(0) = cross[0][0] + cross[1][0] + cross[2][0];
+  sum(1) = cross[0][1] + cross[1][1] + cross[2][1];
+  sum(2) = cross[0][2] + cross[1][2] + cross[2][2];
 
-  /* This should already be done.  But just in case, let's do it again */
+  // This should already be done.  But just in case, let's do it again.
+  //FIXME this is questionable. the "sum" normal should be accurate, while the normal "n" may be calculated with a low accuracy.
+  stl_normal n;
   stl_calculate_normal(n, facet);
   stl_normalize_vector(n);
-
-  area = 0.5 * (n[0] * sum[0] + n[1] * sum[1] + n[2] * sum[2]);
-  return area;
+  return 0.5f * n.dot(sum);
 }
 
 void stl_repair(stl_file *stl,

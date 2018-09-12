@@ -85,7 +85,7 @@ EIGEN_BLAS_GEMV_SPECIALIZE(float)
 EIGEN_BLAS_GEMV_SPECIALIZE(dcomplex)
 EIGEN_BLAS_GEMV_SPECIALIZE(scomplex)
 
-#define EIGEN_BLAS_GEMV_SPECIALIZATION(EIGTYPE,BLASTYPE,BLASPREFIX) \
+#define EIGEN_BLAS_GEMV_SPECIALIZATION(EIGTYPE,BLASTYPE,BLASFUNC) \
 template<typename Index, int LhsStorageOrder, bool ConjugateLhs, bool ConjugateRhs> \
 struct general_matrix_vector_product_gemv<Index,EIGTYPE,LhsStorageOrder,ConjugateLhs,EIGTYPE,ConjugateRhs> \
 { \
@@ -113,14 +113,21 @@ static void run( \
     x_ptr=x_tmp.data(); \
     incx=1; \
   } else x_ptr=rhs; \
-  BLASPREFIX##gemv_(&trans, &m, &n, &numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, &numext::real_ref(beta), (BLASTYPE*)res, &incy); \
+  BLASFUNC(&trans, &m, &n, (const BLASTYPE*)&numext::real_ref(alpha), (const BLASTYPE*)lhs, &lda, (const BLASTYPE*)x_ptr, &incx, (const BLASTYPE*)&numext::real_ref(beta), (BLASTYPE*)res, &incy); \
 }\
 };
 
-EIGEN_BLAS_GEMV_SPECIALIZATION(double,   double, d)
-EIGEN_BLAS_GEMV_SPECIALIZATION(float,    float,  s)
-EIGEN_BLAS_GEMV_SPECIALIZATION(dcomplex, double, z)
-EIGEN_BLAS_GEMV_SPECIALIZATION(scomplex, float,  c)
+#ifdef EIGEN_USE_MKL
+EIGEN_BLAS_GEMV_SPECIALIZATION(double,   double, dgemv)
+EIGEN_BLAS_GEMV_SPECIALIZATION(float,    float,  sgemv)
+EIGEN_BLAS_GEMV_SPECIALIZATION(dcomplex, MKL_Complex16, zgemv)
+EIGEN_BLAS_GEMV_SPECIALIZATION(scomplex, MKL_Complex8 , cgemv)
+#else
+EIGEN_BLAS_GEMV_SPECIALIZATION(double,   double, dgemv_)
+EIGEN_BLAS_GEMV_SPECIALIZATION(float,    float,  sgemv_)
+EIGEN_BLAS_GEMV_SPECIALIZATION(dcomplex, double, zgemv_)
+EIGEN_BLAS_GEMV_SPECIALIZATION(scomplex, float,  cgemv_)
+#endif
 
 } // end namespase internal
 

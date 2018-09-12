@@ -175,7 +175,7 @@ template<typename Derived> class ArrayBase
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
 {
   call_assignment(derived(), other.derived(), internal::sub_assign_op<Scalar,typename OtherDerived::Scalar>());
@@ -188,7 +188,7 @@ ArrayBase<Derived>::operator-=(const ArrayBase<OtherDerived> &other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
 {
   call_assignment(derived(), other.derived(), internal::add_assign_op<Scalar,typename OtherDerived::Scalar>());
@@ -201,7 +201,7 @@ ArrayBase<Derived>::operator+=(const ArrayBase<OtherDerived>& other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
 {
   call_assignment(derived(), other.derived(), internal::mul_assign_op<Scalar,typename OtherDerived::Scalar>());
@@ -214,7 +214,7 @@ ArrayBase<Derived>::operator*=(const ArrayBase<OtherDerived>& other)
   */
 template<typename Derived>
 template<typename OtherDerived>
-EIGEN_STRONG_INLINE Derived &
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived &
 ArrayBase<Derived>::operator/=(const ArrayBase<OtherDerived>& other)
 {
   call_assignment(derived(), other.derived(), internal::div_assign_op<Scalar,typename OtherDerived::Scalar>());

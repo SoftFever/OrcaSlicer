@@ -17,12 +17,37 @@ public:
 	struct xy
 	{
 		xy(float x = 0.f, float y = 0.f) : x(x), y(y) {}
+		xy(const xy& pos,float xp,float yp) : x(pos.x+xp), y(pos.y+yp) {}
 		xy  operator+(const xy &rhs) const { xy out(*this); out.x += rhs.x; out.y += rhs.y; return out; }
 		xy  operator-(const xy &rhs) const { xy out(*this); out.x -= rhs.x; out.y -= rhs.y; return out; }
 		xy& operator+=(const xy &rhs) { x += rhs.x; y += rhs.y; return *this; }
 		xy& operator-=(const xy &rhs) { x -= rhs.x; y -= rhs.y; return *this; }
 		bool operator==(const xy &rhs) const { return x == rhs.x && y == rhs.y; }
 		bool operator!=(const xy &rhs) const { return x != rhs.x || y != rhs.y; }
+		
+		// Rotate the point around center of the wipe tower about given angle (in degrees)
+		xy rotate(float width, float depth, float angle) const {
+			xy out(0,0);
+			float temp_x = x - width / 2.f;
+			float temp_y = y - depth / 2.f;
+			angle *= float(M_PI/180.);
+			out.x += temp_x * cos(angle)  -  temp_y * sin(angle) + width / 2.f;
+			out.y += temp_x * sin(angle)  +  temp_y * cos(angle) + depth / 2.f;
+			return out;
+		}
+        
+        // Rotate the point around origin about given angle in degrees
+        void rotate(float angle) {
+            float temp_x = x * cos(angle)  -  y * sin(angle);
+			y = x * sin(angle)  +  y * cos(angle);
+            x = temp_x;
+		}
+
+        void translate(const xy& vect) {
+            x += vect.x;
+            y += vect.y;
+        }
+
 		float x;
 		float y;
 	};
@@ -90,6 +115,9 @@ public:
 		// This is useful not only for the print time estimation, but also for the control of layer cooling.
 		float  				    elapsed_time;
 
+        // Is this a priming extrusion? (If so, the wipe tower rotation & translation will not be applied later)
+        bool                    priming;
+
 		// Sum the total length of the extrusion.
 		float total_extrusion_length_in_plane() {
 			float e_length = 0.f;
@@ -112,17 +140,15 @@ public:
 		const std::vector<unsigned int> &tools,
 		// If true, the last priming are will be the same as the other priming areas, and the rest of the wipe will be performed inside the wipe tower.
 		// If false, the last priming are will be large enough to wipe the last extruder sufficiently.
-		bool 						last_wipe_inside_wipe_tower, 
-		// May be used by a stand alone post processor.
-		Purpose 					purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+		bool 						last_wipe_inside_wipe_tower) = 0;
 
 	// Returns gcode for toolchange and the end position.
 	// if new_tool == -1, just unload the current filament over the wipe tower.
-	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer, Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult tool_change(unsigned int new_tool, bool last_in_layer) = 0;
 
 	// Close the current wipe tower layer with a perimeter and possibly fill the unfilled space with a zig-zag.
 	// Call this method only if layer_finished() is false.
-	virtual ToolChangeResult finish_layer(Purpose purpose = PURPOSE_MOVE_TO_TOWER_AND_EXTRUDE) = 0;
+	virtual ToolChangeResult finish_layer() = 0;
 
 	// Is the current layer finished? A layer is finished if either the wipe tower is finished, or
 	// the wipe tower has been completely covered by the tool change extrusions,

@@ -2,7 +2,12 @@
 #include "PreviewData.hpp"
 #include <float.h>
 #include <wx/intl.h> 
-#include "slic3r/GUI/GUI.hpp"
+#include <I18N.hpp>
+
+#include <boost/format.hpp>
+
+//! macro used to mark string used at localization, 
+#define L(s) (s)
 
 namespace Slic3r {
 
@@ -85,6 +90,12 @@ void GCodePreviewData::Range::update_from(float value)
     max = std::max(max, value);
 }
 
+void GCodePreviewData::Range::update_from(const Range& other)
+{
+    min = std::min(min, other.min);
+    max = std::max(max, other.max);
+}
+
 void GCodePreviewData::Range::set_from(const Range& other)
 {
     min = other.min;
@@ -93,17 +104,31 @@ void GCodePreviewData::Range::set_from(const Range& other)
 
 float GCodePreviewData::Range::step_size() const
 {
-    return (max - min) / (float)Colors_Count;
+    return (max - min) / (float)(Colors_Count - 1);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::Range::get_color_at_max() const
+GCodePreviewData::Color GCodePreviewData::Range::get_color_at(float value) const
 {
-    return colors[Colors_Count - 1];
-}
+    if (empty())
+        return Color::Dummy;
 
-const GCodePreviewData::Color& GCodePreviewData::Range::get_color_at(float value) const
-{
-    return empty() ? get_color_at_max() : colors[clamp((unsigned int)0, Colors_Count - 1, (unsigned int)((value - min) / step_size()))];
+    float global_t = (value - min) / step_size();
+
+    unsigned int low = (unsigned int)global_t;
+    unsigned int high = clamp((unsigned int)0, Colors_Count - 1, low + 1);
+
+    Color color_low = colors[low];
+    Color color_high = colors[high];
+
+    float local_t = global_t - (float)low;
+
+    // interpolate in RGB space
+    Color ret;
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+        ret.rgba[i] = lerp(color_low.rgba[i], color_high.rgba[i], local_t);
+    }
+    return ret;
 }
 
 GCodePreviewData::LegendItem::LegendItem(const std::string& text, const GCodePreviewData::Color& color)
@@ -158,9 +183,6 @@ void GCodePreviewData::Extrusion::set_default()
     view_type = Default_View_Type;
 
     ::memcpy((void*)role_colors, (const void*)Default_Extrusion_Role_Colors, Num_Extrusion_Roles * sizeof(Color));
-    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
-    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
 
     for (unsigned int i = 0; i < Num_Extrusion_Roles; ++i)
     {
@@ -198,12 +220,13 @@ void GCodePreviewData::Travel::set_default()
     width = Default_Width;
     height = Default_Height;
     ::memcpy((void*)type_colors, (const void*)Default_Type_Colors, Num_Types * sizeof(Color));
+
     is_visible = false;
 }
 
 const GCodePreviewData::Color GCodePreviewData::Retraction::Default_Color = GCodePreviewData::Color(1.0f, 1.0f, 1.0f, 1.0f);
 
-GCodePreviewData::Retraction::Position::Position(const Point3& position, float width, float height)
+GCodePreviewData::Retraction::Position::Position(const Vec3crd& position, float width, float height)
     : position(position)
     , width(width)
     , height(height)
@@ -228,6 +251,11 @@ GCodePreviewData::GCodePreviewData()
 
 void GCodePreviewData::set_default()
 {
+    ::memcpy((void*)ranges.height.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.width.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.feedrate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+    ::memcpy((void*)ranges.volumetric_rate.colors, (const void*)Range::Default_Colors, Range::Colors_Count * sizeof(Color));
+
     extrusion.set_default();
     travel.set_default();
     retraction.set_default();
@@ -237,6 +265,10 @@ void GCodePreviewData::set_default()
 
 void GCodePreviewData::reset()
 {
+    ranges.width.reset();
+    ranges.height.reset();
+    ranges.feedrate.reset();
+    ranges.volumetric_rate.reset();
     extrusion.layers.clear();
     travel.polylines.clear();
     retraction.positions.clear();
@@ -248,24 +280,29 @@ bool GCodePreviewData::empty() const
     return extrusion.layers.empty() && travel.polylines.empty() && retraction.positions.empty() && unretraction.positions.empty();
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const
+GCodePreviewData::Color GCodePreviewData::get_extrusion_role_color(ExtrusionRole role) const
 {
     return extrusion.role_colors[role];
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_height_color(float height) const
+GCodePreviewData::Color GCodePreviewData::get_height_color(float height) const
 {
-    return extrusion.ranges.height.get_color_at(height);
+    return ranges.height.get_color_at(height);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_width_color(float width) const
+GCodePreviewData::Color GCodePreviewData::get_width_color(float width) const
 {
-    return extrusion.ranges.width.get_color_at(width);
+    return ranges.width.get_color_at(width);
 }
 
-const GCodePreviewData::Color& GCodePreviewData::get_extrusion_feedrate_color(float feedrate) const
+GCodePreviewData::Color GCodePreviewData::get_feedrate_color(float feedrate) const
 {
-    return extrusion.ranges.feedrate.get_color_at(feedrate);
+    return ranges.feedrate.get_color_at(feedrate);
+}
+
+GCodePreviewData::Color GCodePreviewData::get_volumetric_rate_color(float rate) const
+{
+    return ranges.volumetric_rate.get_color_at(rate);
 }
 
 void GCodePreviewData::set_extrusion_role_color(const std::string& role_name, float red, float green, float blue, float alpha)
@@ -334,6 +371,8 @@ std::string GCodePreviewData::get_legend_title() const
         return L("Width (mm)");
     case Extrusion::Feedrate:
         return L("Speed (mm/s)");
+    case Extrusion::VolumetricRate:
+        return L("Volumetric flow rate (mm3/s)");
     case Extrusion::Tool:
         return L("Tool");
     }
@@ -348,11 +387,12 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
         static void FillListFromRange(LegendItemsList& list, const Range& range, unsigned int decimals, float scale_factor)
         {
             list.reserve(Range::Colors_Count);
+
             float step = range.step_size();
-            for (unsigned int i = 0; i < Range::Colors_Count; ++i)
+            for (int i = Range::Colors_Count - 1; i >= 0; --i)
             {
-                char buf[32];
-                sprintf(buf, "%.*f/%.*f", decimals, scale_factor * (range.min + (float)i * step), decimals, scale_factor * (range.min + (float)(i + 1) * step));
+                char buf[1024];
+                sprintf(buf, "%.*f", decimals, scale_factor * (range.min + (float)i * step));
                 list.emplace_back(buf, range.colors[i]);
             }
         }
@@ -370,24 +410,29 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             items.reserve(last_valid - first_valid + 1);
             for (unsigned int i = (unsigned int)first_valid; i <= (unsigned int)last_valid; ++i)
             {
-                items.emplace_back(_CHB(extrusion.role_names[i].c_str()).data(), extrusion.role_colors[i]);
+                items.emplace_back(Slic3r::I18N::translate(extrusion.role_names[i]), extrusion.role_colors[i]);
             }
 
             break;
         }
     case Extrusion::Height:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.height, 3, 1.0f);            
+            Helper::FillListFromRange(items, ranges.height, 3, 1.0f);
             break;
         }
     case Extrusion::Width:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.width, 3, 1.0f);
+            Helper::FillListFromRange(items, ranges.width, 3, 1.0f);
             break;
         }
     case Extrusion::Feedrate:
         {
-            Helper::FillListFromRange(items, extrusion.ranges.feedrate, 0, 1.0f);
+            Helper::FillListFromRange(items, ranges.feedrate, 1, 1.0f);
+            break;
+        }
+    case Extrusion::VolumetricRate:
+        {
+            Helper::FillListFromRange(items, ranges.volumetric_rate, 3, 1.0f);
             break;
         }
     case Extrusion::Tool:
@@ -396,13 +441,9 @@ GCodePreviewData::LegendItemsList GCodePreviewData::get_legend_items(const std::
             items.reserve(tools_colors_count);
             for (unsigned int i = 0; i < tools_colors_count; ++i)
             {
-				char buf[MIN_BUF_LENGTH_FOR_L];
-                sprintf(buf, _CHB(L("Extruder %d")), i + 1);
-
                 GCodePreviewData::Color color;
                 ::memcpy((void*)color.rgba, (const void*)(tool_colors.data() + i * 4), 4 * sizeof(float));
-
-                items.emplace_back(buf, color);
+                items.emplace_back((boost::format(Slic3r::I18N::translate(L("Extruder %d"))) % (i + 1)).str(), color);
             }
 
             break;

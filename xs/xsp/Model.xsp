@@ -81,7 +81,7 @@
 
     bool add_default_instances();
     Clone<BoundingBoxf3> bounding_box();
-    void center_instances_around_point(Pointf* point)
+    void center_instances_around_point(Vec2d* point)
         %code%{ THIS->center_instances_around_point(*point); %};
     void translate(double x, double y, double z);
     Clone<TriangleMesh> mesh();
@@ -95,19 +95,16 @@
     void duplicate_objects_grid(unsigned int x, unsigned int y, double dist);
 
     bool looks_like_multipart_object() const;
-    void convert_multipart_object();
+    void convert_multipart_object(unsigned int max_extruders);
 
     void print_info() const;
 
-    bool fits_print_volume(DynamicPrintConfig* config) const
-        %code%{ RETVAL = THIS->fits_print_volume(config); %};
-
     bool store_stl(char *path, bool binary)
         %code%{ TriangleMesh mesh = THIS->mesh(); RETVAL = Slic3r::store_stl(path, &mesh, binary); %};
-    bool store_amf(char *path, Print* print)
-        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print); %};
-    bool store_3mf(char *path, Print* print)
-        %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print); %};
+    bool store_amf(char *path, Print* print, bool export_print_config)
+        %code%{ RETVAL = Slic3r::store_amf(path, THIS, print, export_print_config); %};
+    bool store_3mf(char *path, Print* print, bool export_print_config)
+        %code%{ RETVAL = Slic3r::store_3mf(path, THIS, print, export_print_config); %};
 
 %{
 
@@ -292,9 +289,9 @@ ModelMaterial::attributes()
     void set_layer_height_profile(std::vector<double> profile)
         %code%{ THIS->layer_height_profile = profile; THIS->layer_height_profile_valid = true; %};
 
-    Ref<Pointf3> origin_translation()
+    Ref<Vec3d> origin_translation()
         %code%{ RETVAL = &THIS->origin_translation; %};
-    void set_origin_translation(Pointf3* point)
+    void set_origin_translation(Vec3d* point)
         %code%{ THIS->origin_translation = *point; %};
     
     bool needed_repair() const;
@@ -302,9 +299,10 @@ ModelMaterial::attributes()
     int facets_count();
     void center_around_origin();
     void translate(double x, double y, double z);
-    void scale_xyz(Pointf3* versor)
+    void scale_xyz(Vec3d* versor)
         %code{% THIS->scale(*versor); %};
-    void rotate(float angle, Axis axis);
+    void rotate(float angle, Vec3d* axis)
+        %code{% THIS->rotate(angle, *axis); %};
     void mirror(Axis axis);
     
     Model* cut(double z)
@@ -346,7 +344,7 @@ ModelMaterial::attributes()
     void set_modifier(bool modifier)
         %code%{ THIS->modifier = modifier; %};
 
-    size_t split();
+    size_t split(unsigned int max_extruders);
     
     ModelMaterial* assign_unique_material();
 };
@@ -360,14 +358,14 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->rotation; %};
     double scaling_factor()
         %code%{ RETVAL = THIS->scaling_factor; %};
-    Ref<Pointf> offset()
+    Ref<Vec2d> offset()
         %code%{ RETVAL = &THIS->offset; %};
 
     void set_rotation(double val)
         %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
     void set_scaling_factor(double val)
         %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
-    void set_offset(Pointf *offset)
+    void set_offset(Vec2d *offset)
         %code%{ THIS->offset = *offset; %};
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;

@@ -50,10 +50,15 @@ public:
             src.clear();
         }
     }
-    void append(const ExtrusionPaths &paths) { 
+    void append(const ExtrusionPaths &paths) {
         this->entities.reserve(this->entities.size() + paths.size());
-        for (ExtrusionPaths::const_iterator path = paths.begin(); path != paths.end(); ++path)
-            this->entities.push_back(path->clone());
+        for (const ExtrusionPath &path : paths)
+            this->entities.emplace_back(path.clone());
+    }
+    void append(ExtrusionPaths &&paths) {
+        this->entities.reserve(this->entities.size() + paths.size());
+        for (ExtrusionPath &path : paths)
+            this->entities.emplace_back(new ExtrusionPath(std::move(path)));
     }
     void replace(size_t i, const ExtrusionEntity &entity);
     void remove(size_t i);
@@ -79,6 +84,7 @@ public:
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;
     double min_mm3_per_mm() const;
+    virtual double total_volume() const {double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
     Polyline as_polyline() const {

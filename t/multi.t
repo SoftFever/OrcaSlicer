@@ -16,6 +16,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config::new_from_defaults;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('raft_layers', 2);
     $config->set('infill_extruder', 2);
     $config->set('solid_infill_extruder', 3);
@@ -89,6 +90,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config::new_from_defaults;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('support_material_extruder', 3);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -97,6 +99,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('extruder', 2);
     
     my $print = Slic3r::Test::init_print('20mm_cube', config => $config);
@@ -105,6 +108,7 @@ use Slic3r::Test;
 
 {
     my $config = Slic3r::Config->new;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('perimeter_extruder', 2);
     $config->set('infill_extruder', 2);
     $config->set('support_material_extruder', 2);
@@ -126,6 +130,7 @@ use Slic3r::Test;
     $upper_config->set('bottom_solid_layers', 1);
     $upper_config->set('top_solid_layers', 0);
     my $config = Slic3r::Config::new_from_defaults;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('fill_density', 0);
     $config->set('solid_infill_speed', 99);
     $config->set('top_solid_infill_speed', 99);
@@ -172,6 +177,7 @@ use Slic3r::Test;
     my $object = $model->objects->[0];
     
     my $config = Slic3r::Config::new_from_defaults;
+    $config->set('nozzle_diameter', [0.6,0.6,0.6,0.6]);
     $config->set('layer_height', 0.4);
     $config->set('first_layer_height', '100%');
     $config->set('skirts', 0);

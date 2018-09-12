@@ -171,7 +171,7 @@ Slic3rMultiPoint_to_ClipperPath(const MultiPoint &input)
 {
     ClipperLib::Path retval;
     for (Points::const_iterator pit = input.points.begin(); pit != input.points.end(); ++pit)
-        retval.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
+        retval.push_back(ClipperLib::IntPoint( (*pit)(0), (*pit)(1) ));
     return retval;
 }
 
@@ -181,7 +181,7 @@ Slic3rMultiPoint_to_ClipperPath_reversed(const Slic3r::MultiPoint &input)
     ClipperLib::Path output;
     output.reserve(input.points.size());
     for (Slic3r::Points::const_reverse_iterator pit = input.points.rbegin(); pit != input.points.rend(); ++pit)
-        output.push_back(ClipperLib::IntPoint( (*pit).x, (*pit).y ));
+        output.push_back(ClipperLib::IntPoint( (*pit)(0), (*pit)(1) ));
     return output;
 }
 
@@ -458,6 +458,19 @@ offset2_ex(const Polygons &polygons, const float delta1, const float delta2,
     return ClipperPaths_to_Slic3rExPolygons(output);
 }
 
+//FIXME Vojtech: This functon may likely be optimized to avoid some of the Slic3r to Clipper 
+// conversions and unnecessary Clipper calls.
+ExPolygons offset2_ex(const ExPolygons &expolygons, const float delta1,
+    const float delta2, ClipperLib::JoinType joinType, double miterLimit)
+{
+    Polygons polys;
+    for (const ExPolygon &expoly : expolygons)
+        append(polys, 
+               offset(offset_ex(expoly, delta1, joinType, miterLimit), 
+                      delta2, joinType, miterLimit));
+    return union_ex(polys);
+}
+
 template <class T>
 T
 _clipper_do(const ClipperLib::ClipType clipType, const Polygons &subject, 
@@ -582,26 +595,26 @@ Polylines _clipper_pl(ClipperLib::ClipType clipType, const Polygons &subject, co
        to recombine continuous polylines. */
     for (size_t i = 0; i < retval.size(); ++i) {
         for (size_t j = i+1; j < retval.size(); ++j) {
-            if (retval[i].points.back().coincides_with(retval[j].points.front())) {
+            if (retval[i].points.back() == retval[j].points.front()) {
                 /* If last point of i coincides with first point of j,
                    append points of j to i and delete j */
                 retval[i].points.insert(retval[i].points.end(), retval[j].points.begin()+1, retval[j].points.end());
                 retval.erase(retval.begin() + j);
                 --j;
-            } else if (retval[i].points.front().coincides_with(retval[j].points.back())) {
+            } else if (retval[i].points.front() == retval[j].points.back()) {
                 /* If first point of i coincides with last point of j,
                    prepend points of j to i and delete j */
                 retval[i].points.insert(retval[i].points.begin(), retval[j].points.begin(), retval[j].points.end()-1);
                 retval.erase(retval.begin() + j);
                 --j;
-            } else if (retval[i].points.front().coincides_with(retval[j].points.front())) {
+            } else if (retval[i].points.front() == retval[j].points.front()) {
                 /* Since Clipper does not preserve orientation of polylines, 
                    also check the case when first point of i coincides with first point of j. */
                 retval[j].reverse();
                 retval[i].points.insert(retval[i].points.begin(), retval[j].points.begin(), retval[j].points.end()-1);
                 retval.erase(retval.begin() + j);
                 --j;
-            } else if (retval[i].points.back().coincides_with(retval[j].points.back())) {
+            } else if (retval[i].points.back() == retval[j].points.back()) {
                 /* Since Clipper does not preserve orientation of polylines, 
                    also check the case when last point of i coincides with last point of j. */
                 retval[j].reverse();
@@ -621,8 +634,8 @@ _clipper_ln(ClipperLib::ClipType clipType, const Lines &subject, const Polygons 
     // convert Lines to Polylines
     Polylines polylines;
     polylines.reserve(subject.size());
-    for (Lines::const_iterator line = subject.begin(); line != subject.end(); ++line)
-        polylines.push_back(*line);
+    for (const Line &line : subject)
+        polylines.emplace_back(Polyline(line.a, line.b));
     
     // perform operation
     polylines = _clipper_pl(clipType, polylines, clip, safety_offset_);
@@ -650,8 +663,7 @@ union_pt_chained(const Polygons &subject, bool safety_offset_)
     return retval;
 }
 
-void
-traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
+void traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
 {
     /* use a nearest neighbor search to order these children
        TODO: supply start_near to chained_path() too? */
@@ -677,8 +689,7 @@ traverse_pt(ClipperLib::PolyNodes &nodes, Polygons* retval)
     }
 }
 
-Polygons
-simplify_polygons(const Polygons &subject, bool preserve_collinear)
+Polygons simplify_polygons(const Polygons &subject, bool preserve_collinear)
 {
     // convert into Clipper polygons
     ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(subject);
@@ -698,13 +709,11 @@ simplify_polygons(const Polygons &subject, bool preserve_collinear)
     return ClipperPaths_to_Slic3rPolygons(output);
 }
 
-ExPolygons
-simplify_polygons_ex(const Polygons &subject, bool preserve_collinear)
+ExPolygons simplify_polygons_ex(const Polygons &subject, bool preserve_collinear)
 {
-    if (!preserve_collinear) {
-        return union_ex(simplify_polygons(subject, preserve_collinear));
-    }
-    
+    if (! preserve_collinear)
+        return union_ex(simplify_polygons(subject, false));
+
     // convert into Clipper polygons
     ClipperLib::Paths input_subject = Slic3rMultiPoints_to_ClipperPaths(subject);
     

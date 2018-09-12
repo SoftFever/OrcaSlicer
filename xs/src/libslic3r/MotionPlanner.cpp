@@ -58,7 +58,7 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
 {
     // If we have an empty configuration space, return a straight move.
     if (m_islands.empty())
-        return Line(from, to);
+        return Polyline(from, to);
     
     // Are both points in the same island?
     int island_idx_from = -1;
@@ -74,7 +74,7 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
             // Since both points are in the same island, is a direct move possible?
             // If so, we avoid generating the visibility environment.
             if (island.m_island.contains(Line(from, to)))
-                return Line(from, to);
+                return Polyline(from, to);
             // Both points are inside a single island, but the straight line crosses the island boundary.
             island_idx = idx;
             break;
@@ -90,7 +90,7 @@ Polyline MotionPlanner::shortest_path(const Point &from, const Point &to)
     if (env.m_env.expolygons.empty()) {
         // if this environment is empty (probably because it's too small), perform straight move
         // and avoid running the algorithms on empty dataset
-        return Line(from, to);
+        return Polyline(from, to);
     }
     
     // Now check whether points are inside the environment.
@@ -224,7 +224,7 @@ const MotionPlannerGraph& MotionPlanner::init_graph(int island_idx)
                 else
                     v1_idx = i_v1->second;
                 // Euclidean distance is used as weight for the graph edge
-                graph->add_edge(v0_idx, v1_idx, p0.distance_to(p1));
+                graph->add_edge(v0_idx, v1_idx, (p1 - p0).cast<double>().norm());
             }
         }
     }
@@ -238,7 +238,7 @@ static inline size_t nearest_waypoint_index(const Point &start_point, const Poin
     size_t idx = size_t(-1);
     double dmin = std::numeric_limits<double>::infinity();
     for (const Point &p : middle_points) {
-        double d = start_point.distance_to(p) + p.distance_to(end_point);
+        double d = (p - start_point).cast<double>().norm() + (end_point - p).cast<double>().norm();
         if (d < dmin) {
             idx  = &p - middle_points.data();
             dmin = d;

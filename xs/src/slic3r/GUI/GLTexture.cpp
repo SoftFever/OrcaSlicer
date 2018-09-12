@@ -1,0 +1,199 @@
+#include "GLTexture.hpp"
+
+#include <GL/glew.h>
+
+#include <wx/image.h>
+
+#include <boost/filesystem.hpp>
+
+#include <vector>
+#include <algorithm>
+
+namespace Slic3r {
+namespace GUI {
+
+GLTexture::Quad_UVs GLTexture::FullTextureUVs = { { 0.0f, 1.0f }, { 1.0f, 1.0f }, { 1.0f, 0.0f }, { 0.0f, 0.0f } };
+
+GLTexture::GLTexture()
+    : m_id(0)
+    , m_width(0)
+    , m_height(0)
+    , m_source("")
+{
+}
+
+GLTexture::~GLTexture()
+{
+    reset();
+}
+
+bool GLTexture::load_from_file(const std::string& filename, bool generate_mipmaps)
+{
+    reset();
+
+    if (!boost::filesystem::exists(filename))
+        return false;
+
+    // Load a PNG with an alpha channel.
+    wxImage image;
+    if (!image.LoadFile(filename, wxBITMAP_TYPE_PNG))
+    {
+        reset();
+        return false;
+    }
+
+    m_width = image.GetWidth();
+    m_height = image.GetHeight();
+    int n_pixels = m_width * m_height;
+
+    if (n_pixels <= 0)
+    {
+        reset();
+        return false;
+    }
+
+    // Get RGB & alpha raw data from wxImage, pack them into an array.
+    unsigned char* img_rgb = image.GetData();
+    if (img_rgb == nullptr)
+    {
+        reset();
+        return false;
+    }
+
+    unsigned char* img_alpha = image.GetAlpha();
+
+    std::vector<unsigned char> data(n_pixels * 4, 0);
+    for (int i = 0; i < n_pixels; ++i)
+    {
+        int data_id = i * 4;
+        int img_id = i * 3;
+        data[data_id + 0] = img_rgb[img_id + 0];
+        data[data_id + 1] = img_rgb[img_id + 1];
+        data[data_id + 2] = img_rgb[img_id + 2];
+        data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+    }
+
+    // sends data to gpu
+    ::glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    ::glGenTextures(1, &m_id);
+    ::glBindTexture(GL_TEXTURE_2D, m_id);
+    ::glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (GLsizei)m_width, (GLsizei)m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    if (generate_mipmaps)
+    {
+        // we manually generate mipmaps because glGenerateMipmap() function is not reliable on all graphics cards
+        unsigned int levels_count = _generate_mipmaps(image);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1 + levels_count);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    }
+    else
+    {
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 1);
+    }
+    ::glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    m_source = filename;
+    return true;
+}
+
+void GLTexture::reset()
+{
+    if (m_id != 0)
+        ::glDeleteTextures(1, &m_id);
+
+    m_id = 0;
+    m_width = 0;
+    m_height = 0;
+    m_source = "";
+}
+
+unsigned int GLTexture::get_id() const
+{
+    return m_id;
+}
+
+int GLTexture::get_width() const
+{
+    return m_width;
+}
+
+int GLTexture::get_height() const
+{
+    return m_height;
+}
+
+const std::string& GLTexture::get_source() const
+{
+    return m_source;
+}
+
+void GLTexture::render_texture(unsigned int tex_id, float left, float right, float bottom, float top)
+{
+    render_sub_texture(tex_id, left, right, bottom, top, FullTextureUVs);
+}
+
+void GLTexture::render_sub_texture(unsigned int tex_id, float left, float right, float bottom, float top, const GLTexture::Quad_UVs& uvs)
+{
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    ::glEnable(GL_TEXTURE_2D);
+    ::glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+
+    ::glBindTexture(GL_TEXTURE_2D, (GLuint)tex_id);
+
+    ::glBegin(GL_QUADS);
+    ::glTexCoord2f(uvs.left_bottom.u, uvs.left_bottom.v); ::glVertex2f(left, bottom);
+    ::glTexCoord2f(uvs.right_bottom.u, uvs.right_bottom.v); ::glVertex2f(right, bottom);
+    ::glTexCoord2f(uvs.right_top.u, uvs.right_top.v); ::glVertex2f(right, top);
+    ::glTexCoord2f(uvs.left_top.u, uvs.left_top.v); ::glVertex2f(left, top);
+    ::glEnd();
+
+    ::glBindTexture(GL_TEXTURE_2D, 0);
+
+    ::glDisable(GL_TEXTURE_2D);
+    ::glDisable(GL_BLEND);
+}
+
+unsigned int GLTexture::_generate_mipmaps(wxImage& image)
+{
+    int w = image.GetWidth();
+    int h = image.GetHeight();
+    GLint level = 0;
+    std::vector<unsigned char> data(w * h * 4, 0);
+
+    while ((w > 1) || (h > 1))
+    {
+        ++level;
+
+        w = std::max(w / 2, 1);
+        h = std::max(h / 2, 1);
+
+        int n_pixels = w * h;
+
+        image = image.ResampleBicubic(w, h);
+
+        unsigned char* img_rgb = image.GetData();
+        unsigned char* img_alpha = image.GetAlpha();
+
+        data.resize(n_pixels * 4);
+        for (int i = 0; i < n_pixels; ++i)
+        {
+            int data_id = i * 4;
+            int img_id = i * 3;
+            data[data_id + 0] = img_rgb[img_id + 0];
+            data[data_id + 1] = img_rgb[img_id + 1];
+            data[data_id + 2] = img_rgb[img_id + 2];
+            data[data_id + 3] = (img_alpha != nullptr) ? img_alpha[i] : 255;
+        }
+
+        ::glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA, (GLsizei)w, (GLsizei)h, 0, GL_RGBA, GL_UNSIGNED_BYTE, (const void*)data.data());
+    }
+
+    return (unsigned int)level;
+}
+
+} // namespace GUI
+} // namespace Slic3r

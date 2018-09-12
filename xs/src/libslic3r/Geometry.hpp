@@ -30,9 +30,9 @@ enum Orientation
 static inline Orientation orient(const Point &a, const Point &b, const Point &c)
 {
     // BOOST_STATIC_ASSERT(sizeof(coord_t) * 2 == sizeof(int64_t));
-    int64_t u = int64_t(b.x) * int64_t(c.y) - int64_t(b.y) * int64_t(c.x);
-    int64_t v = int64_t(a.x) * int64_t(c.y) - int64_t(a.y) * int64_t(c.x);
-    int64_t w = int64_t(a.x) * int64_t(b.y) - int64_t(a.y) * int64_t(b.x);
+    int64_t u = int64_t(b(0)) * int64_t(c(1)) - int64_t(b(1)) * int64_t(c(0));
+    int64_t v = int64_t(a(0)) * int64_t(c(1)) - int64_t(a(1)) * int64_t(c(0));
+    int64_t w = int64_t(a(0)) * int64_t(b(1)) - int64_t(a(1)) * int64_t(b(0));
     int64_t d = u - v + w;
     return (d > 0) ? ORIENTATION_CCW : ((d == 0) ? ORIENTATION_COLINEAR : ORIENTATION_CW);
 }
@@ -52,7 +52,7 @@ static inline bool is_ccw(const Polygon &poly)
     for (unsigned int i = 1; i < poly.points.size(); ++ i) {
         const Point &pmin = poly.points[imin];
         const Point &p    = poly.points[i];
-        if (p.x < pmin.x || (p.x == pmin.x && p.y < pmin.y))
+        if (p(0) < pmin(0) || (p(0) == pmin(0) && p(1) < pmin(1)))
             imin = i;
     }
 
@@ -66,26 +66,26 @@ static inline bool is_ccw(const Polygon &poly)
     return o == ORIENTATION_CCW;
 }
 
-inline bool ray_ray_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
+inline bool ray_ray_intersection(const Vec2d &p1, const Vec2d &v1, const Vec2d &p2, const Vec2d &v2, Vec2d &res)
 {
-    double denom = v1.x * v2.y - v2.x * v1.y;
+    double denom = v1(0) * v2(1) - v2(0) * v1(1);
     if (std::abs(denom) < EPSILON)
         return false;
-    double t = (v2.x * (p1.y - p2.y) - v2.y * (p1.x - p2.x)) / denom;
-    res.x = p1.x + t * v1.x;
-    res.y = p1.y + t * v1.y;
+    double t = (v2(0) * (p1(1) - p2(1)) - v2(1) * (p1(0) - p2(0))) / denom;
+    res(0) = p1(0) + t * v1(0);
+    res(1) = p1(1) + t * v1(1);
     return true;
 }
 
-inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, const Pointf &p2, const Vectorf &v2, Pointf &res)
+inline bool segment_segment_intersection(const Vec2d &p1, const Vec2d &v1, const Vec2d &p2, const Vec2d &v2, Vec2d &res)
 {
-    double denom = v1.x * v2.y - v2.x * v1.y;
+    double denom = v1(0) * v2(1) - v2(0) * v1(1);
     if (std::abs(denom) < EPSILON)
         // Lines are collinear.
         return false;
-    double s12_x = p1.x - p2.x;
-    double s12_y = p1.y - p2.y;
-    double s_numer = v1.x * s12_y - v1.y * s12_x;
+    double s12_x = p1(0) - p2(0);
+    double s12_y = p1(1) - p2(1);
+    double s_numer = v1(0) * s12_y - v1(1) * s12_x;
     bool   denom_is_positive = false;
     if (denom < 0.) {
         denom_is_positive = true;
@@ -95,7 +95,7 @@ inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, co
     if (s_numer < 0.)
         // Intersection outside of the 1st segment.
         return false;
-    double t_numer = v2.x * s12_y - v2.y * s12_x;
+    double t_numer = v2(0) * s12_y - v2(1) * s12_x;
     if (! denom_is_positive)
         t_numer = - t_numer;
     if (t_numer < 0. || s_numer > denom || t_numer > denom)
@@ -103,13 +103,15 @@ inline bool segment_segment_intersection(const Pointf &p1, const Vectorf &v1, co
         return false;
     // Intersection inside both of the segments.
     double t = t_numer / denom;
-    res.x = p1.x + t * v1.x;
-    res.y = p1.y + t * v1.y;
+    res(0) = p1(0) + t * v1(0);
+    res(1) = p1(1) + t * v1(1);
     return true;
 }
 
+Pointf3s convex_hull(Pointf3s points);
 Polygon convex_hull(Points points);
 Polygon convex_hull(const Polygons &polygons);
+
 void chained_path(const Points &points, std::vector<Points::size_type> &retval, Point start_near);
 void chained_path(const Points &points, std::vector<Points::size_type> &retval);
 template<class T> void chained_path_items(Points &points, T &items, T &retval);
@@ -123,7 +125,7 @@ void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* ret
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);
 bool arrange(
     // input
-    size_t num_parts, const Pointf &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box, 
+    size_t num_parts, const Vec2d &part_size, coordf_t gap, const BoundingBoxf* bed_bounding_box, 
     // output
     Pointfs &positions);
 

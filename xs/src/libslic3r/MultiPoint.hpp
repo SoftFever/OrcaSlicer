@@ -18,10 +18,11 @@ public:
     Points points;
     
     operator Points() const;
-    MultiPoint() {};
+    MultiPoint() {}
     MultiPoint(const MultiPoint &other) : points(other.points) {}
     MultiPoint(MultiPoint &&other) : points(std::move(other.points)) {}
-    explicit MultiPoint(const Points &_points): points(_points) {}
+    MultiPoint(std::initializer_list<Point> list) : points(list) {}
+    explicit MultiPoint(const Points &_points) : points(_points) {}
     MultiPoint& operator=(const MultiPoint &other) { points = other.points; return *this; }
     MultiPoint& operator=(MultiPoint &&other) { points = std::move(other.points); return *this; }
     void scale(double factor);
@@ -43,9 +44,9 @@ public:
         int idx = -1;
         if (! this->points.empty()) {
             idx = 0;
-            double dist_min = this->points.front().distance_to(point);
+            double dist_min = (point - this->points.front()).cast<double>().norm();
             for (int i = 1; i < int(this->points.size()); ++ i) {
-                double d = this->points[i].distance_to(point);
+                double d = (this->points[i] - point).cast<double>().norm();
                 if (d < dist_min) {
                     dist_min = d;
                     idx = i;
@@ -75,7 +76,6 @@ public:
 
     bool intersection(const Line& line, Point* intersection) const;
     bool first_intersection(const Line& line, Point* intersection) const;
-    std::string dump_perl() const;
     
     static Points _douglas_peucker(const Points &points, const double tolerance);
 };
@@ -85,7 +85,7 @@ class MultiPoint3
 public:
     Points3 points;
 
-    void append(const Point3& point) { this->points.push_back(point); }
+    void append(const Vec3crd& point) { this->points.push_back(point); }
 
     void translate(double x, double y);
     void translate(const Point& vector);

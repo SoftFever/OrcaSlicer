@@ -1,8 +1,9 @@
 # Building Slic3r PE on Microsoft Windows
 
-The currently supported way of building Slic3r PE on Windows is with MS Visual Studio 2013
+The currently supported way of building Slic3r PE on Windows is with CMake and MS Visual Studio 2013
 using our Perl binary distribution (compiled from official Perl sources).
 You can use the free [Visual Studio 2013 Community Edition](https://www.visualstudio.com/vs/older-downloads/).
+CMake installer can be downloaded from [the official website](https://cmake.org/download/).
 
 Other setups (such as mingw + Strawberry Perl) _may_ work, but we cannot guarantee this will work
 and cannot provide guidance.
@@ -26,8 +27,8 @@ Apart from wxWidgets and Perl, you will also need additional dependencies:
 
 We have prepared a binary package of the listed libraries:
 
-  - 32 bit: [slic3r-destdir-32.7z](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=slic3r-destdir-32.7z)
-  - 64 bit: [slic3r-destdir-64.7z](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=slic3r-destdir-64.7z)
+  - 32 bit: [slic3r-destdir-32.7z](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=2%2Fslic3r-destdir-32.7z)
+  - 64 bit: [slic3r-destdir-64.7z](https://bintray.com/vojtechkral/Slic3r-PE/download_file?file_path=2%2Fslic3r-destdir-64.7z)
 
 It is recommended you unpack this package into `C:\local\` as the environment
 setup script expects it there.

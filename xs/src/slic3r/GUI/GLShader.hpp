@@ -16,13 +16,16 @@ public:
         {}
     ~GLShader();
 
-    bool load(const char *fragment_shader, const char *vertex_shader);
+    bool load_from_text(const char *fragment_shader, const char *vertex_shader);
+    bool load_from_file(const char* fragment_shader_filename, const char* vertex_shader_filename);
+
     void release();
 
     int  get_attrib_location(const char *name) const;
     int  get_uniform_location(const char *name) const;
 
     bool set_uniform(const char *name, float value) const;
+    bool set_uniform(const char* name, const float* matrix) const;
 
     void enable() const;
     void disable() const;
