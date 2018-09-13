@@ -358,15 +358,32 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->rotation; %};
     double scaling_factor()
         %code%{ RETVAL = THIS->scaling_factor; %};
+//################################################################################################################################
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    Vec2d* offset()
+        %code%{ RETVAL = new Vec2d(THIS->get_offset(X), THIS->get_offset(Y)); %};
+#else
     Ref<Vec2d> offset()
         %code%{ RETVAL = &THIS->offset; %};
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+//################################################################################################################################
 
     void set_rotation(double val)
         %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
     void set_scaling_factor(double val)
         %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
+//################################################################################################################################
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    void set_offset(Vec2d *offset)
+        %code%{ 
+            THIS->set_offset(X, (*offset)(0));
+            THIS->set_offset(Y, (*offset)(1));
+        %};
+#else
     void set_offset(Vec2d *offset)
         %code%{ THIS->offset = *offset; %};
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+//################################################################################################################################
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     void transform_polygon(Polygon* polygon) const;

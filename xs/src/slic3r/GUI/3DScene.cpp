@@ -684,7 +684,15 @@ std::vector<int> GLVolumeCollection::load_object(
             }
             v.is_modifier = model_volume->modifier;
             v.shader_outside_printer_detection_enabled = !model_volume->modifier;
+//################################################################################################################################
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            v.set_offset(instance->get_offset());
+#else
+//################################################################################################################################
             v.set_offset(Vec3d(instance->offset(0), instance->offset(1), 0.0));
+//################################################################################################################################
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+//################################################################################################################################
             v.set_rotation(instance->rotation);
             v.set_scaling_factor(instance->scaling_factor);
         }

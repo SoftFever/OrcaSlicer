@@ -166,7 +166,15 @@ bool load_prus(const char *path, Model *model)
             float  trafo[3][4] = { 0 };
             double instance_rotation = 0.;
             double instance_scaling_factor = 1.f;
-            Vec2d instance_offset(0., 0.); 
+//################################################################################################################################
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            Vec3d instance_offset = Vec3d::Zero();
+#else
+//################################################################################################################################
+            Vec2d instance_offset(0., 0.);
+//################################################################################################################################
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+//################################################################################################################################
             bool   trafo_set = false;
             unsigned int group_id     = (unsigned int)-1;
             unsigned int extruder_id  = (unsigned int)-1;
@@ -207,8 +215,16 @@ bool load_prus(const char *path, Model *model)
                         for (size_t c = 0; c < 3; ++ c)
                             trafo[r][c] += mat_trafo(r, c);
                     }
+//################################################################################################################################
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                    instance_offset = Vec3d((double)(position[0] - zero[0]), (double)(position[1] - zero[1]), (double)(position[2] - zero[2]));
+#else
+//################################################################################################################################
                     instance_offset(0) = position[0] - zero[0];
                     instance_offset(1) = position[1] - zero[1];
+//################################################################################################################################
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+//################################################################################################################################
                     trafo[2][3] = position[2] / instance_scaling_factor;
                     trafo_set = true;
                 }
@@ -360,8 +376,16 @@ bool load_prus(const char *path, Model *model)
                         ModelInstance *instance     = model_object->add_instance();
                         instance->rotation          = instance_rotation;
                         instance->scaling_factor    = instance_scaling_factor;
-                        instance->offset            = instance_offset;
-                        ++ num_models;
+//################################################################################################################################
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                        instance->set_offset(instance_offset);
+#else
+//################################################################################################################################
+                        instance->offset = instance_offset;
+//################################################################################################################################
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+//################################################################################################################################
+                        ++num_models;
                         if (group_id != (size_t)-1)
                             group_to_model_object[group_id] = model_object;
                     } else {
