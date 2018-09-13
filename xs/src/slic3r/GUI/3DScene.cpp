@@ -313,6 +313,14 @@ void GLVolume::set_select_group_id(const std::string& select_by)
         select_group_id = composite_id;
 }
 
+void GLVolume::set_drag_group_id(const std::string& drag_by)
+{
+    if (drag_by == "object")
+        drag_group_id = object_idx() * 1000;
+    else if (drag_by == "instance")
+        drag_group_id = object_idx() * 1000 + instance_idx();
+}
+
 const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
@@ -666,11 +674,7 @@ std::vector<int> GLVolumeCollection::load_object(
             v.indexed_vertex_array.finalize_geometry(use_VBOs);
             v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
             v.set_select_group_id(select_by);
-            if (drag_by == "object")
-                v.drag_group_id = obj_idx * 1000;
-            else if (drag_by == "instance")
-                v.drag_group_id = obj_idx * 1000 + instance_idx;
-
+            v.set_drag_group_id(drag_by);
             if (!model_volume->modifier)
             {
                 v.set_convex_hull(model_volume->get_convex_hull());
@@ -960,6 +964,15 @@ void GLVolumeCollection::set_select_by(const std::string& select_by)
     {
         if (vol != nullptr)
             vol->set_select_group_id(select_by);
+    }
+}
+
+void GLVolumeCollection::set_drag_by(const std::string& drag_by)
+{
+    for (GLVolume *vol : this->volumes)
+    {
+        if (vol != nullptr)
+            vol->set_drag_group_id(drag_by);
     }
 }
 
@@ -2042,6 +2055,11 @@ void _3DScene::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, vo
 void _3DScene::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
 {
     s_canvas_mgr.register_on_gizmo_rotate_callback(canvas, callback);
+}
+
+void _3DScene::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback)
+{
+    s_canvas_mgr.register_on_gizmo_flatten_callback(canvas, callback);
 }
 
 void _3DScene::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
