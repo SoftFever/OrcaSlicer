@@ -2164,6 +2164,11 @@ int _3DScene::get_first_volume_id(wxGLCanvas* canvas, int obj_idx)
     return s_canvas_mgr.get_first_volume_id(canvas, obj_idx);
 }
 
+int _3DScene::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx)
+{
+    return s_canvas_mgr.get_in_object_volume_id(canvas, scene_vol_idx);
+}
+
 void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
 {
     s_canvas_mgr.reload_scene(canvas, force);

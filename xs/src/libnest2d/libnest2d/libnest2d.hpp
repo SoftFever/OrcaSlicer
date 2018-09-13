@@ -640,6 +640,7 @@ public:
 
 // The progress function will be called with the number of placed items
 using ProgressFunction = std::function<void(unsigned)>;
+using StopCondition = std::function<bool(void)>;
 
 /**
  * A wrapper interface (trait) class for any selections strategy provider.
@@ -673,6 +674,8 @@ public:
      * number of the remaining items to pack.
      */
     void progressIndicator(ProgressFunction fn) { impl_.progressIndicator(fn); }
+
+    void stopCondition(StopCondition cond) { impl_.stopCondition(cond); }
 
     /**
      * \brief A method to start the calculation on the input sequence.
@@ -862,6 +865,11 @@ public:
     inline Nester& progressIndicator(ProgressFunction func)
     {
         selector_.progressIndicator(func); return *this;
+    }
+
+    /// Set a predicate to tell when to abort nesting.
+    inline Nester& stopCondition(StopCondition fn) {
+        selector_.stopCondition(fn); return *this;
     }
 
     inline PackGroup lastResult() {

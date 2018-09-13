@@ -60,7 +60,7 @@ public:
         placer.configure(pconfig);
 
         auto it = store_.begin();
-        while(it != store_.end()) {
+        while(it != store_.end() && !this->stopcond_()) {
             if(!placer.pack(*it, {std::next(it), store_.end()}))  {
                 if(packed_bins_.back().empty()) ++it;
                 placer.clearItems();

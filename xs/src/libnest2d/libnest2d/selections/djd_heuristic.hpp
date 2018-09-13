@@ -551,7 +551,7 @@ public:
         // Safety test: try to pack each item into an empty bin. If it fails
         // then it should be removed from the not_packed list
         { auto it = store_.begin();
-            while (it != store_.end()) {
+            while (it != store_.end() && !this->stopcond_()) {
                 Placer p(bin); p.configure(pconfig);
                 if(!p.pack(*it, rem(it, store_))) {
                     it = store_.erase(it);
@@ -592,9 +592,11 @@ public:
 
         bool do_pairs = config_.try_pairs;
         bool do_triplets = config_.try_triplets;
+        StopCondition stopcond = this->stopcond_;
 
         // The DJD heuristic algorithm itself:
         auto packjob = [INITIAL_FILL_AREA, bin_area, w, do_triplets, do_pairs,
+                        stopcond,
                         &tryOneByOne,
                         &tryGroupsOfTwo,
                         &tryGroupsOfThree,
@@ -606,12 +608,12 @@ public:
             double waste = .0;
             bool lasttry = false;
 
-            while(!not_packed.empty()) {
+            while(!not_packed.empty() && !stopcond()) {
 
                 {// Fill the bin up to INITIAL_FILL_PROPORTION of its capacity
                     auto it = not_packed.begin();
 
-                    while(it != not_packed.end() &&
+                    while(it != not_packed.end() && !stopcond() &&
                           filled_area < INITIAL_FILL_AREA)
                     {
                         if(placer.pack(*it, rem(it, not_packed))) {
@@ -623,14 +625,14 @@ public:
                     }
                 }
 
-                // try pieses one by one
+                // try pieces one by one
                 while(tryOneByOne(placer, not_packed, waste, free_area,
                                   filled_area)) {
                     waste = 0; lasttry = false;
                     makeProgress(placer, idx, 1);
                 }
 
-                // try groups of 2 pieses
+                // try groups of 2 pieces
                 while(do_pairs &&
                       tryGroupsOfTwo(placer, not_packed, waste, free_area,
                                      filled_area)) {
@@ -638,7 +640,7 @@ public:
                     makeProgress(placer, idx, 2);
                 }
 
-                // try groups of 3 pieses
+                // try groups of 3 pieces
                 while(do_triplets &&
                       tryGroupsOfThree(placer, not_packed, waste, free_area,
                                        filled_area)) {
