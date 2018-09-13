@@ -740,6 +740,24 @@ void select_current_object(int idx)
 	g_prevent_list_events = false;
 }
 
+void select_current_volume(int idx, int vol_idx)
+{
+    if (vol_idx < 0) {
+        select_current_object(idx);
+        return;
+    }
+    g_prevent_list_events = true;
+    m_objects_ctrl->UnselectAll();
+    if (idx < 0) {
+        g_prevent_list_events = false;
+        return;
+    }
+
+    m_objects_ctrl->Select(m_objects_model->GetItemByVolumeId(idx, vol_idx));
+    part_selection_changed();
+    g_prevent_list_events = false;
+}
+
 void remove()
 {
 	auto item = m_objects_ctrl->GetSelection();
@@ -765,8 +783,17 @@ void object_ctrl_selection_changed()
 
 	if (m_event_object_selection_changed > 0) {
 		wxCommandEvent event(m_event_object_selection_changed);
-		event.SetInt(int(m_objects_model->GetParent(m_objects_ctrl->GetSelection()) != wxDataViewItem(0)));
-		event.SetId(m_selected_object_id);
+		event.SetId(m_selected_object_id); // set $obj_idx
+        const wxDataViewItem item = m_objects_ctrl->GetSelection();
+        if (!item || m_objects_model->GetParent(item) == wxDataViewItem(0))
+            event.SetInt(-1); // set $vol_idx
+        else {
+            const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+            if (vol_idx == -2) // is settings item
+                event.SetInt(m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item))); // set $vol_idx
+            else
+                event.SetInt(vol_idx);
+        }
 		get_main_frame()->ProcessWindowEvent(event);
 	}
 
@@ -950,7 +977,7 @@ void update_settings_list()
 	}
 
     show_manipulation_og(show_manipulations);
-    show_info_sizer(show_manipulations, true);
+    show_info_sizer(show_manipulations && item && m_objects_model->GetParent(item) == wxDataViewItem(0));
 
 #ifdef __linux__
 	no_updates.reset(nullptr);

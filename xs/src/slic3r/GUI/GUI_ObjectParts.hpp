@@ -71,6 +71,8 @@ void set_object_count(int idx, int count);
 void unselect_objects();
 // Select current object in the list on c++ side
 void select_current_object(int idx);
+// Select current volume in the list on c++ side
+void select_current_volume(int idx, int vol_idx);
 // Remove objects/sub-object from the list
 void remove();
 

@@ -240,7 +240,14 @@ sub new {
             my ($obj_idx, $object) = $self->selected_object;
             if (defined $obj_idx) {            
                 my $vol_idx = Slic3r::GUI::_3DScene::get_first_volume_id($self->{canvas3D}, $obj_idx);                 
-                Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx) if ($vol_idx != -1);
+                #Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx) if ($vol_idx != -1);
+                my $inst_cnt = $self->{model}->objects->[$obj_idx]->instances_count;
+                for (0..$inst_cnt-1){
+                    Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $_ + $vol_idx) if ($vol_idx != -1);
+                }
+
+                #my $volume_idx = Slic3r::GUI::_3DScene::get_in_object_volume_id($self->{canvas3D}, $vol_idx);
+                #Slic3r::GUI::select_current_volume($obj_idx, $volume_idx) if ($volume_idx != -1);
             }
         }
     };
@@ -404,8 +411,8 @@ sub new {
     $scrolled_window_panel->SetScrollbars(0, 1, 1, 1);
     
     # right pane buttons
-    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxNO_BORDER);#, wxBU_LEFT);
-    $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxNO_BORDER);#, wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30],);# wxNO_BORDER);#, wxBU_LEFT);
+    $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30]);#, wxNO_BORDER);#, wxBU_LEFT);
 #    $self->{btn_print} = Wx::Button->new($self->{right_panel}, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
 #    $self->{btn_send_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
     $self->{btn_print} = Wx::Button->new($scrolled_window_panel, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
@@ -2477,6 +2484,50 @@ sub select_object {
         # Unselect all objects in the list on c++ side
         Slic3r::GUI::unselect_objects();
     }
+    $self->selection_changed(1);
+}
+
+sub select_object_from_cpp {
+    my ($self, $obj_idx, $vol_idx) = @_;
+    
+    # remove current selection
+    foreach my $o (0..$#{$self->{objects}}) {
+        $self->{objects}->[$o]->selected(0);
+    }    
+
+    my $curr = Slic3r::GUI::_3DScene::get_select_by($self->{canvas3D});
+
+    if (defined $obj_idx) {
+        if ($vol_idx == -1){
+            if ($curr eq 'object') {
+                $self->{objects}->[$obj_idx]->selected(1);
+            }
+            elsif ($curr eq 'volume') {
+                Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'object');
+            }
+
+            my $selections = $self->collect_selections;
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
+        }
+        else {
+            if ($curr eq 'object') {
+                Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'volume');
+            }
+
+            my $selections = [];
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
+            my $volume_idx = Slic3r::GUI::_3DScene::get_first_volume_id($self->{canvas3D}, $obj_idx);
+
+            my $inst_cnt = $self->{model}->objects->[$obj_idx]->instances_count;
+            for (0..$inst_cnt-1){
+                Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx*$inst_cnt + $_ + $volume_idx) if ($volume_idx != -1);
+            }
+        }
+    }
+
     $self->selection_changed(1);
 }
 

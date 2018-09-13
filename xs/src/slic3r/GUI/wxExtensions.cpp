@@ -582,6 +582,26 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemById(int obj_idx)
 }
 
 
+wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_idx)
+{
+	if (obj_idx >= m_objects.size()) {
+		printf("Error! Out of objects range.\n");
+		return wxDataViewItem(0);
+	}
+
+    auto parent = m_objects[obj_idx];
+    if (parent->GetChildCount() == 0) {
+        printf("Error! Object has no one volume.\n");
+        return wxDataViewItem(0);
+    }
+
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+        if (parent->GetNthChild(i)->m_volume_id == volume_idx)
+            return wxDataViewItem(parent->GetNthChild(i));
+
+    return wxDataViewItem(0);
+}
+
 int PrusaObjectDataViewModel::GetIdByItem(wxDataViewItem& item)
 {
 	wxASSERT(item.IsOk());

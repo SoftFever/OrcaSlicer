@@ -145,6 +145,9 @@ void unselect_objects()
 void select_current_object(int idx)
     %code%{ Slic3r::GUI::select_current_object(idx); %};
 
+void select_current_volume(int idx, int vol_idx)
+    %code%{ Slic3r::GUI::select_current_volume(idx, vol_idx); %};
+
 void remove_obj()
     %code%{ Slic3r::GUI::remove(); %};
     
