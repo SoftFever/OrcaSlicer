@@ -246,8 +246,8 @@ sub new {
                     Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $_ + $vol_idx) if ($vol_idx != -1);
                 }
 
-                #my $volume_idx = Slic3r::GUI::_3DScene::get_in_object_volume_id($self->{canvas3D}, $vol_idx);
-                #Slic3r::GUI::select_current_volume($obj_idx, $volume_idx) if ($volume_idx != -1);
+                my $volume_idx = Slic3r::GUI::_3DScene::get_in_object_volume_id($self->{canvas3D}, $vol_idx);
+                Slic3r::GUI::select_current_volume($obj_idx, $volume_idx) if ($volume_idx != -1);
             }
         }
     };
