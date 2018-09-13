@@ -1564,19 +1564,15 @@ void update_position_values()
     auto og = get_optgroup(ogFrequentlyObjectSettings);
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
 
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
     og->set_value("position_x", int(instance->get_offset(X)));
     og->set_value("position_y", int(instance->get_offset(Y)));
     og->set_value("position_z", int(instance->get_offset(Z)));
 #else
-//################################################################################################################################
     og->set_value("position_x", int(instance->offset(0)));
     og->set_value("position_y", int(instance->offset(1)));
     og->set_value("position_z", 0);
-//################################################################################################################################
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
 }
 
 void update_position_values(const Vec3d& position)

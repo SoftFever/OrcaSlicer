@@ -29,16 +29,12 @@
 // VERSION NUMBERS
 // 0 : .amf, .amf.xml and .zip.amf files saved by older slic3r. No version definition in them.
 // 1 : Introduction of amf versioning. No other change in data saved into amf files.
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
 // 2 : Added z component of offset.
 const unsigned int VERSION_AMF = 2;
 #else
-//################################################################################################################################
 const unsigned int VERSION_AMF = 1;
-//################################################################################################################################
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
 const char* SLIC3RPE_AMF_VERSION = "slic3rpe_amf_version";
 
 const char* SLIC3R_CONFIG_TYPE = "slic3rpe_config";
@@ -128,39 +124,31 @@ struct AMFParserContext
         NODE_TYPE_INSTANCE,             // amf/constellation/instance
         NODE_TYPE_DELTAX,               // amf/constellation/instance/deltax
         NODE_TYPE_DELTAY,               // amf/constellation/instance/deltay
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         NODE_TYPE_DELTAZ,               // amf/constellation/instance/deltaz
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
         NODE_TYPE_RZ,                   // amf/constellation/instance/rz
         NODE_TYPE_SCALE,                // amf/constellation/instance/scale
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
     struct Instance {
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rz_set(false), scale_set(false) {}
 #else
-//################################################################################################################################
         Instance() : deltax_set(false), deltay_set(false), rz_set(false), scale_set(false) {}
-//################################################################################################################################
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
         // Shift in the X axis.
         float deltax;
         bool  deltax_set;
         // Shift in the Y axis.
         float deltay;
         bool  deltay_set;
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         // Shift in the Z axis.
         float deltaz;
         bool  deltaz_set;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
         // Rotation around the Z axis.
         float rz;
         bool  rz_set;
@@ -283,12 +271,10 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_DELTAX; 
             else if (strcmp(name, "deltay") == 0)
                 node_type_new = NODE_TYPE_DELTAY;
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
             else if (strcmp(name, "deltaz") == 0)
                 node_type_new = NODE_TYPE_DELTAZ;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
             else if (strcmp(name, "rz") == 0)
                 node_type_new = NODE_TYPE_RZ;
             else if (strcmp(name, "scale") == 0)
@@ -349,7 +335,6 @@ void AMFParserContext::characters(const XML_Char *s, int len)
     {
         switch (m_path.size()) {
         case 4:
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
             if (m_path.back() == NODE_TYPE_DELTAX || 
                 m_path.back() == NODE_TYPE_DELTAY || 
@@ -357,11 +342,8 @@ void AMFParserContext::characters(const XML_Char *s, int len)
                 m_path.back() == NODE_TYPE_RZ || 
                 m_path.back() == NODE_TYPE_SCALE)
 #else
-//################################################################################################################################
             if (m_path.back() == NODE_TYPE_DELTAX || m_path.back() == NODE_TYPE_DELTAY || m_path.back() == NODE_TYPE_RZ || m_path.back() == NODE_TYPE_SCALE)
-//################################################################################################################################
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
                 m_value[0].append(s, len);
             break;
         case 6:
@@ -401,7 +383,6 @@ void AMFParserContext::endElement(const char * /* name */)
         m_instance->deltay_set = true;
         m_value[0].clear();
         break;
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
     case NODE_TYPE_DELTAZ:
         assert(m_instance);
@@ -410,7 +391,6 @@ void AMFParserContext::endElement(const char * /* name */)
         m_value[0].clear();
         break;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
     case NODE_TYPE_RZ:
         assert(m_instance);
         m_instance->rz = float(atof(m_value[0].c_str()));
@@ -555,16 +535,12 @@ void AMFParserContext::endDocument()
         for (const Instance &instance : object.second.instances)
             if (instance.deltax_set && instance.deltay_set) {
                 ModelInstance *mi = m_model.objects[object.second.idx]->add_instance();
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                 mi->set_offset(Vec3d((double)instance.deltax, (double)instance.deltay, (double)instance.deltaz));
 #else
-//################################################################################################################################
                 mi->offset(0) = instance.deltax;
                 mi->offset(1) = instance.deltay;
-//################################################################################################################################
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
                 mi->rotation = instance.rz_set ? instance.rz : 0.f;
                 mi->scaling_factor = instance.scale_set ? instance.scale : 1.f;
             }
@@ -865,27 +841,21 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     "    <instance objectid=\"" PRINTF_ZU "\">\n"
                     "      <deltax>%lf</deltax>\n"
                     "      <deltay>%lf</deltay>\n"
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                     "      <deltaz>%lf</deltaz>\n"
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
                     "      <rz>%lf</rz>\n"
                     "      <scale>%lf</scale>\n"
                     "    </instance>\n",
                     object_id,
-//################################################################################################################################
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                     instance->get_offset(X),
                     instance->get_offset(Y),
                     instance->get_offset(Z),
 #else
-//################################################################################################################################
                     instance->offset(0),
                     instance->offset(1),
-//################################################################################################################################
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
-//################################################################################################################################
                     instance->rotation,
                     instance->scaling_factor);
                 //FIXME missing instance->scaling_factor
