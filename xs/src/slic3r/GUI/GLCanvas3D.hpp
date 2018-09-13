@@ -105,7 +105,6 @@ class GLCanvas3D
         void reset() { first_volumes.clear(); }
     };
 
-public:
     struct Camera
     {
         enum EType : unsigned char
@@ -441,7 +440,6 @@ public:
         void render(const GLCanvas3D& canvas) const;
     };
 
-private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     LegendTexture m_legend_texture;
