@@ -2499,6 +2499,11 @@ int GLCanvas3D::get_first_volume_id(int obj_idx) const
     return -1;
 }
 
+int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
+{
+    return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
+}
+
 void GLCanvas3D::reload_scene(bool force)
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))

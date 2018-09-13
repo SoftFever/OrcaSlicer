@@ -548,6 +548,12 @@ int GLCanvas3DManager::get_first_volume_id(wxGLCanvas* canvas, int obj_idx) cons
     return (it != m_canvases.end()) ? it->second->get_first_volume_id(obj_idx) : -1;
 }
 
+int GLCanvas3DManager::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx) const
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second->get_in_object_volume_id(scene_vol_idx) : -1;
+}
+
 void GLCanvas3DManager::reload_scene(wxGLCanvas* canvas, bool force)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
