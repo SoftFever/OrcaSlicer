@@ -603,6 +603,7 @@ public:
     std::vector<int> load_object(const Model& model, int obj_idx);
 
     int get_first_volume_id(int obj_idx) const;
+    int get_in_object_volume_id(int scene_vol_idx) const;
 
     void reload_scene(bool force);
 

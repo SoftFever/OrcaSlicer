@@ -767,6 +767,15 @@ get_first_volume_id(canvas, obj_idx)
     OUTPUT:
         RETVAL
 
+int
+get_in_object_volume_id(canvas, scene_vol_idx)
+        SV  *canvas;
+        int scene_vol_idx;
+    CODE:
+        RETVAL = _3DScene::get_in_object_volume_id((wxGLCanvas*)wxPli_sv_2_object(aTHX_ canvas, "Wx::GLCanvas"), scene_vol_idx);
+    OUTPUT:
+        RETVAL
+
 std::vector<int>
 load_model(canvas, model, obj_idx)
         SV               *canvas;
