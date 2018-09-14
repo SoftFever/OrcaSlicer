@@ -182,7 +182,7 @@ bool select_language(wxArrayString & names, wxArrayLong & identifiers);
 // update right panel of the Plater according to view mode
 void update_mode();
 
-void show_info_sizer(const bool show, const bool is_update_settinfs = false);
+void show_info_sizer(const bool show);
 
 std::vector<Tab *>& get_tabs_list();
 bool checked_tab(Tab* tab);

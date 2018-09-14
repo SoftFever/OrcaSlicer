@@ -259,6 +259,15 @@ void set_show_print_info(bool show)
 void set_show_manifold_warning_icon(bool show)
 {
 	g_show_manifold_warning_icon = show;
+    if (!g_manifold_warning_icon)
+        return;
+
+    // update manifold_warning_icon showing
+    if (show && !g_info_sizer->IsShown(static_cast<size_t>(0)))
+        g_show_manifold_warning_icon = false;
+
+    g_manifold_warning_icon->Show(g_show_manifold_warning_icon);
+    g_manifold_warning_icon->GetParent()->Layout();
 }
 
 void set_objects_list_sizer(wxBoxSizer *objects_list_sizer){
@@ -1118,11 +1127,11 @@ void show_buttons(bool show)
 	}
 }
 
-void show_info_sizer(const bool show, const bool is_update_settings/* = false*/)
+void show_info_sizer(const bool show)
 {
 	g_info_sizer->Show(static_cast<size_t>(0), show); 
 	g_info_sizer->Show(1, show && g_show_print_info);
-	g_manifold_warning_icon->Show(show && (!is_update_settings && g_show_manifold_warning_icon));
+	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
 }
 
 void show_object_name(bool show)
@@ -1142,6 +1151,7 @@ void update_mode()
 	show_info_sizer(mode == ConfigMenuModeExpert);
 	show_buttons(mode == ConfigMenuModeExpert);
     show_object_name(mode == ConfigMenuModeSimple);
+    show_manipulation_sizer(mode == ConfigMenuModeSimple);
 
 	// TODO There is a not the best place of it!
 	// *** Update showing of the collpane_settings
