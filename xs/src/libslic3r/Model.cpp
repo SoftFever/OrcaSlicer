@@ -609,7 +609,7 @@ const BoundingBoxf3& ModelObject::bounding_box() const
     if (! m_bounding_box_valid) {
         BoundingBoxf3 raw_bbox;
         for (const ModelVolume *v : this->volumes)
-            if (! v->modifier)
+            if (v->is_model_part())
                 // mesh.bounding_box() returns a cached value.
                 raw_bbox.merge(v->mesh.bounding_box());
         BoundingBoxf3 bb;
@@ -641,7 +641,7 @@ TriangleMesh ModelObject::raw_mesh() const
 {
     TriangleMesh mesh;
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
             mesh.merge(v->mesh);
     return mesh;
 }
@@ -652,7 +652,7 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
 {
     BoundingBoxf3 bb;
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier) {
+        if (v->is_model_part()) {
             if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
             bb.merge(this->instances.front()->transform_mesh_bounding_box(&v->mesh, true));
         }
@@ -664,7 +664,7 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
 {
     BoundingBoxf3 bb;
     for (ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
             bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(&v->mesh, dont_translate));
     return bb;
 }
@@ -675,7 +675,7 @@ void ModelObject::center_around_origin()
     // center this object around the origin
 	BoundingBoxf3 bb;
 	for (ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
 			bb.merge(v->mesh.bounding_box());
     
     // first align to origin on XYZ
@@ -779,7 +779,7 @@ size_t ModelObject::facets_count() const
 {
     size_t num = 0;
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
             num += v->mesh.stl.stats.number_of_facets;
     return num;
 }
@@ -787,7 +787,7 @@ size_t ModelObject::facets_count() const
 bool ModelObject::needed_repair() const
 {
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier && v->mesh.needed_repair())
+        if (v->is_model_part() && v->mesh.needed_repair())
             return true;
     return false;
 }
@@ -803,7 +803,7 @@ void ModelObject::cut(coordf_t z, Model* model) const
     lower->input_file = "";
     
     for (ModelVolume *volume : this->volumes) {
-        if (volume->modifier) {
+        if (! volume->is_model_part()) {
             // don't cut modifiers
             upper->add_volume(*volume);
             lower->add_volume(*volume);
@@ -855,7 +855,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         ModelVolume* new_volume = new_object->add_volume(*mesh);
         new_volume->name        = volume->name;
         new_volume->config      = volume->config;
-        new_volume->modifier    = volume->modifier;
+        new_volume->set_type(volume->type());
         new_volume->material_id(volume->material_id());
         
         new_objects->push_back(new_object);
@@ -869,7 +869,7 @@ void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_
 {
     for (const ModelVolume* vol : this->volumes)
     {
-        if (!vol->modifier)
+        if (vol->is_model_part())
         {
             for (ModelInstance* inst : this->instances)
             {
@@ -971,6 +971,37 @@ void ModelVolume::calculate_convex_hull()
 const TriangleMesh& ModelVolume::get_convex_hull() const
 {
     return m_convex_hull;
+}
+
+ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
+{
+    // Legacy support
+    if (s == "0")
+        return MODEL_PART;
+    if (s == "1")
+        return PARAMETER_MODIFIER;
+    // New type (supporting the support enforcers & blockers)
+    if (s == "ModelPart")
+        return MODEL_PART;
+    if (s == "ParameterModifier")
+        return PARAMETER_MODIFIER;
+    if (s == "SupportEnforcer")
+        return SUPPORT_ENFORCER;
+    if (s == "SupportBlocker")
+        return SUPPORT_BLOCKER;
+}
+
+std::string ModelVolume::type_to_string(const Type t)
+{
+    switch (t) {
+    case MODEL_PART:         return "ModelPart";
+    case PARAMETER_MODIFIER: return "ParameterModifier";
+    case SUPPORT_ENFORCER:   return "SupportEnforcer";
+    case SUPPORT_BLOCKER:    return "SupportBlocker";
+    default:
+        assert(false);
+        return "ModelPart";
+    }
 }
 
 // Split this volume, append the result to the object owning this volume.

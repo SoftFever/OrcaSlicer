@@ -91,6 +91,8 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     virtual double min_mm3_per_mm() const = 0;
     virtual Polyline as_polyline() const = 0;
+    virtual void   collect_polylines(Polylines &dst) const = 0;
+    virtual Polylines as_polylines() const { Polylines dst; this->collect_polylines(dst); return dst; }
     virtual double length() const = 0;
     virtual double total_volume() const = 0;
 };
@@ -123,8 +125,11 @@ public:
 
     ExtrusionPath* clone() const { return new ExtrusionPath (*this); }
     void reverse() { this->polyline.reverse(); }
-    Point first_point() const { return this->polyline.points.front(); }
-    Point last_point() const { return this->polyline.points.back(); }
+    Point first_point() const override { return this->polyline.points.front(); }
+    Point last_point() const override { return this->polyline.points.back(); }
+    size_t size() const { return this->polyline.size(); }
+    bool empty() const { return this->polyline.empty(); }
+    bool is_closed() const { return ! this->empty() && this->polyline.points.front() == this->polyline.points.back(); }
     // Produce a list of extrusion paths into retval by clipping this path by ExPolygonCollection.
     // Currently not used.
     void intersect_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
@@ -133,8 +138,8 @@ public:
     void subtract_expolygons(const ExPolygonCollection &collection, ExtrusionEntityCollection* retval) const;
     void clip_end(double distance);
     void simplify(double tolerance);
-    virtual double length() const;
-    virtual ExtrusionRole role() const { return m_role; }
+    double length() const override;
+    ExtrusionRole role() const override { return m_role; }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
@@ -149,7 +154,8 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const { return this->mm3_per_mm; }
     Polyline as_polyline() const { return this->polyline; }
-    virtual double total_volume() const { return mm3_per_mm * unscale(length()); }
+    void   collect_polylines(Polylines &dst) const override { if (! this->polyline.empty()) dst.emplace_back(this->polyline); }
+    double total_volume() const override { return mm3_per_mm * unscale(length()); }
 
 private:
     void _inflate_collection(const Polylines &polylines, ExtrusionEntityCollection* collection) const;
@@ -178,10 +184,10 @@ public:
     bool can_reverse() const { return true; }
     ExtrusionMultiPath* clone() const { return new ExtrusionMultiPath(*this); }
     void reverse();
-    Point first_point() const { return this->paths.front().polyline.points.front(); }
-    Point last_point() const { return this->paths.back().polyline.points.back(); }
-    virtual double length() const;
-    virtual ExtrusionRole role() const { return this->paths.empty() ? erNone : this->paths.front().role(); }
+    Point first_point() const override { return this->paths.front().polyline.points.front(); }
+    Point last_point() const override { return this->paths.back().polyline.points.back(); }
+    double length() const override;
+    ExtrusionRole role() const override { return this->paths.empty() ? erNone : this->paths.front().role(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
@@ -196,7 +202,8 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const;
     Polyline as_polyline() const;
-    virtual double total_volume() const { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
+    void   collect_polylines(Polylines &dst) const override { Polyline pl = this->as_polyline(); if (! pl.empty()) dst.emplace_back(std::move(pl)); }
+    double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
 };
 
 // Single continuous extrusion loop, possibly with varying extrusion thickness, extrusion height or bridging / non bridging.
@@ -218,18 +225,18 @@ public:
     bool make_clockwise();
     bool make_counter_clockwise();
     void reverse();
-    Point first_point() const { return this->paths.front().polyline.points.front(); }
-    Point last_point() const { assert(first_point() == this->paths.back().polyline.points.back()); return first_point(); }
+    Point first_point() const override { return this->paths.front().polyline.points.front(); }
+    Point last_point() const override { assert(first_point() == this->paths.back().polyline.points.back()); return first_point(); }
     Polygon polygon() const;
-    virtual double length() const;
+    double length() const override;
     bool split_at_vertex(const Point &point);
     void split_at(const Point &point, bool prefer_non_overhang);
     void clip_end(double distance, ExtrusionPaths* paths) const;
     // Test, whether the point is extruded by a bridging flow.
     // This used to be used to avoid placing seams on overhangs, but now the EdgeGrid is used instead.
     bool has_overhang_point(const Point &point) const;
-    virtual ExtrusionRole role() const { return this->paths.empty() ? erNone : this->paths.front().role(); }
-    ExtrusionLoopRole     loop_role() const { return m_loop_role; }
+    ExtrusionRole role() const override { return this->paths.empty() ? erNone : this->paths.front().role(); }
+    ExtrusionLoopRole loop_role() const { return m_loop_role; }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
@@ -244,7 +251,8 @@ public:
     // Minimum volumetric velocity of this extrusion entity. Used by the constant nozzle pressure algorithm.
     double min_mm3_per_mm() const;
     Polyline as_polyline() const { return this->polygon().split_at_first_point(); }
-    virtual double total_volume() const { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
+    void   collect_polylines(Polylines &dst) const override { Polyline pl = this->as_polyline(); if (! pl.empty()) dst.emplace_back(std::move(pl)); }
+    double total_volume() const override { double volume =0.; for (const auto& path : paths) volume += path.total_volume(); return volume; }
 
 private:
     ExtrusionLoopRole m_loop_role;

@@ -80,7 +80,10 @@ public:
 
     Print* print() { return this->_print; }
     Flow flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const;
+    // Average diameter of nozzles participating on extruding this region.
     coordf_t nozzle_dmr_avg(const PrintConfig &print_config) const;
+    // Average diameter of nozzles participating on extruding this region.
+    coordf_t bridging_height_avg(const PrintConfig &print_config) const;
 
 private:
     Print* _print;
@@ -211,6 +214,10 @@ public:
 
     bool is_printable() const { return !this->_shifted_copies.empty(); }
 
+    // Helpers to slice support enforcer / blocker meshes by the support generator.
+    std::vector<ExPolygons>     slice_support_enforcers() const;
+    std::vector<ExPolygons>     slice_support_blockers() const;
+
 private:
     Print* _print;
     ModelObject* _model_object;
@@ -222,6 +229,7 @@ private:
     ~PrintObject() {}
 
     std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
+    std::vector<ExPolygons> _slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
 };
 
 typedef std::vector<PrintObject*> PrintObjectPtrs;

@@ -24,7 +24,7 @@ public:
     explicit operator ExtrusionPaths() const;
     
     bool is_collection() const { return true; };
-    virtual ExtrusionRole role() const {
+    ExtrusionRole role() const override {
         ExtrusionRole out = erNone;
         for (const ExtrusionEntity *ee : entities) {
             ExtrusionRole er = ee->role();
@@ -66,11 +66,11 @@ public:
     Point last_point() const { return this->entities.back()->last_point(); }
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion width.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
-    virtual void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_width(Polygons &out, const float scaled_epsilon) const override;
     // Produce a list of 2D polygons covered by the extruded paths, offsetted by the extrusion spacing.
     // Increase the offset by scaled_epsilon to achieve an overlap, so a union will produce no gaps.
     // Useful to calculate area of an infill, which has been really filled in by a 100% rectilinear infill.
-    virtual void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const;
+    void polygons_covered_by_spacing(Polygons &out, const float scaled_epsilon) const override;
     Polygons polygons_covered_by_width(const float scaled_epsilon = 0.f) const
         { Polygons out; this->polygons_covered_by_width(out, scaled_epsilon); return out; }
     Polygons polygons_covered_by_spacing(const float scaled_epsilon = 0.f) const
@@ -79,14 +79,20 @@ public:
     void flatten(ExtrusionEntityCollection* retval) const;
     ExtrusionEntityCollection flatten() const;
     double min_mm3_per_mm() const;
-    virtual double total_volume() const {double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
+    double total_volume() const override { double volume=0.; for (const auto& ent : entities) volume+=ent->total_volume(); return volume; }
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
     Polyline as_polyline() const {
         CONFESS("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };
-    virtual double length() const {
+
+    void collect_polylines(Polylines &dst) const override {
+        for (ExtrusionEntity* extrusion_entity : this->entities)
+            extrusion_entity->collect_polylines(dst);
+    }
+
+    double length() const override {
         CONFESS("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }

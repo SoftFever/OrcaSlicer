@@ -362,9 +362,12 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     // Invalidate all print steps.
     this->invalidate_all_steps();
 
-    for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
+    size_t volume_id = 0;
+    for (const ModelVolume *volume : model_object->volumes) {
+        if (! volume->is_model_part() && ! volume->is_modifier())
+            continue;
         // Get the config applied to this volume.
-        PrintRegionConfig config = this->_region_config_from_model_volume(*model_object->volumes[volume_id]);
+        PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
         // Find an existing print region with the same config.
         size_t region_id = size_t(-1);
         for (size_t i = 0; i < this->regions.size(); ++ i)
@@ -379,6 +382,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         }
         // Assign volume to a region.
         object->add_region_volume(region_id, volume_id);
+        ++ volume_id;
     }
 
     // Apply config to print object.
@@ -853,7 +857,7 @@ void Print::auto_assign_extruders(ModelObject* model_object) const
     for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
         ModelVolume *volume = model_object->volumes[volume_id];
         //FIXME Vojtech: This assigns an extruder ID even to a modifier volume, if it has a material assigned.
-        if (! volume->material_id().empty() && ! volume->config.has("extruder"))
+        if ((volume->is_model_part() || volume->is_modifier()) && ! volume->material_id().empty() && ! volume->config.has("extruder"))
             volume->config.opt<ConfigOptionInt>("extruder", true)->value = int(volume_id + 1);
     }
 }

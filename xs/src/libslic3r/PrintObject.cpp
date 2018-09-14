@@ -172,6 +172,7 @@ bool PrintObject::invalidate_state_by_config_options(const std::vector<t_config_
             steps.emplace_back(posSlice);
         } else if (
                opt_key == "support_material"
+            || opt_key == "support_material_auto"
             || opt_key == "support_material_angle"
             || opt_key == "support_material_buildplate_only"
             || opt_key == "support_material_enforce_layers"
@@ -1320,29 +1321,62 @@ end:
 
 std::vector<ExPolygons> PrintObject::_slice_region(size_t region_id, const std::vector<float> &z, bool modifier)
 {
-    std::vector<ExPolygons> layers;
+    std::vector<const ModelVolume*> volumes;
     if (region_id < this->region_volumes.size()) {
-        std::vector<int> &volumes = this->region_volumes[region_id];
-        if (! volumes.empty()) {
-            // Compose mesh.
-            //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
-            TriangleMesh mesh;
-            for (int volume_id : volumes) {
-                ModelVolume *volume = this->model_object()->volumes[volume_id];
-                if (volume->modifier == modifier)
-                    mesh.merge(volume->mesh);
-            }
-            if (mesh.stl.stats.number_of_facets > 0) {
-                // transform mesh
-                // we ignore the per-instance transformations currently and only 
-                // consider the first one
-                this->model_object()->instances.front()->transform_mesh(&mesh, true);
-                // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-                mesh.translate(- float(unscale(this->_copies_shift.x)), - float(unscale(this->_copies_shift.y)), -float(this->model_object()->bounding_box().min.z));
-                // perform actual slicing
-                TriangleMeshSlicer mslicer(&mesh);
-                mslicer.slice(z, &layers);
-            }
+        for (int volume_id : this->region_volumes[region_id]) {
+            const ModelVolume *volume = this->model_object()->volumes[volume_id];
+            if (modifier ? volume->is_modifier() : volume->is_model_part())
+                volumes.emplace_back(volume);
+        }
+    }
+    return this->_slice_volumes(z, volumes);
+}
+
+std::vector<ExPolygons> PrintObject::slice_support_enforcers() const
+{
+    std::vector<const ModelVolume*> volumes;
+    for (const ModelVolume *volume : this->model_object()->volumes)
+        if (volume->is_support_enforcer())
+            volumes.emplace_back(volume);
+    std::vector<float> zs;
+    zs.reserve(this->layers.size());
+    for (const Layer *l : this->layers)
+        zs.emplace_back(l->slice_z);
+    return this->_slice_volumes(zs, volumes);
+}
+
+std::vector<ExPolygons> PrintObject::slice_support_blockers() const
+{
+    std::vector<const ModelVolume*> volumes;
+    for (const ModelVolume *volume : this->model_object()->volumes)
+        if (volume->is_support_blocker())
+            volumes.emplace_back(volume);
+    std::vector<float> zs;
+    zs.reserve(this->layers.size());
+    for (const Layer *l : this->layers)
+        zs.emplace_back(l->slice_z);
+    return this->_slice_volumes(zs, volumes);
+}
+
+std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const
+{
+    std::vector<ExPolygons> layers;
+    if (! volumes.empty()) {
+        // Compose mesh.
+        //FIXME better to perform slicing over each volume separately and then to use a Boolean operation to merge them.
+        TriangleMesh mesh;
+        for (const ModelVolume *v : volumes)
+            mesh.merge(v->mesh);
+        if (mesh.stl.stats.number_of_facets > 0) {
+            // transform mesh
+            // we ignore the per-instance transformations currently and only 
+            // consider the first one
+            this->model_object()->instances.front()->transform_mesh(&mesh, true);
+            // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
+            mesh.translate(- float(unscale(this->_copies_shift.x)), - float(unscale(this->_copies_shift.y)), -float(this->model_object()->bounding_box().min.z));
+            // perform actual slicing
+            TriangleMeshSlicer mslicer(&mesh);
+            mslicer.slice(z, &layers);
         }
     }
     return layers;

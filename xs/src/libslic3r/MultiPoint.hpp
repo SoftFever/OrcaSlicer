@@ -34,8 +34,10 @@ public:
     Point first_point() const;
     virtual Point last_point() const = 0;
     virtual Lines lines() const = 0;
+    size_t size() const { return points.size(); }
+    bool   empty() const { return points.empty(); }
     double length() const;
-    bool is_valid() const { return this->points.size() >= 2; }
+    bool   is_valid() const { return this->points.size() >= 2; }
 
     int  find_point(const Point &point) const;
     bool has_boundary_point(const Point &point) const;
