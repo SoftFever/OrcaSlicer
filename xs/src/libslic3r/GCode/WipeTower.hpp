@@ -155,6 +155,12 @@ public:
 	// the wipe tower has been completely covered by the tool change extrusions,
 	// or the rest of the tower has been filled by a sparse infill with the finish_layer() method.
 	virtual bool 		     layer_finished() const = 0;
+
+    // Returns used filament length per extruder:
+    virtual std::vector<float> get_used_filament() const = 0;
+
+    // Returns total number of toolchanges:
+    virtual int get_number_of_toolchanges() const = 0;
 };
 
 }; // namespace Slic3r

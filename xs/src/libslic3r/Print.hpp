@@ -240,7 +240,7 @@ public:
     // TODO: status_cb
     std::string                     estimated_normal_print_time;
     std::string                     estimated_silent_print_time;
-    double                          total_used_filament, total_extruded_volume, total_cost, total_weight;
+    double                          total_used_filament, total_extruded_volume, total_cost, total_weight, total_wipe_tower_cost, total_wipe_tower_filament;
     std::map<size_t, float>         filament_stats;
     PrintState<PrintStep, psCount>  state;
 
@@ -309,6 +309,8 @@ public:
     std::unique_ptr<WipeTower::ToolChangeResult>          m_wipe_tower_priming;
     std::vector<std::vector<WipeTower::ToolChangeResult>> m_wipe_tower_tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          m_wipe_tower_final_purge;
+    std::vector<float>                                    m_wipe_tower_used_filament;
+    int                                                   m_wipe_tower_number_of_toolchanges = -1;
 
     std::string output_filename();
     std::string output_filepath(const std::string &path);
