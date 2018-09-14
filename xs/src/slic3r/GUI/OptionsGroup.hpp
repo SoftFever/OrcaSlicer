@@ -161,8 +161,10 @@ public:
 					ogDrawFlag flag = ogDEFAULT, column_t extra_clmn = nullptr) :
 					m_parent(_parent), title(title), m_show_modified_btns(is_tab_opt),
 					staticbox(title!=""), m_flag(flag), extra_column(extra_clmn){
-		stb = new wxStaticBox(_parent, wxID_ANY, title);
-		stb->SetFont(bold_font());
+        if (staticbox) {
+            stb = new wxStaticBox(_parent, wxID_ANY, title);
+            stb->SetFont(bold_font());
+        }
         sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
         if (label_width != 0) num_columns++;

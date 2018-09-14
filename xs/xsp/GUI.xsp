@@ -87,26 +87,21 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
                                                            (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
                                                            (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};
 
-void add_expert_mode_part(  SV *ui_parent, SV *ui_sizer, 
-                            Model *model,
-                            int event_object_selection_changed,
-                            int event_object_settings_changed,
-                            int event_remove_object, 
-                            int event_update_scene)
-    %code%{ Slic3r::GUI::add_expert_mode_part(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
-                                                (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"), 
-                                                *model,  
-                                                event_object_selection_changed,
-                                                event_object_settings_changed,
-                                                event_remove_object, 
-                                                event_update_scene); %};
+void set_model_events_from_perl(Model *model,
+                                int event_object_selection_changed,
+                                int event_object_settings_changed,
+                                int event_remove_object, 
+                                int event_update_scene)
+    %code%{ Slic3r::GUI::set_model_events_from_perl(*model,  
+                                                    event_object_selection_changed,
+                                                    event_object_settings_changed,
+                                                    event_remove_object, 
+                                                    event_update_scene); %};
 
 void set_objects_from_perl( SV *ui_parent, 
                             SV *frequently_changed_parameters_sizer,
-                            SV *expert_mode_part_sizer,
-                            SV *scrolled_window_sizer,
+                            SV *info_sizer,
                             SV *btn_export_gcode,
-                            SV *btn_export_stl,
                             SV *btn_reslice,
                             SV *btn_print,
                             SV *btn_send_gcode,
@@ -114,10 +109,8 @@ void set_objects_from_perl( SV *ui_parent,
     %code%{ Slic3r::GUI::set_objects_from_perl(
                             (wxWindow *)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                             (wxBoxSizer *)wxPli_sv_2_object(aTHX_ frequently_changed_parameters_sizer, "Wx::BoxSizer"),
-                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ expert_mode_part_sizer, "Wx::BoxSizer"),
-                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ scrolled_window_sizer, "Wx::BoxSizer"),
+                            (wxBoxSizer *)wxPli_sv_2_object(aTHX_ info_sizer, "Wx::BoxSizer"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_gcode, "Wx::Button"),
-                            (wxButton *)wxPli_sv_2_object(aTHX_ btn_export_stl, "Wx::Button"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_reslice, "Wx::Button"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_print, "Wx::Button"),
                             (wxButton *)wxPli_sv_2_object(aTHX_ btn_send_gcode, "Wx::Button"),
@@ -152,6 +145,9 @@ void unselect_objects()
 void select_current_object(int idx)
     %code%{ Slic3r::GUI::select_current_object(idx); %};
 
+void select_current_volume(int idx, int vol_idx)
+    %code%{ Slic3r::GUI::select_current_volume(idx, vol_idx); %};
+
 void remove_obj()
     %code%{ Slic3r::GUI::remove(); %};
     
@@ -170,16 +166,23 @@ void desktop_open_datadir_folder()
 void fix_model_by_win10_sdk_gui(ModelObject *model_object_src, Print *print, Model *model_dst)
     %code%{ Slic3r::fix_model_by_win10_sdk_gui(*model_object_src, *print, *model_dst); %};
 
-void set_3DScene(SV *scene)
-    %code%{ Slic3r::GUI::set_3DScene((_3DScene *)wxPli_sv_2_object(aTHX_ scene, "Slic3r::Model::3DScene") ); %};
-
 void register_on_request_update_callback(SV* callback)
     %code%{ Slic3r::GUI::g_on_request_update_callback.register_callback(callback); %};
 
 void deregister_on_request_update_callback()
     %code%{ Slic3r::GUI::g_on_request_update_callback.deregister_callback(); %};
 
-//void create_double_slider(SV *ui_parent, SV *ui_ds)
-//    %code%{ Slic3r::GUI::create_double_slider(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
-//                                                (wxControl*)wxPli_sv_2_object(aTHX_ ui_ds, "Wx::Control")); %};
+void create_double_slider(SV *ui_parent, SV *ui_sizer, SV *ui_canvas)
+    %code%{ Slic3r::GUI::create_double_slider(  (wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
+                                                (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
+                                                (wxGLCanvas*)wxPli_sv_2_object(aTHX_ ui_canvas, "Wx::GLCanvas")); %};
+
+void update_double_slider(bool force_sliders_full_range)
+    %code%{ Slic3r::GUI::update_double_slider(force_sliders_full_range); %};
+
+void reset_double_slider()
+    %code%{ Slic3r::GUI::reset_double_slider(); %};
+
+void enable_action_buttons(bool enable)
+    %code%{ Slic3r::GUI::enable_action_buttons(enable); %};
 

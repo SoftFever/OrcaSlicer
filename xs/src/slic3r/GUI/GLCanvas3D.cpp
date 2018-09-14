@@ -5418,6 +5418,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
     }
 
     m_on_select_object_callback.call(obj_id, vol_id);
+    Slic3r::GUI::select_current_volume(obj_id, vol_id);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
