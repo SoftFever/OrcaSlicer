@@ -2530,6 +2530,11 @@ int GLCanvas3D::get_first_volume_id(int obj_idx) const
     return -1;
 }
 
+int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
+{
+    return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
+}
+
 void GLCanvas3D::reload_scene(bool force)
 {
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
@@ -5539,6 +5544,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
     }
 
     m_on_select_object_callback.call(obj_id, vol_id);
+    Slic3r::GUI::select_current_volume(obj_id, vol_id);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

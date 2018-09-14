@@ -10,10 +10,12 @@ namespace GUI
 {
 static wxString dots("…", wxConvUTF8);
 
-LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
+LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
+                                       const wxString type_name):
+                                       m_type_name(type_name)
 {
 	Create(parent, wxID_ANY, _(L("Lambda Object")),
-		wxDefaultPosition, wxDefaultSize,
+        parent->GetScreenPosition(), wxDefaultSize,
 		wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
 	// instead of double dim[3] = { 1.0, 1.0, 1.0 };
@@ -24,11 +26,20 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 	sizer = new wxBoxSizer(wxVERTICAL);
 
 	// modificator options
-	m_modificator_options_book = new wxChoicebook(	this, wxID_ANY, wxDefaultPosition, 
-													wxDefaultSize, wxCHB_TOP);
-	sizer->Add(m_modificator_options_book, 1, wxEXPAND| wxALL, 10);
+    if (m_type_name == wxEmptyString) {
+        m_modificator_options_book = new wxChoicebook(  this, wxID_ANY, wxDefaultPosition,
+                                                        wxDefaultSize, wxCHB_TOP);
+        sizer->Add(m_modificator_options_book, 1, wxEXPAND | wxALL, 10);
+    }
+    else {
+        m_panel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize);
+        sizer->Add(m_panel, 1, wxEXPAND | wxALL, 10);
+    }
 
+    ConfigOptionDef def;
+    def.width = 70;
 	auto optgroup = init_modificator_options_page(_(L("Box")));
+    if (optgroup){
 		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 			int opt_id =	opt_key == "l" ? 0 :
 							opt_key == "w" ? 1 : 
@@ -37,8 +48,6 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 			object_parameters.dim[opt_id] = boost::any_cast<double>(value);
 		};
 
-		ConfigOptionDef def;
-		def.width = 70;
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat{ 1.0 };
 		def.label = L("L");
@@ -52,8 +61,10 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 		def.label = L("H");
 		option = Option(def, "h");
 		optgroup->append_single_option_line(option);
+	}
 
 	optgroup = init_modificator_options_page(_(L("Cylinder")));
+	if (optgroup){
 		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 			int val = boost::any_cast<int>(value);
 			if (opt_key == "cyl_r")
@@ -66,14 +77,16 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 		def.type = coInt;
 		def.default_value = new ConfigOptionInt{ 1 };
 		def.label = L("Radius");
-		option = Option(def, "cyl_r");
+		auto option = Option(def, "cyl_r");
 		optgroup->append_single_option_line(option);
 
 		def.label = L("Height");
 		option = Option(def, "cyl_h");
 		optgroup->append_single_option_line(option);
+    }
 
 	optgroup = init_modificator_options_page(_(L("Sphere")));
+	if (optgroup){
 		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 			if (opt_key == "sph_rho")
 				object_parameters.sph_rho = boost::any_cast<double>(value);
@@ -83,10 +96,12 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat{ 1.0 };
 		def.label = L("Rho");
-		option = Option(def, "sph_rho");
+		auto option = Option(def, "sph_rho");
 		optgroup->append_single_option_line(option);
+	}
 
 	optgroup = init_modificator_options_page(_(L("Slab")));
+	if (optgroup){
 		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 			double val = boost::any_cast<double>(value);
 			if (opt_key == "slab_z")
@@ -96,13 +111,16 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 			else return;
 		};
 
+		def.type = coFloat;
+		def.default_value = new ConfigOptionFloat{ 1.0 };
 		def.label = L("H");
-		option = Option(def, "slab_h");
+		auto option = Option(def, "slab_h");
 		optgroup->append_single_option_line(option);
 
 		def.label = L("Initial Z");
 		option = Option(def, "slab_z");
 		optgroup->append_single_option_line(option);
+	}
 
 	Bind(wxEVT_CHOICEBOOK_PAGE_CHANGED, ([this](wxCommandEvent e)
 	{
@@ -127,8 +145,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 		}
 	}));
 
-
-	auto button_sizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
+	const auto button_sizer = CreateStdDialogButtonSizer(wxOK | wxCANCEL);
 
 	wxButton* btn_OK = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
 	btn_OK->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
@@ -155,9 +172,11 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent)
 
 // Called from the constructor.
 // Create a panel for a rectangular / circular / custom bed shape.
-ConfigOptionsGroupShp LambdaObjectDialog::init_modificator_options_page(wxString title){
+ConfigOptionsGroupShp LambdaObjectDialog::init_modificator_options_page(const wxString& title){
+    if (!m_type_name.IsEmpty() && m_type_name != title)
+        return nullptr;
 
-	auto panel = new wxPanel(m_modificator_options_book);
+    auto panel = m_type_name.IsEmpty() ? new wxPanel(m_modificator_options_book) : m_panel;
 
 	ConfigOptionsGroupShp optgroup;
 	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Add")) + " " +title + " " +dots);
@@ -165,8 +184,12 @@ ConfigOptionsGroupShp LambdaObjectDialog::init_modificator_options_page(wxString
 
 	m_optgroups.push_back(optgroup);
 
-	panel->SetSizerAndFit(optgroup->sizer);
-	m_modificator_options_book->AddPage(panel, title);
+    if (m_type_name.IsEmpty()) {
+        panel->SetSizerAndFit(optgroup->sizer);
+        m_modificator_options_book->AddPage(panel, title);
+    }
+    else
+        panel->SetSizer(optgroup->sizer);
 
 	return optgroup;
 }

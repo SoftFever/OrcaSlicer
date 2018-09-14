@@ -694,6 +694,7 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 }
 
 const float GLGizmoScale3D::Offset = 5.0f;
+const Vec3d GLGizmoScale3D::OffsetVec = (double)GLGizmoScale3D::Offset * Vec3d::Ones();
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -743,7 +744,7 @@ void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_show_starting_box = true;
-        m_starting_box = box;
+        m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     }
 }
 
@@ -777,9 +778,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_DEPTH_TEST);
 
-    Vec3d offset_vec = (double)Offset * Vec3d::Ones();
-
-    m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
+    m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     const Vec3d& center = m_box.center();
 
     // x axis

@@ -114,10 +114,11 @@ sub new {
     # callback to enable/disable action buttons
     my $enable_action_buttons = sub {
         my ($enable) = @_;
-        $self->{btn_export_gcode}->Enable($enable);
-        $self->{btn_reslice}->Enable($enable);
-        $self->{btn_print}->Enable($enable);
-        $self->{btn_send_gcode}->Enable($enable);
+        Slic3r::GUI::enable_action_buttons($enable);
+#        $self->{btn_export_gcode}->Enable($enable);
+#        $self->{btn_reslice}->Enable($enable);
+#        $self->{btn_print}->Enable($enable);
+#        $self->{btn_send_gcode}->Enable($enable);
     };
 
     # callback to react to gizmo scale
@@ -240,7 +241,14 @@ sub new {
             my ($obj_idx, $object) = $self->selected_object;
             if (defined $obj_idx) {            
                 my $vol_idx = Slic3r::GUI::_3DScene::get_first_volume_id($self->{canvas3D}, $obj_idx);                 
-                Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx) if ($vol_idx != -1);
+                #Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx) if ($vol_idx != -1);
+                my $inst_cnt = $self->{model}->objects->[$obj_idx]->instances_count;
+                for (0..$inst_cnt-1){
+                    Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $_ + $vol_idx) if ($vol_idx != -1);
+                }
+
+                my $volume_idx = Slic3r::GUI::_3DScene::get_in_object_volume_id($self->{canvas3D}, $vol_idx);
+                Slic3r::GUI::select_current_volume($obj_idx, $volume_idx) if ($volume_idx != -1);
             }
         }
     };
@@ -392,26 +400,35 @@ sub new {
 #    }
 
     ### Panel for right column
-#    $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $self->{right_panel} = Wx::ScrolledWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
-    $self->{right_panel}->SetScrollbars(0, 1, 1, 1);
+    $self->{right_panel} = Wx::Panel->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+#    $self->{right_panel} = Wx::ScrolledWindow->new($self, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+#    $self->{right_panel}->SetScrollbars(0, 1, 1, 1);
+
+    ### Scrolled Window for panel without "Export G-code" and "Slice now" buttons
+    my $scrolled_window_sizer = $self->{scrolled_window_sizer} = Wx::BoxSizer->new(wxVERTICAL);
+    $scrolled_window_sizer->SetMinSize([320, -1]);
+    my $scrolled_window_panel = $self->{scrolled_window_panel} = Wx::ScrolledWindow->new($self->{right_panel}, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    $scrolled_window_panel->SetSizer($scrolled_window_sizer);
+    $scrolled_window_panel->SetScrollbars(0, 1, 1, 1);
     
     # right pane buttons
-    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30], wxNO_BORDER);#, wxBU_LEFT);
-    $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_print} = Wx::Button->new($self->{right_panel}, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_send_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
-    $self->{btn_export_stl} = Wx::Button->new($self->{right_panel}, -1, L("Export STL…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_export_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Export G-code…"), wxDefaultPosition, [-1, 30],);# wxNO_BORDER);#, wxBU_LEFT);
+    $self->{btn_reslice} = Wx::Button->new($self->{right_panel}, -1, L("Slice now"), wxDefaultPosition, [-1, 30]);#, wxNO_BORDER);#, wxBU_LEFT);
+#    $self->{btn_print} = Wx::Button->new($self->{right_panel}, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+#    $self->{btn_send_gcode} = Wx::Button->new($self->{right_panel}, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_print} = Wx::Button->new($scrolled_window_panel, -1, L("Print…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    $self->{btn_send_gcode} = Wx::Button->new($scrolled_window_panel, -1, L("Send to printer"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
+    #$self->{btn_export_stl} = Wx::Button->new($self->{right_panel}, -1, L("Export STL…"), wxDefaultPosition, [-1, 30], wxBU_LEFT);
     #$self->{btn_export_gcode}->SetFont($Slic3r::GUI::small_font);
     #$self->{btn_export_stl}->SetFont($Slic3r::GUI::small_font);
     $self->{btn_print}->Hide;
     $self->{btn_send_gcode}->Hide;
     
 #       export_gcode    cog_go.png
+#!        reslice         reslice.png
     my %icons = qw(
         print           arrow_up.png
         send_gcode      arrow_up.png
-        reslice         reslice.png
         export_stl      brick_go.png
     );
     for (grep $self->{"btn_$_"}, keys %icons) {
@@ -528,9 +545,11 @@ sub new {
             # $self->{preset_choosers}{$group}[$idx]
             $self->{preset_choosers} = {};
             for my $group (qw(print filament sla_material printer)) {
-                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+#                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
+                my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$group_labels{$group}:", wxDefaultPosition, wxDefaultSize, wxALIGN_RIGHT);
                 $text->SetFont($Slic3r::GUI::small_font);
-                my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
+#                my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
+                my $choice = Wx::BitmapComboBox->new($scrolled_window_panel, -1, "", wxDefaultPosition, wxDefaultSize, [], wxCB_READONLY);
                 if ($group eq 'filament') {
                     EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down(0, @_); } );
                 }
@@ -549,26 +568,13 @@ sub new {
         }
 
         my $frequently_changed_parameters_sizer = $self->{frequently_changed_parameters_sizer} = Wx::BoxSizer->new(wxVERTICAL);
-        Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
-
-        my $expert_mode_part_sizer = Wx::BoxSizer->new(wxVERTICAL);
-        Slic3r::GUI::add_expert_mode_part(  $self->{right_panel}, $expert_mode_part_sizer, 
-                                            $self->{model},
-                                            $self->{event_object_selection_changed},
-                                            $self->{event_object_settings_changed},
-                                            $self->{event_remove_object},
-                                            $self->{event_update_scene});
-#        if ($expert_mode_part_sizer->IsShown(2)==1) 
-#        { 
-#           $expert_mode_part_sizer->Layout;
-#            $expert_mode_part_sizer->Show(2, 0); # ? Why doesn't work
-#            $self->{right_panel}->Layout;
-#       }
+#!        Slic3r::GUI::add_frequently_changed_parameters($self->{right_panel}, $frequently_changed_parameters_sizer, $presets);
+        Slic3r::GUI::add_frequently_changed_parameters($self->{scrolled_window_panel}, $frequently_changed_parameters_sizer, $presets);
 
         my $object_info_sizer;
         {
-#            my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Info"));
-            my $box = Wx::StaticBox->new($self->{right_panel}, -1, L("Info"));
+            my $box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Info"));
+#            my $box = Wx::StaticBox->new($self->{right_panel}, -1, L("Info"));
             $box->SetFont($Slic3r::GUI::small_bold_font);
             $object_info_sizer = Wx::StaticBoxSizer->new($box, wxVERTICAL);
             $object_info_sizer->SetMinSize([300,-1]);
@@ -588,17 +594,17 @@ sub new {
             );
             while (my $field = shift @info) {
                 my $label = shift @info;
-#                my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                my $text = Wx::StaticText->new($scrolled_window_panel, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+#                my $text = Wx::StaticText->new($self->{right_panel}, -1, "$label:", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $text->SetFont($Slic3r::GUI::small_font);
                 #!$grid_sizer->Add($text, 0);
                 
-#                $self->{"object_info_$field"} = Wx::StaticText->new($scrolled_window_panel, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
-                $self->{"object_info_$field"} = Wx::StaticText->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+                $self->{"object_info_$field"} = Wx::StaticText->new($scrolled_window_panel, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
+#                $self->{"object_info_$field"} = Wx::StaticText->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, wxALIGN_LEFT);
                 $self->{"object_info_$field"}->SetFont($Slic3r::GUI::small_font);
                 if ($field eq 'manifold') {
-#                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($scrolled_window_panel, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
-                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self->{right_panel}, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
+                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($scrolled_window_panel, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
+#                    $self->{object_info_manifold_warning_icon} = Wx::StaticBitmap->new($self->{right_panel}, -1, Wx::Bitmap->new(Slic3r::var("error.png"), wxBITMAP_TYPE_PNG));
                     #$self->{object_info_manifold_warning_icon}->Hide;
                     $self->{"object_info_manifold_warning_icon_show"} = sub {
                         if ($self->{object_info_manifold_warning_icon}->IsShown() != $_[0]) {
@@ -624,18 +630,19 @@ sub new {
             }
         }
 
-        my $print_info_sizer = $self->{print_info_sizer} = Wx::StaticBoxSizer->new(
-#                Wx::StaticBox->new($scrolled_window_panel, -1, L("Sliced Info")), wxVERTICAL);
-                Wx::StaticBox->new($self->{right_panel}, -1, L("Sliced Info")), wxVERTICAL);
+        my $print_info_box = Wx::StaticBox->new($scrolled_window_panel, -1, L("Sliced Info"));
+        $print_info_box->SetFont($Slic3r::GUI::small_bold_font);
+        my $print_info_sizer = $self->{print_info_sizer} = Wx::StaticBoxSizer->new($print_info_box, wxVERTICAL);
+#                Wx::StaticBox->new($self->{right_panel}, -1, L("Sliced Info")), wxVERTICAL);
         $print_info_sizer->SetMinSize([300,-1]);
         
         my $buttons_sizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $self->{buttons_sizer} = $buttons_sizer;
         $buttons_sizer->AddStretchSpacer(1);
-        $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
-        $buttons_sizer->Add($self->{btn_reslice}, 0, wxALIGN_RIGHT, 0);
-        $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT, 0);
-        $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT, 0);
+#        $buttons_sizer->Add($self->{btn_export_stl}, 0, wxALIGN_RIGHT, 0);
+#!        $buttons_sizer->Add($self->{btn_reslice}, 0, wxALIGN_RIGHT, 0);
+        $buttons_sizer->Add($self->{btn_print}, 0, wxALIGN_RIGHT | wxBOTTOM | wxTOP, 5);
+        $buttons_sizer->Add($self->{btn_send_gcode}, 0, wxALIGN_RIGHT | wxBOTTOM | wxTOP, 5);
         
 #        $scrolled_window_sizer->Add($self->{list}, 1, wxEXPAND, 5);
 #        $scrolled_window_sizer->Add($object_info_sizer, 0, wxEXPAND, 0);
@@ -645,24 +652,39 @@ sub new {
         ### Sizer for info boxes
         my $info_sizer = $self->{info_sizer} = Wx::BoxSizer->new(wxVERTICAL);
         $info_sizer->SetMinSize([318, -1]);        
-        $info_sizer->Add($object_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
-        $info_sizer->Add($print_info_sizer, 0, wxEXPAND | wxBOTTOM, 5);
+        $info_sizer->Add($object_info_sizer, 0, wxEXPAND | wxTOP, 20);
+        $info_sizer->Add($print_info_sizer, 0, wxEXPAND | wxTOP, 20);
+
+        $scrolled_window_sizer->Add($presets, 0, wxEXPAND | wxLEFT, 2) if defined $presets;
+        $scrolled_window_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxLEFT, 0) if defined $frequently_changed_parameters_sizer;
+        $scrolled_window_sizer->Add($buttons_sizer, 0, wxEXPAND, 0);
+        $scrolled_window_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
+        # Show the box initially, let it be shown after the slicing is finished.
+        $self->print_info_box_show(0);
+
+        ### Sizer for "Export G-code" & "Slice now" buttons
+        my $btns_sizer = Wx::BoxSizer->new(wxVERTICAL);
+        $btns_sizer->SetMinSize([318, -1]);
+        $btns_sizer->Add($self->{btn_reslice}, 0, wxEXPAND, 0);
+        $btns_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxTOP, 5);  
 
         my $right_sizer = Wx::BoxSizer->new(wxVERTICAL);
         $self->{right_panel}->SetSizer($right_sizer);
         $right_sizer->SetMinSize([320, -1]);
-        $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
-        $right_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
-        $right_sizer->Add($expert_mode_part_sizer, 0, wxEXPAND | wxTOP, 10) if defined $expert_mode_part_sizer;
-        $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM | wxTOP, 10);
-        $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
+#!        $right_sizer->Add($presets, 0, wxEXPAND | wxTOP, 10) if defined $presets;
+#!        $right_sizer->Add($frequently_changed_parameters_sizer, 1, wxEXPAND | wxTOP, 0) if defined $frequently_changed_parameters_sizer;
+#!        $right_sizer->Add($buttons_sizer, 0, wxEXPAND | wxBOTTOM | wxTOP, 10);
+#!        $right_sizer->Add($info_sizer, 0, wxEXPAND | wxLEFT, 20);
         # Show the box initially, let it be shown after the slicing is finished.
-        $self->print_info_box_show(0);
-        $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 20);
+#!        $self->print_info_box_show(0);
+        $right_sizer->Add($scrolled_window_panel, 1, wxEXPAND | wxTOP, 5);
+#        $right_sizer->Add($self->{btn_reslice}, 0, wxEXPAND | wxLEFT | wxTOP, 20);
+#        $right_sizer->Add($self->{btn_export_gcode}, 0, wxEXPAND | wxLEFT | wxTOP, 20);
+        $right_sizer->Add($btns_sizer, 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
         my $hsizer = Wx::BoxSizer->new(wxHORIZONTAL);
         $hsizer->Add($self->{preview_notebook}, 1, wxEXPAND | wxTOP, 1);
-        $hsizer->Add($self->{right_panel}, 0, wxEXPAND | wxLEFT | wxRIGHT, 3);
+        $hsizer->Add($self->{right_panel}, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);#3);
 
         my $sizer = Wx::BoxSizer->new(wxVERTICAL);
 #        $sizer->Add($self->{htoolbar}, 0, wxEXPAND, 0) if $self->{htoolbar};
@@ -673,16 +695,21 @@ sub new {
         $self->SetSizer($sizer);
 
         # Send sizers/buttons to C++
-        Slic3r::GUI::set_objects_from_perl( $self->{right_panel},
-                                $frequently_changed_parameters_sizer,
-                                $expert_mode_part_sizer,
-                                $info_sizer,
-                                $self->{btn_export_gcode},
-                                $self->{btn_export_stl},
-                                $self->{btn_reslice},
-                                $self->{btn_print},
-                                $self->{btn_send_gcode},
-                                $self->{object_info_manifold_warning_icon} );
+        Slic3r::GUI::set_objects_from_perl( $self->{scrolled_window_panel},
+                                            $frequently_changed_parameters_sizer,
+                                            $info_sizer,
+                                            $self->{btn_export_gcode},
+            #                                $self->{btn_export_stl},
+                                            $self->{btn_reslice},
+                                            $self->{btn_print},
+                                            $self->{btn_send_gcode},
+                                            $self->{object_info_manifold_warning_icon} );
+
+        Slic3r::GUI::set_model_events_from_perl(  $self->{model},
+                                            $self->{event_object_selection_changed},
+                                            $self->{event_object_settings_changed},
+                                            $self->{event_remove_object},
+                                            $self->{event_update_scene});
     }
 
     # Last correct selected item for each preset
@@ -1759,14 +1786,16 @@ sub print_info_box_show {
 #    my $scrolled_window_panel = $self->{scrolled_window_panel}; 
 #    my $scrolled_window_sizer = $self->{scrolled_window_sizer};
 #    return if (!$show && ($scrolled_window_sizer->IsShown(2) == $show));
-    my $panel = $self->{right_panel};
+    my $panel = $self->{scrolled_window_panel};#$self->{right_panel};
     my $sizer = $self->{info_sizer};
-    return if (!$sizer || !$show && ($sizer->IsShown(1) == $show));
+#    return if (!$sizer || !$show && ($sizer->IsShown(1) == $show));
+    return if (!$sizer);
 
     Slic3r::GUI::set_show_print_info($show);
-    return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
+#    return if (wxTheApp->{app_config}->get("view_mode") eq "simple");
 
-    if ($show) {
+#    if ($show) 
+    {
         my $print_info_sizer = $self->{print_info_sizer};
         $print_info_sizer->Clear(1);
         my $grid_sizer = Wx::FlexGridSizer->new(2, 2, 5, 5);
@@ -1804,7 +1833,7 @@ sub print_info_box_show {
 
 #    $scrolled_window_sizer->Show(2, $show);
 #    $scrolled_window_panel->Layout;
-    $sizer->Show(1, $show);
+    $sizer->Show(1, $show && wxTheApp->{app_config}->get("view_mode") ne "simple");
 
     $self->Layout;
     $panel->Refresh;
@@ -1988,7 +2017,7 @@ sub _get_export_file {
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub update {
     my ($self, $force_autocenter) = @_;
-
+    $self->Freeze;
     if (wxTheApp->{app_config}->get("autocenter") || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
@@ -2014,6 +2043,7 @@ sub update {
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
     $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+    $self->Thaw;
 }
 
 # When a printer technology is changed, the UI needs to be updated to show/hide needed preset combo boxes.
@@ -2046,7 +2076,8 @@ sub on_extruders_change {
         my @presets = $choices->[0]->GetStrings;
         
         # initialize new choice
-        my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+#        my $choice = Wx::BitmapComboBox->new($self->{right_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
+        my $choice = Wx::BitmapComboBox->new($self->{scrolled_window_panel}, -1, "", wxDefaultPosition, wxDefaultSize, [@presets], wxCB_READONLY);
         my $extruder_idx = scalar @$choices;
         EVT_LEFT_DOWN($choice, sub { $self->filament_color_box_lmouse_down($extruder_idx, @_); } );
         push @$choices, $choice;
@@ -2073,6 +2104,7 @@ sub on_extruders_change {
         $choices->[-1]->Destroy;
         pop @$choices;
     }
+    $self->{right_panel}->Layout;
     $self->Layout;
 }
 
@@ -2453,6 +2485,50 @@ sub select_object {
         # Unselect all objects in the list on c++ side
         Slic3r::GUI::unselect_objects();
     }
+    $self->selection_changed(1);
+}
+
+sub select_object_from_cpp {
+    my ($self, $obj_idx, $vol_idx) = @_;
+    
+    # remove current selection
+    foreach my $o (0..$#{$self->{objects}}) {
+        $self->{objects}->[$o]->selected(0);
+    }    
+
+    my $curr = Slic3r::GUI::_3DScene::get_select_by($self->{canvas3D});
+
+    if (defined $obj_idx) {
+        if ($vol_idx == -1){
+            if ($curr eq 'object') {
+                $self->{objects}->[$obj_idx]->selected(1);
+            }
+            elsif ($curr eq 'volume') {
+                Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'object');
+            }
+
+            my $selections = $self->collect_selections;
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
+        }
+        else {
+            if ($curr eq 'object') {
+                Slic3r::GUI::_3DScene::set_select_by($self->{canvas3D}, 'volume');
+            }
+
+            my $selections = [];
+            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+            Slic3r::GUI::_3DScene::deselect_volumes($self->{canvas3D});
+            Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
+            my $volume_idx = Slic3r::GUI::_3DScene::get_first_volume_id($self->{canvas3D}, $obj_idx);
+
+            my $inst_cnt = $self->{model}->objects->[$obj_idx]->instances_count;
+            for (0..$inst_cnt-1){
+                Slic3r::GUI::_3DScene::select_volume($self->{canvas3D}, $vol_idx*$inst_cnt + $_ + $volume_idx) if ($volume_idx != -1);
+            }
+        }
+    }
+
     $self->selection_changed(1);
 }
 

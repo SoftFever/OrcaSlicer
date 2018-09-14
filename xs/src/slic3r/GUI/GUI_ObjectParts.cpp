@@ -13,6 +13,9 @@
 #include "Geometry.hpp"
 #include "slic3r/Utils/FixModelByWin10.hpp"
 
+#include <wx/glcanvas.h>
+#include "3DScene.hpp"
+
 namespace Slic3r
 {
 namespace GUI
@@ -23,10 +26,12 @@ wxSizer		*m_sizer_object_movers = nullptr;
 wxDataViewCtrl				*m_objects_ctrl = nullptr;
 PrusaObjectDataViewModel	*m_objects_model = nullptr;
 wxCollapsiblePane			*m_collpane_settings = nullptr;
+PrusaDoubleSlider           *m_slider = nullptr;
+wxGLCanvas                  *m_preview_canvas = nullptr;
 
-wxIcon		m_icon_modifiermesh;
-wxIcon		m_icon_solidmesh;
-wxIcon		m_icon_manifold_warning;
+wxBitmap	m_icon_modifiermesh;
+wxBitmap	m_icon_solidmesh;
+wxBitmap	m_icon_manifold_warning;
 wxBitmap	m_bmp_cog;
 wxBitmap	m_bmp_split;
 
@@ -64,8 +69,6 @@ bool m_part_settings_changed = false;
     wxString g_selected_extruder = "";
 #endif //__WXOSX__
 
-// typedef std::map<std::string, std::string> t_category_icon;
-typedef std::map<std::string, wxBitmap> t_category_icon;
 inline t_category_icon& get_category_icon() {
 	static t_category_icon CATEGORY_ICON;
 	if (CATEGORY_ICON.empty()){
@@ -138,11 +141,11 @@ void set_objects_from_model(Model &model) {
 }
 
 void init_mesh_icons(){
-	m_icon_modifiermesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
-	m_icon_solidmesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
+    m_icon_modifiermesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
+    m_icon_solidmesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
 	// init icon for manifold warning
-	m_icon_manifold_warning = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
+    m_icon_manifold_warning = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
 
 	// init bitmap for "Split to sub-objects" context menu
     m_bmp_split = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("split.png")), wxBITMAP_TYPE_PNG);
@@ -233,7 +236,7 @@ wxDataViewColumn* object_ctrl_create_extruder_column(int extruders_count)
 void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 {
 	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	m_objects_ctrl->SetInitialSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
+	m_objects_ctrl->SetMinSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
 
 	objects_sz = new wxBoxSizer(wxVERTICAL);
 	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT, 20);
@@ -245,9 +248,10 @@ void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
 	m_objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
 #endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
 
-	// column 0(Icon+Text) of the view control:
-	m_objects_ctrl->AppendIconTextColumn(_(L("Name")), 0, wxDATAVIEW_CELL_INERT, 200,
-		wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE);
+	// column 0(Icon+Text) of the view control: 
+    // And Icon can be consisting of several bitmaps
+    m_objects_ctrl->AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
+                                 0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
 	// column 1 of the view control:
 	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
@@ -278,7 +282,7 @@ wxBoxSizer* create_objects_list(wxWindow *win)
 
     m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event) {
         object_ctrl_context_menu();
-		event.Skip();
+//		event.Skip();
 	});
 
     m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event) { object_ctrl_key_event(event); }); // doesn't work on OSX
@@ -316,15 +320,15 @@ wxBoxSizer* create_edit_object_buttons(wxWindow* win)
 
 	//*** button's functions
 	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-		on_btn_load(win);
+// 		on_btn_load(win);
 	});
 
 	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-		on_btn_load(win, true);
+// 		on_btn_load(win, true);
 	});
 
 	btn_load_lambda_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-		on_btn_load(win, true, true);
+// 		on_btn_load(win, true, true);
 	});
 
 	btn_delete		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_del(); });
@@ -663,7 +667,7 @@ void add_object_to_list(const std::string &name, ModelObject* model_object)
 	int errors =	stats.degenerate_facets + stats.edges_fixed + stats.facets_removed + 
 					stats.facets_added + stats.facets_reversed + stats.backwards_edges;
 	if (errors > 0)		{
-		const wxDataViewIconText data(item_name, m_icon_manifold_warning);
+        const PrusaDataViewBitmapText data(item_name, m_icon_manifold_warning);
 		wxVariant variant;
 		variant << data;
 		m_objects_model->SetValue(variant, item, 0);
@@ -736,6 +740,24 @@ void select_current_object(int idx)
 	g_prevent_list_events = false;
 }
 
+void select_current_volume(int idx, int vol_idx)
+{
+    if (vol_idx < 0) {
+        select_current_object(idx);
+        return;
+    }
+    g_prevent_list_events = true;
+    m_objects_ctrl->UnselectAll();
+    if (idx < 0) {
+        g_prevent_list_events = false;
+        return;
+    }
+
+    m_objects_ctrl->Select(m_objects_model->GetItemByVolumeId(idx, vol_idx));
+    part_selection_changed();
+    g_prevent_list_events = false;
+}
+
 void remove()
 {
 	auto item = m_objects_ctrl->GetSelection();
@@ -761,8 +783,17 @@ void object_ctrl_selection_changed()
 
 	if (m_event_object_selection_changed > 0) {
 		wxCommandEvent event(m_event_object_selection_changed);
-		event.SetInt(int(m_objects_model->GetParent(m_objects_ctrl->GetSelection()) != wxDataViewItem(0)));
-		event.SetId(m_selected_object_id);
+		event.SetId(m_selected_object_id); // set $obj_idx
+        const wxDataViewItem item = m_objects_ctrl->GetSelection();
+        if (!item || m_objects_model->GetParent(item) == wxDataViewItem(0))
+            event.SetInt(-1); // set $vol_idx
+        else {
+            const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+            if (vol_idx == -2) // is settings item
+                event.SetInt(m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item))); // set $vol_idx
+            else
+                event.SetInt(vol_idx);
+        }
 		get_main_frame()->ProcessWindowEvent(event);
 	}
 
@@ -775,9 +806,9 @@ void object_ctrl_context_menu()
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
-    printf("object_ctrl_context_menu\n");
+//     printf("object_ctrl_context_menu\n");
     const wxPoint pt = get_mouse_position_in_control();
-    printf("mouse_position_in_control: x = %d, y = %d\n", pt.x, pt.y);
+//     printf("mouse_position_in_control: x = %d, y = %d\n", pt.x, pt.y);
     m_objects_ctrl->HitTest(pt, item, col);
     if (!item)
 #ifdef __WXOSX__ // #ys_FIXME temporary workaround for OSX 
@@ -791,9 +822,9 @@ void object_ctrl_context_menu()
 #else
         return;
 #endif // __WXOSX__
-    printf("item exists\n");
+//     printf("item exists\n");
     const wxString title = col->GetTitle();
-    printf("title = *%s*\n", title.data().AsChar());
+//     printf("title = *%s*\n", title.data().AsChar());
 
     if (title == " ")
         show_context_menu();
@@ -839,6 +870,15 @@ void object_ctrl_item_value_change(wxDataViewEvent& event)
     }
 }
 
+void show_manipulation_og(const bool show)
+{
+    wxGridSizer* grid_sizer = get_optgroup(ogFrequentlyObjectSettings)->get_grid_sizer();
+    if (show == grid_sizer->IsShown(2))
+        return;
+    for (size_t id = 2; id < 12; id++)
+        grid_sizer->Show(id, show);
+}
+
 //update_optgroup
 void update_settings_list()
 {
@@ -859,14 +899,19 @@ void update_settings_list()
 
 	m_option_sizer->Clear(true);
 
-	if (m_config) 
+    bool show_manipulations = true;
+    const auto item = m_objects_ctrl->GetSelection();
+	if (m_config && m_objects_model->IsSettingsItem(item)) 
 	{
         auto extra_column = [](wxWindow* parent, const Line& line)
 		{
 			auto opt_key = (line.get_options())[0].opt_id;  //we assume that we have one option per line
 
-			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("erase.png")), wxBITMAP_TYPE_PNG),
+			auto btn = new wxBitmapButton(parent, wxID_ANY, wxBitmap(from_u8(var("colorchange_delete_on.png")), wxBITMAP_TYPE_PNG),
 				wxDefaultPosition, wxDefaultSize, wxBORDER_NONE);
+#ifdef __WXMSW__
+            btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+#endif // __WXMSW__
 			btn->Bind(wxEVT_BUTTON, [opt_key](wxEvent &event){
 				(*m_config)->erase(opt_key);
 				wxTheApp->CallAfter([]() { update_settings_list(); });
@@ -876,60 +921,75 @@ void update_settings_list()
 
 		std::map<std::string, std::vector<std::string>> cat_options;
 		auto opt_keys = (*m_config)->keys();
-		if (opt_keys.size() == 1 && opt_keys[0] == "extruder")
-			return;
+        m_og_settings.resize(0);
+        std::vector<std::string> categories;
+        if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
+        {
+            auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+                get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
-        auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
-                             get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            for (auto& opt_key : opt_keys) {
+                auto category = (*m_config)->def()->get(opt_key)->category;
+                if (category.empty() ||
+                    (category == "Extruders" && extruders_cnt == 1)) continue;
 
-		for (auto& opt_key : opt_keys) {
-			auto category = (*m_config)->def()->get(opt_key)->category;
-			if (category.empty() ||
-                (category == "Extruders" && extruders_cnt==1)) continue;
+                std::vector< std::string > new_category;
 
-			std::vector< std::string > new_category;
+                auto& cat_opt = cat_options.find(category) == cat_options.end() ? new_category : cat_options.at(category);
+                cat_opt.push_back(opt_key);
+                if (cat_opt.size() == 1)
+                    cat_options[category] = cat_opt;
+            }
 
-			auto& cat_opt = cat_options.find(category) == cat_options.end() ? new_category : cat_options.at(category);
-			cat_opt.push_back(opt_key);
-			if (cat_opt.size() == 1)
-				cat_options[category] = cat_opt;
-		}
+            for (auto& cat : cat_options) {
+                if (cat.second.size() == 1 && cat.second[0] == "extruder")
+                    continue;
 
+                auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, cat.first, *m_config, false, ogDEFAULT, extra_column);
+                optgroup->label_width = 150;
+                optgroup->sidetext_width = 70;
 
-		m_og_settings.resize(0);
-		for (auto& cat : cat_options) {
-			if (cat.second.size() == 1 && cat.second[0] == "extruder")
-				continue;
+                for (auto& opt : cat.second)
+                {
+                    if (opt == "extruder")
+                        continue;
+                    Option option = optgroup->get_option(opt);
+                    option.opt.width = 70;
+                    optgroup->append_single_option_line(option);
+                }
+                optgroup->reload_config();
+                m_option_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
+                m_og_settings.push_back(optgroup);
 
-			auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, cat.first, *m_config, false, ogDEFAULT, extra_column);
-			optgroup->label_width = 100;
-			optgroup->sidetext_width = 70;
+                categories.push_back(cat.first);
+            }
+        }
 
-			for (auto& opt : cat.second)
-			{
-				if (opt == "extruder")
-					continue;
-				Option option = optgroup->get_option(opt);
-				option.opt.width = 70;
-				optgroup->append_single_option_line(option);
-			}
-			optgroup->reload_config();
-			m_option_sizer->Add(optgroup->sizer, 0, wxEXPAND | wxALL, 0);
-			m_og_settings.push_back(optgroup);
-		}
+        if (m_og_settings.empty()) {
+            m_objects_ctrl->Select(m_objects_model->Delete(item));
+            part_selection_changed();
+        }
+        else {
+            if (!categories.empty())
+                m_objects_model->UpdateSettingsDigest(item, categories);
+            show_manipulations = false;
+        }
 	}
+
+    show_manipulation_og(show_manipulations);
+    show_info_sizer(show_manipulations && item && m_objects_model->GetParent(item) == wxDataViewItem(0));
 
 #ifdef __linux__
 	no_updates.reset(nullptr);
 #endif
 
-    /*get_right_panel()*/parent->Layout();
-    get_right_panel()->GetParent()->GetParent()->Layout();
+    parent->Layout();
+    get_right_panel()->GetParent()->Layout();
 }
 
 void get_settings_choice(wxMenu *menu, int id, bool is_part)
 {
-	auto category_name = menu->GetLabel(id);
+	const auto category_name = menu->GetLabel(id);
 
 	wxArrayString names;
 	wxArrayInt selections;
@@ -977,15 +1037,35 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 			(*m_config)->set_key_value(opt_key, m_default_config.get()->option(opt_key)->clone());
 	}
 
+
+    // Add settings item for object
+    const auto item = m_objects_ctrl->GetSelection();
+    if (item) {
+        const auto settings_item = m_objects_model->HasSettings(item);
+        m_objects_ctrl->Select(settings_item ? settings_item : 
+                               m_objects_model->AddSettingsChild(item));
+#ifndef __WXOSX__
+        part_selection_changed();
+#endif //no __WXOSX__
+    }
+    else
 	update_settings_list();
 }
 
-bool cur_item_hase_children()
-{
-    wxDataViewItemArray children;
-    if (m_objects_model->GetChildren(m_objects_ctrl->GetSelection(), children) > 0)
-        return true;
-    return false;
+void menu_item_add_generic(wxMenuItem* &menu, int id) {
+    auto sub_menu = new wxMenu;
+
+    std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
+    for (auto& item : menu_items)
+        sub_menu->Append(new wxMenuItem(sub_menu, ++id, _(item)));
+
+#ifndef __WXMSW__
+    sub_menu->Bind(wxEVT_MENU, [sub_menu](wxEvent &event) {
+        load_lambda(sub_menu->GetLabel(event.GetId()).ToStdString());
+    });
+#endif //no __WXMSW__
+
+    menu->SetSubMenu(sub_menu);
 }
 
 wxMenuItem* menu_item_split(wxMenu* menu, int id) {
@@ -994,11 +1074,11 @@ wxMenuItem* menu_item_split(wxMenu* menu, int id) {
     return menu_item;
 }
 
-wxMenuItem* menu_item_settings(wxMenu* menu, int id) {
+wxMenuItem* menu_item_settings(wxMenu* menu, int id, const bool is_part) {
     auto  menu_item = new wxMenuItem(menu, id, _(L("Add settings")));
     menu_item->SetBitmap(m_bmp_cog);
 
-    auto sub_menu = create_add_settings_popupmenu(false);
+    auto sub_menu = create_add_settings_popupmenu(is_part);
     menu_item->SetSubMenu(sub_menu);
     return menu_item;
 }
@@ -1008,44 +1088,54 @@ wxMenu *create_add_part_popupmenu()
 	wxMenu *menu = new wxMenu;
 	std::vector<std::string> menu_items = { L("Add part"), L("Add modifier"), L("Add generic") };
 
-	wxWindowID config_id_base = wxWindow::NewControlId(menu_items.size()+2);
+	wxWindowID config_id_base = wxWindow::NewControlId(menu_items.size()+4+2);
 
 	int i = 0;
 	for (auto& item : menu_items) {
 		auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
 		menu_item->SetBitmap(i == 0 ? m_icon_solidmesh : m_icon_modifiermesh);
-		menu->Append(menu_item);
+        if (item == "Add generic")
+            menu_item_add_generic(menu_item, config_id_base + i);
+        menu->Append(menu_item);
 		i++;
     }
 
     menu->AppendSeparator();
-    auto menu_item = menu_item_split(menu, config_id_base + i);
+    auto menu_item = menu_item_split(menu, config_id_base + i + 4);
     menu->Append(menu_item);
-    menu_item->Enable(!cur_item_hase_children());
+    menu_item->Enable(is_splittable_object(false));
 
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + i + 1));
+    menu->Append(menu_item_settings(menu, config_id_base + i + 5, false));
 
-	wxWindow* win = get_tab_panel()->GetPage(0);
-
-	menu->Bind(wxEVT_MENU, [config_id_base, win, menu](wxEvent &event){
+	menu->Bind(wxEVT_MENU, [config_id_base, menu](wxEvent &event){
 		switch (event.GetId() - config_id_base) {
 		case 0:
-			on_btn_load(win);
+			on_btn_load();
 			break;
 		case 1:
-			on_btn_load(win, true);
+			on_btn_load(true);
 			break;
 		case 2:
-			on_btn_load(win, true, true);
+// 			on_btn_load(true, true);
 			break;
-		case 3:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+#ifdef __WXMSW__
+		    load_lambda(menu->GetLabel(event.GetId()).ToStdString());
+#endif // __WXMSW__
+            break;
+		case 7: //3:
 			on_btn_split(false);
 			break;
-		default:{
+		default:
+#ifdef __WXMSW__
 			get_settings_choice(menu, event.GetId(), false);
-			break;}
+#endif // __WXMSW__
+			break;
 		}
 	});
 
@@ -1057,11 +1147,13 @@ wxMenu *create_part_settings_popupmenu()
     wxMenu *menu = new wxMenu;
     wxWindowID config_id_base = wxWindow::NewControlId(2);
 
-    menu->Append(menu_item_split(menu, config_id_base));
+    auto menu_item = menu_item_split(menu, config_id_base);
+    menu->Append(menu_item);
+    menu_item->Enable(is_splittable_object(true));
 
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + 1));
+    menu->Append(menu_item_settings(menu, config_id_base + 1, true));
 
     menu->Bind(wxEVT_MENU, [config_id_base, menu](wxEvent &event){
         switch (event.GetId() - config_id_base) {
@@ -1093,35 +1185,35 @@ wxMenu *create_add_settings_popupmenu(bool is_part)
 								wxNullBitmap : categories.at(cat.first));
 		menu->Append(menu_item);
 	}
-
+#ifndef __WXMSW__
 	menu->Bind(wxEVT_MENU, [menu](wxEvent &event) {
 		get_settings_choice(menu, event.GetId(), true);
 	});
-
+#endif //no __WXMSW__
 	return menu;
 }
 
 void show_context_menu()
 {
-    auto item = m_objects_ctrl->GetSelection();
+    const auto item = m_objects_ctrl->GetSelection();
     if (item)
     {
-        if (m_objects_model->GetParent(item) == wxDataViewItem(0))				{
-            auto menu = create_add_part_popupmenu();
-            get_tab_panel()->GetPage(0)->PopupMenu(menu);
-        }
-        else {
-            auto menu = create_part_settings_popupmenu();
-            get_tab_panel()->GetPage(0)->PopupMenu(menu);
-        }
+        if (m_objects_model->IsSettingsItem(item))
+            return;
+        const auto menu = m_objects_model->GetParent(item) == wxDataViewItem(0) ? 
+                            create_add_part_popupmenu() : 
+                            create_part_settings_popupmenu();
+        get_tab_panel()->GetPage(0)->PopupMenu(menu);
     }
 }
 
 // ******
 
-void load_part(	wxWindow* parent, ModelObject* model_object, 
+void load_part(	ModelObject* model_object, 
 				wxArrayString& part_names, const bool is_modifier)
 {
+    wxWindow* parent = get_tab_panel()->GetPage(0);
+
 	wxArrayString input_files;
 	open_model(parent, input_files);
 	for (int i = 0; i < input_files.size(); ++i) {
@@ -1159,10 +1251,10 @@ void load_part(	wxWindow* parent, ModelObject* model_object,
 	}
 }
 
-void load_lambda(	wxWindow* parent, ModelObject* model_object,
+void load_lambda(	ModelObject* model_object,
 					wxArrayString& part_names, const bool is_modifier)
 {
-	auto dlg = new LambdaObjectDialog(parent);
+    auto dlg = new LambdaObjectDialog(m_objects_ctrl->GetMainWindow());
 	if (dlg->ShowModal() == wxID_CANCEL) {
 		return;
 	}
@@ -1208,7 +1300,49 @@ void load_lambda(	wxWindow* parent, ModelObject* model_object,
 	m_parts_changed = true;
 }
 
-void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/* = false*/)
+void load_lambda(const std::string& type_name)
+{
+    if (m_selected_object_id < 0) return;
+
+    auto dlg = new LambdaObjectDialog(m_objects_ctrl->GetMainWindow(), type_name);
+    if (dlg->ShowModal() == wxID_CANCEL)
+        return;
+
+    const std::string name = "lambda-"+type_name;
+    TriangleMesh mesh;
+
+    const auto params = dlg->ObjectParameters();
+    if (type_name == _("Box"))
+        mesh = make_cube(params.dim[0], params.dim[1], params.dim[2]);
+    else if (type_name == _("Cylinder"))
+        mesh = make_cylinder(params.cyl_r, params.cyl_h);
+    else if (type_name == _("Sphere"))
+        mesh = make_sphere(params.sph_rho);
+    else if (type_name == _("Slab")){
+        const auto& size = (*m_objects)[m_selected_object_id]->bounding_box().size();
+        mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
+        // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
+        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, params.slab_z);
+    }
+    mesh.repair();
+
+    auto new_volume = (*m_objects)[m_selected_object_id]->add_volume(mesh);
+    new_volume->modifier = true;
+    new_volume->name = name;
+    // set a default extruder value, since user can't add it manually
+    new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+
+    m_parts_changed = true;
+    parts_changed(m_selected_object_id);
+
+    m_objects_ctrl->Select(m_objects_model->AddChild(m_objects_ctrl->GetSelection(), 
+                                                     name, m_icon_modifiermesh));
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
+    object_ctrl_selection_changed();
+#endif //no __WXOSX__ //__WXMSW__
+}
+
+void on_btn_load(bool is_modifier /*= false*/, bool is_lambda/* = false*/)
 {
 	auto item = m_objects_ctrl->GetSelection();
 	if (!item)
@@ -1222,19 +1356,54 @@ void on_btn_load(wxWindow* parent, bool is_modifier /*= false*/, bool is_lambda/
 	if (obj_idx < 0) return;
 	wxArrayString part_names;
 	if (is_lambda)
-		load_lambda(parent, (*m_objects)[obj_idx], part_names, is_modifier);
+		load_lambda((*m_objects)[obj_idx], part_names, is_modifier);
 	else
-		load_part(parent, (*m_objects)[obj_idx], part_names, is_modifier);
+		load_part((*m_objects)[obj_idx], part_names, is_modifier);
 
 	parts_changed(obj_idx);
 
 	for (int i = 0; i < part_names.size(); ++i)
 		m_objects_ctrl->Select(	m_objects_model->AddChild(item, part_names.Item(i), 
 								is_modifier ? m_icon_modifiermesh : m_icon_solidmesh));
-// 	part_selection_changed();
-#ifdef __WXMSW__
+#ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
 	object_ctrl_selection_changed();
-#endif //__WXMSW__
+#endif //no __WXOSX__//__WXMSW__
+}
+
+void remove_settings_from_config()
+{
+    auto opt_keys = (*m_config)->keys();
+    if (opt_keys.size() == 1 && opt_keys[0] == "extruder")
+        return;
+    int extruder = -1;
+    if ((*m_config)->has("extruder"))
+        extruder = (*m_config)->option<ConfigOptionInt>("extruder")->value;
+
+    (*m_config)->clear();
+
+    if (extruder >=0 )
+        (*m_config)->set_key_value("extruder", new ConfigOptionInt(extruder));
+}
+
+bool remove_subobject_from_object(const int volume_id)
+{
+    const auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+
+    // if user is deleting the last solid part, throw error
+    int solid_cnt = 0;
+    for (auto vol : (*m_objects)[m_selected_object_id]->volumes)
+        if (!vol->modifier)
+            ++solid_cnt;
+    if (!volume->modifier && solid_cnt == 1) {
+        Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from this object.")));
+        return false;
+    }
+
+    (*m_objects)[m_selected_object_id]->delete_volume(volume_id);
+    m_parts_changed = true;
+
+    parts_changed(m_selected_object_id);
+    return true;
 }
 
 void on_btn_del()
@@ -1242,50 +1411,67 @@ void on_btn_del()
 	auto item = m_objects_ctrl->GetSelection();
 	if (!item) return;
 
-	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-	if (volume_id < 0)
+	const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+	if (volume_id ==-1)
 		return;
-	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
-
-	// if user is deleting the last solid part, throw error
-	int solid_cnt = 0;
-	for (auto vol : (*m_objects)[m_selected_object_id]->volumes)
-		if (!vol->modifier)
-			++solid_cnt;
-	if (!volume->modifier && solid_cnt == 1) {
-		Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from this object.")));
-		return;
-	}
-
-	(*m_objects)[m_selected_object_id]->delete_volume(volume_id);
-	m_parts_changed = true;
-
-	parts_changed(m_selected_object_id);
+    
+    if (volume_id ==-2)
+        remove_settings_from_config();
+	else if (!remove_subobject_from_object(volume_id)) 
+        return;
 
 	m_objects_ctrl->Select(m_objects_model->Delete(item));
 	part_selection_changed();
-// #ifdef __WXMSW__
-// 	object_ctrl_selection_changed();
-// #endif //__WXMSW__
+}
+
+bool get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
+{
+    if (!item || m_selected_object_id < 0)
+        return false;
+    const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+    if (volume_id < 0) {
+        if (split_part) return false;
+        volume = (*m_objects)[m_selected_object_id]->volumes[0]; 
+    }
+    else
+        volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+    if (volume)
+        return true;
+    return false;
+}
+
+bool is_splittable_object(const bool split_part)
+{
+    const wxDataViewItem item = m_objects_ctrl->GetSelection();
+    if (!item) return false;
+
+    wxDataViewItemArray children;
+    if (!split_part && m_objects_model->GetChildren(item, children) > 0)
+        return false;
+
+    ModelVolume* volume;
+    if (!get_volume_by_item(split_part, item, volume) || !volume)
+        return false;
+
+    TriangleMeshPtrs meshptrs = volume->mesh.split();
+    if (meshptrs.size() <= 1) {
+        delete meshptrs.front();
+        return false;
+    }
+
+    return true;
 }
 
 void on_btn_split(const bool split_part)
 {
-	auto item = m_objects_ctrl->GetSelection();
+	const auto item = m_objects_ctrl->GetSelection();
 	if (!item || m_selected_object_id<0)
 		return;
-	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
     ModelVolume* volume;
-    if (volume_id < 0) {
-        if (split_part) return;
-        else
-            volume = (*m_objects)[m_selected_object_id]->volumes[0]; }
-    else
-	    volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
- 	DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
-    auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
-    auto split_rez = volume->split(nozzle_dmrs_cnt);
-    if (split_rez == 1) {
+    if (!get_volume_by_item(split_part, item, volume)) return;
+    DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
+    const auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    if (volume->split(nozzle_dmrs_cnt) == 1) {
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
         return;
     }
@@ -1299,7 +1485,8 @@ void on_btn_split(const bool split_part)
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(parent, model_object->volumes[id]->name,
                                       model_object->volumes[id]->modifier ? m_icon_modifiermesh : m_icon_solidmesh,
-                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value, 
+                                      model_object->volumes[id]->config.has("extruder") ?
+                                        model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
                                       false);
 
         m_objects_ctrl->Expand(parent);
@@ -1308,10 +1495,14 @@ void on_btn_split(const bool split_part)
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(item, model_object->volumes[id]->name, 
                                       m_icon_solidmesh,
-                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value, 
+                                      model_object->volumes[id]->config.has("extruder") ?
+                                        model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0, 
                                       false);
         m_objects_ctrl->Expand(item);
     }
+
+    m_parts_changed = true;
+    parts_changed(m_selected_object_id);
 }
 
 void on_btn_move_up(){
@@ -1392,33 +1583,49 @@ void part_selection_changed()
 	auto item = m_objects_ctrl->GetSelection();
 	int obj_idx = -1;
 	auto og = get_optgroup(ogFrequentlyObjectSettings);
+    m_config = nullptr;
+    wxString object_name = wxEmptyString;
 	if (item)
 	{
+        const bool is_settings_item = m_objects_model->IsSettingsItem(item);
 		bool is_part = false;
-		if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+        wxString og_name = wxEmptyString;
+        if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
 			obj_idx = m_objects_model->GetIdByItem(item);
-			og->set_name(" " + _(L("Object Settings")) + " ");
+			og_name = _(L("Object manipulation"));
 			m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->config);
 		}
 		else {
 			auto parent = m_objects_model->GetParent(item);
-			// Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
+            // Take ID of the parent object to "inform" perl-side which object have to be selected on the scene
 			obj_idx = m_objects_model->GetIdByItem(parent);
-			og->set_name(" " + _(L("Part Settings")) + " ");
-			is_part = true;
-			auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-			m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->volumes[volume_id]->config);
+			if (is_settings_item) {
+                if (m_objects_model->GetParent(parent) == wxDataViewItem(0)) {
+                    og_name = _(L("Object Settings to modify"));
+                    m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->config);
+                }
+                else {
+                    og_name = _(L("Part Settings to modify"));
+			        is_part = true;
+                    auto main_parent = m_objects_model->GetParent(parent);
+                    obj_idx = m_objects_model->GetIdByItem(main_parent);
+			        const auto volume_id = m_objects_model->GetVolumeIdByItem(parent);
+			        m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->volumes[volume_id]->config);
+                }
+            }
+            else {
+                og_name = _(L("Part manipulation"));
+                is_part = true;
+                const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+                m_config = std::make_shared<DynamicPrintConfig*>(&(*m_objects)[obj_idx]->volumes[volume_id]->config);
+            }
 		}
 
-		auto config = m_config;
-        og->set_value("object_name", m_objects_model->GetName(item));
+        og->set_name(" " + og_name + " ");
+        object_name = m_objects_model->GetName(item);
 		m_default_config = std::make_shared<DynamicPrintConfig>(*DynamicPrintConfig::new_from_defaults_keys(get_options(is_part)));
 	}
-    else {
-        wxString empty_str = wxEmptyString;
-        og->set_value("object_name", empty_str);
-        m_config = nullptr;
-    }
+    og->set_value("object_name", object_name);
 
 	update_settings_list();
 
@@ -1641,7 +1848,7 @@ void on_begin_drag(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item, not containers
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0) || m_objects_model->IsSettingsItem(item)) {
         event.Veto();
         return;
     }
@@ -1665,7 +1872,7 @@ void on_drop_possible(wxDataViewEvent &event)
 
     // only allow drags for item or background, not containers
     if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        event.GetDataFormat() != wxDF_UNICODETEXT)
+        event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->IsSettingsItem(item))
         event.Veto();
 }
 
@@ -1675,7 +1882,7 @@ void on_drop(wxDataViewEvent &event)
 
     // only allow drops for item, not containers
     if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
-        event.GetDataFormat() != wxDF_UNICODETEXT) {
+        event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->IsSettingsItem(item)) {
         event.Veto();
         return;
     }    
@@ -1703,6 +1910,9 @@ void on_drop(wxDataViewEvent &event)
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id+=delta, cnt++)
         std::swap(volumes[id], volumes[id +delta]);
 
+    m_parts_changed = true;
+    parts_changed(m_selected_object_id);
+
     g_prevent_list_events = false;
 }
 
@@ -1717,6 +1927,104 @@ void update_objects_list_extruder_column(int extruders_count)
     m_objects_ctrl->InsertColumn(2, object_ctrl_create_extruder_column(extruders_count));
     // set show/hide for this column 
     set_extruder_column_hidden(extruders_count <= 1);
+}
+
+void create_double_slider(wxWindow* parent, wxBoxSizer* sizer, wxGLCanvas* canvas)
+{
+    m_slider = new PrusaDoubleSlider(parent, wxID_ANY, 0, 0, 0, 100);
+    sizer->Add(m_slider, 0, wxEXPAND, 0);
+
+    m_preview_canvas = canvas;
+    m_preview_canvas->Bind(wxEVT_KEY_DOWN, update_double_slider_from_canvas);
+
+    m_slider->Bind(wxEVT_SCROLL_CHANGED, [parent](wxEvent& event) {
+        _3DScene::set_toolpaths_range(m_preview_canvas, m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
+        if (parent->IsShown())
+            m_preview_canvas->Refresh();
+    });
+}
+
+void fill_slider_values(std::vector<std::pair<int, double>> &values, 
+                        const std::vector<double> &layers_z)
+{
+    std::vector<double> layers_all_z = _3DScene::get_current_print_zs(m_preview_canvas, false);
+    if (layers_all_z.size() == layers_z.size())
+        for (int i = 0; i < layers_z.size(); i++)
+            values.push_back(std::pair<int, double>(i+1, layers_z[i]));
+    else if (layers_all_z.size() > layers_z.size()) {
+        int cur_id = 0;
+        for (int i = 0; i < layers_z.size(); i++)
+            for (int j = cur_id; j < layers_all_z.size(); j++)
+                if (layers_z[i] - 1e-6 < layers_all_z[j] && layers_all_z[j] < layers_z[i] + 1e-6) {
+                    values.push_back(std::pair<int, double>(j+1, layers_z[i]));
+                    cur_id = j;
+                    break;
+                }
+    }
+}
+
+void set_double_slider_thumbs(  const bool force_sliders_full_range, 
+                                const std::vector<double> &layers_z, 
+                                const double z_low, const double z_high)
+{
+    // Force slider full range only when slider is created.
+    // Support selected diapason on the all next steps
+    if (/*force_sliders_full_range*/z_high == 0.0) { 
+        m_slider->SetLowerValue(0);
+        m_slider->SetHigherValue(layers_z.size() - 1);
+        return;
+    }
+    
+    for (int i = layers_z.size() - 1; i >= 0; i--)
+        if (z_low >= layers_z[i]) {
+            m_slider->SetLowerValue(i);
+            break;
+        }
+    for (int i = layers_z.size() - 1; i >= 0 ; i--)
+        if (z_high >= layers_z[i]) {
+            m_slider->SetHigherValue(i);
+            break;
+        }
+}
+
+void update_double_slider(bool force_sliders_full_range)
+{
+    std::vector<std::pair<int, double>> values;
+    std::vector<double> layers_z = _3DScene::get_current_print_zs(m_preview_canvas, true);
+    fill_slider_values(values, layers_z);
+
+    const double z_low = m_slider->GetLowerValueD();
+    const double z_high = m_slider->GetHigherValueD();
+    m_slider->SetMaxValue(layers_z.size() - 1);
+    m_slider->SetSliderValues(values);
+
+    set_double_slider_thumbs(force_sliders_full_range, layers_z, z_low, z_high);
+}
+
+void reset_double_slider()
+{
+    m_slider->SetHigherValue(0);
+    m_slider->SetLowerValue(0);
+}
+
+void update_double_slider_from_canvas(wxKeyEvent& event)
+{
+    if (event.HasModifiers()) {
+        event.Skip();
+        return;
+    }
+
+    const auto key = event.GetKeyCode();
+
+    if (key == 'U' || key == 'D') {
+        const int new_pos = key == 'U' ? m_slider->GetHigherValue() + 1 : m_slider->GetHigherValue() - 1;
+        m_slider->SetHigherValue(new_pos);
+        if (event.ShiftDown()) m_slider->SetLowerValue(m_slider->GetHigherValue());
+    }
+    else if (key == 'S')
+        m_slider->ChangeOneLayerLock();
+    else
+        event.Skip();
 }
 
 } //namespace GUI

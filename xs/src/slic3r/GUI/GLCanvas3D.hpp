@@ -105,7 +105,6 @@ class GLCanvas3D
         void reset() { first_volumes.clear(); }
     };
 
-public:
     struct Camera
     {
         enum EType : unsigned char
@@ -445,7 +444,6 @@ public:
         void render(const GLCanvas3D& canvas) const;
     };
 
-private:
     wxGLCanvas* m_canvas;
     wxGLContext* m_context;
     LegendTexture m_legend_texture;
@@ -609,6 +607,7 @@ public:
     std::vector<int> load_object(const Model& model, int obj_idx);
 
     int get_first_volume_id(int obj_idx) const;
+    int get_in_object_volume_id(int scene_vol_idx) const;
 
     void reload_scene(bool force);
 

@@ -138,6 +138,7 @@ public:
     std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
 
     int get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const;
+    int get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx) const;
 
     void reload_scene(wxGLCanvas* canvas, bool force);
 

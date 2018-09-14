@@ -235,6 +235,7 @@ protected:
 class GLGizmoScale3D : public GLGizmoBase
 {
     static const float Offset;
+    static const Vec3d OffsetVec;
 
     mutable BoundingBoxf3 m_box;
 
