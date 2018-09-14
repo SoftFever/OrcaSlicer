@@ -224,14 +224,31 @@ public:
 
     friend class ModelObject;
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+private:
+    Vec3d m_offset;              // in unscaled coordinates
+
+public:
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
     double scaling_factor;
+#if !ENABLE_MODELINSTANCE_3D_OFFSET
     Vec2d offset;              // in unscaled coordinates
-    
+#endif // !ENABLE_MODELINSTANCE_3D_OFFSET
+
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
     EPrintVolumeState print_volume_state;
 
     ModelObject* get_object() const { return this->object; }
+
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    const Vec3d& get_offset() const { return m_offset; }
+    double get_offset(Axis axis) const { return m_offset(axis); }
+
+    void set_offset(const Vec3d& offset) { m_offset = offset; }
+    void set_offset(Axis axis, double offset) { m_offset(axis) = offset; }
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -252,9 +269,15 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
+    ModelInstance(ModelObject *object, const ModelInstance &other) :
+        rotation(other.rotation), scaling_factor(other.scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
+#else
     ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), offset(Vec2d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), print_volume_state(PVS_Inside) {}
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 };
 
 

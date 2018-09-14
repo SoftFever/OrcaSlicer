@@ -1252,9 +1252,13 @@ namespace Slic3r {
         // we extract from the given matrix only the values currently used
 
         // translation
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        Vec3d offset(transform(0, 3), transform(1, 3), transform(2, 3));
+#else
         double offset_x = transform(0, 3);
         double offset_y = transform(1, 3);
         double offset_z = transform(2, 3);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
         // scale
         double sx = ::sqrt(sqr(transform(0, 0)) + sqr(transform(1, 0)) + sqr(transform(2, 0)));
@@ -1287,8 +1291,12 @@ namespace Slic3r {
 
         double angle_z = (rotation.axis() == Vec3d::UnitZ()) ? rotation.angle() : -rotation.angle();
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        instance.set_offset(offset);
+#else
         instance.offset(0) = offset_x;
         instance.offset(1) = offset_y;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         instance.scaling_factor = sx;
         instance.rotation = angle_z;
     }

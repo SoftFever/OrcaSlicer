@@ -1140,8 +1140,10 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     if (!gizmo->init())
         return false;
 
+#if !ENABLE_MODELINSTANCE_3D_OFFSET
     // temporary disable z grabber
     gizmo->disable_grabber(2);
+#endif // !ENABLE_MODELINSTANCE_3D_OFFSET
 
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
@@ -2375,7 +2377,11 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                m_gizmos.set_position(model_instance->get_offset());
+#else
                 m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
                 m_gizmos.set_flattening_data(model_object);
@@ -5360,8 +5366,12 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
             ModelObject* model_object = m_model->objects[obj_idx];
             if (model_object != nullptr)
             {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                model_object->instances[instance_idx]->set_offset(volume->get_offset());
+#else
                 const Vec3d& offset = volume->get_offset();
                 model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                 model_object->invalidate_bounding_box();
                 update_position_values();
                 object_moved = true;

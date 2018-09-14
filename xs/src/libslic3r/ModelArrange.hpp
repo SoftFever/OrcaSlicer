@@ -517,8 +517,13 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     if(item.vertexCount() > 3) {
                         item.rotation(objinst->rotation);
                         item.translation( {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                            ClipperLib::cInt(objinst->get_offset(X) / SCALING_FACTOR),
+                            ClipperLib::cInt(objinst->get_offset(Y) / SCALING_FACTOR)
+#else
                             ClipperLib::cInt(objinst->offset(0)/SCALING_FACTOR),
                             ClipperLib::cInt(objinst->offset(1)/SCALING_FACTOR)
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                         });
                         ret.emplace_back(objinst, item);
                     }
@@ -655,11 +660,19 @@ void applyResult(
         // appropriately
         auto off = item.translation();
         Radians rot = item.rotation();
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        Vec3d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR, 0.0);
+#else
         Vec2d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
         // write the tranformation data into the model instance
         inst_ptr->rotation = rot;
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        inst_ptr->set_offset(foff);
+#else
         inst_ptr->offset = foff;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     }
 }
 

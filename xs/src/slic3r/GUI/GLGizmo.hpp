@@ -287,6 +287,7 @@ class GLGizmoMove3D : public GLGizmoBase
     Vec3d m_position;
     Vec3d m_starting_drag_position;
     Vec3d m_starting_box_center;
+    Vec3d m_starting_box_bottom_center;
 
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
@@ -302,7 +303,7 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
 private:
-    double calc_displacement(unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
+    double calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
 };
 
 class GLGizmoFlatten : public GLGizmoBase
@@ -328,7 +329,11 @@ private:
     SourceDataSummary m_source_data;
 
     std::vector<PlaneData> m_planes;
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    Pointf3s m_instances_positions;
+#else
     std::vector<Vec2d> m_instances_positions;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
