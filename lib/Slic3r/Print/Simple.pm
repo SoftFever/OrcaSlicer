@@ -91,12 +91,6 @@ sub export_gcode {
     $self->_print->export_gcode($self->output_file // '');
 }
 
-sub export_svg {
-    my ($self) = @_;
-    $self->_print->validate;
-    $self->_print->export_svg(output_file => $self->output_file);
-}
-
 sub export_png {
     my ($self) = @_;
     

@@ -28,7 +28,6 @@ use constant FILE_WILDCARDS => {
     prusa   => 'Prusa Control files (*.prusa)|*.prusa;*.PRUSA',
     ini     => 'INI files *.ini|*.ini;*.INI',
     gcode   => 'G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC',
-    svg     => 'SVG files *.svg|*.svg;*.SVG',
 };
 use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf threemf prusa)};
 

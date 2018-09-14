@@ -87,9 +87,6 @@ sub new {
             $self->item_changed_selection($obj_idx) if (defined($obj_idx));
         }
     };
-    my $on_double_click = sub {
-        $self->object_settings_dialog if $self->selected_object;
-    };
     my $on_right_click = sub {
         my ($canvas, $click_pos_x, $click_pos_y) = @_;
 
@@ -243,7 +240,7 @@ sub new {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, L('3D'));
         Slic3r::GUI::_3DScene::register_on_select_object_callback($self->{canvas3D}, $on_select_object);
-        Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
+#        Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
         Slic3r::GUI::_3DScene::register_on_right_click_callback($self->{canvas3D}, sub { $on_right_click->($self->{canvas3D}, @_); });
         Slic3r::GUI::_3DScene::register_on_arrange_callback($self->{canvas3D}, sub { $self->arrange });
         Slic3r::GUI::_3DScene::register_on_rotate_object_left_callback($self->{canvas3D}, sub { $self->rotate(-45, Z, 'relative') });
@@ -1988,14 +1985,6 @@ sub collect_selections {
     return $selections;
 }
 
-# doesn't used now
-sub list_item_activated {
-    my ($self, $event, $obj_idx) = @_;
-    
-    $obj_idx //= $event->GetIndex;
-	$self->object_settings_dialog($obj_idx);
-}
-
 # Called when clicked on the filament preset combo box.
 # When clicked on the icon, show the color picker.
 sub filament_color_box_lmouse_down
@@ -2048,45 +2037,6 @@ sub filament_color_box_lmouse_down
 #        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
 #	}
 #}
-
-sub object_settings_dialog {
-    my ($self, $obj_idx) = @_;
-    ($obj_idx, undef) = $self->selected_object if !defined $obj_idx;
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    
-    # validate config before opening the settings dialog because
-    # that dialog can't be closed if validation fails, but user
-    # can't fix any error which is outside that dialog
-    eval { wxTheApp->{preset_bundle}->full_config->validate; };
-    return if Slic3r::GUI::catch_error($_[0]);
-    
-    my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
-		object          => $self->{objects}[$obj_idx],
-		model_object    => $model_object,
-        config          => wxTheApp->{preset_bundle}->full_config,
-	);
-	$self->stop_background_process;
-	$dlg->ShowModal;
-	
-#    # update thumbnail since parts may have changed
-#    if ($dlg->PartsChanged) {
-#	    # recenter and re-align to Z = 0
-#	    $model_object->center_around_origin;
-#        $self->reset_thumbnail($obj_idx);
-#    }
-	
-	# update print
-	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
-        $self->{print}->reload_object($obj_idx);
-        $self->schedule_background_process;
-#        $self->{canvas}->reload_scene if $self->{canvas};
-        my $selections = $self->collect_selections;
-        Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
-        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
-    } else {
-        $self->resume_background_process;
-    }
-}
 
 sub changed_object_settings {
     my ($self, $obj_idx, $parts_changed, $part_settings_changed) = @_;

@@ -42,7 +42,6 @@ my %cli_options = ();
         'no-plater'             => \$opt{no_plater},
         'gui-mode=s'            => \$opt{obsolete_ignore_this_option_gui_mode},
         'datadir=s'             => \$opt{datadir},
-        'export-svg'            => \$opt{export_svg},
         'export-png'            => \$opt{export_png},
         'merge|m'               => \$opt{merge},
         'repair'                => \$opt{repair},
@@ -212,9 +211,7 @@ if (@ARGV) {  # slicing from command line
         # Do the apply_config once again to validate the layer height profiles at all the newly added PrintObjects.
         $sprint->apply_config($config);
         
-        if ($opt{export_svg}) {
-            $sprint->export_svg;
-        } elsif ($opt{export_png}) {
+        if ($opt{export_png}) {
             $sprint->export_png;
         } else {
             my $t0 = [gettimeofday];
@@ -280,7 +277,6 @@ Usage: slic3r.pl [ OPTIONS ] [ file.stl ] [ file2.stl ] ...
                         and [input_filename] (default: $config->{output_filename_format})
     --post-process      Generated G-code will be processed with the supplied script;
                         call this more than once to process through multiple scripts.
-    --export-svg        Export a SVG file containing slices instead of G-code.
     --export-png        Export zipped PNG files containing slices instead of G-code.
     -m, --merge         If multiple files are supplied, they will be composed into a single 
                         print rather than processed individually.
