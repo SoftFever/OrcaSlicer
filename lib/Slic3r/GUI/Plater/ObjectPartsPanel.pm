@@ -362,13 +362,17 @@ sub on_btn_load {
         }
         
         foreach my $object (@{$model->objects}) {
+            $object->center_around_origin;
             foreach my $volume (@{$object->volumes}) {
                 my $new_volume = $self->{model_object}->add_volume($volume);
                 $new_volume->set_modifier($is_modifier);
                 $new_volume->set_name(basename($input_file));
                 
                 # apply the same translation we applied to the object
-                $new_volume->mesh->translate(@{$self->{model_object}->origin_translation});
+                my $delta_x = $self->{model_object}->origin_translation->x - $object->origin_translation->x;
+                my $delta_y = $self->{model_object}->origin_translation->y - $object->origin_translation->y;
+                my $delta_z = $self->{model_object}->origin_translation->z - $object->origin_translation->z;
+                $new_volume->mesh->translate($delta_x, $delta_y, $delta_z);
                 
                 # set a default extruder value, since user can't add it manually
                 $new_volume->config->set_ifndef('extruder', 0);
