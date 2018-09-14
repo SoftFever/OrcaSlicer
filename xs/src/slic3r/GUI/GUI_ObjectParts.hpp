@@ -140,6 +140,8 @@ void reset_double_slider();
 // update DoubleSlider after keyDown in canvas
 void update_double_slider_from_canvas(wxKeyEvent& event);
 
+void show_manipulation_sizer(const bool is_simple_mode);
+
 } //namespace GUI
 } //namespace Slic3r 
 #endif  //slic3r_GUI_ObjectParts_hpp_
