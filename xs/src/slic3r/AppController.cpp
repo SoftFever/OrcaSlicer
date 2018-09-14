@@ -43,15 +43,6 @@ namespace GUI {
 PresetBundle* get_preset_bundle();
 }
 
-static const PrintObjectStep STEP_SLICE                 = posSlice;
-static const PrintObjectStep STEP_PERIMETERS            = posPerimeters;
-static const PrintObjectStep STEP_PREPARE_INFILL        = posPrepareInfill;
-static const PrintObjectStep STEP_INFILL                = posInfill;
-static const PrintObjectStep STEP_SUPPORTMATERIAL       = posSupportMaterial;
-static const PrintStep STEP_SKIRT                       = psSkirt;
-static const PrintStep STEP_BRIM                        = psBrim;
-static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
-
 AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::global_progress_indicator() {
     ProgresIndicatorPtr ret;
@@ -71,193 +62,8 @@ void AppControllerBoilerplate::global_progress_indicator(
     pri_data_->m.unlock();
 }
 
-void PrintController::make_skirt()
-{
-    assert(print_ != nullptr);
-
-    // prerequisites
-    for(auto obj : print_->objects) make_perimeters(obj);
-    for(auto obj : print_->objects) infill(obj);
-    for(auto obj : print_->objects) gen_support_material(obj);
-
-    if(!print_->state.is_done(STEP_SKIRT)) {
-        print_->state.set_started(STEP_SKIRT);
-        print_->skirt.clear();
-        if(print_->has_skirt()) print_->_make_skirt();
-
-        print_->state.set_done(STEP_SKIRT);
-    }
-}
-
-void PrintController::make_brim()
-{
-    assert(print_ != nullptr);
-
-    // prerequisites
-    for(auto obj : print_->objects) make_perimeters(obj);
-    for(auto obj : print_->objects) infill(obj);
-    for(auto obj : print_->objects) gen_support_material(obj);
-    make_skirt();
-
-    if(!print_->state.is_done(STEP_BRIM)) {
-        print_->state.set_started(STEP_BRIM);
-
-        // since this method must be idempotent, we clear brim paths *before*
-        // checking whether we need to generate them
-        print_->brim.clear();
-
-        if(print_->config.brim_width > 0) print_->_make_brim();
-
-        print_->state.set_done(STEP_BRIM);
-    }
-}
-
-void PrintController::make_wipe_tower()
-{
-    assert(print_ != nullptr);
-
-    // prerequisites
-    for(auto obj : print_->objects) make_perimeters(obj);
-    for(auto obj : print_->objects) infill(obj);
-    for(auto obj : print_->objects) gen_support_material(obj);
-    make_skirt();
-    make_brim();
-
-    if(!print_->state.is_done(STEP_WIPE_TOWER)) {
-        print_->state.set_started(STEP_WIPE_TOWER);
-
-        // since this method must be idempotent, we clear brim paths *before*
-        // checking whether we need to generate them
-        print_->brim.clear();
-
-        if(print_->has_wipe_tower()) print_->_make_wipe_tower();
-
-        print_->state.set_done(STEP_WIPE_TOWER);
-    }
-}
-
-void PrintController::slice(PrintObject *pobj)
-{
-    assert(pobj != nullptr && print_ != nullptr);
-
-    if(pobj->state.is_done(STEP_SLICE)) return;
-
-    pobj->state.set_started(STEP_SLICE);
-
-    pobj->_slice();
-
-    auto msg = pobj->_fix_slicing_errors();
-    if(!msg.empty()) report_issue(IssueType::WARN, msg);
-
-    // simplify slices if required
-    if (print_->config.resolution)
-        pobj->_simplify_slices(scale_(print_->config.resolution));
-
-
-    if(pobj->layers.empty())
-        report_issue(IssueType::ERR,
-                     _(L("No layers were detected. You might want to repair your "
-                     "STL file(s) or check their size or thickness and retry"))
-                     );
-
-    pobj->state.set_done(STEP_SLICE);
-}
-
-void PrintController::make_perimeters(PrintObject *pobj)
-{
-    assert(pobj != nullptr);
-
-    slice(pobj);
-
-    if (!pobj->state.is_done(STEP_PERIMETERS)) {
-        pobj->_make_perimeters();
-    }
-}
-
-void PrintController::infill(PrintObject *pobj)
-{
-    assert(pobj != nullptr);
-
-    make_perimeters(pobj);
-
-    if (!pobj->state.is_done(STEP_PREPARE_INFILL)) {
-        pobj->state.set_started(STEP_PREPARE_INFILL);
-
-        pobj->_prepare_infill();
-
-        pobj->state.set_done(STEP_PREPARE_INFILL);
-    }
-
-    pobj->_infill();
-}
-
-void PrintController::gen_support_material(PrintObject *pobj)
-{
-    assert(pobj != nullptr);
-
-    // prerequisites
-    slice(pobj);
-
-    if(!pobj->state.is_done(STEP_SUPPORTMATERIAL)) {
-        pobj->state.set_started(STEP_SUPPORTMATERIAL);
-
-        pobj->clear_support_layers();
-
-        if((pobj->config.support_material || pobj->config.raft_layers > 0)
-                && pobj->layers.size() > 1) {
-            pobj->_generate_support_material();
-        }
-
-        pobj->state.set_done(STEP_SUPPORTMATERIAL);
-    }
-}
-
-void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
-{
-    auto st = pri->state();
-
-    Slic3r::trace(3, "Starting the slicing process.");
-
-    pri->update(st+20, _(L("Generating perimeters")));
-    for(auto obj : print_->objects) make_perimeters(obj);
-
-    pri->update(st+60, _(L("Infilling layers")));
-    for(auto obj : print_->objects) infill(obj);
-
-    pri->update(st+70, _(L("Generating support material")));
-    for(auto obj : print_->objects) gen_support_material(obj);
-
-    pri->message_fmt(_(L("Weight: %.1fg, Cost: %.1f")),
-                     print_->total_weight, print_->total_cost);
-    pri->state(st+85);
-
-
-    pri->update(st+88, _(L("Generating skirt")));
-    make_skirt();
-
-
-    pri->update(st+90, _(L("Generating brim")));
-    make_brim();
-
-    pri->update(st+95, _(L("Generating wipe tower")));
-    make_wipe_tower();
-
-    pri->update(st+100, _(L("Done")));
-
-    // time to make some statistics..
-
-    Slic3r::trace(3, _(L("Slicing process finished.")));
-}
-
-void PrintController::slice()
-{
-    auto pri = global_progress_indicator();
-    if(!pri) pri = create_progress_indicator(100, L("Slicing"));
-    slice(pri);
-}
-
-void IProgressIndicator::message_fmt(
-        const string &fmtstr, ...) {
+void ProgressIndicator::message_fmt(
+        const std::string &fmtstr, ...) {
     std::stringstream ss;
     va_list args;
     va_start(args, fmtstr);
@@ -321,30 +127,34 @@ void AppController::arrange_model()
         for(auto& v : bedpoints)
             bed.append(Point::new_scale(v.x, v.y));
 
-        if(pind) pind->update(0, _(L("Arranging objects...")));
+        if(pind) pind->update(0, L("Arranging objects..."));
 
         try {
+            arr::BedShapeHint hint;
+            // TODO: from Sasha from GUI
+            hint.type = arr::BedShapeType::WHO_KNOWS;
+
             arr::arrange(*model_,
                          min_obj_distance,
                          bed,
-                         arr::BOX,
+                         hint,
                          false, // create many piles not just one pile
                          [pind, count](unsigned rem) {
                 if(pind)
-                    pind->update(count - rem, _(L("Arranging objects...")));
+                    pind->update(count - rem, L("Arranging objects..."));
             });
         } catch(std::exception& e) {
             std::cerr << e.what() << std::endl;
             report_issue(IssueType::ERR,
-                         _(L("Could not arrange model objects! "
-                         "Some geometries may be invalid.")),
-                         _(L("Exception occurred")));
+                         L("Could not arrange model objects! "
+                         "Some geometries may be invalid."),
+                         L("Exception occurred"));
         }
 
         // Restore previous max value
         if(pind) {
             pind->max(pmax);
-            pind->update(0, _(L("Arranging done.")));
+            pind->update(0, L("Arranging done."));
         }
     });
 

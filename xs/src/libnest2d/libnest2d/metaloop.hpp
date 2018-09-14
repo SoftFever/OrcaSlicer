@@ -67,11 +67,11 @@ class metaloop {
 // need to wrap that in a type (see metaloop::Int).
 
 /*
- * A helper alias to create integer values wrapped as a type. It is nessecary
+ * A helper alias to create integer values wrapped as a type. It is necessary
  * because a non type template parameter (such as int) would be prohibited in
  * a partial specialization. Also for the same reason we have to use a class
  * _Metaloop instead of a simple function as a functor. A function cannot be
- * partially specialized in a way that is neccesary for this trick.
+ * partially specialized in a way that is necessary for this trick.
  */
 template<int N> using Int = std::integral_constant<int, N>;
 
@@ -88,7 +88,7 @@ public:
     // It takes the real functor that can be specified in-place but only
     // with C++14 because the second parameter's type will depend on the
     // type of the parameter pack element that is processed. In C++14 we can
-    // specify this second parameter type as auto in the lamda parameter list.
+    // specify this second parameter type as auto in the lambda parameter list.
     inline MapFn(Fn&& fn): fn_(forward<Fn>(fn)) {}
 
     template<class T> void operator ()(T&& pack_element) {
@@ -146,7 +146,7 @@ public:
  * version of run is called which does not call itself anymore.
  *
  * If you are utterly annoyed, at least you have learned a super crazy
- * functional metaprogramming pattern.
+ * functional meta-programming pattern.
  */
 template<class...Args>
 using MetaLoop = _MetaLoop<Int<sizeof...(Args)-1>, Args...>;

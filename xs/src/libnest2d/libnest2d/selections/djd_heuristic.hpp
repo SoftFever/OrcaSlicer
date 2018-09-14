@@ -8,7 +8,7 @@
 
 #include "selection_boilerplate.hpp"
 
-namespace libnest2d { namespace strategies {
+namespace libnest2d { namespace selections {
 
 /**
  * Selection heuristic based on [López-Camacho]\
@@ -118,7 +118,7 @@ public:
         using Placer = PlacementStrategyLike<TPlacer>;
         using ItemList = std::list<ItemRef>;
 
-        const double bin_area = ShapeLike::area<RawShape>(bin);
+        const double bin_area = sl::area(bin);
         const double w = bin_area * config_.waste_increment;
 
         const double INITIAL_FILL_PROPORTION = config_.initial_fill_proportion;
@@ -227,10 +227,14 @@ public:
             bool ret = false;
             auto it = not_packed.begin();
 
+            auto pack = [&placer, &not_packed](ItemListIt it) {
+                return placer.pack(*it, rem(it, not_packed));
+            };
+
             while(it != not_packed.end() && !ret &&
                   free_area - (item_area = it->get().area()) <= waste)
             {
-                if(item_area <= free_area && placer.pack(*it) ) {
+                if(item_area <= free_area && pack(it) ) {
                     free_area -= item_area;
                     filled_area = bin_area - free_area;
                     ret = true;
@@ -270,6 +274,11 @@ public:
             auto it2 = it;
 
             std::vector<TPair> wrong_pairs;
+            using std::placeholders::_1;
+
+            auto trypack = [&placer, &not_packed](ItemListIt it) {
+                return placer.trypack(*it, rem(it, not_packed));
+            };
 
             while(it != endit && !ret &&
                   free_area - (item_area = it->get().area()) -
@@ -278,7 +287,7 @@ public:
                 if(item_area + smallestPiece(it, not_packed)->get().area() >
                         free_area ) { it++; continue; }
 
-                auto pr = placer.trypack(*it);
+                auto pr = trypack(it);
 
                 // First would fit
                 it2 = not_packed.begin();
@@ -294,14 +303,14 @@ public:
                     }
 
                     placer.accept(pr);
-                    auto pr2 = placer.trypack(*it2);
+                    auto pr2 = trypack(it2);
                     if(!pr2) {
                         placer.unpackLast(); // remove first
                         if(try_reverse) {
-                            pr2 = placer.trypack(*it2);
+                            pr2 = trypack(it2);
                             if(pr2) {
                                 placer.accept(pr2);
-                                auto pr12 = placer.trypack(*it);
+                                auto pr12 = trypack(it);
                                 if(pr12) {
                                     placer.accept(pr12);
                                     ret = true;
@@ -365,6 +374,14 @@ public:
                 return it->get().area();
             };
 
+            auto trypack = [&placer, &not_packed](ItemListIt it) {
+                return placer.trypack(*it, rem(it, not_packed));
+            };
+
+            auto pack = [&placer, &not_packed](ItemListIt it) {
+                return placer.pack(*it, rem(it, not_packed));
+            };
+
             while (it != endit && !ret) { // drill down 1st level
 
                 // We need to determine in each iteration the largest, second
@@ -394,7 +411,7 @@ public:
                     it++; continue;
                 }
 
-                auto pr = placer.trypack(*it);
+                auto pr = trypack(it);
 
                 // Check for free area and try to pack the 1st item...
                 if(!pr) { it++; continue; }
@@ -420,15 +437,15 @@ public:
                     bool can_pack2 = false;
 
                     placer.accept(pr);
-                    auto pr2 = placer.trypack(*it2);
+                    auto pr2 = trypack(it2);
                     auto pr12 = pr;
                     if(!pr2) {
                         placer.unpackLast(); // remove first
                         if(try_reverse) {
-                            pr2 = placer.trypack(*it2);
+                            pr2 = trypack(it2);
                             if(pr2) {
                                 placer.accept(pr2);
-                                pr12 = placer.trypack(*it);
+                                pr12 = trypack(it);
                                 if(pr12) can_pack2 = true;
                                 placer.unpackLast();
                             }
@@ -463,7 +480,7 @@ public:
                         if(a3_sum > free_area) { it3++; continue; }
 
                         placer.accept(pr12); placer.accept(pr2);
-                        bool can_pack3 = placer.pack(*it3);
+                        bool can_pack3 = pack(it3);
 
                         if(!can_pack3) {
                             placer.unpackLast();
@@ -473,16 +490,16 @@ public:
                         if(!can_pack3 && try_reverse) {
 
                             std::array<size_t, 3> indices = {0, 1, 2};
-                            std::array<ItemRef, 3>
-                                    candidates = {*it, *it2, *it3};
+                            std::array<typename ItemList::iterator, 3>
+                                    candidates = {it, it2, it3};
 
-                            auto tryPack = [&placer, &candidates](
+                            auto tryPack = [&placer, &candidates, &pack](
                                     const decltype(indices)& idx)
                             {
                                 std::array<bool, 3> packed = {false};
 
                                 for(auto id : idx) packed.at(id) =
-                                        placer.pack(candidates[id]);
+                                        pack(candidates[id]);
 
                                 bool check =
                                 std::all_of(packed.begin(),
@@ -536,7 +553,7 @@ public:
         { auto it = store_.begin();
             while (it != store_.end()) {
                 Placer p(bin); p.configure(pconfig);
-                if(!p.pack(*it)) {
+                if(!p.pack(*it, rem(it, store_))) {
                     it = store_.erase(it);
                 } else it++;
             }
@@ -551,11 +568,7 @@ public:
         {
 
             packed_bins_[idx] = placer.getItems();
-#ifndef NDEBUG
-            packed_bins_[idx].insert(packed_bins_[idx].end(),
-                                       placer.getDebugItems().begin(),
-                                       placer.getDebugItems().end());
-#endif
+
             // TODO here should be a spinlock
             slock.lock();
             acounter -= packednum;
@@ -601,7 +614,7 @@ public:
                     while(it != not_packed.end() &&
                           filled_area < INITIAL_FILL_AREA)
                     {
-                        if(placer.pack(*it)) {
+                        if(placer.pack(*it, rem(it, not_packed))) {
                             filled_area += it->get().area();
                             free_area = bin_area - filled_area;
                             it = not_packed.erase(it);

@@ -8,10 +8,7 @@
 %}
 
 %name{Slic3r::PrintController} class PrintController {
-
     PrintController(Print *print);
-
-    void slice();
 };
 
 %name{Slic3r::AppController} class AppController {
