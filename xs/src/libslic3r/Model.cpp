@@ -849,6 +849,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     return;
 }
 
+// Called by Print::validate() from the UI thread.
 void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
 {
     for (const ModelVolume* vol : this->volumes)

@@ -1417,9 +1417,9 @@ sub start_background_process {
 # Stop the background processing
 sub stop_background_process {
     my ($self) = @_;
+    $self->{background_slicing_process}->stop();
     $self->{toolpaths2D}->reload_print if $self->{canvas3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
-    $self->schedule_background_process;
 }
 
 # Called by the "Slice now" button, which is visible only if the background processing is disabled.
@@ -1467,6 +1467,7 @@ sub export_gcode {
     eval {
         # this will throw errors if config is not valid
         $config->validate;
+        #FIXME it shall use the background processing!
         $self->{print}->apply_config($config);
         $self->{print}->validate;
     };
@@ -1508,6 +1509,8 @@ sub export_gcode {
         # this updates buttons status
         $self->object_list_changed;
     });
+
+    $self->{background_slicing_process}->set_output_path($self->{export_gcode_output_file});
     
     # start background process, whose completion event handler
     # will detect $self->{export_gcode_output_file} and proceed with export
@@ -1557,7 +1560,10 @@ sub on_process_completed {
     my $message;
     my $send_gcode = 0;
     my $do_print = 0;
-    if ($result) {
+#    print "Process completed, message: ", $message, "\n";
+    if (defined($result)) {
+        $message = L("Export failed");
+    } else {
         # G-code file exported successfully.
         if ($self->{print_file}) {
             $message = L("File added to print queue");
@@ -1565,14 +1571,13 @@ sub on_process_completed {
         } elsif ($self->{send_gcode_file}) {
             $message = L("Sending G-code file to the Printer Host ...");
             $send_gcode = 1;
-        } else {
+        } elsif (defined $self->{export_gcode_output_file}) {
             $message = L("G-code file exported to ") . $self->{export_gcode_output_file};
+        } else {
+            $message = L("Slicing complete");
         }
-    } else {
-        $message = L("Export failed");
     }
     $self->{export_gcode_output_file} = undef;
-    $self->statusbar->SetStatusText($message);
     wxTheApp->notify($message);
     
     $self->do_print if $do_print;
@@ -1580,13 +1585,19 @@ sub on_process_completed {
     # Send $self->{send_gcode_file} to OctoPrint.
     if ($send_gcode) {
         my $host = Slic3r::PrintHost::get_print_host($self->{config});
-
         if ($host->send_gcode($self->{send_gcode_file})) {
-            $self->statusbar->SetStatusText(L("Upload to host finished."));
+            $message = L("Upload to host finished.");
         } else {
-            $self->statusbar->SetStatusText("");
+            $message = "";
         }
     }
+
+    # As of now, the BackgroundProcessing thread posts status bar update messages to a queue on the MainFrame.pm,
+    # but the "Processing finished" message is posted to this window.
+    # Delay the following status bar update, so it will be called later than what is received by MainFrame.pm.
+    wxTheApp->CallAfter(sub {
+        $self->statusbar->SetStatusText($message);
+    });
 
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;

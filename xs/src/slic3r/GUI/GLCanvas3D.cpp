@@ -5208,9 +5208,9 @@ void GLCanvas3D::_load_shells()
 
     // adds objects' volumes 
     unsigned int object_id = 0;
-    for (PrintObject* obj : m_print->objects())
+    for (const PrintObject* obj : m_print->objects())
     {
-        ModelObject* model_obj = obj->model_object();
+        const ModelObject* model_obj = obj->model_object();
 
         std::vector<int> instance_ids(model_obj->instances.size());
         for (int i = 0; i < (int)model_obj->instances.size(); ++i)

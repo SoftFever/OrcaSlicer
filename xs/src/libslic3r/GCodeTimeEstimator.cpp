@@ -1,4 +1,5 @@
 #include "GCodeTimeEstimator.hpp"
+#include "Utils.hpp"
 #include <boost/bind.hpp>
 #include <cmath>
 
@@ -367,8 +368,7 @@ namespace Slic3r {
         fclose(out);
         in.close();
 
-        boost::nowide::remove(filename.c_str());
-        if (boost::nowide::rename(path_tmp.c_str(), filename.c_str()) != 0)
+        if (rename_file(path_tmp, filename) != 0)
             throw std::runtime_error(std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + filename + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
 

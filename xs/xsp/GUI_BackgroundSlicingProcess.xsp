@@ -15,6 +15,7 @@
     void set_sliced_event(int event_id);
     void set_finished_event(int event_id);
 
+    void set_output_path(const char *path);
     bool start();
     bool stop();
     bool apply_config(DynamicPrintConfig *config) 

@@ -3,6 +3,7 @@
 
 #include <wx/event.h>
 #include <wx/panel.h>
+#include <wx/stdpaths.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "../../libslic3r/Print.hpp"
@@ -11,11 +12,27 @@
 #include <cassert>
 #include <stdexcept>
 
+#include <boost/format.hpp>
+#include <boost/nowide/cstdio.hpp>
+
 namespace Slic3r {
 
 namespace GUI {
 	extern wxPanel *g_wxPlater;
 };
+
+BackgroundSlicingProcess::BackgroundSlicingProcess()
+{
+	m_temp_output_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
+	m_temp_output_path += (boost::format(".%1%.gcode") % get_current_pid()).str();
+}
+
+BackgroundSlicingProcess::~BackgroundSlicingProcess() 
+{ 
+	this->stop();
+	this->join_background_thread();
+	boost::nowide::remove(m_temp_output_path.c_str());
+}
 
 void BackgroundSlicingProcess::thread_proc()
 {
@@ -41,7 +58,10 @@ void BackgroundSlicingProcess::thread_proc()
 		    m_print->process();
 		    if (! m_print->canceled()) {
 				wxQueueEvent(GUI::g_wxPlater, new wxCommandEvent(m_event_sliced_id));
-			    m_print->export_gcode(m_output_path, m_gcode_preview_data);
+			    m_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
+			    if (! m_print->canceled() && ! m_output_path.empty() &&
+			    	copy_file(m_temp_output_path, m_output_path) != 0)
+		    		throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
 		    }
 		} catch (CanceledException &ex) {
 			// Canceled, this is all right.
@@ -111,8 +131,10 @@ bool BackgroundSlicingProcess::start()
 bool BackgroundSlicingProcess::stop()
 {
 	std::unique_lock<std::mutex> lck(m_mutex);
-	if (m_state == STATE_INITIAL)
+	if (m_state == STATE_INITIAL) {
+		this->m_output_path.clear();
 		return false;
+	}
 	assert(this->running());
 	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
 		m_print->cancel();
@@ -124,6 +146,7 @@ bool BackgroundSlicingProcess::stop()
 		// In the "Finished" or "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 	}
+	this->m_output_path.clear();
 	return true;
 }
 

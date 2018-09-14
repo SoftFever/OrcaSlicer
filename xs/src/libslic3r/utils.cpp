@@ -23,6 +23,7 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r {
 
@@ -137,6 +138,87 @@ void set_data_dir(const std::string &dir)
 const std::string& data_dir()
 {
     return g_data_dir;
+}
+
+
+// borrowed from LVVM lib/Support/Windows/Path.inc
+int rename_file(const std::string &from, const std::string &to)
+{
+    int ec = 0;
+
+#ifdef _WIN32
+
+	// Convert to utf-16.
+    std::wstring wide_from = boost::nowide::widen(from);
+    std::wstring wide_to   = boost::nowide::widen(to);
+
+    // Retry while we see recoverable errors.
+    // System scanners (eg. indexer) might open the source file when it is written
+    // and closed.
+    bool TryReplace = true;
+
+    // This loop may take more than 2000 x 1ms to finish.
+    for (int i = 0; i < 2000; ++ i) {
+        if (i > 0)
+            // Sleep 1ms
+            ::Sleep(1);
+        if (TryReplace) {
+            // Try ReplaceFile first, as it is able to associate a new data stream
+            // with the destination even if the destination file is currently open.
+            if (::ReplaceFileW(wide_to.data(), wide_from.data(), NULL, 0, NULL, NULL))
+                return 0;
+            DWORD ReplaceError = ::GetLastError();
+            ec = -1; // ReplaceError
+            // If ReplaceFileW returned ERROR_UNABLE_TO_MOVE_REPLACEMENT or
+            // ERROR_UNABLE_TO_MOVE_REPLACEMENT_2, retry but only use MoveFileExW().
+            if (ReplaceError == ERROR_UNABLE_TO_MOVE_REPLACEMENT ||
+                ReplaceError == ERROR_UNABLE_TO_MOVE_REPLACEMENT_2) {
+                TryReplace = false;
+                continue;
+            }
+            // If ReplaceFileW returned ERROR_UNABLE_TO_REMOVE_REPLACED, retry
+            // using ReplaceFileW().
+            if (ReplaceError == ERROR_UNABLE_TO_REMOVE_REPLACED)
+                continue;
+            // We get ERROR_FILE_NOT_FOUND if the destination file is missing.
+            // MoveFileEx can handle this case.
+            if (ReplaceError != ERROR_ACCESS_DENIED && ReplaceError != ERROR_FILE_NOT_FOUND && ReplaceError != ERROR_SHARING_VIOLATION)
+                break;
+        }
+        if (::MoveFileExW(wide_from.c_str(), wide_to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+            return 0;
+        DWORD MoveError = ::GetLastError();
+        ec = -1; // MoveError
+        if (MoveError != ERROR_ACCESS_DENIED && MoveError != ERROR_SHARING_VIOLATION)
+            break;
+    }
+
+#else
+
+	boost::nowide::remove(from.c_str());
+	ec = boost::nowide::rename(from.c_str(), to.c_str());
+
+#endif
+
+    return ec;
+}
+
+int copy_file(const std::string &from, const std::string &to)
+{
+    const boost::filesystem::path source(from);
+    const boost::filesystem::path target(to);
+    static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
+
+    // Make sure the file has correct permission both before and after we copy over it.
+    try {
+        if (boost::filesystem::exists(target))
+            boost::filesystem::permissions(target, perms);
+        boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists);
+        boost::filesystem::permissions(target, perms);
+    } catch (std::exception & /* ex */) {
+        return -1;
+    }
+    return 0;
 }
 
 } // namespace Slic3r

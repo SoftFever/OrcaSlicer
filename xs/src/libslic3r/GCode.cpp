@@ -418,6 +418,17 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 {
     PROFILE_CLEAR();
 
+    if (print->is_step_done(psGCodeExport)) {
+        // Does the file exist? If so, we hope that it is still valid.
+        FILE *f = boost::nowide::fopen(path, "r");
+        if (f != nullptr) {
+            ::fclose(f);
+            return;
+        }
+    }
+
+	print->set_started(psGCodeExport);
+
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code...";
 
     // Remove the old g-code if it exists.
@@ -467,12 +478,13 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
         throw std::runtime_error(msg);
     }
 
-    if (boost::nowide::rename(path_tmp.c_str(), path) != 0)
+    if (rename_file(path_tmp, path) != 0)
         throw std::runtime_error(
             std::string("Failed to rename the output G-code file from ") + path_tmp + " to " + path + '\n' +
             "Is " + path_tmp + " locked?" + '\n');
 
     BOOST_LOG_TRIVIAL(info) << "Exporting G-code finished";
+	print->set_done(psGCodeExport);
 
     // Write the profiler measurements to file
     PROFILE_UPDATE();
@@ -482,8 +494,6 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
 {
     PROFILE_FUNC();
-
-    print.set_started(psGCodeExport);
 
     // resets time estimators
     m_normal_time_estimator.reset();
@@ -1029,8 +1039,6 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     // starts analizer calculations
     if (preview_data != nullptr)
         m_analyzer.calc_gcode_preview_data(*preview_data);
-
-    print.set_done(psGCodeExport);
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)

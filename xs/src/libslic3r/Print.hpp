@@ -88,6 +88,11 @@ public:
     bool invalidate(StepType step, tbb::mutex &mtx, CancelationCallback &cancel) {
         bool invalidated = m_state[step].load(std::memory_order_relaxed) != INVALID;
         if (invalidated) {
+#if 0
+            if (mtx.state != mtx.HELD) {
+                printf("Not held!\n");
+            }
+#endif
             mtx.unlock();
             cancel();
             mtx.lock();
@@ -283,18 +288,14 @@ private:
     SupportLayerPtrs                        m_support_layers;
 
     PrintState<PrintObjectStep, posCount>   m_state;
-    // Mutex used for synchronization of the worker thread with the UI thread:
-    // The mutex will be used to guard the worker thread against entering a stage
-    // while the data influencing the stage is modified.
-    tbb::mutex                              m_mutex;
 
     // TODO: call model_object->get_bounding_box() instead of accepting
         // parameter
     PrintObject(Print* print, ModelObject* model_object, const BoundingBoxf3 &modobj_bbox);
     ~PrintObject() {}
 
-    void set_started(PrintObjectStep step) { m_state.set_started(step, m_mutex); }
-    void set_done(PrintObjectStep step) { m_state.set_done(step, m_mutex); }
+    void set_started(PrintObjectStep step);
+    void set_done(PrintObjectStep step);
     std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
 };
 
@@ -446,8 +447,8 @@ public:
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }
 
 protected:
-    void                set_started(PrintStep step) { m_state.set_started(step, m_mutex); }
-    void                set_done(PrintStep step) { m_state.set_done(step, m_mutex); }
+	void                set_started(PrintStep step) { m_state.set_started(step, m_mutex); throw_if_canceled(); }
+	void                set_done(PrintStep step) { m_state.set_done(step, m_mutex); throw_if_canceled(); }
     bool                invalidate_step(PrintStep step);
     bool                invalidate_all_steps() { return m_state.invalidate_all(m_mutex, m_cancel_callback); }
 
@@ -473,7 +474,7 @@ private:
     // Mutex used for synchronization of the worker thread with the UI thread:
     // The mutex will be used to guard the worker thread against entering a stage
     // while the data influencing the stage is modified.
-    tbb::mutex                              m_mutex;
+    mutable tbb::mutex                      m_mutex;
 
     // Has the calculation been canceled?
     tbb::atomic<bool>                       m_canceled;

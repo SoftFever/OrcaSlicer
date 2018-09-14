@@ -129,6 +129,7 @@ public:
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
 
+    // Called by Print::validate() from the UI thread.
     void check_instances_print_volume_state(const BoundingBoxf3& print_volume);
 
     // Print object statistics to console.

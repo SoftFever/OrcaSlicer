@@ -59,8 +59,19 @@ PrintObject::PrintObject(Print* print, ModelObject* model_object, const Bounding
     this->layer_height_profile = model_object->layer_height_profile;
 }
 
+void PrintObject::set_started(PrintObjectStep step) 
+{ 
+    m_state.set_started(step, m_print->m_mutex);
+}
+
+void PrintObject::set_done(PrintObjectStep step)
+{ 
+    m_state.set_done(step, m_print->m_mutex);
+}
+
 bool PrintObject::add_copy(const Vec2d &point)
 {
+    tbb::mutex::scoped_lock lock(m_print->m_mutex);    
     Points points = m_copies;
     points.push_back(Point::new_scale(point(0), point(1)));
     return this->set_copies(points);
@@ -68,6 +79,7 @@ bool PrintObject::add_copy(const Vec2d &point)
 
 bool PrintObject::delete_last_copy()
 {
+    tbb::mutex::scoped_lock lock(m_print->m_mutex);
     Points points = m_copies;
     points.pop_back();
     return this->set_copies(points);
@@ -158,7 +170,6 @@ void PrintObject::make_perimeters()
             m_print->throw_if_canceled();
         }
         this->typed_slices = false;
-//        m_state.invalidate(posPrepareInfill);
     }
     
     // compare each layer to the one below, and mark those slices needing

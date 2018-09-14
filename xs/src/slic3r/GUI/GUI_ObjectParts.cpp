@@ -383,13 +383,10 @@ void update_after_moving()
 	if (volume_id < 0)
 		return;
 
-	Vec3d m = m_move_options;
-	Vec3d l = m_last_coords;
-
-    auto d = Vec3d(m(0) - l(0), m(1) - l(1), m(2) - l(2));
-	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+    auto d = m_move_options - m_last_coords;
+    auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
     volume->mesh.translate(d(0), d(1), d(2));
-	m_last_coords = m;
+	m_last_coords = m_move_options;
 
 	m_parts_changed = true;
 	parts_changed(m_selected_object_id);

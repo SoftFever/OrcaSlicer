@@ -72,6 +72,7 @@ void Print::reload_object(size_t /* idx */)
 // Returns true if the brim or skirt have been invalidated.
 bool Print::reload_model_instances()
 {
+    tbb::mutex::scoped_lock lock(m_mutex);
     bool invalidated = false;
     for (PrintObject *object : m_objects)
         invalidated |= object->reload_model_instances();
@@ -370,6 +371,7 @@ double Print::max_allowed_layer_height() const
 // and have explicit instance positions.
 void Print::add_model_object(ModelObject* model_object, int idx)
 {
+    tbb::mutex::scoped_lock lock(m_mutex);
     // Initialize a new print object and store it at the given position.
     PrintObject *object = new PrintObject(this, model_object, model_object->raw_bounding_box());
     if (idx != -1) {
@@ -378,6 +380,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     } else
         m_objects.emplace_back(object);
     // Invalidate all print steps.
+    //FIXME lock mutex!
     this->invalidate_all_steps();
 
     for (size_t volume_id = 0; volume_id < model_object->volumes.size(); ++ volume_id) {
@@ -434,6 +437,8 @@ void Print::add_model_object(ModelObject* model_object, int idx)
 
 bool Print::apply_config(DynamicPrintConfig config)
 {
+    tbb::mutex::scoped_lock lock(m_mutex);
+
     // we get a copy of the config object so we can modify it safely
     config.normalize();
     
@@ -564,13 +569,17 @@ std::string Print::validate() const
 	BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(m_config.max_print_height)));
     // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
     print_volume.min(2) = -1e10;
-    unsigned int printable_count = 0;
-    for (PrintObject *po : m_objects) {
-        po->model_object()->check_instances_print_volume_state(print_volume);
-        po->reload_model_instances();
-        if (po->is_printable())
-            ++printable_count;
-    }
+	unsigned int printable_count = 0;
+	{
+		// Lock due to the po->reload_model_instances()
+		tbb::mutex::scoped_lock lock(m_mutex);
+		for (PrintObject *po : m_objects) {
+			po->model_object()->check_instances_print_volume_state(print_volume);
+			po->reload_model_instances();
+			if (po->is_printable())
+				++ printable_count;
+		}
+	}
 
     if (printable_count == 0)
         return L("All objects are outside of the print volume.");
