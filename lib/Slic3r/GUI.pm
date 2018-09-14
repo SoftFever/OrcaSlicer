@@ -6,25 +6,11 @@ use utf8;
 use File::Basename qw(basename);
 use FindBin;
 use List::Util qw(first);
-use Slic3r::GUI::2DBed;
-use Slic3r::GUI::Controller;
-use Slic3r::GUI::Controller::ManualControlDialog;
-use Slic3r::GUI::Controller::PrinterPanel;
 use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Plater;
-use Slic3r::GUI::Plater::2D;
-use Slic3r::GUI::Plater::2DToolpaths;
 use Slic3r::GUI::Plater::3D;
 use Slic3r::GUI::Plater::3DPreview;
-use Slic3r::GUI::Plater::ObjectPartsPanel;
-use Slic3r::GUI::Plater::ObjectCutDialog;
-use Slic3r::GUI::Plater::ObjectSettingsDialog;
-use Slic3r::GUI::Plater::LambdaObjectDialog;
-use Slic3r::GUI::Plater::OverrideSettingsPanel;
 use Slic3r::GUI::ProgressStatusBar;
-use Slic3r::GUI::OptionsGroup;
-use Slic3r::GUI::OptionsGroup::Field;
-use Slic3r::GUI::SystemInfo;
 
 use Wx::Locale gettext => 'L';
 
@@ -226,16 +212,15 @@ sub system_info {
         $opengl_info = Slic3r::GUI::_3DScene::get_gl_info(1, 1);
         $opengl_info_txt = Slic3r::GUI::_3DScene::get_gl_info(0, 1);
     }
-    my $about = Slic3r::GUI::SystemInfo->new(
-        parent      => undef, 
-        slic3r_info => $slic3r_info,
-#        copyright_info => $copyright_info,
-        system_info => $system_info, 
-        opengl_info => $opengl_info,
-        text_info => Slic3r::slic3r_info . Slic3r::system_info . $opengl_info_txt,
-    );
-    $about->ShowModal;
-    $about->Destroy;
+#    my $about = Slic3r::GUI::SystemInfo->new(
+#        parent      => undef, 
+#        slic3r_info => $slic3r_info,
+#        system_info => $system_info, 
+#        opengl_info => $opengl_info,
+#        text_info => Slic3r::slic3r_info . Slic3r::system_info . $opengl_info_txt,
+#    );
+#    $about->ShowModal;
+#    $about->Destroy;
 }
 
 # static method accepting a wxWindow object as first parameter

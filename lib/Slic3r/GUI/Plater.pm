@@ -296,14 +296,6 @@ sub new {
 
     Slic3r::GUI::register_on_request_update_callback(sub { $self->schedule_background_process; });
     
-#    # Initialize 2D preview canvas
-#    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
-#    $self->{preview_notebook}->AddPage($self->{canvas}, L('2D'));
-#    $self->{canvas}->on_select_object($on_select_object);
-#    $self->{canvas}->on_double_click($on_double_click);
-#    $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
-#    $self->{canvas}->on_instances_moved($on_instances_moved);
-    
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
@@ -312,12 +304,6 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
         $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
-    }
-    
-    # Initialize toolpaths preview
-    if ($Slic3r::GUI::have_OpenGL) {
-        $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, L('Layers'));
     }
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
@@ -994,7 +980,6 @@ sub remove {
     $self->stop_background_process;
     
     # Prevent toolpaths preview from rendering while we modify the Print object
-    $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
     $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     # If no object index is supplied, remove the selected one.
@@ -1020,7 +1005,6 @@ sub reset {
     $self->stop_background_process;
     
     # Prevent toolpaths preview from rendering while we modify the Print object
-    $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
     $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     @{$self->{objects}} = ();
@@ -1382,7 +1366,6 @@ sub async_apply_config {
             # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
             # Otherwise they will be just refreshed.
             $self->{gcode_preview_data}->reset;
-            $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
             $self->{preview3D}->reload_print if $self->{preview3D};
             # We also need to reload 3D scene because of the wipe tower preview box
             if ($self->{config}->wipe_tower) {
@@ -1418,7 +1401,6 @@ sub start_background_process {
 sub stop_background_process {
     my ($self) = @_;
     $self->{background_slicing_process}->stop();
-    $self->{toolpaths2D}->reload_print if $self->{canvas3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
@@ -1525,7 +1507,6 @@ sub export_gcode {
 # This message should be called by the background process synchronously.
 sub on_update_print_preview {
     my ($self) = @_;
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 
     # in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
@@ -1607,7 +1588,6 @@ sub on_process_completed {
     $self->object_list_changed;
     
     # refresh preview
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
     $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
@@ -2043,31 +2023,31 @@ sub filament_color_box_lmouse_down
     }
 }
 
-sub object_cut_dialog {
-    my ($self, $obj_idx) = @_;
-    
-    if (!defined $obj_idx) {
-        ($obj_idx, undef) = $self->selected_object;
-    }
-    
-    if (!$Slic3r::GUI::have_OpenGL) {
-        Slic3r::GUI::show_error($self, L("Please install the OpenGL modules to use this feature (see build instructions)."));
-        return;
-    }
-    
-    my $dlg = Slic3r::GUI::Plater::ObjectCutDialog->new($self,
-		object              => $self->{objects}[$obj_idx],
-		model_object        => $self->{model}->objects->[$obj_idx],
-	);
-	return unless $dlg->ShowModal == wxID_OK;
-	
-	if (my @new_objects = $dlg->NewModelObjects) {
-	    $self->remove($obj_idx);
-	    $self->load_model_objects(grep defined($_), @new_objects);
-	    $self->arrange;
-        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
-	}
-}
+#sub object_cut_dialog {
+#    my ($self, $obj_idx) = @_;
+#    
+#    if (!defined $obj_idx) {
+#        ($obj_idx, undef) = $self->selected_object;
+#    }
+#    
+#    if (!$Slic3r::GUI::have_OpenGL) {
+#        Slic3r::GUI::show_error($self, L("Please install the OpenGL modules to use this feature (see build instructions)."));
+#        return;
+#    }
+#    
+#    my $dlg = Slic3r::GUI::Plater::ObjectCutDialog->new($self,
+#		object              => $self->{objects}[$obj_idx],
+#		model_object        => $self->{model}->objects->[$obj_idx],
+#	);
+#	return unless $dlg->ShowModal == wxID_OK;
+#	
+#	if (my @new_objects = $dlg->NewModelObjects) {
+#	    $self->remove($obj_idx);
+#	    $self->load_model_objects(grep defined($_), @new_objects);
+#	    $self->arrange;
+#        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
+#	}
+#}
 
 sub object_settings_dialog {
     my ($self, $obj_idx) = @_;

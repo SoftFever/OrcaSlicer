@@ -170,6 +170,7 @@ _constant()
     void set_callback_event(int evt) %code%{
         %};
     void set_status_silent();
+    void set_status(int percent, const char *message);
 
     void process() %code%{
             try {

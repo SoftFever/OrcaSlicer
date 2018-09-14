@@ -122,6 +122,7 @@ sub line_intersection {
         : undef;
 }
 
+# Used by test cases.
 sub collinear {
     my ($line1, $line2, $require_overlapping) = @_;
     my $intersection = _line_intersection(map @$_, @$line1, @$line2);
@@ -226,6 +227,7 @@ sub bounding_box {
     return @bb[X1,Y1,X2,Y2];
 }
 
+# used by ExPolygon::size
 sub size_2D {
     my @bounding_box = bounding_box(@_);
     return (
@@ -234,6 +236,7 @@ sub size_2D {
     );
 }
 
+# Used by sub collinear, which is used by test cases.
 # bounding_box_intersect($d, @a, @b)
 #   Return true if the given bounding boxes @a and @b intersect
 #   in $d dimensions.  Used by sub collinear.
@@ -252,6 +255,7 @@ sub bounding_box_intersect {
     return 1;
 }
 
+# Used by test cases.
 # this assumes a CCW rotation from $p2 to $p3 around $p1
 sub angle3points {
     my ($p1, $p2, $p3) = @_;

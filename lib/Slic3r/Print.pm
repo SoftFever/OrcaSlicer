@@ -24,7 +24,7 @@ sub run_post_process_scripts {
     my ($self, $output_file) = @_;
     # run post-processing scripts
     if (@{$self->config->post_process}) {
-#        $self->status_cb->(95, "Running post-processing scripts");
+#        $self->set_status(95, "Running post-processing scripts");
         $self->config->setenv;
         for my $script (@{$self->config->post_process}) {
             # Ignore empty post processing script lines.
@@ -57,13 +57,13 @@ sub export_png {
     for(my $oi = 0; $oi < $objnum; $oi++)
     { 
         $sobjects[$oi]->slice;
-        $self->status_cb->(($oi + 1)*100/$objnum - 1, "Slicing...");
+        $self->set_status(($oi + 1)*100/$objnum - 1, "Slicing...");
     }
 
     my $fh = $params{output_file};
-    $self->status_cb->(90, "Exporting zipped archive...");
+    $self->set_status(90, "Exporting zipped archive...");
     $self->print_to_png($fh);
-    $self->status_cb->(100, "Done.");
+    $self->set_status(100, "Done.");
 }
 
 # Export SVG slices for the offline SLA printing.
@@ -77,7 +77,7 @@ sub export_svg {
     for(my $oi = 0; $oi < $objnum; $oi++)
     { 
         $sobjects[$oi]->slice;
-        $self->status_cb->(($oi + 1)*100/$objnum - 1, "Slicing...");
+        $self->set_status(($oi + 1)*100/$objnum - 1, "Slicing...");
     }
     
     my $fh = $params{output_fh};

@@ -28,11 +28,13 @@ template class PrintState<PrintObjectStep, posCount>;
 void Print::clear_objects()
 {
     tbb::mutex::scoped_lock lock(m_mutex);
-    for (int i = int(m_objects.size())-1; i >= 0; --i)
-        this->delete_object(i);
+	for (PrintObject *object : m_objects)
+		delete object;
+	m_objects.clear();
     for (PrintRegion *region : m_regions)
         delete region;
     m_regions.clear();
+	this->invalidate_all_steps();
 }
 
 void Print::delete_object(size_t idx)
@@ -47,21 +49,28 @@ void Print::delete_object(size_t idx)
 
 void Print::reload_object(size_t /* idx */)
 {
-    tbb::mutex::scoped_lock lock(m_mutex);
-    /* TODO: this method should check whether the per-object config and per-material configs
-        have changed in such a way that regions need to be rearranged or we can just apply
-        the diff and invalidate something.  Same logic as apply_config()
-        For now we just re-add all objects since we haven't implemented this incremental logic yet.
-        This should also check whether object volumes (parts) have changed. */
-    
-    // collect all current model objects
-    ModelObjectPtrs model_objects;
-    model_objects.reserve(m_objects.size());
-    for (PrintObject *object : m_objects)
-        model_objects.push_back(object->model_object());    
-    // remove our print objects
-    this->clear_objects();
-    // re-add model objects
+	ModelObjectPtrs model_objects;
+	{
+		tbb::mutex::scoped_lock lock(m_mutex);
+		/* TODO: this method should check whether the per-object config and per-material configs
+			have changed in such a way that regions need to be rearranged or we can just apply
+			the diff and invalidate something.  Same logic as apply_config()
+			For now we just re-add all objects since we haven't implemented this incremental logic yet.
+			This should also check whether object volumes (parts) have changed. */
+		// collect all current model objects
+		model_objects.reserve(m_objects.size());
+		for (PrintObject *object : m_objects)
+			model_objects.push_back(object->model_object());
+		// remove our print objects
+		for (PrintObject *object : m_objects)
+			delete object;
+		m_objects.clear();
+		for (PrintRegion *region : m_regions)
+			delete region;
+		m_regions.clear();
+		this->invalidate_all_steps();
+	}
+	// re-add model objects
     for (ModelObject *mo : model_objects)
         this->add_model_object(mo);
 }

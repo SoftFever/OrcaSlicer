@@ -150,9 +150,6 @@ sub _init_tabpanel {
             event_remove_object              => $OBJECT_REMOVE_EVENT,
             event_update_scene               => $UPDATE_SCENE_EVENT,
             ), L("Plater"));
-        if (!$self->{no_controller}) {
-            $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
-        }
     }
     
     #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
