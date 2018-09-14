@@ -4,6 +4,8 @@
 #include <memory>
 #include <functional>
 
+#include "../../libslic3r/Utils.hpp"
+
 class wxTimer;
 class wxGauge;
 class wxButton;
@@ -50,6 +52,7 @@ public:
     void show_cancel_button();
     void hide_cancel_button();
 
+    PerlCallback m_perl_cancel_callback;
 private:
     bool busy_ = false;
     CancelFn cancel_cb_;

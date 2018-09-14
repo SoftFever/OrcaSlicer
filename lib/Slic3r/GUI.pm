@@ -10,7 +10,6 @@ use Slic3r::GUI::MainFrame;
 use Slic3r::GUI::Plater;
 use Slic3r::GUI::Plater::3D;
 use Slic3r::GUI::Plater::3DPreview;
-use Slic3r::GUI::ProgressStatusBar;
 
 use Wx::Locale gettext => 'L';
 

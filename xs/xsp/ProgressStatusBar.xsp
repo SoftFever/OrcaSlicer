@@ -39,10 +39,9 @@
     void SetStatusText(const char *txt)
         %code%{ THIS->set_status_text(txt); %};
 
-    void ShowCancelButton()
-        %code%{ THIS->show_cancel_button(); %};
-
-    void HideCancelButton()
-        %code%{ THIS->hide_cancel_button(); %};
+    void SetCancelCallback(SV* callback)
+        %code%{ THIS->m_perl_cancel_callback.register_callback(callback);  THIS->show_cancel_button();%};
+    void ResetCancelCallback()
+        %code%{ THIS->m_perl_cancel_callback.deregister_callback();  THIS->hide_cancel_button(); %};
 
 };

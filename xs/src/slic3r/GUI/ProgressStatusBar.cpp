@@ -54,6 +54,7 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
 
     cancelbutton_->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) {
         if(cancel_cb_) cancel_cb_();
+        m_perl_cancel_callback.call();
         cancelbutton_->Hide();
     });
 }

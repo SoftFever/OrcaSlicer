@@ -1534,7 +1534,7 @@ sub on_process_completed {
     # At this point of time the thread should be either finished or canceled,
     # so the following call just confirms, that the produced data were consumed.
     $self->{background_slicing_process}->stop;
-    $self->statusbar->SetCancelCallback(undef);
+    $self->statusbar->ResetCancelCallback();
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
     
