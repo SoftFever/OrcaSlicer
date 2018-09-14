@@ -610,6 +610,7 @@ const BoundingBoxf3& ModelObject::bounding_box() const
         BoundingBoxf3 raw_bbox;
         for (const ModelVolume *v : this->volumes)
             if (! v->modifier)
+                // mesh.bounding_box() returns a cached value.
                 raw_bbox.merge(v->mesh.bounding_box());
         BoundingBoxf3 bb;
         for (const ModelInstance *i : this->instances)

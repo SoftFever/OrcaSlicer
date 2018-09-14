@@ -49,6 +49,11 @@ trace(level, message)
         Slic3r::trace(level, message);
 
 void
+disable_multi_threading()
+    CODE:
+        Slic3r::disable_multi_threading();
+
+void
 set_var_dir(dir)
     char  *dir;
     CODE:
