@@ -1,17 +1,22 @@
 #include "PostProcessor.hpp"
 
-namespace Slic3r {
 
 #ifdef WIN32
+
+namespace Slic3r {
 
 //FIXME Ignore until we include boost::process
 void run_post_process_scripts(const std::string &path, const PrintConfig &config)
 {
 }
 
+} // namespace Slic3r
+
 #else
 
 #include <boost/process/system.hpp>
+
+namespace Slic3r {
 
 void run_post_process_scripts(const std::string &path, const PrintConfig &config)
 {
@@ -50,6 +55,6 @@ void run_post_process_scripts(const std::string &path, const PrintConfig &config
     }
 }
 
-#endif
-
 } // namespace Slic3r
+
+#endif
