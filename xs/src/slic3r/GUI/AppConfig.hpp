@@ -72,6 +72,14 @@ public:
 	bool				has(const std::string &key) const
 		{ return this->has("", key); }
 
+	void				erase(const std::string &section, const std::string &key)
+	{
+		auto it = m_storage.find(section);
+		if (it != m_storage.end()) {
+			it->second.erase(key);
+		}
+	}
+
 	void 				clear_section(const std::string &section)
 		{ m_storage[section].clear(); }
 

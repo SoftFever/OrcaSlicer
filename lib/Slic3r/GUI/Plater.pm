@@ -1804,20 +1804,37 @@ sub print_info_box_show {
         $grid_sizer->AddGrowableCol(1, 1);
         $grid_sizer->AddGrowableCol(3, 1);
         $print_info_sizer->Add($grid_sizer, 0, wxEXPAND);
+        my $is_wipe_tower = $self->{print}->total_wipe_tower_filament > 0;
         my @info = (
             L("Used Filament (m)")
-                => sprintf("%.2f" , $self->{print}->total_used_filament / 1000),
+                =>  $is_wipe_tower ?
+                       sprintf("%.2f  (%.2f %s + %.2f %s)" , $self->{print}->total_used_filament / 1000,
+                                                            ($self->{print}->total_used_filament - $self->{print}->total_wipe_tower_filament) / 1000,
+                                                             L("objects"),
+							     $self->{print}->total_wipe_tower_filament / 1000,
+                                                             L("wipe tower")) :
+                       sprintf("%.2f" , $self->{print}->total_used_filament / 1000),
+
             L("Used Filament (mm³)")
                 => sprintf("%.2f" , $self->{print}->total_extruded_volume),
             L("Used Filament (g)"),
                 => sprintf("%.2f" , $self->{print}->total_weight),
             L("Cost"),
-                => sprintf("%.2f" , $self->{print}->total_cost),
+                => $is_wipe_tower ?
+                       sprintf("%.2f  (%.2f %s + %.2f %s)" , $self->{print}->total_cost,
+                                                            ($self->{print}->total_cost - $self->{print}->total_wipe_tower_cost),
+                                                             L("objects"),
+							     $self->{print}->total_wipe_tower_cost,
+                                                             L("wipe tower")) :
+                       sprintf("%.2f" , $self->{print}->total_cost),
             L("Estimated printing time (normal mode)")
                 => $self->{print}->estimated_normal_print_time,
             L("Estimated printing time (silent mode)")
                 => $self->{print}->estimated_silent_print_time
         );
+        # if there is a wipe tower, insert number of toolchanges info into the array:
+        splice (@info, 8, 0, L("Number of tool changes") => sprintf("%.d", $self->{print}->m_wipe_tower_number_of_toolchanges))  if ($is_wipe_tower);
+
         while ( my $label = shift @info) {
             my $value = shift @info;
             next if $value eq "N/A";

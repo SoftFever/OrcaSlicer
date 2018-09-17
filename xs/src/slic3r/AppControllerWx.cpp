@@ -4,7 +4,6 @@
 #include <future>
 
 #include <slic3r/GUI/GUI.hpp>
-#include <slic3r/GUI/ProgressStatusBar.hpp>
 
 #include <wx/app.h>
 #include <wx/filedlg.h>
@@ -28,16 +27,16 @@ bool AppControllerBoilerplate::supports_asynch() const
 
 void AppControllerBoilerplate::process_events()
 {
-    wxYieldIfNeeded();
+    wxSafeYield();
 }
 
 AppControllerBoilerplate::PathList
 AppControllerBoilerplate::query_destination_paths(
-        const string &title,
+        const std::string &title,
         const std::string &extensions) const
 {
 
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), title );
+    wxFileDialog dlg(wxTheApp->GetTopWindow(), _(title) );
     dlg.SetWildcard(extensions);
 
     dlg.ShowModal();
@@ -53,11 +52,11 @@ AppControllerBoilerplate::query_destination_paths(
 
 AppControllerBoilerplate::Path
 AppControllerBoilerplate::query_destination_path(
-        const string &title,
+        const std::string &title,
         const std::string &extensions,
         const std::string& hint) const
 {
-    wxFileDialog dlg(wxTheApp->GetTopWindow(), title );
+    wxFileDialog dlg(wxTheApp->GetTopWindow(), _(title) );
     dlg.SetWildcard(extensions);
 
     dlg.SetFilename(hint);
@@ -72,8 +71,8 @@ AppControllerBoilerplate::query_destination_path(
 }
 
 bool AppControllerBoilerplate::report_issue(IssueType issuetype,
-                                 const string &description,
-                                 const string &brief)
+                                 const std::string &description,
+                                 const std::string &brief)
 {
     auto icon = wxICON_INFORMATION;
     auto style = wxOK|wxCENTRE;
@@ -85,15 +84,15 @@ bool AppControllerBoilerplate::report_issue(IssueType issuetype,
     case IssueType::FATAL:  icon = wxICON_ERROR;
     }
 
-    auto ret = wxMessageBox(description, brief, icon | style);
+    auto ret = wxMessageBox(_(description), _(brief), icon | style);
     return ret != wxCANCEL;
 }
 
 bool AppControllerBoilerplate::report_issue(
         AppControllerBoilerplate::IssueType issuetype,
-        const string &description)
+        const std::string &description)
 {
-    return report_issue(issuetype, description, string());
+    return report_issue(issuetype, description, std::string());
 }
 
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
@@ -137,8 +136,8 @@ public:
     /// Get the mode of parallel operation.
     inline bool asynch() const { return is_asynch_; }
 
-    inline GuiProgressIndicator(int range, const string& title,
-                                const string& firstmsg) :
+    inline GuiProgressIndicator(int range, const wxString& title,
+                                const wxString& firstmsg) :
         gauge_(title, firstmsg, range, wxTheApp->GetTopWindow(),
                wxPD_APP_MODAL | wxPD_AUTO_HIDE),
         message_(firstmsg),
@@ -150,11 +149,6 @@ public:
         Bind(PROGRESS_STATUS_UPDATE_EVENT,
              &GuiProgressIndicator::_state,
              this, id_);
-    }
-
-    virtual void cancel() override {
-        update(max(), "Abort");
-        ProgressIndicator::cancel();
     }
 
     virtual void state(float val) override {
@@ -171,26 +165,28 @@ public:
         } else _state(st);
     }
 
-    virtual void message(const string & msg) override {
-        message_ = msg;
+    virtual void message(const std::string & msg) override {
+        message_ = _(msg);
     }
 
-    virtual void messageFmt(const string& fmt, ...) {
+    virtual void messageFmt(const std::string& fmt, ...) {
         va_list arglist;
         va_start(arglist, fmt);
-        message_ = wxString::Format(wxString(fmt), arglist);
+        message_ = wxString::Format(_(fmt), arglist);
         va_end(arglist);
     }
 
-    virtual void title(const string & title) override {
-        title_ = title;
+    virtual void title(const std::string & title) override {
+        title_ = _(title);
     }
 };
 }
 
 AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::create_progress_indicator(
-        unsigned statenum, const string& title, const string& firstmsg) const
+        unsigned statenum,
+        const std::string& title,
+        const std::string& firstmsg) const
 {
     auto pri =
             std::make_shared<GuiProgressIndicator>(statenum, title, firstmsg);
@@ -203,29 +199,39 @@ AppControllerBoilerplate::create_progress_indicator(
 }
 
 AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::create_progress_indicator(unsigned statenum,
-                                                    const string &title) const
+AppControllerBoilerplate::create_progress_indicator(
+        unsigned statenum, const std::string &title) const
 {
-    return create_progress_indicator(statenum, title, string());
+    return create_progress_indicator(statenum, title, std::string());
 }
 
 namespace {
 
+// A wrapper progress indicator class around the statusbar created in perl.
 class Wrapper: public ProgressIndicator, public wxEvtHandler {
-    ProgressStatusBar *sbar_;
+    wxGauge *gauge_;
+    wxStatusBar *stbar_;
     using Base = ProgressIndicator;
-    std::string message_;
+    wxString message_;
     AppControllerBoilerplate& ctl_;
 
     void showProgress(bool show = true) {
-        sbar_->show_progress(show);
+        gauge_->Show(show);
     }
 
     void _state(unsigned st) {
         if( st <= ProgressIndicator::max() ) {
             Base::state(st);
-            sbar_->set_status_text(message_);
-            sbar_->set_progress(st);
+
+            if(!gauge_->IsShown()) showProgress(true);
+
+            stbar_->SetStatusText(message_);
+            if(static_cast<long>(st) == gauge_->GetRange()) {
+                gauge_->SetValue(0);
+                showProgress(false);
+            } else {
+                gauge_->SetValue(static_cast<int>(st));
+            }
         }
     }
 
@@ -238,12 +244,12 @@ class Wrapper: public ProgressIndicator, public wxEvtHandler {
 
 public:
 
-    inline Wrapper(ProgressStatusBar *sbar,
+    inline Wrapper(wxGauge *gauge, wxStatusBar *stbar,
                    AppControllerBoilerplate& ctl):
-        sbar_(sbar), ctl_(ctl)
+        gauge_(gauge), stbar_(stbar), ctl_(ctl)
     {
-        Base::max(static_cast<float>(sbar_->get_range()));
-        Base::states(static_cast<unsigned>(sbar_->get_range()));
+        Base::max(static_cast<float>(gauge->GetRange()));
+        Base::states(static_cast<unsigned>(gauge->GetRange()));
 
         Bind(PROGRESS_STATUS_UPDATE_EVENT,
              &Wrapper::_state,
@@ -256,7 +262,7 @@ public:
 
     virtual void max(float val) override {
         if(val > 1.0) {
-            sbar_->set_range(static_cast<int>(val));
+            gauge_->SetRange(static_cast<int>(val));
             ProgressIndicator::max(val);
         }
     }
@@ -271,32 +277,31 @@ public:
         }
     }
 
-    virtual void message(const string & msg) override {
-        message_ = msg;
+    virtual void message(const std::string & msg) override {
+        message_ = _(msg);
     }
 
-    virtual void message_fmt(const string& fmt, ...) override {
+    virtual void message_fmt(const std::string& fmt, ...) override {
         va_list arglist;
         va_start(arglist, fmt);
-        message_ = wxString::Format(fmt, arglist);
+        message_ = wxString::Format(_(fmt), arglist);
         va_end(arglist);
     }
 
-    virtual void title(const string & /*title*/) override {}
-
-    virtual void on_cancel(CancelFn fn) override {
-        sbar_->set_cancel_callback(fn);
-        Base::on_cancel(fn);
-    }
+    virtual void title(const std::string & /*title*/) override {}
 
 };
 }
 
-void AppController::set_global_progress_indicator(ProgressStatusBar *prsb)
+void AppController::set_global_progress_indicator(
+        unsigned gid,
+        unsigned sid)
 {
-    if(prsb) {
-        global_progress_indicator(std::make_shared<Wrapper>(prsb, *this));
+    wxGauge* gauge = dynamic_cast<wxGauge*>(wxWindow::FindWindowById(gid));
+    wxStatusBar* sb = dynamic_cast<wxStatusBar*>(wxWindow::FindWindowById(sid));
+
+    if(gauge && sb) {
+        global_progressind_ = std::make_shared<Wrapper>(gauge, sb, *this);
     }
 }
-
 }

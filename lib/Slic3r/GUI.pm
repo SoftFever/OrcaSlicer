@@ -356,28 +356,4 @@ sub set_menu_item_icon {
     }
 }
 
-sub save_window_pos {
-    my ($self, $window, $name) = @_;
-    
-    $self->{app_config}->set("${name}_pos", join ',', $window->GetScreenPositionXY);
-    $self->{app_config}->set("${name}_size", join ',', $window->GetSizeWH);
-    $self->{app_config}->set("${name}_maximized", $window->IsMaximized);
-    $self->{app_config}->save;
-}
-
-sub restore_window_pos {
-    my ($self, $window, $name) = @_;
-    if ($self->{app_config}->has("${name}_pos")) {
-        my $size = [ split ',', $self->{app_config}->get("${name}_size"), 2 ];
-        $window->SetSize($size);
-        
-        my $display = Wx::Display->new->GetClientArea();
-        my $pos = [ split ',', $self->{app_config}->get("${name}_pos"), 2 ];
-        if (($pos->[0] + $size->[0]/2) < $display->GetRight && ($pos->[1] + $size->[1]/2) < $display->GetBottom) {
-            $window->Move($pos);
-        }
-        $window->Maximize(1) if $self->{app_config}->get("${name}_maximized");
-    }
-}
-
 1;

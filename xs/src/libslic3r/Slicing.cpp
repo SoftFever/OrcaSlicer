@@ -224,9 +224,9 @@ std::vector<coordf_t> layer_height_profile_adaptive(
     // 1) Initialize the SlicingAdaptive class with the object meshes.
     SlicingAdaptive as;
     as.set_slicing_parameters(slicing_params);
-    for (ModelVolumePtrs::const_iterator it = volumes.begin(); it != volumes.end(); ++ it)
-        if (! (*it)->modifier)
-            as.add_mesh(&(*it)->mesh);
+    for (const ModelVolume *volume : volumes)
+        if (volume->is_model_part())
+            as.add_mesh(&volume->mesh);
     as.prepare();
 
     // 2) Generate layers using the algorithm of @platsch 

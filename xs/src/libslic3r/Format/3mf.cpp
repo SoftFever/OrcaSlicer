@@ -71,6 +71,7 @@ const char* VOLUME_TYPE = "volume";
 
 const char* NAME_KEY = "name";
 const char* MODIFIER_KEY = "modifier";
+const char* VOLUME_TYPE_KEY = "volume_type";
 
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
@@ -1442,7 +1443,9 @@ namespace Slic3r {
                 if (metadata.key == NAME_KEY)
                     volume->name = metadata.value;
                 else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
-                    volume->modifier = true;
+                    volume->set_type(ModelVolume::PARAMETER_MODIFIER);
+                else if (metadata.key == VOLUME_TYPE_KEY)
+                    volume->set_type(ModelVolume::type_from_string(metadata.value));
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value);
             }
@@ -1957,9 +1960,12 @@ namespace Slic3r {
                             if (!volume->name.empty())
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->name) << "\"/>\n";
 
-                            // stores volume's modifier field
-                            if (volume->modifier)
+                            // stores volume's modifier field (legacy, to support old slicers)
+                            if (volume->is_modifier())
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MODIFIER_KEY << "\" " << VALUE_ATTR << "=\"1\"/>\n";
+                            // stores volume's type (overrides the modifier field above)
+                            stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << VOLUME_TYPE_KEY << "\" " << 
+                                VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";
 
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())

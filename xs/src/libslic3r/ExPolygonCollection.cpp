@@ -61,12 +61,11 @@ ExPolygonCollection::rotate(double angle, const Point &center)
 }
 
 template <class T>
-bool
-ExPolygonCollection::contains(const T &item) const
+bool ExPolygonCollection::contains(const T &item) const
 {
-    for (ExPolygons::const_iterator it = this->expolygons.begin(); it != this->expolygons.end(); ++it) {
-        if (it->contains(item)) return true;
-    }
+    for (const ExPolygon &poly : this->expolygons)
+        if (poly.contains(item))
+            return true;
     return false;
 }
 template bool ExPolygonCollection::contains<Point>(const Point &item) const;

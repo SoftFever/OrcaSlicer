@@ -367,7 +367,7 @@ void FirmwareDialog::priv::wait_for_mmu_bootloader(unsigned retries)
 
 		auto ports = Utils::scan_serial_ports_extended();
 		ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
-			return port.id_vendor != USB_VID_PRUSA && port.id_product != USB_PID_MMU_BOOT;
+			return port.id_vendor != USB_VID_PRUSA || port.id_product != USB_PID_MMU_BOOT;
 		}), ports.end());
 
 		if (ports.size() == 1) {
@@ -390,23 +390,22 @@ void FirmwareDialog::priv::mmu_reboot(const SerialPortInfo &port)
 
 void FirmwareDialog::priv::lookup_port_mmu()
 {
+	static const auto msg_not_found =
+		"The Multi Material Control device was not found.\n"
+		"If the device is connected, please press the Reset button next to the USB connector ...";
+
 	BOOST_LOG_TRIVIAL(info) << "Flashing MMU 2.0, looking for VID/PID 0x2c99/3 or 0x2c99/4 ...";
 
 	auto ports = Utils::scan_serial_ports_extended();
 	ports.erase(std::remove_if(ports.begin(), ports.end(), [=](const SerialPortInfo &port ) {
-		return port.id_vendor != USB_VID_PRUSA &&
+		return port.id_vendor != USB_VID_PRUSA ||
 			port.id_product != USB_PID_MMU_BOOT &&
 			port.id_product != USB_PID_MMU_APP;
 	}), ports.end());
 
 	if (ports.size() == 0) {
 		BOOST_LOG_TRIVIAL(info) << "MMU 2.0 device not found, asking the user to press Reset and waiting for the device to show up ...";
-
-		queue_status(_(L(
-			"The Multi Material Control device was not found.\n"
-			"If the device is connected, please press the Reset button next to the USB connector ..."
-		)));
-
+		queue_status(_(L(msg_not_found)));
 		wait_for_mmu_bootloader(30);
 	} else if (ports.size() > 1) {
 		BOOST_LOG_TRIVIAL(error) << "Several VID/PID 0x2c99/3 devices found";
@@ -417,6 +416,13 @@ void FirmwareDialog::priv::lookup_port_mmu()
 			BOOST_LOG_TRIVIAL(info) << boost::format("Found VID/PID 0x2c99/4 at `%1%`, rebooting the device ...") % ports[0].port;
 			mmu_reboot(ports[0]);
 			wait_for_mmu_bootloader(10);
+
+			if (! port) {
+				// The device in bootloader mode was not found, inform the user and wait some more...
+				BOOST_LOG_TRIVIAL(info) << "MMU 2.0 bootloader device not found after reboot, asking the user to press Reset and waiting for the device to show up ...";
+				queue_status(_(L(msg_not_found)));
+				wait_for_mmu_bootloader(30);
+			}
 		} else {
 			port = ports[0];
 		}
@@ -702,7 +708,8 @@ FirmwareDialog::FirmwareDialog(wxWindow *parent) :
 	panel->SetSizer(vsizer);
 
 	auto *label_hex_picker = new wxStaticText(panel, wxID_ANY, _(L("Firmware image:")));
-	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY);
+	p->hex_picker = new wxFilePickerCtrl(panel, wxID_ANY, wxEmptyString, wxFileSelectorPromptStr, 
+		"Hex files (*.hex)|*.hex|All files|*.*");
 
 	auto *label_port_picker = new wxStaticText(panel, wxID_ANY, _(L("Serial port:")));
 	p->port_picker = new wxComboBox(panel, wxID_ANY);

@@ -74,7 +74,8 @@ sub new {
     $self->{statusbar}->Embed;
     $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
     # Make the global status bar and its progress indicator available in C++
-    $appController->set_global_progress_indicator($self->{statusbar});
+#FIXME Vojtech: Merging error
+#    $appController->set_global_progress_indicator($self->{statusbar});
 
     $appController->set_model($self->{plater}->{model});
     $appController->set_print($self->{plater}->{print});
@@ -92,7 +93,7 @@ sub new {
         $self->Fit;
         $self->SetMinSize([760, 490]);
         $self->SetSize($self->GetMinSize);
-        wxTheApp->restore_window_pos($self, "main_frame");
+        Slic3r::GUI::restore_window_size($self, "main_frame");
         $self->Show;
         $self->Layout;
     }
@@ -105,7 +106,7 @@ sub new {
             return;
         }
         # save window size
-        wxTheApp->save_window_pos($self, "main_frame");
+        Slic3r::GUI::save_window_size($self, "main_frame");
         # Save the slic3r.ini. Usually the ini file is saved from "on idle" callback,
         # but in rare cases it may not have been called yet.
         wxTheApp->{app_config}->save;

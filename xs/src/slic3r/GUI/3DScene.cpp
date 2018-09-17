@@ -648,7 +648,7 @@ std::vector<int> GLVolumeCollection::load_object(
         const ModelVolume *model_volume = model_object->volumes[volume_idx];
 
         int extruder_id = -1;
-        if (!model_volume->modifier)
+        if (model_volume->is_model_part())
         {
             extruder_id = model_volume->config.has("extruder") ? model_volume->config.option("extruder")->getInt() : 0;
             if (extruder_id == 0)
@@ -661,7 +661,16 @@ std::vector<int> GLVolumeCollection::load_object(
             volumes_idx.push_back(int(this->volumes.size()));
             float color[4];
             memcpy(color, colors[((color_by == "volume") ? volume_idx : obj_idx) % 4], sizeof(float) * 3);
-            color[3] = model_volume->modifier ? 0.5f : 1.f;
+            if (model_volume->is_support_blocker()) {
+                color[0] = 1.0f;
+                color[1] = 0.2f;
+                color[2] = 0.2f;
+            } else if (model_volume->is_support_enforcer()) {
+                color[0] = 0.2f;
+                color[1] = 0.2f;
+                color[2] = 1.0f;
+            }
+            color[3] = model_volume->is_model_part() ? 1.f : 0.5f;
             this->volumes.emplace_back(new GLVolume(color));
             GLVolume &v = *this->volumes.back();
             if (use_VBOs)
@@ -675,15 +684,15 @@ std::vector<int> GLVolumeCollection::load_object(
             v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
             v.set_select_group_id(select_by);
             v.set_drag_group_id(drag_by);
-            if (!model_volume->modifier)
+            if (model_volume->is_model_part())
             {
                 v.set_convex_hull(model_volume->get_convex_hull());
                 v.layer_height_texture = layer_height_texture;
                 if (extruder_id != -1)
                     v.extruder_id = extruder_id;
             }
-            v.is_modifier = model_volume->modifier;
-            v.shader_outside_printer_detection_enabled = !model_volume->modifier;
+            v.is_modifier = ! model_volume->is_model_part();
+            v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
 #if ENABLE_MODELINSTANCE_3D_OFFSET
             v.set_offset(instance->get_offset());
 #else

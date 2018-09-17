@@ -288,7 +288,6 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/AppController.hpp
     ${LIBDIR}/slic3r/AppController.cpp
     ${LIBDIR}/slic3r/AppControllerWx.cpp
-    ${LIBDIR}/slic3r/Strings.hpp
 )
 
 add_library(admesh STATIC
@@ -565,7 +564,7 @@ if (WIN32)
 endif ()
 
 # SLIC3R_MSVC_PDB
-if (MSVC AND SLIC3R_MSVC_PDB AND ${CMAKE_BUILD_TYPE} STREQUAL "Release")
+if (MSVC AND SLIC3R_MSVC_PDB AND "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set_target_properties(XS PROPERTIES
         COMPILE_FLAGS "/Zi"
         LINK_FLAGS "/DEBUG /OPT:REF /OPT:ICF"
