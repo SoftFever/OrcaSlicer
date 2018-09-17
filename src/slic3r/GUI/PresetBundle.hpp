@@ -73,6 +73,11 @@ public:
     void                        load_config(const std::string &name, DynamicPrintConfig config)
         { this->load_config_file_config(name, false, std::move(config)); }
 
+    // Load configuration that comes from a model file containing configuration, such as 3MF et al.
+    // This method is called by the Plater.
+    void                        load_config_model(const std::string &name, DynamicPrintConfig config)
+        { this->load_config_file_config(name, true, std::move(config)); }
+
     // Load an external config file containing the print, filament and printer presets.
     // Instead of a config file, a G-code may be loaded containing the full set of parameters.
     // In the future the configuration will likely be read from an AMF file as well.

@@ -26,10 +26,11 @@ TBB_SHA = a0dc9bf76d0120f917b641ed095360448cabc85b
 TBB = tbb-$(TBB_SHA)
 OPENSSL = openssl-OpenSSL_1_1_0g
 CURL = curl-7.58.0
+WXWIDGETS = wxWidgets-3.1.1
 
 .PHONY: all destdir boost libcurl libopenssl libtbb
 
-all: destdir boost libtbb libcurl
+all: destdir boost libtbb libcurl wxwidgets
 	@echo
 	@echo "All done!"
 	@echo
@@ -129,6 +130,34 @@ libcurl: libopenssl $(CURL).tar.gz
 
 $(CURL).tar.gz:
 	curl -L -o $@ https://curl.haxx.se/download/$@
+
+
+
+wxwidgets: $(WXWIDGETS).tar.bz2
+	# tar -jxvf $(WXWIDGETS).tar.bz2
+	cd $(WXWIDGETS) && ./configure \
+		--prefix=$(DESTDIR)/usr/local \
+		--disable-shared \
+		--with-gtk=2 \
+		--with-opengl \
+		--enable-unicode \
+		--enable-graphics_ctx \
+		--with-regex=builtin \
+		--with-libpng=builtin \
+		--with-libxpm=builtin \
+		--with-libjpeg=builtin \
+		--with-libtiff=builtin \
+		--with-zlib=builtin \
+		--with-expat=builtin \
+		--disable-precomp-headers \
+		--enable-debug_info \
+		--enable-debug_gdb
+	$(MAKE) -C $(WXWIDGETS) -j$(NPROC)
+	$(MAKE) -C $(WXWIDGETS)/locale allmo   # XXX: ?
+	$(MAKE) -C $(WXWIDGETS) install #DESTDIR=$(DESTDIR)
+
+$(WXWIDGETS).tar.bz2:
+	curl -L -o $@ https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/$@
 
 
 clean:

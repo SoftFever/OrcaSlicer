@@ -6,19 +6,25 @@
 
 #include <GL/glew.h>
 
+#include <wx/event.h>
 #include <wx/bitmap.h>
 #include <wx/dcmemory.h>
 #include <wx/settings.h>
+#include <wx/glcanvas.h>
 
 namespace Slic3r {
 namespace GUI {
+
+
+wxDEFINE_EVENT(EVT_GLTOOLBAR_ADD, wxCommandEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_DELETE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_TODO_MORE, wxCommandEvent);
 
 GLToolbarItem::Data::Data()
     : name("")
     , tooltip("")
     , sprite_id(-1)
     , is_toggable(false)
-    , action_callback(nullptr)
 {
 }
 
@@ -49,10 +55,12 @@ const std::string& GLToolbarItem::get_tooltip() const
     return m_data.tooltip;
 }
 
-void GLToolbarItem::do_action()
+void GLToolbarItem::do_action(wxEvtHandler *target)
 {
-    if (m_data.action_callback != nullptr)
-        m_data.action_callback->call();
+    // if (m_data.action_callback != nullptr)
+    //     m_data.action_callback->call();
+
+    wxPostEvent(target, wxCommandEvent(m_data.action_event));
 }
 
 bool GLToolbarItem::is_enabled() const
@@ -325,13 +333,13 @@ void GLToolbar::do_action(unsigned int item_id)
                     item->set_state(GLToolbarItem::Hover);
 
                 m_parent.render();
-                item->do_action();
+                item->do_action(m_parent.widget());
             }
             else
             {
                 item->set_state(GLToolbarItem::HoverPressed);
                 m_parent.render();
-                item->do_action();
+                item->do_action(m_parent.widget());
                 if (item->get_state() != GLToolbarItem::Disabled)
                 {
                     // the item may get disabled during the action, if not, set it back to hover state

@@ -42,7 +42,7 @@ class Tab;
 
 class GUI_App : public wxApp
 {
-    bool            no_plater{ true };
+    bool            no_plater{ false };
     bool            app_conf_exists{ false };
 
     // Lock to guard the callback stack

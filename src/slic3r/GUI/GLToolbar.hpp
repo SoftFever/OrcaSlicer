@@ -1,16 +1,25 @@
 #ifndef slic3r_GLToolbar_hpp_
 #define slic3r_GLToolbar_hpp_
 
-#include "../../slic3r/GUI/GLTexture.hpp"
-#include "callback.hpp"
-
+#include <functional>
 #include <string>
 #include <vector>
+
+#include <wx/event.h>
+
+#include "../../slic3r/GUI/GLTexture.hpp"
+// #include "callback.hpp"
+
+class wxEvtHandler;
 
 namespace Slic3r {
 namespace GUI {
 
 class GLCanvas3D;
+
+wxDECLARE_EVENT(EVT_GLTOOLBAR_ADD, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_TODO_MORE, wxCommandEvent);
 
 class GLToolbarItem
 {
@@ -32,13 +41,17 @@ public:
         Num_States
     };
 
+    // typedef std::function<void()> Callback;
+    // typedef PerlCallback Callback;
+
     struct Data
     {
         std::string name;
         std::string tooltip;
         unsigned int sprite_id;
         bool is_toggable;
-        PerlCallback* action_callback;
+        // Callback *action_callback;
+        wxEventType action_event;
 
         Data();
     };
@@ -57,7 +70,7 @@ public:
     const std::string& get_name() const;
     const std::string& get_tooltip() const;
 
-    void do_action();
+    void do_action(wxEvtHandler *target);
 
     bool is_enabled() const;
     bool is_hovered() const;

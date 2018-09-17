@@ -177,11 +177,11 @@ public:
     static const std::vector<std::string>&  sla_material_options();
 
 	static void update_suffix_modified();
+    static void normalize(DynamicPrintConfig &config);
 
 protected:
     friend class        PresetCollection;
     friend class        PresetBundle;
-    static void         normalize(DynamicPrintConfig &config);
     // Resize the extruder specific vectors ()
     static void         set_num_extruders(DynamicPrintConfig &config, unsigned int n);
     static const std::string& suffix_modified();

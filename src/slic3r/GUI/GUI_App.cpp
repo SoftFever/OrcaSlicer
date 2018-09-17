@@ -48,7 +48,7 @@ bool GUI_App::OnInit()
     app_config = new AppConfig();
     //     set_app_config(app_config);// #ys_FIXME
     preset_bundle = new PresetBundle();
-    //     set_preset_bundle(preset_bundle);// #ys_FIXME
+    set_preset_bundle(preset_bundle); // #ys_FIXME
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard

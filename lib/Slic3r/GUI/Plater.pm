@@ -593,6 +593,7 @@ sub new {
         $self->on_process_completed($event->GetInt ? undef : $event->GetString);
     });
     
+# XXX: ???
     {
         my $timer_id = Wx::NewId();
         $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
@@ -872,7 +873,7 @@ sub on_layer_editing_toggled {
     $self->{canvas3D}->Update;
 }
 
-sub GetFrame {
+sub GetFrame {   # XXX: main_frame in C++ Plater
     my ($self) = @_;
     return &Wx::GetTopLevelParent($self);
 }
@@ -960,7 +961,7 @@ sub load_files {
     # Object indices for the UI.
     my @obj_idx = ();
     # Collected file names to display the final message on the status bar.
-    my @loaded_files = ();
+    my @loaded_files = ();   # XXX: used???
     # For all input files.
     for (my $i = 0; $i < @$input_files; $i += 1) {
         my $input_file = $input_files->[$i];
@@ -996,7 +997,7 @@ sub load_files {
         
         # objects imported from 3mf require a call to center_around_origin to have gizmos working properly and this call
         # need to be done after looks_like_multipart_object detection
-        if ($input_file =~ /.3[mM][fF]$/)
+        if ($input_file =~ /[.]3[mM][fF]$/)
         {
             foreach my $model_object (@{$model->objects}) {
                 $model_object->center_around_origin;  # also aligns object to Z = 0
@@ -1241,7 +1242,7 @@ sub set_number_of_copies {
     }
 }
 
-sub _get_number_from_user {
+sub _get_number_from_user {     # XXX: Enrico
     my ($self, $title, $prompt_message, $error_message, $default, $only_positive) = @_;
     for (;;) {
         my $value = Wx::GetTextFromUser($prompt_message, $title, $default, $self);

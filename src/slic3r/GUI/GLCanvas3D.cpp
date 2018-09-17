@@ -2876,10 +2876,13 @@ void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
 }
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
+// void GLCanvas3D::register_action_add_callback(GLToolbarItem::Callback callback)
 void GLCanvas3D::register_action_add_callback(void* callback)
 {
     if (callback != nullptr)
         m_action_add_callback.register_callback(callback);
+    // if (callback)
+    //     m_action_add_callback = std::move(callback);
 }
 
 void GLCanvas3D::register_action_delete_callback(void* callback)
@@ -3729,7 +3732,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Add...");
     item.sprite_id = 0;
     item.is_toggable = false;
-    item.action_callback = &m_action_add_callback;
+    // item.action_callback = &m_action_add_callback;
+    item.action_event = EVT_GLTOOLBAR_ADD;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3737,7 +3741,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Delete");
     item.sprite_id = 1;
     item.is_toggable = false;
-    item.action_callback = &m_action_delete_callback;
+    // item.action_callback = &m_action_delete_callback;
+    item.action_event = EVT_GLTOOLBAR_DELETE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3745,7 +3750,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Delete all");
     item.sprite_id = 2;
     item.is_toggable = false;
-    item.action_callback = &m_action_deleteall_callback;
+    // item.action_callback = &m_action_deleteall_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3753,7 +3759,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Arrange");
     item.sprite_id = 3;
     item.is_toggable = false;
-    item.action_callback = &m_action_arrange_callback;
+    // item.action_callback = &m_action_arrange_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3764,7 +3771,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Add instance");
     item.sprite_id = 4;
     item.is_toggable = false;
-    item.action_callback = &m_action_more_callback;
+    // item.action_callback = &m_action_more_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3772,7 +3780,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Remove instance");
     item.sprite_id = 5;
     item.is_toggable = false;
-    item.action_callback = &m_action_fewer_callback;
+    // item.action_callback = &m_action_fewer_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3783,7 +3792,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Split");
     item.sprite_id = 6;
     item.is_toggable = false;
-    item.action_callback = &m_action_split_callback;
+    // item.action_callback = &m_action_split_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3791,7 +3801,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Cut...");
     item.sprite_id = 7;
     item.is_toggable = false;
-    item.action_callback = &m_action_cut_callback;
+    // item.action_callback = &m_action_cut_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3802,7 +3813,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Settings...");
     item.sprite_id = 8;
     item.is_toggable = false;
-    item.action_callback = &m_action_settings_callback;
+    // item.action_callback = &m_action_settings_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3810,7 +3822,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Layers editing");
     item.sprite_id = 9;
     item.is_toggable = true;
-    item.action_callback = &m_action_layersediting_callback;
+    // item.action_callback = &m_action_layersediting_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3821,7 +3834,8 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Select by parts");
     item.sprite_id = 10;
     item.is_toggable = true;
-    item.action_callback = &m_action_selectbyparts_callback;
+    // item.action_callback = &m_action_selectbyparts_callback;
+    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 

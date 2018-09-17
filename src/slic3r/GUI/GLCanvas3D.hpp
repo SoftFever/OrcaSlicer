@@ -1,8 +1,11 @@
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
-#include "../../slic3r/GUI/3DScene.hpp"
-#include "../../slic3r/GUI/GLToolbar.hpp"
+#include <functional>
+
+#include "3DScene.hpp"
+#include "GLToolbar.hpp"
+#include "callback.hpp"
 
 class wxTimer;
 class wxSizeEvent;
@@ -529,6 +532,7 @@ class GLCanvas3D
     PerlCallback m_on_update_geometry_info_callback;
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
+    // TODO: Remove these
     PerlCallback m_action_add_callback;
     PerlCallback m_action_delete_callback;
     PerlCallback m_action_deleteall_callback;
@@ -544,6 +548,8 @@ class GLCanvas3D
 public:
     GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
+
+    wxGLCanvas* widget() { return m_canvas; }
 
     bool init(bool useVBOs, bool use_legacy_opengl);
 
@@ -661,6 +667,7 @@ public:
     void register_on_update_geometry_info_callback(void* callback);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
+    // void register_action_add_callback(GLToolbarItem::Callback);
     void register_action_add_callback(void* callback);
     void register_action_delete_callback(void* callback);
     void register_action_deleteall_callback(void* callback);

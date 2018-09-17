@@ -8,6 +8,8 @@
 #include <string>
 #include <map>
 
+#include "Plater.hpp"
+
 class wxMenuBar;
 class wxNotebook;
 class wxPanel;
@@ -45,7 +47,6 @@ class MainFrame : public wxFrame
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
 
-    ProgressStatusBar*              m_statusbar { nullptr };
     AppController*                  m_appController { nullptr };
     std::map<std::string, Tab*>     m_options_tabs;
 
@@ -70,6 +71,7 @@ public:
 
 
     void        init_tabpanel();
+    const std::map<std::string, Tab*>& options_tabs() const { return m_options_tabs; }
     Tab*        get_preset_tab(const std::string& name);
     void        create_preset_tabs();
     void        add_created_tab(Tab* panel);
@@ -93,9 +95,10 @@ public:
     void        select_view(const std::string& direction);
 
 
-    wxPanel*            m_plater {nullptr};
+    Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };
     wxProgressDialog*   m_progress_dialog { nullptr };
+    ProgressStatusBar*  m_statusbar { nullptr };
 };
 
 } // GUI

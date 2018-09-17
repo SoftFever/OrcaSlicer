@@ -10,7 +10,7 @@ namespace Slic3r {
 
 class PerlCallback {
 public:
-    PerlCallback(void *) {}
+    // PerlCallback(void *) {}
     PerlCallback() {}
     void register_callback(void *) {}
     void deregister_callback() {}

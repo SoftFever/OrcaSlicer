@@ -61,7 +61,7 @@ class ModelObject
     friend class Model;
 public:
     std::string             name;
-    std::string             input_file;
+    std::string             input_file;    // XXX: consider fs::path
     // Instances of this ModelObject. Each instance defines a shift on the print bed, rotation around the Z axis and a uniform scaling.
     // Instances are owned by this ModelObject.
     ModelInstancePtrs       instances;
@@ -336,6 +336,7 @@ public:
     void swap(Model &other);
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
+    // XXX: use fs::path ?
     static Model read_from_file(const std::string &input_file, DynamicPrintConfig *config = nullptr, bool add_default_instances = true);
     static Model read_from_archive(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances = true);
 

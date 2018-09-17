@@ -118,6 +118,10 @@ void MainFrame::init_tabpanel()
         auto panel = m_tabpanel->GetCurrentPage();
 //             panel->OnActivate(); if panel->can('OnActivate');
 
+        if (panel == nullptr) {
+            return;
+        }
+
         for (auto& tab_name : { "print", "filament", "printer" }) {
             if (tab_name == panel->GetName()) {
                 // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
@@ -131,13 +135,14 @@ void MainFrame::init_tabpanel()
     });
 
     if (!m_no_plater) {
-//        m_plater = new Slic3r::GUI::Plater(m_tabpanel,
-//             event_object_selection_changed = > $OBJECT_SELECTION_CHANGED_EVENT,
-//             event_object_settings_changed = > $OBJECT_SETTINGS_CHANGED_EVENT,
-//             event_remove_object = > $OBJECT_REMOVE_EVENT,
-//             event_update_scene = > $UPDATE_SCENE_EVENT,
-//             ), L("Plater")
-//         m_tabpanel->AddPage(plater);
+        m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
+        // m_plater = new Slic3r::GUI::Plater(m_tabpanel,
+        //      event_object_selection_changed = > $OBJECT_SELECTION_CHANGED_EVENT,
+        //      event_object_settings_changed = > $OBJECT_SETTINGS_CHANGED_EVENT,
+        //      event_remove_object = > $OBJECT_REMOVE_EVENT,
+        //      event_update_scene = > $UPDATE_SCENE_EVENT,
+        //      ), L("Plater")
+        m_tabpanel->AddPage(m_plater, _(L("Plater")));
     }
 
     // The following event is emited by the C++ Tab implementation on config value change.
