@@ -238,7 +238,7 @@ sub _update {
             my @expolygons = ();
             foreach my $volume (@{$self->{model_object}->volumes}) {
                 next if !$volume->mesh;
-                next if $volume->modifier;
+                next if !$volume->model_part;
                 my $expp = $volume->mesh->slice([ $z_cut ])->[0];
                 push @expolygons, @$expp;
             }

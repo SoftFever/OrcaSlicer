@@ -17,8 +17,6 @@
         %code%{ RETVAL = &THIS->thin_fills; %};
     Ref<SurfaceCollection> fill_surfaces()
         %code%{ RETVAL = &THIS->fill_surfaces; %};
-    Ref<SurfaceCollection> perimeter_surfaces()
-        %code%{ RETVAL = &THIS->perimeter_surfaces; %};
     Polygons bridged()
         %code%{ RETVAL = THIS->bridged; %};
     Ref<PolylineCollection> unsupported_bridge_edges()

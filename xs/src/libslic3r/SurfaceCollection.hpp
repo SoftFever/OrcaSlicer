@@ -37,6 +37,11 @@ public:
 
     void clear() { surfaces.clear(); }
     bool empty() const { return surfaces.empty(); }
+    bool has(SurfaceType type) const { 
+        for (const Surface &surface : this->surfaces) 
+            if (surface.surface_type == type) return true;
+        return false;
+    }
 
     void set(const SurfaceCollection &coll) { surfaces = coll.surfaces; }
     void set(SurfaceCollection &&coll) { surfaces = std::move(coll.surfaces); }

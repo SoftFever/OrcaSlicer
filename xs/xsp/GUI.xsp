@@ -186,3 +186,8 @@ void reset_double_slider()
 void enable_action_buttons(bool enable)
     %code%{ Slic3r::GUI::enable_action_buttons(enable); %};
 
+void save_window_size(SV *window, std::string name)
+    %code%{ Slic3r::GUI::save_window_size((wxTopLevelWindow*)wxPli_sv_2_object(aTHX_ window, "Wx::TopLevelWindow"), name); %};
+
+void restore_window_size(SV *window, std::string name)
+    %code%{ Slic3r::GUI::restore_window_size((wxTopLevelWindow*)wxPli_sv_2_object(aTHX_ window, "Wx::TopLevelWindow"), name); %};

@@ -1225,7 +1225,7 @@ void load_part(	ModelObject* model_object,
 		for ( auto object : model.objects) {
 			for (auto volume : object->volumes) {
 				auto new_volume = model_object->add_volume(*volume);
-				new_volume->modifier = is_modifier;
+				new_volume->set_type(is_modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
 				boost::filesystem::path(input_file).filename().string();
 				new_volume->name = boost::filesystem::path(input_file).filename().string();
 
@@ -1283,7 +1283,8 @@ void load_lambda(	ModelObject* model_object,
 	mesh.repair();
 
 	auto new_volume = model_object->add_volume(mesh);
-	new_volume->modifier = is_modifier;
+	new_volume->set_type(is_modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
+
 	new_volume->name = name;
 	// set a default extruder value, since user can't add it manually
 	new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1320,7 +1321,8 @@ void load_lambda(const std::string& type_name)
     mesh.repair();
 
     auto new_volume = (*m_objects)[m_selected_object_id]->add_volume(mesh);
-    new_volume->modifier = true;
+    new_volume->set_type(ModelVolume::PARAMETER_MODIFIER);
+
     new_volume->name = name;
     // set a default extruder value, since user can't add it manually
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -1385,9 +1387,9 @@ bool remove_subobject_from_object(const int volume_id)
     // if user is deleting the last solid part, throw error
     int solid_cnt = 0;
     for (auto vol : (*m_objects)[m_selected_object_id]->volumes)
-        if (!vol->modifier)
+        if (vol->is_model_part())
             ++solid_cnt;
-    if (!volume->modifier && solid_cnt == 1) {
+    if (volume->is_model_part() && solid_cnt == 1) {
         Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from this object.")));
         return false;
     }
@@ -1477,7 +1479,7 @@ void on_btn_split(const bool split_part)
 
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddChild(parent, model_object->volumes[id]->name,
-                                      model_object->volumes[id]->modifier ? m_icon_modifiermesh : m_icon_solidmesh,
+                                      model_object->volumes[id]->is_modifier() ? m_icon_modifiermesh : m_icon_solidmesh,
                                       model_object->volumes[id]->config.has("extruder") ?
                                         model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
                                       false);

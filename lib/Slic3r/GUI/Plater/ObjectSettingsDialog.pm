@@ -33,7 +33,7 @@ sub new {
         $self->{layers}->Closing;
         
         # save window size
-        wxTheApp->save_window_pos($self, "object_settings");
+        Slic3r::GUI::save_window_size($self, "object_settings");
         
         $self->EndModal(wxID_OK);
         $self->{parts}->Destroy;
@@ -49,7 +49,7 @@ sub new {
     
     $self->Layout;
     
-    wxTheApp->restore_window_pos($self, "object_settings");
+    Slic3r::GUI::restore_window_size($self, "object_settings");
     
     return $self;
 }

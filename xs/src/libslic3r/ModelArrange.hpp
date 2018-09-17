@@ -130,6 +130,7 @@ objfunc(const PointImpl& bincenter,
         double norm,            // A norming factor for physical dimensions
         // a spatial index to quickly get neighbors of the candidate item
         const SpatIndex& spatindex,
+        const SpatIndex& smalls_spatindex,
         const ItemGroup& remaining
         )
 {
@@ -161,7 +162,7 @@ objfunc(const PointImpl& bincenter,
     // Will hold the resulting score
     double score = 0;
 
-    if(isBig(item.area())) {
+    if(isBig(item.area()) || spatindex.empty()) {
         // This branch is for the bigger items..
 
         auto minc = ibb.minCorner(); // bottom left corner
@@ -183,6 +184,8 @@ objfunc(const PointImpl& bincenter,
 
         // The smalles distance from the arranged pile center:
         auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
+        auto bindist = pl::distance(ibb.center(), bincenter) / norm;
+        dist = 0.8*dist + 0.2*bindist;
 
         // Density is the pack density: how big is the arranged pile
         double density = 0;
@@ -207,14 +210,20 @@ objfunc(const PointImpl& bincenter,
             // candidate to be aligned with only one item.
             auto alignment_score = 1.0;
 
-            density = (fullbb.width()*fullbb.height()) / (norm*norm);
+            density = std::sqrt((fullbb.width() / norm )*
+                                (fullbb.height() / norm));
             auto querybb = item.boundingBox();
 
             // Query the spatial index for the neighbors
             std::vector<SpatElement> result;
             result.reserve(spatindex.size());
-            spatindex.query(bgi::intersects(querybb),
-                            std::back_inserter(result));
+            if(isBig(item.area())) {
+                spatindex.query(bgi::intersects(querybb),
+                                std::back_inserter(result));
+            } else {
+                smalls_spatindex.query(bgi::intersects(querybb),
+                                       std::back_inserter(result));
+            }
 
             for(auto& e : result) { // now get the score for the best alignment
                 auto idx = e.second;
@@ -235,12 +244,8 @@ objfunc(const PointImpl& bincenter,
             if(result.empty())
                 score = 0.5 * dist + 0.5 * density;
             else
-                score = 0.45 * dist + 0.45 * density + 0.1 * alignment_score;
+                score = 0.40 * dist + 0.40 * density + 0.2 * alignment_score;
         }
-    } else if( !isBig(item.area()) && spatindex.empty()) {
-        auto bindist = pl::distance(ibb.center(), bincenter) / norm;
-        // Bindist is surprisingly enough...
-        score = bindist;
     } else {
         // Here there are the small items that should be placed around the
         // already processed bigger items.
@@ -291,6 +296,7 @@ protected:
     PConfig pconf_; // Placement configuration
     double bin_area_;
     SpatIndex rtree_;
+    SpatIndex smallsrtree_;
     double norm_;
     Pile merged_pile_;
     Box pilebb_;
@@ -318,6 +324,7 @@ public:
             pilebb_ = sl::boundingBox(merged_pile);
 
             rtree_.clear();
+            smallsrtree_.clear();
 
             // We will treat big items (compared to the print bed) differently
             auto isBig = [this](double a) {
@@ -327,6 +334,7 @@ public:
             for(unsigned idx = 0; idx < items.size(); ++idx) {
                 Item& itm = items[idx];
                 if(isBig(itm.area())) rtree_.insert({itm.boundingBox(), idx});
+                smallsrtree_.insert({itm.boundingBox(), idx});
             }
         };
 
@@ -360,6 +368,7 @@ public:
                                   bin_area_,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
 
             double score = std::get<0>(result);
@@ -397,6 +406,7 @@ public:
                                   bin_area_,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
 
             double score = std::get<0>(result);
@@ -440,6 +450,7 @@ public:
                                   bin_area_,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
             double score = std::get<0>(result);
 
@@ -468,6 +479,7 @@ public:
                                   0,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
             return std::get<0>(result);
         };

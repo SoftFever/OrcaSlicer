@@ -103,6 +103,12 @@ inline void polygons_rotate(Polygons &polys, double angle)
         p.rotate(cos_angle, sin_angle);
 }
 
+inline void polygons_reverse(Polygons &polys)
+{
+    for (Polygon &p : polys)
+        p.reverse();
+}
+
 inline Points to_points(const Polygon &poly)
 {
     return poly.points;

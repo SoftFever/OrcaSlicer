@@ -12,6 +12,7 @@ class PrintConfig;
 class PrintObjectConfig;
 
 // how much we extend support around the actual contact area
+//FIXME this should be dependent on the nozzle diameter!
 #define SUPPORT_MATERIAL_MARGIN 1.5	
 
 // This class manages raft and supports for a single PrintObject.
@@ -69,6 +70,21 @@ public:
 			contact_polygons = nullptr;
 			delete overhang_polygons;
 			overhang_polygons = nullptr;
+		}
+
+		void reset() {
+			layer_type  			= sltUnknown;
+			print_z 				= 0.;
+			bottom_z 				= 0.;
+			height 					= 0.;
+			idx_object_layer_above  = size_t(-1);
+			idx_object_layer_below  = size_t(-1);
+			bridging 				= false;
+			polygons.clear();
+			delete contact_polygons;
+			contact_polygons 		= nullptr;
+			delete overhang_polygons;
+			overhang_polygons 		= nullptr;
 		}
 
 		bool operator==(const MyLayer &layer2) const {

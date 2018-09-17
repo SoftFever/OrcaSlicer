@@ -880,6 +880,7 @@ void TabPrint::build()
 	page = add_options_page(_(L("Support material")), "building.png");
 		optgroup = page->new_optgroup(_(L("Support material")));
 		optgroup->append_single_option_line("support_material");
+		optgroup->append_single_option_line("support_material_auto");
 		optgroup->append_single_option_line("support_material_threshold");
 		optgroup->append_single_option_line("support_material_enforce_layers");
 
@@ -1219,13 +1220,15 @@ void TabPrint::update()
 
 	bool have_raft = m_config->opt_int("raft_layers") > 0;
 	bool have_support_material = m_config->opt_bool("support_material") || have_raft;
+	bool have_support_material_auto = have_support_material && m_config->opt_bool("support_material_auto");
 	bool have_support_interface = m_config->opt_int("support_material_interface_layers") > 0;
 	bool have_support_soluble = have_support_material && m_config->opt_float("support_material_contact_distance") == 0;
-	for (auto el : {"support_material_threshold", "support_material_pattern", "support_material_with_sheath",
+	for (auto el : {"support_material_pattern", "support_material_with_sheath",
 					"support_material_spacing", "support_material_angle", "support_material_interface_layers",
 					"dont_support_bridges", "support_material_extrusion_width", "support_material_contact_distance",
 					"support_material_xy_spacing" })
 		get_field(el)->toggle(have_support_material);
+	get_field("support_material_threshold")->toggle(have_support_material_auto);
 
 	for (auto el : {"support_material_interface_spacing", "support_material_interface_extruder",
 					"support_material_interface_speed", "support_material_interface_contact_loops" })

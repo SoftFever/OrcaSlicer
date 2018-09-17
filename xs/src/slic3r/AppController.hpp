@@ -16,6 +16,7 @@ class Print;
 class PrintObject;
 class PrintConfig;
 class ProgressStatusBar;
+class DynamicPrintConfig;
 
 /**
  * @brief A boilerplate class for creating application logic. It should provide
@@ -46,7 +47,7 @@ public:
     AppControllerBoilerplate();
     ~AppControllerBoilerplate();
 
-    using Path = string;
+    using Path = std::string;
     using PathList = std::vector<Path>;
 
     /// Common runtime issue types
@@ -67,20 +68,20 @@ public:
      * @return Returns a list of paths choosed by the user.
      */
     PathList query_destination_paths(
-            const string& title,
+            const std::string& title,
             const std::string& extensions) const;
 
     /**
      * @brief Same as query_destination_paths but works for directories only.
      */
     PathList query_destination_dirs(
-            const string& title) const;
+            const std::string& title) const;
 
     /**
      * @brief Same as query_destination_paths but returns only one path.
      */
     Path query_destination_path(
-            const string& title,
+            const std::string& title,
             const std::string& extensions,
             const std::string& hint = "") const;
 
@@ -95,11 +96,11 @@ public:
      * title.
      */
     bool report_issue(IssueType issuetype,
-                      const string& description,
-                      const string& brief);
+                      const std::string& description,
+                      const std::string& brief);
 
     bool report_issue(IssueType issuetype,
-                      const string& description);
+                      const std::string& description);
 
     /**
      * @brief Return the global progress indicator for the current controller.
@@ -150,12 +151,12 @@ protected:
      */
     ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
-            const string& title,
-            const string& firstmsg) const;
+            const std::string& title,
+            const std::string& firstmsg) const;
 
     ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
-            const string& title) const;
+            const std::string& title) const;
 
     // This is a global progress indicator placeholder. In the Slic3r UI it can
     // contain the progress indicator on the statusbar.
@@ -167,43 +168,6 @@ protected:
  */
 class PrintController: public AppControllerBoilerplate {
     Print *print_ = nullptr;
-protected:
-
-    void make_skirt();
-    void make_brim();
-    void make_wipe_tower();
-
-    void make_perimeters(PrintObject *pobj);
-    void infill(PrintObject *pobj);
-    void gen_support_material(PrintObject *pobj);
-
-    // Data structure with the png export input data
-    struct PngExportData {
-        std::string zippath;                        // output zip file
-        unsigned long width_px = 1440;              // resolution - rows
-        unsigned long height_px = 2560;             // resolution columns
-        double width_mm = 68.0, height_mm = 120.0;  // dimensions in mm
-        double exp_time_first_s = 35.0;             // first exposure time
-        double exp_time_s = 8.0;                    // global exposure time
-        double corr_x = 1.0;                        // offsetting in x
-        double corr_y = 1.0;                        // offsetting in y
-        double corr_z = 1.0;                        // offsetting in y
-    };
-
-    // Should display a dialog with the input fields for printing to png
-    PngExportData query_png_export_data(const DynamicPrintConfig&);
-
-    // The previous export data, to pre-populate the dialog
-    PngExportData prev_expdata_;
-
-    /**
-     * @brief Slice one pront object.
-     * @param pobj The print object.
-     */
-    void slice(PrintObject *pobj);
-
-    void slice(ProgresIndicatorPtr pri);
-
 public:
 
     // Must be public for perl to use it
@@ -218,15 +182,9 @@ public:
         return PrintController::Ptr( new PrintController(print) );
     }
 
-    /**
-     * @brief Slice the loaded print scene.
-     */
-    void slice();
-
-    /**
-     * @brief Slice the print into zipped png files.
-     */
-    void slice_to_png();
+    //FIXME Vojtech: Merging error
+    void slice() {}
+    void slice_to_png() {}
 
     const PrintConfig& config() const;
 };
@@ -237,7 +195,6 @@ public:
 class AppController: public AppControllerBoilerplate {
     Model *model_ = nullptr;
     PrintController::Ptr printctl;
-    std::atomic<bool> arranging_;
 public:
 
     /**
@@ -273,14 +230,15 @@ public:
      * In perl we have a progress indicating status bar on the bottom of the
      * window which is defined and created in perl. We can pass the ID-s of the
      * gauge and the statusbar id and make a wrapper implementation of the
-     * IProgressIndicator interface so we can use this GUI widget from C++.
+     * ProgressIndicator interface so we can use this GUI widget from C++.
      *
      * This function should be called from perl.
      *
      * @param gauge_id The ID of the gague widget of the status bar.
      * @param statusbar_id The ID of the status bar.
      */
-    void set_global_progress_indicator(ProgressStatusBar *prs);
+    void set_global_progress_indicator(unsigned gauge_id,
+                                          unsigned statusbar_id);
 
     void arrange_model();
 };

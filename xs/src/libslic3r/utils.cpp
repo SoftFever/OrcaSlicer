@@ -24,6 +24,8 @@
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
 
+#include <tbb/task_scheduler_init.h>
+
 namespace Slic3r {
 
 static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
@@ -80,6 +82,14 @@ void trace(unsigned int level, const char *message)
 
     BOOST_LOG_STREAM_WITH_PARAMS(::boost::log::trivial::logger::get(),\
         (::boost::log::keywords::severity = severity)) << message;
+}
+
+void disable_multi_threading()
+{
+    // Disable parallelization so the Shiny profiler works
+    static tbb::task_scheduler_init *tbb_init = nullptr;
+    if (tbb_init == nullptr)
+        tbb_init = new tbb::task_scheduler_init(1);
 }
 
 static std::string g_var_dir;
