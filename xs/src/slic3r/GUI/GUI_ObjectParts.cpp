@@ -731,11 +731,8 @@ void select_current_object(int idx)
 {
 	g_prevent_list_events = true;
 	m_objects_ctrl->UnselectAll();
-	if (idx < 0) {
-		g_prevent_list_events = false;
-		return;
-	}
-	m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
+    if (idx>=0)
+        m_objects_ctrl->Select(m_objects_model->GetItemById(idx));
 	part_selection_changed();
 	g_prevent_list_events = false;
 }
@@ -748,12 +745,8 @@ void select_current_volume(int idx, int vol_idx)
     }
     g_prevent_list_events = true;
     m_objects_ctrl->UnselectAll();
-    if (idx < 0) {
-        g_prevent_list_events = false;
-        return;
-    }
-
-    m_objects_ctrl->Select(m_objects_model->GetItemByVolumeId(idx, vol_idx));
+    if (idx >= 0)
+        m_objects_ctrl->Select(m_objects_model->GetItemByVolumeId(idx, vol_idx));
     part_selection_changed();
     g_prevent_list_events = false;
 }
@@ -1186,8 +1179,8 @@ wxMenu *create_add_settings_popupmenu(bool is_part)
 		menu->Append(menu_item);
 	}
 #ifndef __WXMSW__
-	menu->Bind(wxEVT_MENU, [menu](wxEvent &event) {
-		get_settings_choice(menu, event.GetId(), true);
+    menu->Bind(wxEVT_MENU, [menu,is_part](wxEvent &event) {
+        get_settings_choice(menu, event.GetId(), is_part);
 	});
 #endif //no __WXMSW__
 	return menu;
@@ -1771,9 +1764,15 @@ void update_position_values()
     auto og = get_optgroup(ogFrequentlyObjectSettings);
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    og->set_value("position_x", int(instance->get_offset(X)));
+    og->set_value("position_y", int(instance->get_offset(Y)));
+    og->set_value("position_z", int(instance->get_offset(Z)));
+#else
     og->set_value("position_x", int(instance->offset(0)));
     og->set_value("position_y", int(instance->offset(1)));
     og->set_value("position_z", 0);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 }
 
 void update_position_values(const Vec3d& position)
@@ -2025,6 +2024,18 @@ void update_double_slider_from_canvas(wxKeyEvent& event)
         m_slider->ChangeOneLayerLock();
     else
         event.Skip();
+}
+
+void show_manipulation_sizer(const bool is_simple_mode)
+{
+    auto item = m_objects_ctrl->GetSelection();
+    if (!item || !is_simple_mode)
+        return;
+
+    if (m_objects_model->IsSettingsItem(item)) {
+        m_objects_ctrl->Select(m_objects_model->GetParent(item));
+        part_selection_changed();
+    }
 }
 
 } //namespace GUI

@@ -1033,6 +1033,7 @@ GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
     , m_position(Vec3d::Zero())
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
+    , m_starting_box_bottom_center(Vec3d::Zero())
 {
 }
 
@@ -1066,17 +1067,19 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_starting_box_center = box.center();
+        m_starting_box_bottom_center = box.center();
+        m_starting_box_bottom_center(2) = box.min(2);
     }
 }
 
 void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 {
     if (m_hover_id == 0)
-        m_position(0) = 2.0 * m_starting_box_center(0) + calc_displacement(1, mouse_ray) - m_starting_drag_position(0);
+        m_position(0) = 2.0 * m_starting_box_center(0) + calc_projection(X, 1, mouse_ray) - m_starting_drag_position(0);
     else if (m_hover_id == 1)
-        m_position(1) = 2.0 * m_starting_box_center(1) + calc_displacement(2, mouse_ray) - m_starting_drag_position(1);
+        m_position(1) = 2.0 * m_starting_box_center(1) + calc_projection(Y, 2, mouse_ray) - m_starting_drag_position(1);
     else if (m_hover_id == 2)
-        m_position(2) = 2.0 * m_starting_box_center(2) + calc_displacement(1, mouse_ray) - m_starting_drag_position(2);
+        m_position(2) = 2.0 * m_starting_box_bottom_center(2) + calc_projection(Z, 1, mouse_ray) - m_starting_drag_position(2);
 }
 
 void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
@@ -1145,40 +1148,40 @@ void GLGizmoMove3D::on_render_for_picking(const BoundingBoxf3& box) const
     render_grabbers_for_picking(box);
 }
 
-double GLGizmoMove3D::calc_displacement(unsigned int preferred_plane_id, const Linef3& mouse_ray) const
+double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const
 {
-    double displacement = 0.0;
+    double projection = 0.0;
 
-    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
+    Vec3d starting_vec = (axis == Z) ? m_starting_drag_position - m_starting_box_bottom_center : m_starting_drag_position - m_starting_box_center;
     double len_starting_vec = starting_vec.norm();
     if (len_starting_vec == 0.0)
-        return displacement;
+        return projection;
 
     Vec3d starting_vec_dir = starting_vec.normalized();
     Vec3d mouse_dir = mouse_ray.unit_vector();
 
     unsigned int plane_id = select_best_plane(mouse_dir, preferred_plane_id);
 
-    switch (plane_id)
+    switch (plane_id) 
     {
     case 0:
     {
-        displacement = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, m_starting_box_center));
+        projection = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, (axis == Z) ? m_starting_box_bottom_center : m_starting_box_center));
         break;
     }
     case 1:
     {
-        displacement = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, m_starting_box_center));
+        projection = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, (axis == Z) ? m_starting_box_bottom_center : m_starting_box_center));
         break;
     }
     case 2:
     {
-        displacement = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, m_starting_box_center));
+        projection = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, (axis == Z) ? m_starting_box_bottom_center : m_starting_box_center));
         break;
     }
     }
 
-    return displacement;
+    return projection;
 }
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
@@ -1234,10 +1237,19 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
         else
             ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        for (Vec3d offset : m_instances_positions) {
+            offset += dragged_offset;
+#else
         for (Vec2d offset : m_instances_positions) {
             offset += to_2d(dragged_offset);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
             ::glPushMatrix();
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            ::glTranslated(offset(0), offset(1), offset(2));
+#else
             ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
                 ::glVertex3f((GLfloat)vertex(0), (GLfloat)vertex(1), (GLfloat)vertex(2));
@@ -1256,9 +1268,17 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        for (const Vec3d& offset : m_instances_positions) {
+#else
         for (const Vec2d& offset : m_instances_positions) {
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
             ::glPushMatrix();
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            ::glTranslated(offset(0), offset(1), offset(2));
+#else
             ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
                 ::glVertex3f((GLfloat)vertex(0), (GLfloat)vertex(1), (GLfloat)vertex(2));
@@ -1276,7 +1296,11 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
     if (m_model_object && !m_model_object->instances.empty()) {
         m_instances_positions.clear();
         for (const auto* instance : m_model_object->instances)
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            m_instances_positions.emplace_back(instance->get_offset());
+#else
             m_instances_positions.emplace_back(instance->offset);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     }
 
     if (is_plane_update_necessary())

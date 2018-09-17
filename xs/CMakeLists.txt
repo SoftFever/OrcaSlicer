@@ -177,6 +177,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/SurfaceCollection.hpp
     ${LIBDIR}/libslic3r/SVG.cpp
     ${LIBDIR}/libslic3r/SVG.hpp
+    ${LIBDIR}/libslic3r/Technologies.hpp
     ${LIBDIR}/libslic3r/TriangleMesh.cpp
     ${LIBDIR}/libslic3r/TriangleMesh.hpp
     ${LIBDIR}/libslic3r/SLABasePool.hpp

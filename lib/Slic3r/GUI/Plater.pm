@@ -608,11 +608,12 @@ sub new {
                     #$self->{object_info_manifold_warning_icon}->Hide;
                     $self->{"object_info_manifold_warning_icon_show"} = sub {
                         if ($self->{object_info_manifold_warning_icon}->IsShown() != $_[0]) {
+                            # this fuction show/hide info_manifold_warning_icon on the c++ side now
                             Slic3r::GUI::set_show_manifold_warning_icon($_[0]);
-                            my $mode = wxTheApp->{app_config}->get("view_mode");
-                            return if ($mode eq "" || $mode eq "simple");
-                            $self->{object_info_manifold_warning_icon}->Show($_[0]); 
-                            $self->Layout
+                            #my $mode = wxTheApp->{app_config}->get("view_mode");
+                            #return if ($mode eq "" || $mode eq "simple");
+                            #$self->{object_info_manifold_warning_icon}->Show($_[0]);
+                            #$self->Layout
                         }
                     };
                     $self->{"object_info_manifold_warning_icon_show"}->(0);
@@ -2479,11 +2480,11 @@ sub select_object {
     if (defined $obj_idx) {
         $self->{objects}->[$obj_idx]->selected(1);
         # Select current object in the list on c++ side, if item isn't child
-        if (!defined $child){
-            Slic3r::GUI::select_current_object($obj_idx);}
+#        if (!defined $child){
+#            Slic3r::GUI::select_current_object($obj_idx);} # all selections in the object list is on c++ side
     } else {
         # Unselect all objects in the list on c++ side
-        Slic3r::GUI::unselect_objects();
+#        Slic3r::GUI::unselect_objects(); # all selections in the object list is on c++ side
     }
     $self->selection_changed(1);
 }
