@@ -13,6 +13,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/find.hpp>
 #include <boost/foreach.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
 
 #include <boost/nowide/iostream.hpp>
@@ -418,14 +419,9 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
 {
     PROFILE_CLEAR();
 
-    if (print->is_step_done(psGCodeExport)) {
-        // Does the file exist? If so, we hope that it is still valid.
-        FILE *f = boost::nowide::fopen(path, "r");
-        if (f != nullptr) {
-            ::fclose(f);
-            return;
-        }
-    }
+    // Does the file exist? If so, we hope that it is still valid.
+    if (print->is_step_done(psGCodeExport) && boost::filesystem::exists(boost::filesystem::path(path)))
+        return;
 
 	print->set_started(psGCodeExport);
 

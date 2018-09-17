@@ -105,6 +105,8 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/GCode/Analyzer.hpp
     ${LIBDIR}/libslic3r/GCode/CoolingBuffer.cpp
     ${LIBDIR}/libslic3r/GCode/CoolingBuffer.hpp
+    ${LIBDIR}/libslic3r/GCode/PostProcessor.cpp
+    ${LIBDIR}/libslic3r/GCode/PostProcessor.hpp    
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.cpp
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.hpp
     ${LIBDIR}/libslic3r/GCode/PreviewData.cpp

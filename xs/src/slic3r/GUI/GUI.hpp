@@ -165,7 +165,7 @@ extern void config_wizard(int run_reason);
 extern void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
+void create_preset_tabs(int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
 
 // add it at the end of the tab panel.

@@ -49,7 +49,6 @@ use Slic3r::Model;
 use Slic3r::Point;
 use Slic3r::Polygon;
 use Slic3r::Polyline;
-use Slic3r::Print;
 use Slic3r::Print::Object;
 use Slic3r::Print::Simple;
 use Slic3r::Surface;

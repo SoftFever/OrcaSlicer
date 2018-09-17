@@ -57,8 +57,6 @@ sub new {
     }
         
     # store input params
-    # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-    $self->{no_controller} = $params{no_controller};
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
     $self->{lang_ch_event} = $params{lang_ch_event};
@@ -199,8 +197,6 @@ sub _init_tabpanel {
                             ? 'load_current_preset' : 'update_tab_ui';
                         $self->{options_tabs}{$tab_name_other}->$update_action;
                     }
-                    # Update the controller printers.
-                    $self->{controller}->update_presets($presets) if $self->{controller};
                 }
                 $self->{plater}->on_config_change($tab->get_config);
             }
@@ -239,8 +235,7 @@ sub _init_tabpanel {
         $self->{plater}->update();
     });
         
-
-    Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
+    Slic3r::GUI::create_preset_tabs($VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
     for my $tab_name (qw(print filament sla_material printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");

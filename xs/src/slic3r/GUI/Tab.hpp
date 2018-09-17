@@ -170,7 +170,6 @@ protected:
 	std::vector<PageShp>			m_pages;
 	bool				m_disable_tree_sel_changed_event;
 	bool				m_show_incompatible_presets;
-	bool				m_no_controller;
 
 	std::vector<std::string>	m_reload_dependent_tabs = {};
 	enum OptStatus { osSystemValue = 1, osInitValue = 2 };
@@ -199,8 +198,8 @@ public:
 
 public:
 	Tab() {}
-	Tab(wxNotebook* parent, const wxString& title, const char* name, bool no_controller) : 
-		m_parent(parent), m_title(title), m_name(name), m_no_controller(no_controller) {
+	Tab(wxNotebook* parent, const wxString& title, const char* name) : 
+		m_parent(parent), m_title(title), m_name(name) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
 		get_tabs_list().push_back(this);
 	}
@@ -282,8 +281,8 @@ class TabPrint : public Tab
 {
 public:
 	TabPrint() {}
-	TabPrint(wxNotebook* parent, bool no_controller) : 
-		Tab(parent, _(L("Print Settings")), "print", no_controller) {}
+	TabPrint(wxNotebook* parent) : 
+		Tab(parent, _(L("Print Settings")), "print") {}
 	~TabPrint(){}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
@@ -302,8 +301,8 @@ class TabFilament : public Tab
 	ogStaticText*	m_cooling_description_line;
 public:
 	TabFilament() {}
-	TabFilament(wxNotebook* parent, bool no_controller) : 
-		Tab(parent, _(L("Filament Settings")), "filament", no_controller) {}
+	TabFilament(wxNotebook* parent) : 
+		Tab(parent, _(L("Filament Settings")), "filament") {}
 	~TabFilament(){}
 
 	void		build() override;
@@ -335,7 +334,7 @@ public:
     PrinterTechnology               m_printer_technology = ptFFF;
 
 	TabPrinter() {}
-	TabPrinter(wxNotebook* parent, bool no_controller) : Tab(parent, _(L("Printer Settings")), "printer", no_controller) {}
+	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), "printer") {}
 	~TabPrinter(){}
 
 	void		build() override;
@@ -357,8 +356,8 @@ class TabSLAMaterial : public Tab
 {
 public:
     TabSLAMaterial() {}
-    TabSLAMaterial(wxNotebook* parent, bool no_controller) :
-		Tab(parent, _(L("SLA Material Settings")), "sla_material", no_controller) {}
+    TabSLAMaterial(wxNotebook* parent) :
+		Tab(parent, _(L("SLA Material Settings")), "sla_material") {}
     ~TabSLAMaterial(){}
 
 	void		build() override;

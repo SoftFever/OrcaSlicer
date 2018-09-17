@@ -7,6 +7,7 @@
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "../../libslic3r/Print.hpp"
+#include "../../libslic3r/GCode/PostProcessor.hpp"
 
 //#undef NDEBUG
 #include <cassert>
@@ -59,9 +60,12 @@ void BackgroundSlicingProcess::thread_proc()
 		    if (! m_print->canceled()) {
 				wxQueueEvent(GUI::g_wxPlater, new wxCommandEvent(m_event_sliced_id));
 			    m_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-			    if (! m_print->canceled() && ! m_output_path.empty() &&
-			    	copy_file(m_temp_output_path, m_output_path) != 0)
-		    		throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+			    if (! m_print->canceled() && ! m_output_path.empty()) {
+			    	if (copy_file(m_temp_output_path, m_output_path) != 0)
+		    			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+		    		m_print->set_status(95, "Running post-processing scripts");
+		    		run_post_process_scripts(m_output_path, m_print->config());
+		    	}
 		    }
 		} catch (CanceledException &ex) {
 			// Canceled, this is all right.

@@ -33,7 +33,6 @@ use constant MODEL_WILDCARD => join '|', @{&FILE_WILDCARDS}{qw(known stl obj amf
 
 # Datadir provided on the command line.
 our $datadir;
-# If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
 our $no_plater;
 our @cb;
 
@@ -103,8 +102,6 @@ sub OnInit {
     print STDERR "Creating main frame...\n";
     Wx::Image::FindHandlerType(wxBITMAP_TYPE_PNG) || Wx::Image::AddHandler(Wx::PNGHandler->new);
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
-        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
         lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
         preferences_event => $PREFERENCES_EVENT,
@@ -170,8 +167,6 @@ sub recreate_GUI{
     my ($self) = @_;
     my $topwindow = $self->GetTopWindow();
     $self->{mainframe} = my $frame = Slic3r::GUI::MainFrame->new(
-        # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-        no_controller   => $self->{app_config}->get('no_controller'),
         no_plater       => $no_plater,
         lang_ch_event   => $LANGUAGE_CHANGE_EVENT,
         preferences_event => $PREFERENCES_EVENT,

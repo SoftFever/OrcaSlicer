@@ -38,7 +38,6 @@ my %cli_options = ();
         'load=s@'               => \$opt{load},
         'autosave=s'            => \$opt{autosave},
         'ignore-nonexistent-config' => \$opt{ignore_nonexistent_config},
-        'no-controller'         => \$opt{no_controller},
         'no-plater'             => \$opt{no_plater},
         'gui-mode=s'            => \$opt{obsolete_ignore_this_option_gui_mode},
         'datadir=s'             => \$opt{datadir},
@@ -107,7 +106,6 @@ if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3
     {
         no warnings 'once';
         $Slic3r::GUI::datadir       = Slic3r::decode_path($opt{datadir} // '');
-        $Slic3r::GUI::no_controller = $opt{no_controller};
         $Slic3r::GUI::no_plater     = $opt{no_plater};
         $Slic3r::GUI::autosave      = $opt{autosave};
     }

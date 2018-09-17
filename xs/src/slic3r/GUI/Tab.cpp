@@ -1528,6 +1528,7 @@ void TabPrinter::build_fff()
 		};
 
 
+#if 0
 		if (!m_no_controller)
 		{
 		optgroup = page->new_optgroup(_(L("USB/Serial connection")));
@@ -1572,6 +1573,7 @@ void TabPrinter::build_fff()
 			line.append_widget(serial_test);
 			optgroup->append_line(line);
 		}
+#endif
 
 		optgroup = page->new_optgroup(_(L("Printer Host upload")));
 
@@ -1745,8 +1747,10 @@ void TabPrinter::build_fff()
 
 	build_extruder_pages();
 
+#if 0
 	if (!m_no_controller)
 		update_serial_ports();
+#endif
 }
 
 void TabPrinter::build_sla()

@@ -368,7 +368,7 @@ public:
     void                process();
     void                export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
     // SLA export, temporary.
-    void                print_to_png(const std::string &dirpath);
+    void                export_png(const std::string &dirpath);
 
     // methods for handling state
     bool                is_step_done(PrintStep step) const { return m_state.is_done(step); }

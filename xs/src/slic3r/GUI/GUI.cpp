@@ -611,13 +611,13 @@ void open_preferences_dialog(int event_preferences)
 	dlg->ShowModal();
 }
 
-void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
+void create_preset_tabs(int event_value_change, int event_presets_changed)
 {	
 	update_label_colours_from_appconfig();
-	add_created_tab(new TabPrint	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
-	add_created_tab(new TabFilament	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
-	add_created_tab(new TabSLAMaterial  (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
-	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabPrint	    (g_wxTabPanel), event_value_change, event_presets_changed);
+	add_created_tab(new TabFilament	    (g_wxTabPanel), event_value_change, event_presets_changed);
+	add_created_tab(new TabSLAMaterial  (g_wxTabPanel), event_value_change, event_presets_changed);
+	add_created_tab(new TabPrinter	    (g_wxTabPanel), event_value_change, event_presets_changed);
 }
 
 std::vector<PresetTab> preset_tabs = {

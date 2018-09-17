@@ -71,14 +71,6 @@ void PreferencesDialog::build()
 	option = Option (def, "preset_update");
 	m_optgroup->append_single_option_line(option);
 
-	def.label = L("Disable USB/serial connection");
-	def.type = coBool;
-	def.tooltip = L("Disable communication with the printer over a serial / USB cable. "
-					  "This simplifies the user interface in case the printer is never attached to the computer.");
-	def.default_value = new ConfigOptionBool{ app_config->get("no_controller")[0] == '1' }; // 1;
-	option = Option (def,"no_controller");
-	m_optgroup->append_single_option_line(option);
-
 	def.label = L("Suppress \" - default - \" presets");
 	def.type = coBool;
 	def.tooltip = L("Suppress \" - default - \" presets in the Print / Filament / Printer "
@@ -118,8 +110,7 @@ void PreferencesDialog::build()
 
 void PreferencesDialog::accept()
 {
-	if (m_values.find("no_controller")    != m_values.end()||
-		m_values.find("no_defaults")      != m_values.end()||
+	if (m_values.find("no_defaults")      != m_values.end()||
 		m_values.find("use_legacy_opengl")!= m_values.end()) {
 		warning_catcher(this, _(L("You need to restart Slic3r to make the changes effective.")));
 	}

@@ -151,8 +151,6 @@ _constant()
             }
         %};
         
-    void print_to_png(std::string dirpath);
-    
     void add_model_object(ModelObject* model_object, int idx = -1);
     bool apply_config(DynamicPrintConfig* config)
         %code%{ RETVAL = THIS->apply_config(*config); %};
@@ -166,6 +164,7 @@ _constant()
         %};
     Clone<BoundingBox> bounding_box();
     Clone<BoundingBox> total_bounding_box();
+    Clone<Point>       size() %code%{ RETVAL = THIS->bounding_box().size(); %};
 
     void set_callback_event(int evt) %code%{
         %};
@@ -196,4 +195,11 @@ _constant()
             }
         %};
 
+    void export_png(char *path) %code%{
+            try {
+                THIS->export_png(path);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
 };
