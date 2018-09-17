@@ -1107,15 +1107,15 @@ PrintObjectSupportMaterial::MyLayersPtr PrintObjectSupportMaterial::top_contact_
                     // 1) Contact polygons will be projected down. To keep the interface and base layers from growing, return a contour a tiny bit smaller than the grid cells.
                     new_layer.contact_polygons = new Polygons(support_grid_pattern.extract_support(-3, true));
                     // 2) infill polygons, expand them by half the extrusion width + a tiny bit of extra.
-                    if (layer_id == 0) {
+                    if (layer_id == 0 || m_slicing_params.soluble_interface) {
                     // if (no_interface_offset == 0.f) {
                         new_layer.polygons = support_grid_pattern.extract_support(m_support_material_flow.scaled_spacing()/2 + 5, true);
                     } else  {
+                        // Reduce the amount of dense interfaces: Do not generate dense interfaces below overhangs with 60% overhang of the extrusions.
                         Polygons dense_interface_polygons = diff(overhang_polygons, 
                             offset2(lower_layer_polygons, - no_interface_offset * 0.5f, no_interface_offset * (0.6f + 0.5f), SUPPORT_SURFACES_OFFSET_PARAMETERS));
 //                            offset(lower_layer_polygons, no_interface_offset * 0.6f, SUPPORT_SURFACES_OFFSET_PARAMETERS));
                         if (! dense_interface_polygons.empty()) {
-                            //FIXME do it for non-soluble support interfaces only.
                             //FIXME do it for the bridges only?
                             SupportGridPattern support_grid_pattern(
                                 // Support islands, to be stretched into a grid.
