@@ -135,7 +135,10 @@ public:
     const Print*                print() const { return m_print; }
     const PrintRegionConfig&    config() const { return m_config; }
     Flow                        flow(FlowRole role, double layer_height, bool bridge, bool first_layer, double width, const PrintObject &object) const;
+    // Average diameter of nozzles participating on extruding this region.
     coordf_t                    nozzle_dmr_avg(const PrintConfig &print_config) const;
+    // Average diameter of nozzles participating on extruding this region.
+    coordf_t bridging_height_avg(const PrintConfig &print_config) const;
 
 // Methods modifying the PrintRegion's state:
 public:
@@ -252,6 +255,10 @@ public:
     // Called when slicing to SVG (see Print.pm sub export_svg), and used by perimeters.t
     void slice();
 
+    // Helpers to slice support enforcer / blocker meshes by the support generator.
+    std::vector<ExPolygons>     slice_support_enforcers() const;
+    std::vector<ExPolygons>     slice_support_blockers() const;
+
 private:
     void make_perimeters();
     void prepare_infill();
@@ -297,6 +304,7 @@ private:
     void set_started(PrintObjectStep step);
     void set_done(PrintObjectStep step);
     std::vector<ExPolygons> _slice_region(size_t region_id, const std::vector<float> &z, bool modifier);
+    std::vector<ExPolygons> _slice_volumes(const std::vector<float> &z, const std::vector<const ModelVolume*> &volumes) const;
 };
 
 struct WipeTowerData
@@ -309,6 +317,8 @@ struct WipeTowerData
     std::unique_ptr<WipeTower::ToolChangeResult>          priming;
     std::vector<std::vector<WipeTower::ToolChangeResult>> tool_changes;
     std::unique_ptr<WipeTower::ToolChangeResult>          final_purge;
+    std::vector<float>                                    used_filament;
+    int                                                   number_of_toolchanges;
 
     // Depth of the wipe tower to pass to GLCanvas3D for exact bounding box:
     float                                                 depth;
@@ -318,6 +328,8 @@ struct WipeTowerData
         priming.reset(nullptr);
         tool_changes.clear();
         final_purge.reset(nullptr);
+        used_filament.clear();
+        number_of_toolchanges = -1;
         depth = 0.f;
     }
 };
@@ -331,6 +343,8 @@ struct PrintStatistics
     double                          total_extruded_volume;
     double                          total_cost;
     double                          total_weight;
+    double                          total_wipe_tower_cost;
+    double                          total_wipe_tower_filament;
     std::map<size_t, float>         filament_stats;
 
     void clear() {
@@ -340,6 +354,8 @@ struct PrintStatistics
         total_extruded_volume  = 0.;
         total_cost             = 0.;
         total_weight           = 0.;
+        total_wipe_tower_cost  = 0.;
+        total_wipe_tower_filament = 0.;
         filament_stats.clear();
     }
 };
@@ -463,7 +479,7 @@ private:
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
-    void                throw_if_canceled() { if (m_canceled) throw CanceledException(); }
+    void                throw_if_canceled() const { if (m_canceled) throw CanceledException(); }
 
     void                _make_skirt();
     void                _make_brim();

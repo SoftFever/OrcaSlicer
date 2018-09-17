@@ -4,8 +4,6 @@
 #include <string>
 #include <functional>
 
-#include <wx/string.h>
-
 namespace Slic3r {
 
 /**
@@ -44,13 +42,13 @@ public:
     }
 
     /// Message shown on the next status update.
-    virtual void message(const wxString&) = 0;
+    virtual void message(const std::string&) = 0;
 
     /// Title of the operation.
-    virtual void title(const wxString&) = 0;
+    virtual void title(const std::string&) = 0;
 
     /// Formatted message for the next status update. Works just like sprintf.
-    virtual void message_fmt(const wxString& fmt, ...);
+    virtual void message_fmt(const std::string& fmt, ...);
 
     /// Set up a cancel callback for the operation if feasible.
     virtual void on_cancel(CancelFn func = CancelFn()) { cancelfunc_ = func; }
@@ -62,7 +60,7 @@ public:
     virtual void cancel() { cancelfunc_(); }
 
     /// Convenience function to call message and status update in one function.
-    void update(float st, const wxString& msg) {
+    void update(float st, const std::string& msg) {
         message(msg); state(st);
     }
 };

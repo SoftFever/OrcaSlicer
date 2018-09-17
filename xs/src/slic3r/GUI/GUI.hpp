@@ -27,6 +27,7 @@ class wxButton;
 class wxFileDialog;
 class wxStaticBitmap;
 class wxFont;
+class wxTopLevelWindow;
 
 namespace Slic3r { 
 
@@ -38,7 +39,6 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
-class _3DScene;
 
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
@@ -106,13 +106,10 @@ void set_plater(wxPanel *plater);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
-void set_3DScene(_3DScene *scene);
 void set_objects_from_perl(	wxWindow* parent,
 							wxBoxSizer *frequently_changed_parameters_sizer,
-							wxBoxSizer *expert_mode_part_sizer,
-							wxBoxSizer *scrolled_window_sizer,
+							wxBoxSizer *info_sizer,
 							wxButton *btn_export_gcode,
-							wxButton *btn_export_stl,
 							wxButton *btn_reslice,
 							wxButton *btn_print,
 							wxButton *btn_send_gcode,
@@ -196,6 +193,8 @@ bool select_language(wxArrayString & names, wxArrayLong & identifiers);
 // update right panel of the Plater according to view mode
 void update_mode();
 
+void show_info_sizer(const bool show);
+
 std::vector<Tab *>& get_tabs_list();
 bool checked_tab(Tab* tab);
 void delete_tab_from_list(Tab* tab);
@@ -214,12 +213,11 @@ wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
 
-void add_expert_mode_part(	wxWindow* parent, wxBoxSizer* sizer, 
-							Model &model,
-							int event_object_selection_changed,
-							int event_object_settings_changed,
-							int event_remove_object, 
-							int event_update_scene);
+void set_model_events_from_perl(Model &model,
+							    int event_object_selection_changed,
+							    int event_object_settings_changed,
+							    int event_remove_object, 
+							    int event_update_scene);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
 // Update view mode according to selected menu 
 void update_mode();
@@ -236,7 +234,15 @@ void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
 
 // Returns the dimensions of the screen on which the main frame is displayed
-void get_current_screen_size(unsigned &width, unsigned &height);
+bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);
+
+// Save window size and maximized status into AppConfig
+void save_window_size(wxTopLevelWindow *window, const std::string &name);
+// Restore the above
+void restore_window_size(wxTopLevelWindow *window, const std::string &name);
+
+// Update buttons view according to enable/disable
+void enable_action_buttons(bool enable);
 
 // Display an About dialog
 extern void about();

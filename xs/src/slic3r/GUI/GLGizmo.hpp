@@ -22,7 +22,8 @@ class GLGizmoBase
 protected:
     struct Grabber
     {
-        static const float HalfSize;
+        static const float SizeFactor;
+        static const float MinHalfSize;
         static const float DraggingScaleFactor;
 
         Vec3d center;
@@ -33,11 +34,11 @@ protected:
 
         Grabber();
 
-        void render(bool hover) const;
-        void render_for_picking() const { render(color, false); }
+        void render(bool hover, const BoundingBoxf3& box) const;
+        void render_for_picking(const BoundingBoxf3& box) const { render(box, color, false); }
 
     private:
-        void render(const float* render_color, bool use_lighting) const;
+        void render(const BoundingBoxf3& box, const float* render_color, bool use_lighting) const;
         void render_face(float half_size) const;
     };
 
@@ -109,8 +110,8 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
     float picking_color_component(unsigned int id) const;
-    void render_grabbers() const;
-    void render_grabbers_for_picking() const;
+    void render_grabbers(const BoundingBoxf3& box) const;
+    void render_grabbers_for_picking(const BoundingBoxf3& box) const;
 
     void set_tooltip(const std::string& tooltip) const;
     std::string format(float value, unsigned int decimals) const;
@@ -163,7 +164,7 @@ private:
     void render_snap_radii() const;
     void render_reference_radius() const;
     void render_angle() const;
-    void render_grabber() const;
+    void render_grabber(const BoundingBoxf3& box) const;
 
     void transform_to_local() const;
     // returns the intersection of the mouse ray with the plane perpendicular to the gizmo axis, in local coordinate
@@ -234,6 +235,7 @@ protected:
 class GLGizmoScale3D : public GLGizmoBase
 {
     static const float Offset;
+    static const Vec3d OffsetVec;
 
     mutable BoundingBoxf3 m_box;
 
@@ -285,6 +287,7 @@ class GLGizmoMove3D : public GLGizmoBase
     Vec3d m_position;
     Vec3d m_starting_drag_position;
     Vec3d m_starting_box_center;
+    Vec3d m_starting_box_bottom_center;
 
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
@@ -300,7 +303,7 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
 private:
-    double calc_displacement(unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
+    double calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
 };
 
 class GLGizmoFlatten : public GLGizmoBase
@@ -326,7 +329,11 @@ private:
     SourceDataSummary m_source_data;
 
     std::vector<PlaneData> m_planes;
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    Pointf3s m_instances_positions;
+#else
     std::vector<Vec2d> m_instances_positions;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 

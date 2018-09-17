@@ -242,10 +242,19 @@ void Model::center_instances_around_point(const Vec2d &point)
         for (size_t i = 0; i < o->instances.size(); ++ i)
             bb.merge(o->instance_bounding_box(i, false));
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    Vec2d shift2 = point - to_2d(bb.center());
+    Vec3d shift3 = Vec3d(shift2(0), shift2(1), 0.0);
+#else
     Vec2d shift = point - 0.5 * to_2d(bb.size()) - to_2d(bb.min);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances)
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            i->set_offset(i->get_offset() + shift3);
+#else
             i->offset += shift;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         o->invalidate_bounding_box();
     }
 }
@@ -311,8 +320,13 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
     size_t idx = 0;
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances) {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            Vec2d offset_xy = positions[idx] - instance_centers[idx];
+            i->set_offset(Vec3d(offset_xy(0), offset_xy(1), i->get_offset(Z)));
+#else
             i->offset = positions[idx] - instance_centers[idx];
-            ++ idx;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+            ++idx;
         }
         o->invalidate_bounding_box();
     }
@@ -336,7 +350,11 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
         for (const ModelInstance *i : instances) {
             for (const Vec2d &pos : positions) {
                 ModelInstance *instance = o->add_instance(*i);
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                instance->set_offset(instance->get_offset() + Vec3d(pos(0), pos(1), 0.0));
+#else
                 instance->offset += pos;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
             }
         }
         o->invalidate_bounding_box();
@@ -366,13 +384,21 @@ void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
     ModelObject* object = this->objects.front();
     object->clear_instances();
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    Vec3d ext_size = object->bounding_box().size() + dist * Vec3d::Ones();
+#else
     Vec3d size = object->bounding_box().size();
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
     for (size_t x_copy = 1; x_copy <= x; ++x_copy) {
         for (size_t y_copy = 1; y_copy <= y; ++y_copy) {
             ModelInstance* instance = object->add_instance();
-            instance->offset(0) = (size(0) + dist) * (x_copy-1);
-            instance->offset(1) = (size(1) + dist) * (y_copy-1);
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            instance->set_offset(Vec3d(ext_size(0) * (double)(x_copy - 1), ext_size(1) * (double)(y_copy - 1), 0.0));
+#else
+            instance->offset(0) = (size(0) + dist) * (x_copy - 1);
+            instance->offset(1) = (size(1) + dist) * (y_copy - 1);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         }
     }
 }
@@ -601,7 +627,8 @@ const BoundingBoxf3& ModelObject::bounding_box() const
     if (! m_bounding_box_valid) {
         BoundingBoxf3 raw_bbox;
         for (const ModelVolume *v : this->volumes)
-            if (! v->modifier)
+            if (v->is_model_part())
+                // mesh.bounding_box() returns a cached value.
                 raw_bbox.merge(v->mesh.bounding_box());
         BoundingBoxf3 bb;
         for (const ModelInstance *i : this->instances)
@@ -632,7 +659,7 @@ TriangleMesh ModelObject::raw_mesh() const
 {
     TriangleMesh mesh;
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
             mesh.merge(v->mesh);
     return mesh;
 }
@@ -643,7 +670,7 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
 {
     BoundingBoxf3 bb;
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier) {
+        if (v->is_model_part()) {
             if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
             bb.merge(this->instances.front()->transform_mesh_bounding_box(&v->mesh, true));
         }
@@ -655,7 +682,7 @@ BoundingBoxf3 ModelObject::instance_bounding_box(size_t instance_idx, bool dont_
 {
     BoundingBoxf3 bb;
     for (ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
             bb.merge(this->instances[instance_idx]->transform_mesh_bounding_box(&v->mesh, dont_translate));
     return bb;
 }
@@ -666,7 +693,7 @@ void ModelObject::center_around_origin()
     // center this object around the origin
 	BoundingBoxf3 bb;
 	for (ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
 			bb.merge(v->mesh.bounding_box());
     
     // Shift is the vector from the center of the bottom face of the bounding box to the origin
@@ -676,12 +703,21 @@ void ModelObject::center_around_origin()
     this->translate(shift);
     this->origin_translation += shift;
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    // set z to zero, translation in z has already been done within the mesh
+    shift(2) = 0.0;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            i->set_offset(i->get_offset() + i->transform_vector(-shift, true));
+#else
             Vec3d i_shift = i->world_matrix(true) * shift;
             i->offset -= to_2d(i_shift);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         }
         this->invalidate_bounding_box();
     }
@@ -763,7 +799,7 @@ size_t ModelObject::facets_count() const
 {
     size_t num = 0;
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier)
+        if (v->is_model_part())
             num += v->mesh.stl.stats.number_of_facets;
     return num;
 }
@@ -771,7 +807,7 @@ size_t ModelObject::facets_count() const
 bool ModelObject::needed_repair() const
 {
     for (const ModelVolume *v : this->volumes)
-        if (! v->modifier && v->mesh.needed_repair())
+        if (v->is_model_part() && v->mesh.needed_repair())
             return true;
     return false;
 }
@@ -787,7 +823,7 @@ void ModelObject::cut(coordf_t z, Model* model) const
     lower->input_file = "";
     
     for (ModelVolume *volume : this->volumes) {
-        if (volume->modifier) {
+        if (! volume->is_model_part()) {
             // don't cut modifiers
             upper->add_volume(*volume);
             lower->add_volume(*volume);
@@ -839,7 +875,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         ModelVolume* new_volume = new_object->add_volume(*mesh);
         new_volume->name        = volume->name;
         new_volume->config      = volume->config;
-        new_volume->modifier    = volume->modifier;
+        new_volume->set_type(volume->type());
         new_volume->material_id(volume->material_id());
         
         new_objects->push_back(new_object);
@@ -854,7 +890,7 @@ void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_
 {
     for (const ModelVolume* vol : this->volumes)
     {
-        if (!vol->modifier)
+        if (vol->is_model_part())
         {
             for (ModelInstance* inst : this->instances)
             {
@@ -951,6 +987,38 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
     return m_convex_hull;
 }
 
+ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
+{
+    // Legacy support
+    if (s == "1")
+        return PARAMETER_MODIFIER;
+    // New type (supporting the support enforcers & blockers)
+    if (s == "ModelPart")
+        return MODEL_PART;
+    if (s == "ParameterModifier")
+        return PARAMETER_MODIFIER;
+    if (s == "SupportEnforcer")
+        return SUPPORT_ENFORCER;
+    if (s == "SupportBlocker")
+        return SUPPORT_BLOCKER;
+    assert(s == "0");
+    // Default value if invalud type string received.
+    return MODEL_PART;
+}
+
+std::string ModelVolume::type_to_string(const Type t)
+{
+    switch (t) {
+    case MODEL_PART:         return "ModelPart";
+    case PARAMETER_MODIFIER: return "ParameterModifier";
+    case SUPPORT_ENFORCER:   return "SupportEnforcer";
+    case SUPPORT_BLOCKER:    return "SupportBlocker";
+    default:
+        assert(false);
+        return "ModelPart";
+    }
+}
+
 // Split this volume, append the result to the object owning this volume.
 // Return the number of volumes created from this one.
 // This is useful to assign different materials to different volumes of an object.
@@ -1005,8 +1073,13 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
         }
         // Translate the bounding box.
         if (! dont_translate) {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+            bbox.min += this->m_offset;
+            bbox.max += this->m_offset;
+#else
             Eigen::Map<Vec2d>(bbox.min.data()) += this->offset;
             Eigen::Map<Vec2d>(bbox.max.data()) += this->offset;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         }
     }
     return bbox;
@@ -1033,7 +1106,11 @@ Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, b
     Transform3d m = Transform3d::Identity();
 
     if (!dont_translate)
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        m.translate(m_offset);
+#else
         m.translate(Vec3d(offset(0), offset(1), 0.0));
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
     if (!dont_rotate)
         m.rotate(Eigen::AngleAxisd(rotation, Vec3d::UnitZ()));

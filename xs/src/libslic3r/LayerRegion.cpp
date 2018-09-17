@@ -15,8 +15,7 @@
 
 namespace Slic3r {
 
-Flow
-LayerRegion::flow(FlowRole role, bool bridge, double width) const
+Flow LayerRegion::flow(FlowRole role, bool bridge, double width) const
 {
     return m_region->flow(
         role,

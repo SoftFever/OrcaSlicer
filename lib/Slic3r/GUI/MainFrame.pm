@@ -95,7 +95,7 @@ sub new {
         $self->Fit;
         $self->SetMinSize([760, 490]);
         $self->SetSize($self->GetMinSize);
-        wxTheApp->restore_window_pos($self, "main_frame");
+        Slic3r::GUI::restore_window_size($self, "main_frame");
         $self->Show;
         $self->Layout;
     }
@@ -108,7 +108,7 @@ sub new {
             return;
         }
         # save window size
-        wxTheApp->save_window_pos($self, "main_frame");
+        Slic3r::GUI::save_window_size($self, "main_frame");
         # Save the slic3r.ini. Usually the ini file is saved from "on idle" callback,
         # but in rare cases it may not have been called yet.
         wxTheApp->{app_config}->save;
@@ -207,10 +207,12 @@ sub _init_tabpanel {
     EVT_COMMAND($self, -1, $OBJECT_SELECTION_CHANGED_EVENT, sub {
         my ($self, $event) = @_;
         my $obj_idx = $event->GetId;
-        my $child = $event->GetInt == 1 ? 1 : undef;
+#        my $child = $event->GetInt == 1 ? 1 : undef;
+#        $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx, $child);
+#        $self->{plater}->item_changed_selection($obj_idx);
 
-        $self->{plater}->select_object($obj_idx < 0 ? undef: $obj_idx, $child);
-        $self->{plater}->item_changed_selection($obj_idx);
+        my $vol_idx = $event->GetInt;
+        $self->{plater}->select_object_from_cpp($obj_idx < 0 ? undef: $obj_idx, $vol_idx<0 ? -1 : $vol_idx);
     });
 
     # The following event is emited by the C++ GUI implementation on object settings change.

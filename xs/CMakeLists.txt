@@ -179,6 +179,7 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/SurfaceCollection.hpp
     ${LIBDIR}/libslic3r/SVG.cpp
     ${LIBDIR}/libslic3r/SVG.hpp
+    ${LIBDIR}/libslic3r/Technologies.hpp
     ${LIBDIR}/libslic3r/TriangleMesh.cpp
     ${LIBDIR}/libslic3r/TriangleMesh.hpp
     ${LIBDIR}/libslic3r/SLABasePool.hpp
@@ -568,7 +569,7 @@ if (WIN32)
 endif ()
 
 # SLIC3R_MSVC_PDB
-if (MSVC AND SLIC3R_MSVC_PDB AND ${CMAKE_BUILD_TYPE} STREQUAL "Release")
+if (MSVC AND SLIC3R_MSVC_PDB AND "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set_target_properties(XS PROPERTIES
         COMPILE_FLAGS "/Zi"
         LINK_FLAGS "/DEBUG /OPT:REF /OPT:ICF"

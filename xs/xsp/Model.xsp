@@ -340,9 +340,19 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->mesh; %};
     
     bool modifier()
-        %code%{ RETVAL = THIS->modifier; %};
+        %code%{ RETVAL = THIS->is_modifier(); %};
     void set_modifier(bool modifier)
-        %code%{ THIS->modifier = modifier; %};
+        %code%{ THIS->set_type(modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART); %};
+    bool model_part()
+        %code%{ RETVAL = THIS->is_model_part(); %};
+    bool support_enforcer()
+        %code%{ RETVAL = THIS->is_support_enforcer(); %};
+    void set_support_enforcer()
+        %code%{ THIS->set_type(ModelVolume::SUPPORT_ENFORCER); %};
+    bool support_blocker()
+        %code%{ RETVAL = THIS->is_support_blocker(); %};
+    void set_support_blocker()
+        %code%{ THIS->set_type(ModelVolume::SUPPORT_BLOCKER); %};
 
     size_t split(unsigned int max_extruders);
     
@@ -358,15 +368,28 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->rotation; %};
     double scaling_factor()
         %code%{ RETVAL = THIS->scaling_factor; %};
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    Vec2d* offset()
+        %code%{ RETVAL = new Vec2d(THIS->get_offset(X), THIS->get_offset(Y)); %};
+#else
     Ref<Vec2d> offset()
         %code%{ RETVAL = &THIS->offset; %};
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
     void set_rotation(double val)
         %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
     void set_scaling_factor(double val)
         %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+    void set_offset(Vec2d *offset)
+        %code%{ 
+            THIS->set_offset(X, (*offset)(0));
+            THIS->set_offset(Y, (*offset)(1));
+        %};
+#else
     void set_offset(Vec2d *offset)
         %code%{ THIS->offset = *offset; %};
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     void transform_polygon(Polygon* polygon) const;

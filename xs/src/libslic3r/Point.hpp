@@ -22,6 +22,7 @@ typedef Point Vector;
 // Vector types with a fixed point coordinate base type.
 typedef Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign> Vec2crd;
 typedef Eigen::Matrix<coord_t,  3, 1, Eigen::DontAlign> Vec3crd;
+typedef Eigen::Matrix<int,      3, 1, Eigen::DontAlign> Vec3i;
 typedef Eigen::Matrix<int64_t,  2, 1, Eigen::DontAlign> Vec2i64;
 typedef Eigen::Matrix<int64_t,  3, 1, Eigen::DontAlign> Vec3i64;
 

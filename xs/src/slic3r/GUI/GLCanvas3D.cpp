@@ -1142,8 +1142,10 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     if (!gizmo->init())
         return false;
 
+#if !ENABLE_MODELINSTANCE_3D_OFFSET
     // temporary disable z grabber
     gizmo->disable_grabber(2);
+#endif // !ENABLE_MODELINSTANCE_3D_OFFSET
 
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
@@ -2377,7 +2379,11 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                m_gizmos.set_position(model_instance->get_offset());
+#else
                 m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                 m_gizmos.set_scale(model_instance->scaling_factor);
                 m_gizmos.set_angle_z(model_instance->rotation);
                 m_gizmos.set_flattening_data(model_object);
@@ -2493,6 +2499,11 @@ int GLCanvas3D::get_first_volume_id(int obj_idx) const
     }
 
     return -1;
+}
+
+int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
+{
+    return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
 }
 
 void GLCanvas3D::reload_scene(bool force)
@@ -5361,8 +5372,12 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
             ModelObject* model_object = m_model->objects[obj_idx];
             if (model_object != nullptr)
             {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                model_object->instances[instance_idx]->set_offset(volume->get_offset());
+#else
                 const Vec3d& offset = volume->get_offset();
                 model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                 model_object->invalidate_bounding_box();
                 update_position_values();
                 object_moved = true;
@@ -5409,6 +5424,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
     }
 
     m_on_select_object_callback.call(obj_id, vol_id);
+    Slic3r::GUI::select_current_volume(obj_id, vol_id);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

@@ -103,6 +103,12 @@ _constant()
         %code%{ RETVAL = THIS->print_statistics().total_weight; %};
     double total_cost()
         %code%{ RETVAL = THIS->print_statistics().total_cost; %};
+    double total_wipe_tower_cost()
+        %code%{ RETVAL = THIS->print_statistics().total_wipe_tower_cost; %};
+    double total_wipe_tower_filament()
+        %code%{ RETVAL = THIS->print_statistics().total_wipe_tower_filament; %};
+    int wipe_tower_number_of_toolchanges()
+        %code%{ RETVAL = THIS->wipe_tower_data().number_of_toolchanges; %};
     PrintObjectPtrs* objects()
         %code%{ RETVAL = const_cast<PrintObjectPtrs*>(&THIS->objects()); %};
     void clear_objects();

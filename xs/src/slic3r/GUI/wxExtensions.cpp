@@ -2,6 +2,7 @@
 
 #include "GUI.hpp"
 #include "../../libslic3r/Utils.hpp"
+#include "BitmapCache.hpp"
 
 #include <wx/sizer.h>
 #include <wx/statline.h>
@@ -357,10 +358,52 @@ void  PrusaObjectDataViewModelNode::set_part_action_icon() {
 	m_action_icon = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("cog.png")), wxBITMAP_TYPE_PNG);
 }
 
+Slic3r::GUI::BitmapCache *m_bitmap_cache = nullptr;
+bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std::string>& categories)
+{
+    if (m_type != "settings" || m_opt_categories == categories)
+        return false;
+
+    m_opt_categories = categories;
+    m_name = wxEmptyString;
+    m_icon = m_empty_icon;
+
+    auto categories_icon = Slic3r::GUI::get_category_icon();
+
+    for (auto& cat : m_opt_categories)
+        m_name += cat + "; ";
+
+    wxBitmap *bmp = m_bitmap_cache->find(m_name.ToStdString());
+    if (bmp == nullptr) {
+        std::vector<wxBitmap> bmps;
+        for (auto& cat : m_opt_categories)
+            bmps.emplace_back(categories_icon.find(cat) == categories_icon.end() ?
+                              wxNullBitmap : categories_icon.at(cat));
+        bmp = m_bitmap_cache->insert(m_name.ToStdString(), bmps);
+    }
+
+    m_bmp = *bmp;
+
+    return true;
+}
+
 // *****************************************************************************
 // ----------------------------------------------------------------------------
 // PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
+
+PrusaObjectDataViewModel::PrusaObjectDataViewModel()
+{
+    m_bitmap_cache = new Slic3r::GUI::BitmapCache;
+}
+
+PrusaObjectDataViewModel::~PrusaObjectDataViewModel()
+{
+    for (auto object : m_objects)
+			delete object;
+    delete m_bitmap_cache;
+    m_bitmap_cache = nullptr;
+}
 
 wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name)
 {
@@ -386,32 +429,48 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int ins
 
 wxDataViewItem PrusaObjectDataViewModel::AddChild(	const wxDataViewItem &parent_item,
 													const wxString &name,
-													const wxIcon& icon,
+                                                    const wxBitmap& icon,
                                                     const int extruder/* = 0*/,
                                                     const bool create_frst_child/* = true*/)
 {
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
 
-    wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+    const wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
 
-    if (root->GetChildren().Count() == 0 && create_frst_child)
+    if (create_frst_child && (root->GetChildren().Count() == 0 || 
+                             (root->GetChildren().Count() == 1 && root->GetNthChild(0)->m_type == "settings")))
 	{
-		auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
-		auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, extruder_str, 0);
+		const auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);
+		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, extruder_str, 0);
 		root->Append(node);
 		// notify control
-		wxDataViewItem child((void*)node);
+		const wxDataViewItem child((void*)node);
 		ItemAdded(parent_item, child);
 	}
 
-	auto volume_id = root->GetChildCount();
-	auto node = new PrusaObjectDataViewModelNode(root, name, icon, extruder_str, volume_id);
+    const auto volume_id =  root->GetChildCount() > 0 && root->GetNthChild(0)->m_type == "settings" ?
+                            root->GetChildCount() - 1 : root->GetChildCount();
+
+	const auto node = new PrusaObjectDataViewModelNode(root, name, icon, extruder_str, volume_id);
 	root->Append(node);
 	// notify control
-	wxDataViewItem child((void*)node);
+	const wxDataViewItem child((void*)node);
 	ItemAdded(parent_item, child);
 	return child;
+}
+
+wxDataViewItem PrusaObjectDataViewModel::AddSettingsChild(const wxDataViewItem &parent_item)
+{
+    PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
+    if (!root) return wxDataViewItem(0);
+
+    const auto node = new PrusaObjectDataViewModelNode(root);
+    root->Insert(node, 0);
+    // notify control
+    const wxDataViewItem child((void*)node);
+    ItemAdded(parent_item, child);
+    return child;
 }
 
 wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
@@ -438,7 +497,7 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 
 		//update volume_id value for remaining child-nodes
 		auto children = node_parent->GetChildren();
-		for (size_t i = 0; i < node_parent->GetChildCount(); i++)
+        for (size_t i = 0; i < node_parent->GetChildCount() && v_id>=0; i++)
 		{
 			auto volume_id = children[i]->GetVolumeId();
 			if (volume_id > v_id)
@@ -460,9 +519,10 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 	delete node;
 
 	// set m_containet to FALSE if parent has no child
-	if (node_parent && node_parent->GetChildCount() == 0){
+	if (node_parent) {
 #ifndef __WXGTK__
-		node_parent->m_container = false;
+        if (node_parent->GetChildCount() == 0)
+            node_parent->m_container = false;
 #endif //__WXGTK__
 		ret_item = parent;
 	}
@@ -522,6 +582,26 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemById(int obj_idx)
 }
 
 
+wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_idx)
+{
+	if (obj_idx >= m_objects.size()) {
+		printf("Error! Out of objects range.\n");
+		return wxDataViewItem(0);
+	}
+
+    auto parent = m_objects[obj_idx];
+    if (parent->GetChildCount() == 0) {
+        printf("Error! Object has no one volume.\n");
+        return wxDataViewItem(0);
+    }
+
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+        if (parent->GetNthChild(i)->m_volume_id == volume_idx)
+            return wxDataViewItem(parent->GetNthChild(i));
+
+    return wxDataViewItem(0);
+}
+
 int PrusaObjectDataViewModel::GetIdByItem(wxDataViewItem& item)
 {
 	wxASSERT(item.IsOk());
@@ -534,7 +614,7 @@ int PrusaObjectDataViewModel::GetIdByItem(wxDataViewItem& item)
 	return it - m_objects.begin();
 }
 
-int PrusaObjectDataViewModel::GetVolumeIdByItem(wxDataViewItem& item)
+int PrusaObjectDataViewModel::GetVolumeIdByItem(const wxDataViewItem& item)
 {
 	wxASSERT(item.IsOk());
 
@@ -568,6 +648,12 @@ wxIcon& PrusaObjectDataViewModel::GetIcon(const wxDataViewItem &item) const
     return node->m_icon;
 }
 
+wxBitmap& PrusaObjectDataViewModel::GetBitmap(const wxDataViewItem &item) const
+{
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    return node->m_bmp;
+}
+
 void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem &item, unsigned int col) const
 {
 	wxASSERT(item.IsOk());
@@ -576,8 +662,8 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	switch (col)
 	{
 	case 0:{
-		const wxDataViewIconText data(node->m_name, node->m_icon);
-		variant << data;
+        const PrusaDataViewBitmapText data(node->m_name, node->m_bmp);
+        variant << data;
 		break;}
 	case 1:
 		variant = node->m_copy;
@@ -667,26 +753,35 @@ wxDataViewItem PrusaObjectDataViewModel::ReorganizeChildren(int current_volume_i
     if (!node_parent)      // happens if item.IsOk()==false
         return ret_item;
 
-    PrusaObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id);
+    const size_t shift = node_parent->GetChildren().Item(0)->m_type == "settings" ? 1 : 0;
+
+    PrusaObjectDataViewModelNode *deleted_node = node_parent->GetNthChild(current_volume_id+shift);
     node_parent->GetChildren().Remove(deleted_node);
     ItemDeleted(parent, wxDataViewItem(deleted_node));
-    node_parent->Insert(deleted_node, new_volume_id);
+    node_parent->Insert(deleted_node, new_volume_id+shift);
     ItemAdded(parent, wxDataViewItem(deleted_node));
+    const auto settings_item = HasSettings(wxDataViewItem(deleted_node));
+    if (settings_item)
+        ItemAdded(wxDataViewItem(deleted_node), settings_item);
 
     //update volume_id value for child-nodes
     auto children = node_parent->GetChildren();
     int id_frst = current_volume_id < new_volume_id ? current_volume_id : new_volume_id;
     int id_last = current_volume_id > new_volume_id ? current_volume_id : new_volume_id;
     for (int id = id_frst; id <= id_last; ++id)
-        children[id]->SetVolumeId(id);
+        children[id+shift]->SetVolumeId(id);
 
-    return wxDataViewItem(node_parent->GetNthChild(new_volume_id));
+    return wxDataViewItem(node_parent->GetNthChild(new_volume_id+shift));
 }
 
-// bool MyObjectTreeModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
-// {
-// 
-// }
+bool PrusaObjectDataViewModel::IsEnabled(const wxDataViewItem &item, unsigned int col) const
+{
+    wxASSERT(item.IsOk());
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+
+    // disable extruder selection for the "Settings" item
+    return !(col == 2 && node->m_extruder.IsEmpty());
+}
 
 wxDataViewItem PrusaObjectDataViewModel::GetParent(const wxDataViewItem &item) const
 {
@@ -736,6 +831,87 @@ unsigned int PrusaObjectDataViewModel::GetChildren(const wxDataViewItem &parent,
 	}
 
 	return count;
+}
+
+wxDataViewItem PrusaObjectDataViewModel::HasSettings(const wxDataViewItem &item) const
+{
+    if (!item.IsOk())
+        return wxDataViewItem(0);
+
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    if (node->GetChildCount() == 0)
+        return wxDataViewItem(0);
+
+    auto& children = node->GetChildren();
+    if (children[0]->m_type == "settings")
+        return wxDataViewItem((void*)children[0]);;
+
+    return wxDataViewItem(0);
+}
+
+bool PrusaObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const
+{
+    if (!item.IsOk())
+        return false;
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    return node->m_type == "settings";
+}
+
+
+
+void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item, 
+                                                    const std::vector<std::string>& categories)
+{
+    if (!item.IsOk()) return;
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    if (!node->update_settings_digest(categories))
+        return;
+    ItemChanged(item);
+}
+
+IMPLEMENT_VARIANT_OBJECT(PrusaDataViewBitmapText)
+// ---------------------------------------------------------
+// PrusaIconTextRenderer
+// ---------------------------------------------------------
+
+bool PrusaBitmapTextRenderer::SetValue(const wxVariant &value)
+{
+    m_value << value;
+    return true;
+}
+
+bool PrusaBitmapTextRenderer::GetValue(wxVariant& WXUNUSED(value)) const
+{
+    return false;
+}
+
+bool PrusaBitmapTextRenderer::Render(wxRect rect, wxDC *dc, int state)
+{
+    int xoffset = 0;
+
+    const wxBitmap& icon = m_value.GetBitmap();
+    if (icon.IsOk())
+    {
+        dc->DrawBitmap(icon, rect.x, rect.y + (rect.height - icon.GetHeight()) / 2);
+        xoffset = icon.GetWidth() + 4;
+    }
+
+    RenderText(m_value.GetText(), xoffset, rect, dc, state);
+
+    return true;
+}
+
+wxSize PrusaBitmapTextRenderer::GetSize() const
+{
+    if (!m_value.GetText().empty())
+    {
+        wxSize size = GetTextExtent(m_value.GetText());
+
+        if (m_value.GetBitmap().IsOk())
+            size.x += m_value.GetBitmap().GetWidth() + 4;
+        return size;
+    }
+    return wxSize(80, 20);
 }
 
 
@@ -829,16 +1005,28 @@ wxSize PrusaDoubleSlider::DoGetBestSize() const
 
 void PrusaDoubleSlider::SetLowerValue(const int lower_val)
 {
+    m_selection = ssLower;
     m_lower_value = lower_val;
+    correct_lower_value();
     Refresh();
     Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::SetHigherValue(const int higher_val)
 {
+    m_selection = ssHigher;
     m_higher_value = higher_val;
+    correct_higher_value();
     Refresh();
     Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::SetMaxValue(const int max_value)
@@ -903,6 +1091,13 @@ void PrusaDoubleSlider::get_size(int *w, int *h)
 {
     GetSize(w, h);
     is_horizontal() ? *w -= m_lock_icon_dim : *h -= m_lock_icon_dim;
+}
+
+double PrusaDoubleSlider::get_double_value(const SelectedSlider& selection) const
+{
+    if (m_values.empty())
+        return 0.0;
+    return m_values[selection == ssLower ? m_lower_value : m_higher_value].second;
 }
 
 void PrusaDoubleSlider::get_lower_and_higher_position(int& lower_pos, int& higher_pos)
@@ -1010,7 +1205,7 @@ wxString PrusaDoubleSlider::get_label(const SelectedSlider& selection) const
 
 void PrusaDoubleSlider::draw_thumb_text(wxDC& dc, const wxPoint& pos, const SelectedSlider& selection) const
 {
-    if (m_is_one_layer && selection != m_selection || !selection) 
+    if ((m_is_one_layer || m_higher_value==m_lower_value) && selection != m_selection || !selection) 
         return;
     wxCoord text_width, text_height;
     const wxString label = get_label(selection);
@@ -1178,6 +1373,20 @@ bool PrusaDoubleSlider::is_point_in_rect(const wxPoint& pt, const wxRect& rect)
     return false;
 }
 
+void PrusaDoubleSlider::ChangeOneLayerLock()
+{
+    m_is_one_layer = !m_is_one_layer;
+    m_selection == ssLower ? correct_lower_value() : correct_higher_value();
+    if (!m_selection) m_selection = ssHigher;
+
+    Refresh();
+    Update();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
+}
+
 void PrusaDoubleSlider::OnLeftDown(wxMouseEvent& event)
 {
     this->CaptureMouse();
@@ -1245,6 +1454,10 @@ void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
     Refresh();
     Update();
     event.Skip();
+
+    wxCommandEvent e(wxEVT_SCROLL_CHANGED);
+    e.SetEventObject(this);
+    ProcessWindowEvent(e);
 }
 
 void PrusaDoubleSlider::OnLeftUp(wxMouseEvent& event)

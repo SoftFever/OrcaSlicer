@@ -9,6 +9,7 @@ namespace Slic3r {
 
 extern void set_logging_level(unsigned int level);
 extern void trace(unsigned int level, const char *message);
+extern void disable_multi_threading();
 
 // Set a path with GUI resource files.
 void set_var_dir(const std::string &path);

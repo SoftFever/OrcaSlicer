@@ -13,6 +13,7 @@ class wxTimerEvent;
 class wxStatusBar;
 class wxWindow;
 class wxFrame;
+class wxString;
 
 namespace Slic3r {
 
@@ -46,7 +47,7 @@ public:
     inline void remove_cancel_callback() { set_cancel_callback(); }
     void run(int rate);
     void embed(wxFrame *frame = nullptr);
-    void set_status_text(const std::string& txt);
+    void set_status_text(const wxString& txt);
 
     // Temporary methods to satisfy Perl side
     void show_cancel_button();

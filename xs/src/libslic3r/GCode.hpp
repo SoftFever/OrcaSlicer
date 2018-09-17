@@ -98,6 +98,7 @@ public:
     void next_layer() { ++ m_layer_idx; m_tool_change_idx = 0; }
     std::string tool_change(GCode &gcodegen, int extruder_id, bool finish_layer);
     std::string finalize(GCode &gcodegen);
+    std::vector<float> used_filament_length() const;
 
 private:
     WipeTowerIntegration& operator=(const WipeTowerIntegration&);

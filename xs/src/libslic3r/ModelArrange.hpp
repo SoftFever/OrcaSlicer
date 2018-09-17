@@ -130,6 +130,7 @@ objfunc(const PointImpl& bincenter,
         double norm,            // A norming factor for physical dimensions
         // a spatial index to quickly get neighbors of the candidate item
         const SpatIndex& spatindex,
+        const SpatIndex& smalls_spatindex,
         const ItemGroup& remaining
         )
 {
@@ -161,7 +162,7 @@ objfunc(const PointImpl& bincenter,
     // Will hold the resulting score
     double score = 0;
 
-    if(isBig(item.area())) {
+    if(isBig(item.area()) || spatindex.empty()) {
         // This branch is for the bigger items..
 
         auto minc = ibb.minCorner(); // bottom left corner
@@ -183,6 +184,8 @@ objfunc(const PointImpl& bincenter,
 
         // The smalles distance from the arranged pile center:
         auto dist = *(std::min_element(dists.begin(), dists.end())) / norm;
+        auto bindist = pl::distance(ibb.center(), bincenter) / norm;
+        dist = 0.8*dist + 0.2*bindist;
 
         // Density is the pack density: how big is the arranged pile
         double density = 0;
@@ -207,14 +210,20 @@ objfunc(const PointImpl& bincenter,
             // candidate to be aligned with only one item.
             auto alignment_score = 1.0;
 
-            density = (fullbb.width()*fullbb.height()) / (norm*norm);
+            density = std::sqrt((fullbb.width() / norm )*
+                                (fullbb.height() / norm));
             auto querybb = item.boundingBox();
 
             // Query the spatial index for the neighbors
             std::vector<SpatElement> result;
             result.reserve(spatindex.size());
-            spatindex.query(bgi::intersects(querybb),
-                            std::back_inserter(result));
+            if(isBig(item.area())) {
+                spatindex.query(bgi::intersects(querybb),
+                                std::back_inserter(result));
+            } else {
+                smalls_spatindex.query(bgi::intersects(querybb),
+                                       std::back_inserter(result));
+            }
 
             for(auto& e : result) { // now get the score for the best alignment
                 auto idx = e.second;
@@ -235,12 +244,8 @@ objfunc(const PointImpl& bincenter,
             if(result.empty())
                 score = 0.5 * dist + 0.5 * density;
             else
-                score = 0.45 * dist + 0.45 * density + 0.1 * alignment_score;
+                score = 0.40 * dist + 0.40 * density + 0.2 * alignment_score;
         }
-    } else if( !isBig(item.area()) && spatindex.empty()) {
-        auto bindist = pl::distance(ibb.center(), bincenter) / norm;
-        // Bindist is surprisingly enough...
-        score = bindist;
     } else {
         // Here there are the small items that should be placed around the
         // already processed bigger items.
@@ -291,6 +296,7 @@ protected:
     PConfig pconf_; // Placement configuration
     double bin_area_;
     SpatIndex rtree_;
+    SpatIndex smallsrtree_;
     double norm_;
     Pile merged_pile_;
     Box pilebb_;
@@ -299,7 +305,8 @@ protected:
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
-             std::function<void(unsigned)> progressind):
+             std::function<void(unsigned)> progressind,
+             std::function<bool(void)> stopcond):
        pck_(bin, dist), bin_area_(sl::area(bin)),
        norm_(std::sqrt(sl::area(bin)))
     {
@@ -317,6 +324,7 @@ public:
             pilebb_ = sl::boundingBox(merged_pile);
 
             rtree_.clear();
+            smallsrtree_.clear();
 
             // We will treat big items (compared to the print bed) differently
             auto isBig = [this](double a) {
@@ -326,10 +334,12 @@ public:
             for(unsigned idx = 0; idx < items.size(); ++idx) {
                 Item& itm = items[idx];
                 if(isBig(itm.area())) rtree_.insert({itm.boundingBox(), idx});
+                smallsrtree_.insert({itm.boundingBox(), idx});
             }
         };
 
         pck_.progressIndicator(progressind);
+        pck_.stopCondition(stopcond);
     }
 
     template<class...Args> inline IndexedPackGroup operator()(Args&&...args) {
@@ -343,8 +353,9 @@ class AutoArranger<Box>: public _ArrBase<Box> {
 public:
 
     AutoArranger(const Box& bin, Distance dist,
-                 std::function<void(unsigned)> progressind):
-        _ArrBase<Box>(bin, dist, progressind)
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<Box>(bin, dist, progressind, stopcond)
     {
 
         pconf_.object_function = [this, bin] (const Item &item) {
@@ -357,6 +368,7 @@ public:
                                   bin_area_,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
 
             double score = std::get<0>(result);
@@ -380,8 +392,9 @@ class AutoArranger<lnCircle>: public _ArrBase<lnCircle> {
 public:
 
     AutoArranger(const lnCircle& bin, Distance dist,
-                 std::function<void(unsigned)> progressind):
-        _ArrBase<lnCircle>(bin, dist, progressind) {
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
 
         pconf_.object_function = [this, &bin] (const Item &item) {
 
@@ -393,6 +406,7 @@ public:
                                   bin_area_,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
 
             double score = std::get<0>(result);
@@ -421,8 +435,9 @@ template<>
 class AutoArranger<PolygonImpl>: public _ArrBase<PolygonImpl> {
 public:
     AutoArranger(const PolygonImpl& bin, Distance dist,
-                 std::function<void(unsigned)> progressind):
-        _ArrBase<PolygonImpl>(bin, dist, progressind)
+                 std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<PolygonImpl>(bin, dist, progressind, stopcond)
     {
         pconf_.object_function = [this, &bin] (const Item &item) {
 
@@ -435,6 +450,7 @@ public:
                                   bin_area_,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
             double score = std::get<0>(result);
 
@@ -449,8 +465,9 @@ template<> // Specialization with no bin
 class AutoArranger<bool>: public _ArrBase<Box> {
 public:
 
-    AutoArranger(Distance dist, std::function<void(unsigned)> progressind):
-        _ArrBase<Box>(Box(0, 0), dist, progressind)
+    AutoArranger(Distance dist, std::function<void(unsigned)> progressind,
+                 std::function<bool(void)> stopcond):
+        _ArrBase<Box>(Box(0, 0), dist, progressind, stopcond)
     {
         this->pconf_.object_function = [this] (const Item &item) {
 
@@ -462,6 +479,7 @@ public:
                                   0,
                                   norm_,
                                   rtree_,
+                                  smallsrtree_,
                                   remaining_);
             return std::get<0>(result);
         };
@@ -511,8 +529,13 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     if(item.vertexCount() > 3) {
                         item.rotation(objinst->rotation);
                         item.translation( {
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                            ClipperLib::cInt(objinst->get_offset(X) / SCALING_FACTOR),
+                            ClipperLib::cInt(objinst->get_offset(Y) / SCALING_FACTOR)
+#else
                             ClipperLib::cInt(objinst->offset(0)/SCALING_FACTOR),
                             ClipperLib::cInt(objinst->offset(1)/SCALING_FACTOR)
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                         });
                         ret.emplace_back(objinst, item);
                     }
@@ -649,11 +672,19 @@ void applyResult(
         // appropriately
         auto off = item.translation();
         Radians rot = item.rotation();
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        Vec3d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR, 0.0);
+#else
         Vec2d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
         // write the tranformation data into the model instance
         inst_ptr->rotation = rot;
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        inst_ptr->set_offset(foff);
+#else
         inst_ptr->offset = foff;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
     }
 }
 
@@ -680,12 +711,16 @@ void applyResult(
  * remaining items which do not fit onto the print area next to the print
  * bed or leave them untouched (let the user arrange them by hand or remove
  * them).
+ * \param progressind Progress indicator callback called when an object gets
+ * packed. The unsigned argument is the number of items remaining to pack.
+ * \param stopcondition A predicate returning true if abort is needed.
  */
 bool arrange(Model &model, coordf_t min_obj_distance,
              const Slic3r::Polyline& bed,
              BedShapeHint bedhint,
              bool first_bin_only,
-             std::function<void(unsigned)> progressind)
+             std::function<void(unsigned)> progressind,
+             std::function<bool(void)> stopcondition)
 {
     using ArrangeResult = _IndexedPackGroup<PolygonImpl>;
 
@@ -710,6 +745,8 @@ bool arrange(Model &model, coordf_t min_obj_distance,
 
     BoundingBox bbb(bed);
 
+    auto& cfn = stopcondition;
+
     auto binbb = Box({
                          static_cast<libnest2d::Coord>(bbb.min(0)),
                          static_cast<libnest2d::Coord>(bbb.min(1))
@@ -723,7 +760,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
     case BedShapeType::BOX: {
 
         // Create the arranger for the box shaped bed
-        AutoArranger<Box> arrange(binbb, min_obj_distance, progressind);
+        AutoArranger<Box> arrange(binbb, min_obj_distance, progressind, cfn);
 
         // Arrange and return the items with their respective indices within the
         // input sequence.
@@ -735,7 +772,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         auto c = bedhint.shape.circ;
         auto cc = lnCircle(c);
 
-        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind);
+        AutoArranger<lnCircle> arrange(cc, min_obj_distance, progressind, cfn);
         result = arrange(shapes.begin(), shapes.end());
         break;
     }
@@ -747,7 +784,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
         auto ctour = Slic3rMultiPoint_to_ClipperPath(bed);
         P irrbed = sl::create<PolygonImpl>(std::move(ctour));
 
-        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind);
+        AutoArranger<P> arrange(irrbed, min_obj_distance, progressind, cfn);
 
         // Arrange and return the items with their respective indices within the
         // input sequence.
@@ -756,7 +793,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
     }
     };
 
-    if(result.empty()) return false;
+    if(result.empty() || stopcondition()) return false;
 
     if(first_bin_only) {
         applyResult(result.front(), 0, shapemap);

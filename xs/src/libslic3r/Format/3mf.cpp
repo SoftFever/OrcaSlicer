@@ -71,6 +71,7 @@ const char* VOLUME_TYPE = "volume";
 
 const char* NAME_KEY = "name";
 const char* MODIFIER_KEY = "modifier";
+const char* VOLUME_TYPE_KEY = "volume_type";
 
 const unsigned int VALID_OBJECT_TYPES_COUNT = 1;
 const char* VALID_OBJECT_TYPES[] =
@@ -1252,9 +1253,13 @@ namespace Slic3r {
         // we extract from the given matrix only the values currently used
 
         // translation
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        Vec3d offset(transform(0, 3), transform(1, 3), transform(2, 3));
+#else
         double offset_x = transform(0, 3);
         double offset_y = transform(1, 3);
         double offset_z = transform(2, 3);
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
         // scale
         double sx = ::sqrt(sqr(transform(0, 0)) + sqr(transform(1, 0)) + sqr(transform(2, 0)));
@@ -1287,8 +1292,12 @@ namespace Slic3r {
 
         double angle_z = (rotation.axis() == Vec3d::UnitZ()) ? rotation.angle() : -rotation.angle();
 
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+        instance.set_offset(offset);
+#else
         instance.offset(0) = offset_x;
         instance.offset(1) = offset_y;
+#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         instance.scaling_factor = sx;
         instance.rotation = angle_z;
     }
@@ -1434,7 +1443,9 @@ namespace Slic3r {
                 if (metadata.key == NAME_KEY)
                     volume->name = metadata.value;
                 else if ((metadata.key == MODIFIER_KEY) && (metadata.value == "1"))
-                    volume->modifier = true;
+                    volume->set_type(ModelVolume::PARAMETER_MODIFIER);
+                else if (metadata.key == VOLUME_TYPE_KEY)
+                    volume->set_type(ModelVolume::type_from_string(metadata.value));
                 else
                     volume->config.set_deserialize(metadata.key, metadata.value);
             }
@@ -1949,9 +1960,12 @@ namespace Slic3r {
                             if (!volume->name.empty())
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << NAME_KEY << "\" " << VALUE_ATTR << "=\"" << xml_escape(volume->name) << "\"/>\n";
 
-                            // stores volume's modifier field
-                            if (volume->modifier)
+                            // stores volume's modifier field (legacy, to support old slicers)
+                            if (volume->is_modifier())
                                 stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << MODIFIER_KEY << "\" " << VALUE_ATTR << "=\"1\"/>\n";
+                            // stores volume's type (overrides the modifier field above)
+                            stream << "   <" << METADATA_TAG << " " << TYPE_ATTR << "=\"" << VOLUME_TYPE << "\" " << KEY_ATTR << "=\"" << VOLUME_TYPE_KEY << "\" " << 
+                                VALUE_ATTR << "=\"" << ModelVolume::type_to_string(volume->type()) << "\"/>\n";
 
                             // stores volume's config data
                             for (const std::string& key : volume->config.keys())

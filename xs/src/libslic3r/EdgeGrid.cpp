@@ -1225,8 +1225,10 @@ bool EdgeGrid::Grid::signed_distance(const Point &pt, coord_t search_radius, coo
 	return true;
 }
 
-Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
+Polygons EdgeGrid::Grid::contours_simplified(coord_t offset, bool fill_holes) const
 {
+	assert(std::abs(2 * offset) < m_resolution);
+
 	typedef std::unordered_multimap<Point, int, PointHash> EndPointMapType;
 	// 0) Prepare a binary grid.
 	size_t cell_rows = m_rows + 2;
@@ -1237,7 +1239,7 @@ Polygons EdgeGrid::Grid::contours_simplified(coord_t offset) const
 			cell_inside[r * cell_cols + c] = cell_inside_or_crossing(r - 1, c - 1);
 	// Fill in empty cells, which have a left / right neighbor filled.
 	// Fill in empty cells, which have the top / bottom neighbor filled.
-	{
+	if (fill_holes) {
 		std::vector<char> cell_inside2(cell_inside);
 		for (int r = 1; r + 1 < int(cell_rows); ++ r) {
 			for (int c = 1; c + 1 < int(cell_cols); ++ c) {
