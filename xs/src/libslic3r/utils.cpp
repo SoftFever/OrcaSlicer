@@ -205,7 +205,7 @@ int rename_file(const std::string &from, const std::string &to)
 
 #else
 
-	boost::nowide::remove(from.c_str());
+	boost::nowide::remove(to.c_str());
 	ec = boost::nowide::rename(from.c_str(), to.c_str());
 
 #endif

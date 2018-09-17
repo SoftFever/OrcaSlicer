@@ -1,7 +1,7 @@
 #include "PostProcessor.hpp"
 
-
-#ifdef WIN32
+#if 1
+//#ifdef WIN32
 
 namespace Slic3r {
 

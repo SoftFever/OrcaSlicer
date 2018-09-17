@@ -2,6 +2,7 @@
 #define slic3r_Print_hpp_
 
 #include "libslic3r.h"
+#include <atomic>
 #include <set>
 #include <vector>
 #include <string>
