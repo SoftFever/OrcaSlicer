@@ -340,7 +340,7 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
     Pointfs model_sizes(copies_num-1, to_2d(this->bounding_box().size()));
     Pointfs positions;
     if (! _arrange(model_sizes, dist, bb, positions))
-        CONFESS("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
+        throw std::invalid_argument("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
     
     // note that this will leave the object count unaltered
     
@@ -671,7 +671,8 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
     BoundingBoxf3 bb;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part()) {
-            if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
+            if (this->instances.empty())
+                throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
             bb.merge(this->instances.front()->transform_mesh_bounding_box(&v->mesh, true));
         }
     return bb;

@@ -77,7 +77,8 @@ Polylines PolylineCollection::_chained_path_from(
 
 Point PolylineCollection::leftmost_point(const Polylines &polylines)
 {
-    if (polylines.empty()) CONFESS("leftmost_point() called on empty PolylineCollection");
+    if (polylines.empty())
+        throw std::invalid_argument("leftmost_point() called on empty PolylineCollection");
     Polylines::const_iterator it = polylines.begin();
     Point p = it->leftmost_point();
     for (++ it; it != polylines.end(); ++it) {

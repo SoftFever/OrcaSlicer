@@ -25,7 +25,7 @@ Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool fir
         } else if (role == frTopSolidInfill) {
             config_width = m_config.top_infill_extrusion_width;
         } else {
-            CONFESS("Unknown role");
+            throw std::invalid_argument("Unknown role");
         }
     }
     if (config_width.value == 0) {
@@ -42,7 +42,7 @@ Flow PrintRegion::flow(FlowRole role, double layer_height, bool bridge, bool fir
     } else if (role == frSolidInfill || role == frTopSolidInfill) {
         extruder = m_config.solid_infill_extruder;
     } else {
-        CONFESS("Unknown role $role");
+        throw std::invalid_argument("Unknown role");
     }
     double nozzle_diameter = m_print->config().nozzle_diameter.get_at(extruder-1);
     

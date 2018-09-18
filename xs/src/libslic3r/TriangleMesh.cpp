@@ -308,7 +308,8 @@ void TriangleMesh::rotate(double angle, Point* center)
 bool TriangleMesh::has_multiple_patches() const
 {
     // we need neighbors
-    if (!this->repaired) CONFESS("split() requires repair()");
+    if (!this->repaired)
+        throw std::runtime_error("split() requires repair()");
     
     if (this->stl.stats.number_of_facets == 0)
         return false;
@@ -338,7 +339,8 @@ bool TriangleMesh::has_multiple_patches() const
 size_t TriangleMesh::number_of_patches() const
 {
     // we need neighbors
-    if (!this->repaired) CONFESS("split() requires repair()");
+    if (!this->repaired)
+        throw std::runtime_error("split() requires repair()");
     
     if (this->stl.stats.number_of_facets == 0)
         return false;
@@ -382,7 +384,7 @@ TriangleMeshPtrs TriangleMesh::split() const
     
     // we need neighbors
     if (!this->repaired)
-        CONFESS("split() requires repair()");
+        throw std::runtime_error("split() requires repair()");
     
     // loop while we have remaining facets
     for (;;) {

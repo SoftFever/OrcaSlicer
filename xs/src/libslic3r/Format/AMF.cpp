@@ -800,7 +800,7 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
         for (ModelVolume *volume : object->volumes) {
             vertices_offsets.push_back(num_vertices);
             if (! volume->mesh.repaired) 
-                CONFESS("store_amf() requires repair()");
+                throw std::runtime_error("store_amf() requires repair()");
             auto &stl = volume->mesh.stl;
             if (stl.v_shared == nullptr)
                 stl_generate_shared_vertices(&stl);

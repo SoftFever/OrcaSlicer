@@ -18,7 +18,8 @@ Polyline::operator Polylines() const
 
 Polyline::operator Line() const
 {
-    if (this->points.size() > 2) CONFESS("Can't convert polyline with more than two points to a line");
+    if (this->points.size() > 2) 
+        throw std::invalid_argument("Can't convert polyline with more than two points to a line");
     return Line(this->points.front(), this->points.back());
 }
 

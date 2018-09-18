@@ -28,7 +28,7 @@ Flow Flow::new_from_config_width(FlowRole role, const ConfigOptionFloatOrPercent
 {
     // we need layer height unless it's a bridge
     if (height <= 0 && bridge_flow_ratio == 0) 
-        CONFESS("Invalid flow height supplied to new_from_config_width()");
+        throw std::invalid_argument("Invalid flow height supplied to new_from_config_width()");
 
     float w;
     if (bridge_flow_ratio > 0) {
@@ -53,7 +53,7 @@ Flow Flow::new_from_spacing(float spacing, float nozzle_diameter, float height, 
 {
     // we need layer height unless it's a bridge
     if (height <= 0 && !bridge) 
-        CONFESS("Invalid flow height supplied to new_from_spacing()");
+        throw std::invalid_argument("Invalid flow height supplied to new_from_spacing()");
     // Calculate width from spacing.
     // For normal extrusons, extrusion width is wider than the spacing due to the rounding and squishing of the extrusions.
     // For bridge extrusions, the extrusions are placed with a tiny BRIDGE_EXTRA_SPACING gaps between the threads.

@@ -819,7 +819,8 @@ BoundingBox Print::total_bounding_box() const
 
 double Print::skirt_first_layer_height() const
 {
-    if (m_objects.empty()) CONFESS("skirt_first_layer_height() can't be called without PrintObjects");
+    if (m_objects.empty()) 
+        throw std::invalid_argument("skirt_first_layer_height() can't be called without PrintObjects");
     return m_objects.front()->config().get_abs_value("first_layer_height");
 }
 

@@ -4,7 +4,7 @@
 #include <memory>
 #include <functional>
 
-#include "../../libslic3r/Utils.hpp"
+#include "../../callback.hpp"
 
 class wxTimer;
 class wxGauge;

@@ -518,6 +518,8 @@ add_library(XS ${XS_SHARED_LIBRARY_TYPE}
     ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/slic3r/GUI/wxPerlIface.cpp
     ${LIBDIR}/perlglue.cpp
+    ${LIBDIR}/callback.cpp
+    ${LIBDIR}/callback.hpp
     ${LIBDIR}/ppport.h
     ${LIBDIR}/xsinit.h
     ${CMAKE_CURRENT_LIST_DIR}/xsp/my.map

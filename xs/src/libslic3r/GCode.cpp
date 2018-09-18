@@ -2204,7 +2204,7 @@ std::string GCode::extrude_entity(const ExtrusionEntity &entity, std::string des
     else if (const ExtrusionLoop* loop = dynamic_cast<const ExtrusionLoop*>(&entity))
         return this->extrude_loop(*loop, description, speed, lower_layer_edge_grid);
     else {
-        CONFESS("Invalid argument supplied to extrude()");
+        throw std::invalid_argument("Invalid argument supplied to extrude()");
         return "";
     }
 }
@@ -2389,7 +2389,7 @@ std::string GCode::_extrude(const ExtrusionPath &path, std::string description, 
         } else if (path.role() == erGapFill) {
             speed = m_config.get_abs_value("gap_fill_speed");
         } else {
-            CONFESS("Invalid speed");
+            throw std::invalid_argument("Invalid speed");
         }
     }
     if (this->on_first_layer())
@@ -2715,7 +2715,7 @@ void GCode::ObjectByExtruder::Island::Region::append(const std::string& type, co
     }
     else
         if (type != "infills") {
-            CONFESS("Unknown parameter!");
+            throw std::invalid_argument("Unknown parameter!");
             return;
         }
 

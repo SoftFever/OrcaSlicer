@@ -14,8 +14,6 @@
 
 using namespace Slic3r;
 
-void confess_at(const char *file, int line, const char *func, const char *pat, ...){}
-
 int
 main(int argc, char **argv)
 {
