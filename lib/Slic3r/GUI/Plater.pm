@@ -328,7 +328,8 @@ sub new {
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
 #======================================================================================================================================
-        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D}) && ($preview != $self->{preview_iface})) {
+        my $page_id = $self->{preview_notebook}->GetSelection;
+        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D}) && ($page_id != $self->{preview_page_idx})) {
 #        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
 #======================================================================================================================================
             $preview->OnActivate if $preview->can('OnActivate');        
@@ -337,7 +338,7 @@ sub new {
             # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
             Slic3r::GUI::_3DScene::set_as_dirty($self->{preview3D}->canvas);
 #======================================================================================================================================
-        } elsif ($preview == $self->{preview_iface}) {
+        } elsif ($page_id == $self->{preview_page_idx}) {
             $self->{preview_iface}->reload_print;
             # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
             $self->{preview_iface}->set_canvas_as_dirty;
