@@ -59,6 +59,9 @@ void show_error_id(int id, std::string msg)
 TabIface* get_preset_tab(char *name)
     %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};
 
+PreviewIface* create_preview_iface(SV *ui, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
+    %code%{ RETVAL=Slic3r::GUI::create_preview_iface((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook"), config, print, gcode_preview_data); %};
+
 bool load_language()
     %code%{ RETVAL=Slic3r::GUI::load_language(); %};
 

@@ -296,29 +296,52 @@ sub new {
             }
         });
 
-        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
+#======================================================================================================================================
+        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D},
+        sub {
+            Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
+            $self->{preview_iface}->set_viewport_from_scene($self->{canvas3D});
+        });
+#        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
+#======================================================================================================================================
     }
 
     Slic3r::GUI::register_on_request_update_callback(sub { $self->schedule_background_process; });
     
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
+#======================================================================================================================================
+        $self->{preview_iface} = Slic3r::GUI::create_preview_iface($self->{preview_notebook}, $self->{config}, $self->{print}, $self->{gcode_preview_data});
+        $self->{preview_page_idx} = $self->{preview_notebook}->GetPageCount-1;        
+#======================================================================================================================================        
         $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
         Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
         Slic3r::GUI::_3DScene::enable_dynamic_background($self->{preview3D}->canvas, 1);
         Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
+#======================================================================================================================================
+        $self->{preview_iface}->register_on_viewport_changed_callback(sub { $self->{preview_iface}->set_viewport_into_scene($self->{canvas3D}); });
+#======================================================================================================================================
         $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
     }
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
-        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
+#======================================================================================================================================
+        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D}) && ($preview != $self->{preview_iface})) {
+#        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
+#======================================================================================================================================
             $preview->OnActivate if $preview->can('OnActivate');        
         } elsif ($preview == $self->{preview3D}) {
             $self->{preview3D}->reload_print;
             # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
             Slic3r::GUI::_3DScene::set_as_dirty($self->{preview3D}->canvas);
+#======================================================================================================================================
+        } elsif ($preview == $self->{preview_iface}) {
+            $self->{preview_iface}->reload_print;
+            # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
+            $self->{preview_iface}->set_canvas_as_dirty;
+#======================================================================================================================================
         } elsif ($preview == $self->{canvas3D}) {
             if (Slic3r::GUI::_3DScene::is_reload_delayed($self->{canvas3D})) {
                 my $selections = $self->collect_selections;
@@ -461,7 +484,10 @@ sub new {
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for grep defined($_),
-            $self, $self->{canvas3D}, $self->{preview3D}, $self->{list};
+#======================================================================================================================================
+            $self, $self->{canvas3D}, $self->{preview3D}, $self->{preview_iface}, $self->{list};
+#            $self, $self->{canvas3D}, $self->{preview3D}, $self->{list};
+#======================================================================================================================================
 #            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D};
     
     EVT_COMMAND($self, -1, $SLICING_COMPLETED_EVENT, sub {
@@ -491,6 +517,9 @@ sub new {
     if ($self->{preview3D}) {
         Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape);
     }
+#======================================================================================================================================
+    $self->{preview_iface}->set_bed_shape($self->{config}->bed_shape) if ($self->{preview_iface});
+#======================================================================================================================================
     $self->update;
     
     {
@@ -1006,6 +1035,9 @@ sub remove {
     
     # Prevent toolpaths preview from rendering while we modify the Print object
     $self->{preview3D}->enabled(0) if $self->{preview3D};
+#======================================================================================================================================
+    $self->{preview_iface}->set_enabled(0) if $self->{preview_iface};
+#======================================================================================================================================
     
     # If no object index is supplied, remove the selected one.
     if (! defined $obj_idx) {
@@ -1031,6 +1063,9 @@ sub reset {
     
     # Prevent toolpaths preview from rendering while we modify the Print object
     $self->{preview3D}->enabled(0) if $self->{preview3D};
+#======================================================================================================================================
+    $self->{preview_iface}->set_enabled(0) if $self->{preview_iface};
+#======================================================================================================================================
     
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
@@ -1392,6 +1427,9 @@ sub async_apply_config {
             # Otherwise they will be just refreshed.
             $self->{gcode_preview_data}->reset;
             $self->{preview3D}->reload_print if $self->{preview3D};
+#======================================================================================================================================
+            $self->{preview_iface}->reload_print if $self->{preview_iface};
+#======================================================================================================================================
             # We also need to reload 3D scene because of the wipe tower preview box
             if ($self->{config}->wipe_tower) {
                 my $selections = $self->collect_selections;
@@ -1427,6 +1465,9 @@ sub stop_background_process {
     my ($self) = @_;
     $self->{background_slicing_process}->stop();
     $self->{preview3D}->reload_print if $self->{preview3D};
+#======================================================================================================================================
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#======================================================================================================================================
 }
 
 # Called by the "Slice now" button, which is visible only if the background processing is disabled.
@@ -1533,6 +1574,9 @@ sub export_gcode {
 sub on_update_print_preview {
     my ($self) = @_;
     $self->{preview3D}->reload_print if $self->{preview3D};
+#======================================================================================================================================
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#======================================================================================================================================
 
     # in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     my $selections = $self->collect_selections;
@@ -1614,6 +1658,9 @@ sub on_process_completed {
     
     # refresh preview
     $self->{preview3D}->reload_print if $self->{preview3D};
+#======================================================================================================================================
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#======================================================================================================================================
 }
 
 # Fill in the "Sliced info" box with the result of the G-code generator.
@@ -1883,6 +1930,10 @@ sub update {
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
     $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
     $self->{preview3D}->reload_print if $self->{preview3D};
+#======================================================================================================================================
+    $self->{preview_iface}->reset_gcode_preview_data if $self->{preview_iface};
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#======================================================================================================================================
     $self->schedule_background_process;
     $self->Thaw;
 }
@@ -1959,6 +2010,9 @@ sub on_config_change {
 #            $self->{canvas}->update_bed_size;
             Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
             Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
+#======================================================================================================================================
+            $self->{preview_iface}->set_bed_shape($self->{config}->bed_shape) if ($self->{preview_iface});
+#======================================================================================================================================
             $update_scheduled = 1;
         } elsif ($opt_key =~ '^wipe_tower' || $opt_key eq 'single_extruder_multi_material') {
             $update_scheduled = 1;
@@ -1994,12 +2048,18 @@ sub on_config_change {
             $update_scheduled = 1;
             my $extruder_colors = $config->get('extruder_colour');
             $self->{preview3D}->set_number_extruders(scalar(@{$extruder_colors}));
+#======================================================================================================================================
+            $self->{preview_iface}->set_number_extruders(scalar(@{$extruder_colors}));
+#======================================================================================================================================
         } elsif ($opt_key eq 'max_print_height') {
             $update_scheduled = 1;
         } elsif ($opt_key eq 'printer_model') {
             # update to force bed selection (for texturing)
             Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
             Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
+#======================================================================================================================================
+            $self->{preview_iface}->set_bed_shape($self->{config}->bed_shape) if ($self->{preview_iface});
+#======================================================================================================================================
             $update_scheduled = 1;
         }
     }
@@ -2450,12 +2510,24 @@ sub select_view {
     my ($self, $direction) = @_;
     my $idx_page = $self->{preview_notebook}->GetSelection;
     my $page = ($idx_page == &Wx::wxNOT_FOUND) ? L('3D') : $self->{preview_notebook}->GetPageText($idx_page);
-    if ($page eq L('Preview')) {
-        Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
-        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
+#======================================================================================================================================
+    if (($page eq L('Preview')) || ($page eq L('_Preview_'))) {
+#======================================================================================================================================
+        if ($page eq L('Preview')) {
+            Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
+            Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
+#======================================================================================================================================
+        } else {
+            $self->{preview_iface}->select_view($direction);
+            $self->{preview_iface}->set_viewport_into_scene($self->{canvas3D});
+        }
+#======================================================================================================================================            
     } else {
         Slic3r::GUI::_3DScene::select_view($self->{canvas3D}, $direction);
         Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
+#======================================================================================================================================            
+        $self->{preview_iface}->set_viewport_from_scene($self->{canvas3D});
+#======================================================================================================================================            
     }
 }
 

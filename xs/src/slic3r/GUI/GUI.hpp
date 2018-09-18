@@ -39,6 +39,11 @@ class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+//##############################################################################################################################################################
+class PreviewIface;
+class Print;
+class GCodePreviewData;
+//##############################################################################################################################################################
 
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
@@ -164,6 +169,10 @@ extern void open_preferences_dialog(int event_preferences);
 // Create a new preset tab (print, filament and printer),
 void create_preset_tabs(int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
+
+//##############################################################################################################################################################
+PreviewIface* create_preview_iface(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
+//##############################################################################################################################################################
 
 // add it at the end of the tab panel.
 void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
