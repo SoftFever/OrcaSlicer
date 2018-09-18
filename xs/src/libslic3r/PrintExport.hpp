@@ -7,9 +7,9 @@
 #include <fstream>
 #include <sstream>
 
-#include <wx/stdstream.h>
-#include <wx/wfstream.h>
-#include <wx/zipstrm.h>
+//#include <wx/stdstream.h>
+//#include <wx/wfstream.h>
+//#include <wx/zipstrm.h>
 
 #include <boost/log/trivial.hpp>
 
@@ -32,7 +32,7 @@ enum class FilePrinterFormat {
  * different implementations of this class template for each supported format.
  *
  */
-template<FilePrinterFormat format>
+template<FilePrinterFormat format, class LayerFormat = void>
 class FilePrinter {
 public:
 
@@ -73,10 +73,35 @@ public:
     void saveLayer(unsigned lyr, const std::string& path);
 };
 
+template<class T = void> struct VeryFalse { static const bool value = false; };
+
+// This has to be explicitly implemented in the gui layer or a default zlib
+// based implementation is needed.
+template<class Backend> class Zipper {
+public:
+
+    Zipper(const std::string& /*zipfile_path*/) {
+        static_assert(Backend>::value,
+                      "No zipper implementation provided!");
+    }
+
+    void next_entry(const std::string& /*fname*/) {}
+
+    bool is_ok() { return false; }
+
+    std::string get_name() { return ""; }
+
+    template<class T> Zipper& operator<<(const T& /*arg*/) {
+        return *this;
+    }
+
+    void close() {}
+};
+
 // Implementation for PNG raster output
 // Be aware that if a large number of layers are allocated, it can very well
 // exhaust the available memory especially on 32 bit platform.
-template<> class FilePrinter<FilePrinterFormat::PNG> {
+template<class LyrFormat> class FilePrinter<FilePrinterFormat::PNG, LyrFormat> {
 
     struct Layer {
         Raster first;
@@ -148,7 +173,7 @@ public:
         pxdim_(m.pxdim_) {}
 
     inline void layers(unsigned cnt) { if(cnt > 0) layers_rst_.resize(cnt); }
-    inline unsigned layers() const { return layers_rst_.size(); }
+    inline unsigned layers() const { return unsigned(layers_rst_.size()); }
 
     void printConfig(const Print& printconf) { print_ = &printconf; }
 
@@ -184,37 +209,63 @@ public:
 
     inline void save(const std::string& path) {
 
-        wxFileName filepath(path);
+        Zipper<LyrFormat> zipper(path);
 
-        wxFFileOutputStream zipfile(path);
+        std::string project = zipper.get_name();
 
-        std::string project = filepath.GetName().ToStdString();
-
-        if(!zipfile.IsOk()) {
+        if(!zipper.is_ok()) {
             BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "
                                      << path;
             return;
         }
 
-        wxZipOutputStream zipstream(zipfile);
-        wxStdOutputStream pngstream(zipstream);
-
-        zipstream.PutNextEntry("config.ini");
-        pngstream << createIniContent(project);
+        zipper.next_entry(project);
+        zipper << createIniContent(project);
 
         for(unsigned i = 0; i < layers_rst_.size(); i++) {
             if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
                 char lyrnum[6];
                 std::sprintf(lyrnum, "%.5d", i);
                 auto zfilename = project + lyrnum + ".png";
-                zipstream.PutNextEntry(zfilename);
-                pngstream << layers_rst_[i].second.rdbuf();
+                zipper.next_entry(zfilename);
+                zipper << layers_rst_[i].second.rdbuf();
                 layers_rst_[i].second.str("");
             }
         }
 
-        zipstream.Close();
-        zipfile.Close();
+        zipper.close();
+
+//        wxFileName filepath(path);
+
+//        wxFFileOutputStream zipfile(path);
+
+//        std::string project = filepath.GetName().ToStdString();
+
+//        if(!zipfile.IsOk()) {
+//            BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "
+//                                     << path;
+//            return;
+//        }
+
+//        wxZipOutputStream zipstream(zipfile);
+//        wxStdOutputStream pngstream(zipstream);
+
+//        zipstream.PutNextEntry("config.ini");
+//        pngstream << createIniContent(project);
+
+//        for(unsigned i = 0; i < layers_rst_.size(); i++) {
+//            if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
+//                char lyrnum[6];
+//                std::sprintf(lyrnum, "%.5d", i);
+//                auto zfilename = project + lyrnum + ".png";
+//                zipstream.PutNextEntry(zfilename);
+//                pngstream << layers_rst_[i].second.rdbuf();
+//                layers_rst_[i].second.str("");
+//            }
+//        }
+
+//        zipstream.Close();
+//        zipfile.Close();
     }
 
     void saveLayer(unsigned lyr, const std::string& path) {

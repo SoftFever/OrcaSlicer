@@ -1341,22 +1341,22 @@ std::string Print::output_filepath(const std::string &path) const
 
 void Print::export_png(const std::string &dirpath)
 {
-    size_t idx = 0;
-    for (PrintObject *obj : m_objects) {
-        obj->slice();
-        this->set_status(int(floor(idx * 100. / m_objects.size() + 0.5)), "Slicing...");
-        ++ idx;
-    }
-    this->set_status(90, "Exporting zipped archive...");
-    print_to<FilePrinterFormat::PNG>(*this,
-        dirpath,
-        float(m_config.bed_size_x.value),
-        float(m_config.bed_size_y.value),
-        int(m_config.pixel_width.value),
-        int(m_config.pixel_height.value),
-        float(m_config.exp_time.value),
-        float(m_config.exp_time_first.value));
-    this->set_status(100, "Done.");
+//    size_t idx = 0;
+//    for (PrintObject *obj : m_objects) {
+//        obj->slice();
+//        this->set_status(int(floor(idx * 100. / m_objects.size() + 0.5)), "Slicing...");
+//        ++ idx;
+//    }
+//    this->set_status(90, "Exporting zipped archive...");
+//    print_to<FilePrinterFormat::PNG>(*this,
+//        dirpath,
+//        float(m_config.bed_size_x.value),
+//        float(m_config.bed_size_y.value),
+//        int(m_config.pixel_width.value),
+//        int(m_config.pixel_height.value),
+//        float(m_config.exp_time.value),
+//        float(m_config.exp_time_first.value));
+//    this->set_status(100, "Done.");
 }
 
 // Returns extruder this eec should be printed with, according to PrintRegion config
