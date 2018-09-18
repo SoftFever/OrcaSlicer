@@ -42,7 +42,7 @@ Preview::Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print,
 {
     if (init(notebook, config, print, gcode_preview_data))
     {
-        notebook->AddPage(this, _(L("_Preview_")));
+        notebook->AddPage(this, _(L("Preview")));
         show_hide_ui_elements("none");
         load_print();
     }
