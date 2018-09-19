@@ -14,31 +14,31 @@ public:
     using CancelFn = std::function<void(void)>; // Cancel function signature.
 
 private:
-    float state_ = .0f, max_ = 1.f, step_;
-    CancelFn cancelfunc_ = [](){};
+    float m_state = .0f, m_max = 1.f, m_step;
+    CancelFn m_cancelfunc = [](){};
 
 public:
 
     inline virtual ~ProgressIndicator() {}
 
     /// Get the maximum of the progress range.
-    float max() const { return max_; }
+    float max() const { return m_max; }
 
     /// Get the current progress state
-    float state() const { return state_; }
+    float state() const { return m_state; }
 
     /// Set the maximum of the progress range
-    virtual void max(float maxval) { max_ = maxval; }
+    virtual void max(float maxval) { m_max = maxval; }
 
     /// Set the current state of the progress.
-    virtual void state(float val)  { state_ = val; }
+    virtual void state(float val)  { m_state = val; }
 
     /**
      * @brief Number of states int the progress. Can be used instead of giving a
      * maximum value.
      */
     virtual void states(unsigned statenum) {
-        step_ = max_ / statenum;
+        m_step = m_max / statenum;
     }
 
     /// Message shown on the next status update.
@@ -51,13 +51,13 @@ public:
     virtual void message_fmt(const std::string& fmt, ...);
 
     /// Set up a cancel callback for the operation if feasible.
-    virtual void on_cancel(CancelFn func = CancelFn()) { cancelfunc_ = func; }
+    virtual void on_cancel(CancelFn func = CancelFn()) { m_cancelfunc = func; }
 
     /**
      * Explicitly shut down the progress indicator and call the associated
      * callback.
      */
-    virtual void cancel() { cancelfunc_(); }
+    virtual void cancel() { m_cancelfunc(); }
 
     /// Convenience function to call message and status update in one function.
     void update(float st, const std::string& msg) {

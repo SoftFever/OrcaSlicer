@@ -42,7 +42,7 @@ private:
     class PriData;   // Some structure to store progress indication data
 
     // Pimpl data for thread safe progress indication features
-    std::unique_ptr<PriData> pri_data_;
+    std::unique_ptr<PriData> m_pri_data;
 
 public:
 
@@ -67,7 +67,7 @@ public:
      * It should display a file chooser dialog in case of a UI application.
      * @param title Title of a possible query dialog.
      * @param extensions Recognized file extensions.
-     * @return Returns a list of paths choosed by the user.
+     * @return Returns a list of paths chosen by the user.
      */
     PathList query_destination_paths(
             const std::string& title,
@@ -162,7 +162,7 @@ protected:
 
     // This is a global progress indicator placeholder. In the Slic3r UI it can
     // contain the progress indicator on the statusbar.
-    ProgresIndicatorPtr global_progressind_;
+    ProgresIndicatorPtr m_global_progressind;
 };
 
 class Zipper {
@@ -186,17 +186,9 @@ public:
  * @brief Implementation of the printing logic.
  */
 class PrintController: public AppControllerBoilerplate {
-    Print *print_ = nullptr;
-    std::function<void()> rempools_;
+    Print *m_print = nullptr;
+    std::function<void()> m_rempools;
 protected:
-
-    void make_skirt() {}
-    void make_brim() {}
-    void make_wipe_tower() {}
-
-    void make_perimeters(PrintObject *pobj) {}
-    void infill(PrintObject *pobj) {}
-    void gen_support_material(PrintObject *pobj) {}
 
     // Data structure with the png export input data
     struct PngExportData {
@@ -215,20 +207,14 @@ protected:
     PngExportData query_png_export_data(const DynamicPrintConfig&);
 
     // The previous export data, to pre-populate the dialog
-    PngExportData prev_expdata_;
-
-    /**
-     * @brief Slice one pront object.
-     * @param pobj The print object.
-     */
-    void slice(PrintObject *pobj);
+    PngExportData m_prev_expdata;
 
     void slice(ProgresIndicatorPtr pri);
 
 public:
 
     // Must be public for perl to use it
-    explicit inline PrintController(Print *print): print_(print) {}
+    explicit inline PrintController(Print *print): m_print(print) {}
 
     PrintController(const PrintController&) = delete;
     PrintController(PrintController&&) = delete;
@@ -256,9 +242,9 @@ public:
  * @brief Top level controller.
  */
 class AppController: public AppControllerBoilerplate {
-    Model *model_ = nullptr;
+    Model *m_model = nullptr;
     PrintController::Ptr printctl;
-    std::atomic<bool> arranging_;
+    std::atomic<bool> m_arranging;
 public:
 
     /**
@@ -275,7 +261,7 @@ public:
      * @param model A raw pointer to the model object. This can be used from
      * perl.
      */
-    void set_model(Model *model) { model_ = model; }
+    void set_model(Model *model) { m_model = model; }
 
     /**
      * @brief Set the print object from perl.

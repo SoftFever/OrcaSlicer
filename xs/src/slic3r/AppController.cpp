@@ -30,15 +30,15 @@ public:
 };
 
 AppControllerBoilerplate::AppControllerBoilerplate()
-    :pri_data_(new PriData(std::this_thread::get_id())) {}
+    :m_pri_data(new PriData(std::this_thread::get_id())) {}
 
 AppControllerBoilerplate::~AppControllerBoilerplate() {
-    pri_data_.reset();
+    m_pri_data.reset();
 }
 
 bool AppControllerBoilerplate::is_main_thread() const
 {
-    return pri_data_->ui_thread == std::this_thread::get_id();
+    return m_pri_data->ui_thread == std::this_thread::get_id();
 }
 
 namespace GUI {
@@ -58,9 +58,9 @@ AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::global_progress_indicator() {
     ProgresIndicatorPtr ret;
 
-    pri_data_->m.lock();
-    ret = global_progressind_;
-    pri_data_->m.unlock();
+    m_pri_data->m.lock();
+    ret = m_global_progressind;
+    m_pri_data->m.unlock();
 
     return ret;
 }
@@ -68,9 +68,9 @@ AppControllerBoilerplate::global_progress_indicator() {
 void AppControllerBoilerplate::global_progress_indicator(
         AppControllerBoilerplate::ProgresIndicatorPtr gpri)
 {
-    pri_data_->m.lock();
-    global_progressind_ = gpri;
-    pri_data_->m.unlock();
+    m_pri_data->m.lock();
+    m_global_progressind = gpri;
+    m_pri_data->m.unlock();
 }
 
 PrintController::PngExportData
@@ -104,11 +104,11 @@ PrintController::query_png_export_data(const DynamicPrintConfig& conf)
 
 void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 {
-    print_->set_status_callback([pri](int st, const std::string& msg){
+    m_print->set_status_callback([pri](int st, const std::string& msg){
         pri->update(unsigned(st), msg);
     });
 
-    print_->process();
+    m_print->process();
 }
 
 void PrintController::slice()
@@ -156,7 +156,7 @@ void PrintController::slice_to_png()
     auto exd = query_png_export_data(conf);
     if(exd.zippath.empty()) return;
 
-    Print *print = print_;
+    Print *print = m_print;
 
     try {
         print->apply_config(conf);
@@ -252,7 +252,7 @@ void PrintController::slice_to_png()
 
 const PrintConfig &PrintController::config() const
 {
-    return print_->config();
+    return m_print->config();
 }
 
 void ProgressIndicator::message_fmt(
@@ -286,13 +286,13 @@ void AppController::arrange_model()
 {
     using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
 
-    if(arranging_.load()) return;
+    if(m_arranging.load()) return;
 
     // to prevent UI reentrancies
-    arranging_.store(true);
+    m_arranging.store(true);
 
     unsigned count = 0;
-    for(auto obj : model_->objects) count += obj->instances.size();
+    for(auto obj : m_model->objects) count += obj->instances.size();
 
     auto pind = global_progress_indicator();
 
@@ -305,7 +305,7 @@ void AppController::arrange_model()
         pind->max(count);
 
         pind->on_cancel([this](){
-            arranging_.store(false);
+            m_arranging.store(false);
         });
     }
 
@@ -326,7 +326,7 @@ void AppController::arrange_model()
         // TODO: from Sasha from GUI
         hint.type = arr::BedShapeType::WHO_KNOWS;
 
-        arr::arrange(*model_,
+        arr::arrange(*m_model,
                       min_obj_distance,
                       bed,
                       hint,
@@ -336,7 +336,7 @@ void AppController::arrange_model()
                 pind->update(count - rem, L("Arranging objects..."));
 
             process_events();
-        }, [this] () { return !arranging_.load(); });
+        }, [this] () { return !m_arranging.load(); });
     } catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
         report_issue(IssueType::ERR,
@@ -348,13 +348,13 @@ void AppController::arrange_model()
     // Restore previous max value
     if(pind) {
         pind->max(pmax);
-        pind->update(0, arranging_.load() ? L("Arranging done.") :
+        pind->update(0, m_arranging.load() ? L("Arranging done.") :
                                             L("Arranging canceled."));
 
         pind->on_cancel(/*remove cancel function*/);
     }
 
-    arranging_.store(false);
+    m_arranging.store(false);
 }
 
 }

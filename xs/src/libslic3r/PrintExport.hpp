@@ -32,10 +32,10 @@ template<FilePrinterFormat format, class LayerFormat = void>
 class FilePrinter {
 public:
 
-    void printConfig(const Print&);
+    void print_config(const Print&);
 
     // Draw an ExPolygon which is a polygon inside a slice on the specified layer.
-    void drawPolygon(const ExPolygon& p, unsigned lyr);
+    void draw_polygon(const ExPolygon& p, unsigned lyr);
 
     // Tell the printer how many layers should it consider.
     void layers(unsigned layernum);
@@ -47,26 +47,26 @@ public:
      * specified layer number than an appropriate number of layers will be
      * allocated in the printer.
      */
-    void beginLayer(unsigned layer);
+    void begin_layer(unsigned layer);
 
     // Allocate a new layer on top of the last and switch to it.
-    void beginLayer();
+    void begin_layer();
 
     /*
      * Finish the selected layer. It means that no drawing is allowed on that
      * layer anymore. This fact can be used to prepare the file system output
      * data like png comprimation and so on.
      */
-    void finishLayer(unsigned layer);
+    void finish_layer(unsigned layer);
 
     // Finish the top layer.
-    void finishLayer();
+    void finish_layer();
 
     // Save all the layers into the file (or dir) specified in the path argument
     void save(const std::string& path);
 
     // Save only the selected layer to the file specified in path argument.
-    void saveLayer(unsigned lyr, const std::string& path);
+    void save_layer(unsigned lyr, const std::string& path);
 };
 
 template<class T = void> struct VeryFalse { static const bool value = false; };
@@ -112,22 +112,22 @@ template<class LyrFormat> class FilePrinter<FilePrinterFormat::PNG, LyrFormat> {
 
     // We will save the compressed PNG data into stringstreams which can be done
     // in parallel. Later we can write every layer to the disk sequentially.
-    std::vector<Layer> layers_rst_;
-    Raster::Resolution res_;
-    Raster::PixelDim pxdim_;
-    const Print *print_ = nullptr;
-    double exp_time_s_ = .0, exp_time_first_s_ = .0;
+    std::vector<Layer> m_layers_rst;
+    Raster::Resolution m_res;
+    Raster::PixelDim m_pxdim;
+    const Print *m_print = nullptr;
+    double m_exp_time_s = .0, m_exp_time_first_s = .0;
 
     std::string createIniContent(const std::string& projectname) {
-        double layer_height = print_?
-                    print_->default_object_config().layer_height.getFloat() :
+        double layer_height = m_print?
+                    m_print->default_object_config().layer_height.getFloat() :
                     0.05;
 
         using std::string;
         using std::to_string;
 
-        auto expt_str = to_string(exp_time_s_);
-        auto expt_first_str = to_string(exp_time_first_s_);
+        auto expt_str = to_string(m_exp_time_s);
+        auto expt_first_str = to_string(m_exp_time_first_s);
         auto stepnum_str = to_string(static_cast<unsigned>(800*layer_height));
         auto layerh_str = to_string(layer_height);
 
@@ -155,51 +155,51 @@ public:
     inline FilePrinter(double width_mm, double height_mm,
                        unsigned width_px, unsigned height_px,
                        double exp_time, double exp_time_first):
-        res_(width_px, height_px),
-        pxdim_(width_mm/width_px, height_mm/height_px),
-        exp_time_s_(exp_time),
-        exp_time_first_s_(exp_time_first)
+        m_res(width_px, height_px),
+        m_pxdim(width_mm/width_px, height_mm/height_px),
+        m_exp_time_s(exp_time),
+        m_exp_time_first_s(exp_time_first)
     {
     }
 
     FilePrinter(const FilePrinter& ) = delete;
     FilePrinter(FilePrinter&& m):
-        layers_rst_(std::move(m.layers_rst_)),
-        res_(m.res_),
-        pxdim_(m.pxdim_) {}
+        m_layers_rst(std::move(m.m_layers_rst)),
+        m_res(m.m_res),
+        m_pxdim(m.m_pxdim) {}
 
-    inline void layers(unsigned cnt) { if(cnt > 0) layers_rst_.resize(cnt); }
-    inline unsigned layers() const { return unsigned(layers_rst_.size()); }
+    inline void layers(unsigned cnt) { if(cnt > 0) m_layers_rst.resize(cnt); }
+    inline unsigned layers() const { return unsigned(m_layers_rst.size()); }
 
-    void printConfig(const Print& printconf) { print_ = &printconf; }
+    void print_config(const Print& printconf) { m_print = &printconf; }
 
-    inline void drawPolygon(const ExPolygon& p, unsigned lyr) {
-        assert(lyr < layers_rst_.size());
-        layers_rst_[lyr].first.draw(p);
+    inline void draw_polygon(const ExPolygon& p, unsigned lyr) {
+        assert(lyr < m_layers_rst.size());
+        m_layers_rst[lyr].first.draw(p);
     }
 
-    inline void beginLayer(unsigned lyr) {
-        if(layers_rst_.size() <= lyr) layers_rst_.resize(lyr+1);
-        layers_rst_[lyr].first.reset(res_, pxdim_, ORIGIN);
+    inline void begin_layer(unsigned lyr) {
+        if(m_layers_rst.size() <= lyr) m_layers_rst.resize(lyr+1);
+        m_layers_rst[lyr].first.reset(m_res, m_pxdim, ORIGIN);
     }
 
-    inline void beginLayer() {
-        layers_rst_.emplace_back();
-        layers_rst_.front().first.reset(res_, pxdim_, ORIGIN);
+    inline void begin_layer() {
+        m_layers_rst.emplace_back();
+        m_layers_rst.front().first.reset(m_res, m_pxdim, ORIGIN);
     }
 
-    inline void finishLayer(unsigned lyr_id) {
-        assert(lyr_id < layers_rst_.size());
-        layers_rst_[lyr_id].first.save(layers_rst_[lyr_id].second,
+    inline void finish_layer(unsigned lyr_id) {
+        assert(lyr_id < m_layers_rst.size());
+        m_layers_rst[lyr_id].first.save(m_layers_rst[lyr_id].second,
                                        Raster::Compression::PNG);
-        layers_rst_[lyr_id].first.reset();
+        m_layers_rst[lyr_id].first.reset();
     }
 
-    inline void finishLayer() {
-        if(!layers_rst_.empty()) {
-            layers_rst_.back().first.save(layers_rst_.back().second,
+    inline void finish_layer() {
+        if(!m_layers_rst.empty()) {
+            m_layers_rst.back().first.save(m_layers_rst.back().second,
                                           Raster::Compression::PNG);
-            layers_rst_.back().first.reset();
+            m_layers_rst.back().first.reset();
         }
     }
 
@@ -212,14 +212,14 @@ public:
             writer.next_entry("config.ini");
             writer << createIniContent(project);
 
-            for(unsigned i = 0; i < layers_rst_.size(); i++) {
-                if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
+            for(unsigned i = 0; i < m_layers_rst.size(); i++) {
+                if(m_layers_rst[i].second.rdbuf()->in_avail() > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
                     writer.next_entry(zfilename);
-                    writer << layers_rst_[i].second.rdbuf();
-                    layers_rst_[i].second.str("");
+                    writer << m_layers_rst[i].second.rdbuf();
+                    m_layers_rst[i].second.str("");
                 }
             }
 
@@ -230,9 +230,9 @@ public:
         }
     }
 
-    void saveLayer(unsigned lyr, const std::string& path) {
+    void save_layer(unsigned lyr, const std::string& path) {
         unsigned i = lyr;
-        assert(i < layers_rst_.size());
+        assert(i < m_layers_rst.size());
 
         char lyrnum[6];
         std::sprintf(lyrnum, "%.5d", lyr);
@@ -240,19 +240,19 @@ public:
 
         std::fstream out(loc, std::fstream::out | std::fstream::binary);
         if(out.good()) {
-            layers_rst_[i].first.save(out, Raster::Compression::PNG);
+            m_layers_rst[i].first.save(out, Raster::Compression::PNG);
         } else {
             BOOST_LOG_TRIVIAL(error) << "Can't create file for layer";
         }
 
         out.close();
-        layers_rst_[i].first.reset();
+        m_layers_rst[i].first.reset();
     }
 };
 
 // Let's shadow this eigen interface
-inline coord_t px(const Point& p) { return p(0); }
-inline coord_t py(const Point& p) { return p(1); }
+inline coord_t  px(const Point& p) { return p(0); }
+inline coord_t  py(const Point& p) { return p(1); }
 inline coordf_t px(const Vec2d& p) { return p(0); }
 inline coordf_t py(const Vec2d& p) { return p(1); }
 
@@ -306,7 +306,7 @@ void print_to(Print& print,
     FilePrinter<format, LayerFormat> printer(width_mm, height_mm,
                                              std::forward<Args>(args)...);
 
-    printer.printConfig(print);
+    printer.print_config(print);
 
     printer.layers(layers.size());  // Allocate space for all the layers
 
@@ -327,7 +327,7 @@ void print_to(Print& print,
     {
         LayerPtrs lrange = layers[keys[layer_id]];
 
-        printer.beginLayer(layer_id);   // Switch to the appropriate layer
+        printer.begin_layer(layer_id);   // Switch to the appropriate layer
 
         for(Layer *lp : lrange) {
             Layer& l = *lp;
@@ -348,7 +348,7 @@ void print_to(Print& print,
                     slice.translate(-px(print_bb.min) + cx,
                                     -py(print_bb.min) + cy);
 
-                    printer.drawPolygon(slice, layer_id);
+                    printer.draw_polygon(slice, layer_id);
                 }
 
             /*if(print.has_support_material() && layer_id > 0) {
@@ -361,7 +361,7 @@ void print_to(Print& print,
 
         }
 
-        printer.finishLayer(layer_id);  // Finish the layer for later saving it.
+        printer.finish_layer(layer_id);  // Finish the layer for later saving it.
 
         auto st = static_cast<int>(layer_id*80.0/layers.size());
         m.lock();
