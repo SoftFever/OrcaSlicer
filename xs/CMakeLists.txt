@@ -109,7 +109,8 @@ target_link_libraries(XS ${Boost_LIBRARIES})
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
-    target_link_libraries(XS "-framework IOKit" "-framework CoreFoundation" -lc++)
+    # -liconv: boost links to libiconv by default
+    target_link_libraries(XS "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 elseif (MSVC)
     target_link_libraries(XS )
 else ()
@@ -140,14 +141,6 @@ target_compile_options(XS PRIVATE ${PerlEmbed_CCFLAGS})
 
 if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
-endif()
-
-# Find and configure boost
-if(SLIC3R_STATIC)
-    # Use static boost libraries.
-    set(Boost_USE_STATIC_LIBS ON)
-    # Use boost libraries linked statically to the C++ runtime.
-    # set(Boost_USE_STATIC_RUNTIME ON)
 endif()
 
 target_link_libraries(XS ${Boost_LIBRARIES})
