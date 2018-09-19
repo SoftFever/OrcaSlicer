@@ -366,8 +366,9 @@ class GLCanvas3D
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Linef3& mouse_ray);
+        void update(const Linef3& mouse_ray, const Point* mouse_pos = nullptr);
 
+        Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
         EType get_current_type() const;
 
         bool is_running() const;
@@ -389,7 +390,8 @@ class GLCanvas3D
         Vec3d get_flattening_normal() const;
 
         void set_model_object_ptr(const ModelObject* model_object);
-        void move_current_point(const Vec2d& mouse_position);
+        void clicked_on_object(const Vec2d& mouse_position);
+        void delete_current_grabber(bool delete_all = false);
 
         void render_current_gizmo(const BoundingBoxf3& box) const;
 
@@ -478,6 +480,7 @@ class GLCanvas3D
     bool m_shader_enabled;
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
+    bool m_wait_for_left_up;
 
     std::string m_color_by;
     std::string m_select_by;
@@ -597,6 +600,8 @@ public:
 
     void update_volumes_colors_by_extruder();
     void update_gizmos_data();
+    Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
+    bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
 
     void render();
 

@@ -79,7 +79,9 @@ public:
     // Only if the user really modified the layer height, layer_height_profile_valid is set
     // and used subsequently by the PrintObject.
     bool                    layer_height_profile_valid;
-    
+
+    // This vector holds position of selected support points for SLA. The data are
+    // saved in mesh coordinates to allow using them for several instances.
     std::vector<Vec3f>      sla_support_points;
 
     /* This vector accumulates the total translation applied to the object by the

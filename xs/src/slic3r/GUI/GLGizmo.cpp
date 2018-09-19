@@ -153,6 +153,7 @@ void GLGizmoBase::Grabber::render(const BoundingBoxf3& box, const float* render_
     ::glRotatef((GLfloat)angles(1) * rad_to_deg, 0.0f, 1.0f, 0.0f);
     ::glRotatef((GLfloat)angles(2) * rad_to_deg, 0.0f, 0.0f, 1.0f);
 
+
     // face min x
     ::glPushMatrix();
     ::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f);
@@ -281,10 +282,10 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const Linef3& mouse_ray)
+void GLGizmoBase::update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if (m_hover_id != -1)
-        on_update(mouse_ray);
+        on_update(mouse_ray, mouse_pos);
 }
 
 float GLGizmoBase::picking_color_component(unsigned int id) const
@@ -371,7 +372,7 @@ void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
     m_radius = Offset + box.radius();
 }
 
-void GLGizmoRotate::on_update(const Linef3& mouse_ray)
+void GLGizmoRotate::on_update(const Linef3& mouse_ray, const Point* mouse_position)
 { 
     Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(mouse_ray));
 
@@ -694,7 +695,6 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 }
 
 const float GLGizmoScale3D::Offset = 5.0f;
-const Vec3d GLGizmoScale3D::OffsetVec = (double)GLGizmoScale3D::Offset * Vec3d::Ones();
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -744,11 +744,11 @@ void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_show_starting_box = true;
-        m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
+        m_starting_box = box;
     }
 }
 
-void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
+void GLGizmoScale3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_x(mouse_ray);
@@ -778,7 +778,9 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_DEPTH_TEST);
 
-    m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
+    Vec3d offset_vec = (double)Offset * Vec3d::Ones();
+
+    m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
     const Vec3d& center = m_box.center();
 
     // x axis
@@ -1072,7 +1074,7 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
     }
 }
 
-void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
+void GLGizmoMove3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if (m_hover_id == 0)
         m_position(0) = 2.0 * m_starting_box_center(0) + calc_projection(X, 1, mouse_ray) - m_starting_drag_position(0);
@@ -1527,37 +1529,19 @@ bool GLGizmoSlaSupports::on_init()
     return true;
 }
 
-
-
-void GLGizmoSlaSupports::on_start_dragging()
-{
-    if (m_hover_id != -1)
-        ;//m_normal = m_planes[m_hover_id].normal;
-}
-
 void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
 {
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
 
-    if (m_model_object && !m_model_object->instances.empty()) {
-        for (int i=0; i<(int)m_model_object->sla_support_points.size(); ++i) {
-            const auto& point = m_model_object->sla_support_points[i];
-            if (i == m_hover_id)
-                ::glColor4f(0.9f, 0.f, 0.f, 0.75f);
-            else
-                ::glColor4f(0.5f, 0.f, 0.f, 0.75f);
-
-            ::glPushMatrix();
-            ::glTranslatef(point(0), point(1), point(2));
-            GLUquadricObj *quadric;
-            quadric = ::gluNewQuadric();
-            ::gluQuadricDrawStyle(quadric, GLU_FILL );
-            ::gluSphere( quadric , 0.5 , 36 , 18 );
-            ::gluDeleteQuadric(quadric);
-            ::glPopMatrix();
-        }
+    for (auto& g : m_grabbers) {
+        g.color[0] = 1.f;
+        g.color[1] = 0.f;
+        g.color[2] = 0.f;
     }
+
+    render_grabbers();
+    render_tooltip_texture();
 
     ::glDisable(GL_BLEND);
 }
@@ -1565,39 +1549,72 @@ void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
 void GLGizmoSlaSupports::on_render_for_picking(const BoundingBoxf3& box) const
 {
     ::glEnable(GL_DEPTH_TEST);
+    for (unsigned int i=0; i<m_grabbers.size(); ++i) {
+        m_grabbers[i].color[0] = 1.0f;
+        m_grabbers[i].color[1] = 1.0f;
+        m_grabbers[i].color[2] = picking_color_component(i);
+    }
+    render_grabbers(true);
+}
 
-    if (m_model_object && !m_model_object->instances.empty()) {
-        for (unsigned int i=0; i<m_model_object->sla_support_points.size(); ++i) {
-            const auto& point = m_model_object->sla_support_points[i];
-            ::glColor3f(1.0f, 1.0f, picking_color_component(i));
-            ::glPushMatrix();
-            ::glTranslatef(point(0), point(1), point(2));
-            GLUquadricObj *quadric;
-            quadric = ::gluNewQuadric();
+void GLGizmoSlaSupports::render_grabbers(bool picking) const
+{
+    for (int i = 0; i < (int)m_grabbers.size(); ++i)
+    {
+        if (!m_grabbers[i].enabled)
+            continue;
 
-            ::gluQuadricDrawStyle(quadric, GLU_FILL );
-            ::gluSphere( quadric , 0.5 , 36 , 18 );
-            ::gluDeleteQuadric(quadric);
-            ::glPopMatrix();
+        float render_color[3];
+        if (!picking && m_hover_id == i) {
+            render_color[0] = 1.0f - m_grabbers[i].color[0];
+            render_color[1] = 1.0f - m_grabbers[i].color[1];
+            render_color[2] = 1.0f - m_grabbers[i].color[2];
         }
+        else
+            ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
+        if (!picking)
+            ::glEnable(GL_LIGHTING);
+        ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
+        ::glPushMatrix();
+        const Vec3d& center = m_grabbers[i].center;
+        ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
+        GLUquadricObj *quadric;
+        quadric = ::gluNewQuadric();
+        ::gluQuadricDrawStyle(quadric, GLU_FILL );
+        ::gluSphere( quadric , 0.5f, 36 , 18 );
+        ::gluDeleteQuadric(quadric);
+        ::glPopMatrix();
+        if (!picking)
+            ::glDisable(GL_LIGHTING);
     }
 }
 
-void GLGizmoSlaSupports::move_current_point(const Vec2d& mouse_position)
+Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 {
-    const stl_file& stl = m_model_object->mesh().stl;
-    Eigen::MatrixXf V; // vertices
-    Eigen::MatrixXi F;// facets indices
-    V.resize(3*stl.stats.number_of_facets, 3);
-    F.resize(stl.stats.number_of_facets, 3);
-    for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
-        const stl_facet* facet = stl.facet_start+i;
-        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
-        F(i, 0) = 3*i+0;
-        F(i, 1) = 3*i+1;
-        F(i, 2) = 3*i+2;
+    // if the gizmo doesn't have the V, F structures for igl, calculate them first:
+    if (m_V.size() == 0) {
+        Eigen::MatrixXf& V = m_V;
+        Eigen::MatrixXi& F = m_F;
+
+        TriangleMesh combined_mesh;
+        for (const ModelVolume* vol : m_model_object->volumes)
+            combined_mesh.merge(vol->mesh);
+        //combined_mesh.scale(m_model_object->instances.front()->scaling_factor);
+        //combined_mesh.rotate_z(m_model_object->instances.front()->rotation);
+        //const stl_file& stl = combined_mesh.stl;
+        const stl_file& stl = m_model_object->mesh().stl;
+
+        V.resize(3*stl.stats.number_of_facets, 3);
+        F.resize(stl.stats.number_of_facets, 3);
+        for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+            const stl_facet* facet = stl.facet_start+i;
+            V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
+            V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
+            V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+            F(i, 0) = 3*i+0;
+            F(i, 1) = 3*i+1;
+            F(i, 2) = 3*i+2;
+        }
     }
 
     Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
@@ -1608,18 +1625,88 @@ void GLGizmoSlaSupports::move_current_point(const Vec2d& mouse_position)
     ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
 
     int fid = 0;
-    Vec3f bc(0, 0, 0);
-    Vec3f final_pos;
-    if (igl::unproject_onto_mesh(Vec2f(mouse_position(0), viewport(3)-mouse_position(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), V, F, fid, bc)
-        && (stl.facet_start + fid)->normal(2) < 0.f) {
-        const Vec3f& a = (stl.facet_start+fid)->vertex[0];
-        const Vec3f& b = (stl.facet_start+fid)->vertex[1];
-        const Vec3f& c = (stl.facet_start+fid)->vertex[2];
-        final_pos = bc(0)*a + bc(1)*b + bc(2)*c;
-        const_cast<ModelObject*>(m_model_object)->sla_support_points[m_hover_id] = final_pos;
+    Eigen::Vector3f bc(0, 0, 0);
+    if (!igl::unproject_onto_mesh(Vec2f(mouse_pos(0), viewport(3)-mouse_pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), m_V, m_F, fid, bc))
+    /*if (!igl::embree::unproject_onto_mesh(Vec2f(mouse_pos(0), viewport(3)-mouse_pos(1)),
+                                 m_F,
+                                 modelview_matrix.cast<float>(),
+                                 projection_matrix.cast<float>(),
+                                 viewport.cast<float>(),
+                                 m_intersector,
+                                 fid,
+                                 bc))*/
+        throw "unable to unproject_onto_mesh";
+
+    const Vec3f& a = m_V.row(m_F(fid, 0));
+    const Vec3f& b = m_V.row(m_F(fid, 1));
+    const Vec3f& c = m_V.row(m_F(fid, 2));
+    return bc(0)*a + bc(1)*b + bc(2)*c;
+}
+
+void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
+{
+    Vec3f new_pos;
+    try {
+        new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new grabber in that case
+        m_grabbers.push_back(Grabber());
+        m_grabbers.back().center = new_pos.cast<double>();
+    }
+    catch (...) {}
+}
+
+void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
+{
+    if (delete_all) {
+        m_grabbers.clear();
+    }
+    else
+        if (m_hover_id != -1) {
+            m_grabbers.erase(m_grabbers.begin() + m_hover_id);
+            m_hover_id = -1;
+        }
+}
+
+void GLGizmoSlaSupports::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
+{
+    if (m_hover_id != -1 && mouse_pos) {
+        Vec3f new_pos;
+        try {
+            new_pos = unproject_on_mesh(Vec2d((*mouse_pos)(0), (*mouse_pos)(1)));
+            m_grabbers[m_hover_id].center = new_pos.cast<double>();
+        }
+        catch (...) {}
     }
 }
 
+
+void GLGizmoSlaSupports::render_tooltip_texture() const {
+    if (m_tooltip_texture.get_id() == 0)
+        if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/variable_layer_height_tooltip.png", false))
+            return;
+    if (m_reset_texture.get_id() == 0)
+        if (!m_reset_texture.load_from_file(resources_dir() + "/icons/variable_layer_height_reset.png", false))
+            return;
+
+    float zoom = m_parent.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float gap = 30.0f * inv_zoom;
+
+    const Size& cnv_size = m_parent.get_canvas_size();
+    float l = gap - cnv_size.get_width()/2.f * inv_zoom;
+    float r = l + (float)m_tooltip_texture.get_width() * inv_zoom;
+    float b = gap - cnv_size.get_height()/2.f * inv_zoom;
+    float t = b + (float)m_tooltip_texture.get_height() * inv_zoom;
+
+    Rect reset_rect = m_parent.get_gizmo_reset_rect(m_parent, true);
+
+    ::glDisable(GL_DEPTH_TEST);
+    ::glPushMatrix();
+    ::glLoadIdentity();
+    GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
+    GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
+    ::glPopMatrix();
+    ::glEnable(GL_DEPTH_TEST);
+}
 
 
 } // namespace GUI

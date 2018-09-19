@@ -13,8 +13,6 @@
 #include "../../libslic3r/GCode/PreviewData.hpp"
 
 #include <GL/glew.h>
-#include <igl/unproject_onto_mesh.h>
-#include <admesh/stl.h>
 
 #include <wx/glcanvas.h>
 #include <wx/timer.h>
@@ -48,6 +46,8 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 
 static const float VARIABLE_LAYER_THICKNESS_BAR_WIDTH = 70.0f;
 static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
+static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
+static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
 static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
                                      0.0f, 1.0f, 0.0f, 0.0f,
@@ -1350,14 +1350,14 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
-void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
+void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->update(mouse_ray);
+        curr->update(mouse_ray, mouse_pos);
 }
 
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
@@ -1480,14 +1480,24 @@ void GLCanvas3D::Gizmos::set_model_object_ptr(const ModelObject* model_object)
         reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_model_object_ptr(model_object);
 }
 
-void GLCanvas3D::Gizmos::move_current_point(const Vec2d& mouse_position)
+void GLCanvas3D::Gizmos::clicked_on_object(const Vec2d& mouse_position)
 {
     if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
     if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->move_current_point(mouse_position);
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->clicked_on_object(mouse_position);
+}
+
+void GLCanvas3D::Gizmos::delete_current_grabber(bool delete_all)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->delete_current_grabber(delete_all);
 }
 
 void GLCanvas3D::Gizmos::render_current_gizmo(const BoundingBoxf3& box) const
@@ -2433,6 +2443,26 @@ void GLCanvas3D::update_gizmos_data()
     }
 }
 
+// Returns a Rect object denoting size and position of the Reset button used by a gizmo.
+// Returns in either screen or viewport coords.
+Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float w = (viewport ? -0.5f : 0.f) * (float)cnv_size.get_width();
+    float h = (viewport ? 0.5f : 1.f) * (float)cnv_size.get_height();
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = viewport ? ((zoom != 0.0f) ? 1.0f / zoom : 0.0f) : 1.f;
+    const float gap = 30.f;
+    return Rect((w + gap + 80.f) * inv_zoom, (viewport ? -1.f : 1.f) * (h - GIZMO_RESET_BUTTON_HEIGHT) * inv_zoom,
+                (w + gap + 80.f + GIZMO_RESET_BUTTON_WIDTH) * inv_zoom, (viewport ? -1.f : 1.f) * (h * inv_zoom));
+}
+
+bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const
+{
+    const Rect& rect = get_gizmo_reset_rect(canvas, false);
+    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
+}
+
 void GLCanvas3D::render()
 {
     if (m_canvas == nullptr)
@@ -3103,13 +3133,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+        else if ((m_gizmos.get_current_type() == Gizmos::SlaSupports) && gizmo_reset_rect_contains(*this, pos(0), pos(1)))
+        {
+            if (evt.LeftDown())
+            {
+                m_gizmos.delete_current_grabber(true);
+                m_wait_for_left_up = true;
+                m_dirty = true;
+            }
+        }
         else if ((selected_object_idx != -1) && gizmos_overlay_contains_mouse)
         {
             update_gizmos_data();
             m_gizmos.update_on_off_state(*this, m_mouse.position);
             m_dirty = true;
         }
-        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
+        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.LeftDown())
         {
             update_gizmos_data();
             m_gizmos.start_dragging(_selected_volumes_bounding_box());
@@ -3126,6 +3165,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             m_dirty = true;
+        }
+        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.RightDown()) {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports)
+                m_gizmos.delete_current_grabber();
         }
         else if (toolbar_contains_mouse != -1)
         {
@@ -3169,7 +3212,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
                     // an converts the screen space coordinate to unscaled object space.
-
                     Vec3d pos3d = (volume_idx == -1) ? Vec3d(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
                     
                     // Only accept the initial position, if it is inside the volume bounding box.
@@ -3260,7 +3302,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_canvas->CaptureMouse();
 
         m_mouse.dragging = true;
-        m_gizmos.update(mouse_ray(pos));
+        m_gizmos.update(mouse_ray(pos), &pos);
 
         std::vector<GLVolume*> volumes;
         if (m_mouse.drag.gizmo_volume_idx != -1)
@@ -3313,11 +3355,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 v->set_rotation((double)angle_z);
             }
             update_rotation_value((double)angle_z, Z);
-            break;
-        }
-        case Gizmos::SlaSupports:
-        {
-            m_gizmos.move_current_point(Vec2d(pos(0), pos(1)));
             break;
         }
         default:
@@ -3382,6 +3419,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
     {
+        if (evt.LeftUp() && m_wait_for_left_up)
+            m_wait_for_left_up = false;
+        else
         if (m_layers_editing.state != LayersEditing::Unknown)
         {
             m_layers_editing.state = LayersEditing::Unknown;
@@ -3417,38 +3457,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
             int id = _get_first_selected_object_id();
             if ((id != -1) && (m_model != nullptr)) {
-                ModelObject* model_object = m_model->objects[id];
-                const stl_file& stl = model_object->mesh().stl;
-                Eigen::MatrixXf V; // vertices
-                Eigen::MatrixXi F;// facets indices
-                V.resize(3*stl.stats.number_of_facets, 3);
-                F.resize(stl.stats.number_of_facets, 3);
-                for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
-                    const stl_facet* facet = stl.facet_start+i;
-                    V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-                    V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-                    V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
-                    F(i, 0) = 3*i+0;
-                    F(i, 1) = 3*i+1;
-                    F(i, 2) = 3*i+2;
-                }
-
-                Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
-                ::glGetIntegerv(GL_VIEWPORT, viewport.data());
-                Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
-                ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
-                Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
-                ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
-
-                int fid = 0;
-                Vec3f bc(0, 0, 0);
-                if (igl::unproject_onto_mesh(Vec2f(pos(0), viewport(3)-pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), V, F, fid, bc)
-                    && (stl.facet_start + fid)->normal(2) < 0.f) {
-                    const Vec3f& a = (stl.facet_start+fid)->vertex[0];
-                    const Vec3f& b = (stl.facet_start+fid)->vertex[1];
-                    const Vec3f& c = (stl.facet_start+fid)->vertex[2];
-                    model_object->sla_support_points.emplace_back(bc(0)*a + bc(1)*b + bc(2)*c);
-                }
+                m_gizmos.clicked_on_object(Vec2d(pos(0), pos(1)));
             }
         }
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
@@ -4183,61 +4192,6 @@ void GLCanvas3D::_render_legend_texture() const
 
     m_legend_texture.render(*this);
 }
-
-
-
-
-
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-void GLCanvas3D::_render_sla_support_points() const
-{
-    if (m_print == nullptr)
-        return;
-
-    GLVolume* volume = nullptr;
-
-    for (GLVolume* vol : m_volumes.volumes) {
-        if ((vol != nullptr) && vol->selected) {
-            volume = vol;
-            break;
-        }
-    }
-
-    if (volume == nullptr)
-        return;
-
-    // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
-    // and an update by Platter::async_apply_config.
-    int object_idx = int(volume->select_group_id / 1000000);
-    if ((int)m_print->objects.size() < object_idx)
-        return;
-
-    const PrintObject* print_object = m_print->get_object(object_idx);
-    if (print_object == nullptr)
-        return;
-        
-    const ModelObject* model_object = print_object->model_object();
-    if (!model_object->instances.empty()) {
-        for (const auto& point : model_object->sla_support_points) {
-            ::glColor4f(0.9f, 0.f, 0.f, 0.75f);
-            ::glPushMatrix();
-            ::glTranslatef(point(0), point(1), point(2));
-            GLUquadricObj *quadric;
-            quadric = ::gluNewQuadric();
-
-            ::gluQuadricDrawStyle(quadric, GLU_FILL );
-            ::gluSphere( quadric , 0.5 , 36 , 18 );
-            ::gluDeleteQuadric(quadric);
-            ::glPopMatrix();
-        }
-    }
-}
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-
-
-
-
 
 void GLCanvas3D::_render_layer_editing_overlay() const
 {

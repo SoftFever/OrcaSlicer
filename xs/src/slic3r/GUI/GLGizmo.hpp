@@ -92,7 +92,7 @@ public:
     void stop_dragging();
     bool is_dragging() const { return m_dragging; }
 
-    void update(const Linef3& mouse_ray);
+    void update(const Linef3& mouse_ray, const Point* mouse_pos);
 
     void render(const BoundingBoxf3& box) const { on_render(box); }
     void render_for_picking(const BoundingBoxf3& box) const { on_render_for_picking(box); }
@@ -105,7 +105,7 @@ protected:
     virtual void on_disable_grabber(unsigned int id) {}
     virtual void on_start_dragging(const BoundingBoxf3& box) {}
     virtual void on_stop_dragging() {}
-    virtual void on_update(const Linef3& mouse_ray) = 0;
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) = 0;
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
@@ -154,7 +154,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
-    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -215,11 +215,11 @@ protected:
     }
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging();
-    virtual void on_update(const Linef3& mouse_ray)
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos)
     {
         for (GLGizmoRotate& g : m_gizmos)
         {
-            g.update(mouse_ray);
+            g.update(mouse_ray, mouse_pos);
         }
     }
     virtual void on_render(const BoundingBoxf3& box) const;
@@ -264,7 +264,7 @@ protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging() { m_show_starting_box = false; }
-    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -298,7 +298,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
-    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -349,7 +349,7 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
-    virtual void on_update(const Linef3& mouse_ray) {}
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) {}
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
     virtual void on_set_state()
@@ -361,21 +361,29 @@ protected:
 
 class GLGizmoSlaSupports : public GLGizmoBase
 {
-// This gizmo does not use grabbers. The m_hover_id relates to shape managed by the class itself.
 private:
     const ModelObject* m_model_object = nullptr;
+    Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
+
+    Eigen::MatrixXf m_V; // vertices
+    Eigen::MatrixXi m_F; // facets indices
 
 public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
     void set_model_object_ptr(const ModelObject* model_object) { m_model_object = model_object; }
-    void move_current_point(const Vec2d& mouse_position);
+    void clicked_on_object(const Vec2d& mouse_position);
+    void delete_current_grabber(bool delete_all);
 
-protected:
-    virtual bool on_init();
-    virtual void on_start_dragging();
-    virtual void on_update(const Linef3& mouse_ray) {}
-    virtual void on_render(const BoundingBoxf3& box) const;
-    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+private:
+    bool on_init();
+    void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
+    void on_render(const BoundingBoxf3& box) const;
+    void on_render_for_picking(const BoundingBoxf3& box) const;
+    void render_grabbers(bool picking = false) const;
+    void render_tooltip_texture() const;
+
+    mutable GLTexture m_tooltip_texture;
+    mutable GLTexture m_reset_texture;
 };
 
 } // namespace GUI
