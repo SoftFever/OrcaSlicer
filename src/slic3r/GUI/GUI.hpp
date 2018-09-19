@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "PrintConfig.hpp"
-#include "../../callback.hpp"
+#include "callback.hpp"
 #include "GUI_ObjectParts.hpp"
 
 #include <wx/intl.h>

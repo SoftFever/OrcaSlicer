@@ -667,7 +667,8 @@ namespace Slic3r {
                 add_error("Error while reading config data to buffer");
                 return;
             }
-            bundle.load_config_string(buffer.data(), archive_filename.c_str());
+//FIXME Get rid of the dependencies on slic3r GUI library!
+//            bundle.load_config_string(buffer.data(), archive_filename.c_str());
         }
     }
 

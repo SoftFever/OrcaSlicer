@@ -467,7 +467,8 @@ void AMFParserContext::endElement(const char * /* name */)
 
     case NODE_TYPE_METADATA:
         if ((m_preset_bundle != nullptr) && strncmp(m_value[0].c_str(), SLIC3R_CONFIG_TYPE, strlen(SLIC3R_CONFIG_TYPE)) == 0) {
-            m_preset_bundle->load_config_string(m_value[1].c_str(), m_archive_filename.c_str());
+//FIXME Get rid of the dependencies on slic3r GUI library!
+//            m_preset_bundle->load_config_string(m_value[1].c_str(), m_archive_filename.c_str());
         }
         else if (strncmp(m_value[0].c_str(), "slic3r.", 7) == 0) {
             const char *opt_key = m_value[0].c_str() + 7;
