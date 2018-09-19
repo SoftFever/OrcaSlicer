@@ -18,9 +18,6 @@
 #include <Model.hpp>
 #include <Utils.hpp>
 
-#include <wx/stdstream.h>
-#include <wx/wfstream.h>
-#include <wx/zipstrm.h>
 
 namespace Slic3r {
 
@@ -290,41 +287,21 @@ void PrintController::slice()
     slice(pri);
 }
 
-struct wxZipper {};
-
-template<> class Zipper<wxZipper> {
-    wxFileName m_fpath;
-    wxFFileOutputStream m_zipfile;
-    wxZipOutputStream m_zipstream;
-    wxStdOutputStream m_pngstream;
+template<> class LayerWriter<Zipper> {
+    Zipper m_zip;
 public:
 
-    Zipper(const std::string& zipfile_path):
-        m_fpath(zipfile_path),
-        m_zipfile(zipfile_path),
-        m_zipstream(m_zipfile),
-        m_pngstream(m_zipstream)
-    {
-        if(!m_zipfile.IsOk())
-            throw std::runtime_error(L("Cannot create zip file."));
+    inline LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
+
+    inline void next_entry(const std::string& fname) { m_zip.next_entry(fname); }
+
+    inline std::string get_name() const { return m_zip.get_name(); }
+
+    template<class T> inline LayerWriter& operator<<(const T& arg) {
+        m_zip.stream() << arg; return *this;
     }
 
-    void next_entry(const std::string& fname) {
-        m_zipstream.PutNextEntry(fname);
-    }
-
-    std::string get_name() {
-        return m_fpath.GetName().ToStdString();
-    }
-
-    template<class T> Zipper& operator<<(const T& arg) {
-        m_pngstream << arg; return *this;
-    }
-
-    void close() {
-        m_zipstream.Close();
-        m_zipfile.Close();
-    }
+    inline void close() { m_zip.close(); }
 };
 
 void PrintController::slice_to_png()
@@ -428,7 +405,7 @@ void PrintController::slice_to_png()
     });
 
     try {
-        print_to<FilePrinterFormat::PNG, wxZipper>( *print, exd.zippath,
+        print_to<FilePrinterFormat::PNG, Zipper>( *print, exd.zippath,
                     exd.width_mm, exd.height_mm,
                     exd.width_px, exd.height_px,
                     exd.exp_time_s, exd.exp_time_first_s);
@@ -439,6 +416,7 @@ void PrintController::slice_to_png()
 
     scale_back();
     if(print->canceled()) print->restart();
+    print->set_status_default();
 }
 
 const PrintConfig &PrintController::config() const

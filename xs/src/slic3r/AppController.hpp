@@ -165,6 +165,23 @@ protected:
     ProgresIndicatorPtr global_progressind_;
 };
 
+class Zipper {
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
+public:
+
+    Zipper(const std::string& zipfilepath);
+    ~Zipper();
+
+    void next_entry(const std::string& fname);
+
+    std::string get_name() const;
+
+    std::ostream& stream();
+
+    void close();
+};
+
 /**
  * @brief Implementation of the printing logic.
  */

@@ -1,5 +1,9 @@
 #include "AppController.hpp"
 
+#include <wx/stdstream.h>
+#include <wx/wfstream.h>
+#include <wx/zipstrm.h>
+
 #include <thread>
 #include <future>
 
@@ -97,6 +101,51 @@ bool AppControllerBoilerplate::report_issue(
 }
 
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
+
+struct Zipper::Impl {
+    wxFileName m_fpath;
+    wxFFileOutputStream m_zipfile;
+    wxZipOutputStream m_zipstream;
+    wxStdOutputStream m_pngstream;
+
+    Impl(const std::string& zipfile_path):
+        m_fpath(zipfile_path),
+        m_zipfile(zipfile_path),
+        m_zipstream(m_zipfile),
+        m_pngstream(m_zipstream)
+    {
+        if(!m_zipfile.IsOk())
+            throw std::runtime_error(L("Cannot create zip file."));
+    }
+};
+
+Zipper::Zipper(const std::string &zipfilepath)
+{
+    m_impl.reset(new Impl(zipfilepath));
+}
+
+Zipper::~Zipper() {}
+
+void Zipper::next_entry(const std::string &fname)
+{
+    m_impl->m_zipstream.PutNextEntry(fname);
+}
+
+std::string Zipper::get_name() const
+{
+    return m_impl->m_fpath.GetName().ToStdString();
+}
+
+std::ostream &Zipper::stream()
+{
+    return m_impl->m_pngstream;
+}
+
+void Zipper::close()
+{
+    m_impl->m_zipstream.Close();
+    m_impl->m_zipfile.Close();
+}
 
 namespace  {
 

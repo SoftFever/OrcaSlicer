@@ -73,19 +73,21 @@ template<class T = void> struct VeryFalse { static const bool value = false; };
 
 // This has to be explicitly implemented in the gui layer or a default zlib
 // based implementation is needed.
-template<class Backend> class Zipper {
+template<class Backend> class LayerWriter {
 public:
 
-    Zipper(const std::string& /*zipfile_path*/) {
+    LayerWriter(const std::string& /*zipfile_path*/) {
         static_assert(VeryFalse<Backend>::value,
-                      "No zipper implementation provided!");
+                      "No layer writer implementation provided!");
     }
 
     void next_entry(const std::string& /*fname*/) {}
 
     std::string get_name() { return ""; }
 
-    template<class T> Zipper& operator<<(const T& /*arg*/) {
+    bool is_ok() { return false; }
+
+    template<class T> LayerWriter& operator<<(const T& /*arg*/) {
         return *this;
     }
 
@@ -203,62 +205,29 @@ public:
 
     inline void save(const std::string& path) {
         try {
-            Zipper<LyrFormat> zipper(path);
+            LayerWriter<LyrFormat> writer(path);
 
-            std::string project = zipper.get_name();
+            std::string project = writer.get_name();
 
-            zipper.next_entry(project);
-            zipper << createIniContent(project);
+            writer.next_entry("config.ini");
+            writer << createIniContent(project);
 
             for(unsigned i = 0; i < layers_rst_.size(); i++) {
                 if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
                     char lyrnum[6];
                     std::sprintf(lyrnum, "%.5d", i);
                     auto zfilename = project + lyrnum + ".png";
-                    zipper.next_entry(zfilename);
-                    zipper << layers_rst_[i].second.rdbuf();
+                    writer.next_entry(zfilename);
+                    writer << layers_rst_[i].second.rdbuf();
                     layers_rst_[i].second.str("");
                 }
             }
 
-            zipper.close();
-        } catch(std::exception&) {
-            BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "
-                                     << path;
+            writer.close();
+        } catch(std::exception& e) {
+            BOOST_LOG_TRIVIAL(error) << e.what();
             return;
         }
-
-//        wxFileName filepath(path);
-
-//        wxFFileOutputStream zipfile(path);
-
-//        std::string project = filepath.GetName().ToStdString();
-
-//        if(!zipfile.IsOk()) {
-//            BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "
-//                                     << path;
-//            return;
-//        }
-
-//        wxZipOutputStream zipstream(zipfile);
-//        wxStdOutputStream pngstream(zipstream);
-
-//        zipstream.PutNextEntry("config.ini");
-//        pngstream << createIniContent(project);
-
-//        for(unsigned i = 0; i < layers_rst_.size(); i++) {
-//            if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
-//                char lyrnum[6];
-//                std::sprintf(lyrnum, "%.5d", i);
-//                auto zfilename = project + lyrnum + ".png";
-//                zipstream.PutNextEntry(zfilename);
-//                pngstream << layers_rst_[i].second.rdbuf();
-//                layers_rst_[i].second.str("");
-//            }
-//        }
-
-//        zipstream.Close();
-//        zipfile.Close();
     }
 
     void saveLayer(unsigned lyr, const std::string& path) {
