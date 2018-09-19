@@ -57,14 +57,15 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
     if (!Create(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize))
         return false;
 
-    int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, 1, WX_GL_SAMPLES, 4, 0 };
+    int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
 
     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
     const AppConfig* app_config = GUI::get_app_config();
     bool enable_multisample = (app_config != nullptr) && (app_config->get("use_legacy_opengl") != "1") && (wxVersion >= 30003);
 
     // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
-    bool can_multisample = enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); // <<< FIXME ENRICO IsDisplaySupported() seems not to work
+    bool can_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
+//    bool can_multisample = enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); // <<< Alternative method: but IsDisplaySupported() seems not to work
     if (!can_multisample)
         attribList[4] = 0;
 
