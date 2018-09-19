@@ -64,6 +64,7 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
+    message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
     find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
     include(${wxWidgets_USE_FILE})
 
