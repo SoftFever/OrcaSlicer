@@ -19,7 +19,6 @@ add_subdirectory(libnest2d)
 include_directories(${LIBDIR}/qhull/src)
 #message(STATUS ${LIBDIR}/qhull/src)
 
-
 # ##############################################################################
 # Configure rasterizer target
 # ##############################################################################
@@ -53,16 +52,41 @@ if(SLIC3R_GUI)
 else()
     set_target_properties(slic3r PROPERTIES OUTPUT_NAME "slic3r-console")
 endif()
-target_link_libraries(slic3r libslic3r libslic3r_gui ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
+target_link_libraries(slic3r libslic3r)
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
-    target_link_libraries(slic3r "-framework IOKit" "-framework CoreFoundation" -lc++)
+    # -liconv: boost links to libiconv by default
+    target_link_libraries(slic3r "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 elseif (NOT MSVC)
-    target_link_libraries(slic3r -lstdc++)
+    target_link_libraries(slic3r -ldl -lstdc++)
 endif ()
-# Add the OpenGL and GLU libraries.
+
+# Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
+    target_link_libraries(slic3r libslic3r_gui ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
+
+    # Configure libcurl & OpenSSL
+    find_package(CURL REQUIRED)
+    target_include_directories(slic3r PRIVATE ${CURL_INCLUDE_DIRS})
+    target_link_libraries(slic3r ${CURL_LIBRARIES})
+    if (SLIC3R_STATIC)
+        if (NOT APPLE)
+            # libcurl is always linked dynamically to the system libcurl on OSX.
+            # On other systems, libcurl is linked statically if SLIC3R_STATIC is set.
+            target_compile_definitions(slic3r PRIVATE CURL_STATICLIB)
+        endif()
+        if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+            # As of now, our build system produces a statically linked libcurl,
+            # which links the OpenSSL library dynamically.
+            find_package(OpenSSL REQUIRED)
+            message("OpenSSL include dir: ${OPENSSL_INCLUDE_DIR}")
+            message("OpenSSL libraries: ${OPENSSL_LIBRARIES}")
+            target_include_directories(slic3r PRIVATE ${OPENSSL_INCLUDE_DIR})
+            target_link_libraries(slic3r ${OPENSSL_LIBRARIES})
+        endif()
+    endif()
+
     if (MSVC)
         target_link_libraries(slic3r user32.lib Setupapi.lib OpenGL32.Lib GlU32.Lib)
     elseif (MINGW)
