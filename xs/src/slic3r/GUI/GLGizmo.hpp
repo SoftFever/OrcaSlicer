@@ -94,6 +94,10 @@ public:
 
     void update(const Linef3& mouse_ray);
 
+#if ENABLE_GIZMOS_RESET
+    void process_double_click() { on_process_double_click(); }
+#endif // ENABLE_GIZMOS_RESET
+
     void render(const BoundingBoxf3& box) const { on_render(box); }
     void render_for_picking(const BoundingBoxf3& box) const { on_render_for_picking(box); }
 
@@ -106,6 +110,9 @@ protected:
     virtual void on_start_dragging(const BoundingBoxf3& box) {}
     virtual void on_stop_dragging() {}
     virtual void on_update(const Linef3& mouse_ray) = 0;
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click() {}
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
@@ -155,6 +162,9 @@ protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_update(const Linef3& mouse_ray);
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click() { m_angle = 0.0; }
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -222,6 +232,13 @@ protected:
             g.update(mouse_ray);
         }
     }
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click()
+    {
+        if (m_hover_id != -1)
+            m_gizmos[m_hover_id].process_double_click();
+    }
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const
     {
@@ -265,6 +282,9 @@ protected:
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging() { m_show_starting_box = false; }
     virtual void on_update(const Linef3& mouse_ray);
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click();
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 

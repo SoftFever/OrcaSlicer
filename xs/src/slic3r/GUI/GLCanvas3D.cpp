@@ -1349,6 +1349,18 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
         curr->update(mouse_ray);
 }
 
+#if ENABLE_GIZMOS_RESET
+void GLCanvas3D::Gizmos::process_double_click()
+{
+    if (!m_enabled)
+        return;
+
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->process_double_click();
+}
+#endif // ENABLE_GIZMOS_RESET
+
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
     return m_current;
@@ -3043,6 +3055,38 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_toolbar_action_running = true;
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
+#if ENABLE_GIZMOS_RESET
+    else if (evt.LeftDClick() && m_gizmos.grabber_contains_mouse())
+    {
+        m_gizmos.process_double_click();
+        switch (m_gizmos.get_current_type())
+        {
+        case Gizmos::Scale:
+        {
+            m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+            update_scale_values();
+            m_dirty = true;
+            break;
+        }
+        case Gizmos::Rotate:
+        {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            const Vec3d& rotation = m_gizmos.get_rotation();
+            m_on_gizmo_rotate_3D_callback.call(rotation(0), rotation(1), rotation(2));
+#else
+            m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+#endif //ENABLE_MODELINSTANCE_3D_ROTATION
+            update_rotation_values();
+            m_dirty = true;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+    }
+#endif // ENABLE_GIZMOS_RESET
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened

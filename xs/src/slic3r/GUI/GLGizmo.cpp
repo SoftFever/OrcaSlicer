@@ -759,6 +759,20 @@ void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
         do_scale_uniform(mouse_ray);
 }
 
+#if ENABLE_GIZMOS_RESET
+void GLGizmoScale3D::on_process_double_click()
+{
+    if ((m_hover_id == 0) || (m_hover_id == 1))
+        m_scale(0) = 1.0;
+    else if ((m_hover_id == 2) || (m_hover_id == 3))
+        m_scale(1) = 1.0;
+    else if ((m_hover_id == 4) || (m_hover_id == 5))
+        m_scale(2) = 1.0;
+    else if (m_hover_id >= 6)
+        m_scale = Vec3d::Ones();
+}
+#endif // ENABLE_GIZMOS_RESET
+
 void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
     if (m_grabbers[0].dragging || m_grabbers[1].dragging)

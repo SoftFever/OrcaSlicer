@@ -366,6 +366,9 @@ class GLCanvas3D
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
         void update(const Linef3& mouse_ray);
+#if ENABLE_GIZMOS_RESET
+        void process_double_click();
+#endif // ENABLE_GIZMOS_RESET
 
         EType get_current_type() const;
 
