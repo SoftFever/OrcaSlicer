@@ -43,6 +43,13 @@ else()
 endif()
 
 add_subdirectory(libslic3r)
+
+if (SLIC3R_GUI)
+    message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
+    find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
+    include(${wxWidgets_USE_FILE})
+endif()
+
 add_subdirectory(slic3r)
 
 # Create a slic3r executable
@@ -64,10 +71,6 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-    message(STATUS "WXWIN environment set to: $ENV{WXWIN}")
-    find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
-    include(${wxWidgets_USE_FILE})
-
     target_link_libraries(slic3r libslic3r_gui ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
 
     # Configure libcurl & OpenSSL
