@@ -25,40 +25,43 @@
 
 namespace Slic3r {
 
-bool AppControllerBoilerplate::supports_asynch() const
+bool AppControllerGui::supports_asynch() const
 {
     return true;
 }
 
-void AppControllerBoilerplate::process_events()
+void AppControllerGui::process_events()
 {
     wxYieldIfNeeded();
 }
 
-AppControllerBoilerplate::PathList
-AppControllerBoilerplate::query_destination_paths(
+FilePathList AppControllerGui::query_destination_paths(
         const std::string &title,
-        const std::string &extensions) const
+        const std::string &extensions,
+        const std::string &/*functionid*/,
+        const std::string& hint) const
 {
 
     wxFileDialog dlg(wxTheApp->GetTopWindow(), _(title) );
     dlg.SetWildcard(extensions);
 
-    dlg.ShowModal();
+    dlg.SetFilename(hint);
 
-    wxArrayString paths;
-    dlg.GetPaths(paths);
+    FilePathList ret;
 
-    PathList ret(paths.size(), "");
-    for(auto& p : paths) ret.push_back(p.ToStdString());
+    if(dlg.ShowModal() == wxID_OK) {
+        wxArrayString paths;
+        dlg.GetPaths(paths);
+        for(auto& p : paths) ret.push_back(p.ToStdString());
+    }
 
     return ret;
 }
 
-AppControllerBoilerplate::Path
-AppControllerBoilerplate::query_destination_path(
+FilePath AppControllerGui::query_destination_path(
         const std::string &title,
         const std::string &extensions,
+        const std::string &/*functionid*/,
         const std::string& hint) const
 {
     wxFileDialog dlg(wxTheApp->GetTopWindow(), _(title) );
@@ -66,16 +69,16 @@ AppControllerBoilerplate::query_destination_path(
 
     dlg.SetFilename(hint);
 
-    Path ret;
+    FilePath ret;
 
     if(dlg.ShowModal() == wxID_OK) {
-        ret = Path(dlg.GetPath());
+        ret = FilePath(dlg.GetPath());
     }
 
     return ret;
 }
 
-bool AppControllerBoilerplate::report_issue(IssueType issuetype,
+bool AppControllerGui::report_issue(IssueType issuetype,
                                  const std::string &description,
                                  const std::string &brief)
 {
@@ -91,13 +94,6 @@ bool AppControllerBoilerplate::report_issue(IssueType issuetype,
 
     auto ret = wxMessageBox(_(description), _(brief), icon | style);
     return ret != wxCANCEL;
-}
-
-bool AppControllerBoilerplate::report_issue(
-        AppControllerBoilerplate::IssueType issuetype,
-        const std::string &description)
-{
-    return report_issue(issuetype, description, std::string());
 }
 
 wxDEFINE_EVENT(PROGRESS_STATUS_UPDATE_EVENT, wxCommandEvent);
@@ -235,8 +231,7 @@ public:
 };
 }
 
-AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::create_progress_indicator(
+ProgresIndicatorPtr AppControllerGui::create_progress_indicator(
         unsigned statenum,
         const std::string& title,
         const std::string& firstmsg) const
@@ -251,20 +246,13 @@ AppControllerBoilerplate::create_progress_indicator(
     return pri;
 }
 
-AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::create_progress_indicator(
-        unsigned statenum, const std::string &title) const
-{
-    return create_progress_indicator(statenum, title, std::string());
-}
-
 namespace {
 
 class Wrapper: public ProgressIndicator, public wxEvtHandler {
     ProgressStatusBar *m_sbar;
     using Base = ProgressIndicator;
     wxString m_message;
-    AppControllerBoilerplate& m_ctl;
+    AppControllerBase& m_ctl;
 
     void showProgress(bool show = true) {
         m_sbar->show_progress(show);
@@ -288,7 +276,7 @@ class Wrapper: public ProgressIndicator, public wxEvtHandler {
 public:
 
     inline Wrapper(ProgressStatusBar *sbar,
-                   AppControllerBoilerplate& ctl):
+                   AppControllerBase& ctl):
         m_sbar(sbar), m_ctl(ctl)
     {
         Base::max(static_cast<float>(m_sbar->get_range()));
@@ -344,7 +332,8 @@ public:
 void AppController::set_global_progress_indicator(ProgressStatusBar *prsb)
 {
     if(prsb) {
-        global_progress_indicator(std::make_shared<Wrapper>(prsb, *this));
+        auto ctl = GUI::get_appctl();
+        ctl->global_progress_indicator(std::make_shared<Wrapper>(prsb, *ctl));
     }
 }
 

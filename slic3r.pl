@@ -109,6 +109,7 @@ if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3
         $Slic3r::GUI::no_plater     = $opt{no_plater};
         $Slic3r::GUI::autosave      = $opt{autosave};
     }
+    Slic3r::GUI::set_gui_appctl();
     $gui = Slic3r::GUI->new;
     #setlocale(LC_NUMERIC, 'C');
     $gui->{mainframe}->load_config_file($_) for @{$opt{load}};
@@ -121,6 +122,9 @@ if ((!@ARGV || $opt{gui}) && !$opt{no_gui} && !$opt{save} && eval "require Slic3
 die $@ if $@ && $opt{gui};
 
 if (@ARGV) {  # slicing from command line
+    Slic3r::GUI::set_cli_appctl();
+    my $appctl = Slic3r::AppController->new();
+
     $config->validate;
     
     if ($opt{repair}) {
@@ -210,7 +214,10 @@ if (@ARGV) {  # slicing from command line
         $sprint->apply_config($config);
         
         if ($opt{export_png}) {
-            $sprint->export_png;
+            # $sprint->export_png;
+            $appctl->set_model($model);
+            $appctl->set_print($sprint->_print);
+            $appctl->print_ctl()->slice_to_png();
         } else {
             my $t0 = [gettimeofday];
             # The following call may die if the output_filename_format template substitution fails,

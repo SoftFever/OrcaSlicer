@@ -21,7 +21,7 @@
 
 namespace Slic3r {
 
-class AppControllerBoilerplate::PriData {
+class AppControllerGui::PriData {
 public:
     std::mutex m;
     std::thread::id ui_thread;
@@ -29,14 +29,14 @@ public:
     inline explicit PriData(std::thread::id uit): ui_thread(uit) {}
 };
 
-AppControllerBoilerplate::AppControllerBoilerplate()
+AppControllerGui::AppControllerGui()
     :m_pri_data(new PriData(std::this_thread::get_id())) {}
 
-AppControllerBoilerplate::~AppControllerBoilerplate() {
+AppControllerGui::~AppControllerGui() {
     m_pri_data.reset();
 }
 
-bool AppControllerBoilerplate::is_main_thread() const
+bool AppControllerGui::is_main_thread() const
 {
     return m_pri_data->ui_thread == std::this_thread::get_id();
 }
@@ -54,8 +54,7 @@ static const PrintStep STEP_SKIRT                       = psSkirt;
 static const PrintStep STEP_BRIM                        = psBrim;
 static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
 
-AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::global_progress_indicator() {
+ProgresIndicatorPtr AppControllerGui::global_progress_indicator() {
     ProgresIndicatorPtr ret;
 
     m_pri_data->m.lock();
@@ -65,8 +64,7 @@ AppControllerBoilerplate::global_progress_indicator() {
     return ret;
 }
 
-void AppControllerBoilerplate::global_progress_indicator(
-        AppControllerBoilerplate::ProgresIndicatorPtr gpri)
+void AppControllerGui::global_progress_indicator(ProgresIndicatorPtr gpri)
 {
     m_pri_data->m.lock();
     m_global_progressind = gpri;
@@ -78,7 +76,10 @@ PrintController::query_png_export_data(const DynamicPrintConfig& conf)
 {
     PngExportData ret;
 
-    auto zippath = query_destination_path("Output zip file", "*.zip", "out");
+    auto c = GUI::get_appctl();
+    auto zippath = c->query_destination_path("Output zip file", "*.zip",
+                                             "export-png",
+                                             "out");
 
     ret.zippath = zippath;
 
@@ -102,7 +103,7 @@ PrintController::query_png_export_data(const DynamicPrintConfig& conf)
     return ret;
 }
 
-void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
+void PrintController::slice(ProgresIndicatorPtr pri)
 {
     m_print->set_status_callback([pri](int st, const std::string& msg){
         pri->update(unsigned(st), msg);
@@ -113,8 +114,9 @@ void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
 
 void PrintController::slice()
 {
-    auto pri = global_progress_indicator();
-    if(!pri) pri = create_progress_indicator(100, L("Slicing"));
+    auto ctl = GUI::get_appctl();
+    auto pri = ctl->global_progress_indicator();
+    if(!pri) pri = ctl->create_progress_indicator(100, L("Slicing"));
     slice(pri);
 }
 
@@ -139,13 +141,15 @@ void PrintController::slice_to_png()
 {
     using Pointf3 = Vec3d;
 
+    auto ctl = GUI::get_appctl();
     auto presetbundle = GUI::get_preset_bundle();
 
     assert(presetbundle);
 
+    // FIXME: this crashes in command line mode
     auto pt = presetbundle->printers.get_selected_preset().printer_technology();
     if(pt != ptSLA) {
-        report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
+        ctl->report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
                      L("Error"));
         return;
     }
@@ -162,7 +166,7 @@ void PrintController::slice_to_png()
         print->apply_config(conf);
         print->validate();
     } catch(std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), "Error");
+        ctl->report_issue(IssueType::ERR, e.what(), "Error");
         return;
     }
 
@@ -208,13 +212,13 @@ void PrintController::slice_to_png()
            << L("Width needed: ") << px(punsc) << " mm\n"
            << L("Height needed: ") << py(punsc) << " mm\n";
 
-       if(!report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
+       if(!ctl->report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
             scale_back();
             return;
        }
     }
 
-    auto pri = create_progress_indicator(
+    auto pri = ctl->create_progress_indicator(
                 200, L("Slicing to zipped png files..."));
 
     pri->on_cancel([&print](){ print->cancel(); });
@@ -223,7 +227,7 @@ void PrintController::slice_to_png()
         pri->update(0, L("Slicing..."));
         slice(pri);
     } catch (std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
         scale_back();
         if(print->canceled()) print->restart();
         return;
@@ -242,7 +246,7 @@ void PrintController::slice_to_png()
                     exd.exp_time_s, exd.exp_time_first_s);
 
     } catch (std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
     }
 
     scale_back();
@@ -286,6 +290,8 @@ void AppController::arrange_model()
 {
     using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
 
+    auto ctl = GUI::get_appctl();
+
     if(m_arranging.load()) return;
 
     // to prevent UI reentrancies
@@ -294,7 +300,7 @@ void AppController::arrange_model()
     unsigned count = 0;
     for(auto obj : m_model->objects) count += obj->instances.size();
 
-    auto pind = global_progress_indicator();
+    auto pind = ctl->global_progress_indicator();
 
     float pmax = 1.0;
 
@@ -331,15 +337,15 @@ void AppController::arrange_model()
                       bed,
                       hint,
                       false, // create many piles not just one pile
-                      [this, pind, count](unsigned rem) {
+                      [this, pind, &ctl, count](unsigned rem) {
             if(pind)
                 pind->update(count - rem, L("Arranging objects..."));
 
-            process_events();
+            ctl->process_events();
         }, [this] () { return !m_arranging.load(); });
     } catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
-        report_issue(IssueType::ERR,
+        ctl->report_issue(IssueType::ERR,
                         L("Could not arrange model objects! "
                         "Some geometries may be invalid."),
                         L("Exception occurred"));
