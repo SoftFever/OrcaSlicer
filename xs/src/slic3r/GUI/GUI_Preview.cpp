@@ -99,8 +99,9 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
 
     m_combochecklist_features = new wxComboCtrl();
     m_combochecklist_features->Create(this, wxID_ANY, _(L("Feature types")), wxDefaultPosition, wxSize(200, -1), wxCB_READONLY);
-    std::string feature_text = _(L("Feature types"));
-    std::string feature_items = _(L("Perimeter")) + "|" +
+    std::string feature_text = GUI::into_u8(_(L("Feature types")));
+    std::string feature_items = GUI::into_u8(
+        _(L("Perimeter")) + "|" +
         _(L("External perimeter")) + "|" +
         _(L("Overhang perimeter")) + "|" +
         _(L("Internal infill")) + "|" +
@@ -112,7 +113,8 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
         _(L("Support material")) + "|" +
         _(L("Support material interface")) + "|" +
         _(L("Wipe tower")) + "|" +
-        _(L("Custom"));
+        _(L("Custom"))
+    );
     Slic3r::GUI::create_combochecklist(m_combochecklist_features, feature_text, feature_items, true);
 
     m_checkbox_travel = new wxCheckBox(this, wxID_ANY, _(L("Travel")));

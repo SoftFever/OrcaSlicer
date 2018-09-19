@@ -81,8 +81,8 @@ template<class Backend> class Zipper {
 public:
 
     Zipper(const std::string& /*zipfile_path*/) {
-        static_assert(Backend>::value,
-                      "No zipper implementation provided!");
+        // static_assert(Backend>::value,
+        //               "No zipper implementation provided!");
     }
 
     void next_entry(const std::string& /*fname*/) {}

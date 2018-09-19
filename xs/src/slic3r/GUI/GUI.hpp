@@ -217,6 +217,8 @@ int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
+// Return std::string in UTF8 from wxString
+std::string	into_u8(const wxString &str);
 
 void set_model_events_from_perl(Model &model,
 							    int event_object_selection_changed,

@@ -2618,7 +2618,10 @@ void modulate_extrusion_by_overlapping_layers(
                 (fragment_end.is_start ? &polyline.points.front() : &polyline.points.back());
         }
     private:
-        ExtrusionPathFragmentEndPointAccessor& operator=(const ExtrusionPathFragmentEndPointAccessor&) {}
+        ExtrusionPathFragmentEndPointAccessor& operator=(const ExtrusionPathFragmentEndPointAccessor&) {
+            return *this;
+        }
+
         const std::vector<ExtrusionPathFragment> &m_path_fragments;
     };
     const coord_t search_radius = 7;
