@@ -165,12 +165,49 @@ protected:
     ProgresIndicatorPtr global_progressind_;
 };
 
-#if 0
 /**
  * @brief Implementation of the printing logic.
  */
 class PrintController: public AppControllerBoilerplate {
     Print *print_ = nullptr;
+    std::function<void()> rempools_;
+protected:
+
+    void make_skirt() {}
+    void make_brim() {}
+    void make_wipe_tower() {}
+
+    void make_perimeters(PrintObject *pobj) {}
+    void infill(PrintObject *pobj) {}
+    void gen_support_material(PrintObject *pobj) {}
+
+    // Data structure with the png export input data
+    struct PngExportData {
+        std::string zippath;                        // output zip file
+        unsigned long width_px = 1440;              // resolution - rows
+        unsigned long height_px = 2560;             // resolution columns
+        double width_mm = 68.0, height_mm = 120.0;  // dimensions in mm
+        double exp_time_first_s = 35.0;             // first exposure time
+        double exp_time_s = 8.0;                    // global exposure time
+        double corr_x = 1.0;                        // offsetting in x
+        double corr_y = 1.0;                        // offsetting in y
+        double corr_z = 1.0;                        // offsetting in y
+    };
+
+    // Should display a dialog with the input fields for printing to png
+    PngExportData query_png_export_data(const DynamicPrintConfig&);
+
+    // The previous export data, to pre-populate the dialog
+    PngExportData prev_expdata_;
+
+    /**
+     * @brief Slice one pront object.
+     * @param pobj The print object.
+     */
+    void slice(PrintObject *pobj);
+
+    void slice(ProgresIndicatorPtr pri);
+
 public:
 
     // Must be public for perl to use it
@@ -185,24 +222,18 @@ public:
         return PrintController::Ptr( new PrintController(print) );
     }
 
-    void slice() {}
-    void slice_to_png() {}
+    /**
+     * @brief Slice the loaded print scene.
+     */
+    void slice();
+
+    /**
+     * @brief Slice the print into zipped png files.
+     */
+    void slice_to_png();
 
     const PrintConfig& config() const;
 };
-#else
-class PrintController: public AppControllerBoilerplate {
-public:
-    using Ptr = std::unique_ptr<PrintController>;
-    explicit inline PrintController(Print *print){}
-    inline static Ptr create(Print *print) {
-        return PrintController::Ptr( new PrintController(print) );
-    }
-    void slice() {}
-    void slice_to_png() {}
-    const PrintConfig& config() const { static PrintConfig cfg; return cfg; }
-};
-#endif
 
 /**
  * @brief Top level controller.

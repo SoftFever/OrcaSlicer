@@ -7,10 +7,6 @@
 #include <fstream>
 #include <sstream>
 
-#include <wx/stdstream.h>
-#include <wx/wfstream.h>
-#include <wx/zipstrm.h>
-
 #include <boost/log/trivial.hpp>
 
 #include "Rasterizer/Rasterizer.hpp"
@@ -32,7 +28,7 @@ enum class FilePrinterFormat {
  * different implementations of this class template for each supported format.
  *
  */
-template<FilePrinterFormat format>
+template<FilePrinterFormat format, class LayerFormat = void>
 class FilePrinter {
 public:
 
@@ -73,10 +69,33 @@ public:
     void saveLayer(unsigned lyr, const std::string& path);
 };
 
+template<class T = void> struct VeryFalse { static const bool value = false; };
+
+// This has to be explicitly implemented in the gui layer or a default zlib
+// based implementation is needed.
+template<class Backend> class Zipper {
+public:
+
+    Zipper(const std::string& /*zipfile_path*/) {
+        static_assert(VeryFalse<Backend>::value,
+                      "No zipper implementation provided!");
+    }
+
+    void next_entry(const std::string& /*fname*/) {}
+
+    std::string get_name() { return ""; }
+
+    template<class T> Zipper& operator<<(const T& /*arg*/) {
+        return *this;
+    }
+
+    void close() {}
+};
+
 // Implementation for PNG raster output
 // Be aware that if a large number of layers are allocated, it can very well
 // exhaust the available memory especially on 32 bit platform.
-template<> class FilePrinter<FilePrinterFormat::PNG> {
+template<class LyrFormat> class FilePrinter<FilePrinterFormat::PNG, LyrFormat> {
 
     struct Layer {
         Raster first;
@@ -148,7 +167,7 @@ public:
         pxdim_(m.pxdim_) {}
 
     inline void layers(unsigned cnt) { if(cnt > 0) layers_rst_.resize(cnt); }
-    inline unsigned layers() const { return layers_rst_.size(); }
+    inline unsigned layers() const { return unsigned(layers_rst_.size()); }
 
     void printConfig(const Print& printconf) { print_ = &printconf; }
 
@@ -183,38 +202,63 @@ public:
     }
 
     inline void save(const std::string& path) {
+        try {
+            Zipper<LyrFormat> zipper(path);
 
-        wxFileName filepath(path);
+            std::string project = zipper.get_name();
 
-        wxFFileOutputStream zipfile(path);
+            zipper.next_entry(project);
+            zipper << createIniContent(project);
 
-        std::string project = filepath.GetName().ToStdString();
+            for(unsigned i = 0; i < layers_rst_.size(); i++) {
+                if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
+                    char lyrnum[6];
+                    std::sprintf(lyrnum, "%.5d", i);
+                    auto zfilename = project + lyrnum + ".png";
+                    zipper.next_entry(zfilename);
+                    zipper << layers_rst_[i].second.rdbuf();
+                    layers_rst_[i].second.str("");
+                }
+            }
 
-        if(!zipfile.IsOk()) {
+            zipper.close();
+        } catch(std::exception&) {
             BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "
                                      << path;
             return;
         }
 
-        wxZipOutputStream zipstream(zipfile);
-        wxStdOutputStream pngstream(zipstream);
+//        wxFileName filepath(path);
 
-        zipstream.PutNextEntry("config.ini");
-        pngstream << createIniContent(project);
+//        wxFFileOutputStream zipfile(path);
 
-        for(unsigned i = 0; i < layers_rst_.size(); i++) {
-            if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
-                char lyrnum[6];
-                std::sprintf(lyrnum, "%.5d", i);
-                auto zfilename = project + lyrnum + ".png";
-                zipstream.PutNextEntry(zfilename);
-                pngstream << layers_rst_[i].second.rdbuf();
-                layers_rst_[i].second.str("");
-            }
-        }
+//        std::string project = filepath.GetName().ToStdString();
 
-        zipstream.Close();
-        zipfile.Close();
+//        if(!zipfile.IsOk()) {
+//            BOOST_LOG_TRIVIAL(error) << "Can't create zip file for layers! "
+//                                     << path;
+//            return;
+//        }
+
+//        wxZipOutputStream zipstream(zipfile);
+//        wxStdOutputStream pngstream(zipstream);
+
+//        zipstream.PutNextEntry("config.ini");
+//        pngstream << createIniContent(project);
+
+//        for(unsigned i = 0; i < layers_rst_.size(); i++) {
+//            if(layers_rst_[i].second.rdbuf()->in_avail() > 0) {
+//                char lyrnum[6];
+//                std::sprintf(lyrnum, "%.5d", i);
+//                auto zfilename = project + lyrnum + ".png";
+//                zipstream.PutNextEntry(zfilename);
+//                pngstream << layers_rst_[i].second.rdbuf();
+//                layers_rst_[i].second.str("");
+//            }
+//        }
+
+//        zipstream.Close();
+//        zipfile.Close();
     }
 
     void saveLayer(unsigned lyr, const std::string& path) {
@@ -243,7 +287,7 @@ inline coord_t py(const Point& p) { return p(1); }
 inline coordf_t px(const Vec2d& p) { return p(0); }
 inline coordf_t py(const Vec2d& p) { return p(1); }
 
-template<FilePrinterFormat format, class...Args>
+template<FilePrinterFormat format, class LayerFormat, class...Args>
 void print_to(Print& print,
               std::string dirpath,
               double width_mm,
@@ -261,7 +305,9 @@ void print_to(Print& print,
     auto& objects = print.objects();
 
     // Merge the sliced layers with the support layers
-    std::for_each(objects.cbegin(), objects.cend(), [&layers](const PrintObject *o) {
+    std::for_each(objects.cbegin(), objects.cend(),
+                  [&layers](const PrintObject *o)
+    {
         for(const auto l : o->layers()) {
             auto& lyrs = layers[static_cast<long long>(scale_(l->print_z))];
             lyrs.push_back(l);
@@ -288,8 +334,8 @@ void print_to(Print& print,
     auto cy = scale_(height_mm)/2 - (py(print_bb.center()) - py(print_bb.min));
 
     // Create the actual printer, forward any additional arguments to it.
-    FilePrinter<format> printer(width_mm, height_mm,
-                                std::forward<Args>(args)...);
+    FilePrinter<format, LayerFormat> printer(width_mm, height_mm,
+                                             std::forward<Args>(args)...);
 
     printer.printConfig(print);
 
@@ -303,14 +349,11 @@ void print_to(Print& print,
     keys.reserve(layers.size());
     for(auto& e : layers) keys.push_back(e.first);
 
-    //FIXME
-    int initstatus = //print.progressindicator? print.progressindicator->state() : 
-        0;
-    print.set_status(initstatus, jobdesc);
+    print.set_status(0, jobdesc);
 
     // Method that prints one layer
     auto process_layer = [&layers, &keys, &printer, &st_prev, &m,
-            &jobdesc, print_bb, dir, cx, cy, &print, initstatus]
+            &jobdesc, print_bb, dir, cx, cy, &print]
             (unsigned layer_id)
     {
         LayerPtrs lrange = layers[keys[layer_id]];
@@ -354,7 +397,7 @@ void print_to(Print& print,
         auto st = static_cast<int>(layer_id*80.0/layers.size());
         m.lock();
         if( st - st_prev > 10) {
-            print.set_status(initstatus + st, jobdesc);
+            print.set_status(st, jobdesc);
             st_prev = st;
         }
         m.unlock();
@@ -373,9 +416,9 @@ void print_to(Print& print,
 //    print.set_status(100, jobdesc);
 
     // Save the print into the file system.
-    print.set_status(initstatus + 90, "Writing layers to disk");
+    print.set_status(90, "Writing layers to disk");
     printer.save(dir);
-    print.set_status(initstatus + 100, "Writing layers completed");
+    print.set_status(100, "Writing layers completed");
 }
 
 }

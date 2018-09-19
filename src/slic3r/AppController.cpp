@@ -11,11 +11,16 @@
 #include <ModelArrange.hpp>
 #include <slic3r/GUI/PresetBundle.hpp>
 
-#include <Geometry.hpp>
 #include <PrintConfig.hpp>
 #include <Print.hpp>
+#include <PrintExport.hpp>
+#include <Geometry.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
+
+#include <wx/stdstream.h>
+#include <wx/wfstream.h>
+#include <wx/zipstrm.h>
 
 namespace Slic3r {
 
@@ -43,6 +48,15 @@ namespace GUI {
 PresetBundle* get_preset_bundle();
 }
 
+static const PrintObjectStep STEP_SLICE                 = posSlice;
+static const PrintObjectStep STEP_PERIMETERS            = posPerimeters;
+static const PrintObjectStep STEP_PREPARE_INFILL        = posPrepareInfill;
+static const PrintObjectStep STEP_INFILL                = posInfill;
+static const PrintObjectStep STEP_SUPPORTMATERIAL       = posSupportMaterial;
+static const PrintStep STEP_SKIRT                       = psSkirt;
+static const PrintStep STEP_BRIM                        = psBrim;
+static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
+
 AppControllerBoilerplate::ProgresIndicatorPtr
 AppControllerBoilerplate::global_progress_indicator() {
     ProgresIndicatorPtr ret;
@@ -60,6 +74,376 @@ void AppControllerBoilerplate::global_progress_indicator(
     pri_data_->m.lock();
     global_progressind_ = gpri;
     pri_data_->m.unlock();
+}
+
+//void PrintController::make_skirt()
+//{
+//    assert(print_ != nullptr);
+
+//    // prerequisites
+//    for(auto obj : print_->objects) make_perimeters(obj);
+//    for(auto obj : print_->objects) infill(obj);
+//    for(auto obj : print_->objects) gen_support_material(obj);
+
+//    if(!print_->state.is_done(STEP_SKIRT)) {
+//        print_->state.set_started(STEP_SKIRT);
+//        print_->skirt.clear();
+//        if(print_->has_skirt()) print_->_make_skirt();
+
+//        print_->state.set_done(STEP_SKIRT);
+//    }
+//}
+
+//void PrintController::make_brim()
+//{
+//    assert(print_ != nullptr);
+
+//    // prerequisites
+//    for(auto obj : print_->objects) make_perimeters(obj);
+//    for(auto obj : print_->objects) infill(obj);
+//    for(auto obj : print_->objects) gen_support_material(obj);
+//    make_skirt();
+
+//    if(!print_->state.is_done(STEP_BRIM)) {
+//        print_->state.set_started(STEP_BRIM);
+
+//        // since this method must be idempotent, we clear brim paths *before*
+//        // checking whether we need to generate them
+//        print_->brim.clear();
+
+//        if(print_->config.brim_width > 0) print_->_make_brim();
+
+//        print_->state.set_done(STEP_BRIM);
+//    }
+//}
+
+//void PrintController::make_wipe_tower()
+//{
+//    assert(print_ != nullptr);
+
+//    // prerequisites
+//    for(auto obj : print_->objects) make_perimeters(obj);
+//    for(auto obj : print_->objects) infill(obj);
+//    for(auto obj : print_->objects) gen_support_material(obj);
+//    make_skirt();
+//    make_brim();
+
+//    if(!print_->state.is_done(STEP_WIPE_TOWER)) {
+//        print_->state.set_started(STEP_WIPE_TOWER);
+
+//        // since this method must be idempotent, we clear brim paths *before*
+//        // checking whether we need to generate them
+//        print_->brim.clear();
+
+//        if(print_->has_wipe_tower()) print_->_make_wipe_tower();
+
+//        print_->state.set_done(STEP_WIPE_TOWER);
+//    }
+//}
+
+//void PrintController::slice(PrintObject *pobj)
+//{
+//    assert(pobj != nullptr && print_ != nullptr);
+
+//    if(pobj->state.is_done(STEP_SLICE)) return;
+
+//    pobj->state.set_started(STEP_SLICE);
+
+//    pobj->_slice();
+
+//    auto msg = pobj->_fix_slicing_errors();
+//    if(!msg.empty()) report_issue(IssueType::WARN, msg);
+
+//    // simplify slices if required
+//    if (print_->config.resolution)
+//        pobj->_simplify_slices(scale_(print_->config.resolution));
+
+
+//    if(pobj->layers.empty())
+//        report_issue(IssueType::ERR,
+//                     L("No layers were detected. You might want to repair your "
+//                     "STL file(s) or check their size or thickness and retry")
+//                     );
+
+//    pobj->state.set_done(STEP_SLICE);
+//}
+
+//void PrintController::make_perimeters(PrintObject *pobj)
+//{
+//    assert(pobj != nullptr);
+
+//    slice(pobj);
+
+//    if (!pobj->state.is_done(STEP_PERIMETERS)) {
+//        pobj->_make_perimeters();
+//    }
+//}
+
+//void PrintController::infill(PrintObject *pobj)
+//{
+//    assert(pobj != nullptr);
+
+//    make_perimeters(pobj);
+
+//    if (!pobj->state.is_done(STEP_PREPARE_INFILL)) {
+//        pobj->state.set_started(STEP_PREPARE_INFILL);
+
+//        pobj->_prepare_infill();
+
+//        pobj->state.set_done(STEP_PREPARE_INFILL);
+//    }
+
+//    pobj->_infill();
+//}
+
+//void PrintController::gen_support_material(PrintObject *pobj)
+//{
+//    assert(pobj != nullptr);
+
+//    // prerequisites
+//    slice(pobj);
+
+//    if(!pobj->state.is_done(STEP_SUPPORTMATERIAL)) {
+//        pobj->state.set_started(STEP_SUPPORTMATERIAL);
+
+//        pobj->clear_support_layers();
+
+//        if((pobj->config.support_material || pobj->config.raft_layers > 0)
+//                && pobj->layers.size() > 1) {
+//            pobj->_generate_support_material();
+//        }
+
+//        pobj->state.set_done(STEP_SUPPORTMATERIAL);
+//    }
+//}
+
+PrintController::PngExportData
+PrintController::query_png_export_data(const DynamicPrintConfig& conf)
+{
+    PngExportData ret;
+
+    auto zippath = query_destination_path("Output zip file", "*.zip", "out");
+
+    ret.zippath = zippath;
+
+    ret.width_mm = conf.opt_float("display_width");
+    ret.height_mm = conf.opt_float("display_height");
+
+    ret.width_px = conf.opt_int("display_pixels_x");
+    ret.height_px = conf.opt_int("display_pixels_y");
+
+    auto opt_corr = conf.opt<ConfigOptionFloats>("printer_correction");
+
+    if(opt_corr) {
+        ret.corr_x = opt_corr->values[0];
+        ret.corr_y = opt_corr->values[1];
+        ret.corr_z = opt_corr->values[2];
+    }
+
+    ret.exp_time_first_s = conf.opt_float("initial_exposure_time");
+    ret.exp_time_s = conf.opt_float("exposure_time");
+
+    return ret;
+}
+
+void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
+{
+    auto st = pri->state();
+
+    Slic3r::trace(3, "Starting the slicing process.");
+
+    pri->update(st+20, L("Generating perimeters"));
+//    for(auto obj : print_->objects) make_perimeters(obj);
+
+    pri->update(st+60, L("Infilling layers"));
+//    for(auto obj : print_->objects) infill(obj);
+
+    pri->update(st+70, L("Generating support material"));
+//    for(auto obj : print_->objects) gen_support_material(obj);
+
+//    pri->message_fmt(L("Weight: %.1fg, Cost: %.1f"),
+//                     print_->total_weight, print_->total_cost);
+    pri->state(st+85);
+
+
+    pri->update(st+88, L("Generating skirt"));
+    make_skirt();
+
+
+    pri->update(st+90, L("Generating brim"));
+    make_brim();
+
+    pri->update(st+95, L("Generating wipe tower"));
+    make_wipe_tower();
+
+    pri->update(st+100, L("Done"));
+
+    // time to make some statistics..
+
+    Slic3r::trace(3, L("Slicing process finished."));
+}
+
+void PrintController::slice()
+{
+    auto pri = global_progress_indicator();
+    if(!pri) pri = create_progress_indicator(100, L("Slicing"));
+    slice(pri);
+}
+
+struct wxZipper {};
+
+template<> class Zipper<wxZipper> {
+    wxFileName m_fpath;
+    wxFFileOutputStream m_zipfile;
+    wxZipOutputStream m_zipstream;
+    wxStdOutputStream m_pngstream;
+public:
+
+    Zipper(const std::string& zipfile_path):
+        m_fpath(zipfile_path),
+        m_zipfile(zipfile_path),
+        m_zipstream(m_zipfile),
+        m_pngstream(m_zipstream)
+    {
+        if(!m_zipfile.IsOk())
+            throw std::runtime_error(L("Cannot create zip file."));
+    }
+
+    void next_entry(const std::string& fname) {
+        m_zipstream.PutNextEntry(fname);
+    }
+
+    std::string get_name() {
+        return m_fpath.GetName().ToStdString();
+    }
+
+    template<class T> Zipper& operator<<(const T& arg) {
+        m_pngstream << arg; return *this;
+    }
+
+    void close() {
+        m_zipstream.Close();
+        m_zipfile.Close();
+    }
+};
+
+void PrintController::slice_to_png()
+{
+    using Pointf3 = Vec3d;
+
+    auto presetbundle = GUI::get_preset_bundle();
+
+    assert(presetbundle);
+
+    auto pt = presetbundle->printers.get_selected_preset().printer_technology();
+    if(pt != ptSLA) {
+        report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
+                     L("Error"));
+        return;
+    }
+
+    auto conf = presetbundle->full_config();
+    conf.validate();
+
+    auto exd = query_png_export_data(conf);
+    if(exd.zippath.empty()) return;
+
+    Print *print = print_;
+
+    try {
+        print->apply_config(conf);
+        print->validate();
+    } catch(std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), "Error");
+        return;
+    }
+
+    // TODO: copy the model and work with the copy only
+    bool correction = false;
+    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
+        correction = true;
+//        print->invalidate_all_steps();
+
+//        for(auto po : print->objects) {
+//            po->model_object()->scale(
+//                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
+//                        );
+//            po->model_object()->invalidate_bounding_box();
+//            po->reload_model_instances();
+//            po->invalidate_all_steps();
+//        }
+    }
+
+    // Turn back the correction scaling on the model.
+    auto scale_back = [this, print, correction, exd]() {
+        if(correction) { // scale the model back
+//            print->invalidate_all_steps();
+//            for(auto po : print->objects) {
+//                po->model_object()->scale(
+//                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+//                );
+//                po->model_object()->invalidate_bounding_box();
+//                po->reload_model_instances();
+//                po->invalidate_all_steps();
+//            }
+        }
+    };
+
+    auto print_bb = print->bounding_box();
+    Vec2d punsc = unscale(print_bb.size());
+
+    // If the print does not fit into the print area we should cry about it.
+    if(px(punsc) > exd.width_mm || py(punsc) > exd.height_mm) {
+        std::stringstream ss;
+
+        ss << L("Print will not fit and will be truncated!") << "\n"
+           << L("Width needed: ") << px(punsc) << " mm\n"
+           << L("Height needed: ") << py(punsc) << " mm\n";
+
+       if(!report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
+            scale_back();
+            return;
+       }
+    }
+
+    auto pri = create_progress_indicator(
+                200, L("Slicing to zipped png files..."));
+
+    pri->on_cancel([&print](){ print->cancel(); });
+
+    try {
+        pri->update(0, L("Slicing..."));
+        slice(pri);
+    } catch (std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+        scale_back();
+        if(print->canceled()) print->restart();
+        return;
+    }
+
+    auto initstate = unsigned(pri->state());
+    print->set_status_callback([pri, initstate](int st, const std::string& msg)
+    {
+        pri->update(initstate + unsigned(st), msg);
+    });
+
+    try {
+        print_to<FilePrinterFormat::PNG, wxZipper>( *print, exd.zippath,
+                    exd.width_mm, exd.height_mm,
+                    exd.width_px, exd.height_px,
+                    exd.exp_time_s, exd.exp_time_first_s);
+
+    } catch (std::exception& e) {
+        report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+    }
+
+    scale_back();
+    if(print->canceled()) print->restart();
+}
+
+const PrintConfig &PrintController::config() const
+{
+    return print_->config();
 }
 
 void ProgressIndicator::message_fmt(
