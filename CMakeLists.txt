@@ -287,9 +287,5 @@ endif ()
 add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/xs)
 add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-#install(PROGRAMS slic3r.pl DESTINATION bin RENAME slic3r-prusa3d)
-
 file(GLOB MyVar var/*.png)
 install(FILES ${MyVar} DESTINATION share/slic3r-prusa3d)
-install(FILES lib/Slic3r.pm DESTINATION lib/slic3r-prusa3d)
-install(DIRECTORY lib/Slic3r DESTINATION lib/slic3r-prusa3d)

@@ -97,7 +97,7 @@ if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
 
-target_include_directories(XS PRIVATE src src/libslic3r) # Local include directories
+target_include_directories(XS PRIVATE src)
 target_compile_definitions(XS PRIVATE -DSLIC3RXS)
 set_target_properties(XS PROPERTIES PREFIX "") # Prevent cmake from generating libXS.so instead of XS.so
 
@@ -157,7 +157,7 @@ target_link_libraries(XS ${EXPAT_LIBRARIES})
 # target_link_libraries(XS ${GLEW_LIBRARIES})
 
 # Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
-set(PERL_LOCAL_LIB_DIR "../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
+set(PERL_LOCAL_LIB_DIR "../../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
 add_custom_command(
     TARGET XS
     POST_BUILD
@@ -174,8 +174,6 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E rename "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS.bundle"
     )
 endif()
-
-target_include_directories(XS PRIVATE src src/libslic3r)
 
 if(SLIC3R_PROFILE)
     target_link_libraries(Shiny)
