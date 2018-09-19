@@ -16,6 +16,12 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type" )
+endif()
+
+
 # Where all the bundled libraries reside?
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 # For the bundled boost libraries (boost::nowide)
