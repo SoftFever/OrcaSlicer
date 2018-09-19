@@ -52,9 +52,9 @@ target_link_libraries(slic3r libslic3r libslic3r_gui ${wxWidgets_LIBRARIES} ${CU
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
-    target_link_libraries(XS "-framework IOKit" "-framework CoreFoundation" -lc++)
+    target_link_libraries(slic3r "-framework IOKit" "-framework CoreFoundation" -lc++)
 elseif (NOT MSVC)
-    target_link_libraries(XS -lstdc++)
+    target_link_libraries(slic3r -lstdc++)
 endif ()
 # Add the OpenGL and GLU libraries.
 if (SLIC3R_GUI)
