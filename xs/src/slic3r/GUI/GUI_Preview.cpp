@@ -152,20 +152,20 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
     bind_event_handlers();
     
     // sets colors for gcode preview extrusion roles
-    std::vector<std::string>  extrusion_roles_colors = {
-        "FFFF66", // Perimeter 
-        "FFA500", // External perimeter
-        "0000FF", // Overhang perimeter
-        "B1302A", // Internal infill
-        "D732D7", // Solid infill
-        "FF1A1A", // Top solid infill
-        "9999FF", // Bridge infill
-        "FFFFFF", // Gap fill
-        "845321", // Skirt
-        "00FF00", // Support material
-        "008000", // Support material interface
-        "B3E3AB", // Wipe tower
-        "28CC94" // Custom
+    std::vector<std::string> extrusion_roles_colors = {
+        "Perimeter", "FFFF66",
+        "External perimeter", "FFA500",
+        "Overhang perimeter", "0000FF",
+        "Internal infill", "B1302A",
+        "Solid infill", "D732D7",
+        "Top solid infill", "FF1A1A",
+        "Bridge infill", "9999FF",
+        "Gap fill", "FFFFFF",
+        "Skirt", "845321",
+        "Support material", "00FF00",
+        "Support material interface", "008000",
+        "Wipe tower", "B3E3AB",
+        "Custom", "28CC94"
     };
     m_gcode_preview_data->set_extrusion_paths_colors(extrusion_roles_colors);
 
