@@ -111,6 +111,7 @@ class PrusaCollapsiblePaneMSW : public PrusaCollapsiblePane//wxCollapsiblePane
 	wxButton*	m_pDisclosureTriangleButton = nullptr;
 	wxBitmap	m_bmp_close;
 	wxBitmap	m_bmp_open;
+	wxString    m_strLabel;
 public:
 	PrusaCollapsiblePaneMSW() {}
 	PrusaCollapsiblePaneMSW(	wxWindow *parent,

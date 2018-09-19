@@ -1008,7 +1008,7 @@ void get_settings_choice(wxMenu *menu, int id, bool is_part)
 	if (!settings_list)
 		return;
 
-	if (wxGetMultipleChoices(selections, _(L("Select showing settings")), category_name, names) ==0 )
+	if (wxGetSelectedChoices(selections, _(L("Select showing settings")), category_name, names) == -1)
 		return;
 
 	std::vector <std::string> selected_options;

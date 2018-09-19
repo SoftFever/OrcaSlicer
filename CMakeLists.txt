@@ -175,33 +175,6 @@ endif()
 # The Intel TBB library will use the std::exception_ptr feature of C++11.
 add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
-# Find and configure wxWidgets
-if (SLIC3R_PRUSACONTROL)
-    set(wxWidgets_UseAlienWx 1)
-    if (wxWidgets_UseAlienWx)
-        set(AlienWx_DEBUG 1)
-        find_package(AlienWx REQUIRED COMPONENTS base core adv html gl)
-        include_directories(${AlienWx_INCLUDE_DIRS})
-        #add_compile_options(${AlienWx_CXX_FLAGS})
-        add_definitions(${AlienWx_DEFINITIONS})
-        set(wxWidgets_LIBRARIES ${AlienWx_LIBRARIES})
-        # On Linux / gtk, we need to have a direct access to gtk+ for some workarounds.
-        if (AlienWx_GUI_TOOLKIT STREQUAL "gtk2")
-            pkg_check_modules(GTK2 gtk+-2.0)
-            include_directories(${GTK2_INCLUDE_DIRS})
-        endif()
-        if (AlienWx_GUI_TOOLKIT STREQUAL "gtk3")
-            pkg_check_modules(GTK3 gtk+-3.0)
-            include_directories(${GTK3_INCLUDE_DIRS})
-        endif()
-    else ()
-        find_package(wxWidgets REQUIRED COMPONENTS base core adv html gl)
-        include(${wxWidgets_USE_FILE})
-    endif ()
-#FIXME rewrite the PRUS format to miniz!
-#    add_definitions(-DSLIC3R_GUI -DSLIC3R_PRUS)
-endif()
-
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 
@@ -270,22 +243,9 @@ add_subdirectory(resources/localization)
 add_subdirectory(src)
 
 # Perl bindings, currently only used for the unit / integration tests of libslic3r.
+# Also runs the unit / integration tests.
+#FIXME Port the tests into C++ to finally get rid of the Perl!
 add_subdirectory(xs)
-
-get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
-if (MSVC)
-	# By default the startup project in MSVC is the 'ALL_BUILD' cmake-created project,
-	# but we want 'slic3r' as the startup one because debugging run command is associated with it.
-	# (Unfortunatelly it cannot be associated with ALL_BUILD using CMake.)
-	# Note: For some reason this needs to be set in the top-level CMakeLists.txt
-	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT XS)
-	set(PERL_PROVE "${PERL_BIN_PATH}/prove.bat")
-else ()
-	set(PERL_PROVE "${PERL_BIN_PATH}/prove")
-endif ()
-
-add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/xs)
-add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 file(GLOB MyVar var/*.png)
 install(FILES ${MyVar} DESTINATION share/slic3r-prusa3d)
