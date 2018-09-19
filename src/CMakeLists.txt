@@ -48,6 +48,11 @@ add_subdirectory(slic3r)
 
 # Create a slic3r executable
 add_executable(slic3r slic3r.cpp)
+if(SLIC3R_GUI)
+    set_target_properties(slic3r PROPERTIES OUTPUT_NAME "slic3r-gui")
+else()
+    set_target_properties(slic3r PROPERTIES OUTPUT_NAME "slic3r-console")
+endif()
 target_link_libraries(slic3r libslic3r libslic3r_gui ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
