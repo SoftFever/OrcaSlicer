@@ -1095,6 +1095,9 @@ GLCanvas3D::Mouse::Drag::Drag()
 GLCanvas3D::Mouse::Mouse()
     : dragging(false)
     , position(DBL_MAX, DBL_MAX)
+#if ENABLE_GIZMOS_RESET
+    , ignore_up_event(false)
+#endif // ENABLE_GIZMOS_RESET
 {
 }
 
@@ -3058,6 +3061,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_GIZMOS_RESET
     else if (evt.LeftDClick() && m_gizmos.grabber_contains_mouse())
     {
+#if ENABLE_GIZMOS_RESET
+        m_mouse.ignore_up_event = true;
+#endif // ENABLE_GIZMOS_RESET
         m_gizmos.process_double_click();
         switch (m_gizmos.get_current_type())
         {
@@ -3075,7 +3081,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_on_gizmo_rotate_3D_callback.call(rotation(0), rotation(1), rotation(2));
 #else
             m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
-#endif //ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             update_rotation_values();
             m_dirty = true;
             break;
@@ -3421,12 +3427,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
+#if ENABLE_GIZMOS_RESET
+            if (!m_mouse.ignore_up_event && m_picking_enabled && !m_toolbar_action_running)
+#else
             if (m_picking_enabled && !m_toolbar_action_running)
+#endif // ENABLE_GIZMOS_RESET
             {
                 deselect_volumes();
                 _on_select(-1, -1);
                 update_gizmos_data();
             }
+#if ENABLE_GIZMOS_RESET
+            else if (m_mouse.ignore_up_event)
+                m_mouse.ignore_up_event = false;
+#endif // ENABLE_GIZMOS_RESET
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {

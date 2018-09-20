@@ -315,6 +315,9 @@ class GLCanvas3D
         bool dragging;
         Vec2d position;
         Drag drag;
+#if ENABLE_GIZMOS_RESET
+        bool ignore_up_event;
+#endif // ENABLE_GIZMOS_RESET
 
         Mouse();
 
