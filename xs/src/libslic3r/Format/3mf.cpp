@@ -1283,6 +1283,9 @@ namespace Slic3r {
                 transform(1, 0) * inv_sx, transform(1, 1) * inv_sy, transform(1, 2) * inv_sz,
                 transform(2, 0) * inv_sx, transform(2, 1) * inv_sy, transform(2, 2) * inv_sz;
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        Vec3d rotation = m3x3.eulerAngles(0, 1, 2);
+#else
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(m3x3);
 
@@ -1291,6 +1294,7 @@ namespace Slic3r {
             return;
 
         double angle_z = (rotation.axis() == Vec3d::UnitZ()) ? rotation.angle() : -rotation.angle();
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         instance.set_offset(offset);
@@ -1299,7 +1303,11 @@ namespace Slic3r {
         instance.offset(1) = offset_y;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
         instance.scaling_factor = sx;
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        instance.set_rotation(rotation);
+#else
         instance.rotation = angle_z;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)

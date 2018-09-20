@@ -246,11 +246,16 @@ public:
 #if ENABLE_MODELINSTANCE_3D_OFFSET
 private:
     Vec3d m_offset;              // in unscaled coordinates
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 public:
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
     double scaling_factor;
 #if !ENABLE_MODELINSTANCE_3D_OFFSET
     Vec2d offset;              // in unscaled coordinates
@@ -268,6 +273,14 @@ public:
     void set_offset(const Vec3d& offset) { m_offset = offset; }
     void set_offset(Axis axis, double offset) { m_offset(axis) = offset; }
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    const Vec3d& get_rotation() const { return m_rotation; }
+    double get_rotation(Axis axis) const { return m_rotation(axis); }
+
+    void set_rotation(const Vec3d& rotation);
+    void set_rotation(Axis axis, double rotation);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -289,9 +302,15 @@ private:
     ModelObject* object;
 
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
+    ModelInstance(ModelObject *object, const ModelInstance &other) :
+        m_rotation(other.m_rotation), scaling_factor(other.scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
+#else
     ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         rotation(other.rotation), scaling_factor(other.scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
     ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), offset(Vec2d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :

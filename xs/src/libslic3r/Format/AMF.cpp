@@ -30,7 +30,12 @@
 // 0 : .amf, .amf.xml and .zip.amf files saved by older slic3r. No version definition in them.
 // 1 : Introduction of amf versioning. No other change in data saved into amf files.
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+// 2 : Added z component of offset
+//     Added x and y components of rotation
+#else
 // 2 : Added z component of offset.
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 const unsigned int VERSION_AMF = 2;
 #else
 const unsigned int VERSION_AMF = 1;
@@ -127,6 +132,10 @@ struct AMFParserContext
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         NODE_TYPE_DELTAZ,               // amf/constellation/instance/deltaz
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        NODE_TYPE_RX,                   // amf/constellation/instance/rx
+        NODE_TYPE_RY,                   // amf/constellation/instance/ry
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         NODE_TYPE_RZ,                   // amf/constellation/instance/rz
         NODE_TYPE_SCALE,                // amf/constellation/instance/scale
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
@@ -134,7 +143,11 @@ struct AMFParserContext
 
     struct Instance {
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rx_set(false), ry_set(false), rz_set(false), scale_set(false) {}
+#else
         Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rz_set(false), scale_set(false) {}
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
         Instance() : deltax_set(false), deltay_set(false), rz_set(false), scale_set(false) {}
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -149,6 +162,14 @@ struct AMFParserContext
         float deltaz;
         bool  deltaz_set;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        // Rotation around the X axis.
+        float rx;
+        bool  rx_set;
+        // Rotation around the Y axis.
+        float ry;
+        bool  ry_set;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         // Rotation around the Z axis.
         float rz;
         bool  rz_set;
@@ -275,6 +296,12 @@ void AMFParserContext::startElement(const char *name, const char **atts)
             else if (strcmp(name, "deltaz") == 0)
                 node_type_new = NODE_TYPE_DELTAZ;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            else if (strcmp(name, "rx") == 0)
+                node_type_new = NODE_TYPE_RX;
+            else if (strcmp(name, "ry") == 0)
+                node_type_new = NODE_TYPE_RY;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             else if (strcmp(name, "rz") == 0)
                 node_type_new = NODE_TYPE_RZ;
             else if (strcmp(name, "scale") == 0)
@@ -339,7 +366,11 @@ void AMFParserContext::characters(const XML_Char *s, int len)
             if (m_path.back() == NODE_TYPE_DELTAX || 
                 m_path.back() == NODE_TYPE_DELTAY || 
                 m_path.back() == NODE_TYPE_DELTAZ || 
-                m_path.back() == NODE_TYPE_RZ || 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                m_path.back() == NODE_TYPE_RX ||
+                m_path.back() == NODE_TYPE_RY ||
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+                m_path.back() == NODE_TYPE_RZ ||
                 m_path.back() == NODE_TYPE_SCALE)
 #else
             if (m_path.back() == NODE_TYPE_DELTAX || m_path.back() == NODE_TYPE_DELTAY || m_path.back() == NODE_TYPE_RZ || m_path.back() == NODE_TYPE_SCALE)
@@ -391,6 +422,20 @@ void AMFParserContext::endElement(const char * /* name */)
         m_value[0].clear();
         break;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    case NODE_TYPE_RX:
+        assert(m_instance);
+        m_instance->rx = float(atof(m_value[0].c_str()));
+        m_instance->rx_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_RY:
+        assert(m_instance);
+        m_instance->ry = float(atof(m_value[0].c_str()));
+        m_instance->ry_set = true;
+        m_value[0].clear();
+        break;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     case NODE_TYPE_RZ:
         assert(m_instance);
         m_instance->rz = float(atof(m_value[0].c_str()));
@@ -541,12 +586,16 @@ void AMFParserContext::endDocument()
             if (instance.deltax_set && instance.deltay_set) {
                 ModelInstance *mi = m_model.objects[object.second.idx]->add_instance();
 #if ENABLE_MODELINSTANCE_3D_OFFSET
-                mi->set_offset(Vec3d((double)instance.deltax, (double)instance.deltay, (double)instance.deltaz));
+                mi->set_offset(Vec3d(instance.deltax_set ? (double)instance.deltax : 0.0, instance.deltay_set ? (double)instance.deltay : 0.0, instance.deltaz_set ? (double)instance.deltaz : 0.0));
 #else
                 mi->offset(0) = instance.deltax;
                 mi->offset(1) = instance.deltay;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                mi->set_rotation(Vec3d(instance.rx_set ? (double)instance.rx : 0.0, instance.ry_set ? (double)instance.ry : 0.0, instance.rz_set ? (double)instance.rz : 0.0));
+#else
                 mi->rotation = instance.rz_set ? instance.rz : 0.f;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
                 mi->scaling_factor = instance.scale_set ? instance.scale : 1.f;
             }
     }
@@ -850,6 +899,10 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                     "      <deltaz>%lf</deltaz>\n"
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                    "      <rx>%lf</rx>\n"
+                    "      <ry>%lf</ry>\n"
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
                     "      <rz>%lf</rz>\n"
                     "      <scale>%lf</scale>\n"
                     "    </instance>\n",
@@ -862,8 +915,15 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     instance->offset(0),
                     instance->offset(1),
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                    instance->get_rotation(X),
+                    instance->get_rotation(Y),
+                    instance->get_rotation(Z),
+#else
                     instance->rotation,
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
                     instance->scaling_factor);
+
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);
             }

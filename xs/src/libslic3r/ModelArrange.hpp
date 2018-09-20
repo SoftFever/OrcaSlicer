@@ -527,8 +527,13 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
 
                     // Invalid geometries would throw exceptions when arranging
                     if(item.vertexCount() > 3) {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                        // CHECK_ME -> is the following correct or it should take in account all three rotations ?
+                        item.rotation(objinst->get_rotation(Z));
+#else
                         item.rotation(objinst->rotation);
-                        item.translation( {
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+                        item.translation({
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                         ClipperLib::cInt(objinst->get_offset(X)/SCALING_FACTOR),
                         ClipperLib::cInt(objinst->get_offset(Y)/SCALING_FACTOR)
@@ -681,7 +686,12 @@ void applyResult(
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
         // write the transformation data into the model instance
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        // CHECK_ME -> Is the following correct ?
+        inst_ptr->set_rotation(Vec3d(0.0, 0.0, rot));
+#else
         inst_ptr->rotation = rot;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         inst_ptr->set_offset(foff);
 #else
