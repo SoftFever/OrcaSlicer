@@ -97,7 +97,9 @@ wxBitmap* BitmapCache::insert(const std::string &bitmap_key, const wxBitmap *beg
         if (bmp->GetWidth() > 0) {
             if (bmp->GetDepth() == 32) {
                 wxAlphaPixelData data(*const_cast<wxBitmap*>(bmp));
-                data.UseAlpha();
+                //FIXME The following method is missing from wxWidgets 3.1.1.
+                // It looks like the wxWidgets 3.0.3 called the wrapped bitmap's UseAlpha().
+                //data.UseAlpha();
                 if (data) {
                     for (int r = 0; r < bmp->GetHeight(); ++ r) {
                         wxAlphaPixelData::Iterator src(data);

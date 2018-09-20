@@ -97,7 +97,7 @@ if(SLIC3R_PROFILE)
     target_link_libraries(XS Shiny)
 endif()
 
-target_include_directories(XS PRIVATE src src/libslic3r) # Local include directories
+target_include_directories(XS PRIVATE src)
 target_compile_definitions(XS PRIVATE -DSLIC3RXS)
 set_target_properties(XS PROPERTIES PREFIX "") # Prevent cmake from generating libXS.so instead of XS.so
 
@@ -109,7 +109,8 @@ target_link_libraries(XS ${Boost_LIBRARIES})
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
-    target_link_libraries(XS "-framework IOKit" "-framework CoreFoundation" -lc++)
+    # -liconv: boost links to libiconv by default
+    target_link_libraries(XS "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 elseif (MSVC)
     target_link_libraries(XS )
 else ()
@@ -142,14 +143,6 @@ if (WIN32)
     target_link_libraries(XS ${PERL_LIBRARY})
 endif()
 
-# Find and configure boost
-if(SLIC3R_STATIC)
-    # Use static boost libraries.
-    set(Boost_USE_STATIC_LIBS ON)
-    # Use boost libraries linked statically to the C++ runtime.
-    # set(Boost_USE_STATIC_RUNTIME ON)
-endif()
-
 target_link_libraries(XS ${Boost_LIBRARIES})
 target_link_libraries(XS ${TBB_LIBRARIES})
 # target_link_libraries(XS ${wxWidgets_LIBRARIES})
@@ -157,7 +150,7 @@ target_link_libraries(XS ${EXPAT_LIBRARIES})
 # target_link_libraries(XS ${GLEW_LIBRARIES})
 
 # Install the XS.pm and XS.{so,dll,bundle} into the local-lib directory.
-set(PERL_LOCAL_LIB_DIR "../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
+set(PERL_LOCAL_LIB_DIR "../../local-lib/lib/perl5/${PerlEmbed_ARCHNAME}")
 add_custom_command(
     TARGET XS
     POST_BUILD
@@ -174,8 +167,6 @@ if(APPLE)
             COMMAND ${CMAKE_COMMAND} -E rename "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS" "${PERL_LOCAL_LIB_DIR}/auto/Slic3r/XS/XS.bundle"
     )
 endif()
-
-target_include_directories(XS PRIVATE src src/libslic3r)
 
 if(SLIC3R_PROFILE)
     target_link_libraries(Shiny)
@@ -194,3 +185,19 @@ endif()
 # Installation
 install(TARGETS XS DESTINATION ${PERL_VENDORARCH}/auto/Slic3r/XS)
 install(FILES lib/Slic3r/XS.pm DESTINATION ${PERL_VENDORLIB}/Slic3r)
+
+# Unit / integration tests
+enable_testing()
+get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
+if (MSVC)
+    # By default the startup project in MSVC is the 'ALL_BUILD' cmake-created project,
+    # but we want 'slic3r' as the startup one because debugging run command is associated with it.
+    # (Unfortunatelly it cannot be associated with ALL_BUILD using CMake.)
+    # Note: For some reason this needs to be set in the top-level CMakeLists.txt
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT XS)
+    set(PERL_PROVE "${PERL_BIN_PATH}/prove.bat")
+else ()
+    set(PERL_PROVE "${PERL_BIN_PATH}/prove")
+endif ()
+add_test (NAME xs COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} -I ${PROJECT_SOURCE_DIR}/../local-lib/lib/perl5 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+add_test (NAME integration COMMAND "${PERL_EXECUTABLE}" ${PERL_PROVE} WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/..)

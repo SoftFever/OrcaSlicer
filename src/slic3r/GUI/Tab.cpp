@@ -2645,7 +2645,7 @@ void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
 				wxDataViewTreeStoreContainerNode *node = ui->GetStore()->FindContainerNode(root_sys);
 				if (node)
 				{
-					wxDataViewTreeStoreNodeList::iterator iter;
+					wxDataViewTreeStoreNodes::iterator iter;
 					for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
 					{
 						wxDataViewTreeStoreNode* child = *iter;
@@ -2731,7 +2731,7 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 					wxDataViewTreeStoreContainerNode *node = popup->GetStore()->FindContainerNode(root_sys);
 					if (node) 
 					{
-						wxDataViewTreeStoreNodeList::iterator iter;
+						wxDataViewTreeStoreNodes::iterator iter;
 						for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
 						{
 							wxDataViewTreeStoreNode* child = *iter;

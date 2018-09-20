@@ -1,7 +1,6 @@
 #include "Analyzer.hpp"
 #include "PreviewData.hpp"
 #include <float.h>
-#include <wx/intl.h> 
 #include <I18N.hpp>
 
 #include <boost/format.hpp>
