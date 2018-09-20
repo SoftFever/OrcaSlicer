@@ -13,6 +13,7 @@
 #include <boost/nowide/iostream.hpp>
 
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 using namespace Slic3r;
 
@@ -252,9 +253,12 @@ main(int argc, char **argv)
 #endif
     
 
-    MyApp *gui = new MyApp();
+//     MyApp *gui = new MyApp();
+    GUI::GUI_App *gui = new GUI::GUI_App();
 
-    MyApp::SetInstance(gui);
+//     MyApp::SetInstance(gui);
+    GUI::GUI_App::SetInstance(gui);
+
     wxEntry(argc, argv);
     return 0;
 }
