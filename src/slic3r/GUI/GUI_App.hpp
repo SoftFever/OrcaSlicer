@@ -42,6 +42,7 @@ public:
 
     void            recreate_GUI();
     void            system_info();
+    void            open_model(wxWindow *parent, wxArrayString& input_files);
     static bool     catch_error(std::function<void()> cb,
 //                                 wxMessageDialog* message_dialog,
                                 const std::string& err);

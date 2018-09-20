@@ -8,6 +8,7 @@
 #include <wx/display.h>
 #include <wx/menu.h>
 #include <wx/menuitem.h>
+#include <wx/filedlg.h>
 
 #include "Utils.hpp"
 #include "GUI.hpp"
@@ -222,20 +223,21 @@ void GUI_App::update_ui_from_settings(){
     mainframe->update_ui_from_settings();
 }
 
-// wxArrayString GUI::open_model(wxWindow* window){
-//     auto dialog = new wxFileDialog(window ? window : GetTopWindow(), 
-//         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
-//         app_config->get_last_dir(), "", get_model_wildcard(), 
-//         wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-//     if (dialog->ShowModal() != wxID_OK) {
-//         dialog->Destroy;
-//         return;
-//     }
-//     wxArrayString input_files;
-//     dialog->GetPaths(input_files);
-//     dialog->Destroy();
-//     return input_files;
-// }
+
+void GUI_App::open_model(wxWindow *parent, wxArrayString& input_files)
+{
+    auto dialog = new wxFileDialog(parent ? parent : GetTopWindow(),
+        _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
+        app_config->get_last_dir(), "",
+        MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+    if (dialog->ShowModal() != wxID_OK) {
+        dialog->Destroy();
+        return;
+    }
+
+    dialog->GetPaths(input_files);
+    dialog->Destroy();
+}
 
 void GUI_App::CallAfter(std::function<void()> cb)
 {

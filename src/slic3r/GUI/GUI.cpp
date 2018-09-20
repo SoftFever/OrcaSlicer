@@ -545,7 +545,7 @@ void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_languag
 }
 
 void open_model(wxWindow *parent, wxArrayString& input_files){
-	auto dialog = new wxFileDialog(parent ? parent : GetTopWindow(), 
+	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow()*/, 
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
 		g_AppConfig->get_last_dir(), "",
 		MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
