@@ -976,7 +976,7 @@ public:
 // Map from a config option name to its definition.
 // The definition does not carry an actual value of the config option, only its constant default value.
 // t_config_option_key is std::string
-typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;
+typedef std::map<t_config_option_key, ConfigOptionDef> t_optiondef_map;
 
 // Definition of configuration values for the purpose of GUI presentation, editing, value mapping and config file handling.
 // The configuration definition is static: It does not carry the actual configuration values,
@@ -984,17 +984,26 @@ typedef std::map<t_config_option_key,ConfigOptionDef> t_optiondef_map;
 class ConfigDef
 {
 public:
-    t_optiondef_map options;
-    ~ConfigDef() { for (auto &opt : this->options) delete opt.second.default_value; }
-    ConfigOptionDef*        add(const t_config_option_key &opt_key, ConfigOptionType type) {
-        ConfigOptionDef* opt = &this->options[opt_key];
-        opt->type = type;
-        return opt;
-    }
+    t_optiondef_map         options;
+
     bool                    has(const t_config_option_key &opt_key) const { return this->options.count(opt_key) > 0; }
     const ConfigOptionDef*  get(const t_config_option_key &opt_key) const {
         t_optiondef_map::iterator it = const_cast<ConfigDef*>(this)->options.find(opt_key);
         return (it == this->options.end()) ? nullptr : &it->second;
+    }
+    std::vector<std::string> keys() const {
+        std::vector<std::string> out;
+        out.reserve(options.size());
+        for(auto const& kvp : options)
+            out.push_back(kvp.first);
+        return out;
+    }
+
+protected:
+    ConfigOptionDef*        add(const t_config_option_key &opt_key, ConfigOptionType type) {
+        ConfigOptionDef* opt = &this->options[opt_key];
+        opt->type = type;
+        return opt;
     }
 };
 
@@ -1218,6 +1227,10 @@ public:
 
     bool                opt_bool(const t_config_option_key &opt_key) const                      { return this->option<ConfigOptionBool>(opt_key)->value != 0; }
     bool                opt_bool(const t_config_option_key &opt_key, unsigned int idx) const    { return this->option<ConfigOptionBools>(opt_key)->get_at(idx) != 0; }
+
+    // Command line processing
+    void                read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra);
+    bool                read_cli(int argc, char** argv, t_config_option_keys* extra);
 
 private:
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;

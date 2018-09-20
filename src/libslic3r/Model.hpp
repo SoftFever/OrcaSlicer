@@ -120,6 +120,7 @@ public:
     void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Vec3d &versor);
+    void scale(const double s) { this->scale(Vec3d(s, s, s)); }
     void rotate(float angle, const Axis &axis);
     void rotate(float angle, const Vec3d& axis);
     void mirror(const Axis &axis);
@@ -128,6 +129,7 @@ public:
     bool needed_repair() const;
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
+    void repair();
 
     // Called by Print::validate() from the UI thread.
     void check_instances_print_volume_state(const BoundingBoxf3& print_volume);
@@ -190,11 +192,11 @@ public:
     // Split this volume, append the result to the object owning this volume.
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
-    size_t split(unsigned int max_extruders);
+    size_t              split(unsigned int max_extruders);
 
-    ModelMaterial* assign_unique_material();
+    ModelMaterial*      assign_unique_material();
     
-    void calculate_convex_hull();
+    void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
 
     // Helpers for loading / storing into AMF / 3MF files.
@@ -324,6 +326,10 @@ public:
 
     static Model read_from_file(const std::string &input_file, bool add_default_instances = true);
     static Model read_from_archive(const std::string &input_file, PresetBundle* bundle, bool add_default_instances = true);
+
+    /// Repair the ModelObjects of the current Model.
+    /// This function calls repair function on each TriangleMesh of each model object volume
+    void repair();
 
     ModelObject* add_object();
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);

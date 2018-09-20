@@ -380,7 +380,7 @@ void PageVendors::on_variant_checked()
 
 PageFirmware::PageFirmware(ConfigWizard *parent) :
 	ConfigWizardPage(parent, _(L("Firmware Type")), _(L("Firmware"))),
-	gcode_opt(print_config_def.options["gcode_flavor"]),
+	gcode_opt(*print_config_def.get("gcode_flavor")),
 	gcode_picker(nullptr)
 {
 	append_text(_(L("Choose the type of firmware used by your printer.")));
@@ -440,13 +440,13 @@ PageDiameters::PageDiameters(ConfigWizard *parent) :
 {
 	spin_nozzle->SetDigits(2);
 	spin_nozzle->SetIncrement(0.1);
-	const auto &def_nozzle = print_config_def.options["nozzle_diameter"];
+	const auto &def_nozzle = *print_config_def.get("nozzle_diameter");
 	auto *default_nozzle = dynamic_cast<const ConfigOptionFloats*>(def_nozzle.default_value);
 	spin_nozzle->SetValue(default_nozzle != nullptr && default_nozzle->size() > 0 ? default_nozzle->get_at(0) : 0.5);
 
 	spin_filam->SetDigits(2);
 	spin_filam->SetIncrement(0.25);
-	const auto &def_filam = print_config_def.options["filament_diameter"];
+	const auto &def_filam = *print_config_def.get("filament_diameter");
 	auto *default_filam = dynamic_cast<const ConfigOptionFloats*>(def_filam.default_value);
 	spin_filam->SetValue(default_filam != nullptr && default_filam->size() > 0 ? default_filam->get_at(0) : 3.0);
 
@@ -490,13 +490,13 @@ PageTemperatures::PageTemperatures(ConfigWizard *parent) :
 	spin_bed(new wxSpinCtrlDouble(this, wxID_ANY))
 {
 	spin_extr->SetIncrement(5.0);
-	const auto &def_extr = print_config_def.options["temperature"];
+	const auto &def_extr = *print_config_def.get("temperature");
 	spin_extr->SetRange(def_extr.min, def_extr.max);
 	auto *default_extr = dynamic_cast<const ConfigOptionInts*>(def_extr.default_value);
 	spin_extr->SetValue(default_extr != nullptr && default_extr->size() > 0 ? default_extr->get_at(0) : 200);
 
 	spin_bed->SetIncrement(5.0);
-	const auto &def_bed = print_config_def.options["bed_temperature"];
+	const auto &def_bed = *print_config_def.get("bed_temperature");
 	spin_bed->SetRange(def_bed.min, def_bed.max);
 	auto *default_bed = dynamic_cast<const ConfigOptionInts*>(def_bed.default_value);
 	spin_bed->SetValue(default_bed != nullptr && default_bed->size() > 0 ? default_bed->get_at(0) : 0);

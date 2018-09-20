@@ -241,6 +241,7 @@ add_subdirectory(resources/localization)
 
 # libslic3r, Slic3r GUI and the slic3r executable.
 add_subdirectory(src)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT slic3r)
 
 # Perl bindings, currently only used for the unit / integration tests of libslic3r.
 # Also runs the unit / integration tests.

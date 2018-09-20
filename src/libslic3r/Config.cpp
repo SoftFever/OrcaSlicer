@@ -566,6 +566,103 @@ ConfigOption* DynamicConfig::optptr(const t_config_option_key &opt_key, bool cre
     return opt;
 }
 
+void DynamicConfig::read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra)
+{
+    std::vector<char*> args;    
+    // push a bogus executable name (argv[0])
+    args.emplace_back(const_cast<char*>(""));
+    for (size_t i = 0; i < tokens.size(); ++ i)
+        args.emplace_back(const_cast<char *>(tokens[i].c_str()));
+    this->read_cli(args.size(), &args[0], extra);
+}
+
+bool DynamicConfig::read_cli(int argc, char** argv, t_config_option_keys* extra)
+{
+    // cache the CLI option => opt_key mapping
+    std::map<std::string,std::string> opts;
+    for (const auto &oit : this->def()->options) {
+        std::string cli = oit.second.cli;
+        cli = cli.substr(0, cli.find("="));
+        boost::trim_right_if(cli, boost::is_any_of("!"));
+        std::vector<std::string> tokens;
+        boost::split(tokens, cli, boost::is_any_of("|"));
+        for (const std::string &t : tokens)
+            opts[t] = oit.first;
+    }
+    
+    bool parse_options = true;
+    for (int i = 1; i < argc; ++ i) {
+        std::string token = argv[i];
+        // Store non-option arguments in the provided vector.
+        if (! parse_options || ! boost::starts_with(token, "-")) {
+            extra->push_back(token);
+            continue;
+        }
+        // Stop parsing tokens as options when -- is supplied.
+        if (token == "--") {
+            parse_options = false;
+            continue;
+        }
+        // Remove leading dashes
+        boost::trim_left_if(token, boost::is_any_of("-"));
+        // Remove the "no-" prefix used to negate boolean options.
+        bool no = false;
+        if (boost::starts_with(token, "no-")) {
+            no = true;
+            boost::replace_first(token, "no-", "");
+        }
+        // Read value when supplied in the --key=value form.
+        std::string value;
+        {
+            size_t equals_pos = token.find("=");
+            if (equals_pos != std::string::npos) {
+                value = token.substr(equals_pos+1);
+                token.erase(equals_pos);
+            }
+        }
+        // Look for the cli -> option mapping.
+        const auto it = opts.find(token);
+        if (it == opts.end()) {
+            printf("Warning: unknown option --%s\n", token.c_str());
+            // instead of continuing, return false to caller
+            // to stop execution and print usage
+            return false;
+            //continue;
+        }
+        const t_config_option_key opt_key = it->second;
+        const ConfigOptionDef &optdef = this->def()->options.at(opt_key);
+        // If the option type expects a value and it was not already provided,
+        // look for it in the next token.
+        if (optdef.type != coBool && optdef.type != coBools && value.empty()) {
+            if (i == (argc-1)) {
+                printf("No value supplied for --%s\n", token.c_str());
+                continue;
+            }
+            value = argv[++ i];
+        }
+        // Store the option value.
+        const bool existing = this->has(opt_key);
+        if (ConfigOptionBool* opt = this->opt<ConfigOptionBool>(opt_key, true)) {
+            opt->value = !no;
+        } else if (ConfigOptionBools* opt = this->opt<ConfigOptionBools>(opt_key, true)) {
+            if (!existing) opt->values.clear(); // remove the default values
+            opt->values.push_back(!no);
+        } else if (ConfigOptionStrings* opt = this->opt<ConfigOptionStrings>(opt_key, true)) {
+            if (!existing) opt->values.clear(); // remove the default values
+            opt->deserialize(value, true);
+        } else if (ConfigOptionFloats* opt = this->opt<ConfigOptionFloats>(opt_key, true)) {
+            if (!existing) opt->values.clear(); // remove the default values
+            opt->deserialize(value, true);
+        } else if (ConfigOptionPoints* opt = this->opt<ConfigOptionPoints>(opt_key, true)) {
+            if (!existing) opt->values.clear(); // remove the default values
+            opt->deserialize(value, true);
+        } else {
+            this->set_deserialize(opt_key, value, true);
+        }
+    }
+    return true;
+}
+
 t_config_option_keys DynamicConfig::keys() const
 {
     t_config_option_keys keys;

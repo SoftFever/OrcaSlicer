@@ -113,6 +113,12 @@ Model Model::read_from_archive(const std::string &input_file, PresetBundle* bund
     return model;
 }
 
+void Model::repair()
+{
+    for (ModelObject *o : this->objects)
+        o->repair();
+}
+
 ModelObject* Model::add_object()
 {
     this->objects.emplace_back(new ModelObject(this));
@@ -884,6 +890,12 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     }
     
     return;
+}
+
+void ModelObject::repair()
+{
+    for (ModelVolume *v : this->volumes)
+        v->mesh.repair();
 }
 
 // Called by Print::validate() from the UI thread.

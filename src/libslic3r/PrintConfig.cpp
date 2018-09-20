@@ -2345,7 +2345,7 @@ void PrintConfigDef::handle_legacy(t_config_option_key &opt_key, std::string &va
     }
 }
 
-PrintConfigDef print_config_def;
+const PrintConfigDef print_config_def;
 
 DynamicPrintConfig* DynamicPrintConfig::new_from_defaults()
 {
@@ -2600,5 +2600,136 @@ StaticPrintConfig::StaticCache<class Slic3r::FullPrintConfig>   FullPrintConfig:
 StaticPrintConfig::StaticCache<class Slic3r::SLAMaterialConfig>  SLAMaterialConfig::s_cache_SLAMaterialConfig;
 StaticPrintConfig::StaticCache<class Slic3r::SLAPrinterConfig>   SLAPrinterConfig::s_cache_SLAPrinterConfig;
 StaticPrintConfig::StaticCache<class Slic3r::SLAFullPrintConfig> SLAFullPrintConfig::s_cache_SLAFullPrintConfig;
+
+
+CLIConfigDef::CLIConfigDef()
+{
+    ConfigOptionDef *def;
+    
+    def = this->add("cut", coFloat);
+    def->label = L("Cut");
+    def->tooltip = L("Cut model at the given Z.");
+    def->cli = "cut";
+    def->default_value = new ConfigOptionFloat(0);
+
+    def = this->add("export_3mf", coBool);
+    def->label = L("Export 3MF");
+    def->tooltip = L("Slice the model and export slices as 3MF.");
+    def->cli = "export-3mf";
+    def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("slice", coBool);
+    def->label = L("Slice");
+    def->tooltip = L("Slice the model and export gcode.");
+    def->cli = "slice";
+    def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("help", coBool);
+    def->label = L("Help");
+    def->tooltip = L("Show this help.");
+    def->cli = "help";
+    def->default_value = new ConfigOptionBool(false);
+
+    def = this->add("gui", coBool);
+    def->label = L("Use GUI");
+    def->tooltip = L("Start the Slic3r GUI.");
+    def->cli = "gui";
+    def->default_value = new ConfigOptionBool(false);
+    
+    def = this->add("info", coBool);
+    def->label = L("Output Model Info");
+    def->tooltip = L("Write information about the model to the console.");
+    def->cli = "info";
+    def->default_value = new ConfigOptionBool(false);
+    
+    def = this->add("load", coStrings);
+    def->label = L("Load config file");
+    def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");
+    def->cli = "load";
+    def->default_value = new ConfigOptionStrings();
+    
+    def = this->add("output", coString);
+    def->label = L("Output File");
+    def->tooltip = L("The file where the output will be written (if not specified, it will be based on the input file).");
+    def->cli = "output";
+    def->default_value = new ConfigOptionString("");
+    
+    def = this->add("rotate", coFloat);
+    def->label = L("Rotate");
+    def->tooltip = L("Rotation angle around the Z axis in degrees (0-360, default: 0).");
+    def->cli = "rotate";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("rotate_x", coFloat);
+    def->label = L("Rotate around X");
+    def->tooltip = L("Rotation angle around the X axis in degrees (0-360, default: 0).");
+    def->cli = "rotate-x";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("rotate_y", coFloat);
+    def->label = L("Rotate around Y");
+    def->tooltip = L("Rotation angle around the Y axis in degrees (0-360, default: 0).");
+    def->cli = "rotate-y";
+    def->default_value = new ConfigOptionFloat(0);
+    
+    def = this->add("save", coString);
+    def->label = L("Save config file");
+    def->tooltip = L("Save configuration to the specified file.");
+    def->cli = "save";
+    def->default_value = new ConfigOptionString();
+    
+    def = this->add("scale", coFloat);
+    def->label = L("Scale");
+    def->tooltip = L("Scaling factor (default: 1).");
+    def->cli = "scale";
+    def->default_value = new ConfigOptionFloat(1);
+
+/*    
+    def = this->add("scale_to_fit", coPoint3);
+    def->label = L("Scale to Fit");
+    def->tooltip = L("Scale to fit the given volume.");
+    def->cli = "scale-to-fit";
+    def->default_value = new ConfigOptionPoint3(Pointf3(0,0,0));
+*/
+
+    def = this->add("center", coPoint);
+    def->label = L("Center");
+    def->tooltip = L("Center the print around the given center (default: 100, 100).");
+    def->cli = "center";
+    def->default_value = new ConfigOptionPoint(Vec2d(100,100));
+}
+
+const CLIConfigDef cli_config_def;
+DynamicPrintAndCLIConfig::PrintAndCLIConfigDef DynamicPrintAndCLIConfig::s_def;
+
+std::ostream& print_cli_options(std::ostream& out)
+{
+    for (const auto& opt : cli_config_def.options) {
+        if (opt.second.cli.size() != 0) {
+            out << "\t" << std::left << std::setw(40) << std::string("--") + opt.second.cli;
+            out << "\t" << opt.second.tooltip << "\n";
+            if (opt.second.default_value != nullptr)
+                out << "\t" << std::setw(40) << " " << "\t" << " (default: " << opt.second.default_value->serialize() << ")";
+            out << "\n";
+        }
+    }
+    std::cerr << std::endl;
+    return out;
+}
+
+std::ostream& print_print_options(std::ostream& out)
+{
+    for (const auto& opt : print_config_def.options) {
+        if (opt.second.cli.size() != 0) {
+            out << "\t" << std::left << std::setw(40) << std::string("--") + opt.second.cli; 
+            out << "\t" << opt.second.tooltip << "\n";
+            if (opt.second.default_value != nullptr) 
+                out << "\t" << std::setw(40) << " " << "\t" << " (default: " << opt.second.default_value->serialize() << ")";
+            out << "\n";
+        }
+    }
+    std::cerr << std::endl;
+    return out;
+}
 
 }

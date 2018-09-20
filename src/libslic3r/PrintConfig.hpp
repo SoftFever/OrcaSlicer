@@ -165,7 +165,7 @@ private:
 
 // The one and only global definition of SLic3r configuration options.
 // This definition is constant.
-extern PrintConfigDef print_config_def;
+extern const PrintConfigDef print_config_def;
 
 // Slic3r dynamic configuration, used to override the configuration 
 // per object, per modification volume or per printing material.
@@ -968,6 +968,88 @@ protected:
 #undef STATIC_PRINT_CONFIG_CACHE_DERIVED
 #undef OPT_PTR
 
-}
+class CLIConfigDef : public ConfigDef
+{
+public:
+    CLIConfigDef();
+};
+
+extern const CLIConfigDef cli_config_def;
+
+#define OPT_PTR(KEY) if (opt_key == #KEY) return &this->KEY
+
+class CLIConfig : public virtual ConfigBase, public StaticConfig
+{
+public:
+    ConfigOptionFloat               cut;
+    ConfigOptionBool                export_3mf;
+    ConfigOptionBool                gui;
+    ConfigOptionBool                info;
+    ConfigOptionBool                help;
+    ConfigOptionStrings             load;
+    ConfigOptionString              output;
+    ConfigOptionFloat               rotate;
+    ConfigOptionFloat               rotate_x;
+    ConfigOptionFloat               rotate_y;
+    ConfigOptionString              save;
+    ConfigOptionFloat               scale;
+//    ConfigOptionPoint3              scale_to_fit;
+    ConfigOptionPoint               center;
+    ConfigOptionBool                slice;
+    
+    CLIConfig() : ConfigBase(), StaticConfig()
+    {
+        this->set_defaults();
+    };
+
+    // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
+    const ConfigDef*    def() const override { return &cli_config_def; }
+
+    ConfigOption*       optptr(const t_config_option_key &opt_key, bool create = false) override
+    {
+        OPT_PTR(cut);
+        OPT_PTR(export_3mf);
+        OPT_PTR(gui);
+        OPT_PTR(help);
+        OPT_PTR(info);
+        OPT_PTR(load);
+        OPT_PTR(output);
+        OPT_PTR(rotate);
+        OPT_PTR(rotate_x);
+        OPT_PTR(rotate_y);
+        OPT_PTR(save);
+        OPT_PTR(scale);
+//        OPT_PTR(scale_to_fit);
+        OPT_PTR(slice);
+        return NULL;
+    }
+};
+
+#undef OPT_PTR
+
+class DynamicPrintAndCLIConfig : public DynamicPrintConfig
+{
+public:
+    DynamicPrintAndCLIConfig() { this->apply(FullPrintConfig::defaults()); this->apply(CLIConfig()); }
+    DynamicPrintAndCLIConfig(const DynamicPrintAndCLIConfig &other) : DynamicPrintConfig(other) {}
+
+    // Overrides ConfigBase::def(). Static configuration definition. Any value stored into this ConfigBase shall have its definition here.
+    const ConfigDef*    def() const override { return &s_def; }
+
+private:
+    class PrintAndCLIConfigDef : public PrintConfigDef
+    {
+    public:
+        PrintAndCLIConfigDef() { this->options.insert(cli_config_def.options.begin(), cli_config_def.options.end()); }
+    };
+    static PrintAndCLIConfigDef s_def;
+};
+
+/// Iterate through all of the print options and write them to a stream.
+std::ostream& print_print_options(std::ostream& out);
+/// Iterate through all of the CLI options and write them to a stream.
+std::ostream& print_cli_options(std::ostream& out);
+
+} // namespace Slic3r
 
 #endif

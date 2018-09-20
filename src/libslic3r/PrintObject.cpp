@@ -1591,7 +1591,7 @@ std::vector<ExPolygons> PrintObject::slice_support_enforcers() const
     std::vector<float> zs;
     zs.reserve(this->layers().size());
     for (const Layer *l : this->layers())
-        zs.emplace_back(l->slice_z);
+        zs.emplace_back((float)l->slice_z);
     return this->_slice_volumes(zs, volumes);
 }
 
@@ -1604,7 +1604,7 @@ std::vector<ExPolygons> PrintObject::slice_support_blockers() const
     std::vector<float> zs;
     zs.reserve(this->layers().size());
     for (const Layer *l : this->layers())
-        zs.emplace_back(l->slice_z);
+        zs.emplace_back((float)l->slice_z);
     return this->_slice_volumes(zs, volumes);
 }
 
