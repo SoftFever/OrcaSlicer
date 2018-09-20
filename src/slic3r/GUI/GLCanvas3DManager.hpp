@@ -163,8 +163,13 @@ public:
     void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    void register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback);
+    void register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback);
+#else
     void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     void register_action_add_callback(wxGLCanvas* canvas, void* callback);

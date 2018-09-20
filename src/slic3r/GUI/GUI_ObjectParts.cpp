@@ -1802,11 +1802,15 @@ void update_scale_values(double scaling_factor)
 
 void update_rotation_values()
 {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    update_rotation_value((*m_objects)[m_selected_object_id]->instances.front()->get_rotation());
+#else
     auto og = get_optgroup(ogFrequentlyObjectSettings);
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
     og->set_value("rotation_x", 0);
     og->set_value("rotation_y", 0);
     og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 }
 
 void update_rotation_value(double angle, Axis axis)
@@ -1835,6 +1839,16 @@ void update_rotation_value(double angle, Axis axis)
 
     og->set_value(axis_str, int(Geometry::rad2deg(angle)));
 }
+
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+void update_rotation_value(const Vec3d& rotation)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+    og->set_value("rotation_x", int(Geometry::rad2deg(rotation(0))));
+    og->set_value("rotation_y", int(Geometry::rad2deg(rotation(1))));
+    og->set_value("rotation_z", int(Geometry::rad2deg(rotation(2))));
+}
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 void set_uniform_scaling(const bool uniform_scale)
 {

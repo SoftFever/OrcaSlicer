@@ -35,6 +35,12 @@ bool is_windows10()
 void set_wxapp(SV *ui)
     %code%{ Slic3r::GUI::set_wxapp((wxApp*)wxPli_sv_2_object(aTHX_ ui, "Wx::App")); %};
 
+void set_gui_appctl()
+    %code%{ Slic3r::GUI::set_gui_appctl(); %};
+
+void set_cli_appctl()
+    %code%{ Slic3r::GUI::set_cli_appctl(); %};
+
 void set_progress_status_bar(ProgressStatusBar *prs)
     %code%{ Slic3r::GUI::set_progress_status_bar(prs); %};
 

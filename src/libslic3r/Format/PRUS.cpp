@@ -164,7 +164,11 @@ bool load_prus(const char *path, Model *model)
             const char *zero_tag  = "<zero>";
 			const char *zero_xml  = strstr(scene_xml_data.data(), zero_tag);
             float  trafo[3][4] = { 0 };
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            Vec3d instance_rotation = Vec3d::Zero();
+#else
             double instance_rotation = 0.;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             double instance_scaling_factor = 1.f;
 #if ENABLE_MODELINSTANCE_3D_OFFSET
             Vec3d instance_offset = Vec3d::Zero();
@@ -197,10 +201,14 @@ bool load_prus(const char *path, Model *model)
                         instance_scaling_factor = scale[0];
                         scale[0] = scale[1] = scale[2] = 1.;
                     }
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                    instance_rotation = Vec3d(-(double)rotation[0], -(double)rotation[1], -(double)rotation[2]);
+#else
                     if (rotation[0] == 0. && rotation[1] == 0.) {
                         instance_rotation = - rotation[2];
                         rotation[2] = 0.;
                     }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
                     Eigen::Matrix3f mat_rot, mat_scale, mat_trafo;
                     mat_rot = Eigen::AngleAxisf(-rotation[2], Eigen::Vector3f::UnitZ()) * 
                               Eigen::AngleAxisf(-rotation[1], Eigen::Vector3f::UnitY()) *
@@ -366,8 +374,12 @@ bool load_prus(const char *path, Model *model)
                         model_object = model->add_object(name_utf8.data(), path, std::move(mesh));
                         volume = model_object->volumes.front();
                         ModelInstance *instance     = model_object->add_instance();
-                        instance->rotation          = instance_rotation;
-                        instance->scaling_factor    = instance_scaling_factor;
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                        instance->set_rotation(instance_rotation);
+#else
+                        instance->rotation = instance_rotation;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+                        instance->scaling_factor = instance_scaling_factor;
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                         instance->set_offset(instance_offset);
 #else

@@ -94,6 +94,10 @@ public:
 
     void update(const Linef3& mouse_ray);
 
+#if ENABLE_GIZMOS_RESET
+    void process_double_click() { on_process_double_click(); }
+#endif // ENABLE_GIZMOS_RESET
+
     void render(const BoundingBoxf3& box) const { on_render(box); }
     void render_for_picking(const BoundingBoxf3& box) const { on_render_for_picking(box); }
 
@@ -106,6 +110,9 @@ protected:
     virtual void on_start_dragging(const BoundingBoxf3& box) {}
     virtual void on_stop_dragging() {}
     virtual void on_update(const Linef3& mouse_ray) = 0;
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click() {}
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
 
@@ -155,6 +162,9 @@ protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_update(const Linef3& mouse_ray);
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click() { m_angle = 0.0; }
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -178,6 +188,10 @@ class GLGizmoRotate3D : public GLGizmoBase
 public:
     explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
+    void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
+#else
     double get_angle_x() const { return m_gizmos[X].get_angle(); }
     void set_angle_x(double angle) { m_gizmos[X].set_angle(angle); }
 
@@ -186,6 +200,7 @@ public:
 
     double get_angle_z() const { return m_gizmos[Z].get_angle(); }
     void set_angle_z(double angle) { m_gizmos[Z].set_angle(angle); }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 protected:
     virtual bool on_init();
@@ -222,6 +237,13 @@ protected:
             g.update(mouse_ray);
         }
     }
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click()
+    {
+        if (m_hover_id != -1)
+            m_gizmos[m_hover_id].process_double_click();
+    }
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const
     {
@@ -265,6 +287,9 @@ protected:
     virtual void on_start_dragging(const BoundingBoxf3& box);
     virtual void on_stop_dragging() { m_show_starting_box = false; }
     virtual void on_update(const Linef3& mouse_ray);
+#if ENABLE_GIZMOS_RESET
+    virtual void on_process_double_click();
+#endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
@@ -320,8 +345,10 @@ private:
     };
     struct SourceDataSummary {
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
         float scaling_factor;
         float rotation;
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
         Vec3d mesh_first_point;
     };
 
@@ -330,7 +357,19 @@ private:
 
     std::vector<PlaneData> m_planes;
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    struct InstanceData
+    {
+        Vec3d position;
+        Vec3d rotation; 
+        double scaling_factor;
+
+        InstanceData(const Vec3d& position, const Vec3d& rotation, double scaling_factor) : position(position), rotation(rotation), scaling_factor(scaling_factor) {}
+    };
+    std::vector<InstanceData> m_instances;
+#else
     Pointf3s m_instances_positions;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
     std::vector<Vec2d> m_instances_positions;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -344,7 +383,11 @@ public:
     explicit GLGizmoFlatten(GLCanvas3D& parent);
 
     void set_flattening_data(const ModelObject* model_object);
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    Vec3d get_flattening_rotation() const;
+#else
     Vec3d get_flattening_normal() const;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 protected:
     virtual bool on_init();

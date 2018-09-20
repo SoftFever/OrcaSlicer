@@ -18,13 +18,10 @@
 #include <Model.hpp>
 #include <Utils.hpp>
 
-#include <wx/stdstream.h>
-#include <wx/wfstream.h>
-#include <wx/zipstrm.h>
 
 namespace Slic3r {
 
-class AppControllerBoilerplate::PriData {
+class AppControllerGui::PriData {
 public:
     std::mutex m;
     std::thread::id ui_thread;
@@ -32,16 +29,16 @@ public:
     inline explicit PriData(std::thread::id uit): ui_thread(uit) {}
 };
 
-AppControllerBoilerplate::AppControllerBoilerplate()
-    :pri_data_(new PriData(std::this_thread::get_id())) {}
+AppControllerGui::AppControllerGui()
+    :m_pri_data(new PriData(std::this_thread::get_id())) {}
 
-AppControllerBoilerplate::~AppControllerBoilerplate() {
-    pri_data_.reset();
+AppControllerGui::~AppControllerGui() {
+    m_pri_data.reset();
 }
 
-bool AppControllerBoilerplate::is_main_thread() const
+bool AppControllerGui::is_main_thread() const
 {
-    return pri_data_->ui_thread == std::this_thread::get_id();
+    return m_pri_data->ui_thread == std::this_thread::get_id();
 }
 
 namespace GUI {
@@ -57,172 +54,32 @@ static const PrintStep STEP_SKIRT                       = psSkirt;
 static const PrintStep STEP_BRIM                        = psBrim;
 static const PrintStep STEP_WIPE_TOWER                  = psWipeTower;
 
-AppControllerBoilerplate::ProgresIndicatorPtr
-AppControllerBoilerplate::global_progress_indicator() {
+ProgresIndicatorPtr AppControllerGui::global_progress_indicator() {
     ProgresIndicatorPtr ret;
 
-    pri_data_->m.lock();
-    ret = global_progressind_;
-    pri_data_->m.unlock();
+    m_pri_data->m.lock();
+    ret = m_global_progressind;
+    m_pri_data->m.unlock();
 
     return ret;
 }
 
-void AppControllerBoilerplate::global_progress_indicator(
-        AppControllerBoilerplate::ProgresIndicatorPtr gpri)
+void AppControllerGui::global_progress_indicator(ProgresIndicatorPtr gpri)
 {
-    pri_data_->m.lock();
-    global_progressind_ = gpri;
-    pri_data_->m.unlock();
+    m_pri_data->m.lock();
+    m_global_progressind = gpri;
+    m_pri_data->m.unlock();
 }
-
-//void PrintController::make_skirt()
-//{
-//    assert(print_ != nullptr);
-
-//    // prerequisites
-//    for(auto obj : print_->objects) make_perimeters(obj);
-//    for(auto obj : print_->objects) infill(obj);
-//    for(auto obj : print_->objects) gen_support_material(obj);
-
-//    if(!print_->state.is_done(STEP_SKIRT)) {
-//        print_->state.set_started(STEP_SKIRT);
-//        print_->skirt.clear();
-//        if(print_->has_skirt()) print_->_make_skirt();
-
-//        print_->state.set_done(STEP_SKIRT);
-//    }
-//}
-
-//void PrintController::make_brim()
-//{
-//    assert(print_ != nullptr);
-
-//    // prerequisites
-//    for(auto obj : print_->objects) make_perimeters(obj);
-//    for(auto obj : print_->objects) infill(obj);
-//    for(auto obj : print_->objects) gen_support_material(obj);
-//    make_skirt();
-
-//    if(!print_->state.is_done(STEP_BRIM)) {
-//        print_->state.set_started(STEP_BRIM);
-
-//        // since this method must be idempotent, we clear brim paths *before*
-//        // checking whether we need to generate them
-//        print_->brim.clear();
-
-//        if(print_->config.brim_width > 0) print_->_make_brim();
-
-//        print_->state.set_done(STEP_BRIM);
-//    }
-//}
-
-//void PrintController::make_wipe_tower()
-//{
-//    assert(print_ != nullptr);
-
-//    // prerequisites
-//    for(auto obj : print_->objects) make_perimeters(obj);
-//    for(auto obj : print_->objects) infill(obj);
-//    for(auto obj : print_->objects) gen_support_material(obj);
-//    make_skirt();
-//    make_brim();
-
-//    if(!print_->state.is_done(STEP_WIPE_TOWER)) {
-//        print_->state.set_started(STEP_WIPE_TOWER);
-
-//        // since this method must be idempotent, we clear brim paths *before*
-//        // checking whether we need to generate them
-//        print_->brim.clear();
-
-//        if(print_->has_wipe_tower()) print_->_make_wipe_tower();
-
-//        print_->state.set_done(STEP_WIPE_TOWER);
-//    }
-//}
-
-//void PrintController::slice(PrintObject *pobj)
-//{
-//    assert(pobj != nullptr && print_ != nullptr);
-
-//    if(pobj->state.is_done(STEP_SLICE)) return;
-
-//    pobj->state.set_started(STEP_SLICE);
-
-//    pobj->_slice();
-
-//    auto msg = pobj->_fix_slicing_errors();
-//    if(!msg.empty()) report_issue(IssueType::WARN, msg);
-
-//    // simplify slices if required
-//    if (print_->config.resolution)
-//        pobj->_simplify_slices(scale_(print_->config.resolution));
-
-
-//    if(pobj->layers.empty())
-//        report_issue(IssueType::ERR,
-//                     L("No layers were detected. You might want to repair your "
-//                     "STL file(s) or check their size or thickness and retry")
-//                     );
-
-//    pobj->state.set_done(STEP_SLICE);
-//}
-
-//void PrintController::make_perimeters(PrintObject *pobj)
-//{
-//    assert(pobj != nullptr);
-
-//    slice(pobj);
-
-//    if (!pobj->state.is_done(STEP_PERIMETERS)) {
-//        pobj->_make_perimeters();
-//    }
-//}
-
-//void PrintController::infill(PrintObject *pobj)
-//{
-//    assert(pobj != nullptr);
-
-//    make_perimeters(pobj);
-
-//    if (!pobj->state.is_done(STEP_PREPARE_INFILL)) {
-//        pobj->state.set_started(STEP_PREPARE_INFILL);
-
-//        pobj->_prepare_infill();
-
-//        pobj->state.set_done(STEP_PREPARE_INFILL);
-//    }
-
-//    pobj->_infill();
-//}
-
-//void PrintController::gen_support_material(PrintObject *pobj)
-//{
-//    assert(pobj != nullptr);
-
-//    // prerequisites
-//    slice(pobj);
-
-//    if(!pobj->state.is_done(STEP_SUPPORTMATERIAL)) {
-//        pobj->state.set_started(STEP_SUPPORTMATERIAL);
-
-//        pobj->clear_support_layers();
-
-//        if((pobj->config.support_material || pobj->config.raft_layers > 0)
-//                && pobj->layers.size() > 1) {
-//            pobj->_generate_support_material();
-//        }
-
-//        pobj->state.set_done(STEP_SUPPORTMATERIAL);
-//    }
-//}
 
 PrintController::PngExportData
 PrintController::query_png_export_data(const DynamicPrintConfig& conf)
 {
     PngExportData ret;
 
-    auto zippath = query_destination_path("Output zip file", "*.zip", "out");
+    auto c = GUI::get_appctl();
+    auto zippath = c->query_destination_path("Output zip file", "*.zip",
+                                             "export-png",
+                                             "out");
 
     ret.zippath = zippath;
 
@@ -246,98 +103,53 @@ PrintController::query_png_export_data(const DynamicPrintConfig& conf)
     return ret;
 }
 
-void PrintController::slice(AppControllerBoilerplate::ProgresIndicatorPtr pri)
+void PrintController::slice(ProgresIndicatorPtr pri)
 {
-    auto st = pri->state();
+    m_print->set_status_callback([pri](int st, const std::string& msg){
+        pri->update(unsigned(st), msg);
+    });
 
-    Slic3r::trace(3, "Starting the slicing process.");
-
-    pri->update(st+20, L("Generating perimeters"));
-//    for(auto obj : print_->objects) make_perimeters(obj);
-
-    pri->update(st+60, L("Infilling layers"));
-//    for(auto obj : print_->objects) infill(obj);
-
-    pri->update(st+70, L("Generating support material"));
-//    for(auto obj : print_->objects) gen_support_material(obj);
-
-//    pri->message_fmt(L("Weight: %.1fg, Cost: %.1f"),
-//                     print_->total_weight, print_->total_cost);
-    pri->state(st+85);
-
-
-    pri->update(st+88, L("Generating skirt"));
-    make_skirt();
-
-
-    pri->update(st+90, L("Generating brim"));
-    make_brim();
-
-    pri->update(st+95, L("Generating wipe tower"));
-    make_wipe_tower();
-
-    pri->update(st+100, L("Done"));
-
-    // time to make some statistics..
-
-    Slic3r::trace(3, L("Slicing process finished."));
+    m_print->process();
 }
 
 void PrintController::slice()
 {
-    auto pri = global_progress_indicator();
-    if(!pri) pri = create_progress_indicator(100, L("Slicing"));
+    auto ctl = GUI::get_appctl();
+    auto pri = ctl->global_progress_indicator();
+    if(!pri) pri = ctl->create_progress_indicator(100, L("Slicing"));
     slice(pri);
 }
 
-struct wxZipper {};
-
-template<> class Zipper<wxZipper> {
-    wxFileName m_fpath;
-    wxFFileOutputStream m_zipfile;
-    wxZipOutputStream m_zipstream;
-    wxStdOutputStream m_pngstream;
+template<> class LayerWriter<Zipper> {
+    Zipper m_zip;
 public:
 
-    Zipper(const std::string& zipfile_path):
-        m_fpath(zipfile_path),
-        m_zipfile(zipfile_path),
-        m_zipstream(m_zipfile),
-        m_pngstream(m_zipstream)
-    {
-        if(!m_zipfile.IsOk())
-            throw std::runtime_error(L("Cannot create zip file."));
+    inline LayerWriter(const std::string& zipfile_path): m_zip(zipfile_path) {}
+
+    inline void next_entry(const std::string& fname) { m_zip.next_entry(fname); }
+
+    inline std::string get_name() const { return m_zip.get_name(); }
+
+    template<class T> inline LayerWriter& operator<<(const T& arg) {
+        m_zip.stream() << arg; return *this;
     }
 
-    void next_entry(const std::string& fname) {
-        m_zipstream.PutNextEntry(fname);
-    }
-
-    std::string get_name() {
-        return m_fpath.GetName().ToStdString();
-    }
-
-    template<class T> Zipper& operator<<(const T& arg) {
-        m_pngstream << arg; return *this;
-    }
-
-    void close() {
-        m_zipstream.Close();
-        m_zipfile.Close();
-    }
+    inline void close() { m_zip.close(); }
 };
 
 void PrintController::slice_to_png()
 {
     using Pointf3 = Vec3d;
 
+    auto ctl = GUI::get_appctl();
     auto presetbundle = GUI::get_preset_bundle();
 
     assert(presetbundle);
 
+    // FIXME: this crashes in command line mode
     auto pt = presetbundle->printers.get_selected_preset().printer_technology();
     if(pt != ptSLA) {
-        report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
+        ctl->report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
                      L("Error"));
         return;
     }
@@ -348,13 +160,13 @@ void PrintController::slice_to_png()
     auto exd = query_png_export_data(conf);
     if(exd.zippath.empty()) return;
 
-    Print *print = print_;
+    Print *print = m_print;
 
     try {
         print->apply_config(conf);
         print->validate();
     } catch(std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), "Error");
+        ctl->report_issue(IssueType::ERR, e.what(), "Error");
         return;
     }
 
@@ -400,13 +212,13 @@ void PrintController::slice_to_png()
            << L("Width needed: ") << px(punsc) << " mm\n"
            << L("Height needed: ") << py(punsc) << " mm\n";
 
-       if(!report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
+       if(!ctl->report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
             scale_back();
             return;
        }
     }
 
-    auto pri = create_progress_indicator(
+    auto pri = ctl->create_progress_indicator(
                 200, L("Slicing to zipped png files..."));
 
     pri->on_cancel([&print](){ print->cancel(); });
@@ -415,7 +227,7 @@ void PrintController::slice_to_png()
         pri->update(0, L("Slicing..."));
         slice(pri);
     } catch (std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
         scale_back();
         if(print->canceled()) print->restart();
         return;
@@ -428,22 +240,23 @@ void PrintController::slice_to_png()
     });
 
     try {
-        print_to<FilePrinterFormat::PNG, wxZipper>( *print, exd.zippath,
+        print_to<FilePrinterFormat::PNG, Zipper>( *print, exd.zippath,
                     exd.width_mm, exd.height_mm,
                     exd.width_px, exd.height_px,
                     exd.exp_time_s, exd.exp_time_first_s);
 
     } catch (std::exception& e) {
-        report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
     }
 
     scale_back();
     if(print->canceled()) print->restart();
+    print->set_status_default();
 }
 
 const PrintConfig &PrintController::config() const
 {
-    return print_->config();
+    return m_print->config();
 }
 
 void ProgressIndicator::message_fmt(
@@ -477,15 +290,17 @@ void AppController::arrange_model()
 {
     using Coord = libnest2d::TCoord<libnest2d::PointImpl>;
 
-    if(arranging_.load()) return;
+    auto ctl = GUI::get_appctl();
+
+    if(m_arranging.load()) return;
 
     // to prevent UI reentrancies
-    arranging_.store(true);
+    m_arranging.store(true);
 
     unsigned count = 0;
-    for(auto obj : model_->objects) count += obj->instances.size();
+    for(auto obj : m_model->objects) count += obj->instances.size();
 
-    auto pind = global_progress_indicator();
+    auto pind = ctl->global_progress_indicator();
 
     float pmax = 1.0;
 
@@ -496,7 +311,7 @@ void AppController::arrange_model()
         pind->max(count);
 
         pind->on_cancel([this](){
-            arranging_.store(false);
+            m_arranging.store(false);
         });
     }
 
@@ -517,20 +332,20 @@ void AppController::arrange_model()
         // TODO: from Sasha from GUI
         hint.type = arr::BedShapeType::WHO_KNOWS;
 
-        arr::arrange(*model_,
+        arr::arrange(*m_model,
                       min_obj_distance,
                       bed,
                       hint,
                       false, // create many piles not just one pile
-                      [this, pind, count](unsigned rem) {
+                      [this, pind, &ctl, count](unsigned rem) {
             if(pind)
                 pind->update(count - rem, L("Arranging objects..."));
 
-            process_events();
-        }, [this] () { return !arranging_.load(); });
+            ctl->process_events();
+        }, [this] () { return !m_arranging.load(); });
     } catch(std::exception& e) {
         std::cerr << e.what() << std::endl;
-        report_issue(IssueType::ERR,
+        ctl->report_issue(IssueType::ERR,
                         L("Could not arrange model objects! "
                         "Some geometries may be invalid."),
                         L("Exception occurred"));
@@ -539,13 +354,13 @@ void AppController::arrange_model()
     // Restore previous max value
     if(pind) {
         pind->max(pmax);
-        pind->update(0, arranging_.load() ? L("Arranging done.") :
+        pind->update(0, m_arranging.load() ? L("Arranging done.") :
                                             L("Arranging canceled."));
 
         pind->on_cancel(/*remove cancel function*/);
     }
 
-    arranging_.store(false);
+    m_arranging.store(false);
 }
 
 }

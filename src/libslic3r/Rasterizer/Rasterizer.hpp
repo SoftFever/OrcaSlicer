@@ -18,7 +18,7 @@ class ExPolygon;
  */
 class Raster {
     class Impl;
-    std::unique_ptr<Impl> impl_;
+    std::unique_ptr<Impl> m_impl;
 public:
 
     /// Supported compression types
@@ -65,7 +65,7 @@ public:
 
     /**
      * Release the allocated resources. Drawing in this state ends in
-     * unspecified behaviour.
+     * unspecified behavior.
      */
     void reset();
 

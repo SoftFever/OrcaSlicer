@@ -1095,6 +1095,9 @@ GLCanvas3D::Mouse::Drag::Drag()
 GLCanvas3D::Mouse::Mouse()
     : dragging(false)
     , position(DBL_MAX, DBL_MAX)
+#if ENABLE_GIZMOS_RESET
+    , ignore_up_event(false)
+#endif // ENABLE_GIZMOS_RESET
 {
 }
 
@@ -1181,9 +1184,11 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
         return false;
     }
 
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
     // temporary disable x and y grabbers
     gizmo->disable_grabber(0);
     gizmo->disable_grabber(1);
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
@@ -1349,6 +1354,18 @@ void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
         curr->update(mouse_ray);
 }
 
+#if ENABLE_GIZMOS_RESET
+void GLCanvas3D::Gizmos::process_double_click()
+{
+    if (!m_enabled)
+        return;
+
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->process_double_click();
+}
+#endif // ENABLE_GIZMOS_RESET
+
 GLCanvas3D::Gizmos::EType GLCanvas3D::Gizmos::get_current_type() const
 {
     return m_current;
@@ -1421,6 +1438,35 @@ void GLCanvas3D::Gizmos::set_scale(float scale)
         reinterpret_cast<GLGizmoScale3D*>(it->second)->set_scale(scale);
 }
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+Vec3d GLCanvas3D::Gizmos::get_rotation() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate3D*>(it->second)->get_rotation() : Vec3d::Zero();
+}
+
+void GLCanvas3D::Gizmos::set_rotation(const Vec3d& rotation)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_rotation(rotation);
+}
+
+Vec3d GLCanvas3D::Gizmos::get_flattening_rotation() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_rotation() : Vec3d::Zero();
+}
+#else
 float GLCanvas3D::Gizmos::get_angle_z() const
 {
     if (!m_enabled)
@@ -1448,6 +1494,7 @@ Vec3d GLCanvas3D::Gizmos::get_flattening_normal() const
     GizmosMap::const_iterator it = m_gizmos.find(Flatten);
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Vec3d::Zero();
 }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
 {
@@ -2385,7 +2432,11 @@ void GLCanvas3D::update_gizmos_data()
                 m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
                 m_gizmos.set_scale(model_instance->scaling_factor);
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                m_gizmos.set_rotation(model_instance->get_rotation());
+#else
                 m_gizmos.set_angle_z(model_instance->rotation);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
                 m_gizmos.set_flattening_data(model_object);
             }
         }
@@ -2394,7 +2445,11 @@ void GLCanvas3D::update_gizmos_data()
     {
         m_gizmos.set_position(Vec3d::Zero());
         m_gizmos.set_scale(1.0f);
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        m_gizmos.set_rotation(Vec3d::Zero());
+#else
         m_gizmos.set_angle_z(0.0f);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         m_gizmos.set_flattening_data(nullptr);
     }
 }
@@ -2757,6 +2812,19 @@ void GLCanvas3D::register_on_gizmo_scale_uniformly_callback(void* callback)
         m_on_gizmo_scale_uniformly_callback.register_callback(callback);
 }
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+void GLCanvas3D::register_on_gizmo_rotate_3D_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_rotate_3D_callback.register_callback(callback);
+}
+
+void GLCanvas3D::register_on_gizmo_flatten_3D_callback(void* callback)
+{
+    if (callback != nullptr)
+        m_on_gizmo_flatten_3D_callback.register_callback(callback);
+}
+#else
 void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
 {
     if (callback != nullptr)
@@ -2768,6 +2836,7 @@ void GLCanvas3D::register_on_gizmo_flatten_callback(void* callback)
     if (callback != nullptr)
         m_on_gizmo_flatten_callback.register_callback(callback);
 }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
 {
@@ -3043,6 +3112,41 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_toolbar_action_running = true;
         m_toolbar.do_action((unsigned int)toolbar_contains_mouse);
     }
+#if ENABLE_GIZMOS_RESET
+    else if (evt.LeftDClick() && m_gizmos.grabber_contains_mouse())
+    {
+#if ENABLE_GIZMOS_RESET
+        m_mouse.ignore_up_event = true;
+#endif // ENABLE_GIZMOS_RESET
+        m_gizmos.process_double_click();
+        switch (m_gizmos.get_current_type())
+        {
+        case Gizmos::Scale:
+        {
+            m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+            update_scale_values();
+            m_dirty = true;
+            break;
+        }
+        case Gizmos::Rotate:
+        {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            const Vec3d& rotation = m_gizmos.get_rotation();
+            m_on_gizmo_rotate_3D_callback.call(rotation(0), rotation(1), rotation(2));
+#else
+            m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+            update_rotation_values();
+            m_dirty = true;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+        }
+    }
+#endif // ENABLE_GIZMOS_RESET
     else if (evt.LeftDown() || evt.RightDown())
     {
         // If user pressed left or right button we first check whether this happened
@@ -3083,6 +3187,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                // Rotate the object so the normal points downward:
+                const Vec3d& rotation = m_gizmos.get_flattening_rotation();
+                m_on_gizmo_flatten_3D_callback.call(rotation(0), rotation(1), rotation(2));
+#else
                 // Rotate the object so the normal points downward:
                 Vec3d normal = m_gizmos.get_flattening_normal();
                 if (normal(0) != 0.0 || normal(1) != 0.0 || normal(2) != 0.0) {
@@ -3090,6 +3199,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     float angle = acos(clamp(-1.0, 1.0, -normal(2)));
                     m_on_gizmo_flatten_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
                 }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             }
 
             m_dirty = true;
@@ -3272,6 +3382,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         case Gizmos::Rotate:
         {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            // Apply new temporary rotation
+            Vec3d rotation = m_gizmos.get_rotation();
+            for (GLVolume* v : volumes)
+            {
+                v->set_rotation(rotation);
+            }
+            update_rotation_value(rotation);
+#else
             // Apply new temporary angle_z
             float angle_z = m_gizmos.get_angle_z();
             for (GLVolume* v : volumes)
@@ -3279,6 +3398,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 v->set_rotation((double)angle_z);
             }
             update_rotation_value((double)angle_z, Z);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             break;
         }
         default:
@@ -3377,12 +3497,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
             // deselect and propagate event through callback
+#if ENABLE_GIZMOS_RESET
+            if (!m_mouse.ignore_up_event && m_picking_enabled && !m_toolbar_action_running)
+#else
             if (m_picking_enabled && !m_toolbar_action_running)
+#endif // ENABLE_GIZMOS_RESET
             {
                 deselect_volumes();
                 _on_select(-1, -1);
                 update_gizmos_data();
             }
+#if ENABLE_GIZMOS_RESET
+            else if (m_mouse.ignore_up_event)
+                m_mouse.ignore_up_event = false;
+#endif // ENABLE_GIZMOS_RESET
         }
         else if (evt.LeftUp() && m_gizmos.is_dragging())
         {
@@ -3416,14 +3544,19 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             case Gizmos::Rotate:
             {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                const Vec3d& rotation = m_gizmos.get_rotation();
+                m_on_gizmo_rotate_3D_callback.call(rotation(0), rotation(1), rotation(2));
+#else
                 m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
                 break;
             }
             default:
                 break;
             }
             m_gizmos.stop_dragging();
-            Slic3r::GUI::update_settings_value();
+            update_settings_value();
         }
 
         m_mouse.drag.move_volume_idx = -1;
@@ -3863,8 +3996,13 @@ void GLCanvas3D::_deregister_callbacks()
     m_on_wipe_tower_moved_callback.deregister_callback();
     m_on_enable_action_buttons_callback.deregister_callback();
     m_on_gizmo_scale_uniformly_callback.deregister_callback();
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    m_on_gizmo_rotate_3D_callback.deregister_callback();
+    m_on_gizmo_flatten_3D_callback.deregister_callback();
+#else
     m_on_gizmo_rotate_callback.deregister_callback();
     m_on_gizmo_flatten_callback.deregister_callback();
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     m_on_update_geometry_info_callback.deregister_callback();
 
     m_action_add_callback.deregister_callback();

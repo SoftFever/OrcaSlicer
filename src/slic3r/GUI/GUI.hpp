@@ -42,6 +42,9 @@ class TabIface;
 class PreviewIface;
 class Print;
 class GCodePreviewData;
+class AppControllerBase;
+
+using AppControllerPtr = std::shared_ptr<AppControllerBase>;
 
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
@@ -128,6 +131,10 @@ wxFrame*		get_main_frame();
 ProgressStatusBar* get_progress_status_bar();
 wxNotebook *	get_tab_panel();
 wxNotebook*		get_tab_panel();
+
+AppControllerPtr get_appctl();
+void             set_cli_appctl();
+void             set_gui_appctl();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();

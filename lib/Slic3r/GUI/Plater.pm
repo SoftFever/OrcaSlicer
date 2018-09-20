@@ -150,12 +150,64 @@ sub new {
         $self->rotate(rad2deg($angle), Z, 'absolute');
     };
     
+    # callback to react to gizmo rotate
+    my $on_gizmo_rotate_3D = sub {
+        my ($angle_x, $angle_y, $angle_z) = @_;
+
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
+
+        my $rotation = Slic3r::Pointf3->new($angle_x, $angle_y, $angle_z);
+        foreach my $inst (@{ $model_object->instances }) {
+            $inst->set_rotations($rotation);
+        }
+        Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});  
+    
+        # update print and start background processing
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    
+        $self->selection_changed;  # refresh info (size etc.)
+        $self->update;
+        $self->schedule_background_process;
+    };
+    
     # callback to react to gizmo flatten
     my $on_gizmo_flatten = sub {
         my ($angle, $axis_x, $axis_y, $axis_z) = @_;
         $self->rotate(rad2deg($angle), undef, 'absolute', $axis_x, $axis_y, $axis_z) if $angle != 0;
     };
 
+    # callback to react to gizmo flatten
+    my $on_gizmo_flatten_3D = sub {
+        my ($angle_x, $angle_y, $angle_z) = @_;
+
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
+
+        my $rotation = Slic3r::Pointf3->new($angle_x, $angle_y, $angle_z);
+        foreach my $inst (@{ $model_object->instances }) {
+            $inst->set_rotations($rotation);
+        }
+        Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});  
+    
+        # update print and start background processing
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    
+        $self->selection_changed;  # refresh info (size etc.)
+        $self->update;
+        $self->schedule_background_process;
+    };
+    
     # callback to update object's geometry info while using gizmos
     my $on_update_geometry_info = sub {
         my ($size_x, $size_y, $size_z, $scale_factor) = @_;
@@ -261,7 +313,9 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
         Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
+        Slic3r::GUI::_3DScene::register_on_gizmo_rotate_3D_callback($self->{canvas3D}, $on_gizmo_rotate_3D);
         Slic3r::GUI::_3DScene::register_on_gizmo_flatten_callback($self->{canvas3D}, $on_gizmo_flatten);
+        Slic3r::GUI::_3DScene::register_on_gizmo_flatten_3D_callback($self->{canvas3D}, $on_gizmo_flatten_3D);
         Slic3r::GUI::_3DScene::register_on_update_geometry_info_callback($self->{canvas3D}, $on_update_geometry_info);
         Slic3r::GUI::_3DScene::register_action_add_callback($self->{canvas3D}, $on_action_add);
         Slic3r::GUI::_3DScene::register_action_delete_callback($self->{canvas3D}, $on_action_delete);
