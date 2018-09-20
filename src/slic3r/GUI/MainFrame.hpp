@@ -45,8 +45,8 @@ class MainFrame : public wxFrame
     wxString    m_qs_last_output_file = wxEmptyString;
     wxString    m_last_config = wxEmptyString;
 
-    ProgressStatusBar*              m_statusbar;
-    AppController*                  m_appController = nullptr;
+    ProgressStatusBar*              m_statusbar { nullptr };
+    AppController*                  m_appController { nullptr };
     std::map<std::string, Tab*>     m_options_tabs;
 
     wxMenuItem* append_menu_item(wxMenu* menu,
@@ -56,10 +56,10 @@ class MainFrame : public wxFrame
                                  std::function<void(wxCommandEvent& event)> cb,
                                  const std::string& icon = "");
 
-    wxMenuItem* m_menu_item_reslice_now = nullptr;
-    wxMenu*     m_plater_menu = nullptr;
-    wxMenu*     m_object_menu = nullptr;
-    wxMenu*     m_viewMenu = nullptr;
+    wxMenuItem* m_menu_item_reslice_now { nullptr };
+    wxMenu*     m_plater_menu { nullptr };
+    wxMenu*     m_object_menu { nullptr };
+    wxMenu*     m_viewMenu { nullptr };
 
     std::string     get_base_name(const wxString full_name) const ;
     std::string     get_dir_name(const wxString full_name) const ;
@@ -70,6 +70,9 @@ public:
 
 
     void        init_tabpanel();
+    Tab*        get_preset_tab(const std::string& name);
+    void        create_preset_tabs();
+    void        add_created_tab(Tab* panel);
     void        init_menubar();
 
     void        update_ui_from_settings();
@@ -90,9 +93,9 @@ public:
     void        select_view(const std::string& direction);
 
 
-    wxPanel*            m_plater = nullptr;
-    wxNotebook*         m_tabpanel = nullptr;
-    wxProgressDialog*   m_progress_dialog = nullptr;
+    wxPanel*            m_plater {nullptr};
+    wxNotebook*         m_tabpanel { nullptr };
+    wxProgressDialog*   m_progress_dialog { nullptr };
 };
 
 } // GUI

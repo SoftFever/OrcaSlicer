@@ -28,6 +28,7 @@
 #include <wx/wupdlock.h>
 
 #include <chrono>
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -513,8 +514,8 @@ void Tab::update_changed_tree_ui()
 			}
 			break;
 		}
-		auto next_item = m_treectrl->GetNextVisible(cur_item);
-		cur_item = next_item;
+        auto next_item = m_treectrl->GetNextVisible(cur_item);
+        cur_item = !m_treectrl->IsVisible(cur_item) ? m_treectrl->GetNextVisible(cur_item) : nullptr;// next_item;
 	}
 	update_undo_buttons();
 }
@@ -713,15 +714,16 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
 // Show/hide the 'purging volumes' button
 void Tab::update_wiping_button_visibility() {
-    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
     bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
     bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
 
-	get_wiping_dialog_button()->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);
-	
+    if (get_wiping_dialog_button()) {
+	get_wiping_dialog_button()->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);	
     (get_wiping_dialog_button()->GetParent())->Layout();
+    }
 }
 
 
@@ -787,6 +789,7 @@ void Tab::update_preset_description_line()
 
 void Tab::update_frequently_changed_parameters()
 {
+    if (!get_optgroup(ogFrequentlyChangingParameters)) return;
 	boost::any value = get_optgroup(ogFrequentlyChangingParameters)->get_config_value(*m_config, "fill_density");
 	get_optgroup(ogFrequentlyChangingParameters)->set_value("fill_density", value);
 
@@ -1041,7 +1044,7 @@ void TabPrint::reload_config(){
 
 void TabPrint::update()
 {
-    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
 	Freeze();
@@ -1407,7 +1410,7 @@ void TabFilament::reload_config(){
 
 void TabFilament::update()
 {
-    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
 	Freeze();
@@ -2189,15 +2192,15 @@ void Tab::load_current_preset()
             PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
-                for (auto& tab : get_preset_tabs()){
+                for (auto& tab : *get_preset_tabs()){
                     if (tab.technology != printer_technology)
                     {
-                        int page_id = get_tab_panel()->FindPage(tab.panel);
-                        get_tab_panel()->GetPage(page_id)->Show(false);
-                        get_tab_panel()->RemovePage(page_id);
+                        int page_id = wxGetApp().tab_panel()->FindPage(tab.panel);
+                        wxGetApp().tab_panel()->GetPage(page_id)->Show(false);
+                        wxGetApp().tab_panel()->RemovePage(page_id);
                     }
                     else
-                        get_tab_panel()->InsertPage(get_tab_panel()->FindPage(this), tab.panel, tab.panel->title());
+                        wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab.panel, tab.panel->title());
                 }
 
                 static_cast<TabPrinter*>(this)->m_printer_technology = printer_technology;
@@ -2225,8 +2228,9 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 {
 	Freeze();
 	// get label of the currently selected item
-	auto selected = m_treectrl->GetItemText(m_treectrl->GetSelection());
-	auto rootItem = m_treectrl->GetRootItem();
+    const auto sel_item = m_treectrl->GetSelection();
+	const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+	const auto rootItem = m_treectrl->GetRootItem();
 
 	auto have_selection = 0;
 	m_treectrl->DeleteChildren(rootItem);
@@ -2375,7 +2379,8 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 #endif
 
 	Page* page = nullptr;
-	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
+    const auto sel_item = m_treectrl->GetSelection();
+    const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
 	for (auto p : m_pages)
 		if (p->title() == selection)
 		{
@@ -2517,7 +2522,7 @@ void Tab::update_ui_from_settings()
 {
 	// Show the 'show / hide presets' button only for the print and filament tabs, and only if enabled
 	// in application preferences.
-	m_show_btn_incompatible_presets = get_app_config()->get("show_incompatible_presets")[0] == '1' ? true : false;
+	m_show_btn_incompatible_presets = wxGetApp().app_config->get("show_incompatible_presets")[0] == '1' ? true : false;
 	bool show = m_show_btn_incompatible_presets && m_presets->name().compare("printer") != 0;
 	show ? m_btn_hide_incompatible_presets->Show() :  m_btn_hide_incompatible_presets->Hide();
 	// If the 'show / hide presets' button is hidden, hide the incompatible presets.
@@ -2616,7 +2621,7 @@ void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
 	auto root_sys = ui->AppendContainer(wxDataViewItem(0), _(L("System presets")));
 	auto root_def = ui->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
 
-	auto show_def = get_app_config()->get("no_defaults")[0] != '1';
+	auto show_def = wxGetApp().app_config->get("no_defaults")[0] != '1';
 
 	for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
 		const Preset &preset = presets[i];
@@ -2702,7 +2707,7 @@ void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
 		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
 		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
 
-		auto show_def = get_app_config()->get("no_defaults")[0] != '1';
+		auto show_def = wxGetApp().app_config->get("no_defaults")[0] != '1';
 
 		for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
 			const Preset &preset = presets[i];
@@ -3025,7 +3030,7 @@ void TabSLAMaterial::build()
 
 void TabSLAMaterial::update()
 {
-    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptFFF)
+    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
         return; // ys_FIXME
 }
 

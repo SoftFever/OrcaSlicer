@@ -146,7 +146,7 @@ wxWindow*			get_right_panel();
 const size_t&		label_width();
 
 Tab*         get_tab(const std::string& name);
-const std::vector<PresetTab>& get_preset_tabs();
+std::vector<PresetTab>* get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -189,6 +189,7 @@ void warning_catcher(wxWindow* parent, const wxString& message);
 void set_print_callback_event(Print *print, int id);
 
 // load language saved at application config 
+wxLocale* get_locale();
 bool load_language();
 // save language at application config 
 void save_language();

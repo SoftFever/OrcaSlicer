@@ -3,7 +3,7 @@
 
 #include <string>
 // #include <vector>
-// #include "PrintConfig.hpp"
+#include "PrintConfig.hpp"
 // #include "../../libslic3r/Utils.hpp"
 // #include "GUI.hpp"
 
@@ -13,7 +13,9 @@
 #include <stack>
 
 class wxMenuItem;
+class wxMenuBar;
 class wxTopLevelWindow;
+class wxNotebook;
 
 namespace Slic3r {
 class AppConfig;
@@ -22,7 +24,21 @@ class PresetUpdater;
 
 namespace GUI
 {
+enum ConfigMenuIDs {
+    ConfigMenuWizard,
+    ConfigMenuSnapshots,
+    ConfigMenuTakeSnapshot,
+    ConfigMenuUpdate,
+    ConfigMenuPreferences,
+    ConfigMenuModeSimple,
+    ConfigMenuModeExpert,
+    ConfigMenuLanguage,
+    ConfigMenuFlashFirmware,
+    ConfigMenuCnt,
+};
+
 class MainFrame;
+class Tab;
 
 class GUI_App : public wxApp
 {
@@ -64,13 +80,23 @@ public:
                                     const std::string& icon);
     void            save_window_pos(wxTopLevelWindow* window, const std::string& name);
     void            restore_window_pos(wxTopLevelWindow* window, const std::string& name);
+    bool            load_language();
+    ConfigMenuIDs   get_view_mode();
+    void            add_config_menu(wxMenuBar *menu);
+    bool            check_unsaved_changes();
+    //     Tab*            get_tab(const std::string& name);
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
     PresetUpdater*  preset_updater{ nullptr };
     MainFrame*      mainframe{ nullptr };
+
+    wxNotebook*     tab_panel() const ;
+
+    std::vector<Tab *>      tabs_list;
+
 };
-// DECLARE_APP(GUI_App)
+DECLARE_APP(GUI_App)
 
 } // GUI
 } //Slic3r

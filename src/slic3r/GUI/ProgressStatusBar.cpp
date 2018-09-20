@@ -130,7 +130,7 @@ void ProgressStatusBar::run(int rate)
 
 void ProgressStatusBar::embed(wxFrame *frame)
 {
-    wxFrame* mf = frame? frame : GUI::get_main_frame();
+    wxFrame* mf = frame ? frame : GUI::get_main_frame();
     mf->SetStatusBar(self);
 }
 

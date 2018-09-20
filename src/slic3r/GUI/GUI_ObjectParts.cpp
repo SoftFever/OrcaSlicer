@@ -15,6 +15,7 @@
 
 #include <wx/glcanvas.h>
 #include "3DScene.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r
 {
@@ -103,8 +104,8 @@ void get_options_menu(settings_menu_hierarchy& settings_menu, bool is_part)
 {
 	auto options = get_options(is_part);
 
-    auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
-                         get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+    auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+                         wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
 	DynamicPrintConfig config;
 	for (auto& option : options)
@@ -398,7 +399,7 @@ void update_after_moving()
 
 wxSizer* object_movers(wxWindow *win)
 {
-// 	DynamicPrintConfig* config = &get_preset_bundle()->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
+// 	DynamicPrintConfig* config = &wxGetApp().preset_bundle->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Move"/*, config*/);
 	optgroup->label_width = 20;
 	optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
@@ -453,7 +454,7 @@ wxSizer* object_movers(wxWindow *win)
 
 wxBoxSizer* content_settings(wxWindow *win)
 {
-	DynamicPrintConfig* config = &get_preset_bundle()->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
+	DynamicPrintConfig* config = &wxGetApp().preset_bundle->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
 	optgroup->label_width = label_width();
 
@@ -915,8 +916,8 @@ void update_settings_list()
         std::vector<std::string> categories;
         if (!(opt_keys.size() == 1 && opt_keys[0] == "extruder"))// return;
         {
-            auto extruders_cnt = get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
-                get_preset_bundle()->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
+            auto extruders_cnt = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA ? 1 :
+                wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
 
             for (auto& opt_key : opt_keys) {
                 auto category = (*m_config)->def()->get(opt_key)->category;
@@ -1461,7 +1462,7 @@ void on_btn_split(const bool split_part)
 		return;
     ModelVolume* volume;
     if (!get_volume_by_item(split_part, item, volume)) return;
-    DynamicPrintConfig&	config = get_preset_bundle()->printers.get_edited_preset().config;
+    DynamicPrintConfig&	config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
     const auto nozzle_dmrs_cnt = config.option<ConfigOptionFloats>("nozzle_diameter")->values.size();
     if (volume->split(nozzle_dmrs_cnt) == 1) {
         wxMessageBox(_(L("The selected object couldn't be split because it contains only one part.")));
@@ -1916,7 +1917,8 @@ void on_drop(wxDataViewEvent &event)
 
 void update_objects_list_extruder_column(int extruders_count)
 {
-    if (get_preset_bundle()->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (!m_objects_ctrl) return; // #ys_FIXME
+    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         extruders_count = 1;
 
     // delete old 3rd column

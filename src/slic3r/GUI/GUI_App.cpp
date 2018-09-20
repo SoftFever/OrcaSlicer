@@ -18,56 +18,68 @@
 #include "3DScene.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
+#include "ConfigWizard_private.hpp"
+#include "slic3r/Config/Snapshot.hpp"
+#include "ConfigSnapshotDialog.hpp"
+#include "FirmwareDialog.hpp"
+#include "Preferences.hpp"
+#include "Tab.hpp"
 
 namespace Slic3r {
 namespace GUI {
 
-// IMPLEMENT_APP(GUI_App)
+IMPLEMENT_APP(GUI_App)
 bool GUI_App::OnInit()
 {
     SetAppName("Slic3rPE");
     SetAppDisplayName("Slic3r Prusa Edition");
 
-    //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", &Wx::wxVERSION_STRING, $Wx::VERSION;
-    // 
+//     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;
+
     // Set the Slic3r data directory at the Slic3r XS module.
     // Unix: ~/ .Slic3r
     // Windows : "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
     // Mac : "~/Library/Application Support/Slic3r"
-//     datadir.empty() ?
-//         Slic3r::set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToStdString()) :
-//         Slic3r::set_data_dir(datadir);
+    datadir.empty() ?
+        Slic3r::set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToStdString()) :
+        Slic3r::set_data_dir(datadir);
     //     set_wxapp(this); // #ys_FIXME
 
-//     app_config = new AppConfig();
+    // #ys_FIXME temporary workaround 
+    if (var_dir().empty())
+        set_var_dir("c:\\src\\Slic3r_TMP\\resources\\icons");
+    if (localization_dir().empty())
+        set_local_dir("c:\\src\\Slic3r_TMP\\resources\\localization");
+
+    app_config = new AppConfig();
     //     set_app_config(app_config);// #ys_FIXME
-//     preset_bundle = new PresetBundle();
+    preset_bundle = new PresetBundle();
     //     set_preset_bundle(preset_bundle);// #ys_FIXME
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
     //     eval{ 
-//     preset_bundle->setup_directories();
+    preset_bundle->setup_directories();
     //     };
     //     if ($@) {
     //         warn $@ . "\n";
     //         fatal_error(undef, $@);
     //     }
-//     app_conf_exists = app_config->exists();
+    app_conf_exists = app_config->exists();
     // load settings
-//     if (app_conf_exists) app_config->load();
-    //     app_config->set("version", Slic3r::VERSION);
-//     app_config->save();
+    if (app_conf_exists) app_config->load();
+    app_config->set("version", "Slic3r_VERSION"/*Slic3r::VERSION*/);
+    app_config->save();
 
-//     preset_updater = new PresetUpdater(VERSION_ONLINE_EVENT);
-    //     set_preset_updater(preset_updater); // #ys_FIXME
+//     preset_updater = new PresetUpdater();
+//     set_preset_updater(preset_updater); // #ys_FIXME
 
-//     Slic3r::GUI::load_language();
+    load_language();
 
     // Suppress the '- default -' presets.
-//     preset_bundle->set_default_suppressed(app_config->get("no_defaults").empty() ? false : true);
+    preset_bundle->set_default_suppressed(app_config->get("no_defaults").empty() ? false : true);
     //     eval{ 
-//     preset_bundle->load_presets(*app_config);
+    preset_bundle->load_presets(*app_config);
     //     };
     //     if ($@) {
     //         warn $@ . "\n";
@@ -133,12 +145,6 @@ bool GUI_App::OnInit()
 // 
 
     // #ys_FIXME All of this should to be removed
-    //     # The following event is emited by the C++ menu implementation of application language change.
-    //     EVT_COMMAND($self, -1, $LANGUAGE_CHANGE_EVENT, sub{
-    //         print STDERR "LANGUAGE_CHANGE_EVENT\n";
-    //         $self->recreate_GUI;
-    //     });
-    // 
     //     # The following event is emited by the C++ menu implementation of preferences change.
     //     EVT_COMMAND($self, -1, $PREFERENCES_EVENT, sub{
     //         $self->update_ui_from_settings;
@@ -154,7 +160,6 @@ bool GUI_App::OnInit()
     //     });
 
     mainframe->Show(true);
-
     return true;
 }
 
@@ -249,13 +254,13 @@ void GUI_App::CallAfter(std::function<void()> cb)
     callback_register.unlock();
 }
 
-wxMenuItem* GUI_App::append_menu_item(wxMenu* menu,
-    int id,
-    const wxString& string,
-    const wxString& description,
-    const std::string& icon,
-    std::function<void(wxCommandEvent& event)> cb,
-    wxItemKind kind/* = wxITEM_NORMAL*/)
+wxMenuItem* GUI_App::append_menu_item(  wxMenu* menu,
+                                        int id,
+                                        const wxString& string,
+                                        const wxString& description,
+                                        const std::string& icon,
+                                        std::function<void(wxCommandEvent& event)> cb,
+                                        wxItemKind kind/* = wxITEM_NORMAL*/)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -321,6 +326,182 @@ void GUI_App::restore_window_pos(wxTopLevelWindow* window, const std::string& na
     if (app_config->get(name + "_maximized") == "1")
         window->Maximize();
 }
+
+bool GUI_App::load_language()
+{
+    wxString language = wxEmptyString;
+    if (app_config->has("translation_language"))
+        language = app_config->get("translation_language");
+
+    if (language.IsEmpty())
+        return false;
+    wxArrayString	names;
+    wxArrayLong		identifiers;
+    get_installed_languages(names, identifiers);
+    for (size_t i = 0; i < identifiers.Count(); i++)
+    {
+        if (wxLocale::GetLanguageCanonicalName(identifiers[i]) == language)
+        {
+            auto locale = get_locale();
+            locale = new wxLocale;
+            locale->Init(identifiers[i]);
+            locale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
+            locale->AddCatalog(GetAppName());
+            wxSetlocale(LC_NUMERIC, "C");
+            Preset::update_suffix_modified();
+            return true;
+        }
+    }
+    return false;
+}
+
+ConfigMenuIDs GUI_App::get_view_mode()
+{
+    if (!app_config->has("view_mode"))
+        return ConfigMenuModeSimple;
+
+    const auto mode = app_config->get("view_mode");
+    return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
+}
+
+static wxString dots("…", wxConvUTF8);
+
+void GUI_App::add_config_menu(wxMenuBar *menu)
+{
+    auto local_menu = new wxMenu();
+    wxWindowID config_id_base = wxWindow::NewControlId((int)ConfigMenuCnt);
+
+    const auto config_wizard_name = _(ConfigWizard::name().wx_str());
+    const auto config_wizard_tooltip = wxString::Format(_(L("Run %s")), config_wizard_name);
+    // Cmd+, is standard on OS X - what about other operating systems?
+    local_menu->Append(config_id_base + ConfigMenuWizard, config_wizard_name + dots, config_wizard_tooltip);
+    local_menu->Append(config_id_base + ConfigMenuSnapshots, _(L("Configuration Snapshots")) + dots, _(L("Inspect / activate configuration snapshots")));
+    local_menu->Append(config_id_base + ConfigMenuTakeSnapshot, _(L("Take Configuration Snapshot")), _(L("Capture a configuration snapshot")));
+    // 	local_menu->Append(config_id_base + ConfigMenuUpdate, 		_(L("Check for updates")), 					_(L("Check for configuration updates")));
+    local_menu->AppendSeparator();
+    local_menu->Append(config_id_base + ConfigMenuPreferences, _(L("Preferences")) + dots + "\tCtrl+,", _(L("Application preferences")));
+    local_menu->AppendSeparator();
+    auto mode_menu = new wxMenu();
+    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("&Simple")), _(L("Simple View Mode")));
+    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("&Expert")), _(L("Expert View Mode")));
+    mode_menu->Check(config_id_base + get_view_mode(), true);
+    local_menu->AppendSubMenu(mode_menu, _(L("&Mode")), _(L("Slic3r View Mode")));
+    local_menu->AppendSeparator();
+    local_menu->Append(config_id_base + ConfigMenuLanguage, _(L("Change Application Language")));
+    local_menu->AppendSeparator();
+    local_menu->Append(config_id_base + ConfigMenuFlashFirmware, _(L("Flash printer firmware")), _(L("Upload a firmware image into an Arduino based printer")));
+    // TODO: for when we're able to flash dictionaries
+    // local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
+
+    local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event){
+        switch (event.GetId() - config_id_base) {
+        case ConfigMenuWizard:
+            config_wizard(ConfigWizard::RR_USER);
+            break;
+        case ConfigMenuTakeSnapshot:
+            // Take a configuration snapshot.
+            if (check_unsaved_changes()) {
+                wxTextEntryDialog dlg(nullptr, _(L("Taking configuration snapshot")), _(L("Snapshot name")));
+                if (dlg.ShowModal() == wxID_OK)
+                    app_config->set("on_snapshot",
+                    Slic3r::GUI::Config::SnapshotDB::singleton().take_snapshot(
+                    *app_config, Slic3r::GUI::Config::Snapshot::SNAPSHOT_USER, dlg.GetValue().ToUTF8().data()).id);
+            }
+            break;
+        case ConfigMenuSnapshots:
+            if (check_unsaved_changes()) {
+                std::string on_snapshot;
+                if (Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
+                    on_snapshot = app_config->get("on_snapshot");
+                ConfigSnapshotDialog dlg(Slic3r::GUI::Config::SnapshotDB::singleton(), on_snapshot);
+                dlg.ShowModal();
+                if (!dlg.snapshot_to_activate().empty()) {
+                    if (!Config::SnapshotDB::singleton().is_on_snapshot(*app_config))
+                        Config::SnapshotDB::singleton().take_snapshot(*app_config, Config::Snapshot::SNAPSHOT_BEFORE_ROLLBACK);
+                    app_config->set("on_snapshot",
+                        Config::SnapshotDB::singleton().restore_snapshot(dlg.snapshot_to_activate(), *app_config).id);
+                    preset_bundle->load_presets(*app_config);
+                    // Load the currently selected preset into the GUI, update the preset selection box.
+                    load_current_presets();
+                }
+            }
+            break;
+        case ConfigMenuPreferences:
+        {
+//             PreferencesDialog dlg(mainframe, event_preferences_changed);
+//             dlg.ShowModal();
+            break;
+        }
+        case ConfigMenuLanguage:
+        {
+            wxArrayString names;
+            wxArrayLong identifiers;
+            get_installed_languages(names, identifiers);
+            if (select_language(names, identifiers)) {
+                save_language();
+                show_info(mainframe->m_tabpanel, _(L("Application will be restarted")), _(L("Attention!")));
+                _3DScene::remove_all_canvases();// remove all canvas before recreate GUI
+                recreate_GUI();
+            }
+            break;
+        }
+        case ConfigMenuFlashFirmware:
+            FirmwareDialog::run(mainframe);
+            break;
+        default:
+            break;
+        }
+    });
+    mode_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
+        std::string mode = event.GetId() - config_id_base == ConfigMenuModeExpert ?
+            "expert" : "simple";
+        app_config->set("view_mode", mode);
+        app_config->save();
+        update_mode();
+    });
+    menu->Append(local_menu, _(L("&Configuration")));
+}
+
+// This is called when closing the application, when loading a config file or when starting the config wizard
+// to notify the user whether he is aware that some preset changes will be lost.
+bool GUI_App::check_unsaved_changes()
+{
+    std::string dirty;
+    for (Tab *tab : tabs_list)
+        if (tab->current_preset_is_dirty())
+            if (dirty.empty())
+                dirty = tab->name();
+            else
+                dirty += std::string(", ") + tab->name();
+    if (dirty.empty())
+        // No changes, the application may close or reload presets.
+        return true;
+    // Ask the user.
+    auto dialog = new wxMessageDialog(mainframe,
+        _(L("You have unsaved changes ")) + dirty + _(L(". Discard changes and continue anyway?")),
+        _(L("Unsaved Presets")),
+        wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
+    return dialog->ShowModal() == wxID_YES;
+}
+
+wxNotebook* GUI_App::tab_panel() const 
+{
+    return mainframe->m_tabpanel;
+}
+
+// std::vector<PresetTab>  preset_tabs = {
+//     { "print", nullptr, ptFFF },
+//     { "filament", nullptr, ptFFF },
+//     { "sla_material", nullptr, ptSLA }
+// };
+// 
+// Tab* GUI_App::get_tab(const std::string& name)
+// {
+//     std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
+//         [name](PresetTab& tab){ return name == tab.name; });
+//     return it != preset_tabs.end() ? it->panel : nullptr;
+// }
+
 
 // static method accepting a wxWindow object as first parameter
 // void warning_catcher{
