@@ -117,23 +117,15 @@ if(APPLE)
     # Ignore undefined symbols of the perl interpreter, they will be found in the caller image.
     target_link_libraries(XS "-undefined dynamic_lookup")
 endif()
-target_link_libraries(XS libslic3r admesh miniz clipper nowide polypartition poly2tri semver avrdude qhull)
-if(SLIC3R_PROFILE)
-    target_link_libraries(XS Shiny)
-endif()
+target_link_libraries(XS libslic3r)
 
 target_include_directories(XS PRIVATE src)
 target_compile_definitions(XS PRIVATE -DSLIC3RXS)
 set_target_properties(XS PROPERTIES PREFIX "") # Prevent cmake from generating libXS.so instead of XS.so
 
 target_link_libraries(XS ${Boost_LIBRARIES})
-# target_link_libraries(XS ${wxWidgets_LIBRARIES})
-# target_link_libraries(XS ${CURL_LIBRARIES})
-# target_link_libraries(XS ${OPENSSL_LIBRARIES})
 
 if (APPLE)
-#    add_compile_options(-stdlib=libc++)
-#    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
     # -liconv: boost links to libiconv by default
     target_link_libraries(XS "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
 elseif (MSVC)

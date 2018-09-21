@@ -165,7 +165,6 @@ target_link_libraries(libslic3r
     qhull
     semver
     ${TBB_LIBRARIES} 
-#    ${wxWidgets_LIBRARIES}
     )
 
 if(SLIC3R_PROFILE)

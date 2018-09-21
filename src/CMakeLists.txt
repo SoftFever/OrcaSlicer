@@ -53,6 +53,8 @@ endif()
 add_subdirectory(slic3r)
 
 # Create a slic3r executable
+#FIXME add Windows resource file
+#add_executable(slic3r slic3r.cpp slic3r.rc)
 add_executable(slic3r slic3r.cpp)
 if(SLIC3R_GUI)
     set_target_properties(slic3r PROPERTIES OUTPUT_NAME "slic3r-gui")
@@ -71,7 +73,7 @@ endif ()
 
 # Add the Slic3r GUI library, libcurl, OpenGL and GLU libraries.
 if (SLIC3R_GUI)
-    target_link_libraries(slic3r libslic3r_gui ${wxWidgets_LIBRARIES} ${CURL_LIBRARIES})
+    target_link_libraries(slic3r libslic3r_gui ${wxWidgets_LIBRARIES})
 
     # Configure libcurl & OpenSSL
     find_package(CURL REQUIRED)

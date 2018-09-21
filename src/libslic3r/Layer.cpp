@@ -154,7 +154,7 @@ void Layer::make_fills()
         layerm->fills.clear();
         make_fill(*layerm, layerm->fills);
 #ifndef NDEBUG
-        for (size_t i = 0; i < layerm.fills.entities.size(); ++ i)
+        for (size_t i = 0; i < layerm->fills.entities.size(); ++ i)
             assert(dynamic_cast<ExtrusionEntityCollection*>(layerm->fills.entities[i]) != NULL);
 #endif
     }
