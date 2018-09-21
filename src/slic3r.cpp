@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         "../../resources" : 
         // Running from an installation directory:
 #if APPLE
-        '/../Resources'
+        "../Resources"
 #else
         "resources"
 #endif
