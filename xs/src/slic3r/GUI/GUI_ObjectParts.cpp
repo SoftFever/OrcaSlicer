@@ -1837,16 +1837,16 @@ void update_rotation_value(double angle, Axis axis)
     }
     }
 
-    og->set_value(axis_str, int(Geometry::rad2deg(angle)));
+    og->set_value(axis_str, round_nearest(int(Geometry::rad2deg(angle)), 0));
 }
 
 #if ENABLE_MODELINSTANCE_3D_ROTATION
 void update_rotation_value(const Vec3d& rotation)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
-    og->set_value("rotation_x", int(Geometry::rad2deg(rotation(0))));
-    og->set_value("rotation_y", int(Geometry::rad2deg(rotation(1))));
-    og->set_value("rotation_z", int(Geometry::rad2deg(rotation(2))));
+    og->set_value("rotation_x", int(round_nearest(Geometry::rad2deg(rotation(0)), 0)));
+    og->set_value("rotation_y", int(round_nearest(Geometry::rad2deg(rotation(1)), 0)));
+    og->set_value("rotation_z", int(round_nearest(Geometry::rad2deg(rotation(2)), 0)));
 }
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
 

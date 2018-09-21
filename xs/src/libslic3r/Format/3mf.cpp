@@ -1278,13 +1278,14 @@ namespace Slic3r {
         double inv_sy = 1.0 / sy;
         double inv_sz = 1.0 / sz;
 
-        Eigen::Matrix3d m3x3;
+        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3;
         m3x3 << transform(0, 0) * inv_sx, transform(0, 1) * inv_sy, transform(0, 2) * inv_sz,
                 transform(1, 0) * inv_sx, transform(1, 1) * inv_sy, transform(1, 2) * inv_sz,
                 transform(2, 0) * inv_sx, transform(2, 1) * inv_sy, transform(2, 2) * inv_sz;
 
 #if ENABLE_MODELINSTANCE_3D_ROTATION
-        Vec3d rotation = m3x3.eulerAngles(0, 1, 2);
+        Vec3d angles = m3x3.eulerAngles(2, 1, 0);
+        Vec3d rotation(angles(2), angles(1), angles(0));
 #else
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(m3x3);
