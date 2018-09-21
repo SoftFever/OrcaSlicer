@@ -3246,7 +3246,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (evt.LeftDown())
             {
                 m_gizmos.delete_current_grabber(true);
-                m_wait_for_left_up = true;
+#if ENABLE_GIZMOS_RESET
+                m_mouse.ignore_up_event = true;
+#endif // ENABLE_GIZMOS_RESET
                 m_dirty = true;
             }
         }
@@ -3543,9 +3545,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     }
     else if (evt.LeftUp() || evt.MiddleUp() || evt.RightUp())
     {
-        if (evt.LeftUp() && m_wait_for_left_up)
-            m_wait_for_left_up = false;
-        else
         if (m_layers_editing.state != LayersEditing::Unknown)
         {
             m_layers_editing.state = LayersEditing::Unknown;

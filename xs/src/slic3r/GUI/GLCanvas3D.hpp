@@ -494,7 +494,6 @@ class GLCanvas3D
     bool m_shader_enabled;
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
-    bool m_wait_for_left_up;
 
     std::string m_color_by;
     std::string m_select_by;
