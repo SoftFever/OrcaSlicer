@@ -9,7 +9,7 @@
 
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
-#include "..\AppController.hpp"
+#include "../AppController.hpp"
 #include "ProgressStatusBar.hpp"
 #include "3DScene.hpp"
 #include "Print.hpp"

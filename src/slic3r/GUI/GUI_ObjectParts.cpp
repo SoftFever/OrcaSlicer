@@ -158,7 +158,7 @@ void init_mesh_icons(){
 bool is_parts_changed(){return m_parts_changed;}
 bool is_part_settings_changed(){ return m_part_settings_changed; }
 
-static wxString dots("â€¦", wxConvUTF8);
+static wxString dots("…", wxConvUTF8);
 
 void set_tooltip_for_item(const wxPoint& pt)
 {
