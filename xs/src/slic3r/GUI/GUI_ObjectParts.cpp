@@ -1451,12 +1451,12 @@ bool is_splittable_object(const bool split_part)
         return false;
 
     TriangleMeshPtrs meshptrs = volume->mesh.split();
-    if (meshptrs.size() <= 1) {
-        delete meshptrs.front();
-        return false;
+    bool splittable = meshptrs.size() > 1;
+    for (TriangleMesh* m : meshptrs)
+    {
+        delete m;
     }
-
-    return true;
+    return splittable;
 }
 
 void on_btn_split(const bool split_part)
