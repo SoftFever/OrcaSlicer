@@ -1220,7 +1220,13 @@ void load_part(	ModelObject* model_object,
 		}
 
 		for ( auto object : model.objects) {
-			for (auto volume : object->volumes) {
+            Vec3d delta = Vec3d::Zero();
+            if (model_object->origin_translation != Vec3d::Zero())
+            {
+                object->center_around_origin();
+                delta = model_object->origin_translation - object->origin_translation;
+            }
+            for (auto volume : object->volumes) {
 				auto new_volume = model_object->add_volume(*volume);
 				new_volume->set_type(is_modifier ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART);
 				boost::filesystem::path(input_file).filename().string();
@@ -1228,12 +1234,11 @@ void load_part(	ModelObject* model_object,
 
 				part_names.Add(new_volume->name);
 
-				// apply the same translation we applied to the object
-				new_volume->mesh.translate( model_object->origin_translation(0),
-											model_object->origin_translation(1), 
-											model_object->origin_translation(2) );
-				// set a default extruder value, since user can't add it manually
-				new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
+                if (delta != Vec3d::Zero())
+                    new_volume->mesh.translate((float)delta(0), (float)delta(1), (float)delta(2));
+
+                // set a default extruder value, since user can't add it manually
+                new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
 				m_parts_changed = true;
 			}
