@@ -2,6 +2,7 @@
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 #include <wx/stdpaths.h>
 #include <wx/imagpng.h>
@@ -40,16 +41,9 @@ bool GUI_App::OnInit()
     // Unix: ~/ .Slic3r
     // Windows : "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
     // Mac : "~/Library/Application Support/Slic3r"
-    datadir.empty() ?
-        Slic3r::set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToStdString()) :
-        Slic3r::set_data_dir(datadir);
+    if (data_dir().empty())
+        Slic3r::set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
     //     set_wxapp(this); // #ys_FIXME
-
-    // #ys_FIXME temporary workaround 
-    if (var_dir().empty())
-        set_var_dir("c:\\src\\Slic3r_TMP\\resources\\icons");
-    if (localization_dir().empty())
-        set_local_dir("c:\\src\\Slic3r_TMP\\resources\\localization");
 
     app_config = new AppConfig();
     //     set_app_config(app_config);// #ys_FIXME

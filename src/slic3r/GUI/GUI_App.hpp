@@ -42,8 +42,6 @@ class Tab;
 
 class GUI_App : public wxApp
 {
-    // Datadir provided on the command line.
-    std::string     datadir = "";
     bool            no_plater{ true };
     bool            app_conf_exists{ false };
 

@@ -5,6 +5,7 @@
 #include "TriangleMesh.hpp"
 #include "Format/3mf.hpp"
 #include "libslic3r.h"
+#include "Utils.hpp"
 #include <cstdio>
 #include <string>
 #include <cstring>
@@ -30,6 +31,7 @@ using namespace Slic3r;
 int main(int argc, char **argv)
 {
     // Convert arguments to UTF-8 (needed on Windows). argv then points to memory owned by a.
+    //FIXME On Windows, we want to receive the arguments as 16bit characters!
     boost::nowide::args a(argc, argv);
 
     // parse all command line options into a DynamicConfig
@@ -41,29 +43,38 @@ int main(int argc, char **argv)
         return 0;
     }
 
+    boost::filesystem::path path_to_binary = boost::filesystem::system_complete(argv[0]);
+    boost::filesystem::path path_resources = path_to_binary.parent_path();
+    path_resources /= (path_to_binary.stem().string() == "slic3r-gui") ? 
+        // Running from the build directory:
+        "../../resources" : 
+        // Running from an installation directory:
+#if APPLE
+        '/../Resources'
+#else
+        "resources"
+#endif
+        ;
+    set_resources_dir(path_resources.string());
+    set_var_dir((path_resources / "icons").string());
+    set_local_dir((path_resources / "localization").string());
+
     // apply command line options to a more handy CLIConfig
     CLIConfig cli_config;
     cli_config.apply(config, true);
-    
+    set_local_dir(cli_config.datadir.value);
+
     DynamicPrintConfig print_config;
 
+    if ((argc == 1 || cli_config.gui.value) && ! cli_config.no_gui.value && ! cli_config.help.value && cli_config.save.value.empty()) {
 #if 1
-    GUI::GUI_App *gui = new GUI::GUI_App();
-    GUI::GUI_App::SetInstance(gui);
-    wxEntry(argc, argv);
-#endif
-
-#ifdef USE_WX
-    if (cli_config.gui) {
-        GUI::App *gui = new GUI::App();
-        GUI::App::SetInstance(gui);
+        GUI::GUI_App *gui = new GUI::GUI_App();
+        GUI::GUI_App::SetInstance(gui);
         wxEntry(argc, argv);
-    }
 #else
-    if (cli_config.gui) {
         std::cout << "GUI support has not been built." << "\n";
-    }
 #endif
+    }
     // load config files supplied via --load
     for (const std::string &file : cli_config.load.values) {
         if (!boost::filesystem::exists(file)) {

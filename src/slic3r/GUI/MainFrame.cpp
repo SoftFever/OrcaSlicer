@@ -57,12 +57,14 @@ wxFrame(NULL, wxID_ANY, "FORK_NAME-VERSION", wxDefaultPosition, wxDefaultSize, w
     m_statusbar->set_status_text(_(L("Version ")) + 
                                  "Slic3r_VERSION" + // Slic3r::VERSION + 
                                  _(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
-    // Make the global status bar and its progress indicator available in C++
-    m_appController->set_global_progress_indicator(m_statusbar);
 
-//     m_appController->set_model(m_plater->model);
-//     m_appController->set_print(m_plater->print);
-//     m_plater->appController = m_appController;
+	//     m_appController->set_model(m_plater->model);
+	//     m_appController->set_print(m_plater->print);
+	//     m_plater->appController = m_appController;
+	GUI::set_gui_appctl();
+
+	// Make the global status bar and its progress indicator available in C++
+    m_appController->set_global_progress_indicator(m_statusbar);
 
     m_loaded = true;
 

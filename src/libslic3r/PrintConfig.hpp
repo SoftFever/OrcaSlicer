@@ -982,11 +982,13 @@ class CLIConfig : public virtual ConfigBase, public StaticConfig
 {
 public:
     ConfigOptionFloat               cut;
+    ConfigOptionString              datadir;
     ConfigOptionBool                export_3mf;
     ConfigOptionBool                gui;
     ConfigOptionBool                info;
     ConfigOptionBool                help;
     ConfigOptionStrings             load;
+    ConfigOptionBool                no_gui;
     ConfigOptionString              output;
     ConfigOptionFloat               rotate;
     ConfigOptionFloat               rotate_x;
@@ -1008,11 +1010,13 @@ public:
     ConfigOption*       optptr(const t_config_option_key &opt_key, bool create = false) override
     {
         OPT_PTR(cut);
+        OPT_PTR(datadir);
         OPT_PTR(export_3mf);
         OPT_PTR(gui);
         OPT_PTR(help);
         OPT_PTR(info);
         OPT_PTR(load);
+        OPT_PTR(no_gui);
         OPT_PTR(output);
         OPT_PTR(rotate);
         OPT_PTR(rotate_x);

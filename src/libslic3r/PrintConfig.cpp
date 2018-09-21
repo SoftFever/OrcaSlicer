@@ -2612,6 +2612,14 @@ CLIConfigDef::CLIConfigDef()
     def->cli = "cut";
     def->default_value = new ConfigOptionFloat(0);
 
+    def = this->add("datadir", coString);
+    def->label = L("User data directory");
+    def->tooltip = L("Load and store settings at the given directory. "
+                     "This is useful for maintaining different profiles or including "
+                     "configurations from a network storage.");
+    def->cli = "datadir";
+    def->default_value = new ConfigOptionString();
+
     def = this->add("export_3mf", coBool);
     def->label = L("Export 3MF");
     def->tooltip = L("Slice the model and export slices as 3MF.");
@@ -2632,9 +2640,10 @@ CLIConfigDef::CLIConfigDef()
 
     def = this->add("gui", coBool);
     def->label = L("Use GUI");
-    def->tooltip = L("Start the Slic3r GUI.");
+    def->tooltip = L("Forces the GUI launch instead of command line slicing "
+                     "(if you supply a model file, it will be loaded into the plater)");
     def->cli = "gui";
-    def->default_value = new ConfigOptionBool(false);
+    def->default_value = new ConfigOptionBool(true);
     
     def = this->add("info", coBool);
     def->label = L("Output Model Info");
@@ -2647,6 +2656,12 @@ CLIConfigDef::CLIConfigDef()
     def->tooltip = L("Load configuration from the specified file. It can be used more than once to load options from multiple files.");
     def->cli = "load";
     def->default_value = new ConfigOptionStrings();
+
+    def = this->add("no_gui", coBool);
+    def->label = L("Do not use GUI");
+    def->tooltip = L("Forces the command line slicing instead of gui. This takes precedence over --gui if both are present.");
+    def->cli = "no-gui";
+    def->default_value = new ConfigOptionBool(false);
     
     def = this->add("output", coString);
     def->label = L("Output File");
