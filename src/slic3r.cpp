@@ -45,14 +45,27 @@ int main(int argc, char **argv)
 
     boost::filesystem::path path_to_binary = boost::filesystem::system_complete(argv[0]);
     boost::filesystem::path path_resources = path_to_binary.parent_path();
+    // Path from the Slic3r binary to its resources.
     path_resources /= (path_to_binary.stem().string() == "slic3r-gui") ? 
         // Running from the build directory:
-        "../../resources" : 
+        "../../resources" :
         // Running from an installation directory:
 #if APPLE
+        // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
+        // The resources are packed to 'Slic3r.app/Contents/Resources'
         "../Resources"
 #else
+    #if WIN32
+        // The application is packed in the .zip archive in the root,
+        // The resources are packed to 'resources'
+        // Path from Slic3r binary to resources:
         "resources"
+    #else
+        // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
+        // The resources are packed to 'resources'
+        // Path from Slic3r binary to resources:
+        "../resources"
+    #endif
 #endif
         ;
     set_resources_dir(path_resources.string());
