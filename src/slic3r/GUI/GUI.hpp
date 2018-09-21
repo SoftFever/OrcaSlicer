@@ -74,23 +74,24 @@ namespace GUI {
 class Tab;
 class ConfigOptionsGroup;
 // Map from an file_type name to full file wildcard name.
-typedef std::map<std::string, std::string> t_file_wild_card;
-inline t_file_wild_card& get_file_wild_card() {
-	static t_file_wild_card FILE_WILDCARDS;
-	if (FILE_WILDCARDS.empty()){
-		FILE_WILDCARDS["known"]	= "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA";
-		FILE_WILDCARDS["stl"]	= "STL files (*.stl)|*.stl;*.STL";
-		FILE_WILDCARDS["obj"]	= "OBJ files (*.obj)|*.obj;*.OBJ";
-        FILE_WILDCARDS["amf"]	= "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML";
-        FILE_WILDCARDS["3mf"]	= "3MF files (*.3mf)|*.3mf;*.3MF;";
-        FILE_WILDCARDS["prusa"]	= "Prusa Control files (*.prusa)|*.prusa;*.PRUSA";
-		FILE_WILDCARDS["ini"]	= "INI files *.ini|*.ini;*.INI";
-		FILE_WILDCARDS["gcode"] = "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC";
-		FILE_WILDCARDS["svg"]	= "SVG files *.svg|*.svg;*.SVG";
-	}
-	return FILE_WILDCARDS;
-}
+const std::map<const std::string, const std::string> FILE_WILDCARDS{
+    std::make_pair("known", "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA"),
+    std::make_pair("stl",   "STL files (*.stl)|*.stl;*.STL"),
+    std::make_pair("obj",   "OBJ files (*.obj)|*.obj;*.OBJ"),
+    std::make_pair("amf",   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML"),
+    std::make_pair("3mf",   "3MF files (*.3mf)|*.3mf;*.3MF;"),
+    std::make_pair("prusa", "Prusa Control files (*.prusa)|*.prusa;*.PRUSA"),
+    std::make_pair("ini",   "INI files *.ini|*.ini;*.INI"),
+    std::make_pair("gcode", "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC"),
+    std::make_pair("svg",   "SVG files *.svg|*.svg;*.SVG")
+};
 
+const std::string MODEL_WILDCARD{   FILE_WILDCARDS.at("known") + std::string("|") +
+                                    FILE_WILDCARDS.at("stl") + std::string("|") +
+                                    FILE_WILDCARDS.at("obj") + std::string("|") +
+                                    FILE_WILDCARDS.at("amf") + std::string("|") +
+                                    FILE_WILDCARDS.at("3mf") + std::string("|") +
+                                    FILE_WILDCARDS.at("prusa") };
 struct PresetTab {
     std::string       name;
     Tab*              panel;
@@ -152,7 +153,7 @@ wxWindow*			get_right_panel();
 const size_t&		label_width();
 
 Tab*         get_tab(const std::string& name);
-const std::vector<PresetTab>& get_preset_tabs();
+std::vector<PresetTab>* get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -195,6 +196,7 @@ void warning_catcher(wxWindow* parent, const wxString& message);
 void set_print_callback_event(Print *print, int id);
 
 // load language saved at application config 
+wxLocale* get_locale();
 bool load_language();
 // save language at application config 
 void save_language();

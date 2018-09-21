@@ -129,9 +129,10 @@ wxColour    g_color_label_modified;
 wxColour    g_color_label_sys;
 wxColour    g_color_label_default;
 
+// #ys_FIXME_for_delete
 std::vector<Tab *> g_tabs_list;
 
-wxLocale*	g_wxLocale;
+wxLocale*	g_wxLocale {nullptr};
 
 wxFont		g_small_font;
 wxFont		g_bold_font;
@@ -347,6 +348,11 @@ bool select_language(wxArrayString & names,
 	return false;
 }
 
+wxLocale* get_locale() {
+    return g_wxLocale;
+}
+
+// #ys_FIXME_for_delete
 bool load_language()
 {
 	wxString language = wxEmptyString;
@@ -429,7 +435,8 @@ enum ConfigMenuIDs {
 	ConfigMenuFlashFirmware,
 	ConfigMenuCnt,
 };
-	
+
+// #ys_FIXME_for_delete	
 ConfigMenuIDs get_view_mode()
 {
 	if (!g_AppConfig->has("view_mode"))
@@ -440,7 +447,7 @@ ConfigMenuIDs get_view_mode()
 }
 
 static wxString dots("…", wxConvUTF8);
-
+// #ys_FIXME_for_delete
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
     auto local_menu = new wxMenu();
@@ -546,14 +553,8 @@ void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_languag
 }
 
 void open_model(wxWindow *parent, wxArrayString& input_files){
-	t_file_wild_card vec_FILE_WILDCARDS = get_file_wild_card();
-	std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "3mf", "prusa" };
-	wxString MODEL_WILDCARD;
-	for (auto file_type : file_types)
-		MODEL_WILDCARD += vec_FILE_WILDCARDS.at(file_type) + "|";
-
-	auto dlg_title = _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):"));
-	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow(g_wxMainFrame)*/, dlg_title, 
+	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow()*/, 
+        _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
 		g_AppConfig->get_last_dir(), "",
 		MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 	if (dialog->ShowModal() != wxID_OK) {
@@ -567,6 +568,7 @@ void open_model(wxWindow *parent, wxArrayString& input_files){
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
+// #ys_FIXME_for_delete
 bool check_unsaved_changes()
 {
 	std::string dirty;
@@ -643,8 +645,8 @@ std::vector<PresetTab> preset_tabs = {
     { "filament",     nullptr, ptFFF },
     { "sla_material", nullptr, ptSLA }
 };
-const std::vector<PresetTab>& get_preset_tabs() {
-    return preset_tabs;
+std::vector<PresetTab>* get_preset_tabs() {
+    return &preset_tabs;
 }
 
 Tab* get_tab(const std::string& name)
@@ -788,7 +790,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 		int i = 0;//no reason, just experiment
 	}
 }
-
+// #ys_FIXME_for_delete
 void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed)
 {
 	panel->create_preset_tab(g_PresetBundle);
@@ -1219,7 +1221,7 @@ bool is_expert_mode(){
 
 ConfigOptionsGroup* get_optgroup(size_t i)
 {
-	return m_optgroups[i].get();
+	return m_optgroups.empty() ? nullptr : m_optgroups[i].get();
 }
 
 std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups() {

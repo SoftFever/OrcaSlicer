@@ -1,9 +1,6 @@
-//#include "ConfigBase.hpp"
 #include "Config.hpp"
 #include "Geometry.hpp"
-//#include "IO.hpp"
 #include "Model.hpp"
-//#include "SLAPrint.hpp"
 #include "Print.hpp"
 #include "TriangleMesh.hpp"
 #include "Format/3mf.hpp"
@@ -21,79 +18,9 @@
 //    #include "GUI/GUI.hpp"
 #endif
 #include "slic3r/GUI/GUI.hpp"
+#include "slic3r/GUI/GUI_App.hpp"
 
 using namespace Slic3r;
-
-// wxWidgets "Hello world" Program
-// For compilers that support precompilation, includes "wx/wx.h".
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
-class MyApp: public wxApp
-{
-public:
-    virtual bool OnInit();
-};
-class MyFrame: public wxFrame
-{
-public:
-    MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size);
-private:
-    void OnHello(wxCommandEvent& event);
-    void OnExit(wxCommandEvent& event);
-    void OnAbout(wxCommandEvent& event);
-    wxDECLARE_EVENT_TABLE();
-};
-enum
-{
-    ID_Hello = 1
-};
-wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-    EVT_MENU(ID_Hello,   MyFrame::OnHello)
-    EVT_MENU(wxID_EXIT,  MyFrame::OnExit)
-    EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-wxEND_EVENT_TABLE()
-bool MyApp::OnInit()
-{
-    MyFrame *frame = new MyFrame( "Hello World", wxPoint(50, 50), wxSize(450, 340) );
-    frame->Show( true );
-    return true;
-}
-MyFrame::MyFrame(const wxString& title, const wxPoint& pos, const wxSize& size)
-        : wxFrame(NULL, wxID_ANY, title, pos, size)
-{
-    wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
-    menuFile->AppendSeparator();
-    menuFile->Append(wxID_EXIT);
-    wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
-    wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append( menuFile, "&File" );
-    menuBar->Append( menuHelp, "&Help" );
-    SetMenuBar( menuBar );
-    CreateStatusBar();
-    SetStatusText( "Welcome to wxWidgets!" );
-    Slic3r::Model model;
-    ModelObject *object = model.add_object();
-    SetStatusText(Slic3r::GUI::from_u8("HHuhuh"));
-}
-
-void MyFrame::OnExit(wxCommandEvent& event)
-{
-    Close( true );
-}
-void MyFrame::OnAbout(wxCommandEvent& event)
-{
-    wxMessageBox( "This is a wxWidgets' Hello world sample",
-                  "About Hello World", wxOK | wxICON_INFORMATION );
-}
-void MyFrame::OnHello(wxCommandEvent& event)
-{
-    wxLogMessage("Hello world from wxWidgets!");
-}
 
 /// utility function for displaying CLI usage
 void printUsage();
@@ -121,9 +48,8 @@ int main(int argc, char **argv)
     DynamicPrintConfig print_config;
 
 #if 1
-    MyApp *gui = new MyApp();
-
-    MyApp::SetInstance(gui);
+    GUI::GUI_App *gui = new GUI::GUI_App();
+    GUI::GUI_App::SetInstance(gui);
     wxEntry(argc, argv);
 #endif
 

@@ -218,10 +218,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 
 		add_undo_buttuns_to_sizer(sizer, field);
 		if (is_window_field(field)) 
-			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, (option.opt.full_width ? wxEXPAND : 0) |
-							wxBOTTOM | wxTOP | wxALIGN_CENTER_VERTICAL, (wxOSX||!staticbox) ? 0 : 2);
+			sizer->Add(field->getWindow(), option.opt.full_width ? 1 : 0, //(option.opt.full_width ? wxEXPAND : 0) |
+            wxBOTTOM | wxTOP | (option.opt.full_width ? wxEXPAND : wxALIGN_CENTER_VERTICAL), (wxOSX || !staticbox) ? 0 : 2);
 		if (is_sizer_field(field)) 
-			sizer->Add(field->getSizer(), 1, (option.opt.full_width ? wxEXPAND : 0) | wxALIGN_CENTER_VERTICAL, 0);
+			sizer->Add(field->getSizer(), 1, /*(*/option.opt.full_width ? wxEXPAND : /*0) |*/ wxALIGN_CENTER_VERTICAL, 0);
 		return;
 	}
 
@@ -244,7 +244,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 // 								L_str(option.label);
 			label = new wxStaticText(parent(), wxID_ANY, str_label + ":", wxDefaultPosition, wxDefaultSize);
 			label->SetFont(label_font);
-			sizer_tmp->Add(label, 0, wxALIGN_RIGHT | wxALIGN_CENTER_VERTICAL, 0);
+			sizer_tmp->Add(label, 0, /*wxALIGN_RIGHT |*/ wxALIGN_CENTER_VERTICAL, 0);
 		}
 
 		// add field

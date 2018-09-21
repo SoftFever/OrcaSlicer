@@ -13,7 +13,7 @@ class PresetBundle;
 class PresetUpdater
 {
 public:
-	PresetUpdater(int version_online_event);
+	PresetUpdater();
 	PresetUpdater(PresetUpdater &&) = delete;
 	PresetUpdater(const PresetUpdater &) = delete;
 	PresetUpdater &operator=(PresetUpdater &&) = delete;

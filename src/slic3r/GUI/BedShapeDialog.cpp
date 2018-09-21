@@ -291,12 +291,6 @@ void BedShapePanel::update_shape()
 // Loads an stl file, projects it to the XY plane and calculates a polygon.
 void BedShapePanel::load_stl()
 {
-	t_file_wild_card vec_FILE_WILDCARDS = get_file_wild_card();
-    std::vector<std::string> file_types = { "known", "stl", "obj", "amf", "3mf", "prusa" };
-    wxString MODEL_WILDCARD;
-	for (auto file_type: file_types)
-		MODEL_WILDCARD += vec_FILE_WILDCARDS.at(file_type) + "|";
-
 	auto dialog = new wxFileDialog(this, _(L("Choose a file to import bed shape from (STL/OBJ/AMF/3MF/PRUSA):")), "", "",
 		MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 	if (dialog->ShowModal() != wxID_OK) {
