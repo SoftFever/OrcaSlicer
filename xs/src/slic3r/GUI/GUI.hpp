@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "PrintConfig.hpp"
-#include "../../libslic3r/Utils.hpp"
+#include "../../callback.hpp"
 #include "GUI_ObjectParts.hpp"
 
 #include <wx/intl.h>
@@ -15,6 +15,7 @@ class wxWindow;
 class wxFrame;
 class wxMenuBar;
 class wxNotebook;
+class wxPanel;
 class wxComboCtrl;
 class wxString;
 class wxArrayString;
@@ -32,10 +33,18 @@ namespace Slic3r {
 
 class PresetBundle;
 class PresetCollection;
+class Print;
+class ProgressStatusBar;
 class AppConfig;
 class PresetUpdater;
 class DynamicPrintConfig;
 class TabIface;
+class PreviewIface;
+class Print;
+class GCodePreviewData;
+class AppControllerBase;
+
+using AppControllerPtr = std::shared_ptr<AppControllerBase>;
 
 #define _(s)    Slic3r::GUI::I18N::translate((s))
 
@@ -97,7 +106,9 @@ void break_to_debugger();
 // Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
 void set_wxapp(wxApp *app);
 void set_main_frame(wxFrame *main_frame);
+void set_progress_status_bar(ProgressStatusBar *prsb);
 void set_tab_panel(wxNotebook *tab_panel);
+void set_plater(wxPanel *plater);
 void set_app_config(AppConfig *app_config);
 void set_preset_bundle(PresetBundle *preset_bundle);
 void set_preset_updater(PresetUpdater *updater);
@@ -117,8 +128,13 @@ AppConfig*		get_app_config();
 wxApp*			get_app();
 PresetBundle*	get_preset_bundle();
 wxFrame*		get_main_frame();
+ProgressStatusBar* get_progress_status_bar();
 wxNotebook *	get_tab_panel();
 wxNotebook*		get_tab_panel();
+
+AppControllerPtr get_appctl();
+void             set_cli_appctl();
+void             set_gui_appctl();
 
 const wxColour& get_label_clr_modified();
 const wxColour& get_label_clr_sys();
@@ -156,8 +172,10 @@ extern void config_wizard(int run_reason);
 extern void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed);
+void create_preset_tabs(int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
+
+PreviewIface* create_preview_iface(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
 
 // add it at the end of the tab panel.
 void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
@@ -171,6 +189,10 @@ void show_error(wxWindow* parent, const wxString& message);
 void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title);
 void warning_catcher(wxWindow* parent, const wxString& message);
+
+// Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
+// to deliver a progress status message.
+void set_print_callback_event(Print *print, int id);
 
 // load language saved at application config 
 bool load_language();
@@ -202,6 +224,8 @@ int combochecklist_get_flags(wxComboCtrl* comboCtrl);
 wxString	L_str(const std::string &str);
 // Return wxString from std::string in UTF8
 wxString	from_u8(const std::string &str);
+// Return std::string in UTF8 from wxString
+std::string	into_u8(const wxString &str);
 
 void set_model_events_from_perl(Model &model,
 							    int event_object_selection_changed,

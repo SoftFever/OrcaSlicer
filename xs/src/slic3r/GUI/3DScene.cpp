@@ -196,7 +196,11 @@ const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
     : m_offset(Vec3d::Zero())
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    , m_rotation(Vec3d::Zero())
+#else
     , m_rotation(0.0)
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     , m_scaling_factor(1.0)
     , m_world_matrix(Transform3f::Identity())
     , m_world_matrix_dirty(true)
@@ -255,7 +259,24 @@ void GLVolume::set_render_color()
         set_render_color(color, 4);
 }
 
-double GLVolume::get_rotation()
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+const Vec3d& GLVolume::get_rotation() const
+{
+    return m_rotation;
+}
+
+void GLVolume::set_rotation(const Vec3d& rotation)
+{
+    if (m_rotation != rotation)
+    {
+        m_rotation = rotation;
+        m_world_matrix_dirty = true;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
+}
+#else
+double GLVolume::get_rotation() const
 {
     return m_rotation;
 }
@@ -270,6 +291,7 @@ void GLVolume::set_rotation(double rotation)
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
 }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 const Vec3d& GLVolume::get_offset() const
 {
@@ -327,7 +349,13 @@ const Transform3f& GLVolume::world_matrix() const
     {
         m_world_matrix = Transform3f::Identity();
         m_world_matrix.translate(m_offset.cast<float>());
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(2), Vec3f::UnitZ()));
+        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(1), Vec3f::UnitY()));
+        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(0), Vec3f::UnitX()));
+#else
         m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation, Vec3f::UnitZ()));
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         m_world_matrix.scale((float)m_scaling_factor);
         m_world_matrix_dirty = false;
     }
@@ -403,7 +431,13 @@ void GLVolume::render() const
     ::glCullFace(GL_BACK);
     ::glPushMatrix();
     ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
+    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+#else
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
     if (this->indexed_vertex_array.indexed())
         this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
@@ -529,7 +563,13 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
 
     ::glPushMatrix();
     ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
+    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+#else
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 
     if (n_triangles > 0)
@@ -574,7 +614,13 @@ void GLVolume::render_legacy() const
 
     ::glPushMatrix();
     ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
+    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+#else
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 
     if (n_triangles > 0)
@@ -591,7 +637,7 @@ double GLVolume::layer_height_texture_z_to_row_id() const
     return (this->layer_height_texture.get() == nullptr) ? 0.0 : double(this->layer_height_texture->cells - 1) / (double(this->layer_height_texture->width) * this->layer_height_texture_data.print_object->model_object()->bounding_box().max(2));
 }
 
-void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool force)
+void GLVolume::generate_layer_height_texture(const PrintObject *print_object, bool force)
 {
     LayersTexture *tex = this->layer_height_texture.get();
     if (tex == nullptr)
@@ -599,7 +645,7 @@ void GLVolume::generate_layer_height_texture(PrintObject *print_object, bool for
 		return;
 
 	// Always try to update the layer height profile.
-	bool update = print_object->update_layer_height_profile(print_object->model_object()->layer_height_profile) || force;
+	bool update = print_object->update_layer_height_profile(const_cast<ModelObject*>(print_object->model_object())->layer_height_profile) || force;
 	// Update if the layer height profile was changed, or when the texture is not valid.
 	if (! update && ! tex->data.empty() && tex->cells > 0)
         // Texture is valid, don't update.
@@ -698,7 +744,11 @@ std::vector<int> GLVolumeCollection::load_object(
 #else
             v.set_offset(Vec3d(instance->offset(0), instance->offset(1), 0.0));
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            v.set_rotation(instance->get_rotation());
+#else
             v.set_rotation(instance->rotation);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             v.set_scaling_factor(instance->scaling_factor);
         }
     }
@@ -1687,7 +1737,7 @@ void _3DScene::extrusionentity_to_verts(const ExtrusionEntity *extrusion_entity,
                     if (extrusion_entity_collection != nullptr)
                         extrusionentity_to_verts(*extrusion_entity_collection, print_z, copy, volume);
                     else {
-                        CONFESS("Unexpected extrusion_entity type in to_verts()");
+                        throw std::runtime_error("Unexpected extrusion_entity type in to_verts()");
                     }
                 }
             }
@@ -2067,12 +2117,30 @@ void _3DScene::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, vo
 
 void _3DScene::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
 {
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
     s_canvas_mgr.register_on_gizmo_rotate_callback(canvas, callback);
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+}
+
+void _3DScene::register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback)
+{
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    s_canvas_mgr.register_on_gizmo_rotate_3D_callback(canvas, callback);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 }
 
 void _3DScene::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback)
 {
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
     s_canvas_mgr.register_on_gizmo_flatten_callback(canvas, callback);
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+}
+
+void _3DScene::register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback)
+{
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    s_canvas_mgr.register_on_gizmo_flatten_3D_callback(canvas, callback);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 }
 
 void _3DScene::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)

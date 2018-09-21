@@ -4,6 +4,8 @@
 #include <memory>
 #include <functional>
 
+#include "../../callback.hpp"
+
 class wxTimer;
 class wxGauge;
 class wxButton;
@@ -11,6 +13,7 @@ class wxTimerEvent;
 class wxStatusBar;
 class wxWindow;
 class wxFrame;
+class wxString;
 
 namespace Slic3r {
 
@@ -21,9 +24,9 @@ namespace Slic3r {
  */
 class ProgressStatusBar {
     wxStatusBar *self;      // we cheat! It should be the base class but: perl!
-    wxTimer *timer_;
-    wxGauge *prog_;
-    wxButton *cancelbutton_;
+    wxTimer *m_timer;
+    wxGauge *m_prog;
+    wxButton *m_cancelbutton;
 public:
 
     /// Cancel callback function type
@@ -39,20 +42,21 @@ public:
     void show_progress(bool);
     void start_busy(int = 100);
     void stop_busy();
-    inline bool is_busy() const { return busy_; }
+    inline bool is_busy() const { return m_busy; }
     void set_cancel_callback(CancelFn = CancelFn());
     inline void remove_cancel_callback() { set_cancel_callback(); }
     void run(int rate);
     void embed(wxFrame *frame = nullptr);
-    void set_status_text(const std::string& txt);
+    void set_status_text(const wxString& txt);
 
     // Temporary methods to satisfy Perl side
     void show_cancel_button();
     void hide_cancel_button();
 
+    PerlCallback m_perl_cancel_callback;
 private:
-    bool busy_ = false;
-    CancelFn cancel_cb_;
+    bool m_busy = false;
+    CancelFn m_cancel_cb;
 };
 
 namespace GUI {

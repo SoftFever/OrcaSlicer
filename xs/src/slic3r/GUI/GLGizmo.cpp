@@ -695,6 +695,7 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 }
 
 const float GLGizmoScale3D::Offset = 5.0f;
+const Vec3d GLGizmoScale3D::OffsetVec = (double)GLGizmoScale3D::Offset * Vec3d::Ones();
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -744,7 +745,7 @@ void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_show_starting_box = true;
-        m_starting_box = box;
+        m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     }
 }
 
@@ -759,6 +760,20 @@ void GLGizmoScale3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
     else if (m_hover_id >= 6)
         do_scale_uniform(mouse_ray);
 }
+
+#if ENABLE_GIZMOS_RESET
+void GLGizmoScale3D::on_process_double_click()
+{
+    if ((m_hover_id == 0) || (m_hover_id == 1))
+        m_scale(0) = 1.0;
+    else if ((m_hover_id == 2) || (m_hover_id == 3))
+        m_scale(1) = 1.0;
+    else if ((m_hover_id == 4) || (m_hover_id == 5))
+        m_scale(2) = 1.0;
+    else if (m_hover_id >= 6)
+        m_scale = Vec3d::Ones();
+}
+#endif // ENABLE_GIZMOS_RESET
 
 void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 {
@@ -778,9 +793,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_DEPTH_TEST);
 
-    Vec3d offset_vec = (double)Offset * Vec3d::Ones();
-
-    m_box = BoundingBoxf3(box.min - offset_vec, box.max + offset_vec);
+    m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     const Vec3d& center = m_box.center();
 
     // x axis
@@ -1240,15 +1253,28 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
             ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        for (const InstanceData& inst : m_instances) {
+            Vec3d position = inst.position + dragged_offset;
+#else
         for (Vec3d offset : m_instances_positions) {
             offset += dragged_offset;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
         for (Vec2d offset : m_instances_positions) {
             offset += to_2d(dragged_offset);
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
             ::glPushMatrix();
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            ::glTranslated(position(0), position(1), position(2));
+            ::glRotated(inst.rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+            ::glRotated(inst.rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
+            ::glRotated(inst.rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+            ::glScaled(inst.scaling_factor, inst.scaling_factor, inst.scaling_factor);
+#else
             ::glTranslated(offset(0), offset(1), offset(2));
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
             ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -1271,13 +1297,25 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
     {
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        for (const InstanceData& inst : m_instances) {
+#else
         for (const Vec3d& offset : m_instances_positions) {
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
         for (const Vec2d& offset : m_instances_positions) {
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
             ::glPushMatrix();
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            ::glTranslated(inst.position(0), inst.position(1), inst.position(2));
+            ::glRotated(inst.rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
+            ::glRotated(inst.rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
+            ::glRotated(inst.rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+            ::glScaled(inst.scaling_factor, inst.scaling_factor, inst.scaling_factor);
+#else
             ::glTranslated(offset(0), offset(1), offset(2));
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
             ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -1296,10 +1334,18 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 
     // ...and save the updated positions of the object instances:
     if (m_model_object && !m_model_object->instances.empty()) {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        m_instances.clear();
+#else
         m_instances_positions.clear();
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         for (const auto* instance : m_model_object->instances)
 #if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+            m_instances.emplace_back(instance->get_offset(), instance->get_rotation(), instance->scaling_factor);
+#else
             m_instances_positions.emplace_back(instance->get_offset());
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #else
             m_instances_positions.emplace_back(instance->offset);
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -1315,8 +1361,10 @@ void GLGizmoFlatten::update_planes()
     for (const ModelVolume* vol : m_model_object->volumes)
         ch.merge(vol->get_convex_hull());
     ch = ch.convex_hull_3d();
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
     ch.scale(m_model_object->instances.front()->scaling_factor);
     ch.rotate_z(m_model_object->instances.front()->rotation);
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
 
     m_planes.clear();
 
@@ -1361,8 +1409,8 @@ void GLGizmoFlatten::update_planes()
         // if this is a just a very small triangle, remove it to speed up further calculations (it would be rejected anyway):
         if (m_planes.back().vertices.size() == 3 &&
                (m_planes.back().vertices[0] - m_planes.back().vertices[1]).norm() < 1.f
-            || (m_planes.back().vertices[0] - m_planes.back().vertices[2]).norm() < 1.f)
-            m_planes.pop_back();
+               || (m_planes.back().vertices[0] - m_planes.back().vertices[2]).norm() < 1.f)
+               m_planes.pop_back();
     }
 
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
@@ -1465,8 +1513,10 @@ void GLGizmoFlatten::update_planes()
     m_source_data.bounding_boxes.clear();
     for (const auto& vol : m_model_object->volumes)
         m_source_data.bounding_boxes.push_back(vol->get_convex_hull().bounding_box());
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
     m_source_data.scaling_factor = m_model_object->instances.front()->scaling_factor;
     m_source_data.rotation = m_model_object->instances.front()->rotation;
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
 }
@@ -1478,10 +1528,14 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size())
+#else
     if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size()
      || m_model_object->instances.front()->scaling_factor != m_source_data.scaling_factor
      || m_model_object->instances.front()->rotation != m_source_data.rotation)
-         return true;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+        return true;
 
     // now compare the bounding boxes:
     for (unsigned int i=0; i<m_model_object->volumes.size(); ++i)
@@ -1496,11 +1550,22 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     return false;
 }
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+Vec3d GLGizmoFlatten::get_flattening_rotation() const
+{
+    // calculates the rotations in model space
+    Eigen::Quaterniond q;
+    Vec3d angles = q.setFromTwoVectors(m_normal, -Vec3d::UnitZ()).toRotationMatrix().eulerAngles(2, 1, 0);
+    m_normal = Vec3d::Zero();
+    return Vec3d(angles(2), angles(1), angles(0));
+}
+#else
 Vec3d GLGizmoFlatten::get_flattening_normal() const {
     Vec3d normal = m_model_object->instances.front()->world_matrix(true).matrix().block(0, 0, 3, 3).inverse() * m_normal;
     m_normal = Vec3d::Zero();
     return normal.normalized();
 }
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 
 

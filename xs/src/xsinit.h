@@ -209,6 +209,41 @@ SV* to_SV(TriangleMesh* THIS);
 // Return a pointer to the associated wxWidgets object instance given by classname.
 extern void* wxPli_sv_2_object( pTHX_ SV* scalar, const char* classname );
 
+inline void confess_at(const char *file, int line, const char *func, const char *pat, ...)
+{
+    #ifdef SLIC3RXS
+     va_list args;
+     SV *error_sv = newSVpvf("Error in function %s at %s:%d: ", func,
+         file, line);
+
+     va_start(args, pat);
+     sv_vcatpvf(error_sv, pat, &args);
+     va_end(args);
+
+     sv_catpvn(error_sv, "\n\t", 2);
+
+     dSP;
+     ENTER;
+     SAVETMPS;
+     PUSHMARK(SP);
+     XPUSHs( sv_2mortal(error_sv) );
+     PUTBACK;
+     call_pv("Carp::confess", G_DISCARD);
+     FREETMPS;
+     LEAVE;
+    #endif
+}
+
+#ifndef CONFESS
+/* Implementation of CONFESS("foo"): */
+#ifdef _MSC_VER
+    #define CONFESS(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
+#else
+    #define CONFESS(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
+#endif
+/* End implementation of CONFESS("foo"): */
+#endif /* CONFESS */
+
 using namespace Slic3r;
 
 #endif

@@ -14,116 +14,117 @@ namespace Slic3r {
 ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
     self(new wxStatusBar(parent ? parent : GUI::get_main_frame(),
                          id == -1? wxID_ANY : id)),
-    timer_(new wxTimer(self)),
-    prog_ (new wxGauge(self,
+    m_timer(new wxTimer(self)),
+    m_prog (new wxGauge(self,
                        wxGA_HORIZONTAL,
                        100,
                        wxDefaultPosition,
                        wxDefaultSize)),
-    cancelbutton_(new wxButton(self,
+    m_cancelbutton(new wxButton(self,
                                -1,
                                "Cancel",
                                wxDefaultPosition,
                                wxDefaultSize))
 {
-    prog_->Hide();
-    cancelbutton_->Hide();
+    m_prog->Hide();
+    m_cancelbutton->Hide();
 
     self->SetFieldsCount(3);
     int w[] = {-1, 150, 155};
     self->SetStatusWidths(3, w);
 
     self->Bind(wxEVT_TIMER, [this](const wxTimerEvent&) {
-        if (prog_->IsShown()) timer_->Stop();
-        if(is_busy()) prog_->Pulse();
+        if (m_prog->IsShown()) m_timer->Stop();
+        if(is_busy()) m_prog->Pulse();
     });
 
     self->Bind(wxEVT_SIZE, [this](wxSizeEvent& event){
         wxRect rect;
         self->GetFieldRect(1, rect);
         auto offset = 0;
-        cancelbutton_->Move(rect.GetX() + offset, rect.GetY() + offset);
-        cancelbutton_->SetSize(rect.GetWidth() - offset, rect.GetHeight());
+        m_cancelbutton->Move(rect.GetX() + offset, rect.GetY() + offset);
+        m_cancelbutton->SetSize(rect.GetWidth() - offset, rect.GetHeight());
 
         self->GetFieldRect(2, rect);
-        prog_->Move(rect.GetX() + offset, rect.GetY() + offset);
-        prog_->SetSize(rect.GetWidth() - offset, rect.GetHeight());
+        m_prog->Move(rect.GetX() + offset, rect.GetY() + offset);
+        m_prog->SetSize(rect.GetWidth() - offset, rect.GetHeight());
 
         event.Skip();
     });
 
-    cancelbutton_->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) {
-        if(cancel_cb_) cancel_cb_();
-        cancelbutton_->Hide();
+    m_cancelbutton->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) {
+        if(m_cancel_cb) m_cancel_cb();
+        m_perl_cancel_callback.call();
+        m_cancelbutton->Hide();
     });
 }
 
 ProgressStatusBar::~ProgressStatusBar() {
-    if(timer_->IsRunning()) timer_->Stop();
+    if(m_timer->IsRunning()) m_timer->Stop();
 }
 
 int ProgressStatusBar::get_progress() const
 {
-    return prog_->GetValue();
+    return m_prog->GetValue();
 }
 
 void ProgressStatusBar::set_progress(int val)
 {
-    if(!prog_->IsShown()) show_progress(true);
+    if(!m_prog->IsShown()) show_progress(true);
 
-    if(val == prog_->GetRange()) {
-        prog_->SetValue(0);
+    if(val == m_prog->GetRange()) {
+        m_prog->SetValue(0);
         show_progress(false);
     } else {
-        prog_->SetValue(val);
+        m_prog->SetValue(val);
     }
 }
 
 int ProgressStatusBar::get_range() const
 {
-    return prog_->GetRange();
+    return m_prog->GetRange();
 }
 
 void ProgressStatusBar::set_range(int val)
 {
-    if(val != prog_->GetRange()) {
-        prog_->SetRange(val);
+    if(val != m_prog->GetRange()) {
+        m_prog->SetRange(val);
     }
 }
 
 void ProgressStatusBar::show_progress(bool show)
 {
-    prog_->Show(show);
-    prog_->Pulse();
+    m_prog->Show(show);
+    m_prog->Pulse();
 }
 
 void ProgressStatusBar::start_busy(int rate)
 {
-    busy_ = true;
+    m_busy = true;
     show_progress(true);
-    if (!timer_->IsRunning()) {
-        timer_->Start(rate);
+    if (!m_timer->IsRunning()) {
+        m_timer->Start(rate);
     }
 }
 
 void ProgressStatusBar::stop_busy()
 {
-    timer_->Stop();
+    m_timer->Stop();
     show_progress(false);
-    prog_->SetValue(0);
-    busy_ = false;
+    m_prog->SetValue(0);
+    m_busy = false;
 }
 
 void ProgressStatusBar::set_cancel_callback(ProgressStatusBar::CancelFn ccb) {
-    cancel_cb_ = ccb;
-    if(ccb) cancelbutton_->Show();
-    else cancelbutton_->Hide();
+    m_cancel_cb = ccb;
+    if(ccb) m_cancelbutton->Show();
+    else m_cancelbutton->Hide();
 }
 
 void ProgressStatusBar::run(int rate)
 {
-    if(!timer_->IsRunning()) {
-        timer_->Start(rate);
+    if(!m_timer->IsRunning()) {
+        m_timer->Start(rate);
     }
 }
 
@@ -133,19 +134,19 @@ void ProgressStatusBar::embed(wxFrame *frame)
     mf->SetStatusBar(self);
 }
 
-void ProgressStatusBar::set_status_text(const std::string& txt)
+void ProgressStatusBar::set_status_text(const wxString& txt)
 {
-    self->SetStatusText(txt);
+    self->SetStatusText(wxString::FromUTF8(txt.c_str()));
 }
 
 void ProgressStatusBar::show_cancel_button()
 {
-    cancelbutton_->Show();
+    m_cancelbutton->Show();
 }
 
 void ProgressStatusBar::hide_cancel_button()
 {
-    cancelbutton_->Hide();
+    m_cancelbutton->Hide();
 }
 
 }

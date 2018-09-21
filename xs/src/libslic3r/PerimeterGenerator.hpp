@@ -37,30 +37,30 @@ typedef std::vector<PerimeterGeneratorLoop> PerimeterGeneratorLoops;
 class PerimeterGenerator {
 public:
     // Inputs:
-    const SurfaceCollection* slices;
-    const ExPolygonCollection* lower_slices;
-    double layer_height;
-    int layer_id;
-    Flow perimeter_flow;
-    Flow ext_perimeter_flow;
-    Flow overhang_flow;
-    Flow solid_infill_flow;
-    PrintRegionConfig* config;
-    PrintObjectConfig* object_config;
-    PrintConfig* print_config;
+    const SurfaceCollection     *slices;
+    const ExPolygonCollection   *lower_slices;
+    double                       layer_height;
+    int                          layer_id;
+    Flow                         perimeter_flow;
+    Flow                         ext_perimeter_flow;
+    Flow                         overhang_flow;
+    Flow                         solid_infill_flow;
+    const PrintRegionConfig     *config;
+    const PrintObjectConfig     *object_config;
+    const PrintConfig           *print_config;
     // Outputs:
-    ExtrusionEntityCollection* loops;
-    ExtrusionEntityCollection* gap_fill;
-    SurfaceCollection* fill_surfaces;
+    ExtrusionEntityCollection   *loops;
+    ExtrusionEntityCollection   *gap_fill;
+    SurfaceCollection           *fill_surfaces;
     
     PerimeterGenerator(
         // Input:
         const SurfaceCollection*    slices, 
         double                      layer_height,
         Flow                        flow,
-        PrintRegionConfig*          config,
-        PrintObjectConfig*          object_config,
-        PrintConfig*                print_config,
+        const PrintRegionConfig*    config,
+        const PrintObjectConfig*    object_config,
+        const PrintConfig*          print_config,
         // Output:
         // Loops with the external thin walls
         ExtrusionEntityCollection*  loops,
@@ -78,15 +78,13 @@ public:
     void process();
 
 private:
-    double _ext_mm3_per_mm;
-    double _mm3_per_mm;
-    double _mm3_per_mm_overhang;
-    Polygons _lower_slices_p;
+    double      _ext_mm3_per_mm;
+    double      _mm3_per_mm;
+    double      _mm3_per_mm_overhang;
+    Polygons    _lower_slices_p;
     
-    ExtrusionEntityCollection _traverse_loops(const PerimeterGeneratorLoops &loops,
-        ThickPolylines &thin_walls) const;
-    ExtrusionEntityCollection _variable_width
-        (const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const;
+    ExtrusionEntityCollection _traverse_loops(const PerimeterGeneratorLoops &loops, ThickPolylines &thin_walls) const;
+    ExtrusionEntityCollection _variable_width(const ThickPolylines &polylines, ExtrusionRole role, Flow flow) const;
 };
 
 }

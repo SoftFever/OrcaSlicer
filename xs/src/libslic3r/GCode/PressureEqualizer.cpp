@@ -49,10 +49,10 @@ void PressureEqualizer::reset()
     // Volumetric rate of a 0.45mm x 0.2mm extrusion at 60mm/s XY movement: 0.45*0.2*60*60=5.4*60 = 324 mm^3/min
     // Volumetric rate of a 0.45mm x 0.2mm extrusion at 20mm/s XY movement: 0.45*0.2*20*60=1.8*60 = 108 mm^3/min
     // Slope of the volumetric rate, changing from 20mm/s to 60mm/s over 2 seconds: (5.4-1.8)*60*60/2=60*60*1.8 = 6480 mm^3/min^2 = 1.8 mm^3/s^2
-    m_max_volumetric_extrusion_rate_slope_positive = (this->m_config == NULL) ? 6480.f :
-        this->m_config->max_volumetric_extrusion_rate_slope_positive.value * 60.f * 60.f;
-    m_max_volumetric_extrusion_rate_slope_negative = (this->m_config == NULL) ? 6480.f :
-        this->m_config->max_volumetric_extrusion_rate_slope_negative.value * 60.f * 60.f;
+    m_max_volumetric_extrusion_rate_slope_positive = (m_config == NULL) ? 6480.f :
+        m_config->max_volumetric_extrusion_rate_slope_positive.value * 60.f * 60.f;
+    m_max_volumetric_extrusion_rate_slope_negative = (m_config == NULL) ? 6480.f :
+        m_config->max_volumetric_extrusion_rate_slope_negative.value * 60.f * 60.f;
 
     for (size_t i = 0; i < numExtrusionRoles; ++ i) {
         m_max_volumetric_extrusion_rate_slopes[i].negative = m_max_volumetric_extrusion_rate_slope_negative;
@@ -171,7 +171,7 @@ bool PressureEqualizer::process_line(const char *line, const size_t len, GCodeLi
     if (strncmp(line, EXTRUSION_ROLE_TAG, strlen(EXTRUSION_ROLE_TAG)) == 0) {
         line += strlen(EXTRUSION_ROLE_TAG);
         int role = atoi(line);
-        this->m_current_extrusion_role = ExtrusionRole(role);
+        m_current_extrusion_role = ExtrusionRole(role);
         ++ line_idx;
         return false;
     }

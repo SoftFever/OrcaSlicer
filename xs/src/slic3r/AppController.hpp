@@ -7,7 +7,9 @@
 #include <atomic>
 #include <iostream>
 
-#include "ProgressIndicator.hpp"
+#include "GUI/ProgressIndicator.hpp"
+
+#include <PrintConfig.hpp>
 
 namespace Slic3r {
 
@@ -17,6 +19,21 @@ class PrintObject;
 class PrintConfig;
 class ProgressStatusBar;
 class DynamicPrintConfig;
+
+/// A Progress indicator object smart pointer
+using ProgresIndicatorPtr = std::shared_ptr<ProgressIndicator>;
+
+using FilePath = std::string;
+using FilePathList = std::vector<FilePath>;
+
+/// Common runtime issue types
+enum class IssueType {
+    INFO,
+    WARN,
+    WARN_Q,     // Warning with a question to continue
+    ERR,
+    FATAL
+};
 
 /**
  * @brief A boilerplate class for creating application logic. It should provide
@@ -30,34 +47,12 @@ class DynamicPrintConfig;
  * UI toolkit dependencies. We can implement it with any UI framework or make it
  * a cli client.
  */
-class AppControllerBoilerplate {
+class AppControllerBase {
 public:
 
-    /// A Progress indicator object smart pointer
-    using ProgresIndicatorPtr = std::shared_ptr<ProgressIndicator>;
+    using Ptr = std::shared_ptr<AppControllerBase>;
 
-private:
-    class PriData;   // Some structure to store progress indication data
-
-    // Pimpl data for thread safe progress indication features
-    std::unique_ptr<PriData> pri_data_;
-
-public:
-
-    AppControllerBoilerplate();
-    ~AppControllerBoilerplate();
-
-    using Path = std::string;
-    using PathList = std::vector<Path>;
-
-    /// Common runtime issue types
-    enum class IssueType {
-        INFO,
-        WARN,
-        WARN_Q,     // Warning with a question to continue
-        ERR,
-        FATAL
-    };
+    inline virtual ~AppControllerBase() {}
 
     /**
      * @brief Query some paths from the user.
@@ -65,25 +60,30 @@ public:
      * It should display a file chooser dialog in case of a UI application.
      * @param title Title of a possible query dialog.
      * @param extensions Recognized file extensions.
-     * @return Returns a list of paths choosed by the user.
+     * @return Returns a list of paths chosen by the user.
      */
-    PathList query_destination_paths(
+    virtual FilePathList query_destination_paths(
             const std::string& title,
-            const std::string& extensions) const;
+            const std::string& extensions,
+            const std::string& functionid = "",
+            const std::string& hint = "") const = 0;
 
     /**
      * @brief Same as query_destination_paths but works for directories only.
      */
-    PathList query_destination_dirs(
-            const std::string& title) const;
+    virtual FilePathList query_destination_dirs(
+            const std::string& title,
+            const std::string& functionid = "",
+            const std::string& hint = "") const = 0;
 
     /**
      * @brief Same as query_destination_paths but returns only one path.
      */
-    Path query_destination_path(
+    virtual FilePath query_destination_path(
             const std::string& title,
             const std::string& extensions,
-            const std::string& hint = "") const;
+            const std::string& functionid = "",
+            const std::string& hint = "") const = 0;
 
     /**
      * @brief Report an issue to the user be it fatal or recoverable.
@@ -95,12 +95,9 @@ public:
      * @param brief A very brief description. Can be used for message dialog
      * title.
      */
-    bool report_issue(IssueType issuetype,
-                      const std::string& description,
-                      const std::string& brief);
-
-    bool report_issue(IssueType issuetype,
-                      const std::string& description);
+    virtual bool report_issue(IssueType issuetype,
+                              const std::string& description,
+                              const std::string& brief) = 0;
 
     /**
      * @brief Return the global progress indicator for the current controller.
@@ -108,9 +105,9 @@ public:
      *
      * Only one thread should use the global indicator at a time.
      */
-    ProgresIndicatorPtr global_progress_indicator();
+    virtual ProgresIndicatorPtr global_progress_indicator() = 0;
 
-    void global_progress_indicator(ProgresIndicatorPtr gpri);
+    virtual void global_progress_indicator(ProgresIndicatorPtr gpri) = 0;
 
     /**
      * @brief A predicate telling the caller whether it is the thread that
@@ -120,7 +117,7 @@ public:
      * @return Return true for the same caller thread that created this
      * object and false for every other.
      */
-    bool is_main_thread() const;
+    virtual bool is_main_thread() const = 0;
 
     /**
      * @brief The frontend supports asynch execution.
@@ -136,11 +133,9 @@ public:
      * @return true if a job or method can be executed asynchronously, false
      * otherwise.
      */
-    bool supports_asynch() const;
+    virtual bool supports_asynch() const = 0;
 
-    void process_events();
-
-protected:
+    virtual void process_events() = 0;
 
     /**
      * @brief Create a new progress indicator and return a smart pointer to it.
@@ -149,29 +144,194 @@ protected:
      * @param firstmsg The message for the first subtask to be displayed.
      * @return Smart pointer to the created object.
      */
-    ProgresIndicatorPtr create_progress_indicator(
+    virtual ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
             const std::string& title,
-            const std::string& firstmsg) const;
+            const std::string& firstmsg = "") const = 0;
+};
 
-    ProgresIndicatorPtr create_progress_indicator(
+/**
+ * @brief Implementation of AppControllerBase for the GUI app
+ */
+class AppControllerGui: public AppControllerBase {
+private:
+    class PriData;   // Some structure to store progress indication data
+
+    // Pimpl data for thread safe progress indication features
+    std::unique_ptr<PriData> m_pri_data;
+
+public:
+
+    AppControllerGui();
+
+    virtual ~AppControllerGui();
+
+    virtual FilePathList query_destination_paths(
+            const std::string& title,
+            const std::string& extensions,
+            const std::string& functionid,
+            const std::string& hint) const override;
+
+    virtual FilePathList query_destination_dirs(
+            const std::string& /*title*/,
+            const std::string& /*functionid*/,
+            const std::string& /*hint*/) const override { return {}; }
+
+    virtual FilePath query_destination_path(
+            const std::string& title,
+            const std::string& extensions,
+            const std::string& functionid,
+            const std::string& hint) const override;
+
+    virtual bool report_issue(IssueType issuetype,
+                              const std::string& description,
+                              const std::string& brief = std::string()) override;
+
+    virtual ProgresIndicatorPtr global_progress_indicator() override;
+
+    virtual void global_progress_indicator(ProgresIndicatorPtr gpri) override;
+
+    virtual bool is_main_thread() const override;
+
+    virtual bool supports_asynch() const override;
+
+    virtual void process_events() override;
+
+    virtual ProgresIndicatorPtr create_progress_indicator(
             unsigned statenum,
-            const std::string& title) const;
+            const std::string& title,
+            const std::string& firstmsg) const override;
+
+protected:
 
     // This is a global progress indicator placeholder. In the Slic3r UI it can
     // contain the progress indicator on the statusbar.
-    ProgresIndicatorPtr global_progressind_;
+    ProgresIndicatorPtr m_global_progressind;
+};
+
+class AppControllerCli: public AppControllerBase {
+
+    class CliProgress : public ProgressIndicator {
+        std::string m_msg, m_title;
+    public:
+        virtual void message(const std::string& msg) override {
+            m_msg = msg;
+        }
+
+        virtual void title(const std::string& title) override {
+            m_title = title;
+        }
+    };
+
+public:
+
+    AppControllerCli() {
+        std::cout << "Cli AppController ready..." << std::endl;
+        m_global_progressind = std::make_shared<CliProgress>();
+    }
+
+    virtual ~AppControllerCli() {}
+
+    virtual FilePathList query_destination_paths(
+            const std::string& /*title*/,
+            const std::string& /*extensions*/,
+            const std::string& /*functionid*/,
+            const std::string& /*hint*/) const override { return {}; }
+
+    virtual FilePathList query_destination_dirs(
+            const std::string& /*title*/,
+            const std::string& /*functionid*/,
+            const std::string& /*hint*/) const override { return {}; }
+
+    virtual FilePath query_destination_path(
+            const std::string& /*title*/,
+            const std::string& /*extensions*/,
+            const std::string& /*functionid*/,
+            const std::string& /*hint*/) const override { return "out.zip"; }
+
+    virtual bool report_issue(IssueType /*issuetype*/,
+                              const std::string& description,
+                              const std::string& brief) override {
+        std::cerr << brief << ": " << description << std::endl;
+        return true;
+    }
+
+    virtual ProgresIndicatorPtr global_progress_indicator() override {
+        return m_global_progressind;
+    }
+
+    virtual void global_progress_indicator(ProgresIndicatorPtr) override {}
+
+    virtual bool is_main_thread() const override { return true; }
+
+    virtual bool supports_asynch() const override { return false; }
+
+    virtual void process_events() override {}
+
+    virtual ProgresIndicatorPtr create_progress_indicator(
+            unsigned /*statenum*/,
+            const std::string& /*title*/,
+            const std::string& /*firstmsg*/) const override {
+        return std::make_shared<CliProgress>();
+    }
+
+protected:
+
+    // This is a global progress indicator placeholder. In the Slic3r UI it can
+    // contain the progress indicator on the statusbar.
+    ProgresIndicatorPtr m_global_progressind;
+};
+
+class Zipper {
+    struct Impl;
+    std::unique_ptr<Impl> m_impl;
+public:
+
+    Zipper(const std::string& zipfilepath);
+    ~Zipper();
+
+    void next_entry(const std::string& fname);
+
+    std::string get_name() const;
+
+    std::ostream& stream();
+
+    void close();
 };
 
 /**
  * @brief Implementation of the printing logic.
  */
-class PrintController: public AppControllerBoilerplate {
-    Print *print_ = nullptr;
+class PrintController {
+    Print *m_print = nullptr;
+    std::function<void()> m_rempools;
+protected:
+
+    // Data structure with the png export input data
+    struct PngExportData {
+        std::string zippath;                        // output zip file
+        unsigned long width_px = 1440;              // resolution - rows
+        unsigned long height_px = 2560;             // resolution columns
+        double width_mm = 68.0, height_mm = 120.0;  // dimensions in mm
+        double exp_time_first_s = 35.0;             // first exposure time
+        double exp_time_s = 8.0;                    // global exposure time
+        double corr_x = 1.0;                        // offsetting in x
+        double corr_y = 1.0;                        // offsetting in y
+        double corr_z = 1.0;                        // offsetting in y
+    };
+
+    // Should display a dialog with the input fields for printing to png
+    PngExportData query_png_export_data(const DynamicPrintConfig&);
+
+    // The previous export data, to pre-populate the dialog
+    PngExportData m_prev_expdata;
+
+    void slice(ProgresIndicatorPtr pri);
+
 public:
 
     // Must be public for perl to use it
-    explicit inline PrintController(Print *print): print_(print) {}
+    explicit inline PrintController(Print *print): m_print(print) {}
 
     PrintController(const PrintController&) = delete;
     PrintController(PrintController&&) = delete;
@@ -182,9 +342,15 @@ public:
         return PrintController::Ptr( new PrintController(print) );
     }
 
-    //FIXME Vojtech: Merging error
-    void slice() {}
-    void slice_to_png() {}
+    /**
+     * @brief Slice the loaded print scene.
+     */
+    void slice();
+
+    /**
+     * @brief Slice the print into zipped png files.
+     */
+    void slice_to_png();
 
     const PrintConfig& config() const;
 };
@@ -192,9 +358,10 @@ public:
 /**
  * @brief Top level controller.
  */
-class AppController: public AppControllerBoilerplate {
-    Model *model_ = nullptr;
+class AppController {
+    Model *m_model = nullptr;
     PrintController::Ptr printctl;
+    std::atomic<bool> m_arranging;
 public:
 
     /**
@@ -211,7 +378,7 @@ public:
      * @param model A raw pointer to the model object. This can be used from
      * perl.
      */
-    void set_model(Model *model) { model_ = model; }
+    void set_model(Model *model) { m_model = model; }
 
     /**
      * @brief Set the print object from perl.
@@ -237,8 +404,7 @@ public:
      * @param gauge_id The ID of the gague widget of the status bar.
      * @param statusbar_id The ID of the status bar.
      */
-    void set_global_progress_indicator(unsigned gauge_id,
-                                          unsigned statusbar_id);
+    void set_global_progress_indicator(ProgressStatusBar *prs);
 
     void arrange_model();
 };

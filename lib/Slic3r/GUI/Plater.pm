@@ -8,7 +8,6 @@ use utf8;
 use File::Basename qw(basename dirname);
 use List::Util qw(sum first max);
 use Slic3r::Geometry qw(X Y Z scale unscale deg2rad rad2deg);
-use threads::shared qw(shared_clone);
 use Wx qw(:button :colour :cursor :dialog :filedialog :keycode :icon :font :id :listctrl :misc 
     :panel :sizer :toolbar :window wxTheApp :notebook :combobox wxNullBitmap);
 use Wx::Event qw(EVT_BUTTON EVT_TOGGLEBUTTON EVT_COMMAND EVT_KEY_DOWN EVT_LIST_ITEM_ACTIVATED 
@@ -32,19 +31,12 @@ use constant TB_SPLIT   => &Wx::NewId;
 use constant TB_CUT     => &Wx::NewId;
 use constant TB_SETTINGS => &Wx::NewId;
 use constant TB_LAYER_EDITING => &Wx::NewId;
-use constant TB_SLA_SUPPORTS => &Wx::NewId;
 
 use Wx::Locale gettext => 'L';
 
-# package variables to avoid passing lexicals to threads
-our $PROGRESS_BAR_EVENT      : shared = Wx::NewEventType;
-our $ERROR_EVENT             : shared = Wx::NewEventType;
 # Emitted from the worker thread when the G-code export is finished.
-our $EXPORT_COMPLETED_EVENT  : shared = Wx::NewEventType;
-our $PROCESS_COMPLETED_EVENT : shared = Wx::NewEventType;
-
-use constant FILAMENT_CHOOSERS_SPACING => 0;
-use constant PROCESS_DELAY => 0.5 * 1000; # milliseconds
+our $SLICING_COMPLETED_EVENT = Wx::NewEventType;
+our $PROCESS_COMPLETED_EVENT = Wx::NewEventType;
 
 my $PreventListEvents = 0;
 our $appController;
@@ -52,6 +44,7 @@ our $appController;
 sub new {
     my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
+    Slic3r::GUI::set_plater($self);
     $self->{config} = Slic3r::Config::new_from_defaults_keys([qw(
         bed_shape complete_objects extruder_clearance_radius skirts skirt_distance brim_width variable_layer_height
         serial_port serial_speed host_type print_host printhost_apikey printhost_cafile
@@ -72,14 +65,14 @@ sub new {
     # List of Perl objects Slic3r::GUI::Plater::Object, representing a 2D preview of the platter.
     $self->{objects} = [];
     $self->{gcode_preview_data} = Slic3r::GCode::PreviewData->new;
-    
-    $self->{print}->set_status_cb(sub {
-        my ($percent, $message) = @_;
-        my $event = Wx::CommandEvent->new($PROGRESS_BAR_EVENT);
-        $event->SetString($message);
-        $event->SetInt($percent);
-        Wx::PostEvent($self, $event);
-    });
+    $self->{background_slicing_process} = Slic3r::GUI::BackgroundSlicingProcess->new;
+    $self->{background_slicing_process}->set_print($self->{print});
+    $self->{background_slicing_process}->set_gcode_preview_data($self->{gcode_preview_data});
+    $self->{background_slicing_process}->set_sliced_event($SLICING_COMPLETED_EVENT);
+    $self->{background_slicing_process}->set_finished_event($PROCESS_COMPLETED_EVENT);
+
+    # The C++ slicing core will post a wxCommand message to the main window.    
+    Slic3r::GUI::set_print_callback_event($self->{print}, $Slic3r::GUI::MainFrame::PROGRESS_BAR_EVENT);
     
     # Initialize preview notebook
     $self->{preview_notebook} = Wx::Notebook->new($self, -1, wxDefaultPosition, [-1,335], wxNB_BOTTOM);
@@ -93,9 +86,6 @@ sub new {
             $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
             $self->item_changed_selection($obj_idx) if (defined($obj_idx));
         }
-    };
-    my $on_double_click = sub {
-        $self->object_settings_dialog if $self->selected_object;
     };
     my $on_right_click = sub {
         my ($canvas, $click_pos_x, $click_pos_y) = @_;
@@ -160,12 +150,64 @@ sub new {
         $self->rotate(rad2deg($angle), Z, 'absolute');
     };
     
+    # callback to react to gizmo rotate
+    my $on_gizmo_rotate_3D = sub {
+        my ($angle_x, $angle_y, $angle_z) = @_;
+
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
+
+        my $rotation = Slic3r::Pointf3->new($angle_x, $angle_y, $angle_z);
+        foreach my $inst (@{ $model_object->instances }) {
+            $inst->set_rotations($rotation);
+        }
+        Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});  
+    
+        # update print and start background processing
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    
+        $self->selection_changed;  # refresh info (size etc.)
+        $self->update;
+        $self->schedule_background_process;
+    };
+    
     # callback to react to gizmo flatten
     my $on_gizmo_flatten = sub {
         my ($angle, $axis_x, $axis_y, $axis_z) = @_;
         $self->rotate(rad2deg($angle), undef, 'absolute', $axis_x, $axis_y, $axis_z) if $angle != 0;
     };
 
+    # callback to react to gizmo flatten
+    my $on_gizmo_flatten_3D = sub {
+        my ($angle_x, $angle_y, $angle_z) = @_;
+
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
+
+        my $rotation = Slic3r::Pointf3->new($angle_x, $angle_y, $angle_z);
+        foreach my $inst (@{ $model_object->instances }) {
+            $inst->set_rotations($rotation);
+        }
+        Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});  
+    
+        # update print and start background processing
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    
+        $self->selection_changed;  # refresh info (size etc.)
+        $self->update;
+        $self->schedule_background_process;
+    };
+    
     # callback to update object's geometry info while using gizmos
     my $on_update_geometry_info = sub {
         my ($size_x, $size_y, $size_z, $scale_factor) = @_;
@@ -258,7 +300,7 @@ sub new {
         $self->{canvas3D} = Slic3r::GUI::Plater::3D->new($self->{preview_notebook}, $self->{objects}, $self->{model}, $self->{print}, $self->{config});
         $self->{preview_notebook}->AddPage($self->{canvas3D}, L('3D'));
         Slic3r::GUI::_3DScene::register_on_select_object_callback($self->{canvas3D}, $on_select_object);
-        Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
+#        Slic3r::GUI::_3DScene::register_on_double_click_callback($self->{canvas3D}, $on_double_click);
         Slic3r::GUI::_3DScene::register_on_right_click_callback($self->{canvas3D}, sub { $on_right_click->($self->{canvas3D}, @_); });
         Slic3r::GUI::_3DScene::register_on_arrange_callback($self->{canvas3D}, sub { $self->arrange });
         Slic3r::GUI::_3DScene::register_on_rotate_object_left_callback($self->{canvas3D}, sub { $self->rotate(-45, Z, 'relative') });
@@ -271,7 +313,9 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
         Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
+        Slic3r::GUI::_3DScene::register_on_gizmo_rotate_3D_callback($self->{canvas3D}, $on_gizmo_rotate_3D);
         Slic3r::GUI::_3DScene::register_on_gizmo_flatten_callback($self->{canvas3D}, $on_gizmo_flatten);
+        Slic3r::GUI::_3DScene::register_on_gizmo_flatten_3D_callback($self->{canvas3D}, $on_gizmo_flatten_3D);
         Slic3r::GUI::_3DScene::register_on_update_geometry_info_callback($self->{canvas3D}, $on_update_geometry_info);
         Slic3r::GUI::_3DScene::register_action_add_callback($self->{canvas3D}, $on_action_add);
         Slic3r::GUI::_3DScene::register_action_delete_callback($self->{canvas3D}, $on_action_delete);
@@ -306,43 +350,42 @@ sub new {
             }
         });
 
-        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
+        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D},
+        sub {
+            $self->{preview_iface}->set_viewport_from_scene($self->{canvas3D});
+        });
+#        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{canvas3D}, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D}); });
     }
 
     Slic3r::GUI::register_on_request_update_callback(sub { $self->schedule_background_process; });
     
-#    # Initialize 2D preview canvas
-#    $self->{canvas} = Slic3r::GUI::Plater::2D->new($self->{preview_notebook}, wxDefaultSize, $self->{objects}, $self->{model}, $self->{config});
-#    $self->{preview_notebook}->AddPage($self->{canvas}, L('2D'));
-#    $self->{canvas}->on_select_object($on_select_object);
-#    $self->{canvas}->on_double_click($on_double_click);
-#    $self->{canvas}->on_right_click(sub { $on_right_click->($self->{canvas}, @_); });
-#    $self->{canvas}->on_instances_moved($on_instances_moved);
-    
     # Initialize 3D toolpaths preview
     if ($Slic3r::GUI::have_OpenGL) {
-        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
-        Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
-        Slic3r::GUI::_3DScene::enable_dynamic_background($self->{preview3D}->canvas, 1);
-        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
-        $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
+        $self->{preview_iface} = Slic3r::GUI::create_preview_iface($self->{preview_notebook}, $self->{config}, $self->{print}, $self->{gcode_preview_data});
+        $self->{preview_page_idx} = $self->{preview_notebook}->GetPageCount-1;        
+        $self->{preview_iface}->register_on_viewport_changed_callback(sub { $self->{preview_iface}->set_viewport_into_scene($self->{canvas3D}); });
+#        $self->{preview3D} = Slic3r::GUI::Plater::3DPreview->new($self->{preview_notebook}, $self->{print}, $self->{gcode_preview_data}, $self->{config});
+#        Slic3r::GUI::_3DScene::enable_legend_texture($self->{preview3D}->canvas, 1);
+#        Slic3r::GUI::_3DScene::enable_dynamic_background($self->{preview3D}->canvas, 1);
+#        Slic3r::GUI::_3DScene::register_on_viewport_changed_callback($self->{preview3D}->canvas, sub { Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas); });
+#        $self->{preview_notebook}->AddPage($self->{preview3D}, L('Preview'));
         $self->{preview3D_page_idx} = $self->{preview_notebook}->GetPageCount-1;
-    }
-    
-    # Initialize toolpaths preview
-    if ($Slic3r::GUI::have_OpenGL) {
-        $self->{toolpaths2D} = Slic3r::GUI::Plater::2DToolpaths->new($self->{preview_notebook}, $self->{print});
-        $self->{preview_notebook}->AddPage($self->{toolpaths2D}, L('Layers'));
     }
     
     EVT_NOTEBOOK_PAGE_CHANGED($self, $self->{preview_notebook}, sub {
         my $preview = $self->{preview_notebook}->GetCurrentPage;
-        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
+        my $page_id = $self->{preview_notebook}->GetSelection;
+        if (($preview != $self->{canvas3D}) && ($page_id != $self->{preview_page_idx})) {
+#        if (($preview != $self->{preview3D}) && ($preview != $self->{canvas3D})) {
             $preview->OnActivate if $preview->can('OnActivate');        
-        } elsif ($preview == $self->{preview3D}) {
-            $self->{preview3D}->reload_print;
+        } elsif ($page_id == $self->{preview_page_idx}) {
+            $self->{preview_iface}->reload_print;
             # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
-            Slic3r::GUI::_3DScene::set_as_dirty($self->{preview3D}->canvas);
+            $self->{preview_iface}->set_canvas_as_dirty;
+#        } elsif ($preview == $self->{preview3D}) {
+#            $self->{preview3D}->reload_print;
+#            # sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)
+#            Slic3r::GUI::_3DScene::set_as_dirty($self->{preview3D}->canvas);
         } elsif ($preview == $self->{canvas3D}) {
             if (Slic3r::GUI::_3DScene::is_reload_delayed($self->{canvas3D})) {
                 my $selections = $self->collect_selections;
@@ -485,22 +528,13 @@ sub new {
     
     $_->SetDropTarget(Slic3r::GUI::Plater::DropTarget->new($self))
         for grep defined($_),
-            $self, $self->{canvas3D}, $self->{preview3D}, $self->{list};
+            $self, $self->{canvas3D}, $self->{preview_iface}, $self->{list};
+#            $self, $self->{canvas3D}, $self->{preview3D}, $self->{list};
 #            $self, $self->{canvas}, $self->{canvas3D}, $self->{preview3D};
     
-    EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
+    EVT_COMMAND($self, -1, $SLICING_COMPLETED_EVENT, sub {
         my ($self, $event) = @_;
-        $self->on_progress_event($event->GetInt, $event->GetString);
-    });
-    
-    EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
-        my ($self, $event) = @_;
-        Slic3r::GUI::show_error($self, $event->GetString);
-    });
-    
-    EVT_COMMAND($self, -1, $EXPORT_COMPLETED_EVENT, sub {
-        my ($self, $event) = @_;
-        $self->on_export_completed($event->GetInt);
+        $self->on_update_print_preview;
     });
     
     EVT_COMMAND($self, -1, $PROCESS_COMPLETED_EVENT, sub {
@@ -522,9 +556,10 @@ sub new {
         Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape);
         Slic3r::GUI::_3DScene::zoom_to_bed($self->{canvas3D});
     }
-    if ($self->{preview3D}) {
-        Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape);
-    }
+    $self->{preview_iface}->set_bed_shape($self->{config}->bed_shape) if ($self->{preview_iface});
+#    if ($self->{preview3D}) {
+#        Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape);
+#    }
     $self->update;
     
     {
@@ -1034,16 +1069,15 @@ sub bed_centerf {
 }
 
 sub remove {
-    my $self = shift;
-    my ($obj_idx) = @_;
+    my ($self, $obj_idx) = @_;
     
     $self->stop_background_process;
     
     # Prevent toolpaths preview from rendering while we modify the Print object
-    $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
-    $self->{preview3D}->enabled(0) if $self->{preview3D};
+    $self->{preview_iface}->set_enabled(0) if $self->{preview_iface};
+#    $self->{preview3D}->enabled(0) if $self->{preview3D};
     
-    # if no object index is supplied, remove the selected one
+    # If no object index is supplied, remove the selected one.
     if (! defined $obj_idx) {
         ($obj_idx, undef) = $self->selected_object;
         return if ! defined $obj_idx;
@@ -1058,17 +1092,16 @@ sub remove {
     
     $self->select_object(undef);
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub reset {
-    my $self = shift;
+    my ($self) = @_;
     
     $self->stop_background_process;
     
     # Prevent toolpaths preview from rendering while we modify the Print object
-    $self->{toolpaths2D}->enabled(0) if $self->{toolpaths2D};
-    $self->{preview3D}->enabled(0) if $self->{preview3D};
+    $self->{preview_iface}->set_enabled(0) if $self->{preview_iface};
+#    $self->{preview3D}->enabled(0) if $self->{preview3D};
     
     @{$self->{objects}} = ();
     $self->{model}->clear_objects;
@@ -1088,6 +1121,7 @@ sub increase {
     return if ! defined $obj_idx;
     my $model_object = $self->{model}->objects->[$obj_idx];
     my $instance = $model_object->instances->[-1];
+    $self->stop_background_process;
     for my $i (1..$copies) {
         $instance = $model_object->add_instance(
             offset          => Slic3r::Pointf->new(map 10+$_, @{$instance->offset}),
@@ -1096,7 +1130,7 @@ sub increase {
         );
         $self->{print}->objects->[$obj_idx]->add_copy($instance->offset);
     }
-    # Set conut of object on c++ side
+    # Set count of object on c++ side
     Slic3r::GUI::set_object_count($obj_idx, $model_object->instances_count);
     
     # only autoarrange if user has autocentering enabled
@@ -1117,10 +1151,9 @@ sub decrease {
     my ($obj_idx, $object) = $self->selected_object;
     return if ! defined $obj_idx;
 
-    $self->stop_background_process;
-    
     my $model_object = $self->{model}->objects->[$obj_idx];
     if ($model_object->instances_count > $copies) {
+        $self->stop_background_process;
         for my $i (1..$copies) {
             $model_object->delete_last_instance;
             $self->{print}->objects->[$obj_idx]->delete_last_copy;
@@ -1129,33 +1162,27 @@ sub decrease {
         Slic3r::GUI::set_object_count($obj_idx, $model_object->instances_count);
     } elsif (defined $copies_asked) {
         # The "decrease" came from the "set number of copies" dialog.
+        $self->stop_background_process;
         $self->remove;
     } else {
         # The "decrease" came from the "-" button. Don't allow the object to disappear.
-        $self->resume_background_process;
         return;
     }
 
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub set_number_of_copies {
     my ($self) = @_;
-    
-    $self->pause_background_process;
-    
     # get current number of copies
     my ($obj_idx, $object) = $self->selected_object;
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    
+    my $model_object = $self->{model}->objects->[$obj_idx];    
     # prompt user
     my $copies = -1;
     $copies = Wx::GetNumberFromUser("", L("Enter the number of copies of the selected object:"), L("Copies"), $model_object->instances_count, 0, 1000, $self);
     my $diff = $copies - $model_object->instances_count;
     if ($diff == 0 || $copies == -1) {
         # no variation
-        $self->resume_background_process;
     } elsif ($diff > 0) {
         $self->increase($diff);
     } elsif ($diff < 0) {
@@ -1253,7 +1280,6 @@ sub rotate {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub mirror {
@@ -1283,7 +1309,6 @@ sub mirror {
     
     $self->selection_changed;  # refresh info (size etc.)
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub changescale {
@@ -1358,14 +1383,12 @@ sub changescale {
     
     $self->selection_changed(1);  # refresh info (size, volume etc.)
     $self->update;
-    $self->schedule_background_process;
 }
 
 sub arrange {
-    my $self = shift;
+    my ($self) = @_;
     
-    $self->pause_background_process;
-    
+    $self->stop_background_process;
     # my $bb = Slic3r::Geometry::BoundingBoxf->new_from_points($self->{config}->bed_shape);
     # my $success = $self->{model}->arrange_objects(wxTheApp->{preset_bundle}->full_config->min_object_distance, $bb);
     
@@ -1394,90 +1417,68 @@ sub split_object {
         return;
     }
     
-    $self->pause_background_process;
+    $self->stop_background_process;
     
     my @model_objects = @{$current_model_object->split_object};
     if (@model_objects == 1) {
-        $self->resume_background_process;
         Slic3r::GUI::warning_catcher($self)->(L("The selected object couldn't be split because it contains only one part."));
-        $self->resume_background_process;
-        return;
+        $self->schedule_background_process;
+    } else {
+        $_->center_around_origin for (@model_objects);
+        $self->remove($obj_idx);
+        $current_object = $obj_idx = undef;
+        # load all model objects at once, otherwise the plate would be rearranged after each one
+        # causing original positions not to be kept
+        $self->load_model_objects(@model_objects);
     }
-    
-    $_->center_around_origin for (@model_objects);
-
-    $self->remove($obj_idx);
-    $current_object = $obj_idx = undef;
-    
-    # load all model objects at once, otherwise the plate would be rearranged after each one
-    # causing original positions not to be kept
-    $self->load_model_objects(@model_objects);
 }
 
+# Trigger $self->async_apply_config() after 500ms.
+# The call is delayed to avoid restarting the background processing during typing into an edit field.
 sub schedule_background_process {
     my ($self) = @_;
-    
-    if (defined $self->{apply_config_timer}) {
-        $self->{apply_config_timer}->Start(PROCESS_DELAY, 1);  # 1 = one shot
-    }
+    $self->{apply_config_timer}->Start(0.5 * 1000, 1);  # 1 = one shot, every half a second.
 }
 
 # Executed asynchronously by a timer every PROCESS_DELAY (0.5 second).
 # The timer is started by schedule_background_process(), 
 sub async_apply_config {
     my ($self) = @_;
-
-    # pause process thread before applying new config
-    # since we don't want to touch data that is being used by the threads
-    $self->pause_background_process;
-    
-    # apply new config
-    my $invalidated = $self->{print}->apply_config(wxTheApp->{preset_bundle}->full_config);
-
-    # Just redraw the 3D canvas without reloading the scene.
+    # Apply new config to the possibly running background task.
+    my $was_running = $self->{background_slicing_process}->running;
+    my $invalidated = $self->{background_slicing_process}->apply_config(wxTheApp->{preset_bundle}->full_config);
+    # Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     $self->{canvas3D}->Refresh if Slic3r::GUI::_3DScene::is_layers_editing_enabled($self->{canvas3D});
-
-    # Hide the slicing results if the current slicing status is no more valid.    
-    $self->print_info_box_show(0) if $invalidated;
-
-    if (wxTheApp->{app_config}->get("background_processing")) {    
-        if ($invalidated) {
-            # kill current thread if any
-            $self->stop_background_process;
-        } else {
-            $self->resume_background_process;
-        }
-        # schedule a new process thread in case it wasn't running
-        $self->start_background_process;
-    }
-
-    # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
-    # Otherwise they will be just refreshed.
+    # If the apply_config caused the calculation to stop, or it was not running yet:
     if ($invalidated) {
-        $self->{gcode_preview_data}->reset;
-        $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-        $self->{preview3D}->reload_print if $self->{preview3D};
-
-        # We also need to reload 3D scene because of the wipe tower preview box
-        if ($self->{config}->wipe_tower) {
-            my $selections = $self->collect_selections;
-            Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
-	        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
+        if ($was_running) {
+            # Hide the slicing results if the current slicing status is no more valid.
+            $self->print_info_box_show(0)
+        }
+        if (wxTheApp->{app_config}->get("background_processing")) {
+            $self->{background_slicing_process}->start;
+        }
+        if ($was_running) {
+            # Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
+            # Otherwise they will be just refreshed.
+            $self->{gcode_preview_data}->reset;
+            $self->{preview_iface}->reload_print if $self->{preview_iface};
+#            $self->{preview3D}->reload_print if $self->{preview3D};
+            # We also need to reload 3D scene because of the wipe tower preview box
+            if ($self->{config}->wipe_tower) {
+                my $selections = $self->collect_selections;
+                Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
+    	        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1) if $self->{canvas3D}
+            }
         }
     }
 }
 
+# Background processing is started either by the "Slice now" button, by the "Export G-code button" or by async_apply_config().
 sub start_background_process {
     my ($self) = @_;
-    
-    return if !@{$self->{objects}};
-    return if $self->{process_thread};
-    
-    # It looks like declaring a local $SIG{__WARN__} prevents the ugly
-    # "Attempt to free unreferenced scalar" warning...
-    local $SIG{__WARN__} = Slic3r::GUI::warning_catcher($self);
-    
-    # don't start process thread if config is not valid
+    return if ! @{$self->{objects}} || $self->{background_slicing_process}->running;
+    # Don't start process thread if config is not valid.
     eval {
         # this will throw errors if config is not valid
         wxTheApp->{preset_bundle}->full_config->validate;
@@ -1486,79 +1487,22 @@ sub start_background_process {
     if ($@) {
         $self->statusbar->SetStatusText($@);
         return;
-    }
-    
+    }   
     # Copy the names of active presets into the placeholder parser.
     wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);
-    
-    # start thread
-    @_ = ();
-    $self->{process_thread} = Slic3r::spawn_thread(sub {
-        eval {
-            $self->{print}->process;
-        };
-        my $event = Wx::CommandEvent->new($PROCESS_COMPLETED_EVENT);
-        if ($@) {
-            Slic3r::debugf "Background process error: $@\n";
-            $event->SetInt(0);
-            $event->SetString($@);
-        } else {
-            $event->SetInt(1);
-        }
-        Wx::PostEvent($self, $event);
-        Slic3r::thread_cleanup();
-    });
-    Slic3r::debugf "Background processing started.\n";
+    # Start the background process.
+    $self->{background_slicing_process}->start;
 }
 
+# Stop the background processing
 sub stop_background_process {
     my ($self) = @_;
-    
-    $self->{apply_config_timer}->Stop if defined $self->{apply_config_timer};
-    $self->statusbar->SetCancelCallback(undef);
-    $self->statusbar->StopBusy;
-    $self->statusbar->SetStatusText("");
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
-    
-    if ($self->{process_thread}) {
-        Slic3r::debugf "Killing background process.\n";
-        Slic3r::kill_all_threads();
-        $self->{process_thread} = undef;
-    } else {
-        Slic3r::debugf "No background process running.\n";
-    }
-    
-    # if there's an export process, kill that one as well
-    if ($self->{export_thread}) {
-        Slic3r::debugf "Killing background export process.\n";
-        Slic3r::kill_all_threads();
-        $self->{export_thread} = undef;
-    }
+    $self->{background_slicing_process}->stop();
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
-sub pause_background_process {
-    my ($self) = @_;
-    
-    if ($self->{process_thread} || $self->{export_thread}) {
-        Slic3r::pause_all_threads();
-        return 1;
-    } elsif (defined $self->{apply_config_timer} && $self->{apply_config_timer}->IsRunning) {
-        $self->{apply_config_timer}->Stop;
-        return 1;
-    }
-    
-    return 0;
-}
-
-sub resume_background_process {
-    my ($self) = @_;
-    
-    if ($self->{process_thread} || $self->{export_thread}) {
-        Slic3r::resume_all_threads();
-    }
-}
-
+# Called by the "Slice now" button, which is visible only if the background processing is disabled.
 sub reslice {
     # explicitly cancel a previous thread and start a new one.
     my ($self) = @_;
@@ -1603,6 +1547,7 @@ sub export_gcode {
     eval {
         # this will throw errors if config is not valid
         $config->validate;
+        #FIXME it shall use the background processing!
         $self->{print}->apply_config($config);
         $self->{print}->validate;
     };
@@ -1644,6 +1589,8 @@ sub export_gcode {
         # this updates buttons status
         $self->object_list_changed;
     });
+
+    $self->{background_slicing_process}->set_output_path($self->{export_gcode_output_file});
     
     # start background process, whose completion event handler
     # will detect $self->{export_gcode_output_file} and proceed with export
@@ -1655,61 +1602,16 @@ sub export_gcode {
     return $self->{export_gcode_output_file};
 }
 
-# This gets called only if we have threads.
-sub on_process_completed {
-    my ($self, $error) = @_;
-    
-    $self->statusbar->SetCancelCallback(undef);
-    $self->statusbar->StopBusy;
-    $self->statusbar->SetStatusText($error // "");
-    
-    Slic3r::debugf "Background processing completed.\n";
-    $self->{process_thread}->detach if $self->{process_thread};
-    $self->{process_thread} = undef;
-    
-    # if we're supposed to perform an explicit export let's display the error in a dialog
-    if ($error && $self->{export_gcode_output_file}) {
-        $self->{export_gcode_output_file} = undef;
-        Slic3r::GUI::show_error($self, $error);
-    }
-    
-    return if $error;
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
+# This message should be called by the background process synchronously.
+sub on_update_print_preview {
+    my ($self) = @_;
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#    $self->{preview3D}->reload_print if $self->{preview3D};
 
     # in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
     my $selections = $self->collect_selections;
     Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
-    
-    # if we have an export filename, start a new thread for exporting G-code
-    if ($self->{export_gcode_output_file}) {
-        @_ = ();
-        
-        # workaround for "Attempt to free un referenced scalar..."
-        our $_thread_self = $self;
-        
-        $self->{export_thread} = Slic3r::spawn_thread(sub {
-            eval {
-                $_thread_self->{print}->export_gcode(output_file => $_thread_self->{export_gcode_output_file}, gcode_preview_data => $_thread_self->{gcode_preview_data});
-            };
-            my $export_completed_event = Wx::CommandEvent->new($EXPORT_COMPLETED_EVENT);
-            if ($@) {
-                {
-                    my $error_event = Wx::CommandEvent->new($ERROR_EVENT);
-                    $error_event->SetString($@);
-                    Wx::PostEvent($_thread_self, $error_event);
-                }
-                $export_completed_event->SetInt(0);
-                $export_completed_event->SetString($@);
-            } else {
-                $export_completed_event->SetInt(1);
-            }
-            Wx::PostEvent($_thread_self, $export_completed_event);
-            Slic3r::thread_cleanup();
-        });
-        Slic3r::debugf "Background G-code export started.\n";
-    }
 }
 
 # This gets called also if we have no threads.
@@ -1724,21 +1626,24 @@ sub on_progress_event {
 
 # Called when the G-code export finishes, either successfully or with an error.
 # This gets called also if we don't have threads.
-sub on_export_completed {
+sub on_process_completed {
     my ($self, $result) = @_;
-    
-    $self->statusbar->SetCancelCallback(undef);
+
+    # Stop the background task, wait until the thread goes into the "Idle" state.
+    # At this point of time the thread should be either finished or canceled,
+    # so the following call just confirms, that the produced data were consumed.
+    $self->{background_slicing_process}->stop;
+    $self->statusbar->ResetCancelCallback();
     $self->statusbar->StopBusy;
     $self->statusbar->SetStatusText("");
-    
-    Slic3r::debugf "Background export process completed.\n";
-    $self->{export_thread}->detach if $self->{export_thread};
-    $self->{export_thread} = undef;
     
     my $message;
     my $send_gcode = 0;
     my $do_print = 0;
-    if ($result) {
+#    print "Process completed, message: ", $message, "\n";
+    if (defined($result)) {
+        $message = L("Export failed");
+    } else {
         # G-code file exported successfully.
         if ($self->{print_file}) {
             $message = L("File added to print queue");
@@ -1746,14 +1651,13 @@ sub on_export_completed {
         } elsif ($self->{send_gcode_file}) {
             $message = L("Sending G-code file to the Printer Host ...");
             $send_gcode = 1;
-        } else {
+        } elsif (defined $self->{export_gcode_output_file}) {
             $message = L("G-code file exported to ") . $self->{export_gcode_output_file};
+        } else {
+            $message = L("Slicing complete");
         }
-    } else {
-        $message = L("Export failed");
     }
     $self->{export_gcode_output_file} = undef;
-    $self->statusbar->SetStatusText($message);
     wxTheApp->notify($message);
     
     $self->do_print if $do_print;
@@ -1761,13 +1665,19 @@ sub on_export_completed {
     # Send $self->{send_gcode_file} to OctoPrint.
     if ($send_gcode) {
         my $host = Slic3r::PrintHost::get_print_host($self->{config});
-
         if ($host->send_gcode($self->{send_gcode_file})) {
-            $self->statusbar->SetStatusText(L("Upload to host finished."));
+            $message = L("Upload to host finished.");
         } else {
-            $self->statusbar->SetStatusText("");
+            $message = "";
         }
     }
+
+    # As of now, the BackgroundProcessing thread posts status bar update messages to a queue on the MainFrame.pm,
+    # but the "Processing finished" message is posted to this window.
+    # Delay the following status bar update, so it will be called later than what is received by MainFrame.pm.
+    wxTheApp->CallAfter(sub {
+        $self->statusbar->SetStatusText($message);
+    });
 
     $self->{print_file} = undef;
     $self->{send_gcode_file} = undef;
@@ -1777,8 +1687,8 @@ sub on_export_completed {
     $self->object_list_changed;
     
     # refresh preview
-    $self->{toolpaths2D}->reload_print if $self->{toolpaths2D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
 # Fill in the "Sliced info" box with the result of the G-code generator.
@@ -1833,7 +1743,7 @@ sub print_info_box_show {
                 => $self->{print}->estimated_silent_print_time
         );
         # if there is a wipe tower, insert number of toolchanges info into the array:
-        splice (@info, 8, 0, L("Number of tool changes") => sprintf("%.d", $self->{print}->m_wipe_tower_number_of_toolchanges))  if ($is_wipe_tower);
+        splice (@info, 8, 0, L("Number of tool changes") => sprintf("%.d", $self->{print}->wipe_tower_number_of_toolchanges))  if ($is_wipe_tower);
 
         while ( my $label = shift @info) {
             my $value = shift @info;
@@ -2039,28 +1949,18 @@ sub update {
     if (wxTheApp->{app_config}->get("autocenter") || $force_autocenter) {
         $self->{model}->center_instances_around_point($self->bed_centerf);
     }
-    
-    my $running = $self->pause_background_process;
-    my $invalidated = $self->{print}->reload_model_instances();
-    
-    # The mere fact that no steps were invalidated when reloading model instances 
-    # doesn't mean that all steps were done: for example, validation might have 
-    # failed upon previous instance move, so we have no running thread and no steps
-    # are invalidated on this move, thus we need to schedule a new run.
-    if ($invalidated || !$running) {
-        $self->schedule_background_process;
-    } else {
-        $self->resume_background_process;
-    }
-
-    $self->print_info_box_show(0);
-    
+    $self->stop_background_process;
+    $self->{print}->reload_model_instances();
+    $self->{canvas}->reload_scene if $self->{canvas};
 #    $self->{canvas}->reload_scene if $self->{canvas};
     my $selections = $self->collect_selections;
     Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
-    $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
-    $self->{preview3D}->reload_print if $self->{preview3D};
+    $self->{preview_iface}->reset_gcode_preview_data if $self->{preview_iface};
+    $self->{preview_iface}->reload_print if $self->{preview_iface};
+#    $self->{preview3D}->reset_gcode_preview_data if $self->{preview3D};
+#    $self->{preview3D}->reload_print if $self->{preview3D};
+    $self->schedule_background_process;
     $self->Thaw;
 }
 
@@ -2103,7 +2003,7 @@ sub on_extruders_change {
         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
         # insert new choice into sizer
         $self->{presets_sizer}->Insert(4 + ($#$choices-1)*2, 0, 0);
-        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, FILAMENT_CHOOSERS_SPACING);
+        $self->{presets_sizer}->Insert(5 + ($#$choices-1)*2, $choice, 0, wxEXPAND | wxBOTTOM, 0);
         # setup the listener
         EVT_COMBOBOX($choice, $choice, sub {
             my ($choice) = @_;
@@ -2135,7 +2035,8 @@ sub on_config_change {
         if ($opt_key eq 'bed_shape') {
 #            $self->{canvas}->update_bed_size;
             Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
-            Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
+            $self->{preview_iface}->set_bed_shape($self->{config}->bed_shape) if ($self->{preview_iface});
+#            Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
             $update_scheduled = 1;
         } elsif ($opt_key =~ '^wipe_tower' || $opt_key eq 'single_extruder_multi_material') {
             $update_scheduled = 1;
@@ -2170,13 +2071,15 @@ sub on_config_change {
         } elsif ($opt_key eq 'extruder_colour') {
             $update_scheduled = 1;
             my $extruder_colors = $config->get('extruder_colour');
-            $self->{preview3D}->set_number_extruders(scalar(@{$extruder_colors}));
+            $self->{preview_iface}->set_number_extruders(scalar(@{$extruder_colors}));
+#            $self->{preview3D}->set_number_extruders(scalar(@{$extruder_colors}));
         } elsif ($opt_key eq 'max_print_height') {
             $update_scheduled = 1;
         } elsif ($opt_key eq 'printer_model') {
             # update to force bed selection (for texturing)
             Slic3r::GUI::_3DScene::set_bed_shape($self->{canvas3D}, $self->{config}->bed_shape) if $self->{canvas3D};
-            Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
+            $self->{preview_iface}->set_bed_shape($self->{config}->bed_shape) if ($self->{preview_iface});
+#            Slic3r::GUI::_3DScene::set_bed_shape($self->{preview3D}->canvas, $self->{config}->bed_shape) if $self->{preview3D};
             $update_scheduled = 1;
         }
     }
@@ -2213,14 +2116,6 @@ sub collect_selections {
     return $selections;
 }
 
-# doesn't used now
-sub list_item_activated {
-    my ($self, $event, $obj_idx) = @_;
-    
-    $obj_idx //= $event->GetIndex;
-	$self->object_settings_dialog($obj_idx);
-}
-
 # Called when clicked on the filament preset combo box.
 # When clicked on the icon, show the color picker.
 sub filament_color_box_lmouse_down
@@ -2248,71 +2143,31 @@ sub filament_color_box_lmouse_down
     }
 }
 
-sub object_cut_dialog {
-    my ($self, $obj_idx) = @_;
-    
-    if (!defined $obj_idx) {
-        ($obj_idx, undef) = $self->selected_object;
-    }
-    
-    if (!$Slic3r::GUI::have_OpenGL) {
-        Slic3r::GUI::show_error($self, L("Please install the OpenGL modules to use this feature (see build instructions)."));
-        return;
-    }
-    
-    my $dlg = Slic3r::GUI::Plater::ObjectCutDialog->new($self,
-		object              => $self->{objects}[$obj_idx],
-		model_object        => $self->{model}->objects->[$obj_idx],
-	);
-	return unless $dlg->ShowModal == wxID_OK;
-	
-	if (my @new_objects = $dlg->NewModelObjects) {
-	    $self->remove($obj_idx);
-	    $self->load_model_objects(grep defined($_), @new_objects);
-	    $self->arrange;
-        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
-	}
-}
-
-sub object_settings_dialog {
-    my ($self, $obj_idx) = @_;
-    ($obj_idx, undef) = $self->selected_object if !defined $obj_idx;
-    my $model_object = $self->{model}->objects->[$obj_idx];
-    
-    # validate config before opening the settings dialog because
-    # that dialog can't be closed if validation fails, but user
-    # can't fix any error which is outside that dialog
-    eval { wxTheApp->{preset_bundle}->full_config->validate; };
-    return if Slic3r::GUI::catch_error($_[0]);
-    
-    my $dlg = Slic3r::GUI::Plater::ObjectSettingsDialog->new($self,
-		object          => $self->{objects}[$obj_idx],
-		model_object    => $model_object,
-        config          => wxTheApp->{preset_bundle}->full_config,
-	);
-	$self->pause_background_process;
-	$dlg->ShowModal;
-	
-#    # update thumbnail since parts may have changed
-#    if ($dlg->PartsChanged) {
-#	    # recenter and re-align to Z = 0
-#	    $model_object->center_around_origin;
-#        $self->reset_thumbnail($obj_idx);
+#sub object_cut_dialog {
+#    my ($self, $obj_idx) = @_;
+#    
+#    if (!defined $obj_idx) {
+#        ($obj_idx, undef) = $self->selected_object;
 #    }
-	
-	# update print
-	if ($dlg->PartsChanged || $dlg->PartSettingsChanged) {
-	    $self->stop_background_process;
-        $self->{print}->reload_object($obj_idx);
-        $self->schedule_background_process;
-#        $self->{canvas}->reload_scene if $self->{canvas};
-        my $selections = $self->collect_selections;
-        Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
-        Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
-    } else {
-        $self->resume_background_process;
-    }
-}
+#    
+#    if (!$Slic3r::GUI::have_OpenGL) {
+#        Slic3r::GUI::show_error($self, L("Please install the OpenGL modules to use this feature (see build instructions)."));
+#        return;
+#    }
+#    
+#    my $dlg = Slic3r::GUI::Plater::ObjectCutDialog->new($self,
+#		object              => $self->{objects}[$obj_idx],
+#		model_object        => $self->{model}->objects->[$obj_idx],
+#	);
+#	return unless $dlg->ShowModal == wxID_OK;
+#	
+#	if (my @new_objects = $dlg->NewModelObjects) {
+#	    $self->remove($obj_idx);
+#	    $self->load_model_objects(grep defined($_), @new_objects);
+#	    $self->arrange;
+#        Slic3r::GUI::_3DScene::zoom_to_volumes($self->{canvas3D}) if $self->{canvas3D};
+#	}
+#}
 
 sub changed_object_settings {
     my ($self, $obj_idx, $parts_changed, $part_settings_changed) = @_;
@@ -2335,7 +2190,7 @@ sub changed_object_settings {
         Slic3r::GUI::_3DScene::set_objects_selections($self->{canvas3D}, \@$selections);
         Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 0);
     } else {
-        $self->resume_background_process;
+        $self->schedule_background_process;
     }
 }
 
@@ -2676,11 +2531,14 @@ sub select_view {
     my $idx_page = $self->{preview_notebook}->GetSelection;
     my $page = ($idx_page == &Wx::wxNOT_FOUND) ? L('3D') : $self->{preview_notebook}->GetPageText($idx_page);
     if ($page eq L('Preview')) {
-        Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
-        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
+        $self->{preview_iface}->select_view($direction);
+        $self->{preview_iface}->set_viewport_into_scene($self->{canvas3D});
+#        Slic3r::GUI::_3DScene::select_view($self->{preview3D}->canvas, $direction);
+#        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{canvas3D}, $self->{preview3D}->canvas);
     } else {
         Slic3r::GUI::_3DScene::select_view($self->{canvas3D}, $direction);
-        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
+        $self->{preview_iface}->set_viewport_from_scene($self->{canvas3D});
+#        Slic3r::GUI::_3DScene::set_viewport_from_scene($self->{preview3D}->canvas, $self->{canvas3D});
     }
 }
 
@@ -2710,48 +2568,6 @@ package Slic3r::GUI::Plater::Object;
 use Moo;
 
 has 'name'                  => (is => 'rw', required => 1);
-#has 'thumbnail'             => (is => 'rw'); # ExPolygon::Collection in scaled model units with no transforms
-#has 'transformed_thumbnail' => (is => 'rw');
-#has 'instance_thumbnails'   => (is => 'ro', default => sub { [] });  # array of ExPolygon::Collection objects, each one representing the actual placed thumbnail of each instance in pixel units
 has 'selected'              => (is => 'rw', default => sub { 0 });
-
-#sub make_thumbnail {
-#    my ($self, $model, $obj_idx) = @_;
-#    # make method idempotent
-#    $self->thumbnail->clear;
-#    # raw_mesh is the non-transformed (non-rotated, non-scaled, non-translated) sum of non-modifier object volumes.
-#    my $mesh = $model->objects->[$obj_idx]->raw_mesh;
-##FIXME The "correct" variant could be extremely slow.
-##    if ($mesh->facets_count <= 5000) {
-##        # remove polygons with area <= 1mm
-##        my $area_threshold = Slic3r::Geometry::scale 1;
-##        $self->thumbnail->append(
-##            grep $_->area >= $area_threshold,
-##            @{ $mesh->horizontal_projection },   # horizontal_projection returns scaled expolygons
-##        );
-##        $self->thumbnail->simplify(0.5);
-##    } else {
-#        my $convex_hull = Slic3r::ExPolygon->new($mesh->convex_hull);
-#        $self->thumbnail->append($convex_hull);
-##    }
-#    return $self->thumbnail;
-#}
-#
-#sub transform_thumbnail {
-#    my ($self, $model, $obj_idx) = @_;
-#    
-#    return unless defined $self->thumbnail;
-#    
-#    my $model_object = $model->objects->[$obj_idx];
-#    my $model_instance = $model_object->instances->[0];
-#    
-#    # the order of these transformations MUST be the same everywhere, including
-#    # in Slic3r::Print->add_model_object()
-#    my $t = $self->thumbnail->clone;
-#    $t->rotate($model_instance->rotation, Slic3r::Point->new(0,0));
-#    $t->scale($model_instance->scaling_factor);
-#    
-#    $self->transformed_thumbnail($t);
-#}
 
 1;

@@ -1,0 +1,25 @@
+
+%module{Slic3r::XS};
+
+%{
+#include <xsinit.h>
+#include "slic3r/GUI/BackgroundSlicingProcess.hpp"
+%}
+
+%name{Slic3r::GUI::BackgroundSlicingProcess} class BackgroundSlicingProcess {
+    BackgroundSlicingProcess();
+    ~BackgroundSlicingProcess();
+
+    void set_print(Print *print);
+    void set_gcode_preview_data(GCodePreviewData *gpd);
+    void set_sliced_event(int event_id);
+    void set_finished_event(int event_id);
+
+    void set_output_path(const char *path);
+    bool start();
+    bool stop();
+    bool apply_config(DynamicPrintConfig *config) 
+        %code%{ RETVAL = THIS->apply_config(*config); %};
+
+    bool running();
+};

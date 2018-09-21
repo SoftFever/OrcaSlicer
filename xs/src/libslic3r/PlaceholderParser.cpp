@@ -69,7 +69,7 @@ PlaceholderParser::PlaceholderParser()
     this->update_timestamp();
 }
 
-void PlaceholderParser::update_timestamp()
+void PlaceholderParser::update_timestamp(DynamicConfig &config)
 {
     time_t rawtime;
     time(&rawtime);
@@ -84,14 +84,14 @@ void PlaceholderParser::update_timestamp()
         ss << std::setw(2) << std::setfill('0') << timeinfo->tm_hour;
         ss << std::setw(2) << std::setfill('0') << timeinfo->tm_min;
         ss << std::setw(2) << std::setfill('0') << timeinfo->tm_sec;
-        this->set("timestamp", ss.str());
+        config.set_key_value("timestamp", new ConfigOptionString(ss.str()));
     }
-    this->set("year",   1900 + timeinfo->tm_year);
-    this->set("month",  1 + timeinfo->tm_mon);
-    this->set("day",    timeinfo->tm_mday);
-    this->set("hour",   timeinfo->tm_hour);
-    this->set("minute", timeinfo->tm_min);
-    this->set("second", timeinfo->tm_sec);
+    config.set_key_value("year",   new ConfigOptionInt(1900 + timeinfo->tm_year));
+    config.set_key_value("month",  new ConfigOptionInt(1 + timeinfo->tm_mon));
+    config.set_key_value("day",    new ConfigOptionInt(timeinfo->tm_mday));
+    config.set_key_value("hour",   new ConfigOptionInt(timeinfo->tm_hour));
+    config.set_key_value("minute", new ConfigOptionInt(timeinfo->tm_min));
+    config.set_key_value("second", new ConfigOptionInt(timeinfo->tm_sec));
 }
 
 // Scalar configuration values are stored into m_single,

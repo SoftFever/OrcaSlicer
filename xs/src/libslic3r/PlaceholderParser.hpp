@@ -14,7 +14,6 @@ class PlaceholderParser
 public:    
     PlaceholderParser();
     
-    void update_timestamp();
     void apply_config(const DynamicPrintConfig &config);
     void apply_env_variables();
 
@@ -36,6 +35,11 @@ public:
     // Evaluate a boolean expression using the full expressive power of the PlaceholderParser boolean expression syntax.
     // Throws std::runtime_error on syntax or runtime error.
     static bool evaluate_boolean_expression(const std::string &templ, const DynamicConfig &config, const DynamicConfig *config_override = nullptr);
+
+    // Update timestamp, year, month, day, hour, minute, second variables at the provided config.
+    static void update_timestamp(DynamicConfig &config);
+    // Update timestamp, year, month, day, hour, minute, second variables at m_config.
+    void update_timestamp() { update_timestamp(m_config); }
 
 private:
     DynamicConfig m_config;

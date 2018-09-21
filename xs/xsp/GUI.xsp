@@ -35,23 +35,38 @@ bool is_windows10()
 void set_wxapp(SV *ui)
     %code%{ Slic3r::GUI::set_wxapp((wxApp*)wxPli_sv_2_object(aTHX_ ui, "Wx::App")); %};
 
+void set_gui_appctl()
+    %code%{ Slic3r::GUI::set_gui_appctl(); %};
+
+void set_cli_appctl()
+    %code%{ Slic3r::GUI::set_cli_appctl(); %};
+
+void set_progress_status_bar(ProgressStatusBar *prs)
+    %code%{ Slic3r::GUI::set_progress_status_bar(prs); %};
+
 void set_main_frame(SV *ui)
     %code%{ Slic3r::GUI::set_main_frame((wxFrame*)wxPli_sv_2_object(aTHX_ ui, "Wx::Frame")); %};
 
 void set_tab_panel(SV *ui)
     %code%{ Slic3r::GUI::set_tab_panel((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook")); %};
 
+void set_plater(SV *ui)
+    %code%{ Slic3r::GUI::set_plater((wxPanel*)wxPli_sv_2_object(aTHX_ ui, "Wx::Panel")); %};
+
 void add_menus(SV *ui, int event_preferences_changed, int event_language_change)    
     %code%{ Slic3r::GUI::add_menus((wxMenuBar*)wxPli_sv_2_object(aTHX_ ui, "Wx::MenuBar"), event_preferences_changed, event_language_change); %};
 
-void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
-    %code%{ Slic3r::GUI::create_preset_tabs(no_controller, event_value_change, event_presets_changed); %};
+void create_preset_tabs(int event_value_change, int event_presets_changed)
+    %code%{ Slic3r::GUI::create_preset_tabs(event_value_change, event_presets_changed); %};
 
 void show_error_id(int id, std::string msg)
     %code%{ Slic3r::GUI::show_error_id(id, msg); %};
 
 TabIface* get_preset_tab(char *name)
     %code%{ RETVAL=Slic3r::GUI::get_preset_tab_iface(name); %};
+
+PreviewIface* create_preview_iface(SV *ui, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
+    %code%{ RETVAL=Slic3r::GUI::create_preview_iface((wxNotebook*)wxPli_sv_2_object(aTHX_ ui, "Wx::Notebook"), config, print, gcode_preview_data); %};
 
 bool load_language()
     %code%{ RETVAL=Slic3r::GUI::load_language(); %};
@@ -86,6 +101,9 @@ void add_frequently_changed_parameters(SV *ui_parent, SV *ui_sizer, SV *ui_p_siz
     %code%{ Slic3r::GUI::add_frequently_changed_parameters((wxWindow*)wxPli_sv_2_object(aTHX_ ui_parent, "Wx::Window"),
                                                            (wxBoxSizer*)wxPli_sv_2_object(aTHX_ ui_sizer, "Wx::BoxSizer"),
                                                            (wxFlexGridSizer*)wxPli_sv_2_object(aTHX_ ui_p_sizer, "Wx::FlexGridSizer")); %};
+
+void set_print_callback_event(Print *print, int id)
+    %code%{ Slic3r::GUI::set_print_callback_event(print, id); %};
 
 void set_model_events_from_perl(Model *model,
                                 int event_object_selection_changed,

@@ -691,7 +691,7 @@ size_t PresetCollection::first_visible_idx() const
     for (; idx < this->m_presets.size(); ++ idx)
         if (m_presets[idx].is_visible)
             break;
-    if (idx == this->m_presets.size())
+    if (idx == m_presets.size())
         idx = 0;
     return idx;
 }

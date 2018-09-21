@@ -219,6 +219,8 @@ AppConfig*	                O_OBJECT_SLIC3R
 AppController*              O_OBJECT_SLIC3R
 PrintController*            O_OBJECT_SLIC3R
 Ref<AppConfig>         		O_OBJECT_SLIC3R_T
+BackgroundSlicingProcess*   O_OBJECT_SLIC3R
+Ref<BackgroundSlicingProcess> O_OBJECT_SLIC3R_T
 
 GLShader*                  	O_OBJECT_SLIC3R
 Ref<GLShader>              	O_OBJECT_SLIC3R_T
@@ -233,10 +235,12 @@ PresetCollection*	      	O_OBJECT_SLIC3R
 Ref<PresetCollection>      	O_OBJECT_SLIC3R_T
 PresetBundle*	    		O_OBJECT_SLIC3R
 Ref<PresetBundle>    		O_OBJECT_SLIC3R_T
-TabIface*                       O_OBJECT_SLIC3R
-Ref<TabIface> 			O_OBJECT_SLIC3R_T
-ProgressStatusBar*              O_OBJECT_SLIC3R
-Ref<ProgressStatusBar>          O_OBJECT_SLIC3R_T
+TabIface*                   O_OBJECT_SLIC3R
+Ref<TabIface> 			    O_OBJECT_SLIC3R_T
+PreviewIface*               O_OBJECT_SLIC3R
+Ref<PreviewIface> 			O_OBJECT_SLIC3R_T
+ProgressStatusBar*          O_OBJECT_SLIC3R
+Ref<ProgressStatusBar>      O_OBJECT_SLIC3R_T
 
 PresetUpdater*              O_OBJECT_SLIC3R
 Ref<PresetUpdater>          O_OBJECT_SLIC3R_T

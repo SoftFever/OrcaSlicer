@@ -387,13 +387,10 @@ void update_after_moving()
 	if (volume_id < 0)
 		return;
 
-	Vec3d m = m_move_options;
-	Vec3d l = m_last_coords;
-
-    auto d = Vec3d(m(0) - l(0), m(1) - l(1), m(2) - l(2));
-	auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+    auto d = m_move_options - m_last_coords;
+    auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
     volume->mesh.translate(d(0), d(1), d(2));
-	m_last_coords = m;
+	m_last_coords = m_move_options;
 
 	m_parts_changed = true;
 	parts_changed(m_selected_object_id);
@@ -1805,11 +1802,15 @@ void update_scale_values(double scaling_factor)
 
 void update_rotation_values()
 {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    update_rotation_value((*m_objects)[m_selected_object_id]->instances.front()->get_rotation());
+#else
     auto og = get_optgroup(ogFrequentlyObjectSettings);
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
     og->set_value("rotation_x", 0);
     og->set_value("rotation_y", 0);
     og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 }
 
 void update_rotation_value(double angle, Axis axis)
@@ -1836,8 +1837,18 @@ void update_rotation_value(double angle, Axis axis)
     }
     }
 
-    og->set_value(axis_str, int(Geometry::rad2deg(angle)));
+    og->set_value(axis_str, round_nearest(int(Geometry::rad2deg(angle)), 0));
 }
+
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+void update_rotation_value(const Vec3d& rotation)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+    og->set_value("rotation_x", int(round_nearest(Geometry::rad2deg(rotation(0)), 0)));
+    og->set_value("rotation_y", int(round_nearest(Geometry::rad2deg(rotation(1)), 0)));
+    og->set_value("rotation_z", int(round_nearest(Geometry::rad2deg(rotation(2)), 0)));
+}
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
 void set_uniform_scaling(const bool uniform_scale)
 {

@@ -1,4 +1,5 @@
 #include "GUI.hpp"
+#include "../AppController.hpp"
 #include "WipeTowerDialog.hpp"
 
 #include <assert.h>
@@ -46,9 +47,12 @@
 
 #include "Tab.hpp"
 #include "TabIface.hpp"
+#include "GUI_Preview.hpp"
+#include "GUI_PreviewIface.hpp"
 #include "AboutDialog.hpp"
 #include "AppConfig.hpp"
 #include "ConfigSnapshotDialog.hpp"
+#include "ProgressStatusBar.hpp"
 #include "Utils.hpp"
 #include "MsgDialog.hpp"
 #include "ConfigWizard.hpp"
@@ -65,6 +69,8 @@
 #include "libslic3r/I18N.hpp"
 #include "Model.hpp"
 #include "LambdaObjectDialog.hpp"
+
+#include "../../libslic3r/Print.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -113,7 +119,9 @@ void break_to_debugger()
 // Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
 wxApp       *g_wxApp        = nullptr;
 wxFrame     *g_wxMainFrame  = nullptr;
+ProgressStatusBar *g_progress_status_bar = nullptr;
 wxNotebook  *g_wxTabPanel   = nullptr;
+wxPanel 	*g_wxPlater 	= nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 PresetUpdater *g_PresetUpdater = nullptr;
@@ -142,6 +150,8 @@ std::vector<wxButton*> g_buttons;
 wxStaticBitmap	*g_manifold_warning_icon = nullptr;
 bool		g_show_print_info = false;
 bool		g_show_manifold_warning_icon = false;
+
+PreviewIface* g_preview = nullptr; 
 
 static void init_label_colours()
 {
@@ -199,9 +209,21 @@ void set_main_frame(wxFrame *main_frame)
 
 wxFrame* get_main_frame() { return g_wxMainFrame; }
 
+void set_progress_status_bar(ProgressStatusBar *prsb)
+{
+	g_progress_status_bar = prsb;
+}
+
+ProgressStatusBar* get_progress_status_bar() { return g_progress_status_bar; }
+
 void set_tab_panel(wxNotebook *tab_panel)
 {
     g_wxTabPanel = tab_panel;
+}
+
+void set_plater(wxPanel *plater)
+{
+	g_wxPlater = plater;
 }
 
 void set_app_config(AppConfig *app_config)
@@ -607,13 +629,13 @@ void open_preferences_dialog(int event_preferences)
 	dlg->ShowModal();
 }
 
-void create_preset_tabs(bool no_controller, int event_value_change, int event_presets_changed)
+void create_preset_tabs(int event_value_change, int event_presets_changed)
 {	
 	update_label_colours_from_appconfig();
-	add_created_tab(new TabPrint	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
-	add_created_tab(new TabFilament	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
-	add_created_tab(new TabSLAMaterial  (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
-	add_created_tab(new TabPrinter	    (g_wxTabPanel, no_controller), event_value_change, event_presets_changed);
+	add_created_tab(new TabPrint	    (g_wxTabPanel), event_value_change, event_presets_changed);
+	add_created_tab(new TabFilament	    (g_wxTabPanel), event_value_change, event_presets_changed);
+	add_created_tab(new TabSLAMaterial  (g_wxTabPanel), event_value_change, event_presets_changed);
+	add_created_tab(new TabPrinter	    (g_wxTabPanel), event_value_change, event_presets_changed);
 }
 
 std::vector<PresetTab> preset_tabs = {
@@ -646,6 +668,17 @@ TabIface* get_preset_tab_iface(char *name)
 		}
 	}
 	return new TabIface(nullptr);
+}
+
+PreviewIface* create_preview_iface(wxNotebook* parent, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
+{
+    if (g_preview == nullptr)
+    {
+        Preview* panel = new Preview(parent, config, print, gcode_preview_data);
+        g_preview = new PreviewIface(panel);
+    }
+
+    return g_preview;
 }
 
 // opt_index = 0, by the reason of zero-index in ConfigOptionVector by default (in case only one element)
@@ -809,6 +842,18 @@ void warning_catcher(wxWindow* parent, const wxString& message){
 	msg.ShowModal();
 }
 
+// Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
+// to deliver a progress status message.
+void set_print_callback_event(Print *print, int id)
+{
+	print->set_status_callback([id](int percent, const std::string &message){
+		wxCommandEvent event(id);
+		event.SetInt(percent);
+		event.SetString(message);
+        wxQueueEvent(g_wxMainFrame, event.Clone());
+	});
+}
+
 wxApp* get_app(){
 	return g_wxApp;
 }
@@ -945,6 +990,12 @@ wxString L_str(const std::string &str)
 wxString from_u8(const std::string &str)
 {
 	return wxString::FromUTF8(str.c_str());
+}
+
+std::string into_u8(const wxString &str)
+{
+	auto buffer_utf8 = str.utf8_str();
+	return std::string(buffer_utf8.data());
 }
 
 void set_model_events_from_perl(Model &model,
@@ -1353,6 +1404,25 @@ void desktop_open_datadir_folder()
 			::wxExecute(const_cast<char**>(argv), wxEXEC_ASYNC, nullptr, nullptr);
 		}
 #endif
+}
+
+namespace {
+AppControllerPtr g_appctl;
+}
+
+AppControllerPtr get_appctl()
+{
+    return g_appctl;
+}
+
+void set_cli_appctl()
+{
+    g_appctl = std::make_shared<AppControllerCli>();
+}
+
+void set_gui_appctl()
+{
+    g_appctl = std::make_shared<AppControllerGui>();
 }
 
 } }

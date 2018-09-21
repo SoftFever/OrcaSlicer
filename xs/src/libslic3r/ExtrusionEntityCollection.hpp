@@ -88,7 +88,7 @@ public:
 
     // Following methods shall never be called on an ExtrusionEntityCollection.
     Polyline as_polyline() const {
-        CONFESS("Calling as_polyline() on a ExtrusionEntityCollection");
+        throw std::runtime_error("Calling as_polyline() on a ExtrusionEntityCollection");
         return Polyline();
     };
 
@@ -98,7 +98,7 @@ public:
     }
 
     double length() const override {
-        CONFESS("Calling length() on a ExtrusionEntityCollection");
+        throw std::runtime_error("Calling length() on a ExtrusionEntityCollection");
         return 0.;        
     }
 };

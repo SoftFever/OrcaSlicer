@@ -196,6 +196,8 @@
 %typemap{Clone<ModelInstancePtrs>}{simple};
 %typemap{AppConfig*};
 %typemap{Ref<AppConfig>}{simple};
+%typemap{BackgroundSlicingProcess*};
+%typemap{Ref<BackgroundSlicingProcess>}{simple};
 %typemap{GLShader*};
 %typemap{Ref<GLShader>}{simple};
 %typemap{GLVolume*};
@@ -213,6 +215,7 @@
 %typemap{PresetHints*};
 %typemap{Ref<PresetHints>}{simple};
 %typemap{TabIface*};
+%typemap{PreviewIface*};
 %typemap{ProgressStatusBar*};
 
 %typemap{PrintRegionPtrs*};

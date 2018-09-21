@@ -225,7 +225,7 @@ class GLVolume {
         // ID of the shader used to render with the layer height texture
         unsigned int shader_id;
         // The print object to update when generating the layer height texture
-        PrintObject* print_object;
+        const PrintObject* print_object;
 
         float        z_cursor_relative;
         float        edit_band_width;
@@ -256,8 +256,13 @@ public:
 private:
     // Offset of the volume to be rendered.
     Vec3d                 m_offset;
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    // Rotation around three axes of the volume to be rendered.
+    Vec3d                 m_rotation;
+#else
     // Rotation around Z axis of the volume to be rendered.
     double                m_rotation;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     // Scale factor of the volume to be rendered.
     double                m_scaling_factor;
     // World matrix of the volume to be rendered.
@@ -327,8 +332,13 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-    double get_rotation();
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    const Vec3d& get_rotation() const;
+    void set_rotation(const Vec3d& rotation);
+#else
+    double get_rotation() const;
     void set_rotation(double rotation);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
@@ -382,9 +392,9 @@ public:
             (void*)(layer_height_texture->data.data() + layer_height_texture->width * layer_height_texture->height * 4);
     }
     double              layer_height_texture_z_to_row_id() const;
-    void                generate_layer_height_texture(PrintObject *print_object, bool force);
+    void                generate_layer_height_texture(const PrintObject *print_object, bool force);
 
-    void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, PrintObject* print_object, float z_cursor_relative, float edit_band_width)
+    void set_layer_height_texture_data(unsigned int texture_id, unsigned int shader_id, const PrintObject* print_object, float z_cursor_relative, float edit_band_width)
     {
         layer_height_texture_data.texture_id = texture_id;
         layer_height_texture_data.shader_id = shader_id;
@@ -558,7 +568,9 @@ public:
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
 
     static void register_action_add_callback(wxGLCanvas* canvas, void* callback);

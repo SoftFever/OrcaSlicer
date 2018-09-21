@@ -47,7 +47,7 @@ Polygon::split_at_vertex(const Point &point) const
     for (const Point &pt : this->points)
         if (pt == point)
             return this->split_at_index(&pt - &this->points.front());
-    CONFESS("Point not found");
+    throw std::invalid_argument("Point not found");
     return Polyline();
 }
 

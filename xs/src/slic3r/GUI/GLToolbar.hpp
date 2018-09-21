@@ -2,7 +2,7 @@
 #define slic3r_GLToolbar_hpp_
 
 #include "../../slic3r/GUI/GLTexture.hpp"
-#include "../../libslic3r/Utils.hpp"
+#include "../../callback.hpp"
 
 #include <string>
 #include <vector>

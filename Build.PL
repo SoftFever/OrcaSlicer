@@ -21,9 +21,7 @@ my %prereqs = qw(
     POSIX                           0
     Scalar::Util                    0
     Test::More                      0
-    Thread::Semaphore               0
     IO::Scalar                      0
-    threads                         1.96
     Time::HiRes                     0
 );
 my %recommends = qw(
@@ -44,8 +42,6 @@ if ($gui) {
     );
     if ($^O eq 'MSWin32') {
         $recommends{"Win32::TieRegistry"} = 0;
-        # we need an up-to-date Win32::API because older aren't thread-safe (GH #2517)
-        $prereqs{'Win32::API'} = 0.79;
     }
 }
 

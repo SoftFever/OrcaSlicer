@@ -38,11 +38,6 @@ has 'duplicate_grid' => (
     default => sub { [1,1] },
 );
 
-has 'status_cb' => (
-    is      => 'rw',
-    default => sub { sub {} },
-);
-
 has 'print_center' => (
     is      => 'rw',
     default => sub { Slic3r::Pointf->new(100,100) },
@@ -90,35 +85,10 @@ sub set_model {
     }
 }
 
-sub _before_export {
-    my ($self) = @_;
-    
-    $self->_print->set_status_cb($self->status_cb);
-    $self->_print->validate;
-}
-
-sub _after_export {
-    my ($self) = @_;
-    
-    $self->_print->set_status_cb(undef);
-}
-
 sub export_gcode {
     my ($self) = @_;
-    
-    $self->_before_export;
-    $self->_print->export_gcode(output_file => $self->output_file);
-    $self->_after_export;
-}
-
-sub export_svg {
-    my ($self) = @_;
-    
-    $self->_before_export;
-    
-    $self->_print->export_svg(output_file => $self->output_file);
-    
-    $self->_after_export;
+    $self->_print->validate;
+    $self->_print->export_gcode($self->output_file // '');
 }
 
 sub export_png {

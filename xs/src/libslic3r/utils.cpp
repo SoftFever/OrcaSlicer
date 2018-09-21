@@ -23,6 +23,9 @@
 #include <boost/nowide/fstream.hpp>
 #include <boost/nowide/integration/filesystem.hpp>
 #include <boost/nowide/convert.hpp>
+#include <boost/nowide/cstdio.hpp>
+
+#include <tbb/task_scheduler_init.h>
 
 #include <tbb/task_scheduler_init.h>
 
@@ -149,188 +152,88 @@ const std::string& data_dir()
     return g_data_dir;
 }
 
-} // namespace Slic3r
 
-#include <xsinit.h>
-
-void
-confess_at(const char *file, int line, const char *func,
-            const char *pat, ...)
+// borrowed from LVVM lib/Support/Windows/Path.inc
+int rename_file(const std::string &from, const std::string &to)
 {
-    #ifdef SLIC3RXS
-     va_list args;
-     SV *error_sv = newSVpvf("Error in function %s at %s:%d: ", func,
-         file, line);
+    int ec = 0;
 
-     va_start(args, pat);
-     sv_vcatpvf(error_sv, pat, &args);
-     va_end(args);
+#ifdef _WIN32
 
-     sv_catpvn(error_sv, "\n\t", 2);
+	// Convert to utf-16.
+    std::wstring wide_from = boost::nowide::widen(from);
+    std::wstring wide_to   = boost::nowide::widen(to);
 
-     dSP;
-     ENTER;
-     SAVETMPS;
-     PUSHMARK(SP);
-     XPUSHs( sv_2mortal(error_sv) );
-     PUTBACK;
-     call_pv("Carp::confess", G_DISCARD);
-     FREETMPS;
-     LEAVE;
-    #endif
-}
+    // Retry while we see recoverable errors.
+    // System scanners (eg. indexer) might open the source file when it is written
+    // and closed.
+    bool TryReplace = true;
 
-void PerlCallback::register_callback(void *sv)
-{ 
-    if (! SvROK((SV*)sv) || SvTYPE(SvRV((SV*)sv)) != SVt_PVCV)
-        croak("Not a Callback %_ for PerlFunction", (SV*)sv);
-    if (m_callback)
-        SvSetSV((SV*)m_callback, (SV*)sv);
-    else
-        m_callback = newSVsv((SV*)sv);
-}
-
-void PerlCallback::deregister_callback()
-{
-	if (m_callback) {
-		sv_2mortal((SV*)m_callback);
-		m_callback = nullptr;
-	}
-}
-
-void PerlCallback::call() const
-{
-    if (! m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    PUTBACK; 
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
-void PerlCallback::call(int i) const
-{
-    if (! m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSViv(i)));
-    PUTBACK; 
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
-void PerlCallback::call(int i, int j) const
-{
-    if (! m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSViv(i)));
-    XPUSHs(sv_2mortal(newSViv(j)));
-    PUTBACK; 
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
-void PerlCallback::call(const std::vector<int>& ints) const
-{
-    if (! m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    for (int i : ints)
-    {
-        XPUSHs(sv_2mortal(newSViv(i)));
+    // This loop may take more than 2000 x 1ms to finish.
+    for (int i = 0; i < 2000; ++ i) {
+        if (i > 0)
+            // Sleep 1ms
+            ::Sleep(1);
+        if (TryReplace) {
+            // Try ReplaceFile first, as it is able to associate a new data stream
+            // with the destination even if the destination file is currently open.
+            if (::ReplaceFileW(wide_to.data(), wide_from.data(), NULL, 0, NULL, NULL))
+                return 0;
+            DWORD ReplaceError = ::GetLastError();
+            ec = -1; // ReplaceError
+            // If ReplaceFileW returned ERROR_UNABLE_TO_MOVE_REPLACEMENT or
+            // ERROR_UNABLE_TO_MOVE_REPLACEMENT_2, retry but only use MoveFileExW().
+            if (ReplaceError == ERROR_UNABLE_TO_MOVE_REPLACEMENT ||
+                ReplaceError == ERROR_UNABLE_TO_MOVE_REPLACEMENT_2) {
+                TryReplace = false;
+                continue;
+            }
+            // If ReplaceFileW returned ERROR_UNABLE_TO_REMOVE_REPLACED, retry
+            // using ReplaceFileW().
+            if (ReplaceError == ERROR_UNABLE_TO_REMOVE_REPLACED)
+                continue;
+            // We get ERROR_FILE_NOT_FOUND if the destination file is missing.
+            // MoveFileEx can handle this case.
+            if (ReplaceError != ERROR_ACCESS_DENIED && ReplaceError != ERROR_FILE_NOT_FOUND && ReplaceError != ERROR_SHARING_VIOLATION)
+                break;
+        }
+        if (::MoveFileExW(wide_from.c_str(), wide_to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+            return 0;
+        DWORD MoveError = ::GetLastError();
+        ec = -1; // MoveError
+        if (MoveError != ERROR_ACCESS_DENIED && MoveError != ERROR_SHARING_VIOLATION)
+            break;
     }
-    PUTBACK;
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
+
+#else
+
+	boost::nowide::remove(to.c_str());
+	ec = boost::nowide::rename(from.c_str(), to.c_str());
+
+#endif
+
+    return ec;
 }
 
-void PerlCallback::call(double a) const
+int copy_file(const std::string &from, const std::string &to)
 {
-    if (!m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVnv(a)));
-    PUTBACK;
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
+    const boost::filesystem::path source(from);
+    const boost::filesystem::path target(to);
+    static const auto perms = boost::filesystem::owner_read | boost::filesystem::owner_write | boost::filesystem::group_read | boost::filesystem::others_read;   // aka 644
+
+    // Make sure the file has correct permission both before and after we copy over it.
+    try {
+        if (boost::filesystem::exists(target))
+            boost::filesystem::permissions(target, perms);
+        boost::filesystem::copy_file(source, target, boost::filesystem::copy_option::overwrite_if_exists);
+        boost::filesystem::permissions(target, perms);
+    } catch (std::exception & /* ex */) {
+        return -1;
+    }
+    return 0;
 }
 
-void PerlCallback::call(double a, double b) const
-{
-    if (!m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVnv(a)));
-    XPUSHs(sv_2mortal(newSVnv(b)));
-    PUTBACK;
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
-void PerlCallback::call(double a, double b, double c) const
-{
-    if (!m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVnv(a)));
-    XPUSHs(sv_2mortal(newSVnv(b)));
-    XPUSHs(sv_2mortal(newSVnv(c)));
-    PUTBACK;
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
-void PerlCallback::call(double a, double b, double c, double d) const
-{
-    if (!m_callback)
-        return;
-    dSP;
-    ENTER;
-    SAVETMPS;
-    PUSHMARK(SP);
-    XPUSHs(sv_2mortal(newSVnv(a)));
-    XPUSHs(sv_2mortal(newSVnv(b)));
-    XPUSHs(sv_2mortal(newSVnv(c)));
-    XPUSHs(sv_2mortal(newSVnv(d)));
-    PUTBACK;
-    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
-    FREETMPS;
-    LEAVE;
-}
-
-void PerlCallback::call(bool b) const
-{
-    call(b ? 1 : 0);
-}
+} // namespace Slic3r
 
 #ifdef WIN32
     #ifndef NOMINMAX

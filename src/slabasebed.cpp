@@ -10,12 +10,6 @@ const std::string USAGE_STR = {
     "Usage: slabasebed stlfilename.stl"
 };
 
-void confess_at(const char * /*file*/,
-                int /*line*/,
-                const char * /*func*/,
-                const char * /*pat*/,
-                ...) {}
-
 int main(const int argc, const char *argv[]) {
     using namespace Slic3r;
     using std::cout; using std::endl;

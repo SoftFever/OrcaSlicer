@@ -21,7 +21,7 @@ public:
     BoundingBoxBase(const std::vector<PointClass>& points) : min(PointClass::Zero()), max(PointClass::Zero())
     {
         if (points.empty())
-            CONFESS("Empty point set supplied to BoundingBoxBase constructor");
+            throw std::invalid_argument("Empty point set supplied to BoundingBoxBase constructor");
 
         typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min = *it;
@@ -65,7 +65,7 @@ public:
     BoundingBox3Base(const std::vector<PointClass>& points)
     {
         if (points.empty())
-            CONFESS("Empty point set supplied to BoundingBox3Base constructor");
+            throw std::invalid_argument("Empty point set supplied to BoundingBox3Base constructor");
         typename std::vector<PointClass>::const_iterator it = points.begin();
         this->min = *it;
         this->max = *it;

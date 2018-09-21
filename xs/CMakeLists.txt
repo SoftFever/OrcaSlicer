@@ -2,16 +2,12 @@
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Enable C11 language standard.
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
 # Add our own cmake module path.
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/modules/)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall" )
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-reorder" )
     find_package(PkgConfig REQUIRED)
 endif()
 
@@ -19,6 +15,12 @@ if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
 endif()
+
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type" )
+endif()
+
 
 # Where all the bundled libraries reside?
 set(LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/src/)
@@ -105,6 +107,8 @@ add_library(libslic3r STATIC
     ${LIBDIR}/libslic3r/GCode/Analyzer.hpp
     ${LIBDIR}/libslic3r/GCode/CoolingBuffer.cpp
     ${LIBDIR}/libslic3r/GCode/CoolingBuffer.hpp
+    ${LIBDIR}/libslic3r/GCode/PostProcessor.cpp
+    ${LIBDIR}/libslic3r/GCode/PostProcessor.hpp    
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.cpp
     ${LIBDIR}/libslic3r/GCode/PressureEqualizer.hpp
     ${LIBDIR}/libslic3r/GCode/PreviewData.cpp
@@ -192,6 +196,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/AboutDialog.hpp
     ${LIBDIR}/slic3r/GUI/AppConfig.cpp
     ${LIBDIR}/slic3r/GUI/AppConfig.hpp
+    ${LIBDIR}/slic3r/GUI/BackgroundSlicingProcess.cpp
+    ${LIBDIR}/slic3r/GUI/BackgroundSlicingProcess.hpp
     ${LIBDIR}/slic3r/GUI/BitmapCache.cpp
     ${LIBDIR}/slic3r/GUI/BitmapCache.hpp
     ${LIBDIR}/slic3r/GUI/ConfigSnapshotDialog.cpp
@@ -222,6 +228,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GUI.hpp
     ${LIBDIR}/slic3r/GUI/GUI_ObjectParts.cpp
     ${LIBDIR}/slic3r/GUI/GUI_ObjectParts.hpp
+    ${LIBDIR}/slic3r/GUI/GUI_Preview.cpp
+    ${LIBDIR}/slic3r/GUI/GUI_Preview.hpp
+    ${LIBDIR}/slic3r/GUI/GUI_PreviewIface.cpp
+    ${LIBDIR}/slic3r/GUI/GUI_PreviewIface.hpp
     ${LIBDIR}/slic3r/GUI/LambdaObjectDialog.cpp
     ${LIBDIR}/slic3r/GUI/LambdaObjectDialog.hpp
     ${LIBDIR}/slic3r/GUI/Tab.cpp
@@ -262,6 +272,7 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/UpdateDialogs.hpp
     ${LIBDIR}/slic3r/GUI/FirmwareDialog.cpp
     ${LIBDIR}/slic3r/GUI/FirmwareDialog.hpp
+    ${LIBDIR}/slic3r/GUI/ProgressIndicator.hpp
     ${LIBDIR}/slic3r/GUI/ProgressStatusBar.hpp
     ${LIBDIR}/slic3r/GUI/ProgressStatusBar.cpp
     ${LIBDIR}/slic3r/Utils/Http.cpp
@@ -284,7 +295,6 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/Utils/Time.hpp
     ${LIBDIR}/slic3r/Utils/HexFile.cpp
     ${LIBDIR}/slic3r/Utils/HexFile.hpp
-    ${LIBDIR}/slic3r/ProgressIndicator.hpp
     ${LIBDIR}/slic3r/AppController.hpp
     ${LIBDIR}/slic3r/AppController.cpp
     ${LIBDIR}/slic3r/AppControllerWx.cpp
@@ -459,9 +469,11 @@ set(XS_XSP_FILES
     ${XSP_DIR}/Geometry.xsp
     ${XSP_DIR}/GUI.xsp
     ${XSP_DIR}/GUI_AppConfig.xsp
+    ${XSP_DIR}/GUI_BackgroundSlicingProcess.xsp
     ${XSP_DIR}/GUI_3DScene.xsp
     ${XSP_DIR}/GUI_Preset.xsp
     ${XSP_DIR}/GUI_Tab.xsp
+    ${XSP_DIR}/GUI_Preview.xsp
     ${XSP_DIR}/Layer.xsp
     ${XSP_DIR}/Line.xsp
     ${XSP_DIR}/Model.xsp
@@ -513,6 +525,8 @@ add_library(XS ${XS_SHARED_LIBRARY_TYPE}
     ${LIBDIR}/libslic3r/utils.cpp
     ${LIBDIR}/slic3r/GUI/wxPerlIface.cpp
     ${LIBDIR}/perlglue.cpp
+    ${LIBDIR}/callback.cpp
+    ${LIBDIR}/callback.hpp
     ${LIBDIR}/ppport.h
     ${LIBDIR}/xsinit.h
     ${CMAKE_CURRENT_LIST_DIR}/xsp/my.map
@@ -600,12 +614,12 @@ if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
     message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS_RELEASE}")
-    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
-    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DNDEBUG /DWIN32")
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DNDEBUG /DWIN32")
-    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32")
-    set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG /DWIN32")
+    set(CMAKE_CXX_FLAGS_RELEASE "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
+    set(CMAKE_C_FLAGS_RELEASE "/MD /Od /Zi /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/MD /Od /Zi /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
+    set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
+    set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
 endif()
 # The following line will add -fPIC on Linux to make the XS.so rellocable.
 add_definitions(${PerlEmbed_CCCDLFLAGS})

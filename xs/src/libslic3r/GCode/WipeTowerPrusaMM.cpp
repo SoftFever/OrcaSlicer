@@ -1166,7 +1166,6 @@ void WipeTowerPrusaMM::save_on_last_wipe()
     }
 }
 
-
 // Processes vector m_plan and calls respective functions to generate G-code for the wipe tower
 // Resulting ToolChangeResults are appended into vector "result"
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
@@ -1255,7 +1254,5 @@ void WipeTowerPrusaMM::make_wipe_tower_square()
 	for (auto& lay : m_plan)	// depths set, now the spacing
 		lay.extra_spacing = lay.depth / lay.toolchanges_depth();
 }
-
-
 
 }; // namespace Slic3r

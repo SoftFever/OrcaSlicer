@@ -48,14 +48,6 @@ typedef double  coordf_t;
 //inline coord_t scale_(coordf_t v) { return coord_t(floor(v / SCALING_FACTOR + 0.5f)); }
 #define scale_(val) ((val) / SCALING_FACTOR)
 #define SCALED_EPSILON scale_(EPSILON)
-/* Implementation of CONFESS("foo"): */
-#ifdef _MSC_VER
-	#define CONFESS(...) confess_at(__FILE__, __LINE__, __FUNCTION__, __VA_ARGS__)
-#else
-	#define CONFESS(...) confess_at(__FILE__, __LINE__, __func__, __VA_ARGS__)
-#endif
-void confess_at(const char *file, int line, const char *func, const char *pat, ...);
-/* End implementation of CONFESS("foo"): */
 
 // Which C++ version is supported?
 // For example, could optimized functions with move semantics be used?

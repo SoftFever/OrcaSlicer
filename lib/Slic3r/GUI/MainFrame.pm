@@ -26,13 +26,17 @@ our $appController;
 our $VALUE_CHANGE_EVENT    = Wx::NewEventType;
 # 2) To inform about a preset selection change or a "modified" status change.
 our $PRESETS_CHANGED_EVENT = Wx::NewEventType;
-# 3) To inform about a change of object selection
+# 3) To update the status bar with the progress information.
+our $PROGRESS_BAR_EVENT    = Wx::NewEventType;
+# 4) To display an error dialog box from a thread on the UI thread.
+our $ERROR_EVENT             = Wx::NewEventType;
+# 5) To inform about a change of object selection
 our $OBJECT_SELECTION_CHANGED_EVENT = Wx::NewEventType;
-# 4) To inform about a change of object settings
+# 6) To inform about a change of object settings
 our $OBJECT_SETTINGS_CHANGED_EVENT = Wx::NewEventType;
-# 5) To inform about a remove of object 
+# 7) To inform about a remove of object 
 our $OBJECT_REMOVE_EVENT = Wx::NewEventType;
-# 6) To inform about a update of the scene 
+# 8) To inform about a update of the scene 
 our $UPDATE_SCENE_EVENT = Wx::NewEventType;
 
 sub new {
@@ -53,13 +57,11 @@ sub new {
     }
         
     # store input params
-    # If set, the "Controller" tab for the control of the printer over serial line and the serial port settings are hidden.
-    $self->{no_controller} = $params{no_controller};
     $self->{no_plater} = $params{no_plater};
     $self->{loaded} = 0;
     $self->{lang_ch_event} = $params{lang_ch_event};
     $self->{preferences_event} = $params{preferences_event};
-    
+
     # initialize tabpanel and menubar
     $self->_init_tabpanel;
     $self->_init_menubar;
@@ -74,8 +76,8 @@ sub new {
     $self->{statusbar}->Embed;
     $self->{statusbar}->SetStatusText(L("Version ").$Slic3r::VERSION.L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases"));
     # Make the global status bar and its progress indicator available in C++
-#FIXME Vojtech: Merging error
-#    $appController->set_global_progress_indicator($self->{statusbar});
+    Slic3r::GUI::set_progress_status_bar($self->{statusbar});
+    $appController->set_global_progress_indicator($self->{statusbar});
 
     $appController->set_model($self->{plater}->{model});
     $appController->set_print($self->{plater}->{print});
@@ -110,6 +112,7 @@ sub new {
         # Save the slic3r.ini. Usually the ini file is saved from "on idle" callback,
         # but in rare cases it may not have been called yet.
         wxTheApp->{app_config}->save;
+        $self->{statusbar}->ResetCancelCallback();
         $self->{plater}->{print} = undef if($self->{plater});
         Slic3r::GUI::_3DScene::remove_all_canvases();
         Slic3r::GUI::deregister_on_request_update_callback();
@@ -146,9 +149,6 @@ sub _init_tabpanel {
             event_remove_object              => $OBJECT_REMOVE_EVENT,
             event_update_scene               => $UPDATE_SCENE_EVENT,
             ), L("Plater"));
-        if (!$self->{no_controller}) {
-            $panel->AddPage($self->{controller} = Slic3r::GUI::Controller->new($panel), L("Controller"));
-        }
     }
     
     #TODO this is an example of a Slic3r XS interface call to add a new preset editor page to the main view.
@@ -197,8 +197,6 @@ sub _init_tabpanel {
                             ? 'load_current_preset' : 'update_tab_ui';
                         $self->{options_tabs}{$tab_name_other}->$update_action;
                     }
-                    # Update the controller printers.
-                    $self->{controller}->update_presets($presets) if $self->{controller};
                 }
                 $self->{plater}->on_config_change($tab->get_config);
             }
@@ -239,12 +237,29 @@ sub _init_tabpanel {
         $self->{plater}->update();
     });
         
-
-    Slic3r::GUI::create_preset_tabs($self->{no_controller}, $VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
+    Slic3r::GUI::create_preset_tabs($VALUE_CHANGE_EVENT, $PRESETS_CHANGED_EVENT);
     $self->{options_tabs} = {};
     for my $tab_name (qw(print filament sla_material printer)) {
         $self->{options_tabs}{$tab_name} = Slic3r::GUI::get_preset_tab("$tab_name");
     }
+
+    # Update progress bar with an event sent by the slicing core.
+    EVT_COMMAND($self, -1, $PROGRESS_BAR_EVENT, sub {
+        my ($self, $event) = @_;
+        if (defined $self->{progress_dialog}) {
+            # If a progress dialog is open, update it.
+            $self->{progress_dialog}->Update($event->GetInt, $event->GetString . "…");
+        } else {
+            # Otherwise update the main window status bar.
+            $self->{statusbar}->SetProgress($event->GetInt);
+            $self->{statusbar}->SetStatusText($event->GetString . "…");
+        }
+    });
+
+    EVT_COMMAND($self, -1, $ERROR_EVENT, sub {
+        my ($self, $event) = @_;
+        Slic3r::GUI::show_error($self, $event->GetString);
+    });
     
     if ($self->{plater}) {
         $self->{plater}->on_select_preset(sub {
@@ -287,31 +302,8 @@ sub _init_menubar {
             $self->export_configbundle;
         }, undef, 'lorry_go.png');
         $fileMenu->AppendSeparator();
-        my $repeat;
-        $self->_append_menu_item($fileMenu, L("Q&uick Slice…\tCtrl+U"), L('Slice a file into a G-code'), sub {
-            wxTheApp->CallAfter(sub {
-                $self->quick_slice;
-                $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
-            });
-        }, undef, 'cog_go.png');
-        $self->_append_menu_item($fileMenu, L("Quick Slice and Save &As…\tCtrl+Alt+U"), L('Slice a file into a G-code, save as'), sub {
-            wxTheApp->CallAfter(sub {
-                $self->quick_slice(save_as => 1);
-                $repeat->Enable(defined $Slic3r::GUI::MainFrame::last_input_file);
-            });
-        }, undef, 'cog_go.png');
-        $repeat = $self->_append_menu_item($fileMenu, L("&Repeat Last Quick Slice\tCtrl+Shift+U"), L('Repeat last quick slice'), sub {
-            wxTheApp->CallAfter(sub {
-                $self->quick_slice(reslice => 1);
-            });
-        }, undef, 'cog_go.png');
-        $repeat->Enable(0);
-        $fileMenu->AppendSeparator();
-        $self->_append_menu_item($fileMenu, L("Slice to SV&G…\tCtrl+G"), L('Slice file to a multi-layer SVG'), sub {
-            $self->quick_slice(save_as => 1, export_svg => 1);
-        }, undef, 'shape_handles.png');
         $self->_append_menu_item($fileMenu, L("Slice to PNG…"), L('Slice file to a set of PNG files'), sub {
-            $self->slice_to_png; #$self->quick_slice(save_as => 0, export_png => 1);
+            $self->slice_to_png;
         }, undef, 'shape_handles.png');
         $self->{menu_item_reslice_now} = $self->_append_menu_item(
             $fileMenu, L("(&Re)Slice Now\tCtrl+S"), L('Start new slicing process'), 
@@ -463,135 +455,6 @@ sub slice_to_png {
     $self->{plater}->stop_background_process;
     $self->{plater}->async_apply_config;
     $appController->print_ctl()->slice_to_png();
-}
-
-# To perform the "Quck Slice", "Quick Slice and Save As", "Repeat last Quick Slice" and "Slice to SVG".
-sub quick_slice {
-    my ($self, %params) = @_;
-    
-    my $progress_dialog;
-    eval {
-        # validate configuration
-        my $config = wxTheApp->{preset_bundle}->full_config();
-        $config->validate;
-        
-        # select input file
-        my $input_file;
-        if (!$params{reslice}) {
-            my $dialog = Wx::FileDialog->new($self, L('Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):'), 
-                wxTheApp->{app_config}->get_last_dir, "", 
-                &Slic3r::GUI::MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-            if ($dialog->ShowModal != wxID_OK) {
-                $dialog->Destroy;
-                return;
-            }
-            $input_file = $dialog->GetPaths;
-            $dialog->Destroy;
-            $qs_last_input_file = $input_file unless $params{export_svg};
-        } else {
-            if (!defined $qs_last_input_file) {
-                Wx::MessageDialog->new($self, L("No previously sliced file."),
-                                       L('Error'), wxICON_ERROR | wxOK)->ShowModal();
-                return;
-            }
-            if (! -e $qs_last_input_file) {
-                Wx::MessageDialog->new($self, L("Previously sliced file (").$qs_last_input_file.L(") not found."),
-                                       L('File Not Found'), wxICON_ERROR | wxOK)->ShowModal();
-                return;
-            }
-            $input_file = $qs_last_input_file;
-        }
-        my $input_file_basename = basename($input_file);
-        wxTheApp->{app_config}->update_skein_dir(dirname($input_file));
-        
-        my $print_center;
-        {
-            my $bed_shape = Slic3r::Polygon->new_scale(@{$config->bed_shape});
-            $print_center = Slic3r::Pointf->new_unscale(@{$bed_shape->bounding_box->center});
-        }
-        
-        my $sprint = Slic3r::Print::Simple->new(
-            print_center    => $print_center,
-            status_cb       => sub {
-                my ($percent, $message) = @_;
-                $progress_dialog->Update($percent, "$message…");
-            },
-        );
-        
-        # keep model around
-        my $model = Slic3r::Model->read_from_file($input_file);
-        
-        $sprint->apply_config($config);
-        $sprint->set_model($model);
-        
-        # Copy the names of active presets into the placeholder parser.
-        wxTheApp->{preset_bundle}->export_selections_pp($sprint->placeholder_parser);
-
-        # select output file
-        my $output_file;
-        if ($params{reslice}) {
-            $output_file = $qs_last_output_file if defined $qs_last_output_file;
-        } elsif ($params{save_as}) {
-            # The following line may die if the output_filename_format template substitution fails.
-            $output_file = $sprint->output_filepath;
-            $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.svg/ if $params{export_svg};
-            my $dlg = Wx::FileDialog->new($self, L('Save ') . ($params{export_svg} ? L('SVG') : L('G-code')) . L(' file as:'),
-                wxTheApp->{app_config}->get_last_output_dir(dirname($output_file)),
-                basename($output_file), $params{export_svg} ? &Slic3r::GUI::FILE_WILDCARDS->{svg} : &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-            if ($dlg->ShowModal != wxID_OK) {
-                $dlg->Destroy;
-                return;
-            }
-            $output_file = $dlg->GetPath;
-            $qs_last_output_file = $output_file unless $params{export_svg};
-            wxTheApp->{app_config}->update_last_output_dir(dirname($output_file));
-            $dlg->Destroy;
-        } elsif($params{export_png}) {
-            $output_file = $sprint->output_filepath;
-            $output_file =~ s/\.[gG][cC][oO][dD][eE]$/.zip/;
-            # my $dlg = Wx::DirDialog->new($self, L('Choose output directory'));
-            my $dlg = Wx::FileDialog->new($self, L('Save zip file as:'),
-                wxTheApp->{app_config}->get_last_output_dir(dirname($output_file)),
-                basename($output_file), '*.zip', wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-            if ($dlg->ShowModal != wxID_OK) {
-                $dlg->Destroy;
-                return;
-            }
-            $output_file = $dlg->GetPath;
-            $dlg->Destroy;
-        }
-        
-        # show processbar dialog
-        $progress_dialog = Wx::ProgressDialog->new(L('Slicing…'), L("Processing ").$input_file_basename."…", 
-            100, $self, 4);
-        $progress_dialog->Pulse;
-        
-        {
-            my @warnings = ();
-            local $SIG{__WARN__} = sub { push @warnings, $_[0] };
-            
-            $sprint->output_file($output_file);
-            if ($params{export_svg}) {
-                $sprint->export_svg;
-            } 
-            elsif($params{export_png}) {
-                $sprint->export_png;
-            } 
-            else {
-                $sprint->export_gcode;
-            }
-            $sprint->status_cb(undef);
-            Slic3r::GUI::warning_catcher($self)->($_) for @warnings;
-        }
-        $progress_dialog->Destroy;
-        undef $progress_dialog;
-        
-        my $message = $input_file_basename.L(" was successfully sliced.");
-        wxTheApp->notify($message);
-        Wx::MessageDialog->new($self, $message, L('Slicing Done!'), 
-            wxOK | wxICON_INFORMATION)->ShowModal;
-    };
-    Slic3r::GUI::catch_error($self, sub { $progress_dialog->Destroy if $progress_dialog });
 }
 
 sub reslice_now {

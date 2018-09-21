@@ -340,7 +340,7 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
     Pointfs model_sizes(copies_num-1, to_2d(this->bounding_box().size()));
     Pointfs positions;
     if (! _arrange(model_sizes, dist, bb, positions))
-        CONFESS("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
+        throw std::invalid_argument("Cannot duplicate part as the resulting objects would not fit on the print bed.\n");
     
     // note that this will leave the object count unaltered
     
@@ -671,7 +671,8 @@ BoundingBoxf3 ModelObject::raw_bounding_box() const
     BoundingBoxf3 bb;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part()) {
-            if (this->instances.empty()) CONFESS("Can't call raw_bounding_box() with no instances");
+            if (this->instances.empty())
+                throw std::invalid_argument("Can't call raw_bounding_box() with no instances");
             bb.merge(this->instances.front()->transform_mesh_bounding_box(&v->mesh, true));
         }
     return bb;
@@ -885,6 +886,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     return;
 }
 
+// Called by Print::validate() from the UI thread.
 void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
 {
     for (const ModelVolume* vol : this->volumes)
@@ -989,8 +991,6 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
 ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
 {
     // Legacy support
-    if (s == "0")
-        return MODEL_PART;
     if (s == "1")
         return PARAMETER_MODIFIER;
     // New type (supporting the support enforcers & blockers)
@@ -1002,6 +1002,9 @@ ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
         return SUPPORT_ENFORCER;
     if (s == "SupportBlocker")
         return SUPPORT_BLOCKER;
+    assert(s == "0");
+    // Default value if invalud type string received.
+    return MODEL_PART;
 }
 
 std::string ModelVolume::type_to_string(const Type t)
@@ -1051,6 +1054,29 @@ size_t ModelVolume::split(unsigned int max_extruders)
     return idx;
 }
 
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+void ModelInstance::set_rotation(const Vec3d& rotation)
+{
+    set_rotation(X, rotation(0));
+    set_rotation(Y, rotation(1));
+    set_rotation(Z, rotation(2));
+}
+
+void ModelInstance::set_rotation(Axis axis, double rotation)
+{
+    static const double TWO_PI = 2.0 * (double)PI;
+    while (rotation < 0.0)
+    {
+        rotation += TWO_PI;
+    }
+    while (TWO_PI < rotation)
+    {
+        rotation -= TWO_PI;
+    }
+    m_rotation(axis) = rotation;
+}
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(world_matrix(dont_translate).cast<float>());
@@ -1095,7 +1121,12 @@ Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 
 void ModelInstance::transform_polygon(Polygon* polygon) const
 {
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    // CHECK_ME -> Is the following correct or it should take in account all three rotations ?
+    polygon->rotate(this->m_rotation(2));                // rotate around polygon origin
+#else
     polygon->rotate(this->rotation);                // rotate around polygon origin
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     polygon->scale(this->scaling_factor);           // scale around polygon origin
 }
 
@@ -1111,7 +1142,15 @@ Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, b
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
     if (!dont_rotate)
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    {
+        m.rotate(Eigen::AngleAxisd(m_rotation(2), Vec3d::UnitZ()));
+        m.rotate(Eigen::AngleAxisd(m_rotation(1), Vec3d::UnitY()));
+        m.rotate(Eigen::AngleAxisd(m_rotation(0), Vec3d::UnitX()));
+    }
+#else
         m.rotate(Eigen::AngleAxisd(rotation, Vec3d::UnitZ()));
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
     if (!dont_scale)
         m.scale(scaling_factor);

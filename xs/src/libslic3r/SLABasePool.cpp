@@ -446,7 +446,7 @@ void ground_layer(const TriangleMesh &mesh, ExPolygons &output, float h)
 
     std::vector<ExPolygons> tmp;
 
-    slicer.slice({h}, &tmp);
+    slicer.slice({h}, &tmp, [](){});
 
     output = tmp.front();
 }

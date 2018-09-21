@@ -437,7 +437,8 @@ ExPolygon::triangulate_pp(Polygons* polygons) const
     // perform triangulation
     std::list<TPPLPoly> output;
     int res = TPPLPartition().Triangulate_MONO(&input, &output);
-    if (res != 1) CONFESS("Triangulation failed");
+    if (res != 1)
+        throw std::runtime_error("Triangulation failed");
     
     // convert output polygons
     for (std::list<TPPLPoly>::iterator poly = output.begin(); poly != output.end(); ++poly) {

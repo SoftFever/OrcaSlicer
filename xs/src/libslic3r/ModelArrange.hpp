@@ -292,59 +292,59 @@ protected:
     using Distance = TCoord<PointImpl>;
     using Pile = sl::Shapes<PolygonImpl>;
 
-    Packer pck_;
-    PConfig pconf_; // Placement configuration
-    double bin_area_;
-    SpatIndex rtree_;
-    SpatIndex smallsrtree_;
-    double norm_;
-    Pile merged_pile_;
-    Box pilebb_;
-    ItemGroup remaining_;
-    ItemGroup items_;
+    Packer m_pck;
+    PConfig m_pconf; // Placement configuration
+    double m_bin_area;
+    SpatIndex m_rtree;
+    SpatIndex m_smallsrtree;
+    double m_norm;
+    Pile m_merged_pile;
+    Box m_pilebb;
+    ItemGroup m_remaining;
+    ItemGroup m_items;
 public:
 
     _ArrBase(const TBin& bin, Distance dist,
              std::function<void(unsigned)> progressind,
              std::function<bool(void)> stopcond):
-       pck_(bin, dist), bin_area_(sl::area(bin)),
-       norm_(std::sqrt(sl::area(bin)))
+       m_pck(bin, dist), m_bin_area(sl::area(bin)),
+       m_norm(std::sqrt(sl::area(bin)))
     {
-        fillConfig(pconf_);
+        fillConfig(m_pconf);
 
-        pconf_.before_packing =
+        m_pconf.before_packing =
         [this](const Pile& merged_pile,            // merged pile
                const ItemGroup& items,             // packed items
                const ItemGroup& remaining)         // future items to be packed
         {
-            items_ = items;
-            merged_pile_ = merged_pile;
-            remaining_ = remaining;
+            m_items = items;
+            m_merged_pile = merged_pile;
+            m_remaining = remaining;
 
-            pilebb_ = sl::boundingBox(merged_pile);
+            m_pilebb = sl::boundingBox(merged_pile);
 
-            rtree_.clear();
-            smallsrtree_.clear();
+            m_rtree.clear();
+            m_smallsrtree.clear();
 
             // We will treat big items (compared to the print bed) differently
             auto isBig = [this](double a) {
-                return a/bin_area_ > BIG_ITEM_TRESHOLD ;
+                return a/m_bin_area > BIG_ITEM_TRESHOLD ;
             };
 
             for(unsigned idx = 0; idx < items.size(); ++idx) {
                 Item& itm = items[idx];
-                if(isBig(itm.area())) rtree_.insert({itm.boundingBox(), idx});
-                smallsrtree_.insert({itm.boundingBox(), idx});
+                if(isBig(itm.area())) m_rtree.insert({itm.boundingBox(), idx});
+                m_smallsrtree.insert({itm.boundingBox(), idx});
             }
         };
 
-        pck_.progressIndicator(progressind);
-        pck_.stopCondition(stopcond);
+        m_pck.progressIndicator(progressind);
+        m_pck.stopCondition(stopcond);
     }
 
     template<class...Args> inline IndexedPackGroup operator()(Args&&...args) {
-        rtree_.clear();
-        return pck_.executeIndexed(std::forward<Args>(args)...);
+        m_rtree.clear();
+        return m_pck.executeIndexed(std::forward<Args>(args)...);
     }
 };
 
@@ -358,18 +358,18 @@ public:
         _ArrBase<Box>(bin, dist, progressind, stopcond)
     {
 
-        pconf_.object_function = [this, bin] (const Item &item) {
+        m_pconf.object_function = [this, bin] (const Item &item) {
 
             auto result = objfunc(bin.center(),
-                                  merged_pile_,
-                                  pilebb_,
-                                  items_,
+                                  m_merged_pile,
+                                  m_pilebb,
+                                  m_items,
                                   item,
-                                  bin_area_,
-                                  norm_,
-                                  rtree_,
-                                  smallsrtree_,
-                                  remaining_);
+                                  m_bin_area,
+                                  m_norm,
+                                  m_rtree,
+                                  m_smallsrtree,
+                                  m_remaining);
 
             double score = std::get<0>(result);
             auto& fullbb = std::get<1>(result);
@@ -381,7 +381,7 @@ public:
             return score;
         };
 
-        pck_.configure(pconf_);
+        m_pck.configure(m_pconf);
     }
 };
 
@@ -396,27 +396,27 @@ public:
                  std::function<bool(void)> stopcond):
         _ArrBase<lnCircle>(bin, dist, progressind, stopcond) {
 
-        pconf_.object_function = [this, &bin] (const Item &item) {
+        m_pconf.object_function = [this, &bin] (const Item &item) {
 
             auto result = objfunc(bin.center(),
-                                  merged_pile_,
-                                  pilebb_,
-                                  items_,
+                                  m_merged_pile,
+                                  m_pilebb,
+                                  m_items,
                                   item,
-                                  bin_area_,
-                                  norm_,
-                                  rtree_,
-                                  smallsrtree_,
-                                  remaining_);
+                                  m_bin_area,
+                                  m_norm,
+                                  m_rtree,
+                                  m_smallsrtree,
+                                  m_remaining);
 
             double score = std::get<0>(result);
 
             auto isBig = [this](const Item& itm) {
-                return itm.area()/bin_area_ > BIG_ITEM_TRESHOLD ;
+                return itm.area()/m_bin_area > BIG_ITEM_TRESHOLD ;
             };
 
             if(isBig(item)) {
-                auto mp = merged_pile_;
+                auto mp = m_merged_pile;
                 mp.push_back(item.transformedShape());
                 auto chull = sl::convexHull(mp);
                 double miss = Placer::overfit(chull, bin);
@@ -427,7 +427,7 @@ public:
             return score;
         };
 
-        pck_.configure(pconf_);
+        m_pck.configure(m_pconf);
     }
 };
 
@@ -439,25 +439,25 @@ public:
                  std::function<bool(void)> stopcond):
         _ArrBase<PolygonImpl>(bin, dist, progressind, stopcond)
     {
-        pconf_.object_function = [this, &bin] (const Item &item) {
+        m_pconf.object_function = [this, &bin] (const Item &item) {
 
             auto binbb = sl::boundingBox(bin);
             auto result = objfunc(binbb.center(),
-                                  merged_pile_,
-                                  pilebb_,
-                                  items_,
+                                  m_merged_pile,
+                                  m_pilebb,
+                                  m_items,
                                   item,
-                                  bin_area_,
-                                  norm_,
-                                  rtree_,
-                                  smallsrtree_,
-                                  remaining_);
+                                  m_bin_area,
+                                  m_norm,
+                                  m_rtree,
+                                  m_smallsrtree,
+                                  m_remaining);
             double score = std::get<0>(result);
 
             return score;
         };
 
-        pck_.configure(pconf_);
+        m_pck.configure(m_pconf);
     }
 };
 
@@ -469,22 +469,22 @@ public:
                  std::function<bool(void)> stopcond):
         _ArrBase<Box>(Box(0, 0), dist, progressind, stopcond)
     {
-        this->pconf_.object_function = [this] (const Item &item) {
+        this->m_pconf.object_function = [this] (const Item &item) {
 
             auto result = objfunc({0, 0},
-                                  merged_pile_,
-                                  pilebb_,
-                                  items_,
+                                  m_merged_pile,
+                                  m_pilebb,
+                                  m_items,
                                   item,
                                   0,
-                                  norm_,
-                                  rtree_,
-                                  smallsrtree_,
-                                  remaining_);
+                                  m_norm,
+                                  m_rtree,
+                                  m_smallsrtree,
+                                  m_remaining);
             return std::get<0>(result);
         };
 
-        this->pck_.configure(pconf_);
+        this->m_pck.configure(m_pconf);
     }
 };
 
@@ -527,14 +527,19 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
 
                     // Invalid geometries would throw exceptions when arranging
                     if(item.vertexCount() > 3) {
-                        item.rotation(objinst->rotation);
-                        item.translation( {
-#if ENABLE_MODELINSTANCE_3D_OFFSET
-                            ClipperLib::cInt(objinst->get_offset(X) / SCALING_FACTOR),
-                            ClipperLib::cInt(objinst->get_offset(Y) / SCALING_FACTOR)
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+                        // CHECK_ME -> is the following correct or it should take in account all three rotations ?
+                        item.rotation(objinst->get_rotation(Z));
 #else
-                            ClipperLib::cInt(objinst->offset(0)/SCALING_FACTOR),
-                            ClipperLib::cInt(objinst->offset(1)/SCALING_FACTOR)
+                        item.rotation(objinst->rotation);
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+                        item.translation({
+#if ENABLE_MODELINSTANCE_3D_OFFSET
+                        ClipperLib::cInt(objinst->get_offset(X)/SCALING_FACTOR),
+                        ClipperLib::cInt(objinst->get_offset(Y)/SCALING_FACTOR)
+#else
+                        ClipperLib::cInt(objinst->offset(0)/SCALING_FACTOR),
+                        ClipperLib::cInt(objinst->offset(1)/SCALING_FACTOR)
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
                         });
                         ret.emplace_back(objinst, item);
@@ -668,18 +673,25 @@ void applyResult(
         // Get the model instance from the shapemap using the index
         ModelInstance *inst_ptr = shapemap[idx].first;
 
-        // Get the tranformation data from the item object and scale it
+        // Get the transformation data from the item object and scale it
         // appropriately
         auto off = item.translation();
         Radians rot = item.rotation();
 #if ENABLE_MODELINSTANCE_3D_OFFSET
-        Vec3d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR, 0.0);
+        Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
+                   off.Y*SCALING_FACTOR,
+                   0.0);
 #else
         Vec2d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR);
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
-        // write the tranformation data into the model instance
+        // write the transformation data into the model instance
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+        // CHECK_ME -> Is the following correct ?
+        inst_ptr->set_rotation(Vec3d(0.0, 0.0, rot));
+#else
         inst_ptr->rotation = rot;
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 #if ENABLE_MODELINSTANCE_3D_OFFSET
         inst_ptr->set_offset(foff);
 #else
@@ -695,7 +707,7 @@ void applyResult(
  * The arrangement considers multiple bins (aka. print beds) for placing all
  * the items provided in the model argument. If the items don't fit on one
  * print bed, the remaining will be placed onto newly created print beds.
- * The first_bin_only parameter, if set to true, disables this behaviour and
+ * The first_bin_only parameter, if set to true, disables this behavior and
  * makes sure that only one print bed is filled and the remaining items will be
  * untouched. When set to false, the items which could not fit onto the
  * print bed will be placed next to the print bed so the user should see a
@@ -741,6 +753,7 @@ bool arrange(Model &model, coordf_t min_obj_distance,
 
     IndexedPackGroup result;
 
+    // If there is no hint about the shape, we will try to guess
     if(bedhint.type == BedShapeType::WHO_KNOWS) bedhint = bedShape(bed);
 
     BoundingBox bbb(bed);
