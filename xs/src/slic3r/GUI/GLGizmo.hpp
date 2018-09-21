@@ -133,7 +133,6 @@ class GLGizmoRotate : public GLGizmoBase
     static const float ScaleStepRad;
     static const unsigned int ScaleLongEvery;
     static const float ScaleLongTooth;
-    static const float ScaleShortTooth;
     static const unsigned int SnapRegionsCount;
     static const float GrabberOffset;
 
@@ -151,6 +150,11 @@ private:
 
     mutable Vec3d m_center;
     mutable float m_radius;
+
+    mutable float m_snap_coarse_in_radius;
+    mutable float m_snap_coarse_out_radius;
+    mutable float m_snap_fine_in_radius;
+    mutable float m_snap_fine_out_radius;
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
