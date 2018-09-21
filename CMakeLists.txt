@@ -43,10 +43,12 @@ enable_testing ()
 # Enable C++11 language standard.
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Enable C11 language standard.
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# To be able to link libslic3r with the Perl XS module.
+# Once we get rid of Perl and libslic3r is linked statically, we can get rid of -fPIC
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # WIN10SDK_PATH is used to point CMake to the WIN10 SDK installation directory.
 # We pick it from environment if it is not defined in another way
@@ -100,9 +102,8 @@ if (SLIC3R_PROFILE)
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-# If the Perl is compiled with optimization off, disable optimization over the whole project.
+# Disable optimization even with debugging on.
 if (0)
-#if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
     message(STATUS "Perl compiled without optimization. Disabling optimization for the Slic3r build.")
     message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -114,8 +115,6 @@ if (0)
     set(CMAKE_CXX_FLAGS "/MD /Od /Zi /EHsc /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
     set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
 endif()
-# The following line will add -fPIC on Linux to make the XS.so rellocable.
-#add_definitions(${PerlEmbed_CCCDLFLAGS})
 
 # Find and configure boost
 if(SLIC3R_STATIC)
