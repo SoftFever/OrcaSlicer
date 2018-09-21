@@ -50,12 +50,12 @@ int main(int argc, char **argv)
         // Running from the build directory:
         "../../resources" :
         // Running from an installation directory:
-#if APPLE
+#ifdef __APPLE__
         // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
         // The resources are packed to 'Slic3r.app/Contents/Resources'
         "../Resources"
 #else
-    #if WIN32
+    #ifdef _WIN32
         // The application is packed in the .zip archive in the root,
         // The resources are packed to 'resources'
         // Path from Slic3r binary to resources:
