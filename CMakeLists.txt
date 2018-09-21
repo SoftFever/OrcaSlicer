@@ -27,26 +27,6 @@ if (MSVC AND SLIC3R_MSVC_COMPILE_PARALLEL)
 	add_compile_options(/MP)
 endif ()
 
-# Find the Perl interpreter, add local-lib to PATH and PERL5LIB environment variables,
-# so the locally installed modules (mainly the Alien::wxPerl) will be reached.
-if (WIN32)
-    set(ENV_PATH_SEPARATOR ";")
-else()
-    set(ENV_PATH_SEPARATOR ":")
-endif()
-set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
-set(PERL_INCLUDE  "${PROJECT_SOURCE_DIR}/local-lib/lib/perl5${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
-message("PATH: $ENV{PATH}")
-message("PERL_INCLUDE: ${PERL_INCLUDE}")
-find_package(Perl REQUIRED)
-if (WIN32)
-    # On Windows passing the PERL5LIB variable causes various problems (such as with MAX_PATH and others),
-    # basically I've found no good way to do it on Windows.
-    set(PERL5LIB_ENV_CMD "")
-else()
-    set(PERL5LIB_ENV_CMD ${CMAKE_COMMAND} -E env PERL5LIB=${PERL_INCLUDE})
-endif()
-
 # CMAKE_PREFIX_PATH is used to point CMake to the remaining dependencies (Boost, TBB, ...)
 # We pick it from environment if it is not defined in another way
 if(NOT DEFINED CMAKE_PREFIX_PATH)
@@ -110,7 +90,7 @@ include_directories(${LIBDIR}/libslic3r ${LIBDIR}/clipper ${LIBDIR}/polypartitio
 
 if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601)
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)
@@ -120,12 +100,9 @@ if (SLIC3R_PROFILE)
     add_definitions(-DSLIC3R_PROFILE)
 endif ()
 
-# Perl specific stuff
-find_package(PerlLibs REQUIRED)
-set(PerlEmbed_DEBUG 1)
-find_package(PerlEmbed REQUIRED)
 # If the Perl is compiled with optimization off, disable optimization over the whole project.
-if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
+if (0)
+#if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
     message(STATUS "Perl compiled without optimization. Disabling optimization for the Slic3r build.")
     message("Old CMAKE_CXX_FLAGS_RELEASE: ${CMAKE_CXX_FLAGS_RELEASE}")
     message("Old CMAKE_CXX_FLAGS_RELWITHDEBINFO: ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -138,7 +115,7 @@ if (WIN32 AND ";${PerlEmbed_CCFLAGS};" MATCHES ";[-/]Od;")
     set(CMAKE_C_FLAGS "/MD /Od /Zi /DNDEBUG /DWIN32 /DTBB_USE_ASSERT")
 endif()
 # The following line will add -fPIC on Linux to make the XS.so rellocable.
-add_definitions(${PerlEmbed_CCCDLFLAGS})
+#add_definitions(${PerlEmbed_CCCDLFLAGS})
 
 # Find and configure boost
 if(SLIC3R_STATIC)

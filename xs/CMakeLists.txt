@@ -1,5 +1,30 @@
 project(XS)
 
+# Find the Perl interpreter, add local-lib to PATH and PERL5LIB environment variables,
+# so the locally installed modules (mainly the Alien::wxPerl) will be reached.
+if (WIN32)
+    set(ENV_PATH_SEPARATOR ";")
+else()
+    set(ENV_PATH_SEPARATOR ":")
+endif()
+set(ENV{PATH}     "${PROJECT_SOURCE_DIR}/local-lib/bin${ENV_PATH_SEPARATOR}$ENV{PATH}")
+set(PERL_INCLUDE  "${PROJECT_SOURCE_DIR}/local-lib/lib/perl5${ENV_PATH_SEPARATOR}$ENV{PERL5LIB}")
+message("PATH: $ENV{PATH}")
+message("PERL_INCLUDE: ${PERL_INCLUDE}")
+find_package(Perl REQUIRED)
+if (WIN32)
+    # On Windows passing the PERL5LIB variable causes various problems (such as with MAX_PATH and others),
+    # basically I've found no good way to do it on Windows.
+    set(PERL5LIB_ENV_CMD "")
+else()
+    set(PERL5LIB_ENV_CMD ${CMAKE_COMMAND} -E env PERL5LIB=${PERL_INCLUDE})
+endif()
+
+# Perl specific stuff
+find_package(PerlLibs REQUIRED)
+set(PerlEmbed_DEBUG 1)
+find_package(PerlEmbed REQUIRED)
+
 # Generate the Slic3r Perl module (XS) typemap file.
 set(MyTypemap ${CMAKE_CURRENT_BINARY_DIR}/typemap)
 add_custom_command(

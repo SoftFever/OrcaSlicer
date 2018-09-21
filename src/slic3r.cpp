@@ -1,3 +1,17 @@
+#ifdef WIN32
+    // Why?
+    #define _WIN32_WINNT 0x0502
+    // The standard Windows includes.
+    #define WIN32_LEAN_AND_MEAN
+    #define NOMINMAX
+    #include <Windows.h>
+    #include <wchar.h>
+    // Let the NVIDIA and AMD know we want to use their graphics card
+    // on a dual graphics card system.
+    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+#endif /* WIN32 */
+
 #include "Config.hpp"
 #include "Geometry.hpp"
 #include "Model.hpp"
