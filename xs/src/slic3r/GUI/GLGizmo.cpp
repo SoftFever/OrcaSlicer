@@ -336,10 +336,9 @@ const unsigned int GLGizmoRotate::AngleResolution = 64;
 const unsigned int GLGizmoRotate::ScaleStepsCount = 72;
 const float GLGizmoRotate::ScaleStepRad = 2.0f * (float)PI / GLGizmoRotate::ScaleStepsCount;
 const unsigned int GLGizmoRotate::ScaleLongEvery = 2;
-const float GLGizmoRotate::ScaleLongTooth = 2.0f;
-const float GLGizmoRotate::ScaleShortTooth = 1.0f;
+const float GLGizmoRotate::ScaleLongTooth = 0.1f; // in percent of radius
 const unsigned int GLGizmoRotate::SnapRegionsCount = 8;
-const float GLGizmoRotate::GrabberOffset = 5.0f;
+const float GLGizmoRotate::GrabberOffset = 0.15f; // in percent of radius
 
 GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     : GLGizmoBase(parent)
@@ -347,6 +346,10 @@ GLGizmoRotate::GLGizmoRotate(GLCanvas3D& parent, GLGizmoRotate::Axis axis)
     , m_angle(0.0)
     , m_center(0.0, 0.0, 0.0)
     , m_radius(0.0f)
+    , m_snap_coarse_in_radius(0.0f)
+    , m_snap_coarse_out_radius(0.0f)
+    , m_snap_fine_in_radius(0.0f)
+    , m_snap_fine_out_radius(0.0f)
 {
 }
 
@@ -368,6 +371,10 @@ void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
 {
     m_center = box.center();
     m_radius = Offset + box.radius();
+    m_snap_coarse_in_radius = m_radius / 3.0f;
+    m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
+    m_snap_fine_in_radius = m_radius;
+    m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
 void GLGizmoRotate::on_update(const Linef3& mouse_ray)
@@ -383,20 +390,16 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
 
     double len = mouse_pos.norm();
 
-    // snap to snap region
-    double in_radius = (double)m_radius / 3.0;
-    double out_radius = 2.0 * (double)in_radius;
-    if ((in_radius <= len) && (len <= out_radius))
+    // snap to coarse snap region
+    if ((m_snap_coarse_in_radius <= len) && (len <= m_snap_coarse_out_radius))
     {
         double step = 2.0 * (double)PI / (double)SnapRegionsCount;
         theta = step * (double)std::round(theta / step);
     }
     else
     {
-        // snap to scale
-        in_radius = (double)m_radius;
-        out_radius = in_radius + (double)ScaleLongTooth;
-        if ((in_radius <= len) && (len <= out_radius))
+        // snap to fine snap region (scale)
+        if ((m_snap_fine_in_radius <= len) && (len <= m_snap_fine_out_radius))
         {
             double step = 2.0 * (double)PI / (double)ScaleStepsCount;
             theta = step * (double)std::round(theta / step);
@@ -420,6 +423,10 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     {
         m_center = box.center();
         m_radius = Offset + box.radius();
+        m_snap_coarse_in_radius = m_radius / 3.0f;
+        m_snap_coarse_out_radius = 2.0f * m_snap_coarse_in_radius;
+        m_snap_fine_in_radius = m_radius;
+        m_snap_fine_out_radius = m_radius * (1.0f + ScaleLongTooth);
     }
 
     ::glEnable(GL_DEPTH_TEST);
@@ -477,8 +484,8 @@ void GLGizmoRotate::render_circle() const
 
 void GLGizmoRotate::render_scale() const
 {
-    float out_radius_long = m_radius + ScaleLongTooth;
-    float out_radius_short = m_radius + ScaleShortTooth;
+    float out_radius_long = m_snap_fine_out_radius;
+    float out_radius_short = m_radius * (1.0f + 0.5f * ScaleLongTooth);
 
     ::glBegin(GL_LINES);
     for (unsigned int i = 0; i < ScaleStepsCount; ++i)
@@ -527,14 +534,14 @@ void GLGizmoRotate::render_reference_radius() const
 {
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)(m_radius + GrabberOffset), 0.0f, 0.0f);
+    ::glVertex3f((GLfloat)(m_radius * (1.0f + GrabberOffset)), 0.0f, 0.0f);
     ::glEnd();
 }
 
 void GLGizmoRotate::render_angle() const
 {
     float step_angle = (float)m_angle / AngleResolution;
-    float ex_radius = m_radius + GrabberOffset;
+    float ex_radius = m_radius * (1.0f + GrabberOffset);
 
     ::glBegin(GL_LINE_STRIP);
     for (unsigned int i = 0; i <= AngleResolution; ++i)
@@ -550,7 +557,7 @@ void GLGizmoRotate::render_angle() const
 
 void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 {
-    double grabber_radius = (double)(m_radius + GrabberOffset);
+    double grabber_radius = (double)m_radius * (1.0 + (double)GrabberOffset);
     m_grabbers[0].center = Vec3d(::cos(m_angle) * grabber_radius, ::sin(m_angle) * grabber_radius, 0.0);
     m_grabbers[0].angles(2) = m_angle;
 
