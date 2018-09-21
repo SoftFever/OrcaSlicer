@@ -6,6 +6,7 @@
 #include <wx/sizer.h>
 #include <wx/menu.h>
 #include <wx/progdlg.h>
+#include <wx/tooltip.h>
 
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
@@ -647,7 +648,9 @@ void MainFrame::export_config()
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         !m_last_config.IsEmpty() ? get_base_name(m_last_config) : "config.ini",
         FILE_WILDCARDS.at("ini"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    wxString file = dlg->ShowModal() == wxID_OK ? dlg->GetPath() : wxEmptyString;
+    wxString file;
+    if (dlg->ShowModal() == wxID_OK)
+        file = dlg->GetPath();
     dlg->Destroy();
     if (!file.IsEmpty()) {
         wxGetApp().app_config->update_config_dir(get_dir_name(file));
@@ -697,7 +700,9 @@ void MainFrame::export_configbundle()
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         "Slic3r_config_bundle.ini",
         FILE_WILDCARDS.at("ini"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    wxString file = dlg->ShowModal() == wxID_OK ? dlg->GetPath() : wxEmptyString;
+    wxString file;
+    if (dlg->ShowModal() == wxID_OK)
+        file = dlg->GetPath();
     dlg->Destroy();
     if (!file.IsEmpty()) {
         // Export the config bundle.
