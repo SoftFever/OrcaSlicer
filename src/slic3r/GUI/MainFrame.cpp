@@ -18,7 +18,6 @@
 #include "AppConfig.hpp"
 
 #include <fstream>
-#include <boost/geometry/strategies/spherical/compare_circular.hpp>
 #include "GUI_App.hpp"
 
 namespace Slic3r {
