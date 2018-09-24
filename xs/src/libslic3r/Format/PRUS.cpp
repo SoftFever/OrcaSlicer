@@ -169,7 +169,11 @@ bool load_prus(const char *path, Model *model)
 #else
             double instance_rotation = 0.;
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            Vec3d instance_scaling_factor = Vec3d::Ones();
+#else
             double instance_scaling_factor = 1.f;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_OFFSET
             Vec3d instance_offset = Vec3d::Zero();
 #else
@@ -197,10 +201,14 @@ bool load_prus(const char *path, Model *model)
                         "[%f, %f, %f]", scale, scale+1, scale+2) == 3 &&
                     sscanf(zero_xml+strlen(zero_tag), 
                         "[%f, %f, %f]", zero, zero+1, zero+2) == 3) {
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                    instance_scaling_factor = Vec3d((double)scale[0], (double)scale[1], (double)scale[2]);
+#else
                     if (scale[0] == scale[1] && scale[1] == scale[2]) {
                         instance_scaling_factor = scale[0];
                         scale[0] = scale[1] = scale[2] = 1.;
                     }
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_ROTATION
                     instance_rotation = Vec3d(-(double)rotation[0], -(double)rotation[1], -(double)rotation[2]);
 #else
@@ -225,7 +233,12 @@ bool load_prus(const char *path, Model *model)
                     instance_offset(0) = position[0] - zero[0];
                     instance_offset(1) = position[1] - zero[1];
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                    // CHECK_ME -> Is the following correct ?
+                    trafo[2][3] = position[2] / instance_scaling_factor(2);
+#else
                     trafo[2][3] = position[2] / instance_scaling_factor;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
                     trafo_set = true;
                 }
                 const char *group_tag    = "<group>";
@@ -379,7 +392,11 @@ bool load_prus(const char *path, Model *model)
 #else
                         instance->rotation = instance_rotation;
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                        instance->set_scaling_factor(instance_scaling_factor);
+#else
                         instance->scaling_factor = instance_scaling_factor;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_OFFSET
                         instance->set_offset(instance_offset);
 #else

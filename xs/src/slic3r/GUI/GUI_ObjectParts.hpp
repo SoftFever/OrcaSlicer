@@ -119,7 +119,11 @@ void update_position_values();
 void update_position_values(const Vec3d& position);
 // update scale values after scale unit changing or "gizmos"
 void update_scale_values();
+#if ENABLE_MODELINSTANCE_3D_SCALE
+void update_scale_values(const Vec3d& scaling_factor);
+#else
 void update_scale_values(double scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 // update rotation values object selection changing
 void update_rotation_values();
 // update rotation value after "gizmos"

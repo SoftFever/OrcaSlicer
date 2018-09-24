@@ -987,8 +987,11 @@ void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
     double ratio = calc_ratio(2, mouse_ray, m_starting_box.center());
 
     if (ratio > 0.0)
-        m_scale(0) = m_starting_scale(1) * ratio; // << this is temporary
-//        m_scale(1) = m_starting_scale(1) * ratio;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        m_scale(1) = m_starting_scale(1) * ratio;
+#else
+        m_scale(0) = m_starting_scale(1) * ratio;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 }
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
@@ -996,8 +999,11 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
     double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
 
     if (ratio > 0.0)
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        m_scale(2) = m_starting_scale(2) * ratio;
+#else
         m_scale(0) = m_starting_scale(2) * ratio; // << this is temporary
-//        m_scale(2) = m_starting_scale(2) * ratio;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 }
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
@@ -1276,7 +1282,11 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
             ::glRotated(inst.rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
             ::glRotated(inst.rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
             ::glRotated(inst.rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            ::glScaled(inst.scaling_factor(0), inst.scaling_factor(1), inst.scaling_factor(2));
+#else
             ::glScaled(inst.scaling_factor, inst.scaling_factor, inst.scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
             ::glTranslated(offset(0), offset(1), offset(2));
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
@@ -1317,7 +1327,11 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
             ::glRotated(inst.rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
             ::glRotated(inst.rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
             ::glRotated(inst.rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            ::glScaled(inst.scaling_factor(0), inst.scaling_factor(1), inst.scaling_factor(2));
+#else
             ::glScaled(inst.scaling_factor, inst.scaling_factor, inst.scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
             ::glTranslated(offset(0), offset(1), offset(2));
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
@@ -1347,7 +1361,11 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
         for (const auto* instance : m_model_object->instances)
 #if ENABLE_MODELINSTANCE_3D_OFFSET
 #if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            m_instances.emplace_back(instance->get_offset(), instance->get_rotation(), instance->get_scaling_factor());
+#else
             m_instances.emplace_back(instance->get_offset(), instance->get_rotation(), instance->scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
             m_instances_positions.emplace_back(instance->get_offset());
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
@@ -1576,11 +1594,20 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
 #if ENABLE_MODELINSTANCE_3D_ROTATION
 Vec3d GLGizmoFlatten::get_flattening_rotation() const
 {
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    // calculates the rotations in model space, taking in account the scaling factors
+    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = m_model_object->instances.front()->world_matrix(true, true).matrix().block(0, 0, 3, 3).inverse().transpose();
+    Eigen::Quaterniond q;
+    Vec3d angles = q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix().eulerAngles(2, 1, 0);
+    m_normal = Vec3d::Zero();
+    return Vec3d(angles(2), angles(1), angles(0));
+#else
     // calculates the rotations in model space
     Eigen::Quaterniond q;
     Vec3d angles = q.setFromTwoVectors(m_normal, -Vec3d::UnitZ()).toRotationMatrix().eulerAngles(2, 1, 0);
     m_normal = Vec3d::Zero();
     return Vec3d(angles(2), angles(1), angles(0));
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 }
 #else
 Vec3d GLGizmoFlatten::get_flattening_normal() const {

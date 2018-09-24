@@ -371,8 +371,13 @@ ModelMaterial::attributes()
     double rotation()
         %code%{ RETVAL = THIS->rotation; %};
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    Vec3d* scaling_factor()
+        %code%{ RETVAL = new Vec3d(THIS->get_scaling_factor(X), THIS->get_scaling_factor(Y), THIS->get_scaling_factor(Z)); %};
+#else
     double scaling_factor()
         %code%{ RETVAL = THIS->scaling_factor; %};
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_OFFSET
     Vec2d* offset()
         %code%{ RETVAL = new Vec2d(THIS->get_offset(X), THIS->get_offset(Y)); %};
@@ -387,13 +392,20 @@ ModelMaterial::attributes()
         
     void set_rotations(Vec3d *rotation)
         %code%{ THIS->set_rotation(*rotation); THIS->get_object()->invalidate_bounding_box(); %};
-        
 #else
     void set_rotation(double val)
         %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    void set_scaling_factor(double val)
+        %code%{ THIS->set_scaling_factor(X, val); THIS->set_scaling_factor(Y, val); THIS->set_scaling_factor(Z, val); THIS->get_object()->invalidate_bounding_box(); %};
+        
+    void set_scaling_factors(Vec3d *scale)
+        %code%{ THIS->set_scaling_factor(*scale); THIS->get_object()->invalidate_bounding_box(); %};
+#else
     void set_scaling_factor(double val)
         %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_OFFSET
     void set_offset(Vec2d *offset)
         %code%{ 

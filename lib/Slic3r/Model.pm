@@ -124,7 +124,7 @@ sub add_instance {
         
         $new_instance->set_rotations($args{rotation})
             if defined $args{rotation};
-        $new_instance->set_scaling_factor($args{scaling_factor})
+        $new_instance->set_scaling_factors($args{scaling_factor})
             if defined $args{scaling_factor};
         $new_instance->set_offset($args{offset})
             if defined $args{offset};

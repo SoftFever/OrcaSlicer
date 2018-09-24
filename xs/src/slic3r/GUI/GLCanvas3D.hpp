@@ -384,8 +384,13 @@ class GLCanvas3D
         Vec3d get_position() const;
         void set_position(const Vec3d& position);
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        Vec3d get_scale() const;
+        void set_scale(const Vec3d& scale);
+#else
         float get_scale() const;
         void set_scale(float scale);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
 #if ENABLE_MODELINSTANCE_3D_ROTATION
         Vec3d get_rotation() const;
@@ -515,7 +520,11 @@ class GLCanvas3D
     PerlCallback m_on_instance_moved_callback;
     PerlCallback m_on_wipe_tower_moved_callback;
     PerlCallback m_on_enable_action_buttons_callback;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    PerlCallback m_on_gizmo_scale_3D_callback;
+#else
     PerlCallback m_on_gizmo_scale_uniformly_callback;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_ROTATION
     PerlCallback m_on_gizmo_rotate_3D_callback;
     PerlCallback m_on_gizmo_flatten_3D_callback;
@@ -523,7 +532,11 @@ class GLCanvas3D
     PerlCallback m_on_gizmo_rotate_callback;
     PerlCallback m_on_gizmo_flatten_callback;
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    PerlCallback m_on_update_geometry_3D_info_callback;
+#else
     PerlCallback m_on_update_geometry_info_callback;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
     PerlCallback m_action_add_callback;
     PerlCallback m_action_delete_callback;
@@ -645,7 +658,11 @@ public:
     void register_on_instance_moved_callback(void* callback);
     void register_on_wipe_tower_moved_callback(void* callback);
     void register_on_enable_action_buttons_callback(void* callback);
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    void register_on_gizmo_scale_3D_callback(void* callback);
+#else
     void register_on_gizmo_scale_uniformly_callback(void* callback);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_ROTATION
     void register_on_gizmo_rotate_3D_callback(void* callback);
     void register_on_gizmo_flatten_3D_callback(void* callback);
@@ -653,7 +670,11 @@ public:
     void register_on_gizmo_rotate_callback(void* callback);
     void register_on_gizmo_flatten_callback(void* callback);
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    void register_on_update_geometry_3D_info_callback(void* callback);
+#else
     void register_on_update_geometry_info_callback(void* callback);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
     void register_action_add_callback(void* callback);
     void register_action_delete_callback(void* callback);

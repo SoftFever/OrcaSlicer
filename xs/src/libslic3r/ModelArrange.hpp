@@ -29,7 +29,12 @@ std::string toString(const Model& model, bool holes = true) {
             if(!objinst) continue;
 
             Slic3r::TriangleMesh tmpmesh = rmesh;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            // CHECK_ME -> Is the following correct ?
+            tmpmesh.scale(objinst->get_scaling_factor());
+#else
             tmpmesh.scale(objinst->scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
             objinst->transform_mesh(&tmpmesh);
             ExPolygons expolys = tmpmesh.horizontal_projection();
             for(auto& expoly_complex : expolys) {
@@ -87,7 +92,11 @@ void toSVG(SVG& svg, const Model& model) {
             if(!objinst) continue;
 
             Slic3r::TriangleMesh tmpmesh = rmesh;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            tmpmesh.scale(objinst->get_scaling_factor());
+#else
             tmpmesh.scale(objinst->scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
             objinst->transform_mesh(&tmpmesh);
             ExPolygons expolys = tmpmesh.horizontal_projection();
             svg.draw(expolys);
@@ -513,7 +522,12 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     Slic3r::TriangleMesh tmpmesh = rmesh;
                     ClipperLib::PolygonImpl pn;
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                    // CHECK_ME -> is the following correct ?
+                    tmpmesh.scale(objinst->get_scaling_factor());
+#else
                     tmpmesh.scale(objinst->scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
                     // TODO export the exact 2D projection
                     auto p = tmpmesh.convex_hull();

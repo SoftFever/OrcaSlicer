@@ -275,6 +275,10 @@ class GLGizmoScale3D : public GLGizmoBase
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    const Vec3d& get_scale() const { return m_scale; }
+    void set_scale(const Vec3d& scale) { m_starting_scale = scale; }
+#else
     double get_scale_x() const { return m_scale(0); }
     void set_scale_x(double scale) { m_starting_scale(0) = scale; }
 
@@ -285,6 +289,7 @@ public:
     void set_scale_z(double scale) { m_starting_scale(2) = scale; }
 
     void set_scale(double scale) { m_starting_scale = scale * Vec3d::Ones(); }
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
 protected:
     virtual bool on_init();
@@ -365,10 +370,16 @@ private:
     struct InstanceData
     {
         Vec3d position;
-        Vec3d rotation; 
+        Vec3d rotation;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        Vec3d scaling_factor;
+
+        InstanceData(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor) : position(position), rotation(rotation), scaling_factor(scaling_factor) {}
+#else
         double scaling_factor;
 
         InstanceData(const Vec3d& position, const Vec3d& rotation, double scaling_factor) : position(position), rotation(rotation), scaling_factor(scaling_factor) {}
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
     };
     std::vector<InstanceData> m_instances;
 #else

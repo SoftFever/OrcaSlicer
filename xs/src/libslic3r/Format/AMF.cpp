@@ -31,8 +31,14 @@
 // 1 : Introduction of amf versioning. No other change in data saved into amf files.
 #if ENABLE_MODELINSTANCE_3D_OFFSET
 #if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
 // 2 : Added z component of offset
 //     Added x and y components of rotation
+//     Added x, y and z components of scale
+#else
+// 2 : Added z component of offset
+//     Added x and y components of rotation
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
 // 2 : Added z component of offset.
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
@@ -138,13 +144,22 @@ struct AMFParserContext
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
         NODE_TYPE_RZ,                   // amf/constellation/instance/rz
         NODE_TYPE_SCALE,                // amf/constellation/instance/scale
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        NODE_TYPE_SCALEX,                // amf/constellation/instance/scalex
+        NODE_TYPE_SCALEY,                // amf/constellation/instance/scaley
+        NODE_TYPE_SCALEZ,                // amf/constellation/instance/scalez
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
     struct Instance {
 #if ENABLE_MODELINSTANCE_3D_OFFSET
 #if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rx_set(false), ry_set(false), rz_set(false), scalex_set(false), scaley_set(false), scalez_set(false)  {}
+#else
         Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rx_set(false), ry_set(false), rz_set(false), scale_set(false) {}
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
         Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rz_set(false), scale_set(false) {}
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
@@ -173,9 +188,19 @@ struct AMFParserContext
         // Rotation around the Z axis.
         float rz;
         bool  rz_set;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        // Scaling factors
+        float scalex;
+        bool  scalex_set;
+        float scaley;
+        bool  scaley_set;
+        float scalez;
+        bool  scalez_set;
+#else
         // Scaling factor
         float scale;
         bool  scale_set;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
     };
 
     struct Object {
@@ -304,6 +329,14 @@ void AMFParserContext::startElement(const char *name, const char **atts)
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
             else if (strcmp(name, "rz") == 0)
                 node_type_new = NODE_TYPE_RZ;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+            else if (strcmp(name, "scalex") == 0)
+                node_type_new = NODE_TYPE_SCALEX;
+            else if (strcmp(name, "scaley") == 0)
+                node_type_new = NODE_TYPE_SCALEY;
+            else if (strcmp(name, "scalez") == 0)
+                node_type_new = NODE_TYPE_SCALEZ;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
             else if (strcmp(name, "scale") == 0)
                 node_type_new = NODE_TYPE_SCALE;
         }
@@ -371,7 +404,14 @@ void AMFParserContext::characters(const XML_Char *s, int len)
                 m_path.back() == NODE_TYPE_RY ||
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
                 m_path.back() == NODE_TYPE_RZ ||
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                m_path.back() == NODE_TYPE_SCALEX ||
+                m_path.back() == NODE_TYPE_SCALEY ||
+                m_path.back() == NODE_TYPE_SCALEZ ||
                 m_path.back() == NODE_TYPE_SCALE)
+#else
+                m_path.back() == NODE_TYPE_SCALE)
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
             if (m_path.back() == NODE_TYPE_DELTAX || m_path.back() == NODE_TYPE_DELTAY || m_path.back() == NODE_TYPE_RZ || m_path.back() == NODE_TYPE_SCALE)
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -444,10 +484,39 @@ void AMFParserContext::endElement(const char * /* name */)
         break;
     case NODE_TYPE_SCALE:
         assert(m_instance);
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        m_instance->scalex = float(atof(m_value[0].c_str()));
+        m_instance->scalex_set = true;
+        m_instance->scaley = float(atof(m_value[0].c_str()));
+        m_instance->scaley_set = true;
+        m_instance->scalez = float(atof(m_value[0].c_str()));
+        m_instance->scalez_set = true;
+#else
         m_instance->scale = float(atof(m_value[0].c_str()));
         m_instance->scale_set = true;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
         m_value[0].clear();
         break;
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    case NODE_TYPE_SCALEX:
+        assert(m_instance);
+        m_instance->scalex = float(atof(m_value[0].c_str()));
+        m_instance->scalex_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_SCALEY:
+        assert(m_instance);
+        m_instance->scaley = float(atof(m_value[0].c_str()));
+        m_instance->scaley_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_SCALEZ:
+        assert(m_instance);
+        m_instance->scalez = float(atof(m_value[0].c_str()));
+        m_instance->scalez_set = true;
+        m_value[0].clear();
+        break;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
     // Object vertices:
     case NODE_TYPE_VERTEX:
@@ -596,7 +665,11 @@ void AMFParserContext::endDocument()
 #else
                 mi->rotation = instance.rz_set ? instance.rz : 0.f;
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                mi->set_scaling_factor(Vec3d(instance.scalex_set ? (double)instance.scalex : 1.0, instance.scaley_set ? (double)instance.scaley : 1.0, instance.scalez_set ? (double)instance.scalez : 1.0));
+#else
                 mi->scaling_factor = instance.scale_set ? instance.scale : 1.f;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
             }
     }
 }
@@ -904,7 +977,13 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     "      <ry>%lf</ry>\n"
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
                     "      <rz>%lf</rz>\n"
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                    "      <scalex>%lf</scalex>\n"
+                    "      <scaley>%lf</scaley>\n"
+                    "      <scalez>%lf</scalez>\n"
+#else
                     "      <scale>%lf</scale>\n"
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
                     "    </instance>\n",
                     object_id,
 #if ENABLE_MODELINSTANCE_3D_OFFSET
@@ -922,7 +1001,13 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
 #else
                     instance->rotation,
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+                    instance->get_scaling_factor(X),
+                    instance->get_scaling_factor(Y),
+                    instance->get_scaling_factor(Z));
+#else
                     instance->scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);

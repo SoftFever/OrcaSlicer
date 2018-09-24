@@ -1270,9 +1270,11 @@ namespace Slic3r {
         if ((sx == 0.0) || (sy == 0.0) || (sz == 0.0))
             return;
 
+#if !ENABLE_MODELINSTANCE_3D_SCALE
         // non-uniform scale value, return
         if ((std::abs(sx - sy) > 0.00001) || (std::abs(sx - sz) > 0.00001))
             return;
+#endif // !ENABLE_MODELINSTANCE_3D_SCALE
 
         double inv_sx = 1.0 / sx;
         double inv_sy = 1.0 / sy;
@@ -1303,7 +1305,11 @@ namespace Slic3r {
         instance.offset(0) = offset_x;
         instance.offset(1) = offset_y;
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        instance.set_scaling_factor(Vec3d(sx, sy, sz));
+#else
         instance.scaling_factor = sx;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #if ENABLE_MODELINSTANCE_3D_ROTATION
         instance.set_rotation(rotation);
 #else

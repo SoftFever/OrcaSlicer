@@ -14,6 +14,17 @@ void MultiPoint::scale(double factor)
         pt *= factor;
 }
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+void MultiPoint::scale(double factor_x, double factor_y)
+{
+    for (Point &pt : points)
+    {
+        pt(0) *= factor_x;
+        pt(1) *= factor_y;
+    }
+}
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
+
 void MultiPoint::translate(double x, double y)
 {
     Vector v(x, y);

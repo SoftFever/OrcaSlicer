@@ -263,8 +263,13 @@ private:
     // Rotation around Z axis of the volume to be rendered.
     double                m_rotation;
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    // Scale factor along the three axes of the volume to be rendered.
+    Vec3d                 m_scaling_factor;
+#else
     // Scale factor of the volume to be rendered.
     double                m_scaling_factor;
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
     // World matrix of the volume to be rendered.
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
@@ -343,7 +348,11 @@ public:
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    void set_scaling_factor(const Vec3d& scaling_factor);
+#else
     void set_scaling_factor(double factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
     void set_convex_hull(const TriangleMesh& convex_hull);
 
@@ -567,11 +576,13 @@ public:
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback);
 
     static void register_action_add_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_delete_callback(wxGLCanvas* canvas, void* callback);

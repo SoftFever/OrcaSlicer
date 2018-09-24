@@ -10,7 +10,8 @@
 #define ENABLE_GIZMOS_RESET (1 && ENABLE_1_42_0)
 // Add x and y rotation components to model instances' offset
 #define ENABLE_MODELINSTANCE_3D_ROTATION (1 && ENABLE_MODELINSTANCE_3D_OFFSET)
-
+// Add scaling factors for all the three axes to model instances
+#define ENABLE_MODELINSTANCE_3D_SCALE (1 && ENABLE_MODELINSTANCE_3D_ROTATION)
 #endif // _technologies_h_
 
 

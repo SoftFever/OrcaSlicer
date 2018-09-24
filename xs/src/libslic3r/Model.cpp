@@ -1090,11 +1090,23 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        // Scale the bounding box along the three axes.
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            if (std::abs(this->m_scaling_factor(i) - 1.0) > EPSILON)
+            {
+                bbox.min(i) *= this->m_scaling_factor(i);
+                bbox.max(i) *= this->m_scaling_factor(i);
+            }
+        }
+#else
         // Scale the bounding box uniformly.
         if (std::abs(this->scaling_factor - 1.) > EPSILON) {
             bbox.min *= this->scaling_factor;
 			bbox.max *= this->scaling_factor;
         }
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
         // Translate the bounding box.
         if (! dont_translate) {
 #if ENABLE_MODELINSTANCE_3D_OFFSET
@@ -1127,7 +1139,12 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 #else
     polygon->rotate(this->rotation);                // rotate around polygon origin
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    // CHECK_ME -> Is the following correct ?
+    polygon->scale(this->m_scaling_factor(0), this->m_scaling_factor(1));           // scale around polygon origin
+#else
     polygon->scale(this->scaling_factor);           // scale around polygon origin
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 }
 
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
@@ -1153,7 +1170,11 @@ Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, b
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
     if (!dont_scale)
+#if ENABLE_MODELINSTANCE_3D_SCALE
+        m.scale(m_scaling_factor);
+#else
         m.scale(scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
     return m;
 }

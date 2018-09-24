@@ -1750,6 +1750,18 @@ void update_scale_values()
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
     auto size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    if (g_is_percent_scale) {
+        og->set_value("scale_x", int(instance->get_scaling_factor(X) * 100));
+        og->set_value("scale_y", int(instance->get_scaling_factor(Y) * 100));
+        og->set_value("scale_z", int(instance->get_scaling_factor(Z) * 100));
+    }
+    else {
+        og->set_value("scale_x", int(instance->get_scaling_factor(X) * size(0) + 0.5));
+        og->set_value("scale_y", int(instance->get_scaling_factor(Y) * size(1) + 0.5));
+        og->set_value("scale_z", int(instance->get_scaling_factor(Z) * size(2) + 0.5));
+    }
+#else
     if (g_is_percent_scale) {
         auto scale = instance->scaling_factor * 100.0;
         og->set_value("scale_x", int(scale));
@@ -1761,6 +1773,7 @@ void update_scale_values()
         og->set_value("scale_y", int(instance->scaling_factor * size(1) + 0.5));
         og->set_value("scale_z", int(instance->scaling_factor * size(2) + 0.5));
     }
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 }
 
 void update_position_values()
@@ -1788,6 +1801,24 @@ void update_position_values(const Vec3d& position)
     og->set_value("position_z", int(position(2)));
 }
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+void update_scale_values(const Vec3d& scaling_factor)
+{
+    auto og = get_optgroup(ogFrequentlyObjectSettings);
+
+    // this is temporary
+    // to be able to update the values as size
+    // we need to store somewhere the original size
+    // or have it passed as parameter
+    if (!g_is_percent_scale)
+        og->set_value("scale_unit", _("%"));
+
+    auto scale = scaling_factor * 100.0;
+    og->set_value("scale_x", int(scale(0)));
+    og->set_value("scale_y", int(scale(1)));
+    og->set_value("scale_z", int(scale(2)));
+}
+#else
 void update_scale_values(double scaling_factor)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
@@ -1804,6 +1835,7 @@ void update_scale_values(double scaling_factor)
     og->set_value("scale_y", int(scale));
     og->set_value("scale_z", int(scale));
 }
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
 void update_rotation_values()
 {

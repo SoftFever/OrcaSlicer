@@ -249,6 +249,9 @@ private:
 #if ENABLE_MODELINSTANCE_3D_ROTATION
     Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    Vec3d m_scaling_factor;      // Scaling factors along the three axes
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
 public:
 #endif // ENABLE_MODELINSTANCE_3D_OFFSET
@@ -256,7 +259,9 @@ public:
 #if !ENABLE_MODELINSTANCE_3D_ROTATION
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
 #endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+#if !ENABLE_MODELINSTANCE_3D_SCALE
     double scaling_factor;
+#endif // !ENABLE_MODELINSTANCE_3D_SCALE
 #if !ENABLE_MODELINSTANCE_3D_OFFSET
     Vec2d offset;              // in unscaled coordinates
 #endif // !ENABLE_MODELINSTANCE_3D_OFFSET
@@ -282,6 +287,14 @@ public:
     void set_rotation(Axis axis, double rotation);
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    Vec3d get_scaling_factor() const { return m_scaling_factor; }
+    double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
+
+    void set_scaling_factor(const Vec3d& scaling_factor) { m_scaling_factor = scaling_factor; }
+    void set_scaling_factor(Axis axis, double scaling_factor) { m_scaling_factor(axis) = scaling_factor; }
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
+
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     // Calculate a bounding box of a transformed mesh. To be called on an external mesh.
@@ -303,9 +316,15 @@ private:
 
 #if ENABLE_MODELINSTANCE_3D_OFFSET
 #if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_SCALE
+    ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
+    ModelInstance(ModelObject *object, const ModelInstance &other) :
+        m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
+#else
     ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_rotation(other.m_rotation), scaling_factor(other.scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
+#endif // ENABLE_MODELINSTANCE_3D_SCALE
 #else
     ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :

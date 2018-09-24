@@ -149,6 +149,26 @@ void PerlCallback::call(double a, double b, double c, double d) const
     LEAVE;
 }
 
+void PerlCallback::call(double a, double b, double c, double d, double e, double f) const
+{
+    if (!m_callback)
+        return;
+    dSP;
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVnv(a)));
+    XPUSHs(sv_2mortal(newSVnv(b)));
+    XPUSHs(sv_2mortal(newSVnv(c)));
+    XPUSHs(sv_2mortal(newSVnv(d)));
+    XPUSHs(sv_2mortal(newSVnv(e)));
+    XPUSHs(sv_2mortal(newSVnv(f)));
+    PUTBACK;
+    perl_call_sv(SvRV((SV*)m_callback), G_DISCARD);
+    FREETMPS;
+    LEAVE;
+}
+
 void PerlCallback::call(bool b) const
 {
     call(b ? 1 : 0);
