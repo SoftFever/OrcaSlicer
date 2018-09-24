@@ -687,8 +687,7 @@ void applyResult(
 
         // write the transformation data into the model instance
 #if ENABLE_MODELINSTANCE_3D_ROTATION
-        // CHECK_ME -> Is the following correct ?
-        inst_ptr->set_rotation(Vec3d(0.0, 0.0, rot));
+        inst_ptr->set_rotation(Z, rot);
 #else
         inst_ptr->rotation = rot;
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION

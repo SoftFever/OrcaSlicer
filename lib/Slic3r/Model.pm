@@ -122,7 +122,7 @@ sub add_instance {
         
         my $new_instance = $self->_add_instance;
         
-        $new_instance->set_rotation($args{rotation})
+        $new_instance->set_rotations($args{rotation})
             if defined $args{rotation};
         $new_instance->set_scaling_factor($args{scaling_factor})
             if defined $args{scaling_factor};

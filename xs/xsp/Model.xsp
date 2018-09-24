@@ -365,8 +365,8 @@ ModelMaterial::attributes()
         %code%{ RETVAL = THIS->get_object(); %};
 
 #if ENABLE_MODELINSTANCE_3D_ROTATION
-    double rotation()
-        %code%{ RETVAL = THIS->get_rotation(Z); %};
+    Vec3d* rotation()
+        %code%{ RETVAL = new Vec3d(THIS->get_rotation(X), THIS->get_rotation(Y), THIS->get_rotation(Z)); %};
 #else
     double rotation()
         %code%{ RETVAL = THIS->rotation; %};
