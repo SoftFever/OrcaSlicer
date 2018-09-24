@@ -1365,11 +1365,15 @@ void GLGizmoFlatten::update_planes()
     TriangleMesh ch;
     for (const ModelVolume* vol : m_model_object->volumes)
         ch.merge(vol->get_convex_hull());
+
     ch = ch.convex_hull_3d();
 #if !ENABLE_MODELINSTANCE_3D_ROTATION
     ch.scale(m_model_object->instances.front()->scaling_factor);
     ch.rotate_z(m_model_object->instances.front()->rotation);
 #endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+
+    const Vec3d& bb_size = ch.bounding_box().size();
+    double min_bb_face_area = std::min(bb_size(0) * bb_size(1), std::min(bb_size(0) * bb_size(2), bb_size(1) * bb_size(2)));
 
     m_planes.clear();
 
@@ -1399,7 +1403,7 @@ void GLGizmoFlatten::update_planes()
             if (std::abs(this_normal(0) - (*normal_ptr)(0)) < 0.001 && std::abs(this_normal(1) - (*normal_ptr)(1)) < 0.001 && std::abs(this_normal(2) - (*normal_ptr)(2)) < 0.001) {
                 stl_vertex* first_vertex = ch.stl.facet_start[facet_idx].vertex;
                 for (int j=0; j<3; ++j)
-                    m_planes.back().vertices.emplace_back(first_vertex[j](0), first_vertex[j](1), first_vertex[j](2));
+                    m_planes.back().vertices.emplace_back((double)first_vertex[j](0), (double)first_vertex[j](1), (double)first_vertex[j](2));
 
                 facet_visited[facet_idx] = true;
                 for (int j = 0; j < 3; ++ j) {
@@ -1413,10 +1417,13 @@ void GLGizmoFlatten::update_planes()
 
         // if this is a just a very small triangle, remove it to speed up further calculations (it would be rejected anyway):
         if (m_planes.back().vertices.size() == 3 &&
-               (m_planes.back().vertices[0] - m_planes.back().vertices[1]).norm() < 1.f
-               || (m_planes.back().vertices[0] - m_planes.back().vertices[2]).norm() < 1.f)
-               m_planes.pop_back();
+            ((m_planes.back().vertices[0] - m_planes.back().vertices[1]).norm() < 1.0
+            || (m_planes.back().vertices[0] - m_planes.back().vertices[2]).norm() < 1.0
+            || (m_planes.back().vertices[1] - m_planes.back().vertices[2]).norm() < 1.0))
+            m_planes.pop_back();
     }
+
+    const float minimal_area = 0.01f * (float)min_bb_face_area;
 
     // Now we'll go through all the polygons, transform the points into xy plane to process them:
     for (unsigned int polygon_id=0; polygon_id < m_planes.size(); ++polygon_id) {
@@ -1424,35 +1431,52 @@ void GLGizmoFlatten::update_planes()
         const Vec3d& normal = m_planes[polygon_id].normal;
 
         // We are going to rotate about z and y to flatten the plane
-        float angle_z = 0.f;
-        float angle_y = 0.f;
-        if (std::abs(normal(1)) > 0.001)
-            angle_z = -atan2(normal(1), normal(0)); // angle to rotate so that normal ends up in xz-plane
-        if (std::abs(normal(0)*cos(angle_z) - normal(1)*sin(angle_z)) > 0.001)
-            angle_y = -atan2(normal(0)*cos(angle_z) - normal(1)*sin(angle_z), normal(2)); // angle to rotate to make normal point upwards
-        else {
-            // In case it already was in z-direction, we must ensure it is not the wrong way:
-            angle_y = normal(2) > 0.f ? 0.f : -PI;
-        }
-
-        // Rotate all points to the xy plane:
+        Eigen::Quaterniond q;
         Transform3d m = Transform3d::Identity();
-        m.rotate(Eigen::AngleAxisd((double)angle_y, Vec3d::UnitY()));
-        m.rotate(Eigen::AngleAxisd((double)angle_z, Vec3d::UnitZ()));
+        m.matrix().block(0, 0, 3, 3) = q.setFromTwoVectors(normal, Vec3d::UnitZ()).toRotationMatrix();
         polygon = transform(polygon, m);
 
         polygon = Slic3r::Geometry::convex_hull(polygon); // To remove the inner points
 
         // We will calculate area of the polygon and discard ones that are too small
         // The limit is more forgiving in case the normal is in the direction of the coordinate axes
-        const float minimal_area = (std::abs(normal(0)) > 0.999f || std::abs(normal(1)) > 0.999f || std::abs(normal(2)) > 0.999f) ? 1.f : 20.f;
+        float area_threshold = (std::abs(normal(0)) > 0.999f || std::abs(normal(1)) > 0.999f || std::abs(normal(2)) > 0.999f) ? minimal_area : 10.0f * minimal_area;
         float& area = m_planes[polygon_id].area;
         area = 0.f;
         for (unsigned int i = 0; i < polygon.size(); i++) // Shoelace formula
             area += polygon[i](0)*polygon[i + 1 < polygon.size() ? i + 1 : 0](1) - polygon[i + 1 < polygon.size() ? i + 1 : 0](0)*polygon[i](1);
-        area = std::abs(area / 2.f);
-        if (area < minimal_area) {
+        area = 0.5f * std::abs(area);
+        if (area < area_threshold) {
             m_planes.erase(m_planes.begin()+(polygon_id--));
+            continue;
+        }
+
+        // We check the inner angles and discard polygon with angles smaller than the following threshold
+        const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
+        bool discard = false;
+
+        std::cout << std::endl << "polygon: " << polygon_id << " - " << polygon.size() << "(" << area << "/" << 100.0 * area / min_bb_face_area << ")" << std::endl;
+
+        for (unsigned int i = 0; i < polygon.size(); ++i)
+        {
+            const Vec3d& prec = polygon[(i == 0) ? polygon.size() - 1 : i - 1];
+            const Vec3d& curr = polygon[i];
+            const Vec3d& next = polygon[(i == polygon.size() - 1) ? 0 : i + 1];
+
+            if ((prec - curr).normalized().dot((next - curr).normalized()) > angle_threshold)
+            {
+                discard = true;
+                break;
+            }
+
+            std::cout << ::acos((prec - curr).normalized().dot((next - curr).normalized())) * 180.0 / PI << std::endl;
+        }
+
+        if (discard)
+        {
+//            m_planes.erase(m_planes.begin() + polygon_id);
+//            --polygon_id;
+            m_planes.erase(m_planes.begin() + (polygon_id--));
             continue;
         }
 
