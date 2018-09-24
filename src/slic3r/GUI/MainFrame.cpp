@@ -33,14 +33,16 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 //     Slic3r::GUI::set_main_frame(this);
     m_appController = new Slic3r::AppController();
 
-// #if _WIN32
-//     // Load the icon either from the exe, or from the ico file.
-// //     auto iconfile = Slic3r::decode_path($FindBin::Bin) . '\slic3r.exe';
-//         auto iconfile = Slic3r::var("Slic3r.ico");// unless - f iconfile;
-//     SetIcon(wxIcon(iconfile, wxBITMAP_TYPE_ICO));
-// #else
+    // Load the icon either from the exe, or from the ico file.
+#if _WIN32
+    {
+        TCHAR szExeFileName[MAX_PATH];
+        GetModuleFileName(nullptr, szExeFileName, MAX_PATH);
+        SetIcon(wxIcon(szExeFileName, wxBITMAP_TYPE_ICO));
+    }
+#else
     SetIcon(wxIcon(Slic3r::var("Slic3r_128px.png"), wxBITMAP_TYPE_PNG));
-// #ifdef // _WIN32
+#endif // _WIN32
 
     // initialize tabpanel and menubar
     init_tabpanel();
