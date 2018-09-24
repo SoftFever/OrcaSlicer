@@ -26,7 +26,7 @@ namespace GUI {
 static wxString dots("…", wxConvUTF8);
 
 MainFrame::MainFrame(const bool no_plater, const bool loaded) :
-wxFrame(NULL, wxID_ANY, "FORK_NAME-VERSION", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
+wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
         m_no_plater(no_plater),
         m_loaded(loaded)
 {
@@ -54,8 +54,8 @@ wxFrame(NULL, wxID_ANY, "FORK_NAME-VERSION", wxDefaultPosition, wxDefaultSize, w
     // initialize status bar
     m_statusbar = new Slic3r::GUI::ProgressStatusBar(this);
     m_statusbar->embed(this);
-    m_statusbar->set_status_text(_(L("Version ")) + 
-                                 "Slic3r_VERSION" + // Slic3r::VERSION + 
+    m_statusbar->set_status_text(_(L("Version ")) +
+                                 SLIC3R_VERSION +
                                  _(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
 
 	//     m_appController->set_model(m_plater->model);
