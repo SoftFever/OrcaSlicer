@@ -403,7 +403,7 @@ class GLCanvas3D
 #endif // ENABLE_MODELINSTANCE_3D_ROTATION
         void set_flattening_data(const ModelObject* model_object);
 
-        void set_model_object_ptr(const ModelObject* model_object);
+        void set_model_object_ptr(ModelObject* model_object);
         void clicked_on_object(const Vec2d& mouse_position);
         void delete_current_grabber(bool delete_all = false);
 

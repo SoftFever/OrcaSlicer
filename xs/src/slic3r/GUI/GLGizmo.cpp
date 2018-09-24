@@ -1648,7 +1648,7 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
             ::glEnable(GL_LIGHTING);
         ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
         ::glPushMatrix();
-        const Vec3d& center = m_grabbers[i].center;
+        Vec3d center = m_model_object->instances.front()->world_matrix() * m_grabbers[i].center;
         ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
         GLUquadricObj *quadric;
         quadric = ::gluNewQuadric();
@@ -1661,33 +1661,87 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
     }
 }
 
+bool GLGizmoSlaSupports::is_mesh_update_necessary() const
+{
+    if (m_state != On || !m_model_object || m_model_object->instances.empty())
+        return false;
+
+#if ENABLE_MODELINSTANCE_3D_ROTATION
+    if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size()
+     || (m_model_object->instances.front()->world_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001 )
+#else
+    if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size()
+     || m_model_object->instances.front()->scaling_factor != m_source_data.scaling_factor
+     || m_model_object->instances.front()->rotation != m_source_data.rotation)
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+        return true;
+
+    // now compare the bounding boxes:
+    for (unsigned int i=0; i<m_model_object->volumes.size(); ++i)
+        if (m_model_object->volumes[i]->get_convex_hull().bounding_box() != m_source_data.bounding_boxes[i])
+            return true;
+
+    // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
+    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
+    Vec3d first_point((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
+    if (first_point != m_source_data.mesh_first_point)
+        return true;
+
+    return false;
+}
+
+void GLGizmoSlaSupports::update_mesh()
+{
+    Eigen::MatrixXf& V = m_V;
+    Eigen::MatrixXi& F = m_F;
+
+    TriangleMesh combined_mesh;
+    for (const ModelVolume* vol : m_model_object->volumes)
+        combined_mesh.merge(vol->mesh);
+    //combined_mesh.scale(m_model_object->instances.front()->scaling_factor);
+    //combined_mesh.rotate_z(m_model_object->instances.front()->rotation);
+    //const stl_file& stl = combined_mesh.stl;
+    const stl_file& stl = m_model_object->mesh().stl;
+
+    V.resize(3*stl.stats.number_of_facets, 3);
+    F.resize(stl.stats.number_of_facets, 3);
+    for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+        const stl_facet* facet = stl.facet_start+i;
+        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
+        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
+        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+        F(i, 0) = 3*i+0;
+        F(i, 1) = 3*i+1;
+        F(i, 2) = 3*i+2;
+    }
+
+    // now we must save what we calculated the mesh from, so we can tell when to recalculate:
+    m_source_data.bounding_boxes.clear();
+    for (const auto& vol : m_model_object->volumes)
+        m_source_data.bounding_boxes.push_back(vol->get_convex_hull().bounding_box());
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
+    m_source_data.scaling_factor = m_model_object->instances.front()->scaling_factor;
+    m_source_data.rotation = m_model_object->instances.front()->rotation;
+#else
+    m_source_data.matrix = m_model_object->instances.front()->world_matrix();
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
+    m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
+
+
+    // we'll now reload Grabbers (selection might have changed):
+    m_grabbers.clear();
+    for (const Vec3f& point : m_model_object->sla_support_points) {
+        m_grabbers.push_back(Grabber());
+        m_grabbers.back().center = point.cast<double>();
+    }
+}
+
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
 {
     // if the gizmo doesn't have the V, F structures for igl, calculate them first:
-    if (m_V.size() == 0) {
-        Eigen::MatrixXf& V = m_V;
-        Eigen::MatrixXi& F = m_F;
-
-        TriangleMesh combined_mesh;
-        for (const ModelVolume* vol : m_model_object->volumes)
-            combined_mesh.merge(vol->mesh);
-        //combined_mesh.scale(m_model_object->instances.front()->scaling_factor);
-        //combined_mesh.rotate_z(m_model_object->instances.front()->rotation);
-        //const stl_file& stl = combined_mesh.stl;
-        const stl_file& stl = m_model_object->mesh().stl;
-
-        V.resize(3*stl.stats.number_of_facets, 3);
-        F.resize(stl.stats.number_of_facets, 3);
-        for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
-            const stl_facet* facet = stl.facet_start+i;
-            V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
-            V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
-            V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
-            F(i, 0) = 3*i+0;
-            F(i, 1) = 3*i+1;
-            F(i, 2) = 3*i+2;
-        }
-    }
+    if (m_V.size() == 0 || is_mesh_update_necessary())
+        update_mesh();
 
     Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
     ::glGetIntegerv(GL_VIEWPORT, viewport.data());
@@ -1712,7 +1766,8 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
     const Vec3f& a = m_V.row(m_F(fid, 0));
     const Vec3f& b = m_V.row(m_F(fid, 1));
     const Vec3f& c = m_V.row(m_F(fid, 2));
-    return bc(0)*a + bc(1)*b + bc(2)*c;
+    Vec3f point = bc(0)*a + bc(1)*b + bc(2)*c;
+    return m_model_object->instances.front()->world_matrix().inverse().cast<float>() * point;
 }
 
 void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
@@ -1722,6 +1777,7 @@ void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
         new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new grabber in that case
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = new_pos.cast<double>();
+        m_model_object->sla_support_points.push_back(new_pos);
     }
     catch (...) {}
 }
@@ -1730,10 +1786,12 @@ void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
 {
     if (delete_all) {
         m_grabbers.clear();
+        m_model_object->sla_support_points.clear();
     }
     else
         if (m_hover_id != -1) {
             m_grabbers.erase(m_grabbers.begin() + m_hover_id);
+            m_model_object->sla_support_points.erase(m_model_object->sla_support_points.begin() + m_hover_id);
             m_hover_id = -1;
         }
 }
@@ -1745,6 +1803,7 @@ void GLGizmoSlaSupports::on_update(const Linef3& mouse_ray, const Point* mouse_p
         try {
             new_pos = unproject_on_mesh(Vec2d((*mouse_pos)(0), (*mouse_pos)(1)));
             m_grabbers[m_hover_id].center = new_pos.cast<double>();
+            m_model_object->sla_support_points[m_hover_id] = new_pos;
         }
         catch (...) {}
     }

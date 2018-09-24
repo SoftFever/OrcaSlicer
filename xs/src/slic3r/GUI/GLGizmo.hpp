@@ -409,15 +409,28 @@ protected:
 class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
-    const ModelObject* m_model_object = nullptr;
+    ModelObject* m_model_object = nullptr;
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
 
     Eigen::MatrixXf m_V; // vertices
     Eigen::MatrixXi m_F; // facets indices
+    struct SourceDataSummary {
+        std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
+#if !ENABLE_MODELINSTANCE_3D_ROTATION
+        float scaling_factor;
+        float rotation;
+#else
+        Transform3d matrix;
+#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+        Vec3d mesh_first_point;
+    };
+
+    // This holds information to decide whether recalculation is necessary:
+    SourceDataSummary m_source_data;
 
 public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
-    void set_model_object_ptr(const ModelObject* model_object) { m_model_object = model_object; }
+    void set_model_object_ptr(ModelObject* model_object) { m_model_object = model_object; if (is_mesh_update_necessary()) update_mesh(); }
     void clicked_on_object(const Vec2d& mouse_position);
     void delete_current_grabber(bool delete_all);
 
@@ -428,9 +441,17 @@ private:
     void on_render_for_picking(const BoundingBoxf3& box) const;
     void render_grabbers(bool picking = false) const;
     void render_tooltip_texture() const;
+    bool is_mesh_update_necessary() const;
+    void update_mesh();
 
     mutable GLTexture m_tooltip_texture;
     mutable GLTexture m_reset_texture;
+
+protected:
+    void on_set_state() override {
+        if (m_state == On && is_mesh_update_necessary())
+            update_mesh();
+    }
 };
 
 } // namespace GUI

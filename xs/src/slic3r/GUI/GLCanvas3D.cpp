@@ -1519,7 +1519,7 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
-void GLCanvas3D::Gizmos::set_model_object_ptr(const ModelObject* model_object)
+void GLCanvas3D::Gizmos::set_model_object_ptr(ModelObject* model_object)
 {
     if (!m_enabled)
         return;
