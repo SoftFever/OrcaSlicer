@@ -1438,7 +1438,7 @@ void GLGizmoFlatten::update_planes()
 
         polygon = Slic3r::Geometry::convex_hull(polygon); // To remove the inner points
 
-        // We will calculate area of the polygon and discard ones that are too small
+        // We will calculate area of the polygons and discard ones that are too small
         // The limit is more forgiving in case the normal is in the direction of the coordinate axes
         float area_threshold = (std::abs(normal(0)) > 0.999f || std::abs(normal(1)) > 0.999f || std::abs(normal(2)) > 0.999f) ? minimal_area : 10.0f * minimal_area;
         float& area = m_planes[polygon_id].area;
@@ -1451,11 +1451,9 @@ void GLGizmoFlatten::update_planes()
             continue;
         }
 
-        // We check the inner angles and discard polygon with angles smaller than the following threshold
+        // We check the inner angles and discard polygons with angles smaller than the following threshold
         const double angle_threshold = ::cos(10.0 * (double)PI / 180.0);
         bool discard = false;
-
-        std::cout << std::endl << "polygon: " << polygon_id << " - " << polygon.size() << "(" << area << "/" << 100.0 * area / min_bb_face_area << ")" << std::endl;
 
         for (unsigned int i = 0; i < polygon.size(); ++i)
         {
@@ -1468,14 +1466,10 @@ void GLGizmoFlatten::update_planes()
                 discard = true;
                 break;
             }
-
-            std::cout << ::acos((prec - curr).normalized().dot((next - curr).normalized())) * 180.0 / PI << std::endl;
         }
 
         if (discard)
         {
-//            m_planes.erase(m_planes.begin() + polygon_id);
-//            --polygon_id;
             m_planes.erase(m_planes.begin() + (polygon_id--));
             continue;
         }
