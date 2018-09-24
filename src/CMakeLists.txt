@@ -53,9 +53,11 @@ endif()
 add_subdirectory(slic3r)
 
 # Create a slic3r executable
-#FIXME add Windows resource file
-#add_executable(slic3r slic3r.cpp slic3r.rc)
-add_executable(slic3r slic3r.cpp)
+# Process mainfests for various platforms.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/slic3r.rc.in ${CMAKE_CURRENT_BINARY_DIR}/slic3r.rc @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/msw/slic3r.manifest.in ${CMAKE_CURRENT_BINARY_DIR}/slic3r.manifest @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/platform/osx/Info.plist.in ${CMAKE_CURRENT_BINARY_DIR}/Info.plist @ONLY)
+add_executable(slic3r slic3r.cpp ${CMAKE_CURRENT_BINARY_DIR}/slic3r.rc)
 if(SLIC3R_GUI)
     set_target_properties(slic3r PROPERTIES OUTPUT_NAME "slic3r-gui")
 else()
@@ -67,7 +69,10 @@ if (APPLE)
 #    add_definitions(-DBOOST_THREAD_DONT_USE_CHRONO -DBOOST_NO_CXX11_RVALUE_REFERENCES -DBOOST_THREAD_USES_MOVE)
     # -liconv: boost links to libiconv by default
     target_link_libraries(slic3r "-liconv -framework IOKit" "-framework CoreFoundation" -lc++)
-elseif (NOT MSVC)
+elseif (MSVC)
+    # Manifest is provided through slic3r.rc, don't generate your own.
+    set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
+else ()
     target_link_libraries(slic3r -ldl -lstdc++)
 endif ()
 

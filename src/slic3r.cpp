@@ -27,6 +27,7 @@
 #include <math.h>
 #include <boost/filesystem.hpp>
 #include <boost/nowide/args.hpp>
+#include <boost/nowide/cenv.hpp>
 #include <boost/nowide/iostream.hpp>
 
 #ifdef USE_WX
@@ -47,6 +48,16 @@ int main(int argc, char **argv)
     // Convert arguments to UTF-8 (needed on Windows). argv then points to memory owned by a.
     //FIXME On Windows, we want to receive the arguments as 16bit characters!
     boost::nowide::args a(argc, argv);
+
+    {
+        const char *loglevel = boost::nowide::getenv("SLIC3R_LOGLEVEL");
+        if (loglevel != nullptr) {
+            if (loglevel[0] >= '0' && loglevel[0] <= '9' && loglevel[1] == 0)
+                set_logging_level(loglevel[0] - '0');
+            else
+                boost::nowide::cerr << "Invalid SLIC3R_LOGLEVEL environment variable: " << loglevel << std::endl;
+        }
+    }
 
     // parse all command line options into a DynamicConfig
     DynamicPrintAndCLIConfig config;
@@ -89,7 +100,7 @@ int main(int argc, char **argv)
     // apply command line options to a more handy CLIConfig
     CLIConfig cli_config;
     cli_config.apply(config, true);
-    set_local_dir(cli_config.datadir.value);
+    set_data_dir(cli_config.datadir.value);
 
     DynamicPrintConfig print_config;
 

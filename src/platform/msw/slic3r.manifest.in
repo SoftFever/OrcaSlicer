@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <assembly xmlns="urn:schemas-microsoft-com:asm.v1" xmlns:asmv3="urn:schemas-microsoft-com:asm.v3" manifestVersion="1.0">
-  <assemblyIdentity version="SLIC3R_RC_VERSION_DOTS" name="Slic3r" type="Win32" />
+  <assemblyIdentity version="@SLIC3R_RC_VERSION_DOTS@" name="Slic3r" type="Win32" />
   <description>Perl</description>
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
     <security>

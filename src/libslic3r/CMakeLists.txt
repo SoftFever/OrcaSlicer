@@ -1,6 +1,8 @@
 project(libslic3r)
 cmake_minimum_required(VERSION 2.6)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
+
 add_library(libslic3r STATIC
     BoundingBox.cpp
     BoundingBox.hpp
@@ -96,6 +98,7 @@ add_library(libslic3r STATIC
     Layer.hpp
     LayerRegion.cpp
     libslic3r.h
+    "${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h"
     Line.cpp
     Line.hpp
     Model.cpp
@@ -149,7 +152,7 @@ add_library(libslic3r STATIC
 )
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB ${PNG_DEFINITIONS})
-target_include_directories(libslic3r PUBLIC BEFORE ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS})
+target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS})
 target_link_libraries(libslic3r
     ${LIBNEST2D_LIBRARIES}
     admesh

@@ -116,10 +116,15 @@ void MainFrame::init_tabpanel()
         auto panel = m_tabpanel->GetCurrentPage();
 //             panel->OnActivate(); if panel->can('OnActivate');
 
-        std::vector<std::string> tab_names = { "print", "filament", "printer" };
-        for (auto& tab_name : tab_names) {
-            if (tab_name == panel->GetName())
-                m_options_tabs.at(tab_name)->OnActivate();
+        for (auto& tab_name : { "print", "filament", "printer" }) {
+            if (tab_name == panel->GetName()) {
+                // On GTK, the wxEVT_NOTEBOOK_PAGE_CHANGED event is triggered
+                // before the MainFrame is fully set up.
+                auto it = m_options_tabs.find(tab_name);
+                assert(it != m_options_tabs.end());
+                if (it != m_options_tabs.end())
+                    it->second->OnActivate();
+            }
         }
     });
 

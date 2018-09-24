@@ -1,6 +1,8 @@
 #ifndef _libslic3r_h_
 #define _libslic3r_h_
 
+#include "libslic3r_version.h"
+
 // this needs to be included early for MSVC (listing it in Build.PL is not enough)
 #include <ostream>
 #include <iostream>
@@ -14,10 +16,6 @@
 #include <boost/thread.hpp>
 
 #include "Technologies.hpp"
-
-#define SLIC3R_FORK_NAME "Slic3r Prusa Edition"
-#define SLIC3R_VERSION "1.41.0"
-#define SLIC3R_BUILD "UNKNOWN"
 
 typedef int32_t coord_t;
 typedef double  coordf_t;
