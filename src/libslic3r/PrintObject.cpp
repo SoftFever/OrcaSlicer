@@ -113,7 +113,7 @@ bool PrintObject::reload_model_instances()
     copies.reserve(m_model_object->instances.size());
     for (const ModelInstance *mi : m_model_object->instances)
     {
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         if (mi->is_printable())
         {
             const Vec3d& offset = mi->get_offset();
@@ -122,7 +122,7 @@ bool PrintObject::reload_model_instances()
 #else
         if (mi->is_printable())
             copies.emplace_back(Point::new_scale(mi->offset(0), mi->offset(1)));
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
     return this->set_copies(copies);
 }

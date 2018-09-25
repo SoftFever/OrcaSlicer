@@ -22,6 +22,8 @@ public:
     void call(double, double) const {}
     void call(double, double, double) const {}
     void call(double, double, double, double) const {}
+    void call(double, double, double, double, double) const {}
+    void call(double, double, double, double, double, double) const {}
     void call(bool b) const {}
 };
 

@@ -133,7 +133,6 @@ class GLGizmoRotate : public GLGizmoBase
     static const float ScaleStepRad;
     static const unsigned int ScaleLongEvery;
     static const float ScaleLongTooth;
-    static const float ScaleShortTooth;
     static const unsigned int SnapRegionsCount;
     static const float GrabberOffset;
 
@@ -151,6 +150,11 @@ private:
 
     mutable Vec3d m_center;
     mutable float m_radius;
+
+    mutable float m_snap_coarse_in_radius;
+    mutable float m_snap_coarse_out_radius;
+    mutable float m_snap_fine_in_radius;
+    mutable float m_snap_fine_out_radius;
 
 public:
     GLGizmoRotate(GLCanvas3D& parent, Axis axis);
@@ -188,7 +192,7 @@ class GLGizmoRotate3D : public GLGizmoBase
 public:
     explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
 #else
@@ -200,7 +204,7 @@ public:
 
     double get_angle_z() const { return m_gizmos[Z].get_angle(); }
     void set_angle_z(double angle) { m_gizmos[Z].set_angle(angle); }
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
@@ -271,6 +275,10 @@ class GLGizmoScale3D : public GLGizmoBase
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
 
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    const Vec3d& get_scale() const { return m_scale; }
+    void set_scale(const Vec3d& scale) { m_starting_scale = scale; }
+#else
     double get_scale_x() const { return m_scale(0); }
     void set_scale_x(double scale) { m_starting_scale(0) = scale; }
 
@@ -281,6 +289,7 @@ public:
     void set_scale_z(double scale) { m_starting_scale(2) = scale; }
 
     void set_scale(double scale) { m_starting_scale = scale * Vec3d::Ones(); }
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
@@ -345,10 +354,10 @@ private:
     };
     struct SourceDataSummary {
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
-#if !ENABLE_MODELINSTANCE_3D_ROTATION
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         float scaling_factor;
         float rotation;
-#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d mesh_first_point;
     };
 
@@ -356,23 +365,16 @@ private:
     SourceDataSummary m_source_data;
 
     std::vector<PlaneData> m_planes;
-#if ENABLE_MODELINSTANCE_3D_OFFSET
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     struct InstanceData
     {
-        Vec3d position;
-        Vec3d rotation; 
-        double scaling_factor;
-
-        InstanceData(const Vec3d& position, const Vec3d& rotation, double scaling_factor) : position(position), rotation(rotation), scaling_factor(scaling_factor) {}
+        Transform3d matrix;
+        InstanceData(const Transform3d& matrix) : matrix(matrix) {}
     };
     std::vector<InstanceData> m_instances;
 #else
-    Pointf3s m_instances_positions;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
-#else
     std::vector<Vec2d> m_instances_positions;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
@@ -383,11 +385,11 @@ public:
     explicit GLGizmoFlatten(GLCanvas3D& parent);
 
     void set_flattening_data(const ModelObject* model_object);
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d get_flattening_rotation() const;
 #else
     Vec3d get_flattening_normal() const;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();

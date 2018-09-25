@@ -22,6 +22,7 @@ public:
     void call(double a, double b) const;
     void call(double a, double b, double c) const;
     void call(double a, double b, double c, double d) const;
+    void call(double a, double b, double c, double d, double e, double f) const;
     void call(bool b) const;
 private:
     void *m_callback;

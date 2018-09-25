@@ -245,44 +245,43 @@ public:
 
     friend class ModelObject;
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 private:
     Vec3d m_offset;              // in unscaled coordinates
-#if ENABLE_MODELINSTANCE_3D_ROTATION
     Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+    Vec3d m_scaling_factor;      // Scaling factors along the three axes
 
 public:
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
-
-#if !ENABLE_MODELINSTANCE_3D_ROTATION
+#else
     double rotation;            // Rotation around the Z axis, in radians around mesh center point
-#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
     double scaling_factor;
-#if !ENABLE_MODELINSTANCE_3D_OFFSET
     Vec2d offset;              // in unscaled coordinates
-#endif // !ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
     EPrintVolumeState print_volume_state;
 
     ModelObject* get_object() const { return this->object; }
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const Vec3d& get_offset() const { return m_offset; }
     double get_offset(Axis axis) const { return m_offset(axis); }
 
     void set_offset(const Vec3d& offset) { m_offset = offset; }
     void set_offset(Axis axis, double offset) { m_offset(axis) = offset; }
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
     const Vec3d& get_rotation() const { return m_rotation; }
     double get_rotation(Axis axis) const { return m_rotation(axis); }
 
     void set_rotation(const Vec3d& rotation);
     void set_rotation(Axis axis, double rotation);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+
+    Vec3d get_scaling_factor() const { return m_scaling_factor; }
+    double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
+
+    void set_scaling_factor(const Vec3d& scaling_factor) { m_scaling_factor = scaling_factor; }
+    void set_scaling_factor(Axis axis, double scaling_factor) { m_scaling_factor(axis) = scaling_factor; }
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -303,21 +302,15 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-    ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_rotation(other.m_rotation), scaling_factor(other.scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
-#else
-    ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
-    ModelInstance(ModelObject *object, const ModelInstance &other) :
-        rotation(other.rotation), scaling_factor(other.scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+        m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
 #else
     ModelInstance(ModelObject *object) : rotation(0), scaling_factor(1), offset(Vec2d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         rotation(other.rotation), scaling_factor(other.scaling_factor), offset(other.offset), object(object), print_volume_state(PVS_Inside) {}
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 };
 
 

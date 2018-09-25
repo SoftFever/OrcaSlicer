@@ -252,19 +252,19 @@ void Model::center_instances_around_point(const Vec2d &point)
         for (size_t i = 0; i < o->instances.size(); ++ i)
             bb.merge(o->instance_bounding_box(i, false));
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec2d shift2 = point - to_2d(bb.center());
     Vec3d shift3 = Vec3d(shift2(0), shift2(1), 0.0);
 #else
     Vec2d shift = point - 0.5 * to_2d(bb.size()) - to_2d(bb.min);
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances)
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             i->set_offset(i->get_offset() + shift3);
 #else
             i->offset += shift;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         o->invalidate_bounding_box();
     }
 }
@@ -330,12 +330,12 @@ bool Model::arrange_objects(coordf_t dist, const BoundingBoxf* bb)
     size_t idx = 0;
     for (ModelObject *o : this->objects) {
         for (ModelInstance *i : o->instances) {
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             Vec2d offset_xy = positions[idx] - instance_centers[idx];
             i->set_offset(Vec3d(offset_xy(0), offset_xy(1), i->get_offset(Z)));
 #else
             i->offset = positions[idx] - instance_centers[idx];
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ++idx;
         }
         o->invalidate_bounding_box();
@@ -360,11 +360,11 @@ void Model::duplicate(size_t copies_num, coordf_t dist, const BoundingBoxf* bb)
         for (const ModelInstance *i : instances) {
             for (const Vec2d &pos : positions) {
                 ModelInstance *instance = o->add_instance(*i);
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 instance->set_offset(instance->get_offset() + Vec3d(pos(0), pos(1), 0.0));
 #else
                 instance->offset += pos;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             }
         }
         o->invalidate_bounding_box();
@@ -394,21 +394,21 @@ void Model::duplicate_objects_grid(size_t x, size_t y, coordf_t dist)
     ModelObject* object = this->objects.front();
     object->clear_instances();
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d ext_size = object->bounding_box().size() + dist * Vec3d::Ones();
 #else
     Vec3d size = object->bounding_box().size();
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     for (size_t x_copy = 1; x_copy <= x; ++x_copy) {
         for (size_t y_copy = 1; y_copy <= y; ++y_copy) {
             ModelInstance* instance = object->add_instance();
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             instance->set_offset(Vec3d(ext_size(0) * (double)(x_copy - 1), ext_size(1) * (double)(y_copy - 1), 0.0));
 #else
             instance->offset(0) = (size(0) + dist) * (x_copy - 1);
             instance->offset(1) = (size(1) + dist) * (y_copy - 1);
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         }
     }
 }
@@ -714,21 +714,21 @@ void ModelObject::center_around_origin()
     this->translate(shift);
     this->origin_translation += shift;
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     // set z to zero, translation in z has already been done within the mesh
     shift(2) = 0.0;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             i->set_offset(i->get_offset() + i->transform_vector(-shift, true));
 #else
             Vec3d i_shift = i->world_matrix(true) * shift;
             i->offset -= to_2d(i_shift);
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         }
         this->invalidate_bounding_box();
     }
@@ -1070,7 +1070,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     return idx;
 }
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 void ModelInstance::set_rotation(const Vec3d& rotation)
 {
     set_rotation(X, rotation(0));
@@ -1091,7 +1091,7 @@ void ModelInstance::set_rotation(Axis axis, double rotation)
     }
     m_rotation(axis) = rotation;
 }
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
@@ -1106,21 +1106,35 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+        // Scale the bounding box along the three axes.
+        for (unsigned int i = 0; i < 3; ++i)
+        {
+            if (std::abs(this->m_scaling_factor(i) - 1.0) > EPSILON)
+            {
+                bbox.min(i) *= this->m_scaling_factor(i);
+                bbox.max(i) *= this->m_scaling_factor(i);
+            }
+        }
+
+        // Translate the bounding box.
+        if (! dont_translate) {
+            bbox.min += this->m_offset;
+            bbox.max += this->m_offset;
+        }
+#else
         // Scale the bounding box uniformly.
         if (std::abs(this->scaling_factor - 1.) > EPSILON) {
             bbox.min *= this->scaling_factor;
 			bbox.max *= this->scaling_factor;
         }
+
         // Translate the bounding box.
-        if (! dont_translate) {
-#if ENABLE_MODELINSTANCE_3D_OFFSET
-            bbox.min += this->m_offset;
-            bbox.max += this->m_offset;
-#else
+        if (!dont_translate) {
             Eigen::Map<Vec2d>(bbox.min.data()) += this->offset;
             Eigen::Map<Vec2d>(bbox.max.data()) += this->offset;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         }
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
     return bbox;
 }
@@ -1137,39 +1151,44 @@ Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 
 void ModelInstance::transform_polygon(Polygon* polygon) const
 {
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     // CHECK_ME -> Is the following correct or it should take in account all three rotations ?
     polygon->rotate(this->m_rotation(2));                // rotate around polygon origin
+    // CHECK_ME -> Is the following correct ?
+    polygon->scale(this->m_scaling_factor(0), this->m_scaling_factor(1));           // scale around polygon origin
 #else
     polygon->rotate(this->rotation);                // rotate around polygon origin
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     polygon->scale(this->scaling_factor);           // scale around polygon origin
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
 {
     Transform3d m = Transform3d::Identity();
 
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if (!dont_translate)
-#if ENABLE_MODELINSTANCE_3D_OFFSET
         m.translate(m_offset);
-#else
-        m.translate(Vec3d(offset(0), offset(1), 0.0));
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
 
     if (!dont_rotate)
-#if ENABLE_MODELINSTANCE_3D_ROTATION
     {
         m.rotate(Eigen::AngleAxisd(m_rotation(2), Vec3d::UnitZ()));
         m.rotate(Eigen::AngleAxisd(m_rotation(1), Vec3d::UnitY()));
         m.rotate(Eigen::AngleAxisd(m_rotation(0), Vec3d::UnitX()));
     }
+
+    if (!dont_scale)
+        m.scale(m_scaling_factor);
 #else
+    if (!dont_translate)
+        m.translate(Vec3d(offset(0), offset(1), 0.0));
+
+    if (!dont_rotate)
         m.rotate(Eigen::AngleAxisd(rotation, Vec3d::UnitZ()));
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
     if (!dont_scale)
         m.scale(scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     return m;
 }
