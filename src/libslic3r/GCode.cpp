@@ -455,9 +455,12 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
     fclose(file);
 
     if (print->config().remaining_times.value) {
+        BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for normal mode";
         m_normal_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
-        if (m_silent_time_estimator_enabled)
+        if (m_silent_time_estimator_enabled) {
+            BOOST_LOG_TRIVIAL(debug) << "Processing remaining times for silent mode";
             m_silent_time_estimator.post_process_remaining_times(path_tmp, 60.0f);
+        }
     }
 
     if (! m_placeholder_parser_failed_templates.empty()) {
@@ -1033,9 +1036,11 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
     }
     print.throw_if_canceled();
 
-    // starts analizer calculations
-    if (preview_data != nullptr)
+    // starts analyzer calculations
+    if (preview_data != nullptr) {
+        BOOST_LOG_TRIVIAL(debug) << "Preparing G-code preview data";
         m_analyzer.calc_gcode_preview_data(*preview_data);
+    }
 }
 
 std::string GCode::placeholder_parser_process(const std::string &name, const std::string &templ, unsigned int current_extruder_id, const DynamicConfig *config_override)
