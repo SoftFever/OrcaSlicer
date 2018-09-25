@@ -139,6 +139,11 @@ int main(int argc, char **argv)
     if (! cli_config.save.value.empty())
         print_config.save(cli_config.save.value);
 
+    if (cli_config.help) {
+        printUsage();
+        return 0;
+    }
+
     // read input file(s) if any
     std::vector<Model> models;
     for (const t_config_option_key &file : input_files) {
@@ -146,7 +151,6 @@ int main(int argc, char **argv)
             boost::nowide::cerr << "No such file: " << file << std::endl;
             exit(1);
         }
-        
         Model model;
         try {
             model = Model::read_from_file(file);
@@ -154,14 +158,11 @@ int main(int argc, char **argv)
             boost::nowide::cerr << file << ": " << e.what() << std::endl;
             exit(1);
         }
-        
         if (model.objects.empty()) {
             boost::nowide::cerr << "Error: file is empty: " << file << std::endl;
             continue;
         }
-        
-        model.add_default_instances();
-        
+        model.add_default_instances();        
         // apply command line transform options
         for (ModelObject* o : model.objects) {
 /*
@@ -174,15 +175,10 @@ int main(int argc, char **argv)
             o->rotate(Geometry::deg2rad(cli_config.rotate_y.value), Y);
             o->rotate(Geometry::deg2rad(cli_config.rotate.value), Z);
         }
-        
         // TODO: handle --merge
         models.push_back(model);
     }
-    if (cli_config.help) {
-        printUsage();
-        return 0;
-    }
-    
+
     for (Model &model : models) {
         if (cli_config.info) {
             // --info works on unrepaired model
@@ -220,16 +216,22 @@ int main(int argc, char **argv)
         } else if (cli_config.slice) {
             std::string outfile = cli_config.output.value;
             Print print;
-            model.arrange_objects(print.config().min_object_distance());
-            model.center_instances_around_point(cli_config.center);
-            if (outfile.empty()) outfile = model.objects.front()->input_file + ".gcode";
-            print.apply_config(print_config);
+            if (! cli_config.dont_arrange) {
+                model.arrange_objects(print.config().min_object_distance());
+                model.center_instances_around_point(cli_config.print_center);
+            }
+            if (outfile.empty())
+                outfile = model.objects.front()->input_file + ".gcode";
             for (auto* mo : model.objects) {
                 print.auto_assign_extruders(mo);
                 print.add_model_object(mo);
             }
-            print.validate();
-            print.export_gcode(outfile, nullptr);
+            print.apply_config(print_config);
+            std::string err = print.validate();
+            if (err.empty())
+                print.export_gcode(outfile, nullptr);
+            else
+                std::cerr << err << "\n";
         } else {
             boost::nowide::cerr << "error: command not supported" << std::endl;
             return 1;

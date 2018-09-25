@@ -983,6 +983,7 @@ class CLIConfig : public virtual ConfigBase, public StaticConfig
 public:
     ConfigOptionFloat               cut;
     ConfigOptionString              datadir;
+    ConfigOptionBool                dont_arrange;
     ConfigOptionBool                export_3mf;
     ConfigOptionBool                gui;
     ConfigOptionBool                info;
@@ -990,13 +991,13 @@ public:
     ConfigOptionStrings             load;
     ConfigOptionBool                no_gui;
     ConfigOptionString              output;
+    ConfigOptionPoint               print_center;
     ConfigOptionFloat               rotate;
     ConfigOptionFloat               rotate_x;
     ConfigOptionFloat               rotate_y;
     ConfigOptionString              save;
     ConfigOptionFloat               scale;
 //    ConfigOptionPoint3              scale_to_fit;
-    ConfigOptionPoint               center;
     ConfigOptionBool                slice;
     
     CLIConfig() : ConfigBase(), StaticConfig()
@@ -1011,6 +1012,7 @@ public:
     {
         OPT_PTR(cut);
         OPT_PTR(datadir);
+        OPT_PTR(dont_arrange);
         OPT_PTR(export_3mf);
         OPT_PTR(gui);
         OPT_PTR(help);
@@ -1018,6 +1020,7 @@ public:
         OPT_PTR(load);
         OPT_PTR(no_gui);
         OPT_PTR(output);
+        OPT_PTR(print_center);
         OPT_PTR(rotate);
         OPT_PTR(rotate_x);
         OPT_PTR(rotate_y);

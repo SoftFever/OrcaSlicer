@@ -2612,6 +2612,13 @@ CLIConfigDef::CLIConfigDef()
     def->cli = "cut";
     def->default_value = new ConfigOptionFloat(0);
 
+    def = this->add("dont_arrange", coBool);
+    def->label = L("Dont arrange");
+    def->tooltip = L("Don't arrange the objects on the build plate. The model coordinates "
+                     "define the absolute positions on the build plate. "
+                     "The option --center will be ignored.");
+    def->default_value = new ConfigOptionBool(false);
+
     def = this->add("datadir", coString);
     def->label = L("User data directory");
     def->tooltip = L("Load and store settings at the given directory. "
@@ -2707,10 +2714,10 @@ CLIConfigDef::CLIConfigDef()
     def->default_value = new ConfigOptionPoint3(Pointf3(0,0,0));
 */
 
-    def = this->add("center", coPoint);
-    def->label = L("Center");
+    def = this->add("print_center", coPoint);
+    def->label = L("Print center");
     def->tooltip = L("Center the print around the given center (default: 100, 100).");
-    def->cli = "center";
+    def->cli = "print-center";
     def->default_value = new ConfigOptionPoint(Vec2d(100,100));
 }
 

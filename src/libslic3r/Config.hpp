@@ -812,6 +812,14 @@ public:
     bool                    operator==(const ConfigOptionEnum<T> &rhs) const { return this->value == rhs.value; }
     int                     getInt() const override { return (int)this->value; }
 
+    bool operator==(const ConfigOption &rhs) const override
+    {
+        if (rhs.type() != this->type())
+            throw std::runtime_error("ConfigOptionEnum<T>: Comparing incompatible types");
+        // rhs could be of the following type: ConfigOptionEnumGeneric or ConfigOptionEnum<T>
+        return this->value == (T)rhs.getInt();
+    }
+
     void set(const ConfigOption *rhs) override {
         if (rhs->type() != this->type())
             throw std::runtime_error("ConfigOptionEnum<T>: Assigning an incompatible type");
@@ -886,6 +894,14 @@ public:
     ConfigOption*               clone() const override { return new ConfigOptionEnumGeneric(*this); }
     ConfigOptionEnumGeneric&    operator=(const ConfigOption *opt) { this->set(opt); return *this; }
     bool                        operator==(const ConfigOptionEnumGeneric &rhs) const { return this->value == rhs.value; }
+
+    bool operator==(const ConfigOption &rhs) const override
+    {
+        if (rhs.type() != this->type())
+            throw std::runtime_error("ConfigOptionEnumGeneric: Comparing incompatible types");
+        // rhs could be of the following type: ConfigOptionEnumGeneric or ConfigOptionEnum<T>
+        return this->value == rhs.getInt();
+    }
 
     void set(const ConfigOption *rhs) override {
         if (rhs->type() != this->type())
