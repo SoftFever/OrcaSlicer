@@ -10,7 +10,7 @@ endif()
 include(DownloadProject)
 download_project(   PROJ                nlopt
                     GIT_REPOSITORY      https://github.com/stevengj/nlopt.git
-                    GIT_TAG             1fcbcbf2fe8e34234e016cc43a6c41d3e8453e1f #master #nlopt-2.4.2
+                    GIT_TAG             v2.5.0 #1fcbcbf2fe8e34234e016cc43a6c41d3e8453e1f #master #nlopt-2.4.2
                     # CMAKE_CACHE_ARGS    -DBUILD_SHARED_LIBS:BOOL=OFF -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE} -DCMAKE_INSTALL_PREFIX=${NLopt_DIR}
                     ${UPDATE_DISCONNECTED_IF_AVAILABLE}
 )
