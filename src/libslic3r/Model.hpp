@@ -343,8 +343,8 @@ public:
     void swap(Model &other);
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
-    static Model read_from_file(const std::string &input_file, bool add_default_instances = true);
-    static Model read_from_archive(const std::string &input_file, PresetBundle* bundle, bool add_default_instances = true);
+    static Model read_from_file(const std::string &input_file, DynamicPrintConfig *config = nullptr, bool add_default_instances = true);
+    static Model read_from_archive(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances = true);
 
     /// Repair the ModelObjects of the current Model.
     /// This function calls repair function on each TriangleMesh of each model object volume

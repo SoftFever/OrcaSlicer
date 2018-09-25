@@ -2,7 +2,6 @@
 #include "../Model.hpp"
 #include "../Utils.hpp"
 #include "../GCode.hpp"
-#include "../slic3r/GUI/PresetBundle.hpp"
 
 #include "3mf.hpp"
 
@@ -344,16 +343,16 @@ namespace Slic3r {
         _3MF_Importer();
         ~_3MF_Importer();
 
-        bool load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
+        bool load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config);
 
     private:
         void _destroy_xml_parser();
         void _stop_xml_parser();
 
-        bool _load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
+        bool _load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
-        void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename);
+        void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
         // handlers to parse the .model file
@@ -447,7 +446,7 @@ namespace Slic3r {
         _destroy_xml_parser();
     }
 
-    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle)
+    bool _3MF_Importer::load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config)
     {
         m_version = 0;
         m_model = &model;
@@ -465,7 +464,7 @@ namespace Slic3r {
         m_curr_characters.clear();
         clear_errors();
 
-        return _load_model_from_file(filename, model, bundle);
+        return _load_model_from_file(filename, model, config);
     }
 
     void _3MF_Importer::_destroy_xml_parser()
@@ -483,7 +482,7 @@ namespace Slic3r {
             XML_StopParser(m_xml_parser, false);
     }
 
-    bool _3MF_Importer::_load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle)
+    bool _3MF_Importer::_load_model_from_file(const std::string& filename, Model& model, DynamicPrintConfig& config)
     {
         mz_zip_archive archive;
         mz_zip_zero_struct(&archive);
@@ -536,7 +535,7 @@ namespace Slic3r {
                 else if (boost::algorithm::iequals(name, PRINT_CONFIG_FILE))
                 {
                     // extract slic3r print config file
-                    _extract_print_config_from_archive(archive, stat, bundle, filename);
+                    _extract_print_config_from_archive(archive, stat, config, filename);
                 }
                 else if (boost::algorithm::iequals(name, MODEL_CONFIG_FILE))
                 {
@@ -656,7 +655,7 @@ namespace Slic3r {
         return true;
     }
 
-    void _3MF_Importer::_extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename)
+    void _3MF_Importer::_extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, DynamicPrintConfig& config, const std::string& archive_filename)
     {
         if (stat.m_uncomp_size > 0)
         {
@@ -667,8 +666,7 @@ namespace Slic3r {
                 add_error("Error while reading config data to buffer");
                 return;
             }
-//FIXME Get rid of the dependencies on slic3r GUI library!
-//            bundle.load_config_string(buffer.data(), archive_filename.c_str());
+            config.load_from_gcode_string(buffer.data());
         }
     }
 
@@ -2004,13 +2002,13 @@ namespace Slic3r {
         return true;
     }
 
-    bool load_3mf(const char* path, PresetBundle* bundle, Model* model)
+    bool load_3mf(const char* path, DynamicPrintConfig* config, Model* model)
     {
-        if ((path == nullptr) || (bundle == nullptr) || (model == nullptr))
+        if ((path == nullptr) || (config == nullptr) || (model == nullptr))
             return false;
 
         _3MF_Importer importer;
-        bool res = importer.load_model_from_file(path, *model, *bundle);
+        bool res = importer.load_model_from_file(path, *model, *config);
         importer.log_errors();
         return res;
     }

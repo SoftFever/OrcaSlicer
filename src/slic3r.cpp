@@ -133,11 +133,12 @@ int main(int argc, char **argv)
     // apply command line options to a more specific DynamicPrintConfig which provides normalize()
     // (command line options override --load files)
     print_config.apply(config, true);
-    print_config.normalize();
     
     // write config if requested
-    if (! cli_config.save.value.empty())
+    if (! cli_config.save.value.empty()) {
+        print_config.normalize();
         print_config.save(cli_config.save.value);
+    }
 
     if (cli_config.help) {
         printUsage();
@@ -153,7 +154,7 @@ int main(int argc, char **argv)
         }
         Model model;
         try {
-            model = Model::read_from_file(file);
+            model = Model::read_from_file(file, &print_config, true);
         } catch (std::exception &e) {
             boost::nowide::cerr << file << ": " << e.what() << std::endl;
             exit(1);
@@ -226,6 +227,7 @@ int main(int argc, char **argv)
                 print.auto_assign_extruders(mo);
                 print.add_model_object(mo);
             }
+            print_config.normalize();
             print.apply_config(print_config);
             std::string err = print.validate();
             if (err.empty())

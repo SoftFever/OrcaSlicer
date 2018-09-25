@@ -1762,7 +1762,7 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     if (items_count > 1)
         m_original_height += (items_count - 1) * Px_Square_Contour;
 
-    int pow_of_two_size = next_highest_power_of_2(std::max(m_original_width, m_original_height));
+    int pow_of_two_size = (int)next_highest_power_of_2(std::max<uint32_t>(m_original_width, m_original_height));
 
     m_width = pow_of_two_size;
     m_height = pow_of_two_size;
