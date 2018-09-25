@@ -110,6 +110,17 @@ inline uint64_t next_highest_power_of_2(uint64_t v)
     return ++ v;
 }
 
+#ifdef __GNUC__
+inline size_t next_highest_power_of_2(size_t v)
+{ 
+#if sizeof(size_t) == sizeof(uint32_t)
+    return next_highest_power_of_2(uint32_t(v));
+#else
+    return next_highest_power_of_2(uint64_t(v));
+#endif
+}
+#endif
+
 extern std::string xml_escape(std::string text);
 
 } // namespace Slic3r
