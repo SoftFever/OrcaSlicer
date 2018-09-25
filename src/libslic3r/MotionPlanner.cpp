@@ -297,7 +297,7 @@ void MotionPlannerGraph::add_edge(size_t from, size_t to, double weight)
     // Extend adjacency list until this start node.
     if (m_adjacency_list.size() < from + 1) {
         // Reserve in powers of two to avoid repeated reallocation.
-        m_adjacency_list.reserve(std::max<size_t>(8, next_highest_power_of_2(from + 1)));
+        m_adjacency_list.reserve(std::max<uint32_t>(8, next_highest_power_of_2((uint32_t)(from + 1))));
         // Allocate new empty adjacency vectors.
         m_adjacency_list.resize(from + 1);
     }
