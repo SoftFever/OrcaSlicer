@@ -110,7 +110,10 @@ inline uint64_t next_highest_power_of_2(uint64_t v)
     return ++ v;
 }
 
-#ifdef __GNUC__
+#ifdef __clang__
+// On clang, the size_t is a type of its own, so we need to overload for size_t.
+// On MSC, the size_t type aliases to uint64_t / uint32_t, so the following code
+// gives a duplicate symbol error.
 inline size_t next_highest_power_of_2(size_t v)
 { 
 #if sizeof(size_t) == sizeof(uint32_t)
