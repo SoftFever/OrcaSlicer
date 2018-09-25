@@ -30,20 +30,7 @@ my %recommends = qw(
 );
 
 my $sudo    = grep { $_ eq '--sudo' } @ARGV;
-my $gui     = grep { $_ eq '--gui' } @ARGV;
 my $nolocal = grep { $_ eq '--nolocal' }  @ARGV;
-if ($gui) {
-    %prereqs = qw(
-    Class::Accessor                 0
-    Wx                              0.9918
-    );
-    %recommends = qw(
-    Wx::GLCanvas                    0
-    );
-    if ($^O eq 'MSWin32') {
-        $recommends{"Win32::TieRegistry"} = 0;
-    }
-}
 
 my @missing_prereqs = ();
 if ($ENV{SLIC3R_NO_AUTO}) {
@@ -129,13 +116,6 @@ EOF
     }
 }
 
-print "\n";
-if ($gui) {
-    print "Perl dependencies for the Slic3r GUI were installed.\n";
-} else {
-    print "Perl dependencies for Slic3r were installed.\n";
-    print "If you also want to use the GUI you can now run `perl Build.PL --gui` to install the required modules.\n";
-}
 print "\n";
 print "In the next step, you need to build the Slic3r C++ library.\n";
 print "1) Create a build directory and change to it\n";
