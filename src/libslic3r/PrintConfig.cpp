@@ -2617,6 +2617,7 @@ CLIConfigDef::CLIConfigDef()
     def->tooltip = L("Don't arrange the objects on the build plate. The model coordinates "
                      "define the absolute positions on the build plate. "
                      "The option --center will be ignored.");
+    def->cli = "dont-arrange";
     def->default_value = new ConfigOptionBool(false);
 
     def = this->add("datadir", coString);
