@@ -1750,7 +1750,7 @@ void update_scale_values()
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
     auto size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
 
-#if ENABLE_MODELINSTANCE_3D_SCALE
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if (g_is_percent_scale) {
         og->set_value("scale_x", int(instance->get_scaling_factor(X) * 100));
         og->set_value("scale_y", int(instance->get_scaling_factor(Y) * 100));
@@ -1773,7 +1773,7 @@ void update_scale_values()
         og->set_value("scale_y", int(instance->scaling_factor * size(1) + 0.5));
         og->set_value("scale_z", int(instance->scaling_factor * size(2) + 0.5));
     }
-#endif // ENABLE_MODELINSTANCE_3D_SCALE
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void update_position_values()
@@ -1781,7 +1781,7 @@ void update_position_values()
     auto og = get_optgroup(ogFrequentlyObjectSettings);
     auto instance = (*m_objects)[m_selected_object_id]->instances.front();
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     og->set_value("position_x", int(instance->get_offset(X)));
     og->set_value("position_y", int(instance->get_offset(Y)));
     og->set_value("position_z", int(instance->get_offset(Z)));
@@ -1789,7 +1789,7 @@ void update_position_values()
     og->set_value("position_x", int(instance->offset(0)));
     og->set_value("position_y", int(instance->offset(1)));
     og->set_value("position_z", 0);
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void update_position_values(const Vec3d& position)
@@ -1801,7 +1801,7 @@ void update_position_values(const Vec3d& position)
     og->set_value("position_z", int(position(2)));
 }
 
-#if ENABLE_MODELINSTANCE_3D_SCALE
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 void update_scale_values(const Vec3d& scaling_factor)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
@@ -1835,11 +1835,11 @@ void update_scale_values(double scaling_factor)
     og->set_value("scale_y", int(scale));
     og->set_value("scale_z", int(scale));
 }
-#endif // ENABLE_MODELINSTANCE_3D_SCALE
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void update_rotation_values()
 {
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     update_rotation_value((*m_objects)[m_selected_object_id]->instances.front()->get_rotation());
 #else
     auto og = get_optgroup(ogFrequentlyObjectSettings);
@@ -1847,7 +1847,7 @@ void update_rotation_values()
     og->set_value("rotation_x", 0);
     og->set_value("rotation_y", 0);
     og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void update_rotation_value(double angle, Axis axis)
@@ -1877,7 +1877,7 @@ void update_rotation_value(double angle, Axis axis)
     og->set_value(axis_str, round_nearest(int(Geometry::rad2deg(angle)), 0));
 }
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 void update_rotation_value(const Vec3d& rotation)
 {
     auto og = get_optgroup(ogFrequentlyObjectSettings);
@@ -1885,7 +1885,7 @@ void update_rotation_value(const Vec3d& rotation)
     og->set_value("rotation_y", int(round_nearest(Geometry::rad2deg(rotation(1)), 0)));
     og->set_value("rotation_z", int(round_nearest(Geometry::rad2deg(rotation(2)), 0)));
 }
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void set_uniform_scaling(const bool uniform_scale)
 {

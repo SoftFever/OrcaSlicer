@@ -256,20 +256,17 @@ public:
 private:
     // Offset of the volume to be rendered.
     Vec3d                 m_offset;
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     // Rotation around three axes of the volume to be rendered.
     Vec3d                 m_rotation;
-#else
-    // Rotation around Z axis of the volume to be rendered.
-    double                m_rotation;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
-#if ENABLE_MODELINSTANCE_3D_SCALE
     // Scale factor along the three axes of the volume to be rendered.
     Vec3d                 m_scaling_factor;
 #else
+    // Rotation around Z axis of the volume to be rendered.
+    double                m_rotation;
     // Scale factor of the volume to be rendered.
     double                m_scaling_factor;
-#endif // ENABLE_MODELINSTANCE_3D_SCALE
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     // World matrix of the volume to be rendered.
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
@@ -337,22 +334,20 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const Vec3d& get_rotation() const;
     void set_rotation(const Vec3d& rotation);
+
+    void set_scaling_factor(const Vec3d& scaling_factor);
 #else
     double get_rotation() const;
     void set_rotation(double rotation);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+
+    void set_scaling_factor(double factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
-
-#if ENABLE_MODELINSTANCE_3D_SCALE
-    void set_scaling_factor(const Vec3d& scaling_factor);
-#else
-    void set_scaling_factor(double factor);
-#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
     void set_convex_hull(const TriangleMesh& convex_hull);
 

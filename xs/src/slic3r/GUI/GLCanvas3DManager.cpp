@@ -692,23 +692,14 @@ void GLCanvas3DManager::register_on_enable_action_buttons_callback(wxGLCanvas* c
         it->second->register_on_enable_action_buttons_callback(callback);
 }
 
-#if ENABLE_MODELINSTANCE_3D_SCALE
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 void GLCanvas3DManager::register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_gizmo_scale_3D_callback(callback);
 }
-#else
-void GLCanvas3DManager::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_scale_uniformly_callback(callback);
-}
-#endif // ENABLE_MODELINSTANCE_3D_SCALE
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
 void GLCanvas3DManager::register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -722,7 +713,21 @@ void GLCanvas3DManager::register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas
     if (it != m_canvases.end())
         it->second->register_on_gizmo_flatten_3D_callback(callback);
 }
+
+void GLCanvas3DManager::register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_update_geometry_3D_info_callback(callback);
+}
 #else
+void GLCanvas3DManager::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
+{
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->register_on_gizmo_scale_uniformly_callback(callback);
+}
+
 void GLCanvas3DManager::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -736,23 +741,14 @@ void GLCanvas3DManager::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, v
     if (it != m_canvases.end())
         it->second->register_on_gizmo_flatten_callback(callback);
 }
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
-#if ENABLE_MODELINSTANCE_3D_SCALE
-void GLCanvas3DManager::register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_update_geometry_3D_info_callback(callback);
-}
-#else
 void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->register_on_update_geometry_info_callback(callback);
 }
-#endif // ENABLE_MODELINSTANCE_3D_SCALE
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void GLCanvas3DManager::register_action_add_callback(wxGLCanvas* canvas, void* callback)
 {
