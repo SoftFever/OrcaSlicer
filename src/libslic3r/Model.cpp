@@ -62,10 +62,8 @@ Model Model::read_from_file(const std::string &input_file, DynamicPrintConfig *c
         result = load_amf(input_file.c_str(), config, &model);
     else if (boost::algorithm::iends_with(input_file, ".3mf"))
         result = load_3mf(input_file.c_str(), config, &model);
-#ifdef SLIC3R_PRUS
     else if (boost::algorithm::iends_with(input_file, ".prusa"))
         result = load_prus(input_file.c_str(), &model);
-#endif /* SLIC3R_PRUS */
     else
         throw std::runtime_error("Unknown file format. Input file must have .stl, .obj, .amf(.xml) or .prusa extension.");
 

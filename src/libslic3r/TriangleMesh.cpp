@@ -134,25 +134,31 @@ void TriangleMesh::repair()
     
     // remove_unconnected
     if (stl.stats.connected_facets_3_edge <  stl.stats.number_of_facets) {
+        BOOST_LOG_TRIVIAL(trace) << "\tstl_remove_unconnected_facets";
         stl_remove_unconnected_facets(&stl);
     }
     
     // fill_holes
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
+        BOOST_LOG_TRIVIAL(trace) << "\tstl_fill_holes";
         stl_fill_holes(&stl);
         stl_clear_error(&stl);
     }
 
     // normal_directions
+    BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_directions";
     stl_fix_normal_directions(&stl);
 
     // normal_values
+    BOOST_LOG_TRIVIAL(trace) << "\tstl_fix_normal_values";
     stl_fix_normal_values(&stl);
     
     // always calculate the volume and reverse all normals if volume is negative
+    BOOST_LOG_TRIVIAL(trace) << "\tstl_calculate_volume";
     stl_calculate_volume(&stl);
     
     // neighbors
+    BOOST_LOG_TRIVIAL(trace) << "\tstl_verify_neighbors";
     stl_verify_neighbors(&stl);
 
     this->repaired = true;

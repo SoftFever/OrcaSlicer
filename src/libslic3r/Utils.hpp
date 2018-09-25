@@ -117,10 +117,10 @@ inline uint64_t next_highest_power_of_2(uint64_t v)
 inline size_t next_highest_power_of_2(size_t v)
 { 
 #if SSIZE_MAX == 9223372036854775807
-    static_assert(sizeof(size_t) == sizeof(uint64_t));
+    static_assert(sizeof(size_t) == sizeof(uint64_t), "sizeof(size_t) == sizeof(uint64_t)");
     return next_highest_power_of_2(uint64_t(v));
 #else
-    static_assert(sizeof(size_t) == sizeof(uint32_t));
+    static_assert(sizeof(size_t) == sizeof(uint32_t), "sizeof(size_t) == sizeof(uint32_t)");
     return next_highest_power_of_2(uint32_t(v));
 #endif
 }
