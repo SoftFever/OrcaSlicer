@@ -65,11 +65,11 @@ typedef struct {
 
 typedef struct stl_hash_edge {
   // Key of a hash edge: sorted vertices of the edge.
-  unsigned char key[2 * sizeof(stl_vertex)];
+  uint32_t       key[6];
   // Compare two keys.
   bool operator==(const stl_hash_edge &rhs) { return memcmp(key, rhs.key, sizeof(key)) == 0; }
   bool operator!=(const stl_hash_edge &rhs) { return ! (*this == rhs); }
-  int  hash(int M) const { return ((key[0] / 23 + key[1] / 19 + key[2] / 17 + key[3] /13  + key[4] / 11 + key[5] / 7 ) % M); }
+  int  hash(int M) const { return ((key[0] / 11 + key[1] / 7 + key[2] / 3) ^ (key[3] / 11  + key[4] / 7 + key[5] / 3)) % M; }
   // Index of a facet owning this edge.
   int            facet_number;
   // Index of this edge inside the facet with an index of facet_number.

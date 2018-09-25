@@ -25,6 +25,9 @@
 #include <string.h>
 #include <math.h>
 
+#include <algorithm>
+#include <vector>
+
 #include <boost/detail/endian.hpp>
 
 #include "stl.h"
@@ -125,11 +128,11 @@ stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge,
     std::swap(a, b);
     edge->which_edge += 3; /* this edge is loaded backwards */
   }
-  memcpy(&edge->key[0],                  a->data(), sizeof(stl_vertex));
-  memcpy(&edge->key[sizeof(stl_vertex)], b->data(), sizeof(stl_vertex));
+  memcpy(&edge->key[0], a->data(), sizeof(stl_vertex));
+  memcpy(&edge->key[3], b->data(), sizeof(stl_vertex));
   // Switch negative zeros to positive zeros, so memcmp will consider them to be equal.
   for (size_t i = 0; i < 6; ++ i) {
-    unsigned char *p = edge->key + i * 4;
+    unsigned char *p = (unsigned char*)(edge->key + i);
 #ifdef BOOST_LITTLE_ENDIAN
     if (p[0] == 0 && p[1] == 0 && p[2] == 0 && p[3] == 0x80)
       // Negative zero, switch to positive zero.
@@ -142,6 +145,16 @@ stl_load_edge_exact(stl_file *stl, stl_hash_edge *edge,
   }
 }
 
+static inline size_t hash_size_from_nr_faces(const size_t nr_faces)
+{
+	// Good primes for addressing a cca. 30 bit space.
+	// https://planetmath.org/goodhashtableprimes
+	static std::vector<uint32_t> primes{ 98317, 196613, 393241, 786433, 1572869, 3145739, 6291469, 12582917, 25165843, 50331653, 100663319, 201326611, 402653189, 805306457, 1610612741 };
+	// Find a prime number for 50% filling of the shared triangle edges in the mesh.
+	auto it = std::upper_bound(primes.begin(), primes.end(), nr_faces * 3 * 2 - 1);
+	return (it == primes.end()) ? primes.back() : *it;
+}
+
 static void
 stl_initialize_facet_check_exact(stl_file *stl) {
   int i;
@@ -152,10 +165,9 @@ stl_initialize_facet_check_exact(stl_file *stl) {
   stl->stats.freed = 0;
   stl->stats.collisions = 0;
 
+  stl->M = hash_size_from_nr_faces(stl->stats.number_of_facets);
 
-  stl->M = 81397;
-
-  for(i = 0; i < stl->stats.number_of_facets ; i++) {
+  for (i = 0; i < stl->stats.number_of_facets ; i++) {
     /* initialize neighbors list to -1 to mark unconnected edges */
     stl->neighbors_start[i].neighbor[0] = -1;
     stl->neighbors_start[i].neighbor[1] = -1;
@@ -296,11 +308,11 @@ static int stl_load_edge_nearby(stl_file *stl, stl_hash_edge *edge, stl_vertex *
         ((vertex1[1] != vertex2[1]) ? 
             (vertex1[1] < vertex2[1]) : 
             (vertex1[2] < vertex2[2]))) {
-    memcpy(&edge->key[0],                  vertex1.data(), sizeof(stl_vertex));
-    memcpy(&edge->key[sizeof(stl_vertex)], vertex2.data(), sizeof(stl_vertex));
+    memcpy(&edge->key[0], vertex1.data(), sizeof(stl_vertex));
+    memcpy(&edge->key[3], vertex2.data(), sizeof(stl_vertex));
   } else {
-    memcpy(&edge->key[0],                  vertex2.data(), sizeof(stl_vertex));
-    memcpy(&edge->key[sizeof(stl_vertex)], vertex1.data(), sizeof(stl_vertex));
+    memcpy(&edge->key[0], vertex2.data(), sizeof(stl_vertex));
+    memcpy(&edge->key[3], vertex1.data(), sizeof(stl_vertex));
     edge->which_edge += 3; /* this edge is loaded backwards */
   }
   return 1;
@@ -338,7 +350,7 @@ static void stl_initialize_facet_check_nearby(stl_file *stl)
   /*  tolerance = STL_MAX((stl->stats.bounding_diameter / 500000.0), tolerance);*/
   /*  tolerance *= 0.5;*/
 
-  stl->M = 81397;
+  stl->M = hash_size_from_nr_faces(stl->stats.number_of_facets);
 
   stl->heads = (stl_hash_edge**)calloc(stl->M, sizeof(*stl->heads));
   if(stl->heads == NULL) perror("stl_initialize_facet_check_nearby");
