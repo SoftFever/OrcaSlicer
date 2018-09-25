@@ -445,13 +445,11 @@ void GLVolume::render() const
 
     ::glCullFace(GL_BACK);
     ::glPushMatrix();
-    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
-    ::glScaled(m_scaling_factor(0), m_scaling_factor(1), m_scaling_factor(2));
+    ::glMultMatrixf(world_matrix().data());
 #else
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -578,13 +576,11 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
 
     ::glPushMatrix();
-    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
-    ::glScaled(m_scaling_factor(0), m_scaling_factor(1), m_scaling_factor(2));
+    ::glMultMatrixf(world_matrix().data());
 #else
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -630,13 +626,11 @@ void GLVolume::render_legacy() const
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data());
 
     ::glPushMatrix();
-    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
+
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
-    ::glScaled(m_scaling_factor(0), m_scaling_factor(1), m_scaling_factor(2));
+    ::glMultMatrixf(world_matrix().data());
 #else
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM

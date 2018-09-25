@@ -368,11 +368,8 @@ private:
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     struct InstanceData
     {
-        Vec3d position;
-        Vec3d rotation;
-        Vec3d scaling_factor;
-
-        InstanceData(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor) : position(position), rotation(rotation), scaling_factor(scaling_factor) {}
+        Transform3d matrix;
+        InstanceData(const Transform3d& matrix) : matrix(matrix) {}
     };
     std::vector<InstanceData> m_instances;
 #else

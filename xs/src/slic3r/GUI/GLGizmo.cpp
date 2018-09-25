@@ -769,13 +769,7 @@ void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
 #if ENABLE_GIZMOS_RESET
 void GLGizmoScale3D::on_process_double_click()
 {
-    if ((m_hover_id == 0) || (m_hover_id == 1))
-        m_scale(0) = 1.0;
-    else if ((m_hover_id == 2) || (m_hover_id == 3))
-        m_scale(1) = 1.0;
-    else if ((m_hover_id == 4) || (m_hover_id == 5))
-        m_scale(2) = 1.0;
-    else if (m_hover_id >= 6)
+    if (m_hover_id >= 6)
         m_scale = Vec3d::Ones();
 }
 #endif // ENABLE_GIZMOS_RESET
@@ -1265,19 +1259,14 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         for (const InstanceData& inst : m_instances) {
-            Vec3d position = inst.position + dragged_offset;
+            Transform3d m = inst.matrix;
+            m.pretranslate(dragged_offset);
+            ::glPushMatrix();
+            ::glMultMatrixd(m.data());
 #else
         for (Vec2d offset : m_instances_positions) {
             offset += to_2d(dragged_offset);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glPushMatrix();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            ::glTranslated(position(0), position(1), position(2));
-            ::glRotated(inst.rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-            ::glRotated(inst.rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-            ::glRotated(inst.rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
-            ::glScaled(inst.scaling_factor(0), inst.scaling_factor(1), inst.scaling_factor(2));
-#else
             ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glBegin(GL_POLYGON);
@@ -1300,17 +1289,11 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         for (const InstanceData& inst : m_instances) {
+            ::glPushMatrix();
+            ::glMultMatrixd(inst.matrix.data());
 #else
         for (const Vec2d& offset : m_instances_positions) {
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glPushMatrix();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            ::glTranslated(inst.position(0), inst.position(1), inst.position(2));
-            ::glRotated(inst.rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-            ::glRotated(inst.rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-            ::glRotated(inst.rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
-            ::glScaled(inst.scaling_factor(0), inst.scaling_factor(1), inst.scaling_factor(2));
-#else
             ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glBegin(GL_POLYGON);
@@ -1335,7 +1318,7 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         for (const auto* instance : m_model_object->instances)
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            m_instances.emplace_back(instance->get_offset(), instance->get_rotation(), instance->get_scaling_factor());
+            m_instances.emplace_back(instance->world_matrix());
 #else
             m_instances_positions.emplace_back(instance->offset);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
