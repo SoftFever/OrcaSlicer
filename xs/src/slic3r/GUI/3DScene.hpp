@@ -256,15 +256,17 @@ public:
 private:
     // Offset of the volume to be rendered.
     Vec3d                 m_offset;
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     // Rotation around three axes of the volume to be rendered.
     Vec3d                 m_rotation;
+    // Scale factor along the three axes of the volume to be rendered.
+    Vec3d                 m_scaling_factor;
 #else
     // Rotation around Z axis of the volume to be rendered.
     double                m_rotation;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     // Scale factor of the volume to be rendered.
     double                m_scaling_factor;
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     // World matrix of the volume to be rendered.
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
@@ -332,18 +334,20 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const Vec3d& get_rotation() const;
     void set_rotation(const Vec3d& rotation);
+
+    void set_scaling_factor(const Vec3d& scaling_factor);
 #else
     double get_rotation() const;
     void set_rotation(double rotation);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+
+    void set_scaling_factor(double factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
-
-    void set_scaling_factor(double factor);
 
     void set_convex_hull(const TriangleMesh& convex_hull);
 
@@ -567,11 +571,13 @@ public:
     static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback);
     static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
+    static void register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback);
 
     static void register_action_add_callback(wxGLCanvas* canvas, void* callback);
     static void register_action_delete_callback(wxGLCanvas* canvas, void* callback);

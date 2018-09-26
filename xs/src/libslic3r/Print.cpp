@@ -431,7 +431,14 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         std::vector<std::string> v_scale;
         for (const PrintObject *object : m_objects) {
             const ModelObject &mobj = *object->model_object();
-            v_scale.push_back(boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor*100) + "%");
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+            // CHECK_ME -> Is the following correct ?
+            v_scale.push_back("x:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(X) * 100) +
+                "% y:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Y) * 100) +
+                "% z:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Z) * 100) + "%");
+#else
+            v_scale.push_back(boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor * 100) + "%");
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             if (input_file.empty())
                 input_file = mobj.input_file;
         }

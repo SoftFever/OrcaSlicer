@@ -196,12 +196,13 @@ const float GLVolume::SELECTED_OUTSIDE_COLOR[4] = { 0.19f, 0.58f, 1.0f, 1.0f };
 
 GLVolume::GLVolume(float r, float g, float b, float a)
     : m_offset(Vec3d::Zero())
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     , m_rotation(Vec3d::Zero())
+    , m_scaling_factor(Vec3d::Ones())
 #else
     , m_rotation(0.0)
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     , m_scaling_factor(1.0)
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     , m_world_matrix(Transform3f::Identity())
     , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
@@ -259,7 +260,7 @@ void GLVolume::set_render_color()
         set_render_color(color, 4);
 }
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 const Vec3d& GLVolume::get_rotation() const
 {
     return m_rotation;
@@ -291,7 +292,7 @@ void GLVolume::set_rotation(double rotation)
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
 }
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 const Vec3d& GLVolume::get_offset() const
 {
@@ -309,6 +310,18 @@ void GLVolume::set_offset(const Vec3d& offset)
     }
 }
 
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+void GLVolume::set_scaling_factor(const Vec3d& scaling_factor)
+{
+    if (m_scaling_factor != scaling_factor)
+    {
+        m_scaling_factor = scaling_factor;
+        m_world_matrix_dirty = true;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
+}
+#else
 void GLVolume::set_scaling_factor(double factor)
 {
     if (m_scaling_factor != factor)
@@ -319,6 +332,7 @@ void GLVolume::set_scaling_factor(double factor)
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
 }
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
 {
@@ -349,14 +363,15 @@ const Transform3f& GLVolume::world_matrix() const
     {
         m_world_matrix = Transform3f::Identity();
         m_world_matrix.translate(m_offset.cast<float>());
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(2), Vec3f::UnitZ()));
         m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(1), Vec3f::UnitY()));
         m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(0), Vec3f::UnitX()));
+        m_world_matrix.scale(m_scaling_factor.cast<float>());
 #else
         m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation, Vec3f::UnitZ()));
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         m_world_matrix.scale((float)m_scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_world_matrix_dirty = false;
     }
     return m_world_matrix;
@@ -430,15 +445,14 @@ void GLVolume::render() const
 
     ::glCullFace(GL_BACK);
     ::glPushMatrix();
-    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    ::glMultMatrixf(world_matrix().data());
 #else
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if (this->indexed_vertex_array.indexed())
         this->indexed_vertex_array.render(this->tverts_range, this->qverts_range);
     else
@@ -562,15 +576,14 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), nullptr);
 
     ::glPushMatrix();
-    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    ::glMultMatrixf(world_matrix().data());
 #else
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     if (n_triangles > 0)
     {
@@ -613,15 +626,14 @@ void GLVolume::render_legacy() const
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data());
 
     ::glPushMatrix();
-    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-    ::glRotated(m_rotation(2) * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-    ::glRotated(m_rotation(1) * 180.0 / (double)PI, 0.0, 1.0, 0.0);
-    ::glRotated(m_rotation(0) * 180.0 / (double)PI, 1.0, 0.0, 0.0);
+
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    ::glMultMatrixf(world_matrix().data());
 #else
+    ::glTranslated(m_offset(0), m_offset(1), m_offset(2));
     ::glRotated(m_rotation * 180.0 / (double)PI, 0.0, 0.0, 1.0);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
     ::glScaled(m_scaling_factor, m_scaling_factor, m_scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     if (n_triangles > 0)
         ::glDrawElements(GL_TRIANGLES, n_triangles, GL_UNSIGNED_INT, indexed_vertex_array.triangle_indices.data() + tverts_range.first);
@@ -739,17 +751,15 @@ std::vector<int> GLVolumeCollection::load_object(
             }
             v.is_modifier = ! model_volume->is_model_part();
             v.shader_outside_printer_detection_enabled = model_volume->is_model_part();
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             v.set_offset(instance->get_offset());
+            v.set_rotation(instance->get_rotation());
+            v.set_scaling_factor(instance->get_scaling_factor());
 #else
             v.set_offset(Vec3d(instance->offset(0), instance->offset(1), 0.0));
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-            v.set_rotation(instance->get_rotation());
-#else
             v.set_rotation(instance->rotation);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
             v.set_scaling_factor(instance->scaling_factor);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         }
     }
     
@@ -2112,40 +2122,58 @@ void _3DScene::register_on_enable_action_buttons_callback(wxGLCanvas* canvas, vo
 
 void _3DScene::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
 {
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     s_canvas_mgr.register_on_gizmo_scale_uniformly_callback(canvas, callback);
+#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+}
+
+void _3DScene::register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback)
+{
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    s_canvas_mgr.register_on_gizmo_scale_3D_callback(canvas, callback);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void _3DScene::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
 {
-#if !ENABLE_MODELINSTANCE_3D_ROTATION
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     s_canvas_mgr.register_on_gizmo_rotate_callback(canvas, callback);
-#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void _3DScene::register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback)
 {
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     s_canvas_mgr.register_on_gizmo_rotate_3D_callback(canvas, callback);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void _3DScene::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback)
 {
-#if !ENABLE_MODELINSTANCE_3D_ROTATION
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     s_canvas_mgr.register_on_gizmo_flatten_callback(canvas, callback);
-#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void _3DScene::register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback)
 {
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     s_canvas_mgr.register_on_gizmo_flatten_3D_callback(canvas, callback);
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void _3DScene::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
 {
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     s_canvas_mgr.register_on_update_geometry_info_callback(canvas, callback);
+#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+}
+
+void _3DScene::register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback)
+{
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    s_canvas_mgr.register_on_update_geometry_3D_info_callback(canvas, callback);
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void _3DScene::register_action_add_callback(wxGLCanvas* canvas, void* callback)

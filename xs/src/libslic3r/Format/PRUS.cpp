@@ -164,17 +164,15 @@ bool load_prus(const char *path, Model *model)
             const char *zero_tag  = "<zero>";
 			const char *zero_xml  = strstr(scene_xml_data.data(), zero_tag);
             float  trafo[3][4] = { 0 };
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             Vec3d instance_rotation = Vec3d::Zero();
-#else
-            double instance_rotation = 0.;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
-            double instance_scaling_factor = 1.f;
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+            Vec3d instance_scaling_factor = Vec3d::Ones();
             Vec3d instance_offset = Vec3d::Zero();
 #else
+            double instance_rotation = 0.;
+            double instance_scaling_factor = 1.f;
             Vec2d instance_offset(0., 0.);
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             bool   trafo_set = false;
             unsigned int group_id     = (unsigned int)-1;
             unsigned int extruder_id  = (unsigned int)-1;
@@ -197,18 +195,19 @@ bool load_prus(const char *path, Model *model)
                         "[%f, %f, %f]", scale, scale+1, scale+2) == 3 &&
                     sscanf(zero_xml+strlen(zero_tag), 
                         "[%f, %f, %f]", zero, zero+1, zero+2) == 3) {
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+                    instance_scaling_factor = Vec3d((double)scale[0], (double)scale[1], (double)scale[2]);
+                    instance_rotation = Vec3d(-(double)rotation[0], -(double)rotation[1], -(double)rotation[2]);
+#else
                     if (scale[0] == scale[1] && scale[1] == scale[2]) {
                         instance_scaling_factor = scale[0];
                         scale[0] = scale[1] = scale[2] = 1.;
                     }
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-                    instance_rotation = Vec3d(-(double)rotation[0], -(double)rotation[1], -(double)rotation[2]);
-#else
                     if (rotation[0] == 0. && rotation[1] == 0.) {
-                        instance_rotation = - rotation[2];
+                        instance_rotation = -rotation[2];
                         rotation[2] = 0.;
                     }
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                     Eigen::Matrix3f mat_rot, mat_scale, mat_trafo;
                     mat_rot = Eigen::AngleAxisf(-rotation[2], Eigen::Vector3f::UnitZ()) * 
                               Eigen::AngleAxisf(-rotation[1], Eigen::Vector3f::UnitY()) *
@@ -219,13 +218,15 @@ bool load_prus(const char *path, Model *model)
                         for (size_t c = 0; c < 3; ++ c)
                             trafo[r][c] += mat_trafo(r, c);
                     }
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                     instance_offset = Vec3d((double)(position[0] - zero[0]), (double)(position[1] - zero[1]), (double)(position[2] - zero[2]));
+                    // CHECK_ME -> Is the following correct ?
+                    trafo[2][3] = position[2] / instance_scaling_factor(2);
 #else
                     instance_offset(0) = position[0] - zero[0];
                     instance_offset(1) = position[1] - zero[1];
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
                     trafo[2][3] = position[2] / instance_scaling_factor;
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                     trafo_set = true;
                 }
                 const char *group_tag    = "<group>";
@@ -374,17 +375,15 @@ bool load_prus(const char *path, Model *model)
                         model_object = model->add_object(name_utf8.data(), path, std::move(mesh));
                         volume = model_object->volumes.front();
                         ModelInstance *instance     = model_object->add_instance();
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                         instance->set_rotation(instance_rotation);
-#else
-                        instance->rotation = instance_rotation;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
-                        instance->scaling_factor = instance_scaling_factor;
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+                        instance->set_scaling_factor(instance_scaling_factor);
                         instance->set_offset(instance_offset);
 #else
+                        instance->rotation = instance_rotation;
+                        instance->scaling_factor = instance_scaling_factor;
                         instance->offset = instance_offset;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                         ++num_models;
                         if (group_id != (size_t)-1)
                             group_to_model_object[group_id] = model_object;

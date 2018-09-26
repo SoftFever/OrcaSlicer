@@ -144,6 +144,40 @@ sub new {
         $self->schedule_background_process;
     };
     
+    # callback to react to gizmo scale
+    my $on_gizmo_scale_3D = sub {
+        my ($scale_x, $scale_y, $scale_z) = @_;
+        
+        my ($obj_idx, $object) = $self->selected_object;
+        return if !defined $obj_idx;
+
+        my $model_object = $self->{model}->objects->[$obj_idx];
+        my $model_instance = $model_object->instances->[0];
+
+        $self->stop_background_process;
+        
+        #FIXME Scale the layer height profile?
+#        my $variation = $scale / $model_instance->scaling_factor;
+#        foreach my $range (@{ $model_object->layer_height_ranges }) {
+#            $range->[0] *= $variation;
+#            $range->[1] *= $variation;
+#        }
+
+        my $scale = Slic3r::Pointf3->new($scale_x, $scale_y, $scale_z);
+        foreach my $inst (@{ $model_object->instances }) {
+            $inst->set_scaling_factors($scale);
+        }
+        Slic3r::GUI::_3DScene::update_gizmos_data($self->{canvas3D}) if ($self->{canvas3D});  
+            
+        #update print and start background processing
+        $self->{print}->add_model_object($model_object, $obj_idx);
+    
+        $self->selection_changed(1);  # refresh info (size, volume etc.)
+        $self->update;
+        $self->schedule_background_process;
+        
+    };
+    
     # callback to react to gizmo rotate
     my $on_gizmo_rotate = sub {
         my ($angle) = @_;
@@ -223,6 +257,21 @@ sub new {
         }
     };
 
+    # callback to update object's geometry info while using gizmos
+    my $on_update_geometry_3D_info = sub {
+        my ($size_x, $size_y, $size_z, $scale_x, $scale_y, $scale_z) = @_;
+    
+        my ($obj_idx, $object) = $self->selected_object;
+    
+        if ((defined $obj_idx) && ($self->{object_info_size})) { # have we already loaded the info pane?
+            $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", $size_x, $size_y, $size_z));
+            my $model_object = $self->{model}->objects->[$obj_idx];
+            if (my $stats = $model_object->mesh_stats) {
+                $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * $scale_x * $scale_y * $scale_z));
+            }
+        }
+    };
+    
     # callbacks for toolbar
     my $on_action_add = sub {
         $self->add;
@@ -312,11 +361,13 @@ sub new {
         Slic3r::GUI::_3DScene::register_on_instance_moved_callback($self->{canvas3D}, $on_instances_moved);
         Slic3r::GUI::_3DScene::register_on_enable_action_buttons_callback($self->{canvas3D}, $enable_action_buttons);
         Slic3r::GUI::_3DScene::register_on_gizmo_scale_uniformly_callback($self->{canvas3D}, $on_gizmo_scale_uniformly);
+        Slic3r::GUI::_3DScene::register_on_gizmo_scale_3D_callback($self->{canvas3D}, $on_gizmo_scale_3D);
         Slic3r::GUI::_3DScene::register_on_gizmo_rotate_callback($self->{canvas3D}, $on_gizmo_rotate);
         Slic3r::GUI::_3DScene::register_on_gizmo_rotate_3D_callback($self->{canvas3D}, $on_gizmo_rotate_3D);
         Slic3r::GUI::_3DScene::register_on_gizmo_flatten_callback($self->{canvas3D}, $on_gizmo_flatten);
         Slic3r::GUI::_3DScene::register_on_gizmo_flatten_3D_callback($self->{canvas3D}, $on_gizmo_flatten_3D);
         Slic3r::GUI::_3DScene::register_on_update_geometry_info_callback($self->{canvas3D}, $on_update_geometry_info);
+        Slic3r::GUI::_3DScene::register_on_update_geometry_3D_info_callback($self->{canvas3D}, $on_update_geometry_3D_info);
         Slic3r::GUI::_3DScene::register_action_add_callback($self->{canvas3D}, $on_action_add);
         Slic3r::GUI::_3DScene::register_action_delete_callback($self->{canvas3D}, $on_action_delete);
         Slic3r::GUI::_3DScene::register_action_deleteall_callback($self->{canvas3D}, $on_action_deleteall);

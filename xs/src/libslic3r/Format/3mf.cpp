@@ -1253,13 +1253,13 @@ namespace Slic3r {
         // we extract from the given matrix only the values currently used
 
         // translation
-#if ENABLE_MODELINSTANCE_3D_OFFSET
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d offset(transform(0, 3), transform(1, 3), transform(2, 3));
 #else
         double offset_x = transform(0, 3);
         double offset_y = transform(1, 3);
         double offset_z = transform(2, 3);
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
         // scale
         double sx = ::sqrt(sqr(transform(0, 0)) + sqr(transform(1, 0)) + sqr(transform(2, 0)));
@@ -1270,9 +1270,11 @@ namespace Slic3r {
         if ((sx == 0.0) || (sy == 0.0) || (sz == 0.0))
             return;
 
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         // non-uniform scale value, return
         if ((std::abs(sx - sy) > 0.00001) || (std::abs(sx - sz) > 0.00001))
             return;
+#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
         double inv_sx = 1.0 / sx;
         double inv_sy = 1.0 / sy;
@@ -1283,9 +1285,13 @@ namespace Slic3r {
                 transform(1, 0) * inv_sx, transform(1, 1) * inv_sy, transform(1, 2) * inv_sz,
                 transform(2, 0) * inv_sx, transform(2, 1) * inv_sy, transform(2, 2) * inv_sz;
 
-#if ENABLE_MODELINSTANCE_3D_ROTATION
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d angles = m3x3.eulerAngles(2, 1, 0);
         Vec3d rotation(angles(2), angles(1), angles(0));
+
+        instance.set_offset(offset);
+        instance.set_scaling_factor(Vec3d(sx, sy, sz));
+        instance.set_rotation(rotation);
 #else
         Eigen::AngleAxisd rotation;
         rotation.fromRotationMatrix(m3x3);
@@ -1295,20 +1301,12 @@ namespace Slic3r {
             return;
 
         double angle_z = (rotation.axis() == Vec3d::UnitZ()) ? rotation.angle() : -rotation.angle();
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
 
-#if ENABLE_MODELINSTANCE_3D_OFFSET
-        instance.set_offset(offset);
-#else
         instance.offset(0) = offset_x;
         instance.offset(1) = offset_y;
-#endif // ENABLE_MODELINSTANCE_3D_OFFSET
         instance.scaling_factor = sx;
-#if ENABLE_MODELINSTANCE_3D_ROTATION
-        instance.set_rotation(rotation);
-#else
         instance.rotation = angle_z;
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)
