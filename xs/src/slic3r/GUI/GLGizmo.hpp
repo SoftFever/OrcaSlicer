@@ -439,7 +439,7 @@ private:
     void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
     void on_render(const BoundingBoxf3& box) const;
     void on_render_for_picking(const BoundingBoxf3& box) const;
-    void render_grabbers(const Vec3d& dragged_offset, bool picking = false) const;
+    void render_grabbers(bool picking = false) const;
     void render_tooltip_texture() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();

@@ -1615,9 +1615,12 @@ void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
         g.color[2] = 0.f;
     }
 
-    render_grabbers(dragged_offset);
-    render_tooltip_texture();
+    ::glPushMatrix();
+    ::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
+    render_grabbers();
+    ::glPopMatrix();
 
+    render_tooltip_texture();
     ::glDisable(GL_BLEND);
 }
 
@@ -1629,10 +1632,10 @@ void GLGizmoSlaSupports::on_render_for_picking(const BoundingBoxf3& box) const
         m_grabbers[i].color[1] = 1.0f;
         m_grabbers[i].color[2] = picking_color_component(i);
     }
-    render_grabbers(Vec3d::Zero(), true);
+    render_grabbers(true);
 }
 
-void GLGizmoSlaSupports::render_grabbers(const Vec3d& dragged_offset, bool picking) const
+void GLGizmoSlaSupports::render_grabbers(bool picking) const
 {
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
@@ -1651,12 +1654,12 @@ void GLGizmoSlaSupports::render_grabbers(const Vec3d& dragged_offset, bool picki
             ::glEnable(GL_LIGHTING);
         ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
         ::glPushMatrix();
-        Vec3d center = m_model_object->instances.front()->world_matrix() * m_grabbers[i].center + dragged_offset;
+        Vec3d center = m_model_object->instances.front()->world_matrix() * m_grabbers[i].center;
         ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
         GLUquadricObj *quadric;
         quadric = ::gluNewQuadric();
         ::gluQuadricDrawStyle(quadric, GLU_FILL );
-        ::gluSphere( quadric , 0.5f, 36 , 18 );
+        ::gluSphere( quadric , 0.75f, 36 , 18 );
         ::gluDeleteQuadric(quadric);
         ::glPopMatrix();
         if (!picking)
