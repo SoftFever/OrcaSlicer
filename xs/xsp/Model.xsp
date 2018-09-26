@@ -338,6 +338,8 @@ ModelMaterial::attributes()
         %code%{ RETVAL = &THIS->config; %};
     Ref<TriangleMesh> mesh()
         %code%{ RETVAL = &THIS->mesh; %};
+    Ref<TriangleMesh> convex_hull()
+        %code%{ RETVAL = &THIS->get_convex_hull(); %};
     
     bool modifier()
         %code%{ RETVAL = THIS->is_modifier(); %};

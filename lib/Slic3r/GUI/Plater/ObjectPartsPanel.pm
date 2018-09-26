@@ -424,6 +424,7 @@ sub on_btn_load {
                 # apply the same translation we applied to the object
                 if (($delta_x != 0.0) || ($delta_y != 0.0) || ($delta_z != 0.0)) {
                     $new_volume->mesh->translate($delta_x, $delta_y, $delta_z);
+                    $new_volume->convex_hull->translate($delta_x, $delta_y, $delta_z);
                 }
                 
                 # set a default extruder value, since user can't add it manually
