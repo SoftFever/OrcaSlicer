@@ -196,6 +196,7 @@ public:
     
     void calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
+    TriangleMesh& get_convex_hull();
 
     // Helpers for loading / storing into AMF / 3MF files.
     static Type         type_from_string(const std::string &s);
