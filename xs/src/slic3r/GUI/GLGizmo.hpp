@@ -375,7 +375,7 @@ private:
 #else
     std::vector<Vec2d> m_instances_positions;
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    Vec3d m_starting_center;
+    mutable Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
     void update_planes();
@@ -414,21 +414,23 @@ private:
     Eigen::MatrixXi m_F; // facets indices
     struct SourceDataSummary {
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
-#if !ENABLE_MODELINSTANCE_3D_ROTATION
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         float scaling_factor;
         float rotation;
 #else
         Transform3d matrix;
-#endif // !ENABLE_MODELINSTANCE_3D_ROTATION
+#endif
         Vec3d mesh_first_point;
     };
 
     // This holds information to decide whether recalculation is necessary:
     SourceDataSummary m_source_data;
 
+    mutable Vec3d m_starting_center;
+
 public:
     explicit GLGizmoSlaSupports(GLCanvas3D& parent);
-    void set_model_object_ptr(ModelObject* model_object) { m_model_object = model_object; if (is_mesh_update_necessary()) update_mesh(); }
+    void set_model_object_ptr(ModelObject* model_object);
     void clicked_on_object(const Vec2d& mouse_position);
     void delete_current_grabber(bool delete_all);
 
@@ -437,7 +439,7 @@ private:
     void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
     void on_render(const BoundingBoxf3& box) const;
     void on_render_for_picking(const BoundingBoxf3& box) const;
-    void render_grabbers(bool picking = false) const;
+    void render_grabbers(const Vec3d& dragged_offset, bool picking = false) const;
     void render_tooltip_texture() const;
     bool is_mesh_update_necessary() const;
     void update_mesh();
