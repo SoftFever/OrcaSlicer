@@ -919,24 +919,12 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             DynamicPrintConfig config(default_config);
             for (auto &kvp : section.second)
                 config.set_deserialize(kvp.first, kvp.second.data());
-            Preset::normalize(config);
             // Report configuration fields, which are misplaced into a wrong group.
             std::string incorrect_keys;
-            size_t      n_incorrect_keys = 0;
-            for (const std::string &key : config.keys())
-                if (! default_config.has(key)) {
-                    if (incorrect_keys.empty())
-                        incorrect_keys = key;
-                    else {
-                        incorrect_keys += ", ";
-                        incorrect_keys += key;
-                    }
-                    config.erase(key);
-                    ++ n_incorrect_keys;
-                }
-            if (! incorrect_keys.empty())
+            if (config.remove_keys_not_in(default_config, incorrect_keys) > 0)
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
-                    section.first << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+                    section.first << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";            
+            Preset::normalize(config);
             if ((flags & LOAD_CFGBNDLE_SYSTEM) && presets == &printers) {
                 // Filter out printer presets, which are not mentioned in the vendor profile.
                 // These presets are considered not installed.

@@ -417,7 +417,14 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             try {
                 Preset preset(m_type, name, false);
                 preset.file = dir_entry.path().string();
-                preset.load(keys);
+                DynamicPrintConfig &config = preset.load(keys);
+                // Report configuration fields, which are misplaced into a wrong group.
+                std::string incorrect_keys;
+                if (config.remove_keys_not_in(this->default_preset().config, incorrect_keys) > 0)
+                    BOOST_LOG_TRIVIAL(error) << "Error in \"" << dir_entry.path().string() << "\": The preset contains the following incorrect keys: " << 
+                        incorrect_keys << ", which were ignored";
+                // Normalize once again to set the length of the filament specific vectors to 1.
+                Preset::normalize(config);
                 m_presets.emplace_back(preset);
             } catch (const std::runtime_error &err) {
                 errors_cummulative += err.what();

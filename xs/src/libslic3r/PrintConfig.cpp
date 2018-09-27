@@ -1,6 +1,7 @@
 #include "PrintConfig.hpp"
 #include "I18N.hpp"
 
+#include <algorithm>
 #include <set>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/case_conv.hpp>
@@ -2239,6 +2240,25 @@ std::string DynamicPrintConfig::validate()
     fpc.apply(*this, true);
     // Verify this print options through the FullPrintConfig.
     return fpc.validate();
+}
+
+size_t DynamicPrintConfig::remove_keys_not_in(const DynamicPrintConfig &default_config, std::string &removed_keys_message)
+{
+    size_t n_removed_keys = 0;
+    for (const auto &kvp : this->options) {
+        const std::string &key = kvp.first;
+        if (! default_config.has(key)) {
+            if (removed_keys_message.empty())
+                removed_keys_message = key;
+            else {
+                removed_keys_message += ", ";
+                removed_keys_message += key;
+            }
+            this->erase(key);
+            ++ n_removed_keys;
+        }
+    }
+    return n_removed_keys;
 }
 
 double PrintConfig::min_object_distance() const

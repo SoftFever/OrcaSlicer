@@ -168,6 +168,10 @@ public:
     // Validate the PrintConfig. Returns an empty string on success, otherwise an error message is returned.
     std::string         validate();
 
+    // Remove all keys not in "valid_keys", return number of removed keys and add the list of keys to "removed_keys_message.
+    // valid_keys has to be sorted lexicographically.
+    size_t              remove_keys_not_in(const DynamicPrintConfig &default_config, std::string &removed_keys_message);
+
     // Verify whether the opt_key has not been obsoleted or renamed.
     // Both opt_key and value may be modified by handle_legacy().
     // If the opt_key is no more valid in this version of Slic3r, opt_key is cleared by handle_legacy().
