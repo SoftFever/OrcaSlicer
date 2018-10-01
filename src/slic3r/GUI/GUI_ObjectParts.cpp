@@ -365,13 +365,13 @@ wxBoxSizer* create_edit_object_buttons(wxWindow* win)
 	}
 	m_sizer_part_buttons->Show(false);
 
-	btn_load_part->SetFont(Slic3r::GUI::small_font());
-	btn_load_modifier->SetFont(Slic3r::GUI::small_font());
-	btn_load_lambda_modifier->SetFont(Slic3r::GUI::small_font());
-	btn_delete->SetFont(Slic3r::GUI::small_font());
-	btn_split->SetFont(Slic3r::GUI::small_font());
-	m_btn_move_up->SetFont(Slic3r::GUI::small_font());
-	m_btn_move_down->SetFont(Slic3r::GUI::small_font());
+	btn_load_part->SetFont(wxGetApp().small_font());
+	btn_load_modifier->SetFont(wxGetApp().small_font());
+	btn_load_lambda_modifier->SetFont(wxGetApp().small_font());
+	btn_delete->SetFont(wxGetApp().small_font());
+	btn_split->SetFont(wxGetApp().small_font());
+	m_btn_move_up->SetFont(wxGetApp().small_font());
+	m_btn_move_down->SetFont(wxGetApp().small_font());
 
 	sizer->Add(m_sizer_object_buttons, 0, wxEXPAND | wxLEFT, 20);
 	sizer->Add(m_sizer_part_buttons, 0, wxEXPAND | wxLEFT, 20);

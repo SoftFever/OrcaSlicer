@@ -276,7 +276,7 @@ Tab* MainFrame::get_preset_tab(const std::string& name)
 
 void MainFrame::create_preset_tabs()
 {
-//    update_label_colours_from_appconfig();
+    wxGetApp().update_label_colours_from_appconfig();
     add_created_tab(new TabPrint(m_tabpanel));
     add_created_tab(new TabFilament(m_tabpanel));
     add_created_tab(new TabSLAMaterial(m_tabpanel));

@@ -7,6 +7,7 @@
 #include <wx/tooltip.h>
 #include "PrintConfig.hpp"
 #include <boost/algorithm/string/predicate.hpp>
+#include "GUI_App.hpp"
 
 namespace Slic3r { namespace GUI {
 
@@ -707,7 +708,7 @@ void StaticText::BUILD()
 
 	wxString legend(static_cast<const ConfigOptionString*>(m_opt.default_value)->value);
 	auto temp = new wxStaticText(m_parent, wxID_ANY, legend, wxDefaultPosition, size);
-	temp->SetFont(bold_font());
+    temp->SetFont(wxGetApp().bold_font());
 
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);

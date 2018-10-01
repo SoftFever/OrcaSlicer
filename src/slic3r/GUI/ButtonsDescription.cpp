@@ -5,6 +5,7 @@
 #include <wx/clrpicker.h>
 
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -36,8 +37,8 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 
 	// Text color description
 	auto sys_label = new wxStaticText(this, wxID_ANY, _(L("Value is the same as the system value")));
-	sys_label->SetForegroundColour(get_label_clr_sys());
-	auto sys_colour = new wxColourPickerCtrl(this, wxID_ANY, get_label_clr_sys());
+	sys_label->SetForegroundColour(wxGetApp().get_label_clr_sys());
+	auto sys_colour = new wxColourPickerCtrl(this, wxID_ANY, wxGetApp().get_label_clr_sys());
 	sys_colour->Bind(wxEVT_COLOURPICKER_CHANGED, ([sys_colour, sys_label](wxCommandEvent e)
 	{
 		sys_label->SetForegroundColour(sys_colour->GetColour());
@@ -53,8 +54,8 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 	grid_sizer->Add(sys_label, -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 
 	auto mod_label = new wxStaticText(this, wxID_ANY, _(L("Value was changed and is not equal to the system value or the last saved preset")));
-	mod_label->SetForegroundColour(get_label_clr_modified());
-	auto mod_colour = new wxColourPickerCtrl(this, wxID_ANY, get_label_clr_modified());
+	mod_label->SetForegroundColour(wxGetApp().get_label_clr_modified());
+	auto mod_colour = new wxColourPickerCtrl(this, wxID_ANY, wxGetApp().get_label_clr_modified());
 	mod_colour->Bind(wxEVT_COLOURPICKER_CHANGED, ([mod_colour, mod_label](wxCommandEvent e)
 	{
 		mod_label->SetForegroundColour(mod_colour->GetColour());
@@ -70,8 +71,8 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 
 	wxButton* btn = static_cast<wxButton*>(FindWindowById(wxID_OK, this));
 	btn->Bind(wxEVT_BUTTON, [sys_colour, mod_colour, this](wxCommandEvent&) { 
-		set_label_clr_sys(sys_colour->GetColour());
-		set_label_clr_modified(mod_colour->GetColour());
+		wxGetApp().set_label_clr_sys(sys_colour->GetColour());
+		wxGetApp().set_label_clr_modified(mod_colour->GetColour());
 		EndModal(wxID_OK);
 		});
 

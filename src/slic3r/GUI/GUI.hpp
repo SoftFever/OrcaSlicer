@@ -127,25 +127,13 @@ void set_objects_list_sizer(wxBoxSizer *objects_list_sizer);
 
 AppConfig*		get_app_config();
 wxApp*			get_app();
-PresetBundle*	get_preset_bundle();
 wxFrame*		get_main_frame();
 ProgressStatusBar* get_progress_status_bar();
-wxNotebook *	get_tab_panel();
 wxNotebook*		get_tab_panel();
 
 AppControllerPtr get_appctl();
 void             set_cli_appctl();
 void             set_gui_appctl();
-
-const wxColour& get_label_clr_modified();
-const wxColour& get_label_clr_sys();
-const wxColour& get_label_clr_default();
-unsigned get_colour_approx_luma(const wxColour &colour);
-void set_label_clr_modified(const wxColour& clr);
-void set_label_clr_sys(const wxColour& clr);
-
-const wxFont& small_font();
-const wxFont& bold_font();
 
 void open_model(wxWindow *parent, wxArrayString& input_files);
 
@@ -159,7 +147,7 @@ extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_
 
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
-extern bool check_unsaved_changes();
+// extern bool check_unsaved_changes();
 
 // Checks if configuration wizard needs to run, calls config_wizard if so.
 // Returns whether the Wizard ran.
@@ -173,18 +161,15 @@ extern void config_wizard(int run_reason);
 extern void open_preferences_dialog(int event_preferences);
 
 // Create a new preset tab (print, filament and printer),
-void create_preset_tabs(int event_value_change, int event_presets_changed);
+// void create_preset_tabs(int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
 
 PreviewIface* create_preview_iface(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
 
 // add it at the end of the tab panel.
-void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
+// void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
-
-// Update UI / Tabs to reflect changes in the currently loaded presets
-void load_current_presets();
 
 void show_error(wxWindow* parent, const wxString& message);
 void show_error_id(int id, const std::string& message);   // For Perl
@@ -208,10 +193,6 @@ bool select_language(wxArrayString & names, wxArrayLong & identifiers);
 void update_mode();
 
 void show_info_sizer(const bool show);
-
-std::vector<Tab *>& get_tabs_list();
-bool checked_tab(Tab* tab);
-void delete_tab_from_list(Tab* tab);
 
 // Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.
 // Items are all initialized to the given value.

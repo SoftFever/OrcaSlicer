@@ -8,6 +8,8 @@
 // #include "GUI.hpp"
 
 #include <wx/app.h>
+#include <wx/colour.h>
+#include <wx/font.h>
 
 #include <mutex>
 #include <stack>
@@ -50,9 +52,34 @@ class GUI_App : public wxApp
     // callbacks registered to run during idle event.
     std::stack<std::function<void()>>    m_cb{};
 
+    wxColour        m_color_label_modified;
+    wxColour        m_color_label_sys;
+    wxColour        m_color_label_default;
+
+    wxFont		    m_small_font;
+    wxFont		    m_bold_font;
+
+    // #ys_FIXME
+//     std::vector<Tab *> g_tabs_list;
+//     wxLocale*	g_wxLocale{ nullptr };
+
 public:
     bool            OnInit() override;
     GUI_App() : wxApp() {}
+
+    unsigned        get_colour_approx_luma(const wxColour &colour);
+    void            init_label_colours();
+    void            update_label_colours_from_appconfig();
+    void            init_fonts();
+    void            set_label_clr_modified(const wxColour& clr);
+    void            set_label_clr_sys(const wxColour& clr);
+
+    const wxColour& get_label_clr_modified(){ return m_color_label_modified; }
+    const wxColour& get_label_clr_sys()     { return m_color_label_sys; }
+    const wxColour& get_label_clr_default() { return m_color_label_default; }
+
+    const wxFont&   small_font()            { return m_small_font; }
+    const wxFont&   bold_font()             { return m_bold_font; }
 
     void            recreate_GUI();
     void            system_info();
@@ -82,7 +109,10 @@ public:
     ConfigMenuIDs   get_view_mode();
     void            add_config_menu(wxMenuBar *menu);
     bool            check_unsaved_changes();
+    bool            checked_tab(Tab* tab);
+    void            delete_tab_from_list(Tab* tab);
     //     Tab*            get_tab(const std::string& name);
+    void            load_current_presets();
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };

@@ -17,6 +17,7 @@
 #include <Geometry.hpp>
 #include <Model.hpp>
 #include <Utils.hpp>
+#include "GUI/GUI_App.hpp"
 
 
 namespace Slic3r {
@@ -41,9 +42,9 @@ bool AppControllerGui::is_main_thread() const
     return m_pri_data->ui_thread == std::this_thread::get_id();
 }
 
-namespace GUI {
-PresetBundle* get_preset_bundle();
-}
+// namespace GUI {
+// PresetBundle* get_preset_bundle();
+// }
 
 static const PrintObjectStep STEP_SLICE                 = posSlice;
 static const PrintObjectStep STEP_PERIMETERS            = posPerimeters;
@@ -142,7 +143,7 @@ void PrintController::slice_to_png()
     using Pointf3 = Vec3d;
 
     auto ctl = GUI::get_appctl();
-    auto presetbundle = GUI::get_preset_bundle();
+    auto presetbundle = GUI::wxGetApp().preset_bundle;
 
     assert(presetbundle);
 

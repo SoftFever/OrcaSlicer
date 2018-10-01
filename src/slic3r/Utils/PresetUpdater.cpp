@@ -570,10 +570,10 @@ bool PresetUpdater::config_update() const
 			BOOST_LOG_TRIVIAL(info) << "User wants to re-configure...";
 			p->perform_updates(std::move(updates));
 			GUI::ConfigWizard wizard(nullptr, GUI::ConfigWizard::RR_DATA_INCOMPAT);
-			if (! wizard.run(GUI::get_preset_bundle(), this)) {
+			if (! wizard.run(GUI::wxGetApp().preset_bundle, this)) {
 				return false;
 			}
-			GUI::load_current_presets();
+			GUI::wxGetApp().load_current_presets();
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User wants to exit Slic3r, bye...";
 			return false;
@@ -603,8 +603,8 @@ bool PresetUpdater::config_update() const
 
 			// Reload global configuration
 			auto *app_config = GUI::wxGetApp().app_config;
-			GUI::get_preset_bundle()->load_presets(*app_config);
-			GUI::load_current_presets();
+            GUI::wxGetApp().preset_bundle->load_presets(*app_config);
+			GUI::wxGetApp().load_current_presets();
 		} else {
 			BOOST_LOG_TRIVIAL(info) << "User refused the update";
 		}

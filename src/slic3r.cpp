@@ -12,6 +12,7 @@
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 #endif /* WIN32 */
 
+#include "libslic3r/libslic3r_version.h.in"
 #include "Config.hpp"
 #include "Geometry.hpp"
 #include "Model.hpp"
@@ -73,7 +74,8 @@ int main(int argc, char **argv)
     // Path from the Slic3r binary to its resources.
     path_resources /= (path_to_binary.stem().string() == "slic3r-gui") ? 
         // Running from the build directory:
-        "../../resources" :
+//         "../../resources" : // ? #ys_FIXME
+        "../../../resources" : // ! #ys_FIXME
         // Running from an installation directory:
 #ifdef __APPLE__
         // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'

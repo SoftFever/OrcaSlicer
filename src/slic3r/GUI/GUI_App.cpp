@@ -25,9 +25,12 @@
 #include "FirmwareDialog.hpp"
 #include "Preferences.hpp"
 #include "Tab.hpp"
+#include <I18N.hpp>
 
 namespace Slic3r {
 namespace GUI {
+
+static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 IMPLEMENT_APP(GUI_App)
 bool GUI_App::OnInit()
@@ -42,13 +45,12 @@ bool GUI_App::OnInit()
     // Windows : "C:\Users\username\AppData\Roaming\Slic3r" or "C:\Documents and Settings\username\Application Data\Slic3r"
     // Mac : "~/Library/Application Support/Slic3r"
     if (data_dir().empty())
-        Slic3r::set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
-    //     set_wxapp(this); // #ys_FIXME
+        set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
 
     app_config = new AppConfig();
-    //     set_app_config(app_config);// #ys_FIXME
+    set_app_config(app_config);
     preset_bundle = new PresetBundle();
-    set_preset_bundle(preset_bundle); // #ys_FIXME
+    set_preset_bundle(preset_bundle);
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
@@ -62,11 +64,11 @@ bool GUI_App::OnInit()
     app_conf_exists = app_config->exists();
     // load settings
     if (app_conf_exists) app_config->load();
-    app_config->set("version", "Slic3r_VERSION"/*Slic3r::VERSION*/);
+    app_config->set("version", SLIC3R_VERSION);
     app_config->save();
 
-//     preset_updater = new PresetUpdater();
-//     set_preset_updater(preset_updater); // #ys_FIXME
+    preset_updater = new PresetUpdater();
+    set_preset_updater(preset_updater);
 
     load_language();
 
@@ -80,8 +82,14 @@ bool GUI_App::OnInit()
     //         show_error(undef, $@);
     //     }
 
+    // Let the libslic3r know the callback, which will translate messages on demand.
+    Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
+    // initialize label colors and fonts
+    init_label_colours();
+    init_fonts();
+
     // application frame
-    //     print STDERR "Creating main frame...\n";
+    std::cerr << "Creating main frame..." << std::endl;
     //     wxImage::FindHandlerType(wxBITMAP_TYPE_PNG) ||
     wxImage::AddHandler(new wxPNGHandler());
     mainframe = new Slic3r::GUI::MainFrame(no_plater, false);
@@ -157,9 +165,77 @@ bool GUI_App::OnInit()
     return true;
 }
 
+unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
+{
+    double r = colour.Red();
+    double g = colour.Green();
+    double b = colour.Blue();
+
+    return std::round(std::sqrt(
+        r * r * .241 +
+        g * g * .691 +
+        b * b * .068
+        ));
+}
+
+void GUI_App::init_label_colours()
+{
+    auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    if (luma >= 128) {
+        m_color_label_modified = wxColour(252, 77, 1);
+        m_color_label_sys = wxColour(26, 132, 57);
+    }
+    else {
+        m_color_label_modified = wxColour(253, 111, 40);
+        m_color_label_sys = wxColour(115, 220, 103);
+    }
+    m_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
+}
+
+void GUI_App::update_label_colours_from_appconfig()
+{
+    if (app_config->has("label_clr_sys")){
+        auto str = app_config->get("label_clr_sys");
+        if (str != "")
+            m_color_label_sys = wxColour(str);
+    }
+
+    if (app_config->has("label_clr_modified")){
+        auto str = app_config->get("label_clr_modified");
+        if (str != "")
+            m_color_label_modified = wxColour(str);
+    }
+}
+
+void GUI_App::init_fonts()
+{
+    m_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+    m_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
+#ifdef __WXMAC__
+    m_small_font.SetPointSize(11);
+    m_bold_font.SetPointSize(13);
+#endif /*__WXMAC__*/
+}
+
+void GUI_App::set_label_clr_modified(const wxColour& clr) {
+    m_color_label_modified = clr;
+    auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+    std::string str = clr_str.ToStdString();
+    app_config->set("label_clr_modified", str);
+    app_config->save();
+}
+
+void GUI_App::set_label_clr_sys(const wxColour& clr) {
+    m_color_label_sys = clr;
+    auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
+    std::string str = clr_str.ToStdString();
+    app_config->set("label_clr_sys", str);
+    app_config->save();
+}
+
 void GUI_App::recreate_GUI()
 {
-//     print STDERR "recreate_GUI\n";
+    std::cerr << "recreate_GUI" << std::endl;
 
     auto topwindow = GetTopWindow();
     mainframe = new Slic3r::GUI::MainFrame(no_plater,false);
@@ -476,6 +552,29 @@ bool GUI_App::check_unsaved_changes()
         _(L("Unsaved Presets")),
         wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
     return dialog->ShowModal() == wxID_YES;
+}
+
+bool GUI_App::checked_tab(Tab* tab)
+{
+    bool ret = true;
+    if (find(tabs_list.begin(), tabs_list.end(), tab) == tabs_list.end())
+        ret = false;
+    return ret;
+}
+
+void GUI_App::delete_tab_from_list(Tab* tab)
+{
+    std::vector<Tab *>::iterator itr = find(tabs_list.begin(), tabs_list.end(), tab);
+    if (itr != tabs_list.end())
+        tabs_list.erase(itr);
+}
+
+// Update UI / Tabs to reflect changes in the currently loaded presets
+void GUI_App::load_current_presets()
+{
+    for (Tab *tab : tabs_list) {
+        tab->load_current_preset();
+    }
 }
 
 wxNotebook* GUI_App::tab_panel() const 

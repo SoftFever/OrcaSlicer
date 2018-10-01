@@ -99,7 +99,7 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 								   "or click this button.")));
 
 	// Determine the theme color of OS (dark or light)
-	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
+    auto luma = wxGetApp().get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 	// Bitmaps to be shown on the "Revert to system" aka "Lock to system" button next to each input field.
 	m_bmp_value_lock  	  .LoadFile(from_u8(var("sys_lock.png")),     wxBITMAP_TYPE_PNG);
 	m_bmp_value_unlock    .LoadFile(from_u8(var(luma >= 128 ? "sys_unlock.png" : "sys_unlock_grey.png")), wxBITMAP_TYPE_PNG);
@@ -122,18 +122,18 @@ void Tab::create_preset_tab(PresetBundle *preset_bundle)
 		auto dlg = new ButtonsDescription(this, &m_icon_descriptions);
 		if (dlg->ShowModal() == wxID_OK){
 			// Colors for ui "decoration"
-			for (Tab *tab : get_tabs_list()){
-				tab->m_sys_label_clr = get_label_clr_sys();
-				tab->m_modified_label_clr = get_label_clr_modified();
+            for (Tab *tab : wxGetApp().tabs_list){
+                tab->m_sys_label_clr = wxGetApp().get_label_clr_sys();
+                tab->m_modified_label_clr = wxGetApp().get_label_clr_modified();
 				tab->update_labels_colour();
 			}
 		}
 	}));
 
 	// Colors for ui "decoration"
-	m_sys_label_clr			= get_label_clr_sys();
-	m_modified_label_clr	= get_label_clr_modified();
-	m_default_text_clr		= get_label_clr_default();
+	m_sys_label_clr			= wxGetApp().get_label_clr_sys();
+	m_modified_label_clr	= wxGetApp().get_label_clr_modified();
+	m_default_text_clr		= wxGetApp().get_label_clr_default();
 
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
 	sizer->Add(m_hsizer, 0, wxBOTTOM, 3);
@@ -1484,7 +1484,7 @@ void TabPrinter::build_fff()
 		Line line{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent){
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
-			btn->SetFont(Slic3r::GUI::small_font());
+            btn->SetFont(wxGetApp().small_font());
 			btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("printer_empty.png")), wxBITMAP_TYPE_PNG));
 
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -2183,7 +2183,7 @@ void Tab::load_current_preset()
 	// (not sure this is true anymore now that update_dirty is idempotent)
 	wxTheApp->CallAfter([this]{
 		// checking out if this Tab exists till this moment
-		if (!checked_tab(this))
+		if (!wxGetApp().checked_tab(this))
 			return;
 		update_tab_ui();
 

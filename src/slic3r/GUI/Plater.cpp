@@ -81,7 +81,7 @@ private:
 ObjectInfo::ObjectInfo(wxWindow *parent) :
     wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, _(L("Info"))), wxVERTICAL)
 {
-    // GetStaticBox()->SetFont(GUI::bold_font());   // XXX: ?
+    GetStaticBox()->SetFont(wxGetApp().bold_font());
 
     auto *grid_sizer = new wxFlexGridSizer(4, 5, 5);
     grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
@@ -90,9 +90,9 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
 
     auto init_info_label = [parent, grid_sizer](wxStaticText **info_label, wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
-        text->SetFont(GUI::small_font());
+        text->SetFont(wxGetApp().small_font());
         *info_label = new wxStaticText(parent, wxID_ANY, "");
-        (*info_label)->SetFont(GUI::small_font());
+        (*info_label)->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(*info_label, 0);
     };
@@ -103,9 +103,9 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     init_info_label(&info_materials, _(L("Materials")));
 
     auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold")));
-    info_manifold_text->SetFont(GUI::small_font());
+    info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
-    info_manifold->SetFont(GUI::small_font());
+    info_manifold->SetFont(wxGetApp().small_font());
     wxBitmap bitmap(GUI::from_u8(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
     manifold_warning_icon = new wxStaticBitmap(parent, wxID_ANY, bitmap);
     auto *sizer_manifold = new wxBoxSizer(wxHORIZONTAL);
@@ -134,18 +134,17 @@ private:
 SlicedInfo::SlicedInfo(wxWindow *parent) :
     wxStaticBoxSizer(new wxStaticBox(parent, wxID_ANY, _(L("Sliced Info"))), wxVERTICAL)
 {
-    // GetStaticBox()->SetFont(GUI::bold_font());   // XXX: ?
+    GetStaticBox()->SetFont(wxGetApp().bold_font());
 
     auto *grid_sizer = new wxFlexGridSizer(2, 5, 5);
     grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     grid_sizer->AddGrowableCol(1, 1);
-    grid_sizer->AddGrowableCol(3, 1);
 
     auto init_info_label = [parent, grid_sizer](wxStaticText *&info_label, wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
-        text->SetFont(GUI::small_font());
+        text->SetFont(wxGetApp().small_font());
         info_label = new wxStaticText(parent, wxID_ANY, "N/A");
-        info_label->SetFont(GUI::small_font());
+        info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);
     };
@@ -231,7 +230,6 @@ Sidebar::Sidebar(wxWindow *parent)
     : wxPanel(parent), p(new priv)
 {
     p->scrolled = new wxScrolledWindow(this);
-    p->scrolled->SetScrollbars(0, 1, 1, 1);   // XXX
 
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(4, 2, 1, 2);
@@ -240,10 +238,10 @@ Sidebar::Sidebar(wxWindow *parent)
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
     auto init_combo = [this](PresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
-        auto *text = new wxStaticText(this, wxID_ANY, label);
-        text->SetFont(GUI::small_font());
+        auto *text = new wxStaticText(p->scrolled, wxID_ANY, label);
+        text->SetFont(wxGetApp().small_font());
         // combo = new wxBitmapComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
-        *combo = new PresetComboBox(this, preset_type);
+        *combo = new PresetComboBox(p->scrolled, preset_type);
 
         auto *sizer_presets = this->p->sizer_presets;
         auto *sizer_filaments = this->p->sizer_filaments;
@@ -262,13 +260,15 @@ Sidebar::Sidebar(wxWindow *parent)
     init_combo(&p->combo_sla_material, _(L("SLA material")), Preset::TYPE_SLA_MATERIAL, false);
     init_combo(&p->combo_printer, _(L("Printer")), Preset::TYPE_PRINTER, false);
 
+    p->sizer_presets->Layout();
+
     // Frequently changed parameters
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
-    // GUI::add_frequently_changed_parameters(this, p->sizer_params, p->sizer_presets);
+    GUI::add_frequently_changed_parameters(p->scrolled, p->sizer_params, p->sizer_presets);
 
     // Buttons in the scrolled area
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
-    p->btn_send_gcode = new wxButton(this, wxID_ANY, _(L("Send to printer")));
+    p->btn_send_gcode = new wxButton(p->scrolled, wxID_ANY, _(L("Send to printer")));
     p->btn_send_gcode->SetBitmap(arrow_up);
     p->btn_send_gcode->Hide();
     auto *btns_sizer_scrolled = new wxBoxSizer(wxHORIZONTAL);
@@ -276,32 +276,37 @@ Sidebar::Sidebar(wxWindow *parent)
     btns_sizer_scrolled->Add(p->btn_send_gcode);
 
     // Info boxes
-    p->object_info = new ObjectInfo(this);
-    p->sliced_info = new SlicedInfo(this);
+    p->object_info = new ObjectInfo(p->scrolled);
+    p->sliced_info = new SlicedInfo(p->scrolled);
 
     // Sizer in the scrolled area
     auto *scrolled_sizer = new wxBoxSizer(wxVERTICAL);
+    scrolled_sizer->SetMinSize(320, -1);
+    p->scrolled->SetSizer(scrolled_sizer);
+    p->scrolled->SetScrollbars(0, 1, 1, 1);
     std::cerr << "scrolled_sizer: " << scrolled_sizer << std::endl;
     scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
-    scrolled_sizer->Add(p->object_info, 1, wxEXPAND);
+    scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
+    scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
     scrolled_sizer->Add(btns_sizer_scrolled, 0, wxEXPAND, 0);
-    scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND);
+    scrolled_sizer->Add(p->sliced_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
 
     // Buttons underneath the scrolled area
     p->btn_export_gcode = new wxButton(this, wxID_ANY, _(L("Export G-code…")));
+    p->btn_export_gcode->SetFont(wxGetApp().bold_font());
     p->btn_reslice = new wxButton(this, wxID_ANY, _(L("Slice now")));
+    p->btn_reslice->SetFont(wxGetApp().bold_font());
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
     std::cerr << "btns_sizer: " << btns_sizer << std::endl;
-    btns_sizer->Add(p->btn_reslice);
-    btns_sizer->Add(p->btn_export_gcode);
+    btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, 5);
+    btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, 5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
     std::cerr << "sizer: " << sizer << std::endl;
-    sizer->Add(scrolled_sizer);
-    sizer->Add(btns_sizer);
+    sizer->Add(p->scrolled, 1, wxEXPAND | wxTOP, 5);
+    sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, 20);
     SetSizer(sizer);
-    SetMinSize(wxSize(320, -1));
 }
 
 Sidebar::~Sidebar() {}

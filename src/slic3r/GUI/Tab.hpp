@@ -57,7 +57,7 @@ public:
 	{
 		Create(m_parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 		m_vsizer = new wxBoxSizer(wxVERTICAL);
-		m_item_color = &get_label_clr_default();
+        m_item_color = &wxGetApp().get_label_clr_default();
 		SetSizer(m_vsizer);
 	}
 	~Page(){}
@@ -201,10 +201,10 @@ public:
 	Tab(wxNotebook* parent, const wxString& title, const char* name) : 
 		m_parent(parent), m_title(title), m_name(name) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
-		get_tabs_list().push_back(this);
+		wxGetApp().tabs_list.push_back(this);
 	}
 	~Tab(){
-		delete_tab_from_list(this);
+		wxGetApp().delete_tab_from_list(this);
 	}
 
 	wxWindow*	parent() const { return m_parent; }

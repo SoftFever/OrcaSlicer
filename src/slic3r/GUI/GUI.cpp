@@ -125,17 +125,11 @@ wxPanel 	*g_wxPlater 	= nullptr;
 AppConfig	*g_AppConfig	= nullptr;
 PresetBundle *g_PresetBundle= nullptr;
 PresetUpdater *g_PresetUpdater = nullptr;
-wxColour    g_color_label_modified;
-wxColour    g_color_label_sys;
-wxColour    g_color_label_default;
 
 // #ys_FIXME_for_delete
 std::vector<Tab *> g_tabs_list;
 
 wxLocale*	g_wxLocale {nullptr};
-
-wxFont		g_small_font;
-wxFont		g_bold_font;
 
 std::vector <std::shared_ptr<ConfigOptionsGroup>> m_optgroups;
 double		m_brim_width = 0.0;
@@ -154,53 +148,13 @@ bool		g_show_manifold_warning_icon = false;
 
 PreviewIface* g_preview = nullptr; 
 
-static void init_label_colours()
-{
-	auto luma = get_colour_approx_luma(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-	if (luma >= 128) {
-		g_color_label_modified = wxColour(252, 77, 1);
-		g_color_label_sys = wxColour(26, 132, 57);
-	} else {
-		g_color_label_modified = wxColour(253, 111, 40);
-		g_color_label_sys = wxColour(115, 220, 103);
-	}
-	g_color_label_default = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOWTEXT);
-}
-
-void update_label_colours_from_appconfig()
-{
-	if (g_AppConfig->has("label_clr_sys")){
-		auto str = g_AppConfig->get("label_clr_sys");
-		if (str != "")
-			g_color_label_sys = wxColour(str);
-	}
-	
-	if (g_AppConfig->has("label_clr_modified")){
-		auto str = g_AppConfig->get("label_clr_modified");
-		if (str != "")
-			g_color_label_modified = wxColour(str);
-	}
-}
-
-static void init_fonts()
-{
-	g_small_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-	g_bold_font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT).Bold();
-#ifdef __WXMAC__
-	g_small_font.SetPointSize(11);
-	g_bold_font.SetPointSize(13);
-#endif /*__WXMAC__*/
-}
-
-static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
+// static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 void set_wxapp(wxApp *app)
 {
     g_wxApp = app;
     // Let the libslic3r know the callback, which will translate messages on demand.
-	Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
-    init_label_colours();
-	init_fonts();
+// 	Slic3r::I18N::set_translate_callback(libslic3r_translate_callback);
 }
 
 void set_main_frame(wxFrame *main_frame)
@@ -269,8 +223,8 @@ void set_objects_from_perl(	wxWindow* parent,
     g_buttons.push_back(btn_send_gcode);
 
     // Update font style for buttons
-    for (auto btn : g_buttons)
-        btn->SetFont(bold_font());
+//     for (auto btn : g_buttons)
+//         btn->SetFont(bold_font());
 
 	g_manifold_warning_icon = manifold_warning_icon;
 }
@@ -296,26 +250,6 @@ void set_show_manifold_warning_icon(bool show)
 
 void set_objects_list_sizer(wxBoxSizer *objects_list_sizer){
 	g_object_list_sizer = objects_list_sizer;
-}
-
-std::vector<Tab *>& get_tabs_list()
-{
-	return g_tabs_list;
-}
-
-bool checked_tab(Tab* tab)
-{
-	bool ret = true;
-	if (find(g_tabs_list.begin(), g_tabs_list.end(), tab) == g_tabs_list.end())
-		ret = false;
-	return ret;
-}
-
-void delete_tab_from_list(Tab* tab)
-{
-	std::vector<Tab *>::iterator itr = find(g_tabs_list.begin(), g_tabs_list.end(), tab);
-	if (itr != g_tabs_list.end())
-		g_tabs_list.erase(itr);
 }
 
 bool select_language(wxArrayString & names,
@@ -423,31 +357,32 @@ void get_installed_languages(wxArrayString & names,
 	}
 }
 
-enum ConfigMenuIDs {
-	ConfigMenuWizard,
-	ConfigMenuSnapshots,
-	ConfigMenuTakeSnapshot,
-	ConfigMenuUpdate,
-	ConfigMenuPreferences,
-	ConfigMenuModeSimple,
-	ConfigMenuModeExpert,
-	ConfigMenuLanguage,
-	ConfigMenuFlashFirmware,
-	ConfigMenuCnt,
-};
+// enum ConfigMenuIDs {
+// 	ConfigMenuWizard,
+// 	ConfigMenuSnapshots,
+// 	ConfigMenuTakeSnapshot,
+// 	ConfigMenuUpdate,
+// 	ConfigMenuPreferences,
+// 	ConfigMenuModeSimple,
+// 	ConfigMenuModeExpert,
+// 	ConfigMenuLanguage,
+// 	ConfigMenuFlashFirmware,
+// 	ConfigMenuCnt,
+// };
 
 // #ys_FIXME_for_delete	
-ConfigMenuIDs get_view_mode()
-{
-	if (!g_AppConfig->has("view_mode"))
-		return ConfigMenuModeSimple;
-
-	const auto mode = g_AppConfig->get("view_mode");
-	return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
-}
+// ConfigMenuIDs get_view_mode()
+// {
+// 	if (!g_AppConfig->has("view_mode"))
+// 		return ConfigMenuModeSimple;
+// 
+// 	const auto mode = g_AppConfig->get("view_mode");
+// 	return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
+// }
 
 static wxString dots("…", wxConvUTF8);
 // #ys_FIXME_for_delete
+/*
 void add_config_menu(wxMenuBar *menu, int event_preferences_changed, int event_language_change)
 {
     auto local_menu = new wxMenu();
@@ -551,7 +486,7 @@ void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_languag
 {
     add_config_menu(menu, event_preferences_changed, event_language_change);
 }
-
+*/
 void open_model(wxWindow *parent, wxArrayString& input_files){
 	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow()*/, 
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
@@ -569,6 +504,7 @@ void open_model(wxWindow *parent, wxArrayString& input_files){
 // This is called when closing the application, when loading a config file or when starting the config wizard
 // to notify the user whether he is aware that some preset changes will be lost.
 // #ys_FIXME_for_delete
+/*
 bool check_unsaved_changes()
 {
 	std::string dirty;
@@ -588,7 +524,7 @@ bool check_unsaved_changes()
 		wxICON_QUESTION | wxYES_NO | wxNO_DEFAULT);
 	return dialog->ShowModal() == wxID_YES;
 }
-
+*/
 bool config_wizard_startup(bool app_config_exists)
 {
 	if (! app_config_exists || g_PresetBundle->printers.size() <= 1) {
@@ -610,7 +546,7 @@ bool config_wizard_startup(bool app_config_exists)
 void config_wizard(int reason)
 {
     // Exit wizard if there are unsaved changes and the user cancels the action.
-    if (! check_unsaved_changes())
+    if (! wxGetApp().check_unsaved_changes())
     	return;
 
 	try {
@@ -622,7 +558,7 @@ void config_wizard(int reason)
 	}
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
-	load_current_presets();
+	wxGetApp().load_current_presets();
 }
 
 void open_preferences_dialog(int event_preferences)
@@ -631,6 +567,8 @@ void open_preferences_dialog(int event_preferences)
 	dlg->ShowModal();
 }
 
+// #ys_FIXME_for_delete
+/*
 void create_preset_tabs(int event_value_change, int event_presets_changed)
 {	
 	update_label_colours_from_appconfig();
@@ -639,7 +577,7 @@ void create_preset_tabs(int event_value_change, int event_presets_changed)
 	add_created_tab(new TabSLAMaterial  (g_wxTabPanel), event_value_change, event_presets_changed);
 	add_created_tab(new TabPrinter	    (g_wxTabPanel), event_value_change, event_presets_changed);
 }
-
+*/
 std::vector<PresetTab> preset_tabs = {
     { "print",        nullptr, ptFFF },
     { "filament",     nullptr, ptFFF },
@@ -790,37 +728,6 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 		int i = 0;//no reason, just experiment
 	}
 }
-// #ys_FIXME_for_delete
-void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed)
-{
-	panel->create_preset_tab(g_PresetBundle);
-
-	// Load the currently selected preset into the GUI, update the preset selection box.
-	panel->load_current_preset();
-
-    panel->set_event_value_change(wxEventType(event_value_change));
-    panel->set_event_presets_changed(wxEventType(event_presets_changed));
-
-    const wxString& tab_name = panel->GetName();
-    bool add_panel = true;
-
-    auto it = std::find_if( preset_tabs.begin(), preset_tabs.end(), 
-                           [tab_name](PresetTab& tab){return tab.name == tab_name; });
-    if (it != preset_tabs.end()) {
-        it->panel = panel;
-        add_panel = it->technology == g_PresetBundle->printers.get_edited_preset().printer_technology();
-    }
-
-    if (add_panel)
-	    g_wxTabPanel->AddPage(panel, panel->title());
-}
-
-void load_current_presets()
-{
-	for (Tab *tab : g_tabs_list) {
-		tab->load_current_preset();
-	}
-}
 
 void show_error(wxWindow* parent, const wxString& message) {
 	ErrorDialog msg(parent, message);
@@ -858,60 +765,6 @@ void set_print_callback_event(Print *print, int id)
 
 wxApp* get_app(){
 	return g_wxApp;
-}
-
-PresetBundle* get_preset_bundle()
-{
-	return g_PresetBundle;
-}
-
-const wxColour& get_label_clr_modified() {
-	return g_color_label_modified;
-}
-
-const wxColour& get_label_clr_sys() {
-	return g_color_label_sys;
-}
-
-void set_label_clr_modified(const wxColour& clr) {
-	g_color_label_modified = clr;
-	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
-	std::string str = clr_str.ToStdString();
-	g_AppConfig->set("label_clr_modified", str);
-	g_AppConfig->save();
-}
-
-void set_label_clr_sys(const wxColour& clr) {
-	g_color_label_sys = clr;
-	auto clr_str = wxString::Format(wxT("#%02X%02X%02X"), clr.Red(), clr.Green(), clr.Blue());
-	std::string str = clr_str.ToStdString();
-	g_AppConfig->set("label_clr_sys", str);
-	g_AppConfig->save();
-}
-
-const wxFont& small_font(){
-	return g_small_font;
-}
-
-const wxFont& bold_font(){
-	return g_bold_font;
-}
-
-const wxColour& get_label_clr_default() {
-	return g_color_label_default;
-}
-
-unsigned get_colour_approx_luma(const wxColour &colour)
-{
-	double r = colour.Red();
-	double g = colour.Green();
-	double b = colour.Blue();
-
-	return std::round(std::sqrt(
-		r * r * .241 +
-		g * g * .691 +
-		b * b * .068
-	));
 }
 
 wxWindow* get_right_panel(){
@@ -1199,7 +1052,7 @@ void update_mode()
 {
     wxWindowUpdateLocker noUpdates(g_right_panel->GetParent());
 
-	ConfigMenuIDs mode = get_view_mode();
+    ConfigMenuIDs mode = wxGetApp().get_view_mode();
 
 	g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
 	show_info_sizer(mode == ConfigMenuModeExpert);
@@ -1216,7 +1069,7 @@ void update_mode()
 }
 
 bool is_expert_mode(){
-	return get_view_mode() == ConfigMenuModeExpert;
+    return wxGetApp().get_view_mode() == ConfigMenuModeExpert;
 }
 
 ConfigOptionsGroup* get_optgroup(size_t i)

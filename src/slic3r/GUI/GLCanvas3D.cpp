@@ -10,6 +10,7 @@
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
+#include "GUI_App.hpp"
 
 #include <GL/glew.h>
 
@@ -424,7 +425,7 @@ GLCanvas3D::Bed::EType GLCanvas3D::Bed::_detect_type() const
 {
     EType type = Custom;
 
-    const PresetBundle* bundle = get_preset_bundle();
+    auto bundle = wxGetApp().preset_bundle;
     if (bundle != nullptr)
     {
         const Preset* curr = &bundle->printers.get_selected_preset();

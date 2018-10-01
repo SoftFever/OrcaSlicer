@@ -14,6 +14,7 @@
 #include "libslic3r/libslic3r.h"
 
 #include "Field.hpp"
+#include "GUI_App.hpp"
 
 // Translate the ifdef 
 #ifdef __WXOSX__
@@ -163,7 +164,7 @@ public:
 					staticbox(title!=""), m_flag(flag), extra_column(extra_clmn){
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, title);
-            stb->SetFont(bold_font());
+            stb->SetFont(wxGetApp().bold_font());
         }
         sizer = (staticbox ? new wxStaticBoxSizer(stb, wxVERTICAL) : new wxBoxSizer(wxVERTICAL));
         auto num_columns = 1U;
