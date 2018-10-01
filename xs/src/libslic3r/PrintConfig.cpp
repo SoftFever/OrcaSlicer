@@ -2245,8 +2245,7 @@ std::string DynamicPrintConfig::validate()
 size_t DynamicPrintConfig::remove_keys_not_in(const DynamicPrintConfig &default_config, std::string &removed_keys_message)
 {
     size_t n_removed_keys = 0;
-    for (const auto &kvp : this->options) {
-        const std::string &key = kvp.first;
+	for (const std::string &key : this->keys()) {
         if (! default_config.has(key)) {
             if (removed_keys_message.empty())
                 removed_keys_message = key;
