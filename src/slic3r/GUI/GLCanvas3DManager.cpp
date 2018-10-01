@@ -827,6 +827,31 @@ void GLCanvas3DManager::register_action_selectbyparts_callback(wxGLCanvas* canva
         it->second->register_action_selectbyparts_callback(callback);
 }
 
+bool GLCanvas3DManager::can_multisample()
+{
+    int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
+    const AppConfig* app_config = GUI::get_app_config();
+    bool enable_multisample = app_config != nullptr
+        && app_config->get("use_legacy_opengl") != "1" 
+        && wxVersion >= 30003;
+
+    // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
+    return enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
+    // <<< Alternative method: but IsDisplaySupported() seems not to work
+    // bool return enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); 
+}
+
+wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
+{
+    int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
+
+    if (! can_multisample()) {
+        attribList[4] = 0;
+    }
+
+    return new wxGLCanvas(parent, wxID_ANY, attribList);
+}
+
 GLCanvas3DManager::CanvasesMap::iterator GLCanvas3DManager::_get_canvas(wxGLCanvas* canvas)
 {
     return (canvas == nullptr) ? m_canvases.end() : m_canvases.find(canvas);

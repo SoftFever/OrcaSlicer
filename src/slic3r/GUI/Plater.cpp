@@ -18,6 +18,7 @@
 #include <wx/filedlg.h>
 #include <wx/dnd.h>
 #include <wx/progdlg.h>
+#include <wx/wupdlock.h>
 
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Model.hpp"
@@ -25,11 +26,11 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Polygon.hpp"
-// #include "libslic3r/BoundingBox.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
+#include "GUI_ObjectParts.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "Tab.hpp"
@@ -422,8 +423,10 @@ struct Plater::priv
     void update(bool force_autocenter = false);
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
+    std::string get_config(const std::string &key) const;
+    BoundingBox bed_shape_bb() const;
     std::vector<size_t> load_files(const std::vector<fs::path> &input_files);
-    size_t load_model_objects(const ModelObjectPtrs &model_objects);
+    std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
 
     void on_notebook_changed(wxBookCtrlEvent &);
     void on_select_preset(wxCommandEvent &);
@@ -451,7 +454,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     })),
     notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM)),
     sidebar(new Sidebar(q)),
-    canvas3D(new wxGLCanvas(notebook, wxID_ANY, gl_attrs))
+    canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
 {
     background_process.set_print(&print);
     background_process.set_gcode_preview_data(&gcode_preview_data);
@@ -459,6 +462,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
 
     _3DScene::add_canvas(canvas3D);
+    _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
     notebook->AddPage(canvas3D, _(L("3D")));
     preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data);
 
@@ -466,11 +470,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::enable_picking(canvas3D, true);
     _3DScene::enable_moving(canvas3D, true);
     // XXX: more config from 3D.pm
-    // Slic3r::GUI::_3DScene::set_select_by($self, 'object');
-    // Slic3r::GUI::_3DScene::set_drag_by($self, 'instance');
-    // Slic3r::GUI::_3DScene::set_model($self, $model);
-    // Slic3r::GUI::_3DScene::set_print($self, $print);
-    // Slic3r::GUI::_3DScene::set_config($self, $config);
+    _3DScene::set_select_by(canvas3D, "object");
+    _3DScene::set_drag_by(canvas3D, "instance");
+    _3DScene::set_model(canvas3D, &model);
+    _3DScene::set_print(canvas3D, &print);
+    _3DScene::set_config(canvas3D, config);
     _3DScene::enable_gizmos(canvas3D, true);
     _3DScene::enable_toolbar(canvas3D, true);
     _3DScene::enable_shader(canvas3D, true);
@@ -527,6 +531,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
 
+    // Setting of global access pointers
+    // FIXME: We really should get rid of these once Perl code is gone...
+    set_objects_from_model(model);
     // TODO: ?
     //  # Send sizers/buttons to C++
     // Slic3r::GUI::set_objects_from_perl( $self->{scrolled_window_panel},
@@ -560,7 +567,26 @@ std::vector<int> Plater::priv::collect_selections()
 
 void Plater::priv::update(bool force_autocenter)
 {
-    // TODO
+
+    wxWindowUpdateLocker freeze_guard(q);
+    if (get_config("autocenter") == "1" || force_autocenter) {
+        // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+        // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
+        // const BoundingBox bed_shape_bb = bed_shape.bounding_box();
+        const Vec2d bed_center = bed_shape_bb().center().cast<double>();
+        model.center_instances_around_point(bed_center);
+    }
+
+    // stop_background_process();   // TODO
+    print.reload_model_instances();
+
+    const auto selections = collect_selections();
+    _3DScene::set_objects_selections(canvas3D, selections);
+    _3DScene::reload_scene(canvas3D, false);
+    preview->reset_gcode_preview_data();
+    preview->reload_print();
+
+    // schedule_background_process();   // TODO
 }
 
 void Plater::priv::update_ui_from_settings()
@@ -576,6 +602,18 @@ void Plater::priv::update_ui_from_settings()
 ProgressStatusBar*  Plater::priv::statusbar()
 {
     return main_frame->m_statusbar;
+}
+
+std::string Plater::priv::get_config(const std::string &key) const
+{
+    return wxGetApp().app_config->get(key);
+}
+
+BoundingBox Plater::priv::bed_shape_bb() const
+{
+    const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
+    const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
+    return bed_shape.bounding_box();
 }
 
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_files)
@@ -599,7 +637,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
     dlg.Pulse();
 
     auto *new_model = one_by_one ? nullptr : new Slic3r::Model();
-    std::vector<size_t> obj_idx;   // XXX: ?
+    std::vector<size_t> obj_idxs;
 
     for (size_t i = 0; i < input_files.size(); i++) {
         const auto &path = input_files[i];
@@ -656,6 +694,8 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
             // TODO:
             // push @obj_idx, $self->load_model_objects(@{$model->objects});
             // obj_idx.push_back(load_model_objects(model.objects);
+            auto loaded_idxs = load_model_objects(model.objects);
+            obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
         } else {
             // This must be an .stl or .obj file, which may contain a maximum of one volume.
             for (const ModelObject* model_object : model.objects) {
@@ -677,54 +717,38 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         // TODO:
         // push @obj_idx, $self->load_model_objects(@{$new_model->objects});
         // obj_idx.push_back(load_model_objects(new_model->objects);
+        auto loaded_idxs = load_model_objects(model.objects);
+        obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
 
     wxGetApp().app_config->update_skein_dir(input_files[input_files.size() - 1].parent_path().string());
     // XXX: Plater.pm had @loaded_files, but didn't seem to fill them with the filenames...
     statusbar()->set_status_text(_(L("Loaded")));
-    return obj_idx;
+    return obj_idxs;
 }
 
 
 // TODO: move to Point.hpp
-// inline Vec3crd to_3d(const Vec2crd &pt2, coord_t z) { return Vec3crd(pt2(0), pt2(1), z); }
-// inline Vec3i64 to_3d(const Vec2i64 &pt2, int64_t z) { return Vec3i64(pt2(0), pt2(1), z); }
-// inline Vec3f   to_3d(const Vec2f   &pt2, float z)   { return Vec3f  (pt2(0), pt2(1), z); }
-// inline Vec3d   to_3d(const Vec2d   &pt2, double z)  { return Vec3d  (pt2(0), pt2(1), z); }
-// typedef Eigen::Matrix<coord_t,  2, 1, Eigen::DontAlign> Vec2crd;
-template<class T> Eigen::Matrix<T, 3, 1, Eigen::DontAlign> to_3d(const Eigen::Matrix<T, 2, 1, Eigen::DontAlign> &m, T z)
-{
-    return Eigen::Matrix<T, 3, 1, Eigen::DontAlign>(m(0), m(1), z);
-}
+Vec3d to_3d(const Vec2d &v, double z) { return Vec3d(v(0), v(1), z); }
+Vec3f to_3d(const Vec2f &v, float z) { return Vec3f(v(0), v(1), z); }
+Vec3i64 to_3d(const Vec2i64 &v, float z) { return Vec3i64(v(0), v(1), z); }
+Vec3crd to_3d(const Point &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
 
-Vec3crd to_3d(const Point &p, coord_t z)
+std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
-    return Vec3crd(p(0), p(1), z);
-}
-
-size_t Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
-{
-    // TODO
-
-    auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
-    const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
-    const BoundingBox bed_shape_bb = bed_shape.bounding_box();
-    // const Point bed_center_2 = bed_shape_bb.center();
-    // const Vec3d bed_center(bed_center_2(0), bed_center_2(1), 0.0);
-    // const Vec3d bed_center = to_3d(bed_shape_bb.center(), 0).cast<double>();
-    const Vec3d bed_center = to_3d<double>(bed_shape_bb.center().cast<double>(), 0.0);
-    const Vec2d bed_size = bed_shape_bb.size().cast<double>();
+    const BoundingBox bed_shape = bed_shape_bb();
+    const Vec3d bed_center = to_3d(bed_shape.center().cast<double>(), 0.0);
+    const Vec3d bed_size = to_3d(bed_shape.size().cast<double>(), 1.0);
 
     bool need_arrange = false;
     bool scaled_down = false;
-    // my @obj_idx = ();   // XXX
-    std::vector<size_t> obj_idx;
+    std::vector<size_t> obj_idxs;
 
-    for (const ModelObject *model_object : model_objects) {
+    for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
         objects.emplace_back(std::move(object_name));
-        obj_idx.push_back(objects.size() - 1);
+        obj_idxs.push_back(objects.size() - 1);
 
         if (model_object->instances.size() == 0) {
             // if object has no defined position(s) we need to rearrange everything after loading
@@ -736,26 +760,54 @@ size_t Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
             instance->set_offset(bed_center);
         }
 
-        // my $size = $o->bounding_box->size;
-        // const auto size = object->bounding_box().size();
-        // my $ratio = max($size->x / unscale($bed_size->x), $size->y / unscale($bed_size->y));
-        // size.cwiseQuotient(bed_size);
-        // const auto = size / bed_size;
-        // const auto ratio = std::max(size.x / Slic3r::unscale(bed_size(0)), size.y / Slic3r::unscale(bed_size(1)));
-        // if ($ratio > 10000) {
-        //     # the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
-        //     # so scale down the mesh
-        //     $o->scale_xyz(Slic3r::Pointf3->new(1/$ratio, 1/$ratio, 1/$ratio));
-        //     $scaled_down = 1;
-        // }
-        // elsif ($ratio > 5) {
-        //     $_->set_scaling_factor(1/$ratio) for @{$o->instances};
-        //     $scaled_down = 1;
-        // }
+        const Vec3d size = object->bounding_box().size();
+        const Vec3d ratio = size.cwiseQuotient(bed_size);
+        const double max_ratio = std::max(ratio(0), ratio(1));
+        if (max_ratio > 10000) {
+            // the size of the object is too big -> this could lead to overflow when moving to clipper coordinates,
+            // so scale down the mesh
+            // const Vec3d inverse = ratio.cwiseInverse();
+            // object->scale(inverse);
+            object->scale(ratio.cwiseInverse());
+            scaled_down = true;
+        } else if (max_ratio > 5) {
+            const Vec3d inverse = ratio.cwiseInverse();
+            for (ModelInstance *instance : model_object->instances) {
+                instance->set_scaling_factor(inverse);
+            }
+        }
     }
 
-    throw 0;
-    return 0;
+    // if user turned autocentering off, automatic arranging would disappoint them
+    if (get_config("autocenter") != "1") {
+        need_arrange = false;
+    }
+
+    if (scaled_down) {
+        GUI::show_info(q,
+            _(L("Your object appears to be too large, so it was automatically scaled down to fit your print bed.")),
+            _(L("Object too large?")));
+    }
+
+    for (const size_t idx : obj_idxs) {
+        const PlaterObject &object = objects[idx];
+        ModelObject *model_object = model.objects[idx];
+
+        // FIXME: ObjetParts not initialized (via add_frequently_changed_parameters)
+        // GUI::add_object_to_list(object.name, model_object);
+    }
+
+    if (need_arrange) {
+        // arrange();   // TODO
+    }
+
+    update();
+    _3DScene::zoom_to_volumes(canvas3D);
+    // TODO
+    // $self->object_list_changed;
+    // $self->schedule_background_process;
+
+    return obj_idxs;
 }
 
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
