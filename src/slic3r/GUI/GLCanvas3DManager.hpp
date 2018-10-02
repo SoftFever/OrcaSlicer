@@ -42,6 +42,13 @@ class GLCanvas3DManager
         std::string to_string(bool format_as_html, bool extensions) const;
     };
 
+    enum EMultisampleState : unsigned char
+    {
+        MS_Unknown,
+        MS_Enabled,
+        MS_Disabled
+    };
+
     typedef std::map<wxGLCanvas*, GLCanvas3D*> CanvasesMap;
 
     CanvasesMap m_canvases;
@@ -50,6 +57,7 @@ class GLCanvas3DManager
     bool m_gl_initialized;
     bool m_use_legacy_opengl;
     bool m_use_VBOs;
+    static EMultisampleState s_multisample;
 
 public:
     GLCanvas3DManager();
@@ -187,13 +195,15 @@ public:
     void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
     void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
 
-    static bool can_multisample();
+    static bool can_multisample() { return s_multisample == MS_Enabled; }
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
+
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);
     CanvasesMap::const_iterator _get_canvas(wxGLCanvas* canvas) const;
 
     bool _init(GLCanvas3D& canvas);
+    static void _detect_multisample(int* attribList);
 };
 
 } // namespace GUI

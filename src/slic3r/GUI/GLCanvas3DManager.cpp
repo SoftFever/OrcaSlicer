@@ -110,6 +110,8 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     return out.str();
 }
 
+GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
+
 GLCanvas3DManager::GLCanvas3DManager()
     : m_current(nullptr)
     , m_gl_initialized(false)
@@ -827,23 +829,16 @@ void GLCanvas3DManager::register_action_selectbyparts_callback(wxGLCanvas* canva
         it->second->register_action_selectbyparts_callback(callback);
 }
 
-bool GLCanvas3DManager::can_multisample()
-{
-    int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
-    const AppConfig* app_config = GUI::get_app_config();
-    bool enable_multisample = app_config != nullptr
-        && app_config->get("use_legacy_opengl") != "1" 
-        && wxVersion >= 30003;
-
-    // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
-    return enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
-    // <<< Alternative method: but IsDisplaySupported() seems not to work
-    // bool return enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); 
-}
-
 wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
 {
     int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
+
+    if (s_multisample == MS_Unknown)
+    {
+        _detect_multisample(attribList);
+        // debug output
+        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
+    }
 
     if (! can_multisample()) {
         attribList[4] = 0;
@@ -868,6 +863,19 @@ bool GLCanvas3DManager::_init(GLCanvas3D& canvas)
         init_gl();
 
     return canvas.init(m_use_VBOs, m_use_legacy_opengl);
+}
+
+void GLCanvas3DManager::_detect_multisample(int* attribList)
+{
+    int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
+    const AppConfig* app_config = GUI::get_app_config();
+    bool enable_multisample = app_config != nullptr
+        && app_config->get("use_legacy_opengl") != "1"
+        && wxVersion >= 30003;
+
+    s_multisample = (enable_multisample && wxGLCanvas::IsDisplaySupported(attribList)) ? MS_Enabled : MS_Disabled;
+    // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows
+    // s_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
 }
 
 } // namespace GUI
