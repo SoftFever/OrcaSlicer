@@ -154,7 +154,7 @@ public:
     void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
     void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
-    void reset_legend_texture();
+    void reset_legend_texture(wxGLCanvas* canvas);
 
     void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
     void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);

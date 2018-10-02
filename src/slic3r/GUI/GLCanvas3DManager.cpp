@@ -580,13 +580,11 @@ void GLCanvas3DManager::load_preview(wxGLCanvas* canvas, const std::vector<std::
         it->second->load_preview(str_tool_colors);
 }
 
-void GLCanvas3DManager::reset_legend_texture()
+void GLCanvas3DManager::reset_legend_texture(wxGLCanvas* canvas)
 {
-    for (CanvasesMap::value_type& canvas : m_canvases)
-    {
-        if (canvas.second != nullptr)
-            canvas.second->reset_legend_texture();
-    }
+    CanvasesMap::iterator it = _get_canvas(canvas);
+    if (it != m_canvases.end())
+        it->second->reset_legend_texture();
 }
 
 void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)

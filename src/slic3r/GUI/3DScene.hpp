@@ -602,7 +602,7 @@ public:
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
     static void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
-    static void reset_legend_texture();
+    static void reset_legend_texture(wxGLCanvas* canvas);
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);

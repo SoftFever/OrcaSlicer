@@ -2293,9 +2293,9 @@ void _3DScene::load_preview(wxGLCanvas* canvas, const std::vector<std::string>& 
     s_canvas_mgr.load_preview(canvas, str_tool_colors);
 }
 
-void _3DScene::reset_legend_texture()
+void _3DScene::reset_legend_texture(wxGLCanvas* canvas)
 {
-    s_canvas_mgr.reset_legend_texture();
+    s_canvas_mgr.reset_legend_texture(canvas);
 }
 
 } // namespace Slic3r

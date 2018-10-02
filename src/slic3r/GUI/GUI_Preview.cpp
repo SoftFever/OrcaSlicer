@@ -214,7 +214,8 @@ void Preview::set_number_extruders(unsigned int number_extruders)
 void Preview::reset_gcode_preview_data()
 {
     m_gcode_preview_data->reset();
-    _3DScene::reset_legend_texture();
+    if (m_canvas != nullptr)
+        _3DScene::reset_legend_texture(m_canvas);
 }
 
 void Preview::set_canvas_as_dirty()
@@ -290,10 +291,11 @@ void Preview::load_print()
     if (n_layers == 0)
     {
         reset_sliders();
-        _3DScene::reset_legend_texture();
-        if (m_canvas)
+        if (m_canvas != nullptr)
+        {
+            _3DScene::reset_legend_texture(m_canvas);
             m_canvas->Refresh();
-
+        }
         return;
     }
 
