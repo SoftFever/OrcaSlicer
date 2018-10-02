@@ -104,32 +104,11 @@ void enable_screensaver();
 bool debugged();
 void break_to_debugger();
 
-// Passing the wxWidgets GUI classes instantiated by the Perl part to C++.
-void set_wxapp(wxApp *app);
-void set_main_frame(wxFrame *main_frame);
-void set_progress_status_bar(ProgressStatusBar *prsb);
-void set_tab_panel(wxNotebook *tab_panel);
-void set_plater(wxPanel *plater);
-void set_app_config(AppConfig *app_config);
-void set_preset_bundle(PresetBundle *preset_bundle);
-void set_preset_updater(PresetUpdater *updater);
-void set_objects_from_perl(	wxWindow* parent,
-							wxBoxSizer *frequently_changed_parameters_sizer,
-							wxBoxSizer *info_sizer,
-							wxButton *btn_export_gcode,
-							wxButton *btn_reslice,
-							wxButton *btn_print,
-							wxButton *btn_send_gcode,
-							wxStaticBitmap *manifold_warning_icon);
 void set_show_print_info(bool show);
 void set_show_manifold_warning_icon(bool show);
 void set_objects_list_sizer(wxBoxSizer *objects_list_sizer);
 
 AppConfig*		get_app_config();
-wxApp*			get_app();
-wxFrame*		get_main_frame();
-ProgressStatusBar* get_progress_status_bar();
-wxNotebook*		get_tab_panel();
 
 AppControllerPtr get_appctl();
 void             set_cli_appctl();
@@ -145,10 +124,6 @@ std::vector<PresetTab>* get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
-// This is called when closing the application, when loading a config file or when starting the config wizard
-// to notify the user whether he is aware that some preset changes will be lost.
-// extern bool check_unsaved_changes();
-
 // Checks if configuration wizard needs to run, calls config_wizard if so.
 // Returns whether the Wizard ran.
 extern bool config_wizard_startup(bool app_config_exists);
@@ -157,11 +132,6 @@ extern bool config_wizard_startup(bool app_config_exists);
 // The run_reason argument is actually ConfigWizard::RunReason, but int is used here because of Perl.
 extern void config_wizard(int run_reason);
 
-// Create "Preferences" dialog after selecting menu "Preferences" in Perl part
-extern void open_preferences_dialog(int event_preferences);
-
-// Create a new preset tab (print, filament and printer),
-// void create_preset_tabs(int event_value_change, int event_presets_changed);
 TabIface* get_preset_tab_iface(char *name);
 
 PreviewIface* create_preview_iface(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
@@ -180,15 +150,6 @@ void warning_catcher(wxWindow* parent, const wxString& message);
 // to deliver a progress status message.
 void set_print_callback_event(Print *print, int id);
 
-// load language saved at application config 
-wxLocale* get_locale();
-bool load_language();
-// save language at application config 
-void save_language();
-// get list of installed languages 
-void get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
-// select language from the list of installed languages
-bool select_language(wxArrayString & names, wxArrayLong & identifiers);
 // update right panel of the Plater according to view mode
 void update_mode();
 

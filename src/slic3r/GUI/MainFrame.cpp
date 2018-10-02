@@ -30,7 +30,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
         m_no_plater(no_plater),
         m_loaded(loaded)
 {
-//     Slic3r::GUI::set_main_frame(this);
     m_appController = new Slic3r::AppController();
 
     // Load the icon either from the exe, or from the ico file.
@@ -54,7 +53,7 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     wxToolTip::SetAutoPop(32767);
 
     // initialize status bar
-    m_statusbar = new Slic3r::GUI::ProgressStatusBar(this);
+    m_statusbar = new ProgressStatusBar(this);
     m_statusbar->embed(this);
     m_statusbar->set_status_text(_(L("Version ")) +
                                  SLIC3R_VERSION +
@@ -102,8 +101,8 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
         event.Skip();
     });
 
-//     update_ui_from_settings();
-// 
+    update_ui_from_settings();
+
 //     Slic3r::GUI::update_mode();
 
     return;
@@ -112,15 +111,13 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 void MainFrame::init_tabpanel()
 {
     m_tabpanel = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_TOP | wxTAB_TRAVERSAL);
-//     Slic3r::GUI::set_tab_panel(m_tabpanel);
 
     m_tabpanel->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, [this](wxEvent&){
         auto panel = m_tabpanel->GetCurrentPage();
 //             panel->OnActivate(); if panel->can('OnActivate');
 
-        if (panel == nullptr) {
+        if (panel == nullptr)
             return;
-        }
 
         for (auto& tab_name : { "print", "filament", "printer" }) {
             if (tab_name == panel->GetName()) {
@@ -136,12 +133,6 @@ void MainFrame::init_tabpanel()
 
     if (!m_no_plater) {
         m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
-        // m_plater = new Slic3r::GUI::Plater(m_tabpanel,
-        //      event_object_selection_changed = > $OBJECT_SELECTION_CHANGED_EVENT,
-        //      event_object_settings_changed = > $OBJECT_SETTINGS_CHANGED_EVENT,
-        //      event_remove_object = > $OBJECT_REMOVE_EVENT,
-        //      event_update_scene = > $UPDATE_SCENE_EVENT,
-        //      ), L("Plater")
         m_tabpanel->AddPage(m_plater, _(L("Plater")));
     }
 

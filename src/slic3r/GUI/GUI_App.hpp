@@ -4,6 +4,7 @@
 #include <string>
 // #include <vector>
 #include "PrintConfig.hpp"
+#include "MainFrame.hpp"
 // #include "../../libslic3r/Utils.hpp"
 // #include "GUI.hpp"
 
@@ -39,7 +40,6 @@ enum ConfigMenuIDs {
     ConfigMenuCnt,
 };
 
-class MainFrame;
 class Tab;
 
 class GUI_App : public wxApp
@@ -61,7 +61,7 @@ class GUI_App : public wxApp
 
     // #ys_FIXME
 //     std::vector<Tab *> g_tabs_list;
-//     wxLocale*	g_wxLocale{ nullptr };
+    wxLocale*	    m_wxLocale{ nullptr };
 
 public:
     bool            OnInit() override;
@@ -105,8 +105,14 @@ public:
                                     const std::string& icon);
     void            save_window_pos(wxTopLevelWindow* window, const std::string& name);
     void            restore_window_pos(wxTopLevelWindow* window, const std::string& name);
+
+    bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
     bool            load_language();
+    void            save_language();
+    void            get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
+
     ConfigMenuIDs   get_view_mode();
+
     void            add_config_menu(wxMenuBar *menu);
     bool            check_unsaved_changes();
     bool            checked_tab(Tab* tab);

@@ -758,9 +758,8 @@ void remove()
 	if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
 		if (m_event_remove_object > 0) {
 			wxCommandEvent event(m_event_remove_object);
-			get_main_frame()->ProcessWindowEvent(event);
+// 			get_main_frame()->ProcessWindowEvent(event); // #ys_FIXME
 		}
-// 		delete_object_from_list();
 	}
 	else
 		on_btn_del();
@@ -785,7 +784,7 @@ void object_ctrl_selection_changed()
             else
                 event.SetInt(vol_idx);
         }
-		get_main_frame()->ProcessWindowEvent(event);
+// 		get_main_frame()->ProcessWindowEvent(event); // #ys_FIXME
 	}
 
 #ifdef __WXOSX__
@@ -1194,8 +1193,8 @@ void show_context_menu()
         const auto menu = m_objects_model->GetParent(item) == wxDataViewItem(0) ? 
                             create_add_part_popupmenu() : 
                             create_part_settings_popupmenu();
-        get_tab_panel()->GetPage(0)->PopupMenu(menu);
-    }
+        wxGetApp().tab_panel()->GetPage(0)->PopupMenu(menu);
+   }
 }
 
 // ******
@@ -1203,7 +1202,7 @@ void show_context_menu()
 void load_part(	ModelObject* model_object, 
 				wxArrayString& part_names, const bool is_modifier)
 {
-    wxWindow* parent = get_tab_panel()->GetPage(0);
+    wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
 	wxArrayString input_files;
 	open_model(parent, input_files);
@@ -1550,7 +1549,7 @@ void parts_changed(int obj_idx)
 		is_parts_changed() ? 1 : 0,
 		is_part_settings_changed() ? 1 : 0);
 	e.SetString(event_str);
-	get_main_frame()->ProcessWindowEvent(e);
+// 	get_main_frame()->ProcessWindowEvent(e); // #ys_FIXME
 }
 	
 void update_settings_value()
@@ -1741,7 +1740,7 @@ void update_extruder_in_config(const wxString& selection)
 
     if (m_event_update_scene > 0) {
         wxCommandEvent e(m_event_update_scene);
-        get_main_frame()->ProcessWindowEvent(e);
+//         get_main_frame()->ProcessWindowEvent(e); // #ys_FIXME
     }
 }
 

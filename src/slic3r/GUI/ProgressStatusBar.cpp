@@ -5,14 +5,14 @@
 #include <wx/button.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
-#include "GUI.hpp"
+#include "GUI_App.hpp"
 
 #include <iostream>
 
 namespace Slic3r {
 
 ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
-    self(new wxStatusBar(parent ? parent : GUI::get_main_frame(),
+    self(new wxStatusBar(parent ? parent : GUI::wxGetApp().mainframe,
                          id == -1? wxID_ANY : id)),
     m_timer(new wxTimer(self)),
     m_prog (new wxGauge(self,
@@ -130,7 +130,7 @@ void ProgressStatusBar::run(int rate)
 
 void ProgressStatusBar::embed(wxFrame *frame)
 {
-    wxFrame* mf = frame ? frame : GUI::get_main_frame();
+    wxFrame* mf = frame ? frame : GUI::wxGetApp().mainframe;
     mf->SetStatusBar(self);
 }
 

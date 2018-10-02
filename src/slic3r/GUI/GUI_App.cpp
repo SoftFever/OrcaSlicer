@@ -10,10 +10,10 @@
 #include <wx/menu.h>
 #include <wx/menuitem.h>
 #include <wx/filedlg.h>
+#include <wx/dir.h>
 
 #include "Utils.hpp"
 #include "GUI.hpp"
-#include "MainFrame.hpp"
 #include "AppConfig.hpp"
 #include "PresetBundle.hpp"
 #include "3DScene.hpp"
@@ -48,9 +48,7 @@ bool GUI_App::OnInit()
         set_data_dir(wxStandardPaths::Get().GetUserDataDir().ToUTF8().data());
 
     app_config = new AppConfig();
-    set_app_config(app_config);
     preset_bundle = new PresetBundle();
-    set_preset_bundle(preset_bundle);
 
     // just checking for existence of Slic3r::data_dir is not enough : it may be an empty directory
     // supplied as argument to --datadir; in that case we should still run the wizard
@@ -68,7 +66,6 @@ bool GUI_App::OnInit()
     app_config->save();
 
     preset_updater = new PresetUpdater();
-    set_preset_updater(preset_updater);
 
     load_language();
 
@@ -92,74 +89,56 @@ bool GUI_App::OnInit()
     std::cerr << "Creating main frame..." << std::endl;
     //     wxImage::FindHandlerType(wxBITMAP_TYPE_PNG) ||
     wxImage::AddHandler(new wxPNGHandler());
-    mainframe = new Slic3r::GUI::MainFrame(no_plater, false);
+    mainframe = new MainFrame(no_plater, false);
     SetTopWindow(mainframe);
 
     // This makes CallAfter() work
-    //     /*mainframe->*/Bind(wxEVT_IDLE, 
-//     [this](wxIdleEvent& event)
-//     {
-//         std::function<void()> cur_cb{ nullptr };
-//         // try to get the mutex. If we can't, just skip this idle event and get the next one.
-//         if (!callback_register.try_lock()) return;
-//         // pop callback
-//         if (m_cb.size() != 0){
-//             cur_cb = m_cb.top();
-//             m_cb.pop();
-//         }
-//         // unlock mutex
-//         this->callback_register.unlock();
-// 
-//         try { // call the function if it's not nullptr;
-//             if (cur_cb != nullptr) cur_cb();
-//         }
-//         catch (std::exception& e) {
-//             //             Slic3r::Log::error(LogChannel, LOG_WSTRING("Exception thrown: " << e.what())); // #ys_FIXME
-//         }
-// 
-//         if (app_config->dirty())
-//             app_config->save();
-//     }
-    ;// #ys_FIXME
-    //     );
+    Bind(wxEVT_IDLE, [this](wxIdleEvent& event)
+    {
+        std::function<void()> cur_cb{ nullptr };
+        // try to get the mutex. If we can't, just skip this idle event and get the next one.
+        if (!callback_register.try_lock()) return;
+        // pop callback
+        if (m_cb.size() != 0){
+            cur_cb = m_cb.top();
+            m_cb.pop();
+        }
+        // unlock mutex
+        this->callback_register.unlock();
+
+        try { // call the function if it's not nullptr;
+            if (cur_cb != nullptr) cur_cb();
+        }
+        catch (std::exception& e) {
+            std::cerr << "Exception thrown: " << e.what() << std::endl;
+        }
+
+        if (app_config->dirty())
+            app_config->save();
+    });
 
     // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
     // are shown before or in the same event callback with the main frame creation.
     // Therefore we schedule them for later using CallAfter.
-//     CallAfter([this](){
-//         //         eval{
-//         if (!preset_updater->config_update())
-//             mainframe->Close();
-//         //         };
-//         //         if ($@) {
-//         //             show_error(undef, $@);
-//         //             mainframe->Close();
-//         //         }
-//     });
-// 
-//     CallAfter([this](){
-//         if (!Slic3r::GUI::config_wizard_startup(app_conf_exists)) {
-//             // Only notify if there was not wizard so as not to bother too much ...
-//             preset_updater->slic3r_update_notify();
-//         }
-//         preset_updater->sync(preset_bundle);
-//     });
-// 
+    CallAfter([this](){
+        //         eval{
+        if (!preset_updater->config_update())
+            mainframe->Close();
+        //         };
+        //         if ($@) {
+        //             show_error(undef, $@);
+        //             mainframe->Close();
+        //         }
+    });
 
-    // #ys_FIXME All of this should to be removed
-    //     # The following event is emited by the C++ menu implementation of preferences change.
-    //     EVT_COMMAND($self, -1, $PREFERENCES_EVENT, sub{
-    //         $self->update_ui_from_settings;
-    //     });
-    // 
-    //     # The following event is emited by PresetUpdater(C++) to inform about
-    //     # the newer Slic3r application version avaiable online.
-    //     EVT_COMMAND($self, -1, $VERSION_ONLINE_EVENT, sub {
-    //         my($self, $event) = @_;
-    //         my $version = $event->GetString;
-    //         $self->{app_config}->set('version_online', $version);
-    //         $self->{app_config}->save;
-    //     });
+    CallAfter([this](){
+        if (!config_wizard_startup(app_conf_exists)) {
+            // Only notify if there was not wizard so as not to bother too much ...
+            preset_updater->slic3r_update_notify();
+        }
+        preset_updater->sync(preset_bundle);
+    });
+
 
     mainframe->Show(true);
     return true;
@@ -238,7 +217,7 @@ void GUI_App::recreate_GUI()
     std::cerr << "recreate_GUI" << std::endl;
 
     auto topwindow = GetTopWindow();
-    mainframe = new Slic3r::GUI::MainFrame(no_plater,false);
+    mainframe = new MainFrame(no_plater,false);
 
     if (topwindow) {
         SetTopWindow(mainframe);
@@ -249,7 +228,7 @@ void GUI_App::recreate_GUI()
     // before the UI was up and running.
     CallAfter([](){
         // Run the config wizard, don't offer the "reset user profile" checkbox.
-        Slic3r::GUI::config_wizard_startup(true);
+        config_wizard_startup(true);
     });
 }
 
@@ -374,7 +353,8 @@ void GUI_App::save_window_pos(wxTopLevelWindow* window, const std::string& name)
     app_config->save();
 }
 
-void GUI_App::restore_window_pos(wxTopLevelWindow* window, const std::string& name){
+void GUI_App::restore_window_pos(wxTopLevelWindow* window, const std::string& name)
+{
     if (!app_config->has(name + "_pos"))
         return;
 
@@ -397,6 +377,37 @@ void GUI_App::restore_window_pos(wxTopLevelWindow* window, const std::string& na
         window->Maximize();
 }
 
+// select language from the list of installed languages
+bool GUI_App::select_language(  wxArrayString & names,
+                                wxArrayLong & identifiers)
+{
+    wxCHECK_MSG(names.Count() == identifiers.Count(), false,
+        _(L("Array of language names and identifiers should have the same size.")));
+    int init_selection = 0;
+    long current_language = m_wxLocale ? m_wxLocale->GetLanguage() : wxLANGUAGE_UNKNOWN;
+    for (auto lang : identifiers){
+        if (lang == current_language)
+            break;
+        ++init_selection;
+    }
+    if (init_selection == identifiers.size())
+        init_selection = 0;
+    long index = wxGetSingleChoiceIndex(_(L("Select the language")), _(L("Language")),
+        names, init_selection);
+    if (index != -1)
+    {
+        m_wxLocale = new wxLocale;
+        m_wxLocale->Init(identifiers[index]);
+        m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
+        m_wxLocale->AddCatalog(GetAppName());
+        wxSetlocale(LC_NUMERIC, "C");
+        Preset::update_suffix_modified();
+        return true;
+    }
+    return false;
+}
+
+// load language saved at application config
 bool GUI_App::load_language()
 {
     wxString language = wxEmptyString;
@@ -412,17 +423,60 @@ bool GUI_App::load_language()
     {
         if (wxLocale::GetLanguageCanonicalName(identifiers[i]) == language)
         {
-            auto locale = get_locale();
-            locale = new wxLocale;
-            locale->Init(identifiers[i]);
-            locale->AddCatalogLookupPathPrefix(wxPathOnly(localization_dir()));
-            locale->AddCatalog(GetAppName());
+            m_wxLocale = new wxLocale;
+            m_wxLocale->Init(identifiers[i]);
+            m_wxLocale->AddCatalogLookupPathPrefix(localization_dir());
+            m_wxLocale->AddCatalog(GetAppName());
             wxSetlocale(LC_NUMERIC, "C");
             Preset::update_suffix_modified();
             return true;
         }
     }
     return false;
+}
+
+// save language at application config
+void GUI_App::save_language()
+{
+    wxString language = wxEmptyString;
+    if (m_wxLocale)
+        language = m_wxLocale->GetCanonicalName();
+
+    app_config->set("translation_language", language.ToStdString());
+    app_config->save();
+}
+
+// get list of installed languages 
+void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & identifiers)
+{
+    names.Clear();
+    identifiers.Clear();
+
+    wxDir dir(localization_dir());
+    wxString filename;
+    const wxLanguageInfo * langinfo;
+    wxString name = wxLocale::GetLanguageName(wxLANGUAGE_DEFAULT);
+    if (!name.IsEmpty())
+    {
+        names.Add(_(L("Default")));
+        identifiers.Add(wxLANGUAGE_DEFAULT);
+    }
+    for (bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS);
+        cont; cont = dir.GetNext(&filename))
+    {
+        langinfo = wxLocale::FindLanguageInfo(filename);
+        if (langinfo != NULL)
+        {
+            auto full_file_name = dir.GetName() + wxFileName::GetPathSeparator() +
+                filename + wxFileName::GetPathSeparator() +
+                GetAppName() + wxT(".mo");
+            if (wxFileExists(full_file_name))
+            {
+                names.Add(langinfo->Description);
+                identifiers.Add(langinfo->Language);
+            }
+        }
+    }
 }
 
 ConfigMenuIDs GUI_App::get_view_mode()
@@ -498,8 +552,8 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
             break;
         case ConfigMenuPreferences:
         {
-//             PreferencesDialog dlg(mainframe, event_preferences_changed);
-//             dlg.ShowModal();
+            PreferencesDialog dlg(mainframe);
+            dlg.ShowModal();
             break;
         }
         case ConfigMenuLanguage:

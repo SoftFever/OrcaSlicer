@@ -662,7 +662,7 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 	update();
 }
 
-extern wxFrame *g_wxMainFrame;
+// extern wxFrame *g_wxMainFrame; // #ys_FIXME
 
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
@@ -680,11 +680,11 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         {
             int val = boost::any_cast<PrinterTechnology>(value);
             event.SetInt(val);
-            g_wxMainFrame->ProcessWindowEvent(event);
+//             g_wxMainFrame->ProcessWindowEvent(event);// #ys_FIXME
             return;
         }
         
-		g_wxMainFrame->ProcessWindowEvent(event);
+// 		g_wxMainFrame->ProcessWindowEvent(event);// #ys_FIXME
 	}
 	if (opt_key == "fill_density")
 	{
@@ -737,7 +737,7 @@ void Tab::on_presets_changed()
 	if (m_event_presets_changed > 0) {
 		wxCommandEvent event(m_event_presets_changed);
 		event.SetString(m_name);
-		g_wxMainFrame->ProcessWindowEvent(event);
+// 		g_wxMainFrame->ProcessWindowEvent(event); // #ys_FIXME
 	}
 	update_preset_description_line();
 }

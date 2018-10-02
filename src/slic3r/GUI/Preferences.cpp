@@ -5,11 +5,10 @@
 namespace Slic3r {
 namespace GUI {
 
-PreferencesDialog::PreferencesDialog(wxWindow* parent, int event_preferences) : 
-	wxDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, wxDefaultSize), 
-	m_event_preferences(event_preferences) {
-		build();
-	}
+PreferencesDialog::PreferencesDialog(wxWindow* parent) : 
+	wxDialog(parent, wxID_ANY, _(L("Preferences")), wxDefaultPosition, wxDefaultSize) {
+	build();
+}
 
 void PreferencesDialog::build()
 {
@@ -124,10 +123,7 @@ void PreferencesDialog::accept()
 	Close();  // needed on Linux
 
 	// Nothify the UI to update itself from the ini file.
-	if (m_event_preferences > 0) {
-		wxCommandEvent event(m_event_preferences);
-		get_app()->ProcessEvent(event);
-	}
+    wxGetApp().update_ui_from_settings();
 }
 
 } // GUI

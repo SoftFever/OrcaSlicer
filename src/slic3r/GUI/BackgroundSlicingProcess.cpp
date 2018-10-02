@@ -1,5 +1,5 @@
 #include "BackgroundSlicingProcess.hpp"
-#include "GUI.hpp"
+#include "GUI_App.hpp"
 
 #include <wx/event.h>
 #include <wx/panel.h>
@@ -18,10 +18,6 @@
 #include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r {
-
-namespace GUI {
-	extern wxPanel *g_wxPlater;
-};
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()
 {
@@ -59,7 +55,7 @@ void BackgroundSlicingProcess::thread_proc()
 			assert(m_print != nullptr);
 		    m_print->process();
 		    if (! m_print->canceled()) {
-				wxQueueEvent(GUI::g_wxPlater, new wxCommandEvent(m_event_sliced_id));
+                wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_sliced_id));
 			    m_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
 			    if (! m_print->canceled() && ! m_output_path.empty()) {
 			    	if (copy_file(m_temp_output_path, m_output_path) != 0)
@@ -81,7 +77,7 @@ void BackgroundSlicingProcess::thread_proc()
 		wxCommandEvent evt(m_event_finished_id);
 		evt.SetString(error);
 		evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
-	    wxQueueEvent(GUI::g_wxPlater, evt.Clone());
+        wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
 	    m_print->restart();
 		lck.unlock();
 		// Let the UI thread wake up if it is waiting for the background task to finish.
