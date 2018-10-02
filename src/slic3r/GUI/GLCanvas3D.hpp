@@ -7,6 +7,7 @@
 #include "GLToolbar.hpp"
 #include "callback.hpp"
 
+class wxWindow;
 class wxTimer;
 class wxSizeEvent;
 class wxIdleEvent;

@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 
+class wxWindow;
 class wxGLCanvas;
 class wxGLContext;
 
@@ -186,6 +187,8 @@ public:
     void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
     void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
 
+    static bool can_multisample();
+    static wxGLCanvas* create_wxglcanvas(wxWindow *parent);
 private:
     CanvasesMap::iterator _get_canvas(wxGLCanvas* canvas);
     CanvasesMap::const_iterator _get_canvas(wxGLCanvas* canvas) const;

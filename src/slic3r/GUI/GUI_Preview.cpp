@@ -3,6 +3,7 @@
 #include "GUI.hpp"
 #include "AppConfig.hpp"
 #include "3DScene.hpp"
+#include "GLCanvas3DManager.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
 #include "PresetBundle.hpp"
 
@@ -57,24 +58,26 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
     if (!Create(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize))
         return false;
 
-    int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
+//     int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
 
-    int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
-    const AppConfig* app_config = GUI::get_app_config();
-    bool enable_multisample = (app_config != nullptr) && (app_config->get("use_legacy_opengl") != "1") && (wxVersion >= 30003);
+//     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
+//     const AppConfig* app_config = GUI::get_app_config();
+//     bool enable_multisample = (app_config != nullptr) && (app_config->get("use_legacy_opengl") != "1") && (wxVersion >= 30003);
 
-    // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
-    bool can_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
-//    bool can_multisample = enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); // <<< Alternative method: but IsDisplaySupported() seems not to work
-    if (!can_multisample)
-        attribList[4] = 0;
+//     // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
+//     bool can_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
+// //    bool can_multisample = enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); // <<< Alternative method: but IsDisplaySupported() seems not to work
+//     if (!can_multisample)
+//         attribList[4] = 0;
 
-    m_canvas = new wxGLCanvas(this, wxID_ANY, attribList);
-    if (m_canvas == nullptr)
-        return false;
+//     m_canvas = new wxGLCanvas(this, wxID_ANY, attribList);
+//     if (m_canvas == nullptr)
+//         return false;
+
+    m_canvas = GLCanvas3DManager::create_wxglcanvas(this);
 
     _3DScene::add_canvas(m_canvas);
-    _3DScene::allow_multisample(m_canvas, can_multisample);
+    _3DScene::allow_multisample(m_canvas, GLCanvas3DManager::can_multisample());
     _3DScene::enable_shader(m_canvas, true);
     _3DScene::set_config(m_canvas, m_config);
     _3DScene::set_print(m_canvas, m_print);
