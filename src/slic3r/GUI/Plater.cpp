@@ -430,6 +430,8 @@ struct Plater::priv
     void on_process_completed(wxCommandEvent &);
     void on_layer_editing_toggled(bool enable);
     void on_action_add(SimpleEvent&);
+
+    void on_viewport_changed(SimpleEvent& evt);
 };
 
 // TODO: multisample, see 3DScene.pm
@@ -493,8 +495,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     update();
 
-    // TODO: Preview::register_on_viewport_changed_callback is Perl-only
-
     auto *hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(notebook, 1, wxEXPAND | wxTOP, 1);
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
@@ -518,6 +518,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     // 3DScene events:
     // TODO: more
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
+    canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+
+    preview->get_canvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_update_print_preview, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -879,6 +882,15 @@ void Plater::priv::on_action_add(SimpleEvent&)
         input_paths.push_back(file.wx_str());
     }
     load_files(input_paths);
+}
+
+void Plater::priv::on_viewport_changed(SimpleEvent& evt)
+{
+    wxObject* o = evt.GetEventObject();
+    if (o == preview->get_canvas())
+        preview->set_viewport_into_scene(canvas3D);
+    else if (o == canvas3D)
+        preview->set_viewport_from_scene(canvas3D);
 }
 
 // Plater / Public
