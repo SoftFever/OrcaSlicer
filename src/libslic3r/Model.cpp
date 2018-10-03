@@ -1004,6 +1004,11 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
     return m_convex_hull;
 }
 
+TriangleMesh& ModelVolume::get_convex_hull()
+{
+    return m_convex_hull;
+}
+
 ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
 {
     // Legacy support
