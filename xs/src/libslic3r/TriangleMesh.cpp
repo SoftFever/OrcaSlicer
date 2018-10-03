@@ -207,10 +207,14 @@ TriangleMesh::repair() {
     }
     
     // fill_holes
+#if 0
+    // Don't fill holes, the current algorithm does more harm than good on complex holes.
+    // Rather let the slicing algorithm close gaps in 2D slices.
     if (stl.stats.connected_facets_3_edge < stl.stats.number_of_facets) {
         stl_fill_holes(&stl);
         stl_clear_error(&stl);
     }
+#endif
 
     // normal_directions
     stl_fix_normal_directions(&stl);
@@ -982,29 +986,7 @@ void TriangleMeshSlicer::_slice_do(size_t facet_idx, std::vector<IntersectionLin
         if (this->slice_facet(*it / SCALING_FACTOR, facet, facet_idx, min_z, max_z, &il) == TriangleMeshSlicer::Slicing) {
             boost::lock_guard<boost::mutex> l(*lines_mutex);
             if (il.edge_type == feHorizontal) {
-                // Insert all marked edges of the face. The marked edges do not share an edge with another horizontal face
-                // (they may not have a nighbor, or their neighbor is vertical)
-                const int *vertices  = this->mesh->stl.v_indices[facet_idx].vertex;
-                const bool reverse   = this->mesh->stl.facet_start[facet_idx].normal.z < 0;
-                for (int j = 0; j < 3; ++ j)
-                    if (il.flags & ((IntersectionLine::EDGE0_NO_NEIGHBOR | IntersectionLine::EDGE0_FOLD) << j)) {
-                        int a_id = vertices[j % 3];
-                        int b_id = vertices[(j+1) % 3];
-                        if (reverse)
-                            std::swap(a_id, b_id);
-                        const stl_vertex *a = &this->v_scaled_shared[a_id];
-                        const stl_vertex *b = &this->v_scaled_shared[b_id];
-                        il.a.x    = a->x;
-                        il.a.y    = a->y;
-                        il.b.x    = b->x;
-                        il.b.y    = b->y;
-                        il.a_id   = a_id;
-                        il.b_id   = b_id;
-                        assert(il.a != il.b);
-                        // This edge will not be used as a seed for loop extraction if it was added due to a fold of two overlapping horizontal faces.
-                        il.set_no_seed((IntersectionLine::EDGE0_FOLD << j) != 0);
-                        (*lines)[layer_idx].emplace_back(il);
-                    }
+                // Ignore horizontal triangles. Any valid horizontal triangle must have a vertical triangle connected, otherwise the part has zero volume.
             } else
                 (*lines)[layer_idx].emplace_back(il);
         }
@@ -1066,50 +1048,7 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
             if (min_z == max_z) {
                 // All three vertices are aligned with slice_z.
                 line_out->edge_type = feHorizontal;
-                // Mark neighbor edges, which do not have a neighbor.
-                uint32_t edges = 0;
-                for (int nbr_idx = 0; nbr_idx != 3; ++ nbr_idx) {
-                    // If the neighbor with an edge starting with a vertex idx (nbr_idx - 2) shares no
-                    // opposite face, add it to the edges to process when slicing.
-					if (nbr.neighbor[nbr_idx] == -1) {
-						// Mark this edge to be added to the slice.
-						edges |= (IntersectionLine::EDGE0_NO_NEIGHBOR << nbr_idx);
-					}
-#if 1
-                     else if (normal.z > 0) {
-                        // Produce edges for opposite faced overlapping horizontal faces aka folds.
-                        // This method often produces connecting lines (noise) at the cutting plane.
-                        // Produce the edges for the top facing face of the pair of top / bottom facing faces.
-
-                        // Index of a neighbor face.
-                        const int  nbr_face     = nbr.neighbor[nbr_idx];
-                        const int *nbr_vertices = this->mesh->stl.v_indices[nbr_face].vertex;
-                        int idx_vertex_opposite = nbr_vertices[nbr.which_vertex_not[nbr_idx]];
-                        const stl_vertex *c2 = &this->v_scaled_shared[idx_vertex_opposite];
-                        if (c2->z == slice_z) {
-                            // Edge shared by facet_idx and nbr_face.
-                            int               a_id      = vertices[nbr_idx];
-                            int               b_id      = vertices[(nbr_idx + 1) % 3];
-                            int               c1_id     = vertices[(nbr_idx + 2) % 3];
-                            const stl_vertex *a         = &this->v_scaled_shared[a_id];
-                            const stl_vertex *b         = &this->v_scaled_shared[b_id];
-                            const stl_vertex *c1        = &this->v_scaled_shared[c1_id];
-                            // Verify that the two neighbor faces share a common edge.
-                            assert(nbr_vertices[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == b_id);
-                            assert(nbr_vertices[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == a_id);
-                            double n1 = (double(c1->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c1->y) - double(a->y)) * (double(b->x) - double(a->x));
-                            double n2 = (double(c2->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c2->y) - double(a->y)) * (double(b->x) - double(a->x));
-                            if (n1 * n2 > 0)
-                                // The two faces overlap. This indicates an invalid mesh geometry (non-manifold),
-                                // but these are the real world objects, and leaving out these edges leads to missing contours.
-                                edges |= (IntersectionLine::EDGE0_FOLD << nbr_idx);
-                         }
-                    }
-#endif
-                }
-                // Use some edges of this triangle for slicing only if at least one of its edge does not have an opposite face.
-                result = (edges == 0) ? Cutting : Slicing;
-                line_out->flags |= edges;
+                result = Cutting;
                 if (normal.z < 0) {
                     // If normal points downwards this is a bottom horizontal facet so we reverse its point order.
                     std::swap(a, b);
@@ -1121,42 +1060,11 @@ TriangleMeshSlicer::FacetSliceType TriangleMeshSlicer::slice_facet(
                 int  nbr_face    = nbr.neighbor[nbr_idx];
                 // Is the third vertex below the cutting plane?
                 bool third_below = v0.z < slice_z || v1.z < slice_z || v2.z < slice_z;
-                // Is this a concave corner?
-                if (nbr_face == -1) {
-#ifdef _DEBUG
-                    printf("Face has no neighbor!\n");
-#endif
-                } else {
-                    assert(this->mesh->stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 1) % 3] == b_id);
-                    assert(this->mesh->stl.v_indices[nbr_face].vertex[(nbr.which_vertex_not[nbr_idx] + 2) % 3] == a_id);
-                    int idx_vertex_opposite = this->mesh->stl.v_indices[nbr_face].vertex[nbr.which_vertex_not[nbr_idx]];
-                    const stl_vertex *c = &this->v_scaled_shared[idx_vertex_opposite];
-                    if (c->z == slice_z) {
-                        double normal_nbr = (double(c->x) - double(a->x)) * (double(b->y) - double(a->y)) - (double(c->y) - double(a->y)) * (double(b->x) - double(a->x));
-#if 0
-                        if ((normal_nbr < 0) == third_below) {
-                            printf("Flipped normal?\n");
-                        }
-#endif
-                        result =
-                                // A vertical face shares edge with a horizontal face. Verify, whether the shared edge makes a convex or concave corner.
-                                // Unfortunately too often there are flipped normals, which brake our assumption. Let's rather return every edge,
-                                // and leth the code downstream hopefully handle it.
-    #if 1
-                                // Ignore concave corners for slicing.
-                                // This method has the unfortunate property, that folds in a horizontal plane create concave corners,
-                                // leading to broken contours, if these concave corners are not replaced by edges of the folds, see above.
-                                   ((normal_nbr < 0) == third_below) ? Cutting : Slicing;
-    #else
-                                // Use concave corners for slicing. This leads to the test 01_trianglemesh.t "slicing a top tangent plane includes its area" failing,
-                                // and rightly so.
-                                    Slicing;
-    #endif
-                    } else {
-                        // For a pair of faces touching exactly at the cutting plane, ignore one of them. An arbitrary rule is to ignore the face with a higher index.
-                        result = (facet_idx < nbr_face) ? Slicing : Cutting;
-                    }
-                }
+                // Two vertices on the cutting plane, the third vertex is below the plane. Consider the edge to be part of the slice
+                // only if it is the upper edge.
+                // (the bottom most edge resp. vertex of a triangle is not owned by the triangle, but the top most edge resp. vertex is part of the triangle
+                // in respect to the cutting plane).
+                result = third_below ? Slicing : Cutting;
                 if (third_below) {
                     line_out->edge_type = feTop;
                     std::swap(a, b);
@@ -1333,7 +1241,9 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
         assert(l.a != l.b);
 #endif /* _DEBUG */
 
-    remove_tangent_edges(lines);
+    // There should be no tangent edges, as the horizontal triangles are ignored and if two triangles touch at a cutting plane,
+    // only the bottom triangle is considered to be cutting the plane.
+//    remove_tangent_edges(lines);
 
     struct OpenPolyline {
         OpenPolyline() {};
@@ -1450,7 +1360,10 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
     }
 
     // Now process the open polylines.
-    if (! open_polylines.empty()) {
+    // Do it in two rounds, first try to connect in the same direction only,
+    // then try to connect the open polylines in reversed order as well.
+    for (size_t round = 0; round < 2 && ! open_polylines.empty(); ++ round) {
+        bool try_connect_reversed = round == 1;
         // Store the end points of open_polylines into vectors sorted
         struct OpenPolylineEnd {
             OpenPolylineEnd(OpenPolyline *polyline, bool start) : polyline(polyline), start(start) {}
@@ -1470,12 +1383,16 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
         for (OpenPolyline &opl : open_polylines) {
             if (opl.start.edge_id != -1)
                 by_edge_id .emplace_back(OpenPolylineEnd(&opl, true));
-            if (opl.end.edge_id != -1)
-                by_edge_id .emplace_back(OpenPolylineEnd(&opl, false));
+            if (try_connect_reversed) {
+                if (opl.end.edge_id != -1)
+                    by_edge_id .emplace_back(OpenPolylineEnd(&opl, false));
+            }
             if (opl.start.point_id != -1)
                 by_point_id.emplace_back(OpenPolylineEnd(&opl, true));
-            if (opl.end.point_id != -1)
-                by_point_id.emplace_back(OpenPolylineEnd(&opl, false));
+            if (try_connect_reversed) {
+                if (opl.end.point_id != -1)
+                    by_point_id.emplace_back(OpenPolylineEnd(&opl, false));
+            }
         }
         std::sort(by_edge_id .begin(), by_edge_id .end(), by_edge_lower);
         std::sort(by_point_id.begin(), by_point_id.end(), by_point_lower);
@@ -1520,11 +1437,9 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                 if (next_start->start) {
                     auto it = next_start->polyline->points.begin();
                     std::copy(++ it, next_start->polyline->points.end(), back_inserter(opl.points));
-                    //opl.points.insert(opl.points.back(), ++ it, next_start->polyline->points.end());
                 } else {
                     auto it = next_start->polyline->points.rbegin();
                     std::copy(++ it, next_start->polyline->points.rend(), back_inserter(opl.points));
-                    //opl.points.insert(opl.points.back(), ++ it, next_start->polyline->points.rend());
                 }
                 end = *next_start;
                 end.start = !end.start;
@@ -1541,20 +1456,103 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                     // Remove the duplicate last point.
                     opl.points.pop_back();
                     if (opl.points.size() >= 3) {
-                        // The closed polygon is patched from pieces with messed up orientation, therefore
-                        // the orientation of the patched up polygon is not known.
-                        // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
-                        double area = 0.;
-                        for (size_t i = 0, j = opl.points.size() - 1; i < opl.points.size(); j = i ++)
-                            area += double(opl.points[j].x + opl.points[i].x) * double(opl.points[i].y - opl.points[j].y);
-                        if (area < 0)
-                            std::reverse(opl.points.begin(), opl.points.end());
+                        if (try_connect_reversed) {
+                            // The closed polygon is patched from pieces with messed up orientation, therefore
+                            // the orientation of the patched up polygon is not known.
+                            // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
+                            double area = 0.;
+                            for (size_t i = 0, j = opl.points.size() - 1; i < opl.points.size(); j = i ++)
+                                area += double(opl.points[j].x + opl.points[i].x) * double(opl.points[i].y - opl.points[j].y);
+                            if (area < 0)
+                                std::reverse(opl.points.begin(), opl.points.end());
+                        }
                         loops->emplace_back(std::move(opl.points));
                     }
                     opl.points.clear();
 					break;
                 }
 				// Continue with the current loop.
+            }
+        }
+    }
+
+    // Try to close gaps.
+    // Do it in two rounds, first try to connect in the same direction only,
+    // then try to connect the open polylines in reversed order as well.
+    const coord_t max_gap_scaled = (coord_t)scale_(2.); // 2mm
+    for (size_t round = 0; round < 2 && ! open_polylines.empty(); ++ round) {
+        bool try_connect_reversed = round == 1;
+        // Store the end points of open_polylines into ClosestPointInRadiusLookup<OpenPolylineEnd>.
+        struct OpenPolylineEnd {
+            OpenPolylineEnd(OpenPolyline *polyline, bool start) : polyline(polyline), start(start) {}
+            OpenPolyline    *polyline;
+            // Is it the start or end point?
+            bool             start;
+            const Point&     point() const { return start ? polyline->points.front() : polyline->points.back(); }
+        };
+        struct OpenPolylineEndAccessor {
+            const Point* operator()(const OpenPolylineEnd &pt) const { return pt.polyline->consumed ? nullptr : &pt.point(); }
+        };
+        typedef ClosestPointInRadiusLookup<OpenPolylineEnd, OpenPolylineEndAccessor> ClosestPointLookupType;
+        ClosestPointLookupType closest_end_point_lookup(max_gap_scaled);
+        for (OpenPolyline &opl : open_polylines) {
+            closest_end_point_lookup.insert(OpenPolylineEnd(&opl, true));
+            if (try_connect_reversed)
+                closest_end_point_lookup.insert(OpenPolylineEnd(&opl, false));
+        }
+        // Try to connect the loops.
+        for (OpenPolyline &opl : open_polylines) {
+            if (opl.consumed)
+                continue;
+            opl.consumed = true;
+            OpenPolylineEnd end(&opl, false);
+            for (;;) {
+                // Find a line starting where last one finishes, only return non-consumed open polylines (OpenPolylineEndAccessor returns null for consumed).
+                std::pair<const OpenPolylineEnd*, double> next_start_and_dist = closest_end_point_lookup.find(end.point());
+                const OpenPolylineEnd *next_start = next_start_and_dist.first;
+                if (next_start == nullptr) {
+                    // Check whether we closed this loop.
+                    double dist = opl.points.front().distance_to(opl.points.back());
+                    if (dist < max_gap_scaled) {
+                        if (dist == 0.) {
+                            // Remove the duplicate last point.
+                            opl.points.pop_back();
+                        } else {
+                            // The end points are different, keep both of them.
+                        }
+                        if (opl.points.size() >= 3) {
+                            if (try_connect_reversed) {
+                                // The closed polygon is patched from pieces with messed up orientation, therefore
+                                // the orientation of the patched up polygon is not known.
+                                // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
+                                double area = 0.;
+                                for (size_t i = 0, j = opl.points.size() - 1; i < opl.points.size(); j = i ++)
+                                    area += double(opl.points[j].x + opl.points[i].x) * double(opl.points[i].y - opl.points[j].y);
+                                if (area < 0)
+                                    std::reverse(opl.points.begin(), opl.points.end());
+                            }
+                            loops->emplace_back(std::move(opl.points));
+                        }
+                        opl.points.clear();
+                        break;
+                    }
+                    // The current loop could not be closed. Unmark the segment.
+                    opl.consumed = false;
+                    break;
+                }
+                // Attach this polyline to the end of the initial polyline.
+                if (next_start->start) {
+                    auto it = next_start->polyline->points.begin();
+                    std::copy(++ it, next_start->polyline->points.end(), back_inserter(opl.points));
+                } else {
+                    auto it = next_start->polyline->points.rbegin();
+                    std::copy(++ it, next_start->polyline->points.rend(), back_inserter(opl.points));
+                }
+                end = *next_start;
+                end.start = !end.start;
+                next_start->polyline->points.clear();
+                next_start->polyline->consumed = true;
+                // Continue with the current loop.
             }
         }
     }
