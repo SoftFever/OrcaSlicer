@@ -9,6 +9,7 @@
 #include <map>
 
 #include "Plater.hpp"
+#include "Event.hpp"
 
 class wxMenuBar;
 class wxNotebook;
@@ -64,6 +65,8 @@ class MainFrame : public wxFrame
 
     std::string     get_base_name(const wxString full_name) const ;
     std::string     get_dir_name(const wxString full_name) const ;
+
+    void on_presets_changed(SimpleEvent&);
 public:
     MainFrame() {}
     MainFrame(const bool no_plater, const bool loaded);

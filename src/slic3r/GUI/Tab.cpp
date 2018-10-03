@@ -35,6 +35,11 @@ namespace GUI {
 
 static wxString dots("…", wxConvUTF8);
 
+
+wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
+
+
 // sub new
 void Tab::create_preset_tab(PresetBundle *preset_bundle)
 {
@@ -662,30 +667,27 @@ void Tab::load_key_value(const std::string& opt_key, const boost::any& value, bo
 	update();
 }
 
-extern wxFrame *g_wxMainFrame;
-
 void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 {
-	if (m_event_value_change > 0) {
-		wxCommandEvent event(m_event_value_change);
-		std::string str_out = opt_key + " " + m_name;
-		event.SetString(str_out);
-		if (opt_key == "extruders_count")
-		{
-			int val = boost::any_cast<size_t>(value);
-			event.SetInt(val);
-		}
-
-        if (opt_key == "printer_technology")
-        {
-            int val = boost::any_cast<PrinterTechnology>(value);
-            event.SetInt(val);
-            g_wxMainFrame->ProcessWindowEvent(event);
-            return;
-        }
-        
-		g_wxMainFrame->ProcessWindowEvent(event);
+	wxCommandEvent event(EVT_TAB_VALUE_CHANGED);
+	event.SetEventObject(this);
+	event.SetString(opt_key);
+	if (opt_key == "extruders_count")
+	{
+		int val = boost::any_cast<size_t>(value);
+		event.SetInt(val);
 	}
+
+    if (opt_key == "printer_technology")
+    {
+        int val = boost::any_cast<PrinterTechnology>(value);
+        event.SetInt(val);
+        wxPostEvent(this, event);
+        return;
+    }
+
+	wxPostEvent(this, event);
+
 	if (opt_key == "fill_density")
 	{
 		boost::any val = get_optgroup(ogFrequentlyChangingParameters)->get_config_value(*m_config, opt_key);
@@ -734,11 +736,9 @@ void Tab::update_wiping_button_visibility() {
 // to uddate number of "filament" selection boxes when the number of extruders change.
 void Tab::on_presets_changed()
 {
-	if (m_event_presets_changed > 0) {
-		wxCommandEvent event(m_event_presets_changed);
-		event.SetString(m_name);
-		g_wxMainFrame->ProcessWindowEvent(event);
-	}
+	wxCommandEvent event(EVT_TAB_PRESETS_CHANGED);
+	event.SetEventObject(this);
+	wxPostEvent(this, event);
 	update_preset_description_line();
 }
 

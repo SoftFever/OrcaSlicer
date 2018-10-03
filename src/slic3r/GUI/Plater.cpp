@@ -310,38 +310,37 @@ Sidebar::~Sidebar() {}
 
 void Sidebar::update_presets(Preset::Type preset_type)
 {
-    // TODO: wxApp access
-
     switch (preset_type) {
     case Preset::TYPE_FILAMENT:
-        // my $choice_idx = 0;
         if (p->combos_filament.size() == 1) {
             // Single filament printer, synchronize the filament presets.
-            // wxTheApp->{preset_bundle}->set_filament_preset(0, wxTheApp->{preset_bundle}->filament->get_selected_preset->name);
+            const std::string &name = wxGetApp().preset_bundle->filaments.get_selected_preset().name;
+            wxGetApp().preset_bundle->set_filament_preset(0, name);
         }
 
         for (size_t i = 0; i < p->combos_filament.size(); i++) {
-            // wxTheApp->{preset_bundle}->update_platter_filament_ui($choice_idx, $choice);
+            wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
         }
+
         break;
 
     case Preset::TYPE_PRINT:
-        // wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);
+        wxGetApp().preset_bundle->prints.update_platter_ui(p->combo_print);
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        // wxTheApp->{preset_bundle}->sla_material->update_platter_ui($choosers[0]);
+        wxGetApp().preset_bundle->sla_materials.update_platter_ui(p->combo_sla_material);
         break;
 
     case Preset::TYPE_PRINTER:
         // Update the print choosers to only contain the compatible presets, update the dirty flags.
-        // wxTheApp->{preset_bundle}->print->update_platter_ui($self->{preset_choosers}{print}->[0]);
+        wxGetApp().preset_bundle->prints.update_platter_ui(p->combo_print);
         // Update the printer choosers, update the dirty flags.
-        // wxTheApp->{preset_bundle}->printer->update_platter_ui($choosers[0]);
+        wxGetApp().preset_bundle->printers.update_platter_ui(p->combo_printer);
         // Update the filament choosers to only contain the compatible presets, update the color preview,
         // update the dirty flags.
         for (size_t i = 0; i < p->combos_filament.size(); i++) {
-            // wxTheApp->{preset_bundle}->update_platter_filament_ui($choice_idx, $choice);
+            wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
         }
         break;
 
@@ -349,7 +348,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     }
 
     // Synchronize config.ini with the current selections.
-    // wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
 

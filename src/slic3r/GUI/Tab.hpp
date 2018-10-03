@@ -25,14 +25,15 @@
 #include <wx/imaglist.h>
 #include <wx/statbox.h>
 #include <wx/dataview.h>
+#include <wx/event.h>
 
 #include <map>
 #include <vector>
 #include <memory>
 
 #include "BedShapeDialog.hpp"
+#include "Event.hpp"
 
-//!enum { ID_TAB_TREE = wxID_HIGHEST + 1 };
 
 namespace Slic3r {
 namespace GUI {
@@ -96,7 +97,10 @@ protected:
 	const wxColour*		m_item_color;
 };
 
-// Slic3r::GUI::Tab;
+
+wxDECLARE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
+wxDECLARE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
+
 
 using PageShp = std::shared_ptr<Page>;
 class Tab: public wxPanel
@@ -178,10 +182,6 @@ protected:
 
 	t_icon_descriptions	m_icon_descriptions = {};
 
-	// The two following two event IDs are generated at Plater.pm by calling Wx::NewEventType.
-	wxEventType			m_event_value_change = 0;
-	wxEventType 		m_event_presets_changed = 0;
-
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
 	bool				m_postpone_update_ui {false};
@@ -211,10 +211,6 @@ public:
 	wxString	title()	 const { return m_title; }
 	std::string	name()	 const { return m_name; }
 
-	// Set the events to the callbacks posted to the main frame window (currently implemented in Perl).
-	void 		set_event_value_change(wxEventType evt) { m_event_value_change = evt; }
-	void 		set_event_presets_changed(wxEventType evt) { m_event_presets_changed = evt; }
-	
 	void		create_preset_tab(PresetBundle *preset_bundle);
 	void		load_current_preset();
 	void        rebuild_page_tree(bool tree_sel_change_event = false);
