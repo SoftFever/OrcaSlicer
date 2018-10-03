@@ -783,14 +783,13 @@ namespace SupportMaterialInternal {
             if (surface.surface_type == stBottomBridge && surface.bridge_angle != -1)
                 polygons_append(bridges, surface.expolygon);
         //FIXME add the gap filled areas. Extrude the gaps with a bridge flow?
-        contact_polygons = diff(contact_polygons, bridges, true);
-        // Add the bridge anchors into the region.
+        // Remove the unsupported ends of the bridges from the bridged areas.
         //FIXME add supports at regular intervals to support long bridges!
-        polygons_append(contact_polygons,
-            intersection(
+        bridges = diff(bridges, 
                 // Offset unsupported edges into polygons.
-                offset(layerm->unsupported_bridge_edges.polylines, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS),
-                bridges));
+                offset(layerm->unsupported_bridge_edges.polylines, scale_(SUPPORT_MATERIAL_MARGIN), SUPPORT_SURFACES_OFFSET_PARAMETERS));
+        // Remove bridged areas from the supported areas.
+        contact_polygons = diff(contact_polygons, bridges, true);
     }
 }
 
