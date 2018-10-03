@@ -117,7 +117,6 @@ void             set_gui_appctl();
 void open_model(wxWindow *parent, wxArrayString& input_files);
 
 wxWindow*			get_right_panel();
-const size_t&		label_width();
 
 Tab*         get_tab(const std::string& name);
 std::vector<PresetTab>* get_preset_tabs();
@@ -150,9 +149,6 @@ void warning_catcher(wxWindow* parent, const wxString& message);
 // to deliver a progress status message.
 void set_print_callback_event(Print *print, int id);
 
-// update right panel of the Plater according to view mode
-void update_mode();
-
 void show_info_sizer(const bool show);
 
 // Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.
@@ -177,16 +173,12 @@ void set_model_events_from_perl(Model &model,
 							    int event_remove_object, 
 							    int event_update_scene);
 void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
-// Update view mode according to selected menu 
-void update_mode();
-bool is_expert_mode();
 
 // Callback to trigger a configuration update timer on the Plater.
 static PerlCallback g_on_request_update_callback;
  
 ConfigOptionsGroup* get_optgroup(size_t i); 
 std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups();
-wxButton*			get_wiping_dialog_button();
 
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);

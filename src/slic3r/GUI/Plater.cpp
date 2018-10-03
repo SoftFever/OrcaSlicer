@@ -40,6 +40,7 @@
 #include "slic3r/Utils/ASCIIFolding.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
+#include "WipeTowerDialog.hpp"
 
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
@@ -222,6 +223,12 @@ struct Sidebar::priv
     wxButton *btn_reslice;
     // wxButton *btn_print;  // XXX: remove
     wxButton *btn_send_gcode;
+
+    std::vector <std::shared_ptr<ConfigOptionsGroup>> optgroups {};
+    double		brim_width = 0.0;
+    size_t		label_width = 100;
+    wxButton*	btn_wiping_dialog {nullptr};
+
 };
 
 
@@ -265,7 +272,12 @@ Sidebar::Sidebar(wxWindow *parent)
 
     // Frequently changed parameters
     p->sizer_params = new wxBoxSizer(wxVERTICAL);
-    GUI::add_frequently_changed_parameters(p->scrolled, p->sizer_params, p->sizer_presets);
+    add_frequently_changed_parameters(p->scrolled, p->sizer_params/*, p->sizer_presets*/);
+    
+    // Object List
+    add_objects_list(p->scrolled, p->sizer_params);
+    // Frequently Object Settings
+    add_object_settings(p->scrolled, p->sizer_params, p->optgroups);
 
     // Buttons in the scrolled area
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
@@ -354,6 +366,20 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
     // Synchronize config.ini with the current selections.
     // wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
+}
+
+ConfigOptionsGroup* Sidebar::get_optgroup(size_t i)
+{
+    return p->optgroups.empty() ? nullptr : p->optgroups[i].get();
+}
+
+t_optgroups& Sidebar::get_optgroups() {
+    return p->optgroups;
+}
+
+wxButton* Sidebar::get_wiping_dialog_button()
+{
+    return p->btn_wiping_dialog;
 }
 
 

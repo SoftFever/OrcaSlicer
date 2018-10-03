@@ -23,8 +23,6 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxString dots("…", wxConvUTF8);
-
 MainFrame::MainFrame(const bool no_plater, const bool loaded) :
 wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_STYLE),
         m_no_plater(no_plater),

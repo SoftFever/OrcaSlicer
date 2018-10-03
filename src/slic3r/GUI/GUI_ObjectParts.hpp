@@ -1,5 +1,6 @@
 #ifndef slic3r_GUI_ObjectParts_hpp_
 #define slic3r_GUI_ObjectParts_hpp_
+// #include "OptionsGroup.hpp"
 
 class wxWindow;
 class wxSizer;
@@ -17,15 +18,13 @@ class ModelObject;
 class Model;
 
 namespace GUI {
-//class wxGLCanvas;
+class ConfigOptionsGroup;
+using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 enum ogGroup{
 	ogFrequentlyChangingParameters,
 	ogFrequentlyObjectSettings,
-	ogCurrentSettings
-// 	ogObjectSettings,
-// 	ogObjectMovers,
-// 	ogPartSettings
+ 	ogObjectSettings
 };
 
 enum LambdaTypeIDs{
@@ -49,10 +48,8 @@ struct OBJECT_PARAMETERS
 typedef std::map<std::string, wxBitmap> t_category_icon;
 inline t_category_icon& get_category_icon();
 
-void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer);
 void add_objects_list(wxWindow* parent, wxBoxSizer* sizer);
-void add_object_settings(wxWindow* parent, wxBoxSizer* sizer);
-void show_collpane_settings(bool expert_mode);
+void add_object_settings(wxWindow* parent, wxBoxSizer* sizer, t_optgroups& optgroups);
 
 wxMenu *create_add_settings_popupmenu(bool is_part);
 wxMenu *create_add_part_popupmenu();

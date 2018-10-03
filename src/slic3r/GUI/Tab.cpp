@@ -33,9 +33,6 @@
 namespace Slic3r {
 namespace GUI {
 
-static wxString dots("…", wxConvUTF8);
-
-// sub new
 void Tab::create_preset_tab(PresetBundle *preset_bundle)
 {
 	m_preset_bundle = preset_bundle;
@@ -720,9 +717,12 @@ void Tab::update_wiping_button_visibility() {
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
     bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
 
-    if (get_wiping_dialog_button()) {
-	get_wiping_dialog_button()->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);	
-    (get_wiping_dialog_button()->GetParent())->Layout();
+    if (!wxGetApp().mainframe)
+        return;
+    auto wiping_dialog_button = wxGetApp().mainframe->m_plater->sidebar().get_wiping_dialog_button();
+    if (wiping_dialog_button) {
+        wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);
+        wiping_dialog_button->GetParent()->Layout();
     }
 }
 

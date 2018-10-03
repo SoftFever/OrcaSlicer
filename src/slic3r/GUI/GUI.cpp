@@ -119,11 +119,6 @@ void break_to_debugger()
 // #ys_FIXME_for_delete
 std::vector<Tab *> g_tabs_list;
 
-std::vector <std::shared_ptr<ConfigOptionsGroup>> m_optgroups;
-double		m_brim_width = 0.0;
-size_t		m_label_width = 100;
-wxButton*	g_wiping_dialog_button = nullptr;
-
 //showed/hided controls according to the view mode
 wxWindow	*g_right_panel = nullptr;
 wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
@@ -191,8 +186,6 @@ void set_show_manifold_warning_icon(bool show)
 void set_objects_list_sizer(wxBoxSizer *objects_list_sizer){
 	g_object_list_sizer = objects_list_sizer;
 }
-
-static wxString dots("…", wxConvUTF8);
 
 void open_model(wxWindow *parent, wxArrayString& input_files){
 	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow()*/, 
@@ -432,11 +425,6 @@ void set_print_callback_event(Print *print, int id)
 wxWindow* get_right_panel(){
 	return g_right_panel;
 }
-
-const size_t& label_width(){
-	return m_label_width;
-}
-
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
     if (comboCtrl == nullptr)
@@ -531,16 +519,18 @@ void set_model_events_from_perl(Model &model,
 // 	add_collapsible_panes(parent, sizer);
 }
 
-void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer)
+void Sidebar::add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer/*, wxFlexGridSizer* preset_sizer*/)
 {
     DynamicPrintConfig*	config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
 	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(parent, "", config);
-	const wxArrayInt& ar = preset_sizer->GetColWidths();
-	m_label_width = ar.IsEmpty() ? 100 : ar.front()-4;
-	optgroup->label_width = m_label_width;
+// 	const wxArrayInt& ar = preset_sizer->GetColWidths();
+// 	m_label_width = ar.IsEmpty() ? 100 : ar.front()-4;
+    optgroup->label_width = 100;// m_label_width;
+
+    auto m_optgroups = get_optgroups();
 
 	//Frequently changed parameters
-	optgroup->m_on_change = [config](t_config_option_key opt_key, boost::any value){
+	optgroup->m_on_change = [config, m_optgroups](t_config_option_key opt_key, boost::any value){
 		TabPrint* tab_print = nullptr;
         for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
             Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
@@ -566,12 +556,12 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 				double brim_width = config->opt_float("brim_width");
 				if (boost::any_cast<bool>(value) == true)
 				{
-					new_val = m_brim_width == 0.0 ? 10 :
-						m_brim_width < 0.0 ? m_brim_width * (-1) :
-						m_brim_width;
+                    new_val = 10;// m_brim_width == 0.0 ? 10 :
+// 						m_brim_width < 0.0 ? m_brim_width * (-1) :
+// 						m_brim_width;
 				}
 				else{
-					m_brim_width = brim_width * (-1);
+// 					m_brim_width = brim_width * (-1);
 					new_val = 0;
 				}
 				new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
@@ -617,7 +607,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	option.opt.full_width = true;
 	optgroup->append_single_option_line(option);
 
-	m_brim_width = config->opt_float("brim_width");
+	auto m_brim_width = config->opt_float("brim_width");
 	def.label = L("Brim");
 	def.type = coBool;
 	def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
@@ -628,7 +618,8 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 
 
     Line line = { "", "" };
-        line.widget = [config](wxWindow* parent){
+        line.widget = [config, this](wxWindow* parent){
+            auto g_wiping_dialog_button = get_wiping_dialog_button();
 			g_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 			auto sizer = new wxBoxSizer(wxHORIZONTAL);
 			sizer->Add(g_wiping_dialog_button);
@@ -655,26 +646,6 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxBOTTOM | wxLEFT, 2);
 
 	m_optgroups.push_back(optgroup);// ogFrequentlyChangingParameters
-
-	// Object List
-	add_objects_list(parent, sizer);
-
-	// Frequently Object Settings
-	add_object_settings(parent, sizer);
-}
-
-void show_frequently_changed_parameters(bool show)
-{
-	g_frequently_changed_parameters_sizer->Show(show);
-	if (!show) return;
-
-    for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
-        Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
-		if (!tab)
-			continue;
-		tab->update_wiping_button_visibility();
-		break;
-	}
 }
 
 void show_buttons(bool show)
@@ -706,42 +677,14 @@ void show_object_name(bool show)
     grid_sizer->Show(static_cast<size_t>(1), show);
 }
 
-void update_mode()
-{
-    wxWindowUpdateLocker noUpdates(g_right_panel->GetParent());
-
-    ConfigMenuIDs mode = wxGetApp().get_view_mode();
-
-	g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
-	show_info_sizer(mode == ConfigMenuModeExpert);
-	show_buttons(mode == ConfigMenuModeExpert);
-    show_object_name(mode == ConfigMenuModeSimple);
-    show_manipulation_sizer(mode == ConfigMenuModeSimple);
-
-	// TODO There is a not the best place of it!
-	// *** Update showing of the collpane_settings
-// 	show_collpane_settings(mode == ConfigMenuModeExpert);
-	// *************************
-    g_right_panel->Layout();
-	g_right_panel->GetParent()->Layout();
-}
-
-bool is_expert_mode(){
-    return wxGetApp().get_view_mode() == ConfigMenuModeExpert;
-}
-
 ConfigOptionsGroup* get_optgroup(size_t i)
 {
-	return m_optgroups.empty() ? nullptr : m_optgroups[i].get();
+    return wxGetApp().mainframe->m_plater->sidebar().get_optgroup(i);
+// 	return m_optgroups.empty() ? nullptr : m_optgroups[i].get();
 }
 
 std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups() {
-	return m_optgroups;
-}
-
-wxButton* get_wiping_dialog_button()
-{
-	return g_wiping_dialog_button;
+    return wxGetApp().mainframe->m_plater->sidebar().get_optgroups();//m_optgroups;
 }
 
 wxWindow* export_option_creator(wxWindow* parent)

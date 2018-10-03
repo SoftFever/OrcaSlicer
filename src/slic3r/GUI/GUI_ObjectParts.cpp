@@ -158,8 +158,6 @@ void init_mesh_icons(){
 bool is_parts_changed(){return m_parts_changed;}
 bool is_part_settings_changed(){ return m_part_settings_changed; }
 
-static wxString dots("…", wxConvUTF8);
-
 void set_tooltip_for_item(const wxPoint& pt)
 {
     wxDataViewItem item;
@@ -452,34 +450,7 @@ wxSizer* object_movers(wxWindow *win)
 	return optgroup->sizer;
 }
 
-wxBoxSizer* content_settings(wxWindow *win)
-{
-	DynamicPrintConfig* config = &wxGetApp().preset_bundle->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
-	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Extruders", config);
-	optgroup->label_width = label_width();
-
-	Option option = optgroup->get_option("extruder");
-	option.opt.default_value = new ConfigOptionInt(1);
-	optgroup->append_single_option_line(option);
-
-	get_optgroups().push_back(optgroup);  // ogObjectSettings
-
-	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(create_edit_object_buttons(win), 0, wxEXPAND, 0); // *** Edit Object Buttons***
-
-	sizer->Add(optgroup->sizer, 1, wxEXPAND | wxLEFT, 20);
-
-	auto add_btn = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
-	if (wxMSW) add_btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
-	add_btn->SetBitmap(wxBitmap(from_u8(Slic3r::var("add.png")), wxBITMAP_TYPE_PNG));
-	sizer->Add(add_btn, 0, wxALIGN_LEFT | wxLEFT, 20);
-
-	sizer->Add(object_movers(win), 0, wxEXPAND | wxLEFT, 20);
-
-	return sizer;
-}
-
-void add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
+void Sidebar::add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
 {
 	const auto ol_sizer = create_objects_list(parent);
 	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
@@ -535,13 +506,13 @@ Line add_og_to_object_settings(const std::string& option_name, const std::string
 	return line;
 }
 
-void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
+void Sidebar::add_object_settings(wxWindow* parent, wxBoxSizer* sizer, t_optgroups& optgroups)
 {
 	auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, _(L("Object Settings")));
 	optgroup->label_width = 100;
 	optgroup->set_grid_vgap(5);
 
-	optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
+	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
 		if (opt_key == "scale_unit"){
 			const wxString& selection = boost::any_cast<wxString>(value);
 			std::vector<std::string> axes{ "x", "y", "z" };
@@ -565,7 +536,6 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 	def.full_width = true;
 	def.default_value = new ConfigOptionString{ " " };
 	optgroup->append_single_option_line(Option(def, "object_name"));
-
 
     // Legend for object modification
     auto line = Line{ "", "" };
@@ -604,54 +574,7 @@ void add_object_settings(wxWindow* parent, wxBoxSizer* sizer)
 
 	optgroup->disable();
 
-	get_optgroups().push_back(optgroup);  // ogFrequentlyObjectSettings
-}
-
-
-// add Collapsible Pane to sizer
-wxCollapsiblePane* add_collapsible_pane(wxWindow* parent, wxBoxSizer* sizer_parent, const wxString& name, std::function<wxSizer *(wxWindow *)> content_function)
-{
-#ifdef __WXMSW__
-	auto *collpane = new PrusaCollapsiblePaneMSW(parent, wxID_ANY, name);
-#else
-	auto *collpane = new PrusaCollapsiblePane/*wxCollapsiblePane*/(parent, wxID_ANY, name);
-#endif // __WXMSW__
-	// add the pane with a zero proportion value to the sizer which contains it
-	sizer_parent->Add(collpane, 0, wxGROW | wxALL, 0);
-
-	wxWindow *win = collpane->GetPane();
-
-	wxSizer *sizer = content_function(win);
-
-	wxSizer *sizer_pane = new wxBoxSizer(wxVERTICAL);
-	sizer_pane->Add(sizer, 1, wxGROW | wxEXPAND | wxBOTTOM, 2);
-	win->SetSizer(sizer_pane);
-	// 	sizer_pane->SetSizeHints(win);
-	return collpane;
-}
-
-void add_collapsible_panes(wxWindow* parent, wxBoxSizer* sizer)
-{
-	// *** Objects List ***	
-	auto collpane = add_collapsible_pane(parent, sizer, "Objects List:", create_objects_list);
-	collpane->Bind(wxEVT_COLLAPSIBLEPANE_CHANGED, ([collpane](wxCommandEvent& e){
-		// 		wxWindowUpdateLocker noUpdates(g_right_panel);
-		if (collpane->IsCollapsed()) {
-			m_sizer_object_buttons->Show(false);
-			m_sizer_part_buttons->Show(false);
-			m_sizer_object_movers->Show(false);
-			if (!m_objects_ctrl->HasSelection())
-				m_collpane_settings->Show(false);
-		}
-	}));
-
-	// *** Object/Part Settings ***
-	m_collpane_settings = add_collapsible_pane(parent, sizer, "Object Settings", content_settings);
-}
-
-void show_collpane_settings(bool expert_mode)
-{
-	m_collpane_settings->Show(expert_mode && !m_objects_model->IsEmpty());
+    optgroups.push_back(optgroup);  // ogFrequentlyObjectSettings
 }
 
 void add_object_to_list(const std::string &name, ModelObject* model_object)
@@ -695,17 +618,12 @@ void delete_object_from_list()
 	m_objects_model->Delete(item);
 
     part_selection_changed();
-
-// 	if (m_objects_model->IsEmpty())
-// 		m_collpane_settings->Show(false);
 }
 
 void delete_all_objects_from_list()
 {
 	m_objects_model->DeleteAll();
-
     part_selection_changed();
-// 	m_collpane_settings->Show(false);
 }
 
 void set_object_count(int idx, int count)
@@ -1629,100 +1547,6 @@ void part_selection_changed()
 	m_selected_object_id = obj_idx;
 
 	update_settings_value();
-
-/*	wxWindowUpdateLocker noUpdates(get_right_panel());
-
-	m_move_options = Point3(0, 0, 0);
-	m_last_coords = Point3(0, 0, 0);
-	// reset move sliders
-	std::vector<std::string> opt_keys = {"x", "y", "z"};
-	auto og = get_optgroup(ogObjectMovers);
-	for (auto opt_key: opt_keys)
-		og->set_value(opt_key, int(0));
-
-// 	if (!item || m_selected_object_id < 0){
-	if (m_selected_object_id < 0){
-		m_sizer_object_buttons->Show(false);
-		m_sizer_part_buttons->Show(false);
-		m_sizer_object_movers->Show(false);
-		m_collpane_settings->Show(false);
-		return;
-	}
-
-	m_collpane_settings->Show(true);
-
-	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-	if (volume_id < 0){
-		m_sizer_object_buttons->Show(true);
-		m_sizer_part_buttons->Show(false);
-		m_sizer_object_movers->Show(false);
-		m_collpane_settings->SetLabelText(_(L("Object Settings")) + ":");
-
-// 		elsif($itemData->{type} eq 'object') {
-// 			# select nothing in 3D preview
-// 
-// 			# attach object config to settings panel
-// 			$self->{optgroup_movers}->disable;
-// 			$self->{staticbox}->SetLabel('Object Settings');
-// 			@opt_keys = (map @{$_->get_keys}, Slic3r::Config::PrintObject->new, Slic3r::Config::PrintRegion->new);
-// 			$config = $self->{model_object}->config;
-// 		}
-
-		return;
-	}
-
-	m_collpane_settings->SetLabelText(_(L("Part Settings")) + ":");
-	
-	m_sizer_object_buttons->Show(false);
-	m_sizer_part_buttons->Show(true);
-	m_sizer_object_movers->Show(true);
-
-	auto bb_size = m_objects[m_selected_object_id]->bounding_box().size();
-	int scale = 10; //??
-
-	m_mover_x->SetMin(-bb_size.x * 4 * scale);
-	m_mover_x->SetMax(bb_size.x * 4 * scale);
-
-	m_mover_y->SetMin(-bb_size.y * 4 * scale);
-	m_mover_y->SetMax(bb_size.y * 4 * scale);
-
-	m_mover_z->SetMin(-bb_size.z * 4 * scale);
-	m_mover_z->SetMax(bb_size.z * 4 * scale);
-
-
-	
-//	my ($config, @opt_keys);
-	m_btn_move_up->Enable(volume_id > 0);
-	m_btn_move_down->Enable(volume_id + 1 < m_objects[m_selected_object_id]->volumes.size());
-
-	// attach volume config to settings panel
-	auto volume = m_objects[m_selected_object_id]->volumes[volume_id];
-
-	if (volume->modifier) 
-		og->enable();
-	else 
-		og->disable();
-
-//	auto config = volume->config;
-
-	// get default values
-// 	@opt_keys = @{Slic3r::Config::PrintRegion->new->get_keys};
-// 	} 
-/*	
-	# get default values
-	my $default_config = Slic3r::Config::new_from_defaults_keys(\@opt_keys);
-
-	# append default extruder
-	push @opt_keys, 'extruder';
-	$default_config->set('extruder', 0);
-	$config->set_ifndef('extruder', 0);
-	$self->{settings_panel}->set_default_config($default_config);
-	$self->{settings_panel}->set_config($config);
-	$self->{settings_panel}->set_opt_keys(\@opt_keys);
-	$self->{settings_panel}->set_fixed_options([qw(extruder)]);
-	$self->{settings_panel}->enable;
-	}
-	 */
 }
 
 void set_extruder_column_hidden(bool hide)

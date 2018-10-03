@@ -26,6 +26,7 @@
 #include "Preferences.hpp"
 #include "Tab.hpp"
 #include <I18N.hpp>
+#include <wx/wupdlock.h>
 
 namespace Slic3r {
 namespace GUI {
@@ -488,7 +489,22 @@ ConfigMenuIDs GUI_App::get_view_mode()
     return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
 }
 
-static wxString dots("…", wxConvUTF8);
+// Update view mode according to selected menu
+void GUI_App::update_mode()
+{
+    wxWindowUpdateLocker noUpdates(/*g_right_panel->GetParent()*/mainframe);
+
+    ConfigMenuIDs mode = wxGetApp().get_view_mode();
+
+//     g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
+    show_info_sizer(mode == ConfigMenuModeExpert);
+//     show_buttons(mode == ConfigMenuModeExpert);
+//     show_object_name(mode == ConfigMenuModeSimple);
+    show_manipulation_sizer(mode == ConfigMenuModeSimple);
+
+    /*g_right_panel*/mainframe->m_plater->Layout();
+    /*g_right_panel->GetParent()*/mainframe->Layout();
+}
 
 void GUI_App::add_config_menu(wxMenuBar *menu)
 {

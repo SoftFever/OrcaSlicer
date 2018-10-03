@@ -42,6 +42,8 @@ enum ConfigMenuIDs {
 
 class Tab;
 
+static wxString dots("…", wxConvUTF8);
+
 class GUI_App : public wxApp
 {
     bool            no_plater{ false };
@@ -112,6 +114,7 @@ public:
     void            get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
 
     ConfigMenuIDs   get_view_mode();
+    void            update_mode();
 
     void            add_config_menu(wxMenuBar *menu);
     bool            check_unsaved_changes();

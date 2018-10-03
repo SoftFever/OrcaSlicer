@@ -8,7 +8,6 @@ namespace Slic3r
 {
 namespace GUI
 {
-static wxString dots("…", wxConvUTF8);
 
 LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
                                        const wxString type_name):
