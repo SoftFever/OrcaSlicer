@@ -1734,7 +1734,6 @@ void GLGizmoSlaSupports::update_mesh()
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
 
-
     // we'll now reload Grabbers (selection might have changed):
     m_grabbers.clear();
     for (const Vec3f& point : m_model_object->sla_support_points) {
