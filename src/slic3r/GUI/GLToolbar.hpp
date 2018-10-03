@@ -5,10 +5,9 @@
 #include <string>
 #include <vector>
 
-#include <wx/event.h>
+#include "GLTexture.hpp"
+#include "Event.hpp"
 
-#include "../../slic3r/GUI/GLTexture.hpp"
-// #include "callback.hpp"
 
 class wxEvtHandler;
 
@@ -17,9 +16,17 @@ namespace GUI {
 
 class GLCanvas3D;
 
-wxDECLARE_EVENT(EVT_GLTOOLBAR_ADD, wxCommandEvent);
-wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE, wxCommandEvent);
-wxDECLARE_EVENT(EVT_GLTOOLBAR_TODO_MORE, wxCommandEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_DELETE_ALL, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_ARRANGE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_MORE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_FEWER, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SPLIT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_CUT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SETTINGS, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLTOOLBAR_SELECTBYPARTS, SimpleEvent);
 
 class GLToolbarItem
 {
@@ -41,16 +48,12 @@ public:
         Num_States
     };
 
-    // typedef std::function<void()> Callback;
-    // typedef PerlCallback Callback;
-
     struct Data
     {
         std::string name;
         std::string tooltip;
         unsigned int sprite_id;
         bool is_toggable;
-        // Callback *action_callback;
         wxEventType action_event;
 
         Data();

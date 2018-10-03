@@ -1936,6 +1936,26 @@ GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
     return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
+wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ROTATE_OBJECT, Event<int>);
+wxDEFINE_EVENT(EVT_GLCANVAS_SCALE_UNIFORMLY, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_OBJECTS, Event<int>);
+wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVES, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
+wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+
+wxDEFINE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
+wxDEFINE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
+wxDEFINE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
+
+
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
@@ -1985,8 +2005,16 @@ GLCanvas3D::~GLCanvas3D()
         delete m_context;
         m_context = nullptr;
     }
+}
 
-    _deregister_callbacks();
+void GLCanvas3D::post_event(const wxEvent &event)
+{
+    wxPostEvent(m_canvas, event);
+}
+
+void GLCanvas3D::viewport_changed()
+{
+    post_event(SimpleEvent(EVT_GLCANVAS_VIEWPORT_CHANGED));
 }
 
 bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
@@ -2412,7 +2440,7 @@ void GLCanvas3D::select_view(const std::string& direction)
         m_camera.phi = dir_vec[0];
         m_camera.set_theta(dir_vec[1]);
 
-        m_on_viewport_changed_callback.call();
+        viewport_changed();
         
         if (m_canvas != nullptr)
             m_canvas->Refresh();
@@ -2657,21 +2685,21 @@ void GLCanvas3D::reload_scene(bool force)
         {
             enable_warning_texture(true);
             _generate_warning_texture(L("Detected object outside print volume"));
-            m_on_enable_action_buttons_callback.call(state == ModelInstance::PVS_Fully_Outside);
+            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, state == ModelInstance::PVS_Fully_Outside));
         }
         else
         {
             enable_warning_texture(false);
             m_volumes.reset_outside_state();
             _reset_warning_texture();
-            m_on_enable_action_buttons_callback.call(!m_model->objects.empty());
+            post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, !m_model->objects.empty()));
         }
     }
     else
     {
         enable_warning_texture(false);
         _reset_warning_texture();
-        m_on_enable_action_buttons_callback.call(false);
+        post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
 }
 
@@ -2735,215 +2763,6 @@ void GLCanvas3D::load_preview(const std::vector<std::string>& str_tool_colors)
     _update_toolpath_volumes_outside_state();
     _show_warning_texture_if_needed();
     reset_legend_texture();
-}
-
-void GLCanvas3D::register_on_viewport_changed_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_viewport_changed_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_double_click_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_double_click_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_right_click_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_right_click_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_select_object_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_select_object_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_model_update_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_model_update_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_remove_object_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_remove_object_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_arrange_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_arrange_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_rotate_object_left_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_rotate_object_left_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_rotate_object_right_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_rotate_object_right_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_scale_object_uniformly_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_scale_object_uniformly_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_increase_objects_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_increase_objects_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_decrease_objects_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_decrease_objects_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_instance_moved_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_instance_moved_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_wipe_tower_moved_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_wipe_tower_moved_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_enable_action_buttons_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_enable_action_buttons_callback.register_callback(callback);
-}
-
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void GLCanvas3D::register_on_gizmo_scale_3D_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_gizmo_scale_3D_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_gizmo_rotate_3D_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_gizmo_rotate_3D_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_gizmo_flatten_3D_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_gizmo_flatten_3D_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_update_geometry_3D_info_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_update_geometry_3D_info_callback.register_callback(callback);
-}
-#else
-void GLCanvas3D::register_on_gizmo_scale_uniformly_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_gizmo_scale_uniformly_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_gizmo_rotate_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_gizmo_rotate_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_gizmo_flatten_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_gizmo_flatten_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_on_update_geometry_info_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_on_update_geometry_info_callback.register_callback(callback);
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-// void GLCanvas3D::register_action_add_callback(GLToolbarItem::Callback callback)
-void GLCanvas3D::register_action_add_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_add_callback.register_callback(callback);
-    // if (callback)
-    //     m_action_add_callback = std::move(callback);
-}
-
-void GLCanvas3D::register_action_delete_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_delete_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_deleteall_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_deleteall_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_arrange_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_arrange_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_more_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_more_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_fewer_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_fewer_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_split_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_split_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_cut_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_cut_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_settings_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_settings_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_layersediting_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_layersediting_callback.register_callback(callback);
-}
-
-void GLCanvas3D::register_action_selectbyparts_callback(void* callback)
-{
-    if (callback != nullptr)
-        m_action_selectbyparts_callback.register_callback(callback);
 }
 
 void GLCanvas3D::bind_event_handlers()
@@ -3034,24 +2853,24 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 switch (keyCode)
                 {
                 // key +
-                case 43: { m_on_increase_objects_callback.call(); break; }
+                case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_OBJECTS, +1)); break; }
                 // key -
-                case 45: { m_on_decrease_objects_callback.call(); break; }
+                case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_OBJECTS, -1)); break; }
                 // key A/a
                 case 65:
-                case 97: { m_on_arrange_callback.call(); break; }
+                case 97: { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
                 // key B/b
                 case 66:
                 case 98: { zoom_to_bed(); break; }
                 // key L/l
                 case 76:
-                case 108: { m_on_rotate_object_left_callback.call(); break; }
+                case 108: { post_event(Event<int>(EVT_GLCANVAS_ROTATE_OBJECT, -1)); break; }
                 // key R/r
                 case 82:
-                case 114: { m_on_rotate_object_right_callback.call(); break; }
+                case 114: { post_event(Event<int>(EVT_GLCANVAS_ROTATE_OBJECT, +1)); break; }
                 // key S/s
                 case 83:
-                case 115: { m_on_scale_object_uniformly_callback.call(); break; }
+                case 115: { post_event(SimpleEvent(EVT_GLCANVAS_SCALE_UNIFORMLY)); break; }
                 // key Z/z
                 case 90:
                 case 122: { zoom_to_volumes(); break; }
@@ -3102,7 +2921,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
         zoom = std::max(zoom, zoom_min * 0.8f);
     
     m_camera.zoom = zoom;
-    m_on_viewport_changed_callback.call();
+    viewport_changed();
 
     _refresh_if_shown_on_screen();
 }
@@ -3142,7 +2961,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_dirty = true;
     }
     else if (evt.LeftDClick() && (m_hover_volume_id != -1) && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1))
-        m_on_double_click_callback.call();
+        post_event(SimpleEvent(EVT_GLCANVAS_DOUBLE_CLICK));
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
@@ -3158,8 +2977,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Scale:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            const Vec3d& scale = m_gizmos.get_scale();
-            m_on_gizmo_scale_3D_callback.call(scale(0), scale(1), scale(2));
+            post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
 #else
             m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -3170,8 +2988,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            const Vec3d& rotation = m_gizmos.get_rotation();
-            m_on_gizmo_rotate_3D_callback.call(rotation(0), rotation(1), rotation(2));
+            post_event(Vec3dEvent(EVT_GIZMO_ROTATE, std::move(m_gizmos.get_rotation())));
 #else
             m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -3228,8 +3045,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 // Rotate the object so the normal points downward:
-                const Vec3d& rotation = m_gizmos.get_flattening_rotation();
-                m_on_gizmo_flatten_3D_callback.call(rotation(0), rotation(1), rotation(2));
+                post_event(Vec3dEvent(EVT_GIZMO_FLATTEN, m_gizmos.get_flattening_rotation()));
 #else
                 // Rotate the object so the normal points downward:
                 Vec3d normal = m_gizmos.get_flattening_normal();
@@ -3311,7 +3127,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
                         if (m_volumes.volumes[volume_idx]->hover)
-                            m_on_right_click_callback.call(pos(0), pos(1));
+                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
                     }
                 }
             }
@@ -3464,7 +3280,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             const Vec3d& size = bb.size();
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             const Vec3d& scale = m_gizmos.get_scale();
-            m_on_update_geometry_3D_info_callback.call(size(0), size(1), size(2), scale(0), scale(1), scale(2));
+            post_event(Vec3dsEvent<2>(EVT_GLCANVAS_UPDATE_GEOMETRY, {size, scale}));
 #else
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -3490,7 +3306,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_camera.phi += (((float)pos(0) - (float)orig(0)) * TRACKBALLSIZE);
                 m_camera.set_theta(m_camera.get_theta() - ((float)pos(1) - (float)orig(1)) * TRACKBALLSIZE);
 
-                m_on_viewport_changed_callback.call();
+                viewport_changed();
 
                 m_dirty = true;
             }
@@ -3507,7 +3323,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 Vec3d orig = _mouse_to_3d(m_mouse.drag.start_position_2D, &z);
                 m_camera.target += orig - cur_pos;
 
-                m_on_viewport_changed_callback.call();
+                viewport_changed();
 
                 m_dirty = true;
             }
@@ -3523,7 +3339,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             _stop_timer();
 
             if (layer_editing_object_idx != -1)
-                m_on_model_update_callback.call();
+                post_event(SimpleEvent(EVT_GLCANVAS_MODEL_UPDATE));
         }
         else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
@@ -3594,8 +3410,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Scale:
             {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-                const Vec3d& scale = m_gizmos.get_scale();
-                m_on_gizmo_scale_3D_callback.call(scale(0), scale(1), scale(2));
+                post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
 #else
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -3604,8 +3419,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Rotate:
             {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-                const Vec3d& rotation = m_gizmos.get_rotation();
-                m_on_gizmo_rotate_3D_callback.call(rotation(0), rotation(1), rotation(2));
+                post_event(Vec3dEvent(EVT_GIZMO_ROTATE, m_gizmos.get_rotation()));
 #else
                 m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -3653,12 +3467,12 @@ void GLCanvas3D::on_key_down(wxKeyEvent& evt)
     {
         int key = evt.GetKeyCode();
         if (key == WXK_DELETE)
-            m_on_remove_object_callback.call();
+            post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
         else
 		{
 #ifdef __WXOSX__
 			if (key == WXK_BACK)
-				m_on_remove_object_callback.call();
+				post_event(SimpleEvent(EVT_GLCANVAS_REMOVE_OBJECT));
 #endif
 			evt.Skip();
 		}
@@ -3733,7 +3547,6 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Add...");
     item.sprite_id = 0;
     item.is_toggable = false;
-    // item.action_callback = &m_action_add_callback;
     item.action_event = EVT_GLTOOLBAR_ADD;
     if (!m_toolbar.add_item(item))
         return false;
@@ -3742,7 +3555,6 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Delete");
     item.sprite_id = 1;
     item.is_toggable = false;
-    // item.action_callback = &m_action_delete_callback;
     item.action_event = EVT_GLTOOLBAR_DELETE;
     if (!m_toolbar.add_item(item))
         return false;
@@ -3751,8 +3563,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Delete all");
     item.sprite_id = 2;
     item.is_toggable = false;
-    // item.action_callback = &m_action_deleteall_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_DELETE_ALL;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3760,8 +3571,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Arrange");
     item.sprite_id = 3;
     item.is_toggable = false;
-    // item.action_callback = &m_action_arrange_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_ARRANGE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3772,8 +3582,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Add instance");
     item.sprite_id = 4;
     item.is_toggable = false;
-    // item.action_callback = &m_action_more_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_MORE;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3781,8 +3590,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Remove instance");
     item.sprite_id = 5;
     item.is_toggable = false;
-    // item.action_callback = &m_action_fewer_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_FEWER;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3793,8 +3601,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Split");
     item.sprite_id = 6;
     item.is_toggable = false;
-    // item.action_callback = &m_action_split_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_SPLIT;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3802,8 +3609,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Cut...");
     item.sprite_id = 7;
     item.is_toggable = false;
-    // item.action_callback = &m_action_cut_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_CUT;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3814,8 +3620,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Settings...");
     item.sprite_id = 8;
     item.is_toggable = false;
-    // item.action_callback = &m_action_settings_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_SETTINGS;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3823,8 +3628,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Layers editing");
     item.sprite_id = 9;
     item.is_toggable = true;
-    // item.action_callback = &m_action_layersediting_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_LAYERSEDITING;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3835,8 +3639,7 @@ bool GLCanvas3D::_init_toolbar()
     item.tooltip = GUI::L_str("Select by parts");
     item.sprite_id = 10;
     item.is_toggable = true;
-    // item.action_callback = &m_action_selectbyparts_callback;
-    item.action_event = EVT_GLTOOLBAR_TODO_MORE;
+    item.action_event = EVT_GLTOOLBAR_SELECTBYPARTS;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -3975,7 +3778,7 @@ void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
         // center view around bounding box center
         m_camera.target = bbox.center();
 
-        m_on_viewport_changed_callback.call();
+        viewport_changed();
 
         _refresh_if_shown_on_screen();
     }
@@ -4046,48 +3849,6 @@ float GLCanvas3D::_get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) co
 
     const Size& cnv_size = get_canvas_size();
     return (float)std::min((double)cnv_size.get_width() / max_x, (double)cnv_size.get_height() / max_y);
-}
-
-void GLCanvas3D::_deregister_callbacks()
-{
-    m_on_viewport_changed_callback.deregister_callback();
-    m_on_double_click_callback.deregister_callback();
-    m_on_right_click_callback.deregister_callback();
-    m_on_select_object_callback.deregister_callback();
-    m_on_model_update_callback.deregister_callback();
-    m_on_remove_object_callback.deregister_callback();
-    m_on_arrange_callback.deregister_callback();
-    m_on_rotate_object_left_callback.deregister_callback();
-    m_on_rotate_object_right_callback.deregister_callback();
-    m_on_scale_object_uniformly_callback.deregister_callback();
-    m_on_increase_objects_callback.deregister_callback();
-    m_on_decrease_objects_callback.deregister_callback();
-    m_on_instance_moved_callback.deregister_callback();
-    m_on_wipe_tower_moved_callback.deregister_callback();
-    m_on_enable_action_buttons_callback.deregister_callback();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    m_on_gizmo_scale_3D_callback.deregister_callback();
-    m_on_gizmo_rotate_3D_callback.deregister_callback();
-    m_on_gizmo_flatten_3D_callback.deregister_callback();
-    m_on_update_geometry_3D_info_callback.deregister_callback();
-#else
-    m_on_gizmo_scale_uniformly_callback.deregister_callback();
-    m_on_gizmo_rotate_callback.deregister_callback();
-    m_on_gizmo_flatten_callback.deregister_callback();
-    m_on_update_geometry_info_callback.deregister_callback();
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-    m_action_add_callback.deregister_callback();
-    m_action_delete_callback.deregister_callback();
-    m_action_deleteall_callback.deregister_callback();
-    m_action_arrange_callback.deregister_callback();
-    m_action_more_callback.deregister_callback();
-    m_action_fewer_callback.deregister_callback();
-    m_action_split_callback.deregister_callback();
-    m_action_cut_callback.deregister_callback();
-    m_action_settings_callback.deregister_callback();
-    m_action_layersediting_callback.deregister_callback();
-    m_action_selectbyparts_callback.deregister_callback();
 }
 
 void GLCanvas3D::_mark_volumes_for_layer_height() const
@@ -5599,10 +5360,10 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     }
 
     if (object_moved)
-        m_on_instance_moved_callback.call();
+        post_event(SimpleEvent(EVT_GLCANVAS_WIPETOWER_MOVED));
 
     if (wipe_tower_origin != Vec3d::Zero())
-        m_on_wipe_tower_moved_callback.call(wipe_tower_origin(0), wipe_tower_origin(1));
+        post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
 }
 
 void GLCanvas3D::_on_select(int volume_idx, int object_idx)
@@ -5633,7 +5394,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
         }
     }
 
-    m_on_select_object_callback.call(obj_id, vol_id);
+    post_event(ObjectSelectEvent(obj_id, vol_id));
     Slic3r::GUI::select_current_volume(obj_id, vol_id);
 }
 

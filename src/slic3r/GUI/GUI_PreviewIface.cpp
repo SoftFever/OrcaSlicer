@@ -4,11 +4,6 @@
 
 namespace Slic3r {
 
-void PreviewIface::register_on_viewport_changed_callback(void* callback)
-{
-    m_preview->register_on_viewport_changed_callback(callback);
-}
-
 void PreviewIface::set_number_extruders(unsigned int number_extruders)
 {
     m_preview->set_number_extruders(number_extruders);

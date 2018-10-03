@@ -19,7 +19,6 @@ class PreviewIface
 public:
     explicit PreviewIface(GUI::Preview* preview) : m_preview(preview) {}
 
-    void register_on_viewport_changed_callback(void* callback);
     void set_number_extruders(unsigned int number_extruders);
     void reset_gcode_preview_data();
     void reload_print(bool force = false);

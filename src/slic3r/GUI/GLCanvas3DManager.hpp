@@ -20,7 +20,7 @@ typedef std::vector<ExPolygon> ExPolygons;
 class ModelObject;
 class PrintObject;
 class GCodePreviewData;
-    
+
 namespace GUI {
 
 class GLCanvas3D;
@@ -155,45 +155,6 @@ public:
     void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
     void reset_legend_texture(wxGLCanvas* canvas);
-
-    void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_select_object_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_remove_object_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_arrange_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    void register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback);
-#else
-    void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
-    void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-    void register_action_add_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_delete_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_deleteall_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_arrange_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_more_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_fewer_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_split_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
-    void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
 
     static bool can_multisample() { return s_multisample == MS_Enabled; }
     static wxGLCanvas* create_wxglcanvas(wxWindow *parent);

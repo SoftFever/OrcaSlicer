@@ -1,11 +1,11 @@
 #ifndef slic3r_GLCanvas3D_hpp_
 #define slic3r_GLCanvas3D_hpp_
 
-#include <functional>
+#include <stddef.h>
 
 #include "3DScene.hpp"
 #include "GLToolbar.hpp"
-#include "callback.hpp"
+#include "Event.hpp"
 
 class wxWindow;
 class wxTimer;
@@ -15,6 +15,7 @@ class wxKeyEvent;
 class wxMouseEvent;
 class wxTimerEvent;
 class wxPaintEvent;
+
 
 namespace Slic3r {
 
@@ -79,6 +80,45 @@ public:
     float get_bottom() const;
     void set_bottom(float bottom);
 };
+
+
+struct ObjectSelectEvent;
+wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
+struct ObjectSelectEvent : public ArrayEvent<ptrdiff_t, 2>
+{
+    ObjectSelectEvent(ptrdiff_t object_id, ptrdiff_t volume_id, int id = 0)
+        : ArrayEvent(EVT_GLCANVAS_OBJECT_SELECT, {object_id, volume_id}, id)
+    {}
+
+    ptrdiff_t object_id() const { return data[0]; }
+    ptrdiff_t volume_id() const { return data[1]; }
+};
+
+using Vec2dEvent = Event<Vec2d>;
+template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;
+
+using Vec3dEvent = Event<Vec3d>;
+template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
+
+
+wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_ROTATE_OBJECT, Event<int>);    // data: -1 => rotate left, +1 => rotate right
+wxDECLARE_EVENT(EVT_GLCANVAS_SCALE_UNIFORMLY, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_INCREASE_OBJECTS, Event<int>); // data: +1 => increase, -1 => decrease
+wxDECLARE_EVENT(EVT_GLCANVAS_INSTANCE_MOVES, SimpleEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
+wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
+wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
+
+wxDECLARE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
+wxDECLARE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
+wxDECLARE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
+
 
 class GLCanvas3D
 {
@@ -506,46 +546,8 @@ class GLCanvas3D
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
-    PerlCallback m_on_viewport_changed_callback;
-    PerlCallback m_on_double_click_callback;
-    PerlCallback m_on_right_click_callback;
-    PerlCallback m_on_select_object_callback;
-    PerlCallback m_on_model_update_callback;
-    PerlCallback m_on_remove_object_callback;
-    PerlCallback m_on_arrange_callback;
-    PerlCallback m_on_rotate_object_left_callback;
-    PerlCallback m_on_rotate_object_right_callback;
-    PerlCallback m_on_scale_object_uniformly_callback;
-    PerlCallback m_on_increase_objects_callback;
-    PerlCallback m_on_decrease_objects_callback;
-    PerlCallback m_on_instance_moved_callback;
-    PerlCallback m_on_wipe_tower_moved_callback;
-    PerlCallback m_on_enable_action_buttons_callback;
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    PerlCallback m_on_gizmo_rotate_3D_callback;
-    PerlCallback m_on_gizmo_flatten_3D_callback;
-    PerlCallback m_on_gizmo_scale_3D_callback;
-    PerlCallback m_on_update_geometry_3D_info_callback;
-#else
-    PerlCallback m_on_gizmo_scale_uniformly_callback;
-    PerlCallback m_on_gizmo_rotate_callback;
-    PerlCallback m_on_gizmo_flatten_callback;
-    PerlCallback m_on_update_geometry_info_callback;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-    // TODO: Remove these
-    PerlCallback m_action_add_callback;
-    PerlCallback m_action_delete_callback;
-    PerlCallback m_action_deleteall_callback;
-    PerlCallback m_action_arrange_callback;
-    PerlCallback m_action_more_callback;
-    PerlCallback m_action_fewer_callback;
-    PerlCallback m_action_split_callback;
-    PerlCallback m_action_cut_callback;
-    PerlCallback m_action_settings_callback;
-    PerlCallback m_action_layersediting_callback;
-    PerlCallback m_action_selectbyparts_callback;
-
+    void post_event(const wxEvent &event);
+    void viewport_changed();
 public:
     GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();
@@ -641,46 +643,6 @@ public:
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
     void load_preview(const std::vector<std::string>& str_tool_colors);
 
-    void register_on_viewport_changed_callback(void* callback);
-    void register_on_double_click_callback(void* callback);
-    void register_on_right_click_callback(void* callback);
-    void register_on_select_object_callback(void* callback);
-    void register_on_model_update_callback(void* callback);
-    void register_on_remove_object_callback(void* callback);
-    void register_on_arrange_callback(void* callback);
-    void register_on_rotate_object_left_callback(void* callback);
-    void register_on_rotate_object_right_callback(void* callback);
-    void register_on_scale_object_uniformly_callback(void* callback);
-    void register_on_increase_objects_callback(void* callback);
-    void register_on_decrease_objects_callback(void* callback);
-    void register_on_instance_moved_callback(void* callback);
-    void register_on_wipe_tower_moved_callback(void* callback);
-    void register_on_enable_action_buttons_callback(void* callback);
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    void register_on_gizmo_scale_3D_callback(void* callback);
-    void register_on_gizmo_rotate_3D_callback(void* callback);
-    void register_on_gizmo_flatten_3D_callback(void* callback);
-    void register_on_update_geometry_3D_info_callback(void* callback);
-#else
-    void register_on_gizmo_scale_uniformly_callback(void* callback);
-    void register_on_gizmo_rotate_callback(void* callback);
-    void register_on_gizmo_flatten_callback(void* callback);
-    void register_on_update_geometry_info_callback(void* callback);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-    // void register_action_add_callback(GLToolbarItem::Callback);
-    void register_action_add_callback(void* callback);
-    void register_action_delete_callback(void* callback);
-    void register_action_deleteall_callback(void* callback);
-    void register_action_arrange_callback(void* callback);
-    void register_action_more_callback(void* callback);
-    void register_action_fewer_callback(void* callback);
-    void register_action_split_callback(void* callback);
-    void register_action_cut_callback(void* callback);
-    void register_action_settings_callback(void* callback);
-    void register_action_layersediting_callback(void* callback);
-    void register_action_selectbyparts_callback(void* callback);
-
     void bind_event_handlers();
     void unbind_event_handlers();
 
@@ -713,8 +675,6 @@ private:
 
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
-
-    void _deregister_callbacks();
 
     void _mark_volumes_for_layer_height() const;
     void _refresh_if_shown_on_screen();

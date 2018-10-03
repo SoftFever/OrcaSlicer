@@ -170,12 +170,6 @@ Preview::~Preview()
     }
 }
 
-void Preview::register_on_viewport_changed_callback(void* callback)
-{
-    if ((m_canvas != nullptr) && (callback != nullptr))
-        _3DScene::register_on_viewport_changed_callback(m_canvas, callback);
-}
-
 void Preview::set_number_extruders(unsigned int number_extruders)
 {
     if (m_number_extruders != number_extruders)
