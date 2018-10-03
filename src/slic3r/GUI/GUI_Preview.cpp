@@ -58,22 +58,6 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
     if (!Create(notebook, wxID_ANY, wxDefaultPosition, wxDefaultSize))
         return false;
 
-//     int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
-
-//     int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
-//     const AppConfig* app_config = GUI::get_app_config();
-//     bool enable_multisample = (app_config != nullptr) && (app_config->get("use_legacy_opengl") != "1") && (wxVersion >= 30003);
-
-//     // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
-//     bool can_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
-// //    bool can_multisample = enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); // <<< Alternative method: but IsDisplaySupported() seems not to work
-//     if (!can_multisample)
-//         attribList[4] = 0;
-
-//     m_canvas = new wxGLCanvas(this, wxID_ANY, attribList);
-//     if (m_canvas == nullptr)
-//         return false;
-
     m_canvas = GLCanvas3DManager::create_wxglcanvas(this);
 
     _3DScene::add_canvas(m_canvas);
@@ -131,18 +115,18 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
 
     wxBoxSizer* bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
     bottom_sizer->Add(m_label_view_type, 0, wxALIGN_CENTER_VERTICAL, 5);
-    bottom_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_choice_view_type, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
     bottom_sizer->Add(m_label_show_features, 0, wxALIGN_CENTER_VERTICAL, 5);
-    bottom_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_combochecklist_features, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(20);
-    bottom_sizer->Add(m_checkbox_travel, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_checkbox_travel, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_checkbox_retractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_checkbox_retractions, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_checkbox_unretractions, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_checkbox_unretractions, 0, wxEXPAND | wxALL, 5);
     bottom_sizer->AddSpacer(10);
-    bottom_sizer->Add(m_checkbox_shells, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bottom_sizer->Add(m_checkbox_shells, 0, wxEXPAND | wxALL, 5);
 
     wxBoxSizer* main_sizer = new wxBoxSizer(wxVERTICAL);
     main_sizer->Add(top_sizer, 1, wxALL | wxEXPAND, 0);
@@ -186,12 +170,6 @@ Preview::~Preview()
     }
 }
 
-void Preview::register_on_viewport_changed_callback(void* callback)
-{
-    if ((m_canvas != nullptr) && (callback != nullptr))
-        _3DScene::register_on_viewport_changed_callback(m_canvas, callback);
-}
-
 void Preview::set_number_extruders(unsigned int number_extruders)
 {
     if (m_number_extruders != number_extruders)
@@ -214,7 +192,8 @@ void Preview::set_number_extruders(unsigned int number_extruders)
 void Preview::reset_gcode_preview_data()
 {
     m_gcode_preview_data->reset();
-    _3DScene::reset_legend_texture();
+    if (m_canvas != nullptr)
+        _3DScene::reset_legend_texture(m_canvas);
 }
 
 void Preview::set_canvas_as_dirty()
@@ -290,10 +269,11 @@ void Preview::load_print()
     if (n_layers == 0)
     {
         reset_sliders();
-        _3DScene::reset_legend_texture();
-        if (m_canvas)
+        if (m_canvas != nullptr)
+        {
+            _3DScene::reset_legend_texture(m_canvas);
             m_canvas->Refresh();
-
+        }
         return;
     }
 

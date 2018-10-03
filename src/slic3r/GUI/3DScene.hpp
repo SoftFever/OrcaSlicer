@@ -555,42 +555,6 @@ public:
     static std::vector<double> get_current_print_zs(wxGLCanvas* canvas, bool active_only);
     static void set_toolpaths_range(wxGLCanvas* canvas, double low, double high);
 
-    static void register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_double_click_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_right_click_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_select_object_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_model_update_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_remove_object_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_arrange_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback);
-    static void register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback);
-
-    static void register_action_add_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_delete_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_deleteall_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_arrange_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_more_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_fewer_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_split_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_cut_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_settings_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_layersediting_callback(wxGLCanvas* canvas, void* callback);
-    static void register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback);
-
     static std::vector<int> load_object(wxGLCanvas* canvas, const ModelObject* model_object, int obj_idx, std::vector<int> instance_idxs);
     static std::vector<int> load_object(wxGLCanvas* canvas, const Model* model, int obj_idx);
 
@@ -602,7 +566,7 @@ public:
     static void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
     static void load_preview(wxGLCanvas* canvas, const std::vector<std::string>& str_tool_colors);
 
-    static void reset_legend_texture();
+    static void reset_legend_texture(wxGLCanvas* canvas);
 
     static void thick_lines_to_verts(const Lines& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, double top_z, GLVolume& volume);
     static void thick_lines_to_verts(const Lines3& lines, const std::vector<double>& widths, const std::vector<double>& heights, bool closed, GLVolume& volume);

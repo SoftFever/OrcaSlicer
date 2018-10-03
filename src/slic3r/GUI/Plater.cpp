@@ -1,6 +1,5 @@
 #include "Plater.hpp"
 
-#include <iostream>   // XXX
 #include <cstddef>
 #include <algorithm>
 #include <vector>
@@ -30,6 +29,7 @@
 #include "GUI_App.hpp"
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
+#include "GLCanvas3D.hpp"
 #include "GUI_ObjectParts.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
@@ -285,7 +285,6 @@ Sidebar::Sidebar(wxWindow *parent)
     p->btn_send_gcode->SetBitmap(arrow_up);
     p->btn_send_gcode->Hide();
     auto *btns_sizer_scrolled = new wxBoxSizer(wxHORIZONTAL);
-    std::cerr << "btns_sizer_scrolled: " << btns_sizer_scrolled << std::endl;
     btns_sizer_scrolled->Add(p->btn_send_gcode);
 
     // Info boxes
@@ -297,7 +296,6 @@ Sidebar::Sidebar(wxWindow *parent)
     scrolled_sizer->SetMinSize(320, -1);
     p->scrolled->SetSizer(scrolled_sizer);
     p->scrolled->SetScrollbars(0, 1, 1, 1);
-    std::cerr << "scrolled_sizer: " << scrolled_sizer << std::endl;
     scrolled_sizer->Add(p->sizer_presets, 0, wxEXPAND | wxLEFT, 2);
     scrolled_sizer->Add(p->sizer_params, 1, wxEXPAND);
     scrolled_sizer->Add(p->object_info, 0, wxEXPAND | wxTOP | wxLEFT, 20);
@@ -311,12 +309,10 @@ Sidebar::Sidebar(wxWindow *parent)
     p->btn_reslice->SetFont(wxGetApp().bold_font());
 
     auto *btns_sizer = new wxBoxSizer(wxVERTICAL);
-    std::cerr << "btns_sizer: " << btns_sizer << std::endl;
     btns_sizer->Add(p->btn_reslice, 0, wxEXPAND | wxTOP, 5);
     btns_sizer->Add(p->btn_export_gcode, 0, wxEXPAND | wxTOP, 5);
 
     auto *sizer = new wxBoxSizer(wxVERTICAL);
-    std::cerr << "sizer: " << sizer << std::endl;
     sizer->Add(p->scrolled, 1, wxEXPAND | wxTOP, 5);
     sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, 20);
     SetSizer(sizer);
@@ -459,7 +455,9 @@ struct Plater::priv
     void on_update_print_preview(wxCommandEvent &);
     void on_process_completed(wxCommandEvent &);
     void on_layer_editing_toggled(bool enable);
-    void on_action_add(const wxCommandEvent&);
+    void on_action_add(SimpleEvent&);
+
+    void on_viewport_changed(SimpleEvent& evt);
 };
 
 // TODO: multisample, see 3DScene.pm
@@ -523,8 +521,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     update();
 
-    // TODO: Preview::register_on_viewport_changed_callback is Perl-only
-
     auto *hsizer = new wxBoxSizer(wxHORIZONTAL);
     hsizer->Add(notebook, 1, wxEXPAND | wxTOP, 1);
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
@@ -546,10 +542,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     });
 
     // 3DScene events:
-    // TODO: (?)
-    // on_layer_editing_toggled
-    // on_action_add
+    // TODO: more
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
+    canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+
+    preview->get_canvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_update_print_preview, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -593,7 +590,6 @@ std::vector<int> Plater::priv::collect_selections()
 
 void Plater::priv::update(bool force_autocenter)
 {
-
     wxWindowUpdateLocker freeze_guard(q);
     if (get_config("autocenter") == "1" || force_autocenter) {
         // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
@@ -902,7 +898,7 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
     canvas3D->Update();
 }
 
-void Plater::priv::on_action_add(const wxCommandEvent&)
+void Plater::priv::on_action_add(SimpleEvent&)
 {
     wxArrayString input_files;
     wxGetApp().open_model(q, input_files);
@@ -912,6 +908,15 @@ void Plater::priv::on_action_add(const wxCommandEvent&)
         input_paths.push_back(file.wx_str());
     }
     load_files(input_paths);
+}
+
+void Plater::priv::on_viewport_changed(SimpleEvent& evt)
+{
+    wxObject* o = evt.GetEventObject();
+    if (o == preview->get_canvas())
+        preview->set_viewport_into_scene(canvas3D);
+    else if (o == canvas3D)
+        preview->set_viewport_from_scene(canvas3D);
 }
 
 // Plater / Public

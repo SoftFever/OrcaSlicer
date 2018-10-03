@@ -16,9 +16,18 @@ namespace Slic3r {
 namespace GUI {
 
 
-wxDEFINE_EVENT(EVT_GLTOOLBAR_ADD, wxCommandEvent);
-wxDEFINE_EVENT(EVT_GLTOOLBAR_DELETE, wxCommandEvent);
-wxDEFINE_EVENT(EVT_GLTOOLBAR_TODO_MORE, wxCommandEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_ADD, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_DELETE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_DELETE_ALL, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_ARRANGE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_MORE, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_FEWER, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_SPLIT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_CUT, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_SETTINGS, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_LAYERSEDITING, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLTOOLBAR_SELECTBYPARTS, SimpleEvent);
+
 
 GLToolbarItem::Data::Data()
     : name("")
@@ -57,10 +66,7 @@ const std::string& GLToolbarItem::get_tooltip() const
 
 void GLToolbarItem::do_action(wxEvtHandler *target)
 {
-    // if (m_data.action_callback != nullptr)
-    //     m_data.action_callback->call();
-
-    wxPostEvent(target, wxCommandEvent(m_data.action_event));
+    wxPostEvent(target, SimpleEvent(m_data.action_event));
 }
 
 bool GLToolbarItem::is_enabled() const

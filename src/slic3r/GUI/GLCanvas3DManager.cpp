@@ -110,6 +110,8 @@ std::string GLCanvas3DManager::GLInfo::to_string(bool format_as_html, bool exten
     return out.str();
 }
 
+GLCanvas3DManager::EMultisampleState GLCanvas3DManager::s_multisample = GLCanvas3DManager::MS_Unknown;
+
 GLCanvas3DManager::GLCanvas3DManager()
     : m_current(nullptr)
     , m_gl_initialized(false)
@@ -578,272 +580,23 @@ void GLCanvas3DManager::load_preview(wxGLCanvas* canvas, const std::vector<std::
         it->second->load_preview(str_tool_colors);
 }
 
-void GLCanvas3DManager::reset_legend_texture()
-{
-    for (CanvasesMap::value_type& canvas : m_canvases)
-    {
-        if (canvas.second != nullptr)
-            canvas.second->reset_legend_texture();
-    }
-}
-
-void GLCanvas3DManager::register_on_viewport_changed_callback(wxGLCanvas* canvas, void* callback)
+void GLCanvas3DManager::reset_legend_texture(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
-        it->second->register_on_viewport_changed_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_double_click_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_double_click_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_right_click_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_right_click_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_select_object_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_select_object_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_model_update_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_model_update_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_remove_object_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_remove_object_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_arrange_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_arrange_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_rotate_object_left_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_rotate_object_left_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_rotate_object_right_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_rotate_object_right_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_scale_object_uniformly_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_scale_object_uniformly_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_increase_objects_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_increase_objects_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_decrease_objects_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_decrease_objects_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_instance_moved_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_instance_moved_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_wipe_tower_moved_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_wipe_tower_moved_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_enable_action_buttons_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_enable_action_buttons_callback(callback);
-}
-
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void GLCanvas3DManager::register_on_gizmo_scale_3D_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_scale_3D_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_gizmo_rotate_3D_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_rotate_3D_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_gizmo_flatten_3D_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_flatten_3D_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_update_geometry_3D_info_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_update_geometry_3D_info_callback(callback);
-}
-#else
-void GLCanvas3DManager::register_on_gizmo_scale_uniformly_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_scale_uniformly_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_gizmo_rotate_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_rotate_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_gizmo_flatten_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_gizmo_flatten_callback(callback);
-}
-
-void GLCanvas3DManager::register_on_update_geometry_info_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_on_update_geometry_info_callback(callback);
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-void GLCanvas3DManager::register_action_add_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_add_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_delete_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_delete_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_deleteall_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_deleteall_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_arrange_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_arrange_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_more_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_more_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_fewer_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_fewer_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_split_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_split_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_cut_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_cut_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_settings_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_settings_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_layersediting_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_layersediting_callback(callback);
-}
-
-void GLCanvas3DManager::register_action_selectbyparts_callback(wxGLCanvas* canvas, void* callback)
-{
-    CanvasesMap::iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->register_action_selectbyparts_callback(callback);
-}
-
-bool GLCanvas3DManager::can_multisample()
-{
-    int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
-    const AppConfig* app_config = GUI::get_app_config();
-    bool enable_multisample = app_config != nullptr
-        && app_config->get("use_legacy_opengl") != "1" 
-        && wxVersion >= 30003;
-
-    // if multisample is not enabled or supported by the graphic card, remove it from the attributes list
-    return enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
-    // <<< Alternative method: but IsDisplaySupported() seems not to work
-    // bool return enable_multisample && wxGLCanvas::IsDisplaySupported(attribList); 
+        it->second->reset_legend_texture();
 }
 
 wxGLCanvas* GLCanvas3DManager::create_wxglcanvas(wxWindow *parent)
 {
     int attribList[] = { WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, WX_GL_SAMPLE_BUFFERS, GL_TRUE, WX_GL_SAMPLES, 4, 0 };
+
+    if (s_multisample == MS_Unknown)
+    {
+        _detect_multisample(attribList);
+        // debug output
+        std::cout << "Multisample " << (can_multisample() ? "enabled" : "disabled") << std::endl;
+    }
 
     if (! can_multisample()) {
         attribList[4] = 0;
@@ -868,6 +621,19 @@ bool GLCanvas3DManager::_init(GLCanvas3D& canvas)
         init_gl();
 
     return canvas.init(m_use_VBOs, m_use_legacy_opengl);
+}
+
+void GLCanvas3DManager::_detect_multisample(int* attribList)
+{
+    int wxVersion = wxMAJOR_VERSION * 10000 + wxMINOR_VERSION * 100 + wxRELEASE_NUMBER;
+    const AppConfig* app_config = GUI::get_app_config();
+    bool enable_multisample = app_config != nullptr
+        && app_config->get("use_legacy_opengl") != "1"
+        && wxVersion >= 30003;
+
+    s_multisample = (enable_multisample && wxGLCanvas::IsDisplaySupported(attribList)) ? MS_Enabled : MS_Disabled;
+    // Alternative method: it was working on previous version of wxWidgets but not with the latest, at least on Windows
+    // s_multisample = enable_multisample && wxGLCanvas::IsExtensionSupported("WGL_ARB_multisample");
 }
 
 } // namespace GUI
