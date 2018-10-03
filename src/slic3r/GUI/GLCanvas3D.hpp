@@ -86,8 +86,8 @@ struct ObjectSelectEvent;
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
 struct ObjectSelectEvent : public ArrayEvent<ptrdiff_t, 2>
 {
-    ObjectSelectEvent(ptrdiff_t object_id, ptrdiff_t volume_id, int id = 0)
-        : ArrayEvent(EVT_GLCANVAS_OBJECT_SELECT, {object_id, volume_id}, id)
+    ObjectSelectEvent(ptrdiff_t object_id, ptrdiff_t volume_id, wxObject *origin = nullptr)
+        : ArrayEvent(EVT_GLCANVAS_OBJECT_SELECT, {object_id, volume_id}, origin)
     {}
 
     ptrdiff_t object_id() const { return data[0]; }
@@ -546,7 +546,7 @@ class GLCanvas3D
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
-    void post_event(const wxEvent &event);
+    void post_event(wxEvent &&event);
     void viewport_changed();
 public:
     GLCanvas3D(wxGLCanvas* canvas);

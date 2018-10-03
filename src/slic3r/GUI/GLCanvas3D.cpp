@@ -2007,8 +2007,9 @@ GLCanvas3D::~GLCanvas3D()
     }
 }
 
-void GLCanvas3D::post_event(const wxEvent &event)
+void GLCanvas3D::post_event(wxEvent &&event)
 {
+    event.SetEventObject(m_canvas);
     wxPostEvent(m_canvas, event);
 }
 
