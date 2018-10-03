@@ -420,7 +420,8 @@ struct Plater::priv
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
     std::string get_config(const std::string &key) const;
-    BoundingBox bed_shape_bb() const;
+    BoundingBoxf bed_shape_bb() const;
+    BoundingBox scaled_bed_shape_bb() const;
     std::vector<size_t> load_files(const std::vector<fs::path> &input_files);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
 
@@ -569,7 +570,7 @@ void Plater::priv::update(bool force_autocenter)
         // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
         // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
         // const BoundingBox bed_shape_bb = bed_shape.bounding_box();
-        const Vec2d bed_center = bed_shape_bb().center().cast<double>();
+        const Vec2d& bed_center = bed_shape_bb().center();
         model.center_instances_around_point(bed_center);
     }
 
@@ -605,7 +606,13 @@ std::string Plater::priv::get_config(const std::string &key) const
     return wxGetApp().app_config->get(key);
 }
 
-BoundingBox Plater::priv::bed_shape_bb() const
+BoundingBoxf Plater::priv::bed_shape_bb() const
+{
+    BoundingBox bb = scaled_bed_shape_bb();
+    return BoundingBoxf(unscale(bb.min), unscale(bb.max));
+}
+
+BoundingBox Plater::priv::scaled_bed_shape_bb() const
 {
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
     const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
@@ -732,7 +739,7 @@ Vec3crd to_3d(const Point &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
 
 std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
-    const BoundingBox bed_shape = bed_shape_bb();
+    const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_center = to_3d(bed_shape.center().cast<double>(), 0.0);
     const Vec3d bed_size = to_3d(bed_shape.size().cast<double>(), 1.0);
 

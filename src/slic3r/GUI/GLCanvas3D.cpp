@@ -315,6 +315,7 @@ bool GLCanvas3D::Bed::set_shape(const Pointfs& shape)
     if (m_shape == shape && m_type == new_type)
         // No change, no need to update the UI.
         return false;
+
     m_shape = shape;
     m_type = new_type;
 
