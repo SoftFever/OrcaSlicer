@@ -1245,6 +1245,21 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
     // only the bottom triangle is considered to be cutting the plane.
 //    remove_tangent_edges(lines);
 
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+        BoundingBox bbox_svg;
+        {
+            static int iRun = 0;
+            for (const Line &line : lines) {
+                bbox_svg.merge(line.a);
+                bbox_svg.merge(line.b);
+            }
+            SVG svg(debug_out_path("TriangleMeshSlicer_make_loops-raw_lines-%d.svg", iRun ++).c_str(), bbox_svg);
+            for (const Line &line : lines)
+                svg.draw(line);
+            svg.Close();
+        }
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
     struct OpenPolyline {
         OpenPolyline() {};
         OpenPolyline(const IntersectionReference &start, const IntersectionReference &end, Points &&points) : 
@@ -1358,6 +1373,17 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
             }
         }
     }
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+        {
+            static int iRun = 0;
+            SVG svg(debug_out_path("TriangleMeshSlicer_make_loops-polylines-%d.svg", iRun ++).c_str(), bbox_svg);
+            svg.draw(union_ex(*loops));
+            for (const OpenPolyline &pl : open_polylines)
+                svg.draw(Polyline(pl.points), "red");
+            svg.Close();
+        }
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 
     // Now process the open polylines.
     // Do it in two rounds, first try to connect in the same direction only,
@@ -1476,6 +1502,22 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
         }
     }
 
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+	{
+		static int iRun = 0;
+		SVG svg(debug_out_path("TriangleMeshSlicer_make_loops-polylines2-%d.svg", iRun++).c_str(), bbox_svg);
+		svg.draw(union_ex(*loops));
+		for (const OpenPolyline &pl : open_polylines) {
+            if (pl.points.empty())
+                continue;
+			svg.draw(Polyline(pl.points), "red");
+            svg.draw(pl.points.front(), "blue");
+            svg.draw(pl.points.back(), "blue");
+        }
+		svg.Close();
+	}
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
+
     // Try to close gaps.
     // Do it in two rounds, first try to connect in the same direction only,
     // then try to connect the open polylines in reversed order as well.
@@ -1506,22 +1548,23 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                 continue;
             opl.consumed = true;
             OpenPolylineEnd end(&opl, false);
+			size_t n_segments_joined = 1;
             for (;;) {
                 // Find a line starting where last one finishes, only return non-consumed open polylines (OpenPolylineEndAccessor returns null for consumed).
                 std::pair<const OpenPolylineEnd*, double> next_start_and_dist = closest_end_point_lookup.find(end.point());
                 const OpenPolylineEnd *next_start = next_start_and_dist.first;
-                if (next_start == nullptr) {
-                    // Check whether we closed this loop.
-                    double dist = opl.points.front().distance_to(opl.points.back());
-                    if (dist < max_gap_scaled) {
-                        if (dist == 0.) {
+				// Check whether we closed this loop.
+				double current_loop_closing_distance2 = opl.points.front().distance_to_sq(opl.points.back());
+				if (next_start == nullptr || current_loop_closing_distance2 < next_start_and_dist.second) {
+					if (current_loop_closing_distance2 < coordf_t(max_gap_scaled) * coordf_t(max_gap_scaled)) {
+						if (current_loop_closing_distance2 == 0.) {
                             // Remove the duplicate last point.
                             opl.points.pop_back();
                         } else {
                             // The end points are different, keep both of them.
                         }
                         if (opl.points.size() >= 3) {
-                            if (try_connect_reversed) {
+							if (try_connect_reversed && n_segments_joined > 1) {
                                 // The closed polygon is patched from pieces with messed up orientation, therefore
                                 // the orientation of the patched up polygon is not known.
                                 // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
@@ -1548,6 +1591,7 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
                     auto it = next_start->polyline->points.rbegin();
                     std::copy(++ it, next_start->polyline->points.rend(), back_inserter(opl.points));
                 }
+				++ n_segments_joined;
                 end = *next_start;
                 end.start = !end.start;
                 next_start->polyline->points.clear();
@@ -1556,6 +1600,17 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
             }
         }
     }
+
+#ifdef SLIC3R_DEBUG_SLICE_PROCESSING
+	{
+		static int iRun = 0;
+		SVG svg(debug_out_path("TriangleMeshSlicer_make_loops-polylines-final-%d.svg", iRun++).c_str(), bbox_svg);
+		svg.draw(union_ex(*loops));
+		for (const OpenPolyline &pl : open_polylines)
+			svg.draw(Polyline(pl.points), "red");
+		svg.Close();
+	}
+#endif /* SLIC3R_DEBUG_SLICE_PROCESSING */
 }
 
 // Only used to cut the mesh into two halves.
