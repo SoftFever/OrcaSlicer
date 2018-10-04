@@ -25,26 +25,24 @@ class ModelObject;
 
 namespace GUI
 {
-// Map from an file_type name to full file wildcard name.
-const std::map<const std::string, const std::string> FILE_WILDCARDS{
-    std::make_pair("known", "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA"),
-    std::make_pair("stl",   "STL files (*.stl)|*.stl;*.STL"),
-    std::make_pair("obj",   "OBJ files (*.obj)|*.obj;*.OBJ"),
-    std::make_pair("amf",   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML"),
-    std::make_pair("3mf",   "3MF files (*.3mf)|*.3mf;*.3MF;"),
-    std::make_pair("prusa", "Prusa Control files (*.prusa)|*.prusa;*.PRUSA"),
-    std::make_pair("ini",   "INI files *.ini|*.ini;*.INI"),
-    std::make_pair("gcode", "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC"),
-    std::make_pair("svg",   "SVG files *.svg|*.svg;*.SVG")
+
+enum FileType
+{
+    FT_STL,
+    FT_OBJ,
+    FT_AMF,
+    FT_3MF,
+    FT_PRUSA,
+    FT_GCODE,
+    FT_MODEL,
+
+    FT_INI,
+    FT_SVG,
+
+    FT_SIZE,
 };
 
-const std::string MODEL_WILDCARD{ FILE_WILDCARDS.at("known") + std::string("|") +
-    FILE_WILDCARDS.at("stl") + std::string("|") +
-    FILE_WILDCARDS.at("obj") + std::string("|") +
-    FILE_WILDCARDS.at("amf") + std::string("|") +
-    FILE_WILDCARDS.at("3mf") + std::string("|") +
-    FILE_WILDCARDS.at("prusa") };
-
+extern const wxString file_wildcards[FT_SIZE];
 
 enum ConfigMenuIDs {
     ConfigMenuWizard,

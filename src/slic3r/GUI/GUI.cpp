@@ -347,53 +347,6 @@ std::string into_u8(const wxString &str)
 	return std::string(buffer_utf8.data());
 }
 
-wxWindow* export_option_creator(wxWindow* parent)
-{
-    wxPanel* panel = new wxPanel(parent, -1);
-    wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxCheckBox* cbox = new wxCheckBox(panel, wxID_HIGHEST + 1, L("Export print config"));
-    cbox->SetValue(true);
-    sizer->AddSpacer(5);
-    sizer->Add(cbox, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    panel->SetSizer(sizer);
-    sizer->SetSizeHints(panel);
-    return panel;
-}
-
-void add_export_option(wxFileDialog* dlg, const std::string& format)
-{
-    if ((dlg != nullptr) && (format == "AMF") || (format == "3MF"))
-    {
-        if (dlg->SupportsExtraControl())
-            dlg->SetExtraControlCreator(export_option_creator);
-    }
-}
-
-int get_export_option(wxFileDialog* dlg)
-{
-    if (dlg != nullptr)
-    {
-        wxWindow* wnd = dlg->GetExtraControl();
-        if (wnd != nullptr)
-        {
-            wxPanel* panel = dynamic_cast<wxPanel*>(wnd);
-            if (panel != nullptr)
-            {
-                wxWindow* child = panel->FindWindow(wxID_HIGHEST + 1);
-                if (child != nullptr)
-                {
-                    wxCheckBox* cbox = dynamic_cast<wxCheckBox*>(child);
-                    if (cbox != nullptr)
-                        return cbox->IsChecked() ? 1 : 0;
-                }
-            }
-        }
-    }
-
-    return 0;
-
-}
-
 bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height)
 {
 	const auto idx = wxDisplay::GetFromWindow(window);

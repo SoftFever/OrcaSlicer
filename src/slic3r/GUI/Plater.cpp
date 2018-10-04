@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <regex>
+#include <boost/optional.hpp>
 #include <boost/filesystem/path.hpp>
 
 #include <wx/sizer.h>
@@ -25,10 +26,12 @@
 #include "libslic3r/GCode/PreviewData.hpp"
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Polygon.hpp"
+#include "libslic3r/Format/STL.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
+#include "GUI_Utils.hpp"
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
@@ -43,6 +46,7 @@
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
 
+using boost::optional;
 namespace fs = boost::filesystem;
 using Slic3r::_3DScene;
 using Slic3r::Preset;
@@ -340,7 +344,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
 struct Sidebar::priv
 {
-    // Sidebar *q;      // PIMPL back pointer ("Q-Pointer")
+    Plater *plater;
 
     wxScrolledWindow *scrolled;
 
@@ -362,13 +366,15 @@ struct Sidebar::priv
     wxButton *btn_reslice;
     // wxButton *btn_print;  // XXX: remove
     wxButton *btn_send_gcode;
+
+    priv(Plater *plater) : plater(plater) {}
 };
 
 
 // Sidebar / public
 
-Sidebar::Sidebar(wxWindow *parent)
-    : wxPanel(parent), p(new priv)
+Sidebar::Sidebar(Plater *parent)
+    : wxPanel(parent), p(new priv(parent))
 {
     p->scrolled = new wxScrolledWindow(this);
 
@@ -457,6 +463,11 @@ Sidebar::Sidebar(wxWindow *parent)
     sizer->Add(p->scrolled, 1, wxEXPAND | wxTOP, 5);
     sizer->Add(btns_sizer, 0, wxEXPAND | wxLEFT, 20);
     SetSizer(sizer);
+
+    // Events
+    p->btn_export_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->export_gcode(); });
+    p->btn_reslice->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->reslice(); });
+    p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) { p->plater->send_gcode(); });
 }
 
 Sidebar::~Sidebar() {}
@@ -600,8 +611,8 @@ struct Plater::priv
     Slic3r::GCodePreviewData gcode_preview_data;
     std::vector<PlaterObject> objects;
 
-    std::string export_gcode_output_file;
-    std::string send_gcode_file;
+    fs::path export_gcode_output_file;
+    fs::path send_gcode_file;
 
     // GUI elements
     wxNotebook *notebook;
@@ -610,7 +621,6 @@ struct Plater::priv
     Preview *preview;
     BackgroundSlicingProcess background_process;
 
-    static const int gl_attrs[];
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
     static const std::regex pattern_zip_amf;
@@ -628,19 +638,33 @@ struct Plater::priv
     BoundingBox scaled_bed_shape_bb() const;
     std::vector<size_t> load_files(const std::vector<fs::path> &input_files);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
+    std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
+
+    void select_object(optional<size_t> obj_idx);
+    optional<size_t> selected_object() const;
+    void selection_changed();
+
+    void reset();
 
     void on_notebook_changed(wxBookCtrlEvent &);
     void on_select_preset(wxCommandEvent &);
     void on_update_print_preview(wxCommandEvent &);
     void on_process_completed(wxCommandEvent &);
     void on_layer_editing_toggled(bool enable);
+
     void on_action_add(SimpleEvent&);
+    void on_action_arrange(SimpleEvent&);
+    void on_action_more(SimpleEvent&);
+    void on_action_fewer(SimpleEvent&);
+    void on_action_split(SimpleEvent&);
+    void on_action_cut(SimpleEvent&);
+    void on_action_settings(SimpleEvent&);
+    void on_action_layersediting(SimpleEvent&);
+    void on_action_selectbyparts(SimpleEvent&);
 
     void on_viewport_changed(SimpleEvent& evt);
 };
 
-// TODO: multisample, see 3DScene.pm
-const int Plater::priv::gl_attrs[] = {WX_GL_RGBA, WX_GL_DOUBLEBUFFER, WX_GL_DEPTH_SIZE, 24, 0};
 const std::regex Plater::priv::pattern_bundle("[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)$", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf("[.]3mf$", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf("[.]zip[.]amf$", std::regex::icase);
@@ -716,15 +740,26 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
     // Sidebar button events
-    sidebar->p->btn_export_gcode->Bind(wxEVT_BUTTON, [q](wxCommandEvent&) { q->export_gcode(""); });
-    sidebar->p->btn_reslice->Bind(wxEVT_BUTTON, [q](wxCommandEvent&) { q->reslice(); });
-    sidebar->p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-        this->send_gcode_file = this->q->export_gcode("");
-    });
+    // sidebar->p->btn_export_gcode->Bind(wxEVT_BUTTON, [q](wxCommandEvent&) { q->export_gcode(); });
+    // sidebar->p->btn_reslice->Bind(wxEVT_BUTTON, [q](wxCommandEvent&) { q->reslice(); });
+    // sidebar->p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+    //     this->send_gcode_file = this->q->export_gcode();
+    // });
 
     // 3DScene events:
     // TODO: more
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); } );
+    canvas3D->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
+    canvas3D->Bind(EVT_GLTOOLBAR_ARRANGE, &priv::on_action_arrange, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_MORE, &priv::on_action_more, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_FEWER, &priv::on_action_fewer, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_SPLIT, &priv::on_action_split, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_SETTINGS, &priv::on_action_settings, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_SELECTBYPARTS, &priv::on_action_selectbyparts, this);
+
     canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
@@ -810,7 +845,7 @@ BoundingBox Plater::priv::scaled_bed_shape_bb() const
 
 std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_files)
 {
-    if (input_files.size() < 1) { return std::vector<size_t>(); }
+    if (input_files.empty()) { return std::vector<size_t>(); }
 
     auto *nozzle_dmrs = config->opt<ConfigOptionFloats>("nozzle_diameter");
 
@@ -883,9 +918,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         }
 
         if (one_by_one) {
-            // TODO:
-            // push @obj_idx, $self->load_model_objects(@{$model->objects});
-            // obj_idx.push_back(load_model_objects(model.objects);
             auto loaded_idxs = load_model_objects(model.objects);
             obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
         } else {
@@ -906,9 +938,6 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
             new_model->convert_multipart_object(nozzle_dmrs->values.size());
         }
 
-        // TODO:
-        // push @obj_idx, $self->load_model_objects(@{$new_model->objects});
-        // obj_idx.push_back(load_model_objects(new_model->objects);
         auto loaded_idxs = load_model_objects(model.objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
@@ -919,18 +948,11 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
     return obj_idxs;
 }
 
-
-// TODO: move to Point.hpp
-Vec3d to_3d(const Vec2d &v, double z) { return Vec3d(v(0), v(1), z); }
-Vec3f to_3d(const Vec2f &v, float z) { return Vec3f(v(0), v(1), z); }
-Vec3i64 to_3d(const Vec2i64 &v, float z) { return Vec3i64(v(0), v(1), z); }
-Vec3crd to_3d(const Point &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
-
-std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
+std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
     const BoundingBoxf bed_shape = bed_shape_bb();
-    const Vec3d bed_center = to_3d(bed_shape.center().cast<double>(), 0.0);
-    const Vec3d bed_size = to_3d(bed_shape.size().cast<double>(), 1.0);
+    const Vec3d bed_center = Slic3r::to_3d(bed_shape.center().cast<double>(), 0.0);
+    const Vec3d bed_size = Slic3r::to_3d(bed_shape.size().cast<double>(), 1.0);
 
     bool need_arrange = false;
     bool scaled_down = false;
@@ -942,7 +964,7 @@ std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &mod
         objects.emplace_back(std::move(object_name));
         obj_idxs.push_back(objects.size() - 1);
 
-        if (model_object->instances.size() == 0) {
+        if (model_object->instances.empty()) {
             // if object has no defined position(s) we need to rearrange everything after loading
             need_arrange = true;
 
@@ -1001,6 +1023,186 @@ std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &mod
 
     return obj_idxs;
 }
+
+std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType file_type)
+{
+    wxString wildcard;
+    switch (file_type) {
+        case FT_STL:
+        case FT_AMF:
+        case FT_3MF:
+            wildcard = file_wildcards[FT_STL];
+        break;
+
+        default:
+            wildcard = file_wildcards[FT_MODEL];
+        break;
+    }
+
+    fs::path output_file(print.output_filepath(std::string()));
+
+    switch (file_type) {
+        case FT_STL: output_file.replace_extension("stl"); break;
+        case FT_AMF: output_file.replace_extension("zip.amf"); break;   // XXX: Problem on OS X with double extension?
+        case FT_3MF: output_file.replace_extension("3mf"); break;
+        default: break;
+    }
+
+    wxGetApp().preset_bundle->export_selections(print.placeholder_parser());
+
+    auto dlg = Slic3r::make_unique<CheckboxFileDialog>(q,
+        _(L("Export print config")),
+        true,
+        _(L("Save file as:")),
+        output_file.parent_path().string(),
+        output_file.filename().string(),
+        wildcard,
+        wxFD_SAVE | wxFD_OVERWRITE_PROMPT
+    );
+
+    if (dlg->ShowModal() != wxID_OK) {
+        return nullptr;
+    }
+
+    fs::path path(dlg->GetPath());
+    wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
+    export_gcode_output_file = path;
+
+    return dlg;
+}
+
+void Plater::priv::select_object(optional<size_t> obj_idx)
+{
+    for (auto &obj : objects) {
+        obj.selected = false;
+    }
+
+    if (obj_idx) {
+        objects[*obj_idx].selected = true;
+    }
+
+    // TODO:
+    // $self->selection_changed(1);
+}
+
+void Plater::priv::selection_changed()
+{
+    // TODO
+
+    const auto obj_idx = selected_object();
+    const bool have_sel = !!obj_idx;
+    const bool layers_height_allowed = config->opt<ConfigOptionBool>("variable_layer_height")->value;
+
+    wxWindowUpdateLocker freeze_guard(sidebar);
+
+    _3DScene::enable_toolbar_item(canvas3D, "delete", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "more", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
+
+    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed);
+
+    bool can_select_by_parts = false;
+
+    if (have_sel) {
+        // my $model_object = $self->{model}->objects->[$obj_idx];
+        const auto *model_object = model.objects[*obj_idx];
+        // $can_select_by_parts = ($obj_idx >= 0) && ($obj_idx < 1000) && ($model_object->volumes_count > 1);
+        // XXX: ?
+        can_select_by_parts = *obj_idx < 1000 && model_object->volumes.size() > 1;
+        // Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "fewer", $model_object->instances_count > 1);
+        _3DScene::enable_toolbar_item(canvas3D, "fewer", model_object->instances.size() > 1);
+    }
+
+    if (can_select_by_parts) {
+        // first disable to let the item in the toolbar to switch to the unpressed state   // XXX: ?
+        _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", false);
+        _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", true);
+    } else {
+        _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", false);
+        _3DScene::set_select_by(canvas3D, "object");
+    }
+
+    if (have_sel) {
+        const auto *model_object = model.objects[*obj_idx];
+        // FIXME print_info runs model fixing in two rounds, it is very slow, it should not be performed here!
+        // # $model_object->print_info;
+
+        // my $model_instance = $model_object->instances->[0];
+        const auto *model_instance = model_object->instances[0];
+        // TODO
+        // $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$model_object->instance_bounding_box(0)->size}));
+        // $self->{object_info_materials}->SetLabel($model_object->materials_count);
+
+        // if (my $stats = $model_object->mesh_stats) {
+        //     $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($model_instance->scaling_factor**3)));
+        //     $self->{object_info_facets}->SetLabel(sprintf(L('%d (%d shells)'), $model_object->facets_count, $stats->{number_of_parts}));
+        //     if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
+        //         $self->{object_info_manifold}->SetLabel(sprintf(L("Auto-repaired (%d errors)"), $errors));
+        //         #$self->{object_info_manifold_warning_icon}->Show;
+        //         $self->{"object_info_manifold_warning_icon_show"}->(1);
+
+        //         # we don't show normals_fixed because we never provide normals
+        //         # to admesh, so it generates normals for all facets
+        //         my $message = sprintf L('%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges'),
+        //             @$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)};
+        //         $self->{object_info_manifold}->SetToolTipString($message);
+        //         $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
+        //     } else {
+        //         $self->{object_info_manifold}->SetLabel(L("Yes"));
+        //         #$self->{object_info_manifold_warning_icon}->Hide;
+        //         $self->{"object_info_manifold_warning_icon_show"}->(0);
+        //         $self->{object_info_manifold}->SetToolTipString("");
+        //         $self->{object_info_manifold_warning_icon}->SetToolTipString("");
+        //     }
+        // } else {
+        //     $self->{object_info_facets}->SetLabel($object->facets);
+        // }
+    } else {
+        // $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
+        // $self->{"object_info_manifold_warning_icon_show"}->(0);
+        // $self->{object_info_manifold}->SetToolTipString("");
+        // $self->{object_info_manifold_warning_icon}->SetToolTipString("");
+    }
+
+    q->Layout();
+}
+
+optional<size_t> Plater::priv::selected_object() const
+{
+    for (size_t i = 0; i < objects.size(); i++) {
+        if (objects[i].selected) { return i; }
+    }
+
+    return boost::none;
+}
+
+void Plater::priv::reset()
+{
+    // TODO
+
+    // $self->stop_background_process;
+
+    // Prevent toolpaths preview from rendering while we modify the Print object
+    preview->set_enabled(false);
+
+    objects.clear();
+    model.clear_objects();
+    print.clear_objects();
+
+    // Delete all objects from list on c++ side
+    // TODO
+    // Slic3r::GUI::delete_all_objects_from_list();
+    sidebar->obj_list()->delete_all_objects_from_list();
+    // $self->object_list_changed;
+
+    // TODO
+    // $self->select_object(undef);
+    update();
+}
+
 
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
@@ -1082,6 +1284,47 @@ void Plater::priv::on_action_add(SimpleEvent&)
     load_files(input_paths);
 }
 
+void Plater::priv::on_action_arrange(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_more(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_fewer(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_split(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_cut(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_settings(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_layersediting(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_action_selectbyparts(SimpleEvent&)
+{
+    // TODO
+}
+
+
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
     wxObject* o = evt.GetEventObject();
@@ -1107,62 +1350,114 @@ Plater::~Plater()
 Sidebar& Plater::sidebar() { return *p->sidebar; }
 Model&  Plater::model()  { return p->model; }
 
-std::string Plater::export_gcode(const std::string &output_path)
+void Plater::update(bool force_autocenter)
 {
-    if (p->objects.size() == 0) { return ""; }
+    p->update(force_autocenter);
+}
+
+void Plater::remove(size_t obj_idx)
+{
+    // TODO
+}
+
+void Plater::remove_selected()
+{
+    const auto selected = p->selected_object();
+    if (selected) {
+        remove(*selected);
+    }
+}
+
+
+fs::path Plater::export_gcode(const fs::path &output_path)
+{
+    if (p->objects.empty()) { return ""; }
 
     if (! p->export_gcode_output_file.empty()) {
         GUI::show_error(this, _(L("Another export job is currently running.")));
         return "";
     }
 
-    // wxTheApp->{preset_bundle}->full_config->validate;   // FIXME
-    const std::string err = p->print.validate();
+    std::string err = wxGetApp().preset_bundle->full_config().validate();
+    if (err.empty()) {
+        err = p->print.validate();
+    }
     if (! err.empty()) {
         // The config is not valid
         GUI::show_error(this, _(err));
-        return "";
+        return fs::path();
     }
 
     // Copy the names of active presets into the placeholder parser.
-    // wxTheApp->{preset_bundle}->export_selections_pp($self->{print}->placeholder_parser);   // FIXME
+    wxGetApp().preset_bundle->export_selections(p->print.placeholder_parser());
 
     // select output file
     if (! output_path.empty()) {
-        p->export_gcode_output_file = p->print.output_filepath(output_path);
+        p->export_gcode_output_file = fs::path(p->print.output_filepath(output_path.string()));
         // FIXME: ^ errors to handle?
     } else {
-        // FIXME:
-        std::string default_output_file;  // FIXME: tmp
-        // my $default_output_file = eval { $self->{print}->output_filepath($main::opt{output} // '') };
-        // Slic3r::GUI::catch_error($self) and return;
+
+        // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
 
         // If possible, remove accents from accented latin characters.
         // This function is useful for generating file names to be processed by legacy firmwares.
-        default_output_file = Slic3r::fold_utf8_to_ascii(default_output_file);
+        auto default_output_file = fs::path(Slic3r::fold_utf8_to_ascii(
+            p->print.output_filepath(output_path.string())
+            // FIXME: ^ errors to handle?
+        ));
+        auto start_dir = wxGetApp().app_config->get_last_output_dir(default_output_file.parent_path().string());
         wxFileDialog dlg(this, _(L("Save G-code file as:")),
-            wxEmptyString,
-            wxEmptyString,
-            Slic3r::GUI::FILE_WILDCARDS.at("gcode"),
+            start_dir,
+            default_output_file.filename().string(),
+            GUI::file_wildcards[FT_GCODE],
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
-        // FIXME: ^ defaultDir:
-        // wxTheApp->{app_config}->get_last_output_dir(dirname($default_output_file)),
-        // FIXME: ^ defaultFile:
-        // basename($default_output_file), &Slic3r::GUI::FILE_WILDCARDS->{gcode}, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
         if (dlg.ShowModal() != wxID_OK) { return ""; }
-        auto path = dlg.GetPath();
-        // wxTheApp->{app_config}->update_last_output_dir(dirname($path));   // FIXME
+        fs::path path(dlg.GetPath());
+        wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
         p->export_gcode_output_file = path;
     }
 
     return p->export_gcode_output_file;
 }
 
+void Plater::export_stl()
+{
+    if (p->objects.empty()) { return; }
+
+    auto dialog = p->get_export_file(FT_STL);
+    if (! dialog) { return; }
+
+    // Store a binary STL
+    wxString path = dialog->GetPath();
+    auto path_cstr = path.c_str();
+    auto mesh = p->model.mesh();
+    Slic3r::store_stl(path_cstr, &mesh, true);
+    p->statusbar()->set_status_text(wxString::Format(_(L("STL file exported to %s")), path));
+}
+
+void Plater::export_amf()
+{
+    // TODO
+    throw 0;
+}
+
+void Plater::export_3mf()
+{
+    // TODO
+    throw 0;
+}
+
+
 void Plater::reslice()
 {
     // TODO
+}
+
+void Plater::send_gcode()
+{
+    p->send_gcode_file = export_gcode();
 }
 
 

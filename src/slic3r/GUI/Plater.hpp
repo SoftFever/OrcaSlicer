@@ -2,10 +2,14 @@
 #define slic3r_Plater_hpp_
 
 #include <memory>
+#include <boost/filesystem/path.hpp>
 
 #include <wx/panel.h>
 
 #include "Preset.hpp"
+
+class wxButton;
+
 
 namespace Slic3r {
 
@@ -20,10 +24,12 @@ class ObjectList;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
+class Plater;
+
 class Sidebar : public wxPanel
 {
 public:
-    Sidebar(wxWindow *parent);
+    Sidebar(Plater *parent);
     Sidebar(Sidebar &&) = delete;
     Sidebar(const Sidebar &) = delete;
     Sidebar &operator=(Sidebar &&) = delete;
@@ -45,8 +51,6 @@ public:
 private:
     struct priv;
     std::unique_ptr<priv> p;
-
-    friend class Plater;    // XXX: better encapsulation?
 };
 
 
@@ -63,10 +67,17 @@ public:
     Sidebar& sidebar();
     Model&  model();
 
-    // TODO: use fs::path
-    // Note: empty string means request default path
-    std::string export_gcode(const std::string &output_path);
+    void update(bool force_autocenter = false);
+    void remove(size_t obj_idx);
+    void remove_selected();
+
+    // Note: empty path means "use the default"
+    boost::filesystem::path export_gcode(const boost::filesystem::path &output_path = boost::filesystem::path());
+    void export_stl();
+    void export_amf();
+    void export_3mf();
     void reslice();
+    void send_gcode();
 private:
     struct priv;
     std::unique_ptr<priv> p;
