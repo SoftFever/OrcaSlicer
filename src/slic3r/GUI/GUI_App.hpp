@@ -123,6 +123,15 @@ public:
     //     Tab*            get_tab(const std::string& name);
     void            load_current_presets();
 
+
+    Sidebar&            sidebar();
+    ObjectManipulation* obj_manipul();
+//     ObjectList&     get_obj_list();
+
+    // Functions for updating of the object manipulation values
+    void update_position_values();
+    void update_position_values(const Vec3d& position);
+
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };
     PresetUpdater*  preset_updater{ nullptr };

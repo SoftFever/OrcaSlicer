@@ -106,28 +106,11 @@ void on_btn_move_down();
 void parts_changed(int obj_idx);
 void part_selection_changed();
 
-void update_settings_value();
 // show/hide "Extruder" column for Objects List
 void set_extruder_column_hidden(bool hide);
 // update extruder in current config
 void update_extruder_in_config(const wxString& selection);
-// update position values displacements or "gizmos"
-void update_position_values();
-void update_position_values(const Vec3d& position);
-// update scale values after scale unit changing or "gizmos"
-void update_scale_values();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void update_scale_values(const Vec3d& scaling_factor);
-#else
-void update_scale_values(double scaling_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-// update rotation values object selection changing
-void update_rotation_values();
-// update rotation value after "gizmos"
-void update_rotation_value(double angle, Axis axis);
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void update_rotation_value(const Vec3d& rotation);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+
 void set_uniform_scaling(const bool uniform_scale);
 
 void on_begin_drag(wxDataViewEvent &event);

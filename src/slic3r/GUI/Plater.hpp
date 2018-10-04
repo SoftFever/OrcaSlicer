@@ -4,17 +4,18 @@
 #include <memory>
 
 #include <wx/panel.h>
-#include <wx/scrolwin.h>
 
 #include "Preset.hpp"
 
-class wxBoxSizer;
-
 namespace Slic3r {
+
+class Model;
+
 namespace GUI {
 
 class MainFrame;
 class ConfigOptionsGroup;
+class ObjectManipulation;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -30,14 +31,14 @@ public:
 
     void update_presets(Slic3r::Preset::Type preset_type);
 
-    void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer);
-    void add_objects_list(wxWindow* parent, wxBoxSizer* sizer);
-    void add_object_settings(wxWindow* parent, wxBoxSizer* sizer, t_optgroups& optgroups);
+    ObjectManipulation*     obj_manipul();
 
-
-    ConfigOptionsGroup*     get_optgroup(size_t i);
-    t_optgroups&            get_optgroups();
+    ConfigOptionsGroup*     get_optgroup(size_t i); // #ys_FIXME_for_delete
+    t_optgroups&            get_optgroups();// #ys_FIXME_for_delete
     wxButton*               get_wiping_dialog_button();
+    void                    update_objects_list_extruder_column(int extruders_count);
+    int                     get_ol_selection();
+
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -57,6 +58,7 @@ public:
     ~Plater();
 
     Sidebar& sidebar();
+    Model&  model();
 
     // TODO: use fs::path
     // Note: empty string means request default path

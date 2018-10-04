@@ -1,4 +1,5 @@
 #include "GUI_App.hpp"
+#include "GUI_ObjectManipulation.hpp"
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
@@ -647,7 +648,17 @@ void GUI_App::load_current_presets()
     }
 }
 
-wxNotebook* GUI_App::tab_panel() const 
+Sidebar& GUI_App::sidebar()
+{
+    return mainframe->m_plater->sidebar();
+}
+
+ObjectManipulation* GUI_App::obj_manipul()
+{
+    return sidebar().obj_manipul();
+}
+
+wxNotebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;
 }

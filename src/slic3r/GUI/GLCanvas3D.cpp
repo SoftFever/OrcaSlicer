@@ -11,6 +11,7 @@
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
 #include "GUI_App.hpp"
+#include "GUI_ObjectManipulation.hpp"
 
 #include <GL/glew.h>
 
@@ -2982,7 +2983,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
             m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            update_scale_values();
+            wxGetApp().obj_manipul()->update_scale_values();
             m_dirty = true;
             break;
         }
@@ -2993,7 +2994,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
             m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            update_rotation_values();
+            wxGetApp().obj_manipul()->update_rotation_values();
             m_dirty = true;
             break;
         }
@@ -3181,7 +3182,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             v->set_offset(v->get_offset() + Vec3d(vector(0), vector(1), 0.0));
         }
 
-        update_position_values(volume->get_offset());
+        wxGetApp().obj_manipul()->update_position_values(volume->get_offset());
         m_mouse.drag.start_position_3D = cur_pos;
 
         m_dirty = true;
@@ -3222,7 +3223,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 v->set_offset(v->get_offset() + offset);
             }
-            update_position_values(volume->get_offset());
+            wxGetApp().obj_manipul()->update_position_values(volume->get_offset());
             break;
         }
         case Gizmos::Scale:
@@ -3234,7 +3235,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 v->set_scaling_factor(scale);
             }
-            update_scale_values(scale);
+            wxGetApp().obj_manipul()->update_scale_values(scale);
 #else
             // Apply new temporary scale factor
             float scale_factor = m_gizmos.get_scale();
@@ -3255,7 +3256,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 v->set_rotation(rotation);
             }
-            update_rotation_value(rotation);
+            wxGetApp().obj_manipul()->update_rotation_value(rotation);
 #else
             // Apply new temporary angle_z
             float angle_z = m_gizmos.get_angle_z();
@@ -3430,7 +3431,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
-            update_settings_value();
+            wxGetApp().obj_manipul()->update_values();
         }
 
         m_mouse.drag.move_volume_idx = -1;
@@ -5351,7 +5352,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
                 model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 model_object->invalidate_bounding_box();
-                update_position_values();
+                wxGetApp().obj_manipul()->update_position_values();
                 object_moved = true;
             }
         }

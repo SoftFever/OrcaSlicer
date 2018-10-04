@@ -45,6 +45,10 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/MainFrame.hpp
     ${LIBDIR}/slic3r/GUI/Plater.cpp
     ${LIBDIR}/slic3r/GUI/Plater.hpp
+    ${LIBDIR}/slic3r/GUI/GUI_ObjectList.cpp
+    ${LIBDIR}/slic3r/GUI/GUI_ObjectList.hpp
+    ${LIBDIR}/slic3r/GUI/GUI_ObjectManipulation.cpp
+    ${LIBDIR}/slic3r/GUI/GUI_ObjectManipulation.hpp
     ${LIBDIR}/slic3r/GUI/LambdaObjectDialog.cpp
     ${LIBDIR}/slic3r/GUI/LambdaObjectDialog.hpp
     ${LIBDIR}/slic3r/GUI/Tab.cpp

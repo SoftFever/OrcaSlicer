@@ -21,12 +21,8 @@ namespace Slic3r
 {
 namespace GUI
 {
-wxSizer		*m_sizer_object_buttons = nullptr;
-wxSizer		*m_sizer_part_buttons = nullptr;
-wxSizer		*m_sizer_object_movers = nullptr;
 wxDataViewCtrl				*m_objects_ctrl = nullptr;
 PrusaObjectDataViewModel	*m_objects_model = nullptr;
-wxCollapsiblePane			*m_collpane_settings = nullptr;
 PrusaDoubleSlider           *m_slider = nullptr;
 wxGLCanvas                  *m_preview_canvas = nullptr;
 
@@ -36,19 +32,12 @@ wxBitmap	m_icon_manifold_warning;
 wxBitmap	m_bmp_cog;
 wxBitmap	m_bmp_split;
 
-wxSlider*	m_mover_x = nullptr;
-wxSlider*	m_mover_y = nullptr;
-wxSlider*	m_mover_z = nullptr;
-wxButton*	m_btn_move_up = nullptr;
-wxButton*	m_btn_move_down = nullptr;
-Vec3d		m_move_options;
-Vec3d		m_last_coords;
 int			m_selected_object_id = -1;
 
 bool		g_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
 												// happens to fire a wxEVT_LIST_ITEM_SELECTED on OSX, whose event handler 
 												// calls this method again and again and again
-bool        g_is_percent_scale = false;         // It indicates if scale unit is percentage
+// bool        g_is_percent_scale = false;         // It indicates if scale unit is percentage
 bool        g_is_uniform_scale = false;         // It indicates if scale is uniform
 ModelObjectPtrs*			m_objects;
 std::shared_ptr<DynamicPrintConfig*> m_config;
@@ -158,457 +147,6 @@ void init_mesh_icons(){
 bool is_parts_changed(){return m_parts_changed;}
 bool is_part_settings_changed(){ return m_part_settings_changed; }
 
-void set_tooltip_for_item(const wxPoint& pt)
-{
-    wxDataViewItem item;
-    wxDataViewColumn* col;
-    m_objects_ctrl->HitTest(pt, item, col);
-    if (!item) return;
-
-    if (col->GetTitle() == " ")
-        m_objects_ctrl->GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
-    else if (col->GetTitle() == _("Name") &&
-        m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData()) {
-        int obj_idx = m_objects_model->GetIdByItem(item);
-        auto& stats = (*m_objects)[obj_idx]->volumes[0]->mesh.stl.stats;
-        int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
-            stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-
-        wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors):\n")), errors);
-
-        std::map<std::string, int> error_msg;
-        error_msg[L("degenerate facets")] = stats.degenerate_facets;
-        error_msg[L("edges fixed")] = stats.edges_fixed;
-        error_msg[L("facets removed")] = stats.facets_removed;
-        error_msg[L("facets added")] = stats.facets_added;
-        error_msg[L("facets reversed")] = stats.facets_reversed;
-        error_msg[L("backwards edges")] = stats.backwards_edges;
-
-        for (auto error : error_msg)
-        {
-            if (error.second > 0)
-                tooltip += wxString::Format(_("\t%d %s\n"), error.second, error.first);
-        }
-// OR
-//             tooltip += wxString::Format(_(L("%d degenerate facets, %d edges fixed, %d facets removed, "
-//                                             "%d facets added, %d facets reversed, %d backwards edges")),
-//                                             stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
-//                                             stats.facets_added, stats.facets_reversed, stats.backwards_edges);
-
-        if (is_windows10())
-            tooltip += _(L("Right button click the icon to fix STL through Netfabb"));
-
-        m_objects_ctrl->GetMainWindow()->SetToolTip(tooltip);
-    }
-    else
-        m_objects_ctrl->GetMainWindow()->SetToolTip(""); // hide tooltip
-}
-
-wxPoint get_mouse_position_in_control() {
-    const wxPoint& pt = wxGetMousePosition();
-    wxWindow* win = m_objects_ctrl->GetMainWindow();
-    return wxPoint(pt.x - win->GetScreenPosition().x, 
-                   pt.y - win->GetScreenPosition().y);
-}
-
-bool is_mouse_position_in_control(wxPoint& pt) {
-    pt = get_mouse_position_in_control();
-    const wxSize& cz = m_objects_ctrl->GetSize();
-    if (pt.x > 0 && pt.x < cz.x &&
-        pt.y > 0 && pt.y < cz.y)
-        return true;
-    return false;
-}
-
-wxDataViewColumn* object_ctrl_create_extruder_column(int extruders_count)
-{
-    wxArrayString choices;
-    choices.Add("default");
-    for (int i = 1; i <= extruders_count; ++i)
-        choices.Add(wxString::Format("%d", i));
-    wxDataViewChoiceRenderer *c =
-        new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 2, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-    return column;
-}
-
-void create_objects_ctrl(wxWindow* win, wxBoxSizer*& objects_sz)
-{
-	m_objects_ctrl = new wxDataViewCtrl(win, wxID_ANY, wxDefaultPosition, wxDefaultSize);
-	m_objects_ctrl->SetMinSize(wxSize(-1, 150)); // TODO - Set correct height according to the opened/closed objects
-
-	objects_sz = new wxBoxSizer(wxVERTICAL);
-	objects_sz->Add(m_objects_ctrl, 1, wxGROW | wxLEFT, 20);
-
-	m_objects_model = new PrusaObjectDataViewModel;
-	m_objects_ctrl->AssociateModel(m_objects_model);
-#if wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
-	m_objects_ctrl->EnableDragSource(wxDF_UNICODETEXT);
-	m_objects_ctrl->EnableDropTarget(wxDF_UNICODETEXT);
-#endif // wxUSE_DRAG_AND_DROP && wxUSE_UNICODE
-
-	// column 0(Icon+Text) of the view control: 
-    // And Icon can be consisting of several bitmaps
-    m_objects_ctrl->AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
-                                 0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
-
-	// column 1 of the view control:
-	m_objects_ctrl->AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
-		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-
-	// column 2 of the view control:
-    m_objects_ctrl->AppendColumn(object_ctrl_create_extruder_column(4));
-
-	// column 3 of the view control:
-	m_objects_ctrl->AppendBitmapColumn(" ", 3, wxDATAVIEW_CELL_INERT, 25,
-		wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-}
-
-// ****** from GUI.cpp
-wxBoxSizer* create_objects_list(wxWindow *win)
-{
-    wxBoxSizer* objects_sz;
-    // create control
-    create_objects_ctrl(win, objects_sz);
-
-    // describe control behavior 
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [](wxEvent& event) {
-		object_ctrl_selection_changed();
-#ifndef __WXMSW__
-        set_tooltip_for_item(get_mouse_position_in_control());
-#endif //__WXMSW__        
-	});
-
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [](wxDataViewEvent& event) {
-        object_ctrl_context_menu();
-//		event.Skip();
-	});
-
-    m_objects_ctrl->Bind(wxEVT_CHAR, [](wxKeyEvent& event) { object_ctrl_key_event(event); }); // doesn't work on OSX
-
-#ifdef __WXMSW__
-    // Extruder value changed
-	m_objects_ctrl->Bind(wxEVT_CHOICE, [](wxCommandEvent& event) { update_extruder_in_config(event.GetString()); });
-
-    m_objects_ctrl->GetMainWindow()->Bind(wxEVT_MOTION, [](wxMouseEvent& event) {
-         set_tooltip_for_item(event.GetPosition());
-         event.Skip();
-    });
-#else
-    // equivalent to wxEVT_CHOICE on __WXMSW__
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [](wxDataViewEvent& event) { object_ctrl_item_value_change(event); });
-#endif //__WXMSW__
-
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [](wxDataViewEvent& e) {on_begin_drag(e);});
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_DROP_POSSIBLE, [](wxDataViewEvent& e) {on_drop_possible(e); });
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_DROP,          [](wxDataViewEvent& e) {on_drop(e);});
-	return objects_sz;
-}
-
-wxBoxSizer* create_edit_object_buttons(wxWindow* win)
-{
-	auto sizer = new wxBoxSizer(wxVERTICAL);
-
-	auto btn_load_part = new wxButton(win, wxID_ANY, /*Load */"part" + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-	auto btn_load_modifier = new wxButton(win, wxID_ANY, /*Load */"modifier" + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-	auto btn_load_lambda_modifier = new wxButton(win, wxID_ANY, /*Load */"generic" + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-	auto btn_delete = new wxButton(win, wxID_ANY, "Delete"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-	auto btn_split = new wxButton(win, wxID_ANY, "Split"/*" part"*/, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER/*wxBU_LEFT*/);
-	m_btn_move_up = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
-	m_btn_move_down = new wxButton(win, wxID_ANY, "", wxDefaultPosition, wxDefaultSize/*wxSize(30, -1)*/, wxBU_LEFT);
-
-	//*** button's functions
-	btn_load_part->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-// 		on_btn_load(win);
-	});
-
-	btn_load_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-// 		on_btn_load(win, true);
-	});
-
-	btn_load_lambda_modifier->Bind(wxEVT_BUTTON, [win](wxEvent&) {
-// 		on_btn_load(win, true, true);
-	});
-
-	btn_delete		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_del(); });
-	btn_split		->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_split(true); });
-	m_btn_move_up	->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_move_up(); });
-	m_btn_move_down	->Bind(wxEVT_BUTTON, [](wxEvent&) { on_btn_move_down(); });
-	//***
-
-	m_btn_move_up->SetMinSize(wxSize(20, -1));
-	m_btn_move_down->SetMinSize(wxSize(20, -1));
-	btn_load_part->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
-	btn_load_modifier->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
-	btn_load_lambda_modifier->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_add.png")), wxBITMAP_TYPE_PNG));
-	btn_delete->SetBitmap(wxBitmap(from_u8(Slic3r::var("brick_delete.png")), wxBITMAP_TYPE_PNG));
-	btn_split->SetBitmap(wxBitmap(from_u8(Slic3r::var("shape_ungroup.png")), wxBITMAP_TYPE_PNG));
-	m_btn_move_up->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_up.png")), wxBITMAP_TYPE_PNG));
-	m_btn_move_down->SetBitmap(wxBitmap(from_u8(Slic3r::var("bullet_arrow_down.png")), wxBITMAP_TYPE_PNG));
-
-	m_sizer_object_buttons = new wxGridSizer(1, 3, 0, 0);
-	m_sizer_object_buttons->Add(btn_load_part, 0, wxEXPAND);
-	m_sizer_object_buttons->Add(btn_load_modifier, 0, wxEXPAND);
-	m_sizer_object_buttons->Add(btn_load_lambda_modifier, 0, wxEXPAND);
-	m_sizer_object_buttons->Show(false);
-
-	m_sizer_part_buttons = new wxGridSizer(1, 3, 0, 0);
-	m_sizer_part_buttons->Add(btn_delete, 0, wxEXPAND);
-	m_sizer_part_buttons->Add(btn_split, 0, wxEXPAND);
-	{
-		auto up_down_sizer = new wxGridSizer(1, 2, 0, 0);
-		up_down_sizer->Add(m_btn_move_up, 1, wxEXPAND);
-		up_down_sizer->Add(m_btn_move_down, 1, wxEXPAND);
-		m_sizer_part_buttons->Add(up_down_sizer, 0, wxEXPAND);
-	}
-	m_sizer_part_buttons->Show(false);
-
-	btn_load_part->SetFont(wxGetApp().small_font());
-	btn_load_modifier->SetFont(wxGetApp().small_font());
-	btn_load_lambda_modifier->SetFont(wxGetApp().small_font());
-	btn_delete->SetFont(wxGetApp().small_font());
-	btn_split->SetFont(wxGetApp().small_font());
-	m_btn_move_up->SetFont(wxGetApp().small_font());
-	m_btn_move_down->SetFont(wxGetApp().small_font());
-
-	sizer->Add(m_sizer_object_buttons, 0, wxEXPAND | wxLEFT, 20);
-	sizer->Add(m_sizer_part_buttons, 0, wxEXPAND | wxLEFT, 20);
-	return sizer;
-}
-
-void update_after_moving()
-{
-	auto item = m_objects_ctrl->GetSelection();
-	if (!item || m_selected_object_id<0)
-		return;
-
-	auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-	if (volume_id < 0)
-		return;
-
-    auto d = m_move_options - m_last_coords;
-    auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
-    volume->mesh.translate(d(0), d(1), d(2));
-	m_last_coords = m_move_options;
-
-	m_parts_changed = true;
-	parts_changed(m_selected_object_id);
-}
-
-wxSizer* object_movers(wxWindow *win)
-{
-// 	DynamicPrintConfig* config = &wxGetApp().preset_bundle->/*full_config();//*/printers.get_edited_preset().config; // TODO get config from Model_volume
-	std::shared_ptr<ConfigOptionsGroup> optgroup = std::make_shared<ConfigOptionsGroup>(win, "Move"/*, config*/);
-	optgroup->label_width = 20;
-	optgroup->m_on_change = [](t_config_option_key opt_key, boost::any value){
-		int val = boost::any_cast<int>(value);
-		bool update = false;
-        if (opt_key == "x" && m_move_options(0) != val){
-			update = true;
-            m_move_options(0) = val;
-		}
-        else if (opt_key == "y" && m_move_options(1) != val){
-			update = true;
-            m_move_options(1) = val;
-		}
-        else if (opt_key == "z" && m_move_options(2) != val){
-			update = true;
-            m_move_options(2) = val;
-		}
-		if (update) update_after_moving();
-	};
-
-	ConfigOptionDef def;
-	def.label = L("X");
-	def.type = coInt;
-	def.gui_type = "slider";
-	def.default_value = new ConfigOptionInt(0);
-
-	Option option = Option(def, "x");
-	option.opt.full_width = true;
-	optgroup->append_single_option_line(option);
-	m_mover_x = dynamic_cast<wxSlider*>(optgroup->get_field("x")->getWindow());
-
-	def.label = L("Y");
-	option = Option(def, "y");
-	optgroup->append_single_option_line(option);
-	m_mover_y = dynamic_cast<wxSlider*>(optgroup->get_field("y")->getWindow());
-
-	def.label = L("Z");
-	option = Option(def, "z");
-	optgroup->append_single_option_line(option);
-	m_mover_z = dynamic_cast<wxSlider*>(optgroup->get_field("z")->getWindow());
-
-	get_optgroups().push_back(optgroup);  // ogObjectMovers
-
-	m_sizer_object_movers = optgroup->sizer;
-	m_sizer_object_movers->Show(false);
-
-	m_move_options = Vec3d(0, 0, 0);
-	m_last_coords = Vec3d(0, 0, 0);
-
-	return optgroup->sizer;
-}
-
-void Sidebar::add_objects_list(wxWindow* parent, wxBoxSizer* sizer)
-{
-	const auto ol_sizer = create_objects_list(parent);
-	sizer->Add(ol_sizer, 1, wxEXPAND | wxTOP, 20);
-	set_objects_list_sizer(ol_sizer);
-}
-
-Line add_og_to_object_settings(const std::string& option_name, const std::string& sidetext, int def_value = 0)
-{
-	Line line = { _(option_name), "" };
-    if (option_name == "Scale") {
-        line.near_label_widget = [](wxWindow* parent) {
-            auto btn = new PrusaLockButton(parent, wxID_ANY);
-            btn->Bind(wxEVT_BUTTON, [btn](wxCommandEvent &event){
-                event.Skip();
-                wxTheApp->CallAfter([btn]() { set_uniform_scaling(btn->IsLocked()); });
-            });
-            return btn;
-        };
-    }
-
-	ConfigOptionDef def;
-	def.type = coInt;
-	def.default_value = new ConfigOptionInt(def_value);
-	def.width = 55;
-
-    if (option_name == "Rotation")
-        def.min = -360;
-
-	const std::string lower_name = boost::algorithm::to_lower_copy(option_name);
-
-	std::vector<std::string> axes{ "x", "y", "z" };
-	for (auto axis : axes) {
-        if (axis == "z" && option_name != "Scale")
-            def.sidetext = sidetext;
-		Option option = Option(def, lower_name + "_" + axis);
-		option.opt.full_width = true;
-		line.append_option(option);
-	}
-
-	if (option_name == "Scale")
-	{
-	    def.width = 45;
-		def.type = coStrings; 
-		def.gui_type = "select_open";
-		def.enum_labels.push_back(L("%"));
-		def.enum_labels.push_back(L("mm"));
-		def.default_value = new ConfigOptionStrings{ "mm" };
-
-		const Option option = Option(def, lower_name + "_unit");
-		line.append_option(option);
-	}
-
-	return line;
-}
-
-void Sidebar::add_object_settings(wxWindow* parent, wxBoxSizer* sizer, t_optgroups& optgroups)
-{
-	auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, _(L("Object Settings")));
-	optgroup->label_width = 100;
-	optgroup->set_grid_vgap(5);
-
-	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
-		if (opt_key == "scale_unit"){
-			const wxString& selection = boost::any_cast<wxString>(value);
-			std::vector<std::string> axes{ "x", "y", "z" };
-			for (auto axis : axes) {
-				std::string key = "scale_" + axis;
-				get_optgroup(ogFrequentlyObjectSettings)->set_side_text(key, selection);
-			}
-
-            g_is_percent_scale = selection == _("%");
-            update_scale_values();
-		}
-	};
-
-	ConfigOptionDef def;
-
-    // Objects(sub-objects) name
-	def.label = L("Name");
-// 	def.type = coString;
-    def.gui_type = "legend";
-	def.tooltip = L("Object name");
-	def.full_width = true;
-	def.default_value = new ConfigOptionString{ " " };
-	optgroup->append_single_option_line(Option(def, "object_name"));
-
-    // Legend for object modification
-    auto line = Line{ "", "" };
-    def.label = "";
-    def.type = coString;
-    def.width = 55;
-
-    std::vector<std::string> axes{ "x", "y", "z" };
-    for (const auto axis : axes) {
-		const auto label = boost::algorithm::to_upper_copy(axis);
-        def.default_value = new ConfigOptionString{ "   "+label };
-        Option option = Option(def, axis + "_axis_legend");
-        line.append_option(option);
-    }
-    optgroup->append_line(line);
-
-
-    // Settings table
-	optgroup->append_line(add_og_to_object_settings(L("Position"), L("mm")));
-	optgroup->append_line(add_og_to_object_settings(L("Rotation"), "°"));
-	optgroup->append_line(add_og_to_object_settings(L("Scale"), "mm"));
-
-
-	def.label = L("Place on bed");
-	def.type = coBool;
-	def.tooltip = L("Automatic placing of models on printing bed in Y axis");
-	def.gui_type = "";
-	def.sidetext = "";
-	def.default_value = new ConfigOptionBool{ false };
-	optgroup->append_single_option_line(Option(def, "place_on_bed"));
-
-	m_option_sizer = new wxBoxSizer(wxVERTICAL);
-	optgroup->sizer->Add(m_option_sizer, 1, wxEXPAND | wxLEFT, 5);
-
-	sizer->Add(optgroup->sizer, 0, wxEXPAND | wxLEFT | wxTOP, 20);
-
-	optgroup->disable();
-
-    optgroups.push_back(optgroup);  // ogFrequentlyObjectSettings
-}
-
-void add_object_to_list(const std::string &name, ModelObject* model_object)
-{
-	wxString item_name = name;
-	auto item = m_objects_model->Add(item_name, model_object->instances.size());
-	m_objects_ctrl->Select(item);
-
-	// Add error icon if detected auto-repaire
-	auto stats = model_object->volumes[0]->mesh.stl.stats;
-	int errors =	stats.degenerate_facets + stats.edges_fixed + stats.facets_removed + 
-					stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-	if (errors > 0)		{
-        const PrusaDataViewBitmapText data(item_name, m_icon_manifold_warning);
-		wxVariant variant;
-		variant << data;
-		m_objects_model->SetValue(variant, item, 0);
-	}
-
-    if (model_object->volumes.size() > 1) {
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(item, 
-                                      model_object->volumes[id]->name, 
-                                      m_icon_solidmesh, 
-                                      model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
-                                      false);
-        m_objects_ctrl->Expand(item);
-    }
-
-#ifndef __WXOSX__ 
-	object_ctrl_selection_changed();
-#endif //__WXMSW__
-}
-
 void delete_object_from_list()
 {
 	auto item = m_objects_ctrl->GetSelection();
@@ -714,9 +252,7 @@ void object_ctrl_context_menu()
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
-//     printf("object_ctrl_context_menu\n");
-    const wxPoint pt = get_mouse_position_in_control();
-//     printf("mouse_position_in_control: x = %d, y = %d\n", pt.x, pt.y);
+    const wxPoint pt;//!!! = get_mouse_position_in_control();
     m_objects_ctrl->HitTest(pt, item, col);
     if (!item)
 #ifdef __WXOSX__ // #ys_FIXME temporary workaround for OSX 
@@ -730,9 +266,7 @@ void object_ctrl_context_menu()
 #else
         return;
 #endif // __WXOSX__
-//     printf("item exists\n");
     const wxString title = col->GetTitle();
-//     printf("title = *%s*\n", title.data().AsChar());
 
     if (title == " ")
         show_context_menu();
@@ -1472,29 +1006,6 @@ void parts_changed(int obj_idx)
 	e.SetString(event_str);
 // 	get_main_frame()->ProcessWindowEvent(e); // #ys_FIXME
 }
-	
-void update_settings_value()
-{
-	auto og = get_optgroup(ogFrequentlyObjectSettings);
-	if (m_selected_object_id < 0 || m_objects->size() <= m_selected_object_id) {
-        og->set_value("position_x", 0);
-        og->set_value("position_y", 0);
-        og->set_value("position_z", 0);
-        og->set_value("scale_x", 0);
-		og->set_value("scale_y", 0);
-		og->set_value("scale_z", 0);
-        og->set_value("rotation_x", 0);
-        og->set_value("rotation_y", 0);
-        og->set_value("rotation_z", 0);
-        og->disable();
-		return;
-	}
-    g_is_percent_scale = boost::any_cast<wxString>(og->get_value("scale_unit")) == _("%");
-    update_position_values();
-    update_scale_values();
-    update_rotation_values();
-    og->enable();
-}
 
 void part_selection_changed()
 {
@@ -1549,7 +1060,7 @@ void part_selection_changed()
 
 	m_selected_object_id = obj_idx;
 
-	update_settings_value();
+// 	update_values();
 }
 
 void set_extruder_column_hidden(bool hide)
@@ -1570,149 +1081,6 @@ void update_extruder_in_config(const wxString& selection)
 //         get_main_frame()->ProcessWindowEvent(e); // #ys_FIXME
     }
 }
-
-void update_scale_values()
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
-    auto size = (*m_objects)[m_selected_object_id]->instance_bounding_box(0).size();
-
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    if (g_is_percent_scale) {
-        og->set_value("scale_x", int(instance->get_scaling_factor(X) * 100));
-        og->set_value("scale_y", int(instance->get_scaling_factor(Y) * 100));
-        og->set_value("scale_z", int(instance->get_scaling_factor(Z) * 100));
-    }
-    else {
-        og->set_value("scale_x", int(instance->get_scaling_factor(X) * size(0) + 0.5));
-        og->set_value("scale_y", int(instance->get_scaling_factor(Y) * size(1) + 0.5));
-        og->set_value("scale_z", int(instance->get_scaling_factor(Z) * size(2) + 0.5));
-    }
-#else
-    if (g_is_percent_scale) {
-        auto scale = instance->scaling_factor * 100.0;
-        og->set_value("scale_x", int(scale));
-        og->set_value("scale_y", int(scale));
-        og->set_value("scale_z", int(scale));
-    }
-    else {
-        og->set_value("scale_x", int(instance->scaling_factor * size(0) + 0.5));
-        og->set_value("scale_y", int(instance->scaling_factor * size(1) + 0.5));
-        og->set_value("scale_z", int(instance->scaling_factor * size(2) + 0.5));
-    }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-}
-
-void update_position_values()
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
-
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    og->set_value("position_x", int(instance->get_offset(X)));
-    og->set_value("position_y", int(instance->get_offset(Y)));
-    og->set_value("position_z", int(instance->get_offset(Z)));
-#else
-    og->set_value("position_x", int(instance->offset(0)));
-    og->set_value("position_y", int(instance->offset(1)));
-    og->set_value("position_z", 0);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-}
-
-void update_position_values(const Vec3d& position)
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-
-    og->set_value("position_x", int(position(0)));
-    og->set_value("position_y", int(position(1)));
-    og->set_value("position_z", int(position(2)));
-}
-
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void update_scale_values(const Vec3d& scaling_factor)
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-
-    // this is temporary
-    // to be able to update the values as size
-    // we need to store somewhere the original size
-    // or have it passed as parameter
-    if (!g_is_percent_scale)
-        og->set_value("scale_unit", _("%"));
-
-    auto scale = scaling_factor * 100.0;
-    og->set_value("scale_x", int(scale(0)));
-    og->set_value("scale_y", int(scale(1)));
-    og->set_value("scale_z", int(scale(2)));
-}
-#else
-void update_scale_values(double scaling_factor)
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-
-    // this is temporary
-    // to be able to update the values as size
-    // we need to store somewhere the original size
-    // or have it passed as parameter
-    if (!g_is_percent_scale)
-        og->set_value("scale_unit", _("%"));
-
-    auto scale = scaling_factor * 100.0;
-    og->set_value("scale_x", int(scale));
-    og->set_value("scale_y", int(scale));
-    og->set_value("scale_z", int(scale));
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
-void update_rotation_values()
-{
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    update_rotation_value((*m_objects)[m_selected_object_id]->instances.front()->get_rotation());
-#else
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-    auto instance = (*m_objects)[m_selected_object_id]->instances.front();
-    og->set_value("rotation_x", 0);
-    og->set_value("rotation_y", 0);
-    og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-}
-
-void update_rotation_value(double angle, Axis axis)
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-
-    std::string axis_str;
-    switch (axis)
-    {
-    case X:
-    {
-        axis_str = "rotation_x";
-        break;
-    }
-    case Y:
-    {
-        axis_str = "rotation_y";
-        break;
-    }
-    case Z:
-    {
-        axis_str = "rotation_z";
-        break;
-    }
-    }
-
-    og->set_value(axis_str, round_nearest(int(Geometry::rad2deg(angle)), 0));
-}
-
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void update_rotation_value(const Vec3d& rotation)
-{
-    auto og = get_optgroup(ogFrequentlyObjectSettings);
-    og->set_value("rotation_x", int(round_nearest(Geometry::rad2deg(rotation(0)), 0)));
-    og->set_value("rotation_y", int(round_nearest(Geometry::rad2deg(rotation(1)), 0)));
-    og->set_value("rotation_z", int(round_nearest(Geometry::rad2deg(rotation(2)), 0)));
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void set_uniform_scaling(const bool uniform_scale)
 {
@@ -1790,20 +1158,6 @@ void on_drop(wxDataViewEvent &event)
     parts_changed(m_selected_object_id);
 
     g_prevent_list_events = false;
-}
-
-void update_objects_list_extruder_column(int extruders_count)
-{
-    if (!m_objects_ctrl) return; // #ys_FIXME
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
-        extruders_count = 1;
-
-    // delete old 3rd column
-    m_objects_ctrl->DeleteColumn(m_objects_ctrl->GetColumn(2));
-    // insert new created 3rd column
-    m_objects_ctrl->InsertColumn(2, object_ctrl_create_extruder_column(extruders_count));
-    // set show/hide for this column 
-    set_extruder_column_hidden(extruders_count <= 1);
 }
 
 void create_double_slider(wxWindow* parent, wxBoxSizer* sizer, wxGLCanvas* canvas)

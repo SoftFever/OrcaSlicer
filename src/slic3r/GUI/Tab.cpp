@@ -33,9 +33,9 @@
 namespace Slic3r {
 namespace GUI {
 
-void Tab::create_preset_tab(PresetBundle *preset_bundle)
+void Tab::create_preset_tab()
 {
-	m_preset_bundle = preset_bundle;
+    m_preset_bundle = wxGetApp().preset_bundle;
 
 	// Vertical sizer to hold the choice menu and the rest of the page.
 #ifdef __WXOSX__
@@ -711,7 +711,7 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 
 // Show/hide the 'purging volumes' button
 void Tab::update_wiping_button_visibility() {
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
     bool wipe_tower_enabled = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->prints.get_edited_preset().config  ).option("wipe_tower"))->value;
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
@@ -1044,7 +1044,7 @@ void TabPrint::reload_config(){
 
 void TabPrint::update()
 {
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
 	Freeze();
@@ -1410,7 +1410,7 @@ void TabFilament::reload_config(){
 
 void TabFilament::update()
 {
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
+    if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         return; // ys_FIXME
 
 	Freeze();
@@ -1842,7 +1842,8 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	build_extruder_pages();
 	reload_config();
 	on_value_change("extruders_count", extruders_count);
-    update_objects_list_extruder_column(extruders_count);
+    if (wxGetApp().mainframe)
+        wxGetApp().mainframe->m_plater->sidebar().update_objects_list_extruder_column(extruders_count);
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
@@ -3030,7 +3031,7 @@ void TabSLAMaterial::build()
 
 void TabSLAMaterial::update()
 {
-    if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
+    if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF)
         return; // ys_FIXME
 }
 

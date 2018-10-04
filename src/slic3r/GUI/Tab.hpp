@@ -215,7 +215,7 @@ public:
 	void 		set_event_value_change(wxEventType evt) { m_event_value_change = evt; }
 	void 		set_event_presets_changed(wxEventType evt) { m_event_presets_changed = evt; }
 	
-	void		create_preset_tab(PresetBundle *preset_bundle);
+	void		create_preset_tab();
 	void		load_current_preset();
 	void        rebuild_page_tree(bool tree_sel_change_event = false);
 	void		select_preset(std::string preset_name = "");

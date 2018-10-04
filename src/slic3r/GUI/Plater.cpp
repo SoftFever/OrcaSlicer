@@ -27,10 +27,11 @@
 #include "libslic3r/Polygon.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
+#include "GUI_ObjectList.hpp"
+#include "GUI_ObjectManipulation.hpp"
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
-#include "GUI_ObjectParts.hpp"
 #include "GLToolbar.hpp"
 #include "GUI_Preview.hpp"
 #include "Tab.hpp"
@@ -200,6 +201,141 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
 PresetComboBox::~PresetComboBox() {}
 
 
+// Frequently changed parameters
+
+class FreqChangedParams : public OG_Settings
+{
+    double		    m_brim_width = 0.0;
+    wxButton*       m_wiping_dialog_button{ nullptr };
+public:
+    FreqChangedParams(wxWindow* parent, const int label_width);
+    ~FreqChangedParams() {}
+
+    wxButton*       get_wiping_dialog_button() { return m_wiping_dialog_button; }
+};
+
+FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
+    OG_Settings(parent, false)
+{
+    DynamicPrintConfig*	config = &wxGetApp().preset_bundle->prints.get_edited_preset().config;
+
+    m_og->set_config(config);
+    m_og->label_width = label_width;
+
+    m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value){
+        TabPrint* tab_print = nullptr;
+        for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
+            Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
+            if (!tab)
+                continue;
+            if (tab->name() == "print"){
+                tab_print = static_cast<TabPrint*>(tab);
+                break;
+            }
+        }
+        if (tab_print == nullptr)
+            return;
+
+        if (opt_key == "fill_density"){
+            value = m_og->get_config_value(*config, opt_key);
+            tab_print->set_value(opt_key, value);
+            tab_print->update();
+        }
+        else{
+            DynamicPrintConfig new_conf = *config;
+            if (opt_key == "brim"){
+                double new_val;
+                double brim_width = config->opt_float("brim_width");
+                if (boost::any_cast<bool>(value) == true)
+                {
+                    new_val = m_brim_width == 0.0 ? 10 :
+                        m_brim_width < 0.0 ? m_brim_width * (-1) :
+                        m_brim_width;
+                }
+                else{
+                    m_brim_width = brim_width * (-1);
+                    new_val = 0;
+                }
+                new_conf.set_key_value("brim_width", new ConfigOptionFloat(new_val));
+            }
+            else{ //(opt_key == "support")
+                const wxString& selection = boost::any_cast<wxString>(value);
+
+                auto support_material = selection == _("None") ? false : true;
+                new_conf.set_key_value("support_material", new ConfigOptionBool(support_material));
+
+                if (selection == _("Everywhere"))
+                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(false));
+                else if (selection == _("Support on build plate only"))
+                    new_conf.set_key_value("support_material_buildplate_only", new ConfigOptionBool(true));
+            }
+            tab_print->load_config(new_conf);
+        }
+
+        tab_print->update_dirty();
+    };
+
+    Option option = m_og->get_option("fill_density");
+    option.opt.sidetext = "";
+    option.opt.full_width = true;
+    m_og->append_single_option_line(option);
+
+    ConfigOptionDef def;
+
+    def.label = L("Support");
+    def.type = coStrings;
+    def.gui_type = "select_open";
+    def.tooltip = L("Select what kind of support do you need");
+    def.enum_labels.push_back(L("None"));
+    def.enum_labels.push_back(L("Support on build plate only"));
+    def.enum_labels.push_back(L("Everywhere"));
+    std::string selection = !config->opt_bool("support_material") ?
+        "None" :
+        config->opt_bool("support_material_buildplate_only") ?
+        "Support on build plate only" :
+        "Everywhere";
+    def.default_value = new ConfigOptionStrings{ selection };
+    option = Option(def, "support");
+    option.opt.full_width = true;
+    m_og->append_single_option_line(option);
+
+    m_brim_width = config->opt_float("brim_width");
+    def.label = L("Brim");
+    def.type = coBool;
+    def.tooltip = L("This flag enables the brim that will be printed around each object on the first layer.");
+    def.gui_type = "";
+    def.default_value = new ConfigOptionBool{ m_brim_width > 0.0 ? true : false };
+    option = Option(def, "brim");
+    m_og->append_single_option_line(option);
+
+
+    Line line = { "", "" };
+    line.widget = [config, this](wxWindow* parent){
+        m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+        auto sizer = new wxBoxSizer(wxHORIZONTAL);
+        sizer->Add(m_wiping_dialog_button);
+        m_wiping_dialog_button->Bind(wxEVT_BUTTON, ([parent](wxCommandEvent& e)
+        {
+            auto &config = wxGetApp().preset_bundle->project_config;
+            const std::vector<double> &init_matrix = (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values;
+            const std::vector<double> &init_extruders = (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values;
+
+            WipingDialog dlg(parent, cast<float>(init_matrix), cast<float>(init_extruders));
+
+            if (dlg.ShowModal() == wxID_OK) {
+                std::vector<float> matrix = dlg.get_matrix();
+                std::vector<float> extruders = dlg.get_extruders();
+                (config.option<ConfigOptionFloats>("wiping_volumes_matrix"))->values = std::vector<double>(matrix.begin(), matrix.end());
+                (config.option<ConfigOptionFloats>("wiping_volumes_extruders"))->values = std::vector<double>(extruders.begin(), extruders.end());
+                g_on_request_update_callback.call();
+            }
+        }));
+        return sizer;
+    };
+    m_og->append_line(line);
+}
+
+
 // Sidebar / private
 
 struct Sidebar::priv
@@ -216,6 +352,9 @@ struct Sidebar::priv
     PresetComboBox *combo_printer;
 
     wxBoxSizer *sizer_params;
+    FreqChangedParams   *frequently_changed_parameters;
+    ObjectList          *object_list;
+    ObjectManipulation  *object_manipulation;
     ObjectInfo *object_info;
     SlicedInfo *sliced_info;
 
@@ -225,10 +364,6 @@ struct Sidebar::priv
     wxButton *btn_send_gcode;
 
     std::vector <std::shared_ptr<ConfigOptionsGroup>> optgroups {};
-    double		brim_width = 0.0;
-    size_t		label_width = 100;
-    wxButton*	btn_wiping_dialog {nullptr};
-
 };
 
 
@@ -268,16 +403,24 @@ Sidebar::Sidebar(wxWindow *parent)
     init_combo(&p->combo_sla_material, _(L("SLA material")), Preset::TYPE_SLA_MATERIAL, false);
     init_combo(&p->combo_printer, _(L("Printer")), Preset::TYPE_PRINTER, false);
 
+    // calculate width of the preset labels 
     p->sizer_presets->Layout();
+    const wxArrayInt& ar = p->sizer_presets->GetColWidths();
+    int label_width = ar.IsEmpty() ? 100 : ar.front()-4;
+
+    p->sizer_params = new wxBoxSizer(wxVERTICAL);
 
     // Frequently changed parameters
-    p->sizer_params = new wxBoxSizer(wxVERTICAL);
-    add_frequently_changed_parameters(p->scrolled, p->sizer_params/*, p->sizer_presets*/);
+    p->frequently_changed_parameters = new FreqChangedParams(p->scrolled, label_width);
+    p->sizer_params->Add(p->frequently_changed_parameters->get_sizer(), 0, wxEXPAND | wxBOTTOM | wxLEFT, 2);
     
     // Object List
-    add_objects_list(p->scrolled, p->sizer_params);
+    p->object_list = new ObjectList(p->scrolled);
+    p->sizer_params->Add(p->object_list->get_sizer(), 1, wxEXPAND | wxTOP, 20);
+ 
     // Frequently Object Settings
-    add_object_settings(p->scrolled, p->sizer_params, p->optgroups);
+    p->object_manipulation = new ObjectManipulation(p->scrolled);
+    p->sizer_params->Add(p->object_manipulation->get_sizer(), 0, wxEXPAND | wxLEFT | wxTOP, 20);
 
     // Buttons in the scrolled area
     wxBitmap arrow_up(GUI::from_u8(Slic3r::var("brick_go.png")), wxBITMAP_TYPE_PNG);
@@ -364,6 +507,11 @@ void Sidebar::update_presets(Preset::Type preset_type)
     // wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
 }
 
+ObjectManipulation* Sidebar::obj_manipul()
+{
+    return p->object_manipulation;
+}
+
 ConfigOptionsGroup* Sidebar::get_optgroup(size_t i)
 {
     return p->optgroups.empty() ? nullptr : p->optgroups[i].get();
@@ -375,7 +523,17 @@ t_optgroups& Sidebar::get_optgroups() {
 
 wxButton* Sidebar::get_wiping_dialog_button()
 {
-    return p->btn_wiping_dialog;
+    return p->frequently_changed_parameters->get_wiping_dialog_button();
+}
+
+void Sidebar::update_objects_list_extruder_column(int extruders_count)
+{
+    p->object_list->update_objects_list_extruder_column(extruders_count);
+}
+
+int Sidebar::get_ol_selection()
+{
+    return p->object_list->get_sel_obj_id();
 }
 
 
@@ -431,7 +589,7 @@ struct Plater::priv
     wxNotebook *notebook;
     Sidebar *sidebar;
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
-    GUI::Preview *preview;
+    Preview *preview;
     BackgroundSlicingProcess background_process;
 
     static const int gl_attrs[];
@@ -933,6 +1091,7 @@ Plater::~Plater()
 }
 
 Sidebar& Plater::sidebar() { return *p->sidebar; }
+Model&  Plater::model()  { return p->model; }
 
 std::string Plater::export_gcode(const std::string &output_path)
 {

@@ -274,7 +274,7 @@ void MainFrame::create_preset_tabs()
 
 void MainFrame::add_created_tab(Tab* panel)
 {
-    panel->create_preset_tab(wxGetApp().preset_bundle);
+    panel->create_preset_tab();
 
     // Load the currently selected preset into the GUI, update the preset selection box.
     panel->load_current_preset();

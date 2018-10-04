@@ -231,6 +231,7 @@ public:
     bool					m_full_labels {0};
 	t_opt_map				m_opt_map;
 
+    void        set_config(DynamicPrintConfig* config){ m_config = config; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);
 	Line		create_single_option_line(const std::string& title, int idx = -1) /*const*/{
 		Option option = get_option(title, idx);
