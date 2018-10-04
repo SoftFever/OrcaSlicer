@@ -915,7 +915,7 @@ void PrintObject::discover_vertical_shells()
 #if 1
                     // Intentionally inflate a bit more than how much the region has been shrunk, 
                     // so there will be some overlap between this solid infill and the other infill regions (mainly the sparse infill).
-                    shell = offset2(shell, - 0.5f * min_perimeter_infill_spacing, 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
+                    shell = offset(offset_ex(union_ex(shell), - 0.5f * min_perimeter_infill_spacing), 0.8f * min_perimeter_infill_spacing, ClipperLib::jtSquare);
                     if (shell.empty())
                         continue;
 #else
