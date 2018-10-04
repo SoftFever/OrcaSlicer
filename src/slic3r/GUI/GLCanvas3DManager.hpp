@@ -52,6 +52,9 @@ class GLCanvas3DManager
     typedef std::map<wxGLCanvas*, GLCanvas3D*> CanvasesMap;
 
     CanvasesMap m_canvases;
+#if ENABLE_USE_UNIQUE_GLCONTEXT
+    wxGLContext* m_context;
+#endif // ENABLE_USE_UNIQUE_GLCONTEXT
     wxGLCanvas* m_current;
     GLInfo m_gl_info;
     bool m_gl_initialized;
@@ -61,6 +64,9 @@ class GLCanvas3DManager
 
 public:
     GLCanvas3DManager();
+#if ENABLE_USE_UNIQUE_GLCONTEXT
+    ~GLCanvas3DManager();
+#endif // ENABLE_USE_UNIQUE_GLCONTEXT
 
     bool add(wxGLCanvas* canvas);
     bool remove(wxGLCanvas* canvas);

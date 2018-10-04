@@ -339,13 +339,13 @@ void GLToolbar::do_action(unsigned int item_id)
                     item->set_state(GLToolbarItem::Hover);
 
                 m_parent.render();
-                item->do_action(m_parent.widget());
+                item->do_action(m_parent.get_wxglcanvas());
             }
             else
             {
                 item->set_state(GLToolbarItem::HoverPressed);
                 m_parent.render();
-                item->do_action(m_parent.widget());
+                item->do_action(m_parent.get_wxglcanvas());
                 if (item->get_state() != GLToolbarItem::Disabled)
                 {
                     // the item may get disabled during the action, if not, set it back to hover state

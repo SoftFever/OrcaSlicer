@@ -520,7 +520,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
-    preview->get_canvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_update_print_preview, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -893,7 +893,7 @@ void Plater::priv::on_action_add(SimpleEvent&)
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
     wxObject* o = evt.GetEventObject();
-    if (o == preview->get_canvas())
+    if (o == preview->get_wxglcanvas())
         preview->set_viewport_into_scene(canvas3D);
     else if (o == canvas3D)
         preview->set_viewport_from_scene(canvas3D);
