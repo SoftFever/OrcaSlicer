@@ -11,6 +11,7 @@
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
 #include "GUI_App.hpp"
+#include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 
 #include <GL/glew.h>
@@ -3243,7 +3244,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 v->set_scaling_factor((double)scale_factor);
             }
-            update_scale_values((double)scale_factor);
+            wxGetApp().obj_manipul()->update_scale_values((double)scale_factor);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             break;
         }
@@ -5397,7 +5398,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
     }
 
     post_event(ObjectSelectEvent(obj_id, vol_id));
-    Slic3r::GUI::select_current_volume(obj_id, vol_id);
+    wxGetApp().obj_list()->select_current_volume(obj_id, vol_id);
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

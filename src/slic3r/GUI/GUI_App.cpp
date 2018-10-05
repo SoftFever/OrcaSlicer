@@ -1,4 +1,5 @@
 #include "GUI_App.hpp"
+#include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 
 #include <boost/lexical_cast.hpp>
@@ -18,6 +19,7 @@
 #include "AppConfig.hpp"
 #include "PresetBundle.hpp"
 #include "3DScene.hpp"
+#include "Model.hpp"
 
 #include "../Utils/PresetUpdater.hpp"
 #include "ConfigWizard_private.hpp"
@@ -92,6 +94,8 @@ bool GUI_App::OnInit()
     //     wxImage::FindHandlerType(wxBITMAP_TYPE_PNG) ||
     wxImage::AddHandler(new wxPNGHandler());
     mainframe = new MainFrame(no_plater, false);
+    sidebar().obj_list()->init_objects(); // propagate model objects to object list
+    update_mode();
     SetTopWindow(mainframe);
 
     // This makes CallAfter() work
@@ -220,6 +224,8 @@ void GUI_App::recreate_GUI()
 
     auto topwindow = GetTopWindow();
     mainframe = new MainFrame(no_plater,false);
+    sidebar().obj_list()->init_objects(); // propagate model objects to object list
+    update_mode();
 
     if (topwindow) {
         SetTopWindow(mainframe);
@@ -493,18 +499,18 @@ ConfigMenuIDs GUI_App::get_view_mode()
 // Update view mode according to selected menu
 void GUI_App::update_mode()
 {
-    wxWindowUpdateLocker noUpdates(/*g_right_panel->GetParent()*/mainframe);
+    wxWindowUpdateLocker noUpdates(mainframe->m_plater);
 
     ConfigMenuIDs mode = wxGetApp().get_view_mode();
 
-//     g_object_list_sizer->Show(mode == ConfigMenuModeExpert);
-    show_info_sizer(mode == ConfigMenuModeExpert);
-//     show_buttons(mode == ConfigMenuModeExpert);
-//     show_object_name(mode == ConfigMenuModeSimple);
-    show_manipulation_sizer(mode == ConfigMenuModeSimple);
+    obj_list()->get_sizer()->Show(mode == ConfigMenuModeExpert);
+    sidebar().show_info_sizers(mode == ConfigMenuModeExpert);
+    sidebar().show_buttons(mode == ConfigMenuModeExpert);
+    obj_manipul()->show_object_name(mode == ConfigMenuModeSimple);
+    obj_list()->update_manipulation_sizer(mode == ConfigMenuModeSimple);
 
-    /*g_right_panel*/mainframe->m_plater->Layout();
-    /*g_right_panel->GetParent()*/mainframe->Layout();
+    sidebar().Layout();
+    mainframe->m_plater->Layout();
 }
 
 void GUI_App::add_config_menu(wxMenuBar *menu)
@@ -658,24 +664,20 @@ ObjectManipulation* GUI_App::obj_manipul()
     return sidebar().obj_manipul();
 }
 
+ObjectList* GUI_App::obj_list()
+{
+    return sidebar().obj_list();
+}
+
+ModelObjectPtrs* GUI_App::model_objects()
+{
+    return &mainframe->m_plater->model().objects;
+}
+
 wxNotebook* GUI_App::tab_panel() const
 {
     return mainframe->m_tabpanel;
 }
-
-// std::vector<PresetTab>  preset_tabs = {
-//     { "print", nullptr, ptFFF },
-//     { "filament", nullptr, ptFFF },
-//     { "sla_material", nullptr, ptSLA }
-// };
-// 
-// Tab* GUI_App::get_tab(const std::string& name)
-// {
-//     std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
-//         [name](PresetTab& tab){ return name == tab.name; });
-//     return it != preset_tabs.end() ? it->panel : nullptr;
-// }
-
 
 // static method accepting a wxWindow object as first parameter
 // void warning_catcher{

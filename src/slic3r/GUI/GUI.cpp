@@ -1,14 +1,12 @@
 #include "GUI.hpp"
+#include "GUI_App.hpp"
 #include "../AppController.hpp"
 #include "WipeTowerDialog.hpp"
 
 #include <assert.h>
-#include <cmath>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
-#include <boost/lexical_cast.hpp>
 
 #if __APPLE__
 #import <IOKit/pwr_mgt/IOPMLib.h>
@@ -26,50 +24,18 @@
 #include "boost/nowide/convert.hpp"
 #endif
 
-#include <wx/app.h>
-#include <wx/button.h>
-#include <wx/dir.h>
-#include <wx/filename.h>
-#include <wx/frame.h>
-#include <wx/menu.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
-#include <wx/combo.h>
-#include <wx/window.h>
-#include <wx/msgdlg.h>
-#include <wx/settings.h>
 #include <wx/display.h>
-#include <wx/collpane.h>
-#include <wx/wupdlock.h>
 
 #include "wxExtensions.hpp"
-
-#include "Tab.hpp"
-#include "TabIface.hpp"
 #include "GUI_Preview.hpp"
 #include "GUI_PreviewIface.hpp"
 #include "AboutDialog.hpp"
 #include "AppConfig.hpp"
-#include "ConfigSnapshotDialog.hpp"
-#include "ProgressStatusBar.hpp"
-#include "Utils.hpp"
-#include "MsgDialog.hpp"
 #include "ConfigWizard.hpp"
-#include "Preferences.hpp"
 #include "PresetBundle.hpp"
 #include "UpdateDialogs.hpp"
-#include "FirmwareDialog.hpp"
-#include "GUI_ObjectParts.hpp"
 
-#include "../Utils/PresetUpdater.hpp"
-#include "../Config/Snapshot.hpp"
-
-#include "3DScene.hpp"
-#include "libslic3r/I18N.hpp"
-#include "Model.hpp"
-#include "LambdaObjectDialog.hpp"
-
+#include "../../libslic3r/Utils.hpp"
 #include "../../libslic3r/Print.hpp"
 
 namespace Slic3r { namespace GUI {
@@ -116,90 +82,7 @@ void break_to_debugger()
     #endif /* _WIN32 */
 }
 
-// #ys_FIXME_for_delete
-std::vector<Tab *> g_tabs_list;
-
-//showed/hided controls according to the view mode
-wxWindow	*g_right_panel = nullptr;
-wxBoxSizer	*g_frequently_changed_parameters_sizer = nullptr;
-wxBoxSizer	*g_info_sizer = nullptr;
-wxBoxSizer	*g_object_list_sizer = nullptr;
-std::vector<wxButton*> g_buttons;
-wxStaticBitmap	*g_manifold_warning_icon = nullptr;
-bool		g_show_print_info = false;
-bool		g_show_manifold_warning_icon = false;
-
 PreviewIface* g_preview = nullptr; 
-
-enum ActionButtons
-{
-    abExportGCode,
-    abReslice,
-    abPrint,
-    abSendGCode,
-};
-
-void set_objects_from_perl(	wxWindow* parent, 
-                            wxBoxSizer *frequently_changed_parameters_sizer,
-							wxBoxSizer *info_sizer,
-							wxButton *btn_export_gcode,
-                            wxButton *btn_reslice, 
-							wxButton *btn_print, 
-                            wxButton *btn_send_gcode,
-							wxStaticBitmap *manifold_warning_icon)
-{
-	g_right_panel = parent->GetParent();
-	g_frequently_changed_parameters_sizer = frequently_changed_parameters_sizer;
-	g_info_sizer = info_sizer;
-
-    g_buttons.push_back(btn_export_gcode);
-    g_buttons.push_back(btn_reslice);
-    g_buttons.push_back(btn_print);
-    g_buttons.push_back(btn_send_gcode);
-
-    // Update font style for buttons
-//     for (auto btn : g_buttons)
-//         btn->SetFont(bold_font());
-
-	g_manifold_warning_icon = manifold_warning_icon;
-}
-
-void set_show_print_info(bool show)
-{
-	g_show_print_info = show;
-}
-
-void set_show_manifold_warning_icon(bool show)
-{
-	g_show_manifold_warning_icon = show;
-    if (!g_manifold_warning_icon)
-        return;
-
-    // update manifold_warning_icon showing
-    if (show && !g_info_sizer->IsShown(static_cast<size_t>(0)))
-        g_show_manifold_warning_icon = false;
-
-    g_manifold_warning_icon->Show(g_show_manifold_warning_icon);
-    g_manifold_warning_icon->GetParent()->Layout();
-}
-
-void set_objects_list_sizer(wxBoxSizer *objects_list_sizer){
-	g_object_list_sizer = objects_list_sizer;
-}
-
-void open_model(wxWindow *parent, wxArrayString& input_files){
-	auto dialog = new wxFileDialog(parent /*? parent : GetTopWindow()*/, 
-        _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
-		get_app_config()->get_last_dir(), "",
-		MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
-	if (dialog->ShowModal() != wxID_OK) {
-		dialog->Destroy();
-		return ;
-	}
-	
-	dialog->GetPaths(input_files);
-	dialog->Destroy();
-}
 
 bool config_wizard_startup(bool app_config_exists)
 {
@@ -235,38 +118,6 @@ void config_wizard(int reason)
 
 	// Load the currently selected preset into the GUI, update the preset selection box.
 	wxGetApp().load_current_presets();
-}
-// #ys_FIXME_for_delete
-std::vector<PresetTab> preset_tabs = {
-    { "print",        nullptr, ptFFF },
-    { "filament",     nullptr, ptFFF },
-    { "sla_material", nullptr, ptSLA }
-};
-std::vector<PresetTab>* get_preset_tabs() {
-    return &preset_tabs;
-}
-
-Tab* get_tab(const std::string& name)
-{
-    std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
-                                                       [name](PresetTab& tab){ return name == tab.name; });
-    return it != preset_tabs.end() ? it->panel : nullptr;
-}
-
-TabIface* get_preset_tab_iface(char *name)
-{
-    Tab* tab = get_tab(name);
-    if (tab) return new TabIface(tab);
-
-    for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
-		Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
-		if (! tab)
-			continue;
-		if (tab->name() == name) {
-			return new TabIface(tab);
-		}
-	}
-	return new TabIface(nullptr);
 }
 
 PreviewIface* create_preview_iface(wxNotebook* parent, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data)
@@ -422,9 +273,6 @@ void set_print_callback_event(Print *print, int id)
 	});
 }
 
-wxWindow* get_right_panel(){
-	return g_right_panel;
-}
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
     if (comboCtrl == nullptr)
@@ -497,65 +345,6 @@ std::string into_u8(const wxString &str)
 {
 	auto buffer_utf8 = str.utf8_str();
 	return std::string(buffer_utf8.data());
-}
-
-void set_model_events_from_perl(Model &model,
-							    int event_object_selection_changed,
-							    int event_object_settings_changed,
-							    int event_remove_object, 
-							    int event_update_scene)
-{
-	set_event_object_selection_changed(event_object_selection_changed);
-	set_event_object_settings_changed(event_object_settings_changed);
-	set_event_remove_object(event_remove_object);
-	set_event_update_scene(event_update_scene);
-	set_objects_from_model(model);
-	init_mesh_icons();
-
-// 	wxWindowUpdateLocker noUpdates(parent);
-
-// 	add_objects_list(parent, sizer);
-
-// 	add_collapsible_panes(parent, sizer);
-}
-
-void show_buttons(bool show)
-{
-    g_buttons[abReslice]->Show(show);
-    for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
-        TabPrinter *tab = dynamic_cast<TabPrinter*>(wxGetApp().tab_panel()->GetPage(i));
-		if (!tab)
-			continue;
-        if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF) {
-            g_buttons[abPrint]->Show(show && !tab->m_config->opt_string("serial_port").empty());
-            g_buttons[abSendGCode]->Show(show && !tab->m_config->opt_string("print_host").empty());
-        }
-		break;
-	}
-}
-
-void show_info_sizer(const bool show)
-{
-	g_info_sizer->Show(static_cast<size_t>(0), show); 
-	g_info_sizer->Show(1, show && g_show_print_info);
-	g_manifold_warning_icon->Show(show && g_show_manifold_warning_icon);
-}
-
-void show_object_name(bool show)
-{
-    wxGridSizer* grid_sizer = get_optgroup(ogFrequentlyObjectSettings)->get_grid_sizer();
-    grid_sizer->Show(static_cast<size_t>(0), show);
-    grid_sizer->Show(static_cast<size_t>(1), show);
-}
-
-ConfigOptionsGroup* get_optgroup(size_t i)
-{
-    return wxGetApp().mainframe->m_plater->sidebar().get_optgroup(i);
-// 	return m_optgroups.empty() ? nullptr : m_optgroups[i].get();
-}
-
-std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups() {
-    return wxGetApp().mainframe->m_plater->sidebar().get_optgroups();//m_optgroups;
 }
 
 wxWindow* export_option_creator(wxWindow* parent)
@@ -662,20 +451,6 @@ void restore_window_size(wxTopLevelWindow *window, const std::string &name)
 	if (get_app_config()->get(key_maximized) == "1") {
 		window->Maximize(true);
 	}
-}
-
-void enable_action_buttons(bool enable)
-{
-    if (g_buttons.empty())
-        return;
-
-    // Update background colour for buttons
-    const wxColour bgrd_color = enable ? wxColour(224, 224, 224/*255, 96, 0*/) : wxColour(204, 204, 204);
-
-    for (auto btn : g_buttons) {
-        btn->Enable(enable);
-        btn->SetBackgroundColour(bgrd_color);
-    }
 }
 
 void about()

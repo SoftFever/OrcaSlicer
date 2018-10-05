@@ -13,6 +13,7 @@ class wxStaticText;
 class wxChoice;
 class wxComboCtrl;
 class wxCheckBox;
+class PrusaDoubleSlider;
 
 namespace Slic3r {
 
@@ -45,6 +46,8 @@ class Preview : public wxPanel
     bool m_loaded;
     bool m_enabled;
     bool m_force_sliders_full_range;
+
+    PrusaDoubleSlider* m_slider {nullptr};
 
 public:
     Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
@@ -84,6 +87,19 @@ private:
     void on_checkbox_retractions(wxCommandEvent& evt);
     void on_checkbox_unretractions(wxCommandEvent& evt);
     void on_checkbox_shells(wxCommandEvent& evt);
+
+    // Create/Update/Reset double slider on 3dPreview
+    void create_double_slider();
+    void update_double_slider(bool force_sliders_full_range);
+    void fill_slider_values(std::vector<std::pair<int, double>> &values, 
+                            const std::vector<double> &layers_z);
+    void set_double_slider_thumbs(  const bool force_sliders_full_range, 
+                                    const std::vector<double> &layers_z, 
+                                    const double z_low, 
+                                    const double z_high);
+    void reset_double_slider();
+    // update DoubleSlider after keyDown in canvas
+    void update_double_slider_from_canvas(wxKeyEvent& event);
 };
 
 } // namespace GUI

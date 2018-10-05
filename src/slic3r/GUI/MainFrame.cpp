@@ -100,9 +100,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     });
 
     update_ui_from_settings();
-
-//     Slic3r::GUI::update_mode();
-
     return;
 }
 
@@ -247,6 +244,23 @@ void MainFrame::init_tabpanel()
     }
 }
 
+std::vector<PresetTab> preset_tabs = {
+    { "print", nullptr, ptFFF },
+    { "filament", nullptr, ptFFF },
+    { "sla_material", nullptr, ptSLA }
+};
+
+std::vector<PresetTab>& MainFrame::get_preset_tabs() {
+    return preset_tabs;
+}
+
+Tab* MainFrame::get_tab(const std::string& name)
+{
+    std::vector<PresetTab>::iterator it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
+        [name](PresetTab& tab){ return name == tab.name; });
+    return it != preset_tabs.end() ? it->panel : nullptr;
+}
+
 Tab* MainFrame::get_preset_tab(const std::string& name)
 {
     Tab* tab = get_tab(name);
@@ -282,10 +296,9 @@ void MainFrame::add_created_tab(Tab* panel)
     const wxString& tab_name = panel->GetName();
     bool add_panel = true;
 
-    auto preset_tabs = get_preset_tabs();
-    auto it = std::find_if(preset_tabs->begin(), preset_tabs->end(),
+    auto it = std::find_if(preset_tabs.begin(), preset_tabs.end(),
         [tab_name](PresetTab& tab){return tab.name == tab_name; });
-    if (it != preset_tabs->end()) {
+    if (it != preset_tabs.end()) {
         it->panel = panel;
         add_panel = it->technology == wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology();
     }

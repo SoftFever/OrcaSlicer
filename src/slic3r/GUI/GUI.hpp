@@ -1,44 +1,22 @@
 #ifndef slic3r_GUI_hpp_
 #define slic3r_GUI_hpp_
 
-#include <string>
-#include <vector>
-#include "PrintConfig.hpp"
+#include "Config.hpp"
 #include "callback.hpp"
-#include "GUI_ObjectParts.hpp"
 
 #include <wx/intl.h>
-#include <wx/string.h>
 
-class wxApp;
 class wxWindow;
-class wxFrame;
 class wxMenuBar;
 class wxNotebook;
-class wxPanel;
 class wxComboCtrl;
-class wxString;
-class wxArrayString;
-class wxArrayLong;
-class wxColour;
-class wxBoxSizer;
-class wxFlexGridSizer;
-class wxButton;
 class wxFileDialog;
-class wxStaticBitmap;
-class wxFont;
 class wxTopLevelWindow;
 
 namespace Slic3r { 
 
-class PresetBundle;
-class PresetCollection;
-class Print;
-class ProgressStatusBar;
 class AppConfig;
-class PresetUpdater;
 class DynamicPrintConfig;
-class TabIface;
 class PreviewIface;
 class Print;
 class GCodePreviewData;
@@ -71,55 +49,16 @@ namespace GUI { namespace I18N {
 
 namespace GUI {
 
-class Tab;
-class ConfigOptionsGroup;
-// Map from an file_type name to full file wildcard name.
-const std::map<const std::string, const std::string> FILE_WILDCARDS{
-    std::make_pair("known", "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA"),
-    std::make_pair("stl",   "STL files (*.stl)|*.stl;*.STL"),
-    std::make_pair("obj",   "OBJ files (*.obj)|*.obj;*.OBJ"),
-    std::make_pair("amf",   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML"),
-    std::make_pair("3mf",   "3MF files (*.3mf)|*.3mf;*.3MF;"),
-    std::make_pair("prusa", "Prusa Control files (*.prusa)|*.prusa;*.PRUSA"),
-    std::make_pair("ini",   "INI files *.ini|*.ini;*.INI"),
-    std::make_pair("gcode", "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC"),
-    std::make_pair("svg",   "SVG files *.svg|*.svg;*.SVG")
-};
-
-const std::string MODEL_WILDCARD{   FILE_WILDCARDS.at("known") + std::string("|") +
-                                    FILE_WILDCARDS.at("stl") + std::string("|") +
-                                    FILE_WILDCARDS.at("obj") + std::string("|") +
-                                    FILE_WILDCARDS.at("amf") + std::string("|") +
-                                    FILE_WILDCARDS.at("3mf") + std::string("|") +
-                                    FILE_WILDCARDS.at("prusa") };
-struct PresetTab {
-    std::string       name;
-    Tab*              panel;
-    PrinterTechnology technology;
-};
-
-
 void disable_screensaver();
 void enable_screensaver();
 bool debugged();
 void break_to_debugger();
-
-void set_show_print_info(bool show);
-void set_show_manifold_warning_icon(bool show);
-void set_objects_list_sizer(wxBoxSizer *objects_list_sizer);
 
 AppConfig*		get_app_config();
 
 AppControllerPtr get_appctl();
 void             set_cli_appctl();
 void             set_gui_appctl();
-
-void open_model(wxWindow *parent, wxArrayString& input_files);
-
-wxWindow*			get_right_panel();
-
-Tab*         get_tab(const std::string& name);
-std::vector<PresetTab>* get_preset_tabs();
 
 extern void add_menus(wxMenuBar *menu, int event_preferences_changed, int event_language_change);
 
@@ -131,12 +70,8 @@ extern bool config_wizard_startup(bool app_config_exists);
 // The run_reason argument is actually ConfigWizard::RunReason, but int is used here because of Perl.
 extern void config_wizard(int run_reason);
 
-TabIface* get_preset_tab_iface(char *name);
-
 PreviewIface* create_preview_iface(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
 
-// add it at the end of the tab panel.
-// void add_created_tab(Tab* panel, int event_value_change, int event_presets_changed);
 // Change option value in config
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index = 0);
 
@@ -148,8 +83,6 @@ void warning_catcher(wxWindow* parent, const wxString& message);
 // Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
 // to deliver a progress status message.
 void set_print_callback_event(Print *print, int id);
-
-void show_info_sizer(const bool show);
 
 // Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.
 // Items are all initialized to the given value.
@@ -167,19 +100,9 @@ wxString	from_u8(const std::string &str);
 // Return std::string in UTF8 from wxString
 std::string	into_u8(const wxString &str);
 
-void set_model_events_from_perl(Model &model,
-							    int event_object_selection_changed,
-							    int event_object_settings_changed,
-							    int event_remove_object, 
-							    int event_update_scene);
-void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFlexGridSizer* preset_sizer);
-
 // Callback to trigger a configuration update timer on the Plater.
 static PerlCallback g_on_request_update_callback;
  
-ConfigOptionsGroup* get_optgroup(size_t i); 
-std::vector <std::shared_ptr<ConfigOptionsGroup>>& get_optgroups();
-
 void add_export_option(wxFileDialog* dlg, const std::string& format);
 int get_export_option(wxFileDialog* dlg);
 
@@ -190,9 +113,6 @@ bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height
 void save_window_size(wxTopLevelWindow *window, const std::string &name);
 // Restore the above
 void restore_window_size(wxTopLevelWindow *window, const std::string &name);
-
-// Update buttons view according to enable/disable
-void enable_action_buttons(bool enable);
 
 // Display an About dialog
 extern void about();

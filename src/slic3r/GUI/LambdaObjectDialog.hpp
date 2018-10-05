@@ -13,6 +13,24 @@ namespace Slic3r
 {
 namespace GUI
 {
+enum LambdaTypeIDs{
+    LambdaTypeBox,
+    LambdaTypeCylinder,
+    LambdaTypeSphere,
+    LambdaTypeSlab
+};
+
+struct OBJECT_PARAMETERS
+{
+    LambdaTypeIDs	type = LambdaTypeBox;
+    double			dim[3];// = { 1.0, 1.0, 1.0 };
+    int				cyl_r = 1;
+    int				cyl_h = 1;
+    double			sph_rho = 1.0;
+    double			slab_h = 1.0;
+    double			slab_z = 0.0;
+};
+class ConfigOptionsGroup;
 using ConfigOptionsGroupShp = std::shared_ptr<ConfigOptionsGroup>;
 class LambdaObjectDialog : public wxDialog
 {

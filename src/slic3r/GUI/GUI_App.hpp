@@ -2,11 +2,8 @@
 #define slic3r_GUI_App_hpp_
 
 #include <string>
-// #include <vector>
 #include "PrintConfig.hpp"
 #include "MainFrame.hpp"
-// #include "../../libslic3r/Utils.hpp"
-// #include "GUI.hpp"
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -24,9 +21,31 @@ namespace Slic3r {
 class AppConfig;
 class PresetBundle;
 class PresetUpdater;
+class ModelObject;
 
 namespace GUI
 {
+// Map from an file_type name to full file wildcard name.
+const std::map<const std::string, const std::string> FILE_WILDCARDS{
+    std::make_pair("known", "Known files (*.stl, *.obj, *.amf, *.xml, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.prusa;*.PRUSA"),
+    std::make_pair("stl",   "STL files (*.stl)|*.stl;*.STL"),
+    std::make_pair("obj",   "OBJ files (*.obj)|*.obj;*.OBJ"),
+    std::make_pair("amf",   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML"),
+    std::make_pair("3mf",   "3MF files (*.3mf)|*.3mf;*.3MF;"),
+    std::make_pair("prusa", "Prusa Control files (*.prusa)|*.prusa;*.PRUSA"),
+    std::make_pair("ini",   "INI files *.ini|*.ini;*.INI"),
+    std::make_pair("gcode", "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC"),
+    std::make_pair("svg",   "SVG files *.svg|*.svg;*.SVG")
+};
+
+const std::string MODEL_WILDCARD{ FILE_WILDCARDS.at("known") + std::string("|") +
+    FILE_WILDCARDS.at("stl") + std::string("|") +
+    FILE_WILDCARDS.at("obj") + std::string("|") +
+    FILE_WILDCARDS.at("amf") + std::string("|") +
+    FILE_WILDCARDS.at("3mf") + std::string("|") +
+    FILE_WILDCARDS.at("prusa") };
+
+
 enum ConfigMenuIDs {
     ConfigMenuWizard,
     ConfigMenuSnapshots,
@@ -61,8 +80,6 @@ class GUI_App : public wxApp
     wxFont		    m_small_font;
     wxFont		    m_bold_font;
 
-    // #ys_FIXME
-//     std::vector<Tab *> g_tabs_list;
     wxLocale*	    m_wxLocale{ nullptr };
 
 public:
@@ -120,17 +137,12 @@ public:
     bool            check_unsaved_changes();
     bool            checked_tab(Tab* tab);
     void            delete_tab_from_list(Tab* tab);
-    //     Tab*            get_tab(const std::string& name);
     void            load_current_presets();
-
 
     Sidebar&            sidebar();
     ObjectManipulation* obj_manipul();
-//     ObjectList&     get_obj_list();
-
-    // Functions for updating of the object manipulation values
-    void update_position_values();
-    void update_position_values(const Vec3d& position);
+    ObjectList*         obj_list();
+    std::vector<ModelObject*> *model_objects();
 
     AppConfig*      app_config{ nullptr };
     PresetBundle*   preset_bundle{ nullptr };

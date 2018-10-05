@@ -72,13 +72,13 @@ class ObjectInfo : public wxStaticBoxSizer
 public:
     ObjectInfo(wxWindow *parent);
 
+    wxStaticBitmap *manifold_warning_icon;
 private:
     wxStaticText *info_size;
     wxStaticText *info_volume;
     wxStaticText *info_facets;
     wxStaticText *info_materials;
     wxStaticText *info_manifold;
-    wxStaticBitmap *manifold_warning_icon;
 };
 
 ObjectInfo::ObjectInfo(wxWindow *parent) :
@@ -362,8 +362,6 @@ struct Sidebar::priv
     wxButton *btn_reslice;
     // wxButton *btn_print;  // XXX: remove
     wxButton *btn_send_gcode;
-
-    std::vector <std::shared_ptr<ConfigOptionsGroup>> optgroups {};
 };
 
 
@@ -512,13 +510,14 @@ ObjectManipulation* Sidebar::obj_manipul()
     return p->object_manipulation;
 }
 
-ConfigOptionsGroup* Sidebar::get_optgroup(size_t i)
+ObjectList* Sidebar::obj_list()
 {
-    return p->optgroups.empty() ? nullptr : p->optgroups[i].get();
+    return p->object_list;
 }
 
-t_optgroups& Sidebar::get_optgroups() {
-    return p->optgroups;
+ConfigOptionsGroup* Sidebar::og_freq_chng_params()
+{
+    return p->frequently_changed_parameters->get_og();
 }
 
 wxButton* Sidebar::get_wiping_dialog_button()
@@ -536,6 +535,26 @@ int Sidebar::get_ol_selection()
     return p->object_list->get_sel_obj_id();
 }
 
+void Sidebar::show_info_sizers(const bool show)
+{
+    p->object_info->Show(show);
+    p->object_info->manifold_warning_icon->Show(show/* && g_show_manifold_warning_icon*/); // where is g_show_manifold_warning_icon updating? #ys_FIXME
+    p->sliced_info->Show(show /*&& g_show_print_info*/); // where is g_show_print_info updating? #ys_FIXME
+}
+
+void Sidebar::show_buttons(const bool show)
+{
+    p->btn_reslice->Show(show);
+    for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
+        TabPrinter *tab = dynamic_cast<TabPrinter*>(wxGetApp().tab_panel()->GetPage(i));
+        if (!tab)
+            continue;
+        if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptFFF) {
+            p->btn_send_gcode->Show(show && !tab->m_config->opt_string("print_host").empty());
+        }
+        break;
+    }
+}
 
 // Plater::Object
 
@@ -711,27 +730,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     // Drop target:
     q->SetDropTarget(new PlaterDropTarget(q));   // if my understanding is right, wxWindow takes the owenership
-
-    // Setting of global access pointers
-    // FIXME: We really should get rid of these once Perl code is gone...
-    set_objects_from_model(model);
-    // TODO: ?
-    //  # Send sizers/buttons to C++
-    // Slic3r::GUI::set_objects_from_perl( $self->{scrolled_window_panel},
-    //                                     $frequently_changed_parameters_sizer,
-    //                                     $info_sizer,
-    //                                     $self->{btn_export_gcode},
-    //     #                                $self->{btn_export_stl},
-    //                                     $self->{btn_reslice},
-    //                                     $self->{btn_print},
-    //                                     $self->{btn_send_gcode},
-    //                                     $self->{object_info_manifold_warning_icon} );
-
-    // Slic3r::GUI::set_model_events_from_perl(  $self->{model},
-    //                                     $self->{event_object_selection_changed},
-    //                                     $self->{event_object_settings_changed},
-    //                                     $self->{event_remove_object},
-    //                                     $self->{event_update_scene});
 
     update_ui_from_settings();
     q->Layout();

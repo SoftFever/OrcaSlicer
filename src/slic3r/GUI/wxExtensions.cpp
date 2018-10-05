@@ -1,6 +1,5 @@
 #include "wxExtensions.hpp"
 
-#include "GUI.hpp"
 #include "../../libslic3r/Utils.hpp"
 #include "BitmapCache.hpp"
 
@@ -8,6 +7,8 @@
 #include <wx/statline.h>
 #include <wx/dcclient.h>
 #include <wx/numformatter.h>
+#include "GUI_App.hpp"
+#include "GUI_ObjectList.hpp"
 
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
@@ -368,7 +369,7 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
     m_name = wxEmptyString;
     m_icon = m_empty_icon;
 
-    auto categories_icon = Slic3r::GUI::get_category_icon();
+    std::map<std::string, wxBitmap>& categories_icon = Slic3r::GUI::wxGetApp().obj_list()->CATEGORY_ICON;//Slic3r::GUI::get_category_icon();
 
     for (auto& cat : m_opt_categories)
         m_name += cat + "; ";

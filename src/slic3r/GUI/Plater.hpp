@@ -16,6 +16,7 @@ namespace GUI {
 class MainFrame;
 class ConfigOptionsGroup;
 class ObjectManipulation;
+class ObjectList;
 
 using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
@@ -31,13 +32,15 @@ public:
 
     void update_presets(Slic3r::Preset::Type preset_type);
 
-    ObjectManipulation*     obj_manipul();
+    ObjectManipulation*     obj_manipul(); 
+    ObjectList*             obj_list();
 
-    ConfigOptionsGroup*     get_optgroup(size_t i); // #ys_FIXME_for_delete
-    t_optgroups&            get_optgroups();// #ys_FIXME_for_delete
+    ConfigOptionsGroup*     og_freq_chng_params();
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
     int                     get_ol_selection();
+    void                    show_info_sizers(const bool show);
+    void                    show_buttons(const bool show);
 
 private:
     struct priv;

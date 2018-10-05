@@ -36,6 +36,12 @@ enum QuickSlice
     qsExportPNG
 };
 
+struct PresetTab {
+    std::string       name;
+    Tab*              panel;
+    PrinterTechnology technology;
+};
+
 class MainFrame : public wxFrame
 {
     bool        m_no_plater;
@@ -64,6 +70,9 @@ class MainFrame : public wxFrame
 
     std::string     get_base_name(const wxString full_name) const ;
     std::string     get_dir_name(const wxString full_name) const ;
+
+    Tab*         get_tab(const std::string& name);
+
 public:
     MainFrame() {}
     MainFrame(const bool no_plater, const bool loaded);
@@ -94,6 +103,7 @@ public:
     void        select_tab(size_t tab) const;
     void        select_view(const std::string& direction);
 
+    std::vector<PresetTab>& get_preset_tabs();
 
     Plater*             m_plater { nullptr };
     wxNotebook*         m_tabpanel { nullptr };

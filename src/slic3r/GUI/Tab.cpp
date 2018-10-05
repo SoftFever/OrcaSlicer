@@ -683,10 +683,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
         
 // 		g_wxMainFrame->ProcessWindowEvent(event);// #ys_FIXME
 	}
+
+    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params();
 	if (opt_key == "fill_density")
 	{
-		boost::any val = get_optgroup(ogFrequentlyChangingParameters)->get_config_value(*m_config, opt_key);
-		get_optgroup(ogFrequentlyChangingParameters)->set_value(opt_key, val);
+        boost::any val = og_freq_chng_params->get_config_value(*m_config, opt_key);
+        og_freq_chng_params->set_value(opt_key, val);
 	}
 	if (opt_key == "support_material" || opt_key == "support_material_buildplate_only")
 	{
@@ -695,12 +697,12 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 								m_config->opt_bool("support_material_buildplate_only") ?
 									_("Support on build plate only") :
 									_("Everywhere");
-		get_optgroup(ogFrequentlyChangingParameters)->set_value("support", new_selection);
+        og_freq_chng_params->set_value("support", new_selection);
 	}
 	if (opt_key == "brim_width")
 	{
 		bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
-		get_optgroup(ogFrequentlyChangingParameters)->set_value("brim", val);
+        og_freq_chng_params->set_value("brim", val);
 	}
 
     if (opt_key == "wipe_tower" || opt_key == "single_extruder_multi_material" || opt_key == "extruders_count" )
@@ -789,19 +791,20 @@ void Tab::update_preset_description_line()
 
 void Tab::update_frequently_changed_parameters()
 {
-    if (!get_optgroup(ogFrequentlyChangingParameters)) return;
-	boost::any value = get_optgroup(ogFrequentlyChangingParameters)->get_config_value(*m_config, "fill_density");
-	get_optgroup(ogFrequentlyChangingParameters)->set_value("fill_density", value);
+    auto og_freq_chng_params = wxGetApp().sidebar().og_freq_chng_params();
+    if (!og_freq_chng_params) return;
+    boost::any value = og_freq_chng_params->get_config_value(*m_config, "fill_density");
+    og_freq_chng_params->set_value("fill_density", value);
 
 	wxString new_selection = !m_config->opt_bool("support_material") ?
 							_("None") :
 							m_config->opt_bool("support_material_buildplate_only") ?
 								_("Support on build plate only") :
 								_("Everywhere");
-	get_optgroup(ogFrequentlyChangingParameters)->set_value("support", new_selection);
+    og_freq_chng_params->set_value("support", new_selection);
 
 	bool val = m_config->opt_float("brim_width") > 0.0 ? true : false;
-	get_optgroup(ogFrequentlyChangingParameters)->set_value("brim", val);
+    og_freq_chng_params->set_value("brim", val);
 
 	update_wiping_button_visibility();
 }
@@ -1841,9 +1844,10 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	m_preset_bundle->update_multi_material_filament_presets();
 	build_extruder_pages();
 	reload_config();
+    if (!wxGetApp().mainframe)
+        return;
 	on_value_change("extruders_count", extruders_count);
-    if (wxGetApp().mainframe)
-        wxGetApp().mainframe->m_plater->sidebar().update_objects_list_extruder_column(extruders_count);
+    wxGetApp().mainframe->m_plater->sidebar().update_objects_list_extruder_column(extruders_count);
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)
@@ -2193,7 +2197,7 @@ void Tab::load_current_preset()
             PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
-                for (auto& tab : *get_preset_tabs()){
+                for (auto& tab : wxGetApp().mainframe->get_preset_tabs()){
                     if (tab.technology != printer_technology)
                     {
                         int page_id = wxGetApp().tab_panel()->FindPage(tab.panel);

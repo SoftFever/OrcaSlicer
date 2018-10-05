@@ -22,7 +22,8 @@ public:
     OG_Settings(wxWindow* parent, const bool staticbox);
     ~OG_Settings() {}
 
-    wxSizer*        get_sizer();
+    wxSizer*            get_sizer();
+    ConfigOptionsGroup* get_og() { return m_og.get(); }
 };
 
 
@@ -30,13 +31,18 @@ class ObjectManipulation : public OG_Settings
 {
     bool        m_is_percent_scale = false;         // true  -> percentage scale unit  
                                                     // false -> uniform scale unit  
-    wxBoxSizer* m_extra_settings_sizer{ nullptr };  // sizer for extra Object/Part's settings
+    bool        m_is_uniform_scale = false;         // It indicates if scale is uniform
+    // sizer for extra Object/Part's settings
+    wxBoxSizer* m_settings_list_sizer{ nullptr };  
+    // option groups for settings
+    std::vector <std::shared_ptr<ConfigOptionsGroup>> m_og_settings;
 
 public:
     ObjectManipulation(wxWindow* parent);
     ~ObjectManipulation() {}
 
     int ol_selection();
+    void update_settings_list();
 
     void update_values();
     // update position values displacements or "gizmos"
@@ -57,6 +63,10 @@ public:
     void update_rotation_value(const Vec3d& rotation);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
+    void set_uniform_scaling(const bool uniform_scale) { m_is_uniform_scale = uniform_scale; }
+
+    void show_object_name(bool show);
+    void show_manipulation_og(const bool show);
 };
 
 }}

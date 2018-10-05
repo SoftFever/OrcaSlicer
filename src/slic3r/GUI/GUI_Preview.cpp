@@ -6,6 +6,7 @@
 #include "GLCanvas3DManager.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
 #include "PresetBundle.hpp"
+#include "wxExtensions.hpp"
 
 #include <wx/notebook.h>
 #include <wx/glcanvas.h>
@@ -69,7 +70,7 @@ bool Preview::init(wxNotebook* notebook, DynamicPrintConfig* config, Print* prin
     _3DScene::enable_dynamic_background(m_canvas, true);
 
     m_double_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
-    create_double_slider(this, m_double_slider_sizer, m_canvas);
+    create_double_slider();
 
     m_label_view_type = new wxStaticText(this, wxID_ANY, _(L("View")));
 
@@ -466,6 +467,105 @@ void Preview::on_checkbox_shells(wxCommandEvent& evt)
 {
     m_gcode_preview_data->shell.is_visible = m_checkbox_shells->IsChecked();
     refresh_print();
+}
+
+void Preview::create_double_slider()
+{
+    m_slider = new PrusaDoubleSlider(this, wxID_ANY, 0, 0, 0, 100);
+    m_double_slider_sizer->Add(m_slider, 0, wxEXPAND, 0);
+
+    // sizer, m_canvas
+    m_canvas->Bind(wxEVT_KEY_DOWN, &Preview::update_double_slider_from_canvas, this);
+
+    m_slider->Bind(wxEVT_SCROLL_CHANGED, [this](wxEvent& event) {
+        _3DScene::set_toolpaths_range(m_canvas, m_slider->GetLowerValueD() - 1e-6, m_slider->GetHigherValueD() + 1e-6);
+        if (IsShown())
+            m_canvas->Refresh();
+    });
+}
+
+void Preview::update_double_slider(bool force_sliders_full_range)
+{
+    std::vector<std::pair<int, double>> values;
+    std::vector<double> layers_z = _3DScene::get_current_print_zs(m_canvas, true);
+    fill_slider_values(values, layers_z);
+
+    const double z_low = m_slider->GetLowerValueD();
+    const double z_high = m_slider->GetHigherValueD();
+    m_slider->SetMaxValue(layers_z.size() - 1);
+    m_slider->SetSliderValues(values);
+
+    set_double_slider_thumbs(force_sliders_full_range, layers_z, z_low, z_high);
+}
+
+void Preview::fill_slider_values(std::vector<std::pair<int, double>> &values,
+                                 const std::vector<double> &layers_z)
+{
+    std::vector<double> layers_all_z = _3DScene::get_current_print_zs(m_canvas, false);
+    if (layers_all_z.size() == layers_z.size())
+        for (int i = 0; i < layers_z.size(); i++)
+            values.push_back(std::pair<int, double>(i + 1, layers_z[i]));
+    else if (layers_all_z.size() > layers_z.size()) {
+        int cur_id = 0;
+        for (int i = 0; i < layers_z.size(); i++)
+            for (int j = cur_id; j < layers_all_z.size(); j++)
+                if (layers_z[i] - 1e-6 < layers_all_z[j] && layers_all_z[j] < layers_z[i] + 1e-6) {
+                    values.push_back(std::pair<int, double>(j + 1, layers_z[i]));
+                    cur_id = j;
+                    break;
+                }
+    }
+}
+
+void Preview::set_double_slider_thumbs(const bool force_sliders_full_range,
+                                       const std::vector<double> &layers_z,
+                                       const double z_low, 
+                                       const double z_high)
+{
+    // Force slider full range only when slider is created.
+    // Support selected diapason on the all next steps
+    if (/*force_sliders_full_range*/z_high == 0.0) {
+        m_slider->SetLowerValue(0);
+        m_slider->SetHigherValue(layers_z.size() - 1);
+        return;
+    }
+
+    for (int i = layers_z.size() - 1; i >= 0; i--)
+        if (z_low >= layers_z[i]) {
+            m_slider->SetLowerValue(i);
+            break;
+        }
+    for (int i = layers_z.size() - 1; i >= 0; i--)
+        if (z_high >= layers_z[i]) {
+            m_slider->SetHigherValue(i);
+            break;
+        }
+}
+
+void Preview::reset_double_slider()
+{
+    m_slider->SetHigherValue(0);
+    m_slider->SetLowerValue(0);
+}
+
+void Preview::update_double_slider_from_canvas(wxKeyEvent& event)
+{
+    if (event.HasModifiers()) {
+        event.Skip();
+        return;
+    }
+
+    const auto key = event.GetKeyCode();
+
+    if (key == 'U' || key == 'D') {
+        const int new_pos = key == 'U' ? m_slider->GetHigherValue() + 1 : m_slider->GetHigherValue() - 1;
+        m_slider->SetHigherValue(new_pos);
+        if (event.ShiftDown()) m_slider->SetLowerValue(m_slider->GetHigherValue());
+    }
+    else if (key == 'S')
+        m_slider->ChangeOneLayerLock();
+    else
+        event.Skip();
 }
 
 } // namespace GUI
