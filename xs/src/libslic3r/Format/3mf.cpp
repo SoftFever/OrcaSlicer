@@ -30,6 +30,7 @@ const std::string RELATIONSHIPS_FILE = "_rels/.rels";
 const std::string PRINT_CONFIG_FILE = "Metadata/Slic3r_PE.config";
 const std::string MODEL_CONFIG_FILE = "Metadata/Slic3r_PE_model.config";
 const std::string LAYER_HEIGHTS_PROFILE_FILE = "Metadata/Slic3r_PE_layer_heights_profile.txt";
+const std::string SLA_SUPPORT_POINTS_FILE = "Metadata/Slic3r_PE_sla_support_points.txt";
 
 const char* MODEL_TAG = "model";
 const char* RESOURCES_TAG = "resources";
@@ -322,6 +323,7 @@ namespace Slic3r {
         typedef std::map<int, ObjectMetadata> IdToMetadataMap;
         typedef std::map<int, Geometry> IdToGeometryMap;
         typedef std::map<int, std::vector<coordf_t>> IdToLayerHeightsProfileMap;
+        typedef std::map<int, std::vector<Vec3f>> IdToSlaSupportPointsMap;
 
         // Version of the 3mf file
         unsigned int m_version;
@@ -337,6 +339,7 @@ namespace Slic3r {
         CurrentConfig m_curr_config;
         IdToMetadataMap m_objects_metadata;
         IdToLayerHeightsProfileMap m_layer_heights_profiles;
+        IdToSlaSupportPointsMap m_sla_support_points;
         std::string m_curr_metadata_name;
         std::string m_curr_characters;
 
@@ -353,6 +356,7 @@ namespace Slic3r {
         bool _load_model_from_file(const std::string& filename, Model& model, PresetBundle& bundle);
         bool _extract_model_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_layer_heights_profile_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
+        void _extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat);
         void _extract_print_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, PresetBundle& bundle, const std::string& archive_filename);
         bool _extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model);
 
@@ -461,6 +465,7 @@ namespace Slic3r {
         m_curr_config.volume_id = -1;
         m_objects_metadata.clear();
         m_layer_heights_profiles.clear();
+        m_sla_support_points.clear();
         m_curr_metadata_name.clear();
         m_curr_characters.clear();
         clear_errors();
@@ -533,6 +538,11 @@ namespace Slic3r {
                     // extract slic3r lazer heights profile file
                     _extract_layer_heights_profile_config_from_archive(archive, stat);
                 }
+                else if (boost::algorithm::iequals(name, SLA_SUPPORT_POINTS_FILE))
+                {
+                    // extract sla support points file
+                    _extract_sla_support_points_from_archive(archive, stat);
+                }
                 else if (boost::algorithm::iequals(name, PRINT_CONFIG_FILE))
                 {
                     // extract slic3r print config file
@@ -571,6 +581,10 @@ namespace Slic3r {
                 object.second->layer_height_profile = obj_layer_heights_profile->second;
                 object.second->layer_height_profile_valid = true;
             }
+
+            IdToSlaSupportPointsMap::iterator obj_sla_support_points = m_sla_support_points.find(object.first);
+            if (obj_sla_support_points != m_sla_support_points.end() && !obj_sla_support_points->second.empty())
+                object.second->sla_support_points = obj_sla_support_points->second;
 
             IdToMetadataMap::iterator obj_metadata = m_objects_metadata.find(object.first);
             if (obj_metadata != m_objects_metadata.end())
@@ -741,6 +755,71 @@ namespace Slic3r {
             }
         }
     }
+
+    void _3MF_Importer::_extract_sla_support_points_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat)
+    {
+        if (stat.m_uncomp_size > 0)
+        {
+            std::string buffer((size_t)stat.m_uncomp_size, 0);
+            mz_bool res = mz_zip_reader_extract_file_to_mem(&archive, stat.m_filename, (void*)buffer.data(), (size_t)stat.m_uncomp_size, 0);
+            if (res == 0)
+            {
+                add_error("Error while reading sla support points data to buffer");
+                return;
+            }
+
+            if (buffer.back() == '\n')
+                buffer.pop_back();
+
+            std::vector<std::string> objects;
+            boost::split(objects, buffer, boost::is_any_of("\n"), boost::token_compress_off);
+
+            for (const std::string& object : objects)
+            {
+                std::vector<std::string> object_data;
+                boost::split(object_data, object, boost::is_any_of("|"), boost::token_compress_off);
+                if (object_data.size() != 2)
+                {
+                    add_error("Error while reading object data");
+                    continue;
+                }
+
+                std::vector<std::string> object_data_id;
+                boost::split(object_data_id, object_data[0], boost::is_any_of("="), boost::token_compress_off);
+                if (object_data_id.size() != 2)
+                {
+                    add_error("Error while reading object id");
+                    continue;
+                }
+
+                int object_id = std::atoi(object_data_id[1].c_str());
+                if (object_id == 0)
+                {
+                    add_error("Found invalid object id");
+                    continue;
+                }
+
+                IdToSlaSupportPointsMap::iterator object_item = m_sla_support_points.find(object_id);
+                if (object_item != m_sla_support_points.end())
+                {
+                    add_error("Found duplicated SLA support points");
+                    continue;
+                }
+
+                std::vector<std::string> object_data_points;
+                boost::split(object_data_points, object_data[1], boost::is_any_of(" "), boost::token_compress_off);
+
+                std::vector<Vec3f> sla_support_points;
+
+                for (unsigned int i=0; i<object_data_points.size(); i+=3)
+                    sla_support_points.push_back(Vec3f(std::atof(object_data_points[i+0].c_str()), std::atof(object_data_points[i+1].c_str()), std::atof(object_data_points[i+2].c_str())));
+
+                if (!sla_support_points.empty())
+                    m_sla_support_points.insert(IdToSlaSupportPointsMap::value_type(object_id, sla_support_points));
+            }
+        }
+    }
+
 
     bool _3MF_Importer::_extract_model_config_from_archive(mz_zip_archive& archive, const mz_zip_archive_file_stat& stat, Model& model)
     {
@@ -1554,6 +1633,7 @@ namespace Slic3r {
         bool _add_mesh_to_object_stream(std::stringstream& stream, ModelObject& object, VolumeToOffsetsMap& volumes_offsets);
         bool _add_build_to_model_stream(std::stringstream& stream, const BuildItemsList& build_items);
         bool _add_layer_height_profile_file_to_archive(mz_zip_archive& archive, Model& model);
+        bool _add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model);
         bool _add_print_config_file_to_archive(mz_zip_archive& archive, const Print& print);
         bool _add_model_config_file_to_archive(mz_zip_archive& archive, const Model& model);
     };
@@ -1604,6 +1684,14 @@ namespace Slic3r {
 
         // adds layer height profile file
         if (!_add_layer_height_profile_file_to_archive(archive, model))
+        {
+            mz_zip_writer_end(&archive);
+            boost::filesystem::remove(filename);
+            return false;
+        }
+
+        // adds sla support points file
+        if (!_add_sla_support_points_file_to_archive(archive, model))
         {
             mz_zip_writer_end(&archive);
             boost::filesystem::remove(filename);
@@ -1904,6 +1992,42 @@ namespace Slic3r {
             }
         }
 
+        return true;
+    }
+
+    bool _3MF_Exporter::_add_sla_support_points_file_to_archive(mz_zip_archive& archive, Model& model)
+    {
+        std::string out = "";
+        char buffer[1024];
+
+        unsigned int count = 0;
+        for (const ModelObject* object : model.objects)
+        {
+            ++count;
+            const std::vector<Vec3f>& sla_support_points = object->sla_support_points;
+            if (!sla_support_points.empty())
+            {
+                sprintf(buffer, "object_id=%d|", count);
+                out += buffer;
+
+                // Store the layer height profile as a single space separated list.
+                for (size_t i = 0; i < sla_support_points.size(); ++i)
+                {
+                    sprintf(buffer, (i==0 ? "%f %f %f" : " %f %f %f"),  sla_support_points[i](0), sla_support_points[i](1), sla_support_points[i](2));
+                    out += buffer;
+                }
+                out += "\n";
+            }
+        }
+
+        if (!out.empty())
+        {
+            if (!mz_zip_writer_add_mem(&archive, SLA_SUPPORT_POINTS_FILE.c_str(), (const void*)out.data(), out.length(), MZ_DEFAULT_COMPRESSION))
+            {
+                add_error("Unable to add sla support points file to archive");
+                return false;
+            }
+        }
         return true;
     }
 
