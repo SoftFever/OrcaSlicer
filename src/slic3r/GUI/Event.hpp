@@ -14,6 +14,7 @@ struct SimpleEvent : public wxEvent
 {
     SimpleEvent(wxEventType type, wxObject* origin = nullptr) : wxEvent(0, type)
     {
+        m_propagationLevel = wxEVENT_PROPAGATE_MAX;
         SetEventObject(origin);
     }
 
@@ -30,6 +31,7 @@ template<class T, size_t N> struct ArrayEvent : public wxEvent
     ArrayEvent(wxEventType type, std::array<T, N> data, wxObject* origin = nullptr)
         : wxEvent(0, type), data(std::move(data))
     {
+        m_propagationLevel = wxEVENT_PROPAGATE_MAX;
         SetEventObject(origin);
     }
 
@@ -45,6 +47,7 @@ template<class T> struct ArrayEvent<T, 1> : public wxEvent
     ArrayEvent(wxEventType type, T data, wxObject* origin = nullptr)
         : wxEvent(0, type), data(std::move(data))
     {
+        m_propagationLevel = wxEVENT_PROPAGATE_MAX;
         SetEventObject(origin);
     }
 

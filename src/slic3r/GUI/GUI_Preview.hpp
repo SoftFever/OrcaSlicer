@@ -53,7 +53,7 @@ public:
     Preview(wxNotebook* notebook, DynamicPrintConfig* config, Print* print, GCodePreviewData* gcode_preview_data);
     virtual ~Preview();
 
-    wxGLCanvas* get_canvas() { return m_canvas; }
+    wxGLCanvas* get_wxglcanvas() { return m_canvas; }
 
     void set_number_extruders(unsigned int number_extruders);
     void reset_gcode_preview_data();

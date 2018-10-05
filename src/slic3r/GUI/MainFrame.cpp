@@ -7,6 +7,7 @@
 #include <wx/menu.h>
 #include <wx/progdlg.h>
 #include <wx/tooltip.h>
+#include <wx/debug.h>
 
 #include "Tab.hpp"
 #include "PresetBundle.hpp"
@@ -154,40 +155,10 @@ void MainFrame::init_tabpanel()
 //             m_config->save(Slic3r::GUI::autosave) ;
 //     });
 
-    // The following event is emited by the C++ Tab implementation on preset selection,
+    // The following event is emited by Tab on preset selection,
     // or when the preset's "modified" status changes.
-//     EVT_COMMAND($self, -1, $PRESETS_CHANGED_EVENT, sub {
-//         my($self, $event) = @_;
-//         auto tab_name = event->GetString;
-// 
-//         Tab* tab = Slic3r::GUI::get_preset_tab(tab_name);
-//         if (m_plater) {
-//             // Update preset combo boxes(Print settings, Filament, Material, Printer) from their respective tabs.
-//             auto presets = tab->get_presets();
-//             if (presets){
-//                 auto reload_dependent_tabs = tab->get_dependent_tabs();
-//                 m_plater->update_presets(tab_name, reload_dependent_tabs, presets);
-//                 m_plater->{"selected_item_$tab_name"} = tab->get_selected_preset_item();
-//                 if (tab_name == "printer") {
-//                     // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
-//                     std::vector<std::string> tab_names_other = { "print", "filament", "sla_materialprinter" };
-//                     for (const auto tab_name_other : tab_names_other) {
-//                         Tab* cur_tab = m_options_tabs[tab_name_other];
-//                         // If the printer tells us that the print or filament preset has been switched or invalidated,
-//                         // refresh the print or filament tab page.Otherwise just refresh the combo box.
-//                         if (reload_dependent_tabs.empty() ||
-//                             find(reload_dependent_tabs.begin(), reload_dependent_tabs.end(), tab_name_other) ==
-//                             reload_dependent_tabs.end() )
-//                             cur_tab->update_tab_ui();
-//                         else
-//                             cur_tab->load_current_preset();
-//                             
-//                     }
-//                 }
-//                 m_plater->on_config_change(tab->get_config());
-//             }
-//         }
-//     });
+    Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this);
+
 
     // The following event is emited by the C++ Tab implementation on object selection change.
 //     EVT_COMMAND($self, -1, $OBJECT_SELECTION_CHANGED_EVENT, sub {
@@ -791,6 +762,56 @@ wxMenuItem* MainFrame::append_menu_item(wxMenu* menu,
         item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
     menu->Bind(wxEVT_MENU, /*[cb](wxCommandEvent& event){cb; }*/cb);
     return item;
+}
+
+void MainFrame::on_presets_changed(SimpleEvent &event)
+{
+    auto *tab = dynamic_cast<Tab*>(event.GetEventObject());
+    wxASSERT(tab != nullptr);
+    if (tab == nullptr) {
+        return;
+    }
+
+    // Update preset combo boxes(Print settings, Filament, Material, Printer) from their respective tabs.
+    auto presets = tab->get_presets();
+    if (presets) {
+        auto reload_dependent_tabs = tab->get_dependent_tabs();
+
+        // FIXME: The preset type really should be a property of Tab instead
+        Slic3r::Preset::Type preset_type;
+        if (tab == m_options_tabs["print"]) { preset_type = Slic3r::Preset::TYPE_PRINT; }
+        else if (tab == m_options_tabs["filament"]) { preset_type = Slic3r::Preset::TYPE_FILAMENT; }
+        else if (tab == m_options_tabs["sla_material"]) { preset_type = Slic3r::Preset::TYPE_SLA_MATERIAL; }
+        else if (tab == m_options_tabs["printer"]) { preset_type = Slic3r::Preset::TYPE_PRINTER; }
+        else {
+            wxASSERT(false);
+            return;
+        }
+
+        m_plater->sidebar().update_presets(preset_type);
+
+        // XXX: ???
+        // m_plater->{"selected_item_$tab_name"} = tab->get_selected_preset_item();
+
+        if (preset_type == Slic3r::Preset::TYPE_PRINTER) {
+            // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
+            // XXX: Do this in a more C++ way
+            std::vector<std::string> tab_names_other = { "print", "filament", "sla_material" };
+            for (const auto tab_name_other : tab_names_other) {
+                Tab* cur_tab = m_options_tabs[tab_name_other];
+                // If the printer tells us that the print or filament preset has been switched or invalidated,
+                // refresh the print or filament tab page.Otherwise just refresh the combo box.
+                if (reload_dependent_tabs.empty() ||
+                    find(reload_dependent_tabs.begin(), reload_dependent_tabs.end(), tab_name_other) ==
+                    reload_dependent_tabs.end() )
+                    cur_tab->update_tab_ui();
+                else
+                    cur_tab->load_current_preset();
+            }
+        }
+        // XXX: ?
+        // m_plater->on_config_change(tab->get_config());
+    }
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.

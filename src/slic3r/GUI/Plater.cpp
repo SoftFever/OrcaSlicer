@@ -463,38 +463,37 @@ Sidebar::~Sidebar() {}
 
 void Sidebar::update_presets(Preset::Type preset_type)
 {
-    // TODO: wxApp access
-
     switch (preset_type) {
     case Preset::TYPE_FILAMENT:
-        // my $choice_idx = 0;
         if (p->combos_filament.size() == 1) {
             // Single filament printer, synchronize the filament presets.
-            // wxTheApp->{preset_bundle}->set_filament_preset(0, wxTheApp->{preset_bundle}->filament->get_selected_preset->name);
+            const std::string &name = wxGetApp().preset_bundle->filaments.get_selected_preset().name;
+            wxGetApp().preset_bundle->set_filament_preset(0, name);
         }
 
         for (size_t i = 0; i < p->combos_filament.size(); i++) {
-            // wxTheApp->{preset_bundle}->update_platter_filament_ui($choice_idx, $choice);
+            wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
         }
+
         break;
 
     case Preset::TYPE_PRINT:
-        // wxTheApp->{preset_bundle}->print->update_platter_ui($choosers[0]);
+        wxGetApp().preset_bundle->prints.update_platter_ui(p->combo_print);
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        // wxTheApp->{preset_bundle}->sla_material->update_platter_ui($choosers[0]);
+        wxGetApp().preset_bundle->sla_materials.update_platter_ui(p->combo_sla_material);
         break;
 
     case Preset::TYPE_PRINTER:
         // Update the print choosers to only contain the compatible presets, update the dirty flags.
-        // wxTheApp->{preset_bundle}->print->update_platter_ui($self->{preset_choosers}{print}->[0]);
+        wxGetApp().preset_bundle->prints.update_platter_ui(p->combo_print);
         // Update the printer choosers, update the dirty flags.
-        // wxTheApp->{preset_bundle}->printer->update_platter_ui($choosers[0]);
+        wxGetApp().preset_bundle->printers.update_platter_ui(p->combo_printer);
         // Update the filament choosers to only contain the compatible presets, update the color preview,
         // update the dirty flags.
         for (size_t i = 0; i < p->combos_filament.size(); i++) {
-            // wxTheApp->{preset_bundle}->update_platter_filament_ui($choice_idx, $choice);
+            wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
         }
         break;
 
@@ -502,7 +501,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
     }
 
     // Synchronize config.ini with the current selections.
-    // wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -623,7 +622,8 @@ struct Plater::priv
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
     std::string get_config(const std::string &key) const;
-    BoundingBox bed_shape_bb() const;
+    BoundingBoxf bed_shape_bb() const;
+    BoundingBox scaled_bed_shape_bb() const;
     std::vector<size_t> load_files(const std::vector<fs::path> &input_files);
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
 
@@ -723,7 +723,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
-    preview->get_canvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+    preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_update_print_preview, this);
     q->Bind(EVT_PROCESS_COMPLETED, &priv::on_process_completed, this);
@@ -751,7 +751,7 @@ void Plater::priv::update(bool force_autocenter)
         // auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
         // const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
         // const BoundingBox bed_shape_bb = bed_shape.bounding_box();
-        const Vec2d bed_center = bed_shape_bb().center().cast<double>();
+        const Vec2d& bed_center = bed_shape_bb().center();
         model.center_instances_around_point(bed_center);
     }
 
@@ -787,7 +787,13 @@ std::string Plater::priv::get_config(const std::string &key) const
     return wxGetApp().app_config->get(key);
 }
 
-BoundingBox Plater::priv::bed_shape_bb() const
+BoundingBoxf Plater::priv::bed_shape_bb() const
+{
+    BoundingBox bb = scaled_bed_shape_bb();
+    return BoundingBoxf(unscale(bb.min), unscale(bb.max));
+}
+
+BoundingBox Plater::priv::scaled_bed_shape_bb() const
 {
     const auto *bed_shape_opt = config->opt<ConfigOptionPoints>("bed_shape");
     const auto bed_shape = Slic3r::Polygon::new_scale(bed_shape_opt->values);
@@ -914,7 +920,7 @@ Vec3crd to_3d(const Point &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
 
 std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &model_objects)
 {
-    const BoundingBox bed_shape = bed_shape_bb();
+    const BoundingBoxf bed_shape = bed_shape_bb();
     const Vec3d bed_center = to_3d(bed_shape.center().cast<double>(), 0.0);
     const Vec3d bed_size = to_3d(bed_shape.size().cast<double>(), 1.0);
 
@@ -1069,7 +1075,7 @@ void Plater::priv::on_action_add(SimpleEvent&)
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
     wxObject* o = evt.GetEventObject();
-    if (o == preview->get_canvas())
+    if (o == preview->get_wxglcanvas())
         preview->set_viewport_into_scene(canvas3D);
     else if (o == canvas3D)
         preview->set_viewport_from_scene(canvas3D);
