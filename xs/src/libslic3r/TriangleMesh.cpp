@@ -1397,101 +1397,80 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
             // Is it the start or end point?
             bool             start;
             const IntersectionReference& ipref() const { return start ? polyline->start : polyline->end; }
-            int point_id() const { return ipref().point_id; }
-            int edge_id () const { return ipref().edge_id; }
+            // Return a unique ID for the intersection point.
+            // Return a positive id for a point, or a negative id for an edge.
+            int id() const { const IntersectionReference &r = ipref(); return (r.point_id >= 0) ? r.point_id : - r.edge_id; }
+            bool operator==(const OpenPolylineEnd &rhs) const { return this->polyline == rhs.polyline && this->start == rhs.start; }
         };
-        auto by_edge_lower = [](const OpenPolylineEnd &ope1, const OpenPolylineEnd &ope2) { return ope1.edge_id() < ope2.edge_id(); };
-        auto by_point_lower = [](const OpenPolylineEnd &ope1, const OpenPolylineEnd &ope2) { return ope1.point_id() < ope2.point_id(); };
-        std::vector<OpenPolylineEnd> by_edge_id;
-        std::vector<OpenPolylineEnd> by_point_id;
-        by_edge_id.reserve(2 * open_polylines.size());
-        by_point_id.reserve(2 * open_polylines.size());
+        auto by_id_lower = [](const OpenPolylineEnd &ope1, const OpenPolylineEnd &ope2) { return ope1.id() < ope2.id(); };
+        std::vector<OpenPolylineEnd> by_id;
+        by_id.reserve(2 * open_polylines.size());
         for (OpenPolyline &opl : open_polylines) {
-            if (opl.start.edge_id != -1)
-                by_edge_id .emplace_back(OpenPolylineEnd(&opl, true));
-            if (try_connect_reversed) {
-                if (opl.end.edge_id != -1)
-                    by_edge_id .emplace_back(OpenPolylineEnd(&opl, false));
-            }
-            if (opl.start.point_id != -1)
-                by_point_id.emplace_back(OpenPolylineEnd(&opl, true));
-            if (try_connect_reversed) {
-                if (opl.end.point_id != -1)
-                    by_point_id.emplace_back(OpenPolylineEnd(&opl, false));
-            }
+            if (opl.start.point_id != -1 || opl.start.edge_id != -1)
+                by_id.emplace_back(OpenPolylineEnd(&opl, true));
+            if (try_connect_reversed && (opl.end.point_id != -1 || opl.end.edge_id != -1))
+                by_id.emplace_back(OpenPolylineEnd(&opl, false));
         }
-        std::sort(by_edge_id .begin(), by_edge_id .end(), by_edge_lower);
-        std::sort(by_point_id.begin(), by_point_id.end(), by_point_lower);
-
+        std::sort(by_id.begin(), by_id.end(), by_id_lower);
+        // Find an iterator to by_id_lower for the particular end of OpenPolyline (by comparing the OpenPolyline pointer and the start attribute).
+		auto find_polyline_end = [&by_id, by_id_lower](const OpenPolylineEnd &end) -> std::vector<OpenPolylineEnd>::iterator {
+            for (auto it = std::lower_bound(by_id.begin(), by_id.end(), end, by_id_lower);
+                      it != by_id.end() && it->id() == end.id(); ++ it)
+                if (*it == end)
+                    return it;
+            return by_id.end();
+        };
         // Try to connect the loops.
         for (OpenPolyline &opl : open_polylines) {
             if (opl.consumed)
                 continue;
             opl.consumed = true;
-            OpenPolylineEnd end(&opl, false);
+			OpenPolylineEnd end(&opl, false);
             for (;;) {
                 // find a line starting where last one finishes
-                OpenPolylineEnd* next_start = nullptr;
-                if (end.edge_id() != -1) {
-                    auto it_begin = std::lower_bound(by_edge_id.begin(), by_edge_id.end(), end, by_edge_lower);
-                    if (it_begin != by_edge_id.end()) {
-                        auto it_end = std::upper_bound(it_begin, by_edge_id.end(), end, by_edge_lower);
-                        for (auto it_edge = it_begin; it_edge != it_end; ++ it_edge)
-                            if (! it_edge->polyline->consumed) {
-                                next_start = &(*it_edge);
-                                break;
-                            }
-                    }
-                }
-                if (next_start == nullptr && end.point_id() != -1) {
-                    auto it_begin = std::lower_bound(by_point_id.begin(), by_point_id.end(), end, by_point_lower);
-                    if (it_begin != by_point_id.end()) {
-                        auto it_end = std::upper_bound(it_begin, by_point_id.end(), end, by_point_lower);
-                        for (auto it_point = it_begin; it_point != it_end; ++ it_point)
-                            if (! it_point->polyline->consumed) {
-                                next_start = &(*it_point);
-                                break;
-                            }
-                    }
-                }
-				if (next_start == nullptr) {
-					// The current loop could not be closed. Unmark the segment.
-					opl.consumed = false;
-					break;
-				}
+                auto it_next_start = std::lower_bound(by_id.begin(), by_id.end(), end, by_id_lower);
+                for (; it_next_start != by_id.end() && it_next_start->id() == end.id(); ++ it_next_start)
+                    if (! it_next_start->polyline->consumed)
+                        goto found;
+				// The current loop could not be closed. Unmark the segment.
+				opl.consumed = false;
+				break;
+            found:
 				// Attach this polyline to the end of the initial polyline.
-                if (next_start->start) {
-                    auto it = next_start->polyline->points.begin();
-                    std::copy(++ it, next_start->polyline->points.end(), back_inserter(opl.points));
+                if (it_next_start->start) {
+                    auto it = it_next_start->polyline->points.begin();
+                    std::copy(++ it, it_next_start->polyline->points.end(), back_inserter(opl.points));
                 } else {
-                    auto it = next_start->polyline->points.rbegin();
-                    std::copy(++ it, next_start->polyline->points.rend(), back_inserter(opl.points));
+                    auto it = it_next_start->polyline->points.rbegin();
+                    std::copy(++ it, it_next_start->polyline->points.rend(), back_inserter(opl.points));
                 }
-                end = *next_start;
-                end.start = !end.start;
-                next_start->polyline->points.clear();
-                next_start->polyline->consumed = true;
+                // Mark the next polyline as consumed.
+                it_next_start->polyline->points.clear();
+                it_next_start->polyline->consumed = true;
+				if (try_connect_reversed) {
+                    // Running in a mode, where the polylines may be connected by mixing their orientations.
+                    // Update the end point lookup structure after the end point of the current polyline was extended.
+					auto it_end      = find_polyline_end(end);
+					auto it_next_end = find_polyline_end(OpenPolylineEnd(it_next_start->polyline, !it_next_start->start));
+                    // Swap the end points of the current and next polyline, but keep the polyline ptr and the start flag.
+                    std::swap(opl.end, it_next_end->start ? it_next_end->polyline->start : it_next_end->polyline->end);
+                    // Swap the positions of OpenPolylineEnd structures in the sorted array to match their respective end point positions.
+					std::swap(*it_end, *it_next_end);
+				}
                 // Check whether we closed this loop.
-                const IntersectionReference &ip1 = opl.start;
-                const IntersectionReference &ip2 = end.ipref();
-                if ((ip1.edge_id  != -1 && ip1.edge_id  == ip2.edge_id) ||
-                    (ip1.point_id != -1 && ip1.point_id == ip2.point_id)) {
+                if ((opl.start.edge_id  != -1 && opl.start.edge_id  == opl.end.edge_id) ||
+                    (opl.start.point_id != -1 && opl.start.point_id == opl.end.point_id)) {
                     // The current loop is complete. Add it to the output.
                     //assert(opl.points.front().point_id == opl.points.back().point_id);
                     //assert(opl.points.front().edge_id  == opl.points.back().edge_id);
                     // Remove the duplicate last point.
                     opl.points.pop_back();
                     if (opl.points.size() >= 3) {
-                        if (try_connect_reversed) {
+                        if (try_connect_reversed && area(opl.points) < 0)
                             // The closed polygon is patched from pieces with messed up orientation, therefore
                             // the orientation of the patched up polygon is not known.
                             // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
-                            double area = 0.;
-                            for (size_t i = 0, j = opl.points.size() - 1; i < opl.points.size(); j = i ++)
-                                area += double(opl.points[j].x + opl.points[i].x) * double(opl.points[i].y - opl.points[j].y);
-                            if (area < 0)
-                                std::reverse(opl.points.begin(), opl.points.end());
-                        }
+                            std::reverse(opl.points.begin(), opl.points.end());
                         loops->emplace_back(std::move(opl.points));
                     }
                     opl.points.clear();
@@ -1531,6 +1510,7 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
             // Is it the start or end point?
             bool             start;
             const Point&     point() const { return start ? polyline->points.front() : polyline->points.back(); }
+            bool operator==(const OpenPolylineEnd &rhs) const { return this->polyline == rhs.polyline && this->start == rhs.start; }
         };
         struct OpenPolylineEndAccessor {
             const Point* operator()(const OpenPolylineEnd &pt) const { return pt.polyline->consumed ? nullptr : &pt.point(); }
@@ -1546,57 +1526,76 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
         for (OpenPolyline &opl : open_polylines) {
             if (opl.consumed)
                 continue;
-            opl.consumed = true;
             OpenPolylineEnd end(&opl, false);
+            if (try_connect_reversed)
+                // The end point of this polyline will be modified, thus the following entry will become invalid. Remove it.
+                closest_end_point_lookup.erase(end);
+            opl.consumed = true;
 			size_t n_segments_joined = 1;
             for (;;) {
                 // Find a line starting where last one finishes, only return non-consumed open polylines (OpenPolylineEndAccessor returns null for consumed).
                 std::pair<const OpenPolylineEnd*, double> next_start_and_dist = closest_end_point_lookup.find(end.point());
                 const OpenPolylineEnd *next_start = next_start_and_dist.first;
 				// Check whether we closed this loop.
-				double current_loop_closing_distance2 = opl.points.front().distance_to_sq(opl.points.back());
-				if (next_start == nullptr || current_loop_closing_distance2 < next_start_and_dist.second) {
-					if (current_loop_closing_distance2 < coordf_t(max_gap_scaled) * coordf_t(max_gap_scaled)) {
-						if (current_loop_closing_distance2 == 0.) {
-                            // Remove the duplicate last point.
-                            opl.points.pop_back();
-                        } else {
-                            // The end points are different, keep both of them.
-                        }
-                        if (opl.points.size() >= 3) {
-							if (try_connect_reversed && n_segments_joined > 1) {
-                                // The closed polygon is patched from pieces with messed up orientation, therefore
-                                // the orientation of the patched up polygon is not known.
-                                // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
-                                double area = 0.;
-                                for (size_t i = 0, j = opl.points.size() - 1; i < opl.points.size(); j = i ++)
-                                    area += double(opl.points[j].x + opl.points[i].x) * double(opl.points[i].y - opl.points[j].y);
-                                if (area < 0)
-                                    std::reverse(opl.points.begin(), opl.points.end());
-                            }
-                            loops->emplace_back(std::move(opl.points));
-                        }
-                        opl.points.clear();
-                        break;
+                double current_loop_closing_distance2 = opl.points.front().distance_to_sq(opl.points.back());
+                bool   loop_closed = current_loop_closing_distance2 < coordf_t(max_gap_scaled) * coordf_t(max_gap_scaled);
+                if (next_start != nullptr && loop_closed && current_loop_closing_distance2 < next_start_and_dist.second) {
+                    // Heuristics to decide, whether to close the loop, or connect another polyline.
+                    // One should avoid closing loops shorter than max_gap_scaled.
+                    loop_closed = sqrt(current_loop_closing_distance2) < 0.3 * length(opl.points);
+                }
+                if (loop_closed) {
+                    // Remove the start point of the current polyline from the lookup.
+                    // Mark the current segment as not consumed, otherwise the closest_end_point_lookup.erase() would fail.
+                    opl.consumed = false;
+                    closest_end_point_lookup.erase(OpenPolylineEnd(&opl, true));
+                    if (current_loop_closing_distance2 == 0.) {
+                        // Remove the duplicate last point.
+                        opl.points.pop_back();
+                    } else {
+                        // The end points are different, keep both of them.
                     }
+                    if (opl.points.size() >= 3) {
+                        if (try_connect_reversed && n_segments_joined > 1 && area(opl.points) < 0)
+                            // The closed polygon is patched from pieces with messed up orientation, therefore
+                            // the orientation of the patched up polygon is not known.
+                            // Orient the patched up polygons CCW. This heuristic may close some holes and cavities.
+                            std::reverse(opl.points.begin(), opl.points.end());
+                        loops->emplace_back(std::move(opl.points));
+                    }
+                    opl.points.clear();
+                    opl.consumed = true;
+                    break;
+                }
+				if (next_start == nullptr) {
                     // The current loop could not be closed. Unmark the segment.
                     opl.consumed = false;
+                    if (try_connect_reversed)
+                        // Re-insert the end point.
+                        closest_end_point_lookup.insert(OpenPolylineEnd(&opl, false));
                     break;
                 }
                 // Attach this polyline to the end of the initial polyline.
                 if (next_start->start) {
                     auto it = next_start->polyline->points.begin();
-                    std::copy(++ it, next_start->polyline->points.end(), back_inserter(opl.points));
+                    if (*it == opl.points.back())
+                        ++ it;
+                    std::copy(it, next_start->polyline->points.end(), back_inserter(opl.points));
                 } else {
                     auto it = next_start->polyline->points.rbegin();
-                    std::copy(++ it, next_start->polyline->points.rend(), back_inserter(opl.points));
+                    if (*it == opl.points.back())
+                        ++ it;
+                    std::copy(it, next_start->polyline->points.rend(), back_inserter(opl.points));
                 }
 				++ n_segments_joined;
-                end = *next_start;
-                end.start = !end.start;
-                next_start->polyline->points.clear();
-                next_start->polyline->consumed = true;
-                // Continue with the current loop.
+                // Remove the end points of the consumed polyline segment from the lookup.
+                OpenPolyline *opl2 = next_start->polyline;
+                closest_end_point_lookup.erase(OpenPolylineEnd(opl2, true));
+                if (try_connect_reversed)
+                    closest_end_point_lookup.erase(OpenPolylineEnd(opl2, false));
+				opl2->points.clear();
+				opl2->consumed = true;
+				// Continue with the current loop.
             }
         }
     }
@@ -1606,8 +1605,13 @@ void TriangleMeshSlicer::make_loops(std::vector<IntersectionLine> &lines, Polygo
 		static int iRun = 0;
 		SVG svg(debug_out_path("TriangleMeshSlicer_make_loops-polylines-final-%d.svg", iRun++).c_str(), bbox_svg);
 		svg.draw(union_ex(*loops));
-		for (const OpenPolyline &pl : open_polylines)
-			svg.draw(Polyline(pl.points), "red");
+        for (const OpenPolyline &pl : open_polylines) {
+            if (pl.points.empty())
+                continue;
+            svg.draw(Polyline(pl.points), "red");
+            svg.draw(pl.points.front(), "blue");
+            svg.draw(pl.points.back(), "blue");
+        }
 		svg.Close();
 	}
 #endif /* SLIC3R_DEBUG_SLICE_PROCESSING */

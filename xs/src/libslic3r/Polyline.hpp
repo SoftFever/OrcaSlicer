@@ -81,8 +81,8 @@ extern BoundingBox get_extents(const Polylines &polylines);
 
 inline double total_length(const Polylines &polylines) {
     double total = 0;
-    for (Polylines::const_iterator it = polylines.begin(); it != polylines.end(); ++it)
-        total += it->length();
+    for (const Polyline &pl : polylines)
+        total += pl.length();
     return total;
 }
 

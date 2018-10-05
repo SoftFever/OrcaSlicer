@@ -150,6 +150,24 @@ public:
             m_map.emplace(std::make_pair(Point(pt->x>>m_grid_log2, pt->y>>m_grid_log2), std::move(value)));
     }
 
+    // Erase a data point equal to value. (ValueType has to declare the operator==).
+    // Returns true if the data point equal to value was found and removed.
+    bool erase(const ValueType &value) {
+        const Point *pt = m_point_accessor(value);
+        if (pt != nullptr) {
+            // Range of fragment starts around grid_corner, close to pt.
+            auto range = m_map.equal_range(Point(pt->x>>m_grid_log2, pt->y>>m_grid_log2));
+            // Remove the first item.
+            for (auto it = range.first; it != range.second; ++ it) {
+                if (it->second == value) {
+                    m_map.erase(it);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // Return a pair of <ValueType*, distance_squared>
     std::pair<const ValueType*, double> find(const Point &pt) {
         // Iterate over 4 closest grid cells around pt,
