@@ -16,6 +16,8 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/format.hpp>
+
 
 namespace Slic3r {
 
@@ -125,8 +127,14 @@ void AppConfig::load()
 
 void AppConfig::save()
 {
+    // The config is first written to a file with a PID suffix and then moved
+    // to avoid race conditions with multiple instances of Slic3r
+
+    const auto path = config_path();
+    std::string path_pid = (boost::format("%1%.%2%") % path % get_current_pid()).str();
+
     boost::nowide::ofstream c;
-    c.open(AppConfig::config_path(), std::ios::out | std::ios::trunc);
+    c.open(path_pid, std::ios::out | std::ios::trunc);
     c << "# " << Slic3r::header_slic3r_generated() << std::endl;
     // Make sure the "no" category is written first.
     for (const std::pair<std::string, std::string> &kvp : m_storage[""])
@@ -155,6 +163,9 @@ void AppConfig::save()
         }
     }
     c.close();
+
+    rename_file(path_pid, path);
+
     m_dirty = false;
 }
 
