@@ -414,7 +414,7 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
     }
 
     // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, SCALED_EPSILON)));
+    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
 
     // append bed contours
     Lines contour_lines = to_lines(poly);
@@ -644,7 +644,7 @@ bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
     m_z = z;
 
     // grow slices in order to display them better
-    ExPolygons expolygons = offset_ex(polygons, scale_(0.1));
+    ExPolygons expolygons = offset_ex(polygons, (float)scale_(0.1));
     Lines lines = to_lines(expolygons);
     return m_lines.set_from_lines(lines, m_z);
 }
@@ -2621,32 +2621,28 @@ void GLCanvas3D::reset_volumes()
     _reset_warning_texture();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::deselect_volumes()
 {
-#if !ENABLE_EXTENDED_SELECTION
     for (GLVolume* vol : m_volumes.volumes)
     {
         if (vol != nullptr)
             vol->selected = false;
     }
-#endif // !ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::select_volume(unsigned int id)
 {
-#if !ENABLE_EXTENDED_SELECTION
     if (id < (unsigned int)m_volumes.volumes.size())
     {
         GLVolume* vol = m_volumes.volumes[id];
         if (vol != nullptr)
             vol->selected = true;
     }
-#endif // !ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
 {
-#if !ENABLE_EXTENDED_SELECTION
     if (m_model == nullptr)
         return;
 
@@ -2664,8 +2660,8 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
             }
         }
     }
-#endif // !ENABLE_EXTENDED_SELECTION
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {

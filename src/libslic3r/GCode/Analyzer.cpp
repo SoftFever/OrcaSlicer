@@ -698,7 +698,7 @@ void GCodeAnalyzer::_calc_gcode_preview_extrusion_layers(GCodePreviewData& previ
 
             // update current values
             data = move.data;
-            z = move.start_position.z();
+            z = (float)move.start_position.z();
             volumetric_rate = move.data.feedrate * (float)move.data.mm3_per_mm;
             height_range.update_from(move.data.height);
             width_range.update_from(move.data.width);

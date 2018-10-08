@@ -36,7 +36,7 @@ void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
 
     this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
     
-    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++ i) {
+    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
         const stl_facet &facet = mesh.stl.facet_start[i];
         for (int j = 0; j < 3; ++ j)
             this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
@@ -52,7 +52,7 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
     this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
 
     unsigned int vertices_count = 0;
-    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
         const stl_facet &facet = mesh.stl.facet_start[i];
         for (int j = 0; j < 3; ++j)
             this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
@@ -244,7 +244,7 @@ void GLVolume::set_render_color(float r, float g, float b, float a)
 void GLVolume::set_render_color(const float* rgba, unsigned int size)
 {
     size = std::min((unsigned int)4, size);
-    for (int i = 0; i < size; ++i)
+    for (unsigned int i = 0; i < size; ++i)
     {
         render_color[i] = rgba[i];
     }
@@ -802,9 +802,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
         // edge has y=0 and centerline of the back edge has y=depth:
         Pointf3s points;
         std::vector<Vec3crd> facets;
-        float out_points_idx[][3] = {{0, -depth, 0}, {0, 0, 0}, {38.453, 0, 0}, {61.547, 0, 0}, {100, 0, 0}, {100, -depth, 0}, {55.7735, -10, 0}, {44.2265, 10, 0},
-                                     {38.453, 0, 1}, {0, 0, 1}, {0, -depth, 1}, {100, -depth, 1}, {100, 0, 1}, {61.547, 0, 1}, {55.7735, -10, 1}, {44.2265, 10, 1}};
-        int out_facets_idx[][3] = {{0, 1, 2}, {3, 4, 5}, {6, 5, 0}, {3, 5, 6}, {6, 2, 7}, {6, 0, 2}, {8, 9, 10}, {11, 12, 13}, {10, 11, 14}, {14, 11, 13}, {15, 8, 14},
+        float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
+        { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
+        int out_facets_idx[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
                                    {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11}};
         for (int i=0;i<16;++i)
@@ -1032,7 +1032,7 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
             continue;
 
         int extruder_id = volume->extruder_id - 1;
-        if ((extruder_id < 0) || ((unsigned int)colors.size() <= extruder_id))
+        if ((extruder_id < 0) || ((int)colors.size() <= extruder_id))
             extruder_id = 0;
 
         const Color& color = colors[extruder_id];
@@ -1837,6 +1837,7 @@ void _3DScene::reset_volumes(wxGLCanvas* canvas)
     s_canvas_mgr.reset_volumes(canvas);
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void _3DScene::deselect_volumes(wxGLCanvas* canvas)
 {
     s_canvas_mgr.deselect_volumes(canvas);
@@ -1851,6 +1852,7 @@ void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<in
 {
     s_canvas_mgr.update_volumes_selection(canvas, selections);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
 {

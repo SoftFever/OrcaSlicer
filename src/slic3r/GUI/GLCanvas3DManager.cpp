@@ -246,6 +246,7 @@ void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
         it->second->reset_volumes();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3DManager::deselect_volumes(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -266,6 +267,7 @@ void GLCanvas3DManager::update_volumes_selection(wxGLCanvas* canvas, const std::
     if (it != m_canvases.end())
         it->second->update_volumes_selection(selections);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 int GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
 {

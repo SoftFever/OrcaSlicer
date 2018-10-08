@@ -1350,7 +1350,7 @@ namespace Slic3r {
             return false;
         }
 
-        m_curr_config.volume_id = object->second.volumes.size();
+        m_curr_config.volume_id = (int)object->second.volumes.size();
 
         unsigned int first_triangle_id = (unsigned int)get_attribute_value_int(attributes, num_attributes, FIRST_TRIANGLE_ID_ATTR);
         unsigned int last_triangle_id = (unsigned int)get_attribute_value_int(attributes, num_attributes, LAST_TRIANGLE_ID_ATTR);
@@ -1408,7 +1408,7 @@ namespace Slic3r {
             return false;
         }
 
-        unsigned int geo_tri_count = geometry.triangles.size() / 3;
+        unsigned int geo_tri_count = (unsigned int)geometry.triangles.size() / 3;
 
         for (const ObjectMetadata::VolumeMetadata& volume_data : volumes)
         {
@@ -1429,7 +1429,7 @@ namespace Slic3r {
 
             unsigned int src_start_id = volume_data.first_triangle_id * 3;
 
-            for (size_t i = 0; i < triangles_count; ++i)
+            for (unsigned int i = 0; i < triangles_count; ++i)
             {
                 unsigned int ii = i * 3;
                 stl_facet& facet = stl.facet_start[i];
