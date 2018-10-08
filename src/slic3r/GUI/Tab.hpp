@@ -23,9 +23,6 @@
 #include <wx/bmpbuttn.h>
 #include <wx/treectrl.h>
 #include <wx/imaglist.h>
-#include <wx/statbox.h>
-#include <wx/dataview.h>
-#include <wx/event.h>
 
 #include <map>
 #include <vector>
@@ -126,8 +123,6 @@ protected:
 	wxButton*			m_undo_btn;
 	wxButton*			m_undo_to_sys_btn;
 	wxButton*			m_question_btn;
-	wxComboCtrl*		m_cc_presets_choice;
-	wxDataViewTreeCtrl*	m_presetctrl;
 	wxImageList*		m_preset_icons;
 
 	// Cached bitmaps.
@@ -218,7 +213,6 @@ public:
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
 
-	void		update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible);
 	void		load_key_value(const std::string& opt_key, const boost::any& value, bool saved_value = false);
 	void		reload_compatible_printers_widget();
 
@@ -267,7 +261,6 @@ protected:
 	void			on_presets_changed();
 	void			update_preset_description_line();
 	void			update_frequently_changed_parameters();
-	void			update_tab_presets(wxComboCtrl* ui, bool show_incompatible);
 	void			fill_icon_descriptions();
 	void			set_tooltips_text();
 };

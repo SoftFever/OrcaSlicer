@@ -1,15 +1,11 @@
 #ifndef slic3r_GUI_ObjectList_hpp_
 #define slic3r_GUI_ObjectList_hpp_
 
-#include <wx/panel.h>
 #include <wx/bitmap.h>
+#include <wx/dataview.h>
 #include <map>
 
 class wxBoxSizer;
-class wxDataViewCtrl;
-class wxDataViewColumn;
-class wxDataViewEvent; 
-class wxDataViewItem;
 class PrusaObjectDataViewModel;
 
 namespace Slic3r {
@@ -20,10 +16,9 @@ class ModelVolume;
 
 namespace GUI {
 
-class ObjectList
+class ObjectList : public wxDataViewCtrl
 {
     wxBoxSizer          *m_sizer {nullptr};
-    wxWindow            *m_parent{ nullptr };
 
     DynamicPrintConfig  *m_default_config {nullptr};
 
@@ -50,11 +45,10 @@ public:
 
     std::map<std::string, wxBitmap> CATEGORY_ICON;
 
-    wxDataViewCtrl				*m_objects_ctrl{ nullptr };
     PrusaObjectDataViewModel	*m_objects_model{ nullptr };
     DynamicPrintConfig          *m_config {nullptr};
 
-    std::vector<ModelObject*>     *m_objects{ nullptr };
+    std::vector<ModelObject*>   *m_objects{ nullptr };
 
 
     void                create_objects_ctrl();
@@ -110,7 +104,7 @@ public:
     void                 update_manipulation_sizer(const bool is_simple_mode);
 
     // Add object to the list
-    void add_object_to_list(const std::string &name, ModelObject* model_object);
+    void add_object_to_list(size_t obj_idx);
     // Delete object from the list
     void delete_object_from_list();
     // Delete all objects from the list

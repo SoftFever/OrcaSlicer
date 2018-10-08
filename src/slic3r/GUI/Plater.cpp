@@ -362,6 +362,9 @@ struct Sidebar::priv
     wxButton *btn_reslice;
     // wxButton *btn_print;  // XXX: remove
     wxButton *btn_send_gcode;
+
+    bool show_manifold_warning_icon = false;
+    bool show_print_info = false;
 };
 
 
@@ -537,8 +540,8 @@ int Sidebar::get_ol_selection()
 void Sidebar::show_info_sizers(const bool show)
 {
     p->object_info->Show(show);
-    p->object_info->manifold_warning_icon->Show(show/* && g_show_manifold_warning_icon*/); // where is g_show_manifold_warning_icon updating? #ys_FIXME
-    p->sliced_info->Show(show /*&& g_show_print_info*/); // where is g_show_print_info updating? #ys_FIXME
+    p->object_info->manifold_warning_icon->Show(show && p->show_manifold_warning_icon); // where is g_show_manifold_warning_icon updating? #ys_FIXME
+    p->sliced_info->Show(show && p->show_print_info); // where is g_show_print_info updating? #ys_FIXME
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -974,11 +977,7 @@ std::vector<size_t>  Plater::priv::load_model_objects(const ModelObjectPtrs &mod
     }
 
     for (const size_t idx : obj_idxs) {
-        const PlaterObject &object = objects[idx];
-        ModelObject *model_object = model.objects[idx];
-
-        // FIXME: ObjetParts not initialized (via add_frequently_changed_parameters)
-        // GUI::add_object_to_list(object.name, model_object);
+        wxGetApp().obj_list()->add_object_to_list(idx);
     }
 
     if (need_arrange) {
@@ -1153,6 +1152,38 @@ std::string Plater::export_gcode(const std::string &output_path)
 void Plater::reslice()
 {
     // TODO
+}
+
+void Plater::changed_object_settings(int obj_idx)
+{
+    if (obj_idx < 0)
+        return;
+    auto list = wxGetApp().obj_list();
+    wxASSERT(list != nullptr);
+    if (list == nullptr)
+        return;
+
+
+    if (list->is_parts_changed()) {
+        // recenter and re - align to Z = 0
+        auto model_object = p->model.objects[list->get_sel_obj_id()];
+        model_object->center_around_origin();
+    }
+
+    // update print
+    if (list->is_parts_changed() || list->is_part_settings_changed()) {
+//         stop_background_process();
+//         $self->{print}->reload_object($obj_idx);
+//         schedule_background_process();
+        if (p->canvas3D) _3DScene::reload_scene(p->canvas3D, true);
+        auto selections = p->collect_selections();
+        _3DScene::set_objects_selections(p->canvas3D, selections);
+        _3DScene::reload_scene(p->canvas3D, false);
+    }
+    else {
+//         schedule_background_process();
+    }
+
 }
 
 

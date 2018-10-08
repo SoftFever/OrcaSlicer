@@ -142,6 +142,7 @@ public:
     Sidebar&            sidebar();
     ObjectManipulation* obj_manipul();
     ObjectList*         obj_list();
+    Plater*             plater();
     std::vector<ModelObject*> *model_objects();
 
     AppConfig*      app_config{ nullptr };

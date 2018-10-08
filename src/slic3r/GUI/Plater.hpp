@@ -67,6 +67,7 @@ public:
     // Note: empty string means request default path
     std::string export_gcode(const std::string &output_path);
     void reslice();
+    void changed_object_settings(int obj_idx);
 private:
     struct priv;
     std::unique_ptr<priv> p;
