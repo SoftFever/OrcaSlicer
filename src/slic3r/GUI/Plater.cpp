@@ -617,7 +617,9 @@ struct Plater::priv
 
     priv(Plater *q, MainFrame *main_frame);
 
+#if !ENABLE_EXTENDED_SELECTION
     std::vector<int> collect_selections();
+#endif // !ENABLE_EXTENDED_SELECTION
     void update(bool force_autocenter = false);
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
@@ -671,8 +673,10 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::enable_picking(canvas3D, true);
     _3DScene::enable_moving(canvas3D, true);
     // XXX: more config from 3D.pm
+#if !ENABLE_EXTENDED_SELECTION
     _3DScene::set_select_by(canvas3D, "object");
     _3DScene::set_drag_by(canvas3D, "instance");
+#endif // !ENABLE_EXTENDED_SELECTION
     _3DScene::set_model(canvas3D, &model);
     _3DScene::set_print(canvas3D, &print);
     _3DScene::set_config(canvas3D, config);
@@ -735,6 +739,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     q->Layout();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 std::vector<int> Plater::priv::collect_selections()
 {
     std::vector<int> res;
@@ -743,6 +748,7 @@ std::vector<int> Plater::priv::collect_selections()
     }
     return res;
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::update(bool force_autocenter)
 {
@@ -758,8 +764,10 @@ void Plater::priv::update(bool force_autocenter)
     // stop_background_process();   // TODO
     print.reload_model_instances();
 
+#if !ENABLE_EXTENDED_SELECTION
     const auto selections = collect_selections();
     _3DScene::set_objects_selections(canvas3D, selections);
+#endif // !ENABLE_EXTENDED_SELECTION
     _3DScene::reload_scene(canvas3D, false);
     preview->reset_gcode_preview_data();
     preview->reload_print();
@@ -999,7 +1007,9 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
     const auto current_id = notebook->GetCurrentPage()->GetId();
     if (current_id == canvas3D->GetId()) {
         if (_3DScene::is_reload_delayed(canvas3D)) {
+#if !ENABLE_EXTENDED_SELECTION
             _3DScene::set_objects_selections(canvas3D, collect_selections());
+#endif // !ENABLE_EXTENDED_SELECTION
             _3DScene::reload_scene(canvas3D, true);
         }
         // sets the canvas as dirty to force a render at the 1st idle event (wxWidgets IsShownOnScreen() is buggy and cannot be used reliably)

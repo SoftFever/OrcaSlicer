@@ -346,11 +346,15 @@ class GLCanvas3D
 
             Point start_position_2D;
             Vec3d start_position_3D;
+#if !ENABLE_EXTENDED_SELECTION
             Vec3d volume_center_offset;
 
             bool move_with_shift;
+#endif // !ENABLE_EXTENDED_SELECTION
             int move_volume_idx;
+#if !ENABLE_EXTENDED_SELECTION
             int gizmo_volume_idx;
+#endif // !ENABLE_EXTENDED_SELECTION
 
         public:
             Drag();
@@ -371,6 +375,104 @@ class GLCanvas3D
         bool is_start_position_2D_defined() const;
         bool is_start_position_3D_defined() const;
     };
+
+#if ENABLE_EXTENDED_SELECTION
+public:
+    class Selection
+    {
+    public:
+        typedef std::set<unsigned int> IndicesList;
+
+        enum EMode : unsigned char
+        {
+            Volume,
+            Instance,
+            Object
+        };
+
+    private:
+        struct VolumeCache
+        {
+        private:
+            Transform3d m_rotation_matrix;
+
+        public:
+            Vec3d position;
+            Vec3d rotation;
+            Vec3d scaling_factor;
+
+            VolumeCache();
+            VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor);
+
+            const Transform3d& get_rotation_matrix() const { return m_rotation_matrix; }
+        };
+
+        typedef std::map<unsigned int, VolumeCache> VolumesCache;
+
+        struct Cache
+        {
+            VolumesCache volumes_data;
+            Vec3d dragging_center;
+        };
+
+        GLVolumePtrs* m_volumes;
+        Model* m_model;
+
+        bool m_valid;
+        EMode m_mode;
+        IndicesList m_list;
+        Cache m_cache;
+        mutable BoundingBoxf3 m_bounding_box;
+        mutable bool m_bounding_box_dirty;
+
+    public:
+        Selection();
+
+        void set_volumes(GLVolumePtrs* volumes);
+        void set_model(Model* model);
+
+        EMode get_mode() const { return m_mode; }
+        void set_mode(EMode mode) { m_mode = mode; }
+
+        void add(unsigned int volume_idx, bool as_single_selection = true);
+        void remove(unsigned int volume_idx);
+        void clear();
+
+        bool is_empty() const { return m_list.empty(); }
+        bool is_wipe_tower() const { return m_valid && (m_list.size() == 1) && (*m_volumes)[*m_list.begin()]->is_wipe_tower; }
+        bool is_modifier() const { return m_valid && (m_list.size() == 1) && (*m_volumes)[*m_list.begin()]->is_modifier; }
+        bool is_single_full_instance(int& object_idx_out, int& instance_idx_out) const;
+        bool is_single_full_object(int& object_idx_out) const;
+        bool is_from_single_instance(int& object_idx_out, int& instance_idx_out) const;
+        bool is_from_single_object(int& object_idx_out) const;
+
+        const IndicesList& get_volume_idxs() const { return m_list; }
+        const GLVolume* get_volume(unsigned int volume_idx) const;
+
+        unsigned int volumes_count() const { return (unsigned int)m_list.size(); }
+        const BoundingBoxf3& get_bounding_box() const;
+
+        void start_dragging();
+
+        void translate(const Vec3d& displacement);
+
+        void render() const;
+
+    private:
+        void update_valid();
+        void set_caches();
+        void add_volume(unsigned int volume_idx);
+        void add_instance(unsigned int volume_idx);
+        void add_object(unsigned int volume_idx);
+        void remove_volume(unsigned int volume_idx);
+        void remove_instance(unsigned int volume_idx);
+        void remove_object(unsigned int volume_idx);
+        void calc_bounding_box() const;
+        void render_bounding_box(const BoundingBoxf3& box, float* color) const;
+    };
+
+private:
+#endif // ENABLE_EXTENDED_SELECTION
 
     class Gizmos
     {
@@ -404,11 +506,20 @@ class GLCanvas3D
         bool is_enabled() const;
         void set_enabled(bool enable);
 
+#if ENABLE_EXTENDED_SELECTION
+        void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+        void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+#else
         void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
+#endif // ENABLE_EXTENDED_SELECTION
         void reset_all_states();
 
         void set_hover_id(int id);
+#if ENABLE_EXTENDED_SELECTION
+        void enable_grabber(EType type, unsigned int id);
+        void disable_grabber(EType type, unsigned int id);
+#endif // ENABLE_EXTENDED_SELECTION
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
@@ -425,8 +536,12 @@ class GLCanvas3D
         void start_dragging(const BoundingBoxf3& box);
         void stop_dragging();
 
+#if ENABLE_EXTENDED_SELECTION
+        Vec3d get_displacement() const;
+#else
         Vec3d get_position() const;
         void set_position(const Vec3d& position);
+#endif // ENABLE_EXTENDED_SELECTION
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d get_scale() const;
@@ -517,6 +632,9 @@ class GLCanvas3D
     mutable GLToolbar m_toolbar;
 
     mutable GLVolumeCollection m_volumes;
+#if ENABLE_EXTENDED_SELECTION
+    Selection m_selection;
+#endif // ENABLE_EXTENDED_SELECTION
     DynamicPrintConfig* m_config;
     Print* m_print;
     Model* m_model;
@@ -535,14 +653,21 @@ class GLCanvas3D
     bool m_shader_enabled;
     bool m_dynamic_background_enabled;
     bool m_multisample_allowed;
+#if ENABLE_EXTENDED_SELECTION
+    bool m_regenerate_volumes;
+#endif // ENABLE_EXTENDED_SELECTION
 
     std::string m_color_by;
+#if !ENABLE_EXTENDED_SELECTION
     std::string m_select_by;
     std::string m_drag_by;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     bool m_reload_delayed;
+#if !ENABLE_EXTENDED_SELECTION
     std::vector<std::vector<int>> m_objects_volumes_idxs;
     std::vector<int> m_objects_selections;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     GCodePreviewVolumeIndex m_gcode_preview_volume_index;
 
@@ -575,11 +700,17 @@ public:
     bool move_volume_up(unsigned int id);
     bool move_volume_down(unsigned int id);
 
+#if !ENABLE_EXTENDED_SELECTION
     void set_objects_selections(const std::vector<int>& selections);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     void set_config(DynamicPrintConfig* config);
     void set_print(Print* print);
     void set_model(Model* model);
+
+#if ENABLE_EXTENDED_SELECTION
+    const Selection& get_selection() const { return m_selection; }
+#endif // ENABLE_EXTENDED_SELECTION
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),
     // triangulate the bed and store the triangles into m_bed.m_triangles,
@@ -594,11 +725,13 @@ public:
     void set_cutting_plane(float z, const ExPolygons& polygons);
 
     void set_color_by(const std::string& value);
+#if !ENABLE_EXTENDED_SELECTION
     void set_select_by(const std::string& value);
     void set_drag_by(const std::string& value);
 
     const std::string& get_select_by() const;
     const std::string& get_drag_by() const;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     float get_camera_zoom() const;
 
@@ -680,7 +813,9 @@ private:
     void _resize(unsigned int w, unsigned int h);
 
     BoundingBoxf3 _max_bounding_box() const;
+#if !ENABLE_EXTENDED_SELECTION
     BoundingBoxf3 _selected_volumes_bounding_box() const;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     void _zoom_to_bounding_box(const BoundingBoxf3& bbox);
     float _get_zoom_to_bounding_box_factor(const BoundingBoxf3& bbox) const;
@@ -694,6 +829,9 @@ private:
     void _render_bed(float theta) const;
     void _render_axes(bool depth_test) const;
     void _render_objects() const;
+#if ENABLE_EXTENDED_SELECTION
+    void _render_selection() const;
+#endif // ENABLE_EXTENDED_SELECTION
     void _render_cutting_plane() const;
     void _render_warning_texture() const;
     void _render_legend_texture() const;
@@ -702,6 +840,10 @@ private:
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
     void _render_toolbar() const;
+
+#if ENABLE_EXTENDED_SELECTION
+    void _update_volumes_hover_state() const;
+#endif // ENABLE_EXTENDED_SELECTION
 
     float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
@@ -719,8 +861,10 @@ private:
     void _start_timer();
     void _stop_timer();
 
+#if !ENABLE_EXTENDED_SELECTION
     int _get_first_selected_object_id() const;
     int _get_first_selected_volume_id(int object_id) const;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     // Create 3D thick extrusion lines for a skirt and brim.
     // Adds a new Slic3r::GUI::3DScene::Volume to volumes.
@@ -750,7 +894,11 @@ private:
     void _update_toolpath_volumes_outside_state();
     void _show_warning_texture_if_needed();
 
+#if ENABLE_EXTENDED_SELECTION
+    void _on_move();
+#else
     void _on_move(const std::vector<int>& volume_idxs);
+#endif // ENABLE_EXTENDED_SELECTION
     void _on_select(int volume_idx, int object_idx);
 
     // generates the legend texture in dependence of the current shown view type

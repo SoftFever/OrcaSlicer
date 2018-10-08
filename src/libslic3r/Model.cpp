@@ -707,16 +707,23 @@ void ModelObject::center_around_origin()
         if (v->is_model_part())
 			bb.merge(v->mesh.bounding_box());
     
+#if ENABLE_EXTENDED_SELECTION
+    // Shift is the vector from the center of the bounding box to the origin
+    Vec3d shift = -bb.center();
+#else
     // Shift is the vector from the center of the bottom face of the bounding box to the origin
     Vec3d shift = -bb.center();
     shift(2) = -bb.min(2);
+#endif // ENABLE_EXTENDED_SELECTION
 
     this->translate(shift);
     this->origin_translation += shift;
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if !ENABLE_EXTENDED_SELECTION
     // set z to zero, translation in z has already been done within the mesh
     shift(2) = 0.0;
+#endif // !ENABLE_EXTENDED_SELECTION
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     if (!this->instances.empty()) {

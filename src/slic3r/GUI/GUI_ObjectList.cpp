@@ -1036,7 +1036,9 @@ void ObjectList::add_object_to_list(const std::string &name, ModelObject* model_
 {
     wxString item_name = name;
     auto item = m_objects_model->Add(item_name, model_object->instances.size());
+#if !ENABLE_EXTENDED_SELECTION
     m_objects_ctrl->Select(item);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     // Add error icon if detected auto-repaire
     auto stats = model_object->volumes[0]->mesh.stl.stats;

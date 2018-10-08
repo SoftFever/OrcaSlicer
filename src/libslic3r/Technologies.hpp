@@ -12,6 +12,8 @@
 #define ENABLE_GIZMOS_RESET (1 && ENABLE_1_42_0)
 // Uses a unique opengl context
 #define ENABLE_USE_UNIQUE_GLCONTEXT (1 && ENABLE_1_42_0)
+// New selections
+#define ENABLE_EXTENDED_SELECTION (0 && ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM)
 
 #endif // _technologies_h_
 

@@ -94,7 +94,9 @@ public:
     bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
+#if !ENABLE_EXTENDED_SELECTION
     void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     void set_print(wxGLCanvas* canvas, Print* print);
@@ -110,10 +112,12 @@ public:
     void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
     void set_color_by(wxGLCanvas* canvas, const std::string& value);
+#if !ENABLE_EXTENDED_SELECTION
     void set_select_by(wxGLCanvas* canvas, const std::string& value);
     void set_drag_by(wxGLCanvas* canvas, const std::string& value);
 
     std::string get_select_by(wxGLCanvas* canvas) const;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
