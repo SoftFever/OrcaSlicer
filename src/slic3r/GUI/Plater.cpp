@@ -27,6 +27,8 @@
 #include "libslic3r/Utils.hpp"
 #include "libslic3r/Polygon.hpp"
 #include "libslic3r/Format/STL.hpp"
+#include "libslic3r/Format/AMF.hpp"
+#include "libslic3r/Format/3mf.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -669,12 +671,15 @@ struct Plater::priv
 
     void remove(size_t obj_idx);
     void reset();
+    void increase(size_t num = 1);
+    void decrease(size_t num = 1);
 
-    void on_notebook_changed(wxBookCtrlEvent &);
-    void on_select_preset(wxCommandEvent &);
-    void on_update_print_preview(wxCommandEvent &);
-    void on_process_completed(wxCommandEvent &);
+    void on_notebook_changed(wxBookCtrlEvent&);
+    void on_select_preset(wxCommandEvent&);
+    void on_update_print_preview(wxCommandEvent&);
+    void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
+
 
     void on_action_add(SimpleEvent&);
     void on_action_arrange(SimpleEvent&);
@@ -686,7 +691,16 @@ struct Plater::priv
     void on_action_layersediting(SimpleEvent&);
     void on_action_selectbyparts(SimpleEvent&);
 
-    void on_viewport_changed(SimpleEvent& evt);
+    void on_viewport_changed(SimpleEvent&);
+    void on_right_click(Vec2dEvent&);
+    void on_model_update(SimpleEvent&);
+    void on_remove_object(SimpleEvent&);
+    void on_arrange(SimpleEvent&);
+    void on_scale_uniformly(SimpleEvent&);
+    void on_instance_moves(SimpleEvent&);
+    void on_wipetower_moved(Vec3dEvent&);
+    void on_enable_action_buttons(Event<bool>&);
+    void on_update_geometry(Vec3dsEvent<2>&);
 };
 
 const std::regex Plater::priv::pattern_bundle("[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)$", std::regex::icase);
@@ -763,15 +777,22 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     // Preset change event
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
-    // Sidebar button events
-    // sidebar->p->btn_export_gcode->Bind(wxEVT_BUTTON, [q](wxCommandEvent&) { q->export_gcode(); });
-    // sidebar->p->btn_reslice->Bind(wxEVT_BUTTON, [q](wxCommandEvent&) { q->reslice(); });
-    // sidebar->p->btn_send_gcode->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
-    //     this->send_gcode_file = this->q->export_gcode();
-    // });
-
     // 3DScene events:
-    // TODO: more
+    canvas3D->Bind(EVT_GLCANVAS_OBJECT_SELECT, [](ObjectSelectEvent&) { /*TODO*/ });
+    canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
+    // canvas3D->Bind(EVT_GLCANVAS_DOUBLE_CLICK, [](SimpleEvent&) { });  // XXX: remove?
+    canvas3D->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
+    canvas3D->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
+    canvas3D->Bind(EVT_GLCANVAS_REMOVE_OBJECT, &priv::on_remove_object, this);
+    canvas3D->Bind(EVT_GLCANVAS_ARRANGE, &priv::on_arrange, this);
+    canvas3D->Bind(EVT_GLCANVAS_ROTATE_OBJECT, [this](Event<int> &evt) { /*TODO: call rotate */ });
+    canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, &priv::on_scale_uniformly, this);
+    canvas3D->Bind(EVT_GLCANVAS_INCREASE_OBJECTS, [this](Event<int> &evt) { evt.data == 1 ? increase() : decrease(); });
+    canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVES, &priv::on_instance_moves, this);
+    canvas3D->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
+    canvas3D->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
+    canvas3D->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
+    // 3DScene/Toolbar:
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     canvas3D->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); } );
     canvas3D->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
@@ -784,8 +805,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
     canvas3D->Bind(EVT_GLTOOLBAR_SELECTBYPARTS, &priv::on_action_selectbyparts, this);
 
-    canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
-
+    // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 
     q->Bind(EVT_SLICING_COMPLETED, &priv::on_update_print_preview, this);
@@ -1252,6 +1272,16 @@ void Plater::priv::reset()
     update();
 }
 
+void Plater::priv::increase(size_t num)
+{
+    // TODO
+}
+
+void Plater::priv::decrease(size_t num)
+{
+    // TODO
+}
+
 
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
@@ -1383,6 +1413,53 @@ void Plater::priv::on_viewport_changed(SimpleEvent& evt)
         preview->set_viewport_from_scene(canvas3D);
 }
 
+void Plater::priv::on_right_click(Vec2dEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_model_update(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_remove_object(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_arrange(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_scale_uniformly(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_instance_moves(SimpleEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_wipetower_moved(Vec3dEvent&)
+{
+    // TODO
+}
+
+void Plater::priv::on_enable_action_buttons(Event<bool>&)
+{
+    // TODO
+}
+
+void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
+{
+    // TODO
+}
+
+
+
 // Plater / Public
 
 Plater::Plater(wxWindow *parent, MainFrame *main_frame)
@@ -1482,14 +1559,40 @@ void Plater::export_stl()
 
 void Plater::export_amf()
 {
-    // TODO
-    throw 0;
+    if (p->objects.empty()) { return; }
+
+    auto dialog = p->get_export_file(FT_AMF);
+    if (! dialog) { return; }
+
+    wxString path = dialog->GetPath();
+    auto path_cstr = path.c_str();
+
+    if (Slic3r::store_amf(path_cstr, &p->model, &p->print, dialog->get_checkbox_value())) {
+        // Success
+        p->statusbar()->set_status_text(wxString::Format(_(L("AMF file exported to %s")), path));
+    } else {
+        // Failure
+        p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting AMF file %s")), path));
+    }
 }
 
 void Plater::export_3mf()
 {
-    // TODO
-    throw 0;
+    if (p->objects.empty()) { return; }
+
+    auto dialog = p->get_export_file(FT_3MF);
+    if (! dialog) { return; }
+
+    wxString path = dialog->GetPath();
+    auto path_cstr = path.c_str();
+
+    if (Slic3r::store_3mf(path_cstr, &p->model, &p->print, dialog->get_checkbox_value())) {
+        // Success
+        p->statusbar()->set_status_text(wxString::Format(_(L("3MF file exported to %s")), path));
+    } else {
+        // Failure
+        p->statusbar()->set_status_text(wxString::Format(_(L("Error exporting 3MF file %s")), path));
+    }
 }
 
 

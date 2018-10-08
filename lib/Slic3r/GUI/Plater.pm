@@ -1949,7 +1949,7 @@ sub fix_through_netfabb {
     $self->remove($obj_idx);
 }
 
-# XXX: VK: WIP
+# XXX: VK: done
 sub export_amf {
     my ($self) = @_;
     return if !@{$self->{objects}};
@@ -1966,7 +1966,7 @@ sub export_amf {
     }
 }
 
-# XXX: VK: WIP
+# XXX: VK: done
 sub export_3mf {
     my ($self) = @_;
     return if !@{$self->{objects}};
