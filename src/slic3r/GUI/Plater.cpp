@@ -566,6 +566,13 @@ void Sidebar::show_buttons(const bool show)
     }
 }
 
+void Sidebar::enable_buttons(bool enable)
+{
+    p->btn_reslice->Enable(enable);
+    p->btn_export_gcode->Enable(enable);
+    p->btn_send_gcode->Enable(enable);
+}
+
 // Plater::Object
 
 struct PlaterObject
@@ -587,13 +594,28 @@ public:
 
 private:
     Plater *plater;
+
+    static const std::regex pattern_drop;
 };
+
+const std::regex PlaterDropTarget::pattern_drop("[.](stl|obj|amf|3mf|prusa)$", std::regex::icase);
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
-    // TODO
-    // return false;
-    throw 0;
+    std::vector<fs::path> paths;
+
+    for (const auto &filename : filenames) {
+        fs::path path(filename);
+
+        if (std::regex_match(path.string(), pattern_drop)) {
+            paths.push_back(std::move(path));
+        } else {
+            return false;
+        }
+    }
+
+    plater->load_files(paths);
+    return true;
 }
 
 // Plater / private
@@ -643,7 +665,9 @@ struct Plater::priv
     void select_object(optional<size_t> obj_idx);
     optional<size_t> selected_object() const;
     void selection_changed();
+    void object_list_changed();
 
+    void remove(size_t obj_idx);
     void reset();
 
     void on_notebook_changed(wxBookCtrlEvent &);
@@ -1081,8 +1105,16 @@ void Plater::priv::select_object(optional<size_t> obj_idx)
         objects[*obj_idx].selected = true;
     }
 
-    // TODO:
-    // $self->selection_changed(1);
+    selection_changed();
+}
+
+optional<size_t> Plater::priv::selected_object() const
+{
+    for (size_t i = 0; i < objects.size(); i++) {
+        if (objects[i].selected) { return i; }
+    }
+
+    return boost::none;
 }
 
 void Plater::priv::selection_changed()
@@ -1107,12 +1139,9 @@ void Plater::priv::selection_changed()
     bool can_select_by_parts = false;
 
     if (have_sel) {
-        // my $model_object = $self->{model}->objects->[$obj_idx];
         const auto *model_object = model.objects[*obj_idx];
-        // $can_select_by_parts = ($obj_idx >= 0) && ($obj_idx < 1000) && ($model_object->volumes_count > 1);
         // XXX: ?
         can_select_by_parts = *obj_idx < 1000 && model_object->volumes.size() > 1;
-        // Slic3r::GUI::_3DScene::enable_toolbar_item($self->{canvas3D}, "fewer", $model_object->instances_count > 1);
         _3DScene::enable_toolbar_item(canvas3D, "fewer", model_object->instances.size() > 1);
     }
 
@@ -1170,20 +1199,43 @@ void Plater::priv::selection_changed()
     q->Layout();
 }
 
-optional<size_t> Plater::priv::selected_object() const
+void Plater::priv::object_list_changed()
 {
-    for (size_t i = 0; i < objects.size(); i++) {
-        if (objects[i].selected) { return i; }
-    }
+    // Enable/disable buttons depending on whether there are any objects on the platter.
+    const bool have_objects = !objects.empty();
 
-    return boost::none;
+    _3DScene::enable_toolbar_item(canvas3D, "deleteall", have_objects);
+    _3DScene::enable_toolbar_item(canvas3D, "arrange", have_objects);
+
+    const bool export_in_progress = !(export_gcode_output_file.empty() && send_gcode_file.empty());
+    // XXX: is this right?
+    const bool model_fits = _3DScene::check_volumes_outside_state(canvas3D, config) == ModelInstance::PVS_Inside;
+
+    sidebar->enable_buttons(have_objects && !export_in_progress && model_fits);
+}
+
+void Plater::priv::remove(size_t obj_idx)
+{
+    // $self->stop_background_process;   // TODO
+
+    // Prevent toolpaths preview from rendering while we modify the Print object
+    preview->set_enabled(false);
+
+    objects.erase(objects.begin() + obj_idx);
+    model.delete_object(obj_idx);
+    print.delete_object(obj_idx);
+    // Delete object from Sidebar list
+    sidebar->obj_list()->delete_object_from_list();
+
+    object_list_changed();
+
+    select_object(boost::none);
+    update();
 }
 
 void Plater::priv::reset()
 {
-    // TODO
-
-    // $self->stop_background_process;
+    // $self->stop_background_process;   // TODO
 
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
@@ -1193,13 +1245,10 @@ void Plater::priv::reset()
     print.clear_objects();
 
     // Delete all objects from list on c++ side
-    // TODO
-    // Slic3r::GUI::delete_all_objects_from_list();
     sidebar->obj_list()->delete_all_objects_from_list();
-    // $self->object_list_changed;
+    object_list_changed();
 
-    // TODO
-    // $self->select_object(undef);
+    select_object(boost::none);
     update();
 }
 
@@ -1350,15 +1399,8 @@ Plater::~Plater()
 Sidebar& Plater::sidebar() { return *p->sidebar; }
 Model&  Plater::model()  { return p->model; }
 
-void Plater::update(bool force_autocenter)
-{
-    p->update(force_autocenter);
-}
-
-void Plater::remove(size_t obj_idx)
-{
-    // TODO
-}
+void Plater::update(bool force_autocenter) { p->update(force_autocenter); }
+void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 
 void Plater::remove_selected()
 {
@@ -1368,6 +1410,7 @@ void Plater::remove_selected()
     }
 }
 
+void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 
 fs::path Plater::export_gcode(const fs::path &output_path)
 {

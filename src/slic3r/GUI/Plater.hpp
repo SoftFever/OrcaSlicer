@@ -2,6 +2,7 @@
 #define slic3r_Plater_hpp_
 
 #include <memory>
+#include <vector>
 #include <boost/filesystem/path.hpp>
 
 #include <wx/panel.h>
@@ -47,6 +48,7 @@ public:
     int                     get_ol_selection();
     void                    show_info_sizers(const bool show);
     void                    show_buttons(const bool show);
+    void                    enable_buttons(bool enable);
 
 private:
     struct priv;
@@ -70,6 +72,8 @@ public:
     void update(bool force_autocenter = false);
     void remove(size_t obj_idx);
     void remove_selected();
+
+    void load_files(const std::vector<boost::filesystem::path> &input_files);
 
     // Note: empty path means "use the default"
     boost::filesystem::path export_gcode(const boost::filesystem::path &output_path = boost::filesystem::path());
