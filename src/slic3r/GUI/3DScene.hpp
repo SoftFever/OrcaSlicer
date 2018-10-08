@@ -437,6 +437,14 @@ public:
     GLVolumeCollection() {};
     ~GLVolumeCollection() { clear(); };
 
+#if ENABLE_EXTENDED_SELECTION
+    std::vector<int> load_object(
+        const ModelObject       *model_object,
+        int                      obj_idx,
+        const std::vector<int>  &instance_idxs,
+        const std::string       &color_by,
+        bool                     use_VBOs);
+#else
     std::vector<int> load_object(
         const ModelObject       *model_object,
         int                      obj_idx,
@@ -445,6 +453,7 @@ public:
         const std::string       &select_by,
         const std::string       &drag_by,
         bool                     use_VBOs);
+#endif // ENABLE_EXTENDED_SELECTION
 
     int load_wipe_tower_preview(
         int obj_idx, float pos_x, float pos_y, float width, float depth, float height, float rotation_angle, bool use_VBOs, bool size_unknown, float brim_width);

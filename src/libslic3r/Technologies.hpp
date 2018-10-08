@@ -5,7 +5,7 @@
 #define ENABLE_1_42_0 1
 
 // Add z coordinate to model instances' offset
-// Add x and y rotation components to model instances' offset
+// Add x and y rotation components to model instances' rotation
 // Add scaling factors for all the three axes to model instances
 #define ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM (1 && ENABLE_1_42_0)
 // Add double click on gizmo grabbers to reset transformation components to their default value

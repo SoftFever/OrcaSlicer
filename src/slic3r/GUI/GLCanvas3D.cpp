@@ -3123,7 +3123,7 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
         }
     }
 #if ENABLE_EXTENDED_SELECTION
-    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, "object", "object", m_use_VBOs && m_initialized);
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_use_VBOs && m_initialized);
 #else
     return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_select_by, m_drag_by, m_use_VBOs && m_initialized);
 #endif // ENABLE_EXTENDED_SELECTION
@@ -6025,7 +6025,11 @@ void GLCanvas3D::_load_shells()
             instance_ids[i] = i;
         }
 
+#if ENABLE_EXTENDED_SELECTION
+        m_volumes.load_object(model_obj, object_id, instance_ids, "object", m_use_VBOs && m_initialized);
+#else
         m_volumes.load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
+#endif // ENABLE_EXTENDED_SELECTION
 
         ++object_id;
     }

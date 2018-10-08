@@ -693,6 +693,14 @@ void GLVolume::generate_layer_height_texture(const PrintObject *print_object, bo
 #define LAYER_HEIGHT_TEXTURE_WIDTH  1024
 #define LAYER_HEIGHT_TEXTURE_HEIGHT 1024
 
+#if ENABLE_EXTENDED_SELECTION
+std::vector<int> GLVolumeCollection::load_object(
+    const ModelObject       *model_object,
+    int                      obj_idx,
+    const std::vector<int>  &instance_idxs,
+    const std::string       &color_by,
+    bool                     use_VBOs)
+#else
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object, 
     int                      obj_idx,
@@ -701,6 +709,7 @@ std::vector<int> GLVolumeCollection::load_object(
     const std::string       &select_by,
     const std::string       &drag_by,
     bool                     use_VBOs)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     static float colors[4][4] = {
         { 1.0f, 1.0f, 0.0f, 1.f }, 
