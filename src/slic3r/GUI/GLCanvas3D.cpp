@@ -4115,7 +4115,7 @@ void GLCanvas3D::_render_legend_texture() const
 
 void GLCanvas3D::_render_layer_editing_overlay() const
 {
-    if (m_print == nullptr)
+    if ((m_print == nullptr) || m_print->objects().empty())
         return;
 
     GLVolume* volume = nullptr;
