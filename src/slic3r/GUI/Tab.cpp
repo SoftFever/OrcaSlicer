@@ -38,6 +38,15 @@ wxDEFINE_EVENT(EVT_TAB_VALUE_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_TAB_PRESETS_CHANGED, SimpleEvent);
 
 
+void Tab::set_type()
+{
+    if (m_name == "print")              { m_type = Slic3r::Preset::TYPE_PRINT; }
+    else if (m_name == "filament")      { m_type = Slic3r::Preset::TYPE_FILAMENT; }
+    else if (m_name == "sla_material")  { m_type = Slic3r::Preset::TYPE_SLA_MATERIAL; }
+    else if (m_name == "printer")       { m_type = Slic3r::Preset::TYPE_PRINTER; }
+    else                                { m_type = Slic3r::Preset::TYPE_INVALID; }
+}
+
 // sub new
 void Tab::create_preset_tab()
 {
@@ -671,14 +680,6 @@ void Tab::on_value_change(const std::string& opt_key, const boost::any& value)
 		int val = boost::any_cast<size_t>(value);
 		event.SetInt(val);
 	}
-
-    if (opt_key == "printer_technology")
-    {
-        int val = boost::any_cast<PrinterTechnology>(value);
-        event.SetInt(val);
-        wxPostEvent(this, event);
-        return;
-    }
 
 	wxPostEvent(this, event);
 
@@ -1461,8 +1462,6 @@ void TabPrinter::build()
     m_printer_technology = m_presets->get_selected_preset().printer_technology();
 
     m_presets->get_selected_preset().printer_technology() == ptSLA ? build_sla() : build_fff();
-
-//     on_value_change("printer_technology", m_printer_technology); // to update show/hide preset ComboBoxes
 }
 
 void TabPrinter::build_fff()
@@ -2044,8 +2043,6 @@ void TabPrinter::update_pages()
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
 
     rebuild_page_tree(true);
-
-    on_value_change("printer_technology", m_presets->get_edited_preset().printer_technology()); // to update show/hide preset ComboBoxes
 }
 
 void TabPrinter::update()

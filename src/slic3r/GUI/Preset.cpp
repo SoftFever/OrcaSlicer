@@ -28,6 +28,7 @@
 #include "../../libslic3r/libslic3r.h"
 #include "../../libslic3r/Utils.hpp"
 #include "../../libslic3r/PlaceholderParser.hpp"
+#include "Plater.hpp"
 
 using boost::property_tree::ptree;
 
@@ -734,7 +735,7 @@ size_t PresetCollection::update_compatible_with_printer_internal(const Preset &a
 
 // Update the wxChoice UI component from this list of presets.
 // Hide the 
-void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
+void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 {
     if (ui == nullptr)
         return;
@@ -751,7 +752,7 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected = "";
 	if (!this->m_presets.front().is_visible)
-		ui->Append("------- " +_(L("System presets")) + " -------", wxNullBitmap);
+        ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
 	for (size_t i = this->m_presets.front().is_visible ? 0 : m_num_default_presets; i < this->m_presets.size(); ++i) {
         const Preset &preset = this->m_presets[i];
         if (! preset.is_visible || (! preset.is_compatible && i != m_idx_selected))
@@ -791,11 +792,11 @@ void PresetCollection::update_platter_ui(wxBitmapComboBox *ui)
 				selected = wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str());
 		}
 		if (i + 1 == m_num_default_presets)
-			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
+            ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
 	}
 	if (!nonsys_presets.empty())
 	{
-		ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap);
+        ui->set_label_marker(ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap));
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected)

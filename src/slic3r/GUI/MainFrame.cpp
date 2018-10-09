@@ -132,7 +132,8 @@ void MainFrame::init_tabpanel()
         m_tabpanel->AddPage(m_plater, _(L("Plater")));
     }
 
-    // The following event is emited by the C++ Tab implementation on config value change.
+    // The following event is emited by Tab implementation on config value change.
+    Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this);
 //     EVT_COMMAND($self, -1, $VALUE_CHANGE_EVENT, sub {
 //         my($self, $event) = @_;
 //         auto str = event->GetString;
@@ -145,10 +146,6 @@ void MainFrame::init_tabpanel()
 //                     auto value = event->GetInt();
 //                     m_plater->on_extruders_change(value);
 //                 }
-//             if (opt_key == "printer_technology"){
-//                 auto value = event->GetInt(); // 0 ~"ptFFF"; 1 ~"ptSLA"
-//                     m_plater->show_preset_comboboxes(value);
-//             }
 //         }
 //         // don't save while loading for the first time
 //         if (Slic3r::GUI::autosave && m_loaded)
@@ -759,20 +756,13 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
         auto reload_dependent_tabs = tab->get_dependent_tabs();
 
         // FIXME: The preset type really should be a property of Tab instead
-        Slic3r::Preset::Type preset_type;
-        if (tab == m_options_tabs["print"]) { preset_type = Slic3r::Preset::TYPE_PRINT; }
-        else if (tab == m_options_tabs["filament"]) { preset_type = Slic3r::Preset::TYPE_FILAMENT; }
-        else if (tab == m_options_tabs["sla_material"]) { preset_type = Slic3r::Preset::TYPE_SLA_MATERIAL; }
-        else if (tab == m_options_tabs["printer"]) { preset_type = Slic3r::Preset::TYPE_PRINTER; }
-        else {
+        Slic3r::Preset::Type preset_type = tab->type();
+        if (preset_type == Slic3r::Preset::TYPE_INVALID){
             wxASSERT(false);
             return;
         }
 
         m_plater->sidebar().update_presets(preset_type);
-
-        // XXX: ???
-        // m_plater->{"selected_item_$tab_name"} = tab->get_selected_preset_item();
 
         if (preset_type == Slic3r::Preset::TYPE_PRINTER) {
             // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
@@ -789,10 +779,16 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
                 else
                     cur_tab->load_current_preset();
             }
+            m_plater->sidebar().show_preset_comboboxes(static_cast<TabPrinter*>(tab)->m_printer_technology == ptSLA);
         }
         // XXX: ?
         // m_plater->on_config_change(tab->get_config());
     }
+}
+
+void MainFrame::on_value_changed(wxCommandEvent&)
+{
+    ;
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.

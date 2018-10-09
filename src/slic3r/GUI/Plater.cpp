@@ -169,21 +169,6 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     Add(grid_sizer, 0, wxEXPAND);
 }
 
-
-class PresetComboBox : public wxBitmapComboBox
-{
-public:
-    PresetComboBox(wxWindow *parent, Preset::Type preset_type);
-    ~PresetComboBox();
-
-private:
-    typedef std::size_t Marker;
-    enum { LABEL_ITEM_MARKER = 0x4d };
-
-    Preset::Type preset_type;
-    int last_selected;
-};
-
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
     wxBitmapComboBox(parent, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY),
     preset_type(preset_type),
@@ -199,6 +184,7 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
         } else if (this->last_selected != selected_item) {
             this->last_selected = selected_item;
             evt.SetInt(this->preset_type);
+            evt.Skip();
         } else {
             evt.StopPropagation();
         }
@@ -207,6 +193,11 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
 
 PresetComboBox::~PresetComboBox() {}
 
+
+void PresetComboBox::set_label_marker(int item)
+{
+    this->SetClientData(item, (void*)LABEL_ITEM_MARKER);
+}
 
 // Frequently changed parameters
 
@@ -521,6 +512,22 @@ void Sidebar::update_presets(Preset::Type preset_type)
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
 }
 
+void Sidebar::show_preset_comboboxes(bool showSLA)
+{
+//     wxWindowUpdateLocker noUpdates(wxGetApp().mainframe);
+
+    for (size_t i = 0; i < 4; ++i)
+        p->sizer_presets->Show(i, !showSLA);
+
+    p->sizer_presets->Show(4, showSLA);
+    p->sizer_presets->Show(5, showSLA);
+
+    p->frequently_changed_parameters->get_sizer()->Show(!showSLA);
+
+    wxGetApp().plater()->Layout();
+    wxGetApp().mainframe->Layout();
+}
+
 ObjectManipulation* Sidebar::obj_manipul()
 {
     return p->object_manipulation;
@@ -577,6 +584,11 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
+}
+
+bool Sidebar::is_multifilament()
+{
+    return p->combos_filament.size() > 0;
 }
 
 // Plater::Object
@@ -1444,26 +1456,29 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     auto preset_type = static_cast<Preset::Type>(evt.GetInt());
     auto *combo = static_cast<wxBitmapComboBox*>(evt.GetEventObject());
 
+    auto idx = 0;// evt.GetId();
+
     if (preset_type == Preset::TYPE_FILAMENT) {
-        // FIXME:
-        // wxTheApp->{preset_bundle}->set_filament_preset($idx, $choice->GetStringSelection);
+        wxGetApp().preset_bundle->set_filament_preset(idx, combo->GetStringSelection().ToStdString());
     }
 
     // TODO: ?
-    if (false) {
-    // if ($group eq 'filament' && @{$self->{preset_choosers}{filament}} > 1) {
-    //  # Only update the platter UI for the 2nd and other filaments.
-    //  wxTheApp->{preset_bundle}->update_platter_filament_ui($idx, $choice);
+    if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
+    // Only update the platter UI for the 2nd and other filaments.
+        wxGetApp().preset_bundle->update_platter_filament_ui(idx, combo);
     // }
     } else {
-        auto selected_item = combo->GetSelection();
-
-        // TODO: Handle by an event handler in MainFrame, if needed
+        for (Tab* tab : wxGetApp().tabs_list) {
+            if (tab->type() == preset_type) {
+                tab->select_preset(combo->GetStringSelection().ToStdString());
+                break;
+            }
+        }
     }
 
+    // Synchronize config.ini with the current selections.
+    wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     // TODO:
-    // # Synchronize config.ini with the current selections.
-    // wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
     // # get new config and generate on_config_change() event for updating plater and other things
     // $self->on_config_change(wxTheApp->{preset_bundle}->full_config);
 }

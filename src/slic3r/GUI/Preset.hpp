@@ -22,6 +22,7 @@ class PresetBundle;
 
 namespace GUI {
 	class BitmapCache;
+    class PresetComboBox;
 }
 
 enum ConfigFileType
@@ -355,7 +356,7 @@ public:
     // Update the choice UI from the list of presets.
     // Only the compatible presets are shown.
     // If an incompatible preset is selected, it is shown as well.
-    void            update_platter_ui(wxBitmapComboBox *ui);
+    void            update_platter_ui(GUI::PresetComboBox *ui);
 
     // Update a dirty floag of the current preset, update the labels of the UI component accordingly.
     // Return true if the dirty flag changed.

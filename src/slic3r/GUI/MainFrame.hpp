@@ -73,6 +73,7 @@ class MainFrame : public wxFrame
     std::string     get_dir_name(const wxString full_name) const ;
 
     void on_presets_changed(SimpleEvent&);
+    void on_value_changed(wxCommandEvent&);
     Tab*         get_tab(const std::string& name);
 
 public:

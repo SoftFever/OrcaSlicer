@@ -108,6 +108,7 @@ class Tab: public wxPanel
 	int					m_size_move = -1;
 #endif // __WXOSX__
 protected:
+    Preset::Type        m_type;
 	std::string			m_name;
 	const wxString		m_title;
 	wxBitmapComboBox*	m_presets_choice;
@@ -183,6 +184,8 @@ protected:
 
 	size_t				m_selected_preset_item{ 0 };
 
+    void    set_type();
+
 public:
 	PresetBundle*		m_preset_bundle;
 	bool				m_show_btn_incompatible_presets = false;
@@ -196,6 +199,7 @@ public:
 	Tab(wxNotebook* parent, const wxString& title, const char* name) : 
 		m_parent(parent), m_title(title), m_name(name) {
 		Create(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxBK_LEFT | wxTAB_TRAVERSAL, name);
+        set_type();
 		wxGetApp().tabs_list.push_back(this);
 	}
 	~Tab(){
@@ -205,6 +209,7 @@ public:
 	wxWindow*	parent() const { return m_parent; }
 	wxString	title()	 const { return m_title; }
 	std::string	name()	 const { return m_name; }
+    Preset::Type type()  const { return m_type; }
 
 	void		create_preset_tab();
 	void		load_current_preset();
