@@ -1,7 +1,7 @@
 #ifndef slic3r_Events_hpp_
 #define slic3r_Events_hpp_
 
-
+#include <array>
 #include <wx/event.h>
 
 

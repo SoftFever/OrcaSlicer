@@ -152,7 +152,6 @@ void Tab::create_preset_tab()
 	m_hsizer->Add(m_undo_btn, 0, wxALIGN_CENTER_VERTICAL);
 	m_hsizer->AddSpacer(32);
 	m_hsizer->Add(m_question_btn, 0, wxALIGN_CENTER_VERTICAL);
-// 	m_hsizer->Add(m_cc_presets_choice, 1, wxLEFT | wxRIGHT | wxTOP | wxALIGN_CENTER_VERTICAL, 3);
 
 	//Horizontal sizer to hold the tree and the selected page.
 	m_hsizer = new wxBoxSizer(wxHORIZONTAL);
@@ -518,7 +517,7 @@ void Tab::update_changed_tree_ui()
 			break;
 		}
         auto next_item = m_treectrl->GetNextVisible(cur_item);
-        cur_item = !m_treectrl->IsVisible(cur_item) ? m_treectrl->GetNextVisible(cur_item) : nullptr;// next_item;
+        cur_item = next_item;
 	}
 	update_undo_buttons();
 }
@@ -590,14 +589,11 @@ void Tab::update_dirty(){
 	m_presets->update_dirty_ui(m_presets_choice);
 	on_presets_changed();	
 	update_changed_ui();
-//	update_dirty_presets(m_cc_presets_choice);
 }
 
 void Tab::update_tab_ui()
 {
 	m_selected_preset_item = m_presets->update_tab_ui(m_presets_choice, m_show_incompatible_presets);
-// 	update_tab_presets(m_cc_presets_choice, m_show_incompatible_presets);
-// 	update_presetsctrl(m_presetctrl, m_show_incompatible_presets);
 }
 
 // Load a provied DynamicConfig into the tab, modifying the active preset.
@@ -2609,173 +2605,6 @@ wxSizer* Tab::compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox
 		}
 	}));
 	return sizer; 
-}
-
-void Tab::update_presetsctrl(wxDataViewTreeCtrl* ui, bool show_incompatible)
-{
-	if (ui == nullptr)
-		return;
-	ui->Freeze();
-	ui->DeleteAllItems();
-	auto presets = m_presets->get_presets();
-	auto idx_selected = m_presets->get_idx_selected();
-	auto suffix_modified = m_presets->get_suffix_modified();
-	int icon_compatible = 0;
-	int icon_incompatible = 1;
-	int cnt_items = 0;
-
-	auto root_sys = ui->AppendContainer(wxDataViewItem(0), _(L("System presets")));
-	auto root_def = ui->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
-
-	auto show_def = wxGetApp().app_config->get("no_defaults")[0] != '1';
-
-	for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
-		const Preset &preset = presets[i];
-		if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
-			continue;
-
-		auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
-
-		wxDataViewItem item;
-		if (preset.is_system)
-			item = ui->AppendItem(root_sys, preset_name,
-			preset.is_compatible ? icon_compatible : icon_incompatible);
-		else if (show_def && preset.is_default)
-			item = ui->AppendItem(root_def, preset_name,
-			preset.is_compatible ? icon_compatible : icon_incompatible);
-		else
-		{
-			auto parent = m_presets->get_preset_parent(preset);
-			if (parent == nullptr)
-				item = ui->AppendItem(root_def, preset_name,
-				preset.is_compatible ? icon_compatible : icon_incompatible);
-			else
-			{
-				auto parent_name = parent->name;
-
-				wxDataViewTreeStoreContainerNode *node = ui->GetStore()->FindContainerNode(root_sys);
-				if (node)
-				{
-					wxDataViewTreeStoreNodes::iterator iter;
-					for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
-					{
-						wxDataViewTreeStoreNode* child = *iter;
-						auto child_item = child->GetItem();
-						auto item_text = ui->GetItemText(child_item);
-						if (item_text == parent_name)
-						{
-							auto added_child = ui->AppendItem(child->GetItem(), preset_name,
-								preset.is_compatible ? icon_compatible : icon_incompatible);
-							if (!added_child){
-								ui->DeleteItem(child->GetItem());
-								auto new_parent = ui->AppendContainer(root_sys, parent_name,
-									preset.is_compatible ? icon_compatible : icon_incompatible);
-								ui->AppendItem(new_parent, preset_name,
-									preset.is_compatible ? icon_compatible : icon_incompatible);
-							}
-							break;
-						}
-					}
-				}
-			}
-		}
-
-		cnt_items++;
-		if (i == idx_selected){
-			ui->Select(item);
-			m_cc_presets_choice->SetText(preset_name);
-		}
-	}
-	if (ui->GetStore()->GetChildCount(root_def) == 0)
-		ui->DeleteItem(root_def);
-
-	ui->Thaw();
-}
-
-void Tab::update_tab_presets(wxComboCtrl* ui, bool show_incompatible)
-{
-	if (ui == nullptr)
-		return;
-	ui->Freeze();
-	ui->Clear();
-	auto presets = m_presets->get_presets();
-	auto idx_selected = m_presets->get_idx_selected();
-	auto suffix_modified = m_presets->get_suffix_modified();
-	int icon_compatible = 0;
-	int icon_incompatible = 1;
-	int cnt_items = 0;
-
-	wxDataViewTreeCtrlComboPopup* popup = wxDynamicCast(m_cc_presets_choice->GetPopupControl(), wxDataViewTreeCtrlComboPopup);
-	if (popup != nullptr)
-	{
-		popup->DeleteAllItems();
-
-		auto root_sys = popup->AppendContainer(wxDataViewItem(0), _(L("System presets")));
-		auto root_def = popup->AppendContainer(wxDataViewItem(0), _(L("Default presets")));
-
-		auto show_def = wxGetApp().app_config->get("no_defaults")[0] != '1';
-
-		for (size_t i = presets.front().is_visible ? 0 : 1; i < presets.size(); ++i) {
-			const Preset &preset = presets[i];
-			if (!preset.is_visible || (!show_incompatible && !preset.is_compatible && i != idx_selected))
-				continue;
-
-			auto preset_name = wxString::FromUTF8((preset.name + (preset.is_dirty ? suffix_modified : "")).c_str());
-
-			wxDataViewItem item;
-			if (preset.is_system)
-				item = popup->AppendItem(root_sys, preset_name, 
-										 preset.is_compatible ? icon_compatible : icon_incompatible);
-			else if (show_def && preset.is_default)
-				item = popup->AppendItem(root_def, preset_name, 
-										 preset.is_compatible ? icon_compatible : icon_incompatible);
-			else 
-			{
-				auto parent = m_presets->get_preset_parent(preset);
-				if (parent == nullptr)
-					item = popup->AppendItem(root_def, preset_name,
-											 preset.is_compatible ? icon_compatible : icon_incompatible);
-				else
-				{
-					auto parent_name = parent->name;
-
-					wxDataViewTreeStoreContainerNode *node = popup->GetStore()->FindContainerNode(root_sys);
-					if (node) 
-					{
-						wxDataViewTreeStoreNodes::iterator iter;
-						for (iter = node->GetChildren().begin(); iter != node->GetChildren().end(); iter++)
-						{
-							wxDataViewTreeStoreNode* child = *iter;
-							auto child_item = child->GetItem();
-							auto item_text = popup->GetItemText(child_item);
-							if (item_text == parent_name)
-							{
-								auto added_child = popup->AppendItem(child->GetItem(), preset_name,
-									preset.is_compatible ? icon_compatible : icon_incompatible);
-								if (!added_child){
-									popup->DeleteItem(child->GetItem());
-									auto new_parent = popup->AppendContainer(root_sys, parent_name,
-										preset.is_compatible ? icon_compatible : icon_incompatible);
-									popup->AppendItem(new_parent, preset_name,
-										preset.is_compatible ? icon_compatible : icon_incompatible);
-								}
-								break;
-							}
-						}
-					}
-				}
-			}
-
-			cnt_items++;
-			if (i == idx_selected){
-				popup->Select(item);
-				m_cc_presets_choice->SetText(preset_name);
-			}
-		}
-		if (popup->GetStore()->GetChildCount(root_def) == 0)
-			popup->DeleteItem(root_def);
-	}
-	ui->Thaw();
 }
 
 void Tab::fill_icon_descriptions()

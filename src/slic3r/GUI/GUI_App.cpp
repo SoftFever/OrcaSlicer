@@ -684,6 +684,11 @@ ObjectList* GUI_App::obj_list()
     return sidebar().obj_list();
 }
 
+Plater* GUI_App::plater()
+{
+    return mainframe->m_plater;
+}
+
 ModelObjectPtrs* GUI_App::model_objects()
 {
     return &mainframe->m_plater->model().objects;

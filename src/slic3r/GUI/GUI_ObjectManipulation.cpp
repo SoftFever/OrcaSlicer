@@ -171,7 +171,7 @@ void ObjectManipulation::update_settings_list()
     m_settings_list_sizer->Clear(true);
     bool show_manipulations = true;
 
-    auto objects_ctrl   = wxGetApp().obj_list()->m_objects_ctrl;
+    auto objects_ctrl   = wxGetApp().obj_list();
     auto objects_model  = wxGetApp().obj_list()->m_objects_model;
     auto config         = wxGetApp().obj_list()->m_config;
 
@@ -259,7 +259,7 @@ void ObjectManipulation::update_settings_list()
 #endif
 
     parent->Layout();
-    /*wxGetApp().sidebar().*/parent->GetParent()->Layout();
+    parent->GetParent()->Layout();
 }
 
 #if ENABLE_EXTENDED_SELECTION

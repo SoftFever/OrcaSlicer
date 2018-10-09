@@ -81,6 +81,7 @@ public:
     void export_amf();
     void export_3mf();
     void reslice();
+    void changed_object_settings(int obj_idx);
     void send_gcode();
 private:
     struct priv;

@@ -171,25 +171,6 @@ void MainFrame::init_tabpanel()
 //         m_plater->select_object_from_cpp(obj_idx < 0 ? undef : obj_idx, vol_idx < 0 ? -1 : vol_idx);
 //     });
 
-    // The following event is emited by the C++ GUI implementation on object settings change.
-//     EVT_COMMAND($self, -1, $OBJECT_SETTINGS_CHANGED_EVENT, sub {
-//         auto line = event->GetString();
-//         my($obj_idx, $parts_changed, $part_settings_changed) = split('', $line);
-// 
-//         m_plater->changed_object_settings(obj_idx, parts_changed, part_settings_changed);
-//     });
-
-    // The following event is emited by the C++ GUI implementation on object remove.
-//     EVT_COMMAND($self, -1, $OBJECT_REMOVE_EVENT, sub {
-//         m_plater->remove();
-//     });
-// 
-//     // The following event is emited by the C++ GUI implementation on extruder change for object.
-//     EVT_COMMAND($self, -1, $UPDATE_SCENE_EVENT, sub {
-//         m_plater->update();
-//     });
-
-
     create_preset_tabs();
     std::vector<std::string> tab_names = { "print", "filament", "sla_material", "printer" };    
     for (auto tab_name : tab_names)
