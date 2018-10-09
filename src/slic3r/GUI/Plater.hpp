@@ -6,6 +6,7 @@
 #include <boost/filesystem/path.hpp>
 
 #include <wx/panel.h>
+#include <wx/bmpcbox.h>
 
 #include "Preset.hpp"
 
@@ -27,6 +28,22 @@ using t_optgroups = std::vector <std::shared_ptr<ConfigOptionsGroup>>;
 
 class Plater;
 
+class PresetComboBox : public wxBitmapComboBox
+{
+public:
+    PresetComboBox(wxWindow *parent, Preset::Type preset_type);
+    ~PresetComboBox();
+
+    void set_label_marker(int item);
+
+private:
+    typedef std::size_t Marker;
+    enum { LABEL_ITEM_MARKER = 0x4d };
+
+    Preset::Type preset_type;
+    int last_selected;
+};
+
 class Sidebar : public wxPanel
 {
 public:
@@ -38,8 +55,9 @@ public:
     ~Sidebar();
 
     void update_presets(Slic3r::Preset::Type preset_type);
+    void show_preset_comboboxes(bool showSLA);
 
-    ObjectManipulation*     obj_manipul(); 
+    ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
 
     ConfigOptionsGroup*     og_freq_chng_params();
@@ -49,6 +67,7 @@ public:
     void                    show_info_sizers(const bool show);
     void                    show_buttons(const bool show);
     void                    enable_buttons(bool enable);
+    bool                    is_multifilament();
 
 private:
     struct priv;
