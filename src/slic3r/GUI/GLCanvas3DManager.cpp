@@ -246,6 +246,7 @@ void GLCanvas3DManager::reset_volumes(wxGLCanvas* canvas)
         it->second->reset_volumes();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3DManager::deselect_volumes(wxGLCanvas* canvas)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -266,6 +267,7 @@ void GLCanvas3DManager::update_volumes_selection(wxGLCanvas* canvas, const std::
     if (it != m_canvases.end())
         it->second->update_volumes_selection(selections);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 int GLCanvas3DManager::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const
 {
@@ -285,12 +287,14 @@ bool GLCanvas3DManager::move_volume_down(wxGLCanvas* canvas, unsigned int id)
     return (it != m_canvases.end()) ? it->second->move_volume_down(id) : false;
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3DManager::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_objects_selections(selections);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3DManager::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
@@ -354,6 +358,7 @@ void GLCanvas3DManager::set_color_by(wxGLCanvas* canvas, const std::string& valu
         it->second->set_color_by(value);
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3DManager::set_select_by(wxGLCanvas* canvas, const std::string& value)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
@@ -373,6 +378,7 @@ std::string GLCanvas3DManager::get_select_by(wxGLCanvas* canvas) const
     CanvasesMap::const_iterator it = _get_canvas(canvas);
     return (it != m_canvases.end()) ? it->second->get_select_by() : "";
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 bool GLCanvas3DManager::is_layers_editing_enabled(wxGLCanvas* canvas) const
 {

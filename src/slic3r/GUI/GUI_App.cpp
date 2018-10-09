@@ -34,6 +34,21 @@
 namespace Slic3r {
 namespace GUI {
 
+
+const wxString file_wildcards[FT_SIZE] = {
+    /* FT_STL */   "STL files (*.stl)|*.stl;*.STL",
+    /* FT_OBJ */   "OBJ files (*.obj)|*.obj;*.OBJ",
+    /* FT_AMF */   "AMF files (*.amf)|*.zip.amf;*.amf;*.AMF;*.xml;*.XML",
+    /* FT_3MF */   "3MF files (*.3mf)|*.3mf;*.3MF;",
+    /* FT_PRUSA */ "Prusa Control files (*.prusa)|*.prusa;*.PRUSA",
+    /* FT_GCODE */ "G-code files (*.gcode, *.gco, *.g, *.ngc)|*.gcode;*.GCODE;*.gco;*.GCO;*.g;*.G;*.ngc;*.NGC",
+    /* FT_MODEL */ "Known files (*.stl, *.obj, *.amf, *.xml, *.3mf, *.prusa)|*.stl;*.STL;*.obj;*.OBJ;*.amf;*.AMF;*.xml;*.XML;*.3mf;*.3MF;*.prusa;*.PRUSA",
+
+    /* FT_INI */   "INI files *.ini|*.ini;*.INI",
+    /* FT_SVG */   "SVG files *.svg|*.svg;*.SVG",
+};
+
+
 static std::string libslic3r_translate_callback(const char *s) { return wxGetTranslation(wxString(s, wxConvUTF8)).utf8_str().data(); }
 
 IMPLEMENT_APP(GUI_App)
@@ -291,7 +306,7 @@ void GUI_App::open_model(wxWindow *parent, wxArrayString& input_files)
     auto dialog = new wxFileDialog(parent ? parent : GetTopWindow(),
         _(L("Choose one or more files (STL/OBJ/AMF/3MF/PRUSA):")),
         app_config->get_last_dir(), "",
-        MODEL_WILDCARD, wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
+        file_wildcards[FT_MODEL], wxFD_OPEN | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
     if (dialog->ShowModal() != wxID_OK) {
         dialog->Destroy();
         return;

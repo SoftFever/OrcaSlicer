@@ -911,7 +911,7 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
             if (volume->is_modifier())
                 stream << "        <metadata type=\"slic3r.modifier\">1</metadata>\n";
             stream << "        <metadata type=\"slic3r.volume_type\">" << ModelVolume::type_to_string(volume->type()) << "</metadata>\n";
-            for (int i = 0; i < volume->mesh.stl.stats.number_of_facets; ++i) {
+            for (int i = 0; i < (int)volume->mesh.stl.stats.number_of_facets; ++i) {
                 stream << "        <triangle>\n";
                 for (int j = 0; j < 3; ++j)
                 stream << "          <v" << j + 1 << ">" << volume->mesh.stl.v_indices[i].vertex[j] + vertices_offset << "</v" << j + 1 << ">\n";

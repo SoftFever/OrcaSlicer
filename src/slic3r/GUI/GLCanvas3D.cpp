@@ -414,7 +414,7 @@ void GLCanvas3D::Bed::_calc_gridlines(const ExPolygon& poly, const BoundingBox& 
     }
 
     // clip with a slightly grown expolygon because our lines lay on the contours and may get erroneously clipped
-    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, SCALED_EPSILON)));
+    Lines gridlines = to_lines(intersection_pl(axes_lines, offset(poly, (float)SCALED_EPSILON)));
 
     // append bed contours
     Lines contour_lines = to_lines(poly);
@@ -644,7 +644,7 @@ bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
     m_z = z;
 
     // grow slices in order to display them better
-    ExPolygons expolygons = offset_ex(polygons, scale_(0.1));
+    ExPolygons expolygons = offset_ex(polygons, (float)scale_(0.1));
     Lines lines = to_lines(expolygons);
     return m_lines.set_from_lines(lines, m_z);
 }
@@ -1089,10 +1089,14 @@ const Vec3d GLCanvas3D::Mouse::Drag::Invalid_3D_Point(DBL_MAX, DBL_MAX, DBL_MAX)
 GLCanvas3D::Mouse::Drag::Drag()
     : start_position_2D(Invalid_2D_Point)
     , start_position_3D(Invalid_3D_Point)
+#if !ENABLE_EXTENDED_SELECTION
     , volume_center_offset(0, 0, 0)
     , move_with_shift(false)
+#endif // !ENABLE_EXTENDED_SELECTION
     , move_volume_idx(-1)
+#if !ENABLE_EXTENDED_SELECTION
     , gizmo_volume_idx(-1)
+#endif // !ENABLE_EXTENDED_SELECTION
 {
 }
 
@@ -1124,6 +1128,421 @@ bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
 {
     return (drag.start_position_3D != Drag::Invalid_3D_Point);
 }
+
+#if ENABLE_EXTENDED_SELECTION
+GLCanvas3D::Selection::VolumeCache::VolumeCache()
+    : position(Vec3d::Zero())
+    , rotation(Vec3d::Zero())
+    , scaling_factor(Vec3d::Ones())
+{
+    m_rotation_matrix = Transform3d::Identity();
+}
+
+GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor)
+    : position(position)
+    , rotation(rotation)
+    , scaling_factor(scaling_factor)
+{
+    m_rotation_matrix = Transform3d::Identity();
+    m_rotation_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+    m_rotation_matrix.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
+    m_rotation_matrix.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+}
+
+GLCanvas3D::Selection::Selection()
+    : m_volumes(nullptr)
+    , m_model(nullptr)
+    , m_mode(Instance)
+    , m_valid(false)
+    , m_bounding_box_dirty(true)
+{
+}
+
+void GLCanvas3D::Selection::set_volumes(GLVolumePtrs* volumes)
+{
+    m_volumes = volumes;
+    update_valid();
+}
+
+void GLCanvas3D::Selection::set_model(Model* model)
+{
+    m_model = model;
+    update_valid();
+}
+
+void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selection)
+{
+    if (!m_valid || ((unsigned int)m_volumes->size() <= volume_idx))
+        return;
+
+    // resets the current list if needed
+    const GLVolume* volume = (*m_volumes)[volume_idx];
+    if (as_single_selection || volume->is_wipe_tower || is_wipe_tower() || volume->is_modifier || is_modifier())
+        clear();
+
+    switch (m_mode)
+    {
+    case Volume:
+    {
+        add_volume(volume_idx);
+        break;
+    }
+    case Instance:
+    {
+        add_instance(volume_idx);
+        break;
+    }
+    case Object:
+    {
+        add_object(volume_idx);
+        break;
+    }
+    }
+
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::remove(unsigned int volume_idx)
+{
+    if (!m_valid || ((unsigned int)m_volumes->size() <= volume_idx))
+        return;
+
+    switch (m_mode)
+    {
+    case Volume:
+    {
+        remove_volume(volume_idx);
+        break;
+    }
+    case Instance:
+    {
+        remove_instance(volume_idx);
+        break;
+    }
+    case Object:
+    {
+        remove_object(volume_idx);
+        break;
+    }
+    }
+
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::clear()
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list)
+    {
+        (*m_volumes)[i]->selected = false;
+    }
+
+    m_list.clear();
+    m_bounding_box_dirty = true;
+}
+
+bool GLCanvas3D::Selection::is_single_full_instance(int& object_idx_out, int& instance_idx_out) const
+{
+    if (!m_valid || is_empty() || is_wipe_tower())
+    {
+        object_idx_out = -1;
+        instance_idx_out = -1;
+        return false;
+    }
+
+    const GLVolume* first = (*m_volumes)[*m_list.begin()];
+    int object_idx = first->object_idx();
+    int instance_idx = first->instance_idx();
+    unsigned int count = 0;
+
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() != object_idx) || (v->instance_idx() != instance_idx))
+            return false;
+        else
+            ++count;
+    }
+
+    bool res = (count == (unsigned int)m_model->objects[object_idx]->volumes.size());
+    object_idx_out = res ? object_idx : -1;
+    instance_idx_out = res ? instance_idx : -1;
+    return res;
+}
+
+bool GLCanvas3D::Selection::is_single_full_object(int& object_idx_out) const
+{
+    if (!m_valid || is_empty() || is_wipe_tower())
+    {
+        object_idx_out = -1;
+        return false;
+    }
+
+    int object_idx = (*m_volumes)[*m_list.begin()]->object_idx();
+    unsigned int count = 0;
+
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        if (v->object_idx() != object_idx)
+            return false;
+        else
+            ++count;
+    }
+
+    bool res = (count == (unsigned int)m_model->objects[object_idx]->volumes.size() * (unsigned int)m_model->objects[object_idx]->instances.size());
+    object_idx_out = res ? object_idx : -1;
+    return res;
+}
+
+bool GLCanvas3D::Selection::is_from_single_instance(int& object_idx_out, int& instance_idx_out) const
+{
+    if (!m_valid || is_empty() || is_wipe_tower())
+    {
+        object_idx_out = -1;
+        instance_idx_out = -1;
+        return false;
+    }
+
+    const GLVolume* first = (*m_volumes)[*m_list.begin()];
+    int object_idx = first->object_idx();
+    int instance_idx = first->instance_idx();
+
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() != object_idx) || (v->instance_idx() != instance_idx))
+            return false;
+    }
+
+    object_idx_out = object_idx;
+    instance_idx_out = instance_idx;
+    return true;
+}
+
+bool GLCanvas3D::Selection::is_from_single_object(int& object_idx_out) const
+{
+    if (!m_valid || is_empty() || is_wipe_tower())
+    {
+        object_idx_out = -1;
+        return false;
+    }
+
+    int object_idx = (*m_volumes)[*m_list.begin()]->object_idx();
+
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        if (v->object_idx() != object_idx)
+            return false;
+    }
+
+    object_idx_out = object_idx;
+    return true;
+}
+
+const GLVolume* GLCanvas3D::Selection::get_volume(unsigned int volume_idx) const
+{
+    if (!m_valid)
+        return nullptr;
+
+    return (volume_idx < (unsigned int)m_volumes->size()) ? (*m_volumes)[volume_idx] : nullptr;
+}
+
+const BoundingBoxf3& GLCanvas3D::Selection::get_bounding_box() const
+{
+    if (m_bounding_box_dirty)
+        calc_bounding_box();
+
+    return m_bounding_box;
+}
+
+void GLCanvas3D::Selection::start_dragging()
+{
+    if (!m_valid)
+        return;
+
+    set_caches();
+}
+
+void GLCanvas3D::Selection::translate(const Vec3d& displacement)
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list)
+    {
+        (*m_volumes)[i]->set_offset(m_cache.volumes_data[i].position + displacement);
+    }
+
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::render() const
+{
+    if (is_empty())
+        return;
+
+    float color[3] = { 1.0f, 1.0f, 1.0f };
+    render_bounding_box(get_bounding_box(), color);
+}
+
+void GLCanvas3D::Selection::update_valid()
+{
+    m_valid = (m_volumes != nullptr) && (m_model != nullptr);
+}
+
+void GLCanvas3D::Selection::set_caches()
+{
+    m_cache.volumes_data.clear();
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* v = (*m_volumes)[i];
+        m_cache.volumes_data.emplace(i, VolumeCache(v->get_offset(), v->get_rotation(), v->get_scaling_factor()));
+    }
+    m_cache.dragging_center = get_bounding_box().center();
+}
+
+void GLCanvas3D::Selection::add_volume(unsigned int volume_idx)
+{
+    // check if the given idx is already selected
+    if (m_list.find(volume_idx) != m_list.end())
+        return;
+
+    m_list.insert(volume_idx);
+    (*m_volumes)[volume_idx]->selected = true;
+}
+
+void GLCanvas3D::Selection::add_instance(unsigned int volume_idx)
+{
+    GLVolume* volume = (*m_volumes)[volume_idx];
+    int object_idx = volume->object_idx();
+    int instance_idx = volume->instance_idx();
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+            add_volume(i);
+    }
+}
+
+void GLCanvas3D::Selection::add_object(unsigned int volume_idx)
+{
+    GLVolume* volume = (*m_volumes)[volume_idx];
+    int object_idx = volume->object_idx();
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if (v->object_idx() == object_idx)
+            add_volume(i);
+    }
+}
+
+void GLCanvas3D::Selection::remove_volume(unsigned int volume_idx)
+{
+    IndicesList::iterator v_it = m_list.find(volume_idx);
+    if (v_it == m_list.end())
+        return;
+
+    m_list.erase(v_it);
+
+    (*m_volumes)[volume_idx]->selected = false;
+}
+
+void GLCanvas3D::Selection::remove_instance(unsigned int volume_idx)
+{
+    GLVolume* volume = (*m_volumes)[volume_idx];
+    int object_idx = volume->object_idx();
+    int instance_idx = volume->instance_idx();
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+            remove_volume(i);
+    }
+}
+
+void GLCanvas3D::Selection::remove_object(unsigned int volume_idx)
+{
+    GLVolume* volume = (*m_volumes)[volume_idx];
+    int object_idx = volume->object_idx();
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if (v->object_idx() == object_idx)
+            remove_volume(i);
+    }
+}
+
+void GLCanvas3D::Selection::calc_bounding_box() const
+{
+    m_bounding_box = BoundingBoxf3();
+    if (m_valid)
+    {
+        for (unsigned int i : m_list)
+        {
+            m_bounding_box.merge((*m_volumes)[i]->transformed_bounding_box());
+        }
+    }
+    m_bounding_box_dirty = false;
+}
+
+void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float* color) const
+{
+    if (color == nullptr)
+        return;
+
+    Vec3f b_min = box.min.cast<float>();
+    Vec3f b_max = box.max.cast<float>();
+    Vec3f size = 0.25f * box.size().cast<float>();
+
+    ::glEnable(GL_DEPTH_TEST);
+
+    ::glColor3fv(color);
+
+    ::glBegin(GL_LINES);
+
+    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0) + size(0), b_min(1), b_min(2));
+    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0), b_min(1) + size(1), b_min(2));
+    ::glVertex3f(b_min(0), b_min(1), b_min(2)); ::glVertex3f(b_min(0), b_min(1), b_min(2) + size(2));
+
+    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0) - size(0), b_min(1), b_min(2));
+    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0), b_min(1) + size(1), b_min(2));
+    ::glVertex3f(b_max(0), b_min(1), b_min(2)); ::glVertex3f(b_max(0), b_min(1), b_min(2) + size(2));
+
+    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0) - size(0), b_max(1), b_min(2));
+    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0), b_max(1) - size(1), b_min(2));
+    ::glVertex3f(b_max(0), b_max(1), b_min(2)); ::glVertex3f(b_max(0), b_max(1), b_min(2) + size(2));
+
+    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0) + size(0), b_max(1), b_min(2));
+    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0), b_max(1) - size(1), b_min(2));
+    ::glVertex3f(b_min(0), b_max(1), b_min(2)); ::glVertex3f(b_min(0), b_max(1), b_min(2) + size(2));
+
+    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0) + size(0), b_min(1), b_max(2));
+    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0), b_min(1) + size(1), b_max(2));
+    ::glVertex3f(b_min(0), b_min(1), b_max(2)); ::glVertex3f(b_min(0), b_min(1), b_max(2) - size(2));
+
+    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0) - size(0), b_min(1), b_max(2));
+    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0), b_min(1) + size(1), b_max(2));
+    ::glVertex3f(b_max(0), b_min(1), b_max(2)); ::glVertex3f(b_max(0), b_min(1), b_max(2) - size(2));
+
+    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0) - size(0), b_max(1), b_max(2));
+    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0), b_max(1) - size(1), b_max(2));
+    ::glVertex3f(b_max(0), b_max(1), b_max(2)); ::glVertex3f(b_max(0), b_max(1), b_max(2) - size(2));
+
+    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0) + size(0), b_max(1), b_max(2));
+    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1) - size(1), b_max(2));
+    ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1), b_max(2) - size(2));
+
+    ::glEnd();
+}
+#endif // ENABLE_EXTENDED_SELECTION
 
 const float GLCanvas3D::Gizmos::OverlayTexturesScale = 0.75f;
 const float GLCanvas3D::Gizmos::OverlayOffsetX = 10.0f * OverlayTexturesScale;
@@ -1223,7 +1642,11 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
     m_enabled = enable;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
+#else
 void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (!m_enabled)
         return;
@@ -1240,7 +1663,12 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
+#if ENABLE_EXTENDED_SELECTION
+        bool no_wipe_tower = selection.is_wipe_tower() && !it->second->get_accept_wipe_tower();
+        if (!no_wipe_tower && (it->second->get_state() != GLGizmoBase::On))
+#else
         if (it->second->get_state() != GLGizmoBase::On)
+#endif // ENABLE_EXTENDED_SELECTION
         {
             bool inside = (mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
@@ -1249,7 +1677,11 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
+#else
 void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (!m_enabled)
         return;
@@ -1266,7 +1698,12 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
         float half_tex_size = 0.5f * tex_size;
 
         // we currently use circular icons for gizmo, so we check the radius
+#if ENABLE_EXTENDED_SELECTION
+        bool no_wipe_tower = selection.is_wipe_tower() && !it->second->get_accept_wipe_tower();
+        if (!no_wipe_tower && ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size))
+#else
         if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
+#endif // ENABLE_EXTENDED_SELECTION
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
@@ -1314,6 +1751,28 @@ void GLCanvas3D::Gizmos::set_hover_id(int id)
             it->second->set_hover_id(id);
     }
 }
+
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::enable_grabber(EType type, unsigned int id)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(type);
+    if (it != m_gizmos.end())
+        it->second->enable_grabber(id);
+}
+
+void GLCanvas3D::Gizmos::disable_grabber(EType type, unsigned int id)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(type);
+    if (it != m_gizmos.end())
+        it->second->disable_grabber(id);
+}
+#endif // ENABLE_EXTENDED_SELECTION
 
 bool GLCanvas3D::Gizmos::overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const
 {
@@ -1406,6 +1865,16 @@ void GLCanvas3D::Gizmos::stop_dragging()
         curr->stop_dragging();
 }
 
+#if ENABLE_EXTENDED_SELECTION
+Vec3d GLCanvas3D::Gizmos::get_displacement() const
+{
+    if (!m_enabled)
+        return Vec3d::Zero();
+
+    GizmosMap::const_iterator it = m_gizmos.find(Move);
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoMove3D*>(it->second)->get_displacement() : Vec3d::Zero();
+}
+#else
 Vec3d GLCanvas3D::Gizmos::get_position() const
 {
     if (!m_enabled)
@@ -1424,6 +1893,7 @@ void GLCanvas3D::Gizmos::set_position(const Vec3d& position)
     if (it != m_gizmos.end())
         reinterpret_cast<GLGizmoMove3D*>(it->second)->set_position(position);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 Vec3d GLCanvas3D::Gizmos::get_scale() const
@@ -1618,6 +2088,12 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
     }
 
     return height;
+}
+
+GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
+{
+    GizmosMap::const_iterator it = m_gizmos.find(m_current);
+    return (it != m_gizmos.end()) ? it->second : nullptr;
 }
 
 const unsigned char GLCanvas3D::WarningTexture::Background_Color[3] = { 9, 91, 134 };
@@ -1933,12 +2409,6 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
-GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
-{
-    GizmosMap::const_iterator it = m_gizmos.find(m_current);
-    return (it != m_gizmos.end()) ? it->second : nullptr;
-}
-
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
@@ -1980,9 +2450,14 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_shader_enabled(false)
     , m_dynamic_background_enabled(false)
     , m_multisample_allowed(false)
+#if ENABLE_EXTENDED_SELECTION
+    , m_regenerate_volumes(true)
+#endif // ENABLE_EXTENDED_SELECTION
     , m_color_by("volume")
+#if !ENABLE_EXTENDED_SELECTION
     , m_select_by("object")
     , m_drag_by("instance")
+#endif // !ENABLE_EXTENDED_SELECTION
     , m_reload_delayed(false)
 {
     if (m_canvas != nullptr)
@@ -1992,6 +2467,10 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
         m_timer = new wxTimer(m_canvas);
     }
+
+#if ENABLE_EXTENDED_SELECTION
+    m_selection.set_volumes(&m_volumes.volumes);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 GLCanvas3D::~GLCanvas3D()
@@ -2132,6 +2611,9 @@ void GLCanvas3D::reset_volumes()
 
         m_volumes.release_geometry();
         m_volumes.clear();
+#if ENABLE_EXTENDED_SELECTION
+        m_selection.clear();
+#endif // ENABLE_EXTENDED_SELECTION
         m_dirty = true;
     }
 
@@ -2139,6 +2621,7 @@ void GLCanvas3D::reset_volumes()
     _reset_warning_texture();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::deselect_volumes()
 {
     for (GLVolume* vol : m_volumes.volumes)
@@ -2178,6 +2661,7 @@ void GLCanvas3D::update_volumes_selection(const std::vector<int>& selections)
         }
     }
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 int GLCanvas3D::check_volumes_outside_state(const DynamicPrintConfig* config) const
 {
@@ -2192,8 +2676,10 @@ bool GLCanvas3D::move_volume_up(unsigned int id)
     {
         std::swap(m_volumes.volumes[id - 1], m_volumes.volumes[id]);
         std::swap(m_volumes.volumes[id - 1]->composite_id, m_volumes.volumes[id]->composite_id);
+#if !ENABLE_EXTENDED_SELECTION
         std::swap(m_volumes.volumes[id - 1]->select_group_id, m_volumes.volumes[id]->select_group_id);
         std::swap(m_volumes.volumes[id - 1]->drag_group_id, m_volumes.volumes[id]->drag_group_id);
+#endif // !ENABLE_EXTENDED_SELECTION
         return true;
     }
 
@@ -2206,18 +2692,22 @@ bool GLCanvas3D::move_volume_down(unsigned int id)
     {
         std::swap(m_volumes.volumes[id + 1], m_volumes.volumes[id]);
         std::swap(m_volumes.volumes[id + 1]->composite_id, m_volumes.volumes[id]->composite_id);
+#if !ENABLE_EXTENDED_SELECTION
         std::swap(m_volumes.volumes[id + 1]->select_group_id, m_volumes.volumes[id]->select_group_id);
         std::swap(m_volumes.volumes[id + 1]->drag_group_id, m_volumes.volumes[id]->drag_group_id);
+#endif // !ENABLE_EXTENDED_SELECTION
         return true;
     }
 
     return false;
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::set_objects_selections(const std::vector<int>& selections)
 {
     m_objects_selections = selections;
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::set_config(DynamicPrintConfig* config)
 {
@@ -2232,6 +2722,9 @@ void GLCanvas3D::set_print(Print* print)
 void GLCanvas3D::set_model(Model* model)
 {
     m_model = model;
+#if ENABLE_EXTENDED_SELECTION
+    m_selection.set_model(m_model);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::set_bed_shape(const Pointfs& shape)
@@ -2289,6 +2782,7 @@ void GLCanvas3D::set_color_by(const std::string& value)
     m_color_by = value;
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::set_select_by(const std::string& value)
 {
     m_select_by = value;
@@ -2310,6 +2804,7 @@ const std::string& GLCanvas3D::get_drag_by() const
 {
     return m_drag_by;
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 float GLCanvas3D::get_camera_zoom() const
 {
@@ -2365,6 +2860,9 @@ void GLCanvas3D::enable_legend_texture(bool enable)
 void GLCanvas3D::enable_picking(bool enable)
 {
     m_picking_enabled = enable;
+#if ENABLE_EXTENDED_SELECTION
+    m_selection.set_mode(Selection::Instance);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::enable_moving(bool enable)
@@ -2478,6 +2976,32 @@ void GLCanvas3D::update_gizmos_data()
     if (!m_gizmos.is_enabled())
         return;
 
+#if ENABLE_EXTENDED_SELECTION
+    if (m_gizmos.get_current_type() == Gizmos::Move)
+    {
+        if (m_selection.is_wipe_tower())
+            m_gizmos.disable_grabber(Gizmos::Move, 2);
+        else
+            m_gizmos.enable_grabber(Gizmos::Move, 2);
+    }
+
+    int object_idx = -1;
+    int instance_idx = -1;
+    if (m_selection.is_single_full_instance(object_idx, instance_idx))
+    {
+        ModelObject* model_object = m_model->objects[object_idx];
+        ModelInstance* model_instance = model_object->instances[instance_idx];
+        m_gizmos.set_scale(model_instance->get_scaling_factor());
+        m_gizmos.set_rotation(model_instance->get_rotation());
+        m_gizmos.set_flattening_data(model_object);
+    }
+    else
+    {
+        m_gizmos.set_scale(Vec3d::Ones());
+        m_gizmos.set_rotation(Vec3d::Zero());
+        m_gizmos.set_flattening_data(nullptr);
+    }
+#else
     int id = _get_first_selected_object_id();
     if ((id != -1) && (m_model != nullptr))
     {
@@ -2512,6 +3036,7 @@ void GLCanvas3D::update_gizmos_data()
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_gizmos.set_flattening_data(nullptr);
     }
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::render()
@@ -2556,6 +3081,9 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
+#if ENABLE_EXTENDED_SELECTION
+    _render_selection();
+#endif // ENABLE_EXTENDED_SELECTION
     if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
         _render_axes(true);
@@ -2594,7 +3122,11 @@ std::vector<int> GLCanvas3D::load_object(const ModelObject& model_object, int ob
             instance_idxs.push_back(i);
         }
     }
+#if ENABLE_EXTENDED_SELECTION
+    return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_use_VBOs && m_initialized);
+#else
     return m_volumes.load_object(&model_object, obj_idx, instance_idxs, m_color_by, m_select_by, m_drag_by, m_use_VBOs && m_initialized);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 std::vector<int> GLCanvas3D::load_object(const Model& model, int obj_idx)
@@ -2630,13 +3162,20 @@ void GLCanvas3D::reload_scene(bool force)
     if ((m_canvas == nullptr) || (m_config == nullptr) || (m_model == nullptr))
         return;
 
+#if !ENABLE_EXTENDED_SELECTION
     reset_volumes();
+#endif // !ENABLE_EXTENDED_SELECTION
 
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
     // ensures this canvas is current
     if (!set_current())
         return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
+
+#if ENABLE_EXTENDED_SELECTION
+    if (m_regenerate_volumes)
+        reset_volumes();
+#endif // ENABLE_EXTENDED_SELECTION
 
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
 
@@ -2648,6 +3187,17 @@ void GLCanvas3D::reload_scene(bool force)
 
     m_reload_delayed = false;
 
+#if ENABLE_EXTENDED_SELECTION
+    if (m_regenerate_volumes)
+    {
+        for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
+        {
+            load_object(*m_model, obj_idx);
+        }
+    }
+
+    update_gizmos_data();
+#else
     m_objects_volumes_idxs.clear();
 
     for (unsigned int obj_idx = 0; obj_idx < (unsigned int)m_model->objects.size(); ++obj_idx)
@@ -2661,36 +3211,44 @@ void GLCanvas3D::reload_scene(bool force)
     // 2nd call to restore selection, if any
     if (!m_objects_selections.empty())
         update_gizmos_data();
+#endif // ENABLE_EXTENDED_SELECTION
 
-    if (m_config->has("nozzle_diameter"))
+#if ENABLE_EXTENDED_SELECTION
+    if (m_regenerate_volumes)
     {
-        // Should the wipe tower be visualized ?
-        unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
-
-        bool semm = dynamic_cast<const ConfigOptionBool*>(m_config->option("single_extruder_multi_material"))->value;
-        bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
-        bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
-
-        if ((extruders_count > 1) && semm && wt && !co)
+#endif // ENABLE_EXTENDED_SELECTION
+        if (m_config->has("nozzle_diameter"))
         {
-            // Height of a print (Show at least a slab)
-            double height = std::max(m_model->bounding_box().max(2), 10.0);
+            // Should the wipe tower be visualized ?
+            unsigned int extruders_count = (unsigned int)dynamic_cast<const ConfigOptionFloats*>(m_config->option("nozzle_diameter"))->values.size();
 
-            float x = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_x"))->value;
-            float y = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_y"))->value;
-            float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
-            float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
+            bool semm = dynamic_cast<const ConfigOptionBool*>(m_config->option("single_extruder_multi_material"))->value;
+            bool wt = dynamic_cast<const ConfigOptionBool*>(m_config->option("wipe_tower"))->value;
+            bool co = dynamic_cast<const ConfigOptionBool*>(m_config->option("complete_objects"))->value;
 
-            float depth = m_print->get_wipe_tower_depth();
-            if (!m_print->is_step_done(psWipeTower))
-                depth = (900.f/w) * (float)(extruders_count - 1) ;
+            if ((extruders_count > 1) && semm && wt && !co)
+            {
+                // Height of a print (Show at least a slab)
+                double height = std::max(m_model->bounding_box().max(2), 10.0);
 
-            m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower),
-                                              m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+                float x = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_x"))->value;
+                float y = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_y"))->value;
+                float w = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_width"))->value;
+                float a = dynamic_cast<const ConfigOptionFloat*>(m_config->option("wipe_tower_rotation_angle"))->value;
+
+                float depth = m_print->get_wipe_tower_depth();
+                if (!m_print->is_step_done(psWipeTower))
+                    depth = (900.f/w) * (float)(extruders_count - 1) ;
+
+                m_volumes.load_wipe_tower_preview(1000, x, y, w, depth, (float)height, a, m_use_VBOs && m_initialized, !m_print->is_step_done(psWipeTower),
+                                                  m_print->config().nozzle_diameter.values[0] * 1.25f * 4.5f);
+            }
         }
-    }
 
-    update_volumes_colors_by_extruder();
+        update_volumes_colors_by_extruder();
+#if ENABLE_EXTENDED_SELECTION
+    }
+#endif // ENABLE_EXTENDED_SELECTION
 
     // checks for geometry outside the print volume to render it accordingly
     if (!m_volumes.empty())
@@ -2718,6 +3276,11 @@ void GLCanvas3D::reload_scene(bool force)
         _reset_warning_texture();
         post_event(Event<bool>(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, false));
     }
+
+#if ENABLE_EXTENDED_SELECTION
+    // restore to default value
+    m_regenerate_volumes = true;
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors)
@@ -2913,7 +3476,12 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     // Performs layers editing updates, if enabled
     if (is_layers_editing_enabled())
     {
+#if ENABLE_EXTENDED_SELECTION
+        int object_idx_selected = -1;
+        m_selection.is_from_single_object(object_idx_selected);
+#else
         int object_idx_selected = _get_first_selected_object_id();
+#endif // ENABLE_EXTENDED_SELECTION
         if (object_idx_selected != -1)
         {
             // A volume is selected. Test, whether hovering over a layer thickness bar.
@@ -2957,8 +3525,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
     Point pos(evt.GetX(), evt.GetY());
 
+#if ENABLE_EXTENDED_SELECTION
+    int selected_object_idx = -1;
+    m_selection.is_from_single_object(selected_object_idx);
+    int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
+#else
     int selected_object_idx = _get_first_selected_object_id();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
+#endif // ENABLE_EXTENDED_SELECTION
     m_layers_editing.last_object_id = layer_editing_object_idx;
     bool gizmos_overlay_contains_mouse = m_gizmos.overlay_contains_mouse(*this, m_mouse.position);
     int toolbar_contains_mouse = m_toolbar.contains_mouse(m_mouse.position);
@@ -3026,7 +3600,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     {
         // If user pressed left or right button we first check whether this happened
         // on a volume or not.
+#if !ENABLE_EXTENDED_SELECTION
         int volume_idx = m_hover_volume_id;
+#endif // !ENABLE_EXTENDED_SELECTION
         m_layers_editing.state = LayersEditing::Unknown;
         if ((layer_editing_object_idx != -1) && m_layers_editing.bar_rect_contains(*this, pos(0), pos(1)))
         {
@@ -3049,17 +3625,35 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+#if ENABLE_EXTENDED_SELECTION
+        else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
+        {
+            m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
+            update_gizmos_data();
+            m_dirty = true;
+        }
+#else
         else if ((selected_object_idx != -1) && gizmos_overlay_contains_mouse)
         {
             update_gizmos_data();
             m_gizmos.update_on_off_state(*this, m_mouse.position);
             m_dirty = true;
         }
+#endif // ENABLE_EXTENDED_SELECTION
+#if ENABLE_EXTENDED_SELECTION
+        else if (!m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
+#else
         else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
+#endif // ENABLE_EXTENDED_SELECTION
         {
             update_gizmos_data();
+#if ENABLE_EXTENDED_SELECTION
+            m_selection.start_dragging();
+            m_gizmos.start_dragging(m_selection.get_bounding_box());
+#else
             m_gizmos.start_dragging(_selected_volumes_bounding_box());
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
+#endif // ENABLE_EXTENDED_SELECTION
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -3089,8 +3683,25 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // Don't deselect a volume if layer editing is enabled. We want the object to stay selected
             // during the scene manipulation.
 
+#if ENABLE_EXTENDED_SELECTION
+            if (m_picking_enabled && ((m_hover_volume_id != -1) || !is_layers_editing_enabled()))
+#else
             if (m_picking_enabled && ((volume_idx != -1) || !is_layers_editing_enabled()))
+#endif // ENABLE_EXTENDED_SELECTION
             {
+#if ENABLE_EXTENDED_SELECTION
+                if (m_hover_volume_id != -1)
+                {
+                    if (evt.ControlDown())
+                        m_selection.remove(m_hover_volume_id);
+                    else
+                        m_selection.add(m_hover_volume_id, !evt.ShiftDown());
+
+                    update_gizmos_data();
+                    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                    m_dirty = true;
+                }
+#else
                 if (volume_idx != -1)
                 {
                     deselect_volumes();
@@ -3108,32 +3719,61 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     update_gizmos_data();
                     m_dirty = true;
                 }
+#endif // ENABLE_EXTENDED_SELECTION
             }
 
             // propagate event through callback
+#if ENABLE_EXTENDED_SELECTION
+            if (m_picking_enabled && (m_hover_volume_id != -1))
+            {
+                int object_idx = -1;
+                m_selection.is_from_single_object(object_idx);
+                _on_select(m_hover_volume_id, object_idx);
+            }
+#else
             if (m_picking_enabled && (volume_idx != -1))
                 _on_select(volume_idx, selected_object_idx);
+#endif // ENABLE_EXTENDED_SELECTION
 
+#if ENABLE_EXTENDED_SELECTION
+            if (m_hover_volume_id != -1)
+#else
             if (volume_idx != -1)
+#endif // ENABLE_EXTENDED_SELECTION
             {
+#if ENABLE_EXTENDED_SELECTION
+                if (evt.LeftDown() && m_moving_enabled && (m_mouse.drag.move_volume_idx == -1))
+#else
                 if (evt.LeftDown() && m_moving_enabled)
+#endif // ENABLE_EXTENDED_SELECTION
                 {
                     // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
                     // an converts the screen space coordinate to unscaled object space.
-                    Vec3d pos3d = (volume_idx == -1) ? Vec3d(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
+                    Vec3d pos3d = _mouse_to_3d(pos);
 
                     // Only accept the initial position, if it is inside the volume bounding box.
+#if ENABLE_EXTENDED_SELECTION
+                    BoundingBoxf3 volume_bbox = m_volumes.volumes[m_hover_volume_id]->transformed_bounding_box();
+#else
                     BoundingBoxf3 volume_bbox = m_volumes.volumes[volume_idx]->transformed_bounding_box();
+#endif // ENABLE_EXTENDED_SELECTION
                     volume_bbox.offset(1.0);
                     if (volume_bbox.contains(pos3d))
                     {
                         // The dragging operation is initiated.
+#if ENABLE_EXTENDED_SELECTION
+                        m_mouse.drag.move_volume_idx = m_hover_volume_id;
+                        m_selection.start_dragging();
+#else
                         m_mouse.drag.move_with_shift = evt.ShiftDown();
                         m_mouse.drag.move_volume_idx = volume_idx;
+#endif // ENABLE_EXTENDED_SELECTION
                         m_mouse.drag.start_position_3D = pos3d;
+#if !ENABLE_EXTENDED_SELECTION
                         // Remember the shift to to the object center.The object center will later be used
                         // to limit the object placement close to the bed.
                         m_mouse.drag.volume_center_offset = volume_bbox.center() - pos3d;
+#endif // !ENABLE_EXTENDED_SELECTION
                     }
                 }
                 else if (evt.RightDown())
@@ -3145,7 +3785,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     if (m_hover_volume_id != -1)
                     {
                         // if right clicking on volume, propagate event through callback (shows context menu)
+#if ENABLE_EXTENDED_SELECTION
+                        if (m_volumes.volumes[m_hover_volume_id]->hover)
+#else
                         if (m_volumes.volumes[volume_idx]->hover)
+#endif // ENABLE_EXTENDED_SELECTION
                             post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
                     }
                 }
@@ -3161,6 +3805,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         float z1 = 1.0f;
         Vec3d cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
 
+#if !ENABLE_EXTENDED_SELECTION
         // Clip the new position, so the object center remains close to the bed.
         cur_pos += m_mouse.drag.volume_center_offset;
         Point cur_pos2(scale_(cur_pos(0)), scale_(cur_pos(1)));
@@ -3171,9 +3816,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             cur_pos(1) = unscale<double>(ip(1));
         }
         cur_pos -= m_mouse.drag.volume_center_offset;
+#endif // !ENABLE_EXTENDED_SELECTION
 
         // Calculate the translation vector.
-        Vec3d vector = cur_pos - m_mouse.drag.start_position_3D;
+        Vec3d displacement = cur_pos - m_mouse.drag.start_position_3D;
+#if ENABLE_EXTENDED_SELECTION
+        m_selection.translate(displacement);
+        wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
         // Get the volume being dragged.
         GLVolume* volume = m_volumes.volumes[m_mouse.drag.move_volume_idx];
         // Get all volumes belonging to the same group, if any.
@@ -3196,11 +3846,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Apply new temporary volume origin and ignore Z.
         for (GLVolume* v : volumes)
         {
-            v->set_offset(v->get_offset() + Vec3d(vector(0), vector(1), 0.0));
+            v->set_offset(v->get_offset() + Vec3d(displacement(0), displacement(1), 0.0));
         }
 
         wxGetApp().obj_manipul()->update_position_values(volume->get_offset());
         m_mouse.drag.start_position_3D = cur_pos;
+#endif // ENABLE_EXTENDED_SELECTION
 
         m_dirty = true;
     }
@@ -3212,6 +3863,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.dragging = true;
         m_gizmos.update(mouse_ray(pos));
 
+#if !ENABLE_EXTENDED_SELECTION
         std::vector<GLVolume*> volumes;
         if (m_mouse.drag.gizmo_volume_idx != -1)
         {
@@ -3228,12 +3880,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
             }
         }
+#endif // !ENABLE_EXTENDED_SELECTION
 
         switch (m_gizmos.get_current_type())
         {
         case Gizmos::Move:
         {
             // Apply new temporary offset
+#if ENABLE_EXTENDED_SELECTION
+            m_selection.translate(m_gizmos.get_displacement());
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
             GLVolume* volume = m_volumes.volumes[m_mouse.drag.gizmo_volume_idx];
             Vec3d offset = m_gizmos.get_position() - volume->get_offset();
             for (GLVolume* v : volumes)
@@ -3241,11 +3898,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 v->set_offset(v->get_offset() + offset);
             }
             wxGetApp().obj_manipul()->update_position_values(volume->get_offset());
+#endif // ENABLE_EXTENDED_SELECTION
             break;
         }
         case Gizmos::Scale:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+#else
             // Apply new temporary scale factors
             const Vec3d& scale = m_gizmos.get_scale();
             for (GLVolume* v : volumes)
@@ -3253,6 +3913,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 v->set_scaling_factor(scale);
             }
             wxGetApp().obj_manipul()->update_scale_values(scale);
+#endif // ENABLE_EXTENDED_SELECTION
 #else
             // Apply new temporary scale factor
             float scale_factor = m_gizmos.get_scale();
@@ -3267,6 +3928,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+#else
             // Apply new temporary rotation
             const Vec3d& rotation = m_gizmos.get_rotation();
             for (GLVolume* v : volumes)
@@ -3274,6 +3937,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 v->set_rotation(rotation);
             }
             wxGetApp().obj_manipul()->update_rotation_value(rotation);
+#endif // ENABLE_EXTENDED_SELECTION
 #else
             // Apply new temporary angle_z
             float angle_z = m_gizmos.get_angle_z();
@@ -3289,6 +3953,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             break;
         }
 
+#if ENABLE_EXTENDED_SELECTION
+#else
         if (!volumes.empty())
         {
             BoundingBoxf3 bb;
@@ -3304,6 +3970,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         }
+#endif // ENABLE_EXTENDED_SELECTION
 
         m_dirty = true;
     }
@@ -3362,6 +4029,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         else if ((m_mouse.drag.move_volume_idx != -1) && m_mouse.dragging)
         {
+#if ENABLE_EXTENDED_SELECTION
+            m_regenerate_volumes = false;
+            _on_move();
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
             // get all volumes belonging to the same group, if any
             std::vector<int> volume_idxs;
             int vol_id = m_mouse.drag.move_volume_idx;
@@ -3382,6 +4054,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             // force re-selection of the wipe tower, if needed
             if ((volume_idxs.size() == 1) && m_volumes.volumes[volume_idxs[0]]->is_wipe_tower)
                 select_volume(volume_idxs[0]);
+#endif // ENABLE_EXTENDED_SELECTION
         }
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {
@@ -3392,7 +4065,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_picking_enabled && !m_toolbar_action_running)
 #endif // ENABLE_GIZMOS_RESET
             {
+#if ENABLE_EXTENDED_SELECTION
+                m_selection.clear();
+                wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
                 deselect_volumes();
+#endif // ENABLE_EXTENDED_SELECTION
                 _on_select(-1, -1);
                 update_gizmos_data();
             }
@@ -3407,6 +4085,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
             case Gizmos::Move:
             {
+#if ENABLE_EXTENDED_SELECTION
+                m_regenerate_volumes = false;
+                _on_move();
+#else
                 // get all volumes belonging to the same group, if any
                 std::vector<int> volume_idxs;
                 int vol_id = m_mouse.drag.gizmo_volume_idx;
@@ -3423,6 +4105,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 }
 
                 _on_move(volume_idxs);
+#endif // ENABLE_EXTENDED_SELECTION
 
                 break;
             }
@@ -3448,11 +4131,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 break;
             }
             m_gizmos.stop_dragging();
+#if ENABLE_EXTENDED_SELECTION
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
             wxGetApp().obj_manipul()->update_values();
+#endif // ENABLE_EXTENDED_SELECTION
         }
 
         m_mouse.drag.move_volume_idx = -1;
+#if !ENABLE_EXTENDED_SELECTION
         m_mouse.drag.gizmo_volume_idx = -1;
+#endif // !ENABLE_EXTENDED_SELECTION
         m_mouse.set_start_position_3D_as_invalid();
         m_mouse.set_start_position_2D_as_invalid();
         m_mouse.dragging = false;
@@ -3656,6 +4345,7 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
+#if !ENABLE_EXTENDED_SELECTION
     item.name = "selectbyparts";
     item.tooltip = GUI::L_str("Select by parts");
     item.sprite_id = 10;
@@ -3663,6 +4353,7 @@ bool GLCanvas3D::_init_toolbar()
     item.action_event = EVT_GLTOOLBAR_SELECTBYPARTS;
     if (!m_toolbar.add_item(item))
         return false;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     enable_toolbar_item("add", true);
 
@@ -3758,6 +4449,7 @@ BoundingBoxf3 GLCanvas3D::_max_bounding_box() const
     return bb;
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
 {
     BoundingBoxf3 bb;
@@ -3802,6 +4494,7 @@ BoundingBoxf3 GLCanvas3D::_selected_volumes_bounding_box() const
 
     return bb;
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::_zoom_to_bounding_box(const BoundingBoxf3& bbox)
 {
@@ -3893,7 +4586,11 @@ void GLCanvas3D::_mark_volumes_for_layer_height() const
 
     for (GLVolume* vol : m_volumes.volumes)
     {
+#if ENABLE_EXTENDED_SELECTION
+        int object_id = vol->object_idx();
+#else
         int object_id = int(vol->select_group_id / 1000000);
+#endif // ENABLE_EXTENDED_SELECTION
         int shader_id = m_layers_editing.get_shader_program_id();
 
         if (is_layers_editing_enabled() && (shader_id != -1) && vol->selected &&
@@ -3949,16 +4646,22 @@ void GLCanvas3D::_picking_pass() const
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         _render_volumes(true);
+#if ENABLE_EXTENDED_SELECTION
+        m_gizmos.render_current_gizmo_for_picking_pass(m_selection.get_bounding_box());
+#else
         m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
+#endif // ENABLE_EXTENDED_SELECTION
 
         if (m_multisample_allowed)
             ::glEnable(GL_MULTISAMPLE);
 
         int volume_id = -1;
+#if !ENABLE_EXTENDED_SELECTION
         for (GLVolume* vol : m_volumes.volumes)
         {
             vol->hover = false;
         }
+#endif // !ENABLE_EXTENDED_SELECTION
 
         GLubyte color[4] = { 0, 0, 0, 0 };
         const Size& cnv_size = get_canvas_size();
@@ -3972,6 +4675,7 @@ void GLCanvas3D::_picking_pass() const
         if ((0 <= volume_id) && (volume_id < (int)m_volumes.volumes.size()))
         {
             m_hover_volume_id = volume_id;
+#if !ENABLE_EXTENDED_SELECTION
             m_volumes.volumes[volume_id]->hover = true;
             int group_id = m_volumes.volumes[volume_id]->select_group_id;
             if (group_id != -1)
@@ -3982,6 +4686,7 @@ void GLCanvas3D::_picking_pass() const
                         vol->hover = true;
                 }
             }
+#endif // !ENABLE_EXTENDED_SELECTION
             m_gizmos.set_hover_id(-1);
         }
         else
@@ -3990,9 +4695,18 @@ void GLCanvas3D::_picking_pass() const
             m_gizmos.set_hover_id(inside ? (254 - (int)color[2]) : -1);
         }
 
+#if ENABLE_EXTENDED_SELECTION
+        _update_volumes_hover_state();
+#endif // ENABLE_EXTENDED_SELECTION
+
         // updates gizmos overlay
+#if ENABLE_EXTENDED_SELECTION
+        if (!m_selection.is_empty())
+            m_gizmos.update_hover_state(*this, pos, m_selection);
+#else
         if (_get_first_selected_object_id() != -1)
             m_gizmos.update_hover_state(*this, pos);
+#endif // ENABLE_EXTENDED_SELECTION
         else
             m_gizmos.reset_all_states();
 
@@ -4092,6 +4806,13 @@ void GLCanvas3D::_render_objects() const
     ::glDisable(GL_LIGHTING);
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::_render_selection() const
+{
+    m_selection.render();
+}
+#endif // ENABLE_EXTENDED_SELECTION
+
 void GLCanvas3D::_render_cutting_plane() const
 {
     m_cutting_plane.render(volumes_bounding_box());
@@ -4134,7 +4855,11 @@ void GLCanvas3D::_render_layer_editing_overlay() const
 
     // If the active object was not allocated at the Print, go away.This should only be a momentary case between an object addition / deletion
     // and an update by Platter::async_apply_config.
+#if ENABLE_EXTENDED_SELECTION
+    int object_idx = volume->object_idx();
+#else
     int object_idx = int(volume->select_group_id / 1000000);
+#endif // ENABLE_EXTENDED_SELECTION
     if ((int)m_print->objects().size() < object_idx)
         return;
 
@@ -4194,7 +4919,11 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 
 void GLCanvas3D::_render_current_gizmo() const
 {
+#if ENABLE_EXTENDED_SELECTION
+    m_gizmos.render_current_gizmo(m_selection.get_bounding_box());
+#else
     m_gizmos.render_current_gizmo(_selected_volumes_bounding_box());
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLCanvas3D::_render_gizmos_overlay() const
@@ -4207,6 +4936,43 @@ void GLCanvas3D::_render_toolbar() const
     _resize_toolbar();
     m_toolbar.render();
 }
+
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::_update_volumes_hover_state() const
+{
+    for (GLVolume* v : m_volumes.volumes)
+    {
+        v->hover = false;
+    }
+
+    if (m_hover_volume_id == -1)
+        return;
+
+    GLVolume* volume = m_volumes.volumes[m_hover_volume_id];
+
+    switch (m_selection.get_mode())
+    {
+    case Selection::Volume:
+    {
+        volume->hover = true;
+        break;
+    }
+    case Selection::Instance:
+    {
+        int object_idx = volume->object_idx();
+        int instance_idx = volume->instance_idx();
+
+        for (GLVolume* v : m_volumes.volumes)
+        {
+            if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+                v->hover = true;
+        }
+
+        break;
+    }
+    }
+}
+#endif // ENABLE_EXTENDED_SELECTION
 
 float GLCanvas3D::_get_layers_editing_cursor_z_relative() const
 {
@@ -4312,6 +5078,7 @@ void GLCanvas3D::_stop_timer()
         m_timer->Stop();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 int GLCanvas3D::_get_first_selected_object_id() const
 {
     if (m_print != nullptr)
@@ -4345,6 +5112,7 @@ int GLCanvas3D::_get_first_selected_volume_id(int object_id) const
 
     return -1;
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::_load_print_toolpaths()
 {
@@ -4473,7 +5241,11 @@ void GLCanvas3D::_load_print_object_toolpaths(const PrintObject& print_object, c
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, ctxt.layers.size(), grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
+#if ENABLE_EXTENDED_SELECTION
+        GLVolumePtrs vols;
+#else
         std::vector<GLVolume*> vols;
+#endif // ENABLE_EXTENDED_SELECTION
         if (ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
@@ -4632,7 +5404,11 @@ void GLCanvas3D::_load_wipe_tower_toolpaths(const std::vector<std::string>& str_
         tbb::blocked_range<size_t>(0, n_items, grain_size),
         [&ctxt, &new_volume](const tbb::blocked_range<size_t>& range) {
         // Bounding box of this slab of a wipe tower.
+#if ENABLE_EXTENDED_SELECTION
+        GLVolumePtrs vols;
+#else
         std::vector<GLVolume*> vols;
+#endif // ENABLE_EXTENDED_SELECTION
         if (ctxt.color_by_tool()) {
             for (size_t i = 0; i < ctxt.number_tools(); ++i)
                 vols.emplace_back(new_volume(ctxt.color_tool(i)));
@@ -4858,9 +5634,15 @@ void GLCanvas3D::_load_gcode_extrusion_paths(const GCodePreviewData& preview_dat
             m_gcode_preview_volume_index.first_volumes.pop_back();
             if (initial_volumes_count != m_volumes.volumes.size())
             {
+#if ENABLE_EXTENDED_SELECTION
+                GLVolumePtrs::iterator begin = m_volumes.volumes.begin() + initial_volumes_count;
+                GLVolumePtrs::iterator end = m_volumes.volumes.end();
+                for (GLVolumePtrs::iterator it = begin; it < end; ++it)
+#else
                 std::vector<GLVolume*>::iterator begin = m_volumes.volumes.begin() + initial_volumes_count;
                 std::vector<GLVolume*>::iterator end = m_volumes.volumes.end();
                 for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+#endif // ENABLE_EXTENDED_SELECTION
                 {
                     GLVolume* volume = *it;
                     delete volume;
@@ -4931,9 +5713,15 @@ void GLCanvas3D::_load_gcode_travel_paths(const GCodePreviewData& preview_data, 
         // an error occourred - restore to previous state and return
         if (initial_volumes_count != m_volumes.volumes.size())
         {
+#if ENABLE_EXTENDED_SELECTION
+            GLVolumePtrs::iterator begin = m_volumes.volumes.begin() + initial_volumes_count;
+            GLVolumePtrs::iterator end = m_volumes.volumes.end();
+            for (GLVolumePtrs::iterator it = begin; it < end; ++it)
+#else
             std::vector<GLVolume*>::iterator begin = m_volumes.volumes.begin() + initial_volumes_count;
             std::vector<GLVolume*>::iterator end = m_volumes.volumes.end();
             for (std::vector<GLVolume*>::iterator it = begin; it < end; ++it)
+#endif // ENABLE_EXTENDED_SELECTION
             {
                 GLVolume* volume = *it;
                 delete volume;
@@ -5237,7 +6025,11 @@ void GLCanvas3D::_load_shells()
             instance_ids[i] = i;
         }
 
+#if ENABLE_EXTENDED_SELECTION
+        m_volumes.load_object(model_obj, object_id, instance_ids, "object", m_use_VBOs && m_initialized);
+#else
         m_volumes.load_object(model_obj, object_id, instance_ids, "object", "object", "object", m_use_VBOs && m_initialized);
+#endif // ENABLE_EXTENDED_SELECTION
 
         ++object_id;
     }
@@ -5260,10 +6052,17 @@ void GLCanvas3D::_update_gcode_volumes_visibility(const GCodePreviewData& previe
     unsigned int size = (unsigned int)m_gcode_preview_volume_index.first_volumes.size();
     for (unsigned int i = 0; i < size; ++i)
     {
+#if ENABLE_EXTENDED_SELECTION
+        GLVolumePtrs::iterator begin = m_volumes.volumes.begin() + m_gcode_preview_volume_index.first_volumes[i].id;
+        GLVolumePtrs::iterator end = (i + 1 < size) ? m_volumes.volumes.begin() + m_gcode_preview_volume_index.first_volumes[i + 1].id : m_volumes.volumes.end();
+
+        for (GLVolumePtrs::iterator it = begin; it != end; ++it)
+#else
         std::vector<GLVolume*>::iterator begin = m_volumes.volumes.begin() + m_gcode_preview_volume_index.first_volumes[i].id;
         std::vector<GLVolume*>::iterator end = (i + 1 < size) ? m_volumes.volumes.begin() + m_gcode_preview_volume_index.first_volumes[i + 1].id : m_volumes.volumes.end();
 
         for (std::vector<GLVolume*>::iterator it = begin; it != end; ++it)
+#endif // ENABLE_EXTENDED_SELECTION
         {
             GLVolume* volume = *it;
 
@@ -5352,6 +6151,54 @@ void GLCanvas3D::_show_warning_texture_if_needed()
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::_on_move()
+{
+    if (m_model == nullptr)
+        return;
+
+    std::set<std::string> done;  // prevent moving instances twice
+    bool object_moved = false;
+    Vec3d wipe_tower_origin = Vec3d::Zero();
+    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
+
+    for (unsigned int i : selection)
+    {
+        const GLVolume* v = m_volumes.volumes[i];
+        int object_idx = v->object_idx();
+        int instance_idx = v->instance_idx();
+
+        // prevent moving instances twice
+        char done_id[64];
+        ::sprintf(done_id, "%d_%d", object_idx, instance_idx);
+        if (done.find(done_id) != done.end())
+            continue;
+
+        done.insert(done_id);
+
+        if (object_idx < 1000)
+        {
+            // Move a regular object.
+            ModelObject* model_object = m_model->objects[object_idx];
+            if (model_object != nullptr)
+            {
+                model_object->instances[instance_idx]->set_offset(v->get_offset());
+                model_object->invalidate_bounding_box();
+                object_moved = true;
+            }
+        }
+        else if (object_idx == 1000)
+            // Move a wipe tower proxy.
+            wipe_tower_origin = v->get_offset();
+    }
+
+    if (object_moved)
+        post_event(SimpleEvent(EVT_GLCANVAS_WIPETOWER_MOVED));
+
+    if (wipe_tower_origin != Vec3d::Zero())
+        post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
+}
+#else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 {
     if (m_model == nullptr)
@@ -5402,9 +6249,13 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 {
+#if ENABLE_EXTENDED_SELECTION
+    post_event(ObjectSelectEvent(object_idx, -1));
+#else
     int vol_id = -1;
     int obj_id = -1;
 
@@ -5433,6 +6284,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 
     post_event(ObjectSelectEvent(obj_id, vol_id));
     wxGetApp().obj_list()->select_current_volume(obj_id, vol_id);
+#endif // !ENABLE_EXTENDED_SELECTION
 }
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)

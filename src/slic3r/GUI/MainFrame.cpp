@@ -441,7 +441,7 @@ void MainFrame::quick_slice(const int qs){
     if (!(qs & qsReslice)) {
         auto dlg = new wxFileDialog(this, _(L("Choose a file to slice (STL/OBJ/AMF/3MF/PRUSA):")),
             wxGetApp().app_config->get_last_dir(), "",
-            MODEL_WILDCARD, wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+            file_wildcards[FT_MODEL], wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
             return;
@@ -500,7 +500,7 @@ void MainFrame::quick_slice(const int qs){
 //         output_file = ~s / \.[gG][cC][oO][dD][eE]$ / .svg /;
         auto dlg = new wxFileDialog(this, _(L("Save ")) + (qs & qsExportSVG ? _(L("SVG")) : _(L("G-code"))) + _(L(" file as:")),
             wxGetApp().app_config->get_last_output_dir(get_dir_name(output_file)), get_base_name(input_file), 
-            qs & qsExportSVG ? FILE_WILDCARDS.at("svg") : FILE_WILDCARDS.at("gcode"),
+            qs & qsExportSVG ? file_wildcards[FT_SVG] : file_wildcards[FT_GCODE],
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
@@ -568,7 +568,7 @@ void MainFrame::repair_stl()
     {
         auto dlg = new wxFileDialog(this, _(L("Select the STL file to repair:")),
             wxGetApp().app_config->get_last_dir(), "",
-            FILE_WILDCARDS.at("stl"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+            file_wildcards[FT_STL], wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
             return;
@@ -582,7 +582,7 @@ void MainFrame::repair_stl()
 //         output_file = ~s / \.[sS][tT][lL]$ / _fixed.obj / ;
         auto dlg = new wxFileDialog( this, L("Save OBJ file (less prone to coordinate errors than STL) as:"), 
                                         get_dir_name(output_file), get_base_name(output_file), 
-                                        FILE_WILDCARDS.at("obj"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+                                        file_wildcards[FT_OBJ], wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
         if (dlg->ShowModal() != wxID_OK) {
             dlg->Destroy();
             return /*undef*/;
@@ -612,7 +612,7 @@ void MainFrame::export_config()
     auto dlg = new wxFileDialog(this, _(L("Save configuration as:")),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         !m_last_config.IsEmpty() ? get_base_name(m_last_config) : "config.ini",
-        FILE_WILDCARDS.at("ini"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        file_wildcards[FT_INI], wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxString file;
     if (dlg->ShowModal() == wxID_OK)
         file = dlg->GetPath();
@@ -664,7 +664,7 @@ void MainFrame::export_configbundle()
     auto dlg = new wxFileDialog(this, _(L("Save presets bundle as:")),
         !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
         "Slic3r_config_bundle.ini",
-        FILE_WILDCARDS.at("ini"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+        file_wildcards[FT_INI], wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxString file;
     if (dlg->ShowModal() == wxID_OK)
         file = dlg->GetPath();
@@ -688,7 +688,7 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     if (file.IsEmpty()) {
         auto dlg = new wxFileDialog(this, _(L("Select configuration to load:")),
             !m_last_config.IsEmpty() ? get_dir_name(m_last_config) : wxGetApp().app_config->get_last_dir(),
-            "config.ini", FILE_WILDCARDS.at("ini"), wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+            "config.ini", file_wildcards[FT_INI], wxFD_OPEN | wxFD_FILE_MUST_EXIST);
         if (dlg->ShowModal() != wxID_OK)
             return;
         file = dlg->GetPath();
@@ -755,7 +755,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
 
     // Update preset combo boxes(Print settings, Filament, Material, Printer) from their respective tabs.
     auto presets = tab->get_presets();
-    if (presets) {
+    if (m_plater != nullptr && presets != nullptr) {
         auto reload_dependent_tabs = tab->get_dependent_tabs();
 
         // FIXME: The preset type really should be a property of Tab instead

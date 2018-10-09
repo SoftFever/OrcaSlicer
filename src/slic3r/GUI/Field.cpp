@@ -611,8 +611,9 @@ void ColourPicker::BUILD()
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
 	wxString clr(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
+	// FIXME: verify clr is valid, otherwise this causes an assert
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
-		
+
 	// 	// recast as a wxWindow to fit the calling convention
 	window = dynamic_cast<wxWindow*>(temp);
 

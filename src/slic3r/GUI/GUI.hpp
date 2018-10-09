@@ -102,9 +102,6 @@ std::string	into_u8(const wxString &str);
 
 // Callback to trigger a configuration update timer on the Plater.
 static PerlCallback g_on_request_update_callback;
- 
-void add_export_option(wxFileDialog* dlg, const std::string& format);
-int get_export_option(wxFileDialog* dlg);
 
 // Returns the dimensions of the screen on which the main frame is displayed
 bool get_current_screen_size(wxWindow *window, unsigned &width, unsigned &height);

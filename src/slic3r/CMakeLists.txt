@@ -39,6 +39,8 @@ add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/GUI_PreviewIface.hpp
     ${LIBDIR}/slic3r/GUI/GUI_App.cpp
     ${LIBDIR}/slic3r/GUI/GUI_App.hpp
+    ${LIBDIR}/slic3r/GUI/GUI_Utils.cpp
+    ${LIBDIR}/slic3r/GUI/GUI_Utils.hpp
     ${LIBDIR}/slic3r/GUI/MainFrame.cpp
     ${LIBDIR}/slic3r/GUI/MainFrame.hpp
     ${LIBDIR}/slic3r/GUI/Plater.cpp

@@ -37,7 +37,7 @@ static_assert(sizeof(StlHeader) == 84, "StlHeader size not correct");
 class LineReader
 {
 public:
-    LineReader(std::vector<char> &data) : m_buffer(data), m_pos(0), m_len(data.size()) {}
+    LineReader(std::vector<char> &data) : m_buffer(data), m_pos(0), m_len((int)data.size()) {}
 
     const char* next_line() {
         // Skip empty lines.
@@ -154,7 +154,7 @@ static void extract_model_from_archive(
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             instance_offset = Vec3d((double)(position[0] - zero[0]), (double)(position[1] - zero[1]), (double)(position[2] - zero[2]));
             // CHECK_ME -> Is the following correct ?
-            trafo[2][3] = position[2] / instance_scaling_factor(2);
+            trafo[2][3] = position[2] / (float)instance_scaling_factor(2);
 #else
             instance_offset(0) = position[0] - zero[0];
             instance_offset(1) = position[1] - zero[1];
@@ -291,8 +291,8 @@ static void extract_model_from_archive(
         if (! facets.empty() && solid_name.empty()) {
             stl_file &stl = mesh.stl;
             stl.stats.type = inmemory;
-            stl.stats.number_of_facets = facets.size();
-            stl.stats.original_num_facets = facets.size();
+            stl.stats.number_of_facets = (uint32_t)facets.size();
+            stl.stats.original_num_facets = (int)facets.size();
             stl_allocate(&stl);
             memcpy((void*)stl.facet_start, facets.data(), facets.size() * 50);
             stl_get_size(&stl);

@@ -56,6 +56,9 @@ protected:
 
     int m_group_id;
     EState m_state;
+#if ENABLE_EXTENDED_SELECTION
+    bool m_accept_wipe_tower;
+#endif // ENABLE_EXTENDED_SELECTION
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
@@ -76,6 +79,11 @@ public:
 
     EState get_state() const { return m_state; }
     void set_state(EState state) { m_state = state; on_set_state(); }
+
+#if ENABLE_EXTENDED_SELECTION
+    bool get_accept_wipe_tower() { return m_accept_wipe_tower; }
+    void set_accept_wipe_tower(bool accept) { m_accept_wipe_tower = accept; }
+#endif // ENABLE_EXTENDED_SELECTION
 
     unsigned int get_texture_id() const { return m_textures[m_state].get_id(); }
     int get_textures_size() const { return m_textures[Off].get_width(); }
@@ -318,7 +326,11 @@ class GLGizmoMove3D : public GLGizmoBase
 {
     static const double Offset;
 
+#if ENABLE_EXTENDED_SELECTION
+    Vec3d m_displacement;
+#else
     Vec3d m_position;
+#endif // ENABLE_EXTENDED_SELECTION
     Vec3d m_starting_drag_position;
     Vec3d m_starting_box_center;
     Vec3d m_starting_box_bottom_center;
@@ -326,8 +338,12 @@ class GLGizmoMove3D : public GLGizmoBase
 public:
     explicit GLGizmoMove3D(GLCanvas3D& parent);
 
+#if ENABLE_EXTENDED_SELECTION
+    const Vec3d& get_displacement() const { return m_displacement; }
+#else
     const Vec3d& get_position() const { return m_position; }
     void set_position(const Vec3d& position) { m_position = position; }
+#endif // ENABLE_EXTENDED_SELECTION
 
 protected:
     virtual bool on_init();

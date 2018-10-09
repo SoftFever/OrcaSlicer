@@ -510,7 +510,7 @@ void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id) {
         sub_menu->Append(new wxMenuItem(sub_menu, ++id, _(item)));
 
 #ifndef __WXMSW__
-    sub_menu->Bind(wxEVT_MENU, [sub_menu](wxEvent &event) {
+    sub_menu->Bind(wxEVT_MENU, [this, sub_menu](wxEvent &event) {
         load_lambda(sub_menu->GetLabel(event.GetId()).ToStdString());
     });
 #endif //no __WXMSW__
@@ -632,7 +632,7 @@ wxMenu* ObjectList::create_add_settings_popupmenu(bool is_part)
         menu->Append(menu_item);
     }
 #ifndef __WXMSW__
-    menu->Bind(wxEVT_MENU, [menu, is_part](wxEvent &event) {
+    menu->Bind(wxEVT_MENU, [this, menu, is_part](wxEvent &event) {
         get_settings_choice(menu, event.GetId(), is_part);
     });
 #endif //no __WXMSW__
@@ -1032,7 +1032,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     auto model_object = (*m_objects)[obj_idx];
     wxString item_name = model_object->name;
     auto item = m_objects_model->Add(item_name, model_object->instances.size());
+#if !ENABLE_EXTENDED_SELECTION
     Select(item);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     // Add error icon if detected auto-repaire
     auto stats = model_object->volumes[0]->mesh.stl.stats;

@@ -216,6 +216,9 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
+#if ENABLE_EXTENDED_SELECTION
+    , m_accept_wipe_tower(false)
+#endif // ENABLE_EXTENDED_SELECTION
     , m_hover_id(-1)
     , m_dragging(false)
 {
@@ -1050,7 +1053,11 @@ const double GLGizmoMove3D::Offset = 10.0;
 
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
+#if ENABLE_EXTENDED_SELECTION
+    , m_displacement(Vec3d::Zero())
+#else
     , m_position(Vec3d::Zero())
+#endif // ENABLE_EXTENDED_SELECTION
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
@@ -1078,6 +1085,10 @@ bool GLGizmoMove3D::on_init()
         m_grabbers.push_back(Grabber());
     }
 
+#if ENABLE_EXTENDED_SELECTION
+    m_accept_wipe_tower = true;
+#endif // ENABLE_EXTENDED_SELECTION
+
     return true;
 }
 
@@ -1085,6 +1096,9 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
 {
     if (m_hover_id != -1)
     {
+#if ENABLE_EXTENDED_SELECTION
+        m_displacement = Vec3d::Zero();
+#endif // ENABLE_EXTENDED_SELECTION
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_starting_box_center = box.center();
         m_starting_box_bottom_center = box.center();
@@ -1094,22 +1108,40 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
 
 void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    if (m_hover_id == 0)
+        m_displacement(0) = calc_projection(X, 1, mouse_ray) - (m_starting_drag_position(0) - m_starting_box_center(0));
+    else if (m_hover_id == 1)
+        m_displacement(1) = calc_projection(Y, 2, mouse_ray) - (m_starting_drag_position(1) - m_starting_box_center(1));
+    else if (m_hover_id == 2)
+        m_displacement(2) = calc_projection(Z, 1, mouse_ray) - (m_starting_drag_position(2) - m_starting_box_bottom_center(2));
+#else
     if (m_hover_id == 0)
         m_position(0) = 2.0 * m_starting_box_center(0) + calc_projection(X, 1, mouse_ray) - m_starting_drag_position(0);
     else if (m_hover_id == 1)
         m_position(1) = 2.0 * m_starting_box_center(1) + calc_projection(Y, 2, mouse_ray) - m_starting_drag_position(1);
     else if (m_hover_id == 2)
         m_position(2) = 2.0 * m_starting_box_bottom_center(2) + calc_projection(Z, 1, mouse_ray) - m_starting_drag_position(2);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
 {
+#if ENABLE_EXTENDED_SELECTION
+    if (m_grabbers[0].dragging)
+        set_tooltip("X: " + format(m_displacement(0), 2));
+    else if (m_grabbers[1].dragging)
+        set_tooltip("Y: " + format(m_displacement(1), 2));
+    else if (m_grabbers[2].dragging)
+        set_tooltip("Z: " + format(m_displacement(2), 2));
+#else
     if (m_grabbers[0].dragging)
         set_tooltip("X: " + format(m_position(0), 2));
     else if (m_grabbers[1].dragging)
         set_tooltip("Y: " + format(m_position(1), 2));
     else if (m_grabbers[2].dragging)
         set_tooltip("Z: " + format(m_position(2), 2));
+#endif // ENABLE_EXTENDED_SELECTION
 
     ::glEnable(GL_DEPTH_TEST);
 

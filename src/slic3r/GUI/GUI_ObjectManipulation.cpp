@@ -262,6 +262,51 @@ void ObjectManipulation::update_settings_list()
     parent->GetParent()->Layout();
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
+{
+    int object_idx = -1;
+    int instance_idx = -1;
+    if (selection.is_single_full_instance(object_idx, instance_idx))
+    {
+        // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
+        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
+        update_position_values(selection.get_volume(*idxs.begin())->get_offset());
+        m_og->enable();
+    }
+    else if (selection.is_wipe_tower())
+    {
+        // the selection contains a single volume
+        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
+        update_position_values(selection.get_volume(*idxs.begin())->get_offset());
+        m_og->enable();
+    }
+    else if (selection.is_modifier())
+    {
+        // the selection contains a single volume
+        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
+        update_position_values(selection.get_volume(*idxs.begin())->get_offset());
+        m_og->enable();
+    }
+    else
+        reset_settings_value();
+}
+
+void ObjectManipulation::reset_settings_value()
+{
+    m_og->set_value("position_x", 0);
+    m_og->set_value("position_y", 0);
+    m_og->set_value("position_z", 0);
+    m_og->set_value("scale_x", 0);
+    m_og->set_value("scale_y", 0);
+    m_og->set_value("scale_z", 0);
+    m_og->set_value("rotation_x", 0);
+    m_og->set_value("rotation_y", 0);
+    m_og->set_value("rotation_z", 0);
+    m_og->disable();
+}
+#endif // ENABLE_EXTENDED_SELECTION
+
 void ObjectManipulation::update_values()
 {
     int selection = ol_selection();

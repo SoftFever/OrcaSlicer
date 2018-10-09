@@ -36,7 +36,7 @@ void GLIndexedVertexArray::load_mesh_flat_shading(const TriangleMesh &mesh)
 
     this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
     
-    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++ i) {
+    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
         const stl_facet &facet = mesh.stl.facet_start[i];
         for (int j = 0; j < 3; ++ j)
             this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
@@ -52,7 +52,7 @@ void GLIndexedVertexArray::load_mesh_full_shading(const TriangleMesh &mesh)
     this->vertices_and_normals_interleaved.reserve(this->vertices_and_normals_interleaved.size() + 3 * 3 * 2 * mesh.facets_count());
 
     unsigned int vertices_count = 0;
-    for (int i = 0; i < mesh.stl.stats.number_of_facets; ++i) {
+    for (int i = 0; i < (int)mesh.stl.stats.number_of_facets; ++i) {
         const stl_facet &facet = mesh.stl.facet_start[i];
         for (int j = 0; j < 3; ++j)
             this->push_geometry(facet.vertex[j](0), facet.vertex[j](1), facet.vertex[j](2), facet.normal(0), facet.normal(1), facet.normal(2));
@@ -209,8 +209,10 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
     , composite_id(-1)
+#if !ENABLE_EXTENDED_SELECTION
     , select_group_id(-1)
     , drag_group_id(-1)
+#endif // !ENABLE_EXTENDED_SELECTION
     , extruder_id(0)
     , selected(false)
     , is_active(true)
@@ -242,7 +244,7 @@ void GLVolume::set_render_color(float r, float g, float b, float a)
 void GLVolume::set_render_color(const float* rgba, unsigned int size)
 {
     size = std::min((unsigned int)4, size);
-    for (int i = 0; i < size; ++i)
+    for (unsigned int i = 0; i < size; ++i)
     {
         render_color[i] = rgba[i];
     }
@@ -311,6 +313,13 @@ void GLVolume::set_offset(const Vec3d& offset)
 }
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+const Vec3d& GLVolume::get_scaling_factor() const
+{
+    return m_scaling_factor;
+}
+#endif // ENABLE_EXTENDED_SELECTION
+
 void GLVolume::set_scaling_factor(const Vec3d& scaling_factor)
 {
     if (m_scaling_factor != scaling_factor)
@@ -339,6 +348,7 @@ void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
     m_convex_hull = &convex_hull;
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLVolume::set_select_group_id(const std::string& select_by)
 {
     if (select_by == "object")
@@ -356,6 +366,7 @@ void GLVolume::set_drag_group_id(const std::string& drag_by)
     else if (drag_by == "instance")
         drag_group_id = object_idx() * 1000 + instance_idx();
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 const Transform3f& GLVolume::world_matrix() const
 {
@@ -682,6 +693,14 @@ void GLVolume::generate_layer_height_texture(const PrintObject *print_object, bo
 #define LAYER_HEIGHT_TEXTURE_WIDTH  1024
 #define LAYER_HEIGHT_TEXTURE_HEIGHT 1024
 
+#if ENABLE_EXTENDED_SELECTION
+std::vector<int> GLVolumeCollection::load_object(
+    const ModelObject       *model_object,
+    int                      obj_idx,
+    const std::vector<int>  &instance_idxs,
+    const std::string       &color_by,
+    bool                     use_VBOs)
+#else
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object, 
     int                      obj_idx,
@@ -690,6 +709,7 @@ std::vector<int> GLVolumeCollection::load_object(
     const std::string       &select_by,
     const std::string       &drag_by,
     bool                     use_VBOs)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     static float colors[4][4] = {
         { 1.0f, 1.0f, 0.0f, 1.f }, 
@@ -740,8 +760,10 @@ std::vector<int> GLVolumeCollection::load_object(
             v.bounding_box = v.indexed_vertex_array.bounding_box();
             v.indexed_vertex_array.finalize_geometry(use_VBOs);
             v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
+#if !ENABLE_EXTENDED_SELECTION
             v.set_select_group_id(select_by);
             v.set_drag_group_id(drag_by);
+#endif // !ENABLE_EXTENDED_SELECTION
             if (model_volume->is_model_part())
             {
                 v.set_convex_hull(model_volume->get_convex_hull());
@@ -789,9 +811,9 @@ int GLVolumeCollection::load_wipe_tower_preview(
         // edge has y=0 and centerline of the back edge has y=depth:
         Pointf3s points;
         std::vector<Vec3crd> facets;
-        float out_points_idx[][3] = {{0, -depth, 0}, {0, 0, 0}, {38.453, 0, 0}, {61.547, 0, 0}, {100, 0, 0}, {100, -depth, 0}, {55.7735, -10, 0}, {44.2265, 10, 0},
-                                     {38.453, 0, 1}, {0, 0, 1}, {0, -depth, 1}, {100, -depth, 1}, {100, 0, 1}, {61.547, 0, 1}, {55.7735, -10, 1}, {44.2265, 10, 1}};
-        int out_facets_idx[][3] = {{0, 1, 2}, {3, 4, 5}, {6, 5, 0}, {3, 5, 6}, {6, 2, 7}, {6, 0, 2}, {8, 9, 10}, {11, 12, 13}, {10, 11, 14}, {14, 11, 13}, {15, 8, 14},
+        float out_points_idx[][3] = { { 0, -depth, 0 }, { 0, 0, 0 }, { 38.453f, 0, 0 }, { 61.547f, 0, 0 }, { 100.0f, 0, 0 }, { 100.0f, -depth, 0 }, { 55.7735f, -10.0f, 0 }, { 44.2265f, 10.0f, 0 },
+        { 38.453f, 0, 1 }, { 0, 0, 1 }, { 0, -depth, 1 }, { 100.0f, -depth, 1 }, { 100.0f, 0, 1 }, { 61.547f, 0, 1 }, { 55.7735f, -10.0f, 1 }, { 44.2265f, 10.0f, 1 } };
+        int out_facets_idx[][3] = { { 0, 1, 2 }, { 3, 4, 5 }, { 6, 5, 0 }, { 3, 5, 6 }, { 6, 2, 7 }, { 6, 0, 2 }, { 8, 9, 10 }, { 11, 12, 13 }, { 10, 11, 14 }, { 14, 11, 13 }, { 15, 8, 14 },
                                    {8, 10, 14}, {3, 12, 4}, {3, 13, 12}, {6, 13, 3}, {6, 14, 13}, {7, 14, 6}, {7, 15, 14}, {2, 15, 7}, {2, 8, 15}, {1, 8, 2}, {1, 9, 8},
                                    {0, 9, 1}, {0, 10, 9}, {5, 10, 0}, {5, 11, 10}, {4, 11, 5}, {4, 12, 11}};
         for (int i=0;i<16;++i)
@@ -834,8 +856,10 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);
     v.composite_id = obj_idx * 1000000;
+#if !ENABLE_EXTENDED_SELECTION
     v.select_group_id = obj_idx * 1000000;
     v.drag_group_id = obj_idx * 1000;
+#endif // !ENABLE_EXTENDED_SELECTION
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);
@@ -1017,7 +1041,7 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
             continue;
 
         int extruder_id = volume->extruder_id - 1;
-        if ((extruder_id < 0) || ((unsigned int)colors.size() <= extruder_id))
+        if ((extruder_id < 0) || ((int)colors.size() <= extruder_id))
             extruder_id = 0;
 
         const Color& color = colors[extruder_id];
@@ -1031,6 +1055,7 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
     }
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLVolumeCollection::set_select_by(const std::string& select_by)
 {
     for (GLVolume *vol : this->volumes)
@@ -1048,6 +1073,7 @@ void GLVolumeCollection::set_drag_by(const std::string& drag_by)
             vol->set_drag_group_id(drag_by);
     }
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 std::vector<double> GLVolumeCollection::get_current_print_zs(bool active_only) const
 {
@@ -1820,6 +1846,7 @@ void _3DScene::reset_volumes(wxGLCanvas* canvas)
     s_canvas_mgr.reset_volumes(canvas);
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void _3DScene::deselect_volumes(wxGLCanvas* canvas)
 {
     s_canvas_mgr.deselect_volumes(canvas);
@@ -1834,6 +1861,7 @@ void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<in
 {
     s_canvas_mgr.update_volumes_selection(canvas, selections);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
 {
@@ -1850,10 +1878,12 @@ bool _3DScene::move_volume_down(wxGLCanvas* canvas, unsigned int id)
     return s_canvas_mgr.move_volume_down(canvas, id);
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void _3DScene::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
 {
     s_canvas_mgr.set_objects_selections(canvas, selections);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
@@ -1900,6 +1930,7 @@ void _3DScene::set_color_by(wxGLCanvas* canvas, const std::string& value)
     s_canvas_mgr.set_color_by(canvas, value);
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void _3DScene::set_select_by(wxGLCanvas* canvas, const std::string& value)
 {
     s_canvas_mgr.set_select_by(canvas, value);
@@ -1914,6 +1945,7 @@ std::string _3DScene::get_select_by(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_select_by(canvas);
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
 {

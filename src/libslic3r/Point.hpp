@@ -56,10 +56,10 @@ inline Vec2i64 to_2d(const Vec3i64 &pt3) { return Vec2i64(pt3(0), pt3(1)); }
 inline Vec2f   to_2d(const Vec3f   &pt3) { return Vec2f  (pt3(0), pt3(1)); }
 inline Vec2d   to_2d(const Vec3d   &pt3) { return Vec2d  (pt3(0), pt3(1)); }
 
-// inline Vec3crd to_3d(const Vec2crd &pt2, coord_t z) { return Vec3crd(pt2(0), pt2(1), z); }
-// inline Vec3i64 to_3d(const Vec2i64 &pt2, int64_t z) { return Vec3i64(pt2(0), pt2(1), z); }
-// inline Vec3f   to_3d(const Vec2f   &pt2, float z)   { return Vec3f  (pt2(0), pt2(1), z); }
-// inline Vec3d   to_3d(const Vec2d   &pt2, double z)  { return Vec3d  (pt2(0), pt2(1), z); }
+inline Vec3d to_3d(const Vec2d &v, double z) { return Vec3d(v(0), v(1), z); }
+inline Vec3f to_3d(const Vec2f &v, float z) { return Vec3f(v(0), v(1), z); }
+inline Vec3i64 to_3d(const Vec2i64 &v, float z) { return Vec3i64(v(0), v(1), z); }
+inline Vec3crd to_3d(const Vec3crd &p, coord_t z) { return Vec3crd(p(0), p(1), z); }
 
 inline Vec2d   unscale(coord_t x, coord_t y) { return Vec2d(unscale<double>(x), unscale<double>(y)); }
 inline Vec2d   unscale(const Vec2crd &pt) { return Vec2d(unscale<double>(pt(0)), unscale<double>(pt(1))); }

@@ -419,6 +419,7 @@ public:
     const PrintObject*          get_object(int idx) const { return m_objects[idx]; }
     const PrintRegionPtrs&      regions() const { return m_regions; }
     const PlaceholderParser&    placeholder_parser() const { return m_placeholder_parser; }
+    PlaceholderParser&          placeholder_parser() { return m_placeholder_parser; }
 
     // Returns extruder this eec should be printed with, according to PrintRegion config:
     static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region);
