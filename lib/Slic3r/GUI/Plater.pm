@@ -1122,7 +1122,7 @@ sub load_model_objects {
     return @obj_idx;
 }
 
-# XXX: Removed
+# XXX: Removed, replaced with bed_shape_bb()
 sub bed_centerf {
     my ($self) = @_;
     
@@ -1382,7 +1382,7 @@ sub mirror {
     $self->update;
 }
 
-# XXX: not done
+# XXX: not done, renamed as Plater::priv::scale()
 sub changescale {
     my ($self, $axis, $tosize) = @_;
     

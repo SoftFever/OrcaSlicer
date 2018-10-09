@@ -20,6 +20,7 @@
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
 
+#include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
 #include "libslic3r/Model.hpp"
 #include "libslic3r/Print.hpp"
@@ -668,21 +669,41 @@ struct Plater::priv
     std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
 
     void select_object(optional<size_t> obj_idx);
+    void select_object_from_cpp();
     optional<size_t> selected_object() const;
     void selection_changed();
     void object_list_changed();
+    void select_view();
 
     void remove(size_t obj_idx);
     void reset();
     void increase(size_t num = 1);
     void decrease(size_t num = 1);
+    void set_number_of_copies();
+    void rotate();
+    void mirror(const Axis &axis);
+    void scale();
+    void arrange();
+    void split_object();
+    void schedule_background_process();
+    void async_apply_config();
+    void start_background_process();
+    void stop_background_process();
+    void reload_from_disk();
+    void export_object_stl();
+    void fix_through_netfabb();
+    void show_preset_comboboxes();
+    void item_changed_selection();
+    void filament_color_box_lmouse_down();
 
     void on_notebook_changed(wxBookCtrlEvent&);
     void on_select_preset(wxCommandEvent&);
+    void on_progress_event();
     void on_update_print_preview(wxCommandEvent&);
     void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
-
+    void on_extruders_change();
+    void on_config_change();
 
     void on_action_add(SimpleEvent&);
     void on_action_arrange(SimpleEvent&);
@@ -1131,6 +1152,11 @@ void Plater::priv::select_object(optional<size_t> obj_idx)
     selection_changed();
 }
 
+void Plater::priv::select_object_from_cpp()
+{
+    // TODO
+}
+
 optional<size_t> Plater::priv::selected_object() const
 {
     for (size_t i = 0; i < objects.size(); i++) {
@@ -1243,6 +1269,11 @@ void Plater::priv::object_list_changed()
     sidebar->enable_buttons(have_objects && !export_in_progress && model_fits);
 }
 
+void Plater::priv::select_view()
+{
+    // TODO
+}
+
 void Plater::priv::remove(size_t obj_idx)
 {
     // $self->stop_background_process;   // TODO
@@ -1287,6 +1318,104 @@ void Plater::priv::increase(size_t num)
 }
 
 void Plater::priv::decrease(size_t num)
+{
+    // TODO
+}
+
+void Plater::priv::set_number_of_copies()
+{
+    // TODO
+}
+
+void Plater::priv::rotate()
+{
+    // TODO
+}
+
+void Plater::priv::mirror(const Axis &axis)
+{
+    const auto obj_idx = selected_object();
+    if (! obj_idx) { return; }
+
+    auto *model_object = model.objects[*obj_idx];
+    auto *model_instance = model_object->instances[0];
+
+    // XXX: ?
+    // # apply Z rotation before mirroring
+    // if ($model_instance->rotation != 0) {
+    //     $model_object->rotate($model_instance->rotation, Slic3r::Pointf3->new(0, 0, 1));
+    //     $_->set_rotation(0) for @{ $model_object->instances };
+    // }
+
+    model_object->mirror(axis);
+
+    // $self->stop_background_process;  // TODO
+    print.add_model_object(model_object, *obj_idx);
+    selection_changed();
+    update();
+}
+
+void Plater::priv::scale()
+{
+    // TODO
+}
+
+void Plater::priv::arrange()
+{
+    // TODO
+}
+
+void Plater::priv::split_object()
+{
+    // TODO
+}
+
+void Plater::priv::schedule_background_process()
+{
+    // TODO
+}
+
+void Plater::priv::async_apply_config()
+{
+    // TODO
+}
+
+void Plater::priv::start_background_process()
+{
+    // TODO
+}
+
+void Plater::priv::stop_background_process()
+{
+    // TODO
+}
+
+void Plater::priv::reload_from_disk()
+{
+    // TODO
+}
+
+void Plater::priv::export_object_stl()
+{
+    // TODO
+}
+
+void Plater::priv::fix_through_netfabb()
+{
+    // TODO
+}
+
+void Plater::priv::show_preset_comboboxes()
+{
+    // TODO
+}
+
+void Plater::priv::item_changed_selection()
+{
+    // TODO
+}
+
+void Plater::priv::filament_color_box_lmouse_down()
 {
     // TODO
 }
@@ -1339,6 +1468,11 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // $self->on_config_change(wxTheApp->{preset_bundle}->full_config);
 }
 
+void Plater::priv::on_progress_event()
+{
+    // TODO
+}
+
 void Plater::priv::on_update_print_preview(wxCommandEvent &)
 {
     // TODO
@@ -1358,6 +1492,16 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
     }
     canvas3D->Refresh();
     canvas3D->Update();
+}
+
+void Plater::priv::on_extruders_change()
+{
+    // TODO
+}
+
+void Plater::priv::on_config_change()
+{
+    // TODO
 }
 
 void Plater::priv::on_action_add(SimpleEvent&)

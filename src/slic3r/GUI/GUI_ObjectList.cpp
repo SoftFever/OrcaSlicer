@@ -62,7 +62,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     });
 #else
     // equivalent to wxEVT_CHOICE on __WXMSW__
-    m_objects_ctrl->Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { object_ctrl_item_value_change(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { object_ctrl_item_value_change(e); });
 #endif //__WXMSW__
 
     Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) {on_begin_drag(e); });
