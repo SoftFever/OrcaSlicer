@@ -1636,10 +1636,12 @@ void Plater::changed_object_settings(int obj_idx)
 //         stop_background_process();
 //         $self->{print}->reload_object($obj_idx);
 //         schedule_background_process();
+#if !ENABLE_EXTENDED_SELECTION
         if (p->canvas3D) _3DScene::reload_scene(p->canvas3D, true);
         auto selections = p->collect_selections();
         _3DScene::set_objects_selections(p->canvas3D, selections);
         _3DScene::reload_scene(p->canvas3D, false);
+#endif // !ENABLE_EXTENDED_SELECTION
     }
     else {
 //         schedule_background_process();
