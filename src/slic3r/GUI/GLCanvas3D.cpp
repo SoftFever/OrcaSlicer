@@ -2476,7 +2476,7 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ROTATE_OBJECT, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCALE_UNIFORMLY, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_OBJECTS, Event<int>);
-wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVES, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
@@ -6268,7 +6268,7 @@ void GLCanvas3D::_on_move()
     }
 
     if (object_moved)
-        post_event(SimpleEvent(EVT_GLCANVAS_WIPETOWER_MOVED));
+        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
 
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
@@ -6354,7 +6354,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     }
 
     if (object_moved)
-        post_event(SimpleEvent(EVT_GLCANVAS_WIPETOWER_MOVED));
+        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
 
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
