@@ -116,7 +116,9 @@ wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 
 wxDECLARE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
+#if !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
 
 
@@ -390,29 +392,45 @@ public:
             Object
         };
 
+        enum EType : unsigned char
+        {
+            Invalid,
+            Empty,
+            WipeTower,
+            Modifier,
+            SingleFullObject,
+            SingleFullInstance,
+            Mixed
+        };
+
     private:
         struct VolumeCache
         {
         private:
+            Vec3d m_position;
+            Vec3d m_rotation;
+            Vec3d m_scaling_factor;
             Transform3d m_rotation_matrix;
 
         public:
-            Vec3d position;
-            Vec3d rotation;
-            Vec3d scaling_factor;
-
             VolumeCache();
             VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor);
 
+            const Vec3d& get_position() const { return m_position; }
+            const Vec3d& get_rotation() const { return m_rotation; }
+            const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
             const Transform3d& get_rotation_matrix() const { return m_rotation_matrix; }
         };
 
         typedef std::map<unsigned int, VolumeCache> VolumesCache;
+        typedef std::set<int> InstanceIdxsList;
+        typedef std::map<int, InstanceIdxsList> ObjectIdxsToInstanceIdxsMap;
 
         struct Cache
         {
             VolumesCache volumes_data;
             Vec3d dragging_center;
+            ObjectIdxsToInstanceIdxsMap content;
         };
 
         GLVolumePtrs* m_volumes;
@@ -420,6 +438,7 @@ public:
 
         bool m_valid;
         EMode m_mode;
+        EType m_type;
         IndicesList m_list;
         Cache m_cache;
         mutable BoundingBoxf3 m_bounding_box;
@@ -438,13 +457,18 @@ public:
         void remove(unsigned int volume_idx);
         void clear();
 
-        bool is_empty() const { return m_list.empty(); }
-        bool is_wipe_tower() const { return m_valid && (m_list.size() == 1) && (*m_volumes)[*m_list.begin()]->is_wipe_tower; }
-        bool is_modifier() const { return m_valid && (m_list.size() == 1) && (*m_volumes)[*m_list.begin()]->is_modifier; }
-        bool is_single_full_instance(int& object_idx_out, int& instance_idx_out) const;
-        bool is_single_full_object(int& object_idx_out) const;
-        bool is_from_single_instance(int& object_idx_out, int& instance_idx_out) const;
-        bool is_from_single_object(int& object_idx_out) const;
+        bool is_empty() const { return m_type == Empty; }
+        bool is_wipe_tower() const { return m_type == WipeTower; }
+        bool is_modifier() const { return m_type == Modifier; }
+        bool is_single_full_instance() const;
+        bool is_single_full_object() const { return m_type == SingleFullObject; }
+        bool is_from_single_instance() const { return get_instance_idx() != -1; }
+        bool is_from_single_object() const { return get_object_idx() != -1; }
+
+        // Returns the the object id if the selection is from a single object, otherwise is -1
+        int get_object_idx() const;
+        // Returns the instance id if the selection is from a single object and from a single instance, otherwise is -1
+        int get_instance_idx() const;
 
         const IndicesList& get_volume_idxs() const { return m_list; }
         const GLVolume* get_volume(unsigned int volume_idx) const;
@@ -455,11 +479,13 @@ public:
         void start_dragging();
 
         void translate(const Vec3d& displacement);
+        void rotate(const Vec3d& rotation);
 
         void render() const;
 
     private:
         void update_valid();
+        void update_type();
         void set_caches();
         void add_volume(unsigned int volume_idx);
         void add_instance(unsigned int volume_idx);
@@ -517,8 +543,7 @@ private:
 
         void set_hover_id(int id);
 #if ENABLE_EXTENDED_SELECTION
-        void enable_grabber(EType type, unsigned int id);
-        void disable_grabber(EType type, unsigned int id);
+        void enable_grabber(EType type, unsigned int id, bool enable);
 #endif // ENABLE_EXTENDED_SELECTION
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
@@ -898,6 +923,7 @@ private:
 
 #if ENABLE_EXTENDED_SELECTION
     void _on_move();
+    void _on_rotate();
 #else
     void _on_move(const std::vector<int>& volume_idxs);
 #endif // ENABLE_EXTENDED_SELECTION
