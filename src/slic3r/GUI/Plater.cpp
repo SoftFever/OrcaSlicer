@@ -689,7 +689,9 @@ struct Plater::priv
     void on_action_cut(SimpleEvent&);
     void on_action_settings(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
+#if !ENABLE_EXTENDED_SELECTION
     void on_action_selectbyparts(SimpleEvent&);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     void on_viewport_changed(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
@@ -803,7 +805,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
     canvas3D->Bind(EVT_GLTOOLBAR_SETTINGS, &priv::on_action_settings, this);
     canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
+#if !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLTOOLBAR_SELECTBYPARTS, &priv::on_action_selectbyparts, this);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     // Preview events:
     preview->get_wxglcanvas()->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
@@ -1156,15 +1160,20 @@ void Plater::priv::selection_changed()
 
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed);
 
+#if !ENABLE_EXTENDED_SELECTION
     bool can_select_by_parts = false;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     if (have_sel) {
         const auto *model_object = model.objects[*obj_idx];
+#if !ENABLE_EXTENDED_SELECTION
         // XXX: ?
         can_select_by_parts = *obj_idx < 1000 && model_object->volumes.size() > 1;
+#endif // !ENABLE_EXTENDED_SELECTION
         _3DScene::enable_toolbar_item(canvas3D, "fewer", model_object->instances.size() > 1);
     }
 
+#if !ENABLE_EXTENDED_SELECTION
     if (can_select_by_parts) {
         // first disable to let the item in the toolbar to switch to the unpressed state   // XXX: ?
         _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", false);
@@ -1173,6 +1182,7 @@ void Plater::priv::selection_changed()
         _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", false);
         _3DScene::set_select_by(canvas3D, "object");
     }
+#endif // !ENABLE_EXTENDED_SELECTION
 
     if (have_sel) {
         const auto *model_object = model.objects[*obj_idx];
@@ -1398,11 +1408,12 @@ void Plater::priv::on_action_layersediting(SimpleEvent&)
     // TODO
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void Plater::priv::on_action_selectbyparts(SimpleEvent&)
 {
     // TODO
 }
-
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
