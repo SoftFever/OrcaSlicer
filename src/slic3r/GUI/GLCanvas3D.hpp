@@ -462,6 +462,7 @@ public:
         bool is_modifier() const { return m_type == Modifier; }
         bool is_single_full_instance() const;
         bool is_single_full_object() const { return m_type == SingleFullObject; }
+        bool is_mixed() const { return m_type == Mixed; }
         bool is_from_single_instance() const { return get_instance_idx() != -1; }
         bool is_from_single_object() const { return get_object_idx() != -1; }
 

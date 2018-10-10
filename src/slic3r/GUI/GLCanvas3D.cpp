@@ -1338,8 +1338,26 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
         else
         {
             Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_rotation_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
-            Vec3d angles = new_rotation_matrix.eulerAngles(2, 1, 0);
-            (*m_volumes)[i]->set_rotation(Vec3d(angles(2), angles(1), angles(0)));
+            // extracts euler angles from the composed transformation
+            // not using Eigen eulerAngles() method because it returns weird results
+            // see: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+            double sy = ::sqrt(sqr(new_rotation_matrix(0, 0)) + sqr(new_rotation_matrix(1, 0)));
+
+            Vec3d angles = Vec3d::Zero();
+            if (sy >= 1e-6)
+            {
+                angles(0) = ::atan2(new_rotation_matrix(2, 1), new_rotation_matrix(2, 2));
+                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
+                angles(2) = ::atan2(new_rotation_matrix(1, 0), new_rotation_matrix(0, 0));
+            }
+            else
+            {
+                angles(0) = ::atan2(-new_rotation_matrix(1, 2), new_rotation_matrix(1, 1));
+                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
+                angles(2) = 0.0;
+            }
+
+            (*m_volumes)[i]->set_rotation(Vec3d(angles(0), angles(1), angles(2)));
         }
     }
 
@@ -3140,9 +3158,7 @@ void GLCanvas3D::update_gizmos_data()
 
 #if ENABLE_EXTENDED_SELECTION
     bool enable_move_z = !m_selection.is_wipe_tower();
-    bool is_single_full_object = m_selection.is_single_full_object();
-    bool is_single_full_instance = m_selection.is_single_full_instance();
-    bool enable_rotate_xy = is_single_full_object && !is_single_full_instance;
+    bool enable_rotate_xy = m_selection.is_single_full_object() || m_selection.is_mixed();
 
     m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
     for (int i = 0; i < 2; ++i)
@@ -3150,7 +3166,7 @@ void GLCanvas3D::update_gizmos_data()
         m_gizmos.enable_grabber(Gizmos::Rotate, i, enable_rotate_xy);
     }
 
-    if (is_single_full_instance)
+    if (m_selection.is_single_full_instance())
     {
         ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
         ModelInstance* model_instance = model_object->instances[m_selection.get_instance_idx()];
