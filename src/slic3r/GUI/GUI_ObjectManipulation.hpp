@@ -50,12 +50,15 @@ public:
 #if ENABLE_EXTENDED_SELECTION
     void update_settings_value(const GLCanvas3D::Selection& selection);
     void reset_settings_value();
+    void reset_position_value();
+    void reset_rotation_value();
+    void reset_scale_value();
 #endif // ENABLE_EXTENDED_SELECTION
 
     void update_values();
     // update position values displacements or "gizmos"
     void update_position_values();
-    void update_position_values(const Vec3d& position);
+    void update_position_value(const Vec3d& position);
     // update scale values after scale unit changing or "gizmos"
     void update_scale_values();
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM

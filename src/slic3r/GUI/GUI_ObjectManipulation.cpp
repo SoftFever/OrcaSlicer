@@ -265,27 +265,41 @@ void ObjectManipulation::update_settings_list()
 #if ENABLE_EXTENDED_SELECTION
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
-    int object_idx = -1;
-    int instance_idx = -1;
-    if (selection.is_single_full_instance(object_idx, instance_idx))
+    if (selection.is_single_full_object())
+    {
+        if (wxGetApp().mainframe->m_plater->model().objects[selection.get_object_idx()]->instances.size() == 1)
+        {
+            // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
+            const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+            update_position_value(volume->get_offset());
+            update_rotation_value(volume->get_rotation());
+            m_og->enable();
+        }
+        else
+            reset_settings_value();
+    }
+    else if (selection.is_single_full_instance())
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
-        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
-        update_position_values(selection.get_volume(*idxs.begin())->get_offset());
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        update_position_value(volume->get_offset());
+        update_rotation_value(volume->get_rotation());
         m_og->enable();
     }
     else if (selection.is_wipe_tower())
     {
         // the selection contains a single volume
-        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
-        update_position_values(selection.get_volume(*idxs.begin())->get_offset());
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        update_position_value(volume->get_offset());
+        update_rotation_value(volume->get_rotation());
         m_og->enable();
     }
     else if (selection.is_modifier())
     {
         // the selection contains a single volume
-        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
-        update_position_values(selection.get_volume(*idxs.begin())->get_offset());
+        const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+        update_position_value(volume->get_offset());
+        update_rotation_value(volume->get_rotation());
         m_og->enable();
     }
     else
@@ -294,16 +308,33 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 
 void ObjectManipulation::reset_settings_value()
 {
+    reset_position_value();
+    reset_rotation_value();
+    reset_scale_value();
+    m_og->disable();
+}
+
+void ObjectManipulation::reset_position_value()
+{
     m_og->set_value("position_x", 0);
     m_og->set_value("position_y", 0);
     m_og->set_value("position_z", 0);
-    m_og->set_value("scale_x", 0);
-    m_og->set_value("scale_y", 0);
-    m_og->set_value("scale_z", 0);
+}
+
+void ObjectManipulation::reset_rotation_value()
+{
     m_og->set_value("rotation_x", 0);
     m_og->set_value("rotation_y", 0);
     m_og->set_value("rotation_z", 0);
-    m_og->disable();
+}
+
+void ObjectManipulation::reset_scale_value()
+{
+    m_is_percent_scale = true;
+    m_og->set_value("scale_unit", _("%"));
+    m_og->set_value("scale_x", 100);
+    m_og->set_value("scale_y", 100);
+    m_og->set_value("scale_z", 100);
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -380,7 +411,7 @@ void ObjectManipulation::update_position_values()
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
-void ObjectManipulation::update_position_values(const Vec3d& position)
+void ObjectManipulation::update_position_value(const Vec3d& position)
 {
     m_og->set_value("position_x", int(position(0)));
     m_og->set_value("position_y", int(position(1)));

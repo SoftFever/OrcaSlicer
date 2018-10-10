@@ -792,13 +792,11 @@ struct Plater::priv
     void on_action_selectbyparts(SimpleEvent&);
 #endif // !ENABLE_EXTENDED_SELECTION
 
+    void on_object_select(ObjectSelectEvent&);
     void on_viewport_changed(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
     void on_model_update(SimpleEvent&);
-    void on_remove_object(SimpleEvent&);
-    void on_arrange(SimpleEvent&);
     void on_scale_uniformly(SimpleEvent&);
-    void on_instance_moves(SimpleEvent&);
     void on_wipetower_moved(Vec3dEvent&);
     void on_enable_action_buttons(Event<bool>&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -879,17 +877,17 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
     // 3DScene events:
-    canvas3D->Bind(EVT_GLCANVAS_OBJECT_SELECT, [](ObjectSelectEvent&) { /*TODO*/ });
+    canvas3D->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
     // canvas3D->Bind(EVT_GLCANVAS_DOUBLE_CLICK, [](SimpleEvent&) { });  // XXX: remove?
     canvas3D->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     canvas3D->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
-    canvas3D->Bind(EVT_GLCANVAS_REMOVE_OBJECT, &priv::on_remove_object, this);
-    canvas3D->Bind(EVT_GLCANVAS_ARRANGE, &priv::on_arrange, this);
+    canvas3D->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
+    canvas3D->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
     canvas3D->Bind(EVT_GLCANVAS_ROTATE_OBJECT, [this](Event<int> &evt) { /*TODO: call rotate */ });
-    canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, &priv::on_scale_uniformly, this);
+    canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, [this](SimpleEvent&) { scale(); });
     canvas3D->Bind(EVT_GLCANVAS_INCREASE_OBJECTS, [this](Event<int> &evt) { evt.data == 1 ? increase() : decrease(); });
-    canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVES, &priv::on_instance_moves, this);
+    canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     canvas3D->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     canvas3D->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
     canvas3D->Bind(EVT_GLCANVAS_UPDATE_GEOMETRY, &priv::on_update_geometry, this);
@@ -1615,6 +1613,18 @@ void Plater::priv::on_action_selectbyparts(SimpleEvent&)
 }
 #endif // !ENABLE_EXTENDED_SELECTION
 
+void Plater::priv::on_object_select(ObjectSelectEvent &evt)
+{
+    const auto obj_idx = evt.object_id();
+    const auto vol_idx = evt.volume_id();
+
+    if (obj_idx >= 0 && obj_idx < 1000 && vol_idx == -1) {
+        // Ignore the special objects (the wipe tower proxy and such).
+        select_object(obj_idx);
+        item_changed_selection();
+    }
+}
+
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
     wxObject* o = evt.GetEventObject();
@@ -1634,29 +1644,47 @@ void Plater::priv::on_model_update(SimpleEvent&)
     // TODO
 }
 
-void Plater::priv::on_remove_object(SimpleEvent&)
-{
-    // TODO
-}
-
-void Plater::priv::on_arrange(SimpleEvent&)
-{
-    // TODO
-}
-
 void Plater::priv::on_scale_uniformly(SimpleEvent&)
 {
-    // TODO
+//     my ($scale) = @_;
+
+//     my ($obj_idx, $object) = $self->selected_object;
+    const auto obj_idx = selected_object();
+    if (! obj_idx) { return; }
+//     return if !defined $obj_idx;
+
+//     my $model_object = $self->{model}->objects->[$obj_idx];
+//     my $model_instance = $model_object->instances->[0];
+
+//     $self->stop_background_process;
+
+//     my $variation = $scale / $model_instance->scaling_factor;
+//     #FIXME Scale the layer height profile?
+//     foreach my $range (@{ $model_object->layer_height_ranges }) {
+//         $range->[0] *= $variation;
+//         $range->[1] *= $variation;
+//     }
+//     $_->set_scaling_factor($scale) for @{ $model_object->instances };
+
+//     # Set object scale on c++ side
+// #        Slic3r::GUI::set_object_scale($obj_idx, $model_object->instances->[0]->scaling_factor * 100); 
+
+// #        $object->transform_thumbnail($self->{model}, $obj_idx);
+
+//     #update print and start background processing
+//     $self->{print}->add_model_object($model_object, $obj_idx);
+
+//     $self->selection_changed(1);  # refresh info (size, volume etc.)
+//     $self->update;
+//     $self->schedule_background_process;
 }
 
-void Plater::priv::on_instance_moves(SimpleEvent&)
+void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 {
-    // TODO
-}
-
-void Plater::priv::on_wipetower_moved(Vec3dEvent&)
-{
-    // TODO
+    DynamicPrintConfig cfg;
+    cfg.opt<ConfigOptionFloat>("wipe_tower_x", true)->value = evt.data(0);
+    cfg.opt<ConfigOptionFloat>("wipe_tower_y", true)->value = evt.data(1);
+    main_frame->get_preset_tab("print")->load_config(cfg);
 }
 
 void Plater::priv::on_enable_action_buttons(Event<bool>&)
@@ -1668,7 +1696,6 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
 {
     // TODO
 }
-
 
 
 // Plater / Public

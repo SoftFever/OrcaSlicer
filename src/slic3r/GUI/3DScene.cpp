@@ -270,9 +270,26 @@ const Vec3d& GLVolume::get_rotation() const
 
 void GLVolume::set_rotation(const Vec3d& rotation)
 {
+#if ENABLE_EXTENDED_SELECTION
+    static const double TWO_PI = 2.0 * (double)PI;
+#endif // ENABLE_EXTENDED_SELECTION
+
     if (m_rotation != rotation)
     {
         m_rotation = rotation;
+#if ENABLE_EXTENDED_SELECTION
+        for (int i = 0; i < 3; ++i)
+        {
+            while (m_rotation(i) < 0.0)
+            {
+                m_rotation(i) += TWO_PI;
+            }
+            while (TWO_PI < m_rotation(i))
+            {
+                m_rotation(i) -= TWO_PI;
+            }
+        }
+#endif // ENABLE_EXTENDED_SELECTION
         m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;

@@ -1131,28 +1131,29 @@ bool GLCanvas3D::Mouse::is_start_position_3D_defined() const
 
 #if ENABLE_EXTENDED_SELECTION
 GLCanvas3D::Selection::VolumeCache::VolumeCache()
-    : position(Vec3d::Zero())
-    , rotation(Vec3d::Zero())
-    , scaling_factor(Vec3d::Ones())
+    : m_position(Vec3d::Zero())
+    , m_rotation(Vec3d::Zero())
+    , m_scaling_factor(Vec3d::Ones())
 {
     m_rotation_matrix = Transform3d::Identity();
 }
 
 GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor)
-    : position(position)
-    , rotation(rotation)
-    , scaling_factor(scaling_factor)
+    : m_position(position)
+    , m_rotation(rotation)
+    , m_scaling_factor(scaling_factor)
 {
     m_rotation_matrix = Transform3d::Identity();
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(2), Vec3d::UnitZ()));
+    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(1), Vec3d::UnitY()));
+    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(0), Vec3d::UnitX()));
 }
 
 GLCanvas3D::Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
     , m_mode(Instance)
+    , m_type(Invalid)
     , m_valid(false)
     , m_bounding_box_dirty(true)
 {
@@ -1199,6 +1200,7 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
     }
     }
 
+    update_type();
     m_bounding_box_dirty = true;
 }
 
@@ -1226,6 +1228,7 @@ void GLCanvas3D::Selection::remove(unsigned int volume_idx)
     }
     }
 
+    update_type();
     m_bounding_box_dirty = true;
 }
 
@@ -1240,115 +1243,45 @@ void GLCanvas3D::Selection::clear()
     }
 
     m_list.clear();
+    update_type();
     m_bounding_box_dirty = true;
 }
 
-bool GLCanvas3D::Selection::is_single_full_instance(int& object_idx_out, int& instance_idx_out) const
+bool GLCanvas3D::Selection::is_single_full_instance() const
 {
-    if (!m_valid || is_empty() || is_wipe_tower())
+    if (m_type == SingleFullInstance)
+        return true;
+
+    int object_idx = m_valid ? get_object_idx() : -1;
+    if (object_idx != -1)
     {
-        object_idx_out = -1;
-        instance_idx_out = -1;
-        return false;
+        if (get_instance_idx() != -1)
+            return m_model->objects[object_idx]->volumes.size() == m_list.size();
     }
 
-    const GLVolume* first = (*m_volumes)[*m_list.begin()];
-    int object_idx = first->object_idx();
-    int instance_idx = first->instance_idx();
-    unsigned int count = 0;
-
-    for (unsigned int i : m_list)
-    {
-        const GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() != object_idx) || (v->instance_idx() != instance_idx))
-            return false;
-        else
-            ++count;
-    }
-
-    bool res = (count == (unsigned int)m_model->objects[object_idx]->volumes.size());
-    object_idx_out = res ? object_idx : -1;
-    instance_idx_out = res ? instance_idx : -1;
-    return res;
+    return false;
 }
 
-bool GLCanvas3D::Selection::is_single_full_object(int& object_idx_out) const
+int GLCanvas3D::Selection::get_object_idx() const
 {
-    if (!m_valid || is_empty() || is_wipe_tower())
-    {
-        object_idx_out = -1;
-        return false;
-    }
-
-    int object_idx = (*m_volumes)[*m_list.begin()]->object_idx();
-    unsigned int count = 0;
-
-    for (unsigned int i : m_list)
-    {
-        const GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() != object_idx)
-            return false;
-        else
-            ++count;
-    }
-
-    bool res = (count == (unsigned int)m_model->objects[object_idx]->volumes.size() * (unsigned int)m_model->objects[object_idx]->instances.size());
-    object_idx_out = res ? object_idx : -1;
-    return res;
+    return (m_cache.content.size() == 1) ? m_cache.content.begin()->first : -1;
 }
 
-bool GLCanvas3D::Selection::is_from_single_instance(int& object_idx_out, int& instance_idx_out) const
+int GLCanvas3D::Selection::get_instance_idx() const
 {
-    if (!m_valid || is_empty() || is_wipe_tower())
+    if (m_cache.content.size() == 1)
     {
-        object_idx_out = -1;
-        instance_idx_out = -1;
-        return false;
+        const InstanceIdxsList& idxs = m_cache.content.begin()->second;
+        if (idxs.size() == 1)
+            return *idxs.begin();
     }
 
-    const GLVolume* first = (*m_volumes)[*m_list.begin()];
-    int object_idx = first->object_idx();
-    int instance_idx = first->instance_idx();
-
-    for (unsigned int i : m_list)
-    {
-        const GLVolume* v = (*m_volumes)[i];
-        if ((v->object_idx() != object_idx) || (v->instance_idx() != instance_idx))
-            return false;
-    }
-
-    object_idx_out = object_idx;
-    instance_idx_out = instance_idx;
-    return true;
-}
-
-bool GLCanvas3D::Selection::is_from_single_object(int& object_idx_out) const
-{
-    if (!m_valid || is_empty() || is_wipe_tower())
-    {
-        object_idx_out = -1;
-        return false;
-    }
-
-    int object_idx = (*m_volumes)[*m_list.begin()]->object_idx();
-
-    for (unsigned int i : m_list)
-    {
-        const GLVolume* v = (*m_volumes)[i];
-        if (v->object_idx() != object_idx)
-            return false;
-    }
-
-    object_idx_out = object_idx;
-    return true;
+    return -1;
 }
 
 const GLVolume* GLCanvas3D::Selection::get_volume(unsigned int volume_idx) const
 {
-    if (!m_valid)
-        return nullptr;
-
-    return (volume_idx < (unsigned int)m_volumes->size()) ? (*m_volumes)[volume_idx] : nullptr;
+    return (m_valid && (volume_idx < (unsigned int)m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
 }
 
 const BoundingBoxf3& GLCanvas3D::Selection::get_bounding_box() const
@@ -1374,24 +1307,178 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
 
     for (unsigned int i : m_list)
     {
-        (*m_volumes)[i]->set_offset(m_cache.volumes_data[i].position + displacement);
+        (*m_volumes)[i]->set_offset(m_cache.volumes_data[i].get_position() + displacement);
     }
 
     m_bounding_box_dirty = true;
 }
 
-void GLCanvas3D::Selection::render() const
+void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
+{
+    if (!m_valid)
+        return;
+
+    Transform3d m = Transform3d::Identity();
+    if (rotation(2) != 0.0f)
+        m.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+    else if (rotation(1) != 0.0f)
+        m.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
+    else if (rotation(0) != 0.0f)
+        m.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+
+    bool single_full_instance = is_single_full_instance();
+
+    for (unsigned int i : m_list)
+    {
+        Vec3d radius = m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center);
+        (*m_volumes)[i]->set_offset(m_cache.dragging_center + radius);
+
+        if (single_full_instance)
+            (*m_volumes)[i]->set_rotation(rotation);
+        else
+        {
+            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_rotation_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
+            // extracts euler angles from the composed transformation
+            // not using Eigen eulerAngles() method because it returns weird results
+            // see: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+            double sy = ::sqrt(sqr(new_rotation_matrix(0, 0)) + sqr(new_rotation_matrix(1, 0)));
+
+            Vec3d angles = Vec3d::Zero();
+            if (sy >= 1e-6)
+            {
+                angles(0) = ::atan2(new_rotation_matrix(2, 1), new_rotation_matrix(2, 2));
+                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
+                angles(2) = ::atan2(new_rotation_matrix(1, 0), new_rotation_matrix(0, 0));
+            }
+            else
+            {
+                angles(0) = ::atan2(-new_rotation_matrix(1, 2), new_rotation_matrix(1, 1));
+                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
+                angles(2) = 0.0;
+            }
+
+            (*m_volumes)[i]->set_rotation(Vec3d(angles(0), angles(1), angles(2)));
+        }
+    }
+
+    if (m_mode == Instance)
+        synchronize_unselected_instances();
+
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::render(bool show_indirect_selection) const
 {
     if (is_empty())
         return;
 
-    float color[3] = { 1.0f, 1.0f, 1.0f };
-    render_bounding_box(get_bounding_box(), color);
+    // render cumulative bounding box of selected volumes
+    render_selected_volumes();
+
+    // render bounding boxes of indirectly selected instances
+    if (show_indirect_selection && (m_mode == Instance))
+        render_unselected_instances();
 }
 
 void GLCanvas3D::Selection::update_valid()
 {
     m_valid = (m_volumes != nullptr) && (m_model != nullptr);
+}
+
+void GLCanvas3D::Selection::update_type()
+{
+    m_cache.content.clear();
+    m_type = Mixed;
+
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* volume = (*m_volumes)[i];
+        int obj_idx = volume->object_idx();
+        int inst_idx = volume->instance_idx();
+        ObjectIdxsToInstanceIdxsMap::iterator obj_it = m_cache.content.find(obj_idx);
+        if (obj_it == m_cache.content.end())
+            obj_it = m_cache.content.insert(ObjectIdxsToInstanceIdxsMap::value_type(obj_idx, InstanceIdxsList())).first;
+
+        obj_it->second.insert(inst_idx);
+    }
+
+    if (!m_valid)
+        m_type = Invalid;
+    else
+    {
+        if (m_list.empty())
+            m_type = Empty;
+        else if (m_list.size() == 1)
+        {
+            const GLVolume* first = (*m_volumes)[*m_list.begin()];
+            if (first->is_wipe_tower)
+                m_type = WipeTower;
+            else if (first->is_modifier)
+                m_type = Modifier;
+            else
+            {
+                const ModelObject* model_object = m_model->objects[first->object_idx()];
+                unsigned int volumes_count = (unsigned int)model_object->volumes.size();
+                unsigned int instances_count = (unsigned int)model_object->instances.size();
+                if (volumes_count * instances_count == 1)
+                    m_type = SingleFullObject;
+                else if (volumes_count == 1) // instances_count > 1
+                    m_type = SingleFullInstance;
+            }
+        }
+        else
+        {
+            if (m_cache.content.size() == 1) // single object
+            {
+                const ModelObject* model_object = m_model->objects[m_cache.content.begin()->first];
+                unsigned int volumes_count = (unsigned int)model_object->volumes.size();
+                unsigned int instances_count = (unsigned int)model_object->instances.size();
+                if (volumes_count * instances_count == (unsigned int)m_list.size())
+                    m_type = SingleFullObject;
+                else if ((m_cache.content.begin()->second.size() == 1) && (volumes_count == (unsigned int)m_list.size()))
+                    m_type = SingleFullInstance;
+            }
+        }
+    }
+
+    switch (m_type)
+    {
+    case Invalid:
+    {
+        std::cout << "selection type: Invalid" << std::endl;
+        break;
+    }
+    case Empty:
+    {
+        std::cout << "selection type: Empty" << std::endl;
+        break;
+    }
+    case WipeTower:
+    {
+        std::cout << "selection type: WipeTower" << std::endl;
+        break;
+    }
+    case Modifier:
+    {
+        std::cout << "selection type: Modifier" << std::endl;
+        break;
+    }
+    case SingleFullObject:
+    {
+        std::cout << "selection type: SingleFullObject" << std::endl;
+        break;
+    }
+    case SingleFullInstance:
+    {
+        std::cout << "selection type: SingleFullInstance" << std::endl;
+        break;
+    }
+    case Mixed:
+    {
+        std::cout << "selection type: Mixed" << std::endl;
+        break;
+    }
+    }
 }
 
 void GLCanvas3D::Selection::set_caches()
@@ -1493,6 +1580,62 @@ void GLCanvas3D::Selection::calc_bounding_box() const
     m_bounding_box_dirty = false;
 }
 
+void GLCanvas3D::Selection::render_selected_volumes() const
+{
+    float color[3] = { 1.0f, 1.0f, 1.0f };
+    render_bounding_box(get_bounding_box(), color);
+}
+
+void GLCanvas3D::Selection::render_unselected_instances() const
+{
+    std::set<unsigned int> done;  // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+
+    typedef std::map<std::pair<int, int>, BoundingBoxf3> InstanceToBoxMap;
+    InstanceToBoxMap boxes;
+    for (unsigned int i : m_list)
+    {
+        if (done.size() == m_volumes->size())
+            break;
+
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = volume->instance_idx();
+
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (done.size() == m_volumes->size())
+                break;
+
+            if (done.find(j) != done.end())
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            int i_idx = v->instance_idx();
+            if ((v->object_idx() != object_idx) || (i_idx == instance_idx))
+                continue;
+
+            std::pair<int, int> box_id(object_idx, i_idx);
+            InstanceToBoxMap::iterator it = boxes.find(box_id);
+            if (it == boxes.end())
+                it = boxes.insert(InstanceToBoxMap::value_type(box_id, BoundingBoxf3())).first;
+
+            it->second.merge(v->transformed_bounding_box());
+
+            done.insert(j);
+        }
+    }
+
+    float color[3] = { 1.0f, 1.0f, 0.0f };
+    for (const InstanceToBoxMap::value_type& box : boxes)
+    {
+        render_bounding_box(box.second, color);
+    }
+}
+
 void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float* color) const
 {
     if (color == nullptr)
@@ -1541,6 +1684,46 @@ void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float*
     ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1), b_max(2) - size(2));
 
     ::glEnd();
+}
+
+void GLCanvas3D::Selection::synchronize_unselected_instances()
+{
+    std::set<unsigned int> done;  // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+
+    for (unsigned int i : m_list)
+    {
+        if (done.size() == m_volumes->size())
+            break;
+
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = volume->instance_idx();
+        const Vec3d& rotation = volume->get_rotation();
+        const Vec3d& scaling_factor = volume->get_scaling_factor();
+
+        // Process unselected instances.
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (done.size() == m_volumes->size())
+                break;
+
+            if (done.find(j) != done.end())
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            if ((v->object_idx() != object_idx) || (v->instance_idx() == instance_idx))
+                continue;
+
+            v->set_rotation(rotation);
+            v->set_scaling_factor(scaling_factor);
+
+            done.insert(j);
+        }
+    }
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -1753,24 +1936,19 @@ void GLCanvas3D::Gizmos::set_hover_id(int id)
 }
 
 #if ENABLE_EXTENDED_SELECTION
-void GLCanvas3D::Gizmos::enable_grabber(EType type, unsigned int id)
+void GLCanvas3D::Gizmos::enable_grabber(EType type, unsigned int id, bool enable)
 {
     if (!m_enabled)
         return;
 
     GizmosMap::const_iterator it = m_gizmos.find(type);
     if (it != m_gizmos.end())
-        it->second->enable_grabber(id);
-}
-
-void GLCanvas3D::Gizmos::disable_grabber(EType type, unsigned int id)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(type);
-    if (it != m_gizmos.end())
-        it->second->disable_grabber(id);
+    {
+        if (enable)
+            it->second->enable_grabber(id);
+        else
+            it->second->disable_grabber(id);
+    }
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -2419,13 +2597,15 @@ wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ROTATE_OBJECT, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCALE_UNIFORMLY, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_OBJECTS, Event<int>);
-wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVES, SimpleEvent);
+wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 
 wxDEFINE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
+#if !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
@@ -2977,20 +3157,19 @@ void GLCanvas3D::update_gizmos_data()
         return;
 
 #if ENABLE_EXTENDED_SELECTION
-    if (m_gizmos.get_current_type() == Gizmos::Move)
+    bool enable_move_z = !m_selection.is_wipe_tower();
+    bool enable_rotate_xy = m_selection.is_single_full_object() || m_selection.is_mixed();
+
+    m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
+    for (int i = 0; i < 2; ++i)
     {
-        if (m_selection.is_wipe_tower())
-            m_gizmos.disable_grabber(Gizmos::Move, 2);
-        else
-            m_gizmos.enable_grabber(Gizmos::Move, 2);
+        m_gizmos.enable_grabber(Gizmos::Rotate, i, enable_rotate_xy);
     }
 
-    int object_idx = -1;
-    int instance_idx = -1;
-    if (m_selection.is_single_full_instance(object_idx, instance_idx))
+    if (m_selection.is_single_full_instance())
     {
-        ModelObject* model_object = m_model->objects[object_idx];
-        ModelInstance* model_instance = model_object->instances[instance_idx];
+        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
+        ModelInstance* model_instance = model_object->instances[m_selection.get_instance_idx()];
         m_gizmos.set_scale(model_instance->get_scaling_factor());
         m_gizmos.set_rotation(model_instance->get_rotation());
         m_gizmos.set_flattening_data(model_object);
@@ -3477,8 +3656,7 @@ void GLCanvas3D::on_mouse_wheel(wxMouseEvent& evt)
     if (is_layers_editing_enabled())
     {
 #if ENABLE_EXTENDED_SELECTION
-        int object_idx_selected = -1;
-        m_selection.is_from_single_object(object_idx_selected);
+        int object_idx_selected = m_selection.get_object_idx();
 #else
         int object_idx_selected = _get_first_selected_object_id();
 #endif // ENABLE_EXTENDED_SELECTION
@@ -3526,8 +3704,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
     Point pos(evt.GetX(), evt.GetY());
 
 #if ENABLE_EXTENDED_SELECTION
-    int selected_object_idx = -1;
-    m_selection.is_from_single_object(selected_object_idx);
+    int selected_object_idx = m_selection.get_object_idx();
     int layer_editing_object_idx = is_layers_editing_enabled() ? selected_object_idx : -1;
 #else
     int selected_object_idx = _get_first_selected_object_id();
@@ -3581,11 +3758,22 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+            m_regenerate_volumes = false;
+            const Vec3d& rotation = m_gizmos.get_rotation();
+            m_selection.rotate(rotation);
+            _on_rotate();
+#else
             post_event(Vec3dEvent(EVT_GIZMO_ROTATE, std::move(m_gizmos.get_rotation())));
+#endif // ENABLE_EXTENDED_SELECTION
 #else
             m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
             wxGetApp().obj_manipul()->update_rotation_values();
+#endif // ENABLE_EXTENDED_SELECTION
             m_dirty = true;
             break;
         }
@@ -3726,8 +3914,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_EXTENDED_SELECTION
             if (m_picking_enabled && (m_hover_volume_id != -1))
             {
-                int object_idx = -1;
-                m_selection.is_from_single_object(object_idx);
+                int object_idx = m_selection.get_object_idx();
                 _on_select(m_hover_volume_id, object_idx);
             }
 #else
@@ -3849,7 +4036,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             v->set_offset(v->get_offset() + Vec3d(displacement(0), displacement(1), 0.0));
         }
 
-        wxGetApp().obj_manipul()->update_position_values(volume->get_offset());
+        wxGetApp().obj_manipul()->update_position_value(volume->get_offset());
         m_mouse.drag.start_position_3D = cur_pos;
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -3897,7 +4084,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             {
                 v->set_offset(v->get_offset() + offset);
             }
-            wxGetApp().obj_manipul()->update_position_values(volume->get_offset());
+            wxGetApp().obj_manipul()->update_position_value(volume->get_offset());
 #endif // ENABLE_EXTENDED_SELECTION
             break;
         }
@@ -3929,6 +4116,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
+            m_selection.rotate(m_gizmos.get_rotation());
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
 #else
             // Apply new temporary rotation
             const Vec3d& rotation = m_gizmos.get_rotation();
@@ -4121,7 +4310,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Rotate:
             {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+                m_regenerate_volumes = false;
+                _on_rotate();
+#else
                 post_event(Vec3dEvent(EVT_GIZMO_ROTATE, m_gizmos.get_rotation()));
+#endif // ENABLE_EXTENDED_SELECTION
 #else
                 m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -4809,7 +5003,9 @@ void GLCanvas3D::_render_objects() const
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::_render_selection() const
 {
-    m_selection.render();
+    Gizmos::EType type = m_gizmos.get_current_type();
+    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale));
+    m_selection.render(show_indirect_selection);
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -6157,7 +6353,7 @@ void GLCanvas3D::_on_move()
     if (m_model == nullptr)
         return;
 
-    std::set<std::string> done;  // prevent moving instances twice
+    std::set<std::pair<int, int>> done;  // prevent moving instances twice
     bool object_moved = false;
     Vec3d wipe_tower_origin = Vec3d::Zero();
     const Selection::IndicesList& selection = m_selection.get_volume_idxs();
@@ -6169,8 +6365,7 @@ void GLCanvas3D::_on_move()
         int instance_idx = v->instance_idx();
 
         // prevent moving instances twice
-        char done_id[64];
-        ::sprintf(done_id, "%d_%d", object_idx, instance_idx);
+        std::pair<int, int> done_id(object_idx, instance_idx);
         if (done.find(done_id) != done.end())
             continue;
 
@@ -6178,7 +6373,7 @@ void GLCanvas3D::_on_move()
 
         if (object_idx < 1000)
         {
-            // Move a regular object.
+            // Move instances.
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr)
             {
@@ -6193,10 +6388,46 @@ void GLCanvas3D::_on_move()
     }
 
     if (object_moved)
-        post_event(SimpleEvent(EVT_GLCANVAS_WIPETOWER_MOVED));
+        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
 
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
+}
+
+void GLCanvas3D::_on_rotate()
+{
+    if (m_model == nullptr)
+        return;
+
+    std::set<std::pair<int, int>> done;  // prevent rotating instances twice
+    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
+
+    for (unsigned int i : selection)
+    {
+        const GLVolume* v = m_volumes.volumes[i];
+        int object_idx = v->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = v->instance_idx();
+
+        // prevent rotating instances twice
+        std::pair<int, int> done_id(object_idx, instance_idx);
+        if (done.find(done_id) != done.end())
+            continue;
+
+        done.insert(done_id);
+
+        // Rotate instances.
+        ModelObject* model_object = m_model->objects[object_idx];
+        if (model_object != nullptr)
+        {
+            model_object->instances[instance_idx]->set_rotation(v->get_rotation());
+            model_object->invalidate_bounding_box();
+        }
+    }
+
+// schedule_background_process
 }
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
@@ -6244,7 +6475,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
     }
 
     if (object_moved)
-        post_event(SimpleEvent(EVT_GLCANVAS_WIPETOWER_MOVED));
+        post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
 
     if (wipe_tower_origin != Vec3d::Zero())
         post_event(Vec3dEvent(EVT_GLCANVAS_WIPETOWER_MOVED, std::move(wipe_tower_origin)));
