@@ -481,7 +481,7 @@ public:
         void translate(const Vec3d& displacement);
         void rotate(const Vec3d& rotation);
 
-        void render() const;
+        void render(bool show_indirect_selection) const;
 
     private:
         void update_valid();
@@ -494,7 +494,10 @@ public:
         void remove_instance(unsigned int volume_idx);
         void remove_object(unsigned int volume_idx);
         void calc_bounding_box() const;
+        void render_selected_volumes() const;
+        void render_unselected_instances() const;
         void render_bounding_box(const BoundingBoxf3& box, float* color) const;
+        void synchronize_unselected_instances();
     };
 
 private:

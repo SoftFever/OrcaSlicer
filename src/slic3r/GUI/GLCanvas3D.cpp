@@ -1343,16 +1343,23 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
         }
     }
 
+    if (m_mode == Instance)
+        synchronize_unselected_instances();
+
     m_bounding_box_dirty = true;
 }
 
-void GLCanvas3D::Selection::render() const
+void GLCanvas3D::Selection::render(bool show_indirect_selection) const
 {
     if (is_empty())
         return;
 
-    float color[3] = { 1.0f, 1.0f, 1.0f };
-    render_bounding_box(get_bounding_box(), color);
+    // render cumulative bounding box of selected volumes
+    render_selected_volumes();
+
+    // render bounding boxes of indirectly selected instances
+    if (show_indirect_selection && (m_mode == Instance))
+        render_unselected_instances();
 }
 
 void GLCanvas3D::Selection::update_valid()
@@ -1555,6 +1562,62 @@ void GLCanvas3D::Selection::calc_bounding_box() const
     m_bounding_box_dirty = false;
 }
 
+void GLCanvas3D::Selection::render_selected_volumes() const
+{
+    float color[3] = { 1.0f, 1.0f, 1.0f };
+    render_bounding_box(get_bounding_box(), color);
+}
+
+void GLCanvas3D::Selection::render_unselected_instances() const
+{
+    std::set<unsigned int> done;  // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+
+    typedef std::map<std::pair<int, int>, BoundingBoxf3> InstanceToBoxMap;
+    InstanceToBoxMap boxes;
+    for (unsigned int i : m_list)
+    {
+        if (done.size() == m_volumes->size())
+            break;
+
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = volume->instance_idx();
+
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (done.size() == m_volumes->size())
+                break;
+
+            if (done.find(j) != done.end())
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            int i_idx = v->instance_idx();
+            if ((v->object_idx() != object_idx) || (i_idx == instance_idx))
+                continue;
+
+            std::pair<int, int> box_id(object_idx, i_idx);
+            InstanceToBoxMap::iterator it = boxes.find(box_id);
+            if (it == boxes.end())
+                it = boxes.insert(InstanceToBoxMap::value_type(box_id, BoundingBoxf3())).first;
+
+            it->second.merge(v->transformed_bounding_box());
+
+            done.insert(j);
+        }
+    }
+
+    float color[3] = { 1.0f, 1.0f, 0.0f };
+    for (const InstanceToBoxMap::value_type& box : boxes)
+    {
+        render_bounding_box(box.second, color);
+    }
+}
+
 void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float* color) const
 {
     if (color == nullptr)
@@ -1603,6 +1666,46 @@ void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float*
     ::glVertex3f(b_min(0), b_max(1), b_max(2)); ::glVertex3f(b_min(0), b_max(1), b_max(2) - size(2));
 
     ::glEnd();
+}
+
+void GLCanvas3D::Selection::synchronize_unselected_instances()
+{
+    std::set<unsigned int> done;  // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+
+    for (unsigned int i : m_list)
+    {
+        if (done.size() == m_volumes->size())
+            break;
+
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = volume->instance_idx();
+        const Vec3d& rotation = volume->get_rotation();
+        const Vec3d& scaling_factor = volume->get_scaling_factor();
+
+        // Process unselected instances.
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (done.size() == m_volumes->size())
+                break;
+
+            if (done.find(j) != done.end())
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            if ((v->object_idx() != object_idx) || (v->instance_idx() == instance_idx))
+                continue;
+
+            v->set_rotation(rotation);
+            v->set_scaling_factor(scaling_factor);
+
+            done.insert(j);
+        }
+    }
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -4884,7 +4987,9 @@ void GLCanvas3D::_render_objects() const
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::_render_selection() const
 {
-    m_selection.render();
+    Gizmos::EType type = m_gizmos.get_current_type();
+    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale));
+    m_selection.render(show_indirect_selection);
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -6232,7 +6337,7 @@ void GLCanvas3D::_on_move()
     if (m_model == nullptr)
         return;
 
-    std::set<std::string> done;  // prevent moving instances twice
+    std::set<std::pair<int, int>> done;  // prevent moving instances twice
     bool object_moved = false;
     Vec3d wipe_tower_origin = Vec3d::Zero();
     const Selection::IndicesList& selection = m_selection.get_volume_idxs();
@@ -6244,8 +6349,7 @@ void GLCanvas3D::_on_move()
         int instance_idx = v->instance_idx();
 
         // prevent moving instances twice
-        char done_id[64];
-        ::sprintf(done_id, "%d_%d", object_idx, instance_idx);
+        std::pair<int, int> done_id(object_idx, instance_idx);
         if (done.find(done_id) != done.end())
             continue;
 
@@ -6279,34 +6383,35 @@ void GLCanvas3D::_on_rotate()
     if (m_model == nullptr)
         return;
 
-    std::set<std::string> done;  // prevent rotating instances twice
+    std::set<std::pair<int, int>> done;  // prevent rotating instances twice
     const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
     for (unsigned int i : selection)
     {
         const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
         int instance_idx = v->instance_idx();
 
         // prevent rotating instances twice
-        char done_id[64];
-        ::sprintf(done_id, "%d_%d", object_idx, instance_idx);
+        std::pair<int, int> done_id(object_idx, instance_idx);
         if (done.find(done_id) != done.end())
             continue;
 
         done.insert(done_id);
 
-        if (object_idx < 1000)
+        // Rotate instances.
+        ModelObject* model_object = m_model->objects[object_idx];
+        if (model_object != nullptr)
         {
-            // Rotate instances.
-            ModelObject* model_object = m_model->objects[object_idx];
-            if (model_object != nullptr)
-            {
-                model_object->instances[instance_idx]->set_rotation(v->get_rotation());
-                model_object->invalidate_bounding_box();
-            }
+            model_object->instances[instance_idx]->set_rotation(v->get_rotation());
+            model_object->invalidate_bounding_box();
         }
     }
+
+// schedule_background_process
 }
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
