@@ -819,6 +819,8 @@ void ModelObject::cut(coordf_t z, Model* model) const
     // clone this one to duplicate instances, materials etc.
     ModelObject* upper = model->add_object(*this);
     ModelObject* lower = model->add_object(*this);
+    upper->sla_support_points.clear();
+    lower->sla_support_points.clear();
     upper->clear_volumes();
     lower->clear_volumes();
     upper->input_file = "";
@@ -873,6 +875,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         mesh->repair();
         
         ModelObject* new_object = m_model->add_object(*this, false);
+        new_object->sla_support_points.clear();
         new_object->input_file  = "";
         ModelVolume* new_volume = new_object->add_volume(*mesh);
         new_volume->name        = volume->name;
