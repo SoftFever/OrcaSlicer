@@ -18,7 +18,7 @@ namespace GUI
 {
 
 ObjectList::ObjectList(wxWindow* parent) :
-    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize)
+    wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
     // Fill CATEGORY_ICON
     {
@@ -328,7 +328,9 @@ void ObjectList::on_begin_drag(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drags for item, not containers
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0) || m_objects_model->IsSettingsItem(item)) {
+    if (multiple_selection() ||
+        m_objects_model->GetParent(item) == wxDataViewItem(0) || 
+        m_objects_model->IsSettingsItem(item) ) {
         event.Veto();
         return;
     }
@@ -1137,6 +1139,13 @@ void ObjectList::remove()
 void ObjectList::init_objects()
 {
     m_objects = wxGetApp().model_objects();
+}
+
+bool ObjectList::multiple_selection() const 
+{
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+    return sels.size() > 1;
 }
 
 } //namespace GUI

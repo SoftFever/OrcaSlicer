@@ -121,6 +121,8 @@ public:
     void remove();
 
     void init_objects();
+
+    bool multiple_selection() const ;
 };
 
 

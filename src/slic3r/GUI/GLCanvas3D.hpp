@@ -741,6 +741,7 @@ public:
 
 #if ENABLE_EXTENDED_SELECTION
     const Selection& get_selection() const { return m_selection; }
+    Selection& get_selection() { return m_selection; }
 #endif // ENABLE_EXTENDED_SELECTION
 
     // Set the bed shape to a single closed 2D polygon(array of two element arrays),

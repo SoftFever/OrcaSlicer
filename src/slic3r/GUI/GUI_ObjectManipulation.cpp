@@ -176,7 +176,8 @@ void ObjectManipulation::update_settings_list()
     auto config         = wxGetApp().obj_list()->m_config;
 
     const auto item = objects_ctrl->GetSelection();
-	if (config && objects_model->IsSettingsItem(item)) 
+    if (!objects_ctrl->multiple_selection() && 
+        config && objects_model->IsSettingsItem(item))
 	{
         auto extra_column = [config](wxWindow* parent, const Line& line)
 		{
