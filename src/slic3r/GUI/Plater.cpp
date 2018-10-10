@@ -1135,6 +1135,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
                 instance->set_scaling_factor(inverse);
             }
         }
+
+        print.auto_assign_extruders(object);
+        print.add_model_object(object);
     }
 
     // if user turned autocentering off, automatic arranging would disappoint them
