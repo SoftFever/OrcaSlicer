@@ -502,6 +502,14 @@ void GUI_App::get_installed_languages(wxArrayString & names, wxArrayLong & ident
     }
 }
 
+Tab* GUI_App::get_tab(Preset::Type type)
+{
+    for (Tab* tab: tabs_list)
+        if (tab->type() == type)
+            return tab;
+    return nullptr;
+}
+
 ConfigMenuIDs GUI_App::get_view_mode()
 {
     if (!app_config->has("view_mode"))

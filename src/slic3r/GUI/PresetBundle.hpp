@@ -110,7 +110,7 @@ public:
     void                        export_configbundle(const std::string &path); // , const DynamicPrintConfig &settings);
 
     // Update a filament selection combo box on the platter for an idx_extruder.
-    void                        update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui);
+    void                        update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui);
 
     // Enable / disable the "- default -" preset.
     void                        set_default_suppressed(bool default_suppressed);

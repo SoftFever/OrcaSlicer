@@ -134,23 +134,6 @@ void MainFrame::init_tabpanel()
 
     // The following event is emited by Tab implementation on config value change.
     Bind(EVT_TAB_VALUE_CHANGED, &MainFrame::on_value_changed, this);
-//     EVT_COMMAND($self, -1, $VALUE_CHANGE_EVENT, sub {
-//         my($self, $event) = @_;
-//         auto str = event->GetString;
-//         my($opt_key, $name) = ($str = ~/ (.*) (.*) / );
-//         auto tab = Slic3r::GUI::get_preset_tab(name);
-//         auto config = tab->get_config();
-//         if (m_plater) {
-//             m_plater->on_config_change(config); // propagate config change events to the plater
-//                 if (opt_key == "extruders_count"){
-//                     auto value = event->GetInt();
-//                     m_plater->on_extruders_change(value);
-//                 }
-//         }
-//         // don't save while loading for the first time
-//         if (Slic3r::GUI::autosave && m_loaded)
-//             m_config->save(Slic3r::GUI::autosave) ;
-//     });
 
     // The following event is emited by Tab on preset selection,
     // or when the preset's "modified" status changes.
@@ -174,22 +157,15 @@ void MainFrame::init_tabpanel()
         m_options_tabs[tab_name] = get_preset_tab(tab_name.c_str()); 
 
     if (m_plater) {
-//         m_plater->on_select_preset(sub{
-//             my($group, $name) = @_;
-//             $self->{options_tabs}{$group}->select_preset($name);
-//         });
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();
-//         m_plater->on_config_change(full_config);
+        m_plater->on_config_change(&full_config);
 
         // Show a correct number of filament fields.
-//         if (defined full_config->nozzle_diameter){
-//             // nozzle_diameter is undefined when SLA printer is selected
-//             m_plater->on_extruders_change(int(@{$full_config->nozzle_diameter}));
-//         }
-
-        // Show correct preset comboboxes according to the printer_technology
-//         m_plater->show_preset_comboboxes(full_config.printer_technology() == "FFF" ? 0 : 1);
+        // nozzle_diameter is undefined when SLA printer is selected
+        if (full_config.has("nozzle_diameter")){
+            m_plater->on_extruders_change(full_config.option<ConfigOptionFloats>("nozzle_diameter")->values.size());
+        }
     }
 }
 
@@ -779,16 +755,32 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
                 else
                     cur_tab->load_current_preset();
             }
-            m_plater->sidebar().show_preset_comboboxes(static_cast<TabPrinter*>(tab)->m_printer_technology == ptSLA);
         }
         // XXX: ?
         // m_plater->on_config_change(tab->get_config());
     }
 }
 
-void MainFrame::on_value_changed(wxCommandEvent&)
+void MainFrame::on_value_changed(wxCommandEvent& event)
 {
-    ;
+    auto *tab = dynamic_cast<Tab*>(event.GetEventObject());
+    wxASSERT(tab != nullptr);
+    if (tab == nullptr)
+        return;
+
+    auto opt_key = event.GetString();
+    auto config = tab->get_config();
+    if (m_plater) {
+        m_plater->on_config_change(config); // propagate config change events to the plater
+            if (opt_key == "extruders_count"){
+                auto value = event.GetInt();
+                m_plater->on_extruders_change(value);
+            }
+    }
+    // don't save while loading for the first time
+    // #ys_FIXME ?autosave?
+//     if (wxGetApp().autosave && m_loaded)
+//         m_config->save(wxGetApp().autosave);
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.

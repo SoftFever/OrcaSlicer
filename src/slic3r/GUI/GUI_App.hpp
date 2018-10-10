@@ -128,6 +128,7 @@ public:
     void            save_language();
     void            get_installed_languages(wxArrayString & names, wxArrayLong & identifiers);
 
+    Tab*            get_tab(Preset::Type type);
     ConfigMenuIDs   get_view_mode();
     void            update_mode();
 

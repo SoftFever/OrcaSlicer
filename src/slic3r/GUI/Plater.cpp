@@ -19,6 +19,7 @@
 #include <wx/dnd.h>
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
+#include <wx/colordlg.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -45,6 +46,7 @@
 #include "BackgroundSlicingProcess.hpp"
 #include "ProgressStatusBar.hpp"
 #include "slic3r/Utils/ASCIIFolding.hpp"
+#include "PrintConfig.hpp"
 
 #include <wx/glcanvas.h>    // Needs to be last because reasons :-/
 #include "WipeTowerDialog.hpp"
@@ -189,6 +191,34 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
             evt.StopPropagation();
         }
     });
+    
+    if (preset_type == Slic3r::Preset::TYPE_FILAMENT)
+    {
+        Bind(wxEVT_LEFT_DOWN, [this](wxMouseEvent &event) {
+            if (extruder_idx < 0 || event.GetLogicalPosition(wxClientDC(this)).x > 24) {
+                // Let the combo box process the mouse click.
+                event.Skip();
+                return;
+            }
+            
+            // Swallow the mouse click and open the color picker.
+            auto data = new wxColourData();
+            data->SetChooseFull(1);
+            auto dialog = new wxColourDialog(wxGetApp().mainframe, data);
+            if (dialog->ShowModal() == wxID_OK) {
+                DynamicPrintConfig cfg = *wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config(); 
+
+                auto colors = static_cast<ConfigOptionStrings*>(wxGetApp().preset_bundle->full_config().option("extruder_colour")->clone());
+                colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
+
+                cfg.set_key_value("extruder_colour", colors);
+
+                wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
+                wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
+            }
+            dialog->Destroy();
+        });
+    }
 }
 
 PresetComboBox::~PresetComboBox() {}
@@ -365,7 +395,28 @@ struct Sidebar::priv
 
     bool show_manifold_warning_icon = false;
     bool show_print_info = false;
+
+
+    void show_preset_comboboxes();
 };
+
+void Sidebar::priv::show_preset_comboboxes()
+{
+    const bool showSLA = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA;
+
+    wxWindowUpdateLocker noUpdates(wxGetApp().mainframe);
+
+    for (size_t i = 0; i < 4; ++i)
+        sizer_presets->Show(i, !showSLA);
+
+    sizer_presets->Show(4, showSLA);
+    sizer_presets->Show(5, showSLA);
+
+    frequently_changed_parameters->get_sizer()->Show(!showSLA);
+
+    wxGetApp().plater()->Layout();
+    wxGetApp().mainframe->Layout();
+}
 
 
 // Sidebar / public
@@ -378,13 +429,12 @@ Sidebar::Sidebar(Plater *parent)
     // The preset chooser
     p->sizer_presets = new wxFlexGridSizer(4, 2, 1, 2);
     p->sizer_presets->AddGrowableCol(1, 1);
-    p->sizer_presets->SetFlexibleDirection(wxHORIZONTAL);
+    p->sizer_presets->SetFlexibleDirection(wxBOTH);
     p->sizer_filaments = new wxBoxSizer(wxVERTICAL);
 
     auto init_combo = [this](PresetComboBox **combo, wxString label, Preset::Type preset_type, bool filament) {
         auto *text = new wxStaticText(p->scrolled, wxID_ANY, label);
         text->SetFont(wxGetApp().small_font());
-        // combo = new wxBitmapComboBox(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0, nullptr, wxCB_READONLY);
         *combo = new PresetComboBox(p->scrolled, preset_type);
 
         auto *sizer_presets = this->p->sizer_presets;
@@ -394,6 +444,7 @@ Sidebar::Sidebar(Plater *parent)
             sizer_presets->Add(*combo, 1, wxALIGN_CENTER_VERTICAL | wxEXPAND | wxBOTTOM, 1);
         } else {
             sizer_filaments->Add(*combo, 1, wxEXPAND | wxBOTTOM, 1);
+            (*combo)->set_extruder_idx(0);
             sizer_presets->Add(sizer_filaments, 1, wxEXPAND);
         }
     };
@@ -469,6 +520,30 @@ Sidebar::Sidebar(Plater *parent)
 
 Sidebar::~Sidebar() {}
 
+void Sidebar::init_filament_combo(PresetComboBox **combo, const int extr_idx) {
+    *combo = new PresetComboBox(p->scrolled, Slic3r::Preset::TYPE_FILAMENT);
+//         # copy icons from first choice
+//         $choice->SetItemBitmap($_, $choices->[0]->GetItemBitmap($_)) for 0..$#presets;
+
+    (*combo)->set_extruder_idx(extr_idx);
+
+    auto /***/sizer_filaments = this->p->sizer_filaments;
+    sizer_filaments->Add(*combo, 1, wxEXPAND | wxBOTTOM, 1);
+}
+
+void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
+{
+    if (current_extruder_count >= p->combos_filament.size())
+        return;
+    auto sizer_filaments = this->p->sizer_filaments;
+    while (p->combos_filament.size() > current_extruder_count) {
+        const int last = p->combos_filament.size() - 1;
+        sizer_filaments->Remove(last);
+        (*p->combos_filament[last]).Destroy();
+        p->combos_filament.pop_back();
+    }
+}
+
 void Sidebar::update_presets(Preset::Type preset_type)
 {
     switch (preset_type) {
@@ -503,6 +578,7 @@ void Sidebar::update_presets(Preset::Type preset_type)
         for (size_t i = 0; i < p->combos_filament.size(); i++) {
             wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
         }
+        p->show_preset_comboboxes();
         break;
 
     default: break;
@@ -510,22 +586,6 @@ void Sidebar::update_presets(Preset::Type preset_type)
 
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-}
-
-void Sidebar::show_preset_comboboxes(bool showSLA)
-{
-//     wxWindowUpdateLocker noUpdates(wxGetApp().mainframe);
-
-    for (size_t i = 0; i < 4; ++i)
-        p->sizer_presets->Show(i, !showSLA);
-
-    p->sizer_presets->Show(4, showSLA);
-    p->sizer_presets->Show(5, showSLA);
-
-    p->frequently_changed_parameters->get_sizer()->Show(!showSLA);
-
-    wxGetApp().plater()->Layout();
-    wxGetApp().mainframe->Layout();
 }
 
 ObjectManipulation* Sidebar::obj_manipul()
@@ -590,6 +650,13 @@ bool Sidebar::is_multifilament()
 {
     return p->combos_filament.size() > 0;
 }
+
+
+std::vector<PresetComboBox*>& Sidebar::combos_filament()
+{
+    return p->combos_filament;
+}
+
 
 // Plater::Object
 
@@ -704,9 +771,7 @@ struct Plater::priv
     void reload_from_disk();
     void export_object_stl();
     void fix_through_netfabb();
-    void show_preset_comboboxes();
     void item_changed_selection();
-    void filament_color_box_lmouse_down();
 
     void on_notebook_changed(wxBookCtrlEvent&);
     void on_select_preset(wxCommandEvent&);
@@ -714,8 +779,6 @@ struct Plater::priv
     void on_update_print_preview(wxCommandEvent&);
     void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
-    void on_extruders_change();
-    void on_config_change();
 
     void on_action_add(SimpleEvent&);
     void on_action_arrange(SimpleEvent&);
@@ -1417,21 +1480,10 @@ void Plater::priv::fix_through_netfabb()
     // TODO
 }
 
-void Plater::priv::show_preset_comboboxes()
-{
-    // TODO
-}
-
 void Plater::priv::item_changed_selection()
 {
     // TODO
 }
-
-void Plater::priv::filament_color_box_lmouse_down()
-{
-    // TODO
-}
-
 
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
@@ -1454,9 +1506,9 @@ void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 void Plater::priv::on_select_preset(wxCommandEvent &evt)
 {
     auto preset_type = static_cast<Preset::Type>(evt.GetInt());
-    auto *combo = static_cast<wxBitmapComboBox*>(evt.GetEventObject());
+    auto *combo = static_cast<PresetComboBox*>(evt.GetEventObject());
 
-    auto idx = 0;// evt.GetId();
+    auto idx = combo->get_extruder_idx();
 
     if (preset_type == Preset::TYPE_FILAMENT) {
         wxGetApp().preset_bundle->set_filament_preset(idx, combo->GetStringSelection().ToStdString());
@@ -1464,10 +1516,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // TODO: ?
     if (preset_type == Preset::TYPE_FILAMENT && sidebar->is_multifilament()) {
-    // Only update the platter UI for the 2nd and other filaments.
+        // Only update the platter UI for the 2nd and other filaments.
         wxGetApp().preset_bundle->update_platter_filament_ui(idx, combo);
-    // }
-    } else {
+    } 
+    else {
         for (Tab* tab : wxGetApp().tabs_list) {
             if (tab->type() == preset_type) {
                 tab->select_preset(combo->GetStringSelection().ToStdString());
@@ -1507,16 +1559,6 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
     }
     canvas3D->Refresh();
     canvas3D->Update();
-}
-
-void Plater::priv::on_extruders_change()
-{
-    // TODO
-}
-
-void Plater::priv::on_config_change()
-{
-    // TODO
 }
 
 void Plater::priv::on_action_add(SimpleEvent&)
@@ -1773,6 +1815,34 @@ void Plater::reslice()
 void Plater::send_gcode()
 {
     p->send_gcode_file = export_gcode();
+}
+
+void Plater::on_extruders_change(int num_extruders)
+{
+    auto& choices = sidebar().combos_filament();
+
+    int i = choices.size();
+    while ( i < num_extruders )
+    {
+        PresetComboBox* choice/*{ nullptr }*/;
+        sidebar().init_filament_combo(&choice, i);
+        choices.push_back(choice);
+
+        // initialize selection
+        wxGetApp().preset_bundle->update_platter_filament_ui(i, choice);
+        ++i;
+    }
+
+    // remove unused choices if any
+    sidebar().remove_unused_filament_combos(num_extruders);
+
+    sidebar().Layout();
+    GetParent()->Layout();
+}
+
+void Plater::on_config_change(DynamicPrintConfig* config)
+{
+    // TODO
 }
 
 void Plater::changed_object_settings(int obj_idx)

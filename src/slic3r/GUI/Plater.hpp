@@ -11,7 +11,7 @@
 #include "Preset.hpp"
 
 class wxButton;
-
+class wxBoxSizer;
 
 namespace Slic3r {
 
@@ -35,6 +35,8 @@ public:
     ~PresetComboBox();
 
     void set_label_marker(int item);
+    void set_extruder_idx(const int extr_idx)   { extruder_idx = extr_idx; }
+    int  get_extruder_idx() const               { return extruder_idx; }
 
 private:
     typedef std::size_t Marker;
@@ -42,6 +44,7 @@ private:
 
     Preset::Type preset_type;
     int last_selected;
+    int extruder_idx = -1;
 };
 
 class Sidebar : public wxPanel
@@ -54,8 +57,9 @@ public:
     Sidebar &operator=(const Sidebar &) = delete;
     ~Sidebar();
 
+    void init_filament_combo(PresetComboBox **combo, const int extr_idx);
+    void remove_unused_filament_combos(const int current_extruder_count);
     void update_presets(Slic3r::Preset::Type preset_type);
-    void show_preset_comboboxes(bool showSLA);
 
     ObjectManipulation*     obj_manipul();
     ObjectList*             obj_list();
@@ -69,6 +73,7 @@ public:
     void                    enable_buttons(bool enable);
     bool                    is_multifilament();
 
+    std::vector<PresetComboBox*>& combos_filament();
 private:
     struct priv;
     std::unique_ptr<priv> p;
@@ -102,6 +107,9 @@ public:
     void reslice();
     void changed_object_settings(int obj_idx);
     void send_gcode();
+
+    void on_extruders_change(int extruders_count);
+    void on_config_change(DynamicPrintConfig* config);
 private:
     struct priv;
     std::unique_ptr<priv> p;

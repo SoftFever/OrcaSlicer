@@ -3,6 +3,7 @@
 
 #include "PresetBundle.hpp"
 #include "BitmapCache.hpp"
+#include "Plater.hpp"
 
 #include <algorithm>
 #include <fstream>
@@ -1297,7 +1298,7 @@ bool PresetBundle::parse_color(const std::string &scolor, unsigned char *rgb_out
     return true;
 }
 
-void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitmapComboBox *ui)
+void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::PresetComboBox *ui)
 {
     if (ui == nullptr || this->printers.get_edited_preset().printer_technology() == ptSLA)
         return;
@@ -1320,7 +1321,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
 	std::map<wxString, wxBitmap*> nonsys_presets;
 	wxString selected_str = "";
 	if (!this->filaments().front().is_visible)
-		ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
+        ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
 	for (int i = this->filaments().front().is_visible ? 0 : 1; i < int(this->filaments().size()); ++i) {
         const Preset &preset    = this->filaments.preset(i);
         bool          selected  = this->filament_presets[idx_extruder] == preset.name;
@@ -1373,12 +1374,12 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, wxBitma
 				selected_str = wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str());
 		}
 		if (preset.is_default)
-			ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap);
+            ui->set_label_marker(ui->Append("------- " + _(L("System presets")) + " -------", wxNullBitmap));
     }
 
 	if (!nonsys_presets.empty())
 	{
-		ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap);
+        ui->set_label_marker(ui->Append("-------  " + _(L("User presets")) + "  -------", wxNullBitmap));
 		for (std::map<wxString, wxBitmap*>::iterator it = nonsys_presets.begin(); it != nonsys_presets.end(); ++it) {
 			ui->Append(it->first, *it->second);
 			if (it->first == selected_str)
