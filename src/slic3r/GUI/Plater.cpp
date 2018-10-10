@@ -1576,12 +1576,11 @@ void Plater::priv::on_object_select(ObjectSelectEvent &evt)
     const auto obj_idx = evt.object_id();
     const auto vol_idx = evt.volume_id();
 
-    // TODO:
-    // if (($obj_idx != -1) && ($vol_idx == -1)) {
-    //     # Ignore the special objects (the wipe tower proxy and such).
-    //     $self->select_object((defined($obj_idx) && $obj_idx >= 0 && $obj_idx < 1000) ? $obj_idx : undef);
-    //     $self->item_changed_selection($obj_idx) if (defined($obj_idx));
-    // }
+    if (obj_idx >= 0 && obj_idx < 1000 && vol_idx == -1) {
+        // Ignore the special objects (the wipe tower proxy and such).
+        select_object(obj_idx);
+        item_changed_selection();
+    }
 }
 
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
