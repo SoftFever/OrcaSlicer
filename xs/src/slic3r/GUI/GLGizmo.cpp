@@ -1593,6 +1593,7 @@ void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
     m_model_object = model_object;
+    m_model_object_matrix = model_object->instances.front()->world_matrix();
     if (is_mesh_update_necessary())
         update_mesh();
 }
@@ -1654,7 +1655,7 @@ void GLGizmoSlaSupports::render_grabbers(bool picking) const
             ::glEnable(GL_LIGHTING);
         ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
         ::glPushMatrix();
-        Vec3d center = m_model_object->instances.front()->world_matrix() * m_grabbers[i].center;
+        Vec3d center = m_model_object_matrix * m_grabbers[i].center;
         ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
         GLUquadricObj *quadric;
         quadric = ::gluNewQuadric();

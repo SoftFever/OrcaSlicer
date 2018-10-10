@@ -408,6 +408,7 @@ class GLGizmoSlaSupports : public GLGizmoBase
 {
 private:
     ModelObject* m_model_object = nullptr;
+    Transform3d m_model_object_matrix;
     Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
 
     Eigen::MatrixXf m_V; // vertices
