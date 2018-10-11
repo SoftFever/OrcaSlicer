@@ -287,14 +287,20 @@ bool GLCanvas3DManager::move_volume_down(wxGLCanvas* canvas, unsigned int id)
     return (it != m_canvases.end()) ? it->second->move_volume_down(id) : false;
 }
 
-#if !ENABLE_EXTENDED_SELECTION
+#if ENABLE_EXTENDED_SELECTION
+GLCanvas3D* GLCanvas3DManager::get_canvas(wxGLCanvas* canvas)
+{
+    CanvasesMap::const_iterator it = _get_canvas(canvas);
+    return (it != m_canvases.end()) ? it->second : nullptr;
+}
+#else
 void GLCanvas3DManager::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
 {
     CanvasesMap::iterator it = _get_canvas(canvas);
     if (it != m_canvases.end())
         it->second->set_objects_selections(selections);
 }
-#endif // !ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3DManager::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {

@@ -96,9 +96,11 @@ public:
     bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
-#if !ENABLE_EXTENDED_SELECTION
+#if ENABLE_EXTENDED_SELECTION
+    GLCanvas3D* get_canvas(wxGLCanvas* canvas);
+#else
     void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
-#endif // !ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_EXTENDED_SELECTION
 
     void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     void set_print(wxGLCanvas* canvas, Print* print);

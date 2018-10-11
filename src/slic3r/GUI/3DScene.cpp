@@ -1895,12 +1895,17 @@ bool _3DScene::move_volume_down(wxGLCanvas* canvas, unsigned int id)
     return s_canvas_mgr.move_volume_down(canvas, id);
 }
 
-#if !ENABLE_EXTENDED_SELECTION
+#if ENABLE_EXTENDED_SELECTION
+GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
+{
+    return s_canvas_mgr.get_canvas(canvas);
+}
+#else
 void _3DScene::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
 {
     s_canvas_mgr.set_objects_selections(canvas, selections);
 }
-#endif // !ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_EXTENDED_SELECTION
 
 void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
