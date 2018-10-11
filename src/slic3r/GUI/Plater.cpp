@@ -1156,8 +1156,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 
     update();
     _3DScene::zoom_to_volumes(canvas3D);
-    // TODO
-    // $self->object_list_changed;
+    object_list_changed();
+
     // $self->schedule_background_process;
 
     return obj_idxs;
@@ -1687,7 +1687,8 @@ Plater::~Plater()
 }
 
 Sidebar& Plater::sidebar() { return *p->sidebar; }
-Model&  Plater::model()  { return p->model; }
+Model& Plater::model()  { return p->model; }
+Print& Plater::print()  { return p->print; }
 
 void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 

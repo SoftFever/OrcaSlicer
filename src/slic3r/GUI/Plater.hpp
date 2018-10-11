@@ -16,6 +16,7 @@ class wxBoxSizer;
 namespace Slic3r {
 
 class Model;
+class Print;
 
 namespace GUI {
 
@@ -91,7 +92,8 @@ public:
     ~Plater();
 
     Sidebar& sidebar();
-    Model&  model();
+    Model& model();
+    Print& print();
 
     void load_files(const std::vector<boost::filesystem::path> &input_files);
 

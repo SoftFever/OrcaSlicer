@@ -58,9 +58,9 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
                                  SLIC3R_VERSION +
                                  _(L(" - Remember to check for updates at http://github.com/prusa3d/slic3r/releases")));
 
-	//     m_appController->set_model(m_plater->model);
-	//     m_appController->set_print(m_plater->print);
-	//     m_plater->appController = m_appController;
+    m_appController->set_model(&m_plater->model());
+    m_appController->set_print(&m_plater->print());
+
 	GUI::set_gui_appctl();
 
 	// Make the global status bar and its progress indicator available in C++
