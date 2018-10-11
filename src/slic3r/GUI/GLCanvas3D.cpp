@@ -600,7 +600,8 @@ bool GLCanvas3D::Bed::_are_equal(const Pointfs& bed_1, const Pointfs& bed_2)
 }
 
 GLCanvas3D::Axes::Axes()
-    : origin(0, 0, 0), length(0.0f)
+    : origin(Vec3d::Zero())
+    , length(0.0f)
 {
 }
 
@@ -615,11 +616,11 @@ void GLCanvas3D::Axes::render(bool depth_test) const
     ::glBegin(GL_LINES);
     // draw line for x axis
     ::glColor3f(1.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2));
+    ::glVertex3dv(origin.data());
     ::glVertex3f((GLfloat)origin(0) + length, (GLfloat)origin(1), (GLfloat)origin(2));
     // draw line for y axis
     ::glColor3f(0.0f, 1.0f, 0.0f);
-    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2));
+    ::glVertex3dv(origin.data());
     ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1) + length, (GLfloat)origin(2));
     ::glEnd();
     // draw line for Z axis
@@ -629,7 +630,7 @@ void GLCanvas3D::Axes::render(bool depth_test) const
 
     ::glBegin(GL_LINES);
     ::glColor3f(0.0f, 0.0f, 1.0f);
-    ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2));
+    ::glVertex3dv(origin.data());
     ::glVertex3f((GLfloat)origin(0), (GLfloat)origin(1), (GLfloat)origin(2) + length);
     ::glEnd();
 }
@@ -4894,7 +4895,7 @@ void GLCanvas3D::_camera_tranform() const
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
     Vec3d neg_target = - m_camera.target;
-    ::glTranslatef((GLfloat)neg_target(0), (GLfloat)neg_target(1), (GLfloat)neg_target(2));
+    ::glTranslated(neg_target(0), neg_target(1), neg_target(2));
 }
 
 void GLCanvas3D::_picking_pass() const
@@ -5003,9 +5004,9 @@ void GLCanvas3D::_render_background() const
     ::glVertex2f(1.0f, -1.0f);
 
     if (m_dynamic_background_enabled && _is_any_volume_outside())
-        ::glColor3f(ERROR_BG_COLOR[0], ERROR_BG_COLOR[1], ERROR_BG_COLOR[2]);
+        ::glColor3fv(ERROR_BG_COLOR);
     else
-        ::glColor3f(DEFAULT_BG_COLOR[0], DEFAULT_BG_COLOR[1], DEFAULT_BG_COLOR[2]);
+        ::glColor3fv(DEFAULT_BG_COLOR);
 
     ::glVertex2f(1.0f, 1.0f);
     ::glVertex2f(-1.0f, 1.0f);
@@ -5172,7 +5173,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
         else
         {
             vol->set_render_color();
-            ::glColor4f(vol->render_color[0], vol->render_color[1], vol->render_color[2], vol->render_color[3]);
+            ::glColor4fv(vol->render_color);
         }
 
         vol->render();

@@ -572,7 +572,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
             ::glUniform4fv(color_id, 1, (const GLfloat*)color);
         }
         else
-            ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
+            ::glColor4fv(render_color);
 
         if (detection_id != -1)
             ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
@@ -591,7 +591,7 @@ void GLVolume::render_VBOs(int color_id, int detection_id, int worldmatrix_id) c
     if (color_id >= 0)
         ::glUniform4fv(color_id, 1, (const GLfloat*)render_color);
     else
-        ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
+        ::glColor4fv(render_color);
 
     if (detection_id != -1)
         ::glUniform1i(detection_id, shader_outside_printer_detection_enabled ? 1 : 0);
@@ -640,7 +640,7 @@ void GLVolume::render_legacy() const
         ::glDisableClientState(GL_VERTEX_ARRAY);
         ::glDisableClientState(GL_NORMAL_ARRAY);
 
-        ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
+        ::glColor4fv(render_color);
         render();
 
         ::glEnableClientState(GL_VERTEX_ARRAY);
@@ -649,7 +649,7 @@ void GLVolume::render_legacy() const
         return;
     }
 
-    ::glColor4f(render_color[0], render_color[1], render_color[2], render_color[3]);
+    ::glColor4fv(render_color);
     ::glVertexPointer(3, GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data() + 3);
     ::glNormalPointer(GL_FLOAT, 6 * sizeof(float), indexed_vertex_array.vertices_and_normals_interleaved.data());
 
