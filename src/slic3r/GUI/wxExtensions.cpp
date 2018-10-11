@@ -592,6 +592,9 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volu
 
     auto parent = m_objects[obj_idx];
     if (parent->GetChildCount() == 0) {
+        if (volume_idx == 0)
+            return GetItemById(obj_idx);
+
         printf("Error! Object has no one volume.\n");
         return wxDataViewItem(0);
     }

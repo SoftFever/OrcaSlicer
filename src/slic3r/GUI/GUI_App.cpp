@@ -697,6 +697,11 @@ Plater* GUI_App::plater()
     return mainframe->m_plater;
 }
 
+wxGLCanvas* GUI_App::canvas3D()
+{
+    return mainframe->m_plater->canvas3D();
+}
+
 ModelObjectPtrs* GUI_App::model_objects()
 {
     return &mainframe->m_plater->model().objects;

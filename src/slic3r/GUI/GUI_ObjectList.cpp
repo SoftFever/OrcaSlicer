@@ -8,6 +8,7 @@
 #include "wxExtensions.hpp"
 #include "Model.hpp"
 #include "LambdaObjectDialog.hpp"
+#include "GLCanvas3D.hpp"
 
 #include <boost/algorithm/string.hpp>
 #include "slic3r/Utils/FixModelByWin10.hpp"
@@ -40,17 +41,17 @@ ObjectList::ObjectList(wxWindow* parent) :
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
-        object_ctrl_selection_changed();
+        selection_changed();
 #ifndef __WXMSW__
         set_tooltip_for_item(get_mouse_position_in_control());
 #endif //__WXMSW__        
     });
 
     Bind(wxEVT_DATAVIEW_ITEM_CONTEXT_MENU, [this](wxDataViewEvent& event) {
-        object_ctrl_context_menu();
+        context_menu();
     });
 
-    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { object_ctrl_key_event(event); }); // doesn't work on OSX
+    Bind(wxEVT_CHAR, [this](wxKeyEvent& event) { key_event(event); }); // doesn't work on OSX
 
 #ifdef __WXMSW__
     // Extruder value changed
@@ -62,7 +63,7 @@ ObjectList::ObjectList(wxWindow* parent) :
     });
 #else
     // equivalent to wxEVT_CHOICE on __WXMSW__
-    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { object_ctrl_item_value_change(e); });
+    Bind(wxEVT_DATAVIEW_ITEM_VALUE_CHANGED, [this](wxDataViewEvent& e) { item_value_change(e); });
 #endif //__WXMSW__
 
     Bind(wxEVT_DATAVIEW_ITEM_BEGIN_DRAG,    [this](wxDataViewEvent& e) {on_begin_drag(e); });
@@ -218,33 +219,23 @@ void ObjectList::init_icons(){
 }
 
 
-void ObjectList::object_ctrl_selection_changed()
+void ObjectList::selection_changed()
 {
     if (m_prevent_list_events) return;
 
+    fix_multiselection_conflicts();
+
+    // update object selection on Plater
+    update_selections_on_canvas();
+
     part_selection_changed();
-
-// #ys_FIXME_events
-// call function to update object selection on Plater
-// using obj_idx and vol_idx values
-    int obj_idx, vol_idx = -1;
-    obj_idx = m_selected_object_id;
-
-    const wxDataViewItem item = GetSelection();
-    if (!item || m_objects_model->GetParent(item) == wxDataViewItem(0))
-        vol_idx = -1;
-    else {
-        vol_idx = m_objects_model->GetVolumeIdByItem(item);
-        if (vol_idx == -2) // is settings item
-            vol_idx = m_objects_model->GetVolumeIdByItem(m_objects_model->GetParent(item));
-    }
 
 #ifdef __WXOSX__
     update_extruder_in_config(m_selected_extruder);
 #endif //__WXOSX__        
 }
 
-void ObjectList::object_ctrl_context_menu()
+void ObjectList::context_menu()
 {
     wxDataViewItem item;
     wxDataViewColumn* col;
@@ -293,7 +284,7 @@ void ObjectList::show_context_menu()
 }
 
 
-void ObjectList::object_ctrl_key_event(wxKeyEvent& event)
+void ObjectList::key_event(wxKeyEvent& event)
 {
     if (event.GetKeyCode() == WXK_TAB)
         Navigate(event.ShiftDown() ? wxNavigationKeyEvent::IsBackward : wxNavigationKeyEvent::IsForward);
@@ -309,7 +300,7 @@ void ObjectList::object_ctrl_key_event(wxKeyEvent& event)
         event.Skip();
 }
 
-void ObjectList::object_ctrl_item_value_change(wxDataViewEvent& event)
+void ObjectList::item_value_change(wxDataViewEvent& event)
 {
     if (event.GetColumn() == 2)
     {
@@ -383,19 +374,19 @@ void ObjectList::on_drop(wxDataViewEvent &event)
     if (to_volume_id > from_volume_id) to_volume_id--;
 #endif // __WXGTK__
 
-    Select(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
-        m_objects_model->GetParent(item)));
-
     auto& volumes = (*m_objects)[m_selected_object_id]->volumes;
     auto delta = to_volume_id < from_volume_id ? -1 : 1;
     int cnt = 0;
     for (int id = from_volume_id; cnt < abs(from_volume_id - to_volume_id); id += delta, cnt++)
         std::swap(volumes[id], volumes[id + delta]);
 
+    select_item(m_objects_model->ReorganizeChildren(from_volume_id, to_volume_id,
+                                                    m_objects_model->GetParent(item)));
+
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-    m_prevent_list_events = false;
+//     m_prevent_list_events = false;
 }
 
 
@@ -494,10 +485,10 @@ void ObjectList::get_settings_choice(wxMenu *menu, int id, bool is_part)
     const auto item = GetSelection();
     if (item) {
         const auto settings_item = m_objects_model->HasSettings(item);
-        Select(settings_item ? settings_item :
+        select_item(settings_item ? settings_item :
             m_objects_model->AddSettingsChild(item));
 #ifndef __WXOSX__
-        part_selection_changed();
+//         part_selection_changed();
 #endif //no __WXOSX__
     }
     else
@@ -663,11 +654,16 @@ void ObjectList::load_subobject(bool is_modifier /*= false*/, bool is_lambda/* =
 
     parts_changed(obj_idx);
 
-    for (int i = 0; i < part_names.size(); ++i)
-        Select(m_objects_model->AddChild(item, part_names.Item(i),
-        is_modifier ? m_icon_modifiermesh : m_icon_solidmesh));
+    for (int i = 0; i < part_names.size(); ++i) {
+        const wxDataViewItem sel_item = m_objects_model->AddChild(item, part_names.Item(i),
+            is_modifier ? m_icon_modifiermesh : m_icon_solidmesh);
+
+        if (i == part_names.size() - 1)
+            select_item(sel_item);
+    }
+
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
-    object_ctrl_selection_changed();
+//     selection_changed();
 #endif //no __WXOSX__//__WXMSW__
 }
 
@@ -809,10 +805,10 @@ void ObjectList::load_lambda(const std::string& type_name)
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-    Select(m_objects_model->AddChild(GetSelection(),
+    select_item(m_objects_model->AddChild(GetSelection(),
         name, m_icon_modifiermesh));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
-    object_ctrl_selection_changed();
+    selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
 }
 
@@ -821,7 +817,7 @@ void ObjectList::load_lambda(const std::string& type_name)
 
 void ObjectList::del_subobject()
 {
-    auto item = GetSelection();
+    auto item = GetSelection(); // #ys_FIXME_to_multi_sel
     if (!item) return;
 
     const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -833,8 +829,7 @@ void ObjectList::del_subobject()
     else if (!del_subobject_from_object(volume_id))
         return;
 
-    Select(m_objects_model->Delete(item));
-    part_selection_changed();
+    select_item(m_objects_model->Delete(item));
 }
 
 void ObjectList::del_settings_from_config()
@@ -1019,13 +1014,12 @@ void ObjectList::part_selection_changed()
 
 void ObjectList::update_manipulation_sizer(const bool is_simple_mode)
 {
-    auto item = GetSelection();
+    auto item = GetSelection(); /// #ys_FIXME_to_multi_sel
     if (!item || !is_simple_mode)
         return;
 
     if (m_objects_model->IsSettingsItem(item)) {
-        Select(m_objects_model->GetParent(item));
-        part_selection_changed();
+        select_item(m_objects_model->GetParent(item));
     }
 }
 
@@ -1035,7 +1029,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     wxString item_name = model_object->name;
     auto item = m_objects_model->Add(item_name, model_object->instances.size());
 #if !ENABLE_EXTENDED_SELECTION
-    Select(item);
+    /*Select*/select_item(item);
 #endif // !ENABLE_EXTENDED_SELECTION
 
     // Add error icon if detected auto-repaire
@@ -1060,7 +1054,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     }
 
 #ifndef __WXOSX__ 
-    object_ctrl_selection_changed();
+    selection_changed();
 #endif //__WXMSW__
 }
 
@@ -1124,13 +1118,12 @@ void ObjectList::select_current_volume(int idx, int vol_idx)
 
 void ObjectList::remove()
 {
-    auto item = GetSelection();
+    auto item = GetSelection(); // #ys_FIXME_to_multi_sel
     if (!item)
         return;
 
     if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
-// #ys_FIXME_events
-// call function to remove object from model and to update scene
+        wxGetApp().plater()->remove_selected(); // #ys_TESTME
     }
     else
         del_subobject();
@@ -1143,9 +1136,114 @@ void ObjectList::init_objects()
 
 bool ObjectList::multiple_selection() const 
 {
+    return GetSelectedItemsCount() > 1;
+}
+
+void ObjectList::update_selections()
+{
+#if ENABLE_EXTENDED_SELECTION
+    auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
+    wxDataViewItemArray sels;
+
+    for (auto idx: selection.get_volume_idxs())
+    {
+        const auto gl_vol = selection.get_volume(idx);
+        sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+    }
+    select_items(sels);
+
+#endif // ENABLE_EXTENDED_SELECTION
+}
+
+void ObjectList::update_selections_on_canvas()
+{
+#if ENABLE_EXTENDED_SELECTION
+    auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
+
+    const int sel_cnt = GetSelectedItemsCount();
+    if (sel_cnt == 0) {
+        selection.clear();
+        _3DScene::render(wxGetApp().canvas3D());
+        return;
+    }
+
+    auto add_to_selection = [this](wxDataViewItem& item, GLCanvas3D::Selection& selection, bool as_single_selection)
+    {        
+        if (m_objects_model->GetParent(item) == wxDataViewItem(0)){
+            selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
+            return;
+        }
+
+        auto parent = m_objects_model->GetParent(item);
+        const int obj_idx = m_objects_model->GetIdByItem(parent);
+        const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+        selection.add_volume(obj_idx, vol_idx, as_single_selection);        
+    };
+
+    if (sel_cnt == 1) {
+        wxDataViewItem item = GetSelection();
+        if (m_objects_model->IsSettingsItem(item))
+            selection.clear();
+        else
+            add_to_selection(item, selection, true);
+            
+        _3DScene::render(wxGetApp().canvas3D());
+        return;
+    }
+    
     wxDataViewItemArray sels;
     GetSelections(sels);
-    return sels.size() > 1;
+
+    selection.clear();
+    for (auto item: sels)
+        add_to_selection(item, selection, false);
+
+    _3DScene::render(wxGetApp().canvas3D());
+
+#endif // ENABLE_EXTENDED_SELECTION
+}
+
+void ObjectList::select_item(const wxDataViewItem& item)
+{
+    m_prevent_list_events = true;
+
+    UnselectAll();
+    Select(item);
+    part_selection_changed();
+
+    m_prevent_list_events = false;
+}
+
+void ObjectList::select_items(const wxDataViewItemArray& sels)
+{
+    m_prevent_list_events = true;
+
+    UnselectAll();
+    SetSelections(sels);
+    part_selection_changed();
+
+    m_prevent_list_events = false;
+}
+
+void ObjectList::fix_multiselection_conflicts()
+{
+    const int sel_cnt = GetSelectedItemsCount();
+    if (sel_cnt <= 1)
+        return;
+
+    m_prevent_list_events = true;
+
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    for (auto item : sels) {
+        if (m_objects_model->IsSettingsItem(item))
+            Unselect(item);
+        if (m_objects_model->GetParent(item) != wxDataViewItem(0))
+            Unselect(m_objects_model->GetParent(item));
+    }
+
+    m_prevent_list_events = false;
 }
 
 } //namespace GUI

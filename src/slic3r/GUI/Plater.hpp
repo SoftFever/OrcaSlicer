@@ -12,6 +12,7 @@
 
 class wxButton;
 class wxBoxSizer;
+class wxGLCanvas;
 
 namespace Slic3r {
 
@@ -110,6 +111,8 @@ public:
 
     void on_extruders_change(int extruders_count);
     void on_config_change(DynamicPrintConfig* config);
+
+    wxGLCanvas* canvas3D();
 private:
     struct priv;
     std::unique_ptr<priv> p;

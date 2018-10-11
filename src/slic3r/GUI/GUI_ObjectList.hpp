@@ -63,11 +63,11 @@ public:
 
     void                set_tooltip_for_item(const wxPoint& pt);
 
-    void                object_ctrl_selection_changed();
-    void                object_ctrl_context_menu();
+    void                selection_changed();
+    void                context_menu();
     void                show_context_menu();
-    void                object_ctrl_key_event(wxKeyEvent& event);
-    void                object_ctrl_item_value_change(wxDataViewEvent& event);
+    void                key_event(wxKeyEvent& event);
+    void                item_value_change(wxDataViewEvent& event);
 
     void                on_begin_drag(wxDataViewEvent &event);
     void                on_drop_possible(wxDataViewEvent &event);
@@ -111,18 +111,26 @@ public:
     void delete_all_objects_from_list();
     // Set count of object on c++ side
     void set_object_count(int idx, int count);
+
+    // #ys_FIXME_to_delete
     // Unselect all objects in the list on c++ side
     void unselect_objects();
     // Select current object in the list on c++ side
     void select_current_object(int idx);
     // Select current volume in the list on c++ side
     void select_current_volume(int idx, int vol_idx);
+
     // Remove objects/sub-object from the list
     void remove();
 
     void init_objects();
-
     bool multiple_selection() const ;
+    void update_selections();
+    void update_selections_on_canvas();
+    void select_item(const wxDataViewItem& item);
+    void select_items(const wxDataViewItemArray& sels);
+    // correct current selections to avoid of the possible conflicts
+    void fix_multiselection_conflicts();
 };
 
 

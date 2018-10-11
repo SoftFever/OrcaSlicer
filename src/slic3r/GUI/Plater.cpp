@@ -1626,6 +1626,9 @@ void Plater::priv::on_object_select(ObjectSelectEvent &evt)
         select_object(obj_idx);
         item_changed_selection();
     }
+#if ENABLE_EXTENDED_SELECTION
+    wxGetApp().obj_list()->update_selections();
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
@@ -1875,6 +1878,11 @@ void Plater::on_config_change(DynamicPrintConfig* config)
     // TODO
 }
 
+wxGLCanvas* Plater::canvas3D()
+{
+    return p->canvas3D;
+}
+
 void Plater::changed_object_settings(int obj_idx)
 {
     if (obj_idx < 0)
@@ -1899,8 +1907,8 @@ void Plater::changed_object_settings(int obj_idx)
         if (p->canvas3D) _3DScene::reload_scene(p->canvas3D, true);
         auto selections = p->collect_selections();
         _3DScene::set_objects_selections(p->canvas3D, selections);
-        _3DScene::reload_scene(p->canvas3D, false);
 #endif // !ENABLE_EXTENDED_SELECTION
+        _3DScene::reload_scene(p->canvas3D, false);
     }
     else {
 //         schedule_background_process();
