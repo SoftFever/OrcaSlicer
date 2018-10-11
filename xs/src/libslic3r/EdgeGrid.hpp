@@ -60,6 +60,11 @@ public:
 	// For supports: Contours enclosing the rasterized edges.
 	Polygons 			contours_simplified(coord_t offset, bool fill_holes) const;
 
+	typedef std::pair<const Slic3r::Points*, size_t> ContourPoint;
+	typedef std::pair<const Slic3r::Points*, size_t> ContourEdge;
+	std::vector<std::pair<ContourEdge, ContourEdge>> intersecting_edges() const;
+	bool 											 has_intersecting_edges() const;
+
 protected:
 	struct Cell {
 		Cell() : begin(0), end(0) {}
@@ -113,6 +118,13 @@ extern void save_png(const Grid &grid, const BoundingBox &bbox, coord_t resoluti
 #endif /* SLIC3R_GUI */
 
 } // namespace EdgeGrid
+
+// Find all pairs of intersectiong edges from the set of polygons.
+extern std::vector<std::pair<EdgeGrid::Grid::ContourEdge, EdgeGrid::Grid::ContourEdge>> intersecting_edges(const Polygons &polygons);
+
+// Find all pairs of intersectiong edges from the set of polygons, highlight them in an SVG.
+extern void export_intersections_to_svg(const std::string &filename, const Polygons &polygons);
+
 } // namespace Slic3r
 
 #endif /* slic3r_EdgeGrid_hpp_ */
