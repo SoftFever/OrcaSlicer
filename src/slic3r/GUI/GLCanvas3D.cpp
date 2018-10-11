@@ -1162,13 +1162,13 @@ GLCanvas3D::Selection::Selection()
 void GLCanvas3D::Selection::set_volumes(GLVolumePtrs* volumes)
 {
     m_volumes = volumes;
-    update_valid();
+    _update_valid();
 }
 
 void GLCanvas3D::Selection::set_model(Model* model)
 {
     m_model = model;
-    update_valid();
+    _update_valid();
 }
 
 void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selection)
@@ -1185,22 +1185,22 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
     {
     case Volume:
     {
-        add_volume(volume_idx);
+        _add_volume(volume_idx);
         break;
     }
     case Instance:
     {
-        add_instance(volume_idx);
+        _add_instance(volume->object_idx(), volume->instance_idx());
         break;
     }
     case Object:
     {
-        add_object(volume_idx);
+        _add_object(volume->object_idx());
         break;
     }
     }
 
-    update_type();
+    _update_type();
     m_bounding_box_dirty = true;
 }
 
@@ -1209,26 +1209,116 @@ void GLCanvas3D::Selection::remove(unsigned int volume_idx)
     if (!m_valid || ((unsigned int)m_volumes->size() <= volume_idx))
         return;
 
+    GLVolume* volume = (*m_volumes)[volume_idx];
+
     switch (m_mode)
     {
     case Volume:
     {
-        remove_volume(volume_idx);
+        _remove_volume(volume_idx);
         break;
     }
     case Instance:
     {
-        remove_instance(volume_idx);
+        _remove_instance(volume->object_idx(), volume->instance_idx());
         break;
     }
     case Object:
     {
-        remove_object(volume_idx);
+        _remove_object(volume->object_idx());
         break;
     }
     }
 
-    update_type();
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::add_object(unsigned int object_idx, bool as_single_selection)
+{
+    if (!m_valid)
+        return;
+
+    // resets the current list if needed
+    if (as_single_selection)
+        clear();
+
+    _add_object(object_idx);
+
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::remove_object(unsigned int object_idx)
+{
+    if (!m_valid)
+        return;
+
+    _remove_object(object_idx);
+
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::add_instance(unsigned int object_idx, unsigned int instance_idx, bool as_single_selection)
+{
+    if (!m_valid)
+        return;
+
+    // resets the current list if needed
+    if (as_single_selection)
+        clear();
+
+    _add_instance(object_idx, instance_idx);
+
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::remove_instance(unsigned int object_idx, unsigned int instance_idx)
+{
+    if (!m_valid)
+        return;
+
+    _remove_instance(object_idx, instance_idx);
+
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::add_volume(unsigned int object_idx, unsigned int volume_idx, bool as_single_selection)
+{
+    if (!m_valid)
+        return;
+
+    // resets the current list if needed
+    if (as_single_selection)
+        clear();
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
+            _add_volume(i);
+    }
+
+    _update_type();
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::remove_volume(unsigned int object_idx, unsigned int volume_idx)
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->volume_idx() == volume_idx))
+            _remove_volume(i);
+    }
+
+    _update_type();
     m_bounding_box_dirty = true;
 }
 
@@ -1243,7 +1333,7 @@ void GLCanvas3D::Selection::clear()
     }
 
     m_list.clear();
-    update_type();
+    _update_type();
     m_bounding_box_dirty = true;
 }
 
@@ -1287,7 +1377,7 @@ const GLVolume* GLCanvas3D::Selection::get_volume(unsigned int volume_idx) const
 const BoundingBoxf3& GLCanvas3D::Selection::get_bounding_box() const
 {
     if (m_bounding_box_dirty)
-        calc_bounding_box();
+        _calc_bounding_box();
 
     return m_bounding_box;
 }
@@ -1297,7 +1387,7 @@ void GLCanvas3D::Selection::start_dragging()
     if (!m_valid)
         return;
 
-    set_caches();
+    _set_caches();
 }
 
 void GLCanvas3D::Selection::translate(const Vec3d& displacement)
@@ -1362,7 +1452,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
     }
 
     if (m_mode == Instance)
-        synchronize_unselected_instances();
+        _synchronize_unselected_instances();
 
     m_bounding_box_dirty = true;
 }
@@ -1373,19 +1463,19 @@ void GLCanvas3D::Selection::render(bool show_indirect_selection) const
         return;
 
     // render cumulative bounding box of selected volumes
-    render_selected_volumes();
+    _render_selected_volumes();
 
     // render bounding boxes of indirectly selected instances
     if (show_indirect_selection && (m_mode == Instance))
-        render_unselected_instances();
+        _render_unselected_instances();
 }
 
-void GLCanvas3D::Selection::update_valid()
+void GLCanvas3D::Selection::_update_valid()
 {
     m_valid = (m_volumes != nullptr) && (m_model != nullptr);
 }
 
-void GLCanvas3D::Selection::update_type()
+void GLCanvas3D::Selection::_update_type()
 {
     m_cache.content.clear();
     m_type = Mixed;
@@ -1481,7 +1571,7 @@ void GLCanvas3D::Selection::update_type()
     }
 }
 
-void GLCanvas3D::Selection::set_caches()
+void GLCanvas3D::Selection::_set_caches()
 {
     m_cache.volumes_data.clear();
     for (unsigned int i : m_list)
@@ -1492,7 +1582,7 @@ void GLCanvas3D::Selection::set_caches()
     m_cache.dragging_center = get_bounding_box().center();
 }
 
-void GLCanvas3D::Selection::add_volume(unsigned int volume_idx)
+void GLCanvas3D::Selection::_add_volume(unsigned int volume_idx)
 {
     // check if the given idx is already selected
     if (m_list.find(volume_idx) != m_list.end())
@@ -1502,34 +1592,27 @@ void GLCanvas3D::Selection::add_volume(unsigned int volume_idx)
     (*m_volumes)[volume_idx]->selected = true;
 }
 
-void GLCanvas3D::Selection::add_instance(unsigned int volume_idx)
+void GLCanvas3D::Selection::_add_instance(unsigned int object_idx, unsigned int instance_idx)
 {
-    GLVolume* volume = (*m_volumes)[volume_idx];
-    int object_idx = volume->object_idx();
-    int instance_idx = volume->instance_idx();
-
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
         if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-            add_volume(i);
+            _add_volume(i);
     }
 }
 
-void GLCanvas3D::Selection::add_object(unsigned int volume_idx)
+void GLCanvas3D::Selection::_add_object(unsigned int object_idx)
 {
-    GLVolume* volume = (*m_volumes)[volume_idx];
-    int object_idx = volume->object_idx();
-
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
         if (v->object_idx() == object_idx)
-            add_volume(i);
+            _add_volume(i);
     }
 }
 
-void GLCanvas3D::Selection::remove_volume(unsigned int volume_idx)
+void GLCanvas3D::Selection::_remove_volume(unsigned int volume_idx)
 {
     IndicesList::iterator v_it = m_list.find(volume_idx);
     if (v_it == m_list.end())
@@ -1540,34 +1623,27 @@ void GLCanvas3D::Selection::remove_volume(unsigned int volume_idx)
     (*m_volumes)[volume_idx]->selected = false;
 }
 
-void GLCanvas3D::Selection::remove_instance(unsigned int volume_idx)
+void GLCanvas3D::Selection::_remove_instance(unsigned int object_idx, unsigned int instance_idx)
 {
-    GLVolume* volume = (*m_volumes)[volume_idx];
-    int object_idx = volume->object_idx();
-    int instance_idx = volume->instance_idx();
-
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
         if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
-            remove_volume(i);
+            _remove_volume(i);
     }
 }
 
-void GLCanvas3D::Selection::remove_object(unsigned int volume_idx)
+void GLCanvas3D::Selection::_remove_object(unsigned int object_idx)
 {
-    GLVolume* volume = (*m_volumes)[volume_idx];
-    int object_idx = volume->object_idx();
-
     for (unsigned int i = 0; i < (unsigned int)m_volumes->size(); ++i)
     {
         GLVolume* v = (*m_volumes)[i];
         if (v->object_idx() == object_idx)
-            remove_volume(i);
+            _remove_volume(i);
     }
 }
 
-void GLCanvas3D::Selection::calc_bounding_box() const
+void GLCanvas3D::Selection::_calc_bounding_box() const
 {
     m_bounding_box = BoundingBoxf3();
     if (m_valid)
@@ -1580,13 +1656,13 @@ void GLCanvas3D::Selection::calc_bounding_box() const
     m_bounding_box_dirty = false;
 }
 
-void GLCanvas3D::Selection::render_selected_volumes() const
+void GLCanvas3D::Selection::_render_selected_volumes() const
 {
     float color[3] = { 1.0f, 1.0f, 1.0f };
-    render_bounding_box(get_bounding_box(), color);
+    _render_bounding_box(get_bounding_box(), color);
 }
 
-void GLCanvas3D::Selection::render_unselected_instances() const
+void GLCanvas3D::Selection::_render_unselected_instances() const
 {
     std::set<unsigned int> done;  // prevent processing volumes twice
     done.insert(m_list.begin(), m_list.end());
@@ -1632,11 +1708,11 @@ void GLCanvas3D::Selection::render_unselected_instances() const
     float color[3] = { 1.0f, 1.0f, 0.0f };
     for (const InstanceToBoxMap::value_type& box : boxes)
     {
-        render_bounding_box(box.second, color);
+        _render_bounding_box(box.second, color);
     }
 }
 
-void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float* color) const
+void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float* color) const
 {
     if (color == nullptr)
         return;
@@ -1686,7 +1762,7 @@ void GLCanvas3D::Selection::render_bounding_box(const BoundingBoxf3& box, float*
     ::glEnd();
 }
 
-void GLCanvas3D::Selection::synchronize_unselected_instances()
+void GLCanvas3D::Selection::_synchronize_unselected_instances()
 {
     std::set<unsigned int> done;  // prevent processing volumes twice
     done.insert(m_list.begin(), m_list.end());

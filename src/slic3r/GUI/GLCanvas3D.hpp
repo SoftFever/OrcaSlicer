@@ -455,6 +455,16 @@ public:
 
         void add(unsigned int volume_idx, bool as_single_selection = true);
         void remove(unsigned int volume_idx);
+
+        void add_object(unsigned int object_idx, bool as_single_selection = true);
+        void remove_object(unsigned int object_idx);
+
+        void add_instance(unsigned int object_idx, unsigned int instance_idx, bool as_single_selection = true);
+        void remove_instance(unsigned int object_idx, unsigned int instance_idx);
+
+        void add_volume(unsigned int object_idx, unsigned int volume_idx, bool as_single_selection = true);
+        void remove_volume(unsigned int object_idx, unsigned int volume_idx);
+
         void clear();
 
         bool is_empty() const { return m_type == Empty; }
@@ -485,20 +495,20 @@ public:
         void render(bool show_indirect_selection) const;
 
     private:
-        void update_valid();
-        void update_type();
-        void set_caches();
-        void add_volume(unsigned int volume_idx);
-        void add_instance(unsigned int volume_idx);
-        void add_object(unsigned int volume_idx);
-        void remove_volume(unsigned int volume_idx);
-        void remove_instance(unsigned int volume_idx);
-        void remove_object(unsigned int volume_idx);
-        void calc_bounding_box() const;
-        void render_selected_volumes() const;
-        void render_unselected_instances() const;
-        void render_bounding_box(const BoundingBoxf3& box, float* color) const;
-        void synchronize_unselected_instances();
+        void _update_valid();
+        void _update_type();
+        void _set_caches();
+        void _add_volume(unsigned int volume_idx);
+        void _add_instance(unsigned int object_idx, unsigned int instance_idx);
+        void _add_object(unsigned int object_idx);
+        void _remove_volume(unsigned int volume_idx);
+        void _remove_instance(unsigned int object_idx, unsigned int instance_idx);
+        void _remove_object(unsigned int object_idx);
+        void _calc_bounding_box() const;
+        void _render_selected_volumes() const;
+        void _render_unselected_instances() const;
+        void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
+        void _synchronize_unselected_instances();
     };
 
 private:
