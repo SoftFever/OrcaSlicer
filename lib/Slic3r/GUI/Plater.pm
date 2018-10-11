@@ -594,7 +594,7 @@ sub new {
         $self->on_process_completed($event->GetInt ? undef : $event->GetString);
     });
     
-# XXX: ???
+# XXX: not done
     {
         my $timer_id = Wx::NewId();
         $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
@@ -1179,7 +1179,7 @@ sub reset {
     $self->update;
 }
 
-# XXX: not done
+# XXX: VK: done
 sub increase {
     my ($self, $copies) = @_;
     $copies //= 1;
@@ -1211,7 +1211,7 @@ sub increase {
     $self->schedule_background_process;
 }
 
-# XXX: not done
+# XXX: VK: done
 sub decrease {
     my ($self, $copies_asked) = @_;
     my $copies = $copies_asked // 1;
@@ -1239,7 +1239,7 @@ sub decrease {
     $self->update;
 }
 
-# XXX: not done
+# XXX: VK: done
 sub set_number_of_copies {
     my ($self) = @_;
     # get current number of copies
@@ -1258,8 +1258,8 @@ sub set_number_of_copies {
     }
 }
 
-# XXX: not done (?)
-sub _get_number_from_user {     # XXX: Enrico
+# XXX: VK: removed
+sub _get_number_from_user {
     my ($self, $title, $prompt_message, $error_message, $default, $only_positive) = @_;
     for (;;) {
         my $value = Wx::GetTextFromUser($prompt_message, $title, $default, $self);
@@ -1457,7 +1457,7 @@ sub changescale {
     $self->update;
 }
 
-# XXX: not done
+# XXX: VK: WIP
 sub arrange {
     my ($self) = @_;
     
@@ -2057,7 +2057,7 @@ sub update {
     $self->Thaw;
 }
 
-# XXX: done in sidebar?
+# XXX: YS: done
 # When a printer technology is changed, the UI needs to be updated to show/hide needed preset combo boxes.
 sub show_preset_comboboxes{
     my ($self, $showSLA) = @_; #if showSLA is oposite value to "ptFFF"
@@ -2076,7 +2076,7 @@ sub show_preset_comboboxes{
     $self->Layout;
 }
 
-# XXX: not done
+# XXX: YS: done
 # When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.
 # Also the wxTheApp->{preset_bundle}->filament_presets needs to be resized accordingly
 # and some reasonable default has to be selected for the additional extruders.
@@ -2188,7 +2188,7 @@ sub on_config_change {
     $self->schedule_background_process;
 }
 
-# XXX: not done
+# XXX: YS: WIP
 sub item_changed_selection {
     my ($self, $obj_idx) = @_;
 
@@ -2214,7 +2214,7 @@ sub collect_selections {
     return $selections;
 }
 
-# XXX: not done
+# XXX: YS: done, lambda on LEFT_DOWN
 # Called when clicked on the filament preset combo box.
 # When clicked on the icon, show the color picker.
 sub filament_color_box_lmouse_down
@@ -2268,7 +2268,7 @@ sub filament_color_box_lmouse_down
 #	}
 #}
 
-# XXX: not done
+# XXX: YS: done
 sub changed_object_settings {
     my ($self, $obj_idx, $parts_changed, $part_settings_changed) = @_;
     
@@ -2464,7 +2464,7 @@ sub select_object {
     $self->selection_changed(1);
 }
 
-# XXX: not done
+# XXX: YS: WIP
 sub select_object_from_cpp {
     my ($self, $obj_idx, $vol_idx) = @_;
     

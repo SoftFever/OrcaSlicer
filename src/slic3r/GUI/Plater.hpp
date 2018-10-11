@@ -93,11 +93,14 @@ public:
     Sidebar& sidebar();
     Model&  model();
 
+    void load_files(const std::vector<boost::filesystem::path> &input_files);
+
     void update(bool force_autocenter = false);
     void remove(size_t obj_idx);
     void remove_selected();
-
-    void load_files(const std::vector<boost::filesystem::path> &input_files);
+    void increase(size_t num = 1);
+    void decrease(size_t num = 1);
+    void set_number_of_copies(size_t num);
 
     // Note: empty path means "use the default"
     boost::filesystem::path export_gcode(const boost::filesystem::path &output_path = boost::filesystem::path());

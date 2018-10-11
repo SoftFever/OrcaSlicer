@@ -609,6 +609,15 @@ ModelInstance* ModelObject::add_instance(const ModelInstance &other)
     return i;
 }
 
+ModelInstance* ModelObject::add_instance(const Vec3d &offset, const Vec3d &scaling_factor, const Vec3d &rotation)
+{
+    auto *instance = add_instance();
+    instance->set_offset(offset);
+    instance->set_scaling_factor(scaling_factor);
+    instance->set_rotation(rotation);
+    return instance;
+}
+
 void ModelObject::delete_instance(size_t idx)
 {
     ModelInstancePtrs::iterator i = this->instances.begin() + idx;
