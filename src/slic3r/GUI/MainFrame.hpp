@@ -106,6 +106,8 @@ public:
     void        select_tab(size_t tab) const;
     void        select_view(const std::string& direction);
 
+    AppController* app_controller() { return m_appController; }
+
     std::vector<PresetTab>& get_preset_tabs();
 
     Plater*             m_plater { nullptr };

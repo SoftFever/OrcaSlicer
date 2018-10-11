@@ -416,7 +416,8 @@ public:
     const PrintObjectConfig&    default_object_config() const { return m_default_object_config; }
     const PrintRegionConfig&    default_region_config() const { return m_default_region_config; }
     const PrintObjectPtrs&      objects() const { return m_objects; }
-    const PrintObject*          get_object(int idx) const { return m_objects[idx]; }
+    PrintObject*                get_object(size_t idx) { return m_objects[idx]; }
+    const PrintObject*          get_object(size_t idx) const { return m_objects[idx]; }
     const PrintRegionPtrs&      regions() const { return m_regions; }
     const PlaceholderParser&    placeholder_parser() const { return m_placeholder_parser; }
     PlaceholderParser&          placeholder_parser() { return m_placeholder_parser; }

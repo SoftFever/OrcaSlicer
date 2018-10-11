@@ -142,15 +142,15 @@ void GLGizmoBase::Grabber::render(const BoundingBoxf3& box, const float* render_
     if (use_lighting)
         ::glEnable(GL_LIGHTING);
 
-    ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
+    ::glColor3fv(render_color);
 
     ::glPushMatrix();
-    ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
+    ::glTranslated(center(0), center(1), center(2));
 
-    float rad_to_deg = 180.0f / (GLfloat)PI;
-    ::glRotatef((GLfloat)angles(0) * rad_to_deg, 1.0f, 0.0f, 0.0f);
-    ::glRotatef((GLfloat)angles(1) * rad_to_deg, 0.0f, 1.0f, 0.0f);
-    ::glRotatef((GLfloat)angles(2) * rad_to_deg, 0.0f, 0.0f, 1.0f);
+    double rad_to_deg = 180.0 / (double)PI;
+    ::glRotated(angles(0) * rad_to_deg, 1.0, 0.0, 0.0);
+    ::glRotated(angles(1) * rad_to_deg, 0.0, 1.0, 0.0);
+    ::glRotated(angles(2) * rad_to_deg, 0.0, 0.0, 1.0);
 
     // face min x
     ::glPushMatrix();
@@ -568,7 +568,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
     ::glBegin(GL_LINES);
     ::glVertex3f(0.0f, 0.0f, 0.0f);
-    ::glVertex3f((GLfloat)m_grabbers[0].center(0), (GLfloat)m_grabbers[0].center(1), (GLfloat)m_grabbers[0].center(2));
+    ::glVertex3dv(m_grabbers[0].center.data());
     ::glEnd();
 
     ::memcpy((void*)m_grabbers[0].color, (const void*)m_highlight_color, 3 * sizeof(float));
@@ -577,7 +577,7 @@ void GLGizmoRotate::render_grabber(const BoundingBoxf3& box) const
 
 void GLGizmoRotate::transform_to_local() const
 {
-    ::glTranslatef((GLfloat)m_center(0), (GLfloat)m_center(1), (GLfloat)m_center(2));
+    ::glTranslated(m_center(0), m_center(1), m_center(2));
 
     switch (m_axis)
     {
@@ -965,8 +965,8 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
     if ((id_1 < grabbers_count) && (id_2 < grabbers_count))
     {
         ::glBegin(GL_LINES);
-        ::glVertex3f((GLfloat)m_grabbers[id_1].center(0), (GLfloat)m_grabbers[id_1].center(1), (GLfloat)m_grabbers[id_1].center(2));
-        ::glVertex3f((GLfloat)m_grabbers[id_2].center(0), (GLfloat)m_grabbers[id_2].center(1), (GLfloat)m_grabbers[id_2].center(2));
+        ::glVertex3dv(m_grabbers[id_1].center.data());
+        ::glVertex3dv(m_grabbers[id_2].center.data());
         ::glEnd();
     }
 }
@@ -1170,8 +1170,8 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
             {
                 ::glColor3fv(AXES_COLOR[i]);
                 ::glBegin(GL_LINES);
-                ::glVertex3f(center(0), center(1), center(2));
-                ::glVertex3f((GLfloat)m_grabbers[i].center(0), (GLfloat)m_grabbers[i].center(1), (GLfloat)m_grabbers[i].center(2));
+                ::glVertex3dv(center.data());
+                ::glVertex3dv(m_grabbers[i].center.data());
                 ::glEnd();
             }
         }
@@ -1184,8 +1184,8 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
         // draw axis
         ::glColor3fv(AXES_COLOR[m_hover_id]);
         ::glBegin(GL_LINES);
-        ::glVertex3f(center(0), center(1), center(2));
-        ::glVertex3f((GLfloat)m_grabbers[m_hover_id].center(0), (GLfloat)m_grabbers[m_hover_id].center(1), (GLfloat)m_grabbers[m_hover_id].center(2));
+        ::glVertex3dv(center.data());
+        ::glVertex3dv(m_grabbers[m_hover_id].center.data());
         ::glEnd();
 
         // draw grabber
@@ -1303,7 +1303,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
-                ::glVertex3f((GLfloat)vertex(0), (GLfloat)vertex(1), (GLfloat)vertex(2));
+                ::glVertex3dv(vertex.data());
             ::glEnd();
             ::glPopMatrix();
         }
@@ -1330,7 +1330,7 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
-                ::glVertex3f((GLfloat)vertex(0), (GLfloat)vertex(1), (GLfloat)vertex(2));
+                ::glVertex3dv(vertex.data());
             ::glEnd();
             ::glPopMatrix();
         }

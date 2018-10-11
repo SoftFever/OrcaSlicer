@@ -31,6 +31,7 @@
 #include "libslic3r/Format/STL.hpp"
 #include "libslic3r/Format/AMF.hpp"
 #include "libslic3r/Format/3mf.hpp"
+#include "slic3r/AppController.hpp"
 #include "GUI.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
@@ -756,9 +757,6 @@ struct Plater::priv
 
     void remove(size_t obj_idx);
     void reset();
-    void increase(size_t num = 1);
-    void decrease(size_t num = 1);
-    void set_number_of_copies();
     void rotate();
     void mirror(const Axis &axis);
     void scale();
@@ -781,9 +779,6 @@ struct Plater::priv
     void on_layer_editing_toggled(bool enable);
 
     void on_action_add(SimpleEvent&);
-    void on_action_arrange(SimpleEvent&);
-    void on_action_more(SimpleEvent&);
-    void on_action_fewer(SimpleEvent&);
     void on_action_split(SimpleEvent&);
     void on_action_cut(SimpleEvent&);
     void on_action_settings(SimpleEvent&);
@@ -886,7 +881,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
     canvas3D->Bind(EVT_GLCANVAS_ROTATE_OBJECT, [this](Event<int> &evt) { /*TODO: call rotate */ });
     canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, [this](SimpleEvent&) { scale(); });
-    canvas3D->Bind(EVT_GLCANVAS_INCREASE_OBJECTS, [this](Event<int> &evt) { evt.data == 1 ? increase() : decrease(); });
+    canvas3D->Bind(EVT_GLCANVAS_INCREASE_OBJECTS, [q](Event<int> &evt) { evt.data == 1 ? q->increase() : q->decrease(); });
     canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     canvas3D->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     canvas3D->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
@@ -895,9 +890,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_ADD, &priv::on_action_add, this);
     canvas3D->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); } );
     canvas3D->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_ARRANGE, &priv::on_action_arrange, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_MORE, &priv::on_action_more, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_FEWER, &priv::on_action_fewer, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
+    canvas3D->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase(); });
+    canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease(); });
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT, &priv::on_action_split, this);
     canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
     canvas3D->Bind(EVT_GLTOOLBAR_SETTINGS, &priv::on_action_settings, this);
@@ -1161,8 +1156,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
 
     update();
     _3DScene::zoom_to_volumes(canvas3D);
-    // TODO
-    // $self->object_list_changed;
+    object_list_changed();
+
     // $self->schedule_background_process;
 
     return obj_idxs;
@@ -1388,21 +1383,6 @@ void Plater::priv::reset()
     update();
 }
 
-void Plater::priv::increase(size_t num)
-{
-    // TODO
-}
-
-void Plater::priv::decrease(size_t num)
-{
-    // TODO
-}
-
-void Plater::priv::set_number_of_copies()
-{
-    // TODO
-}
-
 void Plater::priv::rotate()
 {
     // TODO
@@ -1438,7 +1418,14 @@ void Plater::priv::scale()
 
 void Plater::priv::arrange()
 {
-    // TODO
+    // $self->stop_background_process;
+
+    main_frame->app_controller()->arrange_model();
+
+    // ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
+    // when parts don't fit in print bed
+
+    update();
 }
 
 void Plater::priv::split_object()
@@ -1574,21 +1561,6 @@ void Plater::priv::on_action_add(SimpleEvent&)
     load_files(input_paths);
 }
 
-void Plater::priv::on_action_arrange(SimpleEvent&)
-{
-    // TODO
-}
-
-void Plater::priv::on_action_more(SimpleEvent&)
-{
-    // TODO
-}
-
-void Plater::priv::on_action_fewer(SimpleEvent&)
-{
-    // TODO
-}
-
 void Plater::priv::on_action_split(SimpleEvent&)
 {
     // TODO
@@ -1718,7 +1690,10 @@ Plater::~Plater()
 }
 
 Sidebar& Plater::sidebar() { return *p->sidebar; }
-Model&  Plater::model()  { return p->model; }
+Model& Plater::model()  { return p->model; }
+Print& Plater::print()  { return p->print; }
+
+void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 
 void Plater::update(bool force_autocenter) { p->update(force_autocenter); }
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
@@ -1731,7 +1706,69 @@ void Plater::remove_selected()
     }
 }
 
-void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
+void Plater::increase(size_t num)
+{
+    const auto obj_idx = p->selected_object();
+    if (! obj_idx) { return; }
+
+    auto *model_object = p->model.objects[*obj_idx];
+    auto *model_instance = model_object->instances[model_object->instances.size() - 1];
+
+    // $self->stop_background_process;
+
+    float offset = 10.0;
+    for (size_t i = 0; i < num; i++, offset += 10.0) {
+        Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
+        auto *new_instance = model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
+        p->print.get_object(*obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
+    }
+
+    sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+
+    if (p->get_config("autocenter") == "1") {
+        p->arrange();
+    } else {
+        p->update();
+    }
+
+    p->selection_changed();
+
+    // $self->schedule_background_process;
+}
+
+void Plater::decrease(size_t num)
+{
+    const auto obj_idx = p->selected_object();
+    if (! obj_idx) { return; }
+
+    auto *model_object = p->model.objects[*obj_idx];
+    if (model_object->instances.size() > num) {
+        for (size_t i = 0; i < num; i++) {
+            model_object->delete_last_instance();
+            p->print.get_object(*obj_idx)->delete_last_copy();
+        }
+        sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+    } else {
+        remove(*obj_idx);
+    }
+
+    p->update();
+}
+
+void Plater::set_number_of_copies(size_t num)
+{
+    const auto obj_idx = p->selected_object();
+    if (! obj_idx) { return; }
+
+    auto *model_object = p->model.objects[*obj_idx];
+
+    auto diff = (ptrdiff_t)num - (ptrdiff_t)model_object->instances.size();
+    if (diff > 0) {
+        increase(diff);
+    } else if (diff < 0) {
+        decrease(-diff);
+    }
+}
 
 fs::path Plater::export_gcode(const fs::path &output_path)
 {
