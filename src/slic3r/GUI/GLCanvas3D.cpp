@@ -3235,13 +3235,7 @@ void GLCanvas3D::update_gizmos_data()
 
 #if ENABLE_EXTENDED_SELECTION
     bool enable_move_z = !m_selection.is_wipe_tower();
-    bool enable_rotate_xy = m_selection.is_single_full_object() || m_selection.is_mixed();
-
     m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
-    for (int i = 0; i < 2; ++i)
-    {
-        m_gizmos.enable_grabber(Gizmos::Rotate, i, enable_rotate_xy);
-    }
 
     if (m_selection.is_single_full_instance())
     {
