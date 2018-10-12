@@ -34,11 +34,11 @@ protected:
 
         Grabber();
 
-        void render(bool hover, const BoundingBoxf3& box) const;
-        void render_for_picking(const BoundingBoxf3& box) const { render(box, color, false); }
+        void render(bool hover, float size) const;
+        void render_for_picking(float size) const { render(size, color, false); }
 
     private:
-        void render(const BoundingBoxf3& box, const float* render_color, bool use_lighting) const;
+        void render(float size, const float* render_color, bool use_lighting) const;
         void render_face(float half_size) const;
     };
 

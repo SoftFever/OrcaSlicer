@@ -118,7 +118,7 @@ GLGizmoBase::Grabber::Grabber()
     color[2] = 1.0f;
 }
 
-void GLGizmoBase::Grabber::render(bool hover, const BoundingBoxf3& box) const
+void GLGizmoBase::Grabber::render(bool hover, float size) const
 {
     float render_color[3];
     if (hover)
@@ -130,13 +130,12 @@ void GLGizmoBase::Grabber::render(bool hover, const BoundingBoxf3& box) const
     else
         ::memcpy((void*)render_color, (const void*)color, 3 * sizeof(float));
 
-    render(box, render_color, true);
+    render(size, render_color, true);
 }
 
-void GLGizmoBase::Grabber::render(const BoundingBoxf3& box, const float* render_color, bool use_lighting) const
+void GLGizmoBase::Grabber::render(float size, const float* render_color, bool use_lighting) const
 {
-    float max_size = (float)box.max_size();
-    float half_size = dragging ? max_size * SizeFactor * DraggingScaleFactor : max_size * SizeFactor;
+    float half_size = dragging ? size * SizeFactor * DraggingScaleFactor : size * SizeFactor;
     half_size = std::max(half_size, MinHalfSize);
 
     if (use_lighting)
@@ -300,15 +299,19 @@ float GLGizmoBase::picking_color_component(unsigned int id) const
 
 void GLGizmoBase::render_grabbers(const BoundingBoxf3& box) const
 {
+    float size = (float)box.max_size();
+
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
         if (m_grabbers[i].enabled)
-            m_grabbers[i].render((m_hover_id == i), box);
+            m_grabbers[i].render((m_hover_id == i), size);
     }
 }
 
 void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
 {
+    float size = (float)box.max_size();
+
     for (unsigned int i = 0; i < (unsigned int)m_grabbers.size(); ++i)
     {
         if (m_grabbers[i].enabled)
@@ -316,7 +319,7 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
             m_grabbers[i].color[0] = 1.0f;
             m_grabbers[i].color[1] = 1.0f;
             m_grabbers[i].color[2] = picking_color_component(i);
-            m_grabbers[i].render_for_picking(box);
+            m_grabbers[i].render_for_picking(size);
         }
     }
 }
@@ -826,6 +829,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
+    float box_max_size = (float)m_box.max_size();
+
     if (m_hover_id == -1)
     {
         // draw connections
@@ -858,8 +863,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         ::glColor3fv(m_grabbers[0].color);
         render_grabbers_connection(0, 1);
         // draw grabbers
-        m_grabbers[0].render(true, m_box);
-        m_grabbers[1].render(true, m_box);
+        m_grabbers[0].render(true, box_max_size);
+        m_grabbers[1].render(true, box_max_size);
     }
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
@@ -867,8 +872,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         ::glColor3fv(m_grabbers[2].color);
         render_grabbers_connection(2, 3);
         // draw grabbers
-        m_grabbers[2].render(true, m_box);
-        m_grabbers[3].render(true, m_box);
+        m_grabbers[2].render(true, box_max_size);
+        m_grabbers[3].render(true, box_max_size);
     }
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
@@ -876,8 +881,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         ::glColor3fv(m_grabbers[4].color);
         render_grabbers_connection(4, 5);
         // draw grabbers
-        m_grabbers[4].render(true, m_box);
-        m_grabbers[5].render(true, m_box);
+        m_grabbers[4].render(true, box_max_size);
+        m_grabbers[5].render(true, box_max_size);
     }
     else if (m_hover_id >= 6)
     {
@@ -890,7 +895,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         // draw grabbers
         for (int i = 6; i < 10; ++i)
         {
-            m_grabbers[i].render(true, m_box);
+            m_grabbers[i].render(true, box_max_size);
         }
     }
 }
@@ -1132,7 +1137,7 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
         ::glEnd();
 
         // draw grabber
-        m_grabbers[m_hover_id].render(true, box);
+        m_grabbers[m_hover_id].render(true, box.max_size());
     }
 }
 
