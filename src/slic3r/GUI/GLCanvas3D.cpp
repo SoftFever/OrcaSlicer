@@ -10,6 +10,7 @@
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
+#include "../../libslic3r/Geometry.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -1144,17 +1145,14 @@ GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec
     , m_rotation(rotation)
     , m_scaling_factor(scaling_factor)
 {
-    m_rotation_matrix = Transform3d::Identity();
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(2), Vec3d::UnitZ()));
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(1), Vec3d::UnitY()));
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(0), Vec3d::UnitX()));
+    m_rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), m_rotation);
 }
 
 GLCanvas3D::Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
     , m_mode(Instance)
-    , m_type(Invalid)
+    , m_type(Empty)
     , m_valid(false)
     , m_bounding_box_dirty(true)
 {
@@ -1409,13 +1407,7 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
     if (!m_valid)
         return;
 
-    Transform3d m = Transform3d::Identity();
-    if (rotation(2) != 0.0f)
-        m.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
-    else if (rotation(1) != 0.0f)
-        m.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
-    else if (rotation(0) != 0.0f)
-        m.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
 
     bool single_full_instance = is_single_full_instance();
 

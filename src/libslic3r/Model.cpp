@@ -1185,22 +1185,14 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
 {
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
+    Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
+    Vec3d scale = dont_scale ? Vec3d::Ones() : m_scaling_factor;
+    return Geometry::assemble_transform(translation, rotation, scale);
+#else
     Transform3d m = Transform3d::Identity();
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    if (!dont_translate)
-        m.translate(m_offset);
-
-    if (!dont_rotate)
-    {
-        m.rotate(Eigen::AngleAxisd(m_rotation(2), Vec3d::UnitZ()));
-        m.rotate(Eigen::AngleAxisd(m_rotation(1), Vec3d::UnitY()));
-        m.rotate(Eigen::AngleAxisd(m_rotation(0), Vec3d::UnitX()));
-    }
-
-    if (!dont_scale)
-        m.scale(m_scaling_factor);
-#else
     if (!dont_translate)
         m.translate(Vec3d(offset(0), offset(1), 0.0));
 
@@ -1209,9 +1201,9 @@ Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, b
 
     if (!dont_scale)
         m.scale(scaling_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     return m;
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 }

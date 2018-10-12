@@ -389,14 +389,11 @@ const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
     {
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+        m_world_matrix = Geometry::assemble_transform(m_offset, m_rotation, m_scaling_factor).cast<float>();
+#else
         m_world_matrix = Transform3f::Identity();
         m_world_matrix.translate(m_offset.cast<float>());
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(2), Vec3f::UnitZ()));
-        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(1), Vec3f::UnitY()));
-        m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation(0), Vec3f::UnitX()));
-        m_world_matrix.scale(m_scaling_factor.cast<float>());
-#else
         m_world_matrix.rotate(Eigen::AngleAxisf((float)m_rotation, Vec3f::UnitZ()));
         m_world_matrix.scale((float)m_scaling_factor);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM

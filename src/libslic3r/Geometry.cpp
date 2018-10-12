@@ -1166,4 +1166,21 @@ MedialAxis::retrieve_endpoint(const VD::cell_type* cell) const
     }
 }
 
+void assemble_transform(Transform3d& transform, const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale)
+{
+    transform = Transform3d::Identity();
+    transform.translate(translation);
+    transform.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
+    transform.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
+    transform.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
+    transform.scale(scale);
+}
+
+Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale)
+{
+    Transform3d transform;
+    assemble_transform(transform, translation, rotation, scale);
+    return transform;
+}
+
 } }
