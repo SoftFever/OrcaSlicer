@@ -709,7 +709,6 @@ GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
     , m_scale(Vec3d::Ones())
     , m_starting_scale(Vec3d::Ones())
-    , m_show_starting_box(false)
 {
 }
 
@@ -752,7 +751,6 @@ void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
     if (m_hover_id != -1)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
-        m_show_starting_box = true;
         m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     }
 }
@@ -817,10 +815,10 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     ::memcpy((void*)m_grabbers[5].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
 
     // uniform
-    m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), m_box.min(2));
-    m_grabbers[7].center = Vec3d(m_box.max(0), m_box.min(1), m_box.min(2));
-    m_grabbers[8].center = Vec3d(m_box.max(0), m_box.max(1), m_box.min(2));
-    m_grabbers[9].center = Vec3d(m_box.min(0), m_box.max(1), m_box.min(2));
+    m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), center(2));
+    m_grabbers[7].center = Vec3d(m_box.max(0), m_box.min(1), center(2));
+    m_grabbers[8].center = Vec3d(m_box.max(0), m_box.max(1), center(2));
+    m_grabbers[9].center = Vec3d(m_box.min(0), m_box.max(1), center(2));
     for (int i = 6; i < 10; ++i)
     {
         ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
@@ -830,9 +828,6 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     if (m_hover_id == -1)
     {
-        // draw box
-        ::glColor3fv(m_base_color);
-        render_box(m_box);
         // draw connections
         if (m_grabbers[0].enabled && m_grabbers[1].enabled)
         {
@@ -849,20 +844,16 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
             ::glColor3fv(m_grabbers[4].color);
             render_grabbers_connection(4, 5);
         }
+        ::glColor3fv(m_base_color);
+        render_grabbers_connection(6, 7);
+        render_grabbers_connection(7, 8);
+        render_grabbers_connection(8, 9);
+        render_grabbers_connection(9, 6);
         // draw grabbers
         render_grabbers(m_box);
     }
     else if ((m_hover_id == 0) || (m_hover_id == 1))
     {
-        // draw starting box
-        if (m_show_starting_box)
-        {
-            ::glColor3fv(m_base_color);
-            render_box(m_starting_box);
-        }
-        // draw current box
-        ::glColor3fv(m_drag_color);
-        render_box(m_box);
         // draw connection
         ::glColor3fv(m_grabbers[0].color);
         render_grabbers_connection(0, 1);
@@ -872,15 +863,6 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
     else if ((m_hover_id == 2) || (m_hover_id == 3))
     {
-        // draw starting box
-        if (m_show_starting_box)
-        {
-            ::glColor3fv(m_base_color);
-            render_box(m_starting_box);
-        }
-        // draw current box
-        ::glColor3fv(m_drag_color);
-        render_box(m_box);
         // draw connection
         ::glColor3fv(m_grabbers[2].color);
         render_grabbers_connection(2, 3);
@@ -890,15 +872,6 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
     else if ((m_hover_id == 4) || (m_hover_id == 5))
     {
-        // draw starting box
-        if (m_show_starting_box)
-        {
-            ::glColor3fv(m_base_color);
-            render_box(m_starting_box);
-        }
-        // draw current box
-        ::glColor3fv(m_drag_color);
-        render_box(m_box);
         // draw connection
         ::glColor3fv(m_grabbers[4].color);
         render_grabbers_connection(4, 5);
@@ -908,15 +881,12 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
     else if (m_hover_id >= 6)
     {
-        // draw starting box
-        if (m_show_starting_box)
-        {
-            ::glColor3fv(m_base_color);
-            render_box(m_starting_box);
-        }
-        // draw current box
+        // draw connection
         ::glColor3fv(m_drag_color);
-        render_box(m_box);
+        render_grabbers_connection(6, 7);
+        render_grabbers_connection(7, 8);
+        render_grabbers_connection(8, 9);
+        render_grabbers_connection(9, 6);
         // draw grabbers
         for (int i = 6; i < 10; ++i)
         {
@@ -930,33 +900,6 @@ void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(box);
-}
-
-void GLGizmoScale3D::render_box(const BoundingBoxf3& box) const
-{
-    // bottom face
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.min(2));
-    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.min(2));
-    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.min(2));
-    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.min(2));
-    ::glEnd();
-
-    // top face
-    ::glBegin(GL_LINE_LOOP);
-    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
-    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
-    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
-    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
-    ::glEnd();
-
-    // vertical edges
-    ::glBegin(GL_LINES);
-    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
-    ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.min(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
-    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.max(1), (GLfloat)box.max(2));
-    ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.min(2)); ::glVertex3f((GLfloat)box.max(0), (GLfloat)box.min(1), (GLfloat)box.max(2));
-    ::glEnd();
 }
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
