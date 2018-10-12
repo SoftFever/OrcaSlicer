@@ -2,6 +2,7 @@
 #include "../Model.hpp"
 #include "../Utils.hpp"
 #include "../GCode.hpp"
+#include "../Geometry.hpp"
 
 #include "3mf.hpp"
 
@@ -1253,7 +1254,7 @@ namespace Slic3r {
 
         // translation
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        Vec3d offset(transform(0, 3), transform(1, 3), transform(2, 3));
+        Vec3d offset = transform.matrix().block(0, 3, 3, 1);
 #else
         double offset_x = transform(0, 3);
         double offset_y = transform(1, 3);
@@ -1261,50 +1262,41 @@ namespace Slic3r {
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
         // scale
-        double sx = ::sqrt(sqr(transform(0, 0)) + sqr(transform(1, 0)) + sqr(transform(2, 0)));
-        double sy = ::sqrt(sqr(transform(0, 1)) + sqr(transform(1, 1)) + sqr(transform(2, 1)));
-        double sz = ::sqrt(sqr(transform(0, 2)) + sqr(transform(1, 2)) + sqr(transform(2, 2)));
+        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
+        Vec3d scale(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm());
 
         // invalid scale value, return
-        if ((sx == 0.0) || (sy == 0.0) || (sz == 0.0))
+        if ((scale(0) == 0.0) || (scale(1) == 0.0) || (scale(2) == 0.0))
             return;
 
 #if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         // non-uniform scale value, return
-        if ((std::abs(sx - sy) > 0.00001) || (std::abs(sx - sz) > 0.00001))
+        if ((std::abs(scale(0) - scale(1)) > 0.00001) || (std::abs(scale(0) - scale(2)) > 0.00001))
             return;
 #endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
-        double inv_sx = 1.0 / sx;
-        double inv_sy = 1.0 / sy;
-        double inv_sz = 1.0 / sz;
-
-        Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3;
-        m3x3 << transform(0, 0) * inv_sx, transform(0, 1) * inv_sy, transform(0, 2) * inv_sz,
-                transform(1, 0) * inv_sx, transform(1, 1) * inv_sy, transform(1, 2) * inv_sz,
-                transform(2, 0) * inv_sx, transform(2, 1) * inv_sy, transform(2, 2) * inv_sz;
+        // remove scale
+        m3x3.col(0).normalize();
+        m3x3.col(1).normalize();
+        m3x3.col(2).normalize();
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        Vec3d angles = m3x3.eulerAngles(2, 1, 0);
-        Vec3d rotation(angles(2), angles(1), angles(0));
+        Vec3d rotation = Slic3r::Geometry::extract_euler_angles(m3x3);
 
         instance.set_offset(offset);
-        instance.set_scaling_factor(Vec3d(sx, sy, sz));
+        instance.set_scaling_factor(scale);
         instance.set_rotation(rotation);
 #else
-        Eigen::AngleAxisd rotation;
-        rotation.fromRotationMatrix(m3x3);
+        Vec3d rotation = Slic3r::Geometry::extract_euler_angles(m3x3);
 
-        // invalid rotation axis, we currently handle only rotations around Z axis
-        if ((rotation.angle() != 0.0) && (rotation.axis() != Vec3d::UnitZ()) && (rotation.axis() != -Vec3d::UnitZ()))
+        // invalid rotation, we currently handle only rotations around Z axis
+        if ((rotation(0) != 0.0) || (rotation(1) != 0.0))
             return;
-
-        double angle_z = (rotation.axis() == Vec3d::UnitZ()) ? rotation.angle() : -rotation.angle();
 
         instance.offset(0) = offset_x;
         instance.offset(1) = offset_y;
-        instance.scaling_factor = sx;
-        instance.rotation = angle_z;
+        instance.scaling_factor = scale(0);
+        instance.rotation = rotation(2);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
 

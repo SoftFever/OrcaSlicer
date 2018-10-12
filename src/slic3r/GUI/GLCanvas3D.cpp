@@ -1413,33 +1413,14 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
 
     for (unsigned int i : m_list)
     {
-        Vec3d radius = m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center);
-        (*m_volumes)[i]->set_offset(m_cache.dragging_center + radius);
-
         if (single_full_instance)
             (*m_volumes)[i]->set_rotation(rotation);
         else
         {
             Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_rotation_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
-            // extracts euler angles from the composed transformation
-            // not using Eigen eulerAngles() method because it returns weird results
-            // see: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
-            double sy = ::sqrt(sqr(new_rotation_matrix(0, 0)) + sqr(new_rotation_matrix(1, 0)));
+            Vec3d angles = Geometry::extract_euler_angles(new_rotation_matrix);
 
-            Vec3d angles = Vec3d::Zero();
-            if (sy >= 1e-6)
-            {
-                angles(0) = ::atan2(new_rotation_matrix(2, 1), new_rotation_matrix(2, 2));
-                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
-                angles(2) = ::atan2(new_rotation_matrix(1, 0), new_rotation_matrix(0, 0));
-            }
-            else
-            {
-                angles(0) = ::atan2(-new_rotation_matrix(1, 2), new_rotation_matrix(1, 1));
-                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
-                angles(2) = 0.0;
-            }
-
+            (*m_volumes)[i]->set_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center));
             (*m_volumes)[i]->set_rotation(Vec3d(angles(0), angles(1), angles(2)));
         }
     }

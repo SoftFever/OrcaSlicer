@@ -1183,4 +1183,38 @@ Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, 
     return transform;
 }
 
+Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix)
+{
+    // see: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
+    double sy = ::sqrt(sqr(rotation_matrix(0, 0)) + sqr(rotation_matrix(1, 0)));
+
+    Vec3d angles = Vec3d::Zero();
+
+    if (sy >= 1e-6)
+    {
+        angles(0) = ::atan2(rotation_matrix(2, 1), rotation_matrix(2, 2));
+        angles(1) = ::atan2(-rotation_matrix(2, 0), sy);
+        angles(2) = ::atan2(rotation_matrix(1, 0), rotation_matrix(0, 0));
+    }
+    else
+    {
+        angles(0) = ::atan2(-rotation_matrix(1, 2), rotation_matrix(1, 1));
+        angles(1) = ::atan2(-rotation_matrix(2, 0), sy);
+        angles(2) = 0.0;
+    }
+
+    return angles;
+}
+
+Vec3d extract_euler_angles(const Transform3d& transform)
+{
+    // use only the non-translational part of the transform
+    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = transform.matrix().block(0, 0, 3, 3);
+    // remove scale
+    m.col(0).normalize();
+    m.col(1).normalize();
+    m.col(2).normalize();
+    return extract_euler_angles(m);
+}
+
 } }
