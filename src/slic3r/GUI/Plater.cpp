@@ -614,11 +614,6 @@ void Sidebar::update_objects_list_extruder_column(int extruders_count)
     p->object_list->update_objects_list_extruder_column(extruders_count);
 }
 
-int Sidebar::get_ol_selection()
-{
-    return p->object_list->get_sel_obj_id();
-}
-
 void Sidebar::show_info_sizers(const bool show)
 {
     p->object_info->Show(show);
@@ -1356,7 +1351,7 @@ void Plater::priv::remove(size_t obj_idx)
     model.delete_object(obj_idx);
     print.delete_object(obj_idx);
     // Delete object from Sidebar list
-    sidebar->obj_list()->delete_object_from_list();
+    sidebar->obj_list()->delete_object_from_list(obj_idx);
 
     object_list_changed();
 
@@ -1931,7 +1926,7 @@ void Plater::changed_object_settings(int obj_idx)
 
     if (list->is_parts_changed()) {
         // recenter and re - align to Z = 0
-        auto model_object = p->model.objects[list->get_sel_obj_id()];
+        auto model_object = p->model.objects[obj_idx];
         model_object->center_around_origin();
     }
 

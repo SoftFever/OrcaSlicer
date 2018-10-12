@@ -148,7 +148,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
 
 int ObjectManipulation::ol_selection()
 {
-    return wxGetApp().sidebar().get_ol_selection();
+    return wxGetApp().obj_list()->get_selected_obj_idx();
 }
 
 void ObjectManipulation::update_settings_list()

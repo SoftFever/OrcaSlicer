@@ -69,7 +69,6 @@ public:
     ConfigOptionsGroup*     og_freq_chng_params();
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
-    int                     get_ol_selection();
     void                    show_info_sizers(const bool show);
     void                    show_buttons(const bool show);
     void                    enable_buttons(bool enable);

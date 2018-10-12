@@ -422,7 +422,8 @@ public:
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	int GetIdByItem(wxDataViewItem& item);
 	int GetVolumeIdByItem(const wxDataViewItem& item);
-	bool IsEmpty() { return m_objects.empty(); }
+    void GetObjectAndVolumeIdsByItem(const wxDataViewItem& item, int& obj_idx, int& vol_idx);
+    bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
 

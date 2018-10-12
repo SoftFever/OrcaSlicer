@@ -85,16 +85,16 @@ public:
     void                load_part(ModelObject* model_object, wxArrayString& part_names, const bool is_modifier);
     void                load_lambda(ModelObject* model_object, wxArrayString& part_names, const bool is_modifier);
     void                load_lambda(const std::string& type_name);
-    void                del_subobject();
+    void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
-    bool                del_subobject_from_object(const int volume_id);
+    bool                del_subobject_from_object(const int obj_idx, const int vol_idx);
     void                split(const bool split_part);
     bool                get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable_object(const bool split_part);
 
     wxPoint             get_mouse_position_in_control();
     wxBoxSizer*         get_sizer(){return  m_sizer;}
-    int                 get_sel_obj_id() const          { return m_selected_object_id; }
+    int                 get_selected_obj_idx() const;
     bool                is_parts_changed() const        { return m_parts_changed; }
     bool                is_part_settings_changed() const{ return m_part_settings_changed; }
 
@@ -107,6 +107,8 @@ public:
     void add_object_to_list(size_t obj_idx);
     // Delete object from the list
     void delete_object_from_list();
+    void delete_object_from_list(const size_t obj_idx);
+    void delete_volume_from_list(const size_t obj_idx, const size_t vol_idx);
     // Delete all objects from the list
     void delete_all_objects_from_list();
     // Set count of object on c++ side
@@ -129,6 +131,7 @@ public:
     void update_selections_on_canvas();
     void select_item(const wxDataViewItem& item);
     void select_items(const wxDataViewItemArray& sels);
+    void select_all();
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
 };

@@ -591,7 +591,8 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volu
 	}
 
     auto parent = m_objects[obj_idx];
-    if (parent->GetChildCount() == 0) {
+    if (parent->GetChildCount() == 0 ||
+        (parent->GetChildCount() == 1 && parent->GetNthChild(0)->m_volume_id == -2)) {
         if (volume_idx == 0)
             return GetItemById(obj_idx);
 
@@ -626,6 +627,23 @@ int PrusaObjectDataViewModel::GetVolumeIdByItem(const wxDataViewItem& item)
 	if (!node)      // happens if item.IsOk()==false
 		return -1;
 	return node->GetVolumeId();
+}
+
+void PrusaObjectDataViewModel::GetObjectAndVolumeIdsByItem(const wxDataViewItem& item, int& obj_idx, int& vol_idx)
+{
+    wxASSERT(item.IsOk());
+    obj_idx = vol_idx = -1;
+
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    if (!node) return;
+    vol_idx = node->GetVolumeId();
+
+    PrusaObjectDataViewModelNode *parent_node = node->GetParent();
+    if (!parent_node) return;
+
+    auto it = find(m_objects.begin(), m_objects.end(), parent_node);
+    if (it != m_objects.end())
+        obj_idx = it - m_objects.begin();
 }
 
 wxString PrusaObjectDataViewModel::GetName(const wxDataViewItem &item) const

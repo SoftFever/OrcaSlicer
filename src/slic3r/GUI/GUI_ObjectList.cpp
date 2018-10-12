@@ -115,7 +115,7 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
     HitTest(pt, item, col);
     if (!item) return;
 
-    if (col->GetTitle() == " ")
+    if (col->GetTitle() == " " && GetSelectedItemsCount()<2)
         GetMainWindow()->SetToolTip(_(L("Right button click the icon to change the object settings")));
     else if (col->GetTitle() == _("Name") &&
         m_objects_model->GetIcon(item).GetRefData() == m_icon_manifold_warning.GetRefData()) {
@@ -159,6 +159,15 @@ wxPoint ObjectList::get_mouse_position_in_control() {
 //     wxWindow* win = GetMainWindow();
 //     wxPoint screen_pos = win->GetScreenPosition();
     return wxPoint(pt.x - /*win->*/GetScreenPosition().x, pt.y - /*win->*/GetScreenPosition().y);
+}
+
+int ObjectList::get_selected_obj_idx() const
+{
+    if (GetSelectedItemsCount() == 1) {
+        auto item = GetSelection();
+        return m_objects_model->GetIdByItem(item);
+    }
+    return -1;
 }
 
 wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_count)
@@ -296,6 +305,8 @@ void ObjectList::key_event(wxKeyEvent& event)
         printf("WXK_BACK\n");
         remove();
     }
+    else if (wxGetKeyState(wxKeyCode('A')) && wxGetKeyState(WXK_CONTROL))
+        select_all();
     else
         event.Skip();
 }
@@ -815,21 +826,22 @@ void ObjectList::load_lambda(const std::string& type_name)
 
 // Delete subobject
 
-void ObjectList::del_subobject()
+void ObjectList::del_subobject_item(wxDataViewItem& item)
 {
-    auto item = GetSelection(); // #ys_FIXME_to_multi_sel
     if (!item) return;
 
-    const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
-    if (volume_id == -1)
+    int obj_idx, vol_idx;
+    m_objects_model->GetObjectAndVolumeIdsByItem(item, obj_idx, vol_idx);
+
+    if (vol_idx == -1)
         return;
 
-    if (volume_id == -2)
+    if (vol_idx == -2)
         del_settings_from_config();
-    else if (!del_subobject_from_object(volume_id))
+    else if (!del_subobject_from_object(obj_idx, vol_idx))
         return;
 
-    select_item(m_objects_model->Delete(item));
+    m_objects_model->Delete(item);
 }
 
 void ObjectList::del_settings_from_config()
@@ -847,14 +859,13 @@ void ObjectList::del_settings_from_config()
         m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 }
 
-    
-bool ObjectList::del_subobject_from_object(const int volume_id)
+bool ObjectList::del_subobject_from_object(const int obj_idx, const int vol_idx)
 {
-    const auto volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
+    const auto volume = (*m_objects)[obj_idx]->volumes[vol_idx];
 
     // if user is deleting the last solid part, throw error
     int solid_cnt = 0;
-    for (auto vol : (*m_objects)[m_selected_object_id]->volumes)
+    for (auto vol : (*m_objects)[obj_idx]->volumes)
         if (vol->is_model_part())
             ++solid_cnt;
     if (volume->is_model_part() && solid_cnt == 1) {
@@ -862,10 +873,10 @@ bool ObjectList::del_subobject_from_object(const int volume_id)
         return false;
     }
 
-    (*m_objects)[m_selected_object_id]->delete_volume(volume_id);
+    (*m_objects)[obj_idx]->delete_volume(vol_idx);
     m_parts_changed = true;
+    parts_changed(obj_idx);
 
-    parts_changed(m_selected_object_id);
     return true;
 }
 
@@ -1061,12 +1072,22 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 void ObjectList::delete_object_from_list()
 {
     auto item = GetSelection();
-    if (!item || m_objects_model->GetParent(item) != wxDataViewItem(0))
+    if (!item) 
         return;
-    // 	Select(m_objects_model->Delete(item));
-    m_objects_model->Delete(item);
+    if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+        select_item(m_objects_model->Delete(item));
+    else
+        select_item(m_objects_model->Delete(m_objects_model->GetParent(item)));
+}
 
-    part_selection_changed();
+void ObjectList::delete_object_from_list(const size_t obj_idx)
+{
+    select_item(m_objects_model->Delete(m_objects_model->GetItemById(obj_idx)));
+}
+
+void ObjectList::delete_volume_from_list(const size_t obj_idx, const size_t vol_idx)
+{
+    select_item(m_objects_model->Delete(m_objects_model->GetItemByVolumeId(obj_idx, vol_idx)));
 }
 
 void ObjectList::delete_all_objects_from_list()
@@ -1118,15 +1139,19 @@ void ObjectList::select_current_volume(int idx, int vol_idx)
 
 void ObjectList::remove()
 {
-    auto item = GetSelection(); // #ys_FIXME_to_multi_sel
-    if (!item)
+    if (GetSelectedItemsCount() == 0)
         return;
 
-    if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
-        wxGetApp().plater()->remove_selected(); // #ys_TESTME
+    wxDataViewItemArray sels;
+    GetSelections(sels);
+
+    for (auto& item : sels)
+    {
+        if (m_objects_model->GetParent(item) == wxDataViewItem(0))
+            wxGetApp().plater()->remove(m_objects_model->GetIdByItem(item));
+        else
+            del_subobject_item(item);
     }
-    else
-        del_subobject();
 }
 
 void ObjectList::init_objects()
@@ -1183,7 +1208,7 @@ void ObjectList::update_selections_on_canvas()
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
         if (m_objects_model->IsSettingsItem(item))
-            selection.clear();
+            add_to_selection(m_objects_model->GetParent(item), selection, true);
         else
             add_to_selection(item, selection, true);
             
@@ -1225,10 +1250,15 @@ void ObjectList::select_items(const wxDataViewItemArray& sels)
     m_prevent_list_events = false;
 }
 
+void ObjectList::select_all()
+{
+    SelectAll();
+    selection_changed();
+}
+
 void ObjectList::fix_multiselection_conflicts()
 {
-    const int sel_cnt = GetSelectedItemsCount();
-    if (sel_cnt <= 1)
+    if (GetSelectedItemsCount() <= 1)
         return;
 
     m_prevent_list_events = true;
@@ -1239,7 +1269,7 @@ void ObjectList::fix_multiselection_conflicts()
     for (auto item : sels) {
         if (m_objects_model->IsSettingsItem(item))
             Unselect(item);
-        if (m_objects_model->GetParent(item) != wxDataViewItem(0))
+        else if (m_objects_model->GetParent(item) != wxDataViewItem(0))
             Unselect(m_objects_model->GetParent(item));
     }
 
