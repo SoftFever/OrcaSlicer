@@ -274,6 +274,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
             update_position_value(volume->get_offset());
             update_rotation_value(volume->get_rotation());
+            update_scale_value(volume->get_scaling_factor());
             m_og->enable();
         }
         else
@@ -285,6 +286,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         update_position_value(volume->get_offset());
         update_rotation_value(volume->get_rotation());
+        update_scale_value(volume->get_scaling_factor());
         m_og->enable();
     }
     else if (selection.is_wipe_tower())
@@ -293,6 +295,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         update_position_value(volume->get_offset());
         update_rotation_value(volume->get_rotation());
+        update_scale_value(volume->get_scaling_factor());
         m_og->enable();
     }
     else if (selection.is_modifier())
@@ -301,6 +304,7 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
         update_position_value(volume->get_offset());
         update_rotation_value(volume->get_rotation());
+        update_scale_value(volume->get_scaling_factor());
         m_og->enable();
     }
     else
@@ -420,7 +424,7 @@ void ObjectManipulation::update_position_value(const Vec3d& position)
 }
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-void ObjectManipulation::update_scale_values(const Vec3d& scaling_factor)
+void ObjectManipulation::update_scale_value(const Vec3d& scaling_factor)
 {
     // this is temporary
     // to be able to update the values as size

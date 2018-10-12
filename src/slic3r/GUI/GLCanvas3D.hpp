@@ -115,8 +115,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 
-wxDECLARE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 #if !ENABLE_EXTENDED_SELECTION
+wxDECLARE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
 #endif // !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
@@ -491,6 +491,7 @@ public:
 
         void translate(const Vec3d& displacement);
         void rotate(const Vec3d& rotation);
+        void scale(const Vec3d& scale);
 
         void render(bool show_indirect_selection) const;
 
@@ -939,6 +940,7 @@ private:
 #if ENABLE_EXTENDED_SELECTION
     void _on_move();
     void _on_rotate();
+    void _on_scale();
 #else
     void _on_move(const std::vector<int>& volume_idxs);
 #endif // ENABLE_EXTENDED_SELECTION
