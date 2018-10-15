@@ -411,6 +411,7 @@ public:
             Vec3d m_rotation;
             Vec3d m_scaling_factor;
             Transform3d m_rotation_matrix;
+            Transform3d m_scale_matrix;
 
         public:
             VolumeCache();
@@ -420,6 +421,7 @@ public:
             const Vec3d& get_rotation() const { return m_rotation; }
             const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
             const Transform3d& get_rotation_matrix() const { return m_rotation_matrix; }
+            const Transform3d& get_scale_matrix() const { return m_scale_matrix; }
         };
 
         typedef std::map<unsigned int, VolumeCache> VolumesCache;

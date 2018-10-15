@@ -761,7 +761,9 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
 
 const float GLGizmoScale3D::Offset = 5.0f;
+#if !ENABLE_EXTENDED_SELECTION
 const Vec3d GLGizmoScale3D::OffsetVec = (double)GLGizmoScale3D::Offset * Vec3d::Ones();
+#endif // !ENABLE_EXTENDED_SELECTION
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -814,9 +816,10 @@ void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
 #if ENABLE_EXTENDED_SELECTION
-        const BoundingBoxf3& box = selection.get_bounding_box();
-#endif // ENABLE_EXTENDED_SELECTION
+        m_starting_box = selection.get_bounding_box();
+#else
         m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
+#endif // ENABLE_EXTENDED_SELECTION
     }
 }
 
@@ -866,6 +869,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     BoundingBoxf3 box;
     Transform3d transform = Transform3d::Identity();
     Vec3d angles = Vec3d::Zero();
+    Transform3d rotation = Transform3d::Identity();
 
     if (selection.is_from_single_instance())
     {
@@ -881,18 +885,29 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
         // extract angles from transform
         angles = Slic3r::Geometry::extract_euler_angles(transform);
+
+        // set rotation-only component of transform
+        rotation = Geometry::assemble_transform(Vec3d::Zero(), angles);
     }
     else
         box = selection.get_bounding_box();
+
+    m_box = box;
+#else
+    m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
 #endif // ENABLE_EXTENDED_SELECTION
 
-    m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     const Vec3d& center = m_box.center();
+#if ENABLE_EXTENDED_SELECTION
+    Vec3d offset_x = rotation * Vec3d((double)Offset, 0.0, 0.0);
+    Vec3d offset_y = rotation * Vec3d(0.0, (double)Offset, 0.0);
+    Vec3d offset_z = rotation * Vec3d(0.0, 0.0, (double)Offset);
+#endif // ENABLE_EXTENDED_SELECTION
 
     // x axis
 #if ENABLE_EXTENDED_SELECTION
-    m_grabbers[0].center = transform * Vec3d(m_box.min(0), center(1), center(2));
-    m_grabbers[1].center = transform * Vec3d(m_box.max(0), center(1), center(2));
+    m_grabbers[0].center = transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
+    m_grabbers[1].center = transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
 #else
     m_grabbers[0].center = Vec3d(m_box.min(0), center(1), center(2));
     m_grabbers[1].center = Vec3d(m_box.max(0), center(1), center(2));
@@ -902,8 +917,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     // y axis
 #if ENABLE_EXTENDED_SELECTION
-    m_grabbers[2].center = transform * Vec3d(center(0), m_box.min(1), center(2));
-    m_grabbers[3].center = transform * Vec3d(center(0), m_box.max(1), center(2));
+    m_grabbers[2].center = transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
+    m_grabbers[3].center = transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
 #else
     m_grabbers[2].center = Vec3d(center(0), m_box.min(1), center(2));
     m_grabbers[3].center = Vec3d(center(0), m_box.max(1), center(2));
@@ -913,8 +928,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     // z axis
 #if ENABLE_EXTENDED_SELECTION
-    m_grabbers[4].center = transform * Vec3d(center(0), center(1), m_box.min(2));
-    m_grabbers[5].center = transform * Vec3d(center(0), center(1), m_box.max(2));
+    m_grabbers[4].center = transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
+    m_grabbers[5].center = transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
 #else
     m_grabbers[4].center = Vec3d(center(0), center(1), m_box.min(2));
     m_grabbers[5].center = Vec3d(center(0), center(1), m_box.max(2));
@@ -924,10 +939,10 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     // uniform
 #if ENABLE_EXTENDED_SELECTION
-    m_grabbers[6].center = transform * Vec3d(m_box.min(0), m_box.min(1), center(2));
-    m_grabbers[7].center = transform * Vec3d(m_box.max(0), m_box.min(1), center(2));
-    m_grabbers[8].center = transform * Vec3d(m_box.max(0), m_box.max(1), center(2));
-    m_grabbers[9].center = transform * Vec3d(m_box.min(0), m_box.max(1), center(2));
+    m_grabbers[6].center = transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
+    m_grabbers[7].center = transform * Vec3d(m_box.max(0), m_box.min(1), center(2)) + offset_x - offset_y;
+    m_grabbers[8].center = transform * Vec3d(m_box.max(0), m_box.max(1), center(2)) + offset_x + offset_y;
+    m_grabbers[9].center = transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
 #else
     m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), center(2));
     m_grabbers[7].center = Vec3d(m_box.max(0), m_box.min(1), center(2));
@@ -1083,7 +1098,9 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
     Vec3d center = m_starting_box.center();
+#if !ENABLE_EXTENDED_SELECTION
     center(2) = m_box.min(2);
+#endif // !ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(0, mouse_ray, center);
 
     if (ratio > 0.0)
