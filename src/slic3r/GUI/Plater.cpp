@@ -1512,8 +1512,17 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     auto idx = combo->get_extruder_idx();
 
+    //! Because of The MSW and GTK version of wxBitmapComboBox derived from wxComboBox, 
+    //! but the OSX version derived from wxOwnerDrawnCombo.
+    //! So, to get selected string we do 
+    //!     combo->GetString(combo->GetSelection()) 
+    //! instead of 
+    //!     combo->GetStringSelection().ToStdString()); 
+
+    std::string selected_string = combo->GetString(combo->GetSelection()).ToUTF8().data();
+
     if (preset_type == Preset::TYPE_FILAMENT) {
-        wxGetApp().preset_bundle->set_filament_preset(idx, combo->GetStringSelection().ToStdString());
+        wxGetApp().preset_bundle->set_filament_preset(idx, selected_string);
     }
 
     // TODO: ?
@@ -1524,7 +1533,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     else {
         for (Tab* tab : wxGetApp().tabs_list) {
             if (tab->type() == preset_type) {
-                tab->select_preset(combo->GetStringSelection().ToStdString());
+                tab->select_preset(selected_string);
                 break;
             }
         }
@@ -1532,9 +1541,9 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
 
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
-    // TODO:
-    // # get new config and generate on_config_change() event for updating plater and other things
-    // $self->on_config_change(wxTheApp->{preset_bundle}->full_config);
+    // update plater with new config
+    auto config = wxGetApp().preset_bundle->full_config();
+    wxGetApp().plater()->on_config_change(&config);
 }
 
 void Plater::priv::on_progress_event()
