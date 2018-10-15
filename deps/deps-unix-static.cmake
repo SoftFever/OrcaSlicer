@@ -6,7 +6,7 @@ ExternalProject_Add(dep_boost
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./bootstrap.sh
         --with-libraries=system,filesystem,thread,log,locale,regex
-        "--prefix=${INSTALL_DIR}/usr/local"
+        "--prefix=${DESTDIR}/usr/local"
     BUILD_COMMAND ./b2
         -j ${NPROC}
         link=static
@@ -16,8 +16,6 @@ ExternalProject_Add(dep_boost
         cxxflags=-fPIC cflags=-fPIC
         install
     INSTALL_COMMAND ""   # b2 does that already
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
 )
 
 ExternalProject_Add(dep_tbb
@@ -28,10 +26,7 @@ ExternalProject_Add(dep_tbb
     CMAKE_ARGS -DTBB_BUILD_SHARED=OFF
         -DTBB_BUILD_TESTS=OFF
         -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    INSTALL_COMMAND make install "DESTDIR=${INSTALL_DIR}"
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
-    LOG_INSTALL 1
+    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
 
 ExternalProject_Add(dep_libopenssl
@@ -40,16 +35,13 @@ ExternalProject_Add(dep_libopenssl
     URL_HASH SHA256=8e9516b8635bb9113c51a7b5b27f9027692a56b104e75b709e588c3ffd6a0422
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./config
-        "--prefix=${INSTALL_DIR}/usr/local"
+        "--prefix=${DESTDIR}/usr/local"
         no-shared
         no-ssl3-method
         no-dynamic-engine
         -Wa,--noexecstack
     BUILD_COMMAND make depend && make "-j${NPROC}"
     INSTALL_COMMAND make install_sw
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
-    LOG_INSTALL 1
 )
 
 ExternalProject_Add(dep_libcurl
@@ -97,10 +89,7 @@ ExternalProject_Add(dep_libcurl
         --without-nghttp2
         --without-zsh-functions-dir
     BUILD_COMMAND make "-j${NPROC}"
-    INSTALL_COMMAND make install "DESTDIR=${INSTALL_DIR}"
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
-    LOG_INSTALL 1
+    INSTALL_COMMAND make install "DESTDIR=${DESTDIR}"
 )
 
 ExternalProject_Add(dep_wxwidgets
@@ -109,7 +98,7 @@ ExternalProject_Add(dep_wxwidgets
     URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
     BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ./configure
-        "--prefix=${INSTALL_DIR}/usr/local"
+        "--prefix=${DESTDIR}/usr/local"
         --disable-shared
         --with-gtk=2
         --with-opengl
@@ -127,7 +116,4 @@ ExternalProject_Add(dep_wxwidgets
         --enable-debug_gdb
     BUILD_COMMAND make "-j${NPROC}" && make -C locale allmo
     INSTALL_COMMAND make install
-    LOG_CONFIGURE 1
-    LOG_BUILD 1
-    LOG_INSTALL 1
 )

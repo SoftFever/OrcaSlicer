@@ -1,7 +1,4 @@
 
-# NB: I haven't enabled any of the LOG_xxx options because they tend to generate bogus build files,
-# especially with compound commands like `cd foo && bar`.
-
 ExternalProject_Add("dep_boost_${DEPS_BITS}"
     EXCLUDE_FROM_ALL 1
     URL "https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz"

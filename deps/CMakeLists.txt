@@ -29,3 +29,6 @@ else ()
         DEPENDS dep_boost dep_tbb dep_libcurl dep_wxwidgets
     )
 endif()
+
+# Note: I'm not using any of the LOG_xxx options in ExternalProject_Add() commands
+# because they seem to generate bogus build files (possibly a bug in ExternalProject).
