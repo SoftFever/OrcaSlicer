@@ -476,6 +476,8 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
 void Tab::update_changed_tree_ui()
 {
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
+    if (!m_treectrl->IsVisible(cur_item))
+        return;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	while (cur_item){
 		auto title = m_treectrl->GetItemText(cur_item);
