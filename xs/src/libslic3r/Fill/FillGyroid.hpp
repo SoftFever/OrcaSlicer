@@ -14,7 +14,7 @@ public:
     virtual Fill* clone() const { return new FillGyroid(*this); }
 
     // require bridge flow since most of this pattern hangs in air
-    virtual bool use_bridge_flow() const { return true; }
+    virtual bool use_bridge_flow() const { return false; }
 
 protected:
     virtual void _fill_surface_single(

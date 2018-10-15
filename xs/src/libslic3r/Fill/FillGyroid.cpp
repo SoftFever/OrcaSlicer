@@ -131,7 +131,7 @@ void FillGyroid::_fill_surface_single(
     // no rotation is supported for this infill pattern (yet)
     BoundingBox bb = expolygon.contour.bounding_box();
     // Density adjusted to have a good %of weight.
-    double      density_adjusted = std::max(0., params.density * 2.);
+    double      density_adjusted = std::max(0., params.density * 2.44);
     // Distance between the gyroid waves in scaled coordinates.
     coord_t     distance = coord_t(scale_(this->spacing) / density_adjusted);
 
