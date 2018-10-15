@@ -184,6 +184,8 @@ public:
 private:
     wxString    m_text;
     wxBitmap    m_bmp;
+
+    wxDECLARE_DYNAMIC_CLASS(PrusaDataViewBitmapText);
 };
 DECLARE_VARIANT_OBJECT(PrusaDataViewBitmapText)
 
@@ -476,7 +478,7 @@ class PrusaBitmapTextRenderer : public wxDataViewCustomRenderer
 public:
     PrusaBitmapTextRenderer(  wxDataViewCellMode mode = wxDATAVIEW_CELL_INERT,
                             int align = wxDVR_DEFAULT_ALIGNMENT): 
-                            wxDataViewCustomRenderer(wxT("wxObject"), mode, align) {}
+                            wxDataViewCustomRenderer(wxT("PrusaDataViewBitmapText"), mode, align) {}
 
     bool SetValue(const wxVariant &value);
     bool GetValue(wxVariant &value) const;
@@ -487,7 +489,6 @@ public:
     virtual bool HasEditorCtrl() const { return false; }
 
 private:
-//      wxDataViewIconText   m_value;
     PrusaDataViewBitmapText m_value;
 };
 

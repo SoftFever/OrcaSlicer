@@ -684,8 +684,7 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	switch (col)
 	{
 	case 0:{
-        const PrusaDataViewBitmapText data(node->m_name, node->m_bmp);
-        variant << data;
+        variant << PrusaDataViewBitmapText(node->m_name, node->m_bmp);
 		break;}
 	case 1:
 		variant = node->m_copy;
@@ -891,7 +890,14 @@ void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item,
     ItemChanged(item);
 }
 
+//-----------------------------------------------------------------------------
+// PrusaDataViewBitmapText
+//-----------------------------------------------------------------------------
+
+wxIMPLEMENT_DYNAMIC_CLASS(PrusaDataViewBitmapText, wxObject)
+
 IMPLEMENT_VARIANT_OBJECT(PrusaDataViewBitmapText)
+
 // ---------------------------------------------------------
 // PrusaIconTextRenderer
 // ---------------------------------------------------------

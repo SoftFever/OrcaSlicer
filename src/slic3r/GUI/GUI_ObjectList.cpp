@@ -1048,9 +1048,8 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
         stats.facets_added + stats.facets_reversed + stats.backwards_edges;
     if (errors > 0)		{
-        const PrusaDataViewBitmapText data(item_name, m_icon_manifold_warning);
         wxVariant variant;
-        variant << data;
+        variant << PrusaDataViewBitmapText(item_name, m_icon_manifold_warning);
         m_objects_model->SetValue(variant, item, 0);
     }
 
