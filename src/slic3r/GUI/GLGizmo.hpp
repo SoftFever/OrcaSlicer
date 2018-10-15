@@ -376,7 +376,11 @@ private:
     void do_scale_z(const Linef3& mouse_ray);
     void do_scale_uniform(const Linef3& mouse_ray);
 
+#if ENABLE_EXTENDED_SELECTION
+    double calc_ratio(const Linef3& mouse_ray) const;
+#else
     double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const;
+#endif // ENABLE_EXTENDED_SELECTION
 };
 
 class GLGizmoMove3D : public GLGizmoBase
@@ -419,7 +423,11 @@ protected:
 #endif // ENABLE_EXTENDED_SELECTION
 
 private:
+#if ENABLE_EXTENDED_SELECTION
+    double calc_projection(const Linef3& mouse_ray) const;
+#else
     double calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
+#endif // ENABLE_EXTENDED_SELECTION
 };
 
 class GLGizmoFlatten : public GLGizmoBase

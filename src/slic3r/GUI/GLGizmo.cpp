@@ -23,6 +23,7 @@ static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f
 namespace Slic3r {
 namespace GUI {
 
+#if !ENABLE_EXTENDED_SELECTION
 // returns the intersection of the given ray with the plane parallel to plane XY and passing through the given center
 // coordinates are local to the plane
 Vec3d intersection_on_plane_xy(const Linef3& ray, const Vec3d& center)
@@ -105,7 +106,8 @@ unsigned int select_best_plane(const Vec3d& unit_vector, unsigned int preferred_
 
     return ret;
 }
-    
+#endif // !ENABLE_EXTENDED_SELECTION
+
 const float GLGizmoBase::Grabber::SizeFactor = 0.025f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
@@ -1065,7 +1067,11 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
 
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(0) * ratio;
@@ -1073,7 +1079,11 @@ void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     double ratio = calc_ratio(2, mouse_ray, m_starting_box.center());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -1085,7 +1095,11 @@ void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -1097,16 +1111,46 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     Vec3d center = m_starting_box.center();
-#if !ENABLE_EXTENDED_SELECTION
     center(2) = m_box.min(2);
-#endif // !ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(0, mouse_ray, center);
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale = m_starting_scale * ratio;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+double GLGizmoScale3D::calc_ratio(const Linef3& mouse_ray) const
+{
+    double ratio = 0.0;
+
+    // vector from the center to the starting position
+    Vec3d starting_vec = m_starting_drag_position - m_starting_box.center();
+    double len_starting_vec = starting_vec.norm();
+    if (len_starting_vec != 0.0)
+    {
+        Vec3d mouse_dir = mouse_ray.unit_vector();
+        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+        // in our case plane normal and ray direction are the same (orthogonal view)
+        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+        Vec3d inters = mouse_ray.a + (m_starting_drag_position - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        // vector from the starting position to the found intersection
+        Vec3d inters_vec = inters - m_starting_drag_position;
+
+        // finds projection of the vector along the staring direction
+        double proj = inters_vec.dot(starting_vec.normalized());
+
+        return (len_starting_vec + proj) / len_starting_vec;
+    }
+
+    return ratio;
+}
+#else
 double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const
 {
     double ratio = 0.0;
@@ -1142,6 +1186,7 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 
     return ratio;
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 const double GLGizmoMove3D::Offset = 10.0;
 
@@ -1209,11 +1254,11 @@ void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 {
 #if ENABLE_EXTENDED_SELECTION
     if (m_hover_id == 0)
-        m_displacement(0) = calc_projection(X, 1, mouse_ray) - (m_starting_drag_position(0) - m_starting_box_center(0));
+        m_displacement(0) = calc_projection(mouse_ray);
     else if (m_hover_id == 1)
-        m_displacement(1) = calc_projection(Y, 2, mouse_ray) - (m_starting_drag_position(1) - m_starting_box_center(1));
+        m_displacement(1) = calc_projection(mouse_ray);
     else if (m_hover_id == 2)
-        m_displacement(2) = calc_projection(Z, 1, mouse_ray) - (m_starting_drag_position(2) - m_starting_box_bottom_center(2));
+        m_displacement(2) = calc_projection(mouse_ray);
 #else
     if (m_hover_id == 0)
         m_position(0) = 2.0 * m_starting_box_center(0) + calc_projection(X, 1, mouse_ray) - m_starting_drag_position(0);
@@ -1315,6 +1360,30 @@ void GLGizmoMove3D::on_render_for_picking(const BoundingBoxf3& box) const
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
+#if ENABLE_EXTENDED_SELECTION
+double GLGizmoMove3D::calc_projection(const Linef3& mouse_ray) const
+{
+    double projection = 0.0;
+
+    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
+    double len_starting_vec = starting_vec.norm();
+    if (len_starting_vec != 0.0)
+    {
+        Vec3d mouse_dir = mouse_ray.unit_vector();
+        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+        // in our case plane normal and ray direction are the same (orthogonal view)
+        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+        Vec3d inters = mouse_ray.a + (m_starting_drag_position - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        // vector from the starting position to the found intersection
+        Vec3d inters_vec = inters - m_starting_drag_position;
+
+        // finds projection of the vector along the staring direction
+        projection = inters_vec.dot(starting_vec.normalized());
+    }
+    return projection;
+}
+#else
 double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const
 {
     double projection = 0.0;
@@ -1350,6 +1419,7 @@ double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id
 
     return projection;
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
