@@ -209,8 +209,8 @@ void ObjectList::update_extruder_in_config(const wxString& selection)
     int extruder = selection.size() > 1 ? 0 : atoi(selection.c_str());
     m_config->set_key_value("extruder", new ConfigOptionInt(extruder));
 
-// #ys_FIXME_events  
-//     wxGetApp().plater()->update();
+    // update scene
+    wxGetApp().plater()->update();
 }
 
 void ObjectList::init_icons(){

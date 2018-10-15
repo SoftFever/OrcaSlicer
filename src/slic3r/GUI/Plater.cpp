@@ -216,6 +216,7 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
 
                 wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
+                wxGetApp().plater()->on_config_change(&cfg);
             }
             dialog->Destroy();
         });
@@ -640,6 +641,24 @@ void Sidebar::enable_buttons(bool enable)
     p->btn_reslice->Enable(enable);
     p->btn_export_gcode->Enable(enable);
     p->btn_send_gcode->Enable(enable);
+}
+
+void Sidebar::show_button(ButtonAction but_action, bool show)
+{
+    switch (but_action)
+    {
+    case baReslice:
+        p->btn_reslice->Show(show);
+        break;
+    case baExportGcode:
+        p->btn_export_gcode->Show(show);
+        break;
+    case baSendGcode:
+        p->btn_send_gcode->Show(show);
+        break;
+    default:
+        break;
+    }
 }
 
 bool Sidebar::is_multifilament()
@@ -1907,7 +1926,57 @@ void Plater::on_extruders_change(int num_extruders)
 
 void Plater::on_config_change(DynamicPrintConfig* config)
 {
-    // TODO
+    bool update_scheduled = false;
+    for ( auto opt_key: p->config->diff(*config)) {
+        p->config->set_key_value(opt_key, config->option(opt_key)->clone());
+        if (opt_key  == "bed_shape") {
+            if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>(opt_key)->values);
+            if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
+            update_scheduled = true;
+        } 
+        else if(opt_key == "wipe_tower" /*|| opt_key == "filament_minimal_purge_on_wipe_tower"*/ || // ? #ys_FIXME
+                opt_key == "single_extruder_multi_material") {
+            update_scheduled = true;
+        } 
+//         else if(opt_key == "serial_port") {
+//             sidebar()->p->btn_print->Show(config->get("serial_port"));  // ???: btn_print is removed
+//             Layout();
+//         } 
+        else if (opt_key == "print_host") {
+            sidebar().show_button(baReslice, !p->config->option<ConfigOptionString>(opt_key)->value.empty());
+            Layout();
+        }
+        else if(opt_key == "variable_layer_height") {
+            if (p->config->opt_bool("variable_layer_height") != true) {
+                _3DScene::enable_toolbar_item(p->canvas3D, "layersediting", false);
+                _3DScene::enable_layers_editing(p->canvas3D, 0);
+                p->canvas3D->Refresh();
+                p->canvas3D->Update();
+            }
+            else if (_3DScene::is_layers_editing_allowed(p->canvas3D)) {
+                _3DScene::enable_toolbar_item(p->canvas3D, "layersediting", true);
+            }
+        } 
+        else if(opt_key == "extruder_colour") {
+            update_scheduled = true;
+            p->preview->set_number_extruders(p->config->option<ConfigOptionStrings>(opt_key)->values.size());
+        } else if(opt_key == "max_print_height") {
+            update_scheduled = true;
+        } else if(opt_key == "printer_model") {
+            // update to force bed selection(for texturing)
+            if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>("bed_shape")->values);
+            if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>("bed_shape")->values);
+            update_scheduled = true;
+        }
+    }
+
+    if (update_scheduled) 
+        update();
+
+    if (!p->main_frame->is_loaded()) return ;
+
+    // (re)start timer
+//     schedule_background_process();
 }
 
 wxGLCanvas* Plater::canvas3D()

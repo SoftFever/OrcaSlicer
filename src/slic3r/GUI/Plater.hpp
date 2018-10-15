@@ -49,6 +49,14 @@ private:
     int extruder_idx = -1;
 };
 
+enum ButtonAction
+{
+    baUndef,
+    baReslice,
+    baExportGcode,
+    baSendGcode
+};
+
 class Sidebar : public wxPanel
 {
 public:
@@ -71,6 +79,7 @@ public:
     void                    update_objects_list_extruder_column(int extruders_count);
     void                    show_info_sizers(const bool show);
     void                    show_buttons(const bool show);
+    void                    show_button(ButtonAction but_action, bool show);
     void                    enable_buttons(bool enable);
     bool                    is_multifilament();
 
