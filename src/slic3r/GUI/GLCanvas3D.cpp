@@ -2106,12 +2106,21 @@ bool GLCanvas3D::Gizmos::is_dragging() const
     return (curr != nullptr) ? curr->is_dragging() : false;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
+{
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->start_dragging(selection);
+}
+#else
 void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 {
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->start_dragging(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::Gizmos::stop_dragging()
 {
@@ -2256,17 +2265,36 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selection) const
+#else
 void GLCanvas3D::Gizmos::render_current_gizmo(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (!m_enabled)
         return;
 
     ::glDisable(GL_DEPTH_TEST);
 
+#if ENABLE_EXTENDED_SELECTION
+    _render_current_gizmo(selection);
+#else
     if (box.radius() > 0.0)
         _render_current_gizmo(box);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const GLCanvas3D::Selection& selection) const
+{
+    if (!m_enabled)
+        return;
+
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->render_for_picking(selection);
+}
+#else
 void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBoxf3& box) const
 {
     if (!m_enabled)
@@ -2276,6 +2304,7 @@ void GLCanvas3D::Gizmos::render_current_gizmo_for_picking_pass(const BoundingBox
     if (curr != nullptr)
         curr->render_for_picking(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
 {
@@ -2324,12 +2353,21 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::_render_current_gizmo(const GLCanvas3D::Selection& selection) const
+{
+    GLGizmoBase* curr = _get_current();
+    if (curr != nullptr)
+        curr->render(selection);
+}
+#else
 void GLCanvas3D::Gizmos::_render_current_gizmo(const BoundingBoxf3& box) const
 {
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->render(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 {
@@ -3922,7 +3960,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             update_gizmos_data();
 #if ENABLE_EXTENDED_SELECTION
             m_selection.start_dragging();
-            m_gizmos.start_dragging(m_selection.get_bounding_box());
+            m_gizmos.start_dragging(m_selection);
 #else
             m_gizmos.start_dragging(_selected_volumes_bounding_box());
             m_mouse.drag.gizmo_volume_idx = _get_first_selected_volume_id(selected_object_idx);
@@ -4932,7 +4970,7 @@ void GLCanvas3D::_picking_pass() const
 
         _render_volumes(true);
 #if ENABLE_EXTENDED_SELECTION
-        m_gizmos.render_current_gizmo_for_picking_pass(m_selection.get_bounding_box());
+        m_gizmos.render_current_gizmo_for_picking_pass(m_selection);
 #else
         m_gizmos.render_current_gizmo_for_picking_pass(_selected_volumes_bounding_box());
 #endif // ENABLE_EXTENDED_SELECTION
@@ -5207,7 +5245,7 @@ void GLCanvas3D::_render_volumes(bool fake_colors) const
 void GLCanvas3D::_render_current_gizmo() const
 {
 #if ENABLE_EXTENDED_SELECTION
-    m_gizmos.render_current_gizmo(m_selection.get_bounding_box());
+    m_gizmos.render_current_gizmo(m_selection);
 #else
     m_gizmos.render_current_gizmo(_selected_volumes_bounding_box());
 #endif // ENABLE_EXTENDED_SELECTION
