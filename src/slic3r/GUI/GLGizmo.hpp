@@ -2,6 +2,9 @@
 #define slic3r_GLGizmo_hpp_
 
 #include "../../slic3r/GUI/GLTexture.hpp"
+#if ENABLE_EXTENDED_SELECTION
+#include "../../slic3r/GUI/GLCanvas3D.hpp"
+#endif // ENABLE_EXTENDED_SELECTION
 #include "../../libslic3r/Point.hpp"
 #include "../../libslic3r/BoundingBox.hpp"
 
@@ -96,7 +99,11 @@ public:
     void enable_grabber(unsigned int id);
     void disable_grabber(unsigned int id);
 
+#if ENABLE_EXTENDED_SELECTION
+    void start_dragging(const GLCanvas3D::Selection& selection);
+#else
     void start_dragging(const BoundingBoxf3& box);
+#endif // ENABLE_EXTENDED_SELECTION
     void stop_dragging();
     bool is_dragging() const { return m_dragging; }
 
@@ -106,8 +113,13 @@ public:
     void process_double_click() { on_process_double_click(); }
 #endif // ENABLE_GIZMOS_RESET
 
+#if ENABLE_EXTENDED_SELECTION
+    void render(const GLCanvas3D::Selection& selection) const { on_render(selection); }
+    void render_for_picking(const GLCanvas3D::Selection& selection) const { on_render_for_picking(selection); }
+#else
     void render(const BoundingBoxf3& box) const { on_render(box); }
     void render_for_picking(const BoundingBoxf3& box) const { on_render_for_picking(box); }
+#endif // ENABLE_EXTENDED_SELECTION
 
 protected:
     virtual bool on_init() = 0;
@@ -115,14 +127,23 @@ protected:
     virtual void on_set_hover_id() {}
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection) {}
+#else
     virtual void on_start_dragging(const BoundingBoxf3& box) {}
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_stop_dragging() {}
     virtual void on_update(const Linef3& mouse_ray) = 0;
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click() {}
 #endif // ENABLE_GIZMOS_RESET
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const = 0;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
+#else
     virtual void on_render(const BoundingBoxf3& box) const = 0;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const = 0;
+#endif // ENABLE_EXTENDED_SELECTION
 
     float picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
@@ -172,13 +193,22 @@ public:
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+#else
     virtual void on_start_dragging(const BoundingBoxf3& box);
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_update(const Linef3& mouse_ray);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click() { m_angle = 0.0; }
 #endif // ENABLE_GIZMOS_RESET
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+#else
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+#endif // ENABLE_EXTENDED_SELECTION
 
 private:
     void render_circle() const;
@@ -240,7 +270,11 @@ protected:
         if ((0 <= id) && (id < 3))
             m_gizmos[id].disable_grabber(0);
     }
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+#else
     virtual void on_start_dragging(const BoundingBoxf3& box);
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_stop_dragging();
     virtual void on_update(const Linef3& mouse_ray)
     {
@@ -256,6 +290,16 @@ protected:
             m_gizmos[m_hover_id].process_double_click();
     }
 #endif // ENABLE_GIZMOS_RESET
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const
+    {
+        for (const GLGizmoRotate& g : m_gizmos)
+        {
+            g.render_for_picking(selection);
+        }
+    }
+#else
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const
     {
@@ -264,6 +308,7 @@ protected:
             g.render_for_picking(box);
         }
     }
+#endif // ENABLE_EXTENDED_SELECTION
 };
 
 class GLGizmoScale3D : public GLGizmoBase
@@ -300,13 +345,22 @@ public:
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+#else
     virtual void on_start_dragging(const BoundingBoxf3& box);
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_update(const Linef3& mouse_ray);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click();
 #endif // ENABLE_GIZMOS_RESET
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+#else
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+#endif // ENABLE_EXTENDED_SELECTION
 
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
@@ -344,10 +398,19 @@ public:
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+#else
     virtual void on_start_dragging(const BoundingBoxf3& box);
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_update(const Linef3& mouse_ray);
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+#else
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+#endif // ENABLE_EXTENDED_SELECTION
 
 private:
     double calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
@@ -406,10 +469,19 @@ public:
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+#else
     virtual void on_start_dragging(const BoundingBoxf3& box);
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_update(const Linef3& mouse_ray) {}
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+#else
     virtual void on_render(const BoundingBoxf3& box) const;
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_set_state()
     {
         if (m_state == On && is_plane_update_necessary())

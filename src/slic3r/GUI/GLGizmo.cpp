@@ -1,7 +1,10 @@
+#include "../../libslic3r/libslic3r.h"
 #include "GLGizmo.hpp"
 
 #include "../../libslic3r/Utils.hpp"
+#if !ENABLE_EXTENDED_SELECTION
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
+#endif // !ENABLE_EXTENDED_SELECTION
 
 #include <Eigen/Dense>
 #include "../../libslic3r/Geometry.hpp"
@@ -146,10 +149,9 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
     ::glPushMatrix();
     ::glTranslated(center(0), center(1), center(2));
 
-    double rad_to_deg = 180.0 / (double)PI;
-    ::glRotated(angles(0) * rad_to_deg, 1.0, 0.0, 0.0);
-    ::glRotated(angles(1) * rad_to_deg, 0.0, 1.0, 0.0);
-    ::glRotated(angles(2) * rad_to_deg, 0.0, 0.0, 1.0);
+    ::glRotated(Geometry::rad2deg(angles(2)), 0.0, 0.0, 1.0);
+    ::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0);
+    ::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0);
 
     // face min x
     ::glPushMatrix();
@@ -257,7 +259,11 @@ void GLGizmoBase::disable_grabber(unsigned int id)
     on_disable_grabber(id);
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoBase::start_dragging(const GLCanvas3D::Selection& selection)
+#else
 void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     m_dragging = true;
 
@@ -266,7 +272,11 @@ void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
+#if ENABLE_EXTENDED_SELECTION
+    on_start_dragging(selection);
+#else
     on_start_dragging(box);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLGizmoBase::stop_dragging()
@@ -373,8 +383,15 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoRotate::on_start_dragging(const GLCanvas3D::Selection& selection)
+#else
 void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
+#endif // ENABLE_EXTENDED_SELECTION
 {
+#if ENABLE_EXTENDED_SELECTION
+    const BoundingBoxf3& box = selection.get_bounding_box();
+#endif // ENABLE_EXTENDED_SELECTION
     m_center = box.center();
     m_radius = Offset + box.radius();
     m_snap_coarse_in_radius = m_radius / 3.0f;
@@ -418,10 +435,18 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray)
     m_angle = theta;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
+#else
 void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (!m_grabbers[0].enabled)
         return;
+
+#if ENABLE_EXTENDED_SELECTION
+    const BoundingBoxf3& box = selection.get_bounding_box();
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (m_dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
@@ -462,14 +487,22 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     ::glPopMatrix();
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoRotate::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+#else
 void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
     ::glDisable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
 
     transform_to_local();
+#if ENABLE_EXTENDED_SELECTION
+    render_grabbers_for_picking(selection.get_bounding_box());
+#else
     render_grabbers_for_picking(box);
+#endif // ENABLE_EXTENDED_SELECTION
 
     ::glPopMatrix();
 }
@@ -681,11 +714,19 @@ bool GLGizmoRotate3D::on_init()
     return true;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
+{
+    if ((0 <= m_hover_id) && (m_hover_id < 3))
+        m_gizmos[m_hover_id].start_dragging(selection);
+}
+#else
 void GLGizmoRotate3D::on_start_dragging(const BoundingBoxf3& box)
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
         m_gizmos[m_hover_id].start_dragging(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
@@ -693,6 +734,19 @@ void GLGizmoRotate3D::on_stop_dragging()
         m_gizmos[m_hover_id].stop_dragging();
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
+{
+    if ((m_hover_id == -1) || (m_hover_id == 0))
+        m_gizmos[X].render(selection);
+
+    if ((m_hover_id == -1) || (m_hover_id == 1))
+        m_gizmos[Y].render(selection);
+
+    if ((m_hover_id == -1) || (m_hover_id == 2))
+        m_gizmos[Z].render(selection);
+}
+#else
 void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
 {
     if ((m_hover_id == -1) || (m_hover_id == 0))
@@ -704,6 +758,7 @@ void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
     if ((m_hover_id == -1) || (m_hover_id == 2))
         m_gizmos[Z].render(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 const float GLGizmoScale3D::Offset = 5.0f;
 const Vec3d GLGizmoScale3D::OffsetVec = (double)GLGizmoScale3D::Offset * Vec3d::Ones();
@@ -749,11 +804,18 @@ bool GLGizmoScale3D::on_init()
     return true;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
+#else
 void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_hover_id != -1)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
+#if ENABLE_EXTENDED_SELECTION
+        const BoundingBoxf3& box = selection.get_bounding_box();
+#endif // ENABLE_EXTENDED_SELECTION
         m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     }
 }
@@ -778,7 +840,11 @@ void GLGizmoScale3D::on_process_double_click()
 }
 #endif // ENABLE_GIZMOS_RESET
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
+#else
 void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(100.0f * m_scale(0), 4) + "%");
@@ -796,36 +862,90 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_DEPTH_TEST);
 
+#if ENABLE_EXTENDED_SELECTION
+    BoundingBoxf3 box;
+    Transform3d transform = Transform3d::Identity();
+    Vec3d angles = Vec3d::Zero();
+
+    if (selection.is_from_single_instance())
+    {
+        // calculate bounding box in instance local reference system
+        const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
+        for (unsigned int idx : idxs)
+        {
+            box.merge(selection.get_volume(idx)->bounding_box);
+        }
+
+        // gets transform from first selected volume
+        transform = selection.get_volume(*idxs.begin())->world_matrix().cast<double>();
+
+        // extract angles from transform
+        angles = Slic3r::Geometry::extract_euler_angles(transform);
+    }
+    else
+        box = selection.get_bounding_box();
+#endif // ENABLE_EXTENDED_SELECTION
+
     m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
     const Vec3d& center = m_box.center();
 
     // x axis
+#if ENABLE_EXTENDED_SELECTION
+    m_grabbers[0].center = transform * Vec3d(m_box.min(0), center(1), center(2));
+    m_grabbers[1].center = transform * Vec3d(m_box.max(0), center(1), center(2));
+#else
     m_grabbers[0].center = Vec3d(m_box.min(0), center(1), center(2));
     m_grabbers[1].center = Vec3d(m_box.max(0), center(1), center(2));
+#endif // ENABLE_EXTENDED_SELECTION
     ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
 
     // y axis
+#if ENABLE_EXTENDED_SELECTION
+    m_grabbers[2].center = transform * Vec3d(center(0), m_box.min(1), center(2));
+    m_grabbers[3].center = transform * Vec3d(center(0), m_box.max(1), center(2));
+#else
     m_grabbers[2].center = Vec3d(center(0), m_box.min(1), center(2));
     m_grabbers[3].center = Vec3d(center(0), m_box.max(1), center(2));
+#endif // ENABLE_EXTENDED_SELECTION
     ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[3].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
 
     // z axis
+#if ENABLE_EXTENDED_SELECTION
+    m_grabbers[4].center = transform * Vec3d(center(0), center(1), m_box.min(2));
+    m_grabbers[5].center = transform * Vec3d(center(0), center(1), m_box.max(2));
+#else
     m_grabbers[4].center = Vec3d(center(0), center(1), m_box.min(2));
     m_grabbers[5].center = Vec3d(center(0), center(1), m_box.max(2));
+#endif // ENABLE_EXTENDED_SELECTION
     ::memcpy((void*)m_grabbers[4].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[5].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
 
     // uniform
+#if ENABLE_EXTENDED_SELECTION
+    m_grabbers[6].center = transform * Vec3d(m_box.min(0), m_box.min(1), center(2));
+    m_grabbers[7].center = transform * Vec3d(m_box.max(0), m_box.min(1), center(2));
+    m_grabbers[8].center = transform * Vec3d(m_box.max(0), m_box.max(1), center(2));
+    m_grabbers[9].center = transform * Vec3d(m_box.min(0), m_box.max(1), center(2));
+#else
     m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), center(2));
     m_grabbers[7].center = Vec3d(m_box.max(0), m_box.min(1), center(2));
     m_grabbers[8].center = Vec3d(m_box.max(0), m_box.max(1), center(2));
     m_grabbers[9].center = Vec3d(m_box.min(0), m_box.max(1), center(2));
+#endif // ENABLE_EXTENDED_SELECTION
     for (int i = 6; i < 10; ++i)
     {
         ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
     }
+
+#if ENABLE_EXTENDED_SELECTION
+    // sets grabbers orientation
+    for (int i = 0; i < 10; ++i)
+    {
+        m_grabbers[i].angles = angles;
+    }
+#endif // ENABLE_EXTENDED_SELECTION
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
@@ -900,12 +1020,21 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+{
+    ::glDisable(GL_DEPTH_TEST);
+
+    render_grabbers_for_picking(selection.get_bounding_box());
+}
+#else
 void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {
@@ -1040,12 +1169,17 @@ bool GLGizmoMove3D::on_init()
     return true;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
+#else
 void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_hover_id != -1)
     {
 #if ENABLE_EXTENDED_SELECTION
         m_displacement = Vec3d::Zero();
+        const BoundingBoxf3& box = selection.get_bounding_box();
 #endif // ENABLE_EXTENDED_SELECTION
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_starting_box_center = box.center();
@@ -1073,7 +1207,11 @@ void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 #endif // ENABLE_EXTENDED_SELECTION
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
+#else
 void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
 #if ENABLE_EXTENDED_SELECTION
     if (m_grabbers[0].dragging)
@@ -1093,6 +1231,9 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_DEPTH_TEST);
 
+#if ENABLE_EXTENDED_SELECTION
+    const BoundingBoxf3& box = selection.get_bounding_box();
+#endif // ENABLE_EXTENDED_SELECTION
     const Vec3d& center = box.center();
 
     // x axis
@@ -1141,12 +1282,21 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+{
+    ::glDisable(GL_DEPTH_TEST);
+
+    render_grabbers_for_picking(selection.get_bounding_box());
+}
+#else
 void GLGizmoMove3D::on_render_for_picking(const BoundingBoxf3& box) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(box);
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const
 {
@@ -1210,23 +1360,39 @@ bool GLGizmoFlatten::on_init()
     return true;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
+#else
 void GLGizmoFlatten::on_start_dragging(const BoundingBoxf3& box)
+#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_hover_id != -1)
     {
         m_normal = m_planes[m_hover_id].normal;
+#if ENABLE_EXTENDED_SELECTION
+        m_starting_center = selection.get_bounding_box().center();
+#else
         m_starting_center = box.center();
+#endif // ENABLE_EXTENDED_SELECTION
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
+#else
 void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
     // the dragged_offset is a vector measuring where was the object moved
     // with the gizmo being on. This is reset in set_flattening_data and
     // does not work correctly when there are multiple copies.
     Vec3d dragged_offset(Vec3d::Zero());
     if (m_dragging)
+#if ENABLE_EXTENDED_SELECTION
+        dragged_offset = selection.get_bounding_box().center() - m_starting_center;
+#else
         dragged_offset = box.center() - m_starting_center;
+#endif // ENABLE_EXTENDED_SELECTION
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
@@ -1260,7 +1426,11 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
     ::glDisable(GL_BLEND);
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+#else
 void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
+#endif // ENABLE_EXTENDED_SELECTION
 {
     ::glEnable(GL_DEPTH_TEST);
 
