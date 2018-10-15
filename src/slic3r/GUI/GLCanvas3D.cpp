@@ -1138,6 +1138,7 @@ GLCanvas3D::Selection::VolumeCache::VolumeCache()
     , m_scaling_factor(Vec3d::Ones())
 {
     m_rotation_matrix = Transform3d::Identity();
+    m_scale_matrix = Transform3d::Identity();
 }
 
 GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor)
@@ -1146,6 +1147,7 @@ GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec
     , m_scaling_factor(scaling_factor)
 {
     m_rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), m_rotation);
+    m_scale_matrix = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), m_scaling_factor);
 }
 
 GLCanvas3D::Selection::Selection()
@@ -1415,8 +1417,8 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
             (*m_volumes)[i]->set_rotation(rotation);
         else
         {
-            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
-            Vec3d new_rotation = Geometry::extract_euler_angles(new_matrix);
+            // extracts rotations from the composed transformation
+            Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_rotation_matrix());
 
             (*m_volumes)[i]->set_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center));
             (*m_volumes)[i]->set_rotation(new_rotation);
@@ -1443,7 +1445,7 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
             (*m_volumes)[i]->set_scaling_factor(scale);
         else
         {
-            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
+            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_scale_matrix()).matrix().block(0, 0, 3, 3);
             // extracts scaling factors from the composed transformation
             Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
 

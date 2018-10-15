@@ -314,7 +314,9 @@ protected:
 class GLGizmoScale3D : public GLGizmoBase
 {
     static const float Offset;
+#if !ENABLE_EXTENDED_SELECTION
     static const Vec3d OffsetVec;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     mutable BoundingBoxf3 m_box;
 
@@ -329,7 +331,11 @@ public:
 
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const Vec3d& get_scale() const { return m_scale; }
+#if ENABLE_EXTENDED_SELECTION
+    void set_scale(const Vec3d& scale) { m_starting_scale = scale; m_scale = scale; }
+#else
     void set_scale(const Vec3d& scale) { m_starting_scale = scale; }
+#endif // ENABLE_EXTENDED_SELECTION
 #else
     double get_scale_x() const { return m_scale(0); }
     void set_scale_x(double scale) { m_starting_scale(0) = scale; }
