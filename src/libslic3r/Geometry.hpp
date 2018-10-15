@@ -157,6 +157,29 @@ class MedialAxis {
     const Point& retrieve_endpoint(const VD::cell_type* cell) const;
 };
 
+// Sets the given transform by assembling the given transformations in the following order:
+// 1) scale
+// 2) rotate X
+// 3) rotate Y
+// 4) rotate Z
+// 5) translate
+void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones());
+
+// Returns the transform obtained by assembling the given transformations in the following order:
+// 1) scale
+// 2) rotate X
+// 3) rotate Y
+// 4) rotate Z
+// 5) translate
+Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones());
+
+// Returns the euler angles extracted from the given rotation matrix
+// Warning -> The matrix should not contain any scale or shear !!!
+Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& rotation_matrix);
+
+// Returns the euler angles extracted from the given affine transform
+// Warning -> The transform should not contain any shear !!!
+Vec3d extract_euler_angles(const Transform3d& transform);
 } }
 
 #endif

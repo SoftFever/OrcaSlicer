@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.2)
 
 include("version.inc")
 set(SLIC3R_RESOURCES_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources")
+file(TO_NATIVE_PATH "${SLIC3R_RESOURCES_DIR}" SLIC3R_RESOURCES_DIR_WIN)
 
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   message(STATUS "No build type selected, default to Release")
@@ -214,8 +215,29 @@ if (NOT GLEW_FOUND)
 endif ()
 include_directories(${GLEW_INCLUDE_DIRS})
 
-# l10n
-add_subdirectory(resources/localization)
+# Resources and l10n
+set(L10N_DIR "${SLIC3R_RESOURCES_DIR}/localization")
+add_custom_target(pot
+    # FIXME: file list stale
+    COMMAND xgettext --keyword=L --from-code=UTF-8 --debug
+        -f "${L10N_DIR}/list.txt"
+        -o "${L10N_DIR}/Slic3rPE.pot"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generate pot file from strings in the source tree"
+)
+if (MSVC)
+    file(TO_NATIVE_PATH "${CMAKE_BINARY_DIR}/src/resources" WIN_RESOURCES_SYMLINK)
+    add_custom_target(resources_symlink ALL
+        COMMAND if not exist "${WIN_RESOURCES_SYMLINK}" ( mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}" )
+        VERBATIM
+    )
+else ()
+    add_custom_target(resources_symlink ALL
+        COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_BINARY_DIR}/resources"
+        VERBATIM
+    )
+endif()
+
 
 # libslic3r, Slic3r GUI and the slic3r executable.
 add_subdirectory(src)

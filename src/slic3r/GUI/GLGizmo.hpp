@@ -34,11 +34,11 @@ protected:
 
         Grabber();
 
-        void render(bool hover, const BoundingBoxf3& box) const;
-        void render_for_picking(const BoundingBoxf3& box) const { render(box, color, false); }
+        void render(bool hover, float size) const;
+        void render_for_picking(float size) const { render(size, color, false); }
 
     private:
-        void render(const BoundingBoxf3& box, const float* render_color, bool use_lighting) const;
+        void render(float size, const float* render_color, bool use_lighting) const;
         void render_face(float half_size) const;
     };
 
@@ -277,7 +277,6 @@ class GLGizmoScale3D : public GLGizmoBase
 
     Vec3d m_starting_scale;
     Vec3d m_starting_drag_position;
-    bool m_show_starting_box;
     BoundingBoxf3 m_starting_box;
 
 public:
@@ -302,7 +301,6 @@ public:
 protected:
     virtual bool on_init();
     virtual void on_start_dragging(const BoundingBoxf3& box);
-    virtual void on_stop_dragging() { m_show_starting_box = false; }
     virtual void on_update(const Linef3& mouse_ray);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click();
@@ -311,7 +309,6 @@ protected:
     virtual void on_render_for_picking(const BoundingBoxf3& box) const;
 
 private:
-    void render_box(const BoundingBoxf3& box) const;
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
 
     void do_scale_x(const Linef3& mouse_ray);

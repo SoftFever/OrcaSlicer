@@ -70,31 +70,24 @@ int main(int argc, char **argv)
     }
 
     boost::filesystem::path path_to_binary = boost::filesystem::system_complete(argv[0]);
-    boost::filesystem::path path_resources = path_to_binary.parent_path();
+
     // Path from the Slic3r binary to its resources.
-    path_resources /= (path_to_binary.stem().string() == "slic3r-gui") ? 
-        // Running from the build directory:
-//         "../../resources" : // ? #ys_FIXME
-        "../../../resources" : // ! #ys_FIXME
-        // Running from an installation directory:
 #ifdef __APPLE__
-        // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
-        // The resources are packed to 'Slic3r.app/Contents/Resources'
-        "../Resources"
+    // The application is packed in the .dmg archive as 'Slic3r.app/Contents/MacOS/Slic3r'
+    // The resources are packed to 'Slic3r.app/Contents/Resources'
+    boost::filesystem::path path_resources = path_to_binary.parent_path() / "../Resources";
+#elif defined _WIN32
+    // The application is packed in the .zip archive in the root,
+    // The resources are packed to 'resources'
+    // Path from Slic3r binary to resources:
+    boost::filesystem::path path_resources = path_to_binary.parent_path() / "resources";
 #else
-    #ifdef _WIN32
-        // The application is packed in the .zip archive in the root,
-        // The resources are packed to 'resources'
-        // Path from Slic3r binary to resources:
-        "resources"
-    #else
-        // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
-        // The resources are packed to 'resources'
-        // Path from Slic3r binary to resources:
-        "../resources"
-    #endif
+    // The application is packed in the .tar.bz archive (or in AppImage) as 'bin/slic3r',
+    // The resources are packed to 'resources'
+    // Path from Slic3r binary to resources:
+    boost::filesystem::path path_resources = path_to_binary.parent_path() / "../resources";
 #endif
-        ;
+
     set_resources_dir(path_resources.string());
     set_var_dir((path_resources / "icons").string());
     set_local_dir((path_resources / "localization").string());

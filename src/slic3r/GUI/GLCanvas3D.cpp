@@ -10,6 +10,7 @@
 #include "../../libslic3r/ClipperUtils.hpp"
 #include "../../libslic3r/PrintConfig.hpp"
 #include "../../libslic3r/GCode/PreviewData.hpp"
+#include "../../libslic3r/Geometry.hpp"
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
@@ -1144,17 +1145,14 @@ GLCanvas3D::Selection::VolumeCache::VolumeCache(const Vec3d& position, const Vec
     , m_rotation(rotation)
     , m_scaling_factor(scaling_factor)
 {
-    m_rotation_matrix = Transform3d::Identity();
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(2), Vec3d::UnitZ()));
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(1), Vec3d::UnitY()));
-    m_rotation_matrix.rotate(Eigen::AngleAxisd(m_rotation(0), Vec3d::UnitX()));
+    m_rotation_matrix = Geometry::assemble_transform(Vec3d::Zero(), m_rotation);
 }
 
 GLCanvas3D::Selection::Selection()
     : m_volumes(nullptr)
     , m_model(nullptr)
     , m_mode(Instance)
-    , m_type(Invalid)
+    , m_type(Empty)
     , m_valid(false)
     , m_bounding_box_dirty(true)
 {
@@ -1409,46 +1407,48 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
     if (!m_valid)
         return;
 
-    Transform3d m = Transform3d::Identity();
-    if (rotation(2) != 0.0f)
-        m.rotate(Eigen::AngleAxisd(rotation(2), Vec3d::UnitZ()));
-    else if (rotation(1) != 0.0f)
-        m.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
-    else if (rotation(0) != 0.0f)
-        m.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
-
-    bool single_full_instance = is_single_full_instance();
+    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
 
     for (unsigned int i : m_list)
     {
-        Vec3d radius = m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center);
-        (*m_volumes)[i]->set_offset(m_cache.dragging_center + radius);
-
-        if (single_full_instance)
+        if (is_single_full_instance())
             (*m_volumes)[i]->set_rotation(rotation);
         else
         {
-            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_rotation_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
-            // extracts euler angles from the composed transformation
-            // not using Eigen eulerAngles() method because it returns weird results
-            // see: https://www.learnopencv.com/rotation-matrix-to-euler-angles/
-            double sy = ::sqrt(sqr(new_rotation_matrix(0, 0)) + sqr(new_rotation_matrix(1, 0)));
+            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
+            Vec3d new_rotation = Geometry::extract_euler_angles(new_matrix);
 
-            Vec3d angles = Vec3d::Zero();
-            if (sy >= 1e-6)
-            {
-                angles(0) = ::atan2(new_rotation_matrix(2, 1), new_rotation_matrix(2, 2));
-                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
-                angles(2) = ::atan2(new_rotation_matrix(1, 0), new_rotation_matrix(0, 0));
-            }
-            else
-            {
-                angles(0) = ::atan2(-new_rotation_matrix(1, 2), new_rotation_matrix(1, 1));
-                angles(1) = ::atan2(-new_rotation_matrix(2, 0), sy);
-                angles(2) = 0.0;
-            }
+            (*m_volumes)[i]->set_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center));
+            (*m_volumes)[i]->set_rotation(new_rotation);
+        }
+    }
 
-            (*m_volumes)[i]->set_rotation(Vec3d(angles(0), angles(1), angles(2)));
+    if (m_mode == Instance)
+        _synchronize_unselected_instances();
+
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::scale(const Vec3d& scale)
+{
+    if (!m_valid)
+        return;
+
+    Transform3d m = Transform3d::Identity();
+    m.scale(scale);
+
+    for (unsigned int i : m_list)
+    {
+        if (is_single_full_instance())
+            (*m_volumes)[i]->set_scaling_factor(scale);
+        else
+        {
+            Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_rotation_matrix()).matrix().block(0, 0, 3, 3);
+            // extracts scaling factors from the composed transformation
+            Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
+
+            (*m_volumes)[i]->set_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_position() - m_cache.dragging_center));
+            (*m_volumes)[i]->set_scaling_factor(new_scale);
         }
     }
 
@@ -2679,8 +2679,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
 wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 
-wxDEFINE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 #if !ENABLE_EXTENDED_SELECTION
+wxDEFINE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
 #endif // !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
@@ -3236,6 +3236,11 @@ void GLCanvas3D::update_gizmos_data()
 #if ENABLE_EXTENDED_SELECTION
     bool enable_move_z = !m_selection.is_wipe_tower();
     m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
+    bool enable_scale_xyz = m_selection.is_single_full_instance();
+    for (int i = 0; i < 6; ++i)
+    {
+        m_gizmos.enable_grabber(Gizmos::Scale, i, enable_scale_xyz);
+    }
 
     if (m_selection.is_single_full_instance())
     {
@@ -3818,11 +3823,21 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Scale:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+            m_regenerate_volumes = false;
+            m_selection.scale(m_gizmos.get_scale());
+            _on_scale();
+#else
             post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
+#endif // ENABLE_EXTENDED_SELECTION
 #else
             m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
             wxGetApp().obj_manipul()->update_scale_values();
+#endif // ENABLE_EXTENDED_SELECTION
             m_dirty = true;
             break;
         }
@@ -3831,8 +3846,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             m_regenerate_volumes = false;
-            const Vec3d& rotation = m_gizmos.get_rotation();
-            m_selection.rotate(rotation);
+            m_selection.rotate(m_gizmos.get_rotation());
             _on_rotate();
 #else
             post_event(Vec3dEvent(EVT_GIZMO_ROTATE, std::move(m_gizmos.get_rotation())));
@@ -4162,15 +4176,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Scale:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-#if ENABLE_EXTENDED_SELECTION
-#else
             // Apply new temporary scale factors
+#if ENABLE_EXTENDED_SELECTION
+            m_selection.scale(m_gizmos.get_scale());
+            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
             const Vec3d& scale = m_gizmos.get_scale();
             for (GLVolume* v : volumes)
             {
                 v->set_scaling_factor(scale);
             }
-            wxGetApp().obj_manipul()->update_scale_values(scale);
+            wxGetApp().obj_manipul()->update_scale_value(scale);
 #endif // ENABLE_EXTENDED_SELECTION
 #else
             // Apply new temporary scale factor
@@ -4186,6 +4202,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+            // Apply new temporary rotations
 #if ENABLE_EXTENDED_SELECTION
             m_selection.rotate(m_gizmos.get_rotation());
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
@@ -4372,7 +4389,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Scale:
             {
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-                post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
+#if ENABLE_EXTENDED_SELECTION
+                m_regenerate_volumes = false;
+                _on_scale();
+#endif // ENABLE_EXTENDED_SELECTION
 #else
                 m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
@@ -6499,6 +6519,42 @@ void GLCanvas3D::_on_rotate()
     }
 
 // schedule_background_process
+}
+
+void GLCanvas3D::_on_scale()
+{
+    if (m_model == nullptr)
+        return;
+
+    std::set<std::pair<int, int>> done;  // prevent scaling instances twice
+    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
+
+    for (unsigned int i : selection)
+    {
+        const GLVolume* v = m_volumes.volumes[i];
+        int object_idx = v->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = v->instance_idx();
+
+        // prevent rotating instances twice
+        std::pair<int, int> done_id(object_idx, instance_idx);
+        if (done.find(done_id) != done.end())
+            continue;
+
+        done.insert(done_id);
+
+        // Rotate instances.
+        ModelObject* model_object = m_model->objects[object_idx];
+        if (model_object != nullptr)
+        {
+            model_object->instances[instance_idx]->set_scaling_factor(v->get_scaling_factor());
+            model_object->invalidate_bounding_box();
+        }
+    }
+
+    // schedule_background_process
 }
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)

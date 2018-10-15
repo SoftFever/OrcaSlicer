@@ -62,7 +62,7 @@ public:
     // update scale values after scale unit changing or "gizmos"
     void update_scale_values();
 #if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    void update_scale_values(const Vec3d& scaling_factor);
+    void update_scale_value(const Vec3d& scaling_factor);
 #else
     void update_scale_values(double scaling_factor);
 #endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
