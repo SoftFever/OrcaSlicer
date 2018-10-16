@@ -552,6 +552,7 @@ private:
 #if ENABLE_EXTENDED_SELECTION
         void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+        void update_on_off_state(const Selection& selection);
 #else
         void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);

@@ -1893,7 +1893,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
     float top_y = 0.5f * (cnv_h - height);
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if (it->second == nullptr)
             continue;
@@ -1903,8 +1903,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
 
         // we currently use circular icons for gizmo, so we check the radius
 #if ENABLE_EXTENDED_SELECTION
-        bool no_wipe_tower = selection.is_wipe_tower() && !it->second->get_accept_wipe_tower();
-        if (!no_wipe_tower && (it->second->get_state() != GLGizmoBase::On))
+        if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
 #else
         if (it->second->get_state() != GLGizmoBase::On)
 #endif // ENABLE_EXTENDED_SELECTION
@@ -1928,7 +1927,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
     float top_y = 0.5f * (cnv_h - height);
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if (it->second == nullptr)
             continue;
@@ -1938,18 +1937,17 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
 
         // we currently use circular icons for gizmo, so we check the radius
 #if ENABLE_EXTENDED_SELECTION
-        bool no_wipe_tower = selection.is_wipe_tower() && !it->second->get_accept_wipe_tower();
-        if (!no_wipe_tower && ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size))
+        if (it->second->is_activable(selection) && ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size))
 #else
         if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
 #endif // ENABLE_EXTENDED_SELECTION
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
-                it->second->set_state(GLGizmoBase::Off);
+                it->second->set_state(GLGizmoBase::Hover);
                 m_current = Undefined;
             }
-            else
+            else if ((it->second->get_state() == GLGizmoBase::Hover))
             {
                 it->second->set_state(GLGizmoBase::On);
                 m_current = it->first;
@@ -1960,7 +1958,26 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
 
         top_y += (tex_size + OverlayGapY);
     }
+
+    GizmosMap::iterator it = m_gizmos.find(m_current);
+    if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
+        it->second->set_state(GLGizmoBase::On);
 }
+
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::update_on_off_state(const Selection& selection)
+{
+    GizmosMap::iterator it = m_gizmos.find(m_current);
+    if ((it != m_gizmos.end()) && (it->second != nullptr))
+    {
+        if (!it->second->is_activable(selection))
+        {
+            it->second->set_state(GLGizmoBase::Off);
+            m_current = Undefined;
+        }
+    }
+}
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::Gizmos::reset_all_states()
 {
@@ -3928,6 +3945,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     else
                         m_selection.add(m_hover_volume_id, !evt.ShiftDown());
 
+                    m_gizmos.update_on_off_state(m_selection);
                     update_gizmos_data();
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
                     m_dirty = true;

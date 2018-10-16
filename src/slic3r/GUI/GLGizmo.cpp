@@ -219,9 +219,6 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
-#if ENABLE_EXTENDED_SELECTION
-    , m_accept_wipe_tower(false)
-#endif // ENABLE_EXTENDED_SELECTION
     , m_hover_id(-1)
     , m_dragging(false)
 {
@@ -1215,10 +1212,6 @@ bool GLGizmoMove3D::on_init()
     {
         m_grabbers.push_back(Grabber());
     }
-
-#if ENABLE_EXTENDED_SELECTION
-    m_accept_wipe_tower = true;
-#endif // ENABLE_EXTENDED_SELECTION
 
     return true;
 }

@@ -59,9 +59,6 @@ protected:
 
     int m_group_id;
     EState m_state;
-#if ENABLE_EXTENDED_SELECTION
-    bool m_accept_wipe_tower;
-#endif // ENABLE_EXTENDED_SELECTION
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
@@ -84,8 +81,7 @@ public:
     void set_state(EState state) { m_state = state; on_set_state(); }
 
 #if ENABLE_EXTENDED_SELECTION
-    bool get_accept_wipe_tower() { return m_accept_wipe_tower; }
-    void set_accept_wipe_tower(bool accept) { m_accept_wipe_tower = accept; }
+    bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
 #endif // ENABLE_EXTENDED_SELECTION
 
     unsigned int get_texture_id() const { return m_textures[m_state].get_id(); }
@@ -125,6 +121,9 @@ protected:
     virtual bool on_init() = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return true; }
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
 #if ENABLE_EXTENDED_SELECTION
@@ -249,6 +248,9 @@ protected:
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
         }
     }
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_enable_grabber(unsigned int id)
     {
         if ((0 <= id) && (id < 3))
@@ -327,6 +329,9 @@ public:
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
+#endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
@@ -449,6 +454,9 @@ public:
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return selection.is_single_full_instance(); }
+#endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
