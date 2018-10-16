@@ -427,12 +427,14 @@ private:
     SourceDataSummary m_source_data;
 
     std::vector<PlaneData> m_planes;
+#if !ENABLE_EXTENDED_SELECTION
     struct InstanceData
     {
         Transform3d matrix;
         InstanceData(const Transform3d& matrix) : matrix(matrix) {}
     };
     std::vector<InstanceData> m_instances;
+#endif // !ENABLE_EXTENDED_SELECTION
     Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 

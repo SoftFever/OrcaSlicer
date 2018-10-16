@@ -118,8 +118,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 #if !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
-#endif // !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 
 
 class GLCanvas3D
@@ -946,6 +946,7 @@ private:
     void _on_move();
     void _on_rotate();
     void _on_scale();
+    void _on_flatten();
 #else
     void _on_move(const std::vector<int>& volume_idxs);
 #endif // ENABLE_EXTENDED_SELECTION

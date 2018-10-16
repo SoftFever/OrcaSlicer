@@ -1482,6 +1482,23 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
         else
             ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
+#if ENABLE_EXTENDED_SELECTION
+        int instance_idx = selection.get_instance_idx();
+        if ((instance_idx != -1) && (m_model_object != nullptr))
+        {
+            Transform3d m = m_model_object->instances[instance_idx]->world_matrix();
+            m.pretranslate(dragged_offset);
+            ::glPushMatrix();
+            ::glMultMatrixd(m.data());
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
+            }
+            ::glEnd();
+            ::glPopMatrix();
+        }
+#else
         for (const InstanceData& inst : m_instances) {
             Transform3d m = inst.matrix;
             m.pretranslate(dragged_offset);
@@ -1493,6 +1510,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
             ::glEnd();
             ::glPopMatrix();
         }
+#endif // ENABLE_EXTENDED_SELECTION
     }
 
     ::glDisable(GL_BLEND);
@@ -1509,6 +1527,21 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+#if ENABLE_EXTENDED_SELECTION
+        int instance_idx = selection.get_instance_idx();
+        if ((instance_idx != -1) && (m_model_object != nullptr))
+        {
+            ::glPushMatrix();
+            ::glMultMatrixd(m_model_object->instances[instance_idx]->world_matrix().data());
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
+            }
+            ::glEnd();
+            ::glPopMatrix();
+        }
+#else
         for (const InstanceData& inst : m_instances) {
             ::glPushMatrix();
             ::glMultMatrixd(inst.matrix.data());
@@ -1518,6 +1551,7 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
             ::glEnd();
             ::glPopMatrix();
         }
+#endif // ENABLE_EXTENDED_SELECTION
     }
 }
 
@@ -1525,12 +1559,14 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_model_object = model_object;
 
+#if !ENABLE_EXTENDED_SELECTION
     // ...and save the updated positions of the object instances:
     if (m_model_object && !m_model_object->instances.empty()) {
         m_instances.clear();
         for (const auto* instance : m_model_object->instances)
             m_instances.emplace_back(instance->world_matrix());
     }
+#endif // !ENABLE_EXTENDED_SELECTION
 
     if (is_plane_update_necessary())
         update_planes();

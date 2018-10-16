@@ -1346,7 +1346,7 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     int object_idx = m_valid ? get_object_idx() : -1;
     if (object_idx != -1)
     {
-        if (get_instance_idx() != -1)
+        if ((object_idx != -1) && (object_idx < 1000))
             return m_model->objects[object_idx]->volumes.size() == m_list.size();
     }
 
@@ -1653,7 +1653,7 @@ void GLCanvas3D::Selection::_calc_bounding_box() const
     {
         for (unsigned int i : m_list)
         {
-            m_bounding_box.merge((*m_volumes)[i]->transformed_bounding_box());
+            m_bounding_box.merge((*m_volumes)[i]->transformed_convex_hull_bounding_box());
         }
     }
     m_bounding_box_dirty = false;
@@ -1702,7 +1702,7 @@ void GLCanvas3D::Selection::_render_unselected_instances() const
             if (it == boxes.end())
                 it = boxes.insert(InstanceToBoxMap::value_type(box_id, BoundingBoxf3())).first;
 
-            it->second.merge(v->transformed_bounding_box());
+            it->second.merge(v->transformed_convex_hull_bounding_box());
 
             done.insert(j);
         }
@@ -2081,6 +2081,9 @@ bool GLCanvas3D::Gizmos::is_running() const
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
+    if (!m_enabled)
+        return false;
+
     GLGizmoBase* curr = _get_current();
     return (curr != nullptr) ? curr->is_dragging() : false;
 }
@@ -2088,6 +2091,9 @@ bool GLCanvas3D::Gizmos::is_dragging() const
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
 {
+    if (!m_enabled)
+        return;
+
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->start_dragging(selection);
@@ -2095,6 +2101,9 @@ void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
 #else
 void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 {
+    if (!m_enabled)
+        return;
+
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->start_dragging(box);
@@ -2103,6 +2112,9 @@ void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 
 void GLCanvas3D::Gizmos::stop_dragging()
 {
+    if (!m_enabled)
+        return;
+
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->stop_dragging();
@@ -2650,8 +2662,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 #if !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
-#endif // !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
@@ -3784,7 +3796,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_selection.scale(m_gizmos.get_scale());
             _on_scale();
 #else
-            m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
+            post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
 #endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
@@ -3879,7 +3891,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
                 // Rotate the object so the normal points downward:
+#if ENABLE_EXTENDED_SELECTION
+                m_regenerate_volumes = false;
+                m_selection.rotate(m_gizmos.get_flattening_rotation());
+                _on_flatten();
+                wxGetApp().obj_manipul()->update_settings_value(m_selection);
+#else
                 post_event(Vec3dEvent(EVT_GIZMO_FLATTEN, m_gizmos.get_flattening_rotation()));
+#endif // ENABLE_EXTENDED_SELECTION
             }
 
             m_dirty = true;
@@ -5002,7 +5021,7 @@ void GLCanvas3D::_render_objects() const
 void GLCanvas3D::_render_selection() const
 {
     Gizmos::EType type = m_gizmos.get_current_type();
-    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale));
+    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale) || (type == Gizmos::Flatten));
     m_selection.render(show_indirect_selection);
 }
 #endif // ENABLE_EXTENDED_SELECTION
@@ -6354,11 +6373,9 @@ void GLCanvas3D::_on_move()
     std::set<std::pair<int, int>> done;  // prevent moving instances twice
     bool object_moved = false;
     Vec3d wipe_tower_origin = Vec3d::Zero();
-    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
-    for (unsigned int i : selection)
+    for (const GLVolume* v : m_volumes.volumes)
     {
-        const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
         int instance_idx = v->instance_idx();
 
@@ -6398,11 +6415,9 @@ void GLCanvas3D::_on_rotate()
         return;
 
     std::set<std::pair<int, int>> done;  // prevent rotating instances twice
-    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
-    for (unsigned int i : selection)
+    for (const GLVolume* v : m_volumes.volumes)
     {
-        const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
         if (object_idx >= 1000)
             continue;
@@ -6434,18 +6449,16 @@ void GLCanvas3D::_on_scale()
         return;
 
     std::set<std::pair<int, int>> done;  // prevent scaling instances twice
-    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
-    for (unsigned int i : selection)
+    for (const GLVolume* v : m_volumes.volumes)
     {
-        const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
         if (object_idx >= 1000)
             continue;
 
         int instance_idx = v->instance_idx();
 
-        // prevent rotating instances twice
+        // prevent scaling instances twice
         std::pair<int, int> done_id(object_idx, instance_idx);
         if (done.find(done_id) != done.end())
             continue;
@@ -6463,6 +6476,12 @@ void GLCanvas3D::_on_scale()
 
     // schedule_background_process
 }
+
+void GLCanvas3D::_on_flatten()
+{
+    _on_rotate();
+}
+
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 {
