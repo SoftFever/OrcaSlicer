@@ -1,3 +1,21 @@
+#
+# This CMake project downloads, configures and builds Slic3r PE dependencies on Unix and Windows.
+#
+# When using this script, it's recommended to perform an out-of-source build using CMake.
+#
+# All the dependencies are installed in a `destdir` directory in the root of the build directory,
+# in a traditional Unix-style prefix structure. The destdir can be used directly by CMake
+# when building Slic3r - to do this, set the CMAKE_PREFIX_PATH to the destdir's location.
+#
+# For better clarity of console output, it's recommended to _not_ use a parallelized build
+# for the top-level command, ie. use `make -j 1` or `ninja -j 1` to force single-threaded top-level
+# build. This doesn't degrade performance as individual dependencies are built in parallel fashion
+# as appropriate anyway (cf. the `NPROC` variable).
+#
+# On Windows, architecture (64 vs 32 bits) is judged based on the compiler variant.
+# To build dependencies for either 64 or 32 bit OS, use the respective compiler command line.
+#
+
 project(Slic3r-deps)
 cmake_minimum_required(VERSION 3.2)
 
@@ -9,28 +27,27 @@ if (NPROC EQUAL 0)
     set(NPROC 1)
 endif ()
 
+set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir")
+
 if (MSVC)
-    set(DEPS_BITS 64)
-    set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir-64")
-    include("deps-windows.cmake")
-    add_custom_target(deps_64
-        DEPENDS dep_boost_64 dep_tbb_64 dep_libcurl_64 dep_wxwidgets_64
-    )
-
-    set(DEPS_BITS 32)
-    set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir-32")
-    include("deps-windows.cmake")
-    add_custom_target(deps_32
-        DEPENDS dep_boost_32 dep_tbb_32 dep_libcurl_32 dep_wxwidgets_32
-    )
+    if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
+        message(STATUS "\nDetected 64-bit compiler => building 64-bit deps bundle\n")
+        set(DEPS_BITS 64)
+        include("deps-windows.cmake")
+    elseif ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "4")
+        message(STATUS "\nDetected 32-bit compiler => building 32-bit deps bundle\n")
+        set(DEPS_BITS 32)
+        include("deps-windows.cmake")
+    else ()
+        message(FATAL_ERROR "Unable to detect architecture")
+    endif ()
 else ()
-    set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir")
     include("deps-unix-static.cmake")
-
-    add_custom_target(deps ALL
-        DEPENDS dep_boost dep_tbb dep_libcurl dep_wxwidgets
-    )
 endif()
+
+add_custom_target(deps ALL
+    DEPENDS dep_boost dep_tbb dep_libcurl dep_wxwidgets
+)
 
 # Note: I'm not using any of the LOG_xxx options in ExternalProject_Add() commands
 # because they seem to generate bogus build files (possibly a bug in ExternalProject).

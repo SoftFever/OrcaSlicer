@@ -1,5 +1,5 @@
 
-ExternalProject_Add("dep_boost_${DEPS_BITS}"
+ExternalProject_Add(dep_boost
     EXCLUDE_FROM_ALL 1
     URL "https://dl.bintray.com/boostorg/release/1.63.0/source/boost_1_63_0.tar.gz"
     URL_HASH SHA256=fe34a4e119798e10b8cc9e565b3b0284e9fd3977ec8a1b19586ad1dec397088b
@@ -25,13 +25,13 @@ ExternalProject_Add("dep_boost_${DEPS_BITS}"
 )
 
 
-if ($DEPS_BITS EQUAL 32)
+if (${DEPS_BITS} EQUAL 32)
     set(DEP_TBB_GEN "Visual Studio 12")
 else ()
     set(DEP_TBB_GEN "Visual Studio 12 Win64")
 endif ()
 
-ExternalProject_Add("dep_tbb_${DEPS_BITS}"
+ExternalProject_Add(dep_tbb
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/wjakob/tbb/archive/a0dc9bf76d0120f917b641ed095360448cabc85b.tar.gz"
     URL_HASH SHA256=0545cb6033bd1873fcae3ea304def720a380a88292726943ae3b9b207f322efe
@@ -46,13 +46,13 @@ ExternalProject_Add("dep_tbb_${DEPS_BITS}"
 )
 
 
-if ($DEPS_BITS EQUAL 32)
+if (${DEPS_BITS} EQUAL 32)
     set(DEP_LIBCURL_TARGET "x86")
 else ()
     set(DEP_LIBCURL_TARGET "x64")
 endif ()
 
-ExternalProject_Add("dep_libcurl_${DEPS_BITS}"
+ExternalProject_Add(dep_libcurl
     EXCLUDE_FROM_ALL 1
     URL "https://curl.haxx.se/download/curl-7.58.0.tar.gz"
     URL_HASH SHA256=cc245bf9a1a42a45df491501d97d5593392a03f7b4f07b952793518d97666115
@@ -64,7 +64,7 @@ ExternalProject_Add("dep_libcurl_${DEPS_BITS}"
         && "${CMAKE_COMMAND}" -E copy_directory lib "${DESTDIR}\\usr\\local\\lib"
 )
 
-if ($DEPS_BITS EQUAL 32)
+if (${DEPS_BITS} EQUAL 32)
     set(DEP_WXWIDGETS_TARGET "")
     set(DEP_WXWIDGETS_LIBDIR "vc_lib")
 else ()
@@ -72,7 +72,7 @@ else ()
     set(DEP_WXWIDGETS_LIBDIR "vc_x64_lib")
 endif ()
 
-ExternalProject_Add("dep_wxwidgets_${DEPS_BITS}"
+ExternalProject_Add(dep_wxwidgets
     EXCLUDE_FROM_ALL 1
     URL "https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.1/wxWidgets-3.1.1.tar.bz2"
     URL_HASH SHA256=c925dfe17e8f8b09eb7ea9bfdcfcc13696a3e14e92750effd839f5e10726159e
