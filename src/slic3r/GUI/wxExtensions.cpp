@@ -607,7 +607,7 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volu
     return wxDataViewItem(0);
 }
 
-int PrusaObjectDataViewModel::GetIdByItem(wxDataViewItem& item)
+int PrusaObjectDataViewModel::GetIdByItem(const wxDataViewItem& item)
 {
 	wxASSERT(item.IsOk());
 

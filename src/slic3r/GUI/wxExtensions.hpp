@@ -422,7 +422,7 @@ public:
     void DeleteChildren(wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
-	int GetIdByItem(wxDataViewItem& item);
+	int GetIdByItem(const wxDataViewItem& item);
 	int GetVolumeIdByItem(const wxDataViewItem& item);
     void GetObjectAndVolumeIdsByItem(const wxDataViewItem& item, int& obj_idx, int& vol_idx);
     bool IsEmpty() { return m_objects.empty(); }

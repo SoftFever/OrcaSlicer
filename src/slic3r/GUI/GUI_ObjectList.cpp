@@ -1191,7 +1191,7 @@ void ObjectList::update_selections_on_canvas()
         return;
     }
 
-    auto add_to_selection = [this](wxDataViewItem& item, GLCanvas3D::Selection& selection, bool as_single_selection)
+    auto add_to_selection = [this](const wxDataViewItem& item, GLCanvas3D::Selection& selection, bool as_single_selection)
     {        
         if (m_objects_model->GetParent(item) == wxDataViewItem(0)){
             selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
