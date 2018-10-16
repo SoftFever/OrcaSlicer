@@ -13,13 +13,15 @@ if (MSVC)
     set(DEPS_BITS 64)
     set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir-64")
     include("deps-windows.cmake")
+    add_custom_target(deps_64
+        DEPENDS dep_boost_64 dep_tbb_64 dep_libcurl_64 dep_wxwidgets_64
+    )
+
     set(DEPS_BITS 32)
     set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir-32")
     include("deps-windows.cmake")
-
-    add_custom_target(deps ALL
-        DEPENDS dep_boost_64 dep_tbb_64 dep_libcurl_64 dep_wxwidgets_64
-        #         dep_boost_32 dep_tbb_32 dep_libcurl_32 dep_wxwidgets_32
+    add_custom_target(deps_32
+        DEPENDS dep_boost_32 dep_tbb_32 dep_libcurl_32 dep_wxwidgets_32
     )
 else ()
     set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir")
