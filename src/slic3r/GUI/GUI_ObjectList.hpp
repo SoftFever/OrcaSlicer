@@ -22,9 +22,9 @@ class ObjectList : public wxDataViewCtrl
 
     DynamicPrintConfig  *m_default_config {nullptr};
 
-    wxBitmap	m_icon_modifiermesh;
-    wxBitmap	m_icon_solidmesh;
-    wxBitmap	m_icon_manifold_warning;
+    wxBitmap	m_bmp_modifiermesh;
+    wxBitmap	m_bmp_solidmesh;
+    wxBitmap	m_bmp_manifold_warning;
     wxBitmap	m_bmp_cog;
     wxBitmap	m_bmp_split;
 
@@ -87,7 +87,8 @@ public:
     void                load_lambda(const std::string& type_name);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
-    bool                del_subobject_from_object(const int obj_idx, const int vol_idx);
+    void                del_instances_from_object(const int obj_idx);
+    bool                del_subobject_from_object(const int obj_idx, const int idx, const int type);
     void                split(const bool split_part);
     bool                get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume);
     bool                is_splittable_object(const bool split_part);

@@ -2019,6 +2019,7 @@ void Plater::changed_object_settings(int obj_idx)
         _3DScene::set_objects_selections(p->canvas3D, selections);
 #endif // !ENABLE_EXTENDED_SELECTION
         _3DScene::reload_scene(p->canvas3D, false);
+        _3DScene::zoom_to_volumes(p->canvas3D);
     }
     else {
 //         schedule_background_process();

@@ -194,6 +194,15 @@ DECLARE_VARIANT_OBJECT(PrusaDataViewBitmapText)
 // PrusaObjectDataViewModelNode: a node inside PrusaObjectDataViewModel
 // ----------------------------------------------------------------------------
 
+enum ItemType{
+    itUndef,
+    itObject,
+    itVolume,
+    itInstanceRoot,
+    itInstance,
+    itSettings
+};
+
 class PrusaObjectDataViewModelNode;
 WX_DEFINE_ARRAY_PTR(PrusaObjectDataViewModelNode*, MyObjectTreeModelNodePtrArray);
 
@@ -201,7 +210,6 @@ class PrusaObjectDataViewModelNode
 {
 	PrusaObjectDataViewModelNode*	m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
-    wxIcon                          m_empty_icon;
     wxBitmap                        m_empty_bmp;
     std::vector< std::string >      m_opt_categories;
 public:
@@ -209,8 +217,7 @@ public:
 		m_parent	= NULL;
 		m_name		= name;
 		m_copy		= wxString::Format("%d", instances_count);
-		m_type		= "object";
-		m_volume_id	= -1;
+		m_type		= itObject;
 #ifdef __WXGTK__
         // it's necessary on GTK because of control have to know if this item will be container
         // in another case you couldn't to add subitem for this item
@@ -224,13 +231,13 @@ public:
 									const wxString& sub_obj_name, 
 									const wxBitmap& bmp, 
                                     const wxString& extruder, 
-									const int volume_id=-1) {
+                                    const int idx = -1 ) {
 		m_parent	= parent;
 		m_name		= sub_obj_name;
 		m_copy		= wxEmptyString;
 		m_bmp		= bmp;
-		m_type		= "volume";
-		m_volume_id = volume_id;
+		m_type		= itVolume;
+        m_idx       = idx;
         m_extruder = extruder;
 #ifdef __WXGTK__
         // it's necessary on GTK because of control have to know if this item will be container
@@ -241,12 +248,23 @@ public:
 		set_part_action_icon();
     }
 
-    PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent) :
+    PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent, const ItemType type = itSettings) :
                                     m_parent(parent),
-                                    m_name("Settings to modified"),
                                     m_copy(wxEmptyString),
-                                    m_type("settings"),
-                                    m_extruder(wxEmptyString) {}
+                                    m_type(type),
+                                    m_extruder(wxEmptyString)
+	{
+        if (type == itSettings) {
+            m_name = "Settings to modified";
+        }
+        else if (type == itInstanceRoot) {
+            m_name = "Instances";            
+        }
+        else if (type == itInstance) {
+            m_name = wxString::Format("Instances_%d", parent->GetChildCount() + 1);
+            m_idx = parent->GetChildCount();
+        }
+	}
 
 	~PrusaObjectDataViewModelNode()
 	{
@@ -260,11 +278,10 @@ public:
 	}
 	
 	wxString				m_name;
-	wxIcon&					m_icon = m_empty_icon;
     wxBitmap&               m_bmp = m_empty_bmp;
 	wxString				m_copy;
-	std::string				m_type;
-	int						m_volume_id = -2;
+    ItemType				m_type;
+    int                     m_idx = -1;
 	bool					m_container = false;
 	wxString				m_extruder = "default";
 	wxBitmap				m_action_icon;
@@ -341,28 +358,21 @@ public:
 		}
 		return false;
 	}
-	void SetIcon(const wxIcon &icon)
-	{
-		m_icon = icon;
-	}
 
 	void SetBitmap(const wxBitmap &icon)
 	{
 		m_bmp = icon;
 	}
-	
-	void SetType(const std::string& type){
-		m_type = type;
-	}	
-	const std::string& GetType(){
-		return m_type;
-	}
 
-	void SetVolumeId(const int& volume_id){
-		m_volume_id = volume_id;
+    ItemType GetType() const {
+        return m_type;
+    }
+
+	void SetIdx(const int& idx) {
+		m_idx = idx;
 	}
-	const int& GetVolumeId(){
-		return m_volume_id;
+	int GetIdx() const {
+		return m_idx;
 	}
 
 	// use this function only for childrens
@@ -370,9 +380,10 @@ public:
 	{
 		// ! Don't overwrite other values because of equality of this values for all children --
 		m_name = from_node.m_name;
-		m_icon = from_node.m_icon;
-		m_volume_id = from_node.m_volume_id;
-		m_extruder = from_node.m_extruder;
+        m_bmp = from_node.m_bmp;
+        m_idx = from_node.m_idx;
+        m_extruder = from_node.m_extruder;
+        m_type = from_node.m_type;
 	}
 
 	bool SwapChildrens(int frst_id, int scnd_id) {
@@ -384,8 +395,8 @@ public:
 		PrusaObjectDataViewModelNode new_scnd = *GetNthChild(frst_id);
 		PrusaObjectDataViewModelNode new_frst = *GetNthChild(scnd_id);
 
-		new_scnd.m_volume_id = m_children.Item(scnd_id)->m_volume_id;
-		new_frst.m_volume_id = m_children.Item(frst_id)->m_volume_id;
+        new_scnd.m_idx = m_children.Item(scnd_id)->m_idx;
+        new_frst.m_idx = m_children.Item(frst_id)->m_idx;
 
 		m_children.Item(frst_id)->AssignAllVal(new_frst);
 		m_children.Item(scnd_id)->AssignAllVal(new_scnd);
@@ -422,16 +433,15 @@ public:
     void DeleteChildren(wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
-	int GetIdByItem(wxDataViewItem& item);
+	int GetIdByItem(const wxDataViewItem& item);
 	int GetVolumeIdByItem(const wxDataViewItem& item);
-    void GetObjectAndVolumeIdsByItem(const wxDataViewItem& item, int& obj_idx, int& vol_idx);
+    void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
     bool IsEmpty() { return m_objects.empty(); }
 
 	// helper method for wxLog
 
 	wxString GetName(const wxDataViewItem &item) const;
 	wxString GetCopy(const wxDataViewItem &item) const;
-	wxIcon&  GetIcon(const wxDataViewItem &item) const;
     wxBitmap& GetBitmap(const wxDataViewItem &item) const;
 
 	// helper methods to change the model
@@ -445,8 +455,8 @@ public:
 		const wxDataViewItem &item, unsigned int col) override;
 	bool SetValue(const wxVariant &variant, const int item_idx, unsigned int col);
 
-	wxDataViewItem MoveChildUp(const wxDataViewItem &item);
-	wxDataViewItem MoveChildDown(const wxDataViewItem &item);
+// 	wxDataViewItem MoveChildUp(const wxDataViewItem &item);
+// 	wxDataViewItem MoveChildDown(const wxDataViewItem &item);
     // For parent move child from cur_volume_id place to new_volume_id 
     // Remaining items will moved up/down accordingly
     wxDataViewItem ReorganizeChildren(int cur_volume_id, 
@@ -464,7 +474,8 @@ public:
 	// In our case it is an item with all columns 
 	virtual bool HasContainerColumns(const wxDataViewItem& WXUNUSED(item)) const override {	return true; }
 
-    wxDataViewItem    HasSettings(const wxDataViewItem &item) const;
+    ItemType GetItemType(const wxDataViewItem &item) const ;
+    wxDataViewItem    GetSettingsItem(const wxDataViewItem &item) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
     void    UpdateSettingsDigest(const wxDataViewItem &item, const std::vector<std::string>& categories);
 };
