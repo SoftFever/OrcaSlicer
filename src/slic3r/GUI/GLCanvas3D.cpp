@@ -2661,7 +2661,11 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+#else
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
+#endif // ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
@@ -6551,7 +6555,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 {
 #if ENABLE_EXTENDED_SELECTION
-    post_event(ObjectSelectEvent(object_idx, -1));
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 #else
     int vol_id = -1;
     int obj_id = -1;

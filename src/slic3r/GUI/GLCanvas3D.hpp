@@ -81,7 +81,9 @@ public:
     void set_bottom(float bottom);
 };
 
-
+#if ENABLE_EXTENDED_SELECTION
+wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+#else
 struct ObjectSelectEvent;
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
 struct ObjectSelectEvent : public ArrayEvent<ptrdiff_t, 2>
@@ -93,6 +95,7 @@ struct ObjectSelectEvent : public ArrayEvent<ptrdiff_t, 2>
     ptrdiff_t object_id() const { return data[0]; }
     ptrdiff_t volume_id() const { return data[1]; }
 };
+#endif // ENABLE_EXTENDED_SELECTION
 
 using Vec2dEvent = Event<Vec2d>;
 template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;

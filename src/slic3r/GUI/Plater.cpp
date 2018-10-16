@@ -672,7 +672,6 @@ std::vector<PresetComboBox*>& Sidebar::combos_filament()
     return p->combos_filament;
 }
 
-
 // Plater::Object
 
 struct PlaterObject
@@ -801,7 +800,11 @@ struct Plater::priv
     void on_action_selectbyparts(SimpleEvent&);
 #endif // !ENABLE_EXTENDED_SELECTION
 
+#if ENABLE_EXTENDED_SELECTION
+    void on_object_select(SimpleEvent&);
+#else
     void on_object_select(ObjectSelectEvent&);
+#endif // ENABLE_EXTENDED_SELECTION
     void on_viewport_changed(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
     void on_model_update(SimpleEvent&);
@@ -1253,17 +1256,27 @@ optional<size_t> Plater::priv::selected_object() const
 
 void Plater::priv::selection_changed()
 {
-    // TODO
+#if ENABLE_EXTENDED_SELECTION
+    const GUI::GLCanvas3D* canvas = _3DScene::get_canvas(this->canvas3D);
+    const GUI::GLCanvas3D::Selection& selection = canvas->get_selection();
 
+    int obj_idx = selection.get_object_idx();
+    bool have_sel = !selection.is_empty() && (0 <= obj_idx) && (obj_idx < 1000);
+#else
     const auto obj_idx = selected_object();
     const bool have_sel = !!obj_idx;
+#endif // ENABLE_EXTENDED_SELECTION
     const bool layers_height_allowed = config->opt<ConfigOptionBool>("variable_layer_height")->value;
 
     wxWindowUpdateLocker freeze_guard(sidebar);
 
     _3DScene::enable_toolbar_item(canvas3D, "delete", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "more", have_sel);
+#if ENABLE_EXTENDED_SELECTION
+    _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel && (model.objects[obj_idx]->instances.size() > 1));
+#else
     _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel);
+#endif // ENABLE_EXTENDED_SELECTION
     _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
@@ -1272,18 +1285,14 @@ void Plater::priv::selection_changed()
 
 #if !ENABLE_EXTENDED_SELECTION
     bool can_select_by_parts = false;
-#endif // !ENABLE_EXTENDED_SELECTION
 
     if (have_sel) {
         const auto *model_object = model.objects[*obj_idx];
-#if !ENABLE_EXTENDED_SELECTION
         // XXX: ?
         can_select_by_parts = *obj_idx < 1000 && model_object->volumes.size() > 1;
-#endif // !ENABLE_EXTENDED_SELECTION
         _3DScene::enable_toolbar_item(canvas3D, "fewer", model_object->instances.size() > 1);
     }
 
-#if !ENABLE_EXTENDED_SELECTION
     if (can_select_by_parts) {
         // first disable to let the item in the toolbar to switch to the unpressed state   // XXX: ?
         _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", false);
@@ -1295,12 +1304,15 @@ void Plater::priv::selection_changed()
 #endif // !ENABLE_EXTENDED_SELECTION
 
     if (have_sel) {
+#if ENABLE_EXTENDED_SELECTION
+        const ModelObject* model_object = model.objects[obj_idx];
+#else
         const auto *model_object = model.objects[*obj_idx];
+#endif // ENABLE_EXTENDED_SELECTION
         // FIXME print_info runs model fixing in two rounds, it is very slow, it should not be performed here!
         // # $model_object->print_info;
 
-        // my $model_instance = $model_object->instances->[0];
-        const auto *model_instance = model_object->instances[0];
+        const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
         // TODO
         // $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$model_object->instance_bounding_box(0)->size}));
         // $self->{object_info_materials}->SetLabel($model_object->materials_count);
@@ -1611,6 +1623,14 @@ void Plater::priv::on_action_selectbyparts(SimpleEvent&)
 }
 #endif // !ENABLE_EXTENDED_SELECTION
 
+#if ENABLE_EXTENDED_SELECTION
+void Plater::priv::on_object_select(SimpleEvent& evt)
+{
+    selection_changed();
+    item_changed_selection();
+    wxGetApp().obj_list()->update_selections();
+}
+#else
 void Plater::priv::on_object_select(ObjectSelectEvent &evt)
 {
     const auto obj_idx = evt.object_id();
@@ -1621,10 +1641,8 @@ void Plater::priv::on_object_select(ObjectSelectEvent &evt)
         select_object(obj_idx);
         item_changed_selection();
     }
-#if ENABLE_EXTENDED_SELECTION
-    wxGetApp().obj_list()->update_selections();
-#endif // ENABLE_EXTENDED_SELECTION
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::on_viewport_changed(SimpleEvent& evt)
 {
