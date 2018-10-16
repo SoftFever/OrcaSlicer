@@ -295,7 +295,6 @@ ModelMaterial::attributes()
     Ref<ModelObject> object()
         %code%{ RETVAL = THIS->get_object(); %};
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d* rotation()
         %code%{ RETVAL = new Vec3d(THIS->get_rotation(X), THIS->get_rotation(Y), THIS->get_rotation(Z)); %};
         
@@ -322,25 +321,6 @@ ModelMaterial::attributes()
             THIS->set_offset(X, (*offset)(0));
             THIS->set_offset(Y, (*offset)(1));
         %};
-#else
-    double rotation()
-        %code%{ RETVAL = THIS->rotation; %};
-        
-    double scaling_factor()
-        %code%{ RETVAL = THIS->scaling_factor; %};
-        
-    Ref<Vec2d> offset()
-        %code%{ RETVAL = &THIS->offset; %};
-        
-    void set_rotation(double val)
-        %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
-        
-    void set_scaling_factor(double val)
-        %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
-        
-    void set_offset(Vec2d *offset)
-        %code%{ THIS->offset = *offset; %};
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     void transform_polygon(Polygon* polygon) const;

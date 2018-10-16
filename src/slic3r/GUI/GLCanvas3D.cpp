@@ -1830,11 +1830,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     if (!gizmo->init())
         return false;
 
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    // temporary disable z grabber
-    gizmo->disable_grabber(2);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
     gizmo = new GLGizmoScale3D(parent);
@@ -1843,18 +1838,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     if (!gizmo->init())
         return false;
-
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    // temporary disable x grabbers
-    gizmo->disable_grabber(0);
-    gizmo->disable_grabber(1);
-    // temporary disable y grabbers
-    gizmo->disable_grabber(2);
-    gizmo->disable_grabber(3);
-    // temporary disable z grabbers
-    gizmo->disable_grabber(4);
-    gizmo->disable_grabber(5);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
@@ -1870,12 +1853,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
         _reset();
         return false;
     }
-
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    // temporary disable x and y grabbers
-    gizmo->disable_grabber(0);
-    gizmo->disable_grabber(1);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
@@ -2161,7 +2138,6 @@ void GLCanvas3D::Gizmos::set_position(const Vec3d& position)
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 Vec3d GLCanvas3D::Gizmos::get_scale() const
 {
     if (!m_enabled)
@@ -2208,54 +2184,6 @@ Vec3d GLCanvas3D::Gizmos::get_flattening_rotation() const
     GizmosMap::const_iterator it = m_gizmos.find(Flatten);
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_rotation() : Vec3d::Zero();
 }
-#else
-float GLCanvas3D::Gizmos::get_scale() const
-{
-    if (!m_enabled)
-        return 1.0f;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Scale);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale3D*>(it->second)->get_scale_x() : 1.0f;
-}
-
-void GLCanvas3D::Gizmos::set_scale(float scale)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Scale);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoScale3D*>(it->second)->set_scale(scale);
-}
-
-float GLCanvas3D::Gizmos::get_angle_z() const
-{
-    if (!m_enabled)
-        return 0.0f;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate3D*>(it->second)->get_angle_z() : 0.0f;
-}
-
-void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
-}
-
-Vec3d GLCanvas3D::Gizmos::get_flattening_normal() const
-{
-    if (!m_enabled)
-        return Vec3d::Zero();
-
-    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Vec3d::Zero();
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
 {
@@ -3306,15 +3234,9 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 m_gizmos.set_position(model_instance->get_offset());
                 m_gizmos.set_scale(model_instance->get_scaling_factor());
                 m_gizmos.set_rotation(model_instance->get_rotation());
-#else
-                m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
-                m_gizmos.set_scale(model_instance->scaling_factor);
-                m_gizmos.set_angle_z(model_instance->rotation);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 m_gizmos.set_flattening_data(model_object);
             }
         }
@@ -3322,13 +3244,8 @@ void GLCanvas3D::update_gizmos_data()
     else
     {
         m_gizmos.set_position(Vec3d::Zero());
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_gizmos.set_scale(Vec3d::Ones());
         m_gizmos.set_rotation(Vec3d::Zero());
-#else
-        m_gizmos.set_scale(1.0f);
-        m_gizmos.set_angle_z(0.0f);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_gizmos.set_flattening_data(nullptr);
     }
 #endif // ENABLE_EXTENDED_SELECTION
@@ -3862,17 +3779,13 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
         case Gizmos::Scale:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             m_regenerate_volumes = false;
             m_selection.scale(m_gizmos.get_scale());
             _on_scale();
 #else
-            post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
-#endif // ENABLE_EXTENDED_SELECTION
-#else
             m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
 #else
@@ -3883,7 +3796,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         case Gizmos::Rotate:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             m_regenerate_volumes = false;
             m_selection.rotate(m_gizmos.get_rotation());
@@ -3891,9 +3803,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
             post_event(Vec3dEvent(EVT_GIZMO_ROTATE, std::move(m_gizmos.get_rotation())));
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
 #else
@@ -3969,18 +3878,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_EXTENDED_SELECTION
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 // Rotate the object so the normal points downward:
                 post_event(Vec3dEvent(EVT_GIZMO_FLATTEN, m_gizmos.get_flattening_rotation()));
-#else
-                // Rotate the object so the normal points downward:
-                Vec3d normal = m_gizmos.get_flattening_normal();
-                if (normal(0) != 0.0 || normal(1) != 0.0 || normal(2) != 0.0) {
-                    Vec3d axis = normal(2) > 0.999 ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ()).normalized();
-                    float angle = acos(clamp(-1.0, 1.0, -normal(2)));
-                    m_on_gizmo_flatten_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
-                }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             }
 
             m_dirty = true;
@@ -4215,7 +4114,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         case Gizmos::Scale:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             // Apply new temporary scale factors
 #if ENABLE_EXTENDED_SELECTION
             m_selection.scale(m_gizmos.get_scale());
@@ -4228,20 +4126,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             wxGetApp().obj_manipul()->update_scale_value(scale);
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            // Apply new temporary scale factor
-            float scale_factor = m_gizmos.get_scale();
-            for (GLVolume* v : volumes)
-            {
-                v->set_scaling_factor((double)scale_factor);
-            }
-            wxGetApp().obj_manipul()->update_scale_values((double)scale_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             break;
         }
         case Gizmos::Rotate:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             // Apply new temporary rotations
 #if ENABLE_EXTENDED_SELECTION
             m_selection.rotate(m_gizmos.get_rotation());
@@ -4255,15 +4143,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             wxGetApp().obj_manipul()->update_rotation_value(rotation);
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            // Apply new temporary angle_z
-            float angle_z = m_gizmos.get_angle_z();
-            for (GLVolume* v : volumes)
-            {
-                v->set_rotation((double)angle_z);
-            }
-            update_rotation_value((double)angle_z, Z);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             break;
         }
         default:
@@ -4280,12 +4159,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 bb.merge(volume->transformed_bounding_box());
             }
             const Vec3d& size = bb.size();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             const Vec3d& scale = m_gizmos.get_scale();
             post_event(Vec3dsEvent<2>(EVT_GLCANVAS_UPDATE_GEOMETRY, {size, scale}));
-#else
-            m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -4428,28 +4303,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             case Gizmos::Scale:
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
                 m_regenerate_volumes = false;
                 _on_scale();
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-                m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 break;
             }
             case Gizmos::Rotate:
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
                 m_regenerate_volumes = false;
                 _on_rotate();
 #else
                 post_event(Vec3dEvent(EVT_GIZMO_ROTATE, m_gizmos.get_rotation()));
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 break;
             }
             default:
@@ -6625,12 +6492,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
             ModelObject* model_object = m_model->objects[obj_idx];
             if (model_object != nullptr)
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 model_object->instances[instance_idx]->set_offset(volume->get_offset());
-#else
-                const Vec3d& offset = volume->get_offset();
-                model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 model_object->invalidate_bounding_box();
                 wxGetApp().obj_manipul()->update_position_values();
                 object_moved = true;

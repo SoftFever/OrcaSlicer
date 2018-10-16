@@ -589,7 +589,6 @@ private:
         void set_position(const Vec3d& position);
 #endif // ENABLE_EXTENDED_SELECTION
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d get_scale() const;
         void set_scale(const Vec3d& scale);
 
@@ -597,15 +596,6 @@ private:
         void set_rotation(const Vec3d& rotation);
 
         Vec3d get_flattening_rotation() const;
-#else
-        float get_scale() const;
-        void set_scale(float scale);
-
-        float get_angle_z() const;
-        void set_angle_z(float angle_z);
-
-        Vec3d get_flattening_normal() const;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
         void set_flattening_data(const ModelObject* model_object);
 

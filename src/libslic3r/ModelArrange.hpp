@@ -29,12 +29,8 @@ std::string toString(const Model& model, bool holes = true) {
             if(!objinst) continue;
 
             Slic3r::TriangleMesh tmpmesh = rmesh;
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             // CHECK_ME -> Is the following correct ?
             tmpmesh.scale(objinst->get_scaling_factor());
-#else
-            tmpmesh.scale(objinst->scaling_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             objinst->transform_mesh(&tmpmesh);
             ExPolygons expolys = tmpmesh.horizontal_projection();
             for(auto& expoly_complex : expolys) {
@@ -92,11 +88,7 @@ void toSVG(SVG& svg, const Model& model) {
             if(!objinst) continue;
 
             Slic3r::TriangleMesh tmpmesh = rmesh;
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             tmpmesh.scale(objinst->get_scaling_factor());
-#else
-            tmpmesh.scale(objinst->scaling_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             objinst->transform_mesh(&tmpmesh);
             ExPolygons expolys = tmpmesh.horizontal_projection();
             svg.draw(expolys);
@@ -522,12 +514,8 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
                     Slic3r::TriangleMesh tmpmesh = rmesh;
                     ClipperLib::PolygonImpl pn;
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                     // CHECK_ME -> is the following correct ?
                     tmpmesh.scale(objinst->get_scaling_factor());
-#else
-                    tmpmesh.scale(objinst->scaling_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
                     // TODO export the exact 2D projection
                     auto p = tmpmesh.convex_hull();
@@ -541,20 +529,11 @@ ShapeData2D projectModelFromTop(const Slic3r::Model &model) {
 
                     // Invalid geometries would throw exceptions when arranging
                     if(item.vertexCount() > 3) {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                         // CHECK_ME -> is the following correct or it should take in account all three rotations ?
                         item.rotation(objinst->get_rotation(Z));
-#else
-                        item.rotation(objinst->rotation);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                         item.translation({
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                         ClipperLib::cInt(objinst->get_offset(X)/SCALING_FACTOR),
                         ClipperLib::cInt(objinst->get_offset(Y)/SCALING_FACTOR)
-#else
-                        ClipperLib::cInt(objinst->offset(0)/SCALING_FACTOR),
-                        ClipperLib::cInt(objinst->offset(1)/SCALING_FACTOR)
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                         });
                         ret.emplace_back(objinst, item);
                     }
@@ -691,7 +670,6 @@ void applyResult(
         // appropriately
         auto off = item.translation();
         Radians rot = item.rotation();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
                    off.Y*SCALING_FACTOR,
                    0.0);
@@ -699,13 +677,6 @@ void applyResult(
         // write the transformation data into the model instance
         inst_ptr->set_rotation(Z, rot);
         inst_ptr->set_offset(foff);
-#else
-        Vec2d foff(off.X*SCALING_FACTOR + batch_offset, off.Y*SCALING_FACTOR);
-
-        // write the transformation data into the model instance
-        inst_ptr->rotation = rot;
-        inst_ptr->offset = foff;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
 }
 

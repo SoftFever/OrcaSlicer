@@ -230,19 +230,8 @@ class GLGizmoRotate3D : public GLGizmoBase
 public:
     explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
-#else
-    double get_angle_x() const { return m_gizmos[X].get_angle(); }
-    void set_angle_x(double angle) { m_gizmos[X].set_angle(angle); }
-
-    double get_angle_y() const { return m_gizmos[Y].get_angle(); }
-    void set_angle_y(double angle) { m_gizmos[Y].set_angle(angle); }
-
-    double get_angle_z() const { return m_gizmos[Z].get_angle(); }
-    void set_angle_z(double angle) { m_gizmos[Z].set_angle(angle); }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
@@ -329,25 +318,12 @@ class GLGizmoScale3D : public GLGizmoBase
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const Vec3d& get_scale() const { return m_scale; }
 #if ENABLE_EXTENDED_SELECTION
     void set_scale(const Vec3d& scale) { m_starting_scale = scale; m_scale = scale; }
 #else
     void set_scale(const Vec3d& scale) { m_starting_scale = scale; }
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-    double get_scale_x() const { return m_scale(0); }
-    void set_scale_x(double scale) { m_starting_scale(0) = scale; }
-
-    double get_scale_y() const { return m_scale(1); }
-    void set_scale_y(double scale) { m_starting_scale(1) = scale; }
-
-    double get_scale_z() const { return m_scale(2); }
-    void set_scale_z(double scale) { m_starting_scale(2) = scale; }
-
-    void set_scale(double scale) { m_starting_scale = scale * Vec3d::Ones(); }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
@@ -444,10 +420,6 @@ private:
     };
     struct SourceDataSummary {
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        float scaling_factor;
-        float rotation;
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d mesh_first_point;
     };
 
@@ -455,16 +427,12 @@ private:
     SourceDataSummary m_source_data;
 
     std::vector<PlaneData> m_planes;
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     struct InstanceData
     {
         Transform3d matrix;
         InstanceData(const Transform3d& matrix) : matrix(matrix) {}
     };
     std::vector<InstanceData> m_instances;
-#else
-    std::vector<Vec2d> m_instances_positions;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
@@ -475,11 +443,7 @@ public:
     explicit GLGizmoFlatten(GLCanvas3D& parent);
 
     void set_flattening_data(const ModelObject* model_object);
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d get_flattening_rotation() const;
-#else
-    Vec3d get_flattening_normal() const;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
