@@ -1899,6 +1899,9 @@ void Plater::decrease(size_t num)
     }
 
     p->update();
+    p->selection_changed();
+
+    // $self->schedule_background_process;
 }
 
 void Plater::set_number_of_copies(size_t num)
