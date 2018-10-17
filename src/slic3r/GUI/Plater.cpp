@@ -672,6 +672,7 @@ std::vector<PresetComboBox*>& Sidebar::combos_filament()
     return p->combos_filament;
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 // Plater::Object
 
 struct PlaterObject
@@ -681,6 +682,7 @@ struct PlaterObject
 
     PlaterObject(std::string name) : name(std::move(name)), selected(false) {}
 };
+#endif // !ENABLE_EXTENDED_SELECTION
 
 // Plater::DropTarget
 
@@ -730,7 +732,9 @@ struct Plater::priv
     Slic3r::Print print;
     Slic3r::Model model;
     Slic3r::GCodePreviewData gcode_preview_data;
+#if !ENABLE_EXTENDED_SELECTION
     std::vector<PlaterObject> objects;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     fs::path export_gcode_output_file;
     fs::path send_gcode_file;
@@ -761,9 +765,15 @@ struct Plater::priv
     std::vector<size_t> load_model_objects(const ModelObjectPtrs &model_objects);
     std::unique_ptr<CheckboxFileDialog> get_export_file(GUI::FileType file_type);
 
+#if ENABLE_EXTENDED_SELECTION
+    const GLCanvas3D::Selection& get_selection() const;
+    GLCanvas3D::Selection& get_selection();
+    int get_selected_object_idx() const;
+#else
     void select_object(optional<size_t> obj_idx);
     void select_object_from_cpp();
     optional<size_t> selected_object() const;
+#endif // ENABLE_EXTENDED_SELECTION
     void selection_changed();
     void object_list_changed();
     void select_view();
@@ -808,7 +818,9 @@ struct Plater::priv
     void on_viewport_changed(SimpleEvent&);
     void on_right_click(Vec2dEvent&);
     void on_model_update(SimpleEvent&);
+#if !ENABLE_EXTENDED_SELECTION
     void on_scale_uniformly(SimpleEvent&);
+#endif // !ENABLE_EXTENDED_SELECTION
     void on_wipetower_moved(Vec3dEvent&);
     void on_enable_action_buttons(Event<bool>&);
     void on_update_geometry(Vec3dsEvent<2>&);
@@ -1114,12 +1126,19 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     bool need_arrange = false;
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
+#if ENABLE_EXTENDED_SELECTION
+    unsigned int obj_count = 0;
+#endif // ENABLE_EXTENDED_SELECTION
 
     for (ModelObject *model_object : model_objects) {
         auto *object = model.add_object(*model_object);
         std::string object_name = object->name.empty() ? fs::path(object->input_file).filename().string() : object->name;
+#if ENABLE_EXTENDED_SELECTION
+        obj_idxs.push_back(obj_count++);
+#else
         objects.emplace_back(std::move(object_name));
         obj_idxs.push_back(objects.size() - 1);
+#endif // ENABLE_EXTENDED_SELECTION
 
         if (model_object->instances.empty()) {
             // if object has no defined position(s) we need to rearrange everything after loading
@@ -1227,6 +1246,23 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     return dlg;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+const GLCanvas3D::Selection& Plater::priv::get_selection() const
+{
+    return _3DScene::get_canvas(canvas3D)->get_selection();
+}
+
+GLCanvas3D::Selection& Plater::priv::get_selection()
+{
+    return _3DScene::get_canvas(canvas3D)->get_selection();
+}
+
+int Plater::priv::get_selected_object_idx() const
+{
+    int idx = get_selection().get_object_idx();
+    return ((0 <= idx) && (idx < 1000)) ? idx : -1;
+}
+#else
 void Plater::priv::select_object(optional<size_t> obj_idx)
 {
     for (auto &obj : objects) {
@@ -1253,15 +1289,13 @@ optional<size_t> Plater::priv::selected_object() const
 
     return boost::none;
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::selection_changed()
 {
 #if ENABLE_EXTENDED_SELECTION
-    const GUI::GLCanvas3D* canvas = _3DScene::get_canvas(this->canvas3D);
-    const GUI::GLCanvas3D::Selection& selection = canvas->get_selection();
-
-    int obj_idx = selection.get_object_idx();
-    bool have_sel = !selection.is_empty() && (0 <= obj_idx) && (obj_idx < 1000);
+    int obj_idx = get_selected_object_idx();
+    bool have_sel = (obj_idx != -1);
 #else
     const auto obj_idx = selected_object();
     const bool have_sel = !!obj_idx;
@@ -1354,7 +1388,11 @@ void Plater::priv::selection_changed()
 void Plater::priv::object_list_changed()
 {
     // Enable/disable buttons depending on whether there are any objects on the platter.
+#if ENABLE_EXTENDED_SELECTION
+    const bool have_objects = !model.objects.empty();
+#else
     const bool have_objects = !objects.empty();
+#endif // ENABLE_EXTENDED_SELECTION
 
     _3DScene::enable_toolbar_item(canvas3D, "deleteall", have_objects);
     _3DScene::enable_toolbar_item(canvas3D, "arrange", have_objects);
@@ -1378,7 +1416,9 @@ void Plater::priv::remove(size_t obj_idx)
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
+#if !ENABLE_EXTENDED_SELECTION
     objects.erase(objects.begin() + obj_idx);
+#endif // !ENABLE_EXTENDED_SELECTION
     model.delete_object(obj_idx);
     print.delete_object(obj_idx);
     // Delete object from Sidebar list
@@ -1386,7 +1426,9 @@ void Plater::priv::remove(size_t obj_idx)
 
     object_list_changed();
 
+#if !ENABLE_EXTENDED_SELECTION
     select_object(boost::none);
+#endif // !ENABLE_EXTENDED_SELECTION
     update();
 }
 
@@ -1397,7 +1439,9 @@ void Plater::priv::reset()
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
+#if !ENABLE_EXTENDED_SELECTION
     objects.clear();
+#endif // !ENABLE_EXTENDED_SELECTION
     model.clear_objects();
     print.clear_objects();
 
@@ -1405,7 +1449,9 @@ void Plater::priv::reset()
     sidebar->obj_list()->delete_all_objects_from_list();
     object_list_changed();
 
+#if !ENABLE_EXTENDED_SELECTION
     select_object(boost::none);
+#endif // !ENABLE_EXTENDED_SELECTION
     update();
 }
 
@@ -1416,11 +1462,20 @@ void Plater::priv::rotate()
 
 void Plater::priv::mirror(const Axis &axis)
 {
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    ModelObject* model_object = model.objects[obj_idx];
+    ModelInstance* model_instance = model_object->instances.front();
+#else
     const auto obj_idx = selected_object();
     if (! obj_idx) { return; }
 
     auto *model_object = model.objects[*obj_idx];
     auto *model_instance = model_object->instances[0];
+#endif // ENABLE_EXTENDED_SELECTION
 
     // XXX: ?
     // # apply Z rotation before mirroring
@@ -1432,7 +1487,11 @@ void Plater::priv::mirror(const Axis &axis)
     model_object->mirror(axis);
 
     // $self->stop_background_process;  // TODO
+#if ENABLE_EXTENDED_SELECTION
+    print.add_model_object(model_object, obj_idx);
+#else
     print.add_model_object(model_object, *obj_idx);
+#endif // ENABLE_EXTENDED_SELECTION
     selection_changed();
     update();
 }
@@ -1663,6 +1722,7 @@ void Plater::priv::on_model_update(SimpleEvent&)
     // TODO
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void Plater::priv::on_scale_uniformly(SimpleEvent&)
 {
 //     my ($scale) = @_;
@@ -1697,6 +1757,7 @@ void Plater::priv::on_scale_uniformly(SimpleEvent&)
 //     $self->update;
 //     $self->schedule_background_process;
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
 {
@@ -1741,19 +1802,34 @@ void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 
 void Plater::remove_selected()
 {
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = p->get_selected_object_idx();
+    if (obj_idx != -1)
+        remove((size_t)obj_idx);
+#else
     const auto selected = p->selected_object();
     if (selected) {
         remove(*selected);
     }
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void Plater::increase(size_t num)
 {
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = p->get_selected_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    ModelObject* model_object = p->model.objects[obj_idx];
+    ModelInstance* model_instance = model_object->instances.back();
+#else
     const auto obj_idx = p->selected_object();
     if (! obj_idx) { return; }
 
     auto *model_object = p->model.objects[*obj_idx];
     auto *model_instance = model_object->instances[model_object->instances.size() - 1];
+#endif // ENABLE_EXTENDED_SELECTION
 
     // $self->stop_background_process;
 
@@ -1761,10 +1837,18 @@ void Plater::increase(size_t num)
     for (size_t i = 0; i < num; i++, offset += 10.0) {
         Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
         auto *new_instance = model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
+#if ENABLE_EXTENDED_SELECTION
+        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
+#else
         p->print.get_object(*obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
+#endif // ENABLE_EXTENDED_SELECTION
     }
 
+#if ENABLE_EXTENDED_SELECTION
+    sidebar().obj_list()->set_object_count(obj_idx, model_object->instances.size());
+#else
     sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (p->get_config("autocenter") == "1") {
         p->arrange();
@@ -1779,18 +1863,39 @@ void Plater::increase(size_t num)
 
 void Plater::decrease(size_t num)
 {
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = p->get_selected_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    ModelObject* model_object = p->model.objects[obj_idx];
+#else
     const auto obj_idx = p->selected_object();
     if (! obj_idx) { return; }
 
     auto *model_object = p->model.objects[*obj_idx];
+#endif // ENABLE_EXTENDED_SELECTION
     if (model_object->instances.size() > num) {
         for (size_t i = 0; i < num; i++) {
             model_object->delete_last_instance();
+#if ENABLE_EXTENDED_SELECTION
+            p->print.get_object(obj_idx)->delete_last_copy();
+#else
             p->print.get_object(*obj_idx)->delete_last_copy();
+#endif // ENABLE_EXTENDED_SELECTION
         }
+#if ENABLE_EXTENDED_SELECTION
+        sidebar().obj_list()->set_object_count(obj_idx, model_object->instances.size());
+#else
         sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
-    } else {
+#endif // ENABLE_EXTENDED_SELECTION
+    }
+    else {
+#if ENABLE_EXTENDED_SELECTION
+        remove(obj_idx);
+#else
         remove(*obj_idx);
+#endif // ENABLE_EXTENDED_SELECTION
     }
 
     p->update();
@@ -1798,12 +1903,20 @@ void Plater::decrease(size_t num)
 
 void Plater::set_number_of_copies(size_t num)
 {
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = p->get_selected_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    ModelObject* model_object = p->model.objects[obj_idx];
+#else
     const auto obj_idx = p->selected_object();
     if (! obj_idx) { return; }
 
     auto *model_object = p->model.objects[*obj_idx];
+#endif // ENABLE_EXTENDED_SELECTION
 
-    auto diff = (ptrdiff_t)num - (ptrdiff_t)model_object->instances.size();
+    int diff = (int)num - (int)model_object->instances.size();
     if (diff > 0) {
         increase(diff);
     } else if (diff < 0) {
@@ -1813,7 +1926,11 @@ void Plater::set_number_of_copies(size_t num)
 
 fs::path Plater::export_gcode(const fs::path &output_path)
 {
+#if ENABLE_EXTENDED_SELECTION
+    if (p->model.objects.empty()) { return ""; }
+#else
     if (p->objects.empty()) { return ""; }
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (! p->export_gcode_output_file.empty()) {
         GUI::show_error(this, _(L("Another export job is currently running.")));
@@ -1866,7 +1983,11 @@ fs::path Plater::export_gcode(const fs::path &output_path)
 
 void Plater::export_stl()
 {
+#if ENABLE_EXTENDED_SELECTION
+    if (p->model.objects.empty()) { return; }
+#else
     if (p->objects.empty()) { return; }
+#endif // ENABLE_EXTENDED_SELECTION
 
     auto dialog = p->get_export_file(FT_STL);
     if (! dialog) { return; }
@@ -1881,7 +2002,11 @@ void Plater::export_stl()
 
 void Plater::export_amf()
 {
+#if ENABLE_EXTENDED_SELECTION
+    if (p->model.objects.empty()) { return; }
+#else
     if (p->objects.empty()) { return; }
+#endif // ENABLE_EXTENDED_SELECTION
 
     auto dialog = p->get_export_file(FT_AMF);
     if (! dialog) { return; }
@@ -1900,7 +2025,11 @@ void Plater::export_amf()
 
 void Plater::export_3mf()
 {
+#if ENABLE_EXTENDED_SELECTION
+    if (p->model.objects.empty()) { return; }
+#else
     if (p->objects.empty()) { return; }
+#endif // ENABLE_EXTENDED_SELECTION
 
     auto dialog = p->get_export_file(FT_3MF);
     if (! dialog) { return; }
