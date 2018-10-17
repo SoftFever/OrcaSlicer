@@ -122,14 +122,14 @@ if (MSVC)
             add_custom_target("resources_symlink_${CONF}" ALL
                 DEPENDS slic3r
                 COMMAND if exist "${WIN_CONF_OUTPUT_DIR}" "("
-                        if not exist "${WIN_RESOURCES_SYMLINK}" "(" 
-                            mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}" 
+                        if not exist "${WIN_RESOURCES_SYMLINK}" "("
+                            mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}"
                         ")"
                     ")"
                 VERBATIM
             )
         endforeach ()
-    else () 
+    else ()
         file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}" OUTPUT_DIR)
         add_custom_target(resources_symlink ALL
             DEPENDS slic3r

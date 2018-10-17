@@ -16,6 +16,7 @@
 
 #include "Utils.hpp"
 #include "GUI.hpp"
+#include "GUI_Utils.hpp"
 #include "AppConfig.hpp"
 #include "PresetBundle.hpp"
 #include "3DScene.hpp"
@@ -344,41 +345,43 @@ wxMenuItem* GUI_App::append_submenu(wxMenu* menu,
     return item;
 }
 
-void GUI_App::save_window_pos(wxTopLevelWindow* window, const std::string& name){
-    int x, y;
-    window->GetScreenPosition(&x, &y);
-    app_config->set(name + "_pos", wxString::Format("%d,%d", x, y).ToStdString());
+void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
+{
+    if (name.empty()) { return; }
+    const auto config_key = (boost::format("window_%1%") % name).str();
 
-    window->GetSize(&x, &y);
-    app_config->set(name + "_size", wxString::Format("%d,%d", x, y).ToStdString());
-
-    app_config->set(name + "_maximized", window->IsMaximized() ? "1" : "0");
-
+    WindowMetrics metrics = WindowMetrics::from_window(window);
+    app_config->set(config_key, metrics.serialize());
     app_config->save();
 }
 
-void GUI_App::restore_window_pos(wxTopLevelWindow* window, const std::string& name)
+void GUI_App::window_pos_restore(wxTopLevelWindow* window, const std::string &name)
 {
-    if (!app_config->has(name + "_pos"))
-        return;
+    if (name.empty()) { return; }
+    const auto config_key = (boost::format("window_%1%") % name).str();
 
-    std::string str = app_config->get(name + "_size");
-    std::vector<std::string> values;
-    boost::split(values, str, boost::is_any_of(","));
-    wxSize size = wxSize(atoi(values[0].c_str()), atoi(values[1].c_str()));
-    window->SetSize(size);
+    if (! app_config->has(config_key)) { return; }
 
-    auto display = (new wxDisplay())->GetClientArea();
-    str = app_config->get(name + "_pos");
-    values.resize(0);
-    boost::split(values, str, boost::is_any_of(","));
-    wxPoint pos = wxPoint(atoi(values[0].c_str()), atoi(values[1].c_str()));
-    if (pos.x + 0.5*size.GetWidth() < display.GetRight() &&
-        pos.y + 0.5*size.GetHeight() < display.GetBottom())
-        window->Move(pos);
+    auto metrics = WindowMetrics::deserialize(app_config->get(config_key));
+    if (! metrics) { return; }
 
-    if (app_config->get(name + "_maximized") == "1")
-        window->Maximize();
+    window->SetSize(metrics->get_rect());
+    window->Maximize(metrics->get_maximized());
+}
+
+void GUI_App::window_pos_sanitize(wxTopLevelWindow* window)
+{
+    const auto display_idx = wxDisplay::GetFromWindow(window);
+    if (display_idx == wxNOT_FOUND) { return; }
+
+    const auto display = wxDisplay(display_idx).GetClientArea();
+
+    auto metrics = WindowMetrics::from_window(window);
+
+    metrics.sanitize_for_display(display);
+    if (window->GetScreenRect() != metrics.get_rect()) {
+        window->SetSize(metrics.get_rect());
+    }
 }
 
 // select language from the list of installed languages

@@ -78,8 +78,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     Fit();
     SetMinSize(wxSize(760, 490));
     SetSize(GetMinSize());
-    wxGetApp().restore_window_pos(this, "main_frame");
-    Show();
     Layout();
 
     // declare events
@@ -89,7 +87,7 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
             return;
         }
         // save window size
-        wxGetApp().save_window_pos(this, "main_frame");
+        wxGetApp().window_pos_save(this, "mainframe");
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
         wxGetApp().app_config->save();
@@ -99,6 +97,17 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 //         Slic3r::GUI::deregister_on_request_update_callback();
         // propagate event
         event.Skip();
+    });
+
+    // NB: Restoring the window position is done in a two-phase manner here,
+    // first the saved position is restored as-is and validation is done after the window is shown
+    // and initial round of events is complete, because on some platforms that is the only way
+    // to get an accurate window position & size.
+    wxGetApp().window_pos_restore(this, "mainframe");
+    Bind(wxEVT_SHOW, [this](wxShowEvent&) {
+        CallAfter([this]() {
+            wxGetApp().window_pos_sanitize(this);
+        });
     });
 
     update_ui_from_settings();

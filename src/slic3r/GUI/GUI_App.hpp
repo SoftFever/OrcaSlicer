@@ -113,8 +113,10 @@ public:
                                     const wxString& string,
                                     const wxString& description,
                                     const std::string& icon);
-    void            save_window_pos(wxTopLevelWindow* window, const std::string& name);
-    void            restore_window_pos(wxTopLevelWindow* window, const std::string& name);
+
+    void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);
+    void            window_pos_sanitize(wxTopLevelWindow* window);
 
     bool            select_language(wxArrayString & names, wxArrayLong & identifiers);
     bool            load_language();
