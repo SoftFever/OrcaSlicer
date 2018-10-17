@@ -2667,7 +2667,9 @@ wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
 #endif // ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
+#if !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
@@ -3439,6 +3441,9 @@ void GLCanvas3D::reload_scene(bool force)
         {
             load_object(*m_model, obj_idx);
         }
+
+        // to update the toolbar
+        post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     }
 
     update_gizmos_data();
@@ -3796,8 +3801,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
     }
+#if !ENABLE_EXTENDED_SELECTION
     else if (evt.LeftDClick() && (m_hover_volume_id != -1) && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1))
         post_event(SimpleEvent(EVT_GLCANVAS_DOUBLE_CLICK));
+#endif // !ENABLE_EXTENDED_SELECTION
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
@@ -4559,6 +4566,7 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
+#if !ENABLE_EXTENDED_SELECTION
     item.name = "settings";
     item.tooltip = GUI::L_str("Settings...");
     item.sprite_id = 8;
@@ -4566,6 +4574,7 @@ bool GLCanvas3D::_init_toolbar()
     item.action_event = EVT_GLTOOLBAR_SETTINGS;
     if (!m_toolbar.add_item(item))
         return false;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     item.name = "layersediting";
     item.tooltip = GUI::L_str("Layers editing");

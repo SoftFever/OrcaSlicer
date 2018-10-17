@@ -37,6 +37,7 @@
 #include "GUI_ObjectList.hpp"
 #include "GUI_ObjectManipulation.hpp"
 #include "GUI_Utils.hpp"
+#include "wxExtensions.hpp"
 #include "MainFrame.hpp"
 #include "3DScene.hpp"
 #include "GLCanvas3D.hpp"
@@ -727,6 +728,9 @@ struct Plater::priv
     Plater *q;
     MainFrame *main_frame;
 
+    // Object popup menu
+    wxMenu* object_menu;
+
     // Data
     Slic3r::DynamicPrintConfig *config;
     Slic3r::Print print;
@@ -751,6 +755,7 @@ struct Plater::priv
     static const std::regex pattern_zip_amf;
 
     priv(Plater *q, MainFrame *main_frame);
+    ~priv();
 
 #if !ENABLE_EXTENDED_SELECTION
     std::vector<int> collect_selections();
@@ -804,7 +809,9 @@ struct Plater::priv
     void on_action_add(SimpleEvent&);
     void on_action_split(SimpleEvent&);
     void on_action_cut(SimpleEvent&);
+#if !ENABLE_EXTENDED_SELECTION
     void on_action_settings(SimpleEvent&);
+#endif // !ENABLE_EXTENDED_SELECTION
     void on_action_layersediting(SimpleEvent&);
 #if !ENABLE_EXTENDED_SELECTION
     void on_action_selectbyparts(SimpleEvent&);
@@ -824,6 +831,9 @@ struct Plater::priv
     void on_wipetower_moved(Vec3dEvent&);
     void on_enable_action_buttons(Event<bool>&);
     void on_update_geometry(Vec3dsEvent<2>&);
+
+private:
+    bool init_object_menu();
 };
 
 const std::regex Plater::priv::pattern_bundle("[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)$", std::regex::icase);
@@ -833,6 +843,7 @@ const std::regex Plater::priv::pattern_zip_amf("[.]zip[.]amf$", std::regex::icas
 Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     q(q),
     main_frame(main_frame),
+    object_menu(nullptr),
     config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "complete_objects", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
@@ -892,6 +903,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     hsizer->Add(sidebar, 0, wxEXPAND | wxLEFT | wxRIGHT, 0);
     q->SetSizer(hsizer);
 
+    init_object_menu();
+
     // Events:
 
     // Notebook page change event
@@ -903,7 +916,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     // 3DScene events:
     canvas3D->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
-    // canvas3D->Bind(EVT_GLCANVAS_DOUBLE_CLICK, [](SimpleEvent&) { });  // XXX: remove?
+#if !ENABLE_EXTENDED_SELECTION
+    canvas3D->Bind(EVT_GLCANVAS_DOUBLE_CLICK, [](SimpleEvent&) {});  // XXX: remove?
+#endif // !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLCANVAS_RIGHT_CLICK, &priv::on_right_click, this);
     canvas3D->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
     canvas3D->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
@@ -924,7 +939,9 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease(); });
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT, &priv::on_action_split, this);
     canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
+#if !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLTOOLBAR_SETTINGS, &priv::on_action_settings, this);
+#endif // !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
 #if !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLTOOLBAR_SELECTBYPARTS, &priv::on_action_selectbyparts, this);
@@ -941,6 +958,12 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     update_ui_from_settings();
     q->Layout();
+}
+
+Plater::priv::~priv()
+{
+    if (object_menu != nullptr)
+        delete object_menu;
 }
 
 #if !ENABLE_EXTENDED_SELECTION
@@ -1645,14 +1668,8 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
 
 void Plater::priv::on_action_add(SimpleEvent&)
 {
-    wxArrayString input_files;
-    wxGetApp().open_model(q, input_files);
-
-    std::vector<fs::path> input_paths;
-    for (const auto &file : input_files) {
-        input_paths.push_back(file.wx_str());
-    }
-    load_files(input_paths);
+    if (q != nullptr)
+        q->add();
 }
 
 void Plater::priv::on_action_split(SimpleEvent&)
@@ -1665,10 +1682,12 @@ void Plater::priv::on_action_cut(SimpleEvent&)
     // TODO
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void Plater::priv::on_action_settings(SimpleEvent&)
 {
     // TODO
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
@@ -1712,9 +1731,18 @@ void Plater::priv::on_viewport_changed(SimpleEvent& evt)
         preview->set_viewport_from_scene(canvas3D);
 }
 
-void Plater::priv::on_right_click(Vec2dEvent&)
+void Plater::priv::on_right_click(Vec2dEvent& evt)
 {
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    if ((q != nullptr) && (object_menu != nullptr))
+        q->PopupMenu(object_menu, (int)evt.data.x(), (int)evt.data.y());
+#else
     // TODO
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void Plater::priv::on_model_update(SimpleEvent&)
@@ -1777,6 +1805,20 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
     // TODO
 }
 
+bool Plater::priv::init_object_menu()
+{
+    if (main_frame == nullptr)
+        return false;
+
+    object_menu = new wxMenu();
+    if (object_menu == nullptr)
+        return false;
+
+    append_menu_item(object_menu, wxID_ANY, _(L("Delete…\tDel")), _(L("Remove the selected object")),
+        [this](wxCommandEvent&){ q->remove_selected(); }, "brick_delete.png");
+
+    return true;
+}
 
 // Plater / Public
 
@@ -1794,6 +1836,18 @@ Plater::~Plater()
 Sidebar& Plater::sidebar() { return *p->sidebar; }
 Model& Plater::model()  { return p->model; }
 Print& Plater::print()  { return p->print; }
+
+void Plater::add()
+{
+    wxArrayString input_files;
+    wxGetApp().open_model(this, input_files);
+
+    std::vector<fs::path> input_paths;
+    for (const auto &file : input_files) {
+        input_paths.push_back(file.wx_str());
+    }
+    load_files(input_paths);
+}
 
 void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 

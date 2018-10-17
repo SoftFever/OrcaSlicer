@@ -13,6 +13,9 @@
 #include <vector>
 #include <set>
 
+wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon = "");
+
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
     static const unsigned int DefaultWidth;

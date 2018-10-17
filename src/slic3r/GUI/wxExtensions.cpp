@@ -10,6 +10,20 @@
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
 
+wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon)
+{
+    if (id == wxID_ANY)
+        id = wxNewId();
+
+    wxMenuItem* item = menu->Append(id, string, description);
+    if (!icon.empty())
+        item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
+
+    menu->Bind(wxEVT_MENU, cb, id);
+    return item;
+}
+
 const unsigned int wxCheckListBoxComboPopup::DefaultWidth = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultHeight = 200;
 const unsigned int wxCheckListBoxComboPopup::DefaultItemHeight = 18;

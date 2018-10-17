@@ -104,6 +104,8 @@ public:
     Model& model();
     Print& print();
 
+    void add();
+
     void load_files(const std::vector<boost::filesystem::path> &input_files);
 
     void update(bool force_autocenter = false);
