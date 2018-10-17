@@ -319,23 +319,14 @@ void MainFrame::init_menubar()
     // View menu
     if (m_plater) {
         m_viewMenu = new wxMenu();
-// \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
-        // as the simple numeric accelerators spoil all numeric data entry.
-        // The camera control accelerators are captured by 3DScene Perl module instead.
-        auto accel = [](const wxString& st1, const wxString& st2) {
-//             if ($^O eq "MSWin32")
-//                 return st1 + "\t\xA0" + st2;
-//             else
-                return st1; 
-        };
-
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Iso")), "0"),     L("Iso View"),   [this](wxCommandEvent&){ select_view("iso"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Top")), "1"),     L("Top View"),   [this](wxCommandEvent&){ select_view("top"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Bottom")), "2"),  L("Bottom View"),[this](wxCommandEvent&){ select_view("bottom"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Front")), "3"),   L("Front View"), [this](wxCommandEvent&){ select_view("front"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Rear")), "4"),    L("Rear View"),  [this](wxCommandEvent&){ select_view("rear"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Left")), "5"),    L("Left View"),  [this](wxCommandEvent&){ select_view("left"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Right")), "6"),   L("Right View"), [this](wxCommandEvent&){ select_view("right"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Iso\t0")), _(L("Iso View")), [this](wxCommandEvent&){ select_view("iso"); });
+        m_viewMenu->AppendSeparator();
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Top\t1")), _(L("Top View")), [this](wxCommandEvent&){ select_view("top"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Bottom\t2")), _(L("Bottom View")), [this](wxCommandEvent&){ select_view("bottom"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Front\t3")), _(L("Front View")), [this](wxCommandEvent&){ select_view("front"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Rear\t4")), _(L("Rear View")), [this](wxCommandEvent&){ select_view("rear"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Left\t5")), _(L("Left View")), [this](wxCommandEvent&){ select_view("left"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Right\t6")), _(L("Right View")), [this](wxCommandEvent&){ select_view("right"); });
     }
 
     // Help menu
@@ -683,9 +674,10 @@ void MainFrame::select_tab(size_t tab) const{
 }
 
 // Set a camera direction, zoom to all objects.
-void MainFrame::select_view(const std::string& direction){
-//     if (m_plater)
-//         m_plater->select_view(direction);
+void MainFrame::select_view(const std::string& direction)
+{
+     if (m_plater)
+         m_plater->select_view(direction);
 }
 
 void MainFrame::on_presets_changed(SimpleEvent &event)

@@ -761,6 +761,7 @@ struct Plater::priv
     std::vector<int> collect_selections();
 #endif // !ENABLE_EXTENDED_SELECTION
     void update(bool force_autocenter = false);
+    void select_view(const std::string& direction);
     void update_ui_from_settings();
     ProgressStatusBar* statusbar();
     std::string get_config(const std::string &key) const;
@@ -1000,6 +1001,19 @@ void Plater::priv::update(bool force_autocenter)
     preview->reload_print();
 
     // schedule_background_process();   // TODO
+}
+
+void Plater::priv::select_view(const std::string& direction)
+{
+    int page_id = notebook->GetSelection();
+    if (page_id != wxNOT_FOUND)
+    {
+        const wxString& page_text = notebook->GetPageText(page_id);
+        if (page_text == _(L("3D")))
+            _3DScene::select_view(canvas3D, direction);
+        else if (page_text == _(L("Preview")))
+            preview->select_view(direction);
+    }
 }
 
 void Plater::priv::update_ui_from_settings()
@@ -1852,6 +1866,9 @@ void Plater::add()
 void Plater::load_files(const std::vector<fs::path> &input_files) { p->load_files(input_files); }
 
 void Plater::update(bool force_autocenter) { p->update(force_autocenter); }
+
+void Plater::select_view(const std::string& direction) { p->select_view(direction); }
+
 void Plater::remove(size_t obj_idx) { p->remove(obj_idx); }
 
 void Plater::remove_selected()

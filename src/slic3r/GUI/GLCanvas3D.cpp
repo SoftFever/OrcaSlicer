@@ -3204,7 +3204,7 @@ void GLCanvas3D::select_view(const std::string& direction)
     else if (direction == "rear")
         dir_vec = VIEW_REAR;
 
-    if ((dir_vec != nullptr) && !empty(volumes_bounding_box()))
+    if (dir_vec != nullptr)
     {
         m_camera.phi = dir_vec[0];
         m_camera.set_theta(dir_vec[1]);
