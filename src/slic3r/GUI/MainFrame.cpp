@@ -159,7 +159,7 @@ void MainFrame::init_tabpanel()
     if (m_plater) {
         // load initial config
         auto full_config = wxGetApp().preset_bundle->full_config();
-        m_plater->on_config_change(&full_config);
+        m_plater->on_config_change(full_config);
 
         // Show a correct number of filament fields.
         // nozzle_diameter is undefined when SLA printer is selected
@@ -530,9 +530,10 @@ void MainFrame::quick_slice(const int qs){
 //     Slic3r::GUI::catch_error(this, [](){ if (m_progress_dialog) m_progress_dialog->Destroy(); });
 }
 
-void MainFrame::reslice_now(){
-//     if (m_plater)
-//         m_plater->reslice();
+void MainFrame::reslice_now()
+{
+    if (m_plater)
+        m_plater->reslice();
 }
 
 void MainFrame::repair_stl()
@@ -611,12 +612,13 @@ void MainFrame::load_config_file(wxString file/* = wxEmptyString*/)
         file = dlg->GetPath();
         dlg->Destroy();
     }
-//     eval{ 
+    try {
         wxGetApp().preset_bundle->load_config_file(file.ToStdString()); 
-//     };
-    // Dont proceed further if the config file cannot be loaded.
-//     if (Slic3r::GUI::catch_error(this))
-//         return;
+    } catch (std::exception & /* ex */) {
+        // Dont proceed further if the config file cannot be loaded.
+        //     if (Slic3r::GUI::catch_error(this))
+        //         return;
+    }
     for (auto tab : m_options_tabs )
         tab.second->load_current_preset();
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
@@ -644,18 +646,20 @@ void MainFrame::export_configbundle()
     dlg->Destroy();
     if (!file.IsEmpty()) {
         // Export the config bundle.
-       wxGetApp().app_config->update_config_dir(get_dir_name(file));
-//         eval{ 
+        wxGetApp().app_config->update_config_dir(get_dir_name(file));
+        try {
             wxGetApp().preset_bundle->export_configbundle(file.ToStdString()); 
-//         };
+        } catch (std::exception & /* ex */) {
 //         Slic3r::GUI::catch_error(this);
+        }
     }
 }
 
 // Loading a config bundle with an external file name used to be used
 // to auto - install a config bundle on a fresh user account,
 // but that behavior was not documented and likely buggy.
-void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/){
+void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool reset_user_profile*/)
+{
     if (!wxGetApp().check_unsaved_changes())
         return;
     if (file.IsEmpty()) {
@@ -671,10 +675,11 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
     wxGetApp().app_config->update_config_dir(get_dir_name(file));
 
     auto presets_imported = 0;
-//     eval{ 
+    try {
     presets_imported = wxGetApp().preset_bundle->load_configbundle(file.ToStdString());
-//     };
+    } catch (std::exception & /* ex */) {
 //     Slic3r::GUI::catch_error(this) and return;
+    }
 
     // Load the currently selected preset into the GUI, update the preset selection box.
     for (auto tab : m_options_tabs)
@@ -686,20 +691,24 @@ void MainFrame::load_configbundle(wxString file/* = wxEmptyString, const bool re
 
 // Load a provied DynamicConfig into the Print / Filament / Printer tabs, thus modifying the active preset.
 // Also update the platter with the new presets.
-void MainFrame::load_config(const DynamicPrintConfig& config){
+void MainFrame::load_config(const DynamicPrintConfig& config)
+{
     for (auto tab : m_options_tabs)
         tab.second->load_config(config);
-//     if (m_plater) m_plater->on_config_change(config);
+    if (m_plater) 
+        m_plater->on_config_change(config);
 }
 
-void MainFrame::select_tab(size_t tab) const{
+void MainFrame::select_tab(size_t tab) const
+{
     m_tabpanel->SetSelection(tab);
 }
 
 // Set a camera direction, zoom to all objects.
-void MainFrame::select_view(const std::string& direction){
-//     if (m_plater)
-//         m_plater->select_view(direction);
+void MainFrame::select_view(const std::string& direction)
+{
+//    if (m_plater)
+//        m_plater->select_view(direction);
 }
 
 wxMenuItem* MainFrame::append_menu_item(wxMenu* menu, 
@@ -743,8 +752,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
         if (preset_type == Slic3r::Preset::TYPE_PRINTER) {
             // Printer selected at the Printer tab, update "compatible" marks at the print and filament selectors.
             // XXX: Do this in a more C++ way
-            std::vector<std::string> tab_names_other = { "print", "filament", "sla_material" };
-            for (const auto tab_name_other : tab_names_other) {
+            for (const auto tab_name_other : { "print", "filament", "sla_material" }) {
                 Tab* cur_tab = m_options_tabs[tab_name_other];
                 // If the printer tells us that the print or filament preset has been switched or invalidated,
                 // refresh the print or filament tab page.Otherwise just refresh the combo box.
@@ -756,8 +764,7 @@ void MainFrame::on_presets_changed(SimpleEvent &event)
                     cur_tab->load_current_preset();
             }
         }
-        // XXX: ?
-        // m_plater->on_config_change(tab->get_config());
+        m_plater->on_config_change(*tab->get_config());
     }
 }
 
@@ -769,18 +776,19 @@ void MainFrame::on_value_changed(wxCommandEvent& event)
         return;
 
     auto opt_key = event.GetString();
-    auto config = tab->get_config();
     if (m_plater) {
-        m_plater->on_config_change(config); // propagate config change events to the plater
-            if (opt_key == "extruders_count"){
-                auto value = event.GetInt();
-                m_plater->on_extruders_change(value);
-            }
+        m_plater->on_config_change(*tab->get_config()); // propagate config change events to the plater
+        if (opt_key == "extruders_count"){
+            auto value = event.GetInt();
+            m_plater->on_extruders_change(value);
+        }
     }
-    // don't save while loading for the first time
-    // #ys_FIXME ?autosave?
-//     if (wxGetApp().autosave && m_loaded)
-//         m_config->save(wxGetApp().autosave);
+    // Don't save while loading for the first time.
+    if (m_loaded) {
+        AppConfig &cfg = *wxGetApp().app_config;
+        if (cfg.get("autosave") == "1")
+            cfg.save();
+    }
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.

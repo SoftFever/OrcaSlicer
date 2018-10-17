@@ -20,6 +20,7 @@ class ModelMaterial;
 class ModelObject;
 class ModelVolume;
 class PresetBundle;
+class Print;
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
@@ -30,8 +31,27 @@ typedef std::vector<ModelObject*> ModelObjectPtrs;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 typedef std::vector<ModelInstance*> ModelInstancePtrs;
 
+// Unique identifier of a Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial.
+// Used to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject)
+typedef size_t ModelID;
+
+// Base for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial to provide a unique ID
+// to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject).
+class ModelBase
+{
+public:
+    ModelID  id() const { return m_id; }
+
+protected:
+    ModelID  m_id = generate_new_id();
+
+private:
+    static inline ModelID generate_new_id() { return s_last_id ++; }
+    static ModelID s_last_id;
+};
+
 // Material, which may be shared across multiple ModelObjects of a single Model.
-class ModelMaterial
+class ModelMaterial : public ModelBase
 {
     friend class Model;
 public:
@@ -56,7 +76,7 @@ private:
 // and possibly having multiple modifier volumes, each modifier volume with its set of parameters and materials.
 // Each ModelObject may be instantiated mutliple times, each instance having different placement on the print bed,
 // different rotation and different uniform scaling.
-class ModelObject
+class ModelObject : public ModelBase
 {
     friend class Model;
 public:
@@ -85,21 +105,21 @@ public:
         to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
     Vec3d                   origin_translation;
-    
-    Model* get_model() const { return m_model; };
-    
-    ModelVolume* add_volume(const TriangleMesh &mesh);
-    ModelVolume* add_volume(TriangleMesh &&mesh);
-    ModelVolume* add_volume(const ModelVolume &volume);
-    void delete_volume(size_t idx);
-    void clear_volumes();
 
-    ModelInstance* add_instance();
-    ModelInstance* add_instance(const ModelInstance &instance);
-    ModelInstance* add_instance(const Vec3d &offset, const Vec3d &scaling_factor, const Vec3d &rotation);
-    void delete_instance(size_t idx);
-    void delete_last_instance();
-    void clear_instances();
+    Model*                  get_model() const { return m_model; };
+    
+    ModelVolume*            add_volume(const TriangleMesh &mesh);
+    ModelVolume*            add_volume(TriangleMesh &&mesh);
+    ModelVolume*            add_volume(const ModelVolume &volume);
+    void                    delete_volume(size_t idx);
+    void                    clear_volumes();
+
+    ModelInstance*          add_instance();
+    ModelInstance*          add_instance(const ModelInstance &instance);
+    ModelInstance*          add_instance(const Vec3d &offset, const Vec3d &scaling_factor, const Vec3d &rotation);
+    void                    delete_instance(size_t idx);
+    void                    delete_last_instance();
+    void                    clear_instances();
 
     // Returns the bounding box of the transformed instances.
     // This bounding box is approximate and not snug.
@@ -137,8 +157,15 @@ public:
 
     // Print object statistics to console.
     void print_info() const;
-    
-private:        
+
+protected:
+    friend class Print;
+    // Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
+    // Called by Print::apply() to clone the Model / ModelObject hierarchy to the back end for background processing.
+    ModelObject*          clone(Model *parent);
+    void                  set_model(Model *model) { m_model = model; }
+
+private:
     ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
     ModelObject& operator= (ModelObject other);
@@ -146,7 +173,7 @@ private:
     ~ModelObject();
 
     // Parent object, owning this ModelObject.
-    Model          *m_model;
+    Model                *m_model;
     // Bounding box, cached.
 
     mutable BoundingBoxf3 m_bounding_box;
@@ -155,20 +182,20 @@ private:
 
 // An object STL, or a modifier volume, over which a different set of parameters shall be applied.
 // ModelVolume instances are owned by a ModelObject.
-class ModelVolume
+class ModelVolume : public ModelBase
 {
     friend class ModelObject;
 
     // The convex hull of this model's mesh.
-    TriangleMesh m_convex_hull;
+    TriangleMesh        m_convex_hull;
 
 public:
-    std::string name;
+    std::string         name;
     // The triangular model.
-    TriangleMesh mesh;
+    TriangleMesh        mesh;
     // Configuration parameters specific to an object model geometry or a modifier volume, 
     // overriding the global Slic3r settings and the ModelObject settings.
-    DynamicPrintConfig config;
+    DynamicPrintConfig  config;
 
     enum Type {
         MODEL_TYPE_INVALID = -1,
@@ -178,6 +205,9 @@ public:
         SUPPORT_BLOCKER,
     };
 
+    // Clone this ModelVolume, keep the ID identical, set the parent to the cloned volume.
+    ModelVolume*        clone(ModelObject *parent) { return new ModelVolume(parent, *this); }
+
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; };
     Type                type() const { return m_type; }
@@ -186,8 +216,9 @@ public:
     bool                is_modifier()           const { return m_type == PARAMETER_MODIFIER; }
     bool                is_support_enforcer()   const { return m_type == SUPPORT_ENFORCER; }
     bool                is_support_blocker()    const { return m_type == SUPPORT_BLOCKER; }
-    t_model_material_id material_id() const { return this->_material_id; }
-    void                material_id(t_model_material_id material_id);
+    bool                is_support_modifier()   const { return m_type == SUPPORT_BLOCKER || m_type == SUPPORT_ENFORCER; }
+    t_model_material_id material_id() const { return m_material_id; }
+    void                set_material_id(t_model_material_id material_id);
     ModelMaterial*      material() const;
     void                set_material(t_model_material_id material_id, const ModelMaterial &material);
     // Split this volume, append the result to the object owning this volume.
@@ -199,7 +230,7 @@ public:
     
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
-    TriangleMesh& get_convex_hull();
+    TriangleMesh&       get_convex_hull();
 
     // Helpers for loading / storing into AMF / 3MF files.
     static Type         type_from_string(const std::string &s);
@@ -210,23 +241,26 @@ private:
     ModelObject*            object;
     // Is it an object to be printed, or a modifier volume?
     Type                    m_type;
-    t_model_material_id     _material_id;
+    t_model_material_id     m_material_id;
     
     ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(MODEL_PART), object(object)
     {
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : 
+        mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
     ModelVolume(ModelObject *object, const ModelVolume &other) :
+        ModelBase(other), // copy the ID
         name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object)
     {
-        this->material_id(other.material_id());
+        this->set_material_id(other.material_id());
     }
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
+        ModelBase(other), // copy the ID
         name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object)
     {
-        this->material_id(other.material_id());
+        this->set_material_id(other.material_id());
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
@@ -234,7 +268,7 @@ private:
 
 // A single instance of a ModelObject.
 // Knows the affine transformation of an object.
-class ModelInstance
+class ModelInstance : public ModelBase
 {
 public:
     enum EPrintVolumeState : unsigned char
@@ -321,7 +355,7 @@ private:
 // and with multiple modifier meshes.
 // A model groups multiple objects, each object having possibly multiple instances,
 // all objects may share mutliple materials.
-class Model
+class Model : public ModelBase
 {
     static unsigned int s_auto_extruder_id;
 

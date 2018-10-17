@@ -123,7 +123,7 @@ public:
     void send_gcode();
 
     void on_extruders_change(int extruders_count);
-    void on_config_change(DynamicPrintConfig* config);
+    void on_config_change(const DynamicPrintConfig &config);
 
     wxGLCanvas* canvas3D();
 private:

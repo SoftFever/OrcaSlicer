@@ -571,6 +571,415 @@ exit_for_rearrange_regions:
     return invalidated;
 }
 
+// Test whether the two models contain the same number of ModelObjects with the same set of IDs
+// ordered in the same order. In that case it is not necessary to kill the background processing.
+static inline bool model_object_list_equal(const Model &model_old, const Model &model_new)
+{
+    if (model_old.objects.size() != model_new.objects.size())
+        return false;
+    for (size_t i = 0; i < model_old.objects.size(); ++ i)
+        if (model_old.objects[i]->id() != model_new.objects[i]->id())
+            return false;
+    return true;
+}
+
+// Test whether the new model is just an extension of the old model (new objects were added
+// to the end of the original list. In that case it is not necessary to kill the background processing.
+static inline bool model_object_list_extended(const Model &model_old, const Model &model_new)
+{
+    if (model_old.objects.size() >= model_new.objects.size())
+        return false;
+    for (size_t i = 0; i < model_old.objects.size(); ++ i)
+        if (model_old.objects[i]->id() != model_new.objects[i]->id())
+            return false;
+    return true;
+}
+
+static inline bool model_volume_list_changed(const ModelObject &model_object_old, const ModelObject &model_object_new, const ModelVolume::Type type)
+{
+    bool modifiers_differ = false;
+    size_t i_old, i_new;
+    for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
+        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
+        const ModelVolume &mv_new = *model_object_new.volumes[i_old];
+        if (mv_old.type() != type) {
+            ++ i_old;
+            continue;
+        }
+        if (mv_new.type() != type) {
+            ++ i_new;
+            continue;
+        }
+        if (mv_old.id() != mv_new.id())
+            return true;
+        //FIXME test for the content of the mesh!
+        //FIXME test for the transformation matrices!
+        ++ i_old;
+        ++ i_new;
+    }
+    for (; i_old < model_object_old.volumes.size(); ++ i_old) {
+        const ModelVolume &mv_old = *model_object_old.volumes[i_old];
+        if (mv_old.type() == type)
+            // ModelVolume was deleted.
+            return true;
+    }
+    for (; i_new < model_object_new.volumes.size(); ++ i_new) {
+        const ModelVolume &mv_new = *model_object_new.volumes[i_new];
+        if (mv_new.type() == type)
+            // ModelVolume was added.
+            return true;
+    }
+    return false;
+}
+
+static inline void model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src)
+{
+    // 1) Delete the support volumes from model_object_dst.
+    {
+        std::vector<ModelVolume*> dst;
+        dst.reserve(model_object_dst.volumes.size());
+        for (ModelVolume *vol : model_object_dst.volumes) {
+            if (vol->is_support_modifier())
+                dst.emplace_back(vol);
+            else
+                delete vol;
+        }
+        model_object_dst.volumes = std::move(dst);
+    }
+    // 2) Copy the support volumes from model_object_src to the end of model_object_dst.
+    for (ModelVolume *vol : model_object_src.volumes) {
+        if (vol->is_support_modifier())
+            model_object_dst.volumes.emplace_back(vol->clone(&model_object_dst));
+    }
+}
+
+static inline bool transform3d_lower(const Transform3d &lhs, const Transform3d &rhs) 
+{
+    typedef Transform3d::Scalar T;
+    const T *lv = lhs.data();
+    const T *rv = rhs.data();
+    for (size_t i = 0; i < 16; ++ i, ++ lv, ++ rv) {
+        if (*lv < *rv)
+            return true;
+        else if (*lv > *rv)
+            return false;
+    }
+    return false;
+}
+
+static inline bool transform3d_equal(const Transform3d &lhs, const Transform3d &rhs) 
+{
+    typedef Transform3d::Scalar T;
+    const T *lv = lhs.data();
+    const T *rv = rhs.data();
+    for (size_t i = 0; i < 16; ++ i, ++ lv, ++ rv)
+        if (*lv != *rv)
+            return false;
+    return true;
+}
+
+struct PrintInstances
+{
+    Transform3d     trafo;
+    Points          instances;
+    bool operator<(const PrintInstances &rhs) const { return transform3d_lower(this->trafo, rhs.trafo); }
+};
+
+// Generate a list of trafos and XY offsets for instances of a ModelObject
+static std::vector<PrintInstances> print_objects_from_model_object(const ModelObject &model_object)
+{
+    std::set<PrintInstances> trafos;
+    PrintInstances           trafo;
+    trafo.instances.assign(1, Point());
+    for (ModelInstance *model_instance : model_object.instances)
+        if (model_instance->is_printable()) {
+            const Vec3d &offst = model_instance->get_offset();
+            trafo.trafo = model_instance->world_matrix(true);
+            trafo.instances.front() = Point::new_scale(offst(0), offst(1));
+            auto it = trafos.find(trafo);
+            if (it == trafos.end())
+                trafos.emplace(trafo);
+            else
+                const_cast<PrintInstances&>(*it).instances.emplace_back(trafo.instances.front());
+        }
+    return std::vector<PrintInstances>(trafos.begin(), trafos.end());
+}
+
+bool Print::apply(const Model &model, const DynamicPrintConfig &config)
+{
+    // Grab the lock for the Print / PrintObject milestones.
+    tbb::mutex::scoped_lock lock(m_mutex);
+
+    struct ModelObjectStatus {
+        enum Status {
+            Unknown,
+            Old,
+            New,
+            Moved,
+            Deleted,
+        };
+        ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
+        ModelID id;
+        Status status;
+        // Search by id.
+        bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
+    };
+    std::set<ModelObjectStatus> model_object_status;
+
+    // 1) Synchronize model objects.
+    if (model.id() != m_model.id()) {
+        // Kill everything, initialize from scratch.
+        // The following call shall kill any computation if running.
+        this->invalidate_all_steps();
+        for (PrintObject *object : m_objects) {
+            model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
+            delete object;
+        }
+        m_objects.clear();
+        for (PrintRegion *region : m_regions)
+            delete region;
+        m_regions.clear();
+        m_model = model;
+    } else {
+        if (model_object_list_equal(m_model, model)) {
+            // The object list did not change.
+        } else if (model_object_list_extended(m_model, model)) {
+            // Add new objects. Their volumes and configs will be synchronized later.
+            this->invalidate_step(psGCodeExport);
+            for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
+                model_object_status.emplace(model.objects[i]->id(), ModelObjectStatus::New);
+                m_model.objects.emplace_back(model.objects[i]->clone(&m_model));
+            }
+        } else {
+            // Reorder the objects, add new objects.
+            // First stop background processing before shuffling or deleting the PrintObjects in the object list.
+            m_cancel_callback();
+            this->invalidate_step(psGCodeExport);
+            // Second create a new list of objects.
+            std::vector<ModelObject*> old(std::move(m_model.objects));
+            m_model.objects.clear();
+            m_model.objects.reserve(model.objects.size());
+            auto by_id_lower = [](const ModelObject *lhs, const ModelObject *rhs){ return lhs->id() < rhs->id(); };
+            std::sort(old.begin(), old.end(), by_id_lower);
+            for (const ModelObject *mobj : model.objects) {
+                auto it = std::lower_bound(old.begin(), old.end(), mobj, by_id_lower);
+                if (it == old.end() || (*it)->id() != mobj->id()) {
+                    // New ModelObject added.
+                    m_model.objects.emplace_back((*it)->clone(&m_model));
+                    model_object_status.emplace(mobj->id(), ModelObjectStatus::New);
+                } else {
+                    // Existing ModelObject re-added (possibly moved in the list).
+                    m_model.objects.emplace_back(*it);
+                    model_object_status.emplace(mobj->id(), ModelObjectStatus::Old);
+                }
+            }
+            bool deleted_any = false;
+            for (ModelObject *mobj : old)
+                if (model_object_status.find(ModelObjectStatus(mobj->id())) == model_object_status.end()) {
+                    model_object_status.emplace(mobj->id(), ModelObjectStatus::Deleted);
+                    delete mobj;
+                    deleted_any = true;
+                }
+            if (deleted_any) {
+                // Delete PrintObjects of the deleted ModelObjects.
+                std::vector<PrintObject*> old = std::move(m_objects);
+                m_objects.clear();
+                m_objects.reserve(old.size());
+                for (PrintObject *print_object : old) {
+                    auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
+                    assert(it_status != model_object_status.end());
+                    if (it_status->status == ModelObjectStatus::Deleted) {
+                        print_object->invalidate_all_steps();
+                        delete print_object;
+                    } else
+                        m_objects.emplace_back(print_object);
+                }
+            }
+        }
+    }
+
+    // 2) Map print objects including their transformation matrices.
+    struct PrintObjectStatus {
+        enum Status {
+            Unknown,
+            Deleted,
+            New
+        };
+        PrintObjectStatus(PrintObject *print_object, Status status = Unknown) : 
+            id(print_object->model_object()->id()),
+            print_object(print_object),
+            trafo(print_object->trafo()),
+            status(status) {}
+        PrintObjectStatus(ModelID id) : id(id), print_object(nullptr), trafo(Transform3d::Identity()), status(Unknown) {}
+        // ID of the ModelObject & PrintObject
+        ModelID          id;
+        // Pointer to the old PrintObject
+        PrintObject     *print_object;
+        // Trafo generated with model_object->world_matrix(true) 
+        Transform3d      trafo;
+        Status           status;
+        // Search by id.
+        bool operator<(const PrintObjectStatus &rhs) const { return id < rhs.id; }
+    };
+    std::multiset<PrintObjectStatus> print_object_status;
+    for (PrintObject *print_object : m_objects)
+        print_object_status.emplace(PrintObjectStatus(print_object));
+
+    // 3) Synchronize ModelObjects & PrintObjects.
+    for (size_t idx_model_object = 0; idx_model_object < model.objects.size(); ++ idx_model_object) {
+        ModelObject &model_object = *m_model.objects[idx_model_object];
+        auto it_status = model_object_status.find(ModelObjectStatus(model_object.id()));
+        assert(it_status != model_object_status.end());
+        assert(it_status->status != ModelObjectStatus::Deleted);
+        if (it_status->status == ModelObjectStatus::New)
+            // PrintObject instances will be added in the next loop.
+            continue;
+        // Update the ModelObject instance, possibly invalidate the linked PrintObjects.
+        assert(it_status->status == ModelObjectStatus::Moved);
+        const ModelObject &model_object_new = *model.objects[idx_model_object];
+        // Check whether a model part volume was added or removed, their transformations or order changed.
+        bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
+        bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolume::PARAMETER_MODIFIER);
+        bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_BLOCKER);
+        bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_ENFORCER);
+        if (model_parts_differ || modifiers_differ) {
+            // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
+            auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
+            for (auto it = range.first; it != range.second; ++ it) {
+                it->print_object->invalidate_all_steps();
+                const_cast<PrintObjectStatus&>(*it).status = PrintObjectStatus::Deleted;
+            }
+            // Copy content of the ModelObject including its ID, reset the parent.
+            model_object = model_object_new;
+            model_object.set_model(&m_model);
+        } else if (support_blockers_differ || support_enforcers_differ) {
+            // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
+            m_cancel_callback();
+            // Invalidate just the supports step.
+            auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
+            for (auto it = range.first; it != range.second; ++ it)
+                it->print_object->invalidate_step(posSupportMaterial);
+            // Copy just the support volumes.
+            model_volume_list_update_supports(model_object, model_object_new);
+        }
+        if (! model_parts_differ && ! modifiers_differ) {
+            // Synchronize the remaining data of ModelVolumes (name, config, m_type, m_material_id)
+        }
+    }
+
+    // 4) Generate PrintObjects from ModelObjects and their instances.
+    std::vector<PrintObject*> print_objects_new;
+    print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
+    // Walk over all new model objects and check, whether there are matching PrintObjects.
+    for (ModelObject *model_object : m_model.objects) {
+        auto range = print_object_status.equal_range(PrintObjectStatus(model_object->id()));
+        std::vector<const PrintObjectStatus*> old;
+        if (range.first != range.second) {
+            old.reserve(print_object_status.count(PrintObjectStatus(model_object->id())));
+            for (auto it = range.first; it != range.second; ++ it)
+                if (it->status != PrintObjectStatus::Deleted)
+                    old.emplace_back(&(*it));
+        }
+        // Generate a list of trafos and XY offsets for instances of a ModelObject
+        std::vector<PrintInstances> new_print_instances = print_objects_from_model_object(*model_object);
+        if (old.empty()) {
+            // Simple case, just generate new instances.
+            for (const PrintInstances &print_instances : new_print_instances) {
+                PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+                print_objects_new.emplace_back(print_object);
+                print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+            }
+            continue;
+        }
+        // Complex case, try to merge the two lists.
+        // Sort the old lexicographically by their trafos.
+        std::sort(old.begin(), old.end(), [](const PrintObjectStatus *lhs, const PrintObjectStatus *rhs){ return transform3d_lower(lhs->trafo, rhs->trafo); });
+        // Merge the old / new lists.
+        
+    }
+    if (m_objects != print_objects_new) {
+        m_cancel_callback();
+        m_objects = print_objects_new;
+    }
+
+    // Synchronize materials.
+
+#if 0
+    {
+        m_model = model;
+        for (const ModelObject *model_object : m_model.objects) {
+            PrintObject *object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+            m_objects.emplace_back(object);
+            size_t volume_id = 0;
+            for (const ModelVolume *volume : model_object->volumes) {
+                if (! volume->is_model_part() && ! volume->is_modifier())
+                    continue;
+                // Get the config applied to this volume.
+                PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
+                // Find an existing print region with the same config.
+                size_t region_id = size_t(-1);
+                for (size_t i = 0; i < m_regions.size(); ++ i)
+                    if (config.equals(m_regions[i]->config())) {
+                        region_id = i;
+                        break;
+                    }
+                // If no region exists with the same config, create a new one.
+                if (region_id == size_t(-1)) {
+                    region_id = m_regions.size();
+                    this->add_region(config);
+                }
+                // Assign volume to a region.
+                object->add_region_volume(region_id, volume_id);
+                ++ volume_id;
+            }
+            // Apply config to print object.
+            object->config_apply(this->default_object_config());
+            {
+                //normalize_and_apply_config(object->config(), model_object->config);
+                DynamicPrintConfig src_normalized(model_object->config);
+                src_normalized.normalize();
+                object->config_apply(src_normalized, true);
+            }
+        }
+    } else {
+        // Synchronize m_model.objects with model.objects
+    }
+#endif
+
+    this->update_object_placeholders();
+}
+
+// Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.
+void Print::update_object_placeholders()
+{
+    // get the first input file name
+    std::string input_file;
+    std::vector<std::string> v_scale;
+    for (const PrintObject *object : m_objects) {
+        const ModelObject &mobj = *object->model_object();
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+        // CHECK_ME -> Is the following correct ?
+        v_scale.push_back("x:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(X) * 100) +
+            "% y:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Y) * 100) +
+            "% z:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Z) * 100) + "%");
+#else
+        v_scale.push_back(boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor * 100) + "%");
+#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+        if (input_file.empty())
+            input_file = mobj.input_file;
+    }
+    
+    PlaceholderParser &pp = m_placeholder_parser;
+    pp.set("scale", v_scale);
+    if (! input_file.empty()) {
+        // get basename with and without suffix
+        const std::string input_basename = boost::filesystem::path(input_file).filename().string();
+        pp.set("input_filename", input_basename);
+        const std::string input_basename_base = input_basename.substr(0, input_basename.find_last_of("."));
+        pp.set("input_filename_base", input_basename_base);
+    }    
+}
+
 bool Print::has_infinite_skirt() const
 {
     return (m_config.skirt_height == -1 && m_config.skirts > 0)

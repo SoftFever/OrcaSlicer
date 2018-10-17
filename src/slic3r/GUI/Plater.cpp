@@ -209,6 +209,7 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
             if (dialog->ShowModal() == wxID_OK) {
                 DynamicPrintConfig cfg = *wxGetApp().get_tab(Preset::TYPE_PRINTER)->get_config(); 
 
+                //FIXME this is too expensive to call full_config to get just the extruder color!
                 auto colors = static_cast<ConfigOptionStrings*>(wxGetApp().preset_bundle->full_config().option("extruder_colour")->clone());
                 colors->values[extruder_idx] = dialog->GetColourData().GetColour().GetAsString(wxC2S_HTML_SYNTAX);
 
@@ -216,7 +217,7 @@ PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
 
                 wxGetApp().get_tab(Preset::TYPE_PRINTER)->load_config(cfg);
                 wxGetApp().preset_bundle->update_platter_filament_ui(extruder_idx, this);
-                wxGetApp().plater()->on_config_change(&cfg);
+                wxGetApp().plater()->on_config_change(cfg);
             }
             dialog->Destroy();
         });
@@ -741,7 +742,8 @@ struct Plater::priv
     Sidebar *sidebar;
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
-    BackgroundSlicingProcess background_process;
+    BackgroundSlicingProcess    background_process;
+    wxTimer                     background_process_timer;
 
     static const std::regex pattern_bundle;
     static const std::regex pattern_3mf;
@@ -855,15 +857,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::enable_shader(canvas3D, true);
     _3DScene::enable_force_zoom_to_bed(canvas3D, true);
 
-    // XXX: apply_config_timer
-    // {
-    //  my $timer_id = Wx::NewId();
-    //  $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
-    //  EVT_TIMER($self, $timer_id, sub {
-    //      my ($self, $event) = @_;
-    //      $self->async_apply_config;
-    //  });
-    // }
+    background_process_timer.Bind(wxEVT_TIMER, [this](wxTimerEvent &evt){ this->async_apply_config(); }, 0);
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
     _3DScene::set_bed_shape(canvas3D, bed_shape->values);
@@ -961,7 +955,7 @@ void Plater::priv::update(bool force_autocenter)
     preview->reset_gcode_preview_data();
     preview->reload_print();
 
-    // schedule_background_process();   // TODO
+    schedule_background_process();
 }
 
 void Plater::priv::update_ui_from_settings()
@@ -1172,7 +1166,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     _3DScene::zoom_to_volumes(canvas3D);
     object_list_changed();
 
-    // $self->schedule_background_process;
+    this->schedule_background_process();
 
     return obj_idxs;
 }
@@ -1449,12 +1443,40 @@ void Plater::priv::split_object()
 
 void Plater::priv::schedule_background_process()
 {
-    // TODO
+    // Trigger the timer event after 0.5s
+    this->background_process_timer.Start(500, wxTIMER_ONE_SHOT);
 }
 
 void Plater::priv::async_apply_config()
 {
-    // TODO
+    // Apply new config to the possibly running background task.
+    bool was_running = this->background_process.running();
+    bool invalidated = this->background_process.apply_config(wxGetApp().preset_bundle->full_config());
+    // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
+    if (Slic3r::_3DScene::is_layers_editing_enabled(this->canvas3D))
+        this->canvas3D->Refresh();
+    // If the apply_config caused the calculation to stop, or it was not running yet:
+    if (invalidated) {
+        if (was_running) {
+            // Hide the slicing results if the current slicing status is no more valid.
+            this->sidebar->show_info_sizers(false);
+        }
+        if (this->get_config("background_processing") == "1")
+            this->background_process.start();
+        if (was_running) {
+            // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
+            // Otherwise they will be just refreshed.
+            this->gcode_preview_data.reset();
+            if (this->preview != nullptr)
+                this->preview->reload_print();
+            // We also need to reload 3D scene because of the wipe tower preview box
+            if (this->config->opt_bool("wipe_tower")) {
+                std::vector<int> selections = this->collect_selections();
+                Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
+                Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
+            }
+        }
+    }
 }
 
 void Plater::priv::start_background_process()
@@ -1542,8 +1564,7 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     // Synchronize config.ini with the current selections.
     wxGetApp().preset_bundle->export_selections(*wxGetApp().app_config);
     // update plater with new config
-    auto config = wxGetApp().preset_bundle->full_config();
-    wxGetApp().plater()->on_config_change(&config);
+    wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
 }
 
 void Plater::priv::on_progress_event()
@@ -1677,7 +1698,8 @@ void Plater::priv::on_scale_uniformly(SimpleEvent&)
 
 //     $self->selection_changed(1);  # refresh info (size, volume etc.)
 //     $self->update;
-//     $self->schedule_background_process;
+    
+    this->schedule_background_process();
 }
 
 void Plater::priv::on_wipetower_moved(Vec3dEvent &evt)
@@ -1756,7 +1778,7 @@ void Plater::increase(size_t num)
 
     p->selection_changed();
 
-    // $self->schedule_background_process;
+    this->p->schedule_background_process();
 }
 
 void Plater::decrease(size_t num)
@@ -1933,11 +1955,11 @@ void Plater::on_extruders_change(int num_extruders)
     GetParent()->Layout();
 }
 
-void Plater::on_config_change(DynamicPrintConfig* config)
+void Plater::on_config_change(const DynamicPrintConfig &config)
 {
     bool update_scheduled = false;
-    for ( auto opt_key: p->config->diff(*config)) {
-        p->config->set_key_value(opt_key, config->option(opt_key)->clone());
+    for (auto opt_key : p->config->diff(config)) {
+        p->config->set_key_value(opt_key, config.option(opt_key)->clone());
         if (opt_key  == "bed_shape") {
             if (p->canvas3D) _3DScene::set_bed_shape(p->canvas3D, p->config->option<ConfigOptionPoints>(opt_key)->values);
             if (p->preview) p->preview->set_bed_shape(p->config->option<ConfigOptionPoints>(opt_key)->values);
@@ -1948,7 +1970,7 @@ void Plater::on_config_change(DynamicPrintConfig* config)
             update_scheduled = true;
         } 
 //         else if(opt_key == "serial_port") {
-//             sidebar()->p->btn_print->Show(config->get("serial_port"));  // ???: btn_print is removed
+//             sidebar()->p->btn_print->Show(config.get("serial_port"));  // ???: btn_print is removed
 //             Layout();
 //         } 
         else if (opt_key == "print_host") {
@@ -1982,10 +2004,8 @@ void Plater::on_config_change(DynamicPrintConfig* config)
     if (update_scheduled) 
         update();
 
-    if (!p->main_frame->is_loaded()) return ;
-
-    // (re)start timer
-//     schedule_background_process();
+    if (p->main_frame->is_loaded())
+        this->p->schedule_background_process();
 }
 
 wxGLCanvas* Plater::canvas3D()
@@ -2012,7 +2032,7 @@ void Plater::changed_object_settings(int obj_idx)
     if (list->is_parts_changed() || list->is_part_settings_changed()) {
 //         stop_background_process();
 //         $self->{print}->reload_object($obj_idx);
-//         schedule_background_process();
+        this->p->schedule_background_process();
 #if !ENABLE_EXTENDED_SELECTION
         if (p->canvas3D) _3DScene::reload_scene(p->canvas3D, true);
         auto selections = p->collect_selections();
@@ -2021,7 +2041,7 @@ void Plater::changed_object_settings(int obj_idx)
         _3DScene::reload_scene(p->canvas3D, false);
     }
     else {
-//         schedule_background_process();
+        this->p->schedule_background_process();
     }
 
 }

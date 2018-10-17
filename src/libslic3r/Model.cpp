@@ -21,6 +21,8 @@ namespace Slic3r {
 
     unsigned int Model::s_auto_extruder_id = 1;
 
+ModelID ModelBase::s_last_id = 0;
+
 Model::Model(const Model &other)
 {
     // copy materials
@@ -503,6 +505,7 @@ void Model::reset_auto_extruder_id()
 }
 
 ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
+    ModelBase(other), // copy the id
     name(other.name),
     input_file(other.input_file),
     instances(),
@@ -518,13 +521,13 @@ ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volum
 {
     if (copy_volumes) {
         this->volumes.reserve(other.volumes.size());
-        for (ModelVolumePtrs::const_iterator i = other.volumes.begin(); i != other.volumes.end(); ++i)
-            this->add_volume(**i);
+        for (ModelVolume *model_volume : other.volumes)
+            this->add_volume(*model_volume);
     }
     
     this->instances.reserve(other.instances.size());
-    for (ModelInstancePtrs::const_iterator i = other.instances.begin(); i != other.instances.end(); ++i)
-        this->add_instance(**i);
+    for (const ModelInstance *model_instance : other.instances)
+        this->add_instance(*model_instance);
 }
 
 ModelObject& ModelObject::operator=(ModelObject other)
@@ -535,6 +538,7 @@ ModelObject& ModelObject::operator=(ModelObject other)
 
 void ModelObject::swap(ModelObject &other)
 {
+    std::swap(this->m_id,                   other.m_id);
     std::swap(this->input_file,             other.input_file);
     std::swap(this->instances,              other.instances);
     std::swap(this->volumes,                other.volumes);
@@ -551,6 +555,13 @@ ModelObject::~ModelObject()
 {
     this->clear_volumes();
     this->clear_instances();
+}
+
+// Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
+// Called by Print::apply() to clone the Model / ModelObject hierarchy to the back end for background processing.
+ModelObject* ModelObject::clone(Model *parent)
+{
+    return new ModelObject(parent, *this, true);
 }
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
@@ -903,7 +914,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         new_volume->name        = volume->name;
         new_volume->config      = volume->config;
         new_volume->set_type(volume->type());
-        new_volume->material_id(volume->material_id());
+        new_volume->set_material_id(volume->material_id());
         
         new_objects->push_back(new_object);
         delete mesh;
@@ -982,22 +993,22 @@ void ModelObject::print_info() const
     cout << "volume = "           << mesh.volume()                  << endl;
 }
 
-void ModelVolume::material_id(t_model_material_id material_id)
+void ModelVolume::set_material_id(t_model_material_id material_id)
 {
-    this->_material_id = material_id;
+    m_material_id = material_id;
     
-    // ensure this->_material_id references an existing material
+    // ensure m_material_id references an existing material
     (void)this->object->get_model()->add_material(material_id);
 }
 
 ModelMaterial* ModelVolume::material() const
 { 
-    return this->object->get_model()->get_material(this->_material_id);
+    return this->object->get_model()->get_material(m_material_id);
 }
 
 void ModelVolume::set_material(t_model_material_id material_id, const ModelMaterial &material)
 {
-    this->_material_id = material_id;
+    m_material_id = material_id;
     (void)this->object->get_model()->add_material(material_id, material);
 }
 
@@ -1006,8 +1017,8 @@ ModelMaterial* ModelVolume::assign_unique_material()
     Model* model = this->get_object()->get_model();
     
     // as material-id "0" is reserved by the AMF spec we start from 1
-    this->_material_id = 1 + model->materials.size();  // watchout for implicit cast
-    return model->add_material(this->_material_id);
+    m_material_id = 1 + model->materials.size();  // watchout for implicit cast
+    return model->add_material(m_material_id);
 }
 
 void ModelVolume::calculate_convex_hull()

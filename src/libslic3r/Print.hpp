@@ -194,6 +194,7 @@ public:
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->m_config.apply_only(other, keys, ignore_nonexistent); }
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
+    const Transform3d&      trafo() const           { return m_trafo; }
 
     const Points& copies() const { return m_copies; }
     bool add_copy(const Vec2d &point);
@@ -285,6 +286,8 @@ private:
     Print                                  *m_print;
     ModelObject                            *m_model_object;
     PrintObjectConfig                       m_config;
+    // Translation in Z + Rotation + Scaling / Mirroring.
+    Transform3d                             m_trafo = Transform3d::Identity();
     // Slic3r::Point objects in scaled G-code coordinates
     Points                                  m_copies;
     // scaled coordinates to add to copies (to compensate for the alignment
@@ -382,6 +385,8 @@ public:
     bool                reload_model_instances();
     void                add_model_object(ModelObject* model_object, int idx = -1);
     bool                apply_config(DynamicPrintConfig config);
+    bool                apply(const Model &model, const DynamicPrintConfig &config);
+
     void                process();
     void                export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
     // SLA export, temporary.
@@ -477,6 +482,9 @@ protected:
     PrintRegion*        add_region(const PrintRegionConfig &config);
 
 private:
+    // Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.
+    void                update_object_placeholders();
+
     bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     PrintRegionConfig   _region_config_from_model_volume(const ModelVolume &volume);
 
@@ -503,6 +511,7 @@ private:
     // Callback to be evoked to stop the background processing before a state is updated.
     cancel_callback_type                    m_cancel_callback = [](){};
 
+    Model                                   m_model;
     PrintConfig                             m_config;
     PrintObjectConfig                       m_default_object_config;
     PrintRegionConfig                       m_default_region_config;
