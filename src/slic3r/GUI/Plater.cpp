@@ -729,7 +729,7 @@ struct Plater::priv
     MainFrame *main_frame;
 
     // Object popup menu
-    wxMenu* object_menu;
+    wxMenu object_menu;
 
     // Data
     Slic3r::DynamicPrintConfig *config;
@@ -755,7 +755,6 @@ struct Plater::priv
     static const std::regex pattern_zip_amf;
 
     priv(Plater *q, MainFrame *main_frame);
-    ~priv();
 
 #if !ENABLE_EXTENDED_SELECTION
     std::vector<int> collect_selections();
@@ -844,7 +843,6 @@ const std::regex Plater::priv::pattern_zip_amf("[.]zip[.]amf$", std::regex::icas
 Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     q(q),
     main_frame(main_frame),
-    object_menu(nullptr),
     config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "complete_objects", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
@@ -959,12 +957,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     update_ui_from_settings();
     q->Layout();
-}
-
-Plater::priv::~priv()
-{
-    if (object_menu != nullptr)
-        delete object_menu;
 }
 
 #if !ENABLE_EXTENDED_SELECTION
@@ -1752,8 +1744,8 @@ void Plater::priv::on_right_click(Vec2dEvent& evt)
     if (obj_idx == -1)
         return;
 
-    if ((q != nullptr) && (object_menu != nullptr))
-        q->PopupMenu(object_menu, (int)evt.data.x(), (int)evt.data.y());
+    if (q != nullptr)
+        q->PopupMenu(&object_menu, (int)evt.data.x(), (int)evt.data.y());
 #else
     // TODO
 #endif // ENABLE_EXTENDED_SELECTION
@@ -1821,15 +1813,26 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
 
 bool Plater::priv::init_object_menu()
 {
-    if (main_frame == nullptr)
-        return false;
-
-    object_menu = new wxMenu();
-    if (object_menu == nullptr)
-        return false;
-
-    append_menu_item(object_menu, wxID_ANY, _(L("Delete…\tDel")), _(L("Remove the selected object")),
+    append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
         [this](wxCommandEvent&){ q->remove_selected(); }, "brick_delete.png");
+    append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
+        [this](wxCommandEvent&){ q->increase(); }, "add.png");
+    wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
+        [this](wxCommandEvent&){ q->decrease(); }, "delete.png");
+
+    // ui updates needs to be binded to the parent panel
+    if (q != nullptr)
+    {
+        q->Bind(wxEVT_UPDATE_UI,
+            [this](wxUpdateUIEvent& evt)
+            {
+#if ENABLE_EXTENDED_SELECTION
+                int obj_idx = get_selected_object_idx();
+                evt.Enable((obj_idx != -1) && (model.objects[obj_idx]->instances.size() > 1));
+#endif // ENABLE_EXTENDED_SELECTION
+            },
+            item_decrease->GetId());
+    }
 
     return true;
 }
