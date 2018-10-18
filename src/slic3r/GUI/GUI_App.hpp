@@ -107,12 +107,6 @@ public:
 //     void            notify(/*message*/);
     void            update_ui_from_settings();
     void            CallAfter(std::function<void()> cb);
-    wxMenuItem*     append_submenu(wxMenu* menu,
-                                    wxMenu* sub_menu,
-                                    int id,
-                                    const wxString& string,
-                                    const wxString& description,
-                                    const std::string& icon);
 
     void            window_pos_save(wxTopLevelWindow* window, const std::string &name);
     void            window_pos_restore(wxTopLevelWindow* window, const std::string &name);

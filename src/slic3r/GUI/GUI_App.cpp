@@ -327,24 +327,6 @@ void GUI_App::CallAfter(std::function<void()> cb)
     callback_register.unlock();
 }
 
-wxMenuItem* GUI_App::append_submenu(wxMenu* menu,
-    wxMenu* sub_menu,
-    int id,
-    const wxString& string,
-    const wxString& description,
-    const std::string& icon)
-{
-    if (id == wxID_ANY)
-        id = wxNewId();
-    auto item = new wxMenuItem(menu, id, string, description);
-    if (!icon.empty())
-        item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
-    item->SetSubMenu(sub_menu);
-    menu->Append(item);
-
-    return item;
-}
-
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }

@@ -1829,6 +1829,21 @@ bool Plater::priv::init_object_menu()
     wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
         [this](wxCommandEvent&){ q->decrease(); }, "delete.png");
 
+    object_menu.AppendSeparator();
+    
+    wxMenu* mirror_menu = new wxMenu();
+    if (mirror_menu == nullptr)
+        return false;
+
+    append_menu_item(mirror_menu, wxID_ANY, _(L("Along X axis")), _(L("Mirror the selected object along the X axis")),
+        [this](wxCommandEvent&){ mirror(X); }, "bullet_red.png", &object_menu);
+    append_menu_item(mirror_menu, wxID_ANY, _(L("Along Y axis")), _(L("Mirror the selected object along the Y axis")),
+        [this](wxCommandEvent&){ mirror(Y); }, "bullet_green.png", &object_menu);
+    append_menu_item(mirror_menu, wxID_ANY, _(L("Along Z axis")), _(L("Mirror the selected object along the Z axis")),
+        [this](wxCommandEvent&){ mirror(Z); }, "bullet_blue.png", &object_menu);
+
+    wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
+
 #if ENABLE_EXTENDED_SELECTION
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
