@@ -1,4 +1,4 @@
-#include "../../libslic3r/libslic3r.h"
+#include "libslic3r/libslic3r.h"
 #include "GLGizmo.hpp"
 
 #include "GUI.hpp"
@@ -8,15 +8,29 @@
 #include "PresetBundle.hpp"
 
 #include <Eigen/Dense>
-#include "../../libslic3r/Geometry.hpp"
+#include "libslic3r/Geometry.hpp"
 
 #include <igl/unproject_onto_mesh.h>
 #include <GL/glew.h>
 
 #include <SLA/SLASupportTree.hpp>
 
-#include <iostream>
+#include <cstdio>
 #include <numeric>
+#include <algorithm>
+
+#include <wx/sizer.h>
+#include <wx/panel.h>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/stattext.h>
+#include <wx/debug.h>
+
+#include "GUI.hpp"
+#include "GUI_Utils.hpp"
+#include "GUI_App.hpp"
+
+// TODO: Display tooltips quicker on Linux
 
 static const float DEFAULT_BASE_COLOR[3] = { 0.625f, 0.625f, 0.625f };
 static const float DEFAULT_DRAG_COLOR[3] = { 1.0f, 1.0f, 1.0f };
@@ -252,6 +266,8 @@ void GLGizmoBase::render_grabbers_for_picking(const BoundingBoxf3& box) const
     }
 }
 
+void GLGizmoBase::create_external_gizmo_widgets(wxWindow *parent) {}
+
 void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 {
     m_parent.set_tooltip(tooltip);
@@ -259,9 +275,10 @@ void GLGizmoBase::set_tooltip(const std::string& tooltip) const
 
 std::string GLGizmoBase::format(float value, unsigned int decimals) const
 {
-    char buf[1024];
-    ::sprintf(buf, "%.*f", decimals, value);
-    return buf;
+    size_t needed_size = std::snprintf(nullptr, 0, "%.*f", decimals, value);
+    std::string res(needed_size, '\0');
+    std::snprintf(&res.front(), res.size(), "%.*f", decimals, value);
+    return res;
 }
 
 const float GLGizmoRotate::Offset = 5.0f;
@@ -1769,6 +1786,238 @@ std::string GLGizmoSlaSupports::on_get_name() const
 {
     return L("SLA Support Points");
 }
+
+
+
+// GLGizmoCut
+
+class GLGizmoCutPanel : public wxPanel
+{
+public:
+    GLGizmoCutPanel(wxWindow *parent);
+
+    void display(bool display);
+private:
+    bool m_active;
+    wxCheckBox *m_cb_rotate;
+    wxButton *m_btn_cut;
+    wxButton *m_btn_cancel;
+};
+
+GLGizmoCutPanel::GLGizmoCutPanel(wxWindow *parent)
+    : wxPanel(parent)
+    , m_active(false)
+    , m_cb_rotate(new wxCheckBox(this, wxID_ANY, _(L("Rotate lower part upwards"))))
+    , m_btn_cut(new wxButton(this, wxID_OK, _(L("Perform cut"))))
+    , m_btn_cancel(new wxButton(this, wxID_CANCEL, _(L("Cancel"))))
+{
+    enum { MARGIN = 5 };
+
+    auto *sizer = new wxBoxSizer(wxHORIZONTAL);
+
+    auto *label = new wxStaticText(this, wxID_ANY, _(L("Cut object:")));
+    sizer->Add(label, 0, wxALL | wxALIGN_CENTER, MARGIN);
+    sizer->Add(m_cb_rotate, 0, wxALL | wxALIGN_CENTER, MARGIN);
+    sizer->AddStretchSpacer();
+    sizer->Add(m_btn_cut, 0, wxALL | wxALIGN_CENTER, MARGIN);
+    sizer->Add(m_btn_cancel, 0, wxALL | wxALIGN_CENTER, MARGIN);
+
+    SetSizer(sizer);
+}
+
+void GLGizmoCutPanel::display(bool display)
+{
+    Show(display);
+    GetParent()->Layout();
+}
+
+
+const double GLGizmoCut::Offset = 10.0;
+const double GLGizmoCut::Margin = 20.0;
+const std::array<float, 3> GLGizmoCut::GrabberColor = { 1.0, 0.5, 0.0 };
+
+GLGizmoCut::GLGizmoCut(GLCanvas3D& parent)
+    : GLGizmoBase(parent)
+    , m_cut_z(0.0)
+    , m_panel(nullptr)
+{}
+
+void GLGizmoCut::create_external_gizmo_widgets(wxWindow *parent)
+{
+    wxASSERT(m_panel == nullptr);
+
+    m_panel = new GLGizmoCutPanel(parent);
+    parent->GetSizer()->Add(m_panel, 0, wxEXPAND);
+
+    parent->Layout();
+    parent->Fit();
+    auto prev_heigh = parent->GetMinSize().GetHeight();
+    parent->SetMinSize(wxSize(-1, std::max(prev_heigh, m_panel->GetSize().GetHeight())));
+
+    m_panel->Hide();
+    m_panel->Bind(wxEVT_BUTTON, [this](wxCommandEvent&) {
+        perform_cut();
+    }, wxID_OK);
+}
+
+bool GLGizmoCut::on_init()
+{
+    // TODO: icon
+
+    std::string path = resources_dir() + "/icons/overlay/";
+
+    if (!m_textures[Off].load_from_file(path + "cut_off.png", false)) {
+        return false;
+    }
+
+    if (!m_textures[Hover].load_from_file(path + "cut_hover.png", false)) {
+        return false;
+    }
+
+    if (!m_textures[On].load_from_file(path + "cut_on.png", false)) {
+        return false;
+    }
+
+    m_grabbers.emplace_back();
+
+    return true;
+}
+
+std::string GLGizmoCut::on_get_name() const
+{
+    return L("Cut");
+}
+
+void GLGizmoCut::on_set_state()
+{
+    // Reset m_cut_z on gizmo activation
+    if (get_state() == On) {
+        m_cut_z = 0.0;
+    }
+
+    // Display or hide the extra panel
+    if (m_panel != nullptr) {
+        m_panel->display(get_state() == On);
+    }
+}
+
+bool GLGizmoCut::on_is_activable(const GLCanvas3D::Selection& selection) const
+{
+    return selection.is_single_full_instance() && !selection.is_wipe_tower();
+}
+
+void GLGizmoCut::on_start_dragging(const GLCanvas3D::Selection& selection)
+{
+    if (m_hover_id == -1) { return; }
+
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    m_start_z = m_cut_z;
+    m_max_z = box.size()(2) / 2.0;
+    m_drag_pos = m_grabbers[m_hover_id].center;
+    m_drag_center = box.center();
+    m_drag_center(2) += m_cut_z;
+}
+
+void GLGizmoCut::on_update(const UpdateData& data)
+{
+    if (m_hover_id != -1) {
+        // Clamp the plane to the object's bounding box
+        const double new_z = m_start_z + calc_projection(data.mouse_ray);
+        m_cut_z = std::max(-m_max_z, std::min(m_max_z, new_z));
+    }
+}
+
+void GLGizmoCut::on_render(const GLCanvas3D::Selection& selection) const
+{
+    if (m_grabbers[0].dragging) {
+        set_tooltip("Z: " + format(m_cut_z, 2));
+    }
+
+    const BoundingBoxf3& box = selection.get_bounding_box();
+    Vec3d plane_center = box.center();
+    plane_center(2) += m_cut_z;
+
+    const float min_x = box.min(0) - Margin;
+    const float max_x = box.max(0) + Margin;
+    const float min_y = box.min(1) - Margin;
+    const float max_y = box.max(1) + Margin;
+    ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_CULL_FACE);
+    ::glEnable(GL_BLEND);
+    ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Draw the cutting plane
+    ::glBegin(GL_QUADS);
+    ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
+    ::glVertex3f(min_x, min_y, plane_center(2));
+    ::glVertex3f(max_x, min_y, plane_center(2));
+    ::glVertex3f(max_x, max_y, plane_center(2));
+    ::glVertex3f(min_x, max_y, plane_center(2));
+    ::glEnd();
+
+    ::glEnable(GL_CULL_FACE);
+    ::glDisable(GL_BLEND);
+
+    // TODO: draw cut part contour?
+
+    // Draw the grabber and the connecting line
+    m_grabbers[0].center = plane_center;
+    m_grabbers[0].center(2) = plane_center(2) + Offset;
+
+    ::glDisable(GL_DEPTH_TEST);
+    ::glLineWidth(m_hover_id != -1 ? 2.0f : 1.5f);
+    ::glColor3f(1.0, 1.0, 0.0);
+    ::glBegin(GL_LINES);
+    ::glVertex3dv(plane_center.data());
+    ::glVertex3dv(m_grabbers[0].center.data());
+    ::glEnd();
+
+    std::copy(std::begin(GrabberColor), std::end(GrabberColor), m_grabbers[0].color);
+    m_grabbers[0].render(m_hover_id == 0, box.max_size());
+}
+
+void GLGizmoCut::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+{
+    ::glDisable(GL_DEPTH_TEST);
+
+    render_grabbers_for_picking(selection.get_bounding_box());
+}
+
+void GLGizmoCut::perform_cut()
+{
+    const auto &selection = m_parent.get_selection();
+
+    const auto instance_idx = selection.get_instance_idx();
+    const auto object_idx = selection.get_object_idx();
+
+    wxCHECK_RET(instance_idx >= 0 && object_idx >= 0, "GLGizmoCut: Invalid object selection");
+
+    wxGetApp().plater()->cut(object_idx, instance_idx, m_cut_z);
+}
+
+double GLGizmoCut::calc_projection(const Linef3& mouse_ray) const
+{
+    double projection = 0.0;
+
+    const Vec3d starting_vec = m_drag_pos - m_drag_center;
+    const double len_starting_vec = starting_vec.norm();
+    if (len_starting_vec != 0.0)
+    {
+        Vec3d mouse_dir = mouse_ray.unit_vector();
+        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+        // in our case plane normal and ray direction are the same (orthogonal view)
+        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+        Vec3d inters = mouse_ray.a + (m_drag_pos - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        // vector from the starting position to the found intersection
+        Vec3d inters_vec = inters - m_drag_pos;
+
+        // finds projection of the vector along the staring direction
+        projection = inters_vec.dot(starting_vec.normalized());
+    }
+    return projection;
+}
+
 
 } // namespace GUI
 } // namespace Slic3r

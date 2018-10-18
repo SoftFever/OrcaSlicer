@@ -7,6 +7,7 @@
 #include <wx/menu.h>
 #include <wx/progdlg.h>
 #include <wx/tooltip.h>
+#include <wx/glcanvas.h>
 #include <wx/debug.h>
 
 #include "Tab.hpp"
@@ -100,7 +101,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     });
 
     update_ui_from_settings();
-    return;
 }
 
 void MainFrame::init_tabpanel()

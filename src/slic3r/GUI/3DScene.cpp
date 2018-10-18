@@ -1915,11 +1915,6 @@ void _3DScene::set_bed_shape(wxGLCanvas* canvas, const Pointfs& shape)
     s_canvas_mgr.set_bed_shape(canvas, shape);
 }
 
-void _3DScene::set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons)
-{
-    s_canvas_mgr.set_cutting_plane(canvas, z, polygons);
-}
-
 void _3DScene::set_color_by(wxGLCanvas* canvas, const std::string& value)
 {
     s_canvas_mgr.set_color_by(canvas, value);

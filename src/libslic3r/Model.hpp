@@ -237,7 +237,7 @@ public:
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
-    void cut(coordf_t z, Model* model) const;
+    ModelObjectPtrs cut(size_t instance, coordf_t z);
     void split(ModelObjectPtrs* new_objects);
     void repair();
 
@@ -607,7 +607,7 @@ public:
     bool         delete_object(ModelID id);
     bool         delete_object(ModelObject* object);
     void         clear_objects();
-    
+
     ModelMaterial* add_material(t_model_material_id material_id);
     ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
     ModelMaterial* get_material(t_model_material_id material_id) {

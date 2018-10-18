@@ -951,25 +951,54 @@ bool ModelObject::needed_repair() const
     return false;
 }
 
-void ModelObject::cut(coordf_t z, Model* model) const
+template<class T> static void cut_reset_transform(T *thing) {
+    const Vec3d offset = thing->get_offset();
+    thing->set_transformation(Geometry::Transformation());
+    thing->set_offset(offset);
+}
+
+ModelObjectPtrs ModelObject::cut(size_t instance, coordf_t z)
 {
-    // clone this one to duplicate instances, materials etc.
-    ModelObject* upper = model->add_object(*this);
-    ModelObject* lower = model->add_object(*this);
+    // Clone the object to duplicate instances, materials etc.
+    ModelObject* upper = ModelObject::new_clone(*this);
+    ModelObject* lower = ModelObject::new_clone(*this);
+    upper->set_model(nullptr);
+    lower->set_model(nullptr);
     upper->sla_support_points.clear();
     lower->sla_support_points.clear();
     upper->clear_volumes();
     lower->clear_volumes();
     upper->input_file = "";
     lower->input_file = "";
-    
-    for (ModelVolume *volume : this->volumes) {
+
+    const auto instance_matrix = instances[instance]->get_matrix(true);
+
+    // Because transformations are going to be applied to meshes directly,
+    // we reset transformation of all instances and volumes,
+    // _except_ for translation, which is preserved in the transformation matrix
+    // and not applied to the mesh transform.
+    // TODO: Do the same for Z-rotation as well?
+
+    // Convert z from relative to bb's base to object coordinates
+    // FIXME: doesn't work well for rotated objects
+    const auto bb = instance_bounding_box(instance, true);
+    z -= bb.min(2);
+
+    for (auto *instance : upper->instances) { cut_reset_transform(instance); }
+    for (auto *instance : lower->instances) { cut_reset_transform(instance); }
+
+    for (ModelVolume *volume : volumes) {
         if (! volume->is_model_part()) {
             // don't cut modifiers
             upper->add_volume(*volume);
             lower->add_volume(*volume);
         } else {
             TriangleMesh upper_mesh, lower_mesh;
+
+            // Transform the mesh by the object transformation matrix
+            volume->mesh.transform(instance_matrix * volume->get_matrix(true));
+            cut_reset_transform(volume);
+
             TriangleMeshSlicer tms(&volume->mesh);
             tms.cut(z, &upper_mesh, &lower_mesh);
 
@@ -977,7 +1006,7 @@ void ModelObject::cut(coordf_t z, Model* model) const
             lower_mesh.repair();
             upper_mesh.reset_repair_stats();
             lower_mesh.reset_repair_stats();
-            
+
             if (upper_mesh.facets_count() > 0) {
                 ModelVolume* vol    = upper->add_volume(upper_mesh);
                 vol->name           = volume->name;
@@ -992,6 +1021,15 @@ void ModelObject::cut(coordf_t z, Model* model) const
             }
         }
     }
+
+    upper->invalidate_bounding_box();
+    lower->invalidate_bounding_box();
+
+    ModelObjectPtrs res;
+    if (upper->volumes.size() > 0) { res.push_back(upper); }
+    if (lower->volumes.size() > 0) { res.push_back(lower); }
+
+    return res;
 }
 
 void ModelObject::split(ModelObjectPtrs* new_objects)
@@ -1011,7 +1049,8 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         
         mesh->repair();
         
-        ModelObject* new_object = m_model->add_object();
+        // XXX: this seems to be the only real usage of m_model, maybe refactor this so that it's not needed?
+        ModelObject* new_object = m_model->add_object();    
 		new_object->name   = this->name;
 		new_object->config = this->config;
 		new_object->instances.reserve(this->instances.size());

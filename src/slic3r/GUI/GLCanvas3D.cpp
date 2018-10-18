@@ -641,70 +641,6 @@ void GLCanvas3D::Axes::render(bool depth_test) const
     ::glEnd();
 }
 
-GLCanvas3D::CuttingPlane::CuttingPlane()
-    : m_z(-1.0f)
-{
-}
-
-bool GLCanvas3D::CuttingPlane::set(float z, const ExPolygons& polygons)
-{
-    m_z = z;
-
-    // grow slices in order to display them better
-    ExPolygons expolygons = offset_ex(polygons, (float)scale_(0.1));
-    Lines lines = to_lines(expolygons);
-    return m_lines.set_from_lines(lines, m_z);
-}
-
-void GLCanvas3D::CuttingPlane::render(const BoundingBoxf3& bb) const
-{
-    _render_plane(bb);
-    _render_contour();
-}
-
-void GLCanvas3D::CuttingPlane::_render_plane(const BoundingBoxf3& bb) const
-{
-    if (m_z >= 0.0f)
-    {
-        ::glDisable(GL_CULL_FACE);
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        float margin = 20.0f;
-        float min_x = bb.min(0) - margin;
-        float max_x = bb.max(0) + margin;
-        float min_y = bb.min(1) - margin;
-        float max_y = bb.max(1) + margin;
-
-        ::glBegin(GL_QUADS);
-        ::glColor4f(0.8f, 0.8f, 0.8f, 0.5f);
-        ::glVertex3f(min_x, min_y, m_z);
-        ::glVertex3f(max_x, min_y, m_z);
-        ::glVertex3f(max_x, max_y, m_z);
-        ::glVertex3f(min_x, max_y, m_z);
-        ::glEnd();
-
-        ::glEnable(GL_CULL_FACE);
-        ::glDisable(GL_BLEND);
-    }
-}
-
-void GLCanvas3D::CuttingPlane::_render_contour() const
-{
-    ::glEnableClientState(GL_VERTEX_ARRAY);
-
-    if (m_z >= 0.0f)
-    {
-        unsigned int lines_vcount = m_lines.get_vertices_count();
-
-        ::glLineWidth(2.0f);
-        ::glColor3f(0.0f, 0.0f, 0.0f);
-        ::glVertexPointer(3, GL_FLOAT, 0, (GLvoid*)m_lines.get_vertices());
-        ::glDrawArrays(GL_LINES, 0, (GLsizei)lines_vcount);
-    }
-
-    ::glDisableClientState(GL_VERTEX_ARRAY);
-}
 
 GLCanvas3D::Shader::Shader()
     : m_shader(nullptr)
@@ -2380,6 +2316,13 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
+    gizmo = new GLGizmoCut(parent);
+    if (! gizmo->init()) {
+        return false;
+    }
+
+    m_gizmos.insert({ Cut, gizmo });
+
     gizmo = new GLGizmoSlaSupports(parent);
     if (gizmo == nullptr)
         return false;
@@ -2390,7 +2333,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     }
 
     m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
-
 
     return true;
 }
@@ -2762,6 +2704,13 @@ void GLCanvas3D::Gizmos::render_overlay(const GLCanvas3D& canvas) const
     _render_overlay(canvas);
 
     ::glPopMatrix();
+}
+
+void GLCanvas3D::Gizmos::create_external_gizmo_widgets(wxWindow *parent)
+{
+    for (auto &entry : m_gizmos) {
+        entry.second->create_external_gizmo_widgets(parent);
+    }
 }
 
 void GLCanvas3D::Gizmos::_reset()
@@ -3166,6 +3115,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     , m_regenerate_volumes(true)
     , m_color_by("volume")
     , m_reload_delayed(false)
+    , m_external_gizmo_widgets_parent(nullptr)
 {
     if (m_canvas != nullptr)
     {
@@ -3267,8 +3217,16 @@ bool GLCanvas3D::init(bool useVBOs, bool use_legacy_opengl)
     if (!m_volumes.empty())
         m_volumes.finalize_geometry(m_use_VBOs);
 
-    if (m_gizmos.is_enabled() && !m_gizmos.init(*this))
-        return false;
+    if (m_gizmos.is_enabled()) {
+        if (! m_gizmos.init(*this)) { 
+            return false; 
+        }
+
+        if (m_external_gizmo_widgets_parent != nullptr) {
+            m_gizmos.create_external_gizmo_widgets(m_external_gizmo_widgets_parent);
+            m_canvas->GetParent()->Layout();
+        }
+    }
 
     if (!_init_toolbar())
         return false;
@@ -3369,11 +3327,6 @@ void GLCanvas3D::set_bed_shape(const Pointfs& shape)
 void GLCanvas3D::set_axes_length(float length)
 {
     m_axes.length = length;
-}
-
-void GLCanvas3D::set_cutting_plane(float z, const ExPolygons& polygons)
-{
-    m_cutting_plane.set(z, polygons);
 }
 
 void GLCanvas3D::set_color_by(const std::string& value)
@@ -3629,7 +3582,6 @@ void GLCanvas3D::render()
 #endif // ENABLE_GIZMOS_ON_TOP
 
     _render_current_gizmo();
-    _render_cutting_plane();
 #if ENABLE_SHOW_CAMERA_TARGET
     _render_camera_target();
 #endif // ENABLE_SHOW_CAMERA_TARGET
@@ -4524,6 +4476,11 @@ void GLCanvas3D::set_tooltip(const std::string& tooltip) const
     }
 }
 
+void GLCanvas3D::set_external_gizmo_widgets_parent(wxWindow *parent)
+{
+    m_external_gizmo_widgets_parent = parent;
+}
+
 bool GLCanvas3D::_is_shown_on_screen() const
 {
     return (m_canvas != nullptr) ? m_canvas->IsShownOnScreen() : false;
@@ -4621,14 +4578,6 @@ bool GLCanvas3D::_init_toolbar()
     item.sprite_id = 11;
     item.is_toggable = false;
     item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
-    if (!m_toolbar.add_item(item))
-        return false;
-
-    item.name = "cut";
-    item.tooltip = GUI::L_str("Cut...");
-    item.sprite_id = 7;
-    item.is_toggable = false;
-    item.action_event = EVT_GLTOOLBAR_CUT;
     if (!m_toolbar.add_item(item))
         return false;
 
@@ -5028,11 +4977,6 @@ void GLCanvas3D::_render_selection() const
 {
     if (!m_gizmos.is_running())
         m_selection.render();
-}
-
-void GLCanvas3D::_render_cutting_plane() const
-{
-    m_cutting_plane.render(volumes_bounding_box());
 }
 
 void GLCanvas3D::_render_warning_texture() const

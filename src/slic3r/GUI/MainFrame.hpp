@@ -81,6 +81,7 @@ public:
     MainFrame(const bool no_plater, const bool loaded);
     ~MainFrame() {}
 
+    Plater*     plater() { return m_plater; }
 
     void        init_tabpanel();
     const std::map<std::string, Tab*>& options_tabs() const { return m_options_tabs; }

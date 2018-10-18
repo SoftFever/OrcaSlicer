@@ -20,7 +20,8 @@
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
 #include <wx/colordlg.h>
-#include <wx/numdlg.h> 
+#include <wx/numdlg.h>
+#include <wx/debug.h>
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -881,6 +882,7 @@ struct Plater::priv
     // GUI elements
     wxNotebook *notebook;
     Sidebar *sidebar;
+    wxWindow *panel3d;
     wxGLCanvas *canvas3D;    // TODO: Use GLCanvas3D when we can
     Preview *preview;
 
@@ -959,7 +961,6 @@ struct Plater::priv
     void on_action_add(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
-    void on_action_cut(SimpleEvent&);
     void on_action_layersediting(SimpleEvent&);
 
     void on_object_select(SimpleEvent&);
@@ -978,7 +979,6 @@ private:
     bool can_decrease_instances() const;
     bool can_split_to_objects() const;
     bool can_split_to_volumes() const;
-    bool can_cut_object() const;
     bool layers_height_allowed() const;
     bool can_delete_all() const;
     bool can_arrange() const;
@@ -988,19 +988,20 @@ private:
 const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
 const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
 const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
-Plater::priv::priv(Plater *q, MainFrame *main_frame) :
-    q(q),
-    main_frame(main_frame),
-    config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
+Plater::priv::priv(Plater *q, MainFrame *main_frame)
+    : q(q)
+    , main_frame(main_frame)
+    , config(Slic3r::DynamicPrintConfig::new_from_defaults_keys({
         "bed_shape", "complete_objects", "extruder_clearance_radius", "skirts", "skirt_distance",
         "brim_width", "variable_layer_height", "serial_port", "serial_speed", "host_type", "print_host",
         "printhost_apikey", "printhost_cafile", "nozzle_diameter", "single_extruder_multi_material",
         "wipe_tower", "wipe_tower_x", "wipe_tower_y", "wipe_tower_width", "wipe_tower_rotation_angle",
-		"extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
-    })),
-    notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM)),
-    sidebar(new Sidebar(q)),
-    canvas3D(GLCanvas3DManager::create_wxglcanvas(notebook))
+        "extruder_colour", "filament_colour", "max_print_height", "printer_model", "printer_technology"
+        }))
+    , notebook(new wxNotebook(q, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxNB_BOTTOM))
+    , sidebar(new Sidebar(q))
+    , panel3d(new wxWindow(notebook, wxID_ANY))
+    , canvas3D(GLCanvas3DManager::create_wxglcanvas(panel3d))
 #if ENABLE_NEW_MENU_LAYOUT
     , project_filename(wxEmptyString)
 #endif // ENABLE_NEW_MENU_LAYOUT
@@ -1027,8 +1028,18 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     _3DScene::add_canvas(canvas3D);
     _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
-    notebook->AddPage(canvas3D, _(L("3D")));
+
+    auto *panel3dsizer = new wxBoxSizer(wxVERTICAL);
+    panel3dsizer->Add(canvas3D, 1, wxEXPAND);
+    auto *panel_gizmo_widgets = new wxPanel(panel3d, wxID_ANY);
+    panel_gizmo_widgets->SetSizer(new wxBoxSizer(wxVERTICAL));
+    panel3dsizer->Add(panel_gizmo_widgets, 0, wxEXPAND);
+
+    panel3d->SetSizer(panel3dsizer);
+    notebook->AddPage(panel3d, _(L("3D")));
     preview = new GUI::Preview(notebook, config, &print, &gcode_preview_data, [this](){ schedule_background_process(); });
+
+    _3DScene::get_canvas(canvas3D)->set_external_gizmo_widgets_parent(panel_gizmo_widgets);
 
     // XXX: If have OpenGL
     _3DScene::enable_picking(canvas3D, true);
@@ -1092,7 +1103,6 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
-    canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
     canvas3D->Bind(EVT_GLTOOLBAR_LAYERSEDITING, &priv::on_action_layersediting, this);
 
     // Preview events:
@@ -1475,7 +1485,6 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "fewer", can_decrease_instances());
     _3DScene::enable_toolbar_item(canvas3D, "splitobjects", can_split_to_objects());
     _3DScene::enable_toolbar_item(canvas3D, "splitvolumes", can_split_to_volumes());
-    _3DScene::enable_toolbar_item(canvas3D, "cut", can_cut_object());
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     _3DScene::render(canvas3D);
@@ -1970,11 +1979,6 @@ void Plater::priv::on_action_split_volumes(SimpleEvent&)
     split_volume();
 }
 
-void Plater::priv::on_action_cut(SimpleEvent&)
-{
-    // TODO
-}
-
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
     bool enable = !_3DScene::is_layers_editing_enabled(canvas3D);
@@ -2112,12 +2116,6 @@ bool Plater::priv::can_split_to_volumes() const
 {
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
-}
-
-bool Plater::priv::can_cut_object() const
-{
-    int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
 }
 
 bool Plater::priv::layers_height_allowed() const
@@ -2311,6 +2309,21 @@ void Plater::set_number_of_copies(/*size_t num*/)
         increase_instances(diff);
     else if (diff < 0)
         decrease_instances(-diff);
+}
+
+void Plater::cut(size_t obj_idx, size_t instance_idx, coordf_t z)
+{
+    wxCHECK_RET(obj_idx < p->model.objects.size(), "obj_idx out of bounds");
+    auto *object = p->model.objects[obj_idx];
+
+    wxCHECK_RET(instance_idx < object->instances.size(), "instance_idx out of bounds");
+
+    const auto new_objects = object->cut(instance_idx, z);
+
+    remove(obj_idx);
+    p->load_model_objects(new_objects);
+
+    p->arrange();
 }
 
 void Plater::export_gcode(fs::path output_path)

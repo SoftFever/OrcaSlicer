@@ -135,6 +135,8 @@ public:
     void decrease_instances(size_t num = 1);
     void set_number_of_copies(/*size_t num*/);
 
+    void cut(size_t obj_idx, size_t instance_idx, coordf_t z);
+
     // Note: empty path means "use the default"
     void export_gcode(boost::filesystem::path output_path = boost::filesystem::path());
     void export_stl();
