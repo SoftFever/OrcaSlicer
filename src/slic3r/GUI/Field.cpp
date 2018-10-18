@@ -610,8 +610,13 @@ void ColourPicker::BUILD()
 	if (m_opt.height >= 0) size.SetHeight(m_opt.height);
 	if (m_opt.width >= 0) size.SetWidth(m_opt.width);
 
-	wxString clr(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
-	// FIXME: verify clr is valid, otherwise this causes an assert
+	// Validate the color
+	wxString clr_str(static_cast<const ConfigOptionStrings*>(m_opt.default_value)->get_at(m_opt_idx));
+	wxColour clr(clr_str);
+	if (! clr.IsOk()) {
+		clr = wxTransparentColour;
+	}
+
 	auto temp = new wxColourPickerCtrl(m_parent, wxID_ANY, clr, wxDefaultPosition, size);
 
 	// 	// recast as a wxWindow to fit the calling convention
@@ -619,7 +624,7 @@ void ColourPicker::BUILD()
 
 	temp->Bind(wxEVT_COLOURPICKER_CHANGED, ([this](wxCommandEvent e) { on_change_field(); }), temp->GetId());
 
-	temp->SetToolTip(get_tooltip_text(clr));
+	temp->SetToolTip(get_tooltip_text(clr_str));
 }
 
 boost::any& ColourPicker::get_value(){
