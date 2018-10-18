@@ -3949,7 +3949,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_EXTENDED_SELECTION
             {
 #if ENABLE_EXTENDED_SELECTION
-                if (m_hover_volume_id != -1)
+                if (evt.LeftDown() && (m_hover_volume_id != -1))
                 {
                     if (evt.ControlDown())
                         m_selection.remove(m_hover_volume_id);
@@ -4043,13 +4043,24 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     render();
                     if (m_hover_volume_id != -1)
                     {
-                        // if right clicking on volume, propagate event through callback (shows context menu)
 #if ENABLE_EXTENDED_SELECTION
-                        if (m_volumes.volumes[m_hover_volume_id]->hover)
-#else
-                        if (m_volumes.volumes[volume_idx]->hover)
-#endif // ENABLE_EXTENDED_SELECTION
+                        // if right clicking on volume, propagate event through callback (shows context menu)
+                        if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
+                        {
+                            // forces the selection of the volume
+                            m_selection.add(m_hover_volume_id);
+                            m_gizmos.update_on_off_state(m_selection);
+                            update_gizmos_data();
+                            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                            // forces a frame render to update the view before the context menu is shown
+                            render();
                             post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
+                        }
+#else
+                        // if right clicking on volume, propagate event through callback (shows context menu)
+                        if (m_volumes.volumes[volume_idx]->hover)
+                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
+#endif // ENABLE_EXTENDED_SELECTION
                     }
                 }
             }
