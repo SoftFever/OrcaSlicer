@@ -1457,6 +1457,25 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
     m_bounding_box_dirty = true;
 }
 
+#if ENABLE_MIRROR
+void GLCanvas3D::Selection::mirror(Axis axis)
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list)
+    {
+        if (is_single_full_instance())
+            (*m_volumes)[i]->set_mirror(axis, -(*m_volumes)[i]->get_mirror(axis));
+    }
+
+    if (m_mode == Instance)
+        _synchronize_unselected_instances();
+
+    m_bounding_box_dirty = true;
+}
+#endif // ENABLE_MIRROR
+
 void GLCanvas3D::Selection::render(bool show_indirect_selection) const
 {
     if (is_empty())
@@ -1780,6 +1799,9 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
         int instance_idx = volume->instance_idx();
         const Vec3d& rotation = volume->get_rotation();
         const Vec3d& scaling_factor = volume->get_scaling_factor();
+#if ENABLE_MIRROR
+        const Vec3d& mirror = volume->get_mirror();
+#endif // ENABLE_MIRROR
 
         // Process unselected instances.
         for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
@@ -1796,6 +1818,9 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
 
             v->set_rotation(rotation);
             v->set_scaling_factor(scaling_factor);
+#if ENABLE_MIRROR
+            v->set_mirror(mirror);
+#endif // ENABLE_MIRROR
 
             done.insert(j);
         }
@@ -3402,6 +3427,18 @@ int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
 {
     return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
 }
+
+#if ENABLE_MIRROR
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::mirror_selection(Axis axis)
+{
+    m_regenerate_volumes = false;
+    m_selection.mirror(axis);
+    _on_mirror();
+    wxGetApp().obj_manipul()->update_settings_value(m_selection);
+}
+#endif // ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_MIRROR
 
 void GLCanvas3D::reload_scene(bool force)
 {
@@ -6525,6 +6562,41 @@ void GLCanvas3D::_on_flatten()
     _on_rotate();
 }
 
+#if ENABLE_MIRROR
+void GLCanvas3D::_on_mirror()
+{
+    if (m_model == nullptr)
+        return;
+
+    std::set<std::pair<int, int>> done;  // prevent mirroring instances twice
+
+    for (const GLVolume* v : m_volumes.volumes)
+    {
+        int object_idx = v->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int instance_idx = v->instance_idx();
+
+        // prevent mirroring instances twice
+        std::pair<int, int> done_id(object_idx, instance_idx);
+        if (done.find(done_id) != done.end())
+            continue;
+
+        done.insert(done_id);
+
+        // Mirror instances.
+        ModelObject* model_object = m_model->objects[object_idx];
+        if (model_object != nullptr)
+        {
+            model_object->instances[instance_idx]->set_mirror(v->get_mirror());
+            model_object->invalidate_bounding_box();
+        }
+    }
+
+    // schedule_background_process
+}
+#endif // ENABLE_MIRROR
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 {

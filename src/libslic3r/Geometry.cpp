@@ -1166,7 +1166,11 @@ MedialAxis::retrieve_endpoint(const VD::cell_type* cell) const
     }
 }
 
+#if ENABLE_MIRROR
+void assemble_transform(Transform3d& transform, const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale, const Vec3d& mirror)
+#else
 void assemble_transform(Transform3d& transform, const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale)
+#endif // ENABLE_MIRROR
 {
     transform = Transform3d::Identity();
     transform.translate(translation);
@@ -1174,12 +1178,23 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation, const 
     transform.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
     transform.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
     transform.scale(scale);
+#if ENABLE_MIRROR
+    transform.scale(mirror);
+#endif // ENABLE_MIRROR
 }
 
+#if ENABLE_MIRROR
+Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale, const Vec3d& mirror)
+#else
 Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale)
+#endif // ENABLE_MIRROR
 {
     Transform3d transform;
+#if ENABLE_MIRROR
+    assemble_transform(transform, translation, rotation, scale, mirror);
+#else
     assemble_transform(transform, translation, rotation, scale);
+#endif // ENABLE_MIRROR
     return transform;
 }
 

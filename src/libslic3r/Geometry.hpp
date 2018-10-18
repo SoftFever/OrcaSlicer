@@ -158,20 +158,40 @@ class MedialAxis {
 };
 
 // Sets the given transform by assembling the given transformations in the following order:
+#if ENABLE_MIRROR
+// 1) mirror
+// 2) scale
+// 3) rotate X
+// 4) rotate Y
+// 5) rotate Z
+// 6) translate
+void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+#else
 // 1) scale
 // 2) rotate X
 // 3) rotate Y
 // 4) rotate Z
 // 5) translate
 void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones());
+#endif // ENABLE_MIRROR
 
 // Returns the transform obtained by assembling the given transformations in the following order:
+#if ENABLE_MIRROR
+// 1) mirror
+// 2) scale
+// 3) rotate X
+// 4) rotate Y
+// 5) rotate Z
+// 6) translate
+Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
+#else
 // 1) scale
 // 2) rotate X
 // 3) rotate Y
 // 4) rotate Z
 // 5) translate
 Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones());
+#endif // ENABLE_MIRROR
 
 // Returns the euler angles extracted from the given rotation matrix
 // Warning -> The matrix should not contain any scale or shear !!!

@@ -1080,6 +1080,38 @@ void ModelInstance::set_rotation(Axis axis, double rotation)
     m_rotation(axis) = rotation;
 }
 
+#if ENABLE_MIRROR
+void ModelInstance::set_scaling_factor(const Vec3d& scaling_factor)
+{
+    set_scaling_factor(X, scaling_factor(0));
+    set_scaling_factor(Y, scaling_factor(1));
+    set_scaling_factor(Z, scaling_factor(2));
+}
+
+void ModelInstance::set_scaling_factor(Axis axis, double scaling_factor)
+{
+    m_scaling_factor(axis) = std::abs(scaling_factor);
+}
+
+void ModelInstance::set_mirror(const Vec3d& mirror)
+{
+    set_mirror(X, mirror(0));
+    set_mirror(Y, mirror(1));
+    set_mirror(Z, mirror(2));
+}
+
+void ModelInstance::set_mirror(Axis axis, double mirror)
+{
+    double abs_mirror = std::abs(mirror);
+    if (abs_mirror == 0.0)
+        mirror = 1.0;
+    else if (abs_mirror != 1.0)
+        mirror /= abs_mirror;
+
+    m_mirror(axis) = mirror;
+}
+#endif // ENABLE_MIRROR
+
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
     mesh->transform(world_matrix(dont_translate).cast<float>());
@@ -1130,12 +1162,21 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
     polygon->scale(this->m_scaling_factor(0), this->m_scaling_factor(1));           // scale around polygon origin
 }
 
+#if ENABLE_MIRROR
+Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+#else
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
+#endif // ENABLE_MIRROR
 {
     Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
     Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
     Vec3d scale = dont_scale ? Vec3d::Ones() : m_scaling_factor;
+#if ENABLE_MIRROR
+    Vec3d mirror = dont_mirror ? Vec3d::Ones() : m_mirror;
+    return Geometry::assemble_transform(translation, rotation, scale, mirror);
+#else
     return Geometry::assemble_transform(translation, rotation, scale);
+#endif // ENABLE_MIRROR
 }
 
 }

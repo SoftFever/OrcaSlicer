@@ -251,6 +251,9 @@ private:
     Vec3d m_offset;              // in unscaled coordinates
     Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
     Vec3d m_scaling_factor;      // Scaling factors along the three axes
+#if ENABLE_MIRROR
+    Vec3d m_mirror;              // Mirroring along the three axes
+#endif // ENABLE_MIRROR
 
 public:
     // flag showing the position of this instance with respect to the print volume (set by Print::validate() using ModelObject::check_instances_print_volume_state())
@@ -273,8 +276,21 @@ public:
     Vec3d get_scaling_factor() const { return m_scaling_factor; }
     double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
 
+#if ENABLE_MIRROR
+    void set_scaling_factor(const Vec3d& scaling_factor);
+    void set_scaling_factor(Axis axis, double scaling_factor);
+#else
     void set_scaling_factor(const Vec3d& scaling_factor) { m_scaling_factor = scaling_factor; }
     void set_scaling_factor(Axis axis, double scaling_factor) { m_scaling_factor(axis) = scaling_factor; }
+#endif // ENABLE_MIRROR
+
+#if ENABLE_MIRROR
+    const Vec3d& get_mirror() const { return m_mirror; }
+    double get_mirror(Axis axis) const { return m_mirror(axis); }
+
+    void set_mirror(const Vec3d& mirror);
+    void set_mirror(Axis axis, double mirror);
+#endif // ENABLE_MIRROR
 
     // To be called on an external mesh
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
@@ -287,7 +303,11 @@ public:
     // To be called on an external polygon. It does not translate the polygon, only rotates and scales.
     void transform_polygon(Polygon* polygon) const;
 
+#if ENABLE_MIRROR
+    Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+#else
     Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
+#endif // ENABLE_MIRROR
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
 
@@ -295,9 +315,15 @@ private:
     // Parent object, owning this instance.
     ModelObject* object;
 
+#if ENABLE_MIRROR
+    ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
+    ModelInstance(ModelObject *object, const ModelInstance &other) :
+        m_offset(other.m_offset), m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_mirror(other.m_mirror), object(object), print_volume_state(PVS_Inside) {}
+#else
     ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
+#endif // ENABLE_MIRROR
 };
 
 

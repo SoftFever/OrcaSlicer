@@ -501,6 +501,9 @@ public:
         void translate(const Vec3d& displacement);
         void rotate(const Vec3d& rotation);
         void scale(const Vec3d& scale);
+#if ENABLE_MIRROR
+        void mirror(Axis axis);
+#endif // ENABLE_MIRROR
 
         void render(bool show_indirect_selection) const;
 
@@ -833,6 +836,12 @@ public:
     int get_first_volume_id(int obj_idx) const;
     int get_in_object_volume_id(int scene_vol_idx) const;
 
+#if ENABLE_MIRROR
+#if ENABLE_EXTENDED_SELECTION
+    void mirror_selection(Axis axis);
+#endif // ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_MIRROR
+
     void reload_scene(bool force);
 
     void load_gcode_preview(const GCodePreviewData& preview_data, const std::vector<std::string>& str_tool_colors);
@@ -955,6 +964,9 @@ private:
     void _on_rotate();
     void _on_scale();
     void _on_flatten();
+#if ENABLE_MIRROR
+    void _on_mirror();
+#endif // ENABLE_MIRROR
 #else
     void _on_move(const std::vector<int>& volume_idxs);
 #endif // ENABLE_EXTENDED_SELECTION

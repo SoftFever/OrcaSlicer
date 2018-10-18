@@ -1519,6 +1519,11 @@ void Plater::priv::rotate()
 
 void Plater::priv::mirror(Axis axis)
 {
+#if ENABLE_MIRROR
+#if ENABLE_EXTENDED_SELECTION
+    _3DScene::mirror_selection(canvas3D, axis);
+#endif // ENABLE_EXTENDED_SELECTION
+#else
 #if ENABLE_EXTENDED_SELECTION
     int obj_idx = get_selected_object_idx();
     if (obj_idx == -1)
@@ -1551,6 +1556,7 @@ void Plater::priv::mirror(Axis axis)
 #endif // ENABLE_EXTENDED_SELECTION
     selection_changed();
     update();
+#endif // ENABLE_MIRROR
 }
 
 #if !ENABLE_EXTENDED_SELECTION
