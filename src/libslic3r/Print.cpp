@@ -376,6 +376,16 @@ double Print::max_allowed_layer_height() const
     return nozzle_diameter_max;
 }
 
+static PrintRegionConfig region_config_from_model_volume(const PrintRegionConfig &default_region_config, const ModelVolume &volume)
+{
+    PrintRegionConfig config = default_region_config;
+    normalize_and_apply_config(config, volume.get_object()->config);
+    normalize_and_apply_config(config, volume.config);
+    if (! volume.material_id().empty())
+        normalize_and_apply_config(config, volume.material()->config);
+    return config;
+}
+
 // Caller is responsible for supplying models whose objects don't collide
 // and have explicit instance positions.
 void Print::add_model_object(ModelObject* model_object, int idx)
@@ -397,7 +407,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         if (! volume->is_model_part() && ! volume->is_modifier())
             continue;
         // Get the config applied to this volume.
-        PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
+        PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume);
         // Find an existing print region with the same config.
         size_t region_id = size_t(-1);
         for (size_t i = 0; i < m_regions.size(); ++ i)
@@ -424,35 +434,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
         object->config_apply(src_normalized, true);
     }
     
-    // update placeholders
-    {
-        // get the first input file name
-        std::string input_file;
-        std::vector<std::string> v_scale;
-        for (const PrintObject *object : m_objects) {
-            const ModelObject &mobj = *object->model_object();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            // CHECK_ME -> Is the following correct ?
-            v_scale.push_back("x:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(X) * 100) +
-                "% y:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Y) * 100) +
-                "% z:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Z) * 100) + "%");
-#else
-            v_scale.push_back(boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor * 100) + "%");
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-            if (input_file.empty())
-                input_file = mobj.input_file;
-        }
-        
-        PlaceholderParser &pp = m_placeholder_parser;
-        pp.set("scale", v_scale);
-        if (! input_file.empty()) {
-            // get basename with and without suffix
-            const std::string input_basename = boost::filesystem::path(input_file).filename().string();
-            pp.set("input_filename", input_basename);
-            const std::string input_basename_base = input_basename.substr(0, input_basename.find_last_of("."));
-            pp.set("input_filename_base", input_basename_base);
-        }
-    }
+    this->update_object_placeholders();
 }
 
 bool Print::apply_config(DynamicPrintConfig config)
@@ -514,12 +496,12 @@ bool Print::apply_config(DynamicPrintConfig config)
                             // If the new config for this volume differs from the other
                             // volume configs currently associated to this region, it means
                             // the region subdivision does not make sense anymore.
-                            if (! this_region_config.equals(this->_region_config_from_model_volume(volume))) {
+                            if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume))) {
                                 rearrange_regions = true;
                                 goto exit_for_rearrange_regions;
                             }
                         } else {
-                            this_region_config = this->_region_config_from_model_volume(volume);
+                            this_region_config = region_config_from_model_volume(m_default_region_config, volume);
                             this_region_config_set = true;
                         }
                         for (const PrintRegionConfig &cfg : other_region_configs) {
@@ -681,7 +663,7 @@ static inline bool transform3d_equal(const Transform3d &lhs, const Transform3d &
 struct PrintInstances
 {
     Transform3d     trafo;
-    Points          instances;
+    Points          copies;
     bool operator<(const PrintInstances &rhs) const { return transform3d_lower(this->trafo, rhs.trafo); }
 };
 
@@ -690,26 +672,46 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
 {
     std::set<PrintInstances> trafos;
     PrintInstances           trafo;
-    trafo.instances.assign(1, Point());
+    trafo.copies.assign(1, Point());
     for (ModelInstance *model_instance : model_object.instances)
         if (model_instance->is_printable()) {
             const Vec3d &offst = model_instance->get_offset();
             trafo.trafo = model_instance->world_matrix(true);
-            trafo.instances.front() = Point::new_scale(offst(0), offst(1));
+            trafo.copies.front() = Point::new_scale(offst(0), offst(1));
             auto it = trafos.find(trafo);
             if (it == trafos.end())
                 trafos.emplace(trafo);
             else
-                const_cast<PrintInstances&>(*it).instances.emplace_back(trafo.instances.front());
+                const_cast<PrintInstances&>(*it).copies.emplace_back(trafo.copies.front());
         }
     return std::vector<PrintInstances>(trafos.begin(), trafos.end());
 }
 
-bool Print::apply(const Model &model, const DynamicPrintConfig &config)
+bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
+    // Make a copy of the config, normalize it.
+    DynamicPrintConfig config(config_in);
+    config.normalize();
+    // Collect changes to print config.
+    t_config_option_keys print_diff  = m_config.diff(config);
+    t_config_option_keys object_diff = m_default_object_config.diff(config);
+    t_config_option_keys region_diff = m_default_region_config.diff(config);
+
     // Grab the lock for the Print / PrintObject milestones.
     tbb::mutex::scoped_lock lock(m_mutex);
 
+    // The following call may stop the background processing.
+    bool invalidated = this->invalidate_state_by_config_options(print_diff);
+    // Apply variables to placeholder parser. The placeholder parser is used by G-code export,
+    // which should be stopped if print_diff is not empty.
+    m_placeholder_parser.apply_config(config);
+    // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
+    m_config.apply_only(config, print_diff, true);
+    // Handle changes to object config defaults
+    m_default_object_config.apply_only(config, object_diff, true);
+    // Handle changes to regions config defaults
+    m_default_region_config.apply_only(config, region_diff, true);
+    
     struct ModelObjectStatus {
         enum Status {
             Unknown,
@@ -719,8 +721,9 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config)
             Deleted,
         };
         ModelObjectStatus(ModelID id, Status status = Unknown) : id(id), status(status) {}
-        ModelID id;
-        Status status;
+        ModelID                 id;
+        Status                  status;
+        t_config_option_keys    object_config_diff;
         // Search by id.
         bool operator<(const ModelObjectStatus &rhs) const { return id < rhs.id; }
     };
@@ -729,7 +732,8 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config)
     // 1) Synchronize model objects.
     if (model.id() != m_model.id()) {
         // Kill everything, initialize from scratch.
-        // The following call shall kill any computation if running.
+        // Stop background processing.
+        m_cancel_callback();
         this->invalidate_all_steps();
         for (PrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
@@ -746,6 +750,8 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config)
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
             this->invalidate_step(psGCodeExport);
+            for (const ModelObject *model_object : m_model.objects)
+                model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
                 model_object_status.emplace(model.objects[i]->id(), ModelObjectStatus::New);
                 m_model.objects.emplace_back(model.objects[i]->clone(&m_model));
@@ -770,7 +776,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config)
                 } else {
                     // Existing ModelObject re-added (possibly moved in the list).
                     m_model.objects.emplace_back(*it);
-                    model_object_status.emplace(mobj->id(), ModelObjectStatus::Old);
+                    model_object_status.emplace(mobj->id(), ModelObjectStatus::Moved);
                 }
             }
             bool deleted_any = false;
@@ -835,7 +841,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config)
             // PrintObject instances will be added in the next loop.
             continue;
         // Update the ModelObject instance, possibly invalidate the linked PrintObjects.
-        assert(it_status->status == ModelObjectStatus::Moved);
+        assert(it_status->status == ModelObjectStatus::Old || it_status->status == ModelObjectStatus::Moved);
         const ModelObject &model_object_new = *model.objects[idx_model_object];
         // Check whether a model part volume was added or removed, their transformations or order changed.
         bool model_parts_differ         = model_volume_list_changed(model_object, model_object_new, ModelVolume::MODEL_PART);
@@ -864,87 +870,187 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config)
         }
         if (! model_parts_differ && ! modifiers_differ) {
             // Synchronize the remaining data of ModelVolumes (name, config, m_type, m_material_id)
+            // Synchronize Object's config.
+            t_config_option_keys &this_object_config_diff = const_cast<ModelObjectStatus&>(*it_status).object_config_diff;
+            this_object_config_diff = model_object.config.diff(model_object_new.config);
+            if (! this_object_config_diff.empty())
+                model_object.config.apply_only(model_object_new.config, this_object_config_diff, true);
+            if (! this_object_config_diff.empty() || ! this_object_config_diff.empty()) {
+                PrintObjectConfig new_config = m_default_object_config;
+                normalize_and_apply_config(new_config, model_object.config);
+                auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
+                for (auto it = range.first; it != range.second; ++ it) {
+                    t_config_option_keys diff = it->print_object->config().diff(new_config);
+                    invalidated |= it->print_object->invalidate_state_by_config_options(diff);
+                    it->print_object->config_apply_only(new_config, diff, true);
+                }
+            }
         }
     }
 
     // 4) Generate PrintObjects from ModelObjects and their instances.
-    std::vector<PrintObject*> print_objects_new;
-    print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
-    // Walk over all new model objects and check, whether there are matching PrintObjects.
-    for (ModelObject *model_object : m_model.objects) {
-        auto range = print_object_status.equal_range(PrintObjectStatus(model_object->id()));
-        std::vector<const PrintObjectStatus*> old;
-        if (range.first != range.second) {
-            old.reserve(print_object_status.count(PrintObjectStatus(model_object->id())));
-            for (auto it = range.first; it != range.second; ++ it)
-                if (it->status != PrintObjectStatus::Deleted)
-                    old.emplace_back(&(*it));
+    {
+        std::vector<PrintObject*> print_objects_new;
+        print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
+        // Walk over all new model objects and check, whether there are matching PrintObjects.
+        for (ModelObject *model_object : m_model.objects) {
+            auto range = print_object_status.equal_range(PrintObjectStatus(model_object->id()));
+            std::vector<const PrintObjectStatus*> old;
+            if (range.first != range.second) {
+                old.reserve(print_object_status.count(PrintObjectStatus(model_object->id())));
+                for (auto it = range.first; it != range.second; ++ it)
+                    if (it->status != PrintObjectStatus::Deleted)
+                        old.emplace_back(&(*it));
+            }
+            // Generate a list of trafos and XY offsets for instances of a ModelObject
+            PrintObjectConfig config = m_default_object_config;
+            normalize_and_apply_config(config, model_object->config);
+            std::vector<PrintInstances> new_print_instances = print_objects_from_model_object(*model_object);
+            if (old.empty()) {
+                // Simple case, just generate new instances.
+                for (const PrintInstances &print_instances : new_print_instances) {
+                    PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+                    print_object->set_copies(print_instances.copies);
+                    print_object->config_apply(config);
+                    print_objects_new.emplace_back(print_object);
+                    print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+                }
+                continue;
+            }
+            // Complex case, try to merge the two lists.
+            // Sort the old lexicographically by their trafos.
+            std::sort(old.begin(), old.end(), [](const PrintObjectStatus *lhs, const PrintObjectStatus *rhs){ return transform3d_lower(lhs->trafo, rhs->trafo); });
+            // Merge the old / new lists.
+            auto it_old = old.begin();
+            for (const PrintInstances &new_instances : new_print_instances) {
+                for (; transform3d_lower((*it_old)->trafo, new_instances.trafo); ++ it_old);
+                if (! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
+                    // This is a new instance (or a set of instances with the same trafo). Just add it.
+                    PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+                    print_object->set_copies(new_instances.copies);
+                    print_object->config_apply(config);
+                    print_objects_new.emplace_back(print_object);
+                    print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+                } else if ((*it_old)->print_object->copies() != new_instances.copies) {
+                    // The PrintObject already exists and the copies differ. The only step currently sensitive to the order is the G-code generator.
+                    // Stop it.
+                    this->invalidate_step(psGCodeExport);
+                    (*it_old)->print_object->set_copies(new_instances.copies);
+                }
+            }
         }
-        // Generate a list of trafos and XY offsets for instances of a ModelObject
-        std::vector<PrintInstances> new_print_instances = print_objects_from_model_object(*model_object);
-        if (old.empty()) {
-            // Simple case, just generate new instances.
-            for (const PrintInstances &print_instances : new_print_instances) {
-                PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
-                print_objects_new.emplace_back(print_object);
-                print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+        if (m_objects != print_objects_new) {
+            m_cancel_callback();
+            m_objects = print_objects_new;
+        }
+    }
+
+    // 5) Synchronize configs of ModelVolumes, synchronize AMF / 3MF materials (and their configs), refresh PrintRegions.
+    // Update reference counts of regions from the remaining PrintObjects and their volumes.
+    // Regions with zero references could and should be reused.
+    for (PrintRegion *region : m_regions)
+        region->m_refcnt = 0;
+    for (PrintObject *print_object : m_objects) {
+        int idx_region = 0;
+        for (const auto &volumes : print_object->region_volumes) {
+            if (! volumes.empty())
+                ++ m_regions[idx_region];
+            ++ idx_region;
+        }
+    }
+
+    // All regions now have distinct settings.
+    // Check whether applying the new region config defaults we'd get different regions.
+    for (size_t region_id = 0; region_id < m_regions.size(); ++ region_id) {
+        PrintRegion       &region = *m_regions[region_id];
+        PrintRegionConfig  this_region_config;
+        bool               this_region_config_set = false;
+        for (PrintObject *print_object : m_objects) {
+            if (region_id < print_object->region_volumes.size()) {
+                for (int volume_id : print_object->region_volumes[region_id]) {
+                    const ModelVolume &volume = *print_object->model_object()->volumes[volume_id];
+                    if (this_region_config_set) {
+                        // If the new config for this volume differs from the other
+                        // volume configs currently associated to this region, it means
+                        // the region subdivision does not make sense anymore.
+                        if (! this_region_config.equals(region_config_from_model_volume(m_default_region_config, volume)))
+                            // Regions were split. Reset this print_object.
+                            goto print_object_end;
+                    } else {
+                        this_region_config = region_config_from_model_volume(m_default_region_config, volume);
+                        for (size_t i = 0; i < region_id; ++ i)
+                            if (m_regions[i]->config().equals(this_region_config))
+                                // Regions were merged. Reset this print_object.
+                                goto print_object_end;
+                        this_region_config_set = true;
+                    }
+                }
             }
             continue;
+        print_object_end:
+            print_object->invalidate_all_steps();
+            // Decrease the references to regions from this volume.
+            int ireg = 0;
+            for (const std::vector<int> &volumes : print_object->region_volumes) {
+                if (! volumes.empty())
+                    -- m_regions[ireg];
+                ++ ireg;
+            }
+            print_object->region_volumes.clear();
         }
-        // Complex case, try to merge the two lists.
-        // Sort the old lexicographically by their trafos.
-        std::sort(old.begin(), old.end(), [](const PrintObjectStatus *lhs, const PrintObjectStatus *rhs){ return transform3d_lower(lhs->trafo, rhs->trafo); });
-        // Merge the old / new lists.
-        
-    }
-    if (m_objects != print_objects_new) {
-        m_cancel_callback();
-        m_objects = print_objects_new;
+        if (this_region_config_set) {
+            t_config_option_keys diff = region.config().diff(this_region_config);
+            if (! diff.empty()) {
+                region.config_apply_only(this_region_config, diff, false);
+                for (PrintObject *print_object : m_objects)
+                    if (region_id < print_object->region_volumes.size() && ! print_object->region_volumes[region_id].empty())
+                        invalidated |= print_object->invalidate_state_by_config_options(diff);
+            }
+        }
     }
 
-    // Synchronize materials.
-
-#if 0
-    {
-        m_model = model;
-        for (const ModelObject *model_object : m_model.objects) {
-            PrintObject *object = new PrintObject(this, model_object, model_object->raw_bounding_box());
-            m_objects.emplace_back(object);
-            size_t volume_id = 0;
-            for (const ModelVolume *volume : model_object->volumes) {
+    // Possibly add new regions for the newly added or resetted PrintObjects.
+    for (size_t idx_print_object = 0; idx_print_object < m_objects.size(); ++ idx_print_object) {
+        PrintObject        &print_object0 = *m_objects[idx_print_object];
+        const ModelObject  &model_object  = *print_object0.model_object();
+        std::vector<int>    map_volume_to_region(model_object.volumes.size(), -1);
+        for (size_t i = idx_print_object; i < m_objects.size() && m_objects[i]->model_object() == &model_object; ++ i) {
+            PrintObject &print_object = *m_objects[i];
+            unsigned int volume_id = 0;
+            for (const ModelVolume *volume : model_object.volumes) {
                 if (! volume->is_model_part() && ! volume->is_modifier())
                     continue;
-                // Get the config applied to this volume.
-                PrintRegionConfig config = this->_region_config_from_model_volume(*volume);
-                // Find an existing print region with the same config.
-                size_t region_id = size_t(-1);
-                for (size_t i = 0; i < m_regions.size(); ++ i)
-                    if (config.equals(m_regions[i]->config())) {
-                        region_id = i;
-                        break;
+                int region_id = -1;
+                if (&print_object == &print_object0) {
+                    // Get the config applied to this volume.
+                    PrintRegionConfig config = region_config_from_model_volume(m_default_region_config, *volume);
+                    // Find an existing print region with the same config.
+                    for (int i = 0; i < (int)m_regions.size(); ++ i)
+                        if (config.equals(m_regions[i]->config())) {
+                            region_id = i;
+                            break;
+                        }
+                    // If no region exists with the same config, create a new one.
+                    if (region_id == size_t(-1)) {
+                        for (region_id = 0; region_id < m_regions.size(); ++ region_id)
+                            if (m_regions[region_id]->m_refcnt == 0) {
+                                // An empty slot was found.
+                                m_regions[region_id]->set_config(std::move(config));
+                                break;
+                            }
+                        if (region_id == m_regions.size())
+                            this->add_region(config);
                     }
-                // If no region exists with the same config, create a new one.
-                if (region_id == size_t(-1)) {
-                    region_id = m_regions.size();
-                    this->add_region(config);
-                }
+                    map_volume_to_region[volume_id] = region_id;
+                } else
+                    region_id = map_volume_to_region[volume_id];
                 // Assign volume to a region.
-                object->add_region_volume(region_id, volume_id);
+                if (volume_id >= print_object.region_volumes.size())
+                    print_object.add_region_volume(region_id, volume_id);
                 ++ volume_id;
             }
-            // Apply config to print object.
-            object->config_apply(this->default_object_config());
-            {
-                //normalize_and_apply_config(object->config(), model_object->config);
-                DynamicPrintConfig src_normalized(model_object->config);
-                src_normalized.normalize();
-                object->config_apply(src_normalized, true);
-            }
         }
-    } else {
-        // Synchronize m_model.objects with model.objects
     }
-#endif
 
     this->update_object_placeholders();
 }
@@ -1282,16 +1388,6 @@ Flow Print::skirt_flow() const
         this->skirt_first_layer_height(),
         0
     );
-}
-
-PrintRegionConfig Print::_region_config_from_model_volume(const ModelVolume &volume)
-{
-    PrintRegionConfig config = this->default_region_config();
-    normalize_and_apply_config(config, volume.get_object()->config);
-    normalize_and_apply_config(config, volume.config);
-    if (! volume.material_id().empty())
-        normalize_and_apply_config(config, volume.material()->config);
-    return config;
 }
 
 bool Print::has_support_material() const

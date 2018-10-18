@@ -139,19 +139,25 @@ public:
     // Average diameter of nozzles participating on extruding this region.
     coordf_t                    nozzle_dmr_avg(const PrintConfig &print_config) const;
     // Average diameter of nozzles participating on extruding this region.
-    coordf_t bridging_height_avg(const PrintConfig &print_config) const;
+    coordf_t                    bridging_height_avg(const PrintConfig &print_config) const;
 
 // Methods modifying the PrintRegion's state:
 public:
     Print*                      print() { return m_print; }
-    void                        config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->m_config.apply_only(other, keys, ignore_nonexistent); }
+    void                        set_config(const PrintRegionConfig &config) { m_config = config; }
+    void                        set_config(PrintRegionConfig &&config) { m_config = std::move(config); }
+    void                        config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) 
+                                        { this->m_config.apply_only(other, keys, ignore_nonexistent); }
+
+protected:
+    size_t             m_refcnt;
 
 private:
     Print             *m_print;
     PrintRegionConfig  m_config;
     
-    PrintRegion(Print* print) : m_print(print) {}
-    PrintRegion(Print* print, const PrintRegionConfig &config) : m_print(print), m_config(config) {}
+    PrintRegion(Print* print) : m_refcnt(0), m_print(print) {}
+    PrintRegion(Print* print, const PrintRegionConfig &config) : m_refcnt(0), m_print(print), m_config(config) {}
     ~PrintRegion() {}
 };
 
@@ -196,12 +202,13 @@ public:
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
     const Transform3d&      trafo() const           { return m_trafo; }
 
-    const Points& copies() const { return m_copies; }
-    bool add_copy(const Vec2d &point);
-    bool delete_last_copy();
-    bool delete_all_copies() { return this->set_copies(Points()); }
-    bool set_copies(const Points &points);
-    bool reload_model_instances();
+    const Points&           copies() const { return m_copies; }
+    bool                    add_copy(const Vec2d &point);
+    bool                    delete_last_copy();
+    bool                    delete_all_copies() { return this->set_copies(Points()); }
+    bool                    set_copies(const Points &points);
+    bool                    reload_model_instances();
+
     // since the object is aligned to origin, bounding box coincides with size
     BoundingBox bounding_box() const { return BoundingBox(Point(0,0), to_2d(this->size)); }
 
@@ -486,7 +493,6 @@ private:
     void                update_object_placeholders();
 
     bool                invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
-    PrintRegionConfig   _region_config_from_model_volume(const ModelVolume &volume);
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
