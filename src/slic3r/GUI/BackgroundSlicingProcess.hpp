@@ -10,6 +10,7 @@ namespace Slic3r {
 
 class DynamicPrintConfig;
 class GCodePreviewData;
+class Model;
 class Print;
 
 // Support for the GUI background processing (Slicing and G-code generation).
@@ -42,6 +43,9 @@ public:
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
 	bool apply_config(const DynamicPrintConfig &config);
+	// Apply config over the print. Returns false, if the new config values caused any of the already
+	// processed steps to be invalidated, therefore the task will need to be restarted.
+	bool apply(const Model &model, const DynamicPrintConfig &config);
 
 	enum State {
 		// m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).

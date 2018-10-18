@@ -37,6 +37,8 @@ typedef size_t ModelID;
 
 // Base for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial to provide a unique ID
 // to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject).
+// Achtung! The s_last_id counter is not thread safe, so it is expected, that the ModelBase derived instances
+// are only instantiated from the main thread.
 class ModelBase
 {
 public:
@@ -168,8 +170,6 @@ protected:
 private:
     ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
     ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
-    ModelObject& operator= (ModelObject other);
-    void swap(ModelObject &other);
     ~ModelObject();
 
     // Parent object, owning this ModelObject.
@@ -352,9 +352,8 @@ public:
     ModelObjectPtrs objects;
     
     Model() {}
-    Model(const Model &other);
-    Model& operator= (Model other);
-    void swap(Model &other);
+    Model(const Model &rhs);
+    Model& operator=(const Model &rhs);
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
     // XXX: use fs::path ?

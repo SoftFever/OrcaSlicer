@@ -1238,7 +1238,7 @@ void GCode::process_layer(
     const size_t                     single_object_idx)
 {
     assert(! layers.empty());
-    assert(! layer_tools.extruders.empty());
+//    assert(! layer_tools.extruders.empty());
     // Either printing all copies of all objects, or just a single copy of a single object.
     assert(single_object_idx == size_t(-1) || layers.size() == 1);
 

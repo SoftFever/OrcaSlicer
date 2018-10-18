@@ -1199,8 +1199,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
             }
         }
 
-        print.auto_assign_extruders(object);
-        print.add_model_object(object);
+        // print.auto_assign_extruders(object);
+        // print.add_model_object(object);
     }
 
     // if user turned autocentering off, automatic arranging would disappoint them
@@ -1520,9 +1520,9 @@ void Plater::priv::mirror(const Axis &axis)
 
     // $self->stop_background_process;  // TODO
 #if ENABLE_EXTENDED_SELECTION
-    print.add_model_object(model_object, obj_idx);
+//    print.add_model_object(model_object, obj_idx);
 #else
-    print.add_model_object(model_object, *obj_idx);
+//    print.add_model_object(model_object, *obj_idx);
 #endif // ENABLE_EXTENDED_SELECTION
     selection_changed();
     update();
@@ -1560,7 +1560,7 @@ void Plater::priv::async_apply_config()
 {
     // Apply new config to the possibly running background task.
     bool was_running = this->background_process.running();
-    bool invalidated = this->background_process.apply_config(wxGetApp().preset_bundle->full_config());
+    bool invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (Slic3r::_3DScene::is_layers_editing_enabled(this->canvas3D))
         this->canvas3D->Refresh();
@@ -1580,9 +1580,11 @@ void Plater::priv::async_apply_config()
                 this->preview->reload_print();
             // We also need to reload 3D scene because of the wipe tower preview box
             if (this->config->opt_bool("wipe_tower")) {
+#if !ENABLE_EXTENDED_SELECTION
                 std::vector<int> selections = this->collect_selections();
                 Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
                 Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
+#endif /* !ENABLE_EXTENDED_SELECTION */
             }
         }
     }
@@ -1590,12 +1592,26 @@ void Plater::priv::async_apply_config()
 
 void Plater::priv::start_background_process()
 {
-    // TODO
+    // return if ! @{$self->{objects}} || $self->{background_slicing_process}->running;
+    // Don't start process thread if config is not valid.
+    std::string err = wxGetApp().preset_bundle->full_config().validate();
+    if (err.empty())
+        err = this->q->print().validate();
+    if (! err.empty()) {
+        // $self->statusbar->SetStatusText(err);
+        return;
+    }   
+    // Copy the names of active presets into the placeholder parser.
+    wxGetApp().preset_bundle->export_selections(this->q->print().placeholder_parser());
+    // Start the background process.
+    this->background_process.start();
 }
 
 void Plater::priv::stop_background_process()
 {
-    // TODO
+    this->background_process.stop();
+    if (this->preview != nullptr)
+        this->preview->reload_print();
 }
 
 void Plater::priv::reload_from_disk()
@@ -1610,7 +1626,33 @@ void Plater::priv::export_object_stl()
 
 void Plater::priv::fix_through_netfabb()
 {
-    // TODO
+/*
+    my ($self) = @_;
+    my ($obj_idx, $object) = $self->selected_object;
+    return if !defined $obj_idx;
+    my $model_object = $self->{model}->objects->[$obj_idx];
+    my $model_fixed = Slic3r::Model->new;
+    Slic3r::GUI::fix_model_by_win10_sdk_gui($model_object, $self->{print}, $model_fixed);
+
+    my @new_obj_idx = $self->load_model_objects(@{$model_fixed->objects});
+    return if !@new_obj_idx;
+    
+    foreach my $new_obj_idx (@new_obj_idx) {
+        my $o = $self->{model}->objects->[$new_obj_idx];
+        $o->clear_instances;
+        $o->add_instance($_) for @{$model_object->instances};
+        #$o->invalidate_bounding_box;
+        
+        if ($o->volumes_count == $model_object->volumes_count) {
+            for my $i (0..($o->volumes_count-1)) {
+                $o->get_volume($i)->config->apply($model_object->get_volume($i)->config);
+            }
+        }
+        #FIXME restore volumes and their configs, layer_height_ranges, layer_height_profile, layer_height_profile_valid,
+    }
+    
+    $self->remove($obj_idx);
+*/
 }
 
 void Plater::priv::item_changed_selection()
@@ -1683,12 +1725,81 @@ void Plater::priv::on_progress_event()
 
 void Plater::priv::on_update_print_preview(wxCommandEvent &)
 {
-    // TODO
+    if (this->preview != nullptr)
+        this->preview->reload_print();
+    // in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
+#if !ENABLE_EXTENDED_SELECTION
+    auto selections = p->collect_selections();
+    _3DScene::set_objects_selections(p->canvas3D, selections);
+    if (p->canvas3D)
+        _3DScene::reload_scene(p->canvas3D, true);
+#endif // !ENABLE_EXTENDED_SELECTION
 }
 
 void Plater::priv::on_process_completed(wxCommandEvent &)
 {
-    // TODO
+    // Stop the background task, wait until the thread goes into the "Idle" state.
+    // At this point of time the thread should be either finished or canceled,
+    // so the following call just confirms, that the produced data were consumed.
+    this->background_process.stop();
+    //$self->statusbar->ResetCancelCallback();
+    //$self->statusbar->StopBusy;
+    //$self->statusbar->SetStatusText("");
+    
+/*
+    my $message;
+    my $send_gcode = 0;
+    my $do_print = 0;
+#    print "Process completed, message: ", $message, "\n";
+    if (defined($result)) {
+        $message = L("Export failed");
+    } else {
+        # G-code file exported successfully.
+        if ($self->{print_file}) {
+            $message = L("File added to print queue");
+            $do_print = 1;
+        } elsif ($self->{send_gcode_file}) {
+            $message = L("Sending G-code file to the Printer Host ...");
+            $send_gcode = 1;
+        } elsif (defined $self->{export_gcode_output_file}) {
+            $message = L("G-code file exported to ") . $self->{export_gcode_output_file};
+        } else {
+            $message = L("Slicing complete");
+        }
+    }
+    $self->{export_gcode_output_file} = undef;
+    wxTheApp->notify($message);
+    
+    $self->do_print if $do_print;
+
+    # Send $self->{send_gcode_file} to OctoPrint.
+    if ($send_gcode) {
+        my $host = Slic3r::PrintHost::get_print_host($self->{config});
+        if ($host->send_gcode($self->{send_gcode_file})) {
+            $message = L("Upload to host finished.");
+        } else {
+            $message = "";
+        }
+    }
+*/
+
+    // As of now, the BackgroundProcessing thread posts status bar update messages to a queue on the MainFrame.pm,
+    // but the "Processing finished" message is posted to this window.
+    // Delay the following status bar update, so it will be called later than what is received by MainFrame.pm.
+    //wxTheApp->CallAfter(sub {
+//        $self->statusbar->SetStatusText($message);
+//    });
+
+    //$self->{print_file} = undef;
+    //$self->{send_gcode_file} = undef;
+    //$self->print_info_box_show(1);
+
+    // this updates buttons status
+    //$self->object_list_changed;
+    
+    // refresh preview
+    if (this->preview != nullptr)
+        this->preview->reload_print();
 }
 
 void Plater::priv::on_layer_editing_toggled(bool enable)
@@ -2190,7 +2301,22 @@ void Plater::export_3mf()
 
 void Plater::reslice()
 {
-    // TODO
+    // explicitly cancel a previous thread and start a new one.
+    // Don't reslice if export of G-code or sending to OctoPrint is running.
+//    if (! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
+    // Stop the background processing threads, stop the async update timer.
+    this->p->stop_background_process();
+    // Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
+    this->p->async_apply_config();
+/*
+    $self->statusbar->SetCancelCallback(sub {
+        $self->stop_background_process;
+        $self->statusbar->SetStatusText(L("Slicing cancelled"));
+        # this updates buttons status
+        $self->object_list_changed;
+    });
+*/
+    this->p->start_background_process();
 }
 
 void Plater::send_gcode()

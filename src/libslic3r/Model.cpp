@@ -19,31 +19,26 @@
 
 namespace Slic3r {
 
-    unsigned int Model::s_auto_extruder_id = 1;
+unsigned int Model::s_auto_extruder_id = 1;
 
 ModelID ModelBase::s_last_id = 0;
 
-Model::Model(const Model &other)
+Model::Model(const Model &rhs)
 {
+    *this = rhs;
+}
+
+Model& Model::operator=(const Model &rhs)
+{
+    m_id = rhs.m_id;
     // copy materials
-    for (const auto &m : other.materials)
+    for (const auto &m : rhs.materials)
         this->add_material(m.first, *m.second);
     // copy objects
-    this->objects.reserve(other.objects.size());
-    for (const ModelObject *o : other.objects)
+    this->objects.reserve(rhs.objects.size());
+    for (const ModelObject *o : rhs.objects)
         this->add_object(*o, true);
-}
-
-Model& Model::operator=(Model other)
-{
-    this->swap(other);
     return *this;
-}
-
-void Model::swap(Model &other)
-{
-    std::swap(this->materials,  other.materials);
-    std::swap(this->objects,    other.objects);
 }
 
 Model Model::read_from_file(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances)
@@ -499,31 +494,9 @@ ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volum
         for (ModelVolume *model_volume : other.volumes)
             this->add_volume(*model_volume);
     }
-    
     this->instances.reserve(other.instances.size());
     for (const ModelInstance *model_instance : other.instances)
         this->add_instance(*model_instance);
-}
-
-ModelObject& ModelObject::operator=(ModelObject other)
-{
-    this->swap(other);
-    return *this;
-}
-
-void ModelObject::swap(ModelObject &other)
-{
-    std::swap(this->m_id,                   other.m_id);
-    std::swap(this->input_file,             other.input_file);
-    std::swap(this->instances,              other.instances);
-    std::swap(this->volumes,                other.volumes);
-    std::swap(this->config,                 other.config);
-    std::swap(this->layer_height_ranges,    other.layer_height_ranges);
-    std::swap(this->layer_height_profile,   other.layer_height_profile);
-    std::swap(this->layer_height_profile_valid,    other.layer_height_profile_valid);
-    std::swap(this->origin_translation,     other.origin_translation);
-    std::swap(m_bounding_box,               other.m_bounding_box);
-    std::swap(m_bounding_box_valid,         other.m_bounding_box_valid);
 }
 
 ModelObject::~ModelObject()

@@ -136,7 +136,7 @@ bool BackgroundSlicingProcess::stop()
 		this->m_output_path.clear();
 		return false;
 	}
-	assert(this->running());
+//	assert(this->running());
 	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
 		m_print->cancel();
 		// Wait until the background processing stops by being canceled.
@@ -157,6 +157,15 @@ bool BackgroundSlicingProcess::apply_config(const DynamicPrintConfig &config)
 {
 	this->stop();
 	bool invalidated = m_print->apply_config(config);
+	return invalidated;
+}
+
+// Apply config over the print. Returns false, if the new config values caused any of the already
+// processed steps to be invalidated, therefore the task will need to be restarted.
+bool BackgroundSlicingProcess::apply(const Model &model, const DynamicPrintConfig &config)
+{
+	this->stop();
+	bool invalidated = m_print->apply(model, config);
 	return invalidated;
 }
 
