@@ -1253,13 +1253,7 @@ namespace Slic3r {
         // we extract from the given matrix only the values currently used
 
         // translation
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d offset = transform.matrix().block(0, 3, 3, 1);
-#else
-        double offset_x = transform(0, 3);
-        double offset_y = transform(1, 3);
-        double offset_z = transform(2, 3);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
         // scale
         Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
@@ -1269,35 +1263,16 @@ namespace Slic3r {
         if ((scale(0) == 0.0) || (scale(1) == 0.0) || (scale(2) == 0.0))
             return;
 
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        // non-uniform scale value, return
-        if ((std::abs(scale(0) - scale(1)) > 0.00001) || (std::abs(scale(0) - scale(2)) > 0.00001))
-            return;
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
         // remove scale
         m3x3.col(0).normalize();
         m3x3.col(1).normalize();
         m3x3.col(2).normalize();
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d rotation = Slic3r::Geometry::extract_euler_angles(m3x3);
 
         instance.set_offset(offset);
         instance.set_scaling_factor(scale);
         instance.set_rotation(rotation);
-#else
-        Vec3d rotation = Slic3r::Geometry::extract_euler_angles(m3x3);
-
-        // invalid rotation, we currently handle only rotations around Z axis
-        if ((rotation(0) != 0.0) || (rotation(1) != 0.0))
-            return;
-
-        instance.offset(0) = offset_x;
-        instance.offset(1) = offset_y;
-        instance.scaling_factor = scale(0);
-        instance.rotation = rotation(2);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)

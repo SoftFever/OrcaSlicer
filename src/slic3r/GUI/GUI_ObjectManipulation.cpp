@@ -375,7 +375,6 @@ void ObjectManipulation::update_scale_values()
     auto instance = objects[selection]->instances.front();
     auto size = objects[selection]->instance_bounding_box(0).size();
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if (m_is_percent_scale) {
         m_og->set_value("scale_x", int(instance->get_scaling_factor(X) * 100));
         m_og->set_value("scale_y", int(instance->get_scaling_factor(Y) * 100));
@@ -386,34 +385,15 @@ void ObjectManipulation::update_scale_values()
         m_og->set_value("scale_y", int(instance->get_scaling_factor(Y) * size(1) + 0.5));
         m_og->set_value("scale_z", int(instance->get_scaling_factor(Z) * size(2) + 0.5));
     }
-#else
-    if (m_is_percent_scale) {
-        auto scale = instance->scaling_factor * 100.0;
-        m_og->set_value("scale_x", int(scale));
-        m_og->set_value("scale_y", int(scale));
-        m_og->set_value("scale_z", int(scale));
-    }
-    else {
-        m_og->set_value("scale_x", int(instance->scaling_factor * size(0) + 0.5));
-        m_og->set_value("scale_y", int(instance->scaling_factor * size(1) + 0.5));
-        m_og->set_value("scale_z", int(instance->scaling_factor * size(2) + 0.5));
-    }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void ObjectManipulation::update_position_values()
 {
     auto instance = wxGetApp().mainframe->m_plater->model().objects[ol_selection()]->instances.front();
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     m_og->set_value("position_x", int(instance->get_offset(X)));
     m_og->set_value("position_y", int(instance->get_offset(Y)));
     m_og->set_value("position_z", int(instance->get_offset(Z)));
-#else
-    m_og->set_value("position_x", int(instance->offset(0)));
-    m_og->set_value("position_y", int(instance->offset(1)));
-    m_og->set_value("position_z", 0);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void ObjectManipulation::update_position_value(const Vec3d& position)
@@ -423,7 +403,6 @@ void ObjectManipulation::update_position_value(const Vec3d& position)
     m_og->set_value("position_z", int(position(2)));
 }
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 void ObjectManipulation::update_scale_value(const Vec3d& scaling_factor)
 {
     // this is temporary
@@ -438,33 +417,10 @@ void ObjectManipulation::update_scale_value(const Vec3d& scaling_factor)
     m_og->set_value("scale_y", int(scale(1)));
     m_og->set_value("scale_z", int(scale(2)));
 }
-#else
-void ObjectManipulation::update_scale_values(double scaling_factor)
-{
-    // this is temporary
-    // to be able to update the values as size
-    // we need to store somewhere the original size
-    // or have it passed as parameter
-    if (!m_is_percent_scale)
-        m_og->set_value("scale_unit", _("%"));
-
-    auto scale = scaling_factor * 100.0;
-    m_og->set_value("scale_x", int(scale));
-    m_og->set_value("scale_y", int(scale));
-    m_og->set_value("scale_z", int(scale));
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void ObjectManipulation::update_rotation_values()
 {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     update_rotation_value(wxGetApp().mainframe->m_plater->model().objects[ol_selection()]->instances.front()->get_rotation());
-#else
-    auto instance = wxGetApp().mainframe->m_plater->model().objects[ol_selection()]->instances.front();
-    m_og->set_value("rotation_x", 0);
-    m_og->set_value("rotation_y", 0);
-    m_og->set_value("rotation_z", int(Geometry::rad2deg(instance->rotation)));
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void ObjectManipulation::update_rotation_value(double angle, Axis axis)
@@ -485,14 +441,12 @@ void ObjectManipulation::update_rotation_value(double angle, Axis axis)
     m_og->set_value(axis_str, round_nearest(int(Geometry::rad2deg(angle)), 0));
 }
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 void ObjectManipulation::update_rotation_value(const Vec3d& rotation)
 {
     m_og->set_value("rotation_x", int(round_nearest(Geometry::rad2deg(rotation(0)), 0)));
     m_og->set_value("rotation_y", int(round_nearest(Geometry::rad2deg(rotation(1)), 0)));
     m_og->set_value("rotation_z", int(round_nearest(Geometry::rad2deg(rotation(2)), 0)));
 }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void ObjectManipulation::show_object_name(bool show)
 {

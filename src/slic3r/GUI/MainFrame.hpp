@@ -30,11 +30,11 @@ class Tab;
 
 enum QuickSlice
 {
-    qsUndef,
-    qsReslice,
-    qsSaveAs,
-    qsExportSVG,
-    qsExportPNG
+    qsUndef = 0,
+    qsReslice = 1,
+    qsSaveAs = 2,
+    qsExportSVG = 4,
+    qsExportPNG = 8
 };
 
 struct PresetTab {
@@ -57,17 +57,9 @@ class MainFrame : public wxFrame
     AppController*                  m_appController { nullptr };
     std::map<std::string, Tab*>     m_options_tabs;
 
-    wxMenuItem* append_menu_item(wxMenu* menu,
-                                 int id,
-                                 const wxString& string,
-                                 const wxString& description,
-                                 std::function<void(wxCommandEvent& event)> cb,
-                                 const std::string& icon = "");
-
     wxMenuItem* m_menu_item_reslice_now { nullptr };
     wxMenu*     m_plater_menu { nullptr };
-    wxMenu*     m_object_menu { nullptr };
-    wxMenu*     m_viewMenu { nullptr };
+    wxMenu*     m_viewMenu{ nullptr };
 
     std::string     get_base_name(const wxString full_name) const ;
     std::string     get_dir_name(const wxString full_name) const ;
@@ -93,7 +85,6 @@ public:
     bool        is_loaded() const { return m_loaded; }
     bool        is_last_input_file() const  { return !m_qs_last_input_file.IsEmpty(); }
 
-    void        on_plater_selection_changed(const bool have_selection);
     void        slice_to_png();
     void        quick_slice(const int qs = qsUndef);
     void        reslice_now();

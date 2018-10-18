@@ -2,10 +2,16 @@
 #define slic3r_GUI_Utils_hpp_
 
 #include <functional>
+#include <string>
+
+#include <boost/optional.hpp>
 
 #include <wx/filedlg.h>
+#include <wx/gdicmn.h>
 
 class wxCheckBox;
+class wxTopLevelWindow;
+class wxRect;
 
 
 namespace Slic3r {
@@ -33,6 +39,25 @@ public:
 private:
     std::function<wxWindow*(wxWindow*)> extra_control_creator;
     wxCheckBox *cbox;
+};
+
+
+class WindowMetrics
+{
+private:
+    wxRect rect;
+    bool maximized;
+
+    WindowMetrics() : maximized(false) {}
+public:
+    static WindowMetrics from_window(wxTopLevelWindow *window);
+    static boost::optional<WindowMetrics> deserialize(const std::string &str);
+
+    wxRect get_rect() const { return rect; }
+    bool get_maximized() const { return maximized; }
+
+    void sanitize_for_display(const wxRect &screen_rect);
+    std::string serialize();
 };
 
 

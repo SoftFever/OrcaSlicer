@@ -476,6 +476,8 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
 void Tab::update_changed_tree_ui()
 {
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
+    if (!m_treectrl->IsVisible(cur_item))
+        return;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	while (cur_item){
 		auto title = m_treectrl->GetItemText(cur_item);
@@ -1843,7 +1845,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
     if (!wxGetApp().mainframe)
         return;
 	on_value_change("extruders_count", extruders_count);
-    wxGetApp().mainframe->m_plater->sidebar().update_objects_list_extruder_column(extruders_count);
+    wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)

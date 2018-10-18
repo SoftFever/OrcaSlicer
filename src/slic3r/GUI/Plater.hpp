@@ -104,9 +104,13 @@ public:
     Model& model();
     Print& print();
 
+    void add();
+
     void load_files(const std::vector<boost::filesystem::path> &input_files);
 
     void update(bool force_autocenter = false);
+    void select_view(const std::string& direction);
+
     void remove(size_t obj_idx);
     void remove_selected();
     void increase(size_t num = 1);

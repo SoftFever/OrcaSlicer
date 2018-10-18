@@ -23,6 +23,7 @@ static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f
 namespace Slic3r {
 namespace GUI {
 
+#if !ENABLE_EXTENDED_SELECTION
 // returns the intersection of the given ray with the plane parallel to plane XY and passing through the given center
 // coordinates are local to the plane
 Vec3d intersection_on_plane_xy(const Linef3& ray, const Vec3d& center)
@@ -105,7 +106,8 @@ unsigned int select_best_plane(const Vec3d& unit_vector, unsigned int preferred_
 
     return ret;
 }
-    
+#endif // !ENABLE_EXTENDED_SELECTION
+
 const float GLGizmoBase::Grabber::SizeFactor = 0.025f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
 const float GLGizmoBase::Grabber::DraggingScaleFactor = 1.25f;
@@ -217,9 +219,6 @@ GLGizmoBase::GLGizmoBase(GLCanvas3D& parent)
     : m_parent(parent)
     , m_group_id(-1)
     , m_state(Off)
-#if ENABLE_EXTENDED_SELECTION
-    , m_accept_wipe_tower(false)
-#endif // ENABLE_EXTENDED_SELECTION
     , m_hover_id(-1)
     , m_dragging(false)
 {
@@ -1065,7 +1064,11 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
 
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(0) * ratio;
@@ -1073,40 +1076,70 @@ void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     double ratio = calc_ratio(2, mouse_ray, m_starting_box.center());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_scale(1) = m_starting_scale(1) * ratio;
-#else
-        m_scale(0) = m_starting_scale(1) * ratio;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_scale(2) = m_starting_scale(2) * ratio;
-#else
-        m_scale(0) = m_starting_scale(2) * ratio; // << this is temporary
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 }
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
+#if ENABLE_EXTENDED_SELECTION
+    double ratio = calc_ratio(mouse_ray);
+#else
     Vec3d center = m_starting_box.center();
-#if !ENABLE_EXTENDED_SELECTION
     center(2) = m_box.min(2);
-#endif // !ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(0, mouse_ray, center);
+#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale = m_starting_scale * ratio;
 }
 
+#if ENABLE_EXTENDED_SELECTION
+double GLGizmoScale3D::calc_ratio(const Linef3& mouse_ray) const
+{
+    double ratio = 0.0;
+
+    // vector from the center to the starting position
+    Vec3d starting_vec = m_starting_drag_position - m_starting_box.center();
+    double len_starting_vec = starting_vec.norm();
+    if (len_starting_vec != 0.0)
+    {
+        Vec3d mouse_dir = mouse_ray.unit_vector();
+        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+        // in our case plane normal and ray direction are the same (orthogonal view)
+        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+        Vec3d inters = mouse_ray.a + (m_starting_drag_position - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        // vector from the starting position to the found intersection
+        Vec3d inters_vec = inters - m_starting_drag_position;
+
+        // finds projection of the vector along the staring direction
+        double proj = inters_vec.dot(starting_vec.normalized());
+
+        return (len_starting_vec + proj) / len_starting_vec;
+    }
+
+    return ratio;
+}
+#else
 double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const
 {
     double ratio = 0.0;
@@ -1142,6 +1175,7 @@ double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3&
 
     return ratio;
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 const double GLGizmoMove3D::Offset = 10.0;
 
@@ -1179,10 +1213,6 @@ bool GLGizmoMove3D::on_init()
         m_grabbers.push_back(Grabber());
     }
 
-#if ENABLE_EXTENDED_SELECTION
-    m_accept_wipe_tower = true;
-#endif // ENABLE_EXTENDED_SELECTION
-
     return true;
 }
 
@@ -1209,11 +1239,11 @@ void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 {
 #if ENABLE_EXTENDED_SELECTION
     if (m_hover_id == 0)
-        m_displacement(0) = calc_projection(X, 1, mouse_ray) - (m_starting_drag_position(0) - m_starting_box_center(0));
+        m_displacement(0) = calc_projection(mouse_ray);
     else if (m_hover_id == 1)
-        m_displacement(1) = calc_projection(Y, 2, mouse_ray) - (m_starting_drag_position(1) - m_starting_box_center(1));
+        m_displacement(1) = calc_projection(mouse_ray);
     else if (m_hover_id == 2)
-        m_displacement(2) = calc_projection(Z, 1, mouse_ray) - (m_starting_drag_position(2) - m_starting_box_bottom_center(2));
+        m_displacement(2) = calc_projection(mouse_ray);
 #else
     if (m_hover_id == 0)
         m_position(0) = 2.0 * m_starting_box_center(0) + calc_projection(X, 1, mouse_ray) - m_starting_drag_position(0);
@@ -1315,6 +1345,30 @@ void GLGizmoMove3D::on_render_for_picking(const BoundingBoxf3& box) const
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
+#if ENABLE_EXTENDED_SELECTION
+double GLGizmoMove3D::calc_projection(const Linef3& mouse_ray) const
+{
+    double projection = 0.0;
+
+    Vec3d starting_vec = m_starting_drag_position - m_starting_box_center;
+    double len_starting_vec = starting_vec.norm();
+    if (len_starting_vec != 0.0)
+    {
+        Vec3d mouse_dir = mouse_ray.unit_vector();
+        // finds the intersection of the mouse ray with the plane parallel to the camera viewport and passing throught the starting position
+        // use ray-plane intersection see i.e. https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection algebric form
+        // in our case plane normal and ray direction are the same (orthogonal view)
+        // when moving to perspective camera the negative z unit axis of the camera needs to be transformed in world space and used as plane normal
+        Vec3d inters = mouse_ray.a + (m_starting_drag_position - mouse_ray.a).dot(mouse_dir) / mouse_dir.squaredNorm() * mouse_dir;
+        // vector from the starting position to the found intersection
+        Vec3d inters_vec = inters - m_starting_drag_position;
+
+        // finds projection of the vector along the staring direction
+        projection = inters_vec.dot(starting_vec.normalized());
+    }
+    return projection;
+}
+#else
 double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const
 {
     double projection = 0.0;
@@ -1350,6 +1404,7 @@ double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id
 
     return projection;
 }
+#endif // ENABLE_EXTENDED_SELECTION
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -1420,24 +1475,35 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
         else
             ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+        int instance_idx = selection.get_instance_idx();
+        if ((instance_idx != -1) && (m_model_object != nullptr))
+        {
+            Transform3d m = m_model_object->instances[instance_idx]->world_matrix();
+            m.pretranslate(dragged_offset);
+            ::glPushMatrix();
+            ::glMultMatrixd(m.data());
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
+            }
+            ::glEnd();
+            ::glPopMatrix();
+        }
+#else
         for (const InstanceData& inst : m_instances) {
             Transform3d m = inst.matrix;
             m.pretranslate(dragged_offset);
             ::glPushMatrix();
             ::glMultMatrixd(m.data());
-#else
-        for (Vec2d offset : m_instances_positions) {
-            offset += to_2d(dragged_offset);
-            ::glPushMatrix();
-            ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
                 ::glVertex3dv(vertex.data());
             ::glEnd();
             ::glPopMatrix();
         }
+#endif // ENABLE_EXTENDED_SELECTION
     }
 
     ::glDisable(GL_BLEND);
@@ -1454,21 +1520,31 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if ENABLE_EXTENDED_SELECTION
+        int instance_idx = selection.get_instance_idx();
+        if ((instance_idx != -1) && (m_model_object != nullptr))
+        {
+            ::glPushMatrix();
+            ::glMultMatrixd(m_model_object->instances[instance_idx]->world_matrix().data());
+            ::glBegin(GL_POLYGON);
+            for (const Vec3d& vertex : m_planes[i].vertices)
+            {
+                ::glVertex3dv(vertex.data());
+            }
+            ::glEnd();
+            ::glPopMatrix();
+        }
+#else
         for (const InstanceData& inst : m_instances) {
             ::glPushMatrix();
             ::glMultMatrixd(inst.matrix.data());
-#else
-        for (const Vec2d& offset : m_instances_positions) {
-            ::glPushMatrix();
-            ::glTranslatef((GLfloat)offset(0), (GLfloat)offset(1), 0.0f);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
                 ::glVertex3dv(vertex.data());
             ::glEnd();
             ::glPopMatrix();
         }
+#endif // ENABLE_EXTENDED_SELECTION
     }
 }
 
@@ -1476,20 +1552,14 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_model_object = model_object;
 
+#if !ENABLE_EXTENDED_SELECTION
     // ...and save the updated positions of the object instances:
     if (m_model_object && !m_model_object->instances.empty()) {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_instances.clear();
-#else
-        m_instances_positions.clear();
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         for (const auto* instance : m_model_object->instances)
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             m_instances.emplace_back(instance->world_matrix());
-#else
-            m_instances_positions.emplace_back(instance->offset);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     }
+#endif // !ENABLE_EXTENDED_SELECTION
 
     if (is_plane_update_necessary())
         update_planes();
@@ -1502,10 +1572,6 @@ void GLGizmoFlatten::update_planes()
         ch.merge(vol->get_convex_hull());
 
     ch = ch.convex_hull_3d();
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    ch.scale(m_model_object->instances.front()->scaling_factor);
-    ch.rotate_z(m_model_object->instances.front()->rotation);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     const Vec3d& bb_size = ch.bounding_box().size();
     double min_bb_face_area = std::min(bb_size(0) * bb_size(1), std::min(bb_size(0) * bb_size(2), bb_size(1) * bb_size(2)));
@@ -1671,10 +1737,6 @@ void GLGizmoFlatten::update_planes()
     m_source_data.bounding_boxes.clear();
     for (const auto& vol : m_model_object->volumes)
         m_source_data.bounding_boxes.push_back(vol->get_convex_hull().bounding_box());
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    m_source_data.scaling_factor = m_model_object->instances.front()->scaling_factor;
-    m_source_data.rotation = m_model_object->instances.front()->rotation;
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
 }
@@ -1686,13 +1748,7 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size())
-#else
-    if (m_model_object->volumes.size() != m_source_data.bounding_boxes.size()
-     || m_model_object->instances.front()->scaling_factor != m_source_data.scaling_factor
-     || m_model_object->instances.front()->rotation != m_source_data.rotation)
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         return true;
 
     // now compare the bounding boxes:
@@ -1708,7 +1764,6 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     return false;
 }
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 Vec3d GLGizmoFlatten::get_flattening_rotation() const
 {
     // calculates the rotations in model space, taking in account the scaling factors
@@ -1718,13 +1773,6 @@ Vec3d GLGizmoFlatten::get_flattening_rotation() const
     m_normal = Vec3d::Zero();
     return Vec3d(angles(2), angles(1), angles(0));
 }
-#else
-Vec3d GLGizmoFlatten::get_flattening_normal() const {
-    Vec3d normal = m_model_object->instances.front()->world_matrix(true).matrix().block(0, 0, 3, 3).inverse() * m_normal;
-    m_normal = Vec3d::Zero();
-    return normal.normalized();
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 } // namespace GUI
 } // namespace Slic3r

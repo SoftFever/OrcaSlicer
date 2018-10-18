@@ -81,7 +81,9 @@ public:
     void set_bottom(float bottom);
 };
 
-
+#if ENABLE_EXTENDED_SELECTION
+wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+#else
 struct ObjectSelectEvent;
 wxDECLARE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
 struct ObjectSelectEvent : public ArrayEvent<ptrdiff_t, 2>
@@ -93,6 +95,7 @@ struct ObjectSelectEvent : public ArrayEvent<ptrdiff_t, 2>
     ptrdiff_t object_id() const { return data[0]; }
     ptrdiff_t volume_id() const { return data[1]; }
 };
+#endif // ENABLE_EXTENDED_SELECTION
 
 using Vec2dEvent = Event<Vec2d>;
 template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;
@@ -102,7 +105,9 @@ template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
 
 wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
+#if !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
@@ -118,8 +123,8 @@ wxDECLARE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 #if !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 wxDECLARE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
-#endif // !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 
 
 class GLCanvas3D
@@ -552,6 +557,7 @@ private:
 #if ENABLE_EXTENDED_SELECTION
         void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+        void update_on_off_state(const Selection& selection);
 #else
         void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos);
@@ -589,7 +595,6 @@ private:
         void set_position(const Vec3d& position);
 #endif // ENABLE_EXTENDED_SELECTION
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d get_scale() const;
         void set_scale(const Vec3d& scale);
 
@@ -597,15 +602,6 @@ private:
         void set_rotation(const Vec3d& rotation);
 
         Vec3d get_flattening_rotation() const;
-#else
-        float get_scale() const;
-        void set_scale(float scale);
-
-        float get_angle_z() const;
-        void set_angle_z(float angle_z);
-
-        Vec3d get_flattening_normal() const;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
         void set_flattening_data(const ModelObject* model_object);
 
@@ -956,6 +952,7 @@ private:
     void _on_move();
     void _on_rotate();
     void _on_scale();
+    void _on_flatten();
 #else
     void _on_move(const std::vector<int>& volume_idxs);
 #endif // ENABLE_EXTENDED_SELECTION

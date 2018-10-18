@@ -207,11 +207,6 @@ install(FILES lib/Slic3r/XS.pm DESTINATION ${PERL_VENDORLIB}/Slic3r)
 enable_testing()
 get_filename_component(PERL_BIN_PATH "${PERL_EXECUTABLE}" DIRECTORY)
 if (MSVC)
-    # By default the startup project in MSVC is the 'ALL_BUILD' cmake-created project,
-    # but we want 'slic3r' as the startup one because debugging run command is associated with it.
-    # (Unfortunatelly it cannot be associated with ALL_BUILD using CMake.)
-    # Note: For some reason this needs to be set in the top-level CMakeLists.txt
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT XS)
     set(PERL_PROVE "${PERL_BIN_PATH}/prove.bat")
 else ()
     set(PERL_PROVE "${PERL_BIN_PATH}/prove")

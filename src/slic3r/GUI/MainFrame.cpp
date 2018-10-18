@@ -17,6 +17,7 @@
 #include "Print.hpp"
 #include "Polygon.hpp"
 #include "AppConfig.hpp"
+#include "wxExtensions.hpp"
 
 #include <fstream>
 #include "GUI_App.hpp"
@@ -77,8 +78,6 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
     Fit();
     SetMinSize(wxSize(760, 490));
     SetSize(GetMinSize());
-    wxGetApp().restore_window_pos(this, "main_frame");
-    Show();
     Layout();
 
     // declare events
@@ -88,7 +87,7 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
             return;
         }
         // save window size
-        wxGetApp().save_window_pos(this, "main_frame");
+        wxGetApp().window_pos_save(this, "mainframe");
         // Save the slic3r.ini.Usually the ini file is saved from "on idle" callback,
         // but in rare cases it may not have been called yet.
         wxGetApp().app_config->save();
@@ -98,6 +97,17 @@ wxFrame(NULL, wxID_ANY, SLIC3R_BUILD, wxDefaultPosition, wxDefaultSize, wxDEFAUL
 //         Slic3r::GUI::deregister_on_request_update_callback();
         // propagate event
         event.Skip();
+    });
+
+    // NB: Restoring the window position is done in a two-phase manner here,
+    // first the saved position is restored as-is and validation is done after the window is shown
+    // and initial round of events is complete, because on some platforms that is the only way
+    // to get an accurate window position & size.
+    wxGetApp().window_pos_restore(this, "mainframe");
+    Bind(wxEVT_SHOW, [this](wxShowEvent&) {
+        CallAfter([this]() {
+            wxGetApp().window_pos_sanitize(this);
+        });
     });
 
     update_ui_from_settings();
@@ -237,10 +247,8 @@ void MainFrame::init_menubar()
     // File menu
     wxMenu* fileMenu = new wxMenu;
     {
-        wxGetApp().append_menu_item(fileMenu, wxID_ANY, _(L("Open STL/OBJ/AMF/3MF…\tCtrl+O")), _(L("Open a model")), 
-            "", [](wxCommandEvent&){
-//             if (m_plater) m_plater->add();
-        }); //'brick_add.png');
+        append_menu_item(fileMenu, wxID_ANY, _(L("Open STL/OBJ/AMF/3MF…\tCtrl+O")), _(L("Open a model")),
+                        [this](wxCommandEvent&) { if (m_plater) m_plater->add(); }, "brick_add.png");
         append_menu_item(fileMenu, wxID_ANY, _(L("&Load Config…\tCtrl+L")), _(L("Load exported configuration file")), 
                         [this](wxCommandEvent&){ load_config_file(); }, "plugin_add.png");
         append_menu_item(fileMenu, wxID_ANY, _(L("&Export Config…\tCtrl+E")), _(L("Export current configuration to file")), 
@@ -285,19 +293,16 @@ void MainFrame::init_menubar()
     }
 
     // Plater menu
-    if(m_plater) {
-        auto plater_menu = new wxMenu();
-        append_menu_item(plater_menu, wxID_ANY, L("Export G-code..."), L("Export current plate as G-code"), 
+    if (m_plater) {
+        m_plater_menu = new wxMenu();
+        append_menu_item(m_plater_menu, wxID_ANY, _(L("Export G-code...")), _(L("Export current plate as G-code")),
             [this](wxCommandEvent&){ /*m_plater->export_gcode(); */}, "cog_go.png");
-        append_menu_item(plater_menu, wxID_ANY, L("Export plate as STL..."), L("Export current plate as STL"), 
+        append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as STL...")), _(L("Export current plate as STL")),
             [this](wxCommandEvent&){ /*m_plater->export_stl(); */}, "brick_go.png");
-        append_menu_item(plater_menu, wxID_ANY, L("Export plate as AMF..."), L("Export current plate as AMF"), 
+        append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as AMF...")), _(L("Export current plate as AMF")),
             [this](wxCommandEvent&){ /*m_plater->export_amf();*/ }, "brick_go.png");
-        append_menu_item(plater_menu, wxID_ANY, L("Export plate as 3MF..."), L("Export current plate as 3MF"), 
+        append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as 3MF...")), _(L("Export current plate as 3MF")),
             [this](wxCommandEvent&){ /*m_plater->export_3mf(); */}, "brick_go.png");
-
-//         m_object_menu = m_plater->object_menu;
-        on_plater_selection_changed(false);
     }
 
     // Window menu
@@ -323,23 +328,14 @@ void MainFrame::init_menubar()
     // View menu
     if (m_plater) {
         m_viewMenu = new wxMenu();
-// \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
-        // as the simple numeric accelerators spoil all numeric data entry.
-        // The camera control accelerators are captured by 3DScene Perl module instead.
-        auto accel = [](const wxString& st1, const wxString& st2) {
-//             if ($^O eq "MSWin32")
-//                 return st1 + "\t\xA0" + st2;
-//             else
-                return st1; 
-        };
-
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Iso")), "0"),     L("Iso View"),   [this](wxCommandEvent&){ select_view("iso"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Top")), "1"),     L("Top View"),   [this](wxCommandEvent&){ select_view("top"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Bottom")), "2"),  L("Bottom View"),[this](wxCommandEvent&){ select_view("bottom"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Front")), "3"),   L("Front View"), [this](wxCommandEvent&){ select_view("front"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Rear")), "4"),    L("Rear View"),  [this](wxCommandEvent&){ select_view("rear"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Left")), "5"),    L("Left View"),  [this](wxCommandEvent&){ select_view("left"); });
-        append_menu_item(m_viewMenu, wxID_ANY, accel(_(L("Right")), "6"),   L("Right View"), [this](wxCommandEvent&){ select_view("right"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Iso\t0")), _(L("Iso View")), [this](wxCommandEvent&){ select_view("iso"); });
+        m_viewMenu->AppendSeparator();
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Top\t1")), _(L("Top View")), [this](wxCommandEvent&){ select_view("top"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Bottom\t2")), _(L("Bottom View")), [this](wxCommandEvent&){ select_view("bottom"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Front\t3")), _(L("Front View")), [this](wxCommandEvent&){ select_view("front"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Rear\t4")), _(L("Rear View")), [this](wxCommandEvent&){ select_view("rear"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Left\t5")), _(L("Left View")), [this](wxCommandEvent&){ select_view("left"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Right\t6")), _(L("Right View")), [this](wxCommandEvent&){ select_view("right"); });
     }
 
     // Help menu
@@ -375,7 +371,6 @@ void MainFrame::init_menubar()
         auto menubar = new wxMenuBar();
         menubar->Append(fileMenu, L("&File"));
         if (m_plater_menu) menubar->Append(m_plater_menu, L("&Plater")) ;
-        if (m_object_menu) menubar->Append(m_object_menu, L("&Object")) ;
         menubar->Append(windowMenu, L("&Window"));
         if (m_viewMenu) menubar->Append(m_viewMenu, L("&View"));
         // Add additional menus from C++
@@ -383,15 +378,6 @@ void MainFrame::init_menubar()
         menubar->Append(helpMenu, L("&Help"));
         SetMenuBar(menubar);
     }
-}
-
-// Selection of a 3D object changed on the platter.
-void MainFrame::on_plater_selection_changed(const bool have_selection)
-{
-    if (!m_object_menu) return;
-    
-    for (auto item : m_object_menu->GetMenuItems())
-        m_object_menu->Enable(item->GetId(), have_selection);
 }
 
 void MainFrame::slice_to_png(){
@@ -707,24 +693,8 @@ void MainFrame::select_tab(size_t tab) const
 // Set a camera direction, zoom to all objects.
 void MainFrame::select_view(const std::string& direction)
 {
-//    if (m_plater)
-//        m_plater->select_view(direction);
-}
-
-wxMenuItem* MainFrame::append_menu_item(wxMenu* menu, 
-                                        int id, 
-                                        const wxString& string,
-                                        const wxString& description,
-                                        std::function<void(wxCommandEvent& event)> cb, 
-                                        const std::string& icon /*= ""*/)
-{
-    if (id == wxID_ANY)
-        id = wxNewId();
-    auto item = menu->Append(id, string, description);
-    if (!icon.empty())
-        item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
-    menu->Bind(wxEVT_MENU, /*[cb](wxCommandEvent& event){cb; }*/cb);
-    return item;
+     if (m_plater)
+         m_plater->select_view(direction);
 }
 
 void MainFrame::on_presets_changed(SimpleEvent &event)

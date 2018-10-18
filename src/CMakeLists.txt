@@ -63,6 +63,7 @@ if(SLIC3R_GUI)
 else()
     set_target_properties(slic3r PROPERTIES OUTPUT_NAME "slic3r-console")
 endif()
+
 target_link_libraries(slic3r libslic3r)
 if (APPLE)
 #    add_compile_options(-stdlib=libc++)
@@ -111,3 +112,35 @@ if (SLIC3R_GUI)
         target_link_libraries(slic3r -ldl -lGL -lGLU)
     endif ()
 endif ()
+
+# Link the resources dir to where Slic3r GUI expects it
+if (MSVC)
+    if (CMAKE_CONFIGURATION_TYPES)
+        foreach (CONF ${CMAKE_CONFIGURATION_TYPES})
+            file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}" WIN_CONF_OUTPUT_DIR)
+            file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}/resources" WIN_RESOURCES_SYMLINK)
+            add_custom_target("resources_symlink_${CONF}" ALL
+                DEPENDS slic3r
+                COMMAND if exist "${WIN_CONF_OUTPUT_DIR}" "("
+                        if not exist "${WIN_RESOURCES_SYMLINK}" "("
+                            mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}"
+                        ")"
+                    ")"
+                VERBATIM
+            )
+        endforeach ()
+    else ()
+        file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources" WIN_RESOURCES_SYMLINK)
+        add_custom_target(resources_symlink ALL
+            DEPENDS slic3r
+            COMMAND if not exist "${WIN_RESOURCES_SYMLINK}" "(" mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}" ")"
+            VERBATIM
+        )
+    endif ()
+else ()
+    add_custom_target(resources_symlink ALL
+        DEPENDS slic3r
+        COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"
+        VERBATIM
+    )
+endif()

@@ -744,9 +744,13 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             delete region;
         m_regions.clear();
         m_model = model;
+		for (const ModelObject *model_object : m_model.objects)
+			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
     } else {
         if (model_object_list_equal(m_model, model)) {
             // The object list did not change.
+			for (const ModelObject *model_object : m_model.objects)
+				model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
             this->invalidate_step(psGCodeExport);
@@ -1016,6 +1020,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
         std::vector<int>    map_volume_to_region(model_object.volumes.size(), -1);
         for (size_t i = idx_print_object; i < m_objects.size() && m_objects[i]->model_object() == &model_object; ++ i) {
             PrintObject &print_object = *m_objects[i];
+			bool         fresh = print_object.region_volumes.empty();
             unsigned int volume_id = 0;
             for (const ModelVolume *volume : model_object.volumes) {
                 if (! volume->is_model_part() && ! volume->is_modifier())
@@ -1045,14 +1050,23 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
                 } else
                     region_id = map_volume_to_region[volume_id];
                 // Assign volume to a region.
-                if (volume_id >= print_object.region_volumes.size())
-                    print_object.add_region_volume(region_id, volume_id);
+				if (fresh) {
+					if (print_object.region_volumes.empty())
+						++ m_regions[region_id]->m_refcnt;
+					print_object.add_region_volume(region_id, volume_id);
+				}
                 ++ volume_id;
             }
         }
     }
 
+    // Always make sure that the layer_height_profiles are set, as they should not be modified from the worker threads.
+    for (PrintObject *object : m_objects)
+        if (! object->layer_height_profile_valid)
+            object->update_layer_height_profile();
+
     this->update_object_placeholders();
+    return invalidated;
 }
 
 // Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.
@@ -1063,14 +1077,10 @@ void Print::update_object_placeholders()
     std::vector<std::string> v_scale;
     for (const PrintObject *object : m_objects) {
         const ModelObject &mobj = *object->model_object();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         // CHECK_ME -> Is the following correct ?
         v_scale.push_back("x:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(X) * 100) +
             "% y:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Y) * 100) +
             "% z:" + boost::lexical_cast<std::string>(mobj.instances[0]->get_scaling_factor(Z) * 100) + "%");
-#else
-        v_scale.push_back(boost::lexical_cast<std::string>(mobj.instances[0]->scaling_factor * 100) + "%");
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         if (input_file.empty())
             input_file = mobj.input_file;
     }
@@ -1083,7 +1093,7 @@ void Print::update_object_placeholders()
         pp.set("input_filename", input_basename);
         const std::string input_basename_base = input_basename.substr(0, input_basename.find_last_of("."));
         pp.set("input_filename_base", input_basename_base);
-    }    
+    }
 }
 
 bool Print::has_infinite_skirt() const

@@ -1346,7 +1346,7 @@ bool GLCanvas3D::Selection::is_single_full_instance() const
     int object_idx = m_valid ? get_object_idx() : -1;
     if (object_idx != -1)
     {
-        if (get_instance_idx() != -1)
+        if ((object_idx != -1) && (object_idx < 1000))
             return m_model->objects[object_idx]->volumes.size() == m_list.size();
     }
 
@@ -1653,7 +1653,7 @@ void GLCanvas3D::Selection::_calc_bounding_box() const
     {
         for (unsigned int i : m_list)
         {
-            m_bounding_box.merge((*m_volumes)[i]->transformed_bounding_box());
+            m_bounding_box.merge((*m_volumes)[i]->transformed_convex_hull_bounding_box());
         }
     }
     m_bounding_box_dirty = false;
@@ -1702,7 +1702,7 @@ void GLCanvas3D::Selection::_render_unselected_instances() const
             if (it == boxes.end())
                 it = boxes.insert(InstanceToBoxMap::value_type(box_id, BoundingBoxf3())).first;
 
-            it->second.merge(v->transformed_bounding_box());
+            it->second.merge(v->transformed_convex_hull_bounding_box());
 
             done.insert(j);
         }
@@ -1830,11 +1830,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
     if (!gizmo->init())
         return false;
 
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    // temporary disable z grabber
-    gizmo->disable_grabber(2);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-
     m_gizmos.insert(GizmosMap::value_type(Move, gizmo));
 
     gizmo = new GLGizmoScale3D(parent);
@@ -1843,18 +1838,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     if (!gizmo->init())
         return false;
-
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    // temporary disable x grabbers
-    gizmo->disable_grabber(0);
-    gizmo->disable_grabber(1);
-    // temporary disable y grabbers
-    gizmo->disable_grabber(2);
-    gizmo->disable_grabber(3);
-    // temporary disable z grabbers
-    gizmo->disable_grabber(4);
-    gizmo->disable_grabber(5);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     m_gizmos.insert(GizmosMap::value_type(Scale, gizmo));
 
@@ -1870,12 +1853,6 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
         _reset();
         return false;
     }
-
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    // temporary disable x and y grabbers
-    gizmo->disable_grabber(0);
-    gizmo->disable_grabber(1);
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     m_gizmos.insert(GizmosMap::value_type(Rotate, gizmo));
 
@@ -1916,7 +1893,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
     float top_y = 0.5f * (cnv_h - height);
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if (it->second == nullptr)
             continue;
@@ -1926,8 +1903,7 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
 
         // we currently use circular icons for gizmo, so we check the radius
 #if ENABLE_EXTENDED_SELECTION
-        bool no_wipe_tower = selection.is_wipe_tower() && !it->second->get_accept_wipe_tower();
-        if (!no_wipe_tower && (it->second->get_state() != GLGizmoBase::On))
+        if (it->second->is_activable(selection) && (it->second->get_state() != GLGizmoBase::On))
 #else
         if (it->second->get_state() != GLGizmoBase::On)
 #endif // ENABLE_EXTENDED_SELECTION
@@ -1951,7 +1927,7 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
     float top_y = 0.5f * (cnv_h - height);
-    for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
+    for (GizmosMap::iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
         if (it->second == nullptr)
             continue;
@@ -1961,18 +1937,17 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
 
         // we currently use circular icons for gizmo, so we check the radius
 #if ENABLE_EXTENDED_SELECTION
-        bool no_wipe_tower = selection.is_wipe_tower() && !it->second->get_accept_wipe_tower();
-        if (!no_wipe_tower && ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size))
+        if (it->second->is_activable(selection) && ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size))
 #else
         if ((mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size)
 #endif // ENABLE_EXTENDED_SELECTION
         {
             if ((it->second->get_state() == GLGizmoBase::On))
             {
-                it->second->set_state(GLGizmoBase::Off);
+                it->second->set_state(GLGizmoBase::Hover);
                 m_current = Undefined;
             }
-            else
+            else if ((it->second->get_state() == GLGizmoBase::Hover))
             {
                 it->second->set_state(GLGizmoBase::On);
                 m_current = it->first;
@@ -1983,7 +1958,26 @@ void GLCanvas3D::Gizmos::update_on_off_state(const GLCanvas3D& canvas, const Vec
 
         top_y += (tex_size + OverlayGapY);
     }
+
+    GizmosMap::iterator it = m_gizmos.find(m_current);
+    if ((it != m_gizmos.end()) && (it->second != nullptr) && (it->second->get_state() != GLGizmoBase::On))
+        it->second->set_state(GLGizmoBase::On);
 }
+
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::Gizmos::update_on_off_state(const Selection& selection)
+{
+    GizmosMap::iterator it = m_gizmos.find(m_current);
+    if ((it != m_gizmos.end()) && (it->second != nullptr))
+    {
+        if (!it->second->is_activable(selection))
+        {
+            it->second->set_state(GLGizmoBase::Off);
+            m_current = Undefined;
+        }
+    }
+}
+#endif // ENABLE_EXTENDED_SELECTION
 
 void GLCanvas3D::Gizmos::reset_all_states()
 {
@@ -2104,6 +2098,9 @@ bool GLCanvas3D::Gizmos::is_running() const
 
 bool GLCanvas3D::Gizmos::is_dragging() const
 {
+    if (!m_enabled)
+        return false;
+
     GLGizmoBase* curr = _get_current();
     return (curr != nullptr) ? curr->is_dragging() : false;
 }
@@ -2111,6 +2108,9 @@ bool GLCanvas3D::Gizmos::is_dragging() const
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
 {
+    if (!m_enabled)
+        return;
+
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->start_dragging(selection);
@@ -2118,6 +2118,9 @@ void GLCanvas3D::Gizmos::start_dragging(const GLCanvas3D::Selection& selection)
 #else
 void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 {
+    if (!m_enabled)
+        return;
+
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->start_dragging(box);
@@ -2126,6 +2129,9 @@ void GLCanvas3D::Gizmos::start_dragging(const BoundingBoxf3& box)
 
 void GLCanvas3D::Gizmos::stop_dragging()
 {
+    if (!m_enabled)
+        return;
+
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
         curr->stop_dragging();
@@ -2161,7 +2167,6 @@ void GLCanvas3D::Gizmos::set_position(const Vec3d& position)
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 Vec3d GLCanvas3D::Gizmos::get_scale() const
 {
     if (!m_enabled)
@@ -2208,54 +2213,6 @@ Vec3d GLCanvas3D::Gizmos::get_flattening_rotation() const
     GizmosMap::const_iterator it = m_gizmos.find(Flatten);
     return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_rotation() : Vec3d::Zero();
 }
-#else
-float GLCanvas3D::Gizmos::get_scale() const
-{
-    if (!m_enabled)
-        return 1.0f;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Scale);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoScale3D*>(it->second)->get_scale_x() : 1.0f;
-}
-
-void GLCanvas3D::Gizmos::set_scale(float scale)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Scale);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoScale3D*>(it->second)->set_scale(scale);
-}
-
-float GLCanvas3D::Gizmos::get_angle_z() const
-{
-    if (!m_enabled)
-        return 0.0f;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoRotate3D*>(it->second)->get_angle_z() : 0.0f;
-}
-
-void GLCanvas3D::Gizmos::set_angle_z(float angle_z)
-{
-    if (!m_enabled)
-        return;
-
-    GizmosMap::const_iterator it = m_gizmos.find(Rotate);
-    if (it != m_gizmos.end())
-        reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_angle_z(angle_z);
-}
-
-Vec3d GLCanvas3D::Gizmos::get_flattening_normal() const
-{
-    if (!m_enabled)
-        return Vec3d::Zero();
-
-    GizmosMap::const_iterator it = m_gizmos.find(Flatten);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Vec3d::Zero();
-}
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
 {
@@ -2704,9 +2661,15 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
+#else
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, ObjectSelectEvent);
+#endif // ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
+#if !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
@@ -2722,8 +2685,8 @@ wxDEFINE_EVENT(EVT_GLCANVAS_UPDATE_GEOMETRY, Vec3dsEvent<2>);
 #if !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_SCALE, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GIZMO_ROTATE, Vec3dEvent);
-#endif // !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
+#endif // !ENABLE_EXTENDED_SELECTION
 
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
@@ -3241,7 +3204,7 @@ void GLCanvas3D::select_view(const std::string& direction)
     else if (direction == "rear")
         dir_vec = VIEW_REAR;
 
-    if ((dir_vec != nullptr) && !empty(volumes_bounding_box()))
+    if (dir_vec != nullptr)
     {
         m_camera.phi = dir_vec[0];
         m_camera.set_theta(dir_vec[1]);
@@ -3306,15 +3269,9 @@ void GLCanvas3D::update_gizmos_data()
             ModelInstance* model_instance = model_object->instances[0];
             if (model_instance != nullptr)
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 m_gizmos.set_position(model_instance->get_offset());
                 m_gizmos.set_scale(model_instance->get_scaling_factor());
                 m_gizmos.set_rotation(model_instance->get_rotation());
-#else
-                m_gizmos.set_position(Vec3d(model_instance->offset(0), model_instance->offset(1), 0.0));
-                m_gizmos.set_scale(model_instance->scaling_factor);
-                m_gizmos.set_angle_z(model_instance->rotation);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 m_gizmos.set_flattening_data(model_object);
             }
         }
@@ -3322,13 +3279,8 @@ void GLCanvas3D::update_gizmos_data()
     else
     {
         m_gizmos.set_position(Vec3d::Zero());
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_gizmos.set_scale(Vec3d::Ones());
         m_gizmos.set_rotation(Vec3d::Zero());
-#else
-        m_gizmos.set_scale(1.0f);
-        m_gizmos.set_angle_z(0.0f);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         m_gizmos.set_flattening_data(nullptr);
     }
 #endif // ENABLE_EXTENDED_SELECTION
@@ -3489,6 +3441,9 @@ void GLCanvas3D::reload_scene(bool force)
         {
             load_object(*m_model, obj_idx);
         }
+
+        // to update the toolbar
+        post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     }
 
     update_gizmos_data();
@@ -3846,8 +3801,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         m_mouse.position = Vec2d(-1.0, -1.0);
         m_dirty = true;
     }
+#if !ENABLE_EXTENDED_SELECTION
     else if (evt.LeftDClick() && (m_hover_volume_id != -1) && !gizmos_overlay_contains_mouse && (toolbar_contains_mouse == -1))
         post_event(SimpleEvent(EVT_GLCANVAS_DOUBLE_CLICK));
+#endif // !ENABLE_EXTENDED_SELECTION
     else if (evt.LeftDClick() && (toolbar_contains_mouse != -1))
     {
         m_toolbar_action_running = true;
@@ -3862,7 +3819,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         {
         case Gizmos::Scale:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             m_regenerate_volumes = false;
             m_selection.scale(m_gizmos.get_scale());
@@ -3870,9 +3826,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
             post_event(Vec3dEvent(EVT_GIZMO_SCALE, m_gizmos.get_scale()));
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
 #else
@@ -3883,7 +3836,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         case Gizmos::Rotate:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             m_regenerate_volumes = false;
             m_selection.rotate(m_gizmos.get_rotation());
@@ -3891,9 +3843,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #else
             post_event(Vec3dEvent(EVT_GIZMO_ROTATE, std::move(m_gizmos.get_rotation())));
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
             wxGetApp().obj_manipul()->update_settings_value(m_selection);
 #else
@@ -3969,18 +3918,15 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_EXTENDED_SELECTION
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 // Rotate the object so the normal points downward:
-                post_event(Vec3dEvent(EVT_GIZMO_FLATTEN, m_gizmos.get_flattening_rotation()));
+#if ENABLE_EXTENDED_SELECTION
+                m_regenerate_volumes = false;
+                m_selection.rotate(m_gizmos.get_flattening_rotation());
+                _on_flatten();
+                wxGetApp().obj_manipul()->update_settings_value(m_selection);
 #else
-                // Rotate the object so the normal points downward:
-                Vec3d normal = m_gizmos.get_flattening_normal();
-                if (normal(0) != 0.0 || normal(1) != 0.0 || normal(2) != 0.0) {
-                    Vec3d axis = normal(2) > 0.999 ? Vec3d::UnitX() : normal.cross(-Vec3d::UnitZ()).normalized();
-                    float angle = acos(clamp(-1.0, 1.0, -normal(2)));
-                    m_on_gizmo_flatten_callback.call(angle, (float)axis(0), (float)axis(1), (float)axis(2));
-                }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+                post_event(Vec3dEvent(EVT_GIZMO_FLATTEN, m_gizmos.get_flattening_rotation()));
+#endif // ENABLE_EXTENDED_SELECTION
             }
 
             m_dirty = true;
@@ -4003,13 +3949,14 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #endif // ENABLE_EXTENDED_SELECTION
             {
 #if ENABLE_EXTENDED_SELECTION
-                if (m_hover_volume_id != -1)
+                if (evt.LeftDown() && (m_hover_volume_id != -1))
                 {
                     if (evt.ControlDown())
                         m_selection.remove(m_hover_volume_id);
                     else
                         m_selection.add(m_hover_volume_id, !evt.ShiftDown());
 
+                    m_gizmos.update_on_off_state(m_selection);
                     update_gizmos_data();
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
                     m_dirty = true;
@@ -4096,13 +4043,24 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     render();
                     if (m_hover_volume_id != -1)
                     {
-                        // if right clicking on volume, propagate event through callback (shows context menu)
 #if ENABLE_EXTENDED_SELECTION
-                        if (m_volumes.volumes[m_hover_volume_id]->hover)
-#else
-                        if (m_volumes.volumes[volume_idx]->hover)
-#endif // ENABLE_EXTENDED_SELECTION
+                        // if right clicking on volume, propagate event through callback (shows context menu)
+                        if (m_volumes.volumes[m_hover_volume_id]->hover && !m_volumes.volumes[m_hover_volume_id]->is_wipe_tower)
+                        {
+                            // forces the selection of the volume
+                            m_selection.add(m_hover_volume_id);
+                            m_gizmos.update_on_off_state(m_selection);
+                            update_gizmos_data();
+                            wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                            // forces a frame render to update the view before the context menu is shown
+                            render();
                             post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
+                        }
+#else
+                        // if right clicking on volume, propagate event through callback (shows context menu)
+                        if (m_volumes.volumes[volume_idx]->hover)
+                            post_event(Vec2dEvent(EVT_GLCANVAS_RIGHT_CLICK, pos.cast<double>()));
+#endif // ENABLE_EXTENDED_SELECTION
                     }
                 }
             }
@@ -4215,7 +4173,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
         case Gizmos::Scale:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             // Apply new temporary scale factors
 #if ENABLE_EXTENDED_SELECTION
             m_selection.scale(m_gizmos.get_scale());
@@ -4228,20 +4185,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             wxGetApp().obj_manipul()->update_scale_value(scale);
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            // Apply new temporary scale factor
-            float scale_factor = m_gizmos.get_scale();
-            for (GLVolume* v : volumes)
-            {
-                v->set_scaling_factor((double)scale_factor);
-            }
-            wxGetApp().obj_manipul()->update_scale_values((double)scale_factor);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             break;
         }
         case Gizmos::Rotate:
         {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             // Apply new temporary rotations
 #if ENABLE_EXTENDED_SELECTION
             m_selection.rotate(m_gizmos.get_rotation());
@@ -4255,15 +4202,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             wxGetApp().obj_manipul()->update_rotation_value(rotation);
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-            // Apply new temporary angle_z
-            float angle_z = m_gizmos.get_angle_z();
-            for (GLVolume* v : volumes)
-            {
-                v->set_rotation((double)angle_z);
-            }
-            update_rotation_value((double)angle_z, Z);
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             break;
         }
         default:
@@ -4280,12 +4218,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 bb.merge(volume->transformed_bounding_box());
             }
             const Vec3d& size = bb.size();
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
             const Vec3d& scale = m_gizmos.get_scale();
             post_event(Vec3dsEvent<2>(EVT_GLCANVAS_UPDATE_GEOMETRY, {size, scale}));
-#else
-            m_on_update_geometry_info_callback.call(size(0), size(1), size(2), m_gizmos.get_scale());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -4428,28 +4362,20 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
             case Gizmos::Scale:
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
                 m_regenerate_volumes = false;
                 _on_scale();
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-                m_on_gizmo_scale_uniformly_callback.call((double)m_gizmos.get_scale());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 break;
             }
             case Gizmos::Rotate:
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 #if ENABLE_EXTENDED_SELECTION
                 m_regenerate_volumes = false;
                 _on_rotate();
 #else
                 post_event(Vec3dEvent(EVT_GIZMO_ROTATE, m_gizmos.get_rotation()));
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-                m_on_gizmo_rotate_callback.call((double)m_gizmos.get_angle_z());
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 break;
             }
             default:
@@ -4651,6 +4577,7 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
+#if !ENABLE_EXTENDED_SELECTION
     item.name = "settings";
     item.tooltip = GUI::L_str("Settings...");
     item.sprite_id = 8;
@@ -4658,6 +4585,7 @@ bool GLCanvas3D::_init_toolbar()
     item.action_event = EVT_GLTOOLBAR_SETTINGS;
     if (!m_toolbar.add_item(item))
         return false;
+#endif // !ENABLE_EXTENDED_SELECTION
 
     item.name = "layersediting";
     item.tooltip = GUI::L_str("Layers editing");
@@ -5135,7 +5063,7 @@ void GLCanvas3D::_render_objects() const
 void GLCanvas3D::_render_selection() const
 {
     Gizmos::EType type = m_gizmos.get_current_type();
-    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale));
+    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale) || (type == Gizmos::Flatten));
     m_selection.render(show_indirect_selection);
 }
 #endif // ENABLE_EXTENDED_SELECTION
@@ -6487,11 +6415,9 @@ void GLCanvas3D::_on_move()
     std::set<std::pair<int, int>> done;  // prevent moving instances twice
     bool object_moved = false;
     Vec3d wipe_tower_origin = Vec3d::Zero();
-    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
-    for (unsigned int i : selection)
+    for (const GLVolume* v : m_volumes.volumes)
     {
-        const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
         int instance_idx = v->instance_idx();
 
@@ -6531,11 +6457,9 @@ void GLCanvas3D::_on_rotate()
         return;
 
     std::set<std::pair<int, int>> done;  // prevent rotating instances twice
-    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
-    for (unsigned int i : selection)
+    for (const GLVolume* v : m_volumes.volumes)
     {
-        const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
         if (object_idx >= 1000)
             continue;
@@ -6567,18 +6491,16 @@ void GLCanvas3D::_on_scale()
         return;
 
     std::set<std::pair<int, int>> done;  // prevent scaling instances twice
-    const Selection::IndicesList& selection = m_selection.get_volume_idxs();
 
-    for (unsigned int i : selection)
+    for (const GLVolume* v : m_volumes.volumes)
     {
-        const GLVolume* v = m_volumes.volumes[i];
         int object_idx = v->object_idx();
         if (object_idx >= 1000)
             continue;
 
         int instance_idx = v->instance_idx();
 
-        // prevent rotating instances twice
+        // prevent scaling instances twice
         std::pair<int, int> done_id(object_idx, instance_idx);
         if (done.find(done_id) != done.end())
             continue;
@@ -6596,6 +6518,12 @@ void GLCanvas3D::_on_scale()
 
     // schedule_background_process
 }
+
+void GLCanvas3D::_on_flatten()
+{
+    _on_rotate();
+}
+
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 {
@@ -6625,12 +6553,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
             ModelObject* model_object = m_model->objects[obj_idx];
             if (model_object != nullptr)
             {
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 model_object->instances[instance_idx]->set_offset(volume->get_offset());
-#else
-                const Vec3d& offset = volume->get_offset();
-                model_object->instances[instance_idx]->offset = Vec2d(offset(0), offset(1));
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
                 model_object->invalidate_bounding_box();
                 wxGetApp().obj_manipul()->update_position_values();
                 object_moved = true;
@@ -6652,7 +6575,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 {
 #if ENABLE_EXTENDED_SELECTION
-    post_event(ObjectSelectEvent(object_idx, -1));
+    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 #else
     int vol_id = -1;
     int obj_id = -1;

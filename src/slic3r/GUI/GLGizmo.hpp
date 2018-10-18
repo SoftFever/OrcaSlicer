@@ -59,9 +59,6 @@ protected:
 
     int m_group_id;
     EState m_state;
-#if ENABLE_EXTENDED_SELECTION
-    bool m_accept_wipe_tower;
-#endif // ENABLE_EXTENDED_SELECTION
     // textures are assumed to be square and all with the same size in pixels, no internal check is done
     GLTexture m_textures[Num_States];
     int m_hover_id;
@@ -84,8 +81,7 @@ public:
     void set_state(EState state) { m_state = state; on_set_state(); }
 
 #if ENABLE_EXTENDED_SELECTION
-    bool get_accept_wipe_tower() { return m_accept_wipe_tower; }
-    void set_accept_wipe_tower(bool accept) { m_accept_wipe_tower = accept; }
+    bool is_activable(const GLCanvas3D::Selection& selection) const { return on_is_activable(selection); }
 #endif // ENABLE_EXTENDED_SELECTION
 
     unsigned int get_texture_id() const { return m_textures[m_state].get_id(); }
@@ -125,6 +121,9 @@ protected:
     virtual bool on_init() = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return true; }
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_enable_grabber(unsigned int id) {}
     virtual void on_disable_grabber(unsigned int id) {}
 #if ENABLE_EXTENDED_SELECTION
@@ -230,19 +229,8 @@ class GLGizmoRotate3D : public GLGizmoBase
 public:
     explicit GLGizmoRotate3D(GLCanvas3D& parent);
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d get_rotation() const { return Vec3d(m_gizmos[X].get_angle(), m_gizmos[Y].get_angle(), m_gizmos[Z].get_angle()); }
     void set_rotation(const Vec3d& rotation) { m_gizmos[X].set_angle(rotation(0)); m_gizmos[Y].set_angle(rotation(1)); m_gizmos[Z].set_angle(rotation(2)); }
-#else
-    double get_angle_x() const { return m_gizmos[X].get_angle(); }
-    void set_angle_x(double angle) { m_gizmos[X].set_angle(angle); }
-
-    double get_angle_y() const { return m_gizmos[Y].get_angle(); }
-    void set_angle_y(double angle) { m_gizmos[Y].set_angle(angle); }
-
-    double get_angle_z() const { return m_gizmos[Z].get_angle(); }
-    void set_angle_z(double angle) { m_gizmos[Z].set_angle(angle); }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
@@ -260,6 +248,9 @@ protected:
             m_gizmos[i].set_hover_id((m_hover_id == i) ? 0 : -1);
         }
     }
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
+#endif // ENABLE_EXTENDED_SELECTION
     virtual void on_enable_grabber(unsigned int id)
     {
         if ((0 <= id) && (id < 3))
@@ -329,28 +320,18 @@ class GLGizmoScale3D : public GLGizmoBase
 public:
     explicit GLGizmoScale3D(GLCanvas3D& parent);
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     const Vec3d& get_scale() const { return m_scale; }
 #if ENABLE_EXTENDED_SELECTION
     void set_scale(const Vec3d& scale) { m_starting_scale = scale; m_scale = scale; }
 #else
     void set_scale(const Vec3d& scale) { m_starting_scale = scale; }
 #endif // ENABLE_EXTENDED_SELECTION
-#else
-    double get_scale_x() const { return m_scale(0); }
-    void set_scale_x(double scale) { m_starting_scale(0) = scale; }
-
-    double get_scale_y() const { return m_scale(1); }
-    void set_scale_y(double scale) { m_starting_scale(1) = scale; }
-
-    double get_scale_z() const { return m_scale(2); }
-    void set_scale_z(double scale) { m_starting_scale(2) = scale; }
-
-    void set_scale(double scale) { m_starting_scale = scale * Vec3d::Ones(); }
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
+#endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
@@ -376,7 +357,11 @@ private:
     void do_scale_z(const Linef3& mouse_ray);
     void do_scale_uniform(const Linef3& mouse_ray);
 
+#if ENABLE_EXTENDED_SELECTION
+    double calc_ratio(const Linef3& mouse_ray) const;
+#else
     double calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const;
+#endif // ENABLE_EXTENDED_SELECTION
 };
 
 class GLGizmoMove3D : public GLGizmoBase
@@ -419,7 +404,11 @@ protected:
 #endif // ENABLE_EXTENDED_SELECTION
 
 private:
+#if ENABLE_EXTENDED_SELECTION
+    double calc_projection(const Linef3& mouse_ray) const;
+#else
     double calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const;
+#endif // ENABLE_EXTENDED_SELECTION
 };
 
 class GLGizmoFlatten : public GLGizmoBase
@@ -436,10 +425,6 @@ private:
     };
     struct SourceDataSummary {
         std::vector<BoundingBoxf3> bounding_boxes; // bounding boxes of convex hulls of individual volumes
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        float scaling_factor;
-        float rotation;
-#endif // !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
         Vec3d mesh_first_point;
     };
 
@@ -447,16 +432,14 @@ private:
     SourceDataSummary m_source_data;
 
     std::vector<PlaneData> m_planes;
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#if !ENABLE_EXTENDED_SELECTION
     struct InstanceData
     {
         Transform3d matrix;
         InstanceData(const Transform3d& matrix) : matrix(matrix) {}
     };
     std::vector<InstanceData> m_instances;
-#else
-    std::vector<Vec2d> m_instances_positions;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+#endif // !ENABLE_EXTENDED_SELECTION
     Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
@@ -467,14 +450,13 @@ public:
     explicit GLGizmoFlatten(GLCanvas3D& parent);
 
     void set_flattening_data(const ModelObject* model_object);
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d get_flattening_rotation() const;
-#else
-    Vec3d get_flattening_normal() const;
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
 protected:
     virtual bool on_init();
+#if ENABLE_EXTENDED_SELECTION
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return selection.is_single_full_instance(); }
+#endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
