@@ -94,17 +94,13 @@ void ObjectList::create_objects_ctrl()
     // column 0(Icon+Text) of the view control: 
     // And Icon can be consisting of several bitmaps
     AppendColumn(new wxDataViewColumn(_(L("Name")), new PrusaBitmapTextRenderer(),
-        0, 200, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
+        0, 250, wxALIGN_LEFT, wxDATAVIEW_COL_RESIZABLE));
 
     // column 1 of the view control:
-    AppendTextColumn(_(L("Copy")), 1, wxDATAVIEW_CELL_INERT, 45,
-        wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
-
-    // column 2 of the view control:
     AppendColumn(create_objects_list_extruder_column(4));
 
-    // column 3 of the view control:
-    AppendBitmapColumn(" ", 3, wxDATAVIEW_CELL_INERT, 25,
+    // column 2 of the view control:
+    AppendBitmapColumn(" ", 2, wxDATAVIEW_CELL_INERT, 25,
         wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
 }
 
@@ -178,7 +174,7 @@ wxDataViewColumn* ObjectList::create_objects_list_extruder_column(int extruders_
         choices.Add(wxString::Format("%d", i));
     wxDataViewChoiceRenderer *c =
         new wxDataViewChoiceRenderer(choices, wxDATAVIEW_CELL_EDITABLE, wxALIGN_CENTER_HORIZONTAL);
-    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 2, 60, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
+    wxDataViewColumn* column = new wxDataViewColumn(_(L("Extruder")), c, 1, 80, wxALIGN_CENTER_HORIZONTAL, wxDATAVIEW_COL_RESIZABLE);
     return column;
 }
 
@@ -188,17 +184,17 @@ void ObjectList::update_objects_list_extruder_column(int extruders_count)
     if (wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
         extruders_count = 1;
 
-    // delete old 3rd column
-    DeleteColumn(GetColumn(2));
+    // delete old 2nd column
+    DeleteColumn(GetColumn(1));
     // insert new created 3rd column
-    InsertColumn(2, create_objects_list_extruder_column(extruders_count));
+    InsertColumn(1, create_objects_list_extruder_column(extruders_count));
     // set show/hide for this column 
     set_extruder_column_hidden(extruders_count <= 1);
 }
 
 void ObjectList::set_extruder_column_hidden(bool hide)
 {
-    GetColumn(2)->SetHidden(hide);
+    GetColumn(1)->SetHidden(hide);
 }
 
 void ObjectList::update_extruder_in_config(const wxString& selection)
@@ -313,10 +309,10 @@ void ObjectList::key_event(wxKeyEvent& event)
 
 void ObjectList::item_value_change(wxDataViewEvent& event)
 {
-    if (event.GetColumn() == 2)
+    if (event.GetColumn() == 1)
     {
         wxVariant variant;
-        m_objects_model->GetValue(variant, event.GetItem(), 2);
+        m_objects_model->GetValue(variant, event.GetItem(), 1);
 #ifdef __WXOSX__
         m_selected_extruder = variant.GetString();
 #else // --> for Linux
@@ -1076,7 +1072,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 {
     auto model_object = (*m_objects)[obj_idx];
     wxString item_name = model_object->name;
-    auto item = m_objects_model->Add(item_name, model_object->instances.size());
+    auto item = m_objects_model->Add(item_name);
 #if !ENABLE_EXTENDED_SELECTION
     /*Select*/select_item(item);
 #endif // !ENABLE_EXTENDED_SELECTION
@@ -1141,12 +1137,6 @@ void ObjectList::increase_object_instances(const size_t obj_idx, const size_t nu
 void ObjectList::decrease_object_instances(const size_t obj_idx, const size_t num)
 {
     select_item(m_objects_model->DeleteLastInstance(m_objects_model->GetItemById(obj_idx), num));
-}
-
-void ObjectList::set_object_count(int idx, int count)
-{
-    m_objects_model->SetValue(wxString::Format("%d", count), idx, 1);
-    Refresh();
 }
 
 void ObjectList::unselect_objects()

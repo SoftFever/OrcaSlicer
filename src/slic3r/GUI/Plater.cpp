@@ -1742,11 +1742,10 @@ void Plater::increase(size_t num)
     float offset = 10.0;
     for (size_t i = 0; i < num; i++, offset += 10.0) {
         Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
-        auto *new_instance = model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
+        model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
         p->print.get_object(*obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
     }
 
-    sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
     sidebar().obj_list()->increase_object_instances(*obj_idx, num);
 
     if (p->get_config("autocenter") == "1") {
@@ -1771,7 +1770,6 @@ void Plater::decrease(size_t num)
             model_object->delete_last_instance();
             p->print.get_object(*obj_idx)->delete_last_copy();
         }
-        sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
         sidebar().obj_list()->decrease_object_instances(*obj_idx, num);
     } else {
         remove(*obj_idx);

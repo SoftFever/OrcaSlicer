@@ -166,7 +166,7 @@ public:
 
     void SetText(const wxString &text)      { m_text = text; }
     wxString GetText() const                { return m_text; }
-    void SetBitmap(const wxIcon &icon)      { m_bmp = icon; }
+    void SetBitmap(const wxBitmap &bmp)      { m_bmp = bmp; }
     const wxBitmap &GetBitmap() const       { return m_bmp; }
 
     bool IsSameAs(const PrusaDataViewBitmapText& other) const {
@@ -214,10 +214,9 @@ class PrusaObjectDataViewModelNode
     size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
 public:
-	PrusaObjectDataViewModelNode(const wxString &name, const int instances_count=1) {
+	PrusaObjectDataViewModelNode(const wxString &name) {
 		m_parent	= NULL;
 		m_name		= name;
-		m_copy		= wxString::Format("%d", instances_count);
 		m_type		= itObject;
 #ifdef __WXGTK__
         // it's necessary on GTK because of control have to know if this item will be container
@@ -235,7 +234,6 @@ public:
                                     const int idx = -1 ) {
 		m_parent	= parent;
 		m_name		= sub_obj_name;
-		m_copy		= wxEmptyString;
 		m_bmp		= bmp;
 		m_type		= itVolume;
         m_idx       = idx;
@@ -251,7 +249,6 @@ public:
 
     PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent, const ItemType type) :
                                     m_parent(parent),
-                                    m_copy(wxEmptyString),
                                     m_type(type),
                                     m_extruder(wxEmptyString)
 	{
@@ -280,7 +277,6 @@ public:
 	
 	wxString				m_name;
     wxBitmap&               m_bmp = m_empty_bmp;
-	wxString				m_copy;
     ItemType				m_type;
     int                     m_idx = -1;
 	bool					m_container = false;
@@ -346,12 +342,9 @@ public:
 			m_name = data.GetText();
 			return true;}
 		case 1:
-			m_copy = variant.GetString();
-			return true;
-		case 2:
 			m_extruder = variant.GetString();
 			return true;
-		case 3:
+		case 2:
 			m_action_icon << variant;
 			return true;
 		default:
@@ -428,7 +421,6 @@ public:
     ~PrusaObjectDataViewModel();
 
 	wxDataViewItem Add(const wxString &name);
-	wxDataViewItem Add(const wxString &name, const int instances_count);
 	wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const wxBitmap& icon,
@@ -452,7 +444,6 @@ public:
 	// helper method for wxLog
 
 	wxString GetName(const wxDataViewItem &item) const;
-	wxString GetCopy(const wxDataViewItem &item) const;
     wxBitmap& GetBitmap(const wxDataViewItem &item) const;
 
 	// helper methods to change the model

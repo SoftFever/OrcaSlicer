@@ -418,17 +418,6 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name)
 	return child;
 }
 
-wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name, const int instances_count/*, int scale*/)
-{
-	auto root = new PrusaObjectDataViewModelNode(name, instances_count);
-	m_objects.push_back(root);
-	// notify control
-	wxDataViewItem child((void*)root);
-	wxDataViewItem parent((void*)NULL);
-	ItemAdded(parent, child);
-	return child;
-}
-
 wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &parent_item,
 													const wxString &name,
                                                     const wxBitmap& icon,
@@ -442,8 +431,8 @@ wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &pa
 
     if (create_frst_child && root->m_volumes_cnt == 0)
 	{
-		const auto icon_solid_mesh = wxIcon(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);
-		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, icon_solid_mesh, extruder_str, 0);
+		const auto bmp_solid_mesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);
+		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, bmp_solid_mesh, extruder_str, 0);
 		root->Append(node);
 		// notify control
 		const wxDataViewItem child((void*)node);
@@ -795,21 +784,6 @@ wxString PrusaObjectDataViewModel::GetName(const wxDataViewItem &item) const
 	return node->m_name;
 }
 
-wxString PrusaObjectDataViewModel::GetCopy(const wxDataViewItem &item) const
-{
-	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-	if (!node)      // happens if item.IsOk()==false
-		return wxEmptyString;
-
-	return node->m_copy;
-}
-
-// wxIcon& PrusaObjectDataViewModel::GetIcon(const wxDataViewItem &item) const
-// {
-//     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-//     return node->m_icon;
-// }
-
 wxBitmap& PrusaObjectDataViewModel::GetBitmap(const wxDataViewItem &item) const
 {
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
@@ -823,16 +797,13 @@ void PrusaObjectDataViewModel::GetValue(wxVariant &variant, const wxDataViewItem
 	PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
 	switch (col)
 	{
-	case 0:{
+	case 0:
         variant << PrusaDataViewBitmapText(node->m_name, node->m_bmp);
-		break;}
-	case 1:
-		variant = node->m_copy;
 		break;
-	case 2:
+	case 1:
 		variant = node->m_extruder;
 		break;
-	case 3:
+	case 2:
 		variant << node->m_action_icon;
 		break;
 	default:

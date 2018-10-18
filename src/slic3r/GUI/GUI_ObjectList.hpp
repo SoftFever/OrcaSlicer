@@ -116,8 +116,6 @@ public:
     void increase_object_instances(const size_t obj_idx, const size_t num);
     // Decrease instances count
     void decrease_object_instances(const size_t obj_idx, const size_t num);
-    // Set count of object on c++ side
-    void set_object_count(int idx, int count);
 
     // #ys_FIXME_to_delete
     // Unselect all objects in the list on c++ side
