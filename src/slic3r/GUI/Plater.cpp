@@ -781,13 +781,19 @@ struct Plater::priv
 #endif // ENABLE_EXTENDED_SELECTION
     void selection_changed();
     void object_list_changed();
+#if !ENABLE_EXTENDED_SELECTION
     void select_view();
+#endif // !ENABLE_EXTENDED_SELECTION
 
     void remove(size_t obj_idx);
     void reset();
+#if !ENABLE_EXTENDED_SELECTION
     void rotate();
-    void mirror(const Axis &axis);
+#endif // !ENABLE_EXTENDED_SELECTION
+    void mirror(Axis axis);
+#if !ENABLE_EXTENDED_SELECTION
     void scale();
+#endif // !ENABLE_EXTENDED_SELECTION
     void arrange();
     void split_object();
     void schedule_background_process();
@@ -842,6 +848,9 @@ private:
     bool can_split_object() const;
     bool can_cut_object() const;
     bool layers_height_allowed() const;
+    bool can_delete_all() const;
+    bool can_arrange() const;
+    bool can_mirror() const;
 #endif // ENABLE_EXTENDED_SELECTION
 };
 
@@ -931,9 +940,11 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLCANVAS_MODEL_UPDATE, &priv::on_model_update, this);
     canvas3D->Bind(EVT_GLCANVAS_REMOVE_OBJECT, [q](SimpleEvent&) { q->remove_selected(); });
     canvas3D->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
+#if !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLCANVAS_ROTATE_OBJECT, [this](Event<int> &evt) { /*TODO: call rotate */ });
     canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, [this](SimpleEvent&) { scale(); });
-    canvas3D->Bind(EVT_GLCANVAS_INCREASE_OBJECTS, [q](Event<int> &evt) { evt.data == 1 ? q->increase() : q->decrease(); });
+#endif // !ENABLE_EXTENDED_SELECTION
+    canvas3D->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
     canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
     canvas3D->Bind(EVT_GLCANVAS_WIPETOWER_MOVED, &priv::on_wipetower_moved, this);
     canvas3D->Bind(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, &priv::on_enable_action_buttons, this);
@@ -943,8 +954,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_DELETE, [q](SimpleEvent&) { q->remove_selected(); } );
     canvas3D->Bind(EVT_GLTOOLBAR_DELETE_ALL, [this](SimpleEvent&) { reset(); });
     canvas3D->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease(); });
+    canvas3D->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
+    canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
     canvas3D->Bind(EVT_GLTOOLBAR_SPLIT, &priv::on_action_split, this);
     canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
 #if !ENABLE_EXTENDED_SELECTION
@@ -1427,25 +1438,31 @@ void Plater::priv::object_list_changed()
 {
     // Enable/disable buttons depending on whether there are any objects on the platter.
 #if ENABLE_EXTENDED_SELECTION
-    const bool have_objects = !model.objects.empty();
+    _3DScene::enable_toolbar_item(canvas3D, "deleteall", can_delete_all());
+    _3DScene::enable_toolbar_item(canvas3D, "arrange", can_arrange());
 #else
     const bool have_objects = !objects.empty();
-#endif // ENABLE_EXTENDED_SELECTION
-
     _3DScene::enable_toolbar_item(canvas3D, "deleteall", have_objects);
     _3DScene::enable_toolbar_item(canvas3D, "arrange", have_objects);
+#endif // ENABLE_EXTENDED_SELECTION
 
     const bool export_in_progress = !(export_gcode_output_file.empty() && send_gcode_file.empty());
     // XXX: is this right?
     const bool model_fits = _3DScene::check_volumes_outside_state(canvas3D, config) == ModelInstance::PVS_Inside;
 
+#if ENABLE_EXTENDED_SELECTION
+    sidebar->enable_buttons(!model.objects.empty() && !export_in_progress && model_fits);
+#else
     sidebar->enable_buttons(have_objects && !export_in_progress && model_fits);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void Plater::priv::select_view()
 {
     // TODO
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::remove(size_t obj_idx)
 {
@@ -1493,12 +1510,14 @@ void Plater::priv::reset()
     update();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void Plater::priv::rotate()
 {
     // TODO
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
-void Plater::priv::mirror(const Axis &axis)
+void Plater::priv::mirror(Axis axis)
 {
 #if ENABLE_EXTENDED_SELECTION
     int obj_idx = get_selected_object_idx();
@@ -1534,10 +1553,12 @@ void Plater::priv::mirror(const Axis &axis)
     update();
 }
 
+#if !ENABLE_EXTENDED_SELECTION
 void Plater::priv::scale()
 {
     // TODO
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 void Plater::priv::arrange()
 {
@@ -1825,9 +1846,9 @@ bool Plater::priv::init_object_menu()
     wxMenuItem* item_delete = append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
         [this](wxCommandEvent&){ q->remove_selected(); }, "brick_delete.png");
     wxMenuItem* item_increase = append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
-        [this](wxCommandEvent&){ q->increase(); }, "add.png");
+        [this](wxCommandEvent&){ q->increase_instances(); }, "add.png");
     wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
-        [this](wxCommandEvent&){ q->decrease(); }, "delete.png");
+        [this](wxCommandEvent&){ q->decrease_instances(); }, "delete.png");
 
     object_menu.AppendSeparator();
     
@@ -1848,6 +1869,7 @@ bool Plater::priv::init_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
@@ -1891,6 +1913,21 @@ bool Plater::priv::can_cut_object() const
 bool Plater::priv::layers_height_allowed() const
 {
     return config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
+}
+
+bool Plater::priv::can_delete_all() const
+{
+    return !model.objects.empty();
+}
+
+bool Plater::priv::can_arrange() const
+{
+    return !model.objects.empty();
+}
+
+bool Plater::priv::can_mirror() const
+{
+    return get_selection().is_from_single_instance();
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -1945,7 +1982,7 @@ void Plater::remove_selected()
 #endif // ENABLE_EXTENDED_SELECTION
 }
 
-void Plater::increase(size_t num)
+void Plater::increase_instances(size_t num)
 {
 #if ENABLE_EXTENDED_SELECTION
     int obj_idx = p->get_selected_object_idx();
@@ -1992,7 +2029,7 @@ void Plater::increase(size_t num)
     // $self->schedule_background_process;
 }
 
-void Plater::decrease(size_t num)
+void Plater::decrease_instances(size_t num)
 {
 #if ENABLE_EXTENDED_SELECTION
     int obj_idx = p->get_selected_object_idx();
@@ -2051,11 +2088,10 @@ void Plater::set_number_of_copies(size_t num)
 #endif // ENABLE_EXTENDED_SELECTION
 
     int diff = (int)num - (int)model_object->instances.size();
-    if (diff > 0) {
-        increase(diff);
-    } else if (diff < 0) {
-        decrease(-diff);
-    }
+    if (diff > 0)
+        increase_instances(diff);
+    else if (diff < 0)
+        decrease_instances(-diff);
 }
 
 fs::path Plater::export_gcode(const fs::path &output_path)

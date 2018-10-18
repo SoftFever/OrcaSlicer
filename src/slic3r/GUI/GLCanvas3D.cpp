@@ -1409,14 +1409,13 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
     if (!m_valid)
         return;
 
-    Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
-
     for (unsigned int i : m_list)
     {
         if (is_single_full_instance())
             (*m_volumes)[i]->set_rotation(rotation);
         else
         {
+            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), rotation);
             // extracts rotations from the composed transformation
             Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_rotation_matrix());
 
@@ -1436,15 +1435,13 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
     if (!m_valid)
         return;
 
-    Transform3d m = Transform3d::Identity();
-    m.scale(scale);
-
     for (unsigned int i : m_list)
     {
         if (is_single_full_instance())
             (*m_volumes)[i]->set_scaling_factor(scale);
         else
         {
+            Transform3d m = Geometry::assemble_transform(Vec3d::Zero(), Vec3d::Zero(), scale);
             Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_scale_matrix()).matrix().block(0, 0, 3, 3);
             // extracts scaling factors from the composed transformation
             Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
@@ -2674,9 +2671,11 @@ wxDEFINE_EVENT(EVT_GLCANVAS_RIGHT_CLICK, Vec2dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_MODEL_UPDATE, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_REMOVE_OBJECT, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ARRANGE, SimpleEvent);
+#if !ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_ROTATE_OBJECT, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_SCALE_UNIFORMLY, SimpleEvent);
-wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_OBJECTS, Event<int>);
+#endif // !ENABLE_EXTENDED_SELECTION
+wxDEFINE_EVENT(EVT_GLCANVAS_INCREASE_INSTANCES, Event<int>);
 wxDEFINE_EVENT(EVT_GLCANVAS_INSTANCE_MOVED, SimpleEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_WIPETOWER_MOVED, Vec3dEvent);
 wxDEFINE_EVENT(EVT_GLCANVAS_ENABLE_ACTION_BUTTONS, Event<bool>);
@@ -3685,24 +3684,26 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 switch (keyCode)
                 {
                 // key +
-                case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_OBJECTS, +1)); break; }
+                case 43: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, +1)); break; }
                 // key -
-                case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_OBJECTS, -1)); break; }
+                case 45: { post_event(Event<int>(EVT_GLCANVAS_INCREASE_INSTANCES, -1)); break; }
                 // key A/a
                 case 65:
                 case 97: { post_event(SimpleEvent(EVT_GLCANVAS_ARRANGE)); break; }
                 // key B/b
                 case 66:
                 case 98: { zoom_to_bed(); break; }
+#if !ENABLE_EXTENDED_SELECTION
                 // key L/l
                 case 76:
                 case 108: { post_event(Event<int>(EVT_GLCANVAS_ROTATE_OBJECT, -1)); break; }
-                // key R/r
+                          // key R/r
                 case 82:
                 case 114: { post_event(Event<int>(EVT_GLCANVAS_ROTATE_OBJECT, +1)); break; }
-                // key S/s
+                          // key S/s
                 case 83:
                 case 115: { post_event(SimpleEvent(EVT_GLCANVAS_SCALE_UNIFORMLY)); break; }
+#endif // !ENABLE_EXTENDED_SELECTION
                 // key Z/z
                 case 90:
                 case 122: { zoom_to_volumes(); break; }
