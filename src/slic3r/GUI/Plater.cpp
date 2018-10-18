@@ -834,6 +834,15 @@ struct Plater::priv
 
 private:
     bool init_object_menu();
+
+#if ENABLE_EXTENDED_SELECTION
+    bool can_delete_object() const;
+    bool can_increase_instances() const;
+    bool can_decrease_instances() const;
+    bool can_split_object() const;
+    bool can_cut_object() const;
+    bool layers_height_allowed() const;
+#endif // ENABLE_EXTENDED_SELECTION
 };
 
 const std::regex Plater::priv::pattern_bundle("[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)$", std::regex::icase);
@@ -1322,31 +1331,30 @@ optional<size_t> Plater::priv::selected_object() const
 
 void Plater::priv::selection_changed()
 {
+#if !ENABLE_EXTENDED_SELECTION
+    const auto obj_idx = selected_object();
+    const bool have_sel = !!obj_idx;
+#endif // !ENABLE_EXTENDED_SELECTION
+
+#if ENABLE_EXTENDED_SELECTION
+    _3DScene::enable_toolbar_item(canvas3D, "delete", can_delete_object());
+    _3DScene::enable_toolbar_item(canvas3D, "more", can_increase_instances());
+    _3DScene::enable_toolbar_item(canvas3D, "fewer", can_decrease_instances());
+    _3DScene::enable_toolbar_item(canvas3D, "split", can_split_object());
+    _3DScene::enable_toolbar_item(canvas3D, "cut", can_cut_object());
+    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
+#else
+    _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed);
+#endif // ENABLE_EXTENDED_SELECTION
+
 #if ENABLE_EXTENDED_SELECTION
     int obj_idx = get_selected_object_idx();
     bool have_sel = (obj_idx != -1);
 #else
-    const auto obj_idx = selected_object();
-    const bool have_sel = !!obj_idx;
-#endif // ENABLE_EXTENDED_SELECTION
-    const bool layers_height_allowed = config->opt<ConfigOptionBool>("variable_layer_height")->value;
-
-    wxWindowUpdateLocker freeze_guard(sidebar);
-
-    _3DScene::enable_toolbar_item(canvas3D, "delete", have_sel);
-    _3DScene::enable_toolbar_item(canvas3D, "more", have_sel);
-#if ENABLE_EXTENDED_SELECTION
-    _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel && (model.objects[obj_idx]->instances.size() > 1));
-#else
-    _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel);
-#endif // ENABLE_EXTENDED_SELECTION
-    _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
-    _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
-    _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
-
-    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed);
-
-#if !ENABLE_EXTENDED_SELECTION
     bool can_select_by_parts = false;
 
     if (have_sel) {
@@ -1364,8 +1372,9 @@ void Plater::priv::selection_changed()
         _3DScene::enable_toolbar_item(canvas3D, "selectbyparts", false);
         _3DScene::set_select_by(canvas3D, "object");
     }
-#endif // !ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_EXTENDED_SELECTION
 
+    wxWindowUpdateLocker freeze_guard(sidebar);
     if (have_sel) {
 #if ENABLE_EXTENDED_SELECTION
         const ModelObject* model_object = model.objects[obj_idx];
@@ -1813,29 +1822,62 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
 
 bool Plater::priv::init_object_menu()
 {
-    append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
+    wxMenuItem* item_delete = append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
         [this](wxCommandEvent&){ q->remove_selected(); }, "brick_delete.png");
-    append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
+    wxMenuItem* item_increase = append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
         [this](wxCommandEvent&){ q->increase(); }, "add.png");
     wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
         [this](wxCommandEvent&){ q->decrease(); }, "delete.png");
 
+#if ENABLE_EXTENDED_SELECTION
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
-        q->Bind(wxEVT_UPDATE_UI,
-            [this](wxUpdateUIEvent& evt)
-            {
-#if ENABLE_EXTENDED_SELECTION
-                int obj_idx = get_selected_object_idx();
-                evt.Enable((obj_idx != -1) && (model.objects[obj_idx]->instances.size() > 1));
-#endif // ENABLE_EXTENDED_SELECTION
-            },
-            item_decrease->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
     }
+#endif // ENABLE_EXTENDED_SELECTION
 
     return true;
 }
+
+#if ENABLE_EXTENDED_SELECTION
+bool Plater::priv::can_delete_object() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+}
+
+bool Plater::priv::can_increase_instances() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+}
+
+bool Plater::priv::can_decrease_instances() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
+}
+
+bool Plater::priv::can_split_object() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+}
+
+bool Plater::priv::can_cut_object() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+}
+
+bool Plater::priv::layers_height_allowed() const
+{
+    return config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
+}
+#endif // ENABLE_EXTENDED_SELECTION
 
 // Plater / Public
 
