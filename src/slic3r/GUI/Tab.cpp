@@ -1845,7 +1845,7 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
     if (!wxGetApp().mainframe)
         return;
 	on_value_change("extruders_count", extruders_count);
-    wxGetApp().mainframe->m_plater->sidebar().update_objects_list_extruder_column(extruders_count);
+    wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
 }
 
 void TabPrinter::append_option_line(ConfigOptionsGroupShp optgroup, const std::string opt_key)

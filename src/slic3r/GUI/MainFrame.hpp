@@ -30,11 +30,11 @@ class Tab;
 
 enum QuickSlice
 {
-    qsUndef,
-    qsReslice,
-    qsSaveAs,
-    qsExportSVG,
-    qsExportPNG
+    qsUndef = 0,
+    qsReslice = 1,
+    qsSaveAs = 2,
+    qsExportSVG = 4,
+    qsExportPNG = 8
 };
 
 struct PresetTab {

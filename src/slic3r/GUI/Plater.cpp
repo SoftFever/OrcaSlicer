@@ -1952,7 +1952,7 @@ void Plater::increase(size_t num)
     float offset = 10.0;
     for (size_t i = 0; i < num; i++, offset += 10.0) {
         Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
-        auto *new_instance = model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
+        model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
 #if ENABLE_EXTENDED_SELECTION
         p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
 #else
@@ -1961,9 +1961,9 @@ void Plater::increase(size_t num)
     }
 
 #if ENABLE_EXTENDED_SELECTION
-    sidebar().obj_list()->set_object_count(obj_idx, model_object->instances.size());
+    sidebar().obj_list()->increase_object_instances(obj_idx, num);
 #else
-    sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+    sidebar().obj_list()->increase_object_instances(*obj_idx, num);
 #endif // ENABLE_EXTENDED_SELECTION
 
     if (p->get_config("autocenter") == "1") {
@@ -2001,9 +2001,9 @@ void Plater::decrease(size_t num)
 #endif // ENABLE_EXTENDED_SELECTION
         }
 #if ENABLE_EXTENDED_SELECTION
-        sidebar().obj_list()->set_object_count(obj_idx, model_object->instances.size());
+        sidebar().obj_list()->decrease_object_instances(obj_idx, num);
 #else
-        sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+        sidebar().obj_list()->decrease_object_instances(*obj_idx, num);
 #endif // ENABLE_EXTENDED_SELECTION
     }
     else {
@@ -2285,6 +2285,7 @@ void Plater::changed_object_settings(int obj_idx)
         _3DScene::set_objects_selections(p->canvas3D, selections);
 #endif // !ENABLE_EXTENDED_SELECTION
         _3DScene::reload_scene(p->canvas3D, false);
+        _3DScene::zoom_to_volumes(p->canvas3D);
     }
     else {
 //         schedule_background_process();
