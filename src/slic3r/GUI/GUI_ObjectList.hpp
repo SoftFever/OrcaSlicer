@@ -112,6 +112,10 @@ public:
     void delete_volume_from_list(const size_t obj_idx, const size_t vol_idx);
     // Delete all objects from the list
     void delete_all_objects_from_list();
+    // Increase instances count
+    void increase_object_instances(const size_t obj_idx, const size_t num);
+    // Decrease instances count
+    void decrease_object_instances(const size_t obj_idx, const size_t num);
     // Set count of object on c++ side
     void set_object_count(int idx, int count);
 

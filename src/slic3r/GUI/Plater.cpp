@@ -1747,6 +1747,7 @@ void Plater::increase(size_t num)
     }
 
     sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+    sidebar().obj_list()->increase_object_instances(*obj_idx, num);
 
     if (p->get_config("autocenter") == "1") {
         p->arrange();
@@ -1771,6 +1772,7 @@ void Plater::decrease(size_t num)
             p->print.get_object(*obj_idx)->delete_last_copy();
         }
         sidebar().obj_list()->set_object_count(*obj_idx, model_object->instances.size());
+        sidebar().obj_list()->decrease_object_instances(*obj_idx, num);
     } else {
         remove(*obj_idx);
     }

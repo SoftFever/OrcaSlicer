@@ -195,12 +195,12 @@ DECLARE_VARIANT_OBJECT(PrusaDataViewBitmapText)
 // ----------------------------------------------------------------------------
 
 enum ItemType{
-    itUndef,
-    itObject,
-    itVolume,
-    itInstanceRoot,
-    itInstance,
-    itSettings
+    itUndef = 0,
+    itObject = 1,
+    itVolume = 2,
+    itInstanceRoot = 4,
+    itInstance = 8,
+    itSettings = 16
 };
 
 class PrusaObjectDataViewModelNode;
@@ -211,6 +211,7 @@ class PrusaObjectDataViewModelNode
 	PrusaObjectDataViewModelNode*	m_parent;
 	MyObjectTreeModelNodePtrArray   m_children;
     wxBitmap                        m_empty_bmp;
+    size_t                          m_volumes_cnt = 0;
     std::vector< std::string >      m_opt_categories;
 public:
 	PrusaObjectDataViewModelNode(const wxString &name, const int instances_count=1) {
@@ -248,7 +249,7 @@ public:
 		set_part_action_icon();
     }
 
-    PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent, const ItemType type = itSettings) :
+    PrusaObjectDataViewModelNode(   PrusaObjectDataViewModelNode* parent, const ItemType type) :
                                     m_parent(parent),
                                     m_copy(wxEmptyString),
                                     m_type(type),
@@ -261,8 +262,8 @@ public:
             m_name = "Instances";            
         }
         else if (type == itInstance) {
-            m_name = wxString::Format("Instances_%d", parent->GetChildCount() + 1);
             m_idx = parent->GetChildCount();
+            m_name = wxString::Format("Instance_%d", m_idx+1);
         }
 	}
 
@@ -370,7 +371,11 @@ public:
 
 	void SetIdx(const int& idx) {
 		m_idx = idx;
+        // update name if this node is instance
+        if (m_type == itInstance)
+            m_name = wxString::Format("Instance_%d", m_idx + 1);
 	}
+
 	int GetIdx() const {
 		return m_idx;
 	}
@@ -407,6 +412,8 @@ public:
 	void set_object_action_icon();
 	void set_part_action_icon();
     bool update_settings_digest(const std::vector<std::string>& categories);
+private:
+    friend class PrusaObjectDataViewModel;
 };
 
 // ----------------------------------------------------------------------------
@@ -422,19 +429,23 @@ public:
 
 	wxDataViewItem Add(const wxString &name);
 	wxDataViewItem Add(const wxString &name, const int instances_count);
-	wxDataViewItem AddChild(const wxDataViewItem &parent_item, 
+	wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
                             const wxBitmap& icon,
                             const int extruder = 0,
                             const bool create_frst_child = true);
 	wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
+    wxDataViewItem AddInstanceChild(const wxDataViewItem &parent_item, size_t num);
 	wxDataViewItem Delete(const wxDataViewItem &item);
+	wxDataViewItem DeleteLastInstance(const wxDataViewItem &parent_item, size_t num);
 	void DeleteAll();
     void DeleteChildren(wxDataViewItem& parent);
 	wxDataViewItem GetItemById(int obj_idx);
 	wxDataViewItem GetItemByVolumeId(int obj_idx, int volume_idx);
 	int GetIdByItem(const wxDataViewItem& item);
-	int GetVolumeIdByItem(const wxDataViewItem& item);
+    int GetIdByItemAndType(const wxDataViewItem& item, const ItemType type) const;
+    int GetVolumeIdByItem(const wxDataViewItem& item) const;
+    int GetInstanceIdByItem(const wxDataViewItem& item) const;
     void GetItemInfo(const wxDataViewItem& item, ItemType& type, int& obj_idx, int& idx);
     bool IsEmpty() { return m_objects.empty(); }
 
@@ -466,6 +477,8 @@ public:
 	virtual bool IsEnabled(const wxDataViewItem &item, unsigned int col) const override;
 
 	virtual wxDataViewItem GetParent(const wxDataViewItem &item) const override;
+    // get object item
+    wxDataViewItem GetTopParent(const wxDataViewItem &item) const;
 	virtual bool IsContainer(const wxDataViewItem &item) const override;
 	virtual unsigned int GetChildren(const wxDataViewItem &parent,
 		wxDataViewItemArray &array) const override;

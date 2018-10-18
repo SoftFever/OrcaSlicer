@@ -283,7 +283,7 @@ void ObjectList::show_context_menu()
     const auto item = GetSelection();
     if (item)
     {
-        if (m_objects_model->IsSettingsItem(item))
+        if (!(m_objects_model->GetItemType(item) & (itObject | itVolume)))
             return;
         const auto menu = m_objects_model->GetParent(item) == wxDataViewItem(0) ?
             create_add_part_popupmenu() :
@@ -672,7 +672,7 @@ void ObjectList::load_subobject(bool is_modifier /*= false*/, bool is_lambda/* =
     parts_changed(obj_idx);
 
     for (int i = 0; i < part_names.size(); ++i) {
-        const wxDataViewItem sel_item = m_objects_model->AddChild(item, part_names.Item(i),
+        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i),
             is_modifier ? m_bmp_modifiermesh : m_bmp_solidmesh);
 
         if (i == part_names.size() - 1)
@@ -822,7 +822,7 @@ void ObjectList::load_lambda(const std::string& type_name)
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-    select_item(m_objects_model->AddChild(GetSelection(),
+    select_item(m_objects_model->AddVolumeChild(GetSelection(),
         name, m_bmp_modifiermesh));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
@@ -896,14 +896,19 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
             if (vol->is_model_part())
                 ++solid_cnt;
         if (volume->is_model_part() && solid_cnt == 1) {
-            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from this object.")));
+            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last solid part from object.")));
             return false;
         }
 
         (*m_objects)[obj_idx]->delete_volume(idx);
     }
-    else if (type == itInstance)
+    else if (type == itInstance) {
+        if ((*m_objects)[obj_idx]->instances.size() == 1) {
+            Slic3r::GUI::show_error(nullptr, _(L("You can't delete the last intance from object.")));
+            return false;
+        }
         (*m_objects)[obj_idx]->delete_instance(idx);
+    }
     else
         return false;
 
@@ -934,7 +939,7 @@ void ObjectList::split(const bool split_part)
         m_objects_model->DeleteChildren(parent);
 
         for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(parent, model_object->volumes[id]->name,
+            m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
             model_object->volumes[id]->is_modifier() ? m_bmp_modifiermesh : m_bmp_solidmesh,
             model_object->volumes[id]->config.has("extruder") ?
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
@@ -944,7 +949,7 @@ void ObjectList::split(const bool split_part)
     }
     else {
         for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(item, model_object->volumes[id]->name,
+            m_objects_model->AddVolumeChild(item, model_object->volumes[id]->name,
             m_bmp_solidmesh,
             model_object->volumes[id]->config.has("extruder") ?
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
@@ -1034,7 +1039,7 @@ void ObjectList::part_selection_changed()
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                 }
             }
-            else {
+            else if (m_objects_model->GetItemType(item) == itVolume){
                 og_name = _(L("Part manipulation"));
                 is_part = true;
                 const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -1088,7 +1093,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
 
     if (model_object->volumes.size() > 1) {
         for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddChild(item,
+            m_objects_model->AddVolumeChild(item,
             model_object->volumes[id]->name,
             m_bmp_solidmesh,
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
@@ -1126,6 +1131,16 @@ void ObjectList::delete_all_objects_from_list()
 {
     m_objects_model->DeleteAll();
     part_selection_changed();
+}
+
+void ObjectList::increase_object_instances(const size_t obj_idx, const size_t num)
+{
+    select_item(m_objects_model->AddInstanceChild(m_objects_model->GetItemById(obj_idx), num));
+}
+
+void ObjectList::decrease_object_instances(const size_t obj_idx, const size_t num)
+{
+    select_item(m_objects_model->DeleteLastInstance(m_objects_model->GetItemById(obj_idx), num));
 }
 
 void ObjectList::set_object_count(int idx, int count)
@@ -1231,15 +1246,21 @@ void ObjectList::update_selections_on_canvas()
             return;
         }
 
-        auto parent = m_objects_model->GetParent(item);
-        const int obj_idx = m_objects_model->GetIdByItem(parent);
-        const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
-        selection.add_volume(obj_idx, vol_idx, as_single_selection);        
+        if (m_objects_model->GetItemType(item) == itVolume) {
+            const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetParent(item));
+            const int vol_idx = m_objects_model->GetVolumeIdByItem(item);
+            selection.add_volume(obj_idx, vol_idx, as_single_selection);
+        }
+        else if (m_objects_model->GetItemType(item) == itInstance) {
+            const int obj_idx = m_objects_model->GetIdByItem(m_objects_model->GetTopParent(item));
+            const int inst_idx = m_objects_model->GetInstanceIdByItem(item);
+            selection.add_instance(obj_idx, inst_idx, as_single_selection);
+        }
     };
 
     if (sel_cnt == 1) {
         wxDataViewItem item = GetSelection();
-        if (m_objects_model->IsSettingsItem(item))
+        if (m_objects_model->GetItemType(item) & (itSettings|itInstanceRoot))
             add_to_selection(m_objects_model->GetParent(item), selection, true);
         else
             add_to_selection(item, selection, true);
