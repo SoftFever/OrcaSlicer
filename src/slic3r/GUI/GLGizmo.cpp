@@ -1474,6 +1474,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_CULL_FACE);
 
     for (int i=0; i<(int)m_planes.size(); ++i) {
         if (i == m_hover_id)
@@ -1512,6 +1513,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
     }
 
+    ::glEnable(GL_CULL_FACE);
     ::glDisable(GL_BLEND);
 }
 
@@ -1522,6 +1524,7 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
 {
     ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_CULL_FACE);
 
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
@@ -1552,6 +1555,8 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
         }
 #endif // ENABLE_EXTENDED_SELECTION
     }
+
+    ::glEnable(GL_CULL_FACE);
 }
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)

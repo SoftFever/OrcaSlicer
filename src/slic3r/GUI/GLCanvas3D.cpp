@@ -3941,9 +3941,9 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         }
 #endif // ENABLE_EXTENDED_SELECTION
 #if ENABLE_EXTENDED_SELECTION
-        else if (!m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
+        else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
 #else
-        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
+        else if (evt.LeftDown() && (selected_object_idx != -1) && m_gizmos.grabber_contains_mouse())
 #endif // ENABLE_EXTENDED_SELECTION
         {
             update_gizmos_data();
