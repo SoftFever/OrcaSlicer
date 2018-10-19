@@ -24,7 +24,7 @@ CheckboxFileDialog::ExtraPanel::ExtraPanel(wxWindow *parent)
     // Additionally there's no way to pass any extra data to the create function (no closure),
     // which is why we have to this stuff here. Grrr!
     auto *dlg = dynamic_cast<CheckboxFileDialog*>(parent);
-    const wxString checkbox_label(dlg != nullptr ? dlg->checkbox_label : wxString());
+    const wxString checkbox_label(dlg != nullptr ? dlg->checkbox_label : wxString("String long enough to contain dlg->checkbox_label"));
 
     auto* sizer = new wxBoxSizer(wxHORIZONTAL);
     cbox = new wxCheckBox(this, wxID_ANY, checkbox_label);
