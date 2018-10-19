@@ -3997,6 +3997,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     m_gizmos.update_on_off_state(m_selection);
                     update_gizmos_data();
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_dirty = true;
                 }
 #else
@@ -4021,16 +4022,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             // propagate event through callback
-#if ENABLE_EXTENDED_SELECTION
-            if (m_picking_enabled && (m_hover_volume_id != -1))
-            {
-                int object_idx = m_selection.get_object_idx();
-                _on_select(m_hover_volume_id, object_idx);
-            }
-#else
+#if !ENABLE_EXTENDED_SELECTION
             if (m_picking_enabled && (volume_idx != -1))
                 _on_select(volume_idx, selected_object_idx);
-#endif // ENABLE_EXTENDED_SELECTION
+#endif // !ENABLE_EXTENDED_SELECTION
 
 #if ENABLE_EXTENDED_SELECTION
             if (m_hover_volume_id != -1)
@@ -4357,10 +4352,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_EXTENDED_SELECTION
                 m_selection.clear();
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
+                post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
 #else
                 deselect_volumes();
-#endif // ENABLE_EXTENDED_SELECTION
                 _on_select(-1, -1);
+#endif // ENABLE_EXTENDED_SELECTION
                 update_gizmos_data();
             }
 #if ENABLE_GIZMOS_RESET
@@ -6645,6 +6641,7 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
+#if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 {
 #if ENABLE_EXTENDED_SELECTION
@@ -6680,6 +6677,7 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
     wxGetApp().obj_list()->select_current_volume(obj_id, vol_id);
 #endif // !ENABLE_EXTENDED_SELECTION
 }
+#endif // !ENABLE_EXTENDED_SELECTION
 
 std::vector<float> GLCanvas3D::_parse_colors(const std::vector<std::string>& colors)
 {

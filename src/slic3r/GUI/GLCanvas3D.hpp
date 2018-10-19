@@ -970,7 +970,9 @@ private:
 #else
     void _on_move(const std::vector<int>& volume_idxs);
 #endif // ENABLE_EXTENDED_SELECTION
+#if !ENABLE_EXTENDED_SELECTION
     void _on_select(int volume_idx, int object_idx);
+#endif // !ENABLE_EXTENDED_SELECTION
 
     // generates the legend texture in dependence of the current shown view type
     void _generate_legend_texture(const GCodePreviewData& preview_data, const std::vector<float>& tool_colors);
