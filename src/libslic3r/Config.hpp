@@ -61,6 +61,12 @@ enum ConfigOptionType {
     coEnum          = 8,
 };
 
+enum ConfigOptionMode {
+    comSimple,
+    comMiddle,
+    comExpert
+};
+
 // A generic value of a configuration option.
 class ConfigOption {
 public:
@@ -982,6 +988,7 @@ public:
     // By setting min=0, only nonnegative input is allowed.
     int                                 min = INT_MIN;
     int                                 max = INT_MAX;
+    ConfigOptionMode                    mode = comSimple;
     // Legacy names for this configuration option.
     // Used when parsing legacy configuration file.
     std::vector<t_config_option_key>    aliases;

@@ -156,16 +156,8 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 #endif /* __WXGTK__ */
 
 	// if we have an extra column, build it
-	if (extra_column) {
-		if (extra_column) {
-			grid_sizer->Add(extra_column(parent(), line), 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 3);
-		}
-		else {
-			// if the callback provides no sizer for the extra cell, put a spacer
-			grid_sizer->AddSpacer(1);
-		}
-	}
-
+	if (extra_column)
+		grid_sizer->Add(extra_column(parent(), line), 0, wxALIGN_CENTER_VERTICAL|wxRIGHT, 3);
 
     // Build a label if we have it
 	wxStaticText* label=nullptr;
@@ -182,16 +174,14 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
         label->SetFont(label_font);
         label->Wrap(label_width); // avoid a Linux/GTK bug
         if (!line.near_label_widget)
-		    grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | 
-						    (m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
+		    grid_sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
         else {
             // If we're here, we have some widget near the label
             // so we need a horizontal sizer to arrange these things
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
             grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
             sizer->Add(line.near_label_widget(parent()), 0, wxRIGHT, 7);
-            sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) |
-                (m_flag == ogSIDE_OPTIONS_VERTICAL ? wxTOP : wxALIGN_CENTER_VERTICAL), 5);
+            sizer->Add(label, 0, (staticbox ? 0 : wxALIGN_RIGHT | wxRIGHT) | wxALIGN_CENTER_VERTICAL, 5);
         }
 		if (line.label_tooltip.compare("") != 0)
 			label->SetToolTip(line.label_tooltip);
@@ -208,7 +198,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	
 	// If we're here, we have more than one option or a single option with sidetext
     // so we need a horizontal sizer to arrange these things
-	auto sizer = new wxBoxSizer(m_flag == ogSIDE_OPTIONS_VERTICAL ? wxVERTICAL : wxHORIZONTAL);
+	auto sizer = new wxBoxSizer(wxHORIZONTAL);
 	grid_sizer->Add(sizer, 0, wxEXPAND | (staticbox ? wxALL : wxBOTTOM | wxTOP | wxLEFT), staticbox ? 0 : 1);
 	// If we have a single option with no sidetext just add it directly to the grid sizer
 	if (option_set.size() == 1 && option_set.front().opt.sidetext.size() == 0 &&
@@ -227,14 +217,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 
     for (auto opt : option_set) {
 		ConfigOptionDef option = opt.opt;
-		wxSizer* sizer_tmp;
-		if (m_flag == ogSIDE_OPTIONS_VERTICAL){
-			auto sz = new wxFlexGridSizer(1, 3, 2, 2);
-			sz->RemoveGrowableCol(2);
-			sizer_tmp = sz;
-		}
-    	else
-    		sizer_tmp = sizer;
+		wxSizer* sizer_tmp = sizer;
 		// add label if any
 		if (option.label != "") {
 			wxString str_label = _(option.label);
@@ -260,7 +243,7 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 			auto sidetext = new wxStaticText(	parent(), wxID_ANY, _(option.sidetext), wxDefaultPosition, 
 												wxSize(sidetext_width, -1)/*wxDefaultSize*/, wxALIGN_LEFT);
 			sidetext->SetFont(sidetext_font);
-			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, m_flag == ogSIDE_OPTIONS_VERTICAL ? 0 : 4);
+			sizer_tmp->Add(sidetext, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 4);
 			field->set_side_text_ptr(sidetext);
 		}
 
@@ -269,13 +252,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 			sizer_tmp->Add(opt.side_widget(parent())/*!.target<wxWindow>()*/, 0, wxLEFT | wxALIGN_CENTER_VERTICAL, 1);	//! requires verification
 		}
 
-		if (opt.opt_id != option_set.back().opt_id && m_flag != ogSIDE_OPTIONS_VERTICAL) //! istead of (opt != option_set.back())
+		if (opt.opt_id != option_set.back().opt_id) //! istead of (opt != option_set.back())
 		{
 			sizer_tmp->AddSpacer(6);
 	    }
-
-		if (m_flag == ogSIDE_OPTIONS_VERTICAL)
-			sizer->Add(sizer_tmp, 0, wxALIGN_RIGHT|wxALL, 0);
 	}
 	// add extra sizers if any
 	for (auto extra_widget : line.get_extra_widgets()) {
@@ -401,6 +381,27 @@ void ConfigOptionsGroup::reload_config(){
 		set_value(opt_id, config_value(opt_key, opt_index, option.gui_flags.compare("serialized") == 0 ));
 	}
 
+}
+
+void ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
+    int rows = m_grid_sizer->GetEffectiveRowsCount();
+    if (rows != m_options.size())
+        return;
+    sizer->ShowItems(true);
+
+    int coef = 0;
+    const int cols = m_grid_sizer->GetCols();
+    for (std::map<t_config_option_key, Option>::iterator it = m_options.begin(); it != m_options.end(); ++it) {
+		const bool show = it->second.opt.mode <= mode;
+        if (!show) {
+            for (int i = 0; i < cols; ++i)
+                m_grid_sizer->Show(coef + i, show);
+        }
+        coef+= cols;
+	}
+
+    if (!sizer->IsShown(m_grid_sizer))
+        sizer->ShowItems(false);
 }
 
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize){

@@ -261,7 +261,10 @@ public:
             m_name = "Settings to modified";
         }
         else if (type == itInstanceRoot) {
-            m_name = "Instances";            
+            m_name = "Instances"; 
+#ifdef __WXGTK__
+            m_container = true;
+#endif  //__WXGTK__
         }
         else if (type == itInstance) {
             m_idx = parent->GetChildCount();
