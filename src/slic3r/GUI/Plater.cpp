@@ -1583,7 +1583,45 @@ void Plater::priv::arrange()
 
 void Plater::priv::split_object()
 {
-    // TODO
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = get_selected_object_idx();
+    if (obj_idx == -1)
+        return;
+
+    // we clone model object because split_object() adds the split volumes
+    // into the same model object, thus causing duplicates when we call load_model_objects()
+    Model new_model = model;
+    ModelObject* current_model_object = new_model.objects[obj_idx];
+
+    if (current_model_object->volumes.size() > 1)
+    {
+        Slic3r::GUI::warning_catcher(q, _(L("The selected object can't be split because it contains more than one volume/material.")));
+        return;
+    }
+
+//    $self->stop_background_process;
+
+    ModelObjectPtrs new_objects;
+    current_model_object->split(&new_objects);
+    if (new_objects.size() == 1)
+    {
+        Slic3r::GUI::warning_catcher(q, _(L("The selected object couldn't be split because it contains only one part.")));
+//        $self->schedule_background_process;
+    }
+    else
+    {
+        for (ModelObject* m : new_objects)
+        {
+            m->center_around_origin();
+        }
+
+        remove(obj_idx);
+
+        // load all model objects at once, otherwise the plate would be rearranged after each one
+        // causing original positions not to be kept
+        load_model_objects(new_objects);
+    }
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void Plater::priv::schedule_background_process()
@@ -1719,7 +1757,7 @@ void Plater::priv::on_action_add(SimpleEvent&)
 
 void Plater::priv::on_action_split(SimpleEvent&)
 {
-    // TODO
+    split_object();
 }
 
 void Plater::priv::on_action_cut(SimpleEvent&)
@@ -1874,6 +1912,9 @@ bool Plater::priv::init_object_menu()
 
     wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 
+    wxMenuItem* item_split = append_menu_item(&object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual parts")),
+        [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png");
+
 #if ENABLE_EXTENDED_SELECTION
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
@@ -1882,6 +1923,7 @@ bool Plater::priv::init_object_menu()
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_object()); }, item_split->GetId());
     }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -1910,7 +1952,7 @@ bool Plater::priv::can_decrease_instances() const
 bool Plater::priv::can_split_object() const
 {
     int obj_idx = get_selected_object_idx();
-    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size());
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
 }
 
 bool Plater::priv::can_cut_object() const
