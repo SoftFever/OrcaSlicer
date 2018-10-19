@@ -868,7 +868,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     BoundingBoxf3 box;
     Transform3d transform = Transform3d::Identity();
     Vec3d angles = Vec3d::Zero();
-    Transform3d rotation = Transform3d::Identity();
+    Transform3d offsets_transform = Transform3d::Identity();
 
     if (selection.is_from_single_instance())
     {
@@ -880,13 +880,19 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         }
 
         // gets transform from first selected volume
-        transform = selection.get_volume(*idxs.begin())->world_matrix().cast<double>();
+        const GLVolume* v = selection.get_volume(*idxs.begin());
+        transform = v->world_matrix().cast<double>();
 
-        // extract angles from transform
-        angles = Slic3r::Geometry::extract_euler_angles(transform);
+        // gets angles from first selected volume
+        angles = v->get_rotation();
 
+#if ENABLE_MIRROR
+        // consider rotation+mirror only components of the transform for offsets
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
+#else
         // set rotation-only component of transform
-        rotation = Geometry::assemble_transform(Vec3d::Zero(), angles);
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles);
+#endif // ENABLE_MIRROR
     }
     else
         box = selection.get_bounding_box();
@@ -898,9 +904,9 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     const Vec3d& center = m_box.center();
 #if ENABLE_EXTENDED_SELECTION
-    Vec3d offset_x = rotation * Vec3d((double)Offset, 0.0, 0.0);
-    Vec3d offset_y = rotation * Vec3d(0.0, (double)Offset, 0.0);
-    Vec3d offset_z = rotation * Vec3d(0.0, 0.0, (double)Offset);
+    Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
+    Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
+    Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
 #endif // ENABLE_EXTENDED_SELECTION
 
     // x axis
