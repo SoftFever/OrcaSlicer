@@ -789,7 +789,7 @@ void PrusaObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType&
     type = itUndef;
 
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() < 0 && node->GetType() != itObject) 
+    if (!node || node->GetIdx() < 0 && !(node->GetType() & (itObject|itSettings|itInstanceRoot))) 
         return;
 
     idx = node->GetIdx();

@@ -1109,6 +1109,9 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
                 // $self->async_apply_config;
             } else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, false);
+                for (auto obj : model.objects)
+                    if (obj->name.empty())
+                        obj->name = fs::path(obj->input_file).filename().string();
             }
         }
         catch (const std::runtime_error &e) {
@@ -1156,7 +1159,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
             new_model->convert_multipart_object(nozzle_dmrs->values.size());
         }
 
-        auto loaded_idxs = load_model_objects(model.objects);
+        auto loaded_idxs = load_model_objects(new_model->objects);
         obj_idxs.insert(obj_idxs.end(), loaded_idxs.begin(), loaded_idxs.end());
     }
 
@@ -1176,7 +1179,7 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     bool scaled_down = false;
     std::vector<size_t> obj_idxs;
 #if ENABLE_EXTENDED_SELECTION
-    unsigned int obj_count = 0;
+    unsigned int obj_count = model.objects.size();
 #endif // ENABLE_EXTENDED_SELECTION
 
     for (ModelObject *model_object : model_objects) {

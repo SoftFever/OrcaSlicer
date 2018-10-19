@@ -415,6 +415,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
+    object->name = this->objects.front()->name;
 
     reset_auto_extruder_id();
 

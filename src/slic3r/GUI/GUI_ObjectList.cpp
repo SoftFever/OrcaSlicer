@@ -868,7 +868,7 @@ void ObjectList::del_settings_from_config()
 
 void ObjectList::del_instances_from_object(const int obj_idx)
 {
-    auto instances = (*m_objects)[obj_idx]->instances;
+    auto& instances = (*m_objects)[obj_idx]->instances;
     if (instances.size() <= 1)
         return;
 
