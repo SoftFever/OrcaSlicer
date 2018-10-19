@@ -1258,17 +1258,15 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     wxString wildcard;
     switch (file_type) {
         case FT_STL:
-            wildcard = file_wildcards[FT_STL];
-            break;
         case FT_AMF:
-            wildcard = file_wildcards[FT_AMF];
-            break;
         case FT_3MF:
-            wildcard = file_wildcards[FT_3MF];
-            break;
+        case FT_GCODE:
+            wildcard = file_wildcards[file_type];
+        break;
+
         default:
             wildcard = file_wildcards[FT_MODEL];
-            break;
+        break;
     }
 
     fs::path output_file(print.output_filepath(std::string()));
