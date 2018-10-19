@@ -1769,9 +1769,9 @@ Vec3d GLGizmoFlatten::get_flattening_rotation() const
     // calculates the rotations in model space, taking in account the scaling factors
     Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = m_model_object->instances.front()->world_matrix(true, true).matrix().block(0, 0, 3, 3).inverse().transpose();
     Eigen::Quaterniond q;
-    Vec3d angles = q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix().eulerAngles(2, 1, 0);
+    Vec3d angles = Geometry::extract_euler_angles(q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix());
     m_normal = Vec3d::Zero();
-    return Vec3d(angles(2), angles(1), angles(0));
+    return angles;
 }
 
 } // namespace GUI
