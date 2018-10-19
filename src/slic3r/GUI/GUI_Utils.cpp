@@ -48,7 +48,7 @@ CheckboxFileDialog::CheckboxFileDialog(wxWindow *parent,
         return panel;
     };
 
-    SetExtraControlCreator(*extra_control_creator.target<ExtraControlCreatorFunction>());
+    SetExtraControlCreator(control_creator_trampoline);
 }
 
 bool CheckboxFileDialog::get_checkbox_value() const
@@ -56,6 +56,11 @@ bool CheckboxFileDialog::get_checkbox_value() const
     return this->cbox != nullptr ? cbox->IsChecked() : false;
 }
 
+wxWindow* CheckboxFileDialog::control_creator_trampoline(wxWindow *parent)
+{
+    auto *self = dynamic_cast<CheckboxFileDialog*>(parent);
+    return self != nullptr ? self->extra_control_creator(parent) : nullptr;
+}
 
 
 WindowMetrics WindowMetrics::from_window(wxTopLevelWindow *window)

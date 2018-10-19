@@ -39,6 +39,8 @@ public:
 private:
     std::function<wxWindow*(wxWindow*)> extra_control_creator;
     wxCheckBox *cbox;
+
+    static wxWindow* control_creator_trampoline(wxWindow *);
 };
 
 
