@@ -6,7 +6,6 @@
 
 #include <wx/toplevel.h>
 #include <wx/sizer.h>
-#include <wx/panel.h>
 #include <wx/checkbox.h>
 
 #include "libslic3r/Config.hpp"
@@ -15,6 +14,29 @@
 namespace Slic3r {
 namespace GUI {
 
+
+CheckboxFileDialog::ExtraPanel::ExtraPanel(wxWindow *parent)
+    : wxPanel(parent, wxID_ANY)
+{
+    // WARN: wxMSW does some extra shenanigans to calc the extra control size.
+    // It first calls the create function with a dummy empty wxDialog parent and saves its size.
+    // Afterwards, the create function is called again with the real parent.
+    // Additionally there's no way to pass any extra data to the create function (no closure),
+    // which is why we have to this stuff here. Grrr!
+    auto *dlg = dynamic_cast<CheckboxFileDialog*>(parent);
+    const wxString checkbox_label(dlg != nullptr ? dlg->checkbox_label : wxString());
+
+    auto* sizer = new wxBoxSizer(wxHORIZONTAL);
+    cbox = new wxCheckBox(this, wxID_ANY, checkbox_label);
+    sizer->AddSpacer(5);
+    sizer->Add(this->cbox, 0, wxEXPAND | wxALL, 5);
+    SetSizer(sizer);
+    sizer->SetSizeHints(this);
+}
+
+wxWindow* CheckboxFileDialog::ExtraPanel::ctor(wxWindow *parent) {
+    return new ExtraPanel(parent);
+}
 
 CheckboxFileDialog::CheckboxFileDialog(wxWindow *parent,
     const wxString &checkbox_label,
@@ -29,37 +51,19 @@ CheckboxFileDialog::CheckboxFileDialog(wxWindow *parent,
     const wxString &name
 )
     : wxFileDialog(parent, message, default_dir, default_file, wildcard, style, pos, size, name)
-    , cbox(nullptr)
+    , checkbox_label(checkbox_label)
 {
     if (checkbox_label.IsEmpty()) {
         return;
     }
 
-    extra_control_creator = [this, checkbox_label](wxWindow *parent) -> wxWindow* {
-        wxPanel* panel = new wxPanel(parent, -1);
-        wxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-        this->cbox = new wxCheckBox(panel, wxID_HIGHEST + 1, checkbox_label);
-        this->cbox->SetValue(true);
-        sizer->AddSpacer(5);
-        sizer->Add(this->cbox, 0, wxEXPAND | wxALL | wxALIGN_CENTER_VERTICAL, 5);
-        panel->SetSizer(sizer);
-        sizer->SetSizeHints(panel);
-
-        return panel;
-    };
-
-    SetExtraControlCreator(control_creator_trampoline);
+    SetExtraControlCreator(ExtraPanel::ctor);
 }
 
 bool CheckboxFileDialog::get_checkbox_value() const
 {
-    return this->cbox != nullptr ? cbox->IsChecked() : false;
-}
-
-wxWindow* CheckboxFileDialog::control_creator_trampoline(wxWindow *parent)
-{
-    auto *self = dynamic_cast<CheckboxFileDialog*>(parent);
-    return self != nullptr ? self->extra_control_creator(parent) : nullptr;
+    auto *extra_panel = dynamic_cast<ExtraPanel*>(GetExtraControl());
+    return extra_panel != nullptr ? extra_panel->cbox->GetValue() : false;
 }
 
 
