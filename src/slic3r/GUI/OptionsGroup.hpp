@@ -182,6 +182,7 @@ public:
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
+    std::vector<ConfigOptionMode>           m_options_mode;
 
     /// Field list, contains unique_ptrs of the derived type.
     /// using types that need to know what it is beyond the public interface 
@@ -245,7 +246,8 @@ public:
 	void		back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key);
 	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
-    void        update_visibility(ConfigOptionMode mode);
+    // return value shows visibility : false => all options are hidden
+    bool        update_visibility(ConfigOptionMode mode);
 	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
 	// return option value from config 
 	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);

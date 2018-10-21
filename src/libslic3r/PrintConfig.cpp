@@ -97,6 +97,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 50;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("between_objects_gcode", coString);
@@ -106,6 +107,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("bottom_solid_layers", coInt);
@@ -314,6 +316,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionString("M104 S0 ; turn off temperature\nG28 X0  ; home X axis\nM84     ; disable motors\n");
 
     def = this->add("end_filament_gcode", coStrings);
@@ -325,6 +328,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionStrings { "; Filament-specific end gcode \n;END gcode for filament\n" };
 
     def = this->add("ensure_vertical_shell_thickness", coBool);
@@ -519,6 +523,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 130;
+    def->mode = comMiddle;
     def->default_value = new ConfigOptionStrings { "" };
 
     def = this->add("filament_max_volumetric_speed", coFloats);
@@ -1012,6 +1017,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 50;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("remaining_times", coBool);
@@ -1238,6 +1244,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 130;
+    def->mode = comMiddle;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("nozzle_diameter", coFloats);
@@ -1422,6 +1429,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 130;
+    def->mode = comMiddle;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("printer_vendor", coString);
@@ -1787,6 +1795,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionString("G28 ; home all axes\nG1 Z5 F5000 ; lift nozzle\n");
 
     def = this->add("start_filament_gcode", coStrings);
@@ -1803,6 +1812,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 120;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionStrings { "; Filament gcode\n" };
 
     def = this->add("single_extruder_multi_material", coBool);
@@ -2075,6 +2085,7 @@ void PrintConfigDef::init_fff_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 50;
+    def->mode = comExpert;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("top_infill_extrusion_width", coFloatOrPercent);
@@ -2406,6 +2417,7 @@ void PrintConfigDef::init_sla_params()
     def->multiline = true;
     def->full_width = true;
     def->height = 130;
+    def->mode = comMiddle;
     def->default_value = new ConfigOptionString("");
 
     def = this->add("default_sla_material_profile", coString);

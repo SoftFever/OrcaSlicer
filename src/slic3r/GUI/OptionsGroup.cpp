@@ -97,8 +97,8 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field)
 {
 	if (!m_show_modified_btns) {
-		field->m_Undo_btn->Hide();
-		field->m_Undo_to_sys_btn->Hide();
+        field->m_Undo_btn->set_as_hidden();
+		field->m_Undo_to_sys_btn->set_as_hidden();
 		return;
 	}
 
@@ -122,6 +122,10 @@ void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* 
 	auto option_set = line.get_options();
 	for (auto opt : option_set) 
 		m_options.emplace(opt.opt_id, opt);
+
+    // add mode value for current line to m_options_mode
+    if (!option_set.empty())
+        m_options_mode.push_back(option_set[0].opt.mode);
 
 	// if we have a single option with no label, no sidetext just add it directly to sizer
 	if (option_set.size() == 1 && label_width == 0 && option_set.front().opt.full_width &&
@@ -383,16 +387,17 @@ void ConfigOptionsGroup::reload_config(){
 
 }
 
-void ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
-    int rows = m_grid_sizer->GetEffectiveRowsCount();
-    if (rows != m_options.size())
-        return;
+bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
+    if (m_grid_sizer->GetEffectiveRowsCount() != m_options_mode.size() &&
+        m_options_mode.size() == 1)
+        return m_options_mode[0] <= mode;
+
     sizer->ShowItems(true);
 
     int coef = 0;
     const int cols = m_grid_sizer->GetCols();
-    for (std::map<t_config_option_key, Option>::iterator it = m_options.begin(); it != m_options.end(); ++it) {
-		const bool show = it->second.opt.mode <= mode;
+    for (auto opt_mode : m_options_mode) {
+		const bool show = opt_mode <= mode;
         if (!show) {
             for (int i = 0; i < cols; ++i)
                 m_grid_sizer->Show(coef + i, show);
@@ -400,8 +405,11 @@ void ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
         coef+= cols;
 	}
 
-    if (!sizer->IsShown(m_grid_sizer))
+    if (!sizer->IsShown(m_grid_sizer)) {
         sizer->ShowItems(false);
+        return false;
+    }
+    return true;
 }
 
 boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize){

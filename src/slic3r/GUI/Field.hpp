@@ -54,10 +54,13 @@ public:
 	virtual bool
 		AcceptsFocusFromKeyboard() const { return false; }
 
+    void set_as_hidden() {
+        Hide();
+        hidden = true;
+	}
+
     virtual bool Show(bool show = true) override {
-        if (!show)
-            hidden = true;
-        return wxButton::Show(!hidden);
+        return wxButton::Show(hidden ? false : show);
 	}
 };
 

@@ -47,6 +47,7 @@ class Page : public wxScrolledWindow
 	wxString		m_title;
 	size_t			m_iconID;
 	wxBoxSizer*		m_vsizer;
+    bool            m_show = true;
 public:
 	Page(wxWindow* parent, const wxString title, const int iconID) :
 			m_parent(parent),
@@ -89,6 +90,7 @@ public:
 	const wxColour	get_item_colour() {
 			return *m_item_color;
 	}
+    bool get_show() const { return m_show; }
 
 protected:
 	// Color of TreeCtrlItem. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
@@ -215,6 +217,7 @@ public:
 	void		create_preset_tab();
 	void		load_current_preset();
 	void        rebuild_page_tree(bool tree_sel_change_event = false);
+	void        update_page_tree_visibility();
 	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);

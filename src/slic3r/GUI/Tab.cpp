@@ -635,9 +635,15 @@ void Tab::reload_config(){
 void Tab::update_visibility(ConfigOptionMode mode)
 {
     Freeze();
+
 	for (auto page : m_pages)
         page->update_visibility(mode);
- 	Thaw();
+    update_page_tree_visibility();
+
+    m_hsizer->Layout();
+    Refresh();
+
+	Thaw();
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -2264,6 +2270,33 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 	Thaw();
 }
 
+void Tab::update_page_tree_visibility()
+{
+    const auto sel_item = m_treectrl->GetSelection();
+    const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    const auto rootItem = m_treectrl->GetRootItem();
+
+    auto have_selection = 0;
+    m_treectrl->DeleteChildren(rootItem);
+    for (auto p : m_pages)
+    {
+        if (!p->get_show())
+            continue;
+        auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
+        m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+        if (p->title() == selected) {
+            m_treectrl->SelectItem(itemId);
+            have_selection = 1;
+        }
+    }
+
+    if (!have_selection) {
+        // this is triggered on first load, so we don't disable the sel change event
+        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+    }
+
+}
+
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
@@ -2692,8 +2725,11 @@ void Page::reload_config()
 
 void Page::update_visibility(ConfigOptionMode mode)
 {
-	for (auto group : m_optgroups)
-		group->update_visibility(mode);
+    bool ret_val = false;
+    for (auto group : m_optgroups)
+        ret_val = group->update_visibility(mode) || ret_val;
+
+    m_show = ret_val;
 }
 
 Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const
