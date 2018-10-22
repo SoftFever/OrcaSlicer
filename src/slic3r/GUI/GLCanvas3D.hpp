@@ -485,6 +485,8 @@ public:
         bool is_from_single_instance() const { return get_instance_idx() != -1; }
         bool is_from_single_object() const { return get_object_idx() != -1; }
 
+        bool contains_volume(unsigned int volume_idx) const { return std::find(m_list.begin(), m_list.end(), volume_idx) != m_list.end(); }
+
         // Returns the the object id if the selection is from a single object, otherwise is -1
         int get_object_idx() const;
         // Returns the instance id if the selection is from a single object and from a single instance, otherwise is -1

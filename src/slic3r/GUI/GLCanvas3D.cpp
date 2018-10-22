@@ -3989,10 +3989,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_EXTENDED_SELECTION
                 if (evt.LeftDown() && (m_hover_volume_id != -1))
                 {
-                    if (evt.ControlDown())
-                        m_selection.remove(m_hover_volume_id);
-                    else
+                    if (!evt.ShiftDown() || !m_selection.contains_volume(m_hover_volume_id))
                         m_selection.add(m_hover_volume_id, !evt.ShiftDown());
+                    else
+                        m_selection.remove(m_hover_volume_id);
 
                     m_gizmos.update_on_off_state(m_selection);
                     update_gizmos_data();
@@ -6644,9 +6644,6 @@ void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 #if !ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 {
-#if ENABLE_EXTENDED_SELECTION
-    post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-#else
     int vol_id = -1;
     int obj_id = -1;
 
@@ -6675,7 +6672,6 @@ void GLCanvas3D::_on_select(int volume_idx, int object_idx)
 
     post_event(ObjectSelectEvent(obj_id, vol_id));
     wxGetApp().obj_list()->select_current_volume(obj_id, vol_id);
-#endif // !ENABLE_EXTENDED_SELECTION
 }
 #endif // !ENABLE_EXTENDED_SELECTION
 
