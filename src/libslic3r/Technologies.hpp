@@ -11,7 +11,7 @@
 // New selections
 #define ENABLE_EXTENDED_SELECTION (1 && ENABLE_1_42_0)
 // Add mirror components along the three axes in ModelInstance and GLVolume
-#define ENABLE_MIRROR (0 && ENABLE_1_42_0)
+#define ENABLE_MIRROR (1 && ENABLE_1_42_0)
 
 #endif // _technologies_h_
 
