@@ -395,19 +395,25 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
         return m_options_mode[0] <= mode;
 
     sizer->ShowItems(true);
+#ifdef __WXGTK__
+    m_panel->Show(true);
+    m_grid_sizer->Show(true);
+#endif /* __WXGTK__ */
 
     int coef = 0;
+    int hidden_row_cnt = 0;
     const int cols = m_grid_sizer->GetCols();
     for (auto opt_mode : m_options_mode) {
 		const bool show = opt_mode <= mode;
         if (!show) {
+            hidden_row_cnt++;
             for (int i = 0; i < cols; ++i)
                 m_grid_sizer->Show(coef + i, show);
         }
         coef+= cols;
 	}
 
-    if (!sizer->IsShown(m_grid_sizer)) {
+    if (hidden_row_cnt == m_options_mode.size()) {
         sizer->ShowItems(false);
         return false;
     }
