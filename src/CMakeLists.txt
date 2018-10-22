@@ -119,28 +119,28 @@ if (MSVC)
         foreach (CONF ${CMAKE_CONFIGURATION_TYPES})
             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}" WIN_CONF_OUTPUT_DIR)
             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CONF}/resources" WIN_RESOURCES_SYMLINK)
-            add_custom_target("resources_symlink_${CONF}" ALL
-                DEPENDS slic3r
+            add_custom_command(TARGET slic3r POST_BUILD
                 COMMAND if exist "${WIN_CONF_OUTPUT_DIR}" "("
                         if not exist "${WIN_RESOURCES_SYMLINK}" "("
                             mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}"
                         ")"
                     ")"
+                COMMENT "Symlinking the resources directory into the build tree"
                 VERBATIM
             )
         endforeach ()
     else ()
         file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/resources" WIN_RESOURCES_SYMLINK)
-        add_custom_target(resources_symlink ALL
-            DEPENDS slic3r
+        add_custom_command(TARGET slic3r POST_BUILD
             COMMAND if not exist "${WIN_RESOURCES_SYMLINK}" "(" mklink /J "${WIN_RESOURCES_SYMLINK}" "${SLIC3R_RESOURCES_DIR_WIN}" ")"
+            COMMENT "Symlinking the resources directory into the build tree"
             VERBATIM
         )
     endif ()
 else ()
-    add_custom_target(resources_symlink ALL
-        DEPENDS slic3r
+    add_custom_command(TARGET slic3r POST_BUILD
         COMMAND ln -sf "${SLIC3R_RESOURCES_DIR}" "${CMAKE_CURRENT_BINARY_DIR}/../resources"
+        COMMENT "Symlinking the resources directory into the build tree"
         VERBATIM
     )
 endif()
