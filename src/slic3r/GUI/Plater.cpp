@@ -850,7 +850,9 @@ private:
     bool layers_height_allowed() const;
     bool can_delete_all() const;
     bool can_arrange() const;
+#if ENABLE_MIRROR
     bool can_mirror() const;
+#endif // ENABLE_MIRROR
 #endif // ENABLE_EXTENDED_SELECTION
 };
 
@@ -1256,14 +1258,17 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
     wxString wildcard;
     switch (file_type) {
         case FT_STL:
-        case FT_AMF:
-        case FT_3MF:
             wildcard = file_wildcards[FT_STL];
-        break;
-
+            break;
+        case FT_AMF:
+            wildcard = file_wildcards[FT_AMF];
+            break;
+        case FT_3MF:
+            wildcard = file_wildcards[FT_3MF];
+            break;
         default:
             wildcard = file_wildcards[FT_MODEL];
-        break;
+            break;
     }
 
     fs::path output_file(print.output_filepath(std::string()));
@@ -1899,6 +1904,7 @@ bool Plater::priv::init_object_menu()
 
     object_menu.AppendSeparator();
     
+#if ENABLE_MIRROR
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
         return false;
@@ -1911,6 +1917,7 @@ bool Plater::priv::init_object_menu()
         [this](wxCommandEvent&){ mirror(Z); }, "bullet_blue.png", &object_menu);
 
     wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
+#endif // ENABLE_MIRROR
 
     wxMenuItem* item_split = append_menu_item(&object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual parts")),
         [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png");
@@ -1919,7 +1926,9 @@ bool Plater::priv::init_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
+#if ENABLE_MIRROR
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
+#endif // ENABLE_MIRROR
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
@@ -1976,10 +1985,12 @@ bool Plater::priv::can_arrange() const
     return !model.objects.empty();
 }
 
+#if ENABLE_MIRROR
 bool Plater::priv::can_mirror() const
 {
     return get_selection().is_from_single_instance();
 }
+#endif // ENABLE_MIRROR
 #endif // ENABLE_EXTENDED_SELECTION
 
 // Plater / Public

@@ -32,6 +32,9 @@
 // 2 : Added z component of offset
 //     Added x and y components of rotation
 //     Added x, y and z components of scale
+#if ENABLE_MIRROR
+//     Added x, y and z components of mirror
+#endif // ENABLE_MIRROR
 const unsigned int VERSION_AMF = 2;
 const char* SLIC3RPE_AMF_VERSION = "slic3rpe_amf_version";
 
@@ -126,14 +129,27 @@ struct AMFParserContext
         NODE_TYPE_RY,                   // amf/constellation/instance/ry
         NODE_TYPE_RZ,                   // amf/constellation/instance/rz
         NODE_TYPE_SCALE,                // amf/constellation/instance/scale
-        NODE_TYPE_SCALEX,                // amf/constellation/instance/scalex
-        NODE_TYPE_SCALEY,                // amf/constellation/instance/scaley
-        NODE_TYPE_SCALEZ,                // amf/constellation/instance/scalez
+        NODE_TYPE_SCALEX,               // amf/constellation/instance/scalex
+        NODE_TYPE_SCALEY,               // amf/constellation/instance/scaley
+        NODE_TYPE_SCALEZ,               // amf/constellation/instance/scalez
+#if ENABLE_MIRROR
+        NODE_TYPE_MIRRORX,              // amf/constellation/instance/mirrorx
+        NODE_TYPE_MIRRORY,              // amf/constellation/instance/mirrory
+        NODE_TYPE_MIRRORZ,              // amf/constellation/instance/mirrorz
+#endif // ENABLE_MIRROR
         NODE_TYPE_METADATA,             // anywhere under amf/*/metadata
     };
 
     struct Instance {
+#if ENABLE_MIRROR
+        Instance()
+            : deltax_set(false), deltay_set(false), deltaz_set(false)
+            , rx_set(false), ry_set(false), rz_set(false)
+            , scalex_set(false), scaley_set(false), scalez_set(false)
+            , mirrorx_set(false), mirrory_set(false), mirrorz_set(false) {}
+#else
         Instance() : deltax_set(false), deltay_set(false), deltaz_set(false), rx_set(false), ry_set(false), rz_set(false), scalex_set(false), scaley_set(false), scalez_set(false)  {}
+#endif // ENABLE_MIRROR
         // Shift in the X axis.
         float deltax;
         bool  deltax_set;
@@ -159,6 +175,15 @@ struct AMFParserContext
         bool  scaley_set;
         float scalez;
         bool  scalez_set;
+#if ENABLE_MIRROR
+        // Mirroring factors
+        float mirrorx;
+        bool  mirrorx_set;
+        float mirrory;
+        bool  mirrory_set;
+        float mirrorz;
+        bool  mirrorz_set;
+#endif // ENABLE_MIRROR
     };
 
     struct Object {
@@ -289,6 +314,14 @@ void AMFParserContext::startElement(const char *name, const char **atts)
                 node_type_new = NODE_TYPE_SCALEZ;
             else if (strcmp(name, "scale") == 0)
                 node_type_new = NODE_TYPE_SCALE;
+#if ENABLE_MIRROR
+            else if (strcmp(name, "mirrorx") == 0)
+                node_type_new = NODE_TYPE_MIRRORX;
+            else if (strcmp(name, "mirrory") == 0)
+                node_type_new = NODE_TYPE_MIRRORY;
+            else if (strcmp(name, "mirrorz") == 0)
+                node_type_new = NODE_TYPE_MIRRORZ;
+#endif // ENABLE_MIRROR
         }
         break;
     case 4:
@@ -345,16 +378,23 @@ void AMFParserContext::characters(const XML_Char *s, int len)
     {
         switch (m_path.size()) {
         case 4:
-            if (m_path.back() == NODE_TYPE_DELTAX || 
-                m_path.back() == NODE_TYPE_DELTAY || 
-                m_path.back() == NODE_TYPE_DELTAZ || 
+            if (m_path.back() == NODE_TYPE_DELTAX ||
+                m_path.back() == NODE_TYPE_DELTAY ||
+                m_path.back() == NODE_TYPE_DELTAZ ||
                 m_path.back() == NODE_TYPE_RX ||
                 m_path.back() == NODE_TYPE_RY ||
                 m_path.back() == NODE_TYPE_RZ ||
                 m_path.back() == NODE_TYPE_SCALEX ||
                 m_path.back() == NODE_TYPE_SCALEY ||
                 m_path.back() == NODE_TYPE_SCALEZ ||
+#if ENABLE_MIRROR
+                m_path.back() == NODE_TYPE_SCALE ||
+                m_path.back() == NODE_TYPE_MIRRORX ||
+                m_path.back() == NODE_TYPE_MIRRORY ||
+                m_path.back() == NODE_TYPE_MIRRORZ)
+#else
                 m_path.back() == NODE_TYPE_SCALE)
+#endif // ENABLE_MIRROR
                 m_value[0].append(s, len);
             break;
         case 6:
@@ -446,6 +486,26 @@ void AMFParserContext::endElement(const char * /* name */)
         m_instance->scalez_set = true;
         m_value[0].clear();
         break;
+#if ENABLE_MIRROR
+    case NODE_TYPE_MIRRORX:
+        assert(m_instance);
+        m_instance->mirrorx = float(atof(m_value[0].c_str()));
+        m_instance->mirrorx_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_MIRRORY:
+        assert(m_instance);
+        m_instance->mirrory = float(atof(m_value[0].c_str()));
+        m_instance->mirrory_set = true;
+        m_value[0].clear();
+        break;
+    case NODE_TYPE_MIRRORZ:
+        assert(m_instance);
+        m_instance->mirrorz = float(atof(m_value[0].c_str()));
+        m_instance->mirrorz_set = true;
+        m_value[0].clear();
+        break;
+#endif // ENABLE_MIRROR
 
     // Object vertices:
     case NODE_TYPE_VERTEX:
@@ -585,6 +645,9 @@ void AMFParserContext::endDocument()
                 mi->set_offset(Vec3d(instance.deltax_set ? (double)instance.deltax : 0.0, instance.deltay_set ? (double)instance.deltay : 0.0, instance.deltaz_set ? (double)instance.deltaz : 0.0));
                 mi->set_rotation(Vec3d(instance.rx_set ? (double)instance.rx : 0.0, instance.ry_set ? (double)instance.ry : 0.0, instance.rz_set ? (double)instance.rz : 0.0));
                 mi->set_scaling_factor(Vec3d(instance.scalex_set ? (double)instance.scalex : 1.0, instance.scaley_set ? (double)instance.scaley : 1.0, instance.scalez_set ? (double)instance.scalez : 1.0));
+#if ENABLE_MIRROR
+                mi->set_mirror(Vec3d(instance.mirrorx_set ? (double)instance.mirrorx : 1.0, instance.mirrory_set ? (double)instance.mirrory : 1.0, instance.mirrorz_set ? (double)instance.mirrorz : 1.0));
+#endif // ENABLE_MIRROR
             }
     }
 }
@@ -891,6 +954,11 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     "      <scalex>%lf</scalex>\n"
                     "      <scaley>%lf</scaley>\n"
                     "      <scalez>%lf</scalez>\n"
+#if ENABLE_MIRROR
+                    "      <mirrorx>%lf</mirrorx>\n"
+                    "      <mirrory>%lf</mirrory>\n"
+                    "      <mirrorz>%lf</mirrorz>\n"
+#endif // ENABLE_MIRROR
                     "    </instance>\n",
                     object_id,
                     instance->get_offset(X),
@@ -901,7 +969,14 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                     instance->get_rotation(Z),
                     instance->get_scaling_factor(X),
                     instance->get_scaling_factor(Y),
+#if ENABLE_MIRROR
+                    instance->get_scaling_factor(Z),
+                    instance->get_mirror(X),
+                    instance->get_mirror(Y),
+                    instance->get_mirror(Z));
+#else
                     instance->get_scaling_factor(Z));
+#endif // ENABLE_MIRROR
 
                 //FIXME missing instance->scaling_factor
                 instances.append(buf);

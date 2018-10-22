@@ -3432,7 +3432,6 @@ int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::mirror_selection(Axis axis)
 {
-    m_regenerate_volumes = false;
     m_selection.mirror(axis);
     _on_mirror();
     wxGetApp().obj_manipul()->update_settings_value(m_selection);
@@ -3457,7 +3456,12 @@ void GLCanvas3D::reload_scene(bool force)
 
 #if ENABLE_EXTENDED_SELECTION
     if (m_regenerate_volumes)
+    {
         reset_volumes();
+
+        // to update the toolbar
+        post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
+    }
 #endif // ENABLE_EXTENDED_SELECTION
 
     set_bed_shape(dynamic_cast<const ConfigOptionPoints*>(m_config->option("bed_shape"))->values);
@@ -3477,9 +3481,6 @@ void GLCanvas3D::reload_scene(bool force)
         {
             load_object(*m_model, obj_idx);
         }
-
-        // to update the toolbar
-        post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
     }
 
     update_gizmos_data();
@@ -3858,7 +3859,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Scale:
         {
 #if ENABLE_EXTENDED_SELECTION
-            m_regenerate_volumes = false;
             m_selection.scale(m_gizmos.get_scale());
             _on_scale();
 #else
@@ -3875,7 +3875,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         case Gizmos::Rotate:
         {
 #if ENABLE_EXTENDED_SELECTION
-            m_regenerate_volumes = false;
             m_selection.rotate(m_gizmos.get_rotation());
             _on_rotate();
 #else
@@ -3958,7 +3957,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
                 // Rotate the object so the normal points downward:
 #if ENABLE_EXTENDED_SELECTION
-                m_regenerate_volumes = false;
                 m_selection.rotate(m_gizmos.get_flattening_rotation());
                 _on_flatten();
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
@@ -4397,7 +4395,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Scale:
             {
 #if ENABLE_EXTENDED_SELECTION
-                m_regenerate_volumes = false;
                 _on_scale();
 #endif // ENABLE_EXTENDED_SELECTION
                 break;
@@ -4405,7 +4402,6 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             case Gizmos::Rotate:
             {
 #if ENABLE_EXTENDED_SELECTION
-                m_regenerate_volumes = false;
                 _on_rotate();
 #else
                 post_event(Vec3dEvent(EVT_GIZMO_ROTATE, m_gizmos.get_rotation()));
