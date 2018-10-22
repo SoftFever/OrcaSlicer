@@ -1365,7 +1365,7 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
-    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed);
+    _3DScene::enable_toolbar_item(canvas3D, "layersediting", have_sel && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D));
 #endif // ENABLE_EXTENDED_SELECTION
 
 #if ENABLE_EXTENDED_SELECTION
@@ -1477,6 +1477,9 @@ void Plater::priv::remove(size_t obj_idx)
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
+    if (_3DScene::is_layers_editing_enabled(canvas3D))
+        _3DScene::enable_layers_editing(canvas3D, false);
+
 #if !ENABLE_EXTENDED_SELECTION
     objects.erase(objects.begin() + obj_idx);
 #endif // !ENABLE_EXTENDED_SELECTION
@@ -1499,6 +1502,9 @@ void Plater::priv::reset()
 
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
+
+    if (_3DScene::is_layers_editing_enabled(canvas3D))
+        _3DScene::enable_layers_editing(canvas3D, false);
 
 #if !ENABLE_EXTENDED_SELECTION
     objects.clear();
@@ -1777,7 +1783,10 @@ void Plater::priv::on_action_settings(SimpleEvent&)
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
-    // TODO
+    bool enable = !_3DScene::is_layers_editing_enabled(canvas3D);
+    _3DScene::enable_layers_editing(canvas3D, enable);
+    if (enable && !_3DScene::is_layers_editing_enabled(canvas3D))
+        _3DScene::enable_toolbar_item(canvas3D, "layersediting", false);
 }
 
 #if !ENABLE_EXTENDED_SELECTION
@@ -1970,7 +1979,8 @@ bool Plater::priv::can_cut_object() const
 
 bool Plater::priv::layers_height_allowed() const
 {
-    return config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
 }
 
 bool Plater::priv::can_delete_all() const
