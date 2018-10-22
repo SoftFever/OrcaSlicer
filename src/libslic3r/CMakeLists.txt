@@ -167,7 +167,7 @@ target_link_libraries(libslic3r
     poly2tri 
     qhull
     semver
-    ${TBB_LIBRARIES} 
+    tbb
     )
 
 if(SLIC3R_PROFILE)

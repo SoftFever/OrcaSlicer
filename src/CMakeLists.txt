@@ -84,7 +84,7 @@ if (SLIC3R_GUI)
     # Configure libcurl & OpenSSL
     find_package(CURL REQUIRED)
     target_include_directories(slic3r PRIVATE ${CURL_INCLUDE_DIRS})
-    target_link_libraries(slic3r ${CURL_LIBRARIES})
+    target_link_libraries(slic3r CURL::libcurl)
     if (SLIC3R_STATIC)
         if (NOT APPLE)
             # libcurl is always linked dynamically to the system libcurl on OSX.
