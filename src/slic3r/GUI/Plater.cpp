@@ -700,7 +700,7 @@ private:
     static const std::regex pattern_drop;
 };
 
-const std::regex PlaterDropTarget::pattern_drop("[.](stl|obj|amf|3mf|prusa)$", std::regex::icase);
+const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", std::regex::icase);
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
@@ -856,9 +856,9 @@ private:
 #endif // ENABLE_EXTENDED_SELECTION
 };
 
-const std::regex Plater::priv::pattern_bundle("[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)$", std::regex::icase);
-const std::regex Plater::priv::pattern_3mf("[.]3mf$", std::regex::icase);
-const std::regex Plater::priv::pattern_zip_amf("[.]zip[.]amf$", std::regex::icase);
+const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
+const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
+const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     q(q),
