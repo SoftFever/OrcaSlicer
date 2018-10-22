@@ -388,6 +388,8 @@ void ConfigOptionsGroup::reload_config(){
 }
 
 bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
+    if (m_options_mode.empty())
+        return true;
     if (m_grid_sizer->GetEffectiveRowsCount() != m_options_mode.size() &&
         m_options_mode.size() == 1)
         return m_options_mode[0] <= mode;

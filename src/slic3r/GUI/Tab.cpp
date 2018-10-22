@@ -483,7 +483,7 @@ void Tab::update_changed_tree_ui()
 		auto title = m_treectrl->GetItemText(cur_item);
 		for (auto page : m_pages)
 		{
-			if (page->title() != title)
+			if (page->title() != title) 
 				continue;
 			bool sys_page = true;
 			bool modified_page = false;
@@ -644,6 +644,11 @@ void Tab::update_visibility(ConfigOptionMode mode)
     Refresh();
 
 	Thaw();
+
+    // to update tree items color
+    wxTheApp->CallAfter([this]() {
+        update_changed_tree_ui();
+    });
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1782,7 +1787,7 @@ void TabPrinter::build_sla()
     auto page = add_options_page(_(L("General")), "printer_empty.png");
     auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-    Line line{ _(L("Bed shape")), "" };
+    Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent){
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
         //			btn->SetFont(Slic3r::GUI::small_font);
@@ -2762,8 +2767,8 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
             bmp_name = "error.png";
         else {
             auto mode = line.get_options()[0].opt.mode;  //we assume that we have one option per line
-            bmp_name = mode == comExpert ? "mode_expert.png" :
-                       mode == comMiddle ? "mode_middle.png" : "mode_simple.png";
+            bmp_name = mode == comExpert ? "mode_expert_.png" :
+                       mode == comMiddle ? "mode_middle_.png" : "mode_simple_.png";
         }                               
         auto bmp = new wxStaticBitmap(parent, wxID_ANY, wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
         return bmp;
