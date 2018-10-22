@@ -711,9 +711,13 @@ void ModelObject::center_around_origin()
 
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
+#if ENABLE_MIRROR
+            i->set_offset(i->get_offset() - shift);
+#else
             // apply rotation and scaling to vector as well before translating instance,
             // in order to leave final position unaltered
             i->set_offset(i->get_offset() + i->transform_vector(-shift, true));
+#endif // ENABLE_MIRROR
         }
         this->invalidate_bounding_box();
     }

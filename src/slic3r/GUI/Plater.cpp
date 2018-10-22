@@ -700,7 +700,7 @@ private:
     static const std::regex pattern_drop;
 };
 
-const std::regex PlaterDropTarget::pattern_drop("[.](stl|obj|amf|3mf|prusa)$", std::regex::icase);
+const std::regex PlaterDropTarget::pattern_drop(".*[.](stl|obj|amf|3mf|prusa)", std::regex::icase);
 
 bool PlaterDropTarget::OnDropFiles(wxCoord x, wxCoord y, const wxArrayString &filenames)
 {
@@ -850,13 +850,15 @@ private:
     bool layers_height_allowed() const;
     bool can_delete_all() const;
     bool can_arrange() const;
+#if ENABLE_MIRROR
     bool can_mirror() const;
+#endif // ENABLE_MIRROR
 #endif // ENABLE_EXTENDED_SELECTION
 };
 
-const std::regex Plater::priv::pattern_bundle("[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)$", std::regex::icase);
-const std::regex Plater::priv::pattern_3mf("[.]3mf$", std::regex::icase);
-const std::regex Plater::priv::pattern_zip_amf("[.]zip[.]amf$", std::regex::icase);
+const std::regex Plater::priv::pattern_bundle(".*[.](amf|amf[.]xml|zip[.]amf|3mf|prusa)", std::regex::icase);
+const std::regex Plater::priv::pattern_3mf(".*3mf", std::regex::icase);
+const std::regex Plater::priv::pattern_zip_amf(".*[.]zip[.]amf", std::regex::icase);
 
 Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     q(q),
@@ -1258,7 +1260,8 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         case FT_STL:
         case FT_AMF:
         case FT_3MF:
-            wildcard = file_wildcards[FT_STL];
+        case FT_GCODE:
+            wildcard = file_wildcards[file_type];
         break;
 
         default:
@@ -1362,7 +1365,7 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
-    _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed);
+    _3DScene::enable_toolbar_item(canvas3D, "layersediting", have_sel && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D));
 #endif // ENABLE_EXTENDED_SELECTION
 
 #if ENABLE_EXTENDED_SELECTION
@@ -1474,6 +1477,9 @@ void Plater::priv::remove(size_t obj_idx)
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
+    if (_3DScene::is_layers_editing_enabled(canvas3D))
+        _3DScene::enable_layers_editing(canvas3D, false);
+
 #if !ENABLE_EXTENDED_SELECTION
     objects.erase(objects.begin() + obj_idx);
 #endif // !ENABLE_EXTENDED_SELECTION
@@ -1496,6 +1502,9 @@ void Plater::priv::reset()
 
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
+
+    if (_3DScene::is_layers_editing_enabled(canvas3D))
+        _3DScene::enable_layers_editing(canvas3D, false);
 
 #if !ENABLE_EXTENDED_SELECTION
     objects.clear();
@@ -1774,7 +1783,10 @@ void Plater::priv::on_action_settings(SimpleEvent&)
 
 void Plater::priv::on_action_layersediting(SimpleEvent&)
 {
-    // TODO
+    bool enable = !_3DScene::is_layers_editing_enabled(canvas3D);
+    _3DScene::enable_layers_editing(canvas3D, enable);
+    if (enable && !_3DScene::is_layers_editing_enabled(canvas3D))
+        _3DScene::enable_toolbar_item(canvas3D, "layersediting", false);
 }
 
 #if !ENABLE_EXTENDED_SELECTION
@@ -1899,6 +1911,7 @@ bool Plater::priv::init_object_menu()
 
     object_menu.AppendSeparator();
     
+#if ENABLE_MIRROR
     wxMenu* mirror_menu = new wxMenu();
     if (mirror_menu == nullptr)
         return false;
@@ -1911,6 +1924,7 @@ bool Plater::priv::init_object_menu()
         [this](wxCommandEvent&){ mirror(Z); }, "bullet_blue.png", &object_menu);
 
     wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
+#endif // ENABLE_MIRROR
 
     wxMenuItem* item_split = append_menu_item(&object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual parts")),
         [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png");
@@ -1919,7 +1933,9 @@ bool Plater::priv::init_object_menu()
     // ui updates needs to be binded to the parent panel
     if (q != nullptr)
     {
+#if ENABLE_MIRROR
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_mirror()); }, item_mirror->GetId());
+#endif // ENABLE_MIRROR
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
@@ -1963,7 +1979,8 @@ bool Plater::priv::can_cut_object() const
 
 bool Plater::priv::layers_height_allowed() const
 {
-    return config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D);
 }
 
 bool Plater::priv::can_delete_all() const
@@ -1976,10 +1993,12 @@ bool Plater::priv::can_arrange() const
     return !model.objects.empty();
 }
 
+#if ENABLE_MIRROR
 bool Plater::priv::can_mirror() const
 {
     return get_selection().is_from_single_instance();
 }
+#endif // ENABLE_MIRROR
 #endif // ENABLE_EXTENDED_SELECTION
 
 // Plater / Public

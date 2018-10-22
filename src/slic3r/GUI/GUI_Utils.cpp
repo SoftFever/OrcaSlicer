@@ -28,6 +28,7 @@ CheckboxFileDialog::ExtraPanel::ExtraPanel(wxWindow *parent)
 
     auto* sizer = new wxBoxSizer(wxHORIZONTAL);
     cbox = new wxCheckBox(this, wxID_ANY, checkbox_label);
+    cbox->SetValue(true);
     sizer->AddSpacer(5);
     sizer->Add(this->cbox, 0, wxEXPAND | wxALL, 5);
     SetSizer(sizer);

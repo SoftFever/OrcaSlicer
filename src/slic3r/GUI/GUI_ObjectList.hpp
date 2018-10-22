@@ -4,6 +4,7 @@
 #include <wx/bitmap.h>
 #include <wx/dataview.h>
 #include <map>
+#include <vector>
 
 class wxBoxSizer;
 class PrusaObjectDataViewModel;
