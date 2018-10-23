@@ -5,12 +5,12 @@
 #
 # All the dependencies are installed in a `destdir` directory in the root of the build directory,
 # in a traditional Unix-style prefix structure. The destdir can be used directly by CMake
-# when building Slic3r - to do this, set the CMAKE_PREFIX_PATH to the destdir's location.
+# when building Slic3r - to do this, set the CMAKE_PREFIX_PATH to ${destdir}/usr/local.
 #
 # For better clarity of console output, it's recommended to _not_ use a parallelized build
 # for the top-level command, ie. use `make -j 1` or `ninja -j 1` to force single-threaded top-level
 # build. This doesn't degrade performance as individual dependencies are built in parallel fashion
-# as appropriate anyway (cf. the `NPROC` variable).
+# if supported by the dependency.
 #
 # On Windows, architecture (64 vs 32 bits) is judged based on the compiler variant.
 # To build dependencies for either 64 or 32 bit OS, use the respective compiler command line.
@@ -27,7 +27,9 @@ if (NPROC EQUAL 0)
     set(NPROC 1)
 endif ()
 
-set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir")
+set(DESTDIR "${CMAKE_CURRENT_BINARY_DIR}/destdir" CACHE PATH "Destination directory")
+option(DEP_DEBUG "Build debug variants (currently only works on Windows)" ON)
+
 
 if (MSVC)
     if ("${CMAKE_SIZEOF_VOID_P}" STREQUAL "8")
