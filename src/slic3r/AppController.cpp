@@ -1,5 +1,7 @@
 #include "AppController.hpp"
 
+#include <slic3r/GUI/GUI.hpp>
+
 #include <future>
 #include <chrono>
 #include <sstream>
@@ -7,17 +9,12 @@
 #include <thread>
 #include <unordered_map>
 
-#include <slic3r/GUI/GUI.hpp>
-#include <ModelArrange.hpp>
-#include <slic3r/GUI/PresetBundle.hpp>
-
 #include <PrintConfig.hpp>
 #include <Print.hpp>
 #include <PrintExport.hpp>
 #include <Geometry.hpp>
 #include <Model.hpp>
-#include <Utils.hpp>
-#include "GUI/GUI_App.hpp"
+#include <ModelArrange.hpp>
 
 
 namespace Slic3r {
@@ -140,119 +137,119 @@ public:
 
 void PrintController::slice_to_png()
 {
-    using Pointf3 = Vec3d;
+//    using Pointf3 = Vec3d;
 
-    auto ctl = GUI::get_appctl();
-    auto presetbundle = GUI::wxGetApp().preset_bundle;
+//    auto ctl = GUI::get_appctl();
+//    auto presetbundle = GUI::wxGetApp().preset_bundle;
 
-    assert(presetbundle);
+//    assert(presetbundle);
 
-    // FIXME: this crashes in command line mode
-    auto pt = presetbundle->printers.get_selected_preset().printer_technology();
-    if(pt != ptSLA) {
-        ctl->report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
-                     L("Error"));
-        return;
-    }
+//    // FIXME: this crashes in command line mode
+//    auto pt = presetbundle->printers.get_selected_preset().printer_technology();
+//    if(pt != ptSLA) {
+//        ctl->report_issue(IssueType::ERR, L("Printer technology is not SLA!"),
+//                     L("Error"));
+//        return;
+//    }
 
-    auto conf = presetbundle->full_config();
-    conf.validate();
+//    auto conf = presetbundle->full_config();
+//    conf.validate();
 
-    auto exd = query_png_export_data(conf);
-    if(exd.zippath.empty()) return;
+//    auto exd = query_png_export_data(conf);
+//    if(exd.zippath.empty()) return;
 
-    Print *print = m_print;
+//    Print *print = m_print;
 
-    try {
-        print->apply_config(conf);
-        print->validate();
-    } catch(std::exception& e) {
-        ctl->report_issue(IssueType::ERR, e.what(), "Error");
-        return;
-    }
+//    try {
+//        print->apply_config(conf);
+//        print->validate();
+//    } catch(std::exception& e) {
+//        ctl->report_issue(IssueType::ERR, e.what(), "Error");
+//        return;
+//    }
 
-    // TODO: copy the model and work with the copy only
-    bool correction = false;
-    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
-        correction = true;
-//        print->invalidate_all_steps();
+//    // TODO: copy the model and work with the copy only
+//    bool correction = false;
+//    if(exd.corr_x != 1.0 || exd.corr_y != 1.0 || exd.corr_z != 1.0) {
+//        correction = true;
+////        print->invalidate_all_steps();
 
-//        for(auto po : print->objects) {
-//            po->model_object()->scale(
-//                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
-//                        );
-//            po->model_object()->invalidate_bounding_box();
-//            po->reload_model_instances();
-//            po->invalidate_all_steps();
+////        for(auto po : print->objects) {
+////            po->model_object()->scale(
+////                        Pointf3(exd.corr_x, exd.corr_y, exd.corr_z)
+////                        );
+////            po->model_object()->invalidate_bounding_box();
+////            po->reload_model_instances();
+////            po->invalidate_all_steps();
+////        }
+//    }
+
+//    // Turn back the correction scaling on the model.
+//    auto scale_back = [this, print, correction, exd]() {
+//        if(correction) { // scale the model back
+////            print->invalidate_all_steps();
+////            for(auto po : print->objects) {
+////                po->model_object()->scale(
+////                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
+////                );
+////                po->model_object()->invalidate_bounding_box();
+////                po->reload_model_instances();
+////                po->invalidate_all_steps();
+////            }
 //        }
-    }
+//    };
 
-    // Turn back the correction scaling on the model.
-    auto scale_back = [this, print, correction, exd]() {
-        if(correction) { // scale the model back
-//            print->invalidate_all_steps();
-//            for(auto po : print->objects) {
-//                po->model_object()->scale(
-//                    Pointf3(1.0/exd.corr_x, 1.0/exd.corr_y, 1.0/exd.corr_z)
-//                );
-//                po->model_object()->invalidate_bounding_box();
-//                po->reload_model_instances();
-//                po->invalidate_all_steps();
-//            }
-        }
-    };
+//    auto print_bb = print->bounding_box();
+//    Vec2d punsc = unscale(print_bb.size());
 
-    auto print_bb = print->bounding_box();
-    Vec2d punsc = unscale(print_bb.size());
+//    // If the print does not fit into the print area we should cry about it.
+//    if(px(punsc) > exd.width_mm || py(punsc) > exd.height_mm) {
+//        std::stringstream ss;
 
-    // If the print does not fit into the print area we should cry about it.
-    if(px(punsc) > exd.width_mm || py(punsc) > exd.height_mm) {
-        std::stringstream ss;
+//        ss << L("Print will not fit and will be truncated!") << "\n"
+//           << L("Width needed: ") << px(punsc) << " mm\n"
+//           << L("Height needed: ") << py(punsc) << " mm\n";
 
-        ss << L("Print will not fit and will be truncated!") << "\n"
-           << L("Width needed: ") << px(punsc) << " mm\n"
-           << L("Height needed: ") << py(punsc) << " mm\n";
+//       if(!ctl->report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
+//            scale_back();
+//            return;
+//       }
+//    }
 
-       if(!ctl->report_issue(IssueType::WARN_Q, ss.str(), L("Warning")))  {
-            scale_back();
-            return;
-       }
-    }
+//    auto pri = ctl->create_progress_indicator(
+//                200, L("Slicing to zipped png files..."));
 
-    auto pri = ctl->create_progress_indicator(
-                200, L("Slicing to zipped png files..."));
+//    pri->on_cancel([&print](){ print->cancel(); });
 
-    pri->on_cancel([&print](){ print->cancel(); });
+//    try {
+//        pri->update(0, L("Slicing..."));
+//        slice(pri);
+//    } catch (std::exception& e) {
+//        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+//        scale_back();
+//        if(print->canceled()) print->restart();
+//        return;
+//    }
 
-    try {
-        pri->update(0, L("Slicing..."));
-        slice(pri);
-    } catch (std::exception& e) {
-        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
-        scale_back();
-        if(print->canceled()) print->restart();
-        return;
-    }
+//    auto initstate = unsigned(pri->state());
+//    print->set_status_callback([pri, initstate](int st, const std::string& msg)
+//    {
+//        pri->update(initstate + unsigned(st), msg);
+//    });
 
-    auto initstate = unsigned(pri->state());
-    print->set_status_callback([pri, initstate](int st, const std::string& msg)
-    {
-        pri->update(initstate + unsigned(st), msg);
-    });
+//    try {
+//        print_to<FilePrinterFormat::PNG, Zipper>( *print, exd.zippath,
+//                    exd.width_mm, exd.height_mm,
+//                    exd.width_px, exd.height_px,
+//                    exd.exp_time_s, exd.exp_time_first_s);
 
-    try {
-        print_to<FilePrinterFormat::PNG, Zipper>( *print, exd.zippath,
-                    exd.width_mm, exd.height_mm,
-                    exd.width_px, exd.height_px,
-                    exd.exp_time_s, exd.exp_time_first_s);
+//    } catch (std::exception& e) {
+//        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
+//    }
 
-    } catch (std::exception& e) {
-        ctl->report_issue(IssueType::ERR, e.what(), L("Exception occurred"));
-    }
-
-    scale_back();
-    if(print->canceled()) print->restart();
-    print->set_status_default();
+//    scale_back();
+//    if(print->canceled()) print->restart();
+//    print->set_status_default();
 }
 
 const PrintConfig &PrintController::config() const

@@ -1,7 +1,7 @@
 #ifndef METALOOP_HPP
 #define METALOOP_HPP
 
-#include "common.hpp"
+#include <libnest2d/common.hpp>
 #include <tuple>
 #include <functional>
 
@@ -12,7 +12,7 @@ namespace libnest2d {
 /* ************************************************************************** */
 
 /**
- * \brief C++11 conformant implementation of the index_sequence type from C++14
+ * \brief C++11 compatible implementation of the index_sequence type from C++14
  */
 template<size_t...Ints> struct index_sequence {
     using value_type = size_t;

@@ -1,7 +1,6 @@
 #ifndef FIRSTFIT_HPP
 #define FIRSTFIT_HPP
 
-#include "../libnest2d.hpp"
 #include "selection_boilerplate.hpp"
 
 namespace libnest2d { namespace selections {

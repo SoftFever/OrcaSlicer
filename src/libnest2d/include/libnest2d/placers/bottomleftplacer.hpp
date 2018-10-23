@@ -233,7 +233,8 @@ protected:
 
                 assert(pleft.vertexCount() > 0);
 
-                auto trpleft = pleft.transformedShape();
+                auto trpleft_poly = pleft.transformedShape();
+                auto& trpleft = sl::contour(trpleft_poly);
                 auto first = sl::begin(trpleft);
                 auto next = first + 1;
                 auto endit = sl::end(trpleft);
@@ -355,8 +356,10 @@ protected:
         auto start = std::min(topleft_it->first, bottomleft_it->first);
         auto finish = std::max(topleft_it->first, bottomleft_it->first);
 
+        RawShape ret;
+
         // the return shape
-        RawShape rsh;
+        auto& rsh = sl::contour(ret);
 
         // reserve for all vertices plus 2 for the left horizontal wall, 2 for
         // the additional vertices for maintaning min object distance
@@ -401,7 +404,7 @@ protected:
         // Close the polygon
         sl::addVertex(rsh, topleft_vertex);
 
-        return rsh;
+        return ret;
     }
 
 };

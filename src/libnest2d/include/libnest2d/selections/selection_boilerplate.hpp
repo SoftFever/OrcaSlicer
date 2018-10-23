@@ -1,8 +1,8 @@
 #ifndef SELECTION_BOILERPLATE_HPP
 #define SELECTION_BOILERPLATE_HPP
 
-#include "../libnest2d.hpp"
 #include <atomic>
+#include <libnest2d/libnest2d.hpp>
 
 namespace libnest2d { namespace selections {
 

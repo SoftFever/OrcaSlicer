@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.0)
 
 project(Libnest2D)
 
@@ -11,125 +11,112 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED)
 
 # Add our own cmake module path.
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules/)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules/)
 
 option(LIBNEST2D_UNITTESTS "If enabled, googletest framework will be downloaded
     and the provided unit tests will be included in the build." OFF)
 
 option(LIBNEST2D_BUILD_EXAMPLES "If enabled, examples will be built." OFF)
 
-set(LIBNEST2D_GEOMETRIES_BACKEND "clipper" CACHE STRING
-    "Build libnest2d with geometry classes implemented by the chosen backend.")
+option(LIBNEST2D_HEADER_ONLY "If enabled static library will not be built." ON)
 
-set(LIBNEST2D_OPTIMIZER_BACKEND "nlopt" CACHE STRING
-    "Build libnest2d with optimization features implemented by the chosen backend.")
+set(GEOMETRY_BACKENDS clipper boost eigen)
+set(LIBNEST2D_GEOMETRIES clipper CACHE STRING "Geometry backend")
+set_property(CACHE LIBNEST2D_GEOMETRIES PROPERTY STRINGS ${GEOMETRY_BACKENDS})
+list(FIND GEOMETRY_BACKENDS ${LIBNEST2D_GEOMETRIES} GEOMETRY_TYPE)
+if(${GEOMETRY_TYPE} EQUAL -1)
+    message(FATAL_ERROR "Option ${LIBNEST2D_GEOMETRIES} not supported, valid entries are ${GEOMETRY_BACKENDS}")
+endif()
+
+set(OPTIMIZERS nlopt optimlib)
+set(LIBNEST2D_OPTIMIZER nlopt CACHE STRING "Optimization backend")
+set_property(CACHE LIBNEST2D_OPTIMIZER PROPERTY STRINGS ${OPTIMIZERS})
+list(FIND OPTIMIZERS ${LIBNEST2D_OPTIMIZER} OPTIMIZER_TYPE)
+if(${OPTIMIZER_TYPE} EQUAL -1)
+    message(FATAL_ERROR "Option ${LIBNEST2D_OPTIMIZER} not supported, valid entries are ${OPTIMIZERS}")
+endif()
+
+add_library(libnest2d INTERFACE)
+
+set(SRC_DIR ${PROJECT_SOURCE_DIR}/include)
 
 set(LIBNEST2D_SRCFILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/libnest2d.hpp         # Templates only
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d.h                     # Exports ready made types using template arguments
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/geometry_traits.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/common.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/metaloop.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/rotfinder.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/placer_boilerplate.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/bottomleftplacer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/placers/nfpplacer.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/geometry_traits_nfp.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/selection_boilerplate.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/filler.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/firstfit.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/selections/djd_heuristic.hpp
+    ${SRC_DIR}/libnest2d/libnest2d.hpp         # Templates only
+    ${SRC_DIR}/libnest2d/geometry_traits.hpp
+    ${SRC_DIR}/libnest2d/geometry_traits_nfp.hpp
+    ${SRC_DIR}/libnest2d/common.hpp
+    ${SRC_DIR}/libnest2d/optimizer.hpp
+    ${SRC_DIR}/libnest2d/utils/metaloop.hpp
+    ${SRC_DIR}/libnest2d/utils/rotfinder.hpp
+    ${SRC_DIR}/libnest2d/placers/placer_boilerplate.hpp
+    ${SRC_DIR}/libnest2d/placers/bottomleftplacer.hpp
+    ${SRC_DIR}/libnest2d/placers/nfpplacer.hpp
+    ${SRC_DIR}/libnest2d/selections/selection_boilerplate.hpp
+    ${SRC_DIR}/libnest2d/selections/filler.hpp
+    ${SRC_DIR}/libnest2d/selections/firstfit.hpp
+    ${SRC_DIR}/libnest2d/selections/djd_heuristic.hpp
     )
 
-set(LIBNEST2D_LIBRARIES "")
-
-set(LIBNEST2D_HEADERS ${CMAKE_CURRENT_SOURCE_DIR})
-
-if(LIBNEST2D_GEOMETRIES_BACKEND STREQUAL "clipper")
-
-    # Clipper backend is not enough on its own, it still needs some functions
-    # from Boost geometry
-    if(NOT Boost_INCLUDE_DIRS_FOUND)
-        find_package(Boost 1.58 REQUIRED)
-        # TODO automatic download of boost geometry headers
+set(TBB_STATIC ON)
+find_package(TBB QUIET)
+if(TBB_FOUND)
+    message(STATUS "Parallelization with Intel TBB")
+    target_include_directories(libnest2d INTERFACE ${TBB_INCLUDE_DIRS})
+    target_compile_definitions(libnest2d INTERFACE ${TBB_DEFINITIONS} -DUSE_TBB)
+    if(MSVC)
+       # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
+       target_compile_definitions(libnest2d INTERFACE -D__TBB_NO_IMPLICIT_LINKAGE)
     endif()
+    # The Intel TBB library will use the std::exception_ptr feature of C++11.
+    target_compile_definitions(libnest2d INTERFACE -DTBB_USE_CAPTURED_EXCEPTION=1)
 
-    add_subdirectory(libnest2d/clipper_backend)
+    target_link_libraries(libnest2d INTERFACE ${TBB_LIBRARIES})
+else()
+   find_package(OpenMP QUIET)
 
-    include_directories(BEFORE ${CLIPPER_INCLUDE_DIRS})
-    include_directories(${Boost_INCLUDE_DIRS})
-
-    list(APPEND LIBNEST2D_SRCFILES ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/clipper_backend/clipper_backend.hpp
-                                   ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/boost_alg.hpp)
-    list(APPEND LIBNEST2D_LIBRARIES ${CLIPPER_LIBRARIES})
-    list(APPEND LIBNEST2D_HEADERS ${CLIPPER_INCLUDE_DIRS}
-                                  ${Boost_INCLUDE_DIRS_FOUND})
+   if(OpenMP_CXX_FOUND)
+       message(STATUS "Parallelization with OpenMP")
+       target_include_directories(libnest2d INTERFACE OpenMP::OpenMP_CXX)
+       target_link_libraries(libnest2d INTERFACE OpenMP::OpenMP_CXX)
+   else()
+       message("Parallelization with C++11 threads")
+       find_package(Threads REQUIRED)
+       target_link_libraries(libnest2d INTERFACE Threads::Threads)
+   endif()
 endif()
 
-if(LIBNEST2D_OPTIMIZER_BACKEND STREQUAL "nlopt")
-    find_package(NLopt 1.4)
-    if(NOT NLopt_FOUND)
-        message(STATUS  "NLopt not found so downloading "
-                        "and automatic build is performed...")
-        include(DownloadNLopt)
-    endif()
-    find_package(Threads REQUIRED)
+add_subdirectory(${SRC_DIR}/libnest2d/backends/${LIBNEST2D_GEOMETRIES})
+add_subdirectory(${SRC_DIR}/libnest2d/optimizers/${LIBNEST2D_OPTIMIZER})
 
-    list(APPEND LIBNEST2D_SRCFILES  ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/simplex.hpp
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/subplex.hpp
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/genetic.hpp
-                                    ${CMAKE_CURRENT_SOURCE_DIR}/libnest2d/optimizers/nlopt_boilerplate.hpp)
-    list(APPEND LIBNEST2D_LIBRARIES ${NLopt_LIBS})
-    list(APPEND LIBNEST2D_HEADERS ${NLopt_INCLUDE_DIR})
-endif()
+target_sources(libnest2d INTERFACE ${LIBNEST2D_SRCFILES})
+target_include_directories(libnest2d INTERFACE ${SRC_DIR})
 
-if(LIBNEST2D_UNITTESTS)
-    enable_testing()
-    add_subdirectory(tests)
+if(NOT LIBNEST2D_HEADER_ONLY)
+    set(LIBNAME libnest2d_${LIBNEST2D_GEOMETRIES}_${LIBNEST2D_OPTIMIZER})
+    add_library(${LIBNAME} ${PROJECT_SOURCE_DIR}/src/libnest2d.cpp)
+    target_link_libraries(${LIBNAME} PUBLIC libnest2d)
+    target_compile_definitions(${LIBNAME} PUBLIC LIBNEST2D_STATIC)
 endif()
 
 if(LIBNEST2D_BUILD_EXAMPLES)
 
-    add_executable(example examples/main.cpp
-#                           tools/libnfpglue.hpp
-#                           tools/libnfpglue.cpp
-                           tools/nfp_svgnest.hpp
-                           tools/nfp_svgnest_glue.hpp
-                           tools/svgtools.hpp
-                           tests/printer_parts.cpp
-                           tests/printer_parts.h
-                           ${LIBNEST2D_SRCFILES}
-                           )
-    set(TBB_STATIC ON)
-    find_package(TBB QUIET)
-    if(TBB_FOUND)
-        message(STATUS "Parallelization with Intel TBB")
-        target_include_directories(example PUBLIC ${TBB_INCLUDE_DIRS})
-        target_compile_definitions(example PUBLIC ${TBB_DEFINITIONS} -DUSE_TBB)
-        if(MSVC)
-           # Suppress implicit linking of the TBB libraries by the Visual Studio compiler.
-           target_compile_definitions(example PUBLIC -D__TBB_NO_IMPLICIT_LINKAGE)
-        endif()
-        # The Intel TBB library will use the std::exception_ptr feature of C++11.
-        target_compile_definitions(example PUBLIC -DTBB_USE_CAPTURED_EXCEPTION=1)
+    add_executable(example     examples/main.cpp
+    #                           tools/libnfpglue.hpp
+    #                           tools/libnfpglue.cpp
+                               tools/nfp_svgnest.hpp
+                               tools/nfp_svgnest_glue.hpp
+                               tools/svgtools.hpp
+                               tests/printer_parts.cpp
+                               tests/printer_parts.h
+                               )
 
-        target_link_libraries(example ${TBB_LIBRARIES})
-   else()
-       find_package(OpenMP QUIET)
-       if(OpenMP_CXX_FOUND)
-           message(STATUS "Parallelization with OpenMP")
-           target_include_directories(example PUBLIC OpenMP::OpenMP_CXX)
-           target_link_libraries(example OpenMP::OpenMP_CXX)
-       endif()
-   endif()
-
-    target_link_libraries(example ${LIBNEST2D_LIBRARIES})
-    target_include_directories(example PUBLIC ${LIBNEST2D_HEADERS})
+    if(NOT LIBNEST2D_HEADER_ONLY)
+        target_link_libraries(example ${LIBNAME})
+    else()
+        target_link_libraries(example libnest2d)
+    endif()
 endif()
 
-get_directory_property(hasParent PARENT_DIRECTORY)
-if(hasParent)
-    set(LIBNEST2D_INCLUDES ${LIBNEST2D_HEADERS} PARENT_SCOPE)
-    set(LIBNEST2D_LIBRARIES ${LIBNEST2D_LIBRARIES} PARENT_SCOPE)
+if(LIBNEST2D_UNITTESTS)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/tests)
 endif()

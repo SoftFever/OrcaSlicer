@@ -154,7 +154,7 @@ add_library(libslic3r STATIC
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB ${PNG_DEFINITIONS})
 target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS})
 target_link_libraries(libslic3r
-    ${LIBNEST2D_LIBRARIES}
+    libnest2d
     admesh
     miniz 
     ${Boost_LIBRARIES}

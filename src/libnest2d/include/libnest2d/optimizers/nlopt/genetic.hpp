@@ -19,7 +19,8 @@ public:
 template<>
 struct OptimizerSubclass<Method::G_GENETIC> { using Type = GeneticOptimizer; };
 
-template<> TOptimizer<Method::G_GENETIC> GlobalOptimizer<Method::G_GENETIC>(
+template<>
+inline TOptimizer<Method::G_GENETIC> GlobalOptimizer<Method::G_GENETIC>(
         Method localm, const StopCriteria& scr )
 {
     return GeneticOptimizer (scr).localMethod(localm);

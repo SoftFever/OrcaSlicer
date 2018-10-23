@@ -241,11 +241,11 @@ template<> struct tag<bp2d::PolygonImpl> {
 
 template<> struct exterior_ring<bp2d::PolygonImpl> {
     static inline bp2d::PathImpl& get(bp2d::PolygonImpl& p) {
-        return libnest2d::shapelike::getContour(p);
+        return libnest2d::shapelike::contour(p);
     }
 
     static inline bp2d::PathImpl const& get(bp2d::PolygonImpl const& p) {
-        return libnest2d::shapelike::getContour(p);
+        return libnest2d::shapelike::contour(p);
     }
 };
 
@@ -382,6 +382,14 @@ inline bool touches( const PointImpl& point, const PolygonImpl& shape)
 #ifndef DISABLE_BOOST_BOUNDING_BOX
 template<>
 inline bp2d::Box boundingBox(const PolygonImpl& sh, const PolygonTag&)
+{
+    bp2d::Box b;
+    boost::geometry::envelope(sh, b);
+    return b;
+}
+
+template<>
+inline bp2d::Box boundingBox(const PathImpl& sh, const PolygonTag&)
 {
     bp2d::Box b;
     boost::geometry::envelope(sh, b);

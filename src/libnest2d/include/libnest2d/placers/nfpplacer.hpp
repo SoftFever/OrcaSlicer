@@ -15,11 +15,13 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
-#include "placer_boilerplate.hpp"
-#include "../geometry_traits_nfp.hpp"
-#include "libnest2d/optimizer.hpp"
+#include <libnest2d/geometry_traits_nfp.hpp>
+#include <libnest2d/optimizer.hpp>
 
-#include "tools/svgtools.hpp"
+#include "placer_boilerplate.hpp"
+
+// temporary
+//#include "../tools/svgtools.hpp"
 
 #ifdef USE_TBB
 #include <tbb/parallel_for.h>
@@ -55,7 +57,7 @@ inline void enumerate(
 #elif defined(_OPENMP)
     if((policy & std::launch::async) == std::launch::async) {
         #pragma omp parallel for
-        for(TN n = 0; n < N; n++) fn(*(from + n), n);
+        for(int n = 0; n < int(N); n++) fn(*(from + n), TN(n));
     }
     else {
         for(TN n = 0; n < N; n++) fn(*(from + n), n);
@@ -71,19 +73,6 @@ inline void enumerate(
     for(TN fi = 0; fi < N; ++fi) rets[fi].wait();
 #endif
 }
-
-class SpinLock {
-    static std::atomic_flag locked;
-public:
-    void lock() {
-        while (locked.test_and_set(std::memory_order_acquire)) { ; }
-    }
-    void unlock() {
-        locked.clear(std::memory_order_release);
-    }
-};
-
-std::atomic_flag SpinLock::locked = ATOMIC_FLAG_INIT ;
 
 }
 
@@ -101,7 +90,7 @@ Key hash(const _Item<S>& item) {
 
     std::string ret;
     auto& rhs = item.rawShape();
-    auto& ctr = sl::getContour(rhs);
+    auto& ctr = sl::contour(rhs);
     auto it = ctr.begin();
     auto nx = std::next(it);
 
@@ -467,7 +456,7 @@ Circle minimizeCircle(const RawShape& sh) {
     using Point = TPoint<RawShape>;
     using Coord = TCoord<Point>;
 
-    auto& ctr = sl::getContour(sh);
+    auto& ctr = sl::contour(sh);
     if(ctr.empty()) return {{0, 0}, 0};
 
     auto bb = sl::boundingBox(sh);
@@ -641,6 +630,23 @@ private:
         Shapes nfps(items_.size());
         const Item& trsh = itsh.first;
 
+        // /////////////////////////////////////////////////////////////////////
+        // TODO: this is a workaround and should be solved in Item with mutexes
+        // guarding the mutable members when writing them.
+        // /////////////////////////////////////////////////////////////////////
+        trsh.transformedShape();
+        trsh.referenceVertex();
+        trsh.rightmostTopVertex();
+        trsh.leftmostBottomVertex();
+
+        for(Item& itm : items_) {
+            itm.transformedShape();
+            itm.referenceVertex();
+            itm.rightmostTopVertex();
+            itm.leftmostBottomVertex();
+        }
+        // /////////////////////////////////////////////////////////////////////
+
         __parallel::enumerate(items_.begin(), items_.end(),
                               [&nfps, &trsh](const Item& sh, size_t n)
         {
@@ -651,13 +657,9 @@ private:
             nfps[n] = subnfp_r.first;
         });
 
-//        for(auto& n : nfps) {
-//            auto valid = sl::isValid(n);
-//            if(!valid.first) std::cout << "Warning: " << valid.second << std::endl;
-//        }
-
         return nfp::merge(nfps);
     }
+
 
     template<class Level>
     Shapes calcnfp( const ItemWithHash itsh, Level)
@@ -842,7 +844,11 @@ private:
         bool can_pack = false;
         double best_overfit = std::numeric_limits<double>::max();
 
-        auto remlist = ItemGroup(remaining.from, remaining.to);
+        ItemGroup remlist;
+        if(remaining.valid) {
+            remlist.insert(remlist.end(), remaining.from, remaining.to);
+        }
+
         size_t itemhash = __itemhash::hash(item);
 
         if(items_.empty()) {

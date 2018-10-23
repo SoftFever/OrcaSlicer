@@ -4,6 +4,7 @@
 #include <libnest2d.h>
 #include "printer_parts.h"
 #include <libnest2d/geometry_traits_nfp.hpp>
+#include "../tools/svgtools.hpp"
 //#include "../tools/libnfpglue.hpp"
 //#include "../tools/nfp_svgnest_glue.hpp"
 
@@ -125,7 +126,7 @@ TEST(GeometryAlgorithms, boundingCircle) {
         c = boundingCircle(part.transformedShape());
         if(std::isnan(c.radius())) std::cout << "fail: radius is nan" << std::endl;
 
-        else for(auto v : shapelike::getContour(part.transformedShape()) ) {
+        else for(auto v : shapelike::contour(part.transformedShape()) ) {
             auto d = pointlike::distance(v, c.center());
             if(d > c.radius() ) {
                 auto e = std::abs( 1.0 - d/c.radius());
@@ -791,10 +792,55 @@ TEST(GeometryAlgorithms, nfpConvexConvex) {
 TEST(GeometryAlgorithms, nfpConcaveConcave) {
     using namespace libnest2d;
 
-//    Rectangle r1(10, 10);
-//    Rectangle r2(20, 20);
-//    auto result = Nfp::nfpSimpleSimple(r1.transformedShape(),
-//                                       r2.transformedShape());
+    Item stationary = {
+        {
+            {207, 76},
+            {194, 117},
+            {206, 117},
+            {206, 104},
+            {218, 104},
+            {231, 117},
+            {231, 130},
+            {244, 130},
+            {230, 92},
+            {220, 92},
+            {220, 84},
+            {239, 76},
+            {207, 76}
+        },
+        {}
+    };
+
+    Item orbiter = {
+        {
+            {78, 76},
+            {90, 89},
+            {76, 124},
+            {101, 124},
+            {101, 100},
+            {141, 113},
+            {141, 124},
+            {168, 124},
+            {158, 115},
+            {158, 104},
+            {121, 88},
+            {121, 76},
+            {78, 76}
+        },
+        {}
+    };
+
+    Rectangle r1(10, 10);
+    Rectangle r2(20, 20);
+    auto result = nfp::nfpSimpleSimple(stationary.transformedShape(),
+                                       orbiter.transformedShape());
+
+    svg::SVGWriter<PolygonImpl>::Config conf;
+    conf.mm_in_coord_units = 1;
+    svg::SVGWriter<PolygonImpl> wr(conf);
+    wr.writeItem(Item(result.first));
+    wr.save("simplesimple.svg");
+
 }
 
 TEST(GeometryAlgorithms, pointOnPolygonContour) {

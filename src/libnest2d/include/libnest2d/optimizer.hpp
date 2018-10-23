@@ -105,6 +105,11 @@ struct StopCriteria {
     /// Stop if this value or better is found.
     double stop_score = std::nan("");
 
+    /// A predicate that if evaluates to true, the optimization should terminate
+    /// and the best result found prior to termination should be returned.
+    std::function<bool()> stop_condition = [] { return false; };
+
+    /// The max allowed number of iterations.
     unsigned max_iterations = 0;
 };
 

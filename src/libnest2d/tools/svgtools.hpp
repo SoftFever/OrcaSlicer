@@ -56,7 +56,7 @@ public:
             auto d = static_cast<Coord>(
                         std::round(conf_.height*conf_.mm_in_coord_units) );
 
-            auto& contour = shapelike::getContour(tsh);
+            auto& contour = shapelike::contour(tsh);
             for(auto& v : contour) setY(v, -getY(v) + d);
 
             auto& holes = shapelike::holes(tsh);

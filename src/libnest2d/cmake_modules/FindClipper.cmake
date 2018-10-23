@@ -48,3 +48,11 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(Clipper
 MARK_AS_ADVANCED(
     CLIPPER_INCLUDE_DIRS
     CLIPPER_LIBRARIES)
+
+if(CLIPPER_FOUND)
+    add_library(Clipper::Clipper INTERFACE IMPORTED)
+    set_target_properties(Clipper::Clipper PROPERTIES INTERFACE_LINK_LIBRARIES ${CLIPPER_LIBRARIES})
+    set_target_properties(Clipper::Clipper PROPERTIES INTERFACE_INCLUDE_DIRECTORIES ${CLIPPER_INCLUDE_DIRS})
+    #target_link_libraries(Clipper::Clipper INTERFACE ${CLIPPER_LIBRARIES})
+    #target_include_directories(Clipper::Clipper INTERFACE ${CLIPPER_INCLUDE_DIRS})
+endif()

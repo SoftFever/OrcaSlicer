@@ -3,7 +3,10 @@
 find_package(GTest 1.7)
 
 if(NOT GTEST_FOUND)
-    message(STATUS "GTest not found so downloading...")
+    set(URL_GTEST "https://github.com/google/googletest.git" 
+        CACHE STRING "Google test source code repository location.")
+
+    message(STATUS "GTest not found so downloading from ${URL_GTEST}")
     # Go and download google test framework, integrate it with the build
     set(GTEST_LIBS_TO_LINK gtest gtest_main)
 
@@ -15,7 +18,7 @@ if(NOT GTEST_FOUND)
 
     include(DownloadProject)
     download_project(PROJ                googletest
-                     GIT_REPOSITORY      https://github.com/google/googletest.git
+                     GIT_REPOSITORY      ${URL_GTEST}
                      GIT_TAG             release-1.7.0
                      ${UPDATE_DISCONNECTED_IF_AVAILABLE}
     )
@@ -35,17 +38,18 @@ else()
     set(GTEST_LIBS_TO_LINK  ${GTEST_BOTH_LIBRARIES}  Threads::Threads)
 endif()
 
-add_executable(bp2d_tests   test.cpp
-                            ../tools/svgtools.hpp
-#                            ../tools/libnfpglue.hpp
-#                            ../tools/libnfpglue.cpp
-                            printer_parts.h
-                            printer_parts.cpp
-                            ${LIBNEST2D_SRCFILES}
-                            )
-target_link_libraries(bp2d_tests ${LIBNEST2D_LIBRARIES} ${GTEST_LIBS_TO_LINK} )
+add_executable(tests_clipper_nlopt
+    test.cpp
+    ../tools/svgtools.hpp
+#   ../tools/libnfpglue.hpp
+#  ../tools/libnfpglue.cpp
+    printer_parts.h
+    printer_parts.cpp
+)
 
-target_include_directories(bp2d_tests PRIVATE BEFORE ${LIBNEST2D_HEADERS}
-                                                     ${GTEST_INCLUDE_DIRS})
+target_link_libraries(tests_clipper_nlopt libnest2d ${GTEST_LIBS_TO_LINK} )
 
-add_test(libnest2d_tests bp2d_tests)
+target_include_directories(tests_clipper_nlopt PRIVATE BEFORE
+    ${GTEST_INCLUDE_DIRS})
+
+add_test(libnest2d_tests tests_clipper_nlopt)

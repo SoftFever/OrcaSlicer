@@ -13,7 +13,7 @@
 
 #include <libnest2d/optimizer.hpp>
 #include <cassert>
-#include "libnest2d/metaloop.hpp"
+#include <libnest2d/utils/metaloop.hpp>
 
 #include <utility>
 
@@ -100,7 +100,13 @@ protected:
                           std::vector<double>& /*grad*/,
                           void *data)
     {
-        auto fnptr = static_cast<remove_ref_t<Fn>*>(data);
+        using TData = std::pair<remove_ref_t<Fn>*, NloptOptimizer*>;
+        auto typeddata = static_cast<TData*>(data);
+
+        if(typeddata->second->stopcr_.stop_condition())
+            typeddata->second->opt_.force_stop();
+
+        auto fnptr = typeddata->first;
         auto funval = std::tuple<Args...>();
 
         // copy the obtained objectfunction arguments to the funval tuple.
@@ -155,17 +161,25 @@ protected:
         // Take care of the initial values, copy them to initvals_
         metaloop::apply(InitValFunc(*this), initvals);
 
+        std::pair<remove_ref_t<Func>*, NloptOptimizer*> data =
+                std::make_pair(&func, this);
+
         switch(dir_) {
         case OptDir::MIN:
-            opt_.set_min_objective(optfunc<Func, Args...>, &func); break;
+            opt_.set_min_objective(optfunc<Func, Args...>, &data); break;
         case OptDir::MAX:
-            opt_.set_max_objective(optfunc<Func, Args...>, &func); break;
+            opt_.set_max_objective(optfunc<Func, Args...>, &data); break;
         }
 
         Result<Args...> result;
+        nlopt::result rescode;
 
-        auto rescode = opt_.optimize(initvals_, result.score);
-        result.resultcode = static_cast<ResultCodes>(rescode);
+        try {
+            rescode = opt_.optimize(initvals_, result.score);
+            result.resultcode = static_cast<ResultCodes>(rescode);
+        } catch( nlopt::forced_stop& ) {
+            result.resultcode = ResultCodes::FORCED_STOP;
+        }
 
         metaloop::apply(ResultCopyFunc(*this), result.optimum);
 

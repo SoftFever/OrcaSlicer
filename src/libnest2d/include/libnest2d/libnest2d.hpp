@@ -215,7 +215,7 @@ public:
 
         switch(convexity_) {
         case Convexity::UNCHECKED:
-            ret = sl::isConvex<RawShape>(sl::getContour(transformedShape()));
+            ret = sl::isConvex(sl::contour(transformedShape()));
             convexity_ = ret? Convexity::C_TRUE : Convexity::C_FALSE;
             break;
         case Convexity::C_TRUE: ret = true; break;
@@ -805,16 +805,16 @@ public:
              class SConf = SelectionConfig>
     Nester( TBinType&& bin,
               Unit min_obj_distance = 0,
-              PConf&& pconfig = PConf(),
-              SConf&& sconfig = SConf()):
+              const PConf& pconfig = PConf(),
+              const SConf& sconfig = SConf()):
         bin_(std::forward<TBinType>(bin)),
-        pconfig_(std::forward<PlacementConfig>(pconfig)),
+        pconfig_(pconfig),
         min_obj_distance_(min_obj_distance)
     {
         static_assert( std::is_same<TPItem, TSItem>::value,
                        "Incompatible placement and selection strategy!");
 
-        selector_.configure(std::forward<SelectionConfig>(sconfig));
+        selector_.configure(sconfig);
     }
 
     void configure(const PlacementConfig& pconf) { pconfig_ = pconf; }
