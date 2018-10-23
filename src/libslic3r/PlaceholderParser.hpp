@@ -14,7 +14,8 @@ class PlaceholderParser
 public:    
     PlaceholderParser();
     
-    void apply_config(const DynamicPrintConfig &config);
+    // Return true if modified.
+    bool apply_config(const DynamicPrintConfig &config);
     void apply_env_variables();
 
     // Add new ConfigOption values to m_config.

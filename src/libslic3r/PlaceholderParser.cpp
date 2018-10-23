@@ -100,22 +100,33 @@ void PlaceholderParser::update_timestamp(DynamicConfig &config)
 // are expected to be addressed by the extruder ID, therefore
 // if a vector configuration value is addressed without an index,
 // a current extruder ID is used.
-void PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
+bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
 {
     const ConfigDef *def = rhs.def();
+    bool modified = false;
     for (const t_config_option_key &opt_key : rhs.keys()) {
         const ConfigOptionDef *opt_def = def->get(opt_key);
         if ((opt_def->multiline && boost::ends_with(opt_key, "_gcode")) || opt_key == "post_process")
             continue;
-        const ConfigOption *opt = rhs.option(opt_key);
+        const ConfigOption *opt_rhs = rhs.option(opt_key);
+        const ConfigOption *opt_old = m_config.option(opt_key, false);
+        if (opt_old != nullptr) {
+            if ((opt_rhs->type() == coFloatOrPercent && 
+                 dynamic_cast<const ConfigOptionFloat*>(opt_old)->value == rhs.get_abs_value(opt_key)) ||
+                *opt_rhs == *opt_old)
+                // no need to update
+                continue;
+        }
         // Store a copy of the config option.
         // Convert FloatOrPercent values to floats first.
         //FIXME there are some ratio_over chains, which end with empty ratio_with.
         // For example, XXX_extrusion_width parameters are not handled by get_abs_value correctly.
-        this->set(opt_key, (opt->type() == coFloatOrPercent) ?
+        this->set(opt_key, (opt_rhs->type() == coFloatOrPercent) ?
             new ConfigOptionFloat(rhs.get_abs_value(opt_key)) :
-            opt->clone());
+            opt_rhs->clone());
+        modified = true;
     }
+    return modified;
 }
 
 void PlaceholderParser::apply_env_variables()

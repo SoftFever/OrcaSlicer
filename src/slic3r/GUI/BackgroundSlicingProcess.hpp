@@ -13,7 +13,6 @@ namespace Slic3r {
 class DynamicPrintConfig;
 class GCodePreviewData;
 class Model;
-class Print;
 
 // Print step IDs for keeping track of the print state.
 enum BackgroundSlicingProcessStep {
@@ -50,7 +49,7 @@ public:
 	bool apply_config(const DynamicPrintConfig &config);
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
-	bool apply(const Model &model, const DynamicPrintConfig &config);
+	Print::ApplyStatus apply(const Model &model, const DynamicPrintConfig &config);
 	// Set the export path of the G-code.
 	// Once the path is set, the G-code 
 	void schedule_export(const std::string &path);

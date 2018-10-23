@@ -1647,35 +1647,32 @@ void Plater::priv::async_apply_config()
     this->q->model().update_print_volume_state(print_volume);
 
     // Apply new config to the possibly running background task.
-    bool was_running = this->background_process.running();
-    bool invalidated = this->background_process.apply(this->q->model(), std::move(config));
+    Print::ApplyStatus invalidated = this->background_process.apply(this->q->model(), std::move(config));
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (Slic3r::_3DScene::is_layers_editing_enabled(this->canvas3D))
         this->canvas3D->Refresh();
-    // If the apply_config caused the calculation to stop, or it was not running yet:
-    if (invalidated) {
-        if (was_running) {
-            // Hide the slicing results if the current slicing status is no more valid.
-            this->sidebar->show_info_sizers(false);
-        }
-        if (this->get_config("background_processing") == "1")
-            this->background_process.start();
-        if (was_running) {
-            // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
-            // Otherwise they will be just refreshed.
-            this->gcode_preview_data.reset();
-            if (this->preview != nullptr)
-                this->preview->reload_print();
-            // We also need to reload 3D scene because of the wipe tower preview box
-            if (this->config->opt_bool("wipe_tower")) {
+
+    if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
+        // Some previously calculated data on the Print was invalidated.
+        // Hide the slicing results, as the current slicing status is no more valid.
+        this->sidebar->show_info_sizers(false);
+        // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
+        // Otherwise they will be just refreshed.
+        this->gcode_preview_data.reset();
+        if (this->preview != nullptr)
+            this->preview->reload_print();
+        // We also need to reload 3D scene because of the wipe tower preview box
+        if (this->config->opt_bool("wipe_tower")) {
 #if !ENABLE_EXTENDED_SELECTION
-                std::vector<int> selections = this->collect_selections();
-                Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
-                Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
+            std::vector<int> selections = this->collect_selections();
+            Slic3r::_3DScene::set_objects_selections(this->canvas3D, selections);
+            Slic3r::_3DScene::reload_scene(this->canvas3D, 1);
 #endif /* !ENABLE_EXTENDED_SELECTION */
-            }
         }
     }
+    if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->get_config("background_processing") == "1" &&
+        this->print.num_object_instances() > 0)
+        this->background_process.start();
 }
 
 void Plater::priv::start_background_process()
@@ -1844,7 +1841,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
         this->statusbar()->set_status_text(message);
     }
 
-    //$self->print_info_box_show(1);
+    this->sidebar->show_info_sizers(false);
 
     // this updates buttons status
     //$self->object_list_changed;

@@ -132,6 +132,7 @@ bool BackgroundSlicingProcess::start()
 	if (! this->idle())
 		throw std::runtime_error("Cannot start a background task, the worker thread is not idle.");
 	m_state = STATE_STARTED;
+	m_print->set_cancel_callback([this](){ this->stop(); });
 	lck.unlock();
 	m_condition.notify_one();
 	return true;
@@ -151,9 +152,11 @@ bool BackgroundSlicingProcess::stop()
 		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
 		// In the "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
+		m_print->set_cancel_callback([](){});
 	} else if (m_state == STATE_FINISHED || m_state == STATE_CANCELED) {
 		// In the "Finished" or "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
+		m_print->set_cancel_callback([](){});
 	}
 //	this->m_export_path.clear();
 	return true;
@@ -170,10 +173,10 @@ bool BackgroundSlicingProcess::apply_config(const DynamicPrintConfig &config)
 
 // Apply config over the print. Returns false, if the new config values caused any of the already
 // processed steps to be invalidated, therefore the task will need to be restarted.
-bool BackgroundSlicingProcess::apply(const Model &model, const DynamicPrintConfig &config)
+Print::ApplyStatus BackgroundSlicingProcess::apply(const Model &model, const DynamicPrintConfig &config)
 {
-	this->stop();
-	bool invalidated = m_print->apply(model, config);
+//	this->stop();
+	Print::ApplyStatus invalidated = m_print->apply(model, config);
 	return invalidated;
 }
 

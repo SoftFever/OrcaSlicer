@@ -357,6 +357,14 @@ std::vector<unsigned int> Print::extruders() const
     return extruders;
 }
 
+unsigned int Print::num_object_instances() const
+{
+	unsigned int instances = 0;
+    for (const PrintObject *print_object : m_objects)
+        instances += print_object->copies().size();
+    return instances;
+}
+
 void Print::_simplify_slices(double distance)
 {
     for (PrintObject *object : m_objects) {
@@ -687,7 +695,7 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     return std::vector<PrintInstances>(trafos.begin(), trafos.end());
 }
 
-bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
+Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
     // Make a copy of the config, normalize it.
     DynamicPrintConfig config(config_in);
@@ -697,14 +705,23 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
     t_config_option_keys object_diff = m_default_object_config.diff(config);
     t_config_option_keys region_diff = m_default_region_config.diff(config);
 
+    // Do not use the ApplyStatus as we will use the max function when updating apply_status. 
+    unsigned int apply_status = APPLY_STATUS_UNCHANGED;
+    auto update_apply_status = [&apply_status](bool invalidated)
+        { apply_status = std::max<unsigned int>(apply_status, invalidated ? APPLY_STATUS_INVALIDATED : APPLY_STATUS_CHANGED); };
+    if (! (print_diff.empty() && object_diff.empty() && region_diff.empty()))
+        update_apply_status(false);
+
     // Grab the lock for the Print / PrintObject milestones.
     tbb::mutex::scoped_lock lock(m_mutex);
 
     // The following call may stop the background processing.
-    bool invalidated = this->invalidate_state_by_config_options(print_diff);
+    update_apply_status(this->invalidate_state_by_config_options(print_diff));
     // Apply variables to placeholder parser. The placeholder parser is used by G-code export,
     // which should be stopped if print_diff is not empty.
-    m_placeholder_parser.apply_config(config);
+    if (m_placeholder_parser.apply_config(config))
+        update_apply_status(this->invalidate_step(psGCodeExport));
+
     // It is also safe to change m_config now after this->invalidate_state_by_config_options() call.
     m_config.apply_only(config, print_diff, true);
     // Handle changes to object config defaults
@@ -734,7 +751,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
         // Kill everything, initialize from scratch.
         // Stop background processing.
         m_cancel_callback();
-        this->invalidate_all_steps();
+        update_apply_status(this->invalidate_all_steps());
         for (PrintObject *object : m_objects) {
             model_object_status.emplace(object->model_object()->id(), ModelObjectStatus::Deleted);
             delete object;
@@ -753,7 +770,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 				model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
         } else if (model_object_list_extended(m_model, model)) {
             // Add new objects. Their volumes and configs will be synchronized later.
-            this->invalidate_step(psGCodeExport);
+            update_apply_status(this->invalidate_step(psGCodeExport));
             for (const ModelObject *model_object : m_model.objects)
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
@@ -766,14 +783,14 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             m_cancel_callback();
             this->invalidate_step(psGCodeExport);
             // Second create a new list of objects.
-            std::vector<ModelObject*> old(std::move(m_model.objects));
+            std::vector<ModelObject*> model_objects_old(std::move(m_model.objects));
             m_model.objects.clear();
             m_model.objects.reserve(model.objects.size());
             auto by_id_lower = [](const ModelObject *lhs, const ModelObject *rhs){ return lhs->id() < rhs->id(); };
-            std::sort(old.begin(), old.end(), by_id_lower);
+            std::sort(model_objects_old.begin(), model_objects_old.end(), by_id_lower);
             for (const ModelObject *mobj : model.objects) {
-                auto it = std::lower_bound(old.begin(), old.end(), mobj, by_id_lower);
-                if (it == old.end() || (*it)->id() != mobj->id()) {
+                auto it = std::lower_bound(model_objects_old.begin(), model_objects_old.end(), mobj, by_id_lower);
+                if (it == model_objects_old.end() || (*it)->id() != mobj->id()) {
                     // New ModelObject added.
                     m_model.objects.emplace_back((*it)->clone(&m_model));
                     model_object_status.emplace(mobj->id(), ModelObjectStatus::New);
@@ -784,26 +801,30 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
                 }
             }
             bool deleted_any = false;
-            for (ModelObject *mobj : old)
-                if (model_object_status.find(ModelObjectStatus(mobj->id())) == model_object_status.end()) {
-                    model_object_status.emplace(mobj->id(), ModelObjectStatus::Deleted);
-                    delete mobj;
+			for (ModelObject *&model_object : model_objects_old) {
+                if (model_object_status.find(ModelObjectStatus(model_object->id())) == model_object_status.end()) {
+                    model_object_status.emplace(model_object->id(), ModelObjectStatus::Deleted);
                     deleted_any = true;
-                }
+                } else
+                    // Do not delete this ModelObject instance.
+                    model_object = nullptr;
+            }
             if (deleted_any) {
                 // Delete PrintObjects of the deleted ModelObjects.
-                std::vector<PrintObject*> old = std::move(m_objects);
+                std::vector<PrintObject*> print_objects_old = std::move(m_objects);
                 m_objects.clear();
-                m_objects.reserve(old.size());
-                for (PrintObject *print_object : old) {
+                m_objects.reserve(print_objects_old.size());
+                for (PrintObject *print_object : print_objects_old) {
                     auto it_status = model_object_status.find(ModelObjectStatus(print_object->model_object()->id()));
                     assert(it_status != model_object_status.end());
                     if (it_status->status == ModelObjectStatus::Deleted) {
-                        print_object->invalidate_all_steps();
+                        update_apply_status(print_object->invalidate_all_steps());
                         delete print_object;
                     } else
                         m_objects.emplace_back(print_object);
                 }
+                for (ModelObject *model_object : model_objects_old)
+                    delete model_object;
             }
         }
     }
@@ -860,7 +881,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it) {
-                it->print_object->invalidate_all_steps();
+                update_apply_status(it->print_object->invalidate_all_steps());
                 const_cast<PrintObjectStatus&>(*it).status = PrintObjectStatus::Deleted;
             }
             // Copy content of the ModelObject including its ID, reset the parent.
@@ -872,7 +893,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             // Invalidate just the supports step.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it)
-                it->print_object->invalidate_step(posSupportMaterial);
+                update_apply_status(it->print_object->invalidate_step(posSupportMaterial));
             // Copy just the support volumes.
             model_volume_list_update_supports(model_object, model_object_new);
         }
@@ -883,19 +904,23 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             this_object_config_diff = model_object.config.diff(model_object_new.config);
             if (! this_object_config_diff.empty())
                 model_object.config.apply_only(model_object_new.config, this_object_config_diff, true);
-            if (! this_object_config_diff.empty() || ! this_object_config_diff.empty()) {
+            if (! object_diff.empty() || ! this_object_config_diff.empty()) {
                 PrintObjectConfig new_config = m_default_object_config;
                 normalize_and_apply_config(new_config, model_object.config);
                 auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
                 for (auto it = range.first; it != range.second; ++ it) {
                     t_config_option_keys diff = it->print_object->config().diff(new_config);
-                    invalidated |= it->print_object->invalidate_state_by_config_options(diff);
-                    it->print_object->config_apply_only(new_config, diff, true);
+                    if (! diff.empty()) {
+                        update_apply_status(it->print_object->invalidate_state_by_config_options(diff));
+                        it->print_object->config_apply_only(new_config, diff, true);
+                    }
                 }
             }
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;
-            model_object.instances  = model_object_new.instances;
+            model_object.clear_instances();
+            for (const ModelInstance *model_instance : model_object_new.instances)
+                model_object.add_instance(*model_instance);
         }
     }
 
@@ -944,6 +969,9 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
                     print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
                 } else if ((*it_old)->print_object->copies() != new_instances.copies) {
                     // The PrintObject already exists and the copies differ.
+                    if ((*it_old)->print_object->copies().size() != new_instances.copies.size())
+                        update_apply_status(this->invalidate_step(psWipeTower));
+                    update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psGCodeExport));
                     (*it_old)->print_object->set_copies(new_instances.copies);
 					print_objects_new.emplace_back((*it_old)->print_object);
 				}
@@ -952,6 +980,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
         if (m_objects != print_objects_new) {
             m_cancel_callback();
             m_objects = print_objects_new;
+            update_apply_status(false);
         }
     }
 
@@ -998,7 +1027,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             }
             continue;
         print_object_end:
-            print_object->invalidate_all_steps();
+            update_apply_status(print_object->invalidate_all_steps());
             // Decrease the references to regions from this volume.
             int ireg = 0;
             for (const std::vector<int> &volumes : print_object->region_volumes) {
@@ -1014,7 +1043,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
                 region.config_apply_only(this_region_config, diff, false);
                 for (PrintObject *print_object : m_objects)
                     if (region_id < print_object->region_volumes.size() && ! print_object->region_volumes[region_id].empty())
-                        invalidated |= print_object->invalidate_state_by_config_options(diff);
+                        update_apply_status(print_object->invalidate_state_by_config_options(diff));
             }
         }
     }
@@ -1072,7 +1101,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
             object->update_layer_height_profile();
 
     this->update_object_placeholders();
-    return invalidated;
+	return static_cast<ApplyStatus>(apply_status);
 }
 
 // Update "scale", "input_filename", "input_filename_base" placeholders from the current m_objects.

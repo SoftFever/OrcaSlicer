@@ -94,6 +94,8 @@ public:
                 printf("Not held!\n");
             }
 #endif
+            // Raise the mutex, so that the following cancel() callback could cancel
+            // the background processing.
             mtx.unlock();
             cancel();
 			m_state[step] = INVALID;
@@ -393,7 +395,16 @@ public:
     bool                reload_model_instances();
     void                add_model_object(ModelObject* model_object, int idx = -1);
     bool                apply_config(DynamicPrintConfig config);
-    bool                apply(const Model &model, const DynamicPrintConfig &config);
+    enum ApplyStatus {
+        // No change after the Print::apply() call.
+        APPLY_STATUS_UNCHANGED,
+        // Some of the Print / PrintObject / PrintObjectInstance data was changed,
+        // but no result was invalidated (only data influencing not yet calculated results were changed).
+        APPLY_STATUS_CHANGED,
+        // Some data was changed, which in turn invalidated already calculated steps.
+        APPLY_STATUS_INVALIDATED,
+    };
+    ApplyStatus         apply(const Model &model, const DynamicPrintConfig &config);
 
     void                process();
     void                export_gcode(const std::string &path_template, GCodePreviewData *preview_data);
@@ -434,6 +445,9 @@ public:
     const PrintRegionPtrs&      regions() const { return m_regions; }
     const PlaceholderParser&    placeholder_parser() const { return m_placeholder_parser; }
     PlaceholderParser&          placeholder_parser() { return m_placeholder_parser; }
+    // How many of PrintObject::copies() over all print objects are there?
+    // If zero, then the print is empty and the print shall not be executed.
+    unsigned int                num_object_instances() const;
 
     // Returns extruder this eec should be printed with, according to PrintRegion config:
     static int get_extruder(const ExtrusionEntityCollection& fill, const PrintRegion &region);
