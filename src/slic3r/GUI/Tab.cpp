@@ -2426,10 +2426,13 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	wxWindowUpdateLocker noUpdates(this);
 #endif
 
+    if (m_pages.empty())
+        return;
+
 	Page* page = nullptr;
     const auto sel_item = m_treectrl->GetSelection();
     const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
-	for (auto p : m_pages)
+    for (auto p : m_pages)
 		if (p->title() == selection)
 		{
 			page = p.get();
