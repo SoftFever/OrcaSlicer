@@ -827,7 +827,7 @@ void add_frequently_changed_parameters(wxWindow* parent, wxBoxSizer* sizer, wxFl
 				double brim_width = config->opt_float("brim_width");
 				if (boost::any_cast<bool>(value) == true)
 				{
-					new_val = m_brim_width == 0.0 ? 10 :
+					new_val = m_brim_width == 0.0 ? 5 :
 						m_brim_width < 0.0 ? m_brim_width * (-1) :
 						m_brim_width;
 				}
