@@ -87,23 +87,25 @@ bool PrintObject::delete_last_copy()
 
 bool PrintObject::set_copies(const Points &points)
 {
-    bool copies_num_changed = m_copies.size() != points.size();
-    
-    // order copies with a nearest neighbor search and translate them by _copies_shift
-    m_copies.clear();
-    m_copies.reserve(points.size());
-    
-    // order copies with a nearest-neighbor search
-    std::vector<Points::size_type> ordered_copies;
-    Slic3r::Geometry::chained_path(points, ordered_copies);
-    
-    for (size_t point_idx : ordered_copies)
-        m_copies.push_back(points[point_idx] + m_copies_shift);
-    
-    bool invalidated = m_print->invalidate_step(psSkirt);
-    invalidated |= m_print->invalidate_step(psBrim);
-    if (copies_num_changed)
-        invalidated |= m_print->invalidate_step(psWipeTower);
+    // Order copies with a nearest-neighbor search.
+    std::vector<Point> copies;
+    {
+        std::vector<Points::size_type> ordered_copies;
+        Slic3r::Geometry::chained_path(points, ordered_copies);
+        copies.reserve(ordered_copies.size());
+        for (size_t point_idx : ordered_copies)
+            copies.emplace_back(points[point_idx] + m_copies_shift);
+    }
+    // Invalidate and set copies.
+    bool invalidated = false;
+    if (copies != m_copies) {
+        invalidated = m_print->invalidate_step(psSkirt);
+        invalidated |= m_print->invalidate_step(psBrim);
+        if (copies.size() != m_copies.size())
+            invalidated |= m_print->invalidate_step(psWipeTower);
+        invalidated |= m_print->invalidate_step(psGCodeExport);
+        m_copies = copies;
+    }
     return invalidated;
 }
 

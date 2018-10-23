@@ -80,10 +80,6 @@ void show_error_id(int id, const std::string& message);   // For Perl
 void show_info(wxWindow* parent, const wxString& message, const wxString& title);
 void warning_catcher(wxWindow* parent, const wxString& message);
 
-// Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
-// to deliver a progress status message.
-void set_print_callback_event(Print *print, int id);
-
 // Creates a wxCheckListBoxComboPopup inside the given wxComboCtrl, filled with the given text and items.
 // Items are all initialized to the given value.
 // Items must be separated by '|', for example "Item1|Item2|Item3", and so on.

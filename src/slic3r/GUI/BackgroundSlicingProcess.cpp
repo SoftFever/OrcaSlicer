@@ -57,12 +57,20 @@ void BackgroundSlicingProcess::thread_proc()
 		    if (! m_print->canceled()) {
                 wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, new wxCommandEvent(m_event_sliced_id));
 			    m_print->export_gcode(m_temp_output_path, m_gcode_preview_data);
-			    if (! m_print->canceled() && ! m_output_path.empty()) {
-			    	if (copy_file(m_temp_output_path, m_output_path) != 0)
-		    			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
-		    		m_print->set_status(95, "Running post-processing scripts");
-		    		run_post_process_scripts(m_output_path, m_print->config());
-		    	}
+			    if (! m_print->canceled() && ! this->is_step_done(bspsGCodeFinalize)) {
+			    	this->set_step_started(bspsGCodeFinalize);
+			    	if (! m_export_path.empty()) {
+			    		//FIXME localize the messages
+				    	if (copy_file(m_temp_output_path, m_export_path) != 0)
+			    			throw std::runtime_error("Copying of the temporary G-code to the output G-code failed");
+			    		m_print->set_status(95, "Running post-processing scripts");
+			    		run_post_process_scripts(m_export_path, m_print->config());
+			    		m_print->set_status(100, "G-code file exported to " + m_export_path);
+			    	} else {
+			    		m_print->set_status(100, "Slicing complete");
+			    	}
+					this->set_step_done(bspsGCodeFinalize);
+			    }
 		    }
 		} catch (CanceledException &ex) {
 			// Canceled, this is all right.
@@ -133,7 +141,7 @@ bool BackgroundSlicingProcess::stop()
 {
 	std::unique_lock<std::mutex> lck(m_mutex);
 	if (m_state == STATE_INITIAL) {
-		this->m_output_path.clear();
+//		this->m_export_path.clear();
 		return false;
 	}
 //	assert(this->running());
@@ -147,7 +155,7 @@ bool BackgroundSlicingProcess::stop()
 		// In the "Finished" or "Canceled" state. Reset the state to "Idle".
 		m_state = STATE_IDLE;
 	}
-	this->m_output_path.clear();
+//	this->m_export_path.clear();
 	return true;
 }
 
@@ -167,6 +175,55 @@ bool BackgroundSlicingProcess::apply(const Model &model, const DynamicPrintConfi
 	this->stop();
 	bool invalidated = m_print->apply(model, config);
 	return invalidated;
+}
+
+// Set the output path of the G-code.
+void BackgroundSlicingProcess::schedule_export(const std::string &path)
+{ 
+	assert(m_export_path.empty());
+	if (! m_export_path.empty())
+		return;
+
+	// Guard against entering the export step before changing the export path.
+	tbb::mutex::scoped_lock lock(m_step_state_mutex);
+	this->invalidate_step(bspsGCodeFinalize);
+	m_export_path = path;
+}
+
+void BackgroundSlicingProcess::reset_export()
+{
+	assert(! this->running());
+	if (! this->running()) {
+		m_export_path.clear();
+		// invalidate_step expects the mutex to be locked.
+		tbb::mutex::scoped_lock lock(m_step_state_mutex);
+		this->invalidate_step(bspsGCodeFinalize);
+	}
+}
+
+void BackgroundSlicingProcess::set_step_started(BackgroundSlicingProcessStep step)
+{ 
+	m_step_state.set_started(step, m_step_state_mutex);
+	if (m_print->canceled())
+		throw CanceledException();
+}
+
+void BackgroundSlicingProcess::set_step_done(BackgroundSlicingProcessStep step)
+{ 
+	m_step_state.set_done(step, m_step_state_mutex);
+	if (m_print->canceled())
+		throw CanceledException();
+}
+
+bool BackgroundSlicingProcess::invalidate_step(BackgroundSlicingProcessStep step)
+{
+    bool invalidated = m_step_state.invalidate(step, m_step_state_mutex, [this](){ this->stop(); });
+    return invalidated;
+}
+
+bool BackgroundSlicingProcess::invalidate_all_steps()
+{ 
+	return m_step_state.invalidate_all(m_step_state_mutex, [this](){ this->stop(); });
 }
 
 }; // namespace Slic3r

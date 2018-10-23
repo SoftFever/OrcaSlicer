@@ -156,7 +156,7 @@ public:
     void repair();
 
     // Called by Print::validate() from the UI thread.
-    void check_instances_print_volume_state(const BoundingBoxf3& print_volume);
+    unsigned int check_instances_print_volume_state(const BoundingBoxf3& print_volume);
 
     // Print object statistics to console.
     void print_info() const;
@@ -411,6 +411,9 @@ public:
     bool add_default_instances();
     // Returns approximate axis aligned bounding box of this model
     BoundingBoxf3 bounding_box() const;
+    // Set the print_volume_state of PrintObject::instances, 
+    // return total number of printable objects.
+    unsigned int update_print_volume_state(const BoundingBoxf3 &print_volume);
     void center_instances_around_point(const Vec2d &point);
     void translate(coordf_t x, coordf_t y, coordf_t z) { for (ModelObject *o : this->objects) o->translate(x, y, z); }
     TriangleMesh mesh() const;

@@ -96,6 +96,7 @@ public:
 #endif
             mtx.unlock();
             cancel();
+			m_state[step] = INVALID;
             mtx.lock();
         }
         return invalidated;

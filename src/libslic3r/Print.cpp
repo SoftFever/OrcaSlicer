@@ -852,7 +852,11 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
         bool modifiers_differ           = model_volume_list_changed(model_object, model_object_new, ModelVolume::PARAMETER_MODIFIER);
         bool support_blockers_differ    = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_BLOCKER);
         bool support_enforcers_differ   = model_volume_list_changed(model_object, model_object_new, ModelVolume::SUPPORT_ENFORCER);
-        if (model_parts_differ || modifiers_differ) {
+        if (model_parts_differ || modifiers_differ || 
+            model_object.origin_translation         != model_object_new.origin_translation   ||
+            model_object.layer_height_ranges        != model_object_new.layer_height_ranges  || 
+            model_object.layer_height_profile       != model_object_new.layer_height_profile ||
+            model_object.layer_height_profile_valid != model_object_new.layer_height_profile_valid) {
             // The very first step (the slicing step) is invalidated. One may freely remove all associated PrintObjects.
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object.id()));
             for (auto it = range.first; it != range.second; ++ it) {
@@ -889,6 +893,9 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
                     it->print_object->config_apply_only(new_config, diff, true);
                 }
             }
+            model_object.name       = model_object_new.name;
+            model_object.input_file = model_object_new.input_file;
+            model_object.instances  = model_object_new.instances;
         }
     }
 
@@ -936,11 +943,10 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
                     print_objects_new.emplace_back(print_object);
                     print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
                 } else if ((*it_old)->print_object->copies() != new_instances.copies) {
-                    // The PrintObject already exists and the copies differ. The only step currently sensitive to the order is the G-code generator.
-                    // Stop it.
-                    this->invalidate_step(psGCodeExport);
+                    // The PrintObject already exists and the copies differ.
                     (*it_old)->print_object->set_copies(new_instances.copies);
-                }
+					print_objects_new.emplace_back((*it_old)->print_object);
+				}
             }
         }
         if (m_objects != print_objects_new) {
@@ -958,7 +964,7 @@ bool Print::apply(const Model &model, const DynamicPrintConfig &config_in)
         int idx_region = 0;
         for (const auto &volumes : print_object->region_volumes) {
             if (! volumes.empty())
-                ++ m_regions[idx_region];
+				++ m_regions[idx_region]->m_refcnt;
             ++ idx_region;
         }
     }
@@ -1110,23 +1116,7 @@ bool Print::has_skirt() const
 
 std::string Print::validate() const
 {
-    BoundingBox bed_box_2D = get_extents(Polygon::new_scale(m_config.bed_shape.values));
-	BoundingBoxf3 print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(m_config.max_print_height)));
-    // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
-    print_volume.min(2) = -1e10;
-	unsigned int printable_count = 0;
-	{
-		// Lock due to the po->reload_model_instances()
-		tbb::mutex::scoped_lock lock(m_mutex);
-		for (PrintObject *po : m_objects) {
-			po->model_object()->check_instances_print_volume_state(print_volume);
-			po->reload_model_instances();
-			if (po->is_printable())
-				++ printable_count;
-		}
-	}
-
-    if (printable_count == 0)
+    if (m_objects.empty())
         return L("All objects are outside of the print volume.");
 
     if (m_config.complete_objects) {

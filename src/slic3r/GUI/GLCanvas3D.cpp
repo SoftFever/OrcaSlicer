@@ -5145,7 +5145,7 @@ void GLCanvas3D::_render_layer_editing_overlay() const
 #else
     int object_idx = int(volume->select_group_id / 1000000);
 #endif // ENABLE_EXTENDED_SELECTION
-    if ((int)m_print->objects().size() < object_idx)
+    if ((int)m_print->objects().size() <= object_idx)
         return;
 
     const PrintObject* print_object = m_print->get_object(object_idx);

@@ -261,18 +261,6 @@ void warning_catcher(wxWindow* parent, const wxString& message){
 	msg.ShowModal();
 }
 
-// Assign a Lambda to the print object to emit a wxWidgets Command with the provided ID
-// to deliver a progress status message.
-void set_print_callback_event(Print *print, int id)
-{
-	print->set_status_callback([id](int percent, const std::string &message){
-		wxCommandEvent event(id);
-		event.SetInt(percent);
-		event.SetString(message);
-        wxQueueEvent(wxGetApp().mainframe, event.Clone());
-	});
-}
-
 void create_combochecklist(wxComboCtrl* comboCtrl, std::string text, std::string items, bool initial_value)
 {
     if (comboCtrl == nullptr)

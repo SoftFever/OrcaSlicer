@@ -63,9 +63,9 @@ namespace Slic3r {
 namespace GUI {
 
 
+wxDEFINE_EVENT(EVT_PROGRESS_BAR,      wxCommandEvent);
 wxDEFINE_EVENT(EVT_SLICING_COMPLETED, wxCommandEvent);
 wxDEFINE_EVENT(EVT_PROCESS_COMPLETED, wxCommandEvent);
-
 
 // Sidebar widgets
 
@@ -741,9 +741,6 @@ struct Plater::priv
     std::vector<PlaterObject> objects;
 #endif // !ENABLE_EXTENDED_SELECTION
 
-    fs::path export_gcode_output_file;
-    fs::path send_gcode_file;
-
     // GUI elements
     wxNotebook *notebook;
     Sidebar *sidebar;
@@ -809,7 +806,7 @@ struct Plater::priv
 
     void on_notebook_changed(wxBookCtrlEvent&);
     void on_select_preset(wxCommandEvent&);
-    void on_progress_event();
+    void on_progress_event(wxCommandEvent&);
     void on_update_print_preview(wxCommandEvent&);
     void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
@@ -880,6 +877,14 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     background_process.set_gcode_preview_data(&gcode_preview_data);
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
+    // Register progress callback from the Print class to the Platter.
+    print.set_status_callback([this](int percent, const std::string &message){
+        wxCommandEvent event(EVT_PROGRESS_BAR);
+        event.SetInt(percent);
+        event.SetString(message);
+        wxQueueEvent(this->q, event.Clone());
+    });
+    this->q->Bind(EVT_PROGRESS_BAR, &priv::on_progress_event, this);
 
     _3DScene::add_canvas(canvas3D);
     _3DScene::allow_multisample(canvas3D, GLCanvas3DManager::can_multisample());
@@ -902,7 +907,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::enable_shader(canvas3D, true);
     _3DScene::enable_force_zoom_to_bed(canvas3D, true);
 
-    background_process_timer.Bind(wxEVT_TIMER, [this](wxTimerEvent &evt){ this->async_apply_config(); }, 0);
+    this->background_process_timer.SetOwner(this->q, 0);
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt){ this->async_apply_config(); });
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
     _3DScene::set_bed_shape(canvas3D, bed_shape->values);
@@ -938,7 +944,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLCANVAS_ARRANGE, [this](SimpleEvent&) { arrange(); });
 #if !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLCANVAS_ROTATE_OBJECT, [this](Event<int> &evt) { /*TODO: call rotate */ });
-    canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, [this](SimpleEvent&) { scale(); });
+    canvas3D->Bind(EVT_GLCANVAS_SCALE_UNIFORMLY, [this](SimpleEvent&) { this->scale(); });
 #endif // !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLCANVAS_INCREASE_INSTANCES, [q](Event<int> &evt) { evt.data == 1 ? q->increase_instances() : q->decrease_instances(); });
     canvas3D->Bind(EVT_GLCANVAS_INSTANCE_MOVED, [this](SimpleEvent&) { update(); });
@@ -998,7 +1004,7 @@ void Plater::priv::update(bool force_autocenter)
     }
 
     // stop_background_process();   // TODO
-    print.reload_model_instances();
+//    print.reload_model_instances();
 
 #if !ENABLE_EXTENDED_SELECTION
     const auto selections = collect_selections();
@@ -1008,7 +1014,7 @@ void Plater::priv::update(bool force_autocenter)
     preview->reset_gcode_preview_data();
     preview->reload_print();
 
-    schedule_background_process();
+    this->schedule_background_process();
 }
 
 void Plater::priv::select_view(const std::string& direction)
@@ -1034,7 +1040,7 @@ void Plater::priv::update_ui_from_settings()
     // }
 }
 
-ProgressStatusBar*  Plater::priv::statusbar()
+ProgressStatusBar* Plater::priv::statusbar()
 {
     return main_frame->m_statusbar;
 }
@@ -1257,7 +1263,7 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
         case FT_GCODE:
             wildcard = file_wildcards[file_type];
         break;
-
+// FT_GCODE
         default:
             wildcard = file_wildcards[FT_MODEL];
         break;
@@ -1290,7 +1296,6 @@ std::unique_ptr<CheckboxFileDialog> Plater::priv::get_export_file(GUI::FileType 
 
     fs::path path(dlg->GetPath());
     wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
-    export_gcode_output_file = path;
 
     return dlg;
 }
@@ -1446,7 +1451,7 @@ void Plater::priv::object_list_changed()
     _3DScene::enable_toolbar_item(canvas3D, "arrange", have_objects);
 #endif // ENABLE_EXTENDED_SELECTION
 
-    const bool export_in_progress = !(export_gcode_output_file.empty() && send_gcode_file.empty());
+    const bool export_in_progress = this->background_process.is_export_scheduled(); // || ! send_gcode_file.empty());
     // XXX: is this right?
     const bool model_fits = _3DScene::check_volumes_outside_state(canvas3D, config) == ModelInstance::PVS_Inside;
 
@@ -1478,7 +1483,7 @@ void Plater::priv::remove(size_t obj_idx)
     objects.erase(objects.begin() + obj_idx);
 #endif // !ENABLE_EXTENDED_SELECTION
     model.delete_object(obj_idx);
-    print.delete_object(obj_idx);
+//    print.delete_object(obj_idx);
     // Delete object from Sidebar list
     sidebar->obj_list()->delete_object_from_list(obj_idx);
 
@@ -1504,7 +1509,7 @@ void Plater::priv::reset()
     objects.clear();
 #endif // !ENABLE_EXTENDED_SELECTION
     model.clear_objects();
-    print.clear_objects();
+//    print.clear_objects();
 
     // Delete all objects from list on c++ side
     sidebar->obj_list()->delete_all_objects_from_list();
@@ -1609,7 +1614,6 @@ void Plater::priv::split_object()
     if (new_objects.size() == 1)
     {
         Slic3r::GUI::warning_catcher(q, _(L("The selected object couldn't be split because it contains only one part.")));
-//        $self->schedule_background_process;
     }
     else
     {
@@ -1635,9 +1639,16 @@ void Plater::priv::schedule_background_process()
 
 void Plater::priv::async_apply_config()
 {
+    DynamicPrintConfig config = wxGetApp().preset_bundle->full_config();
+    BoundingBox     bed_box_2D = get_extents(Polygon::new_scale(config.opt<ConfigOptionPoints>("bed_shape")->values));
+    BoundingBoxf3   print_volume(unscale(bed_box_2D.min(0), bed_box_2D.min(1), 0.0), unscale(bed_box_2D.max(0), bed_box_2D.max(1), scale_(config.opt_float("max_print_height"))));
+    // Allow the objects to protrude below the print bed, only the part of the object above the print bed will be sliced.
+    print_volume.min(2) = -1e10;
+    this->q->model().update_print_volume_state(print_volume);
+
     // Apply new config to the possibly running background task.
     bool was_running = this->background_process.running();
-    bool invalidated = this->background_process.apply(this->q->model(), wxGetApp().preset_bundle->full_config());
+    bool invalidated = this->background_process.apply(this->q->model(), std::move(config));
     // Just redraw the 3D canvas without reloading the scene to consume the update of the layer height profile.
     if (Slic3r::_3DScene::is_layers_editing_enabled(this->canvas3D))
         this->canvas3D->Refresh();
@@ -1669,19 +1680,19 @@ void Plater::priv::async_apply_config()
 
 void Plater::priv::start_background_process()
 {
+	if (this->background_process.running())
+		return;
     // return if ! @{$self->{objects}} || $self->{background_slicing_process}->running;
-    // Don't start process thread if config is not valid.
-    std::string err = wxGetApp().preset_bundle->full_config().validate();
-    if (err.empty())
-        err = this->q->print().validate();
+    // Don't start process thread if Print is not valid.
+    std::string err = this->q->print().validate();
     if (! err.empty()) {
-        // $self->statusbar->SetStatusText(err);
-        return;
-    }   
-    // Copy the names of active presets into the placeholder parser.
-    wxGetApp().preset_bundle->export_selections(this->q->print().placeholder_parser());
-    // Start the background process.
-    this->background_process.start();
+        this->statusbar()->set_status_text(err);
+	} else {
+		// Copy the names of active presets into the placeholder parser.
+		wxGetApp().preset_bundle->export_selections(this->q->print().placeholder_parser());
+		// Start the background process.
+		this->background_process.start();
+	}
 }
 
 void Plater::priv::stop_background_process()
@@ -1795,9 +1806,10 @@ void Plater::priv::on_select_preset(wxCommandEvent &evt)
     wxGetApp().plater()->on_config_change(wxGetApp().preset_bundle->full_config());
 }
 
-void Plater::priv::on_progress_event()
+void Plater::priv::on_progress_event(wxCommandEvent &evt)
 {
-    // TODO
+    this->statusbar()->set_progress(evt.GetInt());
+    this->statusbar()->set_status_text(evt.GetString() + wxString::FromUTF8("…"));
 }
 
 void Plater::priv::on_update_print_preview(wxCommandEvent &)
@@ -1813,62 +1825,25 @@ void Plater::priv::on_update_print_preview(wxCommandEvent &)
 #endif // !ENABLE_EXTENDED_SELECTION
 }
 
-void Plater::priv::on_process_completed(wxCommandEvent &)
+void Plater::priv::on_process_completed(wxCommandEvent &evt)
 {
     // Stop the background task, wait until the thread goes into the "Idle" state.
     // At this point of time the thread should be either finished or canceled,
     // so the following call just confirms, that the produced data were consumed.
     this->background_process.stop();
-    //$self->statusbar->ResetCancelCallback();
-    //$self->statusbar->StopBusy;
-    //$self->statusbar->SetStatusText("");
-    
-/*
-    my $message;
-    my $send_gcode = 0;
-    my $do_print = 0;
-#    print "Process completed, message: ", $message, "\n";
-    if (defined($result)) {
-        $message = L("Export failed");
-    } else {
-        # G-code file exported successfully.
-        if ($self->{print_file}) {
-            $message = L("File added to print queue");
-            $do_print = 1;
-        } elsif ($self->{send_gcode_file}) {
-            $message = L("Sending G-code file to the Printer Host ...");
-            $send_gcode = 1;
-        } elsif (defined $self->{export_gcode_output_file}) {
-            $message = L("G-code file exported to ") . $self->{export_gcode_output_file};
-        } else {
-            $message = L("Slicing complete");
-        }
+    this->statusbar()->reset_cancel_callback();
+    this->statusbar()->stop_busy();
+  
+    bool success = evt.GetInt();
+    // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
+    this->background_process.reset_export();
+    if (! success) {
+        wxString message = evt.GetString();
+        if (message.IsEmpty())
+            message = _(L("Export failed"));
+        this->statusbar()->set_status_text(message);
     }
-    $self->{export_gcode_output_file} = undef;
-    wxTheApp->notify($message);
-    
-    $self->do_print if $do_print;
 
-    # Send $self->{send_gcode_file} to OctoPrint.
-    if ($send_gcode) {
-        my $host = Slic3r::PrintHost::get_print_host($self->{config});
-        if ($host->send_gcode($self->{send_gcode_file})) {
-            $message = L("Upload to host finished.");
-        } else {
-            $message = "";
-        }
-    }
-*/
-
-    // As of now, the BackgroundProcessing thread posts status bar update messages to a queue on the MainFrame.pm,
-    // but the "Processing finished" message is posted to this window.
-    // Delay the following status bar update, so it will be called later than what is received by MainFrame.pm.
-    //wxTheApp->CallAfter(sub {
-//        $self->statusbar->SetStatusText($message);
-//    });
-
-    //$self->{print_file} = undef;
-    //$self->{send_gcode_file} = undef;
     //$self->print_info_box_show(1);
 
     // this updates buttons status
@@ -2209,9 +2184,9 @@ void Plater::increase_instances(size_t num)
         Vec3d offset_vec = model_instance->get_offset() + Vec3d(offset, offset, 0.0);
         model_object->add_instance(offset_vec, model_instance->get_scaling_factor(), model_instance->get_rotation());
 #if ENABLE_EXTENDED_SELECTION
-        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
+//        p->print.get_object(obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
 #else
-        p->print.get_object(*obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
+//        p->print.get_object(*obj_idx)->add_copy(Slic3r::to_2d(offset_vec));
 #endif // ENABLE_EXTENDED_SELECTION
     }
 
@@ -2254,9 +2229,9 @@ void Plater::decrease_instances(size_t num)
         for (size_t i = 0; i < num; i++) {
             model_object->delete_last_instance();
 #if ENABLE_EXTENDED_SELECTION
-            p->print.get_object(obj_idx)->delete_last_copy();
+//            p->print.get_object(obj_idx)->delete_last_copy();
 #else
-            p->print.get_object(*obj_idx)->delete_last_copy();
+//            p->print.get_object(*obj_idx)->delete_last_copy();
 #endif // ENABLE_EXTENDED_SELECTION
         }
 #if ENABLE_EXTENDED_SELECTION
@@ -2281,8 +2256,7 @@ void Plater::decrease_instances(size_t num)
 #endif // ENABLE_EXTENDED_SELECTION
 
     p->selection_changed();
-
-    // $self->schedule_background_process;
+    this->p->schedule_background_process();
 }
 
 void Plater::set_number_of_copies(size_t num)
@@ -2307,38 +2281,35 @@ void Plater::set_number_of_copies(size_t num)
         decrease_instances(-diff);
 }
 
-fs::path Plater::export_gcode(const fs::path &output_path)
+void Plater::export_gcode(fs::path output_path)
 {
 #if ENABLE_EXTENDED_SELECTION
-    if (p->model.objects.empty()) { return ""; }
+    if (p->model.objects.empty())
+        return;
 #else
-    if (p->objects.empty()) { return ""; }
+    if (p->objects.empty())
+        return;
 #endif // ENABLE_EXTENDED_SELECTION
 
-    if (! p->export_gcode_output_file.empty()) {
+    if (this->p->background_process.is_export_scheduled()) {
         GUI::show_error(this, _(L("Another export job is currently running.")));
-        return "";
+        return;
     }
 
     std::string err = wxGetApp().preset_bundle->full_config().validate();
-    if (err.empty()) {
+    if (err.empty())
         err = p->print.validate();
-    }
     if (! err.empty()) {
         // The config is not valid
         GUI::show_error(this, _(err));
-        return fs::path();
+        return;
     }
 
     // Copy the names of active presets into the placeholder parser.
     wxGetApp().preset_bundle->export_selections(p->print.placeholder_parser());
 
     // select output file
-    if (! output_path.empty()) {
-        p->export_gcode_output_file = fs::path(p->print.output_filepath(output_path.string()));
-        // FIXME: ^ errors to handle?
-    } else {
-
+    if (output_path.empty()) {
         // XXX: take output path from CLI opts? Ancient Slic3r versions used to do that...
 
         // If possible, remove accents from accented latin characters.
@@ -2355,13 +2326,17 @@ fs::path Plater::export_gcode(const fs::path &output_path)
             wxFD_SAVE | wxFD_OVERWRITE_PROMPT
         );
 
-        if (dlg.ShowModal() != wxID_OK) { return ""; }
-        fs::path path(dlg.GetPath());
-        wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
-        p->export_gcode_output_file = path;
+        if (dlg.ShowModal() == wxID_OK) {
+            fs::path path(dlg.GetPath());
+            wxGetApp().app_config->update_last_output_dir(path.parent_path().string());
+            output_path = path;
+        }
     }
 
-    return p->export_gcode_output_file;
+    if (! output_path.empty()) {
+        this->p->background_process.schedule_export(p->print.output_filepath(output_path.string()));
+        this->p->background_process.start();
+    }
 }
 
 void Plater::export_stl()
@@ -2452,7 +2427,7 @@ void Plater::reslice()
 
 void Plater::send_gcode()
 {
-    p->send_gcode_file = export_gcode();
+//    p->send_gcode_file = export_gcode();
 }
 
 void Plater::on_extruders_change(int num_extruders)

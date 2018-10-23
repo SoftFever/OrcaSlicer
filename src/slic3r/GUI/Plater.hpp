@@ -118,7 +118,7 @@ public:
     void set_number_of_copies(size_t num);
 
     // Note: empty path means "use the default"
-    boost::filesystem::path export_gcode(const boost::filesystem::path &output_path = boost::filesystem::path());
+    void export_gcode(boost::filesystem::path output_path = boost::filesystem::path());
     void export_stl();
     void export_amf();
     void export_3mf();

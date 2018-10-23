@@ -884,7 +884,8 @@ bool PresetCollection::update_dirty_ui(wxBitmapComboBox *ui)
         std::string   old_label    = ui->GetString(ui_id).utf8_str().data();
         std::string   preset_name  = Preset::remove_suffix_modified(old_label);
         const Preset *preset       = this->find_preset(preset_name, false);
-        assert(preset != nullptr);
+//		The old_label could be the "----- system presets ------" or the "------- user presets --------" separator.
+//      assert(preset != nullptr);
 		if (preset != nullptr) {
 			std::string new_label = preset->is_dirty ? preset->name + g_suffix_modified : preset->name;
 			if (old_label != new_label)

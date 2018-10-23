@@ -242,6 +242,14 @@ BoundingBoxf3 Model::bounding_box() const
     return bb;
 }
 
+unsigned int Model::update_print_volume_state(const BoundingBoxf3 &print_volume) 
+{
+    unsigned int num_printable = 0;
+    for (ModelObject *model_object : this->objects)
+        num_printable += model_object->check_instances_print_volume_state(print_volume);
+    return num_printable;
+}
+
 void Model::center_instances_around_point(const Vec2d &point)
 {
     BoundingBoxf3 bb;
@@ -875,26 +883,32 @@ void ModelObject::repair()
         v->mesh.repair();
 }
 
-// Called by Print::validate() from the UI thread.
-void ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
+unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
 {
-    for (const ModelVolume* vol : this->volumes)
-    {
-        if (vol->is_model_part())
-        {
-            for (ModelInstance* inst : this->instances)
-            {
-                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(inst->world_matrix());
-
+    unsigned int num_printable = 0;
+    enum {
+        INSIDE  = 1,
+        OUTSIDE = 2
+    };
+    for (ModelInstance *model_instance : this->instances) {
+        unsigned int inside_outside = 0;
+        for (const ModelVolume *vol : this->volumes)
+            if (vol->is_model_part()) {
+                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->world_matrix());
                 if (print_volume.contains(bb))
-                    inst->print_volume_state = ModelInstance::PVS_Inside;
+                    inside_outside |= INSIDE;
                 else if (print_volume.intersects(bb))
-                    inst->print_volume_state = ModelInstance::PVS_Partly_Outside;
+                    inside_outside |= INSIDE | OUTSIDE;
                 else
-                    inst->print_volume_state = ModelInstance::PVS_Fully_Outside;
+                    inside_outside |= OUTSIDE;
             }
-        }
+        model_instance->print_volume_state = 
+            (inside_outside == (INSIDE | OUTSIDE)) ? ModelInstance::PVS_Partly_Outside :
+            (inside_outside == INSIDE) ? ModelInstance::PVS_Inside : ModelInstance::PVS_Fully_Outside;
+        if (inside_outside == INSIDE)
+            ++ num_printable;
     }
+    return num_printable;
 }
 
 void ModelObject::print_info() const

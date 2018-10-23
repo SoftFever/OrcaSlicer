@@ -6,12 +6,19 @@
 #include <mutex>
 #include <thread>
 
+#include "Print.hpp"
+
 namespace Slic3r {
 
 class DynamicPrintConfig;
 class GCodePreviewData;
 class Model;
 class Print;
+
+// Print step IDs for keeping track of the print state.
+enum BackgroundSlicingProcessStep {
+    bspsGCodeFinalize, bspsCount,
+};
 
 // Support for the GUI background processing (Slicing and G-code generation).
 // As of now this class is not declared in Slic3r::GUI due to the Perl bindings limits.
@@ -32,8 +39,6 @@ public:
 	// The wxCommandEvent is sent to the UI thread asynchronously without waiting for the event to be processed.
 	void set_finished_event(int event_id) { m_event_finished_id = event_id; }
 
-	// Set the output path of the G-code.
-	void set_output_path(const std::string &path) { m_output_path = path; }
 	// Start the background processing. Returns false if the background processing was already running.
 	bool start();
 	// Cancel the background processing. Returns false if the background processing was not running.
@@ -46,6 +51,13 @@ public:
 	// Apply config over the print. Returns false, if the new config values caused any of the already
 	// processed steps to be invalidated, therefore the task will need to be restarted.
 	bool apply(const Model &model, const DynamicPrintConfig &config);
+	// Set the export path of the G-code.
+	// Once the path is set, the G-code 
+	void schedule_export(const std::string &path);
+	// Clear m_export_path.
+	void reset_export();
+	// Once the G-code export is scheduled, the apply() methods will do nothing.
+	bool is_export_scheduled() const { return ! m_export_path.empty(); }
 
 	enum State {
 		// m_thread  is not running yet, or it did not reach the STATE_IDLE yet (it does not wait on the condition yet).
@@ -74,8 +86,11 @@ private:
 	Print 					   *m_print 			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.
 	GCodePreviewData 		   *m_gcode_preview_data = nullptr;
+	// Temporary G-code, there is one defined for the BackgroundSlicingProcess, differentiated from the other processes by a process ID.
 	std::string 				m_temp_output_path;
-	std::string 				m_output_path;
+	// Output path provided by the user. The output path may be set even if the slicing is running,
+	// but once set, it cannot be re-set.
+	std::string 				m_export_path;
 	// Thread, on which the background processing is executed. The thread will always be present
 	// and ready to execute the slicing process.
 	std::thread		 			m_thread;
@@ -83,6 +98,14 @@ private:
 	std::mutex 		 			m_mutex;
 	std::condition_variable		m_condition;
 	State 						m_state = STATE_INITIAL;
+
+    PrintState<BackgroundSlicingProcessStep, bspsCount>   	m_step_state;
+    mutable tbb::mutex                      				m_step_state_mutex;
+	void                set_step_started(BackgroundSlicingProcessStep step);
+	void                set_step_done(BackgroundSlicingProcessStep step);
+    bool 				is_step_done(BackgroundSlicingProcessStep step) const { return m_step_state.is_done(step); }
+	bool                invalidate_step(BackgroundSlicingProcessStep step);
+    bool                invalidate_all_steps();
 
 	// wxWidgets command ID to be sent to the platter to inform that the slicing is finished, and the G-code export will continue.
 	int 						m_event_sliced_id 	 = 0;

@@ -53,8 +53,8 @@ ProgressStatusBar::ProgressStatusBar(wxWindow *parent, int id):
     });
 
     m_cancelbutton->Bind(wxEVT_BUTTON, [this](const wxCommandEvent&) {
-        if(m_cancel_cb) m_cancel_cb();
-        m_perl_cancel_callback.call();
+        if (m_cancel_cb) 
+            m_cancel_cb();
         m_cancelbutton->Hide();
     });
 }
@@ -136,7 +136,17 @@ void ProgressStatusBar::embed(wxFrame *frame)
 
 void ProgressStatusBar::set_status_text(const wxString& txt)
 {
-    self->SetStatusText(wxString::FromUTF8(txt.c_str()));
+	self->SetStatusText(txt);
+}
+
+void ProgressStatusBar::set_status_text(const std::string& txt)
+{ 
+    this->set_status_text(txt.c_str());
+}
+
+void ProgressStatusBar::set_status_text(const char *txt)
+{ 
+    this->set_status_text(wxString::FromUTF8(txt));
 }
 
 void ProgressStatusBar::show_cancel_button()
