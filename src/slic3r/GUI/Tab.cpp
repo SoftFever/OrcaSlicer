@@ -234,9 +234,9 @@ Slic3r::GUI::PageShp Tab::add_options_page(const wxString& title, const std::str
 		icon_idx = (m_icon_index.find(icon) == m_icon_index.end()) ? -1 : m_icon_index.at(icon);
 		if (icon_idx == -1) {
 			// Add a new icon to the icon list.
-			const auto img_icon = new wxIcon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
-			m_icons->Add(*img_icon);
-			icon_idx = ++m_icon_count;
+            wxIcon img_icon(from_u8(Slic3r::var(icon)), wxBITMAP_TYPE_PNG);
+            m_icons->Add(img_icon);
+            icon_idx = ++m_icon_count;
 			m_icon_index[icon] = icon_idx;
 		}
 	}
