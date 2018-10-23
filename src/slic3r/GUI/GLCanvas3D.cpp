@@ -2893,11 +2893,11 @@ void GLCanvas3D::reset_volumes()
             return;
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
 
-        m_volumes.release_geometry();
-        m_volumes.clear();
 #if ENABLE_EXTENDED_SELECTION
         m_selection.clear();
 #endif // ENABLE_EXTENDED_SELECTION
+        m_volumes.release_geometry();
+        m_volumes.clear();
         m_dirty = true;
     }
 
