@@ -2094,6 +2094,10 @@ void Plater::increase_instances(size_t num)
         p->update();
     }
 
+#if ENABLE_EXTENDED_SELECTION
+    p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
+#endif // ENABLE_EXTENDED_SELECTION
+
     p->selection_changed();
 
     // $self->schedule_background_process;
@@ -2137,6 +2141,12 @@ void Plater::decrease_instances(size_t num)
     }
 
     p->update();
+
+#if ENABLE_EXTENDED_SELECTION
+    if (!model_object->instances.empty())
+        p->get_selection().add_instance(obj_idx, (int)model_object->instances.size() - 1);
+#endif // ENABLE_EXTENDED_SELECTION
+
     p->selection_changed();
 
     // $self->schedule_background_process;
