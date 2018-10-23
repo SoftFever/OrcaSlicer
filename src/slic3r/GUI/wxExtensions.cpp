@@ -11,7 +11,7 @@
 #include "GUI_ObjectList.hpp"
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const std::string& icon)
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
 {
     if (id == wxID_ANY)
         id = wxNewId();
@@ -20,7 +20,26 @@ wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const
     if (!icon.empty())
         item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
 
-    menu->Bind(wxEVT_MENU, cb, id);
+    if (event_handler != nullptr)
+        event_handler->Bind(wxEVT_MENU, cb, id);
+    else
+        menu->Bind(wxEVT_MENU, cb, id);
+
+    return item;
+}
+
+wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon)
+{
+    if (id == wxID_ANY)
+        id = wxNewId();
+
+    wxMenuItem* item = new wxMenuItem(menu, id, string, description);
+    if (!icon.empty())
+        item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
+
+    item->SetSubMenu(sub_menu);
+    menu->Append(item);
+
     return item;
 }
 
@@ -770,7 +789,7 @@ void PrusaObjectDataViewModel::GetItemInfo(const wxDataViewItem& item, ItemType&
     type = itUndef;
 
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
-    if (!node || node->GetIdx() < 0 && node->GetType() != itObject) 
+    if (!node || node->GetIdx() < 0 && !(node->GetType() & (itObject|itSettings|itInstanceRoot))) 
         return;
 
     idx = node->GetIdx();

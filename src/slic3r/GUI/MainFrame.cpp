@@ -296,13 +296,13 @@ void MainFrame::init_menubar()
     if (m_plater) {
         m_plater_menu = new wxMenu();
         append_menu_item(m_plater_menu, wxID_ANY, _(L("Export G-code...")), _(L("Export current plate as G-code")),
-            [this](wxCommandEvent&){ /*m_plater->export_gcode(); */}, "cog_go.png");
+            [this](wxCommandEvent&){ m_plater->export_gcode(); }, "cog_go.png");
         append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as STL...")), _(L("Export current plate as STL")),
-            [this](wxCommandEvent&){ /*m_plater->export_stl(); */}, "brick_go.png");
+            [this](wxCommandEvent&){ m_plater->export_stl(); }, "brick_go.png");
         append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as AMF...")), _(L("Export current plate as AMF")),
-            [this](wxCommandEvent&){ /*m_plater->export_amf();*/ }, "brick_go.png");
+            [this](wxCommandEvent&){ m_plater->export_amf(); }, "brick_go.png");
         append_menu_item(m_plater_menu, wxID_ANY, _(L("Export plate as 3MF...")), _(L("Export current plate as 3MF")),
-            [this](wxCommandEvent&){ /*m_plater->export_3mf(); */}, "brick_go.png");
+            [this](wxCommandEvent&){ m_plater->export_3mf(); }, "brick_go.png");
     }
 
     // Window menu

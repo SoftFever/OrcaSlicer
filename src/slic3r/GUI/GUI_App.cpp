@@ -327,24 +327,6 @@ void GUI_App::CallAfter(std::function<void()> cb)
     callback_register.unlock();
 }
 
-wxMenuItem* GUI_App::append_submenu(wxMenu* menu,
-    wxMenu* sub_menu,
-    int id,
-    const wxString& string,
-    const wxString& description,
-    const std::string& icon)
-{
-    if (id == wxID_ANY)
-        id = wxNewId();
-    auto item = new wxMenuItem(menu, id, string, description);
-    if (!icon.empty())
-        item->SetBitmap(wxBitmap(Slic3r::var(icon), wxBITMAP_TYPE_PNG));
-    item->SetSubMenu(sub_menu);
-    menu->Append(item);
-
-    return item;
-}
-
 void GUI_App::window_pos_save(wxTopLevelWindow* window, const std::string &name)
 {
     if (name.empty()) { return; }
@@ -500,7 +482,8 @@ ConfigMenuIDs GUI_App::get_view_mode()
         return ConfigMenuModeSimple;
 
     const auto mode = app_config->get("view_mode");
-    return mode == "expert" ? ConfigMenuModeExpert : ConfigMenuModeSimple;
+    return mode == "expert" ? ConfigMenuModeExpert : 
+           mode == "simple" ? ConfigMenuModeSimple : ConfigMenuModeMiddle;
 }
 
 // Update view mode according to selected menu
@@ -518,6 +501,11 @@ void GUI_App::update_mode()
 
     sidebar().Layout();
     mainframe->m_plater->Layout();
+
+    ConfigOptionMode opt_mode = mode == ConfigMenuModeSimple ? comSimple :
+                                mode == ConfigMenuModeExpert ? comExpert : comMiddle;
+    for (auto tab : tabs_list)
+        tab->update_visibility(opt_mode);
 }
 
 void GUI_App::add_config_menu(wxMenuBar *menu)
@@ -537,6 +525,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->AppendSeparator();
     auto mode_menu = new wxMenu();
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("&Simple")), _(L("Simple View Mode")));
+    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeMiddle, _(L("&Middle")), _(L("Middle View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("&Expert")), _(L("Expert View Mode")));
     mode_menu->Check(config_id_base + get_view_mode(), true);
     local_menu->AppendSubMenu(mode_menu, _(L("&Mode")), _(L("Slic3r View Mode")));
@@ -607,8 +596,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
         }
     });
     mode_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
-        std::string mode = event.GetId() - config_id_base == ConfigMenuModeExpert ?
-            "expert" : "simple";
+        int id_mode = event.GetId() - config_id_base;
+        std::string mode = id_mode == ConfigMenuModeExpert ? "expert" :
+                           id_mode == ConfigMenuModeSimple ? "simple" : "middle";
         app_config->set("view_mode", mode);
         app_config->save();
         update_mode();

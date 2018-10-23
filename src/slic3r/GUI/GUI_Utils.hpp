@@ -8,6 +8,7 @@
 
 #include <wx/filedlg.h>
 #include <wx/gdicmn.h>
+#include <wx/panel.h>
 
 class wxCheckBox;
 class wxTopLevelWindow;
@@ -37,8 +38,15 @@ public:
     bool get_checkbox_value() const;
 
 private:
-    std::function<wxWindow*(wxWindow*)> extra_control_creator;
-    wxCheckBox *cbox;
+    struct ExtraPanel : public wxPanel
+    {
+        wxCheckBox *cbox;
+
+        ExtraPanel(wxWindow *parent);
+        static wxWindow* ctor(wxWindow *parent);
+    };
+
+    wxString checkbox_label;
 };
 
 

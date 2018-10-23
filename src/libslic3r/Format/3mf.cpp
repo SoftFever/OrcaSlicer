@@ -1249,14 +1249,25 @@ namespace Slic3r {
 
     void _3MF_Importer::_apply_transform(ModelInstance& instance, const Transform3d& transform)
     {
-        // slic3r ModelInstance cannot be transformed using a matrix
-        // we extract from the given matrix only the values currently used
-
         // translation
         Vec3d offset = transform.matrix().block(0, 3, 3, 1);
 
-        // scale
         Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
+#if ENABLE_MIRROR
+        // mirror
+        // it is impossible to reconstruct the original mirroring factors from a matrix,
+        // we can only detect if the matrix contains a left handed reference system
+        // in which case we reorient it back to right handed by mirroring the x axis
+        Vec3d mirror = Vec3d::Ones();
+        if (m3x3.col(0).dot(m3x3.col(1).cross(m3x3.col(2))) < 0.0)
+        {
+            mirror(0) = -1.0;
+            // remove mirror
+            m3x3.col(0) *= -1.0;
+        }
+
+        // scale
+#endif // ENABLE_MIRROR
         Vec3d scale(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm());
 
         // invalid scale value, return
@@ -1273,6 +1284,9 @@ namespace Slic3r {
         instance.set_offset(offset);
         instance.set_scaling_factor(scale);
         instance.set_rotation(rotation);
+#if ENABLE_MIRROR
+        instance.set_mirror(mirror);
+#endif // ENABLE_MIRROR
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)

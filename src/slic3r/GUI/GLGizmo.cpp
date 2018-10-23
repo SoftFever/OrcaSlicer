@@ -868,7 +868,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     BoundingBoxf3 box;
     Transform3d transform = Transform3d::Identity();
     Vec3d angles = Vec3d::Zero();
-    Transform3d rotation = Transform3d::Identity();
+    Transform3d offsets_transform = Transform3d::Identity();
 
     if (selection.is_from_single_instance())
     {
@@ -880,13 +880,19 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         }
 
         // gets transform from first selected volume
-        transform = selection.get_volume(*idxs.begin())->world_matrix().cast<double>();
+        const GLVolume* v = selection.get_volume(*idxs.begin());
+        transform = v->world_matrix().cast<double>();
 
-        // extract angles from transform
-        angles = Slic3r::Geometry::extract_euler_angles(transform);
+        // gets angles from first selected volume
+        angles = v->get_rotation();
 
+#if ENABLE_MIRROR
+        // consider rotation+mirror only components of the transform for offsets
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
+#else
         // set rotation-only component of transform
-        rotation = Geometry::assemble_transform(Vec3d::Zero(), angles);
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles);
+#endif // ENABLE_MIRROR
     }
     else
         box = selection.get_bounding_box();
@@ -898,9 +904,9 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
     const Vec3d& center = m_box.center();
 #if ENABLE_EXTENDED_SELECTION
-    Vec3d offset_x = rotation * Vec3d((double)Offset, 0.0, 0.0);
-    Vec3d offset_y = rotation * Vec3d(0.0, (double)Offset, 0.0);
-    Vec3d offset_z = rotation * Vec3d(0.0, 0.0, (double)Offset);
+    Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
+    Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
+    Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
 #endif // ENABLE_EXTENDED_SELECTION
 
     // x axis
@@ -1468,6 +1474,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_CULL_FACE);
 
     for (int i=0; i<(int)m_planes.size(); ++i) {
         if (i == m_hover_id)
@@ -1506,6 +1513,7 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
     }
 
+    ::glEnable(GL_CULL_FACE);
     ::glDisable(GL_BLEND);
 }
 
@@ -1516,6 +1524,7 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
 {
     ::glEnable(GL_DEPTH_TEST);
+    ::glDisable(GL_CULL_FACE);
 
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
@@ -1546,6 +1555,8 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
         }
 #endif // ENABLE_EXTENDED_SELECTION
     }
+
+    ::glEnable(GL_CULL_FACE);
 }
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
@@ -1769,9 +1780,9 @@ Vec3d GLGizmoFlatten::get_flattening_rotation() const
     // calculates the rotations in model space, taking in account the scaling factors
     Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = m_model_object->instances.front()->world_matrix(true, true).matrix().block(0, 0, 3, 3).inverse().transpose();
     Eigen::Quaterniond q;
-    Vec3d angles = q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix().eulerAngles(2, 1, 0);
+    Vec3d angles = Geometry::extract_euler_angles(q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix());
     m_normal = Vec3d::Zero();
-    return Vec3d(angles(2), angles(1), angles(0));
+    return angles;
 }
 
 } // namespace GUI

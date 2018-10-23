@@ -25,6 +25,7 @@ option(SLIC3R_GUI    			"Compile Slic3r with GUI components (OpenGL, wxWidgets)"
 option(SLIC3R_PROFILE 			"Compile Slic3r with an invasive Shiny profiler" 0)
 option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
+option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 
 if (MSVC AND SLIC3R_MSVC_COMPILE_PARALLEL)
 	add_compile_options(/MP)
@@ -154,6 +155,7 @@ endif()
 # The Intel TBB library will use the std::exception_ptr feature of C++11.
 add_definitions(-DTBB_USE_CAPTURED_EXCEPTION=0)
 
+#set(CURL_DEBUG 1)
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 
@@ -233,7 +235,9 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT s
 # Perl bindings, currently only used for the unit / integration tests of libslic3r.
 # Also runs the unit / integration tests.
 #FIXME Port the tests into C++ to finally get rid of the Perl!
-add_subdirectory(xs)
+if (SLIC3R_PERL_XS)
+    add_subdirectory(xs)
+endif ()
 
 file(GLOB MyVar var/*.png)
 install(FILES ${MyVar} DESTINATION share/slic3r-prusa3d)

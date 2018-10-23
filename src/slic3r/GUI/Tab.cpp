@@ -476,14 +476,14 @@ void Tab::get_sys_and_mod_flags(const std::string& opt_key, bool& sys_page, bool
 void Tab::update_changed_tree_ui()
 {
 	auto cur_item = m_treectrl->GetFirstVisibleItem();
-    if (!m_treectrl->IsVisible(cur_item))
+    if (!cur_item || !m_treectrl->IsVisible(cur_item))
         return;
 	auto selection = m_treectrl->GetItemText(m_treectrl->GetSelection());
 	while (cur_item){
 		auto title = m_treectrl->GetItemText(cur_item);
 		for (auto page : m_pages)
 		{
-			if (page->title() != title)
+			if (page->title() != title) 
 				continue;
 			bool sys_page = true;
 			bool modified_page = false;
@@ -630,6 +630,25 @@ void Tab::reload_config(){
 	for (auto page : m_pages)
 		page->reload_config();
  	Thaw();
+}
+
+void Tab::update_visibility(ConfigOptionMode mode)
+{
+    Freeze();
+
+	for (auto page : m_pages)
+        page->update_visibility(mode);
+    update_page_tree_visibility();
+
+    m_hsizer->Layout();
+    Refresh();
+
+	Thaw();
+
+    // to update tree items color
+    wxTheApp->CallAfter([this]() {
+        update_changed_tree_ui();
+    });
 }
 
 Field* Tab::get_field(const t_config_option_key& opt_key, int opt_index/* = -1*/) const
@@ -1021,7 +1040,7 @@ void TabPrint::build()
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
 		optgroup = page->new_optgroup(_(L("Profile dependencies")));
-		line = { _(L("Compatible printers")), "" };
+        line = optgroup->create_single_option_line("compatible_printers");//{ _(L("Compatible printers")), "" };
 		line.widget = [this](wxWindow* parent){
 			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
@@ -1347,7 +1366,7 @@ void TabFilament::build()
         optgroup->append_single_option_line("filament_cooling_final_speed");
         optgroup->append_single_option_line("filament_minimal_purge_on_wipe_tower");
 
-        line = { _(L("Ramming")), "" };
+        line = optgroup->create_single_option_line("filament_ramming_parameters");// { _(L("Ramming")), "" };
         line.widget = [this](wxWindow* parent){
 			auto ramming_dialog_btn = new wxButton(parent, wxID_ANY, _(L("Ramming settings"))+dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
             auto sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -1387,7 +1406,7 @@ void TabFilament::build()
 
 	page = add_options_page(_(L("Dependencies")), "wrench.png");
 		optgroup = page->new_optgroup(_(L("Profile dependencies")));
-		line = { _(L("Compatible printers")), "" };
+        line = optgroup->create_single_option_line("compatible_printers");//{ _(L("Compatible printers")), "" };
 		line.widget = [this](wxWindow* parent){
 			return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
 		};
@@ -1482,7 +1501,7 @@ void TabPrinter::build_fff()
 	auto page = add_options_page(_(L("General")), "printer_empty.png");
 		auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-		Line line{ _(L("Bed shape")), "" };
+        Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
 		line.widget = [this](wxWindow* parent){
 			auto btn = new wxButton(parent, wxID_ANY, _(L(" Set "))+dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
             btn->SetFont(wxGetApp().small_font());
@@ -1514,6 +1533,7 @@ void TabPrinter::build_fff()
 			def.label = L("Extruders");
 			def.tooltip = L("Number of extruders of the printer.");
 			def.min = 1;
+            def.mode = comExpert;
 		Option option(def, "extruders_count");
 		optgroup->append_single_option_line(option);
 		optgroup->append_single_option_line("single_extruder_multi_material");
@@ -1767,7 +1787,7 @@ void TabPrinter::build_sla()
     auto page = add_options_page(_(L("General")), "printer_empty.png");
     auto optgroup = page->new_optgroup(_(L("Size and coordinates")));
 
-    Line line{ _(L("Bed shape")), "" };
+    Line line = optgroup->create_single_option_line("bed_shape");//{ _(L("Bed shape")), "" };
     line.widget = [this](wxWindow* parent){
         auto btn = new wxButton(parent, wxID_ANY, _(L(" Set ")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_LEFT | wxBU_EXACTFIT);
         //			btn->SetFont(Slic3r::GUI::small_font);
@@ -2255,6 +2275,33 @@ void Tab::rebuild_page_tree(bool tree_sel_change_event /*= false*/)
 	Thaw();
 }
 
+void Tab::update_page_tree_visibility()
+{
+    const auto sel_item = m_treectrl->GetSelection();
+    const auto selected = sel_item ? m_treectrl->GetItemText(sel_item) : "";
+    const auto rootItem = m_treectrl->GetRootItem();
+
+    auto have_selection = 0;
+    m_treectrl->DeleteChildren(rootItem);
+    for (auto p : m_pages)
+    {
+        if (!p->get_show())
+            continue;
+        auto itemId = m_treectrl->AppendItem(rootItem, p->title(), p->iconID());
+        m_treectrl->SetItemTextColour(itemId, p->get_item_colour());
+        if (p->title() == selected) {
+            m_treectrl->SelectItem(itemId);
+            have_selection = 1;
+        }
+    }
+
+    if (!have_selection) {
+        // this is triggered on first load, so we don't disable the sel change event
+        m_treectrl->SelectItem(m_treectrl->GetFirstVisibleItem());//! (treectrl->GetFirstChild(rootItem));
+    }
+
+}
+
 // Called by the UI combo box when the user switches profiles.
 // Select a preset by a name.If !defined(name), then the default preset is selected.
 // If the current profile is modified, user is asked to save the changes.
@@ -2379,10 +2426,13 @@ void Tab::OnTreeSelChange(wxTreeEvent& event)
 	wxWindowUpdateLocker noUpdates(this);
 #endif
 
+    if (m_pages.empty())
+        return;
+
 	Page* page = nullptr;
     const auto sel_item = m_treectrl->GetSelection();
     const auto selection = sel_item ? m_treectrl->GetItemText(sel_item) : "";
-	for (auto p : m_pages)
+    for (auto p : m_pages)
 		if (p->title() == selection)
 		{
 			page = p.get();
@@ -2681,6 +2731,15 @@ void Page::reload_config()
 		group->reload_config();
 }
 
+void Page::update_visibility(ConfigOptionMode mode)
+{
+    bool ret_val = false;
+    for (auto group : m_optgroups)
+        ret_val = group->update_visibility(mode) || ret_val;
+
+    m_show = ret_val;
+}
+
 Field* Page::get_field(const t_config_option_key& opt_key, int opt_index /*= -1*/) const
 {
 	Field* field = nullptr;
@@ -2704,8 +2763,22 @@ bool Page::set_value(const t_config_option_key& opt_key, const boost::any& value
 // package Slic3r::GUI::Tab::Page;
 ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_label_width /*= -1*/)
 {
+    auto extra_column = [](wxWindow* parent, const Line& line)
+    {
+        std::string bmp_name;
+        if (line.get_options().size() == 0)
+            bmp_name = "error.png";
+        else {
+            auto mode = line.get_options()[0].opt.mode;  //we assume that we have one option per line
+            bmp_name = mode == comExpert ? "mode_expert_.png" :
+                       mode == comMiddle ? "mode_middle_.png" : "mode_simple_.png";
+        }                               
+        auto bmp = new wxStaticBitmap(parent, wxID_ANY, wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
+        return bmp;
+    };
+
 	//! config_ have to be "right"
-	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true);
+	ConfigOptionsGroupShp optgroup = std::make_shared<ConfigOptionsGroup>(this, title, m_config, true, extra_column);
 	if (noncommon_label_width >= 0)
 		optgroup->label_width = noncommon_label_width;
 
@@ -2844,7 +2917,7 @@ void TabSLAMaterial::build()
 
     page = add_options_page(_(L("Dependencies")), "wrench.png");
     optgroup = page->new_optgroup(_(L("Profile dependencies")));
-    auto line = Line { _(L("Compatible printers")), "" };
+    Line line = optgroup->create_single_option_line("compatible_printers");//Line { _(L("Compatible printers")), "" };
     line.widget = [this](wxWindow* parent){
         return compatible_printers_widget(parent, &m_compatible_printers_checkbox, &m_compatible_printers_btn);
     };

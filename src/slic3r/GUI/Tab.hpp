@@ -47,6 +47,7 @@ class Page : public wxScrolledWindow
 	wxString		m_title;
 	size_t			m_iconID;
 	wxBoxSizer*		m_vsizer;
+    bool            m_show = true;
 public:
 	Page(wxWindow* parent, const wxString title, const int iconID) :
 			m_parent(parent),
@@ -73,6 +74,7 @@ public:
 	size_t		iconID() const { return m_iconID; }
 	void		set_config(DynamicPrintConfig* config_in) { m_config = config_in; }
 	void		reload_config();
+    void        update_visibility(ConfigOptionMode mode);
 	Field*		get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool		set_value(const t_config_option_key& opt_key, const boost::any& value);
 	ConfigOptionsGroupShp	new_optgroup(const wxString& title, int noncommon_label_width = -1);
@@ -88,6 +90,7 @@ public:
 	const wxColour	get_item_colour() {
 			return *m_item_color;
 	}
+    bool get_show() const { return m_show; }
 
 protected:
 	// Color of TreeCtrlItem. The wxColour will be updated only if the new wxColour pointer differs from the currently rendered one.
@@ -214,6 +217,7 @@ public:
 	void		create_preset_tab();
 	void		load_current_preset();
 	void        rebuild_page_tree(bool tree_sel_change_event = false);
+	void        update_page_tree_visibility();
 	void		select_preset(std::string preset_name = "");
 	bool		may_discard_current_dirty_preset(PresetCollection* presets = nullptr, const std::string& new_printer_name = "");
 	wxSizer*	compatible_printers_widget(wxWindow* parent, wxCheckBox** checkbox, wxButton** btn);
@@ -249,6 +253,7 @@ public:
 	void			update_tab_ui();
 	void			load_config(const DynamicPrintConfig& config);
 	virtual void	reload_config();
+    void            update_visibility(ConfigOptionMode mode);
 	Field*			get_field(const t_config_option_key& opt_key, int opt_index = -1) const;
 	bool			set_value(const t_config_option_key& opt_key, const boost::any& value);
 	wxSizer*		description_line_widget(wxWindow* parent, ogStaticText** StaticText);

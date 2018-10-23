@@ -27,11 +27,6 @@
 
 namespace Slic3r { namespace GUI {
 
-enum ogDrawFlag{
-	ogDEFAULT,
-	ogSIDE_OPTIONS_VERTICAL
-};
-
 /// Widget type describes a function object that returns a wxWindow (our widget) and accepts a wxWidget (parent window).
 using widget_t = std::function<wxSizer*(wxWindow*)>;//!std::function<wxWindow*(wxWindow*)>;
 
@@ -151,7 +146,6 @@ public:
 
 	inline void		enable() { for (auto& field : m_fields) field.second->enable(); }
     inline void		disable() { for (auto& field : m_fields) field.second->disable(); }
-	void			set_flag(ogDrawFlag flag) { m_flag = flag; }
 	void			set_grid_vgap(int gap) { m_grid_sizer->SetVGap(gap); }
 
 	void set_show_modified_btns_val(bool show) {
@@ -159,9 +153,10 @@ public:
     }
 
 	OptionsGroup(	wxWindow* _parent, const wxString& title, bool is_tab_opt = false, 
-					ogDrawFlag flag = ogDEFAULT, column_t extra_clmn = nullptr) :
-					m_parent(_parent), title(title), m_show_modified_btns(is_tab_opt),
-					staticbox(title!=""), m_flag(flag), extra_column(extra_clmn){
+					column_t extra_clmn = nullptr) :
+					m_parent(_parent), title(title), 
+                    m_show_modified_btns(is_tab_opt),
+					staticbox(title!=""), extra_column(extra_clmn){
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, title);
             stb->SetFont(wxGetApp().bold_font());
@@ -172,7 +167,7 @@ public:
         if (extra_column != nullptr) num_columns++;
         m_grid_sizer = new wxFlexGridSizer(0, num_columns, 1,0);
         static_cast<wxFlexGridSizer*>(m_grid_sizer)->SetFlexibleDirection(wxBOTH/*wxHORIZONTAL*/);
-        static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width != 0);
+        static_cast<wxFlexGridSizer*>(m_grid_sizer)->AddGrowableCol(label_width == 0 ? 0 : !extra_column ? 1 : 2 );
 #ifdef __WXGTK__
         m_panel = new wxPanel( _parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL );
         sizer->Fit(m_panel);
@@ -187,6 +182,7 @@ public:
 protected:
 	std::map<t_config_option_key, Option>	m_options;
     wxWindow*				m_parent {nullptr};
+    std::vector<ConfigOptionMode>           m_options_mode;
 
     /// Field list, contains unique_ptrs of the derived type.
     /// using types that need to know what it is beyond the public interface 
@@ -196,8 +192,6 @@ protected:
     wxGridSizer*			m_grid_sizer {nullptr};
 	// "true" if option is created in preset tabs
 	bool					m_show_modified_btns{ false };
-
-	ogDrawFlag				m_flag{ ogDEFAULT };
 
 	// This panel is needed for correct showing of the ToolTips for Button, StaticText and CheckBox
 	// Tooltips on GTK doesn't work inside wxStaticBoxSizer unless you insert a panel 
@@ -223,8 +217,8 @@ protected:
 class ConfigOptionsGroup: public OptionsGroup {
 public:
 	ConfigOptionsGroup(	wxWindow* parent, const wxString& title, DynamicPrintConfig* _config = nullptr, 
-						bool is_tab_opt = false, ogDrawFlag flag = ogDEFAULT, column_t extra_clmn = nullptr) :
-		OptionsGroup(parent, title, is_tab_opt, flag, extra_clmn), m_config(_config) {}
+						bool is_tab_opt = false, column_t extra_clmn = nullptr) :
+		OptionsGroup(parent, title, is_tab_opt, extra_clmn), m_config(_config) {}
 
     /// reference to libslic3r config, non-owning pointer (?).
     DynamicPrintConfig*		m_config {nullptr};
@@ -252,6 +246,8 @@ public:
 	void		back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key);
 	void		on_kill_focus() override{ reload_config();}
 	void		reload_config();
+    // return value shows visibility : false => all options are hidden
+    bool        update_visibility(ConfigOptionMode mode);
 	boost::any	config_value(const std::string& opt_key, int opt_index, bool deserialize);
 	// return option value from config 
 	boost::any	get_config_value(const DynamicPrintConfig& config, const std::string& opt_key, int opt_index = -1);

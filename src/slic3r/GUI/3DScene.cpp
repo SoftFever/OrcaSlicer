@@ -198,6 +198,9 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     : m_offset(Vec3d::Zero())
     , m_rotation(Vec3d::Zero())
     , m_scaling_factor(Vec3d::Ones())
+#if ENABLE_MIRROR
+    , m_mirror(Vec3d::Ones())
+#endif // ENABLE_MIRROR
     , m_world_matrix(Transform3f::Identity())
     , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
@@ -324,6 +327,40 @@ void GLVolume::set_scaling_factor(const Vec3d& scaling_factor)
     }
 }
 
+#if ENABLE_MIRROR
+const Vec3d& GLVolume::get_mirror() const
+{
+    return m_mirror;
+}
+
+double GLVolume::get_mirror(Axis axis) const
+{
+    return m_mirror(axis);
+}
+
+void GLVolume::set_mirror(const Vec3d& mirror)
+{
+    if (m_mirror != mirror)
+    {
+        m_mirror = mirror;
+        m_world_matrix_dirty = true;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
+}
+
+void GLVolume::set_mirror(Axis axis, double mirror)
+{
+    if (m_mirror(axis) != mirror)
+    {
+        m_mirror(axis) = mirror;
+        m_world_matrix_dirty = true;
+        m_transformed_bounding_box_dirty = true;
+        m_transformed_convex_hull_bounding_box_dirty = true;
+    }
+}
+#endif // ENABLE_MIRROR
+
 void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
 {
     m_convex_hull = &convex_hull;
@@ -353,7 +390,11 @@ const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
     {
+#if ENABLE_MIRROR
+        m_world_matrix = Geometry::assemble_transform(m_offset, m_rotation, m_scaling_factor, m_mirror).cast<float>();
+#else
         m_world_matrix = Geometry::assemble_transform(m_offset, m_rotation, m_scaling_factor).cast<float>();
+#endif // ENABLE_MIRROR
         m_world_matrix_dirty = false;
     }
     return m_world_matrix;
@@ -729,6 +770,9 @@ std::vector<int> GLVolumeCollection::load_object(
             v.set_offset(instance->get_offset());
             v.set_rotation(instance->get_rotation());
             v.set_scaling_factor(instance->get_scaling_factor());
+#if ENABLE_MIRROR
+            v.set_mirror(instance->get_mirror());
+#endif // ENABLE_MIRROR
         }
     }
     
@@ -2075,6 +2119,15 @@ int _3DScene::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx)
 {
     return s_canvas_mgr.get_in_object_volume_id(canvas, scene_vol_idx);
 }
+
+#if ENABLE_MIRROR
+#if ENABLE_EXTENDED_SELECTION
+void _3DScene::mirror_selection(wxGLCanvas* canvas, Axis axis)
+{
+    s_canvas_mgr.mirror_selection(canvas, axis);
+}
+#endif // ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_MIRROR
 
 void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
 {

@@ -12,9 +12,12 @@
 
 #include <vector>
 #include <set>
+#include <functional>
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
-    std::function<void(wxCommandEvent& event)> cb, const std::string& icon = "");
+    std::function<void(wxCommandEvent& event)> cb, const std::string& icon = "", wxEvtHandler* event_handler = nullptr);
+
+wxMenuItem* append_submenu(wxMenu* menu, wxMenu* sub_menu, int id, const wxString& string, const wxString& description, const std::string& icon = "");
 
 class wxCheckListBoxComboPopup : public wxCheckListBox, public wxComboPopup
 {
@@ -259,7 +262,10 @@ public:
             m_name = "Settings to modified";
         }
         else if (type == itInstanceRoot) {
-            m_name = "Instances";            
+            m_name = "Instances"; 
+#ifdef __WXGTK__
+            m_container = true;
+#endif  //__WXGTK__
         }
         else if (type == itInstance) {
             m_idx = parent->GetChildCount();

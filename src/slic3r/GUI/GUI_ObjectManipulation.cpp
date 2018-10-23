@@ -221,7 +221,7 @@ void ObjectManipulation::update_settings_list()
                 if (cat.second.size() == 1 && cat.second[0] == "extruder")
                     continue;
 
-                auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, cat.first, config, false, ogDEFAULT, extra_column);
+                auto optgroup = std::make_shared<ConfigOptionsGroup>(parent, cat.first, config, false, extra_column);
                 optgroup->label_width = 150;
                 optgroup->sidetext_width = 70;
 

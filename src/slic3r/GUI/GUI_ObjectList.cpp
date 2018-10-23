@@ -868,7 +868,7 @@ void ObjectList::del_settings_from_config()
 
 void ObjectList::del_instances_from_object(const int obj_idx)
 {
-    auto instances = (*m_objects)[obj_idx]->instances;
+    auto& instances = (*m_objects)[obj_idx]->instances;
     if (instances.size() <= 1)
         return;
 
@@ -1054,7 +1054,11 @@ void ObjectList::part_selection_changed()
 
     m_selected_object_id = obj_idx;
 
+#if ENABLE_EXTENDED_SELECTION
+    wxGetApp().obj_manipul()->update_settings_value(_3DScene::get_canvas(wxGetApp().canvas3D())->get_selection());
+#else
     wxGetApp().obj_manipul()->update_values();
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::update_manipulation_sizer(const bool is_simple_mode)

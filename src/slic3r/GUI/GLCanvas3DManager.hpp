@@ -163,6 +163,12 @@ public:
     int get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const;
     int get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx) const;
 
+#if ENABLE_MIRROR
+#if ENABLE_EXTENDED_SELECTION
+    void mirror_selection(wxGLCanvas* canvas, Axis axis);
+#endif // ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_MIRROR
+
     void reload_scene(wxGLCanvas* canvas, bool force);
 
     void load_gcode_preview(wxGLCanvas* canvas, const GCodePreviewData* preview_data, const std::vector<std::string>& str_tool_colors);
