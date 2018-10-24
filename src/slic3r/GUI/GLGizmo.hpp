@@ -391,6 +391,7 @@ protected:
     virtual bool on_init();
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
+    virtual void on_stop_dragging();
 #else
     virtual void on_start_dragging(const BoundingBoxf3& box);
 #endif // ENABLE_EXTENDED_SELECTION

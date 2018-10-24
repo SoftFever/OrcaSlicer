@@ -1241,6 +1241,13 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoMove3D::on_stop_dragging()
+{
+    m_displacement = Vec3d::Zero();
+}
+#endif // ENABLE_EXTENDED_SELECTION
+
 void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 {
 #if ENABLE_EXTENDED_SELECTION
@@ -1267,12 +1274,15 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
 {
 #if ENABLE_EXTENDED_SELECTION
-    if (m_grabbers[0].dragging)
-        set_tooltip("X: " + format(m_displacement(0), 2));
-    else if (m_grabbers[1].dragging)
-        set_tooltip("Y: " + format(m_displacement(1), 2));
-    else if (m_grabbers[2].dragging)
-        set_tooltip("Z: " + format(m_displacement(2), 2));
+    bool show_position = selection.is_single_full_instance();
+    const Vec3d& position = selection.get_bounding_box().center();
+
+    if ((show_position && (m_hover_id == 0)) || m_grabbers[0].dragging)
+        set_tooltip("X: " + format(show_position ? position(0) : m_displacement(0), 2));
+    else if ((show_position && (m_hover_id == 1)) || m_grabbers[1].dragging)
+        set_tooltip("Y: " + format(show_position ? position(1) : m_displacement(1), 2));
+    else if ((show_position && (m_hover_id == 2)) || m_grabbers[2].dragging)
+        set_tooltip("Z: " + format(show_position ? position(2) : m_displacement(2), 2));
 #else
     if (m_grabbers[0].dragging)
         set_tooltip("X: " + format(m_position(0), 2));
