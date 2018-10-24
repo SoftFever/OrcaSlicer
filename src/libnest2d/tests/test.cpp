@@ -789,60 +789,6 @@ TEST(GeometryAlgorithms, nfpConvexConvex) {
 //    testNfp<NfpLevel::BOTH_CONCAVE, 1000>(nfp_concave_testdata);
 //}
 
-TEST(GeometryAlgorithms, nfpConcaveConcave) {
-    using namespace libnest2d;
-
-    Item stationary = {
-        {
-            {207, 76},
-            {194, 117},
-            {206, 117},
-            {206, 104},
-            {218, 104},
-            {231, 117},
-            {231, 130},
-            {244, 130},
-            {230, 92},
-            {220, 92},
-            {220, 84},
-            {239, 76},
-            {207, 76}
-        },
-        {}
-    };
-
-    Item orbiter = {
-        {
-            {78, 76},
-            {90, 89},
-            {76, 124},
-            {101, 124},
-            {101, 100},
-            {141, 113},
-            {141, 124},
-            {168, 124},
-            {158, 115},
-            {158, 104},
-            {121, 88},
-            {121, 76},
-            {78, 76}
-        },
-        {}
-    };
-
-    Rectangle r1(10, 10);
-    Rectangle r2(20, 20);
-    auto result = nfp::nfpSimpleSimple(stationary.transformedShape(),
-                                       orbiter.transformedShape());
-
-    svg::SVGWriter<PolygonImpl>::Config conf;
-    conf.mm_in_coord_units = 1;
-    svg::SVGWriter<PolygonImpl> wr(conf);
-    wr.writeItem(Item(result.first));
-    wr.save("simplesimple.svg");
-
-}
-
 TEST(GeometryAlgorithms, pointOnPolygonContour) {
     using namespace libnest2d;
 
