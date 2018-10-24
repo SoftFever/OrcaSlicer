@@ -149,6 +149,14 @@ GLToolbar::GLToolbar(GLCanvas3D& parent)
 {
 }
 
+GLToolbar::~GLToolbar()
+{
+    for (GLToolbarItem* item : m_items)
+    {
+        delete item;
+    }
+}
+
 bool GLToolbar::init(const std::string& icons_texture_filename, unsigned int items_icon_size, unsigned int items_icon_border_size, unsigned int items_icon_gap_size)
 {
     std::string path = resources_dir() + "/icons/";
