@@ -328,14 +328,17 @@ void MainFrame::init_menubar()
     // View menu
     if (m_plater) {
         m_viewMenu = new wxMenu();
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Iso\t0")), _(L("Iso View")), [this](wxCommandEvent&){ select_view("iso"); });
+        // \xA0 is a non-breaing space. It is entered here to spoil the automatic accelerators,
+        // as the simple numeric accelerators spoil all numeric data entry.
+        // The camera control accelerators are captured by GLCanvas3D::on_char().
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Iso")) + "\t\xA0" + "0", _(L("Iso View")), [this](wxCommandEvent&){ select_view("iso"); });
         m_viewMenu->AppendSeparator();
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Top\t1")), _(L("Top View")), [this](wxCommandEvent&){ select_view("top"); });
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Bottom\t2")), _(L("Bottom View")), [this](wxCommandEvent&){ select_view("bottom"); });
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Front\t3")), _(L("Front View")), [this](wxCommandEvent&){ select_view("front"); });
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Rear\t4")), _(L("Rear View")), [this](wxCommandEvent&){ select_view("rear"); });
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Left\t5")), _(L("Left View")), [this](wxCommandEvent&){ select_view("left"); });
-        append_menu_item(m_viewMenu, wxID_ANY, _(L("Right\t6")), _(L("Right View")), [this](wxCommandEvent&){ select_view("right"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Top")) + "\t\xA0" + "1", _(L("Top View")), [this](wxCommandEvent&){ select_view("top"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Bottom")) + "\t\xA0" + "2", _(L("Bottom View")), [this](wxCommandEvent&){ select_view("bottom"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Front")) + "\t\xA0" + "3", _(L("Front View")), [this](wxCommandEvent&){ select_view("front"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Rear")) + "\t\xA0" + "4", _(L("Rear View")), [this](wxCommandEvent&){ select_view("rear"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Left")) + "\t\xA0" + "5", _(L("Left View")), [this](wxCommandEvent&){ select_view("left"); });
+        append_menu_item(m_viewMenu, wxID_ANY, _(L("Right")) + "\t\xA0" + "6", _(L("Right View")), [this](wxCommandEvent&){ select_view("right"); });
     }
 
     // Help menu
