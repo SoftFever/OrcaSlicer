@@ -407,8 +407,11 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     } else
         m_objects.emplace_back(object);
     // Invalidate all print steps.
-    //FIXME lock mutex!
     this->invalidate_all_steps();
+
+    // Set the transformation matrix without translation from the first instance.
+    if (! model_object->instances.empty())
+        object->set_trafo(model_object->instances.front()->world_matrix(true));
 
     size_t volume_id = 0;
     for (const ModelVolume *volume : model_object->volumes) {
