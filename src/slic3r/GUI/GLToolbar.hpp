@@ -141,6 +141,7 @@ private:
 
 public:
     explicit GLToolbar(GLCanvas3D& parent);
+    ~GLToolbar();
 
     bool init(const std::string& icons_texture_filename, unsigned int items_icon_size, unsigned int items_icon_border_size, unsigned int items_icon_gap_size);
     
