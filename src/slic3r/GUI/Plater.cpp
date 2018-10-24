@@ -244,6 +244,7 @@ public:
     ~FreqChangedParams() {}
 
     wxButton*       get_wiping_dialog_button() { return m_wiping_dialog_button; }
+    void            Show(const bool show);
 };
 
 FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
@@ -368,6 +369,16 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 }
 
 
+void FreqChangedParams::Show(const bool show)
+{
+    bool is_wdb_shown = m_wiping_dialog_button->IsShown();
+    m_og->sizer->Show(show);
+
+    // correct showing of the FreqChangedParams sizer when m_wiping_dialog_button is hidden 
+    if (show && !is_wdb_shown)
+        m_wiping_dialog_button->Hide();
+}
+
 // Sidebar / private
 
 struct Sidebar::priv
@@ -416,7 +427,7 @@ void Sidebar::priv::show_preset_comboboxes()
     sizer_presets->Show(4, showSLA);
     sizer_presets->Show(5, showSLA);
 
-    frequently_changed_parameters->get_sizer()->Show(!showSLA);
+    frequently_changed_parameters->Show(!showSLA);
 
     wxGetApp().plater()->Layout();
     wxGetApp().mainframe->Layout();
@@ -795,6 +806,7 @@ struct Plater::priv
 #endif // !ENABLE_EXTENDED_SELECTION
     void arrange();
     void split_object();
+    void split_volume();
     void schedule_background_process();
     void async_apply_config();
     void start_background_process();
@@ -812,7 +824,8 @@ struct Plater::priv
     void on_layer_editing_toggled(bool enable);
 
     void on_action_add(SimpleEvent&);
-    void on_action_split(SimpleEvent&);
+    void on_action_split_objects(SimpleEvent&);
+    void on_action_split_volumes(SimpleEvent&);
     void on_action_cut(SimpleEvent&);
 #if !ENABLE_EXTENDED_SELECTION
     void on_action_settings(SimpleEvent&);
@@ -844,7 +857,8 @@ private:
     bool can_delete_object() const;
     bool can_increase_instances() const;
     bool can_decrease_instances() const;
-    bool can_split_object() const;
+    bool can_split_to_objects() const;
+    bool can_split_to_volumes() const;
     bool can_cut_object() const;
     bool layers_height_allowed() const;
     bool can_delete_all() const;
@@ -958,7 +972,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     canvas3D->Bind(EVT_GLTOOLBAR_ARRANGE, [this](SimpleEvent&) { arrange(); });
     canvas3D->Bind(EVT_GLTOOLBAR_MORE, [q](SimpleEvent&) { q->increase_instances(); });
     canvas3D->Bind(EVT_GLTOOLBAR_FEWER, [q](SimpleEvent&) { q->decrease_instances(); });
-    canvas3D->Bind(EVT_GLTOOLBAR_SPLIT, &priv::on_action_split, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_OBJECTS, &priv::on_action_split_objects, this);
+    canvas3D->Bind(EVT_GLTOOLBAR_SPLIT_VOLUMES, &priv::on_action_split_volumes, this);
     canvas3D->Bind(EVT_GLTOOLBAR_CUT, &priv::on_action_cut, this);
 #if !ENABLE_EXTENDED_SELECTION
     canvas3D->Bind(EVT_GLTOOLBAR_SETTINGS, &priv::on_action_settings, this);
@@ -1356,12 +1371,14 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "delete", can_delete_object());
     _3DScene::enable_toolbar_item(canvas3D, "more", can_increase_instances());
     _3DScene::enable_toolbar_item(canvas3D, "fewer", can_decrease_instances());
-    _3DScene::enable_toolbar_item(canvas3D, "split", can_split_object());
+    _3DScene::enable_toolbar_item(canvas3D, "splitobjects", can_split_to_objects());
+    _3DScene::enable_toolbar_item(canvas3D, "splitvolumes", can_split_to_volumes());
     _3DScene::enable_toolbar_item(canvas3D, "cut", can_cut_object());
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
 #else
     _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel);
-    _3DScene::enable_toolbar_item(canvas3D, "split", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "splitobjects", have_sel);
+    _3DScene::enable_toolbar_item(canvas3D, "splitvolumes", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "cut", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "settings", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", have_sel && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D));
@@ -1617,8 +1634,10 @@ void Plater::priv::split_object()
     }
     else
     {
+        unsigned int counter = 1;
         for (ModelObject* m : new_objects)
         {
+            m->name = current_model_object->name + "_" + std::to_string(counter++);
             m->center_around_origin();
         }
 
@@ -1629,6 +1648,11 @@ void Plater::priv::split_object()
         load_model_objects(new_objects);
     }
 #endif // ENABLE_EXTENDED_SELECTION
+}
+
+void Plater::priv::split_volume()
+{
+    wxGetApp().obj_list()->split(false);
 }
 
 void Plater::priv::schedule_background_process()
@@ -1868,9 +1892,14 @@ void Plater::priv::on_action_add(SimpleEvent&)
         q->add();
 }
 
-void Plater::priv::on_action_split(SimpleEvent&)
+void Plater::priv::on_action_split_objects(SimpleEvent&)
 {
     split_object();
+}
+
+void Plater::priv::on_action_split_volumes(SimpleEvent&)
+{
+    split_volume();
 }
 
 void Plater::priv::on_action_cut(SimpleEvent&)
@@ -2031,8 +2060,16 @@ bool Plater::priv::init_object_menu()
     wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 #endif // ENABLE_MIRROR
 
-    wxMenuItem* item_split = append_menu_item(&object_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object into individual parts")),
-        [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png");
+    wxMenu* split_menu = new wxMenu();
+    if (split_menu == nullptr)
+        return false;
+
+    wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
+        [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png", &object_menu);
+    wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
+        [this](wxCommandEvent&){ split_volume(); }, "shape_ungroup.png", &object_menu);
+
+    wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
 #if ENABLE_EXTENDED_SELECTION
     // ui updates needs to be binded to the parent panel
@@ -2044,7 +2081,9 @@ bool Plater::priv::init_object_menu()
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
-        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_object()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects() || can_split_to_volumes()); }, item_split->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split_objects->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); }, item_split_volumes->GetId());
     }
 #endif // ENABLE_EXTENDED_SELECTION
 
@@ -2070,7 +2109,13 @@ bool Plater::priv::can_decrease_instances() const
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && (model.objects[obj_idx]->instances.size() > 1);
 }
 
-bool Plater::priv::can_split_object() const
+bool Plater::priv::can_split_to_objects() const
+{
+    int obj_idx = get_selected_object_idx();
+    return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();
+}
+
+bool Plater::priv::can_split_to_volumes() const
 {
     int obj_idx = get_selected_object_idx();
     return (0 <= obj_idx) && (obj_idx < (int)model.objects.size()) && !model.objects[obj_idx]->is_multiparts();

@@ -848,6 +848,25 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
 {
+#if ENABLE_EXTENDED_SELECTION
+    bool single_instance = selection.is_single_full_instance();
+    Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
+
+    if ((single_instance && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
+        set_tooltip("X: " + format(scale(0), 4) + "%");
+    else if ((single_instance && ((m_hover_id == 2) || (m_hover_id == 3))) || m_grabbers[2].dragging || m_grabbers[3].dragging)
+        set_tooltip("Y: " + format(scale(1), 4) + "%");
+    else if ((single_instance && ((m_hover_id == 4) || (m_hover_id == 5))) || m_grabbers[4].dragging || m_grabbers[5].dragging)
+        set_tooltip("Z: " + format(scale(2), 4) + "%");
+    else if ((single_instance && ((m_hover_id == 6) || (m_hover_id == 7) || (m_hover_id == 8) || (m_hover_id == 9)))
+        || m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
+    {
+        std::string tooltip = "X: " + format(scale(0), 4) + "%\n";
+        tooltip += "Y: " + format(scale(1), 4) + "%\n";
+        tooltip += "Z: " + format(scale(2), 4) + "%";
+        set_tooltip(tooltip);
+    }
+#else
     if (m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(100.0f * m_scale(0), 4) + "%");
     else if (m_grabbers[2].dragging || m_grabbers[3].dragging)
@@ -861,6 +880,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         tooltip += "Z: " + format(100.0f * m_scale(2), 4) + "%";
         set_tooltip(tooltip);
     }
+#endif // ENABLE_EXTENDED_SELECTION
 
     ::glEnable(GL_DEPTH_TEST);
 
@@ -870,7 +890,7 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     Vec3d angles = Vec3d::Zero();
     Transform3d offsets_transform = Transform3d::Identity();
 
-    if (selection.is_from_single_instance())
+    if (single_instance)
     {
         // calculate bounding box in instance local reference system
         const GLCanvas3D::Selection::IndicesList& idxs = selection.get_volume_idxs();
@@ -1241,6 +1261,13 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
     }
 }
 
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoMove3D::on_stop_dragging()
+{
+    m_displacement = Vec3d::Zero();
+}
+#endif // ENABLE_EXTENDED_SELECTION
+
 void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
 {
 #if ENABLE_EXTENDED_SELECTION
@@ -1267,12 +1294,15 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
 #endif // ENABLE_EXTENDED_SELECTION
 {
 #if ENABLE_EXTENDED_SELECTION
-    if (m_grabbers[0].dragging)
-        set_tooltip("X: " + format(m_displacement(0), 2));
-    else if (m_grabbers[1].dragging)
-        set_tooltip("Y: " + format(m_displacement(1), 2));
-    else if (m_grabbers[2].dragging)
-        set_tooltip("Z: " + format(m_displacement(2), 2));
+    bool show_position = selection.is_single_full_instance();
+    const Vec3d& position = selection.get_bounding_box().center();
+
+    if ((show_position && (m_hover_id == 0)) || m_grabbers[0].dragging)
+        set_tooltip("X: " + format(show_position ? position(0) : m_displacement(0), 2));
+    else if ((show_position && (m_hover_id == 1)) || m_grabbers[1].dragging)
+        set_tooltip("Y: " + format(show_position ? position(1) : m_displacement(1), 2));
+    else if ((show_position && (m_hover_id == 2)) || m_grabbers[2].dragging)
+        set_tooltip("Z: " + format(show_position ? position(2) : m_displacement(2), 2));
 #else
     if (m_grabbers[0].dragging)
         set_tooltip("X: " + format(m_position(0), 2));

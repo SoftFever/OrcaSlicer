@@ -139,6 +139,7 @@ public:
     PresetBundle*   preset_bundle{ nullptr };
     PresetUpdater*  preset_updater{ nullptr };
     MainFrame*      mainframe{ nullptr };
+    Plater*         plater_{ nullptr };
 
     wxNotebook*     tab_panel() const ;
 
