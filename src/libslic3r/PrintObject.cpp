@@ -1615,10 +1615,7 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
         for (const ModelVolume *v : volumes)
             mesh.merge(v->mesh);
         if (mesh.stl.stats.number_of_facets > 0) {
-            // transform mesh
-            // we ignore the per-instance transformations currently and only 
-            // consider the first one
-            this->model_object()->instances.front()->transform_mesh(&mesh, true);
+            mesh.transform(m_trafo.cast<float>());
             // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
             mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), - float(this->model_object()->bounding_box().min(2)));
             // perform actual slicing

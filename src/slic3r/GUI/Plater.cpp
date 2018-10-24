@@ -2408,7 +2408,7 @@ void Plater::reslice()
     // Don't reslice if export of G-code or sending to OctoPrint is running.
 //    if (! defined($self->{export_gcode_output_file}) && ! defined($self->{send_gcode_file})) {
     // Stop the background processing threads, stop the async update timer.
-    this->p->stop_background_process();
+//    this->p->stop_background_process();
     // Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
     this->p->async_apply_config();
 /*

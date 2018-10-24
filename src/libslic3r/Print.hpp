@@ -203,7 +203,9 @@ public:
     void                    config_apply_only(const ConfigBase &other, const t_config_option_keys &keys, bool ignore_nonexistent = false) { this->m_config.apply_only(other, keys, ignore_nonexistent); }
     const LayerPtrs&        layers() const          { return m_layers; }
     const SupportLayerPtrs& support_layers() const  { return m_support_layers; }
+
     const Transform3d&      trafo() const           { return m_trafo; }
+    void                    set_trafo(const Transform3d& trafo) { m_trafo = trafo; }
 
     const Points&           copies() const { return m_copies; }
     bool                    add_copy(const Vec2d &point);

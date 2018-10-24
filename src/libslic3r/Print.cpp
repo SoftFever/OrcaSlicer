@@ -946,6 +946,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 // Simple case, just generate new instances.
                 for (const PrintInstances &print_instances : new_print_instances) {
                     PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+					print_object->set_trafo(print_instances.trafo);
                     print_object->set_copies(print_instances.copies);
                     print_object->config_apply(config);
                     print_objects_new.emplace_back(print_object);
@@ -959,10 +960,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             // Merge the old / new lists.
             auto it_old = old.begin();
             for (const PrintInstances &new_instances : new_print_instances) {
-                for (; transform3d_lower((*it_old)->trafo, new_instances.trafo); ++ it_old);
-                if (! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
+				for (; it_old != old.end() && transform3d_lower((*it_old)->trafo, new_instances.trafo); ++ it_old);
+				if (it_old == old.end() || ! transform3d_equal((*it_old)->trafo, new_instances.trafo)) {
                     // This is a new instance (or a set of instances with the same trafo). Just add it.
                     PrintObject *print_object = new PrintObject(this, model_object, model_object->raw_bounding_box());
+                    print_object->set_trafo(new_instances.trafo);
                     print_object->set_copies(new_instances.copies);
                     print_object->config_apply(config);
                     print_objects_new.emplace_back(print_object);
