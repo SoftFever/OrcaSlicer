@@ -4588,11 +4588,19 @@ bool GLCanvas3D::_init_toolbar()
     if (!m_toolbar.add_separator())
         return false;
 
-    item.name = "split";
-    item.tooltip = GUI::L_str("Split");
+    item.name = "splitobjects";
+    item.tooltip = GUI::L_str("Split to objects");
     item.sprite_id = 6;
     item.is_toggable = false;
-    item.action_event = EVT_GLTOOLBAR_SPLIT;
+    item.action_event = EVT_GLTOOLBAR_SPLIT_OBJECTS;
+    if (!m_toolbar.add_item(item))
+        return false;
+
+    item.name = "splitvolumes";
+    item.tooltip = GUI::L_str("Split to parts");
+    item.sprite_id = 6;
+    item.is_toggable = false;
+    item.action_event = EVT_GLTOOLBAR_SPLIT_VOLUMES;
     if (!m_toolbar.add_item(item))
         return false;
 
