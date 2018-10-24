@@ -86,7 +86,7 @@ public:
     // In case the step has already been entered or finished, cancel the background
     // processing by calling the cancel callback.
     template<typename CancelationCallback>
-    bool invalidate(StepType step, tbb::mutex &mtx, CancelationCallback &cancel) {
+    bool invalidate(StepType step, tbb::mutex &mtx, CancelationCallback cancel) {
         bool invalidated = m_state[step].load(std::memory_order_relaxed) != INVALID;
         if (invalidated) {
 #if 0
@@ -109,7 +109,7 @@ public:
     // In case any step has already been entered or finished, cancel the background
     // processing by calling the cancel callback.
     template<typename CancelationCallback>
-    bool invalidate_all(tbb::mutex &mtx, CancelationCallback &cancel) {
+    bool invalidate_all(tbb::mutex &mtx, CancelationCallback cancel) {
         bool invalidated = false;
         for (size_t i = 0; i < COUNT; ++ i)
             if (m_state[i].load(std::memory_order_relaxed) != INVALID) {
