@@ -215,7 +215,9 @@ void Tab::create_preset_tab()
 	// Initialize the DynamicPrintConfig by default keys/values.
 	build();
 	rebuild_page_tree();
-	update();
+// 	update();
+    // Load the currently selected preset into the GUI, update the preset selection box.
+    load_current_preset();
 }
 
 void Tab::load_initial_data()
@@ -740,9 +742,7 @@ void Tab::update_wiping_button_visibility() {
     bool multiple_extruders = dynamic_cast<ConfigOptionFloats*>((m_preset_bundle->printers.get_edited_preset().config).option("nozzle_diameter"))->values.size() > 1;
     bool single_extruder_mm = dynamic_cast<ConfigOptionBool*>(  (m_preset_bundle->printers.get_edited_preset().config).option("single_extruder_multi_material"))->value;
 
-    if (!wxGetApp().mainframe)
-        return;
-    auto wiping_dialog_button = wxGetApp().mainframe->m_plater->sidebar().get_wiping_dialog_button();
+    auto wiping_dialog_button = wxGetApp().sidebar().get_wiping_dialog_button();
     if (wiping_dialog_button) {
         wiping_dialog_button->Show(wipe_tower_enabled && multiple_extruders && single_extruder_mm);
         wiping_dialog_button->GetParent()->Layout();
@@ -1862,8 +1862,6 @@ void TabPrinter::extruders_count_changed(size_t extruders_count){
 	m_preset_bundle->update_multi_material_filament_presets();
 	build_extruder_pages();
 	reload_config();
-    if (!wxGetApp().mainframe)
-        return;
 	on_value_change("extruders_count", extruders_count);
     wxGetApp().sidebar().update_objects_list_extruder_column(extruders_count);
 }

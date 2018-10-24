@@ -244,6 +244,7 @@ public:
     ~FreqChangedParams() {}
 
     wxButton*       get_wiping_dialog_button() { return m_wiping_dialog_button; }
+    void            Show(const bool show);
 };
 
 FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
@@ -368,6 +369,16 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 }
 
 
+void FreqChangedParams::Show(const bool show)
+{
+    bool is_wdb_shown = m_wiping_dialog_button->IsShown();
+    m_og->sizer->Show(show);
+
+    // correct showing of the FreqChangedParams sizer when m_wiping_dialog_button is hidden 
+    if (show && !is_wdb_shown)
+        m_wiping_dialog_button->Hide();
+}
+
 // Sidebar / private
 
 struct Sidebar::priv
@@ -416,7 +427,7 @@ void Sidebar::priv::show_preset_comboboxes()
     sizer_presets->Show(4, showSLA);
     sizer_presets->Show(5, showSLA);
 
-    frequently_changed_parameters->get_sizer()->Show(!showSLA);
+    frequently_changed_parameters->Show(!showSLA);
 
     wxGetApp().plater()->Layout();
     wxGetApp().mainframe->Layout();

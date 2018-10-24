@@ -139,6 +139,7 @@ void MainFrame::init_tabpanel()
 
     if (!m_no_plater) {
         m_plater = new Slic3r::GUI::Plater(m_tabpanel, this);
+        wxGetApp().plater_ = m_plater;
         m_tabpanel->AddPage(m_plater, _(L("Plater")));
     }
 
@@ -148,18 +149,6 @@ void MainFrame::init_tabpanel()
     // The following event is emited by Tab on preset selection,
     // or when the preset's "modified" status changes.
     Bind(EVT_TAB_PRESETS_CHANGED, &MainFrame::on_presets_changed, this);
-
-
-    // The following event is emited by the C++ Tab implementation on object selection change.
-//     EVT_COMMAND($self, -1, $OBJECT_SELECTION_CHANGED_EVENT, sub {
-//         auto obj_idx = event->GetId();
-//         // my $child = $event->GetInt == 1 ? 1 : undef;
-//         // $self->{plater}->select_object($obj_idx < 0 ? undef : $obj_idx, $child);
-//         // $self->{plater}->item_changed_selection($obj_idx);
-// 
-//         auto vol_idx = event->GetInt();
-//         m_plater->select_object_from_cpp(obj_idx < 0 ? undef : obj_idx, vol_idx < 0 ? -1 : vol_idx);
-//     });
 
     create_preset_tabs();
     std::vector<std::string> tab_names = { "print", "filament", "sla_material", "printer" };    
@@ -224,9 +213,6 @@ void MainFrame::create_preset_tabs()
 void MainFrame::add_created_tab(Tab* panel)
 {
     panel->create_preset_tab();
-
-    // Load the currently selected preset into the GUI, update the preset selection box.
-    panel->load_current_preset();
 
     const wxString& tab_name = panel->GetName();
     bool add_panel = true;

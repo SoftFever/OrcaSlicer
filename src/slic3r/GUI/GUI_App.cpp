@@ -653,7 +653,7 @@ void GUI_App::load_current_presets()
 
 Sidebar& GUI_App::sidebar()
 {
-    return mainframe->m_plater->sidebar();
+    return plater_->sidebar();
 }
 
 ObjectManipulation* GUI_App::obj_manipul()
@@ -668,17 +668,17 @@ ObjectList* GUI_App::obj_list()
 
 Plater* GUI_App::plater()
 {
-    return mainframe->m_plater;
+    return plater_;
 }
 
 wxGLCanvas* GUI_App::canvas3D()
 {
-    return mainframe->m_plater->canvas3D();
+    return plater_->canvas3D();
 }
 
 ModelObjectPtrs* GUI_App::model_objects()
 {
-    return &mainframe->m_plater->model().objects;
+    return &plater_->model().objects;
 }
 
 wxNotebook* GUI_App::tab_panel() const
