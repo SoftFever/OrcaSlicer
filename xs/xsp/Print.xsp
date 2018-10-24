@@ -185,6 +185,14 @@ _constant()
             }
         %};
 
+    void export_gcode(char *path_template) %code%{
+            try {
+                THIS->export_gcode(path_template, nullptr);
+            } catch (std::exception& e) {
+                croak(e.what());
+            }
+        %};
+
     void export_png(char *path) %code%{
             try {
                 THIS->export_png(path);
