@@ -445,10 +445,22 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
 #if ENABLE_EXTENDED_SELECTION
     const BoundingBoxf3& box = selection.get_bounding_box();
-#endif // ENABLE_EXTENDED_SELECTION
+    bool single_instance = selection.is_single_full_instance();
 
+    std::string axis;
+    switch (m_axis)
+    {
+    case X: { axis = "X: "; break; }
+    case Y: { axis = "Y: "; break; }
+    case Z: { axis = "Z: "; break; }
+    }
+
+    if ((single_instance && (m_hover_id == 0)) || m_dragging)
+        set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "°");
+#else
     if (m_dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
+#endif // ENABLE_EXTENDED_SELECTION
     else
     {
         m_center = box.center();
