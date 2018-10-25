@@ -22,6 +22,7 @@
 #include <wx/dcmemory.h>
 #include <wx/image.h>
 #include <wx/settings.h>
+#include <wx/tooltip.h>
 
 // Print now includes tbb, and tbb includes Windows. This breaks compilation of wxWidgets if included before wx.
 #include "../../libslic3r/Print.hpp"

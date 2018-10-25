@@ -1839,10 +1839,10 @@ void Plater::priv::on_update_print_preview(wxCommandEvent &)
         this->preview->reload_print();
     // in case this was MM print, wipe tower bounding box on 3D tab might need redrawing with exact depth:
 #if !ENABLE_EXTENDED_SELECTION
-    auto selections = p->collect_selections();
-    _3DScene::set_objects_selections(p->canvas3D, selections);
-    if (p->canvas3D)
-        _3DScene::reload_scene(p->canvas3D, true);
+    auto selections = collect_selections();
+    _3DScene::set_objects_selections(canvas3D, selections);
+    if (canvas3D)
+        _3DScene::reload_scene(canvas3D, true);
 #endif // !ENABLE_EXTENDED_SELECTION
 }
 
