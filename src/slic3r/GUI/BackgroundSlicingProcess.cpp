@@ -15,14 +15,16 @@
 #include <stdexcept>
 
 #include <boost/format.hpp>
+#include <boost/filesystem/path.hpp>
 #include <boost/nowide/cstdio.hpp>
 
 namespace Slic3r {
 
 BackgroundSlicingProcess::BackgroundSlicingProcess()
 {
-	m_temp_output_path = wxStandardPaths::Get().GetTempDir().utf8_str().data();
-	m_temp_output_path += (boost::format(".%1%.gcode") % get_current_pid()).str();
+    boost::filesystem::path temp_path(wxStandardPaths::Get().GetTempDir().utf8_str().data());
+    temp_path /= (boost::format(".%1%.gcode") % get_current_pid()).str();
+	m_temp_output_path = temp_path.string();
 }
 
 BackgroundSlicingProcess::~BackgroundSlicingProcess() 
