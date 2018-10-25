@@ -20,6 +20,7 @@
 #include <wx/progdlg.h>
 #include <wx/wupdlock.h>
 #include <wx/colordlg.h>
+#include <wx/numdlg.h> 
 
 #include "libslic3r/libslic3r.h"
 #include "libslic3r/PrintConfig.hpp"
@@ -2023,6 +2024,8 @@ bool Plater::priv::init_object_menu()
         [this](wxCommandEvent&){ q->increase_instances(); }, "add.png");
     wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
         [this](wxCommandEvent&){ q->decrease_instances(); }, "delete.png");
+    wxMenuItem* item_set_number_of_copies = append_menu_item(&object_menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
+        [this](wxCommandEvent&){ q->set_number_of_copies(); }, "textfield.png");
 
     object_menu.AppendSeparator();
     
@@ -2062,6 +2065,7 @@ bool Plater::priv::init_object_menu()
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_delete_object()); }, item_delete->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_increase->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_decrease_instances()); }, item_decrease->GetId());
+        q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_increase_instances()); }, item_set_number_of_copies->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects() || can_split_to_volumes()); }, item_split->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_objects()); }, item_split_objects->GetId());
         q->Bind(wxEVT_UPDATE_UI, [this](wxUpdateUIEvent& evt) { evt.Enable(can_split_to_volumes()); }, item_split_volumes->GetId());
@@ -2280,7 +2284,7 @@ void Plater::decrease_instances(size_t num)
     this->p->schedule_background_process();
 }
 
-void Plater::set_number_of_copies(size_t num)
+void Plater::set_number_of_copies(/*size_t num*/)
 {
 #if ENABLE_EXTENDED_SELECTION
     int obj_idx = p->get_selected_object_idx();
@@ -2294,6 +2298,11 @@ void Plater::set_number_of_copies(size_t num)
 
     auto *model_object = p->model.objects[*obj_idx];
 #endif // ENABLE_EXTENDED_SELECTION
+
+    const auto num = wxGetNumberFromUser( " ", _("Enter the number of copies:"), 
+                                    _("Copies of the selected object"), model_object->instances.size(), 0, 1000, this );
+    if (num < 0)
+        return;
 
     int diff = (int)num - (int)model_object->instances.size();
     if (diff > 0)

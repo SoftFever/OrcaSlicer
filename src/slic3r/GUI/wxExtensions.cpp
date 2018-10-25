@@ -653,17 +653,6 @@ wxDataViewItem PrusaObjectDataViewModel::DeleteLastInstance(const wxDataViewItem
         ItemDeleted(inst_root_item, wxDataViewItem(last_instance_node));
     }
 
-//     for (int i = delete_inst_root_item ? 0 : inst_cnt - num; i < inst_cnt; ++i)
-//         items.Add(wxDataViewItem(inst_root_node->GetNthChild(i)));
-// 
-//     if (delete_inst_root_item)
-//         inst_root_node->GetChildren().RemoveAt(0, inst_cnt);
-//     else {
-//         ret_item = wxDataViewItem(inst_root_node->GetNthChild(inst_cnt - num - 1));
-//         inst_root_node->GetChildren().RemoveAt(inst_cnt - num, num);
-//     }
-
-//     ItemsDeleted(inst_root_item, items);
     if (delete_inst_root_item) {
         ret_item = parent_item;
         parent_node->GetChildren().Remove(inst_root_node);
