@@ -810,7 +810,6 @@ struct Plater::priv
     void schedule_background_process();
     void async_apply_config();
     void start_background_process();
-    void stop_background_process();
     void reload_from_disk();
     void export_object_stl();
     void fix_through_netfabb();
@@ -1017,9 +1016,6 @@ void Plater::priv::update(bool force_autocenter)
         const Vec2d& bed_center = bed_shape_bb().center();
         model.center_instances_around_point(bed_center);
     }
-
-    // stop_background_process();   // TODO
-//    print.reload_model_instances();
 
 #if !ENABLE_EXTENDED_SELECTION
     const auto selections = collect_selections();
@@ -1488,8 +1484,6 @@ void Plater::priv::select_view()
 
 void Plater::priv::remove(size_t obj_idx)
 {
-    // $self->stop_background_process;   // TODO
-
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
@@ -1514,8 +1508,6 @@ void Plater::priv::remove(size_t obj_idx)
 
 void Plater::priv::reset()
 {
-    // $self->stop_background_process;   // TODO
-
     // Prevent toolpaths preview from rendering while we modify the Print object
     preview->set_enabled(false);
 
@@ -1576,12 +1568,6 @@ void Plater::priv::mirror(Axis axis)
 
     model_object->mirror(axis);
 
-    // $self->stop_background_process;  // TODO
-#if ENABLE_EXTENDED_SELECTION
-//    print.add_model_object(model_object, obj_idx);
-#else
-//    print.add_model_object(model_object, *obj_idx);
-#endif // ENABLE_EXTENDED_SELECTION
     selection_changed();
     update();
 #endif // ENABLE_MIRROR
@@ -1596,8 +1582,6 @@ void Plater::priv::scale()
 
 void Plater::priv::arrange()
 {
-    // $self->stop_background_process;
-
     main_frame->app_controller()->arrange_model();
 
     // ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
@@ -1623,8 +1607,6 @@ void Plater::priv::split_object()
         Slic3r::GUI::warning_catcher(q, _(L("The selected object can't be split because it contains more than one volume/material.")));
         return;
     }
-
-//    $self->stop_background_process;
 
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
@@ -1695,8 +1677,11 @@ void Plater::priv::async_apply_config()
         }
     }
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->get_config("background_processing") == "1" &&
-        this->print.num_object_instances() > 0)
-        this->background_process.start();
+        this->print.num_object_instances() > 0 && this->background_process.start())
+		this->statusbar()->set_cancel_callback([this](){
+            this->statusbar()->set_status_text(L("Cancelling"));
+			this->background_process.stop();
+        });
 }
 
 void Plater::priv::start_background_process()
@@ -1714,13 +1699,6 @@ void Plater::priv::start_background_process()
 		// Start the background process.
 		this->background_process.start();
 	}
-}
-
-void Plater::priv::stop_background_process()
-{
-    this->background_process.stop();
-    if (this->preview != nullptr)
-        this->preview->reload_print();
 }
 
 void Plater::priv::reload_from_disk()
@@ -1855,7 +1833,8 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
     this->statusbar()->reset_cancel_callback();
     this->statusbar()->stop_busy();
   
-    bool success = evt.GetInt();
+	bool canceled = evt.GetInt() < 0;
+    bool success  = evt.GetInt() > 0;
     // Reset the "export G-code path" name, so that the automatic background processing will be enabled again.
     this->background_process.reset_export();
     if (! success) {
@@ -1864,8 +1843,10 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
             message = _(L("Export failed"));
         this->statusbar()->set_status_text(message);
     }
+	if (canceled)
+		this->statusbar()->set_status_text(L("Cancelled"));
 
-    this->sidebar->show_info_sizers(false);
+	this->sidebar->show_info_sizers(success);
 
     // this updates buttons status
     //$self->object_list_changed;
@@ -1990,8 +1971,6 @@ void Plater::priv::on_scale_uniformly(SimpleEvent&)
 
 //     my $model_object = $self->{model}->objects->[$obj_idx];
 //     my $model_instance = $model_object->instances->[0];
-
-//     $self->stop_background_process;
 
 //     my $variation = $scale / $model_instance->scaling_factor;
 //     #FIXME Scale the layer height profile?
@@ -2218,8 +2197,6 @@ void Plater::increase_instances(size_t num)
     auto *model_object = p->model.objects[*obj_idx];
     auto *model_instance = model_object->instances[model_object->instances.size() - 1];
 #endif // ENABLE_EXTENDED_SELECTION
-
-    // $self->stop_background_process;
 
     float offset = 10.0;
     for (size_t i = 0; i < num; i++, offset += 10.0) {
@@ -2456,14 +2433,10 @@ void Plater::reslice()
 //    this->p->stop_background_process();
     // Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
     this->p->async_apply_config();
-/*
-    $self->statusbar->SetCancelCallback(sub {
-        $self->stop_background_process;
-        $self->statusbar->SetStatusText(L("Slicing cancelled"));
-        # this updates buttons status
-        $self->object_list_changed;
+	this->p->statusbar()->set_cancel_callback([this](){
+		this->p->statusbar()->set_status_text(L("Cancelling"));
+		this->p->background_process.stop();
     });
-*/
     this->p->start_background_process();
 }
 
@@ -2570,8 +2543,6 @@ void Plater::changed_object_settings(int obj_idx)
 
     // update print
     if (list->is_parts_changed() || list->is_part_settings_changed()) {
-//         stop_background_process();
-//         $self->{print}->reload_object($obj_idx);
         this->p->schedule_background_process();
 #if !ENABLE_EXTENDED_SELECTION
         if (p->canvas3D) _3DScene::reload_scene(p->canvas3D, true);
