@@ -31,6 +31,7 @@
 #include "Tab.hpp"
 #include <I18N.hpp>
 #include <wx/wupdlock.h>
+#include "SysInfoDialog.hpp"
 
 namespace Slic3r {
 namespace GUI {
@@ -258,20 +259,9 @@ void GUI_App::recreate_GUI()
 
 void GUI_App::system_info()
 {
-//     auto slic3r_info = Slic3r::slic3r_info(format = > 'html');
-//     auto copyright_info = Slic3r::copyright_info(format = > 'html');
-//     auto system_info = Slic3r::system_info(format = > 'html');
-    std::string opengl_info = "";
-    std::string opengl_info_txt = "";
-    if (mainframe && mainframe->m_plater /*&& mainframe->m_plater->canvas3D*/) {
-        opengl_info = _3DScene::get_gl_info(true, true);
-        opengl_info_txt = _3DScene::get_gl_info(false, true);
-    }
-//     auto about = new SystemInfo(nullptr, slic3r_info, /*copyright_info,*/system_info, opengl_info,
-//         text_info = > Slic3r::slic3r_info.Slic3r::system_info.$opengl_info_txt,
-//         );
-//     about->ShowModal();
-//     about->Destroy();
+    SysInfoDialog dlg;
+    dlg.ShowModal();
+    dlg.Destroy();
 }
 
 // static method accepting a wxWindow object as first parameter
@@ -525,7 +515,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->AppendSeparator();
     auto mode_menu = new wxMenu();
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("&Simple")), _(L("Simple View Mode")));
-    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeMiddle, _(L("&Middle")), _(L("Middle View Mode")));
+    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeMiddle, _(L("&Advanced")), _(L("Advanced View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("&Expert")), _(L("Expert View Mode")));
     mode_menu->Check(config_id_base + get_view_mode(), true);
     local_menu->AppendSubMenu(mode_menu, _(L("&Mode")), _(L("Slic3r View Mode")));
@@ -598,7 +588,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     mode_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent& event) {
         int id_mode = event.GetId() - config_id_base;
         std::string mode = id_mode == ConfigMenuModeExpert ? "expert" :
-                           id_mode == ConfigMenuModeSimple ? "simple" : "middle";
+                           id_mode == ConfigMenuModeSimple ? "simple" : "advanced";
         app_config->set("view_mode", mode);
         app_config->save();
         update_mode();

@@ -1,6 +1,8 @@
 add_library(libslic3r_gui STATIC
     ${LIBDIR}/slic3r/GUI/AboutDialog.cpp
     ${LIBDIR}/slic3r/GUI/AboutDialog.hpp
+    ${LIBDIR}/slic3r/GUI/SysInfoDialog.cpp
+    ${LIBDIR}/slic3r/GUI/SysInfoDialog.hpp
     ${LIBDIR}/slic3r/GUI/AppConfig.cpp
     ${LIBDIR}/slic3r/GUI/AppConfig.hpp
     ${LIBDIR}/slic3r/GUI/BackgroundSlicingProcess.cpp
