@@ -512,7 +512,8 @@ void GLToolbar::update_hover_state_horizontal(const Vec2d& mouse_pos)
         }
     }
 
-    m_parent.set_tooltip(tooltip);
+    if (!tooltip.empty())
+        m_parent.set_tooltip(tooltip);
 }
 
 void GLToolbar::update_hover_state_vertical(const Vec2d& mouse_pos)

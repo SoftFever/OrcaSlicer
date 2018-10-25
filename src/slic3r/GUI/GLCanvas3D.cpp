@@ -18,7 +18,6 @@
 #include <GL/glew.h>
 
 #include <wx/glcanvas.h>
-#include <wx/timer.h>
 #include <wx/bitmap.h>
 #include <wx/dcmemory.h>
 #include <wx/image.h>
@@ -1904,13 +1903,21 @@ void GLCanvas3D::Gizmos::set_enabled(bool enable)
 }
 
 #if ENABLE_EXTENDED_SELECTION
-void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
+std::string GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const GLCanvas3D::Selection& selection)
 #else
 void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos)
 #endif // ENABLE_EXTENDED_SELECTION
 {
+#if ENABLE_EXTENDED_SELECTION
+    std::string name = "";
+#endif // ENABLE_EXTENDED_SELECTION
+
     if (!m_enabled)
+#if ENABLE_EXTENDED_SELECTION
+        return name;
+#else
         return;
+#endif // ENABLE_EXTENDED_SELECTION
 
     float cnv_h = (float)canvas.get_canvas_size().get_height();
     float height = _get_total_overlay_height();
@@ -1932,9 +1939,17 @@ void GLCanvas3D::Gizmos::update_hover_state(const GLCanvas3D& canvas, const Vec2
         {
             bool inside = (mouse_pos - Vec2d(OverlayOffsetX + half_tex_size, top_y + half_tex_size)).norm() < half_tex_size;
             it->second->set_state(inside ? GLGizmoBase::Hover : GLGizmoBase::Off);
+#if ENABLE_EXTENDED_SELECTION
+            if (inside)
+                name = it->second->get_name();
+#endif // ENABLE_EXTENDED_SELECTION
         }
         top_y += (tex_size + OverlayGapY);
     }
+
+#if ENABLE_EXTENDED_SELECTION
+    return name;
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 #if ENABLE_EXTENDED_SELECTION
@@ -2715,7 +2730,6 @@ wxDEFINE_EVENT(EVT_GIZMO_FLATTEN, Vec3dEvent);
 GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
     : m_canvas(canvas)
     , m_context(nullptr)
-    , m_timer(nullptr)
     , m_toolbar(*this)
     , m_config(nullptr)
     , m_print(nullptr)
@@ -2749,7 +2763,7 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
         m_context = new wxGLContext(m_canvas);
 #endif // !ENABLE_USE_UNIQUE_GLCONTEXT
-        m_timer = new wxTimer(m_canvas);
+        m_timer.SetOwner(m_canvas);
     }
 
 #if ENABLE_EXTENDED_SELECTION
@@ -2760,12 +2774,6 @@ GLCanvas3D::GLCanvas3D(wxGLCanvas* canvas)
 GLCanvas3D::~GLCanvas3D()
 {
     reset_volumes();
-
-    if (m_timer != nullptr)
-    {
-        delete m_timer;
-        m_timer = nullptr;
-    }
 
 #if !ENABLE_USE_UNIQUE_GLCONTEXT
     if (m_context != nullptr)
@@ -3338,6 +3346,8 @@ void GLCanvas3D::render()
 
     float theta = m_camera.get_theta();
     bool is_custom_bed = m_bed.is_custom();
+
+    set_tooltip("");
 
     // picking pass
     _picking_pass();
@@ -4498,10 +4508,19 @@ void GLCanvas3D::reset_legend_texture()
     m_legend_texture.reset();
 }
 
-void GLCanvas3D::set_tooltip(const std::string& tooltip)
+void GLCanvas3D::set_tooltip(const std::string& tooltip) const
 {
     if (m_canvas != nullptr)
-        m_canvas->SetToolTip(tooltip);
+    {
+        wxToolTip* t = m_canvas->GetToolTip();
+        if (t != nullptr)
+        {
+            if (t->GetTip() != tooltip)
+                t->SetTip(tooltip);
+        }
+        else
+            m_canvas->SetToolTip(tooltip);
+    }
 }
 
 bool GLCanvas3D::_is_shown_on_screen() const
@@ -4993,7 +5012,11 @@ void GLCanvas3D::_picking_pass() const
         // updates gizmos overlay
 #if ENABLE_EXTENDED_SELECTION
         if (!m_selection.is_empty())
-            m_gizmos.update_hover_state(*this, pos, m_selection);
+        {
+            std::string name = m_gizmos.update_hover_state(*this, pos, m_selection);
+            if (!name.empty())
+                set_tooltip(name);
+        }
 #else
         if (_get_first_selected_object_id() != -1)
             m_gizmos.update_hover_state(*this, pos);
@@ -5361,14 +5384,12 @@ Linef3 GLCanvas3D::mouse_ray(const Point& mouse_pos)
 
 void GLCanvas3D::_start_timer()
 {
-    if (m_timer != nullptr)
-        m_timer->Start(100, wxTIMER_CONTINUOUS);
+    m_timer.Start(100, wxTIMER_CONTINUOUS);
 }
 
 void GLCanvas3D::_stop_timer()
 {
-    if (m_timer != nullptr)
-        m_timer->Stop();
+    m_timer.Stop();
 }
 
 #if !ENABLE_EXTENDED_SELECTION
