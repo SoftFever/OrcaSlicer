@@ -75,7 +75,7 @@ SysInfoDialog::SysInfoDialog()
     auto bgr_clr_str = wxString::Format(wxT("#%02X%02X%02X"), bgr_clr.Red(), bgr_clr.Green(), bgr_clr.Blue());
 
     const int fs = font.GetPointSize() - 1;
-    int size[] = { fs*1.5, fs*1.4, fs*1.3, fs, fs, fs, fs };
+    int size[] = { static_cast<int>(fs*1.5), static_cast<int>(fs*1.4), static_cast<int>(fs*1.3), fs, fs, fs, fs };
 
     wxHtmlWindow* html = new wxHtmlWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHW_SCROLLBAR_NEVER);
     {
