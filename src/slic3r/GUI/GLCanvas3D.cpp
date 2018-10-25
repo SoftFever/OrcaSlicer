@@ -4115,7 +4115,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         // Get new position at the same Z of the initial click point.
         float z0 = 0.0f;
         float z1 = 1.0f;
+#if ENABLE_EXTENDED_SELECTION
+        // we do not want to translate objects if the user just clicked on an object while pressing shift (to add/remove it from the selection) and then drag
+        Vec3d cur_pos = evt.ShiftDown() ? m_mouse.drag.start_position_3D : Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+#else
         Vec3d cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+#endif // ENABLE_EXTENDED_SELECTION
 
 #if !ENABLE_EXTENDED_SELECTION
         // Clip the new position, so the object center remains close to the bed.
