@@ -2699,6 +2699,7 @@ void GLCanvas3D::LegendTexture::render(const GLCanvas3D& canvas) const
     }
 }
 
+wxDEFINE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 #if ENABLE_EXTENDED_SELECTION
 wxDEFINE_EVENT(EVT_GLCANVAS_OBJECT_SELECT, SimpleEvent);
 #else
@@ -6547,7 +6548,7 @@ void GLCanvas3D::_on_rotate()
         }
     }
 
-// schedule_background_process
+    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLCanvas3D::_on_scale()
@@ -6581,7 +6582,7 @@ void GLCanvas3D::_on_scale()
         }
     }
 
-    // schedule_background_process
+    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 
 void GLCanvas3D::_on_flatten()
@@ -6621,7 +6622,7 @@ void GLCanvas3D::_on_mirror()
         }
     }
 
-    // schedule_background_process
+    post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
 #endif // ENABLE_MIRROR
 #else

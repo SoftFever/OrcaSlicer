@@ -89,7 +89,6 @@ private:
     std::unique_ptr<priv> p;
 };
 
-
 class Plater: public wxPanel
 {
 public:

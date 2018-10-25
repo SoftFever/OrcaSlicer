@@ -104,7 +104,7 @@ template <size_t N> using Vec2dsEvent = ArrayEvent<Vec2d, N>;
 using Vec3dEvent = Event<Vec3d>;
 template <size_t N> using Vec3dsEvent = ArrayEvent<Vec3d, N>;
 
-
+wxDECLARE_EVENT(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, SimpleEvent);
 wxDECLARE_EVENT(EVT_GLCANVAS_VIEWPORT_CHANGED, SimpleEvent);
 #if !ENABLE_EXTENDED_SELECTION
 wxDECLARE_EVENT(EVT_GLCANVAS_DOUBLE_CLICK, SimpleEvent);
@@ -732,6 +732,7 @@ private:
 
     void post_event(wxEvent &&event);
     void viewport_changed();
+
 public:
     GLCanvas3D(wxGLCanvas* canvas);
     ~GLCanvas3D();

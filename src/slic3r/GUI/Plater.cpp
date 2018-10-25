@@ -822,6 +822,8 @@ struct Plater::priv
     void on_process_completed(wxCommandEvent&);
     void on_layer_editing_toggled(bool enable);
 
+    void on_schedule_background_process(SimpleEvent&);
+
     void on_action_add(SimpleEvent&);
     void on_action_split_objects(SimpleEvent&);
     void on_action_split_volumes(SimpleEvent&);
@@ -946,6 +948,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
 
     // 3DScene events:
+    canvas3D->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
     canvas3D->Bind(EVT_GLCANVAS_OBJECT_SELECT, &priv::on_object_select, this);
     canvas3D->Bind(EVT_GLCANVAS_VIEWPORT_CHANGED, &priv::on_viewport_changed, this);
 #if !ENABLE_EXTENDED_SELECTION
@@ -1865,6 +1868,11 @@ void Plater::priv::on_layer_editing_toggled(bool enable)
     }
     canvas3D->Refresh();
     canvas3D->Update();
+}
+
+void Plater::priv::on_schedule_background_process(SimpleEvent&)
+{
+    schedule_background_process();
 }
 
 void Plater::priv::on_action_add(SimpleEvent&)
