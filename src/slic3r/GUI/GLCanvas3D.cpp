@@ -4093,6 +4093,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             // forces the selection of the volume
                             m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
+                            post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                             update_gizmos_data();
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
                             // forces a frame render to update the view before the context menu is shown

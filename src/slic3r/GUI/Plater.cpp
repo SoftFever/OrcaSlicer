@@ -1374,6 +1374,8 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "splitvolumes", can_split_to_volumes());
     _3DScene::enable_toolbar_item(canvas3D, "cut", can_cut_object());
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", layers_height_allowed());
+    // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
+    _3DScene::render(canvas3D);
 #else
     _3DScene::enable_toolbar_item(canvas3D, "fewer", have_sel);
     _3DScene::enable_toolbar_item(canvas3D, "splitobjects", have_sel);
