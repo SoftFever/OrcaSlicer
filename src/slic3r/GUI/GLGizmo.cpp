@@ -1,6 +1,8 @@
 #include "../../libslic3r/libslic3r.h"
 #include "GLGizmo.hpp"
 
+#include "GUI.hpp"
+
 #include "../../libslic3r/Utils.hpp"
 #if !ENABLE_EXTENDED_SELECTION
 #include "../../slic3r/GUI/GLCanvas3D.hpp"
@@ -281,7 +283,6 @@ void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
 void GLGizmoBase::stop_dragging()
 {
     m_dragging = false;
-    set_tooltip("");
 
     for (int i = 0; i < (int)m_grabbers.size(); ++i)
     {
@@ -725,6 +726,11 @@ bool GLGizmoRotate3D::on_init()
     return true;
 }
 
+std::string GLGizmoRotate3D::on_get_name() const
+{    
+    return L("Rotate");
+}
+
 #if ENABLE_EXTENDED_SELECTION
 void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
 {
@@ -815,6 +821,11 @@ bool GLGizmoScale3D::on_init()
     m_grabbers[3].angles(0) = half_pi;
 
     return true;
+}
+
+std::string GLGizmoScale3D::on_get_name() const
+{
+    return L("Scale");
 }
 
 #if ENABLE_EXTENDED_SELECTION
@@ -1254,6 +1265,11 @@ bool GLGizmoMove3D::on_init()
     return true;
 }
 
+std::string GLGizmoMove3D::on_get_name() const
+{
+    return L("Move");
+}
+
 #if ENABLE_EXTENDED_SELECTION
 void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
 #else
@@ -1478,6 +1494,11 @@ bool GLGizmoFlatten::on_init()
         return false;
 
     return true;
+}
+
+std::string GLGizmoFlatten::on_get_name() const
+{
+    return L("Flatten");
 }
 
 #if ENABLE_EXTENDED_SELECTION

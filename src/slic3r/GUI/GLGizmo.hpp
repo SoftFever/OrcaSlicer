@@ -74,6 +74,8 @@ public:
 
     bool init() { return on_init(); }
 
+    std::string get_name() const { return on_get_name(); }
+
     int get_group_id() const { return m_group_id; }
     void set_group_id(int id) { m_group_id = id; }
 
@@ -119,6 +121,7 @@ public:
 
 protected:
     virtual bool on_init() = 0;
+    virtual std::string on_get_name() const = 0;
     virtual void on_set_state() {}
     virtual void on_set_hover_id() {}
 #if ENABLE_EXTENDED_SELECTION
@@ -192,6 +195,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual std::string on_get_name() const { return ""; }
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
@@ -234,6 +238,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual std::string on_get_name() const;
     virtual void on_set_state()
     {
         for (GLGizmoRotate& g : m_gizmos)
@@ -329,6 +334,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual std::string on_get_name() const;
 #if ENABLE_EXTENDED_SELECTION
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return !selection.is_wipe_tower(); }
 #endif // ENABLE_EXTENDED_SELECTION
@@ -389,6 +395,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual std::string on_get_name() const;
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_stop_dragging();
@@ -455,6 +462,7 @@ public:
 
 protected:
     virtual bool on_init();
+    virtual std::string on_get_name() const;
 #if ENABLE_EXTENDED_SELECTION
     virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return selection.is_single_full_instance(); }
 #endif // ENABLE_EXTENDED_SELECTION

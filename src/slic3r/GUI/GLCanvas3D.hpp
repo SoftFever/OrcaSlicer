@@ -7,8 +7,9 @@
 #include "GLToolbar.hpp"
 #include "Event.hpp"
 
+#include <wx/timer.h>
+
 class wxWindow;
-class wxTimer;
 class wxSizeEvent;
 class wxIdleEvent;
 class wxKeyEvent;
@@ -562,7 +563,7 @@ private:
         void set_enabled(bool enable);
 
 #if ENABLE_EXTENDED_SELECTION
-        void update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
+        std::string update_hover_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const GLCanvas3D& canvas, const Vec2d& mouse_pos, const Selection& selection);
         void update_on_off_state(const Selection& selection);
 #else
@@ -678,7 +679,7 @@ private:
     wxGLContext* m_context;
     LegendTexture m_legend_texture;
     WarningTexture m_warning_texture;
-    wxTimer* m_timer;
+    wxTimer m_timer;
     Camera m_camera;
     Bed m_bed;
     Axes m_axes;
@@ -866,7 +867,7 @@ public:
 
     void reset_legend_texture();
 
-    void set_tooltip(const std::string& tooltip);
+    void set_tooltip(const std::string& tooltip) const;
 
 private:
     bool _is_shown_on_screen() const;
