@@ -51,7 +51,7 @@ enum ConfigMenuIDs {
     ConfigMenuUpdate,
     ConfigMenuPreferences,
     ConfigMenuModeSimple,
-    ConfigMenuModeMiddle,
+    ConfigMenuModeAdvanced,
     ConfigMenuModeExpert,
     ConfigMenuLanguage,
     ConfigMenuFlashFirmware,

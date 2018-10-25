@@ -2768,8 +2768,8 @@ ConfigOptionsGroupShp Page::new_optgroup(const wxString& title, int noncommon_la
             bmp_name = "error.png";
         else {
             auto mode = line.get_options()[0].opt.mode;  //we assume that we have one option per line
-            bmp_name = mode == comExpert ? "mode_expert_.png" :
-                       mode == comMiddle ? "mode_middle_.png" : "mode_simple_.png";
+            bmp_name = mode == comExpert   ? "mode_expert_.png" :
+                       mode == comAdvanced ? "mode_middle_.png" : "mode_simple_.png";
         }                               
         auto bmp = new wxStaticBitmap(parent, wxID_ANY, wxBitmap(from_u8(var(bmp_name)), wxBITMAP_TYPE_PNG));
         return bmp;

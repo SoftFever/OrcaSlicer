@@ -63,7 +63,7 @@ enum ConfigOptionType {
 
 enum ConfigOptionMode {
     comSimple,
-    comMiddle,
+    comAdvanced,
     comExpert
 };
 

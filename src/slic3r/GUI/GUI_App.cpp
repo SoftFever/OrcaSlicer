@@ -473,7 +473,7 @@ ConfigMenuIDs GUI_App::get_view_mode()
 
     const auto mode = app_config->get("view_mode");
     return mode == "expert" ? ConfigMenuModeExpert : 
-           mode == "simple" ? ConfigMenuModeSimple : ConfigMenuModeMiddle;
+           mode == "simple" ? ConfigMenuModeSimple : ConfigMenuModeAdvanced;
 }
 
 // Update view mode according to selected menu
@@ -493,7 +493,7 @@ void GUI_App::update_mode()
     mainframe->m_plater->Layout();
 
     ConfigOptionMode opt_mode = mode == ConfigMenuModeSimple ? comSimple :
-                                mode == ConfigMenuModeExpert ? comExpert : comMiddle;
+                                mode == ConfigMenuModeExpert ? comExpert : comAdvanced;
     for (auto tab : tabs_list)
         tab->update_visibility(opt_mode);
 }
@@ -515,7 +515,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     local_menu->AppendSeparator();
     auto mode_menu = new wxMenu();
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeSimple, _(L("&Simple")), _(L("Simple View Mode")));
-    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeMiddle, _(L("&Advanced")), _(L("Advanced View Mode")));
+    mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeAdvanced, _(L("&Advanced")), _(L("Advanced View Mode")));
     mode_menu->AppendRadioItem(config_id_base + ConfigMenuModeExpert, _(L("&Expert")), _(L("Expert View Mode")));
     mode_menu->Check(config_id_base + get_view_mode(), true);
     local_menu->AppendSubMenu(mode_menu, _(L("&Mode")), _(L("Slic3r View Mode")));
