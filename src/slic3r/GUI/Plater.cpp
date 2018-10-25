@@ -813,7 +813,6 @@ struct Plater::priv
     void reload_from_disk();
     void export_object_stl();
     void fix_through_netfabb();
-    void item_changed_selection();
 
     void on_notebook_changed(wxBookCtrlEvent&);
     void on_select_preset(wxCommandEvent&);
@@ -1747,11 +1746,6 @@ void Plater::priv::fix_through_netfabb()
 */
 }
 
-void Plater::priv::item_changed_selection()
-{
-    // TODO
-}
-
 void Plater::priv::on_notebook_changed(wxBookCtrlEvent&)
 {
     const auto current_id = notebook->GetCurrentPage()->GetId();
@@ -1924,7 +1918,6 @@ void Plater::priv::on_action_selectbyparts(SimpleEvent&)
 void Plater::priv::on_object_select(SimpleEvent& evt)
 {
     selection_changed();
-    item_changed_selection();
     wxGetApp().obj_list()->update_selections();
 }
 #else
@@ -1936,8 +1929,7 @@ void Plater::priv::on_object_select(ObjectSelectEvent &evt)
     if (obj_idx >= 0 && obj_idx < 1000 && vol_idx == -1) {
         // Ignore the special objects (the wipe tower proxy and such).
         select_object(obj_idx);
-        item_changed_selection();
-    }
+}
 }
 #endif // ENABLE_EXTENDED_SELECTION
 

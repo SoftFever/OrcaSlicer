@@ -2424,17 +2424,12 @@ bool GLCanvas3D::WarningTexture::generate(const std::string& msg)
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
 
-#if defined(__APPLE__) || defined(_MSC_VER)
-    bitmap.UseAlpha();
-#endif
-
     memDC.SelectObject(bitmap);
     memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
     memDC.Clear();
 
-    memDC.SetTextForeground(*wxWHITE);
-
     // draw message
+    memDC.SetTextForeground(*wxWHITE);
     memDC.DrawText(msg, 0, 0);
 
     memDC.SelectObject(wxNullBitmap);
@@ -2561,17 +2556,12 @@ bool GLCanvas3D::LegendTexture::generate(const GCodePreviewData& preview_data, c
     // generates bitmap
     wxBitmap bitmap(m_width, m_height);
 
-#if defined(__APPLE__) || defined(_MSC_VER)
-    bitmap.UseAlpha();
-#endif
-
     memDC.SelectObject(bitmap);
     memDC.SetBackground(wxBrush(wxColour(Background_Color[0], Background_Color[1], Background_Color[2])));
     memDC.Clear();
 
-    memDC.SetTextForeground(*wxWHITE);
-
     // draw title
+    memDC.SetTextForeground(*wxWHITE);
     int title_x = Px_Border;
     int title_y = Px_Border;
     memDC.DrawText(title, title_x, title_y);
