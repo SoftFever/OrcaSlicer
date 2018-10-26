@@ -21,21 +21,12 @@
     %name{read_from_file} Model(std::string input_file, bool add_default_instances = true)
         %code%{
             try {
-                RETVAL = new Model(Model::read_from_file(input_file, add_default_instances));
+                RETVAL = new Model(Model::read_from_file(input_file, nullptr, add_default_instances));
             } catch (std::exception& e) {
                 croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
             }
         %};
 
-    %name{read_from_archive} Model(std::string input_file, PresetBundle* bundle, bool add_default_instances = true)
-        %code%{
-            try {
-                RETVAL = new Model(Model::read_from_archive(input_file, bundle, add_default_instances));
-            } catch (std::exception& e) {
-                croak("Error while opening %s: %s\n", input_file.c_str(), e.what());
-            }
-        %};
-        
     Clone<Model> clone()
         %code%{ RETVAL = THIS; %};
     
@@ -122,67 +113,7 @@ load_stl(CLASS, path, object_name)
     OUTPUT:
         RETVAL
 
-Model*
-load_obj(CLASS, path, object_name)
-    char*           CLASS;
-    char*           path;
-    char*           object_name;
-    CODE:
-        RETVAL = new Model();
-        if (! load_obj(path, RETVAL, object_name)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-    OUTPUT:
-        RETVAL
-
-Model*
-load_amf(CLASS, bundle, path)
-    char*           CLASS;
-    PresetBundle*   bundle;
-    char*           path;
-    CODE:
-        RETVAL = new Model();
-        if (! load_amf(path, bundle, RETVAL)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-    OUTPUT:
-        RETVAL
-
-Model*
-load_3mf(CLASS, bundle, path)
-    char*           CLASS;
-    PresetBundle*   bundle;
-    char*           path;
-    CODE:
-        RETVAL = new Model();
-        if (! load_3mf(path, bundle, RETVAL)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-    OUTPUT:
-        RETVAL
-        
-Model*
-load_prus(CLASS, path)
-    char*           CLASS;
-    char*           path;
-    CODE:
-#ifdef SLIC3R_PRUS
-        RETVAL = new Model();
-        if (! load_prus(path, RETVAL)) {
-            delete RETVAL;
-            RETVAL = NULL;
-        }
-#else
-        RETVAL = nullptr;
-#endif
-    OUTPUT:
-        RETVAL
-
 %}
-
 };
 
 %name{Slic3r::Model::Material} class ModelMaterial {
@@ -331,7 +262,7 @@ ModelMaterial::attributes()
         %code%{ THIS->name = value; %};
     t_model_material_id material_id();
     void set_material_id(t_model_material_id material_id)
-        %code%{ THIS->material_id(material_id); %};
+        %code%{ THIS->set_material_id(material_id); %};
     Ref<ModelMaterial> material();
     
     Ref<DynamicPrintConfig> config()
@@ -364,7 +295,6 @@ ModelMaterial::attributes()
     Ref<ModelObject> object()
         %code%{ RETVAL = THIS->get_object(); %};
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     Vec3d* rotation()
         %code%{ RETVAL = new Vec3d(THIS->get_rotation(X), THIS->get_rotation(Y), THIS->get_rotation(Z)); %};
         
@@ -391,25 +321,6 @@ ModelMaterial::attributes()
             THIS->set_offset(X, (*offset)(0));
             THIS->set_offset(Y, (*offset)(1));
         %};
-#else
-    double rotation()
-        %code%{ RETVAL = THIS->rotation; %};
-        
-    double scaling_factor()
-        %code%{ RETVAL = THIS->scaling_factor; %};
-        
-    Ref<Vec2d> offset()
-        %code%{ RETVAL = &THIS->offset; %};
-        
-    void set_rotation(double val)
-        %code%{ THIS->rotation = val; THIS->get_object()->invalidate_bounding_box(); %};
-        
-    void set_scaling_factor(double val)
-        %code%{ THIS->scaling_factor = val; THIS->get_object()->invalidate_bounding_box(); %};
-        
-    void set_offset(Vec2d *offset)
-        %code%{ THIS->offset = *offset; %};
-#endif // ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
 
     void transform_mesh(TriangleMesh* mesh, bool dont_translate = false) const;
     void transform_polygon(Polygon* polygon) const;

@@ -185,14 +185,6 @@ _constant()
             }
         %};
 
-    void export_gcode_with_preview_data(char *path_template, GCodePreviewData *preview_data) %code%{
-            try {
-                THIS->export_gcode(path_template, preview_data);
-            } catch (std::exception& e) {
-                croak(e.what());
-            }
-        %};
-
     void export_gcode(char *path_template) %code%{
             try {
                 THIS->export_gcode(path_template, nullptr);

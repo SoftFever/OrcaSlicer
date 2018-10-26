@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>Slic3r</string>
+  <key>CFBundleGetInfoString</key>
+  <string>Slic3r Copyright (C) 2011-2017 Alessandro Ranellucci, (C) 2016-2018 Prusa Reseach</string>
+  <key>CFBundleIconFile</key>
+  <string>Slic3r.icns</string>
+  <key>CFBundleName</key>
+  <string>Slic3r</string>
+  <key>CFBundleShortVersionString</key>
+  <string>Slic3r @SLIC3R_BUILD_ID@</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.prusa3d.slic3r/</string>
+  <key>CFBundleInfoDictionaryVersion</key>
+  <string>6.0</string>
+  <key>CFBundlePackageType</key>
+  <string>APPL</string>
+  <key>CFBundleSignature</key>
+  <string>????</string>
+  <key>CFBundleVersion</key>
+  <string>@SLIC3R_BUILD_ID@</string>
+  <key>CGDisableCoalescedUpdates</key>
+  <false/>
+  <key>NSPrincipalClass</key>
+  <string>NSApplication</string>
+  <key>NSHighResolutionCapable</key>
+  <true/>
+</dict>
+</plist>

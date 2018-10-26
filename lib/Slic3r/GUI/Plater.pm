@@ -41,6 +41,7 @@ our $PROCESS_COMPLETED_EVENT = Wx::NewEventType;
 my $PreventListEvents = 0;
 our $appController;
 
+# XXX: VK: done, except callback handling and timer
 sub new {
     my ($class, $parent, %params) = @_;
     my $self = $class->SUPER::new($parent, -1, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
@@ -593,6 +594,7 @@ sub new {
         $self->on_process_completed($event->GetInt ? undef : $event->GetString);
     });
     
+# XXX: not done
     {
         my $timer_id = Wx::NewId();
         $self->{apply_config_timer} = Wx::Timer->new($self, $timer_id);
@@ -812,12 +814,14 @@ sub new {
     return $self;
 }
 
+# XXX: VK: WIP
 # sets the callback
 sub on_select_preset {
     my ($self, $cb) = @_;
     $self->{on_select_preset} = $cb;
 }
 
+# XXX: merged with on_select_preset
 # Called from the platter combo boxes selecting the active print, filament or printer.
 sub _on_select_preset {
 	my ($self, $group, $choice, $idx) = @_;
@@ -854,6 +858,7 @@ sub _on_select_preset {
 	$self->on_config_change(wxTheApp->{preset_bundle}->full_config);
 }
 
+# XXX: VK: done
 sub on_layer_editing_toggled {
     my ($self, $new_state) = @_;
     Slic3r::GUI::_3DScene::enable_layers_editing($self->{canvas3D}, $new_state);
@@ -872,11 +877,13 @@ sub on_layer_editing_toggled {
     $self->{canvas3D}->Update;
 }
 
+# XXX: VK: done (Plater::priv::main_frame)
 sub GetFrame {
     my ($self) = @_;
     return &Wx::GetTopLevelParent($self);
 }
 
+# XXX: not done
 # Called after the Preferences dialog is closed and the program settings are saved.
 # Update the UI based on the current preferences.
 sub update_ui_from_settings
@@ -888,6 +895,7 @@ sub update_ui_from_settings
     }
 }
 
+# XXX: VK: done
 # Update preset combo boxes (Print settings, Filament, Material, Printer) from their respective tabs.
 # Called by 
 #       Slic3r::GUI::Tab::Print::_on_presets_changed
@@ -933,12 +941,14 @@ sub update_presets {
     wxTheApp->{preset_bundle}->export_selections(wxTheApp->{app_config});
 }
 
+# XXX: VK: done, in on_action_add()
 sub add {
     my ($self) = @_;
     my @input_files = wxTheApp->open_model($self);
     $self->load_files(\@input_files);
 }
 
+# XXX: VK: done
 sub load_files {
     my ($self, $input_files) = @_;
 
@@ -960,7 +970,7 @@ sub load_files {
     # Object indices for the UI.
     my @obj_idx = ();
     # Collected file names to display the final message on the status bar.
-    my @loaded_files = ();
+    my @loaded_files = ();   # XXX: used???
     # For all input files.
     for (my $i = 0; $i < @$input_files; $i += 1) {
         my $input_file = $input_files->[$i];
@@ -996,7 +1006,7 @@ sub load_files {
         
         # objects imported from 3mf require a call to center_around_origin to have gizmos working properly and this call
         # need to be done after looks_like_multipart_object detection
-        if ($input_file =~ /.3[mM][fF]$/)
+        if ($input_file =~ /[.]3[mM][fF]$/)
         {
             foreach my $model_object (@{$model->objects}) {
                 $model_object->center_around_origin;  # also aligns object to Z = 0
@@ -1029,6 +1039,7 @@ sub load_files {
     return @obj_idx;
 }
 
+# XXX: VK: done, except a few todos
 sub load_model_objects {
     my ($self, @model_objects) = @_;
     
@@ -1111,6 +1122,7 @@ sub load_model_objects {
     return @obj_idx;
 }
 
+# XXX: Removed, replaced with bed_shape_bb()
 sub bed_centerf {
     my ($self) = @_;
     
@@ -1119,6 +1131,7 @@ sub bed_centerf {
     return Slic3r::Pointf->new(unscale($bed_center->x), unscale($bed_center->y)); #)
 }
 
+# XXX: VK: done
 sub remove {
     my ($self, $obj_idx) = @_;
     
@@ -1145,6 +1158,7 @@ sub remove {
     $self->update;
 }
 
+# XXX: VK: done
 sub reset {
     my ($self) = @_;
     
@@ -1165,6 +1179,7 @@ sub reset {
     $self->update;
 }
 
+# XXX: VK: done
 sub increase {
     my ($self, $copies) = @_;
     $copies //= 1;
@@ -1196,6 +1211,7 @@ sub increase {
     $self->schedule_background_process;
 }
 
+# XXX: VK: done
 sub decrease {
     my ($self, $copies_asked) = @_;
     my $copies = $copies_asked // 1;
@@ -1223,6 +1239,7 @@ sub decrease {
     $self->update;
 }
 
+# XXX: VK: done
 sub set_number_of_copies {
     my ($self) = @_;
     # get current number of copies
@@ -1241,6 +1258,7 @@ sub set_number_of_copies {
     }
 }
 
+# XXX: VK: removed
 sub _get_number_from_user {
     my ($self, $title, $prompt_message, $error_message, $default, $only_positive) = @_;
     for (;;) {
@@ -1263,6 +1281,7 @@ sub _get_number_from_user {
     }
 }
 
+# XXX: not done
 sub rotate {
     my ($self, $angle, $axis, $relative_key, $axis_x, $axis_y, $axis_z) = @_;
     $relative_key //= 'absolute'; # relative or absolute coordinates
@@ -1333,6 +1352,7 @@ sub rotate {
     $self->update;
 }
 
+# XXX: not done
 sub mirror {
     my ($self, $axis) = @_;
     
@@ -1362,6 +1382,7 @@ sub mirror {
     $self->update;
 }
 
+# XXX: not done, renamed as Plater::priv::scale()
 sub changescale {
     my ($self, $axis, $tosize) = @_;
     
@@ -1436,6 +1457,7 @@ sub changescale {
     $self->update;
 }
 
+# XXX: VK: WIP
 sub arrange {
     my ($self) = @_;
     
@@ -1453,6 +1475,7 @@ sub arrange {
     $self->update(0);
 }
 
+# XXX: not done
 sub split_object {
     my $self = shift;
     
@@ -1484,6 +1507,7 @@ sub split_object {
     }
 }
 
+# XXX: not done
 # Trigger $self->async_apply_config() after 500ms.
 # The call is delayed to avoid restarting the background processing during typing into an edit field.
 sub schedule_background_process {
@@ -1491,6 +1515,7 @@ sub schedule_background_process {
     $self->{apply_config_timer}->Start(0.5 * 1000, 1);  # 1 = one shot, every half a second.
 }
 
+# XXX: not done
 # Executed asynchronously by a timer every PROCESS_DELAY (0.5 second).
 # The timer is started by schedule_background_process(), 
 sub async_apply_config {
@@ -1525,6 +1550,7 @@ sub async_apply_config {
     }
 }
 
+# XXX: not done
 # Background processing is started either by the "Slice now" button, by the "Export G-code button" or by async_apply_config().
 sub start_background_process {
     my ($self) = @_;
@@ -1545,6 +1571,7 @@ sub start_background_process {
     $self->{background_slicing_process}->start;
 }
 
+# XXX: not done
 # Stop the background processing
 sub stop_background_process {
     my ($self) = @_;
@@ -1553,6 +1580,7 @@ sub stop_background_process {
 #    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
+# XXX: not done
 # Called by the "Slice now" button, which is visible only if the background processing is disabled.
 sub reslice {
     # explicitly cancel a previous thread and start a new one.
@@ -1573,6 +1601,7 @@ sub reslice {
     }
 }
 
+# XXX: VK: done
 sub export_gcode {
     my ($self, $output_file) = @_;
     
@@ -1653,6 +1682,7 @@ sub export_gcode {
     return $self->{export_gcode_output_file};
 }
 
+# XXX: not done
 # This message should be called by the background process synchronously.
 sub on_update_print_preview {
     my ($self) = @_;
@@ -1665,6 +1695,7 @@ sub on_update_print_preview {
     Slic3r::GUI::_3DScene::reload_scene($self->{canvas3D}, 1);
 }
 
+# XXX: not done
 # This gets called also if we have no threads.
 sub on_progress_event {
     my ($self, $percent, $message) = @_;
@@ -1675,6 +1706,7 @@ sub on_progress_event {
     $self->statusbar->SetStatusText("$message...");
 }
 
+# XXX: not done
 # Called when the G-code export finishes, either successfully or with an error.
 # This gets called also if we don't have threads.
 sub on_process_completed {
@@ -1742,6 +1774,7 @@ sub on_process_completed {
 #    $self->{preview3D}->reload_print if $self->{preview3D};
 }
 
+# XXX: partially done in the Sidebar
 # Fill in the "Sliced info" box with the result of the G-code generator.
 sub print_info_box_show {
     my ($self, $show) = @_;
@@ -1818,6 +1851,7 @@ sub print_info_box_show {
     $panel->Refresh;
 }
 
+# XXX: not done - to be removed
 sub do_print {
     my ($self) = @_;
     
@@ -1831,6 +1865,7 @@ sub do_print {
     $printer_panel->load_print_job($self->{print_file}, $filament_stats);
 }
 
+# XXX: VK: done
 sub export_stl {
     my ($self) = @_;
     return if !@{$self->{objects}};
@@ -1841,6 +1876,7 @@ sub export_stl {
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
 }
 
+# XXX: not done
 sub reload_from_disk {
     my ($self) = @_;
     
@@ -1872,6 +1908,7 @@ sub reload_from_disk {
     $self->remove($obj_idx);
 }
 
+# XXX: VK: done
 sub export_object_stl {
     my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;
@@ -1883,6 +1920,7 @@ sub export_object_stl {
     $self->statusbar->SetStatusText(L("STL file exported to ").$output_file);
 }
 
+# XXX: not done
 sub fix_through_netfabb {
     my ($self) = @_;
     my ($obj_idx, $object) = $self->selected_object;
@@ -1911,6 +1949,7 @@ sub fix_through_netfabb {
     $self->remove($obj_idx);
 }
 
+# XXX: VK: done
 sub export_amf {
     my ($self) = @_;
     return if !@{$self->{objects}};
@@ -1927,6 +1966,7 @@ sub export_amf {
     }
 }
 
+# XXX: VK: done
 sub export_3mf {
     my ($self) = @_;
     return if !@{$self->{objects}};
@@ -1943,6 +1983,7 @@ sub export_3mf {
     }
 }
 
+# XXX: VK: done
 # Ask user to select an output file for a given file format (STl, AMF, 3MF).
 # Propose a default file name based on the 'output_filename_format' configuration value.
 sub _get_export_file {
@@ -1992,6 +2033,7 @@ sub _get_export_file {
 #    $self->{objects}[$obj_idx]->thumbnail(undef);
 #}
 
+# XXX: VK: done
 # this method gets called whenever print center is changed or the objects' bounding box changes
 # (i.e. when an object is added/removed/moved/rotated/scaled)
 sub update {
@@ -2015,6 +2057,7 @@ sub update {
     $self->Thaw;
 }
 
+# XXX: YS: done
 # When a printer technology is changed, the UI needs to be updated to show/hide needed preset combo boxes.
 sub show_preset_comboboxes{
     my ($self, $showSLA) = @_; #if showSLA is oposite value to "ptFFF"
@@ -2033,6 +2076,7 @@ sub show_preset_comboboxes{
     $self->Layout;
 }
 
+# XXX: YS: done
 # When a number of extruders changes, the UI needs to be updated to show a single filament selection combo box per extruder.
 # Also the wxTheApp->{preset_bundle}->filament_presets needs to be resized accordingly
 # and some reasonable default has to be selected for the additional extruders.
@@ -2077,6 +2121,7 @@ sub on_extruders_change {
     $self->Layout;
 }
 
+# XXX: not done
 sub on_config_change {
     my ($self, $config) = @_;
     
@@ -2143,6 +2188,7 @@ sub on_config_change {
     $self->schedule_background_process;
 }
 
+# XXX: YS: WIP
 sub item_changed_selection {
     my ($self, $obj_idx) = @_;
 
@@ -2158,6 +2204,7 @@ sub item_changed_selection {
     }
 }
 
+# XXX: VK: done
 sub collect_selections {
     my ($self) = @_;
     my $selections = [];
@@ -2167,6 +2214,7 @@ sub collect_selections {
     return $selections;
 }
 
+# XXX: YS: done, lambda on LEFT_DOWN
 # Called when clicked on the filament preset combo box.
 # When clicked on the icon, show the color picker.
 sub filament_color_box_lmouse_down
@@ -2220,6 +2268,7 @@ sub filament_color_box_lmouse_down
 #	}
 #}
 
+# XXX: YS: done
 sub changed_object_settings {
     my ($self, $obj_idx, $parts_changed, $part_settings_changed) = @_;
     
@@ -2245,6 +2294,7 @@ sub changed_object_settings {
     }
 }
 
+# XXX: VK: done
 # Called to update various buttons depending on whether there are any objects or
 # whether background processing (export of a G-code, sending to Octoprint, forced background re-slicing) is active.
 sub object_list_changed {
@@ -2275,6 +2325,7 @@ sub object_list_changed {
         for grep $self->{"btn_$_"}, qw(reslice export_gcode print send_gcode);
 }
 
+# XXX: VK: WIP
 # Selection of an active 3D object changed.
 sub selection_changed {
     my ($self) = @_;
@@ -2392,6 +2443,7 @@ sub selection_changed {
     $self->{right_panel}->Thaw;
 }
 
+# XXX: VK: done
 sub select_object {
     my ($self, $obj_idx, $child) = @_;
 
@@ -2412,6 +2464,7 @@ sub select_object {
     $self->selection_changed(1);
 }
 
+# XXX: YS: WIP
 sub select_object_from_cpp {
     my ($self, $obj_idx, $vol_idx) = @_;
     
@@ -2456,16 +2509,19 @@ sub select_object_from_cpp {
     $self->selection_changed(1);
 }
 
+# XXX: VK: done
 sub selected_object {
     my ($self) = @_;
     my $obj_idx = first { $self->{objects}[$_]->selected } 0..$#{ $self->{objects} };
     return defined $obj_idx ? ($obj_idx, $self->{objects}[$obj_idx]) : undef;
 }
 
+# XXX: VK: done
 sub statusbar {
     return $_[0]->GetFrame->{statusbar};
 }
 
+# XXX: not done, to be removed (?)
 sub object_menu {
     my ($self) = @_;
     
@@ -2576,6 +2632,7 @@ sub object_menu {
     return $menu;
 }
 
+# XXX: not done
 # Set a camera direction, zoom to all objects.
 sub select_view {
     my ($self, $direction) = @_;
@@ -2593,6 +2650,8 @@ sub select_view {
     }
 }
 
+
+# XXX: VK: done, in PlaterDropTarget
 package Slic3r::GUI::Plater::DropTarget;
 use Wx::DND;
 use base 'Wx::FileDropTarget';
