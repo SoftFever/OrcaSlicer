@@ -175,7 +175,10 @@ protected:
 	}
 };
 
-typedef int (__stdcall *Slic3rMainFunc)(int argc, wchar_t **argv);
+extern "C" {
+	typedef int (__stdcall *Slic3rMainFunc)(int argc, wchar_t **argv);
+	Slic3rMainFunc slic3r_main = nullptr;
+}
 
 #ifdef SLIC3R_WRAPPER_NOCONSOLE
 int APIENTRY wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, wchar_t *lpCmdLine, int nCmdShow)
@@ -224,7 +227,7 @@ int wmain(int argc, wchar_t **argv)
 	}
 
 	// resolve function address here
-	Slic3rMainFunc slic3r_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r, "slic3r_main");
+	slic3r_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r, "slic3r_main");
 	if (slic3r_main == nullptr) {
 		printf("could not locate the function slic3r_main in slic3r.dll\n");
 		return -1;
