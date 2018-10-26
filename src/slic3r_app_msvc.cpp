@@ -227,7 +227,14 @@ int wmain(int argc, wchar_t **argv)
 	}
 
 	// resolve function address here
-	slic3r_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r, "slic3r_main");
+	slic3r_main = (Slic3rMainFunc)GetProcAddress(hInstance_Slic3r, 
+#ifdef _WIN64
+		// there is just a single calling conversion, therefore no mangling of the function name.
+		"slic3r_main"
+#else	// stdcall calling convention declaration
+		"_slic3r_main@8"
+#endif
+		);
 	if (slic3r_main == nullptr) {
 		printf("could not locate the function slic3r_main in slic3r.dll\n");
 		return -1;
