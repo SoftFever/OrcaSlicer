@@ -544,6 +544,7 @@ private:
             Scale,
             Rotate,
             Flatten,
+            SlaSupports,
             Num_Types
         };
 
@@ -579,11 +580,11 @@ private:
 
         bool overlay_contains_mouse(const GLCanvas3D& canvas, const Vec2d& mouse_pos) const;
         bool grabber_contains_mouse() const;
-        void update(const Linef3& mouse_ray);
+        void update(const Linef3& mouse_ray, const Point* mouse_pos = nullptr);
 #if ENABLE_GIZMOS_RESET
         void process_double_click();
 #endif // ENABLE_GIZMOS_RESET
-
+        Rect get_reset_rect_viewport(const GLCanvas3D& canvas) const;
         EType get_current_type() const;
 
         bool is_running() const;
@@ -612,6 +613,10 @@ private:
         Vec3d get_flattening_rotation() const;
 
         void set_flattening_data(const ModelObject* model_object);
+        
+        void set_model_object_ptr(ModelObject* model_object);
+        void clicked_on_object(const Vec2d& mouse_position);
+        void delete_current_grabber(bool delete_all = false);
 
 #if ENABLE_EXTENDED_SELECTION
         void render_current_gizmo(const Selection& selection) const;
@@ -833,6 +838,8 @@ public:
 
     void update_volumes_colors_by_extruder();
     void update_gizmos_data();
+    Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
+    bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
 
     void render();
 

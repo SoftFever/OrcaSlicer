@@ -11,6 +11,7 @@
 #include <Eigen/Dense>
 #include "../../libslic3r/Geometry.hpp"
 
+#include <igl/unproject_onto_mesh.h>
 #include <GL/glew.h>
 
 #include <iostream>
@@ -157,6 +158,7 @@ void GLGizmoBase::Grabber::render(float size, const float* render_color, bool us
     ::glRotated(Geometry::rad2deg(angles(1)), 0.0, 1.0, 0.0);
     ::glRotated(Geometry::rad2deg(angles(0)), 1.0, 0.0, 0.0);
 
+
     // face min x
     ::glPushMatrix();
     ::glTranslatef(-(GLfloat)half_size, 0.0f, 0.0f);
@@ -292,10 +294,10 @@ void GLGizmoBase::stop_dragging()
     on_stop_dragging();
 }
 
-void GLGizmoBase::update(const Linef3& mouse_ray)
+void GLGizmoBase::update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if (m_hover_id != -1)
-        on_update(mouse_ray);
+        on_update(mouse_ray, mouse_pos);
 }
 
 float GLGizmoBase::picking_color_component(unsigned int id) const
@@ -400,7 +402,7 @@ void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
     m_snap_fine_out_radius = m_snap_fine_in_radius + m_radius * ScaleLongTooth;
 }
 
-void GLGizmoRotate::on_update(const Linef3& mouse_ray)
+void GLGizmoRotate::on_update(const Linef3& mouse_ray, const Point* mouse_position)
 { 
     Vec2d mouse_pos = to_2d(mouse_position_in_local_plane(mouse_ray));
 
@@ -457,7 +459,7 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     }
 
     if ((single_instance && (m_hover_id == 0)) || m_dragging)
-        set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "°");
+        set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
 #else
     if (m_dragging)
         set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
@@ -845,7 +847,7 @@ void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
     }
 }
 
-void GLGizmoScale3D::on_update(const Linef3& mouse_ray)
+void GLGizmoScale3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if ((m_hover_id == 0) || (m_hover_id == 1))
         do_scale_x(mouse_ray);
@@ -1296,7 +1298,7 @@ void GLGizmoMove3D::on_stop_dragging()
 }
 #endif // ENABLE_EXTENDED_SELECTION
 
-void GLGizmoMove3D::on_update(const Linef3& mouse_ray)
+void GLGizmoMove3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
 #if ENABLE_EXTENDED_SELECTION
     if (m_hover_id == 0)
@@ -1528,12 +1530,15 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
     // with the gizmo being on. This is reset in set_flattening_data and
     // does not work correctly when there are multiple copies.
     Vec3d dragged_offset(Vec3d::Zero());
-    if (m_dragging)
 #if ENABLE_EXTENDED_SELECTION
+        if (m_starting_center == Vec3d::Zero())
+            m_starting_center = selection.get_bounding_box().center();
         dragged_offset = selection.get_bounding_box().center() - m_starting_center;
 #else
-        dragged_offset = box.center() - m_starting_center;
-#endif // ENABLE_EXTENDED_SELECTION
+        if (m_starting_center == Vec3d::Zero())
+            m_starting_center = box.center();
+        dragged_offset(box.center() - m_starting_center); 
+#endif // ENABLE_EXTENDED_SELECTION   
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
@@ -1624,6 +1629,7 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
 
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
+    m_starting_center = Vec3d::Zero();
     m_model_object = model_object;
 
 #if !ENABLE_EXTENDED_SELECTION
@@ -1845,7 +1851,294 @@ Vec3d GLGizmoFlatten::get_flattening_rotation() const
     Eigen::Quaterniond q;
     Vec3d angles = Geometry::extract_euler_angles(q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix());
     m_normal = Vec3d::Zero();
+    m_starting_center = Vec3d::Zero();
     return angles;
+}
+
+
+
+
+GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
+    : GLGizmoBase(parent), m_starting_center(Vec3d::Zero())
+{
+}
+
+bool GLGizmoSlaSupports::on_init()
+{
+    std::string path = resources_dir() + "/icons/overlay/";
+
+    std::string filename = path + "layflat_off.png";
+    if (!m_textures[Off].load_from_file(filename, false))
+        return false;
+
+    filename = path + "layflat_hover.png";
+    if (!m_textures[Hover].load_from_file(filename, false))
+        return false;
+
+    filename = path + "layflat_on.png";
+    if (!m_textures[On].load_from_file(filename, false))
+        return false;
+
+    return true;
+}
+
+void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
+{
+    m_starting_center = Vec3d::Zero();
+    m_model_object = model_object;
+    m_model_object_matrix = model_object->instances.front()->world_matrix();
+    if (is_mesh_update_necessary())
+        update_mesh();
+}
+
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
+#else
+void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
+#endif
+{
+    ::glEnable(GL_BLEND);
+    ::glEnable(GL_DEPTH_TEST);
+
+    // the dragged_offset is a vector measuring where was the object moved
+    // with the gizmo being on. This is reset in set_flattening_data and
+    // does not work correctly when there are multiple copies.
+    
+#if ENABLE_EXTENDED_SELECTION
+    if (m_starting_center == Vec3d::Zero())
+        m_starting_center = selection.get_bounding_box().center();
+    Vec3d dragged_offset = selection.get_bounding_box().center() - m_starting_center;
+#else
+    if (m_starting_center == Vec3d::Zero())
+        m_starting_center = box.center();
+    Vec3d dragged_offset(box.center() - m_starting_center);
+#endif // ENABLE_EXTENDED_SELECTION        
+
+    for (auto& g : m_grabbers) {
+        g.color[0] = 1.f;
+        g.color[1] = 0.f;
+        g.color[2] = 0.f;
+    }
+
+    ::glPushMatrix();
+    ::glTranslatef((GLfloat)dragged_offset(0), (GLfloat)dragged_offset(1), (GLfloat)dragged_offset(2));
+    render_grabbers();
+    ::glPopMatrix();
+
+    render_tooltip_texture();
+    ::glDisable(GL_BLEND);
+}
+
+
+#if ENABLE_EXTENDED_SELECTION
+void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& selection) const
+#else
+void GLGizmoSlaSupports::on_render_for_picking(const BoundingBoxf3& box) const
+#endif
+{
+    ::glEnable(GL_DEPTH_TEST);
+    for (unsigned int i=0; i<m_grabbers.size(); ++i) {
+        m_grabbers[i].color[0] = 1.0f;
+        m_grabbers[i].color[1] = 1.0f;
+        m_grabbers[i].color[2] = picking_color_component(i);
+    }
+    render_grabbers(true);
+}
+
+void GLGizmoSlaSupports::render_grabbers(bool picking) const
+{
+    for (int i = 0; i < (int)m_grabbers.size(); ++i)
+    {
+        if (!m_grabbers[i].enabled)
+            continue;
+
+        float render_color[3];
+        if (!picking && m_hover_id == i) {
+            render_color[0] = 1.0f - m_grabbers[i].color[0];
+            render_color[1] = 1.0f - m_grabbers[i].color[1];
+            render_color[2] = 1.0f - m_grabbers[i].color[2];
+        }
+        else
+            ::memcpy((void*)render_color, (const void*)m_grabbers[i].color, 3 * sizeof(float));
+        if (!picking)
+            ::glEnable(GL_LIGHTING);
+        ::glColor3f((GLfloat)render_color[0], (GLfloat)render_color[1], (GLfloat)render_color[2]);
+        ::glPushMatrix();
+        Vec3d center = m_model_object_matrix * m_grabbers[i].center;
+        ::glTranslatef((GLfloat)center(0), (GLfloat)center(1), (GLfloat)center(2));
+        GLUquadricObj *quadric;
+        quadric = ::gluNewQuadric();
+        ::gluQuadricDrawStyle(quadric, GLU_FILL );
+        ::gluSphere( quadric , 0.75f, 36 , 18 );
+        ::gluDeleteQuadric(quadric);
+        ::glPopMatrix();
+        if (!picking)
+            ::glDisable(GL_LIGHTING);
+    }
+}
+
+bool GLGizmoSlaSupports::is_mesh_update_necessary() const
+{
+    if (m_state != On || !m_model_object || m_model_object->instances.empty())
+        return false;
+
+#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    if ((m_model_object->instances.front()->world_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001 )
+#else
+    if (m_model_object->instances.front()->get_scaling_factor() != m_source_data.scaling_factor
+     || m_model_object->instances.front()->get_rotation() != m_source_data.rotation
+     || m_model_object->instances.front()->get_offset() != m_source_data.offset)
+#endif // ENABLE_MODELINSTANCE_3D_ROTATION
+        return true;
+
+    // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
+    /*const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
+    Vec3d first_point((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
+    if (first_point != m_source_data.mesh_first_point)
+        return true;*/
+
+    return false;
+}
+
+void GLGizmoSlaSupports::update_mesh()
+{
+    Eigen::MatrixXf& V = m_V;
+    Eigen::MatrixXi& F = m_F;
+    const stl_file& stl = m_model_object->mesh().stl;
+    V.resize(3*stl.stats.number_of_facets, 3);
+    F.resize(stl.stats.number_of_facets, 3);
+    for (unsigned int i=0; i<stl.stats.number_of_facets; ++i) {
+        const stl_facet* facet = stl.facet_start+i;
+        V(3*i+0, 0) = facet->vertex[0](0); V(3*i+0, 1) = facet->vertex[0](1); V(3*i+0, 2) = facet->vertex[0](2);
+        V(3*i+1, 0) = facet->vertex[1](0); V(3*i+1, 1) = facet->vertex[1](1); V(3*i+1, 2) = facet->vertex[1](2);
+        V(3*i+2, 0) = facet->vertex[2](0); V(3*i+2, 1) = facet->vertex[2](1); V(3*i+2, 2) = facet->vertex[2](2);
+        F(i, 0) = 3*i+0;
+        F(i, 1) = 3*i+1;
+        F(i, 2) = 3*i+2;
+    }
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+    m_source_data.scaling_factor = m_model_object->instances.front()->get_scaling_factor();
+    m_source_data.rotation = m_model_object->instances.front()->get_rotation();
+    m_source_data.offset = m_model_object->instances.front()->get_offset();
+#else
+    m_source_data.matrix = m_model_object->instances.front()->world_matrix();
+#endif
+    const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
+    m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
+    // we'll now reload Grabbers (selection might have changed):
+    m_grabbers.clear();
+    for (const Vec3f& point : m_model_object->sla_support_points) {
+        m_grabbers.push_back(Grabber());
+        m_grabbers.back().center = point.cast<double>();
+    }
+}
+
+Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
+{
+    // if the gizmo doesn't have the V, F structures for igl, calculate them first:
+    if (m_V.size() == 0 || is_mesh_update_necessary())
+        update_mesh();
+
+    Eigen::Matrix<GLint, 4, 1, Eigen::DontAlign> viewport;
+    ::glGetIntegerv(GL_VIEWPORT, viewport.data());
+    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> modelview_matrix;
+    ::glGetDoublev(GL_MODELVIEW_MATRIX, modelview_matrix.data());
+    Eigen::Matrix<GLdouble, 4, 4, Eigen::DontAlign> projection_matrix;
+    ::glGetDoublev(GL_PROJECTION_MATRIX, projection_matrix.data());
+
+    int fid = 0;
+    Eigen::Vector3f bc(0, 0, 0);
+    if (!igl::unproject_onto_mesh(Vec2f(mouse_pos(0), viewport(3)-mouse_pos(1)), modelview_matrix.cast<float>(), projection_matrix.cast<float>(), viewport.cast<float>(), m_V, m_F, fid, bc))
+    /*if (!igl::embree::unproject_onto_mesh(Vec2f(mouse_pos(0), viewport(3)-mouse_pos(1)),
+                                 m_F,
+                                 modelview_matrix.cast<float>(),
+                                 projection_matrix.cast<float>(),
+                                 viewport.cast<float>(),
+                                 m_intersector,
+                                 fid,
+                                 bc))*/
+        throw "unable to unproject_onto_mesh";
+
+    const Vec3f& a = m_V.row(m_F(fid, 0));
+    const Vec3f& b = m_V.row(m_F(fid, 1));
+    const Vec3f& c = m_V.row(m_F(fid, 2));
+    Vec3f point = bc(0)*a + bc(1)*b + bc(2)*c;
+    return m_model_object->instances.front()->world_matrix().inverse().cast<float>() * point;
+}
+
+void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
+{
+    Vec3f new_pos;
+    try {
+        new_pos = unproject_on_mesh(mouse_position); // this can throw - we don't want to create a new grabber in that case
+        m_grabbers.push_back(Grabber());
+        m_grabbers.back().center = new_pos.cast<double>();
+        m_model_object->sla_support_points.push_back(new_pos);
+    }
+    catch (...) {}
+}
+
+void GLGizmoSlaSupports::delete_current_grabber(bool delete_all)
+{
+    if (delete_all) {
+        m_grabbers.clear();
+        m_model_object->sla_support_points.clear();
+    }
+    else
+        if (m_hover_id != -1) {
+            m_grabbers.erase(m_grabbers.begin() + m_hover_id);
+            m_model_object->sla_support_points.erase(m_model_object->sla_support_points.begin() + m_hover_id);
+            m_hover_id = -1;
+        }
+}
+
+void GLGizmoSlaSupports::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
+{
+    if (m_hover_id != -1 && mouse_pos) {
+        Vec3f new_pos;
+        try {
+            new_pos = unproject_on_mesh(Vec2d((*mouse_pos)(0), (*mouse_pos)(1)));
+            m_grabbers[m_hover_id].center = new_pos.cast<double>();
+            m_model_object->sla_support_points[m_hover_id] = new_pos;
+        }
+        catch (...) {}
+    }
+}
+
+
+void GLGizmoSlaSupports::render_tooltip_texture() const {
+    if (m_tooltip_texture.get_id() == 0)
+        if (!m_tooltip_texture.load_from_file(resources_dir() + "/icons/variable_layer_height_tooltip.png", false))
+            return;
+    if (m_reset_texture.get_id() == 0)
+        if (!m_reset_texture.load_from_file(resources_dir() + "/icons/variable_layer_height_reset.png", false))
+            return;
+
+    float zoom = m_parent.get_camera_zoom();
+    float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
+    float gap = 30.0f * inv_zoom;
+
+    const Size& cnv_size = m_parent.get_canvas_size();
+    float l = gap - cnv_size.get_width()/2.f * inv_zoom;
+    float r = l + (float)m_tooltip_texture.get_width() * inv_zoom;
+    float b = gap - cnv_size.get_height()/2.f * inv_zoom;
+    float t = b + (float)m_tooltip_texture.get_height() * inv_zoom;
+
+    Rect reset_rect = m_parent.get_gizmo_reset_rect(m_parent, true);
+
+    ::glDisable(GL_DEPTH_TEST);
+    ::glPushMatrix();
+    ::glLoadIdentity();
+    GLTexture::render_texture(m_tooltip_texture.get_id(), l, r, b, t);
+    GLTexture::render_texture(m_reset_texture.get_id(), reset_rect.get_left(), reset_rect.get_right(), reset_rect.get_bottom(), reset_rect.get_top());
+    ::glPopMatrix();
+    ::glEnable(GL_DEPTH_TEST);
+}
+
+
+std::string GLGizmoSlaSupports::on_get_name() const
+{
+    return L("SLA Support Points");
 }
 
 } // namespace GUI

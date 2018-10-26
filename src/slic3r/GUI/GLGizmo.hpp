@@ -105,7 +105,7 @@ public:
     void stop_dragging();
     bool is_dragging() const { return m_dragging; }
 
-    void update(const Linef3& mouse_ray);
+    void update(const Linef3& mouse_ray, const Point* mouse_pos);
 
 #if ENABLE_GIZMOS_RESET
     void process_double_click() { on_process_double_click(); }
@@ -135,7 +135,7 @@ protected:
     virtual void on_start_dragging(const BoundingBoxf3& box) {}
 #endif // ENABLE_EXTENDED_SELECTION
     virtual void on_stop_dragging() {}
-    virtual void on_update(const Linef3& mouse_ray) = 0;
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) = 0;
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click() {}
 #endif // ENABLE_GIZMOS_RESET
@@ -201,7 +201,7 @@ protected:
 #else
     virtual void on_start_dragging(const BoundingBoxf3& box);
 #endif // ENABLE_EXTENDED_SELECTION
-    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click() { m_angle = 0.0; }
 #endif // ENABLE_GIZMOS_RESET
@@ -272,11 +272,11 @@ protected:
     virtual void on_start_dragging(const BoundingBoxf3& box);
 #endif // ENABLE_EXTENDED_SELECTION
     virtual void on_stop_dragging();
-    virtual void on_update(const Linef3& mouse_ray)
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos)
     {
         for (GLGizmoRotate& g : m_gizmos)
         {
-            g.update(mouse_ray);
+            g.update(mouse_ray, mouse_pos);
         }
     }
 #if ENABLE_GIZMOS_RESET
@@ -342,8 +342,10 @@ protected:
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
     virtual void on_start_dragging(const BoundingBoxf3& box);
+    virtual void on_stop_dragging() { m_show_starting_box = false; }
+
 #endif // ENABLE_EXTENDED_SELECTION
-    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
 #if ENABLE_GIZMOS_RESET
     virtual void on_process_double_click();
 #endif // ENABLE_GIZMOS_RESET
@@ -402,7 +404,7 @@ protected:
 #else
     virtual void on_start_dragging(const BoundingBoxf3& box);
 #endif // ENABLE_EXTENDED_SELECTION
-    virtual void on_update(const Linef3& mouse_ray);
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
@@ -448,7 +450,7 @@ private:
     };
     std::vector<InstanceData> m_instances;
 #endif // !ENABLE_EXTENDED_SELECTION
-    Vec3d m_starting_center;
+    mutable Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
 
     void update_planes();
@@ -471,7 +473,7 @@ protected:
 #else
     virtual void on_start_dragging(const BoundingBoxf3& box);
 #endif // ENABLE_EXTENDED_SELECTION
-    virtual void on_update(const Linef3& mouse_ray) {}
+    virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) {}
 #if ENABLE_EXTENDED_SELECTION
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
@@ -484,6 +486,65 @@ protected:
         if (m_state == On && is_plane_update_necessary())
             update_planes();
     }
+};
+
+class GLGizmoSlaSupports : public GLGizmoBase
+{
+private:
+    ModelObject* m_model_object = nullptr;
+    Transform3d m_model_object_matrix;
+    Vec3f unproject_on_mesh(const Vec2d& mouse_pos);
+
+    Eigen::MatrixXf m_V; // vertices
+    Eigen::MatrixXi m_F; // facets indices
+    struct SourceDataSummary {
+        BoundingBoxf3 bounding_box;
+#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
+        Vec3d scaling_factor;
+        Vec3d rotation;
+        Vec3d offset;
+#else
+        Transform3d matrix;
+#endif
+        Vec3d mesh_first_point;
+    };
+
+    // This holds information to decide whether recalculation is necessary:
+    SourceDataSummary m_source_data;
+
+    mutable Vec3d m_starting_center;
+
+public:
+    explicit GLGizmoSlaSupports(GLCanvas3D& parent);
+    void set_model_object_ptr(ModelObject* model_object);
+    void clicked_on_object(const Vec2d& mouse_position);
+    void delete_current_grabber(bool delete_all);
+
+private:
+    bool on_init();
+    void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
+#if ENABLE_EXTENDED_SELECTION
+    virtual void on_render(const GLCanvas3D::Selection& selection) const;
+    virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+#else
+    virtual void on_render(const BoundingBoxf3& box) const;
+    virtual void on_render_for_picking(const BoundingBoxf3& box) const;
+#endif // ENABLE_EXTENDED_SELECTION
+
+    void render_grabbers(bool picking = false) const;
+    void render_tooltip_texture() const;
+    bool is_mesh_update_necessary() const;
+    void update_mesh();
+
+    mutable GLTexture m_tooltip_texture;
+    mutable GLTexture m_reset_texture;
+
+protected:
+    void on_set_state() override {
+        if (m_state == On && is_mesh_update_necessary())
+            update_mesh();
+    }
+    std::string on_get_name() const override;
 };
 
 } // namespace GUI

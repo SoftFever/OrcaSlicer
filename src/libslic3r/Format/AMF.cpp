@@ -597,7 +597,28 @@ void AMFParserContext::endElement(const char * /* name */)
 					p = end + 1;
                 }
                 m_object->layer_height_profile_valid = true;
-            } else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume) {
+            }
+            else if (m_path.size() == 3 && m_path[1] == NODE_TYPE_OBJECT && m_object && strcmp(opt_key, "sla_support_points") == 0) {
+                // Parse object's layer height profile, a semicolon separated list of floats.
+                unsigned char coord_idx = 0;
+                Vec3f point(Vec3f::Zero());
+                char *p = const_cast<char*>(m_value[1].c_str());
+                for (;;) {
+                    char *end = strchr(p, ';');
+                    if (end != nullptr)
+	                    *end = 0;
+
+                    point(coord_idx) = atof(p);
+                    if (++coord_idx == 3) {
+                        m_object->sla_support_points.push_back(point);
+                        coord_idx = 0;
+                    }
+					if (end == nullptr)
+						break;
+					p = end + 1;
+                }
+            }
+            else if (m_path.size() == 5 && m_path[3] == NODE_TYPE_VOLUME && m_volume) {
                 if (strcmp(opt_key, "modifier") == 0) {
                     // Is this volume a modifier volume?
                     // "modifier" flag comes first in the XML file, so it may be later overwritten by the "type" flag.
@@ -628,7 +649,6 @@ void AMFParserContext::endElement(const char * /* name */)
     default:
         break;
     }
-
     m_path.pop_back();
 }
 
@@ -893,6 +913,19 @@ bool store_amf(const char *path, Model *model, Print* print, bool export_print_c
                 stream << "\n    </metadata>\n";
         }
         //FIXME Store the layer height ranges (ModelObject::layer_height_ranges)
+
+        const std::vector<Vec3f>& sla_support_points = object->sla_support_points;
+        if (!sla_support_points.empty()) {
+            // Store the SLA supports as a single semicolon separated list.
+            stream << "    <metadata type=\"slic3r.sla_support_points\">";
+            for (size_t i = 0; i < sla_support_points.size(); ++i) {
+                if (i != 0)
+                    stream << ";";
+                stream << sla_support_points[i](0) << ";" << sla_support_points[i](1) << ";" << sla_support_points[i](2);
+            }
+            stream << "\n    </metadata>\n";
+        }
+
         stream << "    <mesh>\n";
         stream << "      <vertices>\n";
         std::vector<int> vertices_offsets;

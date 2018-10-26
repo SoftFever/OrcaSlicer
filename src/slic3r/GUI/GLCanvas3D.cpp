@@ -52,6 +52,8 @@ static const float VIEW_REAR[2] = { 180.0f, 90.0f };
 
 static const float VARIABLE_LAYER_THICKNESS_BAR_WIDTH = 70.0f;
 static const float VARIABLE_LAYER_THICKNESS_RESET_BUTTON_HEIGHT = 22.0f;
+static const float GIZMO_RESET_BUTTON_HEIGHT = 22.0f;
+static const float GIZMO_RESET_BUTTON_WIDTH = 70.f;
 
 static const float UNIT_MATRIX[] = { 1.0f, 0.0f, 0.0f, 0.0f,
                                      0.0f, 1.0f, 0.0f, 0.0f,
@@ -1889,6 +1891,17 @@ bool GLCanvas3D::Gizmos::init(GLCanvas3D& parent)
 
     m_gizmos.insert(GizmosMap::value_type(Flatten, gizmo));
 
+    gizmo = new GLGizmoSlaSupports(parent);
+    if (gizmo == nullptr)
+        return false;
+
+    if (!gizmo->init()) {
+        _reset();
+        return false;
+    }
+
+    m_gizmos.insert(GizmosMap::value_type(SlaSupports, gizmo));
+
 
     return true;
 }
@@ -2098,14 +2111,14 @@ bool GLCanvas3D::Gizmos::grabber_contains_mouse() const
     return (curr != nullptr) ? (curr->get_hover_id() != -1) : false;
 }
 
-void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray)
+void GLCanvas3D::Gizmos::update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
     if (!m_enabled)
         return;
 
     GLGizmoBase* curr = _get_current();
     if (curr != nullptr)
-        curr->update(mouse_ray);
+        curr->update(mouse_ray, mouse_pos);
 }
 
 #if ENABLE_GIZMOS_RESET
@@ -2262,6 +2275,36 @@ void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
         reinterpret_cast<GLGizmoFlatten*>(it->second)->set_flattening_data(model_object);
 }
 
+void GLCanvas3D::Gizmos::set_model_object_ptr(ModelObject* model_object)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->set_model_object_ptr(model_object);
+}
+
+void GLCanvas3D::Gizmos::clicked_on_object(const Vec2d& mouse_position)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->clicked_on_object(mouse_position);
+}
+
+void GLCanvas3D::Gizmos::delete_current_grabber(bool delete_all)
+{
+    if (!m_enabled)
+        return;
+
+    GizmosMap::const_iterator it = m_gizmos.find(SlaSupports);
+    if (it != m_gizmos.end())
+        reinterpret_cast<GLGizmoSlaSupports*>(it->second)->delete_current_grabber(delete_all);
+}
+
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::Gizmos::render_current_gizmo(const GLCanvas3D::Selection& selection) const
 #else
@@ -2344,6 +2387,8 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
     float scaled_gap_y = OverlayGapY * inv_zoom;
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
+        /*if (dynamic_cast<const GLGizmoSlaSupports*>(it->second)) // don't render sla gizmo overlay for FDM
+            continue;*/
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
         top_y -= (tex_size + scaled_gap_y);
@@ -3286,6 +3331,7 @@ void GLCanvas3D::update_gizmos_data()
         m_gizmos.set_scale(model_instance->get_scaling_factor());
         m_gizmos.set_rotation(model_instance->get_rotation());
         m_gizmos.set_flattening_data(model_object);
+        m_gizmos.set_model_object_ptr(model_object);
     }
     else
     {
@@ -3307,6 +3353,7 @@ void GLCanvas3D::update_gizmos_data()
                 m_gizmos.set_scale(model_instance->get_scaling_factor());
                 m_gizmos.set_rotation(model_instance->get_rotation());
                 m_gizmos.set_flattening_data(model_object);
+                m_gizmos.set_model_object_ptr(model_object);
             }
         }
     }
@@ -3318,6 +3365,26 @@ void GLCanvas3D::update_gizmos_data()
         m_gizmos.set_flattening_data(nullptr);
     }
 #endif // ENABLE_EXTENDED_SELECTION
+}
+
+// Returns a Rect object denoting size and position of the Reset button used by a gizmo.
+// Returns in either screen or viewport coords.
+Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
+{
+    const Size& cnv_size = canvas.get_canvas_size();
+    float w = (viewport ? -0.5f : 0.f) * (float)cnv_size.get_width();
+    float h = (viewport ? 0.5f : 1.f) * (float)cnv_size.get_height();
+    float zoom = canvas.get_camera_zoom();
+    float inv_zoom = viewport ? ((zoom != 0.0f) ? 1.0f / zoom : 0.0f) : 1.f;
+    const float gap = 30.f;
+    return Rect((w + gap + 80.f) * inv_zoom, (viewport ? -1.f : 1.f) * (h - GIZMO_RESET_BUTTON_HEIGHT) * inv_zoom,
+                (w + gap + 80.f + GIZMO_RESET_BUTTON_WIDTH) * inv_zoom, (viewport ? -1.f : 1.f) * (h * inv_zoom));
+}
+
+bool GLCanvas3D::gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const
+{
+    const Rect& rect = get_gizmo_reset_rect(canvas, false);
+    return (rect.get_left() <= x) && (x <= rect.get_right()) && (rect.get_top() <= y) && (y <= rect.get_bottom());
 }
 
 void GLCanvas3D::render()
@@ -3364,9 +3431,11 @@ void GLCanvas3D::render()
         _render_axes(false);
     }
     _render_objects();
+
 #if ENABLE_EXTENDED_SELECTION
     _render_selection();
 #endif // ENABLE_EXTENDED_SELECTION
+
     if (!is_custom_bed) // textured bed needs to be rendered after objects
     {
         _render_axes(true);
@@ -3959,6 +4028,17 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_dirty = true;
             }
         }
+        else if ((m_gizmos.get_current_type() == Gizmos::SlaSupports) && gizmo_reset_rect_contains(*this, pos(0), pos(1)))
+        {
+            if (evt.LeftDown())
+            {
+                m_gizmos.delete_current_grabber(true);
+#if ENABLE_GIZMOS_RESET
+                m_mouse.ignore_up_event = true;
+#endif // ENABLE_GIZMOS_RESET
+                m_dirty = true;
+            }
+        }
 #if ENABLE_EXTENDED_SELECTION
         else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
         {
@@ -4001,6 +4081,10 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             }
 
             m_dirty = true;
+        }
+        else if ((selected_object_idx != -1) && m_gizmos.grabber_contains_mouse() && evt.RightDown()) {
+            if (m_gizmos.get_current_type() == Gizmos::SlaSupports)
+                m_gizmos.delete_current_grabber();
         }
         else if (toolbar_contains_mouse != -1)
         {
@@ -4074,7 +4158,11 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 {
                     // The mouse_to_3d gets the Z coordinate from the Z buffer at the screen coordinate pos x, y,
                     // an converts the screen space coordinate to unscaled object space.
+#if ENABLE_EXTENDED_SELECTION
                     Vec3d pos3d = _mouse_to_3d(pos);
+#else
+                    Vec3d pos3d = (volume_idx == -1) ? Vec3d(DBL_MAX, DBL_MAX, DBL_MAX) : _mouse_to_3d(pos);
+#endif
 
                     // Only accept the initial position, if it is inside the volume bounding box.
 #if ENABLE_EXTENDED_SELECTION
@@ -4203,7 +4291,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             m_canvas->CaptureMouse();
 
         m_mouse.dragging = true;
-        m_gizmos.update(mouse_ray(pos));
+        m_gizmos.update(mouse_ray(pos), &pos);
 
 #if !ENABLE_EXTENDED_SELECTION
         std::vector<GLVolume*> volumes;
@@ -4378,6 +4466,18 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
             if ((volume_idxs.size() == 1) && m_volumes.volumes[volume_idxs[0]]->is_wipe_tower)
                 select_volume(volume_idxs[0]);
 #endif // ENABLE_EXTENDED_SELECTION
+        }
+        else if (m_gizmos.get_current_type() == Gizmos::SlaSupports && m_hover_volume_id != -1)
+        {
+#if ENABLE_EXTENDED_SELECTION
+            int id = m_selection.get_object_idx();
+#else
+            int id = _get_first_selected_object_id();
+#endif // ENABLE_EXTENDED_SELECTION
+
+            if ((id != -1) && (m_model != nullptr)) {
+                m_gizmos.clicked_on_object(Vec2d(pos(0), pos(1)));
+            }
         }
         else if (evt.LeftUp() && !m_mouse.dragging && (m_hover_volume_id == -1) && !gizmos_overlay_contains_mouse && !m_gizmos.is_dragging() && !is_layers_editing_enabled())
         {

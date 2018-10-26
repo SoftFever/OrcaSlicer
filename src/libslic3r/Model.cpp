@@ -490,6 +490,7 @@ ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volum
     instances(),
     volumes(),
     config(other.config),
+    sla_support_points(other.sla_support_points),
     layer_height_ranges(other.layer_height_ranges),
     layer_height_profile(other.layer_height_profile),
     layer_height_profile_valid(other.layer_height_profile_valid),
@@ -809,6 +810,8 @@ void ModelObject::cut(coordf_t z, Model* model) const
     // clone this one to duplicate instances, materials etc.
     ModelObject* upper = model->add_object(*this);
     ModelObject* lower = model->add_object(*this);
+    upper->sla_support_points.clear();
+    lower->sla_support_points.clear();
     upper->clear_volumes();
     lower->clear_volumes();
     upper->input_file = "";
@@ -863,6 +866,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         mesh->repair();
         
         ModelObject* new_object = m_model->add_object(*this, false);
+        new_object->sla_support_points.clear();
         new_object->input_file  = "";
         ModelVolume* new_volume = new_object->add_volume(*mesh);
         new_volume->name        = volume->name;

@@ -27,6 +27,8 @@
 
 #include <tbb/task_scheduler_init.h>
 
+#include <tbb/task_scheduler_init.h>
+
 namespace Slic3r {
 
 static boost::log::trivial::severity_level logSeverity = boost::log::trivial::error;
