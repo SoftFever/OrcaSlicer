@@ -823,6 +823,11 @@ public:
 
     void zoom_to_bed();
     void zoom_to_volumes();
+#if ENABLE_MODIFIED_CAMERA_TARGET
+#if ENABLE_EXTENDED_SELECTION
+    void zoom_to_selection();
+#endif // ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_MODIFIED_CAMERA_TARGET
     void select_view(const std::string& direction);
     void set_viewport_from_scene(const GLCanvas3D& other);
 
@@ -909,6 +914,9 @@ private:
     void _render_current_gizmo() const;
     void _render_gizmos_overlay() const;
     void _render_toolbar() const;
+#if ENABLE_SHOW_CAMERA_TARGET
+    void _render_camera_target() const;
+#endif // ENABLE_SHOW_CAMERA_TARGET
 
 #if ENABLE_EXTENDED_SELECTION
     void _update_volumes_hover_state() const;

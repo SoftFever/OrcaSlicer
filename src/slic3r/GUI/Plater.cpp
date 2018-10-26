@@ -1259,7 +1259,9 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
     }
 
     update();
+#if !ENABLE_MODIFIED_CAMERA_TARGET
     _3DScene::zoom_to_volumes(canvas3D);
+#endif // !ENABLE_MODIFIED_CAMERA_TARGET
     object_list_changed();
 
     this->schedule_background_process();
@@ -2561,7 +2563,9 @@ void Plater::changed_object_settings(int obj_idx)
         _3DScene::set_objects_selections(p->canvas3D, selections);
 #endif // !ENABLE_EXTENDED_SELECTION
         _3DScene::reload_scene(p->canvas3D, false);
+#if !ENABLE_MODIFIED_CAMERA_TARGET
         _3DScene::zoom_to_volumes(p->canvas3D);
+#endif // !ENABLE_MODIFIED_CAMERA_TARGET
     }
     else {
         this->p->schedule_background_process();

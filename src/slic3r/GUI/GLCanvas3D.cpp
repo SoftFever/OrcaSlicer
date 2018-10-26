@@ -3209,6 +3209,16 @@ void GLCanvas3D::zoom_to_volumes()
     m_apply_zoom_to_volumes_filter = false;
 }
 
+#if ENABLE_MODIFIED_CAMERA_TARGET
+#if ENABLE_EXTENDED_SELECTION
+void GLCanvas3D::zoom_to_selection()
+{
+    if (!m_selection.is_empty())
+        _zoom_to_bounding_box(m_selection.get_bounding_box());
+}
+#endif // ENABLE_EXTENDED_SELECTION
+#endif // ENABLE_MODIFIED_CAMERA_TARGET
+
 void GLCanvas3D::select_view(const std::string& direction)
 {
     const float* dir_vec = nullptr;
@@ -3365,6 +3375,9 @@ void GLCanvas3D::render()
 
     _render_current_gizmo();
     _render_cutting_plane();
+#if ENABLE_SHOW_CAMERA_TARGET
+    _render_camera_target();
+#endif // ENABLE_SHOW_CAMERA_TARGET
 
     // draw overlays
     _render_gizmos_overlay();
@@ -3744,9 +3757,29 @@ void GLCanvas3D::on_char(wxKeyEvent& evt)
                 case 83:
                 case 115: { post_event(SimpleEvent(EVT_GLCANVAS_SCALE_UNIFORMLY)); break; }
 #endif // !ENABLE_EXTENDED_SELECTION
+#if ENABLE_MODIFIED_CAMERA_TARGET
+#if ENABLE_EXTENDED_SELECTION
+                // key Z/z
+                case 90:
+                case 122:
+                {
+                    if (m_selection.is_empty())
+                        zoom_to_volumes();
+                    else
+                        zoom_to_selection();
+
+                    break;
+                }
+#else
                 // key Z/z
                 case 90:
                 case 122: { zoom_to_volumes(); break; }
+#endif // ENABLE_EXTENDED_SELECTION
+#else
+                // key Z/z
+                case 90:
+                case 122: { zoom_to_volumes(); break; }
+#endif // ENABLE_MODIFIED_CAMERA_TARGET
                 default:
                 {
                     evt.Skip();
@@ -4931,8 +4964,7 @@ void GLCanvas3D::_camera_tranform() const
     ::glRotatef(-m_camera.get_theta(), 1.0f, 0.0f, 0.0f); // pitch
     ::glRotatef(m_camera.phi, 0.0f, 0.0f, 1.0f);          // yaw
 
-    Vec3d neg_target = - m_camera.target;
-    ::glTranslated(neg_target(0), neg_target(1), neg_target(2));
+    ::glTranslated(-m_camera.target(0), -m_camera.target(1), -m_camera.target(2));
 }
 
 void GLCanvas3D::_picking_pass() const
@@ -5250,6 +5282,33 @@ void GLCanvas3D::_render_toolbar() const
     _resize_toolbar();
     m_toolbar.render();
 }
+
+#if ENABLE_SHOW_CAMERA_TARGET
+void GLCanvas3D::_render_camera_target() const
+{
+    double half_length = 5.0;
+
+    ::glDisable(GL_DEPTH_TEST);
+
+    ::glLineWidth(2.0f);
+    ::glBegin(GL_LINES);
+    // draw line for x axis
+    ::glColor3f(1.0f, 0.0f, 0.0f);
+    ::glVertex3d(m_camera.target(0) - half_length, m_camera.target(1), m_camera.target(2));
+    ::glVertex3d(m_camera.target(0) + half_length, m_camera.target(1), m_camera.target(2));
+    // draw line for y axis
+    ::glColor3f(0.0f, 1.0f, 0.0f);
+    ::glVertex3d(m_camera.target(0), m_camera.target(1) - half_length, m_camera.target(2));
+    ::glVertex3d(m_camera.target(0), m_camera.target(1) + half_length, m_camera.target(2));
+    ::glEnd();
+
+    ::glBegin(GL_LINES);
+    ::glColor3f(0.0f, 0.0f, 1.0f);
+    ::glVertex3d(m_camera.target(0), m_camera.target(1), m_camera.target(2) - half_length);
+    ::glVertex3d(m_camera.target(0), m_camera.target(1), m_camera.target(2) + half_length);
+    ::glEnd();
+}
+#endif // ENABLE_SHOW_CAMERA_TARGET
 
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::_update_volumes_hover_state() const
