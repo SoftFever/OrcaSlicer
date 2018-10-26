@@ -1,6 +1,7 @@
 #ifndef slic3r_WipeTower_hpp_
 #define slic3r_WipeTower_hpp_
 
+#include <math.h>
 #include <utility>
 #include <string>
 #include <vector>

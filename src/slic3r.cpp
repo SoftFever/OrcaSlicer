@@ -42,14 +42,12 @@ using namespace Slic3r;
 /// utility function for displaying CLI usage
 void printUsage();
 
-using namespace Slic3r;
-
+#ifdef _MSC_VER
+int slic3r_main_(int argc, char **argv)
+#else
 int main(int argc, char **argv)
+#endif
 {
-    // Convert arguments to UTF-8 (needed on Windows). argv then points to memory owned by a.
-    //FIXME On Windows, we want to receive the arguments as 16bit characters!
-    boost::nowide::args a(argc, argv);
-
     {
         const char *loglevel = boost::nowide::getenv("SLIC3R_LOGLEVEL");
         if (loglevel != nullptr) {
@@ -253,3 +251,20 @@ void printUsage()
     print_print_options(boost::nowide::cout);
     std::cout << "****\n";
 }
+
+#ifdef _MSC_VER
+extern "C" {
+	__declspec(dllexport) int __stdcall slic3r_main(int argc, wchar_t **argv)
+	{
+		// Convert wchar_t arguments to UTF8.
+		std::vector<std::string> 	argv_narrow;
+		std::vector<char*>			argv_ptrs(argc + 1, nullptr);
+		for (size_t i = 0; i < argc; ++ i)
+			argv_narrow.emplace_back(boost::nowide::narrow(argv[i]));
+		for (size_t i = 0; i < argc; ++ i)
+			argv_ptrs[i] = const_cast<char*>(argv_narrow[i].data());
+		// Call the UTF8 main.
+		return slic3r_main_(argc, argv_ptrs.data());
+	}
+}
+#endif /* _MSC_VER */
