@@ -111,8 +111,8 @@ public:
 	bool operator>(const Semver &b)  const { return ::semver_compare(ver, b.ver) == 1; }
 	// We're using '&' instead of the '~' operator here as '~' is unary-only:
 	// Satisfies patch if Major and minor are equal.
-	bool operator&(const Semver &b) const { return ::semver_satisfies_patch(ver, b.ver); }
-	bool operator^(const Semver &b) const { return ::semver_satisfies_caret(ver, b.ver); }
+	bool operator&(const Semver &b) const { return ::semver_satisfies_patch(ver, b.ver) != 0; }
+	bool operator^(const Semver &b) const { return ::semver_satisfies_caret(ver, b.ver) != 0; }
 	bool in_range(const Semver &low, const Semver &high) const { return low <= *this && *this <= high; }
 
 	// Conversion
