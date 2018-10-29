@@ -77,18 +77,18 @@ endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Workaround for an old CMake, which does not understand CMAKE_CXX_STANDARD.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wno-reorder" )
+    add_compile_options(-std=c++11 -Wall -Wno-reorder)
     find_package(PkgConfig REQUIRED)
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUXX)
     # Adding -fext-numeric-literals to enable GCC extensions on definitions of quad float literals, which are required by Boost.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fext-numeric-literals" )
+    add_compile_options(-fext-numeric-literals)
 endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     # On GCC and Clang, no return from a non-void function is a warning only. Here, we make it an error.
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror=return-type" )
+    add_compile_options(-Werror=return-type)
 endif()
 
 # Where all the bundled libraries reside?
