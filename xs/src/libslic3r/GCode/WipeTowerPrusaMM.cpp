@@ -643,7 +643,8 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::tool_change(unsigned int tool, boo
                   "\n\n");
 
     // Ask our writer about how much material was consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    if (m_current_tool < m_used_filament_length.size())
+        m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
@@ -1068,8 +1069,9 @@ WipeTower::ToolChangeResult WipeTowerPrusaMM::finish_layer()
 
     m_depth_traversed = m_wipe_tower_depth-m_perimeter_width;
 
-    // Ask our writer about how much material was consumed:
-    m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
+    // Ask our writer about how much material was consumed.
+    if (m_current_tool < m_used_filament_length.size())
+        m_used_filament_length[m_current_tool] += writer.get_and_reset_used_filament_length();
 
 	ToolChangeResult result;
     result.priming      = false;
@@ -1166,7 +1168,6 @@ void WipeTowerPrusaMM::save_on_last_wipe()
     }
 }
 
-
 // Processes vector m_plan and calls respective functions to generate G-code for the wipe tower
 // Resulting ToolChangeResults are appended into vector "result"
 void WipeTowerPrusaMM::generate(std::vector<std::vector<WipeTower::ToolChangeResult>> &result)
@@ -1255,7 +1256,5 @@ void WipeTowerPrusaMM::make_wipe_tower_square()
 	for (auto& lay : m_plan)	// depths set, now the spacing
 		lay.extra_spacing = lay.depth / lay.toolchanges_depth();
 }
-
-
 
 }; // namespace Slic3r
