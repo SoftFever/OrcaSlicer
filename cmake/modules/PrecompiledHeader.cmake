@@ -87,8 +87,8 @@ function(add_precompiled_header _target _input)
   endif()
 
   if(MSVC)
-    set(_pch_cxx_pch "${CMAKE_CFG_INTDIR}/cxx_${_input_we}.pch")
-    set(_pch_c_pch "${CMAKE_CFG_INTDIR}/c_${_input_we}.pch")
+    set(_pch_cxx_pch "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/cxx_${_input_we}.pch")
+    set(_pch_c_pch "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/c_${_input_we}.pch")
 
     get_target_property(sources ${_target} SOURCES)
     foreach(_source ${sources})
