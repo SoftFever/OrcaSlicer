@@ -111,9 +111,9 @@ bool PlaceholderParser::apply_config(const DynamicPrintConfig &rhs)
         const ConfigOption *opt_rhs = rhs.option(opt_key);
         const ConfigOption *opt_old = m_config.option(opt_key, false);
         if (opt_old != nullptr) {
-            if ((opt_rhs->type() == coFloatOrPercent && 
-                 dynamic_cast<const ConfigOptionFloat*>(opt_old)->value == rhs.get_abs_value(opt_key)) ||
-                *opt_rhs == *opt_old)
+            if (opt_rhs->type() == coFloatOrPercent ?
+                 dynamic_cast<const ConfigOptionFloat*>(opt_old)->value == rhs.get_abs_value(opt_key)
+                : *opt_rhs == *opt_old)
                 // no need to update
                 continue;
         }
