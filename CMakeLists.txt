@@ -32,7 +32,8 @@ if (MSVC)
 	   add_compile_options(/MP)
     endif ()
     # /bigobj (Increase Number of Sections in .Obj file)
-    add_compile_options(-bigobj)
+    # error C3859: virtual memory range for PCH exceeded; please recompile with a command line option of '-Zm90' or greater
+    add_compile_options(-bigobj -Zm316)
 endif ()
 
 # CMAKE_PREFIX_PATH is used to point CMake to the remaining dependencies (Boost, TBB, ...)

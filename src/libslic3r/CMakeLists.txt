@@ -1,9 +1,13 @@
 project(libslic3r)
 cmake_minimum_required(VERSION 2.6)
 
+include(PrecompiledHeader)
+
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/libslic3r_version.h.in ${CMAKE_CURRENT_BINARY_DIR}/libslic3r_version.h @ONLY)
 
 add_library(libslic3r STATIC
+    pchheader.cpp
+    pchheader.hpp
     BoundingBox.cpp
     BoundingBox.hpp
     BridgeDetector.cpp
@@ -150,6 +154,8 @@ add_library(libslic3r STATIC
     utils.cpp
     Utils.hpp
 )
+
+add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)
 
 target_compile_definitions(libslic3r PUBLIC -DUSE_TBB ${PNG_DEFINITIONS})
 target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${LIBNEST2D_INCLUDES} ${PNG_INCLUDE_DIRS})
