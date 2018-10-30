@@ -1022,6 +1022,12 @@ typedef std::map<t_config_option_key, ConfigOptionDef> t_optiondef_map;
 class ConfigDef
 {
 public:
+	~ConfigDef() { 
+		for (std::pair<const t_config_option_key, ConfigOptionDef> &def : this->options) 
+			delete def.second.default_value;
+        this->options.clear();
+	}
+
     t_optiondef_map         options;
 
     bool                    has(const t_config_option_key &opt_key) const { return this->options.count(opt_key) > 0; }

@@ -1044,10 +1044,15 @@ public:
     const ConfigDef*    def() const override { return &s_def; }
 
 private:
-    class PrintAndCLIConfigDef : public PrintConfigDef
+    class PrintAndCLIConfigDef : public ConfigDef
     {
     public:
-        PrintAndCLIConfigDef() { this->options.insert(cli_config_def.options.begin(), cli_config_def.options.end()); }
+        PrintAndCLIConfigDef() { 
+            this->options.insert(print_config_def.options.begin(), print_config_def.options.end());
+            this->options.insert(cli_config_def.options.begin(), cli_config_def.options.end());
+        }
+        // Do not release the default values, they are handled by print_config_def & cli_config_def.
+        ~PrintAndCLIConfigDef() { this->options.clear(); }
     };
     static PrintAndCLIConfigDef s_def;
 };

@@ -889,8 +889,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 const_cast<PrintObjectStatus&>(*it).status = PrintObjectStatus::Deleted;
             }
             // Copy content of the ModelObject including its ID, reset the parent.
-            model_object = model_object_new;
-            model_object.set_model(&m_model);
+            model_object.assign(&model_object_new);
         } else if (support_blockers_differ || support_enforcers_differ) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
             m_cancel_callback();
@@ -982,8 +981,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     // The PrintObject already exists and the copies differ.
                     if ((*it_old)->print_object->copies().size() != new_instances.copies.size())
                         update_apply_status(this->invalidate_step(psWipeTower));
-                    update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psGCodeExport));
-                    (*it_old)->print_object->set_copies(new_instances.copies);
+					if ((*it_old)->print_object->set_copies(new_instances.copies)) {
+						// Invalidated
+						update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psGCodeExport));
+					}
 					print_objects_new.emplace_back((*it_old)->print_object);
 					const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Reused;
 				}
@@ -1109,7 +1110,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     region_id = map_volume_to_region[volume_id];
                 // Assign volume to a region.
 				if (fresh) {
-					if (print_object.region_volumes.empty())
+					if (region_id >= print_object.region_volumes.size() || print_object.region_volumes[region_id].empty())
 						++ m_regions[region_id]->m_refcnt;
 					print_object.add_region_volume(region_id, volume_id);
 				}

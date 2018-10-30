@@ -56,7 +56,7 @@ static std::string libslic3r_translate_callback(const char *s) { return wxGetTra
 IMPLEMENT_APP(GUI_App)
 bool GUI_App::OnInit()
 {
-    SetAppName("Slic3rPE");
+    SetAppName("Slic3rPE-alpha");
     SetAppDisplayName("Slic3r Prusa Edition");
 
 //     Slic3r::debugf "wxWidgets version %s, Wx version %s\n", wxVERSION_STRING, wxVERSION;

@@ -45,6 +45,8 @@ public:
     ModelID  id() const { return m_id; }
 
 protected:
+    // Constructor to be only called by derived classes.
+    ModelBase() {}
     ModelID  m_id = generate_new_id();
 
 private:
@@ -72,6 +74,8 @@ private:
     
     ModelMaterial(Model *model) : m_model(model) {}
     ModelMaterial(Model *model, const ModelMaterial &other) : attributes(other.attributes), config(other.config), m_model(model) {}
+    explicit ModelMaterial(ModelMaterial &rhs) = delete;
+    ModelMaterial& operator=(ModelMaterial &rhs) = delete;
 };
 
 // A printable object, possibly having multiple print volumes (each with its own set of parameters and materials),
@@ -111,6 +115,10 @@ public:
         to new volumes before adding them to this object in order to preserve alignment
         when user expects that. */
     Vec3d                   origin_translation;
+
+    // Assign a ModelObject to this object while keeping the original pointer to the parent Model.
+	// Make a deep copy.
+	ModelObject&            assign(const ModelObject *rhs, bool copy_volumes = true);
 
     Model*                  get_model() const { return m_model; };
     
@@ -174,8 +182,10 @@ protected:
 
 private:
     ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
-    ModelObject(Model *model, const ModelObject &other, bool copy_volumes = true);
+    ModelObject(Model *model, const ModelObject &rhs, bool copy_volumes = true);
+    explicit ModelObject(ModelObject &rhs) = delete;
     ~ModelObject();
+    ModelObject& operator=(ModelObject &rhs) = default;
 
     // Parent object, owning this ModelObject.
     Model                *m_model;
@@ -269,6 +279,9 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
+
+    explicit ModelVolume(ModelVolume &rhs) = delete;
+    ModelVolume& operator=(ModelVolume &rhs) = delete;
 };
 
 // A single instance of a ModelObject.
@@ -363,8 +376,10 @@ private:
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
 #endif // ENABLE_MIRROR
-};
 
+    explicit ModelInstance(ModelInstance &rhs) = delete;
+    ModelInstance& operator=(ModelInstance &rhs) = delete;
+};
 
 // The print bed content.
 // Description of a triangular model with multiple materials, multiple instances with various affine transformations

@@ -483,30 +483,10 @@ void Model::reset_auto_extruder_id()
     s_auto_extruder_id = 1;
 }
 
-ModelObject::ModelObject(Model *model, const ModelObject &other, bool copy_volumes) :  
-    ModelBase(other), // copy the id
-    name(other.name),
-    input_file(other.input_file),
-    instances(),
-    volumes(),
-    config(other.config),
-    sla_support_points(other.sla_support_points),
-    layer_height_ranges(other.layer_height_ranges),
-    layer_height_profile(other.layer_height_profile),
-    layer_height_profile_valid(other.layer_height_profile_valid),
-    origin_translation(other.origin_translation),
-    m_bounding_box(other.m_bounding_box),
-    m_bounding_box_valid(other.m_bounding_box_valid),
+ModelObject::ModelObject(Model *model, const ModelObject &rhs, bool copy_volumes) :
     m_model(model)
 {
-    if (copy_volumes) {
-        this->volumes.reserve(other.volumes.size());
-        for (ModelVolume *model_volume : other.volumes)
-            this->add_volume(*model_volume);
-    }
-    this->instances.reserve(other.instances.size());
-    for (const ModelInstance *model_instance : other.instances)
-        this->add_instance(*model_instance);
+    this->assign(&rhs, copy_volumes);
 }
 
 ModelObject::~ModelObject()
@@ -520,6 +500,34 @@ ModelObject::~ModelObject()
 ModelObject* ModelObject::clone(Model *parent)
 {
     return new ModelObject(parent, *this, true);
+}
+
+ModelObject& ModelObject::assign(const ModelObject *rhs, bool copy_volumes)
+{ 
+    m_id                        = rhs->m_id;
+    name                        = rhs->name;
+    input_file                  = rhs->input_file;
+    config                      = rhs->config;
+    sla_support_points          = rhs->sla_support_points;
+    layer_height_ranges         = rhs->layer_height_ranges;
+    layer_height_profile        = rhs->layer_height_profile;
+    layer_height_profile_valid  = rhs->layer_height_profile_valid;
+    origin_translation          = rhs->origin_translation;
+    m_bounding_box              = rhs->m_bounding_box;
+    m_bounding_box_valid        = rhs->m_bounding_box_valid;
+
+    volumes.clear();
+    instances.clear();
+    if (copy_volumes) {
+        this->volumes.reserve(rhs->volumes.size());
+        for (ModelVolume *model_volume : rhs->volumes)
+            this->add_volume(*model_volume);
+        this->instances.reserve(rhs->instances.size());
+        for (const ModelInstance *model_instance : rhs->instances)
+            this->add_instance(*model_instance);
+    }
+
+    return *this;
 }
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
