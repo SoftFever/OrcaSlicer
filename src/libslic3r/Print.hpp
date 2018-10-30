@@ -485,11 +485,22 @@ public:
     // the state of the finished or running calculations.
     void                set_cancel_callback(cancel_callback_type cancel_callback) { m_cancel_callback = cancel_callback; }
     // Has the calculation been canceled?
-    bool                canceled() const { return m_canceled; }
+	enum CancelStatus {
+		// No cancelation, background processing should run.
+		NOT_CANCELED = 0,
+		// Canceled by user from the user interface (user pressed the "Cancel" button or user closed the application).
+		CANCELED_BY_USER = 1,
+		// Canceled internally from Print::apply() through the Print/PrintObject::invalidate_step() or ::invalidate_all_steps().
+		CANCELED_INTERNAL = 2
+	};
+    CancelStatus        cancel_status() const { return m_cancel_status; }
+    // Has the calculation been canceled?
+    bool                canceled() const { return m_cancel_status; }
     // Cancel the running computation. Stop execution of all the background threads.
-    void                cancel() { m_canceled = true; }
+	void                cancel() { m_cancel_status = CANCELED_BY_USER; }
+	void                cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }
     // Cancel the running computation. Stop execution of all the background threads.
-    void                restart() { m_canceled = false; }
+	void                restart() { m_cancel_status = NOT_CANCELED; }
 
     // Accessed by SupportMaterial
     const PrintRegion*  get_region(size_t idx) const  { return m_regions[idx]; }
@@ -513,7 +524,7 @@ private:
 
     // If the background processing stop was requested, throw CanceledException.
     // To be called by the worker thread and its sub-threads (mostly launched on the TBB thread pool) regularly.
-    void                throw_if_canceled() const { if (m_canceled) throw CanceledException(); }
+    void                throw_if_canceled() const { if (m_cancel_status) throw CanceledException(); }
 
     void                _make_skirt();
     void                _make_brim();
@@ -526,8 +537,7 @@ private:
     // while the data influencing the stage is modified.
     mutable tbb::mutex                      m_mutex;
 
-    // Has the calculation been canceled?
-    tbb::atomic<bool>                       m_canceled;
+    tbb::atomic<CancelStatus>               m_cancel_status;
     // Callback to be evoked regularly to update state of the UI thread.
     status_callback_type                    m_status_callback;
 

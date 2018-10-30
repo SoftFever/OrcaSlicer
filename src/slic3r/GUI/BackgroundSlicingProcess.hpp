@@ -81,6 +81,10 @@ public:
 private:
 	void 	thread_proc();
 	void 	join_background_thread();
+	// To be called by Print::apply() through the Print::m_cancel_callback to stop the background
+	// processing before changing any data of running or finalized milestones.
+	// This function shall not trigger any UI update through the wxWidgets event.
+	void	stop_internal();
 
 	Print 					   *m_print 			 = nullptr;
 	// Data structure, to which the G-code export writes its annotations.

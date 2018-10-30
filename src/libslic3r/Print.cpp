@@ -837,6 +837,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         enum Status {
             Unknown,
             Deleted,
+            Reused,
             New
         };
         PrintObjectStatus(PrintObject *print_object, Status status = Unknown) : 
@@ -931,6 +932,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
     {
         std::vector<PrintObject*> print_objects_new;
         print_objects_new.reserve(std::max(m_objects.size(), m_model.objects.size()));
+        bool new_objects = false;
         // Walk over all new model objects and check, whether there are matching PrintObjects.
         for (ModelObject *model_object : m_model.objects) {
             auto range = print_object_status.equal_range(PrintObjectStatus(model_object->id()));
@@ -953,7 +955,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     print_object->set_copies(print_instances.copies);
                     print_object->config_apply(config);
                     print_objects_new.emplace_back(print_object);
-                    print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+                    // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+                    new_objects = true;
                 }
                 continue;
             }
@@ -971,7 +974,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     print_object->set_copies(new_instances.copies);
                     print_object->config_apply(config);
                     print_objects_new.emplace_back(print_object);
-                    print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+                    // print_object_status.emplace(PrintObjectStatus(print_object, PrintObjectStatus::New));
+                    new_objects = true;
+                    if (it_old != old.end())
+                        const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Deleted;
                 } else if ((*it_old)->print_object->copies() != new_instances.copies) {
                     // The PrintObject already exists and the copies differ.
                     if ((*it_old)->print_object->copies().size() != new_instances.copies.size())
@@ -979,14 +985,26 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psGCodeExport));
                     (*it_old)->print_object->set_copies(new_instances.copies);
 					print_objects_new.emplace_back((*it_old)->print_object);
+					const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Reused;
 				}
             }
         }
         if (m_objects != print_objects_new) {
             m_cancel_callback();
             m_objects = print_objects_new;
-            update_apply_status(false);
+            // Delete the PrintObjects marked as Unknown or Deleted.
+            bool deleted_objects = false;
+            for (auto &pos : print_object_status)
+                if (pos.status == PrintObjectStatus::Unknown || pos.status == PrintObjectStatus::Deleted) {
+                    // update_apply_status(pos.print_object->invalidate_all_steps());
+                    delete pos.print_object;
+					deleted_objects = true;
+                }
+            if (deleted_objects)
+                update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psWipeTower) || this->invalidate_step(psGCodeExport));
+            update_apply_status(new_objects);
         }
+        print_object_status.clear();
     }
 
     // 5) Synchronize configs of ModelVolumes, synchronize AMF / 3MF materials (and their configs), refresh PrintRegions.

@@ -84,10 +84,14 @@ void BackgroundSlicingProcess::thread_proc()
 		}
 		lck.lock();
 		m_state = m_print->canceled() ? STATE_CANCELED : STATE_FINISHED;
-		wxCommandEvent evt(m_event_finished_id);
-		evt.SetString(error);
-		evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
-        wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+		if (m_print->cancel_status() != Print::CANCELED_INTERNAL) {
+			// Only post the canceled event, if canceled by user.
+			// Don't post the canceled event, if canceled from Print::apply().
+			wxCommandEvent evt(m_event_finished_id);
+			evt.SetString(error);
+			evt.SetInt(m_print->canceled() ? -1 : (error.empty() ? 1 : 0));
+        	wxQueueEvent(GUI::wxGetApp().mainframe->m_plater, evt.Clone());
+        }
 	    m_print->restart();
 		lck.unlock();
 		// Let the UI thread wake up if it is waiting for the background task to finish.
@@ -134,7 +138,7 @@ bool BackgroundSlicingProcess::start()
 	if (! this->idle())
 		throw std::runtime_error("Cannot start a background task, the worker thread is not idle.");
 	m_state = STATE_STARTED;
-	m_print->set_cancel_callback([this](){ this->stop(); });
+	m_print->set_cancel_callback([this](){ this->stop_internal(); });
 	lck.unlock();
 	m_condition.notify_one();
 	return true;
@@ -162,6 +166,23 @@ bool BackgroundSlicingProcess::stop()
 	}
 //	this->m_export_path.clear();
 	return true;
+}
+
+// To be called by Print::apply() through the Print::m_cancel_callback to stop the background
+// processing before changing any data of running or finalized milestones.
+// This function shall not trigger any UI update through the wxWidgets event.
+void BackgroundSlicingProcess::stop_internal()
+{
+	std::unique_lock<std::mutex> lck(m_mutex);
+	assert(m_state == STATE_STARTED || m_state == STATE_RUNNING || m_state == STATE_FINISHED || m_state == STATE_CANCELED);
+	if (m_state == STATE_STARTED || m_state == STATE_RUNNING) {
+		m_print->cancel_internal();
+		// Wait until the background processing stops by being canceled.
+		m_condition.wait(lck, [this](){ return m_state == STATE_CANCELED; });
+	}
+	// In the "Canceled" state. Reset the state to "Idle".
+	m_state = STATE_IDLE;
+	m_print->set_cancel_callback([](){});
 }
 
 // Apply config over the print. Returns false, if the new config values caused any of the already
