@@ -4106,10 +4106,16 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 #if ENABLE_EXTENDED_SELECTION
                 if (evt.LeftDown() && (m_hover_volume_id != -1))
                 {
-                    if (!evt.ShiftDown() || !m_selection.contains_volume(m_hover_volume_id))
-                        m_selection.add(m_hover_volume_id, !evt.ShiftDown());
-                    else
+                    bool already_selected = m_selection.contains_volume(m_hover_volume_id);
+                    bool shift_down = evt.ShiftDown();
+
+                    if (already_selected && shift_down)
                         m_selection.remove(m_hover_volume_id);
+                    else
+                    {
+                        bool add_as_single = !already_selected && !evt.ShiftDown();
+                        m_selection.add(m_hover_volume_id, add_as_single);
+                    }
 
                     m_gizmos.update_on_off_state(m_selection);
                     update_gizmos_data();
@@ -4229,8 +4235,8 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         float z0 = 0.0f;
         float z1 = 1.0f;
 #if ENABLE_EXTENDED_SELECTION
-        // we do not want to translate objects if the user just clicked on an object while pressing shift (to add/remove it from the selection) and then drag
-        Vec3d cur_pos = evt.ShiftDown() ? m_mouse.drag.start_position_3D : Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
+        // we do not want to translate objects if the user just clicked on an object while pressing shift to remove it from the selection and then drag
+        Vec3d cur_pos = m_selection.contains_volume(m_hover_volume_id) ? Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2)) : m_mouse.drag.start_position_3D;
 #else
         Vec3d cur_pos = Linef3(_mouse_to_3d(pos, &z0), _mouse_to_3d(pos, &z1)).intersect_plane(m_mouse.drag.start_position_3D(2));
 #endif // ENABLE_EXTENDED_SELECTION

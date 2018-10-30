@@ -1531,13 +1531,13 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
     // does not work correctly when there are multiple copies.
     Vec3d dragged_offset(Vec3d::Zero());
 #if ENABLE_EXTENDED_SELECTION
-        if (m_starting_center == Vec3d::Zero())
-            m_starting_center = selection.get_bounding_box().center();
-        dragged_offset = selection.get_bounding_box().center() - m_starting_center;
+    if (m_starting_center == Vec3d::Zero())
+        m_starting_center = selection.get_bounding_box().center();
+    dragged_offset = selection.get_bounding_box().center() - m_starting_center;
 #else
-        if (m_starting_center == Vec3d::Zero())
-            m_starting_center = box.center();
-        dragged_offset(box.center() - m_starting_center); 
+    if (m_starting_center == Vec3d::Zero())
+        m_starting_center = box.center();
+    dragged_offset = box.center() - m_starting_center; 
 #endif // ENABLE_EXTENDED_SELECTION   
 
     ::glEnable(GL_BLEND);

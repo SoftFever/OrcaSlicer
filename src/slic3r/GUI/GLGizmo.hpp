@@ -342,8 +342,6 @@ protected:
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
 #else
     virtual void on_start_dragging(const BoundingBoxf3& box);
-    virtual void on_stop_dragging() { m_show_starting_box = false; }
-
 #endif // ENABLE_EXTENDED_SELECTION
     virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos);
 #if ENABLE_GIZMOS_RESET
