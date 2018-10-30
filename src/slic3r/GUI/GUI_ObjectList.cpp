@@ -706,6 +706,7 @@ void ObjectList::load_part( ModelObject* model_object,
             if (model_object->origin_translation != Vec3d::Zero())
             {
                 object->center_around_origin();
+                object->ensure_on_bed();
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {

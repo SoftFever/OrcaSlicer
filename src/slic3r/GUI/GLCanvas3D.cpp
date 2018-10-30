@@ -1478,6 +1478,98 @@ void GLCanvas3D::Selection::mirror(Axis axis)
 }
 #endif // ENABLE_MIRROR
 
+void GLCanvas3D::Selection::translate(unsigned int object_idx, const Vec3d& displacement)
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if (v->object_idx() == object_idx)
+            v->set_offset(v->get_offset() + displacement);
+    }
+
+    std::set<unsigned int> done;  // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+
+    for (unsigned int i : m_list)
+    {
+        if (done.size() == m_volumes->size())
+            break;
+
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        // Process unselected volumes of the object.
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (done.size() == m_volumes->size())
+                break;
+
+            if (done.find(j) != done.end())
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            if (v->object_idx() != object_idx)
+                continue;
+
+            v->set_offset(v->get_offset() + displacement);
+            done.insert(j);
+        }
+    }
+
+    m_bounding_box_dirty = true;
+}
+
+void GLCanvas3D::Selection::translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement)
+{
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list)
+    {
+        GLVolume* v = (*m_volumes)[i];
+        if ((v->object_idx() == object_idx) && (v->instance_idx() == instance_idx))
+            v->set_offset(v->get_offset() + displacement);
+    }
+
+    std::set<unsigned int> done;  // prevent processing volumes twice
+    done.insert(m_list.begin(), m_list.end());
+
+    for (unsigned int i : m_list)
+    {
+        if (done.size() == m_volumes->size())
+            break;
+
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        // Process unselected volumes of the object.
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (done.size() == m_volumes->size())
+                break;
+
+            if (done.find(j) != done.end())
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            if ((v->object_idx() != object_idx) || (v->instance_idx() != instance_idx))
+                continue;
+
+            v->set_offset(v->get_offset() + displacement);
+            done.insert(j);
+        }
+    }
+
+    m_bounding_box_dirty = true;
+}
+
 void GLCanvas3D::Selection::render(bool show_indirect_selection) const
 {
     if (is_empty())
@@ -6666,6 +6758,14 @@ void GLCanvas3D::_on_move()
             wipe_tower_origin = v->get_offset();
     }
 
+    for (const std::pair<int, int>& i : done)
+    {
+        ModelObject* m = m_model->objects[i.first];
+        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+        m_selection.translate(i.first, i.second, shift);
+        m->translate_instance(i.second, shift);
+    }
+
     if (object_moved)
         post_event(SimpleEvent(EVT_GLCANVAS_INSTANCE_MOVED));
 
@@ -6700,8 +6800,17 @@ void GLCanvas3D::_on_rotate()
         if (model_object != nullptr)
         {
             model_object->instances[instance_idx]->set_rotation(v->get_rotation());
+            model_object->instances[instance_idx]->set_offset(v->get_offset());
             model_object->invalidate_bounding_box();
         }
+    }
+
+    for (const std::pair<int, int>& i : done)
+    {
+        ModelObject* m = m_model->objects[i.first];
+        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+        m_selection.translate(i.first, i.second, shift);
+        m->translate_instance(i.second, shift);
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
@@ -6734,8 +6843,17 @@ void GLCanvas3D::_on_scale()
         if (model_object != nullptr)
         {
             model_object->instances[instance_idx]->set_scaling_factor(v->get_scaling_factor());
+            model_object->instances[instance_idx]->set_offset(v->get_offset());
             model_object->invalidate_bounding_box();
         }
+    }
+
+    for (const std::pair<int, int>& i : done)
+    {
+        ModelObject* m = m_model->objects[i.first];
+        Vec3d shift(0.0, 0.0, -m->get_instance_min_z(i.second));
+        m_selection.translate(i.first, i.second, shift);
+        m->translate_instance(i.second, shift);
     }
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));

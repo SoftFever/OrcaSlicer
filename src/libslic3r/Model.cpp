@@ -712,16 +712,30 @@ void ModelObject::center_around_origin()
 
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
-#if ENABLE_MIRROR
             i->set_offset(i->get_offset() - shift);
-#else
-            // apply rotation and scaling to vector as well before translating instance,
-            // in order to leave final position unaltered
-            i->set_offset(i->get_offset() + i->transform_vector(-shift, true));
-#endif // ENABLE_MIRROR
         }
         this->invalidate_bounding_box();
     }
+}
+
+void ModelObject::ensure_on_bed()
+{
+    translate_instances(Vec3d(0.0, 0.0, -get_min_z()));
+}
+
+void ModelObject::translate_instances(const Vec3d& vector)
+{
+    for (size_t i = 0; i < instances.size(); ++i)
+    {
+        translate_instance(i, vector);
+    }
+}
+
+void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
+{
+    ModelInstance* i = instances[instance_idx];
+    i->set_offset(i->get_offset() + vector);
+    invalidate_bounding_box();
 }
 
 void ModelObject::translate(coordf_t x, coordf_t y, coordf_t z)
@@ -893,6 +907,42 @@ void ModelObject::repair()
 {
     for (ModelVolume *v : this->volumes)
         v->mesh.repair();
+}
+
+double ModelObject::get_min_z() const
+{
+    if (instances.empty())
+        return 0.0;
+    else
+    {
+        double min_z = DBL_MAX;
+        for (size_t i = 0; i < instances.size(); ++i)
+        {
+            min_z = std::min(min_z, get_instance_min_z(i));
+        }
+        return min_z;
+    }
+}
+
+double ModelObject::get_instance_min_z(size_t instance_idx) const
+{
+    double min_z = DBL_MAX;
+
+    ModelInstance* inst = instances[instance_idx];
+    Vec3d local_unit_z = (inst->world_matrix(true).inverse() * Vec3d::UnitZ()).normalized();
+
+    for (ModelVolume *v : volumes)
+    {
+        for (uint32_t f = 0; f < v->mesh.stl.stats.number_of_facets; ++f)
+        {
+            const stl_facet* facet = v->mesh.stl.facet_start + f;
+            min_z = std::min(min_z, local_unit_z.dot(facet->vertex[0].cast<double>()));
+            min_z = std::min(min_z, local_unit_z.dot(facet->vertex[1].cast<double>()));
+            min_z = std::min(min_z, local_unit_z.dot(facet->vertex[2].cast<double>()));
+        }
+    }
+
+    return min_z + inst->get_offset(Z);
 }
 
 unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
@@ -1136,7 +1186,11 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
+#if ENABLE_MIRROR
+    copy.transform(world_matrix(true, false, true, true).cast<float>());
+#else
     copy.transform(world_matrix(true, false, true).cast<float>());
+#endif // ENABLE_MIRROR
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {

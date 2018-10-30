@@ -153,6 +153,9 @@ public:
     // A snug bounding box around the transformed non-modifier object volumes.
     BoundingBoxf3 instance_bounding_box(size_t instance_idx, bool dont_translate = false) const;
     void center_around_origin();
+    void ensure_on_bed();
+    void translate_instances(const Vec3d& vector);
+    void translate_instance(size_t instance_idx, const Vec3d& vector);
     void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
     void translate(coordf_t x, coordf_t y, coordf_t z);
     void scale(const Vec3d &versor);
@@ -166,6 +169,9 @@ public:
     void cut(coordf_t z, Model* model) const;
     void split(ModelObjectPtrs* new_objects);
     void repair();
+
+    double get_min_z() const;
+    double get_instance_min_z(size_t instance_idx) const;
 
     // Called by Print::validate() from the UI thread.
     unsigned int check_instances_print_volume_state(const BoundingBoxf3& print_volume);

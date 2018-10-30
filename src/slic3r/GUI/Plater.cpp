@@ -1151,6 +1151,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         if (type_3mf) {
             for (ModelObject* model_object : model.objects) {
                 model_object->center_around_origin();
+                model_object->ensure_on_bed();
             }
         }
 
@@ -1234,6 +1235,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
                 instance->set_scaling_factor(inverse);
             }
         }
+
+        object->ensure_on_bed();
 
         // print.auto_assign_extruders(object);
         // print.add_model_object(object);
@@ -1628,6 +1631,7 @@ void Plater::priv::split_object()
         {
             m->name = current_model_object->name + "_" + std::to_string(counter++);
             m->center_around_origin();
+            m->ensure_on_bed();
         }
 
         remove(obj_idx);
@@ -2552,6 +2556,7 @@ void Plater::changed_object_settings(int obj_idx)
         // recenter and re - align to Z = 0
         auto model_object = p->model.objects[obj_idx];
         model_object->center_around_origin();
+        model_object->ensure_on_bed();
     }
 
     // update print
