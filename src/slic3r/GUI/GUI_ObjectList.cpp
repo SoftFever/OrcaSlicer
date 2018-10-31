@@ -956,6 +956,11 @@ void ObjectList::split(const bool split_part)
 
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
+
+#if ENABLE_EXTENDED_SELECTION
+    // restores selection
+    _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
