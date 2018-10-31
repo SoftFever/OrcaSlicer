@@ -135,11 +135,11 @@ PreviewIface* create_preview_iface(wxNotebook* parent, DynamicPrintConfig* confi
 void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt_key, const boost::any& value, int opt_index /*= 0*/)
 {
 	try{
-		switch (config.def()->get(opt_key)->type){
+		switch (config.def()->get(opt_key)->type) {
 		case coFloatOrPercent:{
 			std::string str = boost::any_cast<std::string>(value);
 			bool percent = false;
-			if (str.back() == '%'){
+			if (str.back() == '%') {
 				str.pop_back();
 				percent = true;
 			}
@@ -172,7 +172,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				config.option<ConfigOptionStrings>(opt_key)->values = 
 					boost::any_cast<std::vector<std::string>>(value);
 			}
-			else if (config.def()->get(opt_key)->gui_flags.compare("serialized") == 0){
+			else if (config.def()->get(opt_key)->gui_flags.compare("serialized") == 0) {
 				std::string str = boost::any_cast<std::string>(value);
 				if (str.back() == ';') str.pop_back();
 				// Split a string to multiple strings by a semi - colon.This is the old way of storing multi - string values.
@@ -219,7 +219,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			}
 			break;
 		case coPoints:{
-			if (opt_key.compare("bed_shape") == 0){
+			if (opt_key.compare("bed_shape") == 0) {
 				config.option<ConfigOptionPoints>(opt_key)->values = boost::any_cast<std::vector<Vec2d>>(value);
 				break;
 			}
@@ -239,22 +239,26 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 	}
 }
 
-void show_error(wxWindow* parent, const wxString& message) {
+void show_error(wxWindow* parent, const wxString& message)
+{
 	ErrorDialog msg(parent, message);
 	msg.ShowModal();
 }
 
-void show_error_id(int id, const std::string& message) {
+void show_error_id(int id, const std::string& message)
+{
 	auto *parent = id != 0 ? wxWindow::FindWindowById(id) : nullptr;
 	show_error(parent, wxString::FromUTF8(message.data()));
 }
 
-void show_info(wxWindow* parent, const wxString& message, const wxString& title){
+void show_info(wxWindow* parent, const wxString& message, const wxString& title)
+{
 	wxMessageDialog msg_wingow(parent, message, title.empty() ? _(L("Notice")) : title, wxOK | wxICON_INFORMATION);
 	msg_wingow.ShowModal();
 }
 
-void warning_catcher(wxWindow* parent, const wxString& message){
+void warning_catcher(wxWindow* parent, const wxString& message)
+{
 	if (message == "GLUquadricObjPtr | " + _(L("Attempt to free unreferenced scalar")) )
 		return;
 	wxMessageDialog msg(parent, message, _(L("Warning")), wxOK | wxICON_WARNING);

@@ -1183,7 +1183,7 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
         prefered_print_profile.empty() ?
             this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
             this->prints.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
-                [&prefered_print_profile](const std::string& profile_name){ return profile_name == prefered_print_profile; });
+                [&prefered_print_profile](const std::string& profile_name) { return profile_name == prefered_print_profile; });
         prefered_filament_profiles.empty() ?
             this->filaments.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
             this->filaments.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
@@ -1203,7 +1203,7 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
                         const std::string &preferred = (idx < prefered_filament_profiles.size()) ? 
                             prefered_filament_profiles[idx] : prefered_filament_profiles.front();
                         filament_name = this->filaments.first_compatible(
-                            [&preferred](const std::string& profile_name){ return profile_name == preferred; }).name;
+                            [&preferred](const std::string& profile_name) { return profile_name == preferred; }).name;
                     }
                 }
             }
@@ -1215,7 +1215,7 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
         prefered_sla_material_profile.empty() ?
             this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
 			this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
-                [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });        
+                [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });
     }
     }
 }
@@ -1364,7 +1364,7 @@ void PresetBundle::update_platter_filament_ui(unsigned int idx_extruder, GUI::Pr
             bitmap = m_bitmapCache->insert(bitmap_key, bmps);
 		}
 
-		if (preset.is_default || preset.is_system){
+		if (preset.is_default || preset.is_system) {
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? Preset::suffix_modified() : "")).c_str()), 
 				(bitmap == 0) ? wxNullBitmap : *bitmap);
 			if (selected)

@@ -45,7 +45,7 @@ ButtonsDescription::ButtonsDescription(wxWindow* parent, t_icon_descriptions* ic
 		sys_label->Refresh();
 	}));
 	size_t t= 0;
-	while (t < 3){
+	while (t < 3) {
 		grid_sizer->Add(new wxStaticText(this, wxID_ANY, ""), -1, wxALIGN_CENTRE_VERTICAL | wxEXPAND);
 		++t;
 	}

@@ -1,3 +1,4 @@
+#include "libslic3r.h"
 #include "Geometry.hpp"
 #include "ClipperUtils.hpp"
 #include "ExPolygon.hpp"
@@ -368,12 +369,6 @@ contains(const std::vector<T> &vector, const Point &point)
     return false;
 }
 template bool contains(const ExPolygons &vector, const Point &point);
-
-double
-rad2deg(double angle)
-{
-    return angle / PI * 180.0;
-}
 
 double
 rad2deg_dir(double angle)
@@ -1231,5 +1226,162 @@ Vec3d extract_euler_angles(const Transform3d& transform)
     m.col(2).normalize();
     return extract_euler_angles(m);
 }
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+Transformation::Flags::Flags()
+    : dont_translate(true)
+    , dont_rotate(true)
+    , dont_scale(true)
+#if ENABLE_MIRROR
+    , dont_mirror(true)
+#endif // ENABLE_MIRROR
+{
+}
+
+#if ENABLE_MIRROR
+bool Transformation::Flags::needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+{
+    return (this->dont_translate != dont_translate) || (this->dont_rotate != dont_rotate) || (this->dont_scale != dont_scale) || (this->dont_mirror != dont_mirror);
+}
+
+void Transformation::Flags::set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror)
+{
+    this->dont_translate = dont_translate;
+    this->dont_rotate = dont_rotate;
+    this->dont_scale = dont_scale;
+    this->dont_mirror = dont_mirror;
+}
+#else
+bool Transformation::Flags::needs_update(bool dont_translate, bool dont_rotate, bool dont_scale) const
+{
+    return (this->dont_translate != dont_translate) || (this->dont_rotate != dont_rotate) || (this->dont_scale != dont_scale);
+}
+
+void Transformation::Flags::set(bool dont_translate, bool dont_rotate, bool dont_scale)
+{
+    this->dont_translate = dont_translate;
+    this->dont_rotate = dont_rotate;
+    this->dont_scale = dont_scale;
+}
+#endif // ENABLE_MIRROR
+
+Transformation::Transformation()
+    : m_offset(Vec3d::Zero())
+    , m_rotation(Vec3d::Zero())
+    , m_scaling_factor(Vec3d::Ones())
+#if ENABLE_MIRROR
+    , m_mirror(Vec3d::Ones())
+#endif // ENABLE_MIRROR
+    , m_matrix(Transform3d::Identity())
+    , m_dirty(false)
+{
+}
+
+void Transformation::set_offset(const Vec3d& offset)
+{
+    set_offset(X, offset(0));
+    set_offset(Y, offset(1));
+    set_offset(Z, offset(2));
+}
+
+void Transformation::set_offset(Axis axis, double offset)
+{
+    if (m_offset(axis) != offset)
+    {
+        m_offset(axis) = offset;
+        m_dirty = true;
+    }
+}
+
+void Transformation::set_rotation(const Vec3d& rotation)
+{
+    set_rotation(X, rotation(0));
+    set_rotation(Y, rotation(1));
+    set_rotation(Z, rotation(2));
+}
+
+void Transformation::set_rotation(Axis axis, double rotation)
+{
+    rotation = angle_to_0_2PI(rotation);
+
+    if (m_rotation(axis) = rotation)
+    {
+        m_rotation(axis) = rotation;
+        m_dirty = true;
+    }
+}
+
+void Transformation::set_scaling_factor(const Vec3d& scaling_factor)
+{
+    set_scaling_factor(X, scaling_factor(0));
+    set_scaling_factor(Y, scaling_factor(1));
+    set_scaling_factor(Z, scaling_factor(2));
+}
+
+void Transformation::set_scaling_factor(Axis axis, double scaling_factor)
+{
+    if (m_scaling_factor(axis) != std::abs(scaling_factor))
+    {
+        m_scaling_factor(axis) = std::abs(scaling_factor);
+        m_dirty = true;
+    }
+}
+
+void Transformation::set_mirror(const Vec3d& mirror)
+{
+    set_mirror(X, mirror(0));
+    set_mirror(Y, mirror(1));
+    set_mirror(Z, mirror(2));
+}
+
+void Transformation::set_mirror(Axis axis, double mirror)
+{
+    double abs_mirror = std::abs(mirror);
+    if (abs_mirror == 0.0)
+        mirror = 1.0;
+    else if (abs_mirror != 1.0)
+        mirror /= abs_mirror;
+
+    if (m_mirror(axis) != mirror)
+    {
+        m_mirror(axis) = mirror;
+        m_dirty = true;
+    }
+}
+
+#if ENABLE_MIRROR
+const Transform3d& Transformation::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+#else
+const Transform3d& Transformation::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
+#endif // ENABLE_MIRROR
+{
+#if ENABLE_MIRROR
+    if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale, dont_mirror))
+#else
+    if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale))
+#endif // ENABLE_MIRROR
+    {
+        Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
+        Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
+        Vec3d scale = dont_scale ? Vec3d::Ones() : m_scaling_factor;
+#if ENABLE_MIRROR
+        Vec3d mirror = dont_mirror ? Vec3d::Ones() : m_mirror;
+        m_matrix = Geometry::assemble_transform(translation, rotation, scale, mirror);
+#else
+        m_matrix = Geometry::assemble_transform(translation, rotation, scale);
+#endif // ENABLE_MIRROR
+
+#if ENABLE_MIRROR
+        m_flags.set(dont_translate, dont_rotate, dont_scale, dont_mirror);
+#else
+        m_flags.set(dont_translate, dont_rotate, dont_scale);
+#endif // ENABLE_MIRROR
+        m_dirty = false;
+    }
+
+    return m_matrix;
+}
+
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 } }

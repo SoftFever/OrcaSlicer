@@ -59,7 +59,7 @@ public:
         m_item_color = &wxGetApp().get_label_clr_default();
 		SetSizer(m_vsizer);
 	}
-	~Page(){}
+	~Page() {}
 
 	bool				m_is_modified_values{ false };
 	bool				m_is_nonsys_values{ true };
@@ -205,7 +205,7 @@ public:
         set_type();
 		wxGetApp().tabs_list.push_back(this);
 	}
-	~Tab(){
+	~Tab() {
 		wxGetApp().delete_tab_from_list(this);
 	}
 
@@ -245,7 +245,7 @@ public:
 	PageShp		add_options_page(const wxString& title, const std::string& icon, bool is_extruder_pages = false);
 
 	virtual void	OnActivate();
-	virtual void	on_preset_loaded(){}
+	virtual void	on_preset_loaded() {}
 	virtual void	build() = 0;
 	virtual void	update() = 0;
 	virtual void	init_options_list();
@@ -283,7 +283,7 @@ public:
 	TabPrint() {}
 	TabPrint(wxNotebook* parent) : 
 		Tab(parent, _(L("Print Settings")), "print") {}
-	~TabPrint(){}
+	~TabPrint() {}
 
 	ogStaticText*	m_recommended_thin_wall_thickness_description_line;
 	bool		m_support_material_overhangs_queried = false;
@@ -304,7 +304,7 @@ public:
 	TabFilament() {}
 	TabFilament(wxNotebook* parent) : 
 		Tab(parent, _(L("Filament Settings")), "filament") {}
-	~TabFilament(){}
+	~TabFilament() {}
 
 	void		build() override;
 	void		reload_config() override;
@@ -337,7 +337,7 @@ public:
 
 	TabPrinter() {}
 	TabPrinter(wxNotebook* parent) : Tab(parent, _(L("Printer Settings")), "printer") {}
-	~TabPrinter(){}
+	~TabPrinter() {}
 
 	void		build() override;
     void		build_fff();
@@ -361,7 +361,7 @@ public:
     TabSLAMaterial() {}
     TabSLAMaterial(wxNotebook* parent) :
 		Tab(parent, _(L("SLA Material Settings")), "sla_material") {}
-    ~TabSLAMaterial(){}
+    ~TabSLAMaterial() {}
 
 	void		build() override;
 	void		update() override;
@@ -372,8 +372,8 @@ public:
 class SavePresetWindow :public wxDialog
 {
 public:
-	SavePresetWindow(wxWindow* parent) :wxDialog(parent, wxID_ANY, _(L("Save preset"))){}
-	~SavePresetWindow(){}
+	SavePresetWindow(wxWindow* parent) :wxDialog(parent, wxID_ANY, _(L("Save preset"))) {}
+	~SavePresetWindow() {}
 
 	std::string		m_chosen_name;
 	wxComboBox*		m_combo;

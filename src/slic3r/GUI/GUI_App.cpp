@@ -122,7 +122,7 @@ bool GUI_App::OnInit()
         // try to get the mutex. If we can't, just skip this idle event and get the next one.
         if (!callback_register.try_lock()) return;
         // pop callback
-        if (m_cb.size() != 0){
+        if (m_cb.size() != 0) {
             cur_cb = m_cb.top();
             m_cb.pop();
         }
@@ -143,7 +143,7 @@ bool GUI_App::OnInit()
     // On OS X the UI tends to freeze in weird ways if modal dialogs(config wizard, update notifications, ...)
     // are shown before or in the same event callback with the main frame creation.
     // Therefore we schedule them for later using CallAfter.
-    CallAfter([this](){
+    CallAfter([this]() {
         //         eval{
         if (!preset_updater->config_update())
             mainframe->Close();
@@ -154,7 +154,7 @@ bool GUI_App::OnInit()
         //         }
     });
 
-    CallAfter([this](){
+    CallAfter([this]() {
         if (!config_wizard_startup(app_conf_exists)) {
             // Only notify if there was not wizard so as not to bother too much ...
             preset_updater->slic3r_update_notify();
@@ -196,13 +196,13 @@ void GUI_App::init_label_colours()
 
 void GUI_App::update_label_colours_from_appconfig()
 {
-    if (app_config->has("label_clr_sys")){
+    if (app_config->has("label_clr_sys")) {
         auto str = app_config->get("label_clr_sys");
         if (str != "")
             m_color_label_sys = wxColour(str);
     }
 
-    if (app_config->has("label_clr_modified")){
+    if (app_config->has("label_clr_modified")) {
         auto str = app_config->get("label_clr_modified");
         if (str != "")
             m_color_label_modified = wxColour(str);
@@ -251,7 +251,7 @@ void GUI_App::recreate_GUI()
 
     // On OSX the UI was not initialized correctly if the wizard was called
     // before the UI was up and running.
-    CallAfter([](){
+    CallAfter([]() {
         // Run the config wizard, don't offer the "reset user profile" checkbox.
         config_wizard_startup(true);
     });
@@ -267,7 +267,8 @@ void GUI_App::system_info()
 // static method accepting a wxWindow object as first parameter
 bool GUI_App::catch_error(std::function<void()> cb,
     //                       wxMessageDialog* message_dialog,
-    const std::string& err /*= ""*/){
+    const std::string& err /*= ""*/)
+{
     if (!err.empty()) {
         if (cb)
             cb();
@@ -280,14 +281,16 @@ bool GUI_App::catch_error(std::function<void()> cb,
 }
 
 // static method accepting a wxWindow object as first parameter
-void fatal_error(wxWindow* parent){
+void fatal_error(wxWindow* parent)
+{
     show_error(parent, "");
     //     exit 1; // #ys_FIXME
 }
 
 // Called after the Preferences dialog is closed and the program settings are saved.
 // Update the UI based on the current preferences.
-void GUI_App::update_ui_from_settings(){
+void GUI_App::update_ui_from_settings()
+{
     mainframe->update_ui_from_settings();
 }
 
@@ -364,7 +367,7 @@ bool GUI_App::select_language(  wxArrayString & names,
         _(L("Array of language names and identifiers should have the same size.")));
     int init_selection = 0;
     long current_language = m_wxLocale ? m_wxLocale->GetLanguage() : wxLANGUAGE_UNKNOWN;
-    for (auto lang : identifiers){
+    for (auto lang : identifiers) {
         if (lang == current_language)
             break;
         ++init_selection;
@@ -526,7 +529,7 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
     // TODO: for when we're able to flash dictionaries
     // local_menu->Append(config_id_base + FirmwareMenuDict,  _(L("Flash language file")),    _(L("Upload a language dictionary file into a Prusa printer")));
 
-    local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event){
+    local_menu->Bind(wxEVT_MENU, [this, config_id_base](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case ConfigMenuWizard:
             config_wizard(ConfigWizard::RR_USER);
@@ -692,7 +695,7 @@ wxNotebook* GUI_App::tab_panel() const
 // }
 
 // Do we need this function???
-// void GUI_App::notify(message){
+// void GUI_App::notify(message) {
 //     auto frame = GetTopWindow();
 //     // try harder to attract user attention on OS X
 //     if (!frame->IsActive())

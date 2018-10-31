@@ -508,6 +508,9 @@ public:
         void mirror(Axis axis);
 #endif // ENABLE_MIRROR
 
+        void translate(unsigned int object_idx, const Vec3d& displacement);
+        void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
+
         void render(bool show_indirect_selection) const;
 
     private:

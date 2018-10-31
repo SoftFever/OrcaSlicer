@@ -795,7 +795,7 @@ void PresetCollection::update_platter_ui(GUI::PresetComboBox *ui)
 			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
 		}
 
-		if (preset.is_default || preset.is_system){
+		if (preset.is_default || preset.is_system) {
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
 				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
 			if (i == m_idx_selected)
@@ -855,7 +855,7 @@ size_t PresetCollection::update_tab_ui(wxBitmapComboBox *ui, bool show_incompati
 			bmp = m_bitmap_cache->insert(bitmap_key, bmps);
 		}
 
-		if (preset.is_default || preset.is_system){
+		if (preset.is_default || preset.is_system) {
 			ui->Append(wxString::FromUTF8((preset.name + (preset.is_dirty ? g_suffix_modified : "")).c_str()),
 				(bmp == 0) ? (m_bitmap_main_frame ? *m_bitmap_main_frame : wxNullBitmap) : *bmp);
 			if (i == m_idx_selected)

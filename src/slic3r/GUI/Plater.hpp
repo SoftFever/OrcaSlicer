@@ -78,6 +78,7 @@ public:
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
     void                    show_info_sizers(const bool show);
+    void                    show_sliced_info_sizer(const bool show);
     void                    show_buttons(const bool show);
     void                    show_button(ButtonAction but_action, bool show);
     void                    enable_buttons(bool enable);
@@ -122,7 +123,7 @@ public:
     void export_amf();
     void export_3mf();
     void reslice();
-    void changed_object_settings(int obj_idx);
+    void changed_object(int obj_idx);
     void send_gcode();
 
     void on_extruders_change(int extruders_count);

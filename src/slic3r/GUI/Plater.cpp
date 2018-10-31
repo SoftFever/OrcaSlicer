@@ -132,18 +132,27 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     Add(grid_sizer, 0, wxEXPAND);
 }
 
+enum SlisedInfoIdx
+{
+    siFilament_m,
+    siFilament_mm3,
+    siFilament_g,
+    siCost,
+    siTimeNormal,
+    siTimeSilent,
+    siWTNumbetOfToolchanges,
+
+    siCount
+};
+
 class SlicedInfo : public wxStaticBoxSizer
 {
 public:
     SlicedInfo(wxWindow *parent);
+    void SetTextAndShow(SlisedInfoIdx idx, const wxString& text);
 
 private:
-    wxStaticText *info_filament_m;
-    wxStaticText *info_filament_mm3;
-    wxStaticText *info_filament_g;
-    wxStaticText *info_cost;
-    wxStaticText *info_time_normal;
-    wxStaticText *info_time_silent;
+    std::vector<std::pair<wxStaticText*, wxStaticText*>> info_vec;
 };
 
 SlicedInfo::SlicedInfo(wxWindow *parent) :
@@ -155,23 +164,37 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     grid_sizer->AddGrowableCol(1, 1);
 
-    auto init_info_label = [parent, grid_sizer](wxStaticText *&info_label, wxString text_label) {
+    info_vec.reserve(siCount);
+
+    auto init_info_label = [this, parent, grid_sizer](wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
         text->SetFont(wxGetApp().small_font());
-        info_label = new wxStaticText(parent, wxID_ANY, "N/A");
+        auto info_label = new wxStaticText(parent, wxID_ANY, "N/A");
         info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);
+        info_vec.push_back(std::pair<wxStaticText*, wxStaticText*>(text, info_label));
     };
 
-    init_info_label(info_filament_m, _(L("Used Filament (m)")));
-    init_info_label(info_filament_mm3, _(L("Used Filament (mm³)")));
-    init_info_label(info_filament_g, _(L("Used Filament (g)")));
-    init_info_label(info_cost, _(L("Cost")));
-    init_info_label(info_time_normal, _(L("Estimated printing time (normal mode)")));
-    init_info_label(info_time_silent, _(L("Estimated printing time (silent mode)")));
+    init_info_label(_(L("Used Filament (m)")));
+    init_info_label(_(L("Used Filament (mm³)")));
+    init_info_label(_(L("Used Filament (g)")));
+    init_info_label(_(L("Cost")));
+    init_info_label(_(L("Estimated printing time (normal mode)")));
+    init_info_label(_(L("Estimated printing time (silent mode)")));
+    init_info_label(_(L("Number of tool changes")));
 
     Add(grid_sizer, 0, wxEXPAND);
+    this->Show(false);
+}
+
+void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text)
+{
+    const bool show = text != "N/A";
+    if (show)
+        info_vec[idx].second->SetLabelText(text);
+    info_vec[idx].first->Show(show);
+    info_vec[idx].second->Show(show);
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
@@ -256,13 +279,13 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     m_og->set_config(config);
     m_og->label_width = label_width;
 
-    m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value){
+    m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value) {
         TabPrint* tab_print = nullptr;
         for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
             Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
             if (!tab)
                 continue;
-            if (tab->name() == "print"){
+            if (tab->name() == "print") {
                 tab_print = static_cast<TabPrint*>(tab);
                 break;
             }
@@ -270,14 +293,14 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
         if (tab_print == nullptr)
             return;
 
-        if (opt_key == "fill_density"){
+        if (opt_key == "fill_density") {
             value = m_og->get_config_value(*config, opt_key);
             tab_print->set_value(opt_key, value);
             tab_print->update();
         }
         else{
             DynamicPrintConfig new_conf = *config;
-            if (opt_key == "brim"){
+            if (opt_key == "brim") {
                 double new_val;
                 double brim_width = config->opt_float("brim_width");
                 if (boost::any_cast<bool>(value) == true)
@@ -344,7 +367,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
 
     Line line = { "", "" };
-    line.widget = [config, this](wxWindow* parent){
+    line.widget = [config, this](wxWindow* parent) {
         m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(m_wiping_dialog_button);
@@ -642,7 +665,43 @@ void Sidebar::show_info_sizers(const bool show)
 {
     p->object_info->Show(show);
     p->object_info->manifold_warning_icon->Show(show && p->show_manifold_warning_icon); // where is g_show_manifold_warning_icon updating? #ys_FIXME
-    p->sliced_info->Show(show && p->show_print_info); // where is g_show_print_info updating? #ys_FIXME
+//     p->sliced_info->Show(show && p->show_print_info);
+}
+
+void Sidebar::show_sliced_info_sizer(const bool show) 
+{
+    p->plater->Freeze();
+//     p->show_print_info = show;
+    p->sliced_info->Show(show);
+    if (show) {
+        const PrintStatistics& ps = p->plater->print().print_statistics();
+        const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
+
+        wxString info_text = is_wipe_tower ?
+                            wxString::Format("%.2f  (%.2f %s + %.2f %s)", ps.total_used_filament / 1000,
+                                            (ps.total_used_filament - ps.total_wipe_tower_filament) / 1000, _(L("objects")),
+                                            ps.total_wipe_tower_filament / 1000, _(L("wipe tower"))) :
+                            wxString::Format("%.2f", ps.total_used_filament / 1000);
+        p->sliced_info->SetTextAndShow(siFilament_m,    info_text);
+        p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
+        p->sliced_info->SetTextAndShow(siFilament_g,    wxString::Format("%.2f", ps.total_weight));
+
+        info_text = is_wipe_tower ?
+                    wxString::Format("%.2f  (%.2f %s + %.2f %s)", ps.total_cost,
+                                    (ps.total_cost - ps.total_wipe_tower_cost), _(L("objects")),
+                                    ps.total_wipe_tower_cost, _(L("wipe tower"))) :
+                    wxString::Format("%.2f", ps.total_cost);
+        p->sliced_info->SetTextAndShow(siCost,       info_text);
+        p->sliced_info->SetTextAndShow(siTimeNormal, ps.estimated_normal_print_time);
+        p->sliced_info->SetTextAndShow(siTimeSilent, ps.estimated_silent_print_time);
+
+        // if there is a wipe tower, insert number of toolchanges info into the array:
+        p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->print().wipe_tower_data().number_of_toolchanges) : "N/A");
+    }
+
+    p->scrolled->Layout();
+    p->plater->Layout();
+    p->plater->Thaw();
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -902,7 +961,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     // Register progress callback from the Print class to the Platter.
-    print.set_status_callback([this](int percent, const std::string &message){
+    print.set_status_callback([this](int percent, const std::string &message) {
         wxCommandEvent event(EVT_PROGRESS_BAR);
         event.SetInt(percent);
         event.SetString(message);
@@ -932,7 +991,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::enable_force_zoom_to_bed(canvas3D, true);
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt){ this->async_apply_config(); });
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->async_apply_config(); });
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
     _3DScene::set_bed_shape(canvas3D, bed_shape->values);
@@ -1160,6 +1219,7 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         if (type_3mf) {
             for (ModelObject* model_object : model.objects) {
                 model_object->center_around_origin();
+                model_object->ensure_on_bed();
             }
         }
 
@@ -1243,6 +1303,8 @@ std::vector<size_t> Plater::priv::load_model_objects(const ModelObjectPtrs &mode
                 instance->set_scaling_factor(inverse);
             }
         }
+
+        object->ensure_on_bed();
 
         // print.auto_assign_extruders(object);
         // print.add_model_object(object);
@@ -1627,23 +1689,30 @@ void Plater::priv::split_object()
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
     if (new_objects.size() == 1)
-    {
         Slic3r::GUI::warning_catcher(q, _(L("The selected object couldn't be split because it contains only one part.")));
-    }
     else
     {
         unsigned int counter = 1;
         for (ModelObject* m : new_objects)
         {
             m->name = current_model_object->name + "_" + std::to_string(counter++);
-            m->center_around_origin();
+            for (ModelInstance* i : current_model_object->instances)
+            {
+                m->add_instance(*i);
+            }
         }
 
         remove(obj_idx);
 
         // load all model objects at once, otherwise the plate would be rearranged after each one
         // causing original positions not to be kept
-        load_model_objects(new_objects);
+        std::vector<size_t> idxs = load_model_objects(new_objects);
+
+        // select newly added objects
+        for (size_t idx : idxs)
+        {
+            get_selection().add_object((unsigned int)idx, false);
+        }
     }
 #endif // ENABLE_EXTENDED_SELECTION
 }
@@ -1677,7 +1746,7 @@ void Plater::priv::async_apply_config()
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
-        this->sidebar->show_info_sizers(false);
+        this->sidebar->show_sliced_info_sizer(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         this->gcode_preview_data.reset();
@@ -1694,7 +1763,7 @@ void Plater::priv::async_apply_config()
     }
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->get_config("background_processing") == "1" &&
         this->print.num_object_instances() > 0 && this->background_process.start())
-		this->statusbar()->set_cancel_callback([this](){
+		this->statusbar()->set_cancel_callback([this]() {
             this->statusbar()->set_status_text(L("Cancelling"));
 			this->background_process.stop();
         });
@@ -1857,7 +1926,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 	if (canceled)
 		this->statusbar()->set_status_text(L("Cancelled"));
 
-	this->sidebar->show_info_sizers(success);
+    this->sidebar->show_sliced_info_sizer(success);
 
     // this updates buttons status
     //$self->object_list_changed;
@@ -2030,13 +2099,13 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
 bool Plater::priv::init_object_menu()
 {
     wxMenuItem* item_delete = append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
-        [this](wxCommandEvent&){ q->remove_selected(); }, "brick_delete.png");
+        [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
     wxMenuItem* item_increase = append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
-        [this](wxCommandEvent&){ q->increase_instances(); }, "add.png");
+        [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
     wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
-        [this](wxCommandEvent&){ q->decrease_instances(); }, "delete.png");
+        [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
     wxMenuItem* item_set_number_of_copies = append_menu_item(&object_menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
-        [this](wxCommandEvent&){ q->set_number_of_copies(); }, "textfield.png");
+        [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
 
     object_menu.AppendSeparator();
     
@@ -2046,11 +2115,11 @@ bool Plater::priv::init_object_menu()
         return false;
 
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along X axis")), _(L("Mirror the selected object along the X axis")),
-        [this](wxCommandEvent&){ mirror(X); }, "bullet_red.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(X); }, "bullet_red.png", &object_menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Y axis")), _(L("Mirror the selected object along the Y axis")),
-        [this](wxCommandEvent&){ mirror(Y); }, "bullet_green.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(Y); }, "bullet_green.png", &object_menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Z axis")), _(L("Mirror the selected object along the Z axis")),
-        [this](wxCommandEvent&){ mirror(Z); }, "bullet_blue.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(Z); }, "bullet_blue.png", &object_menu);
 
     wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 #endif // ENABLE_MIRROR
@@ -2060,9 +2129,9 @@ bool Plater::priv::init_object_menu()
         return false;
 
     wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png", &object_menu);
+        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup.png", &object_menu);
     wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&){ split_volume(); }, "shape_ungroup.png", &object_menu);
+        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup.png", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
@@ -2455,7 +2524,7 @@ void Plater::reslice()
 //    this->p->stop_background_process();
     // Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
     this->p->async_apply_config();
-	this->p->statusbar()->set_cancel_callback([this](){
+	this->p->statusbar()->set_cancel_callback([this]() {
 		this->p->statusbar()->set_status_text(L("Cancelling"));
 		this->p->background_process.stop();
     });
@@ -2548,7 +2617,7 @@ wxGLCanvas* Plater::canvas3D()
     return p->canvas3D;
 }
 
-void Plater::changed_object_settings(int obj_idx)
+void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
         return;
@@ -2561,6 +2630,8 @@ void Plater::changed_object_settings(int obj_idx)
         // recenter and re - align to Z = 0
         auto model_object = p->model.objects[obj_idx];
         model_object->center_around_origin();
+        model_object->ensure_on_bed();
+        _3DScene::reload_scene(p->canvas3D, false);
     }
 
     // update print
@@ -2571,7 +2642,6 @@ void Plater::changed_object_settings(int obj_idx)
         auto selections = p->collect_selections();
         _3DScene::set_objects_selections(p->canvas3D, selections);
 #endif // !ENABLE_EXTENDED_SELECTION
-        _3DScene::reload_scene(p->canvas3D, false);
 #if !ENABLE_MODIFIED_CAMERA_TARGET
         _3DScene::zoom_to_volumes(p->canvas3D);
 #endif // !ENABLE_MODIFIED_CAMERA_TARGET

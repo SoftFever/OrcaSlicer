@@ -712,16 +712,30 @@ void ModelObject::center_around_origin()
 
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
-#if ENABLE_MIRROR
             i->set_offset(i->get_offset() - shift);
-#else
-            // apply rotation and scaling to vector as well before translating instance,
-            // in order to leave final position unaltered
-            i->set_offset(i->get_offset() + i->transform_vector(-shift, true));
-#endif // ENABLE_MIRROR
         }
         this->invalidate_bounding_box();
     }
+}
+
+void ModelObject::ensure_on_bed()
+{
+    translate_instances(Vec3d(0.0, 0.0, -get_min_z()));
+}
+
+void ModelObject::translate_instances(const Vec3d& vector)
+{
+    for (size_t i = 0; i < instances.size(); ++i)
+    {
+        translate_instance(i, vector);
+    }
+}
+
+void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
+{
+    ModelInstance* i = instances[instance_idx];
+    i->set_offset(i->get_offset() + vector);
+    invalidate_bounding_box();
 }
 
 void ModelObject::translate(coordf_t x, coordf_t y, coordf_t z)
@@ -893,6 +907,42 @@ void ModelObject::repair()
 {
     for (ModelVolume *v : this->volumes)
         v->mesh.repair();
+}
+
+double ModelObject::get_min_z() const
+{
+    if (instances.empty())
+        return 0.0;
+    else
+    {
+        double min_z = DBL_MAX;
+        for (size_t i = 0; i < instances.size(); ++i)
+        {
+            min_z = std::min(min_z, get_instance_min_z(i));
+        }
+        return min_z;
+    }
+}
+
+double ModelObject::get_instance_min_z(size_t instance_idx) const
+{
+    double min_z = DBL_MAX;
+
+    ModelInstance* inst = instances[instance_idx];
+    const Transform3d& m = inst->world_matrix(true);
+
+    for (ModelVolume *v : volumes)
+    {
+        for (uint32_t f = 0; f < v->mesh.stl.stats.number_of_facets; ++f)
+        {
+            const stl_facet* facet = v->mesh.stl.facet_start + f;
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[0].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[1].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[2].cast<double>()));
+        }
+    }
+
+    return min_z + inst->get_offset(Z);
 }
 
 unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3& print_volume)
@@ -1074,6 +1124,7 @@ size_t ModelVolume::split(unsigned int max_extruders)
     return idx;
 }
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
 void ModelInstance::set_rotation(const Vec3d& rotation)
 {
     set_rotation(X, rotation(0));
@@ -1126,6 +1177,7 @@ void ModelInstance::set_mirror(Axis axis, double mirror)
     m_mirror(axis) = mirror;
 }
 #endif // ENABLE_MIRROR
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
@@ -1136,24 +1188,40 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
+#if ENABLE_MIRROR
+    copy.transform(world_matrix(true, false, true, true).cast<float>());
+#else
     copy.transform(world_matrix(true, false, true).cast<float>());
+#endif // ENABLE_MIRROR
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
         // Scale the bounding box along the three axes.
         for (unsigned int i = 0; i < 3; ++i)
         {
+#if ENABLE_MODELVOLUME_TRANSFORM
+            if (std::abs(m_transformation.get_scaling_factor((Axis)i)-1.0) > EPSILON)
+            {
+                bbox.min(i) *= m_transformation.get_scaling_factor((Axis)i);
+                bbox.max(i) *= m_transformation.get_scaling_factor((Axis)i);
+#else
             if (std::abs(this->m_scaling_factor(i) - 1.0) > EPSILON)
             {
                 bbox.min(i) *= this->m_scaling_factor(i);
                 bbox.max(i) *= this->m_scaling_factor(i);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
             }
         }
 
         // Translate the bounding box.
         if (! dont_translate) {
+#if ENABLE_MODELVOLUME_TRANSFORM
+            bbox.min += m_transformation.get_offset();
+            bbox.max += m_transformation.get_offset();
+#else
             bbox.min += this->m_offset;
             bbox.max += this->m_offset;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         }
     }
     return bbox;
@@ -1171,12 +1239,20 @@ Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 
 void ModelInstance::transform_polygon(Polygon* polygon) const
 {
+#if ENABLE_MODELVOLUME_TRANSFORM
+    // CHECK_ME -> Is the following correct or it should take in account all three rotations ?
+    polygon->rotate(m_transformation.get_rotation(Z)); // rotate around polygon origin
+    // CHECK_ME -> Is the following correct ?
+    polygon->scale(m_transformation.get_scaling_factor(X), m_transformation.get_scaling_factor(Y)); // scale around polygon origin
+#else
     // CHECK_ME -> Is the following correct or it should take in account all three rotations ?
     polygon->rotate(this->m_rotation(2));                // rotate around polygon origin
     // CHECK_ME -> Is the following correct ?
     polygon->scale(this->m_scaling_factor(0), this->m_scaling_factor(1));           // scale around polygon origin
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 }
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
 #if ENABLE_MIRROR
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 #else
@@ -1193,5 +1269,6 @@ Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, b
     return Geometry::assemble_transform(translation, rotation, scale);
 #endif // ENABLE_MIRROR
 }
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
 
 }

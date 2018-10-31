@@ -117,9 +117,23 @@ void chained_path(const Points &points, std::vector<Points::size_type> &retval);
 template<class T> void chained_path_items(Points &points, T &items, T &retval);
 bool directions_parallel(double angle1, double angle2, double max_diff = 0);
 template<class T> bool contains(const std::vector<T> &vector, const Point &point);
-double rad2deg(double angle);
+template<typename T> T rad2deg(T angle) { return T(180.0) * angle / T(PI); }
 double rad2deg_dir(double angle);
 template<typename T> T deg2rad(T angle) { return T(PI) * angle / T(180.0); }
+template<typename T> T angle_to_0_2PI(T angle)
+{
+    static const T TWO_PI = T(2) * T(PI);
+    while (angle < T(0))
+    {
+        angle += TWO_PI;
+    }
+    while (TWO_PI < angle)
+    {
+        angle -= TWO_PI;
+    }
+
+    return angle;
+}
 void simplify_polygons(const Polygons &polygons, double tolerance, Polygons* retval);
 
 double linint(double value, double oldmin, double oldmax, double newmin, double newmax);
@@ -200,6 +214,79 @@ Vec3d extract_euler_angles(const Eigen::Matrix<double, 3, 3, Eigen::DontAlign>& 
 // Returns the euler angles extracted from the given affine transform
 // Warning -> The transform should not contain any shear !!!
 Vec3d extract_euler_angles(const Transform3d& transform);
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+class Transformation
+{
+    struct Flags
+    {
+        bool dont_translate;
+        bool dont_rotate;
+        bool dont_scale;
+#if ENABLE_MIRROR
+        bool dont_mirror;
+#endif // ENABLE_MIRROR
+
+        Flags();
+
+#if ENABLE_MIRROR
+        bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const;
+        void set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror);
+#else
+        bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale) const;
+        void set(bool dont_translate, bool dont_rotate, bool dont_scale);
+#endif // ENABLE_MIRROR
+    };
+
+    Vec3d m_offset;              // In unscaled coordinates
+    Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
+    Vec3d m_scaling_factor;      // Scaling factors along the three axes
+#if ENABLE_MIRROR
+    Vec3d m_mirror;              // Mirroring along the three axes
+#endif // ENABLE_MIRROR
+    mutable Transform3d m_matrix;
+
+    mutable Flags m_flags;
+    mutable bool m_dirty;
+
+public:
+    Transformation();
+
+    const Vec3d& get_offset() const { return m_offset; }
+    double get_offset(Axis axis) const { return m_offset(axis); }
+
+    void set_offset(const Vec3d& offset);
+    void set_offset(Axis axis, double offset);
+
+    const Vec3d& get_rotation() const { return m_rotation; }
+    double get_rotation(Axis axis) const { return m_rotation(axis); }
+
+    void set_rotation(const Vec3d& rotation);
+    void set_rotation(Axis axis, double rotation);
+
+    Vec3d get_scaling_factor() const { return m_scaling_factor; }
+    double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
+
+#if ENABLE_MIRROR
+    void set_scaling_factor(const Vec3d& scaling_factor);
+    void set_scaling_factor(Axis axis, double scaling_factor);
+
+    const Vec3d& get_mirror() const { return m_mirror; }
+    double get_mirror(Axis axis) const { return m_mirror(axis); }
+
+    void set_mirror(const Vec3d& mirror);
+    void set_mirror(Axis axis, double mirror);
+
+    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+#else
+    void set_scaling_factor(const Vec3d& scaling_factor) { m_scaling_factor = scaling_factor; }
+    void set_scaling_factor(Axis axis, double scaling_factor) { m_scaling_factor(axis) = scaling_factor; }
+
+    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
+#endif // ENABLE_MIRROR
+};
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+
 } }
 
 #endif

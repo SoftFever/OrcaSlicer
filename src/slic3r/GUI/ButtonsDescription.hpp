@@ -14,7 +14,7 @@ class ButtonsDescription : public wxDialog
 	t_icon_descriptions* m_icon_descriptions;
 public:
 	ButtonsDescription(wxWindow* parent, t_icon_descriptions* icon_descriptions);
-	~ButtonsDescription(){}
+	~ButtonsDescription() {}
 
 
 };

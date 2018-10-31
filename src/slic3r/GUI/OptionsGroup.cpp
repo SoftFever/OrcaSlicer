@@ -66,13 +66,13 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
     }
     // Grab a reference to fields for convenience
     const t_field& field = m_fields[id];
-	field->m_on_change = [this](std::string opt_id, boost::any value){
+	field->m_on_change = [this](std::string opt_id, boost::any value) {
 			//! This function will be called from Field.					
 			//! Call OptionGroup._on_change(...)
 			if (!m_disabled) 
 				this->on_change_OG(opt_id, value);
 	};
-	field->m_on_kill_focus = [this](){
+	field->m_on_kill_focus = [this]() {
 			//! This function will be called from Field.					
 			if (!m_disabled) 
 				this->on_kill_focus();
@@ -81,11 +81,11 @@ const t_field& OptionsGroup::build_field(const t_config_option_key& id, const Co
 	
 	//! Label to change background color, when option is modified
 	field->m_Label = label;
-	field->m_back_to_initial_value = [this](std::string opt_id){
+	field->m_back_to_initial_value = [this](std::string opt_id) {
 		if (!m_disabled)
 			this->back_to_initial_value(opt_id);
 	};
-	field->m_back_to_sys_value = [this](std::string opt_id){
+	field->m_back_to_sys_value = [this](std::string opt_id) {
 		if (!this->m_disabled)
 			this->back_to_sys_value(opt_id);
 	};
@@ -107,8 +107,8 @@ void OptionsGroup::add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& fiel
 }
 
 void OptionsGroup::append_line(const Line& line, wxStaticText**	colored_Label/* = nullptr*/) {
-//!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)){
-	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width){
+//!    if (line.sizer != nullptr || (line.widget != nullptr && line.full_width > 0)) {
+	if ( (line.sizer != nullptr || line.widget != nullptr) && line.full_width) {
 		if (line.sizer != nullptr) {
             sizer->Add(line.sizer, 0, wxEXPAND | wxALL, wxOSX ? 0 : 15);
             return;
@@ -313,7 +313,7 @@ void ConfigOptionsGroup::on_change_OG(const t_config_option_key& opt_id, const b
 		// get value
 //!		auto field_value = get_value(opt_id);
 		if (option.gui_flags.compare("serialized")==0) {
-			if (opt_index != -1){
+			if (opt_index != -1) {
 				// 		die "Can't set serialized option indexed value" ;
 			}
 			change_opt_value(*m_config, opt_key, value);
@@ -355,7 +355,7 @@ void ConfigOptionsGroup::back_to_sys_value(const std::string& opt_key)
 void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, const std::string& opt_key)
 {
 	boost::any value;
-	if (opt_key == "extruders_count"){
+	if (opt_key == "extruders_count") {
 		auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(config.option("nozzle_diameter"));
 		value = int(nozzle_diameter->values.size());
 	}
@@ -376,7 +376,7 @@ void ConfigOptionsGroup::back_to_config_value(const DynamicPrintConfig& config, 
 	on_change_OG(opt_key, get_value(opt_key));
 }
 
-void ConfigOptionsGroup::reload_config(){
+void ConfigOptionsGroup::reload_config() {
 	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
 		auto opt_id = it->first;
 		std::string opt_key = m_opt_map.at(opt_id).first;
@@ -420,7 +420,7 @@ bool ConfigOptionsGroup::update_visibility(ConfigOptionMode mode) {
     return true;
 }
 
-boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize){
+boost::any ConfigOptionsGroup::config_value(const std::string& opt_key, int opt_index, bool deserialize) {
 
 	if (deserialize) {
 		// Want to edit a vector value(currently only multi - strings) in a single edit box.
@@ -444,7 +444,7 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	boost::any ret;
 	wxString text_value = wxString("");
 	const ConfigOptionDef* opt = config.def()->get(opt_key);
-	switch (opt->type){
+	switch (opt->type) {
 	case coFloatOrPercent:{
 		const auto &value = *config.option<ConfigOptionFloatOrPercent>(opt_key);
 		if (value.percent)
@@ -477,13 +477,13 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		ret = static_cast<wxString>(config.opt_string(opt_key));
 		break;
 	case coStrings:
-		if (opt_key.compare("compatible_printers") == 0){
+		if (opt_key.compare("compatible_printers") == 0) {
 			ret = config.option<ConfigOptionStrings>(opt_key)->values;
 			break;
 		}
 		if (config.option<ConfigOptionStrings>(opt_key)->values.empty())
 			ret = text_value;
-		else if (opt->gui_flags.compare("serialized") == 0){
+		else if (opt->gui_flags.compare("serialized") == 0) {
 			std::vector<std::string> values = config.option<ConfigOptionStrings>(opt_key)->values;
 			if (!values.empty() && values[0].compare("") != 0)
 				for (auto el : values)
@@ -507,19 +507,19 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 		break;
 	case coEnum:{
 		if (opt_key.compare("external_fill_pattern") == 0 ||
-			opt_key.compare("fill_pattern") == 0 ){
+			opt_key.compare("fill_pattern") == 0 ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<InfillPattern>>(opt_key)->value);
 		}
-		else if (opt_key.compare("gcode_flavor") == 0 ){
+		else if (opt_key.compare("gcode_flavor") == 0 ) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<GCodeFlavor>>(opt_key)->value);
 		}
-		else if (opt_key.compare("support_material_pattern") == 0){
+		else if (opt_key.compare("support_material_pattern") == 0) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<SupportMaterialPattern>>(opt_key)->value);
 		}
-		else if (opt_key.compare("seam_position") == 0){
+		else if (opt_key.compare("seam_position") == 0) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<SeamPosition>>(opt_key)->value);
 		}
-		else if (opt_key.compare("host_type") == 0){
+		else if (opt_key.compare("host_type") == 0) {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<PrintHostType>>(opt_key)->value);
 		}
 	}
@@ -537,13 +537,14 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
 	return ret;
 }
 
-Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int opt_index){
+Field* ConfigOptionsGroup::get_fieldc(const t_config_option_key& opt_key, int opt_index)
+{
 	Field* field = get_field(opt_key);
 	if (field != nullptr)
 		return field;
 	std::string opt_id = "";
 	for (t_opt_map::iterator it = m_opt_map.begin(); it != m_opt_map.end(); ++it) {
-		if (opt_key == m_opt_map.at(it->first).first && opt_index == m_opt_map.at(it->first).second){
+		if (opt_key == m_opt_map.at(it->first).first && opt_index == m_opt_map.at(it->first).second) {
 			opt_id = it->first;
 			break;
 		}

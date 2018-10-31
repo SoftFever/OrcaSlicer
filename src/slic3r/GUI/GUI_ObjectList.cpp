@@ -150,7 +150,8 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
         GetMainWindow()->SetToolTip(""); // hide tooltip
 }
 
-wxPoint ObjectList::get_mouse_position_in_control() {
+wxPoint ObjectList::get_mouse_position_in_control()
+{
     const wxPoint& pt = wxGetMousePosition();
 //     wxWindow* win = GetMainWindow();
 //     wxPoint screen_pos = win->GetScreenPosition();
@@ -159,10 +160,9 @@ wxPoint ObjectList::get_mouse_position_in_control() {
 
 int ObjectList::get_selected_obj_idx() const
 {
-    if (GetSelectedItemsCount() == 1) {
-        auto item = GetSelection();
-        return m_objects_model->GetIdByItem(item);
-    }
+    if (GetSelectedItemsCount() == 1)
+        return m_objects_model->GetIdByItem(m_objects_model->GetTopParent(GetSelection()));
+
     return -1;
 }
 
@@ -209,7 +209,8 @@ void ObjectList::update_extruder_in_config(const wxString& selection)
     wxGetApp().plater()->update();
 }
 
-void ObjectList::init_icons(){
+void ObjectList::init_icons()
+{
     m_bmp_modifiermesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
     m_bmp_solidmesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
@@ -297,7 +298,7 @@ void ObjectList::key_event(wxKeyEvent& event)
 #ifdef __WXOSX__
         || event.GetKeyCode() == WXK_BACK
 #endif //__WXOSX__
-        ){
+        ) {
         printf("WXK_BACK\n");
         remove();
     }
@@ -565,7 +566,7 @@ wxMenu* ObjectList::create_add_part_popupmenu()
     // Append settings popupmenu
     menu->Append(menu_item_settings(menu, config_id_base + i + 5, false));
 
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event){
+    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case 0:
             load_subobject();
@@ -609,7 +610,7 @@ wxMenu* ObjectList::create_part_settings_popupmenu()
     // Append settings popupmenu
     menu->Append(menu_item_settings(menu, config_id_base + 1, true));
 
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event){
+    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case 0:
             split(true);
@@ -686,6 +687,7 @@ void ObjectList::load_part( ModelObject* model_object,
 {
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
+    m_parts_changed = false;
     wxArrayString input_files;
     wxGetApp().open_model(parent, input_files);
     for (int i = 0; i < input_files.size(); ++i) {
@@ -706,6 +708,7 @@ void ObjectList::load_part( ModelObject* model_object,
             if (model_object->origin_translation != Vec3d::Zero())
             {
                 object->center_around_origin();
+                object->ensure_on_bed();
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
@@ -737,6 +740,7 @@ void ObjectList::load_lambda(   ModelObject* model_object,
 {
     auto dlg = new LambdaObjectDialog(GetMainWindow());
     if (dlg->ShowModal() == wxID_CANCEL) {
+        m_parts_changed = false;
         return;
     }
 
@@ -800,7 +804,7 @@ void ObjectList::load_lambda(const std::string& type_name)
         mesh = make_cylinder(params.cyl_r, params.cyl_h);
     else if (type_name == _("Sphere"))
         mesh = make_sphere(params.sph_rho);
-    else if (type_name == _("Slab")){
+    else if (type_name == _("Slab")) {
         const auto& size = (*m_objects)[m_selected_object_id]->bounding_box().size();
         mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
         // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
@@ -955,6 +959,11 @@ void ObjectList::split(const bool split_part)
 
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
+
+#if ENABLE_EXTENDED_SELECTION
+    // restores selection
+    _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
+#endif // ENABLE_EXTENDED_SELECTION
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
@@ -995,9 +1004,17 @@ bool ObjectList::is_splittable_object(const bool split_part)
     return splittable;
 }
 
+void ObjectList::part_settings_changed()
+{
+    m_part_settings_changed = true;
+    wxGetApp().plater()->changed_object(get_selected_obj_idx());
+    m_part_settings_changed = false;
+}
+
 void ObjectList::parts_changed(int obj_idx)
 {
-    wxGetApp().mainframe->m_plater->changed_object_settings(obj_idx);
+    wxGetApp().plater()->changed_object(get_selected_obj_idx());
+    m_parts_changed = false;
 }
 
 void ObjectList::part_selection_changed()
@@ -1035,7 +1052,7 @@ void ObjectList::part_selection_changed()
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                 }
             }
-            else if (m_objects_model->GetItemType(item) == itVolume){
+            else if (m_objects_model->GetItemType(item) == itVolume) {
                 og_name = _(L("Part manipulation"));
                 is_part = true;
                 const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
@@ -1085,7 +1102,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     auto stats = model_object->volumes[0]->mesh.stl.stats;
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
         stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-    if (errors > 0)		{
+    if (errors > 0) {
         wxVariant variant;
         variant << PrusaDataViewBitmapText(item_name, m_bmp_manifold_warning);
         m_objects_model->SetValue(variant, item, 0);
@@ -1235,7 +1252,7 @@ void ObjectList::update_selections_on_canvas()
 
     auto add_to_selection = [this](const wxDataViewItem& item, GLCanvas3D::Selection& selection, bool as_single_selection)
     {        
-        if (m_objects_model->GetParent(item) == wxDataViewItem(0)){
+        if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
             selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
             return;
         }
