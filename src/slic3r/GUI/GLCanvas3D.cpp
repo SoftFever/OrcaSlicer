@@ -6744,10 +6744,10 @@ void GLCanvas3D::_on_move()
         if (done.find(done_id) != done.end())
             continue;
 
-        done.insert(done_id);
-
         if (object_idx < 1000)
         {
+            done.insert(done_id);
+
             // Move instances.
             ModelObject* model_object = m_model->objects[object_idx];
             if (model_object != nullptr)
