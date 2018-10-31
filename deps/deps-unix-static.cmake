@@ -63,7 +63,6 @@ ExternalProject_Add(dep_zlib
     INSTALL_COMMAND ""
 )
 
-
 ExternalProject_Add(dep_libpng
     DEPENDS dep_zlib
     EXCLUDE_FROM_ALL 1
