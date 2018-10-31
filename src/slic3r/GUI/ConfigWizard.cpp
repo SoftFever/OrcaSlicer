@@ -831,8 +831,8 @@ ConfigWizard::ConfigWizard(wxWindow *parent, RunReason reason) :
 	topsizer->AddSpacer(INDEX_MARGIN);
 	topsizer->Add(p->hscroll, 1, wxEXPAND);
 
-	p->btn_prev = new wxButton(this, wxID_NONE, _(L("< &Back")));
-	p->btn_next = new wxButton(this, wxID_NONE, _(L("&Next >")));
+	p->btn_prev = new wxButton(this, wxID_ANY, _(L("< &Back")));
+	p->btn_next = new wxButton(this, wxID_ANY, _(L("&Next >")));
 	p->btn_finish = new wxButton(this, wxID_APPLY, _(L("&Finish")));
 	p->btn_cancel = new wxButton(this, wxID_CANCEL);
 	p->btnsizer->AddStretchSpacer();
