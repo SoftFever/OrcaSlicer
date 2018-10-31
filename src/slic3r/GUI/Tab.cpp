@@ -788,22 +788,36 @@ void Tab::update_preset_description_line()
 		description_line += "\t" + _(L("vendor")) + ": " + (name()=="printer" ? "\n\t\t" : "") + parent->vendor->name +
 							", ver: " + parent->vendor->config_version.to_string();
 		if (name() == "printer") {
-			const std::string              &printer_model = preset.config.opt_string("printer_model");
-			//FIXME add prefered_sla_material_profile for SLA
-			const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
-			const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
-			if (!printer_model.empty())
+			const std::string &printer_model = preset.config.opt_string("printer_model");
+			if (! printer_model.empty())
 				description_line += "\n\n\t" + _(L("printer model")) + ": \n\t\t" + printer_model;
-			if (!default_print_profile.empty())
-				description_line += "\n\n\t" + _(L("default print profile")) + ": \n\t\t" + default_print_profile;
-			if (!default_filament_profiles.empty())
+			switch (preset.printer_technology()) {
+			case ptFFF:
 			{
-				description_line += "\n\n\t" + _(L("default filament profile")) + ": \n\t\t";
-				for (auto& profile : default_filament_profiles) {
-					if (&profile != &*default_filament_profiles.begin())
-						description_line += ", ";
-					description_line += profile;
+				//FIXME add prefered_sla_material_profile for SLA
+				const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
+				const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
+				if (!default_print_profile.empty())
+					description_line += "\n\n\t" + _(L("default print profile")) + ": \n\t\t" + default_print_profile;
+				if (!default_filament_profiles.empty())
+				{
+					description_line += "\n\n\t" + _(L("default filament profile")) + ": \n\t\t";
+					for (auto& profile : default_filament_profiles) {
+						if (&profile != &*default_filament_profiles.begin())
+							description_line += ", ";
+						description_line += profile;
+					}
 				}
+				break;
+			}
+			case ptSLA:
+			{
+				//FIXME add prefered_sla_material_profile for SLA
+				const std::string &default_sla_material_profile = preset.config.opt_string("default_sla_material_profile");
+				if (!default_sla_material_profile.empty())
+					description_line += "\n\n\t" + _(L("default SLA material profile")) + ": \n\t\t" + default_sla_material_profile;
+				break;
+			}
 			}
 		}
 	}

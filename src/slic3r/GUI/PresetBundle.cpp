@@ -314,10 +314,17 @@ void PresetBundle::load_selections(const AppConfig &config)
 	// If the printer profile enumerated by the config are not visible, select an alternate preset.
     // Do not select alternate profiles for the print / filament profiles as those presets
     // will be selected by the following call of this->update_compatible_with_printer(true).
-    prints.select_preset_by_name_strict(initial_print_profile_name);
-    filaments.select_preset_by_name_strict(initial_filament_profile_name);
-    sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
     printers.select_preset_by_name(initial_printer_profile_name, true);
+    PrinterTechnology printer_technology = printers.get_selected_preset().printer_technology();
+    if (printer_technology == ptFFF) {
+        prints.select_preset_by_name_strict(initial_print_profile_name);
+        filaments.select_preset_by_name_strict(initial_filament_profile_name);
+        sla_materials.select_preset_by_name(initial_sla_material_profile_name, true);
+    } else {
+        prints.select_preset_by_name(initial_print_profile_name, true);
+        filaments.select_preset_by_name(initial_filament_profile_name, true);
+        sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
+    }
 
     if (printers.get_selected_preset().printer_technology() == ptFFF) {
         // Load the names of the other filament profiles selected for a multi-material printer.
@@ -1208,6 +1215,7 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
                 }
             }
         }
+		break;
     }
     case ptSLA:
     {
@@ -1216,7 +1224,8 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
             this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
 			this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
                 [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });
-    }
+		break;
+	}
     }
 }
 

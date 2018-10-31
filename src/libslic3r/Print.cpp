@@ -983,7 +983,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                         update_apply_status(this->invalidate_step(psWipeTower));
 					if ((*it_old)->print_object->set_copies(new_instances.copies)) {
 						// Invalidated
-						update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psGCodeExport));
+						static PrintStep steps[] = { psSkirt, psBrim, psGCodeExport };
+						update_apply_status(this->invalidate_multiple_steps(steps, steps + 3));
 					}
 					print_objects_new.emplace_back((*it_old)->print_object);
 					const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Reused;
@@ -1001,8 +1002,10 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     delete pos.print_object;
 					deleted_objects = true;
                 }
-            if (deleted_objects)
-                update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psWipeTower) || this->invalidate_step(psGCodeExport));
+			if (deleted_objects) {
+				static PrintStep steps[] = { psSkirt, psBrim, psWipeTower, psGCodeExport };
+				update_apply_status(this->invalidate_multiple_steps(steps, steps + 4));
+			}
             update_apply_status(new_objects);
         }
         print_object_status.clear();

@@ -642,8 +642,11 @@ void GUI_App::load_current_presets()
 {
     PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
     for (Tab *tab : tabs_list)
-        if (tab->supports_printer_technology(printer_technology))
-            tab->load_current_preset();
+		if (tab->supports_printer_technology(printer_technology)) {
+			if (tab->name() == "printer")
+				static_cast<TabPrinter*>(tab)->update_pages();
+			tab->load_current_preset();
+		}
 }
 
 Sidebar& GUI_App::sidebar()
