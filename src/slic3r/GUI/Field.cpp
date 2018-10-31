@@ -29,7 +29,8 @@ namespace Slic3r { namespace GUI {
 		}
 	}
 
-	void Field::PostInitialize(){
+	void Field::PostInitialize()
+    {
 		auto color = wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW);
 		m_Undo_btn			= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
 		m_Undo_to_sys_btn	= new MyButton(m_parent, wxID_ANY, "", wxDefaultPosition,wxDefaultSize, wxBU_EXACTFIT | wxNO_BORDER);
@@ -65,7 +66,8 @@ namespace Slic3r { namespace GUI {
 		BUILD();
 	}
 
-	void Field::on_kill_focus(wxEvent& event) {
+	void Field::on_kill_focus(wxEvent& event)
+    {
         // Without this, there will be nasty focus bugs on Windows.
         // Also, docs for wxEvent::Skip() say "In general, it is recommended to skip all 
         // non-command events to allow the default handling to take place."
@@ -81,12 +83,14 @@ namespace Slic3r { namespace GUI {
             m_on_change(m_opt_id, get_value());
     }
 
-	void Field::on_back_to_initial_value(){
+	void Field::on_back_to_initial_value()
+    {
 		if (m_back_to_initial_value != nullptr && m_is_modified_value)
 			m_back_to_initial_value(m_opt_id);
 	}
 
-	void Field::on_back_to_sys_value(){
+	void Field::on_back_to_sys_value()
+    {
 		if (m_back_to_sys_value != nullptr && m_is_nonsys_value)
 			m_back_to_sys_value(m_opt_id);
 	}

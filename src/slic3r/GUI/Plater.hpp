@@ -78,6 +78,7 @@ public:
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
     void                    show_info_sizers(const bool show);
+    void                    show_sliced_info_sizer(const bool show);
     void                    show_buttons(const bool show);
     void                    show_button(ButtonAction but_action, bool show);
     void                    enable_buttons(bool enable);

@@ -1091,7 +1091,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     auto stats = model_object->volumes[0]->mesh.stl.stats;
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
         stats.facets_added + stats.facets_reversed + stats.backwards_edges;
-    if (errors > 0)		{
+    if (errors > 0) {
         wxVariant variant;
         variant << PrusaDataViewBitmapText(item_name, m_bmp_manifold_warning);
         m_objects_model->SetValue(variant, item, 0);
@@ -1241,7 +1241,7 @@ void ObjectList::update_selections_on_canvas()
 
     auto add_to_selection = [this](const wxDataViewItem& item, GLCanvas3D::Selection& selection, bool as_single_selection)
     {        
-        if (m_objects_model->GetParent(item) == wxDataViewItem(0)){
+        if (m_objects_model->GetParent(item) == wxDataViewItem(0)) {
             selection.add_object(m_objects_model->GetIdByItem(item), as_single_selection);
             return;
         }

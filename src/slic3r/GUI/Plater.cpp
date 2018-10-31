@@ -132,18 +132,27 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     Add(grid_sizer, 0, wxEXPAND);
 }
 
+enum SlisedInfoIdx
+{
+    siFilament_m,
+    siFilament_mm3,
+    siFilament_g,
+    siCost,
+    siTimeNormal,
+    siTimeSilent,
+    siWTNumbetOfToolchanges,
+
+    siCount
+};
+
 class SlicedInfo : public wxStaticBoxSizer
 {
 public:
     SlicedInfo(wxWindow *parent);
+    void SetTextAndShow(SlisedInfoIdx idx, const wxString& text);
 
 private:
-    wxStaticText *info_filament_m;
-    wxStaticText *info_filament_mm3;
-    wxStaticText *info_filament_g;
-    wxStaticText *info_cost;
-    wxStaticText *info_time_normal;
-    wxStaticText *info_time_silent;
+    std::vector<std::pair<wxStaticText*, wxStaticText*>> info_vec;
 };
 
 SlicedInfo::SlicedInfo(wxWindow *parent) :
@@ -155,23 +164,37 @@ SlicedInfo::SlicedInfo(wxWindow *parent) :
     grid_sizer->SetFlexibleDirection(wxHORIZONTAL);
     grid_sizer->AddGrowableCol(1, 1);
 
-    auto init_info_label = [parent, grid_sizer](wxStaticText *&info_label, wxString text_label) {
+    info_vec.reserve(siCount);
+
+    auto init_info_label = [this, parent, grid_sizer](wxString text_label) {
         auto *text = new wxStaticText(parent, wxID_ANY, text_label);
         text->SetFont(wxGetApp().small_font());
-        info_label = new wxStaticText(parent, wxID_ANY, "N/A");
+        auto info_label = new wxStaticText(parent, wxID_ANY, "N/A");
         info_label->SetFont(wxGetApp().small_font());
         grid_sizer->Add(text, 0);
         grid_sizer->Add(info_label, 0);
+        info_vec.push_back(std::pair<wxStaticText*, wxStaticText*>(text, info_label));
     };
 
-    init_info_label(info_filament_m, _(L("Used Filament (m)")));
-    init_info_label(info_filament_mm3, _(L("Used Filament (mm³)")));
-    init_info_label(info_filament_g, _(L("Used Filament (g)")));
-    init_info_label(info_cost, _(L("Cost")));
-    init_info_label(info_time_normal, _(L("Estimated printing time (normal mode)")));
-    init_info_label(info_time_silent, _(L("Estimated printing time (silent mode)")));
+    init_info_label(_(L("Used Filament (m)")));
+    init_info_label(_(L("Used Filament (mm³)")));
+    init_info_label(_(L("Used Filament (g)")));
+    init_info_label(_(L("Cost")));
+    init_info_label(_(L("Estimated printing time (normal mode)")));
+    init_info_label(_(L("Estimated printing time (silent mode)")));
+    init_info_label(_(L("Number of tool changes")));
 
     Add(grid_sizer, 0, wxEXPAND);
+    this->Show(false);
+}
+
+void SlicedInfo::SetTextAndShow(SlisedInfoIdx idx, const wxString& text)
+{
+    const bool show = text != "N/A";
+    if (show)
+        info_vec[idx].second->SetLabelText(text);
+    info_vec[idx].first->Show(show);
+    info_vec[idx].second->Show(show);
 }
 
 PresetComboBox::PresetComboBox(wxWindow *parent, Preset::Type preset_type) :
@@ -633,7 +656,43 @@ void Sidebar::show_info_sizers(const bool show)
 {
     p->object_info->Show(show);
     p->object_info->manifold_warning_icon->Show(show && p->show_manifold_warning_icon); // where is g_show_manifold_warning_icon updating? #ys_FIXME
-    p->sliced_info->Show(show && p->show_print_info); // where is g_show_print_info updating? #ys_FIXME
+//     p->sliced_info->Show(show && p->show_print_info);
+}
+
+void Sidebar::show_sliced_info_sizer(const bool show) 
+{
+    p->plater->Freeze();
+//     p->show_print_info = show;
+    p->sliced_info->Show(show);
+    if (show) {
+        const PrintStatistics& ps = p->plater->print().print_statistics();
+        const bool is_wipe_tower = ps.total_wipe_tower_filament > 0;
+
+        wxString info_text = is_wipe_tower ?
+                            wxString::Format("%.2f  (%.2f %s + %.2f %s)", ps.total_used_filament / 1000,
+                                            (ps.total_used_filament - ps.total_wipe_tower_filament) / 1000, _(L("objects")),
+                                            ps.total_wipe_tower_filament / 1000, _(L("wipe tower"))) :
+                            wxString::Format("%.2f", ps.total_used_filament / 1000);
+        p->sliced_info->SetTextAndShow(siFilament_m,    info_text);
+        p->sliced_info->SetTextAndShow(siFilament_mm3,  wxString::Format("%.2f", ps.total_extruded_volume));
+        p->sliced_info->SetTextAndShow(siFilament_g,    wxString::Format("%.2f", ps.total_weight));
+
+        info_text = is_wipe_tower ?
+                    wxString::Format("%.2f  (%.2f %s + %.2f %s)", ps.total_cost,
+                                    (ps.total_cost - ps.total_wipe_tower_cost), _(L("objects")),
+                                    ps.total_wipe_tower_cost, _(L("wipe tower"))) :
+                    wxString::Format("%.2f", ps.total_cost);
+        p->sliced_info->SetTextAndShow(siCost,       info_text);
+        p->sliced_info->SetTextAndShow(siTimeNormal, ps.estimated_normal_print_time);
+        p->sliced_info->SetTextAndShow(siTimeSilent, ps.estimated_silent_print_time);
+
+        // if there is a wipe tower, insert number of toolchanges info into the array:
+        p->sliced_info->SetTextAndShow(siWTNumbetOfToolchanges, is_wipe_tower ? wxString::Format("%.d", p->plater->print().wipe_tower_data().number_of_toolchanges) : "N/A");
+    }
+
+    p->scrolled->Layout();
+    p->plater->Layout();
+    p->plater->Thaw();
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -1678,7 +1737,7 @@ void Plater::priv::async_apply_config()
     if (invalidated == Print::APPLY_STATUS_INVALIDATED) {
         // Some previously calculated data on the Print was invalidated.
         // Hide the slicing results, as the current slicing status is no more valid.
-        this->sidebar->show_info_sizers(false);
+        this->sidebar->show_sliced_info_sizer(false);
         // Reset preview canvases. If the print has been invalidated, the preview canvases will be cleared.
         // Otherwise they will be just refreshed.
         this->gcode_preview_data.reset();
@@ -1858,7 +1917,7 @@ void Plater::priv::on_process_completed(wxCommandEvent &evt)
 	if (canceled)
 		this->statusbar()->set_status_text(L("Cancelled"));
 
-	this->sidebar->show_info_sizers(success);
+    this->sidebar->show_sliced_info_sizer(success);
 
     // this updates buttons status
     //$self->object_list_changed;
