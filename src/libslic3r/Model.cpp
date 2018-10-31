@@ -929,16 +929,16 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     double min_z = DBL_MAX;
 
     ModelInstance* inst = instances[instance_idx];
-    Vec3d local_unit_z = (inst->world_matrix(true).inverse() * Vec3d::UnitZ()).normalized();
+    const Transform3d& m = inst->world_matrix(true);
 
     for (ModelVolume *v : volumes)
     {
         for (uint32_t f = 0; f < v->mesh.stl.stats.number_of_facets; ++f)
         {
             const stl_facet* facet = v->mesh.stl.facet_start + f;
-            min_z = std::min(min_z, local_unit_z.dot(facet->vertex[0].cast<double>()));
-            min_z = std::min(min_z, local_unit_z.dot(facet->vertex[1].cast<double>()));
-            min_z = std::min(min_z, local_unit_z.dot(facet->vertex[2].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[0].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[1].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[2].cast<double>()));
         }
     }
 
