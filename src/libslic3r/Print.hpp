@@ -135,14 +135,16 @@ public:
         bool invalidated = false;
         for (size_t i = 0; i < COUNT; ++ i)
             if (m_state[i].load(std::memory_order_relaxed) != INVALID) {
-                if (! invalidated) {
-                    mtx.unlock();
-                    cancel();
-                    mtx.lock();
-                    invalidated = true;
-                }
-                m_state[i].store(INVALID, std::memory_order_relaxed);
+                invalidated = true;
+                break;
             }
+        if (invalidated) {
+            mtx.unlock();
+            cancel();
+            for (size_t i = 0; i < COUNT; ++ i)
+                m_state[i].store(INVALID, std::memory_order_relaxed);
+            mtx.lock();
+        }
         return invalidated;
     }
 

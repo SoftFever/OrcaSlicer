@@ -1604,8 +1604,8 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
             mesh.merge(v->mesh);
         if (mesh.stl.stats.number_of_facets > 0) {
             mesh.transform(m_trafo.cast<float>());
-            // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-            mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), - float(this->model_object()->bounding_box().min(2)));
+            // apply XY shift
+            mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), 0);
             // perform actual slicing
             TriangleMeshSlicer mslicer;
             const Print *print = this->print();
