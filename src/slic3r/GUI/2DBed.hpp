@@ -34,12 +34,12 @@ public:
 #endif /*__APPLE__*/
 		Bind(wxEVT_PAINT, ([this](wxPaintEvent e) { repaint(); }));
 //		EVT_ERASE_BACKGROUND($self, sub{}) if $self->{user_drawn_background};
-//		Bind(EVT_MOUSE_EVENTS, ([this](wxMouseEvent  event){/*mouse_event()*/; }));
-		Bind(wxEVT_LEFT_DOWN, ([this](wxMouseEvent  event){ mouse_event(event); }));
-		Bind(wxEVT_MOTION, ([this](wxMouseEvent  event){ mouse_event(event); }));
+//		Bind(EVT_MOUSE_EVENTS, ([this](wxMouseEvent  event) {/*mouse_event()*/; }));
+		Bind(wxEVT_LEFT_DOWN, ([this](wxMouseEvent  event) { mouse_event(event); }));
+		Bind(wxEVT_MOTION, ([this](wxMouseEvent  event) { mouse_event(event); }));
 		Bind(wxEVT_SIZE, ([this](wxSizeEvent e) { Refresh(); }));
 	}
-	~Bed_2D(){}
+	~Bed_2D() {}
 
 	std::vector<Vec2d>		m_bed_shape;
 		

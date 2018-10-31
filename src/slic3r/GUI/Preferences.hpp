@@ -17,7 +17,7 @@ class PreferencesDialog : public wxDialog
 	std::shared_ptr<ConfigOptionsGroup>	m_optgroup;
 public:
 	PreferencesDialog(wxWindow* parent);
-	~PreferencesDialog(){ }
+	~PreferencesDialog() {}
 
 	void	build();
 	void	accept();

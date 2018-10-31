@@ -638,7 +638,7 @@ public:
         long style = wxSL_VERTICAL,
         const wxValidator& val = wxDefaultValidator,
         const wxString& name = wxEmptyString);
-    ~PrusaDoubleSlider(){}
+    ~PrusaDoubleSlider() {}
 
     int GetLowerValue() const {
         return m_lower_value;
@@ -661,12 +661,12 @@ public:
     }
     void ChangeOneLayerLock();
 
-    void OnPaint(wxPaintEvent& ){ render();}
+    void OnPaint(wxPaintEvent& ) { render();}
     void OnLeftDown(wxMouseEvent& event);
     void OnMotion(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
-    void OnEnterWin(wxMouseEvent& event){ enter_window(event, true); }
-    void OnLeaveWin(wxMouseEvent& event){ enter_window(event, false); }
+    void OnEnterWin(wxMouseEvent& event) { enter_window(event, true); }
+    void OnLeaveWin(wxMouseEvent& event) { enter_window(event, false); }
     void OnWheel(wxMouseEvent& event);
     void OnKeyDown(wxKeyEvent &event);
     void OnKeyUp(wxKeyEvent &event);
@@ -770,11 +770,11 @@ public:
         wxWindowID id,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize);
-    ~PrusaLockButton(){}
+    ~PrusaLockButton() {}
 
     void    OnButton(wxCommandEvent& event);
-    void    OnEnterBtn(wxMouseEvent& event){ enter_button(true); event.Skip(); }
-    void    OnLeaveBtn(wxMouseEvent& event){ enter_button(false); event.Skip(); }
+    void    OnEnterBtn(wxMouseEvent& event) { enter_button(true); event.Skip(); }
+    void    OnLeaveBtn(wxMouseEvent& event) { enter_button(false); event.Skip(); }
 
     bool    IsLocked() const { return m_is_pushed; }
 

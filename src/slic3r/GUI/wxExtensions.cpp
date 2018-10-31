@@ -534,7 +534,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddInstanceChild(const wxDataViewItem &
     // Add instance nodes
     PrusaObjectDataViewModelNode *instance_node = nullptr;    
     size_t counter = 0;
-    while (counter < num){
+    while (counter < num) {
         instance_node = new PrusaObjectDataViewModelNode(inst_root_node, itInstance);
         inst_root_node->Append(instance_node);
         // notify control
@@ -559,11 +559,11 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 	// first remove the node from the parent's array of children;
 	// NOTE: MyObjectTreeModelNodePtrArray is only an array of _pointers_
 	//       thus removing the node from it doesn't result in freeing it
-	if (node_parent){
+	if (node_parent) {
 		auto id = node_parent->GetChildren().Index(node);
         auto idx = node->GetIdx();
 		node_parent->GetChildren().Remove(node);
-		if (id > 0){ 
+		if (id > 0) { 
 			if(id == node_parent->GetChildCount()) id--;
 			ret_item = wxDataViewItem(node_parent->GetChildren().Item(id));
 		}
@@ -607,7 +607,7 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 		auto id = it - m_objects.begin();
 		if (it != m_objects.end())
 			m_objects.erase(it);
-		if (id > 0){ 
+		if (id > 0) { 
 			if(id == m_objects.size()) id--;
 			ret_item = wxDataViewItem(m_objects[id]);
 		}
@@ -862,7 +862,7 @@ wxDataViewItem PrusaObjectDataViewModel::MoveChildUp(const wxDataViewItem &item)
 		return ret_item;
 
 	auto volume_id = node->GetVolumeId();
-	if (0 < volume_id && volume_id < node_parent->GetChildCount()){
+	if (0 < volume_id && volume_id < node_parent->GetChildCount()) {
 		node_parent->SwapChildrens(volume_id - 1, volume_id);
 		ret_item = wxDataViewItem(node_parent->GetNthChild(volume_id - 1));
 		ItemChanged(item);
@@ -886,7 +886,7 @@ wxDataViewItem PrusaObjectDataViewModel::MoveChildDown(const wxDataViewItem &ite
 		return ret_item;
 
 	auto volume_id = node->GetVolumeId();
-	if (0 <= volume_id && volume_id+1 < node_parent->GetChildCount()){
+	if (0 <= volume_id && volume_id+1 < node_parent->GetChildCount()) {
 		node_parent->SwapChildrens(volume_id + 1, volume_id);
 		ret_item = wxDataViewItem(node_parent->GetNthChild(volume_id + 1));
 		ItemChanged(item);
@@ -1586,7 +1586,7 @@ void PrusaDoubleSlider::OnLeftDown(wxMouseEvent& event)
     }
 
     m_is_left_down = true;
-    if (is_point_in_rect(pos, m_rect_one_layer_icon)){
+    if (is_point_in_rect(pos, m_rect_one_layer_icon)) {
         m_is_one_layer = !m_is_one_layer;
         m_selection == ssLower ? correct_lower_value() : correct_higher_value();
         if (!m_selection) m_selection = ssHigher;
@@ -1626,10 +1626,10 @@ void PrusaDoubleSlider::OnMotion(wxMouseEvent& event)
     const wxClientDC dc(this);
     const wxPoint pos = event.GetLogicalPosition(dc);
     m_is_one_layer_icon_focesed = is_point_in_rect(pos, m_rect_one_layer_icon);
-    if (!m_is_left_down && !m_is_one_layer){
+    if (!m_is_left_down && !m_is_one_layer) {
         m_is_action_icon_focesed = is_point_in_rect(pos, m_rect_tick_action);
     }
-    else if (m_is_left_down || m_is_right_down){
+    else if (m_is_left_down || m_is_right_down) {
         if (m_selection == ssLower) {
             m_lower_value = get_value_from_position(pos.x, pos.y);
             correct_lower_value();
@@ -1741,7 +1741,7 @@ void PrusaDoubleSlider::OnKeyDown(wxKeyEvent &event)
     {
         if (key == WXK_LEFT || key == WXK_RIGHT)
             move_current_thumb(key == WXK_LEFT); 
-        else if (key == WXK_UP || key == WXK_DOWN){
+        else if (key == WXK_UP || key == WXK_DOWN) {
             m_selection = key == WXK_UP ? ssHigher : ssLower;
             Refresh();
         }

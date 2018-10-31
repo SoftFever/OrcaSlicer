@@ -28,7 +28,7 @@ void BedShapeDialog::build_dialog(ConfigOptionPoints* default_pt)
 	main_sizer->SetSizeHints(this);
 
 	// needed to actually free memory
-	this->Bind(wxEVT_CLOSE_WINDOW, ([this](wxCloseEvent e){
+	this->Bind(wxEVT_CLOSE_WINDOW, ([this](wxCloseEvent e) {
 		EndModal(wxID_OK);
 		Destroy();
 	}));
@@ -115,14 +115,15 @@ void BedShapePanel::build_panel(ConfigOptionPoints* default_pt)
 
 // Called from the constructor.
 // Create a panel for a rectangular / circular / custom bed shape.
-ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title){
+ConfigOptionsGroupShp BedShapePanel::init_shape_options_page(wxString title)
+{
 
 	auto panel = new wxPanel(m_shape_options_book);
 	ConfigOptionsGroupShp optgroup;
 	optgroup = std::make_shared<ConfigOptionsGroup>(panel, _(L("Settings")));
 
 	optgroup->label_width = 100;
-	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+	optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 		update_shape();
 	};
 		
@@ -234,13 +235,13 @@ void BedShapePanel::update_shape()
 		Vec2d rect_origin(Vec2d::Zero());
 		try{
 			rect_size = boost::any_cast<Vec2d>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_size")); }
-		catch (const std::exception &e){
+		catch (const std::exception &e) {
 			return;
 		}
 		try{
 			rect_origin = boost::any_cast<Vec2d>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_origin"));
 		}
-		catch (const std::exception &e){
+		catch (const std::exception &e) {
 			return;}
 		
 		auto x = rect_size(0);
@@ -269,7 +270,7 @@ void BedShapePanel::update_shape()
 		try{
 			diameter = boost::any_cast<double>(m_optgroups[SHAPE_CIRCULAR]->get_value("diameter"));
 		}
-		catch (const std::exception &e){
+		catch (const std::exception &e) {
 			return;
 		} 
  		if (diameter == 0.0) return ;
@@ -277,7 +278,7 @@ void BedShapePanel::update_shape()
 		auto twopi = 2 * PI;
 		auto edges = 60;
 		std::vector<Vec2d> points;
-		for (size_t i = 1; i <= 60; ++i){
+		for (size_t i = 1; i <= 60; ++i) {
 			auto angle = i * twopi / edges;
 			points.push_back(Vec2d(r*cos(angle), r*sin(angle)));
 		}

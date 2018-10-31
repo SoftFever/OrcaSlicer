@@ -41,7 +41,7 @@ class LambdaObjectDialog : public wxDialog
 public:
     LambdaObjectDialog(wxWindow* parent, 
                        const wxString type_name = wxEmptyString);
-	~LambdaObjectDialog(){}
+	~LambdaObjectDialog() {}
 
 	bool CanClose() { return true; }	// ???
 	OBJECT_PARAMETERS& ObjectParameters() { return object_parameters; }

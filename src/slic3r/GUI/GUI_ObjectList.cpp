@@ -209,7 +209,8 @@ void ObjectList::update_extruder_in_config(const wxString& selection)
     wxGetApp().plater()->update();
 }
 
-void ObjectList::init_icons(){
+void ObjectList::init_icons()
+{
     m_bmp_modifiermesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("lambda.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("plugin.png")), wxBITMAP_TYPE_PNG);
     m_bmp_solidmesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("package.png")), wxBITMAP_TYPE_PNG);
 
@@ -297,7 +298,7 @@ void ObjectList::key_event(wxKeyEvent& event)
 #ifdef __WXOSX__
         || event.GetKeyCode() == WXK_BACK
 #endif //__WXOSX__
-        ){
+        ) {
         printf("WXK_BACK\n");
         remove();
     }
@@ -565,7 +566,7 @@ wxMenu* ObjectList::create_add_part_popupmenu()
     // Append settings popupmenu
     menu->Append(menu_item_settings(menu, config_id_base + i + 5, false));
 
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event){
+    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case 0:
             load_subobject();
@@ -609,7 +610,7 @@ wxMenu* ObjectList::create_part_settings_popupmenu()
     // Append settings popupmenu
     menu->Append(menu_item_settings(menu, config_id_base + 1, true));
 
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event){
+    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case 0:
             split(true);
@@ -801,7 +802,7 @@ void ObjectList::load_lambda(const std::string& type_name)
         mesh = make_cylinder(params.cyl_r, params.cyl_h);
     else if (type_name == _("Sphere"))
         mesh = make_sphere(params.sph_rho);
-    else if (type_name == _("Slab")){
+    else if (type_name == _("Slab")) {
         const auto& size = (*m_objects)[m_selected_object_id]->bounding_box().size();
         mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
         // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
@@ -1041,7 +1042,7 @@ void ObjectList::part_selection_changed()
                     m_config = &(*m_objects)[obj_idx]->volumes[volume_id]->config;
                 }
             }
-            else if (m_objects_model->GetItemType(item) == itVolume){
+            else if (m_objects_model->GetItemType(item) == itVolume) {
                 og_name = _(L("Part manipulation"));
                 is_part = true;
                 const auto volume_id = m_objects_model->GetVolumeIdByItem(item);

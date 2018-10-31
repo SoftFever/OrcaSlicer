@@ -32,8 +32,8 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
     m_og->label_width = 100;
     m_og->set_grid_vgap(5);
 
-    m_og->m_on_change = [this](t_config_option_key opt_key, boost::any value){
-        if (opt_key == "scale_unit"){
+    m_og->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
+        if (opt_key == "scale_unit") {
             const wxString& selection = boost::any_cast<wxString>(value);
             std::vector<std::string> axes{ "x", "y", "z" };
             for (auto axis : axes) {
@@ -80,7 +80,7 @@ ObjectManipulation::ObjectManipulation(wxWindow* parent):
         if (option_name == "Scale") {
             line.near_label_widget = [](wxWindow* parent) {
                 auto btn = new PrusaLockButton(parent, wxID_ANY);
-                btn->Bind(wxEVT_BUTTON, [btn](wxCommandEvent &event){
+                btn->Bind(wxEVT_BUTTON, [btn](wxCommandEvent &event) {
                     event.Skip();
                     wxTheApp->CallAfter([btn]() {
                         wxGetApp().obj_manipul()->set_uniform_scaling(btn->IsLocked());
@@ -188,7 +188,7 @@ void ObjectManipulation::update_settings_list()
 #ifdef __WXMSW__
             btn->SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 #endif // __WXMSW__
-			btn->Bind(wxEVT_BUTTON, [opt_key, config](wxEvent &event){
+			btn->Bind(wxEVT_BUTTON, [opt_key, config](wxEvent &event) {
 				config->erase(opt_key);
                 wxTheApp->CallAfter([]() { wxGetApp().obj_manipul()->update_settings_list(); });
 			});

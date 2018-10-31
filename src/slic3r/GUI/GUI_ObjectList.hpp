@@ -95,10 +95,10 @@ public:
     bool                is_splittable_object(const bool split_part);
 
     wxPoint             get_mouse_position_in_control();
-    wxBoxSizer*         get_sizer(){return  m_sizer;}
+    wxBoxSizer*         get_sizer() {return  m_sizer;}
     int                 get_selected_obj_idx() const;
-    bool                is_parts_changed() const        { return m_parts_changed; }
-    bool                is_part_settings_changed() const{ return m_part_settings_changed; }
+    bool                is_parts_changed() const { return m_parts_changed; }
+    bool                is_part_settings_changed() const { return m_part_settings_changed; }
 
     void                 parts_changed(int obj_idx);
     void                 part_selection_changed();

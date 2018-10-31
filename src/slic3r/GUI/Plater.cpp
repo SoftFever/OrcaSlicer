@@ -279,13 +279,13 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
     m_og->set_config(config);
     m_og->label_width = label_width;
 
-    m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value){
+    m_og->m_on_change = [config, this](t_config_option_key opt_key, boost::any value) {
         TabPrint* tab_print = nullptr;
         for (size_t i = 0; i < wxGetApp().tab_panel()->GetPageCount(); ++i) {
             Tab *tab = dynamic_cast<Tab*>(wxGetApp().tab_panel()->GetPage(i));
             if (!tab)
                 continue;
-            if (tab->name() == "print"){
+            if (tab->name() == "print") {
                 tab_print = static_cast<TabPrint*>(tab);
                 break;
             }
@@ -293,14 +293,14 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
         if (tab_print == nullptr)
             return;
 
-        if (opt_key == "fill_density"){
+        if (opt_key == "fill_density") {
             value = m_og->get_config_value(*config, opt_key);
             tab_print->set_value(opt_key, value);
             tab_print->update();
         }
         else{
             DynamicPrintConfig new_conf = *config;
-            if (opt_key == "brim"){
+            if (opt_key == "brim") {
                 double new_val;
                 double brim_width = config->opt_float("brim_width");
                 if (boost::any_cast<bool>(value) == true)
@@ -367,7 +367,7 @@ FreqChangedParams::FreqChangedParams(wxWindow* parent, const int label_width) :
 
 
     Line line = { "", "" };
-    line.widget = [config, this](wxWindow* parent){
+    line.widget = [config, this](wxWindow* parent) {
         m_wiping_dialog_button = new wxButton(parent, wxID_ANY, _(L("Purging volumes")) + dots, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
         auto sizer = new wxBoxSizer(wxHORIZONTAL);
         sizer->Add(m_wiping_dialog_button);
@@ -952,7 +952,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     background_process.set_sliced_event(EVT_SLICING_COMPLETED);
     background_process.set_finished_event(EVT_PROCESS_COMPLETED);
     // Register progress callback from the Print class to the Platter.
-    print.set_status_callback([this](int percent, const std::string &message){
+    print.set_status_callback([this](int percent, const std::string &message) {
         wxCommandEvent event(EVT_PROGRESS_BAR);
         event.SetInt(percent);
         event.SetString(message);
@@ -982,7 +982,7 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
     _3DScene::enable_force_zoom_to_bed(canvas3D, true);
 
     this->background_process_timer.SetOwner(this->q, 0);
-    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt){ this->async_apply_config(); });
+    this->q->Bind(wxEVT_TIMER, [this](wxTimerEvent &evt) { this->async_apply_config(); });
 
     auto *bed_shape = config->opt<ConfigOptionPoints>("bed_shape");
     _3DScene::set_bed_shape(canvas3D, bed_shape->values);
@@ -1754,7 +1754,7 @@ void Plater::priv::async_apply_config()
     }
     if (invalidated != Print::APPLY_STATUS_UNCHANGED && this->get_config("background_processing") == "1" &&
         this->print.num_object_instances() > 0 && this->background_process.start())
-		this->statusbar()->set_cancel_callback([this](){
+		this->statusbar()->set_cancel_callback([this]() {
             this->statusbar()->set_status_text(L("Cancelling"));
 			this->background_process.stop();
         });
@@ -2090,13 +2090,13 @@ void Plater::priv::on_update_geometry(Vec3dsEvent<2>&)
 bool Plater::priv::init_object_menu()
 {
     wxMenuItem* item_delete = append_menu_item(&object_menu, wxID_ANY, _(L("Delete\tDel")), _(L("Remove the selected object")),
-        [this](wxCommandEvent&){ q->remove_selected(); }, "brick_delete.png");
+        [this](wxCommandEvent&) { q->remove_selected(); }, "brick_delete.png");
     wxMenuItem* item_increase = append_menu_item(&object_menu, wxID_ANY, _(L("Increase copies\t+")), _(L("Place one more copy of the selected object")),
-        [this](wxCommandEvent&){ q->increase_instances(); }, "add.png");
+        [this](wxCommandEvent&) { q->increase_instances(); }, "add.png");
     wxMenuItem* item_decrease = append_menu_item(&object_menu, wxID_ANY, _(L("Decrease copies\t-")), _(L("Remove one copy of the selected object")),
-        [this](wxCommandEvent&){ q->decrease_instances(); }, "delete.png");
+        [this](wxCommandEvent&) { q->decrease_instances(); }, "delete.png");
     wxMenuItem* item_set_number_of_copies = append_menu_item(&object_menu, wxID_ANY, _(L("Set number of copies…")), _(L("Change the number of copies of the selected object")),
-        [this](wxCommandEvent&){ q->set_number_of_copies(); }, "textfield.png");
+        [this](wxCommandEvent&) { q->set_number_of_copies(); }, "textfield.png");
 
     object_menu.AppendSeparator();
     
@@ -2106,11 +2106,11 @@ bool Plater::priv::init_object_menu()
         return false;
 
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along X axis")), _(L("Mirror the selected object along the X axis")),
-        [this](wxCommandEvent&){ mirror(X); }, "bullet_red.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(X); }, "bullet_red.png", &object_menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Y axis")), _(L("Mirror the selected object along the Y axis")),
-        [this](wxCommandEvent&){ mirror(Y); }, "bullet_green.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(Y); }, "bullet_green.png", &object_menu);
     append_menu_item(mirror_menu, wxID_ANY, _(L("Along Z axis")), _(L("Mirror the selected object along the Z axis")),
-        [this](wxCommandEvent&){ mirror(Z); }, "bullet_blue.png", &object_menu);
+        [this](wxCommandEvent&) { mirror(Z); }, "bullet_blue.png", &object_menu);
 
     wxMenuItem* item_mirror = append_submenu(&object_menu, mirror_menu, wxID_ANY, _(L("Mirror")), _(L("Mirror the selected object")));
 #endif // ENABLE_MIRROR
@@ -2120,9 +2120,9 @@ bool Plater::priv::init_object_menu()
         return false;
 
     wxMenuItem* item_split_objects = append_menu_item(split_menu, wxID_ANY, _(L("To objects")), _(L("Split the selected object into individual objects")),
-        [this](wxCommandEvent&){ split_object(); }, "shape_ungroup.png", &object_menu);
+        [this](wxCommandEvent&) { split_object(); }, "shape_ungroup.png", &object_menu);
     wxMenuItem* item_split_volumes = append_menu_item(split_menu, wxID_ANY, _(L("To parts")), _(L("Split the selected object into individual sub-parts")),
-        [this](wxCommandEvent&){ split_volume(); }, "shape_ungroup.png", &object_menu);
+        [this](wxCommandEvent&) { split_volume(); }, "shape_ungroup.png", &object_menu);
 
     wxMenuItem* item_split = append_submenu(&object_menu, split_menu, wxID_ANY, _(L("Split")), _(L("Split the selected object")), "shape_ungroup.png");
 
@@ -2515,7 +2515,7 @@ void Plater::reslice()
 //    this->p->stop_background_process();
     // Rather perform one additional unnecessary update of the print object instead of skipping a pending async update.
     this->p->async_apply_config();
-	this->p->statusbar()->set_cancel_callback([this](){
+	this->p->statusbar()->set_cancel_callback([this]() {
 		this->p->statusbar()->set_status_text(L("Cancelling"));
 		this->p->background_process.stop();
     });

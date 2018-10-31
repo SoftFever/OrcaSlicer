@@ -156,7 +156,7 @@ public:
 					column_t extra_clmn = nullptr) :
 					m_parent(_parent), title(title), 
                     m_show_modified_btns(is_tab_opt),
-					staticbox(title!=""), extra_column(extra_clmn){
+					staticbox(title!=""), extra_column(extra_clmn) {
         if (staticbox) {
             stb = new wxStaticBox(_parent, wxID_ANY, title);
             stb->SetFont(wxGetApp().bold_font());
@@ -177,7 +177,7 @@ public:
 #endif /* __WXGTK__ */
     }
 
-    wxGridSizer*        get_grid_sizer(){ return m_grid_sizer; }
+    wxGridSizer*        get_grid_sizer() { return m_grid_sizer; }
 
 protected:
 	std::map<t_config_option_key, Option>	m_options;
@@ -208,10 +208,10 @@ protected:
 	const t_field&		build_field(const Option& opt, wxStaticText* label = nullptr);
 	void				add_undo_buttuns_to_sizer(wxSizer* sizer, const t_field& field);
 
-    virtual void		on_kill_focus (){};
+    virtual void		on_kill_focus () {};
 	virtual void		on_change_OG(const t_config_option_key& opt_id, const boost::any& value);
-	virtual void		back_to_initial_value(const std::string& opt_key){}
-	virtual void		back_to_sys_value(const std::string& opt_key){}
+	virtual void		back_to_initial_value(const std::string& opt_key) {}
+	virtual void		back_to_sys_value(const std::string& opt_key) {}
 };
 
 class ConfigOptionsGroup: public OptionsGroup {
@@ -225,7 +225,7 @@ public:
     bool					m_full_labels {0};
 	t_opt_map				m_opt_map;
 
-    void        set_config(DynamicPrintConfig* config){ m_config = config; }
+    void        set_config(DynamicPrintConfig* config) { m_config = config; }
 	Option		get_option(const std::string& opt_key, int opt_index = -1);
 	Line		create_single_option_line(const std::string& title, int idx = -1) /*const*/{
 		Option option = get_option(title, idx);
@@ -258,8 +258,8 @@ public:
 class ogStaticText :public wxStaticText{
 public:
 	ogStaticText() {}
-	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize){}
-	~ogStaticText(){}
+	ogStaticText(wxWindow* parent, const char *text) : wxStaticText(parent, wxID_ANY, text, wxDefaultPosition, wxDefaultSize) {}
+	~ogStaticText() {}
 
 	void		SetText(const wxString& value, bool wrap = true);
 };

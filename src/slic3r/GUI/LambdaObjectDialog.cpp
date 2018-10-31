@@ -38,8 +38,8 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
     ConfigOptionDef def;
     def.width = 70;
 	auto optgroup = init_modificator_options_page(_(L("Box")));
-    if (optgroup){
-		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+    if (optgroup) {
+		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 			int opt_id =	opt_key == "l" ? 0 :
 							opt_key == "w" ? 1 : 
 							opt_key == "h" ? 2 : -1;
@@ -63,8 +63,8 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 	}
 
 	optgroup = init_modificator_options_page(_(L("Cylinder")));
-	if (optgroup){
-		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+	if (optgroup) {
+		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 			int val = boost::any_cast<int>(value);
 			if (opt_key == "cyl_r")
 				object_parameters.cyl_r = val;
@@ -85,8 +85,8 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
     }
 
 	optgroup = init_modificator_options_page(_(L("Sphere")));
-	if (optgroup){
-		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+	if (optgroup) {
+		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 			if (opt_key == "sph_rho")
 				object_parameters.sph_rho = boost::any_cast<double>(value);
 			else return;
@@ -100,8 +100,8 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 	}
 
 	optgroup = init_modificator_options_page(_(L("Slab")));
-	if (optgroup){
-		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value){
+	if (optgroup) {
+		optgroup->m_on_change = [this](t_config_option_key opt_key, boost::any value) {
 			double val = boost::any_cast<double>(value);
 			if (opt_key == "slab_z")
 				object_parameters.slab_z = val;
@@ -171,7 +171,8 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 
 // Called from the constructor.
 // Create a panel for a rectangular / circular / custom bed shape.
-ConfigOptionsGroupShp LambdaObjectDialog::init_modificator_options_page(const wxString& title){
+ConfigOptionsGroupShp LambdaObjectDialog::init_modificator_options_page(const wxString& title)
+{
     if (!m_type_name.IsEmpty() && m_type_name != title)
         return nullptr;
 

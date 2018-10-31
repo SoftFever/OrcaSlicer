@@ -89,7 +89,7 @@ void Bed_2D::repaint()
 	dc.SetPen(wxPen(wxColour(230, 230, 230), 1, wxSOLID));
 	for (auto pl : polylines)
 	{
-		for (size_t i = 0; i < pl.points.size()-1; i++){
+		for (size_t i = 0; i < pl.points.size()-1; i++) {
 			Point pt1 = to_pixels(unscale(pl.points[i]));
 			Point pt2 = to_pixels(unscale(pl.points[i+1]));
 			dc.DrawLine(pt1(0), pt1(1), pt2(0), pt2(1));
@@ -110,7 +110,7 @@ void Bed_2D::repaint()
 	dc.SetPen(wxPen(wxColour(255, 0, 0), 2, wxSOLID));  // red
 	auto x_end = Vec2d(origin_px(0) + axes_len, origin_px(1));
 	dc.DrawLine(wxPoint(origin_px(0), origin_px(1)), wxPoint(x_end(0), x_end(1)));
-	for (auto angle : { -arrow_angle, arrow_angle }){
+	for (auto angle : { -arrow_angle, arrow_angle }) {
 		auto end = Eigen::Translation2d(x_end) * Eigen::Rotation2Dd(angle) * Eigen::Translation2d(- x_end) * Eigen::Vector2d(x_end(0) - arrow_len, x_end(1));
 		dc.DrawLine(wxPoint(x_end(0), x_end(1)), wxPoint(end(0), end(1)));
 	}
@@ -151,12 +151,14 @@ void Bed_2D::repaint()
 }
 
 // convert G - code coordinates into pixels
-Point Bed_2D::to_pixels(Vec2d point){
+Point Bed_2D::to_pixels(Vec2d point)
+{
 	auto p = point * m_scale_factor + m_shift;
 	return Point(p(0), GetSize().GetHeight() - p(1)); 
 }
 
-void Bed_2D::mouse_event(wxMouseEvent event){
+void Bed_2D::mouse_event(wxMouseEvent event)
+{
 	if (!m_interactive) return;
 	if (!m_painted) return;
 
@@ -170,11 +172,13 @@ void Bed_2D::mouse_event(wxMouseEvent event){
 }
 
 // convert pixels into G - code coordinates
-Vec2d Bed_2D::to_units(Point point){
+Vec2d Bed_2D::to_units(Point point)
+{
 	return (Vec2d(point(0), GetSize().GetHeight() - point(1)) - m_shift) * (1. / m_scale_factor);
 }
 
-void Bed_2D::set_pos(Vec2d pos){
+void Bed_2D::set_pos(Vec2d pos)
+{
 	m_pos = pos;
 	Refresh();
 }
