@@ -1621,24 +1621,30 @@ void Plater::priv::split_object()
     ModelObjectPtrs new_objects;
     current_model_object->split(&new_objects);
     if (new_objects.size() == 1)
-    {
         Slic3r::GUI::warning_catcher(q, _(L("The selected object couldn't be split because it contains only one part.")));
-    }
     else
     {
         unsigned int counter = 1;
         for (ModelObject* m : new_objects)
         {
             m->name = current_model_object->name + "_" + std::to_string(counter++);
-            m->center_around_origin();
-            m->ensure_on_bed();
+            for (ModelInstance* i : current_model_object->instances)
+            {
+                m->add_instance(*i);
+            }
         }
 
         remove(obj_idx);
 
         // load all model objects at once, otherwise the plate would be rearranged after each one
         // causing original positions not to be kept
-        load_model_objects(new_objects);
+        std::vector<size_t> idxs = load_model_objects(new_objects);
+
+        // select newly added objects
+        for (size_t idx : idxs)
+        {
+            get_selection().add_object((unsigned int)idx, false);
+        }
     }
 #endif // ENABLE_EXTENDED_SELECTION
 }
