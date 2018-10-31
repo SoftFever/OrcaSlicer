@@ -926,7 +926,11 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
 
         // gets transform from first selected volume
         const GLVolume* v = selection.get_volume(*idxs.begin());
+#if ENABLE_MODELVOLUME_TRANSFORM
+        transform = v->world_matrix();
+#else
         transform = v->world_matrix().cast<double>();
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
         // gets angles from first selected volume
         angles = v->get_rotation();

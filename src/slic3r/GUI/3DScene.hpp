@@ -254,6 +254,9 @@ public:
     GLVolume(const float *rgba) : GLVolume(rgba[0], rgba[1], rgba[2], rgba[3]) {}
 
 private:
+#if ENABLE_MODELVOLUME_TRANSFORM
+    Geometry::Transformation m_transformation;
+#else
     // Offset of the volume to be rendered.
     Vec3d                 m_offset;
     // Rotation around three axes of the volume to be rendered.
@@ -268,6 +271,7 @@ private:
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
     mutable bool          m_world_matrix_dirty;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     // Bounding box of this volume, in unscaled coordinates.
     mutable BoundingBoxf3 m_transformed_bounding_box;
     // Whether or not is needed to recalculate the transformed bounding box.
@@ -280,7 +284,6 @@ private:
     mutable bool          m_transformed_convex_hull_bounding_box_dirty;
 
 public:
-
     // Bounding box of this volume, in unscaled coordinates.
     BoundingBoxf3       bounding_box;
     // Color of the triangles / quads held by this volume.
@@ -333,6 +336,36 @@ public:
     // Sets render color in dependence of current state
     void set_render_color();
 
+#if ENABLE_MODELVOLUME_TRANSFORM
+    const Geometry::Transformation& get_transformation() const { return m_transformation; }
+    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; set_bounding_boxes_as_dirty(); }
+
+    const Vec3d& get_offset() const { return m_transformation.get_offset(); }
+    double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
+
+    void set_offset(const Vec3d& offset) { m_transformation.set_offset(offset); set_bounding_boxes_as_dirty(); }
+    void set_offset(Axis axis, double offset) { m_transformation.set_offset(axis, offset); set_bounding_boxes_as_dirty(); }
+
+    const Vec3d& get_rotation() const { return m_transformation.get_rotation(); }
+    double get_rotation(Axis axis) const { return m_transformation.get_rotation(axis); }
+
+    void set_rotation(const Vec3d& rotation) { m_transformation.set_rotation(rotation); set_bounding_boxes_as_dirty(); }
+    void set_rotation(Axis axis, double rotation) { m_transformation.set_rotation(axis, rotation); set_bounding_boxes_as_dirty(); }
+
+    Vec3d get_scaling_factor() const { return m_transformation.get_scaling_factor(); }
+    double get_scaling_factor(Axis axis) const { return m_transformation.get_scaling_factor(axis); }
+
+    void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); set_bounding_boxes_as_dirty(); }
+    void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); set_bounding_boxes_as_dirty(); }
+
+#if ENABLE_MIRROR
+    const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
+    double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
+
+    void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); set_bounding_boxes_as_dirty(); }
+    void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); set_bounding_boxes_as_dirty(); }
+#endif // ENABLE_MIRROR
+#else
     const Vec3d& get_rotation() const;
     void set_rotation(const Vec3d& rotation);
 
@@ -350,6 +383,7 @@ public:
 
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     void set_convex_hull(const TriangleMesh& convex_hull);
 
@@ -362,7 +396,11 @@ public:
     int                 volume_idx() const { return (this->composite_id / 1000) % 1000; }
     int                 instance_idx() const { return this->composite_id % 1000; }
 
+#if ENABLE_MODELVOLUME_TRANSFORM
+    const Transform3d&   world_matrix() const { return m_transformation.world_matrix(); }
+#else
     const Transform3f&   world_matrix() const;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     const BoundingBoxf3& transformed_bounding_box() const;
     const BoundingBoxf3& transformed_convex_hull_bounding_box() const;
 
@@ -412,6 +450,10 @@ public:
     }
 
     void reset_layer_height_texture_data() { layer_height_texture_data.reset(); }
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+    void set_bounding_boxes_as_dirty() { m_transformed_bounding_box_dirty = true; m_transformed_convex_hull_bounding_box_dirty = true; }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 };
 
 #if ENABLE_EXTENDED_SELECTION
