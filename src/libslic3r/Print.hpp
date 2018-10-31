@@ -268,8 +268,9 @@ public:
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintObjectStep step);
 	template<typename StepTypeIterator>
-	bool invalidate_multiple_steps(StepTypeIterator step_begin, StepTypeIterator step_end) { return m_state.invalidate_multiple(step_begin, step_end, m_mutex, m_cancel_callback); }
-	bool invalidate_all_steps();
+	bool invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end) { return m_state.invalidate_multiple(step_begin, step_end, this->cancel_mutex(), this->cancel_callback()); }
+	bool invalidate_steps(std::initializer_list<PrintObjectStep> il) { return m_state.invalidate_multiple(il.begin(), il.end(), this->cancel_mutex(), this->cancel_callback()); }
+	bool invalidate_all_steps() { return m_state.invalidate_all(this->cancel_mutex(), this->cancel_callback()); }
     bool is_step_done(PrintObjectStep step) const { return m_state.is_done(step); }
 
     // To be used over the layer_height_profile of both the PrintObject and ModelObject
@@ -318,6 +319,9 @@ private:
     void _generate_support_material();
 
     bool is_printable() const { return ! m_copies.empty(); }
+	// Implemented in cpp due to cyclic dependencies between Print and PrintObject.
+	tbb::mutex&            cancel_mutex();
+    std::function<void()>  cancel_callback();
 
     Print                                  *m_print;
     ModelObject                            *m_model_object;
@@ -534,7 +538,8 @@ protected:
 	void                set_done(PrintStep step) { m_state.set_done(step, m_mutex); throw_if_canceled(); }
     bool                invalidate_step(PrintStep step);
 	template<typename StepTypeIterator>
-	bool				invalidate_multiple_steps(StepTypeIterator step_begin, StepTypeIterator step_end) { return m_state.invalidate_multiple(step_begin, step_end, m_mutex, m_cancel_callback); }
+	bool				invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end) { return m_state.invalidate_multiple(step_begin, step_end, m_mutex, m_cancel_callback); }
+    bool                invalidate_steps(std::initializer_list<PrintStep> il) { return m_state.invalidate_multiple(il.begin(), il.end(), m_mutex, m_cancel_callback); }
     bool                invalidate_all_steps() { return m_state.invalidate_all(m_mutex, m_cancel_callback); }
 
     // methods for handling regions

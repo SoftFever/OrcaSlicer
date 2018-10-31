@@ -977,14 +977,13 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     new_objects = true;
                     if (it_old != old.end())
                         const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Deleted;
-                } else if ((*it_old)->print_object->copies() != new_instances.copies) {
+                } else {
                     // The PrintObject already exists and the copies differ.
                     if ((*it_old)->print_object->copies().size() != new_instances.copies.size())
                         update_apply_status(this->invalidate_step(psWipeTower));
 					if ((*it_old)->print_object->set_copies(new_instances.copies)) {
 						// Invalidated
-						static PrintStep steps[] = { psSkirt, psBrim, psGCodeExport };
-						update_apply_status(this->invalidate_multiple_steps(steps, steps + 3));
+						update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psGCodeExport }));
 					}
 					print_objects_new.emplace_back((*it_old)->print_object);
 					const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Reused;
@@ -1002,10 +1001,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     delete pos.print_object;
 					deleted_objects = true;
                 }
-			if (deleted_objects) {
-				static PrintStep steps[] = { psSkirt, psBrim, psWipeTower, psGCodeExport };
-				update_apply_status(this->invalidate_multiple_steps(steps, steps + 4));
-			}
+			if (new_objects || deleted_objects)
+				update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psWipeTower, psGCodeExport }));
             update_apply_status(new_objects);
         }
         print_object_status.clear();
