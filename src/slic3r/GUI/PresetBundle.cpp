@@ -79,13 +79,17 @@ PresetBundle::PresetBundle() :
     this->printers.preset(1).printer_technology() = ptSLA;
     for (size_t i = 0; i < 2; ++ i) {
 		// The following ugly switch is to avoid printers.preset(0) to return the edited instance, as the 0th default is the current one.
-		Preset &preset = (i == 0) ? this->printers.default_preset() : this->printers.preset(1);
+		Preset &preset = this->printers.default_preset(i);
         preset.config.optptr("printer_settings_id", true);
         preset.config.optptr("printer_vendor", true);
         preset.config.optptr("printer_model", true);
         preset.config.optptr("printer_variant", true);
-        preset.config.optptr("default_print_profile", true);
-        preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
+        if (i == 0) {
+            preset.config.optptr("default_print_profile", true);
+            preset.config.option<ConfigOptionStrings>("default_filament_profile", true)->values = { "" };
+        } else 
+            preset.config.optptr("default_sla_material_profile", true);
+        // default_sla_material_profile
         preset.inherits();
     }
 
@@ -315,7 +319,7 @@ void PresetBundle::load_selections(const AppConfig &config)
     sla_materials.select_preset_by_name_strict(initial_sla_material_profile_name);
     printers.select_preset_by_name(initial_printer_profile_name, true);
 
-    if (printers.get_selected_preset().printer_technology() == ptFFF){
+    if (printers.get_selected_preset().printer_technology() == ptFFF) {
         // Load the names of the other filament profiles selected for a multi-material printer.
         auto   *nozzle_diameter = dynamic_cast<const ConfigOptionFloats*>(printers.get_selected_preset().config.option("nozzle_diameter"));
         size_t  num_extruders = nozzle_diameter->values.size();
@@ -342,8 +346,8 @@ void PresetBundle::load_selections(const AppConfig &config)
 // Export selections (current print, current filaments, current printer) into config.ini
 void PresetBundle::export_selections(AppConfig &config)
 {
-    assert(filament_presets.size() >= 1);
-    assert(filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
+	assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() >= 1);
+	assert(this->printers.get_edited_preset().printer_technology() != ptFFF || filament_presets.size() > 1 || filaments.get_selected_preset_name() == filament_presets.front());
     config.clear_section("presets");
     config.set("presets", "print",        prints.get_selected_preset_name());
     config.set("presets", "filament",     filament_presets.front());
@@ -975,7 +979,7 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
         } else if (boost::starts_with(section.first, "sla_material:")) {
             presets = &this->sla_materials;
             loaded  = &loaded_sla_materials;
-            preset_name = section.first.substr(9);
+            preset_name = section.first.substr(13);
         } else if (boost::starts_with(section.first, "printer:")) {
             presets = &this->printers;
             loaded  = &loaded_printers;
@@ -1025,25 +1029,25 @@ size_t PresetBundle::load_configbundle(const std::string &path, unsigned int fla
             continue;
         if (presets != nullptr) {
             // Load the print, filament or printer preset.
-            const DynamicPrintConfig &default_config = presets->default_preset().config;
-            DynamicPrintConfig config(default_config);
-            for (auto &kvp : section.second)
-                config.set_deserialize(kvp.first, kvp.second.data());
+            const DynamicPrintConfig *default_config = nullptr;
+            DynamicPrintConfig        config;
+            if (presets == &this->printers) {
+                // Select the default config based on the printer_technology field extracted from kvp.
+                DynamicPrintConfig config_src;
+                for (auto &kvp : section.second)
+                    config_src.set_deserialize(kvp.first, kvp.second.data());
+                default_config = &presets->default_preset_for(config_src).config;
+                config = *default_config;
+                config.apply(config_src);
+            } else {
+                default_config = &presets->default_preset().config;
+                config = *default_config;
+                for (auto &kvp : section.second)
+                    config.set_deserialize(kvp.first, kvp.second.data());
+            }
             Preset::normalize(config);
             // Report configuration fields, which are misplaced into a wrong group.
-            std::string incorrect_keys;
-            size_t      n_incorrect_keys = 0;
-            for (const std::string &key : config.keys())
-                if (! default_config.has(key)) {
-                    if (incorrect_keys.empty())
-                        incorrect_keys = key;
-                    else {
-                        incorrect_keys += ", ";
-                        incorrect_keys += key;
-                    }
-                    config.erase(key);
-                    ++ n_incorrect_keys;
-                }
+            std::string incorrect_keys = Preset::remove_invalid_keys(config, *default_config);
             if (! incorrect_keys.empty())
                 BOOST_LOG_TRIVIAL(error) << "Error in a Vendor Config Bundle \"" << path << "\": The printer preset \"" << 
                     section.first << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
@@ -1207,12 +1211,11 @@ void PresetBundle::update_compatible_with_printer(bool select_other_if_incompati
     }
     case ptSLA:
     {
-        const std::string              &prefered_print_profile     = printer_preset.config.opt_string("default_print_profile");
-        const std::vector<std::string> &prefered_filament_profiles = printer_preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
-        prefered_print_profile.empty() ?
+        const std::string              &prefered_sla_material_profile     = printer_preset.config.opt_string("default_sla_material_profile");
+        prefered_sla_material_profile.empty() ?
             this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible) :
 			this->sla_materials.update_compatible_with_printer(printer_preset, select_other_if_incompatible,
-                [&prefered_print_profile](const std::string& profile_name){ return profile_name == prefered_print_profile; });        
+                [&prefered_sla_material_profile](const std::string& profile_name){ return profile_name == prefered_sla_material_profile; });        
     }
     }
 }

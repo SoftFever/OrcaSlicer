@@ -74,7 +74,7 @@ void BackgroundSlicingProcess::thread_proc()
 					this->set_step_done(bspsGCodeFinalize);
 			    }
 		    }
-		} catch (CanceledException &ex) {
+		} catch (CanceledException & /* ex */) {
 			// Canceled, this is all right.
 			assert(m_print->canceled());
 		} catch (std::exception &ex) {

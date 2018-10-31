@@ -213,6 +213,7 @@ public:
 	wxString	title()	 const { return m_title; }
 	std::string	name()	 const { return m_name; }
     Preset::Type type()  const { return m_type; }
+    virtual bool supports_printer_technology(const PrinterTechnology tech) = 0;
 
 	void		create_preset_tab();
 	void		load_current_preset();
@@ -291,6 +292,7 @@ public:
 	void		reload_config() override;
 	void		update() override;
 	void		OnActivate() override;
+    bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 };
 
 //Slic3r::GUI::Tab::Filament;
@@ -308,6 +310,7 @@ public:
 	void		reload_config() override;
 	void		update() override;
 	void		OnActivate() override;
+    bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptFFF; }
 };
 
 //Slic3r::GUI::Tab::Printer;
@@ -321,9 +324,9 @@ class TabPrinter : public Tab
     std::vector<PageShp>			m_pages_fff;
     std::vector<PageShp>			m_pages_sla;
 public:
-	wxButton*	m_serial_test_btn;
-	wxButton*	m_print_host_test_btn;
-	wxButton*	m_printhost_browse_btn;
+	wxButton*	m_serial_test_btn = nullptr;
+	wxButton*	m_print_host_test_btn = nullptr;
+	wxButton*	m_printhost_browse_btn = nullptr;
 
 	size_t		m_extruders_count;
 	size_t		m_extruders_count_old = 0;
@@ -349,6 +352,7 @@ public:
 	void		build_extruder_pages();
 	void		on_preset_loaded() override;
 	void		init_options_list() override;
+    bool 		supports_printer_technology(const PrinterTechnology /* tech */) override { return true; }
 };
 
 class TabSLAMaterial : public Tab
@@ -362,6 +366,7 @@ public:
 	void		build() override;
 	void		update() override;
     void		init_options_list() override;
+    bool 		supports_printer_technology(const PrinterTechnology tech) override { return tech == ptSLA; }
 };
 
 class SavePresetWindow :public wxDialog

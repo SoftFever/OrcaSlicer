@@ -210,23 +210,20 @@ void Preset::normalize(DynamicPrintConfig &config)
     }
 }
 
-DynamicPrintConfig& Preset::load(const std::vector<std::string> &keys, const StaticPrintConfig &defaults)
+std::string Preset::remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config)
 {
-    // Set the configuration from the defaults.
-    this->config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
-    if (! this->is_default) {
-        // Load the preset file, apply preset values on top of defaults.
-        try {
-            this->config.load_from_ini(this->file);
-            Preset::normalize(this->config);
-        } catch (const std::ifstream::failure &err) {
-            throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + this->file + "\n\tReason: " + err.what());
-        } catch (const std::runtime_error &err) {
-            throw std::runtime_error(std::string("Failed loading the preset file: ") + this->file + "\n\tReason: " + err.what());
+    std::string incorrect_keys;
+    for (const std::string &key : config.keys())
+        if (! default_config.has(key)) {
+            if (incorrect_keys.empty())
+                incorrect_keys = key;
+            else {
+                incorrect_keys += ", ";
+                incorrect_keys += key;
+            }
+            config.erase(key);
         }
-    }
-    this->loaded = true;
-    return this->config;
+    return incorrect_keys;
 }
 
 void Preset::save()
@@ -390,6 +387,7 @@ const std::vector<std::string>& Preset::sla_material_options()
             "exposure_time", "initial_exposure_time",
             "material_correction_printing", "material_correction_curing",
             "material_notes",
+            "default_sla_material_profile",
             "compatible_printers",
             "compatible_printers_condition", "inherits"
         };
@@ -436,7 +434,8 @@ void PresetCollection::add_default_preset(const std::vector<std::string> &keys, 
 {
     // Insert just the default preset.
     m_presets.emplace_back(Preset(this->type(), preset_name, true));
-    m_presets.back().load(keys, defaults);
+	m_presets.back().config.apply_only(defaults, keys.empty() ? defaults.keys() : keys);
+	m_presets.back().loaded = true;
     ++ m_num_default_presets;
 }
 
@@ -446,7 +445,6 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
 {
 	boost::filesystem::path dir = boost::filesystem::canonical(boost::filesystem::path(dir_path) / subdir).make_preferred();
 	m_dir_path = dir.string();
-    t_config_option_keys keys = this->default_preset().config.keys();
     std::string errors_cummulative;
 	for (auto &dir_entry : boost::filesystem::directory_iterator(dir))
         if (boost::filesystem::is_regular_file(dir_entry.status()) && boost::algorithm::iends_with(dir_entry.path().filename().string(), ".ini")) {
@@ -462,8 +460,26 @@ void PresetCollection::load_presets(const std::string &dir_path, const std::stri
             try {
                 Preset preset(m_type, name, false);
                 preset.file = dir_entry.path().string();
-                //FIXME One should initialize with SLAFullPrintConfig for the SLA profiles!
-                preset.load(keys, static_cast<const HostConfig&>(FullPrintConfig::defaults()));
+                // Load the preset file, apply preset values on top of defaults.
+                try {
+                    DynamicPrintConfig config;
+                    config.load_from_ini(preset.file);
+                    // Find a default preset for the config. The PrintPresetCollection provides different default preset based on the "printer_technology" field.
+					const Preset &default_preset = this->default_preset_for(config);
+                    preset.config = default_preset.config;
+                    preset.config.apply(std::move(config));
+                    Preset::normalize(preset.config);
+                    // Report configuration fields, which are misplaced into a wrong group.
+					std::string incorrect_keys = Preset::remove_invalid_keys(config, default_preset.config);
+                    if (! incorrect_keys.empty())
+                        BOOST_LOG_TRIVIAL(error) << "Error in a preset file: The preset \"" <<
+                            preset.file << "\" contains the following incorrect keys: " << incorrect_keys << ", which were removed";
+                    preset.loaded = true;
+                } catch (const std::ifstream::failure &err) {
+					throw std::runtime_error(std::string("The selected preset cannot be loaded: ") + preset.file + "\n\tReason: " + err.what());
+                } catch (const std::runtime_error &err) {
+					throw std::runtime_error(std::string("Failed loading the preset file: ") + preset.file + "\n\tReason: " + err.what());
+                }
                 m_presets.emplace_back(preset);
             } catch (const std::runtime_error &err) {
                 errors_cummulative += err.what();
@@ -491,8 +507,8 @@ static bool profile_print_params_same(const DynamicPrintConfig &cfg1, const Dyna
     // Following keys are used by the UI, not by the slicing core, therefore they are not important
     // when comparing profiles for equality. Ignore them.
     for (const char *key : { "compatible_printers", "compatible_printers_condition", "inherits", 
-                             "print_settings_id", "filament_settings_id", "printer_settings_id",
-                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile" })
+                             "print_settings_id", "filament_settings_id", "sla_material_settings_id", "printer_settings_id",
+                             "printer_model", "printer_variant", "default_print_profile", "default_filament_profile", "default_sla_material_profile" })
         diff.erase(std::remove(diff.begin(), diff.end(), key), diff.end());
     // Preset with the same name as stored inside the config exists.
     return diff.empty();
@@ -718,7 +734,7 @@ size_t PresetCollection::update_compatible_with_printer_internal(const Preset &a
         Preset &preset_edited   = selected ? m_edited_preset : preset_selected;
         if (! preset_edited.update_compatible_with_printer(active_printer, &config) &&
             selected && unselect_if_incompatible)
-            m_idx_selected = (size_t)-1;
+            m_idx_selected = -1;
         if (selected)
             preset_selected.is_compatible = preset_edited.is_compatible;
     }
@@ -1016,6 +1032,12 @@ std::string PresetCollection::path_from_name(const std::string &new_name) const
 {
 	std::string file_name = boost::iends_with(new_name, ".ini") ? new_name : (new_name + ".ini");
     return (boost::filesystem::path(m_dir_path) / file_name).make_preferred().string();
+}
+
+const Preset& PrinterPresetCollection::default_preset_for(const DynamicPrintConfig &config) const 
+{ 
+    const ConfigOptionEnumGeneric *opt_printer_technology = config.opt<ConfigOptionEnumGeneric>("printer_technology");
+	return this->default_preset((opt_printer_technology == nullptr || opt_printer_technology->value == 0) ? 0 : 1);
 }
 
 } // namespace Slic3r

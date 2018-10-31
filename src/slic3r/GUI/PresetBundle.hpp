@@ -41,7 +41,7 @@ public:
     PresetCollection            prints;
     PresetCollection            filaments;
     PresetCollection            sla_materials;
-    PresetCollection            printers;
+    PrinterPresetCollection     printers;
     // Filament preset names for a multi-extruder or multi-material print.
     // extruders.size() should be the same as printers.get_edited_preset().config.nozzle_diameter.size()
     std::vector<std::string>    filament_presets;

@@ -125,9 +125,6 @@ public:
     // Configuration data, loaded from a file, or set from the defaults.
     DynamicPrintConfig  config;
 
-    // Load this profile for the following keys only.
-    DynamicPrintConfig& load(const std::vector<std::string> &keys, const StaticPrintConfig &defaults);
-
     void                save();
 
     // Return a label of this preset, consisting of a name and a "(modified)" suffix, if this preset is dirty.
@@ -177,8 +174,10 @@ public:
     static const std::vector<std::string>&  sla_printer_options();
     static const std::vector<std::string>&  sla_material_options();
 
-	static void update_suffix_modified();
-    static void normalize(DynamicPrintConfig &config);
+	static void                             update_suffix_modified();
+    static void                             normalize(DynamicPrintConfig &config);
+    // Report configuration fields, which are misplaced into a wrong group, remove them from the config.
+    static std::string                      remove_invalid_keys(DynamicPrintConfig &config, const DynamicPrintConfig &default_config);
 
 protected:
     friend class        PresetCollection;
@@ -200,9 +199,11 @@ public:
     typedef std::deque<Preset>::iterator Iterator;
     typedef std::deque<Preset>::const_iterator ConstIterator;
     Iterator        begin() { return m_presets.begin() + m_num_default_presets; }
-    ConstIterator   begin() const { return m_presets.begin() + m_num_default_presets; }
+    ConstIterator   begin() const { return m_presets.cbegin() + m_num_default_presets; }
+    ConstIterator   cbegin() const { return m_presets.cbegin() + m_num_default_presets; }
     Iterator        end() { return m_presets.end(); }
-    ConstIterator   end() const { return m_presets.end(); }
+    ConstIterator   end() const { return m_presets.cend(); }
+    ConstIterator   cend() const { return m_presets.cend(); }
 
     void            reset(bool delete_files);
 
@@ -279,8 +280,9 @@ public:
 	static const std::string&	get_suffix_modified();
 
     // Return a preset possibly with modifications.
-	Preset&			default_preset()			{ return m_presets.front(); }
-    const Preset&   default_preset() const      { return m_presets.front(); }
+	Preset&			default_preset(size_t idx = 0)		 { assert(idx < m_num_default_presets); return m_presets[idx]; }
+	const Preset&   default_preset(size_t idx = 0) const { assert(idx < m_num_default_presets); return m_presets[idx]; }
+	virtual const Preset& default_preset_for(const DynamicPrintConfig & /* config */) const { return this->default_preset(); }
     // Return a preset by an index. If the preset is active, a temporary copy is returned.
     Preset&         preset(size_t idx)          { return (int(idx) == m_idx_selected) ? m_edited_preset : m_presets[idx]; }
     const Preset&   preset(size_t idx) const    { return const_cast<PresetCollection*>(this)->preset(idx); }
@@ -438,6 +440,16 @@ private:
 
     // to access select_preset_by_name_strict()
     friend class PresetBundle;
+};
+
+// Printer supports the FFF and SLA technologies, with different set of configuration values,
+// therefore this PresetCollection needs to handle two defaults.
+class PrinterPresetCollection : public PresetCollection
+{
+public:
+    PrinterPresetCollection(Preset::Type type, const std::vector<std::string> &keys, const Slic3r::StaticPrintConfig &defaults, const std::string &default_name = "- default -") :
+		PresetCollection(type, keys, defaults, default_name) {}
+    const Preset&   default_preset_for(const DynamicPrintConfig &config) const override;
 };
 
 } // namespace Slic3r

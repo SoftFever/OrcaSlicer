@@ -1276,8 +1276,11 @@ public:
     void                read_cli(const std::vector<std::string> &tokens, t_config_option_keys* extra);
     bool                read_cli(int argc, char** argv, t_config_option_keys* extra);
 
-private:
     typedef std::map<t_config_option_key,ConfigOption*> t_options_map;
+    t_options_map::const_iterator cbegin() const { return options.cbegin(); }
+    t_options_map::const_iterator cend()   const { return options.cend(); }
+
+private:
     t_options_map options;
 };
 

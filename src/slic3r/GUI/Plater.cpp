@@ -418,7 +418,7 @@ struct Sidebar::priv
 
 void Sidebar::priv::show_preset_comboboxes()
 {
-    const bool showSLA = wxGetApp().preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA;
+    const bool showSLA = wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() == ptSLA;
 
     wxWindowUpdateLocker noUpdates(wxGetApp().mainframe);
 
@@ -562,40 +562,49 @@ void Sidebar::remove_unused_filament_combos(const int current_extruder_count)
 
 void Sidebar::update_presets(Preset::Type preset_type)
 {
+	PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+
     switch (preset_type) {
     case Preset::TYPE_FILAMENT:
         if (p->combos_filament.size() == 1) {
             // Single filament printer, synchronize the filament presets.
-            const std::string &name = wxGetApp().preset_bundle->filaments.get_selected_preset().name;
-            wxGetApp().preset_bundle->set_filament_preset(0, name);
+			const std::string &name = preset_bundle.filaments.get_selected_preset().name;
+			preset_bundle.set_filament_preset(0, name);
         }
 
         for (size_t i = 0; i < p->combos_filament.size(); i++) {
-            wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
+			preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
         }
 
         break;
 
     case Preset::TYPE_PRINT:
-        wxGetApp().preset_bundle->prints.update_platter_ui(p->combo_print);
+		preset_bundle.prints.update_platter_ui(p->combo_print);
         break;
 
     case Preset::TYPE_SLA_MATERIAL:
-        wxGetApp().preset_bundle->sla_materials.update_platter_ui(p->combo_sla_material);
+		preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
         break;
 
-    case Preset::TYPE_PRINTER:
-        // Update the print choosers to only contain the compatible presets, update the dirty flags.
-        wxGetApp().preset_bundle->prints.update_platter_ui(p->combo_print);
-        // Update the printer choosers, update the dirty flags.
-        wxGetApp().preset_bundle->printers.update_platter_ui(p->combo_printer);
-        // Update the filament choosers to only contain the compatible presets, update the color preview,
-        // update the dirty flags.
-        for (size_t i = 0; i < p->combos_filament.size(); i++) {
-            wxGetApp().preset_bundle->update_platter_filament_ui(i, p->combos_filament[i]);
-        }
-        p->show_preset_comboboxes();
-        break;
+	case Preset::TYPE_PRINTER:
+	{
+		PrinterTechnology printer_technology = preset_bundle.printers.get_edited_preset().printer_technology();
+		// Update the print choosers to only contain the compatible presets, update the dirty flags.
+		if (printer_technology == ptFFF)
+			preset_bundle.prints.update_platter_ui(p->combo_print);
+		else
+			preset_bundle.sla_materials.update_platter_ui(p->combo_sla_material);
+		// Update the printer choosers, update the dirty flags.
+		preset_bundle.printers.update_platter_ui(p->combo_printer);
+		// Update the filament choosers to only contain the compatible presets, update the color preview,
+		// update the dirty flags.
+        if (printer_technology == ptFFF) {
+            for (size_t i = 0; i < p->combos_filament.size(); ++ i)
+                preset_bundle.update_platter_filament_ui(i, p->combos_filament[i]);
+		}
+		p->show_preset_comboboxes();
+		break;
+	}
 
     default: break;
     }

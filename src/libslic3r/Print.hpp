@@ -495,7 +495,7 @@ public:
 	};
     CancelStatus        cancel_status() const { return m_cancel_status; }
     // Has the calculation been canceled?
-    bool                canceled() const { return m_cancel_status; }
+	bool                canceled() const { return m_cancel_status != NOT_CANCELED; }
     // Cancel the running computation. Stop execution of all the background threads.
 	void                cancel() { m_cancel_status = CANCELED_BY_USER; }
 	void                cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }

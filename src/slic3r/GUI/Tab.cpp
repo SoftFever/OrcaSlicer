@@ -627,7 +627,8 @@ void Tab::load_config(const DynamicPrintConfig& config)
 }
 
 // Reload current $self->{config} (aka $self->{presets}->edited_preset->config) into the UI fields.
-void Tab::reload_config(){
+void Tab::reload_config()
+{
 	Freeze();
 	for (auto page : m_pages)
 		page->reload_config();
@@ -787,6 +788,7 @@ void Tab::update_preset_description_line()
 							", ver: " + parent->vendor->config_version.to_string();
 		if (name() == "printer"){
 			const std::string              &printer_model = preset.config.opt_string("printer_model");
+			//FIXME add prefered_sla_material_profile for SLA
 			const std::string              &default_print_profile = preset.config.opt_string("default_print_profile");
 			const std::vector<std::string> &default_filament_profiles = preset.config.option<ConfigOptionStrings>("default_filament_profile")->values;
 			if (!printer_model.empty())
@@ -2045,7 +2047,8 @@ void TabPrinter::on_preset_loaded()
 void TabPrinter::update_pages()
 {
     // update m_pages ONLY if printer technology is changed
-    if (m_presets->get_edited_preset().printer_technology() == m_printer_technology)
+    const PrinterTechnology new_printer_technology = m_presets->get_edited_preset().printer_technology();
+    if (new_printer_technology == m_printer_technology)
         return;
 
     // hide all old pages
@@ -2057,7 +2060,8 @@ void TabPrinter::update_pages()
 
     // build Tab according to the technology, if it's not exist jet OR
     // set m_pages_(technology after changing) to m_pages
-    if (m_presets->get_edited_preset().printer_technology() == ptFFF)
+    // m_printer_technology will be set by Tab::load_current_preset()
+    if (new_printer_technology == ptFFF)
         m_pages_fff.empty() ? build_fff() : m_pages.swap(m_pages_fff);
     else 
         m_pages_sla.empty() ? build_sla() : m_pages.swap(m_pages_sla);
@@ -2207,35 +2211,35 @@ void Tab::load_current_preset()
 		update_tab_ui();
 
         // update show/hide tabs
-        if (m_name == "printer"){
+        if (m_name == "printer") {
             PrinterTechnology& printer_technology = m_presets->get_edited_preset().printer_technology();
             if (printer_technology != static_cast<TabPrinter*>(this)->m_printer_technology)
             {
-                for (auto& tab : wxGetApp().mainframe->get_preset_tabs()){
+                for (auto& tab : wxGetApp().mainframe->get_preset_tabs()) {
                     if (tab.technology != printer_technology)
                     {
                         int page_id = wxGetApp().tab_panel()->FindPage(tab.panel);
                         wxGetApp().tab_panel()->GetPage(page_id)->Show(false);
                         wxGetApp().tab_panel()->RemovePage(page_id);
-                    }
-                    else
+                    } else
                         wxGetApp().tab_panel()->InsertPage(wxGetApp().tab_panel()->FindPage(this), tab.panel, tab.panel->title());
                 }
-
                 static_cast<TabPrinter*>(this)->m_printer_technology = printer_technology;
             }
-        }
-
-		on_presets_changed();
-
-		if (name() == "print")
-			update_frequently_changed_parameters();
-		if (m_name == "printer"){
-			static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
-			const Preset* parent_preset = m_presets->get_selected_preset_parent();
-			static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
-				static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
+			on_presets_changed();
+			if (printer_technology == ptFFF) {
+				static_cast<TabPrinter*>(this)->m_initial_extruders_count = static_cast<TabPrinter*>(this)->m_extruders_count;
+				const Preset* parent_preset = m_presets->get_selected_preset_parent();
+				static_cast<TabPrinter*>(this)->m_sys_extruders_count = parent_preset == nullptr ? 0 :
+					static_cast<const ConfigOptionFloats*>(parent_preset->config.option("nozzle_diameter"))->values.size();
+			}
 		}
+		else {
+			on_presets_changed();
+			if (m_name == "print")
+				update_frequently_changed_parameters();
+		}
+
 		m_opt_status_value = (m_presets->get_selected_preset_parent() ? osSystemValue : 0) | osInitValue;
 		init_options_list();
 		update_changed_ui();
@@ -2543,7 +2547,7 @@ void Tab::delete_preset()
 	// Delete the file and select some other reasonable preset.
 	// The 'external' presets will only be removed from the preset list, their files will not be deleted.
 	try{ m_presets->delete_current_preset(); }
-	catch (const std::exception &e)
+	catch (const std::exception & /* e */)
 	{
 		return;
 	}

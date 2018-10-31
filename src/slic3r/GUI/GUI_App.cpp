@@ -91,7 +91,7 @@ bool GUI_App::OnInit()
     load_language();
 
     // Suppress the '- default -' presets.
-    preset_bundle->set_default_suppressed(app_config->get("no_defaults").empty() ? false : true);
+    preset_bundle->set_default_suppressed(app_config->get("no_defaults") == "1");
     //     eval{ 
     preset_bundle->load_presets(*app_config);
     //     };
@@ -601,8 +601,9 @@ void GUI_App::add_config_menu(wxMenuBar *menu)
 bool GUI_App::check_unsaved_changes()
 {
     std::string dirty;
+    PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
     for (Tab *tab : tabs_list)
-        if (tab->current_preset_is_dirty())
+        if (tab->supports_printer_technology(printer_technology) && tab->current_preset_is_dirty())
             if (dirty.empty())
                 dirty = tab->name();
             else
@@ -636,9 +637,10 @@ void GUI_App::delete_tab_from_list(Tab* tab)
 // Update UI / Tabs to reflect changes in the currently loaded presets
 void GUI_App::load_current_presets()
 {
-    for (Tab *tab : tabs_list) {
-        tab->load_current_preset();
-    }
+    PrinterTechnology printer_technology = preset_bundle->printers.get_edited_preset().printer_technology();
+    for (Tab *tab : tabs_list)
+        if (tab->supports_printer_technology(printer_technology))
+            tab->load_current_preset();
 }
 
 Sidebar& GUI_App::sidebar()

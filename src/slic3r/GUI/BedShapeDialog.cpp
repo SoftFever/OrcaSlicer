@@ -234,13 +234,13 @@ void BedShapePanel::update_shape()
 		Vec2d rect_origin(Vec2d::Zero());
 		try{
 			rect_size = boost::any_cast<Vec2d>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_size")); }
-		catch (const std::exception &e){
+		catch (const std::exception & /* e */){
 			return;
 		}
 		try{
 			rect_origin = boost::any_cast<Vec2d>(m_optgroups[SHAPE_RECTANGULAR]->get_value("rect_origin"));
 		}
-		catch (const std::exception &e){
+		catch (const std::exception & /* e */){
 			return;}
 		
 		auto x = rect_size(0);
@@ -269,7 +269,7 @@ void BedShapePanel::update_shape()
 		try{
 			diameter = boost::any_cast<double>(m_optgroups[SHAPE_CIRCULAR]->get_value("diameter"));
 		}
-		catch (const std::exception &e){
+		catch (const std::exception & /* e */){
 			return;
 		} 
  		if (diameter == 0.0) return ;
