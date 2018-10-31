@@ -1426,8 +1426,10 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
         }
     }
 
+#if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
         _synchronize_unselected_instances();
+#endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
 }
@@ -1453,8 +1455,10 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
         }
     }
 
+#if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
         _synchronize_unselected_instances();
+#endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
 }
@@ -1471,8 +1475,10 @@ void GLCanvas3D::Selection::mirror(Axis axis)
             (*m_volumes)[i]->set_mirror(axis, -(*m_volumes)[i]->get_mirror(axis));
     }
 
+#if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
         _synchronize_unselected_instances();
+#endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
 }
@@ -1498,8 +1504,7 @@ void GLCanvas3D::Selection::translate(unsigned int object_idx, const Vec3d& disp
         if (done.size() == m_volumes->size())
             break;
 
-        const GLVolume* volume = (*m_volumes)[i];
-        int object_idx = volume->object_idx();
+        int object_idx = (*m_volumes)[i]->object_idx();
         if (object_idx >= 1000)
             continue;
 
@@ -1544,8 +1549,7 @@ void GLCanvas3D::Selection::translate(unsigned int object_idx, unsigned int inst
         if (done.size() == m_volumes->size())
             break;
 
-        const GLVolume* volume = (*m_volumes)[i];
-        int object_idx = volume->object_idx();
+        int object_idx = (*m_volumes)[i]->object_idx();
         if (object_idx >= 1000)
             continue;
 
