@@ -225,6 +225,9 @@ void ObjectManipulation::update_settings_list()
                 optgroup->label_width = 150;
                 optgroup->sidetext_width = 70;
 
+                optgroup->m_on_change = [](const t_config_option_key& opt_id, const boost::any& value) {
+                                        wxGetApp().obj_list()->part_settings_changed(); };
+
                 for (auto& opt : cat.second)
                 {
                     if (opt == "extruder")

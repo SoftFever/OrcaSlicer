@@ -2608,7 +2608,7 @@ wxGLCanvas* Plater::canvas3D()
     return p->canvas3D;
 }
 
-void Plater::changed_object_settings(int obj_idx)
+void Plater::changed_object(int obj_idx)
 {
     if (obj_idx < 0)
         return;
@@ -2622,6 +2622,7 @@ void Plater::changed_object_settings(int obj_idx)
         auto model_object = p->model.objects[obj_idx];
         model_object->center_around_origin();
         model_object->ensure_on_bed();
+        _3DScene::reload_scene(p->canvas3D, false);
     }
 
     // update print
@@ -2632,7 +2633,6 @@ void Plater::changed_object_settings(int obj_idx)
         auto selections = p->collect_selections();
         _3DScene::set_objects_selections(p->canvas3D, selections);
 #endif // !ENABLE_EXTENDED_SELECTION
-        _3DScene::reload_scene(p->canvas3D, false);
 #if !ENABLE_MODIFIED_CAMERA_TARGET
         _3DScene::zoom_to_volumes(p->canvas3D);
 #endif // !ENABLE_MODIFIED_CAMERA_TARGET

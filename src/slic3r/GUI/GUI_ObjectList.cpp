@@ -150,7 +150,8 @@ void ObjectList::set_tooltip_for_item(const wxPoint& pt)
         GetMainWindow()->SetToolTip(""); // hide tooltip
 }
 
-wxPoint ObjectList::get_mouse_position_in_control() {
+wxPoint ObjectList::get_mouse_position_in_control()
+{
     const wxPoint& pt = wxGetMousePosition();
 //     wxWindow* win = GetMainWindow();
 //     wxPoint screen_pos = win->GetScreenPosition();
@@ -159,10 +160,9 @@ wxPoint ObjectList::get_mouse_position_in_control() {
 
 int ObjectList::get_selected_obj_idx() const
 {
-    if (GetSelectedItemsCount() == 1) {
-        auto item = GetSelection();
-        return m_objects_model->GetIdByItem(item);
-    }
+    if (GetSelectedItemsCount() == 1)
+        return m_objects_model->GetIdByItem(m_objects_model->GetTopParent(GetSelection()));
+
     return -1;
 }
 
@@ -687,6 +687,7 @@ void ObjectList::load_part( ModelObject* model_object,
 {
     wxWindow* parent = wxGetApp().tab_panel()->GetPage(0);
 
+    m_parts_changed = false;
     wxArrayString input_files;
     wxGetApp().open_model(parent, input_files);
     for (int i = 0; i < input_files.size(); ++i) {
@@ -739,6 +740,7 @@ void ObjectList::load_lambda(   ModelObject* model_object,
 {
     auto dlg = new LambdaObjectDialog(GetMainWindow());
     if (dlg->ShowModal() == wxID_CANCEL) {
+        m_parts_changed = false;
         return;
     }
 
@@ -1002,9 +1004,17 @@ bool ObjectList::is_splittable_object(const bool split_part)
     return splittable;
 }
 
+void ObjectList::part_settings_changed()
+{
+    m_part_settings_changed = true;
+    wxGetApp().plater()->changed_object(get_selected_obj_idx());
+    m_part_settings_changed = false;
+}
+
 void ObjectList::parts_changed(int obj_idx)
 {
-    wxGetApp().mainframe->m_plater->changed_object_settings(obj_idx);
+    wxGetApp().plater()->changed_object(get_selected_obj_idx());
+    m_parts_changed = false;
 }
 
 void ObjectList::part_selection_changed()
