@@ -32,6 +32,9 @@
 #include <I18N.hpp>
 #include <wx/wupdlock.h>
 #include "SysInfoDialog.hpp"
+#if ENABLE_IMGUI
+#include <imgui\imgui.h>
+#endif // ENABLE_IMGUI
 
 namespace Slic3r {
 namespace GUI {
@@ -57,6 +60,11 @@ static std::string libslic3r_translate_callback(const char *s) { return wxGetTra
 IMPLEMENT_APP(GUI_App)
 bool GUI_App::OnInit()
 {
+#if ENABLE_IMGUI
+    if (!m_imgui.init())
+        return false;
+#endif // ENABLE_IMGUI
+
     SetAppName("Slic3rPE-alpha");
     SetAppDisplayName("Slic3r Prusa Edition");
 
@@ -176,6 +184,14 @@ bool GUI_App::OnInit()
     mainframe->Show(true);
     return true;
 }
+
+#if ENABLE_IMGUI
+int GUI_App::OnExit()
+{
+    m_imgui.shutdown();
+    return 0;
+}
+#endif // ENABLE_IMGUI
 
 unsigned GUI_App::get_colour_approx_luma(const wxColour &colour)
 {

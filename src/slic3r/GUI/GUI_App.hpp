@@ -4,6 +4,9 @@
 #include <string>
 #include "PrintConfig.hpp"
 #include "MainFrame.hpp"
+#if ENABLE_IMGUI
+#include "ImGuiWrapper.hpp"
+#endif // ENABLE_IMGUI
 
 #include <wx/app.h>
 #include <wx/colour.h>
@@ -82,8 +85,15 @@ class GUI_App : public wxApp
 
     wxLocale*	    m_wxLocale{ nullptr };
 
+#if ENABLE_IMGUI
+    ImGuiWrapper    m_imgui;
+#endif // ENABLE_IMGUI
+
 public:
     bool            OnInit() override;
+#if ENABLE_IMGUI
+    int             OnExit() override;
+#endif // ENABLE_IMGUI
     GUI_App() : wxApp() {}
 
     unsigned        get_colour_approx_luma(const wxColour &colour);
@@ -150,6 +160,10 @@ public:
     wxNotebook*     tab_panel() const ;
 
     std::vector<Tab *>      tabs_list;
+
+#if ENABLE_IMGUI
+    ImGuiWrapper& get_imgui() { return m_imgui; }
+#endif // ENABLE_IMGUI
 
 };
 DECLARE_APP(GUI_App)

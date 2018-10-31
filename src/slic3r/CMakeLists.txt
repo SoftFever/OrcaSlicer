@@ -82,6 +82,8 @@ add_library(libslic3r_gui STATIC
     GUI/BonjourDialog.hpp
     GUI/ButtonsDescription.cpp
     GUI/ButtonsDescription.hpp
+    GUI/ImGuiWrapper.hpp
+    GUI/ImGuiWrapper.cpp
     Config/Snapshot.cpp
     Config/Snapshot.hpp
     Config/Version.cpp

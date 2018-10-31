@@ -686,6 +686,20 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
         m_gizmos[Z].render(selection);
 }
 
+#if ENABLE_IMGUI
+void GLGizmoRotate3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const
+{
+    Vec3d rotation(Geometry::rad2deg(m_gizmos[0].get_angle()), Geometry::rad2deg(m_gizmos[1].get_angle()), Geometry::rad2deg(m_gizmos[2].get_angle()));
+    std::string label = _("Rotation (deg)");
+
+    wxGetApp().get_imgui().set_next_window_pos(x, y, ImGuiCond_Always);
+    wxGetApp().get_imgui().set_next_window_bg_alpha(0.5f);
+    wxGetApp().get_imgui().begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    wxGetApp().get_imgui().input_vec3("", rotation, 100.0f, "%.2f");
+    wxGetApp().get_imgui().end();
+}
+#endif // ENABLE_IMGUI
+
 const float GLGizmoScale3D::Offset = 5.0f;
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
@@ -972,6 +986,21 @@ void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selectio
     render_grabbers_for_picking(selection.get_bounding_box());
 }
 
+#if ENABLE_IMGUI
+void GLGizmoScale3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const
+{
+    bool single_instance = selection.is_single_full_instance();
+    Vec3d scale = single_instance ? 100.0 * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor() : 100.0 * m_scale;
+    std::string label = _("Scale (%)");
+
+    wxGetApp().get_imgui().set_next_window_pos(x, y, ImGuiCond_Always);
+    wxGetApp().get_imgui().set_next_window_bg_alpha(0.5f);
+    wxGetApp().get_imgui().begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    wxGetApp().get_imgui().input_vec3("", scale, 100.0f, "%.2f");
+    wxGetApp().get_imgui().end();
+}
+#endif // ENABLE_IMGUI
+
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {
     unsigned int grabbers_count = (unsigned int)m_grabbers.size();
@@ -1184,6 +1213,30 @@ void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
+
+#if ENABLE_IMGUI
+void GLGizmoMove3D::on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const
+{
+    bool show_position = selection.is_single_full_instance();
+    const Vec3d& position = selection.get_bounding_box().center();
+
+    Vec3d displacement = show_position ? position : m_displacement;
+    std::string label = show_position ? _("Position (mm)") : _("Displacement (mm)");
+
+    wxGetApp().get_imgui().set_next_window_pos(x, y, ImGuiCond_Always);
+    wxGetApp().get_imgui().set_next_window_bg_alpha(0.5f);
+    wxGetApp().get_imgui().begin(label, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+    wxGetApp().get_imgui().input_vec3("", displacement, 100.0f, "%.2f");
+
+    if (ImGui::Button("Test"))
+    {
+        std::cout << "WOW" << std::endl;
+    }
+
+
+    wxGetApp().get_imgui().end();
+}
+#endif // ENABLE_IMGUI
 
 double GLGizmoMove3D::calc_projection(const UpdateData& data) const
 {

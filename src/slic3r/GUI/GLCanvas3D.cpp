@@ -2932,6 +2932,9 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
         return;
 
     float cnv_w = (float)canvas.get_canvas_size().get_width();
+#if ENABLE_IMGUI
+    float cnv_h = (float)canvas.get_canvas_size().get_height();
+#endif // ENABLE_IMGUI
     float zoom = canvas.get_camera_zoom();
     float inv_zoom = (zoom != 0.0f) ? 1.0f / zoom : 0.0f;
 
@@ -2946,6 +2949,10 @@ void GLCanvas3D::Gizmos::_render_overlay(const GLCanvas3D& canvas) const
 
         float tex_size = (float)it->second->get_textures_size() * OverlayTexturesScale * inv_zoom;
         GLTexture::render_texture(it->second->get_texture_id(), top_x, top_x + tex_size, top_y - tex_size, top_y);
+#if ENABLE_IMGUI
+        if (it->second->get_state() == GLGizmoBase::On)
+            it->second->render_input_window(2.0f * OverlayOffsetX + tex_size * zoom, 0.5f * cnv_h - top_y * zoom, selection);
+#endif // ENABLE_IMGUI
         top_y -= (tex_size + scaled_gap_y);
     }
 }
@@ -3745,6 +3752,10 @@ void GLCanvas3D::render()
 
     set_tooltip("");
 
+#if ENABLE_IMGUI
+    wxGetApp().get_imgui().new_frame();
+#endif // ENABLE_IMGUI
+
     // picking pass
     _picking_pass();
 
@@ -3786,6 +3797,10 @@ void GLCanvas3D::render()
     _render_legend_texture();
     _render_toolbar();
     _render_layer_editing_overlay();
+
+#if ENABLE_IMGUI
+    wxGetApp().get_imgui().render();
+#endif // ENABLE_IMGUI
 
     m_canvas->SwapBuffers();
 }
@@ -4446,6 +4461,10 @@ void GLCanvas3D::on_timer(wxTimerEvent& evt)
 
 void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 {
+#if ENABLE_IMGUI
+    wxGetApp().get_imgui().update_mouse_data(evt);
+#endif // ENABLE_IMGUI
+
     Point pos(evt.GetX(), evt.GetY());
 
     int selected_object_idx = m_selection.get_object_idx();
@@ -5302,6 +5321,10 @@ void GLCanvas3D::_resize(unsigned int w, unsigned int h)
 {
     if ((m_canvas == nullptr) && (m_context == nullptr))
         return;
+
+#if ENABLE_IMGUI
+    wxGetApp().get_imgui().set_display_size((float)w, (float)h);
+#endif // ENABLE_IMGUI
 
     // ensures that this canvas is current
 #if ENABLE_USE_UNIQUE_GLCONTEXT

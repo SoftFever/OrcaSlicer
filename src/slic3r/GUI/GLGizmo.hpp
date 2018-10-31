@@ -137,6 +137,10 @@ public:
 
     virtual void create_external_gizmo_widgets(wxWindow *parent);
 
+#if ENABLE_IMGUI
+    void render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const { on_render_input_window(x, y, selection); }
+#endif // ENABLE_IMGUI
+
 protected:
     virtual bool on_init() = 0;
     virtual std::string on_get_name() const = 0;
@@ -154,6 +158,10 @@ protected:
 #endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const = 0;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const = 0;
+
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const {}
+#endif // ENABLE_IMGUI
 
     float picking_color_component(unsigned int id) const;
     void render_grabbers(const BoundingBoxf3& box) const;
@@ -291,6 +299,10 @@ protected:
             g.render_for_picking(selection);
         }
     }
+
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const;
+#endif // ENABLE_IMGUI
 };
 
 class GLGizmoScale3D : public GLGizmoBase
@@ -327,6 +339,10 @@ protected:
 #endif // ENABLE_GIZMOS_RESET
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const;
+#endif // ENABLE_IMGUI
 
 private:
     void render_grabbers_connection(unsigned int id_1, unsigned int id_2) const;
@@ -367,6 +383,10 @@ protected:
     virtual void on_update(const UpdateData& data);
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
     virtual void on_render_for_picking(const GLCanvas3D::Selection& selection) const;
+
+#if ENABLE_IMGUI
+    virtual void on_render_input_window(float x, float y, const GLCanvas3D::Selection& selection) const;
+#endif // ENABLE_IMGUI
 
 private:
     double calc_projection(const UpdateData& data) const;
