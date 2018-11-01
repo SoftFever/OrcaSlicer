@@ -1384,6 +1384,8 @@ wxString PrusaDoubleSlider::get_label(const SelectedSlider& selection) const
 
     if (m_label_koef == 1.0 && m_values.empty())
         return wxString::Format("%d", value);
+    if (value >= m_values.size())
+        return "ErrVal";
 
     const wxString str = m_values.empty() ? 
                          wxNumberFormatter::ToString(m_label_koef*value, 2, wxNumberFormatter::Style_None) :
