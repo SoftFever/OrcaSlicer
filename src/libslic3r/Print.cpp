@@ -410,8 +410,17 @@ void Print::add_model_object(ModelObject* model_object, int idx)
     this->invalidate_all_steps();
 
     // Set the transformation matrix without translation from the first instance.
-    if (! model_object->instances.empty())
-        object->set_trafo(model_object->instances.front()->world_matrix(true));
+    if (! model_object->instances.empty()) {
+        // Trafo and bounding box, both in world coordinate system.
+        Transform3d   trafo = model_object->instances.front()->world_matrix();
+        BoundingBoxf3 bbox  = model_object->instance_bounding_box(0);
+        // Now shift the object up to align it with the print bed.
+        trafo.data()[14] -= bbox.min(2);
+		// and reset the XY translation.
+		trafo.data()[12] = 0;
+		trafo.data()[13] = 0;
+		object->set_trafo(trafo);
+    }
 
     size_t volume_id = 0;
     for (const ModelVolume *volume : model_object->volumes) {
@@ -688,9 +697,9 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
         if (model_instance->is_printable()) {
             trafo.trafo = model_instance->world_matrix();
             // Set the Z axis of the transformation.
-			trafo.copies.front() = Point::new_scale(trafo.trafo.data()[3], trafo.trafo.data()[7]);
-            trafo.trafo.data()[3] = 0;
-            trafo.trafo.data()[7] = 0;
+            trafo.copies.front() = Point::new_scale(trafo.trafo.data()[12], trafo.trafo.data()[13]);
+            trafo.trafo.data()[12] = 0;
+            trafo.trafo.data()[13] = 0;
             auto it = trafos.find(trafo);
             if (it == trafos.end())
                 trafos.emplace(trafo);
