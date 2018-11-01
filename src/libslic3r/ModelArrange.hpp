@@ -672,7 +672,7 @@ void applyResult(
         Radians rot = item.rotation();
         Vec3d foff(off.X*SCALING_FACTOR + batch_offset,
                    off.Y*SCALING_FACTOR,
-                   0.0);
+                   inst_ptr->get_offset()(2));
 
         // write the transformation data into the model instance
         inst_ptr->set_rotation(Z, rot);
