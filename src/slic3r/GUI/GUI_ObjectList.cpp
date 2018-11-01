@@ -960,10 +960,8 @@ void ObjectList::split(const bool split_part)
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-#if ENABLE_EXTENDED_SELECTION
     // restores selection
     _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
@@ -1071,11 +1069,7 @@ void ObjectList::part_selection_changed()
 
     m_selected_object_id = obj_idx;
 
-#if ENABLE_EXTENDED_SELECTION
     wxGetApp().obj_manipul()->update_settings_value(_3DScene::get_canvas(wxGetApp().canvas3D())->get_selection());
-#else
-    wxGetApp().obj_manipul()->update_values();
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::update_manipulation_sizer(const bool is_simple_mode)
@@ -1094,9 +1088,6 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     auto model_object = (*m_objects)[obj_idx];
     wxString item_name = model_object->name;
     auto item = m_objects_model->Add(item_name);
-#if !ENABLE_EXTENDED_SELECTION
-    /*Select*/select_item(item);
-#endif // !ENABLE_EXTENDED_SELECTION
 
     // Add error icon if detected auto-repaire
     auto stats = model_object->volumes[0]->mesh.stl.stats;
@@ -1224,7 +1215,6 @@ bool ObjectList::multiple_selection() const
 
 void ObjectList::update_selections()
 {
-#if ENABLE_EXTENDED_SELECTION
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
     wxDataViewItemArray sels;
 
@@ -1234,13 +1224,10 @@ void ObjectList::update_selections()
         sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
     }
     select_items(sels);
-
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::update_selections_on_canvas()
 {
-#if ENABLE_EXTENDED_SELECTION
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
@@ -1288,8 +1275,6 @@ void ObjectList::update_selections_on_canvas()
         add_to_selection(item, selection, false);
 
     _3DScene::render(wxGetApp().canvas3D());
-
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::select_item(const wxDataViewItem& item)

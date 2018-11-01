@@ -6,16 +6,13 @@
 #include <wx/panel.h>
 
 #include "Preset.hpp"
-#if ENABLE_EXTENDED_SELECTION
 #include "GLCanvas3D.hpp"
-#endif // ENABLE_EXTENDED_SELECTION
 
 class wxBoxSizer;
 
 namespace Slic3r {
 namespace GUI {
 class ConfigOptionsGroup;
-
 
 class OG_Settings
 {
@@ -47,13 +44,11 @@ public:
     int ol_selection();
     void update_settings_list();
 
-#if ENABLE_EXTENDED_SELECTION
     void update_settings_value(const GLCanvas3D::Selection& selection);
     void reset_settings_value();
     void reset_position_value();
     void reset_rotation_value();
     void reset_scale_value();
-#endif // ENABLE_EXTENDED_SELECTION
 
     void update_values();
     // update position values displacements or "gizmos"
