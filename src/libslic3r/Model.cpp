@@ -1242,7 +1242,7 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM
-Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+Transform3d ModelInstance::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
     Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
     Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
