@@ -101,7 +101,7 @@ include_directories(${LIBDIR}/libslic3r ${LIBDIR}/clipper ${LIBDIR}/polypartitio
 
 if(WIN32)
     # BOOST_ALL_NO_LIB: Avoid the automatic linking of Boost libraries on Windows. Rather rely on explicit linking.
-    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 -D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_USE_MATH_DEFINES -D_WIN32 -DBOOST_ALL_NO_LIB -DBOOST_USE_WINAPI_VERSION=0x601 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
 endif()
 
 add_definitions(-DwxUSE_UNICODE -D_UNICODE -DUNICODE -DWXINTL_NO_GETTEXT_MACRO)

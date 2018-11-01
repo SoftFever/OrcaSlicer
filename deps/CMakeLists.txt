@@ -48,7 +48,14 @@ else ()
 endif()
 
 add_custom_target(deps ALL
-    DEPENDS dep_boost dep_tbb dep_libcurl dep_wxwidgets
+    DEPENDS
+        dep_boost
+        dep_tbb
+        dep_libcurl
+        dep_wxwidgets
+        dep_gtest
+        dep_nlopt
+        dep_libpng
 )
 
 # Note: I'm not using any of the LOG_xxx options in ExternalProject_Add() commands

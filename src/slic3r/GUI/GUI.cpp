@@ -68,7 +68,7 @@ void enable_screensaver()
 bool debugged()
 {
     #ifdef _WIN32
-    return IsDebuggerPresent();
+    return IsDebuggerPresent() == TRUE;
 	#else
 	return false;
     #endif /* _WIN32 */
@@ -233,7 +233,7 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 			break;
 		}
 	}
-	catch (const std::exception &e)
+	catch (const std::exception & /* e */)
 	{
 		int i = 0;//no reason, just experiment
 	}

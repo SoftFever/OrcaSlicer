@@ -266,7 +266,6 @@ void ObjectManipulation::update_settings_list()
     parent->GetParent()->Layout();
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
     if (selection.is_single_full_object())
@@ -344,7 +343,6 @@ void ObjectManipulation::reset_scale_value()
     m_og->set_value("scale_y", 100);
     m_og->set_value("scale_z", 100);
 }
-#endif // ENABLE_EXTENDED_SELECTION
 
 void ObjectManipulation::update_values()
 {

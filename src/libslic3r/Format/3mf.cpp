@@ -1329,11 +1329,18 @@ namespace Slic3r {
 
     void _3MF_Importer::_apply_transform(ModelInstance& instance, const Transform3d& transform)
     {
+#if ENABLE_MODELVOLUME_TRANSFORM
+        Slic3r::Geometry::Transformation t(transform);
+        // invalid scale value, return
+        if (!t.get_scaling_factor().all())
+            return;
+
+        instance.set_transformation(t);
+#else
         // translation
         Vec3d offset = transform.matrix().block(0, 3, 3, 1);
 
         Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
-#if ENABLE_MIRROR
         // mirror
         // it is impossible to reconstruct the original mirroring factors from a matrix,
         // we can only detect if the matrix contains a left handed reference system
@@ -1347,7 +1354,6 @@ namespace Slic3r {
         }
 
         // scale
-#endif // ENABLE_MIRROR
         Vec3d scale(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm());
 
         // invalid scale value, return
@@ -1364,9 +1370,8 @@ namespace Slic3r {
         instance.set_offset(offset);
         instance.set_scaling_factor(scale);
         instance.set_rotation(rotation);
-#if ENABLE_MIRROR
         instance.set_mirror(mirror);
-#endif // ENABLE_MIRROR
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)

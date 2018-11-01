@@ -39,7 +39,7 @@ private:
 	struct priv;
 	std::unique_ptr<priv> p;
 
-	friend class ConfigWizardPage;
+	friend struct ConfigWizardPage;
 };
 
 

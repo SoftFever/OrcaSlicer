@@ -686,9 +686,11 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     trafo.copies.assign(1, Point());
     for (ModelInstance *model_instance : model_object.instances)
         if (model_instance->is_printable()) {
-            const Vec3d &offst = model_instance->get_offset();
-            trafo.trafo = model_instance->world_matrix(true);
-            trafo.copies.front() = Point::new_scale(offst(0), offst(1));
+            trafo.trafo = model_instance->world_matrix();
+            // Set the Z axis of the transformation.
+			trafo.copies.front() = Point::new_scale(trafo.trafo.data()[3], trafo.trafo.data()[7]);
+            trafo.trafo.data()[3] = 0;
+            trafo.trafo.data()[7] = 0;
             auto it = trafos.find(trafo);
             if (it == trafos.end())
                 trafos.emplace(trafo);
@@ -977,13 +979,13 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     new_objects = true;
                     if (it_old != old.end())
                         const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Deleted;
-                } else if ((*it_old)->print_object->copies() != new_instances.copies) {
+                } else {
                     // The PrintObject already exists and the copies differ.
                     if ((*it_old)->print_object->copies().size() != new_instances.copies.size())
                         update_apply_status(this->invalidate_step(psWipeTower));
 					if ((*it_old)->print_object->set_copies(new_instances.copies)) {
 						// Invalidated
-						update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psGCodeExport));
+						update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psGCodeExport }));
 					}
 					print_objects_new.emplace_back((*it_old)->print_object);
 					const_cast<PrintObjectStatus*>(*it_old)->status = PrintObjectStatus::Reused;
@@ -1001,8 +1003,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                     delete pos.print_object;
 					deleted_objects = true;
                 }
-            if (deleted_objects)
-                update_apply_status(this->invalidate_step(psSkirt) || this->invalidate_step(psBrim) || this->invalidate_step(psWipeTower) || this->invalidate_step(psGCodeExport));
+			if (new_objects || deleted_objects)
+				update_apply_status(this->invalidate_steps({ psSkirt, psBrim, psWipeTower, psGCodeExport }));
             update_apply_status(new_objects);
         }
         print_object_status.clear();

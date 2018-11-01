@@ -99,11 +99,9 @@ bool PrintObject::set_copies(const Points &points)
     // Invalidate and set copies.
     bool invalidated = false;
     if (copies != m_copies) {
-        invalidated = m_print->invalidate_step(psSkirt);
-        invalidated |= m_print->invalidate_step(psBrim);
+        invalidated = m_print->invalidate_steps({ psSkirt, psBrim, psGCodeExport });
         if (copies.size() != m_copies.size())
             invalidated |= m_print->invalidate_step(psWipeTower);
-        invalidated |= m_print->invalidate_step(psGCodeExport);
         m_copies = copies;
     }
     return invalidated;
@@ -590,32 +588,22 @@ bool PrintObject::invalidate_step(PrintObjectStep step)
     // propagate to dependent steps
     if (step == posPerimeters) {
         invalidated |= this->invalidate_step(posPrepareInfill);
-        invalidated |= m_print->invalidate_step(psSkirt);
-        invalidated |= m_print->invalidate_step(psBrim);
+        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posPrepareInfill) {
         invalidated |= this->invalidate_step(posInfill);
     } else if (step == posInfill) {
-        invalidated |= m_print->invalidate_step(psSkirt);
-        invalidated |= m_print->invalidate_step(psBrim);
+        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
     } else if (step == posSlice) {
-        invalidated |= this->invalidate_step(posPerimeters);
-        invalidated |= this->invalidate_step(posSupportMaterial);
+        invalidated |= this->invalidate_steps({ posPerimeters, posSupportMaterial });
         invalidated |= m_print->invalidate_step(psWipeTower);
-    } else if (step == posSupportMaterial) {
-        invalidated |= m_print->invalidate_step(psSkirt);
-        invalidated |= m_print->invalidate_step(psBrim);
-    }
+    } else if (step == posSupportMaterial)
+        invalidated |= m_print->invalidate_steps({ psSkirt, psBrim });
 
     // Wipe tower depends on the ordering of extruders, which in turn depends on everything.
     // It also decides about what the wipe_into_infill / wipe_into_object features will do,
     // and that too depends on many of the settings.
     invalidated |= m_print->invalidate_step(psWipeTower);
     return invalidated;
-}
-
-bool PrintObject::invalidate_all_steps() 
-{ 
-    return m_state.invalidate_all(m_print->m_mutex, m_print->m_cancel_callback);
 }
 
 bool PrintObject::has_support_material() const
@@ -1616,8 +1604,8 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
             mesh.merge(v->mesh);
         if (mesh.stl.stats.number_of_facets > 0) {
             mesh.transform(m_trafo.cast<float>());
-            // align mesh to Z = 0 (it should be already aligned actually) and apply XY shift
-            mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), - float(this->model_object()->bounding_box().min(2)));
+            // apply XY shift
+            mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), 0);
             // perform actual slicing
             TriangleMeshSlicer mslicer;
             const Print *print = this->print();
@@ -2253,5 +2241,16 @@ void PrintObject::adjust_layer_height_profile(coordf_t z, coordf_t layer_thickne
     m_model_object->layer_height_profile_valid = true;
     layer_height_profile_valid = false;
 }
+
+tbb::mutex& PrintObject::cancel_mutex()
+{
+	return m_print->m_mutex;
+}
+
+std::function<void()> PrintObject::cancel_callback()
+{
+	return m_print->m_cancel_callback;
+}
+
 
 } // namespace Slic3r

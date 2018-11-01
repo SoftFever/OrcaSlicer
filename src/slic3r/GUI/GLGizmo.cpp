@@ -4,9 +4,6 @@
 #include "GUI.hpp"
 
 #include "../../libslic3r/Utils.hpp"
-#if !ENABLE_EXTENDED_SELECTION
-#include "../../slic3r/GUI/GLCanvas3D.hpp"
-#endif // !ENABLE_EXTENDED_SELECTION
 
 #include <Eigen/Dense>
 #include "../../libslic3r/Geometry.hpp"
@@ -25,91 +22,6 @@ static const float AXES_COLOR[3][3] = { { 1.0f, 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f
 
 namespace Slic3r {
 namespace GUI {
-
-#if !ENABLE_EXTENDED_SELECTION
-// returns the intersection of the given ray with the plane parallel to plane XY and passing through the given center
-// coordinates are local to the plane
-Vec3d intersection_on_plane_xy(const Linef3& ray, const Vec3d& center)
-{
-    Transform3d m = Transform3d::Identity();
-    m.translate(-center);
-    Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
-    return Vec3d(mouse_pos_2d(0), mouse_pos_2d(1), 0.0);
-}
-
-// returns the intersection of the given ray with the plane parallel to plane XZ and passing through the given center
-// coordinates are local to the plane
-Vec3d intersection_on_plane_xz(const Linef3& ray, const Vec3d& center)
-{
-    Transform3d m = Transform3d::Identity();
-    m.rotate(Eigen::AngleAxisd(-0.5 * (double)PI, Vec3d::UnitX()));
-    m.translate(-center);
-    Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
-    return Vec3d(mouse_pos_2d(0), 0.0, mouse_pos_2d(1));
-}
-
-// returns the intersection of the given ray with the plane parallel to plane YZ and passing through the given center
-// coordinates are local to the plane
-Vec3d intersection_on_plane_yz(const Linef3& ray, const Vec3d& center)
-{
-    Transform3d m = Transform3d::Identity();
-    m.rotate(Eigen::AngleAxisd(-0.5f * (double)PI, Vec3d::UnitY()));
-    m.translate(-center);
-    Vec2d mouse_pos_2d = to_2d(transform(ray, m).intersect_plane(0.0));
-
-    return Vec3d(0.0, mouse_pos_2d(1), -mouse_pos_2d(0));
-}
-
-// return an index:
-// 0 for plane XY
-// 1 for plane XZ
-// 2 for plane YZ
-// which indicates which plane is best suited for intersecting the given unit vector
-// giving precedence to the plane with the given index
-unsigned int select_best_plane(const Vec3d& unit_vector, unsigned int preferred_plane)
-{
-    unsigned int ret = preferred_plane;
-
-    // 1st checks if the given vector is not parallel to the given preferred plane
-    double dot_to_normal = 0.0;
-    switch (ret)
-    {
-    case 0: // plane xy
-    {
-        dot_to_normal = std::abs(unit_vector.dot(Vec3d::UnitZ()));
-        break;
-    }
-    case 1: // plane xz
-    {
-        dot_to_normal = std::abs(unit_vector.dot(-Vec3d::UnitY()));
-        break;
-    }
-    case 2: // plane yz
-    {
-        dot_to_normal = std::abs(unit_vector.dot(Vec3d::UnitX()));
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
-
-    // if almost parallel, select the plane whose normal direction is closest to the given vector direction,
-    // otherwise return the given preferred plane index
-    if (dot_to_normal < 0.1)
-    {
-        typedef std::map<double, unsigned int> ProjsMap;
-        ProjsMap projs_map;
-        projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(Vec3d::UnitZ())), 0));  // plane xy
-        projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(-Vec3d::UnitY())), 1)); // plane xz
-        projs_map.insert(ProjsMap::value_type(std::abs(unit_vector.dot(Vec3d::UnitX())), 2));  // plane yz
-        ret = projs_map.rbegin()->second;
-    }
-
-    return ret;
-}
-#endif // !ENABLE_EXTENDED_SELECTION
 
 const float GLGizmoBase::Grabber::SizeFactor = 0.025f;
 const float GLGizmoBase::Grabber::MinHalfSize = 1.5f;
@@ -262,11 +174,7 @@ void GLGizmoBase::disable_grabber(unsigned int id)
     on_disable_grabber(id);
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoBase::start_dragging(const GLCanvas3D::Selection& selection)
-#else
-void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
-#endif // ENABLE_EXTENDED_SELECTION
 {
     m_dragging = true;
 
@@ -275,11 +183,7 @@ void GLGizmoBase::start_dragging(const BoundingBoxf3& box)
         m_grabbers[i].dragging = (m_hover_id == i);
     }
 
-#if ENABLE_EXTENDED_SELECTION
     on_start_dragging(selection);
-#else
-    on_start_dragging(box);
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void GLGizmoBase::stop_dragging()
@@ -385,15 +289,9 @@ bool GLGizmoRotate::on_init()
     return true;
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoRotate::on_start_dragging(const GLCanvas3D::Selection& selection)
-#else
-void GLGizmoRotate::on_start_dragging(const BoundingBoxf3& box)
-#endif // ENABLE_EXTENDED_SELECTION
 {
-#if ENABLE_EXTENDED_SELECTION
     const BoundingBoxf3& box = selection.get_bounding_box();
-#endif // ENABLE_EXTENDED_SELECTION
     m_center = box.center();
     m_radius = Offset + box.radius();
     m_snap_coarse_in_radius = m_radius / 3.0f;
@@ -437,16 +335,11 @@ void GLGizmoRotate::on_update(const Linef3& mouse_ray, const Point* mouse_positi
     m_angle = theta;
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoRotate::on_render(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
-#endif // ENABLE_EXTENDED_SELECTION
 {
     if (!m_grabbers[0].enabled)
         return;
 
-#if ENABLE_EXTENDED_SELECTION
     const BoundingBoxf3& box = selection.get_bounding_box();
     bool single_instance = selection.is_single_full_instance();
 
@@ -460,10 +353,6 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
 
     if ((single_instance && (m_hover_id == 0)) || m_dragging)
         set_tooltip(axis + format((float)Geometry::rad2deg(m_angle), 4) + "\u00B0");
-#else
-    if (m_dragging)
-        set_tooltip(format(m_angle * 180.0f / (float)PI, 4));
-#endif // ENABLE_EXTENDED_SELECTION
     else
     {
         m_center = box.center();
@@ -501,22 +390,14 @@ void GLGizmoRotate::on_render(const BoundingBoxf3& box) const
     ::glPopMatrix();
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoRotate::on_render_for_picking(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoRotate::on_render_for_picking(const BoundingBoxf3& box) const
-#endif // ENABLE_EXTENDED_SELECTION
 {
     ::glDisable(GL_DEPTH_TEST);
 
     ::glPushMatrix();
 
     transform_to_local();
-#if ENABLE_EXTENDED_SELECTION
     render_grabbers_for_picking(selection.get_bounding_box());
-#else
-    render_grabbers_for_picking(box);
-#endif // ENABLE_EXTENDED_SELECTION
 
     ::glPopMatrix();
 }
@@ -733,19 +614,11 @@ std::string GLGizmoRotate3D::on_get_name() const
     return L("Rotate");
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoRotate3D::on_start_dragging(const GLCanvas3D::Selection& selection)
 {
     if ((0 <= m_hover_id) && (m_hover_id < 3))
         m_gizmos[m_hover_id].start_dragging(selection);
 }
-#else
-void GLGizmoRotate3D::on_start_dragging(const BoundingBoxf3& box)
-{
-    if ((0 <= m_hover_id) && (m_hover_id < 3))
-        m_gizmos[m_hover_id].start_dragging(box);
-}
-#endif // ENABLE_EXTENDED_SELECTION
 
 void GLGizmoRotate3D::on_stop_dragging()
 {
@@ -753,7 +626,6 @@ void GLGizmoRotate3D::on_stop_dragging()
         m_gizmos[m_hover_id].stop_dragging();
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
 {
     if ((m_hover_id == -1) || (m_hover_id == 0))
@@ -765,24 +637,8 @@ void GLGizmoRotate3D::on_render(const GLCanvas3D::Selection& selection) const
     if ((m_hover_id == -1) || (m_hover_id == 2))
         m_gizmos[Z].render(selection);
 }
-#else
-void GLGizmoRotate3D::on_render(const BoundingBoxf3& box) const
-{
-    if ((m_hover_id == -1) || (m_hover_id == 0))
-        m_gizmos[X].render(box);
-
-    if ((m_hover_id == -1) || (m_hover_id == 1))
-        m_gizmos[Y].render(box);
-
-    if ((m_hover_id == -1) || (m_hover_id == 2))
-        m_gizmos[Z].render(box);
-}
-#endif // ENABLE_EXTENDED_SELECTION
 
 const float GLGizmoScale3D::Offset = 5.0f;
-#if !ENABLE_EXTENDED_SELECTION
-const Vec3d GLGizmoScale3D::OffsetVec = (double)GLGizmoScale3D::Offset * Vec3d::Ones();
-#endif // !ENABLE_EXTENDED_SELECTION
 
 GLGizmoScale3D::GLGizmoScale3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -830,20 +686,12 @@ std::string GLGizmoScale3D::on_get_name() const
     return L("Scale");
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoScale3D::on_start_dragging(const GLCanvas3D::Selection& selection)
-#else
-void GLGizmoScale3D::on_start_dragging(const BoundingBoxf3& box)
-#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_hover_id != -1)
     {
         m_starting_drag_position = m_grabbers[m_hover_id].center;
-#if ENABLE_EXTENDED_SELECTION
         m_starting_box = selection.get_bounding_box();
-#else
-        m_starting_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
-#endif // ENABLE_EXTENDED_SELECTION
     }
 }
 
@@ -867,13 +715,8 @@ void GLGizmoScale3D::on_process_double_click()
 }
 #endif // ENABLE_GIZMOS_RESET
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
-#endif // ENABLE_EXTENDED_SELECTION
 {
-#if ENABLE_EXTENDED_SELECTION
     bool single_instance = selection.is_single_full_instance();
     Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
 
@@ -891,25 +734,9 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         tooltip += "Z: " + format(scale(2), 4) + "%";
         set_tooltip(tooltip);
     }
-#else
-    if (m_grabbers[0].dragging || m_grabbers[1].dragging)
-        set_tooltip("X: " + format(100.0f * m_scale(0), 4) + "%");
-    else if (m_grabbers[2].dragging || m_grabbers[3].dragging)
-        set_tooltip("Y: " + format(100.0f * m_scale(1), 4) + "%");
-    else if (m_grabbers[4].dragging || m_grabbers[5].dragging)
-        set_tooltip("Z: " + format(100.0f * m_scale(2), 4) + "%");
-    else if (m_grabbers[6].dragging || m_grabbers[7].dragging || m_grabbers[8].dragging || m_grabbers[9].dragging)
-    {
-        std::string tooltip = "X: " + format(100.0f * m_scale(0), 4) + "%\n";
-        tooltip += "Y: " + format(100.0f * m_scale(1), 4) + "%\n";
-        tooltip += "Z: " + format(100.0f * m_scale(2), 4) + "%";
-        set_tooltip(tooltip);
-    }
-#endif // ENABLE_EXTENDED_SELECTION
 
     ::glEnable(GL_DEPTH_TEST);
 
-#if ENABLE_EXTENDED_SELECTION
     BoundingBoxf3 box;
     Transform3d transform = Transform3d::Identity();
     Vec3d angles = Vec3d::Zero();
@@ -935,86 +762,52 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         // gets angles from first selected volume
         angles = v->get_rotation();
 
-#if ENABLE_MIRROR
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
-#else
-        // set rotation-only component of transform
-        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles);
-#endif // ENABLE_MIRROR
     }
     else
         box = selection.get_bounding_box();
 
     m_box = box;
-#else
-    m_box = BoundingBoxf3(box.min - OffsetVec, box.max + OffsetVec);
-#endif // ENABLE_EXTENDED_SELECTION
 
     const Vec3d& center = m_box.center();
-#if ENABLE_EXTENDED_SELECTION
     Vec3d offset_x = offsets_transform * Vec3d((double)Offset, 0.0, 0.0);
     Vec3d offset_y = offsets_transform * Vec3d(0.0, (double)Offset, 0.0);
     Vec3d offset_z = offsets_transform * Vec3d(0.0, 0.0, (double)Offset);
-#endif // ENABLE_EXTENDED_SELECTION
 
     // x axis
-#if ENABLE_EXTENDED_SELECTION
     m_grabbers[0].center = transform * Vec3d(m_box.min(0), center(1), center(2)) - offset_x;
     m_grabbers[1].center = transform * Vec3d(m_box.max(0), center(1), center(2)) + offset_x;
-#else
-    m_grabbers[0].center = Vec3d(m_box.min(0), center(1), center(2));
-    m_grabbers[1].center = Vec3d(m_box.max(0), center(1), center(2));
-#endif // ENABLE_EXTENDED_SELECTION
     ::memcpy((void*)m_grabbers[0].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[1].color, (const void*)&AXES_COLOR[0], 3 * sizeof(float));
 
     // y axis
-#if ENABLE_EXTENDED_SELECTION
     m_grabbers[2].center = transform * Vec3d(center(0), m_box.min(1), center(2)) - offset_y;
     m_grabbers[3].center = transform * Vec3d(center(0), m_box.max(1), center(2)) + offset_y;
-#else
-    m_grabbers[2].center = Vec3d(center(0), m_box.min(1), center(2));
-    m_grabbers[3].center = Vec3d(center(0), m_box.max(1), center(2));
-#endif // ENABLE_EXTENDED_SELECTION
     ::memcpy((void*)m_grabbers[2].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[3].color, (const void*)&AXES_COLOR[1], 3 * sizeof(float));
 
     // z axis
-#if ENABLE_EXTENDED_SELECTION
     m_grabbers[4].center = transform * Vec3d(center(0), center(1), m_box.min(2)) - offset_z;
     m_grabbers[5].center = transform * Vec3d(center(0), center(1), m_box.max(2)) + offset_z;
-#else
-    m_grabbers[4].center = Vec3d(center(0), center(1), m_box.min(2));
-    m_grabbers[5].center = Vec3d(center(0), center(1), m_box.max(2));
-#endif // ENABLE_EXTENDED_SELECTION
     ::memcpy((void*)m_grabbers[4].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
     ::memcpy((void*)m_grabbers[5].color, (const void*)&AXES_COLOR[2], 3 * sizeof(float));
 
     // uniform
-#if ENABLE_EXTENDED_SELECTION
     m_grabbers[6].center = transform * Vec3d(m_box.min(0), m_box.min(1), center(2)) - offset_x - offset_y;
     m_grabbers[7].center = transform * Vec3d(m_box.max(0), m_box.min(1), center(2)) + offset_x - offset_y;
     m_grabbers[8].center = transform * Vec3d(m_box.max(0), m_box.max(1), center(2)) + offset_x + offset_y;
     m_grabbers[9].center = transform * Vec3d(m_box.min(0), m_box.max(1), center(2)) - offset_x + offset_y;
-#else
-    m_grabbers[6].center = Vec3d(m_box.min(0), m_box.min(1), center(2));
-    m_grabbers[7].center = Vec3d(m_box.max(0), m_box.min(1), center(2));
-    m_grabbers[8].center = Vec3d(m_box.max(0), m_box.max(1), center(2));
-    m_grabbers[9].center = Vec3d(m_box.min(0), m_box.max(1), center(2));
-#endif // ENABLE_EXTENDED_SELECTION
     for (int i = 6; i < 10; ++i)
     {
         ::memcpy((void*)m_grabbers[i].color, (const void*)m_highlight_color, 3 * sizeof(float));
     }
 
-#if ENABLE_EXTENDED_SELECTION
     // sets grabbers orientation
     for (int i = 0; i < 10; ++i)
     {
         m_grabbers[i].angles = angles;
     }
-#endif // ENABLE_EXTENDED_SELECTION
 
     ::glLineWidth((m_hover_id != -1) ? 2.0f : 1.5f);
 
@@ -1089,21 +882,12 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
     }
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoScale3D::on_render_for_picking(const GLCanvas3D::Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
-#else
-void GLGizmoScale3D::on_render_for_picking(const BoundingBoxf3& box) const
-{
-    ::glDisable(GL_DEPTH_TEST);
-
-    render_grabbers_for_picking(box);
-}
-#endif // ENABLE_EXTENDED_SELECTION
 
 void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int id_2) const
 {
@@ -1119,11 +903,7 @@ void GLGizmoScale3D::render_grabbers_connection(unsigned int id_1, unsigned int 
 
 void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 {
-#if ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(mouse_ray);
-#else
-    double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
-#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale(0) = m_starting_scale(0) * ratio;
@@ -1131,11 +911,7 @@ void GLGizmoScale3D::do_scale_x(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 {
-#if ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(mouse_ray);
-#else
-    double ratio = calc_ratio(2, mouse_ray, m_starting_box.center());
-#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale(1) = m_starting_scale(1) * ratio;
@@ -1143,11 +919,7 @@ void GLGizmoScale3D::do_scale_y(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 {
-#if ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(mouse_ray);
-#else
-    double ratio = calc_ratio(1, mouse_ray, m_starting_box.center());
-#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale(2) = m_starting_scale(2) * ratio;
@@ -1155,19 +927,12 @@ void GLGizmoScale3D::do_scale_z(const Linef3& mouse_ray)
 
 void GLGizmoScale3D::do_scale_uniform(const Linef3& mouse_ray)
 {
-#if ENABLE_EXTENDED_SELECTION
     double ratio = calc_ratio(mouse_ray);
-#else
-    Vec3d center = m_starting_box.center();
-    center(2) = m_box.min(2);
-    double ratio = calc_ratio(0, mouse_ray, center);
-#endif // ENABLE_EXTENDED_SELECTION
 
     if (ratio > 0.0)
         m_scale = m_starting_scale * ratio;
 }
 
-#if ENABLE_EXTENDED_SELECTION
 double GLGizmoScale3D::calc_ratio(const Linef3& mouse_ray) const
 {
     double ratio = 0.0;
@@ -1194,53 +959,12 @@ double GLGizmoScale3D::calc_ratio(const Linef3& mouse_ray) const
 
     return ratio;
 }
-#else
-double GLGizmoScale3D::calc_ratio(unsigned int preferred_plane_id, const Linef3& mouse_ray, const Vec3d& center) const
-{
-    double ratio = 0.0;
-
-    Vec3d starting_vec = m_starting_drag_position - center;
-    double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec == 0.0)
-        return ratio;
-
-    Vec3d starting_vec_dir = starting_vec.normalized();
-    Vec3d mouse_dir = mouse_ray.unit_vector();
-
-    unsigned int plane_id = select_best_plane(mouse_dir, preferred_plane_id);
-    // ratio is given by the projection of the calculated intersection on the starting vector divided by the starting vector length
-    switch (plane_id)
-    {
-    case 0:
-    {
-        ratio = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, center)) / len_starting_vec;
-        break;
-    }
-    case 1:
-    {
-        ratio = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, center)) / len_starting_vec;
-        break;
-    }
-    case 2:
-    {
-        ratio = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, center)) / len_starting_vec;
-        break;
-    }
-    }
-
-    return ratio;
-}
-#endif // ENABLE_EXTENDED_SELECTION
 
 const double GLGizmoMove3D::Offset = 10.0;
 
 GLGizmoMove3D::GLGizmoMove3D(GLCanvas3D& parent)
     : GLGizmoBase(parent)
-#if ENABLE_EXTENDED_SELECTION
     , m_displacement(Vec3d::Zero())
-#else
-    , m_position(Vec3d::Zero())
-#endif // ENABLE_EXTENDED_SELECTION
     , m_starting_drag_position(Vec3d::Zero())
     , m_starting_box_center(Vec3d::Zero())
     , m_starting_box_bottom_center(Vec3d::Zero())
@@ -1276,18 +1000,12 @@ std::string GLGizmoMove3D::on_get_name() const
     return L("Move");
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoMove3D::on_start_dragging(const GLCanvas3D::Selection& selection)
-#else
-void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
-#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_hover_id != -1)
     {
-#if ENABLE_EXTENDED_SELECTION
         m_displacement = Vec3d::Zero();
         const BoundingBoxf3& box = selection.get_bounding_box();
-#endif // ENABLE_EXTENDED_SELECTION
         m_starting_drag_position = m_grabbers[m_hover_id].center;
         m_starting_box_center = box.center();
         m_starting_box_bottom_center = box.center();
@@ -1295,39 +1013,23 @@ void GLGizmoMove3D::on_start_dragging(const BoundingBoxf3& box)
     }
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoMove3D::on_stop_dragging()
 {
     m_displacement = Vec3d::Zero();
 }
-#endif // ENABLE_EXTENDED_SELECTION
 
 void GLGizmoMove3D::on_update(const Linef3& mouse_ray, const Point* mouse_pos)
 {
-#if ENABLE_EXTENDED_SELECTION
     if (m_hover_id == 0)
         m_displacement(0) = calc_projection(mouse_ray);
     else if (m_hover_id == 1)
         m_displacement(1) = calc_projection(mouse_ray);
     else if (m_hover_id == 2)
         m_displacement(2) = calc_projection(mouse_ray);
-#else
-    if (m_hover_id == 0)
-        m_position(0) = 2.0 * m_starting_box_center(0) + calc_projection(X, 1, mouse_ray) - m_starting_drag_position(0);
-    else if (m_hover_id == 1)
-        m_position(1) = 2.0 * m_starting_box_center(1) + calc_projection(Y, 2, mouse_ray) - m_starting_drag_position(1);
-    else if (m_hover_id == 2)
-        m_position(2) = 2.0 * m_starting_box_bottom_center(2) + calc_projection(Z, 1, mouse_ray) - m_starting_drag_position(2);
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoMove3D::on_render(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
-#endif // ENABLE_EXTENDED_SELECTION
 {
-#if ENABLE_EXTENDED_SELECTION
     bool show_position = selection.is_single_full_instance();
     const Vec3d& position = selection.get_bounding_box().center();
 
@@ -1337,20 +1039,10 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
         set_tooltip("Y: " + format(show_position ? position(1) : m_displacement(1), 2));
     else if ((show_position && (m_hover_id == 2)) || m_grabbers[2].dragging)
         set_tooltip("Z: " + format(show_position ? position(2) : m_displacement(2), 2));
-#else
-    if (m_grabbers[0].dragging)
-        set_tooltip("X: " + format(m_position(0), 2));
-    else if (m_grabbers[1].dragging)
-        set_tooltip("Y: " + format(m_position(1), 2));
-    else if (m_grabbers[2].dragging)
-        set_tooltip("Z: " + format(m_position(2), 2));
-#endif // ENABLE_EXTENDED_SELECTION
 
     ::glEnable(GL_DEPTH_TEST);
 
-#if ENABLE_EXTENDED_SELECTION
     const BoundingBoxf3& box = selection.get_bounding_box();
-#endif // ENABLE_EXTENDED_SELECTION
     const Vec3d& center = box.center();
 
     // x axis
@@ -1399,23 +1091,13 @@ void GLGizmoMove3D::on_render(const BoundingBoxf3& box) const
     }
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoMove3D::on_render_for_picking(const GLCanvas3D::Selection& selection) const
 {
     ::glDisable(GL_DEPTH_TEST);
 
     render_grabbers_for_picking(selection.get_bounding_box());
 }
-#else
-void GLGizmoMove3D::on_render_for_picking(const BoundingBoxf3& box) const
-{
-    ::glDisable(GL_DEPTH_TEST);
 
-    render_grabbers_for_picking(box);
-}
-#endif // ENABLE_EXTENDED_SELECTION
-
-#if ENABLE_EXTENDED_SELECTION
 double GLGizmoMove3D::calc_projection(const Linef3& mouse_ray) const
 {
     double projection = 0.0;
@@ -1438,43 +1120,6 @@ double GLGizmoMove3D::calc_projection(const Linef3& mouse_ray) const
     }
     return projection;
 }
-#else
-double GLGizmoMove3D::calc_projection(Axis axis, unsigned int preferred_plane_id, const Linef3& mouse_ray) const
-{
-    double projection = 0.0;
-
-    Vec3d starting_vec = (axis == Z) ? m_starting_drag_position - m_starting_box_bottom_center : m_starting_drag_position - m_starting_box_center;
-    double len_starting_vec = starting_vec.norm();
-    if (len_starting_vec == 0.0)
-        return projection;
-
-    Vec3d starting_vec_dir = starting_vec.normalized();
-    Vec3d mouse_dir = mouse_ray.unit_vector();
-
-    unsigned int plane_id = select_best_plane(mouse_dir, preferred_plane_id);
-
-    switch (plane_id) 
-    {
-    case 0:
-    {
-        projection = starting_vec_dir.dot(intersection_on_plane_xy(mouse_ray, (axis == Z) ? m_starting_box_bottom_center : m_starting_box_center));
-        break;
-    }
-    case 1:
-    {
-        projection = starting_vec_dir.dot(intersection_on_plane_xz(mouse_ray, (axis == Z) ? m_starting_box_bottom_center : m_starting_box_center));
-        break;
-    }
-    case 2:
-    {
-        projection = starting_vec_dir.dot(intersection_on_plane_yz(mouse_ray, (axis == Z) ? m_starting_box_bottom_center : m_starting_box_center));
-        break;
-    }
-    }
-
-    return projection;
-}
-#endif // ENABLE_EXTENDED_SELECTION
 
 GLGizmoFlatten::GLGizmoFlatten(GLCanvas3D& parent)
     : GLGizmoBase(parent)
@@ -1507,42 +1152,24 @@ std::string GLGizmoFlatten::on_get_name() const
     return L("Flatten");
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
-#else
-void GLGizmoFlatten::on_start_dragging(const BoundingBoxf3& box)
-#endif // ENABLE_EXTENDED_SELECTION
 {
     if (m_hover_id != -1)
     {
         m_normal = m_planes[m_hover_id].normal;
-#if ENABLE_EXTENDED_SELECTION
         m_starting_center = selection.get_bounding_box().center();
-#else
-        m_starting_center = box.center();
-#endif // ENABLE_EXTENDED_SELECTION
     }
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
-#endif // ENABLE_EXTENDED_SELECTION
 {
     // the dragged_offset is a vector measuring where was the object moved
     // with the gizmo being on. This is reset in set_flattening_data and
     // does not work correctly when there are multiple copies.
     Vec3d dragged_offset(Vec3d::Zero());
-#if ENABLE_EXTENDED_SELECTION
     if (m_starting_center == Vec3d::Zero())
         m_starting_center = selection.get_bounding_box().center();
     dragged_offset = selection.get_bounding_box().center() - m_starting_center;
-#else
-    if (m_starting_center == Vec3d::Zero())
-        m_starting_center = box.center();
-    dragged_offset = box.center() - m_starting_center; 
-#endif // ENABLE_EXTENDED_SELECTION   
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
@@ -1554,7 +1181,6 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
         else
             ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
 
-#if ENABLE_EXTENDED_SELECTION
         int instance_idx = selection.get_instance_idx();
         if ((instance_idx != -1) && (m_model_object != nullptr))
         {
@@ -1570,30 +1196,13 @@ void GLGizmoFlatten::on_render(const BoundingBoxf3& box) const
             ::glEnd();
             ::glPopMatrix();
         }
-#else
-        for (const InstanceData& inst : m_instances) {
-            Transform3d m = inst.matrix;
-            m.pretranslate(dragged_offset);
-            ::glPushMatrix();
-            ::glMultMatrixd(m.data());
-            ::glBegin(GL_POLYGON);
-            for (const Vec3d& vertex : m_planes[i].vertices)
-                ::glVertex3dv(vertex.data());
-            ::glEnd();
-            ::glPopMatrix();
-        }
-#endif // ENABLE_EXTENDED_SELECTION
     }
 
     ::glEnable(GL_CULL_FACE);
     ::glDisable(GL_BLEND);
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
-#endif // ENABLE_EXTENDED_SELECTION
 {
     ::glEnable(GL_DEPTH_TEST);
     ::glDisable(GL_CULL_FACE);
@@ -1601,7 +1210,6 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
     for (unsigned int i = 0; i < m_planes.size(); ++i)
     {
         ::glColor3f(1.0f, 1.0f, picking_color_component(i));
-#if ENABLE_EXTENDED_SELECTION
         int instance_idx = selection.get_instance_idx();
         if ((instance_idx != -1) && (m_model_object != nullptr))
         {
@@ -1615,17 +1223,6 @@ void GLGizmoFlatten::on_render_for_picking(const BoundingBoxf3& box) const
             ::glEnd();
             ::glPopMatrix();
         }
-#else
-        for (const InstanceData& inst : m_instances) {
-            ::glPushMatrix();
-            ::glMultMatrixd(inst.matrix.data());
-            ::glBegin(GL_POLYGON);
-            for (const Vec3d& vertex : m_planes[i].vertices)
-                ::glVertex3dv(vertex.data());
-            ::glEnd();
-            ::glPopMatrix();
-        }
-#endif // ENABLE_EXTENDED_SELECTION
     }
 
     ::glEnable(GL_CULL_FACE);
@@ -1635,15 +1232,6 @@ void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
     m_model_object = model_object;
-
-#if !ENABLE_EXTENDED_SELECTION
-    // ...and save the updated positions of the object instances:
-    if (m_model_object && !m_model_object->instances.empty()) {
-        m_instances.clear();
-        for (const auto* instance : m_model_object->instances)
-            m_instances.emplace_back(instance->world_matrix());
-    }
-#endif // !ENABLE_EXTENDED_SELECTION
 
     if (is_plane_update_necessary())
         update_planes();
@@ -1895,11 +1483,7 @@ void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
         update_mesh();
 }
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
-#endif
 {
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
@@ -1908,15 +1492,9 @@ void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
     // with the gizmo being on. This is reset in set_flattening_data and
     // does not work correctly when there are multiple copies.
     
-#if ENABLE_EXTENDED_SELECTION
     if (m_starting_center == Vec3d::Zero())
         m_starting_center = selection.get_bounding_box().center();
     Vec3d dragged_offset = selection.get_bounding_box().center() - m_starting_center;
-#else
-    if (m_starting_center == Vec3d::Zero())
-        m_starting_center = box.center();
-    Vec3d dragged_offset(box.center() - m_starting_center);
-#endif // ENABLE_EXTENDED_SELECTION        
 
     for (auto& g : m_grabbers) {
         g.color[0] = 1.f;
@@ -1934,11 +1512,7 @@ void GLGizmoSlaSupports::on_render(const BoundingBoxf3& box) const
 }
 
 
-#if ENABLE_EXTENDED_SELECTION
 void GLGizmoSlaSupports::on_render_for_picking(const GLCanvas3D::Selection& selection) const
-#else
-void GLGizmoSlaSupports::on_render_for_picking(const BoundingBoxf3& box) const
-#endif
 {
     ::glEnable(GL_DEPTH_TEST);
     for (unsigned int i=0; i<m_grabbers.size(); ++i) {
@@ -1986,13 +1560,7 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if ((m_model_object->instances.front()->world_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001 )
-#else
-    if (m_model_object->instances.front()->get_scaling_factor() != m_source_data.scaling_factor
-     || m_model_object->instances.front()->get_rotation() != m_source_data.rotation
-     || m_model_object->instances.front()->get_offset() != m_source_data.offset)
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         return true;
 
     // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
@@ -2020,13 +1588,7 @@ void GLGizmoSlaSupports::update_mesh()
         F(i, 1) = 3*i+1;
         F(i, 2) = 3*i+2;
     }
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    m_source_data.scaling_factor = m_model_object->instances.front()->get_scaling_factor();
-    m_source_data.rotation = m_model_object->instances.front()->get_rotation();
-    m_source_data.offset = m_model_object->instances.front()->get_offset();
-#else
     m_source_data.matrix = m_model_object->instances.front()->world_matrix();
-#endif
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
     // we'll now reload Grabbers (selection might have changed):

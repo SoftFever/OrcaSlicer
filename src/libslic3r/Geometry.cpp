@@ -1161,11 +1161,7 @@ MedialAxis::retrieve_endpoint(const VD::cell_type* cell) const
     }
 }
 
-#if ENABLE_MIRROR
 void assemble_transform(Transform3d& transform, const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale, const Vec3d& mirror)
-#else
-void assemble_transform(Transform3d& transform, const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale)
-#endif // ENABLE_MIRROR
 {
     transform = Transform3d::Identity();
     transform.translate(translation);
@@ -1173,23 +1169,13 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation, const 
     transform.rotate(Eigen::AngleAxisd(rotation(1), Vec3d::UnitY()));
     transform.rotate(Eigen::AngleAxisd(rotation(0), Vec3d::UnitX()));
     transform.scale(scale);
-#if ENABLE_MIRROR
     transform.scale(mirror);
-#endif // ENABLE_MIRROR
 }
 
-#if ENABLE_MIRROR
 Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale, const Vec3d& mirror)
-#else
-Transform3d assemble_transform(const Vec3d& translation, const Vec3d& rotation, const Vec3d& scale)
-#endif // ENABLE_MIRROR
 {
     Transform3d transform;
-#if ENABLE_MIRROR
     assemble_transform(transform, translation, rotation, scale, mirror);
-#else
-    assemble_transform(transform, translation, rotation, scale);
-#endif // ENABLE_MIRROR
     return transform;
 }
 
@@ -1232,13 +1218,10 @@ Transformation::Flags::Flags()
     : dont_translate(true)
     , dont_rotate(true)
     , dont_scale(true)
-#if ENABLE_MIRROR
     , dont_mirror(true)
-#endif // ENABLE_MIRROR
 {
 }
 
-#if ENABLE_MIRROR
 bool Transformation::Flags::needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
     return (this->dont_translate != dont_translate) || (this->dont_rotate != dont_rotate) || (this->dont_scale != dont_scale) || (this->dont_mirror != dont_mirror);
@@ -1251,30 +1234,20 @@ void Transformation::Flags::set(bool dont_translate, bool dont_rotate, bool dont
     this->dont_scale = dont_scale;
     this->dont_mirror = dont_mirror;
 }
-#else
-bool Transformation::Flags::needs_update(bool dont_translate, bool dont_rotate, bool dont_scale) const
-{
-    return (this->dont_translate != dont_translate) || (this->dont_rotate != dont_rotate) || (this->dont_scale != dont_scale);
-}
-
-void Transformation::Flags::set(bool dont_translate, bool dont_rotate, bool dont_scale)
-{
-    this->dont_translate = dont_translate;
-    this->dont_rotate = dont_rotate;
-    this->dont_scale = dont_scale;
-}
-#endif // ENABLE_MIRROR
 
 Transformation::Transformation()
     : m_offset(Vec3d::Zero())
     , m_rotation(Vec3d::Zero())
     , m_scaling_factor(Vec3d::Ones())
-#if ENABLE_MIRROR
     , m_mirror(Vec3d::Ones())
-#endif // ENABLE_MIRROR
     , m_matrix(Transform3d::Identity())
     , m_dirty(false)
 {
+}
+
+Transformation::Transformation(const Transform3d& transform)
+{
+    set_from_transform(transform);
 }
 
 void Transformation::set_offset(const Vec3d& offset)
@@ -1304,7 +1277,7 @@ void Transformation::set_rotation(Axis axis, double rotation)
 {
     rotation = angle_to_0_2PI(rotation);
 
-    if (m_rotation(axis) = rotation)
+    if (m_rotation(axis) != rotation)
     {
         m_rotation(axis) = rotation;
         m_dirty = true;
@@ -1349,39 +1322,67 @@ void Transformation::set_mirror(Axis axis, double mirror)
     }
 }
 
-#if ENABLE_MIRROR
-const Transform3d& Transformation::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
-#else
-const Transform3d& Transformation::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
-#endif // ENABLE_MIRROR
+void Transformation::set_from_transform(const Transform3d& transform)
 {
-#if ENABLE_MIRROR
-    if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale, dont_mirror))
-#else
-    if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale))
-#endif // ENABLE_MIRROR
-    {
-        Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
-        Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
-        Vec3d scale = dont_scale ? Vec3d::Ones() : m_scaling_factor;
-#if ENABLE_MIRROR
-        Vec3d mirror = dont_mirror ? Vec3d::Ones() : m_mirror;
-        m_matrix = Geometry::assemble_transform(translation, rotation, scale, mirror);
-#else
-        m_matrix = Geometry::assemble_transform(translation, rotation, scale);
-#endif // ENABLE_MIRROR
+    // offset
+    set_offset(transform.matrix().block(0, 3, 3, 1));
 
-#if ENABLE_MIRROR
+    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
+
+    // mirror
+    // it is impossible to reconstruct the original mirroring factors from a matrix,
+    // we can only detect if the matrix contains a left handed reference system
+    // in which case we reorient it back to right handed by mirroring the x axis
+    Vec3d mirror = Vec3d::Ones();
+    if (m3x3.col(0).dot(m3x3.col(1).cross(m3x3.col(2))) < 0.0)
+    {
+        mirror(0) = -1.0;
+        // remove mirror
+        m3x3.col(0) *= -1.0;
+    }
+    set_mirror(mirror);
+
+    // scale
+    set_scaling_factor(Vec3d(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm()));
+
+    // remove scale
+    m3x3.col(0).normalize();
+    m3x3.col(1).normalize();
+    m3x3.col(2).normalize();
+
+    // rotation
+    set_rotation(extract_euler_angles(m3x3));
+
+    // forces matrix recalculation matrix
+    m_matrix = get_matrix();
+
+//    // debug check
+//    if (!m_matrix.isApprox(transform))
+//        std::cout << "something went wrong in extracting data from matrix" << std::endl;
+}
+
+const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
+{
+    if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale, dont_mirror))
+    {
+        m_matrix = Geometry::assemble_transform(
+            dont_translate ? Vec3d::Zero() : m_offset, 
+            dont_rotate ? Vec3d::Zero() : m_rotation,
+            dont_scale ? Vec3d::Ones() : m_scaling_factor,
+            dont_mirror ? Vec3d::Ones() : m_mirror
+            );
+
         m_flags.set(dont_translate, dont_rotate, dont_scale, dont_mirror);
-#else
-        m_flags.set(dont_translate, dont_rotate, dont_scale);
-#endif // ENABLE_MIRROR
         m_dirty = false;
     }
 
     return m_matrix;
 }
 
+Transformation Transformation::operator * (const Transformation& other) const
+{
+    return Transformation(get_matrix() * other.get_matrix());
+}
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
 } }

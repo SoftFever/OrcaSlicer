@@ -104,6 +104,28 @@ public:
         return invalidated;
     }
 
+	template<typename CancelationCallback, typename StepTypeIterator>
+	bool invalidate_multiple(StepTypeIterator step_begin, StepTypeIterator step_end, tbb::mutex &mtx, CancelationCallback cancel) {
+		bool invalidated = false;
+		for (StepTypeIterator it = step_begin; ! invalidated && it != step_end; ++ it)
+			invalidated = m_state[*it].load(std::memory_order_relaxed) != INVALID;
+		if (invalidated) {
+#if 0
+			if (mtx.state != mtx.HELD) {
+				printf("Not held!\n");
+			}
+#endif
+			// Raise the mutex, so that the following cancel() callback could cancel
+			// the background processing.
+			mtx.unlock();
+			cancel();
+			for (StepTypeIterator it = step_begin; it != step_end; ++ it)
+				m_state[*it] = INVALID;
+			mtx.lock();
+		}
+		return invalidated;
+	}
+
     // Make all steps invalid.
     // The provided mutex should be locked at this point, guarding access to m_state.
     // In case any step has already been entered or finished, cancel the background
@@ -113,14 +135,16 @@ public:
         bool invalidated = false;
         for (size_t i = 0; i < COUNT; ++ i)
             if (m_state[i].load(std::memory_order_relaxed) != INVALID) {
-                if (! invalidated) {
-                    mtx.unlock();
-                    cancel();
-                    mtx.lock();
-                    invalidated = true;
-                }
-                m_state[i].store(INVALID, std::memory_order_relaxed);
+                invalidated = true;
+                break;
             }
+        if (invalidated) {
+            mtx.unlock();
+            cancel();
+            for (size_t i = 0; i < COUNT; ++ i)
+                m_state[i].store(INVALID, std::memory_order_relaxed);
+            mtx.lock();
+        }
         return invalidated;
     }
 
@@ -245,7 +269,10 @@ public:
     // methods for handling state
     bool invalidate_state_by_config_options(const std::vector<t_config_option_key> &opt_keys);
     bool invalidate_step(PrintObjectStep step);
-    bool invalidate_all_steps();
+	template<typename StepTypeIterator>
+	bool invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end) { return m_state.invalidate_multiple(step_begin, step_end, this->cancel_mutex(), this->cancel_callback()); }
+	bool invalidate_steps(std::initializer_list<PrintObjectStep> il) { return m_state.invalidate_multiple(il.begin(), il.end(), this->cancel_mutex(), this->cancel_callback()); }
+	bool invalidate_all_steps() { return m_state.invalidate_all(this->cancel_mutex(), this->cancel_callback()); }
     bool is_step_done(PrintObjectStep step) const { return m_state.is_done(step); }
 
     // To be used over the layer_height_profile of both the PrintObject and ModelObject
@@ -294,6 +321,9 @@ private:
     void _generate_support_material();
 
     bool is_printable() const { return ! m_copies.empty(); }
+	// Implemented in cpp due to cyclic dependencies between Print and PrintObject.
+	tbb::mutex&            cancel_mutex();
+    std::function<void()>  cancel_callback();
 
     Print                                  *m_print;
     ModelObject                            *m_model_object;
@@ -495,7 +525,7 @@ public:
 	};
     CancelStatus        cancel_status() const { return m_cancel_status; }
     // Has the calculation been canceled?
-    bool                canceled() const { return m_cancel_status; }
+	bool                canceled() const { return m_cancel_status != NOT_CANCELED; }
     // Cancel the running computation. Stop execution of all the background threads.
 	void                cancel() { m_cancel_status = CANCELED_BY_USER; }
 	void                cancel_internal() { m_cancel_status = CANCELED_INTERNAL; }
@@ -509,6 +539,9 @@ protected:
 	void                set_started(PrintStep step) { m_state.set_started(step, m_mutex); throw_if_canceled(); }
 	void                set_done(PrintStep step) { m_state.set_done(step, m_mutex); throw_if_canceled(); }
     bool                invalidate_step(PrintStep step);
+	template<typename StepTypeIterator>
+	bool				invalidate_steps(StepTypeIterator step_begin, StepTypeIterator step_end) { return m_state.invalidate_multiple(step_begin, step_end, m_mutex, m_cancel_callback); }
+    bool                invalidate_steps(std::initializer_list<PrintStep> il) { return m_state.invalidate_multiple(il.begin(), il.end(), m_mutex, m_cancel_callback); }
     bool                invalidate_all_steps() { return m_state.invalidate_all(m_mutex, m_cancel_callback); }
 
     // methods for handling regions
