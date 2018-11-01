@@ -673,36 +673,23 @@ void Sidebar::show_info_sizer()
 {
     wxWindowUpdateLocker freeze_guard(p->plater);
 
-#if ENABLE_EXTENDED_SELECTION
     int obj_idx = p->plater->get_selected_object_idx();
-    bool have_sel = (obj_idx != -1);
-#else
-    const auto obj_idx = selected_object();
-    const bool have_sel = !!obj_idx;
-#endif // ENABLE_EXTENDED_SELECTION
 
-    if (!have_sel) {
+    if (obj_idx < 0) {
         p->object_info->Show(false);
         return;
     }
 
-#if ENABLE_EXTENDED_SELECTION
     const ModelObject* model_object = (*wxGetApp().model_objects())[obj_idx];
-#else
-    const auto *model_object = model.objects[*obj_idx];
-#endif // ENABLE_EXTENDED_SELECTION
-    // FIXME print_info runs model fixing in two rounds, it is very slow, it should not be performed here!
-    // # $model_object->print_info;
-
     const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
-    auto size = model_object->instance_bounding_box(0).size();
-    
+
+    auto size = model_object->instance_bounding_box(0).size();    
     p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
     p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
 
     auto& stats = model_object->volumes[0]->mesh.stl.stats;
     auto sf = model_instance->get_scaling_factor();
-    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume * sf(0) * sf(0) * sf(0)));
+    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume * sf(0) * sf(1) * sf(2)));
     p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
 
     int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
@@ -1391,50 +1378,7 @@ void Plater::priv::selection_changed()
     // forces a frame render to update the view (to avoid a missed update if, for example, the context menu appears)
     _3DScene::render(canvas3D);
 
-
-    wxWindowUpdateLocker freeze_guard(sidebar);
-    if (have_sel) {
-        const ModelObject* model_object = model.objects[obj_idx];
-        // FIXME print_info runs model fixing in two rounds, it is very slow, it should not be performed here!
-        // # $model_object->print_info;
-
-        const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
-        // TODO
-        // $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$model_object->instance_bounding_box(0)->size}));
-        // $self->{object_info_materials}->SetLabel($model_object->materials_count);
-
-        // if (my $stats = $model_object->mesh_stats) {
-        //     $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($model_instance->scaling_factor**3)));
-        //     $self->{object_info_facets}->SetLabel(sprintf(L('%d (%d shells)'), $model_object->facets_count, $stats->{number_of_parts}));
-        //     if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
-        //         $self->{object_info_manifold}->SetLabel(sprintf(L("Auto-repaired (%d errors)"), $errors));
-        //         #$self->{object_info_manifold_warning_icon}->Show;
-        //         $self->{"object_info_manifold_warning_icon_show"}->(1);
-
-        //         # we don't show normals_fixed because we never provide normals
-        //         # to admesh, so it generates normals for all facets
-        //         my $message = sprintf L('%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges'),
-        //             @$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)};
-        //         $self->{object_info_manifold}->SetToolTipString($message);
-        //         $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
-        //     } else {
-        //         $self->{object_info_manifold}->SetLabel(L("Yes"));
-        //         #$self->{object_info_manifold_warning_icon}->Hide;
-        //         $self->{"object_info_manifold_warning_icon_show"}->(0);
-        //         $self->{object_info_manifold}->SetToolTipString("");
-        //         $self->{object_info_manifold_warning_icon}->SetToolTipString("");
-        //     }
-        // } else {
-        //     $self->{object_info_facets}->SetLabel($object->facets);
-        // }
-    } else {
-        // $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
-        // $self->{"object_info_manifold_warning_icon_show"}->(0);
-        // $self->{object_info_manifold}->SetToolTipString("");
-        // $self->{object_info_manifold_warning_icon}->SetToolTipString("");
-    }
-
-    q->Layout();
+    sidebar->show_info_sizer();
 }
 
 void Plater::priv::object_list_changed()

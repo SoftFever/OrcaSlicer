@@ -18,9 +18,7 @@ namespace Slic3r
 namespace GUI
 {
 
-#if ENABLE_EXTENDED_SELECTION
-    wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
-#endif // ENABLE_EXTENDED_SELECTION
+wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
