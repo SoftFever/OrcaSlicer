@@ -1980,11 +1980,6 @@ void _3DScene::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
     s_canvas_mgr.update_volumes_colors_by_extruder(canvas);
 }
 
-void _3DScene::update_gizmos_data(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.update_gizmos_data(canvas);
-}
-
 void _3DScene::render(wxGLCanvas* canvas)
 {
     s_canvas_mgr.render(canvas);

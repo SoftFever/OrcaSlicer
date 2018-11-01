@@ -3184,36 +3184,6 @@ void GLCanvas3D::update_volumes_colors_by_extruder()
         m_volumes.update_colors_by_extruder(m_config);
 }
 
-void GLCanvas3D::update_gizmos_data()
-{
-    if (!m_gizmos.is_enabled())
-        return;
-
-    bool enable_move_z = !m_selection.is_wipe_tower();
-    m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
-    bool enable_scale_xyz = m_selection.is_single_full_instance();
-    for (int i = 0; i < 6; ++i)
-    {
-        m_gizmos.enable_grabber(Gizmos::Scale, i, enable_scale_xyz);
-    }
-
-    if (m_selection.is_single_full_instance())
-    {
-        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
-        ModelInstance* model_instance = model_object->instances[m_selection.get_instance_idx()];
-        m_gizmos.set_scale(model_instance->get_scaling_factor());
-        m_gizmos.set_rotation(model_instance->get_rotation());
-        m_gizmos.set_flattening_data(model_object);
-        m_gizmos.set_model_object_ptr(model_object);
-    }
-    else
-    {
-        m_gizmos.set_scale(Vec3d::Ones());
-        m_gizmos.set_rotation(Vec3d::Zero());
-        m_gizmos.set_flattening_data(nullptr);
-    }
-}
-
 // Returns a Rect object denoting size and position of the Reset button used by a gizmo.
 // Returns in either screen or viewport coords.
 Rect GLCanvas3D::get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const
@@ -3397,7 +3367,7 @@ void GLCanvas3D::reload_scene(bool force)
         }
     }
 
-    update_gizmos_data();
+    _update_gizmos_data();
 
     if (m_regenerate_volumes)
     {
@@ -3802,12 +3772,12 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
         else if (!m_selection.is_empty() && gizmos_overlay_contains_mouse)
         {
             m_gizmos.update_on_off_state(*this, m_mouse.position, m_selection);
-            update_gizmos_data();
+            _update_gizmos_data();
             m_dirty = true;
         }
         else if (evt.LeftDown() && !m_selection.is_empty() && m_gizmos.grabber_contains_mouse())
         {
-            update_gizmos_data();
+            _update_gizmos_data();
             m_selection.start_dragging();
             m_gizmos.start_dragging(m_selection);
 
@@ -3851,7 +3821,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                     }
 
                     m_gizmos.update_on_off_state(m_selection);
-                    update_gizmos_data();
+                    _update_gizmos_data();
                     wxGetApp().obj_manipul()->update_settings_value(m_selection);
                     post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
                     m_dirty = true;
@@ -3894,7 +3864,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                             m_selection.add(m_hover_volume_id);
                             m_gizmos.update_on_off_state(m_selection);
                             post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                            update_gizmos_data();
+                            _update_gizmos_data();
                             wxGetApp().obj_manipul()->update_settings_value(m_selection);
                             // forces a frame render to update the view before the context menu is shown
                             render();
@@ -4050,7 +4020,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
                 m_selection.clear();
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
                 post_event(SimpleEvent(EVT_GLCANVAS_OBJECT_SELECT));
-                update_gizmos_data();
+                _update_gizmos_data();
             }
 #if ENABLE_GIZMOS_RESET
             else if (m_mouse.ignore_up_event)
@@ -4853,6 +4823,36 @@ void GLCanvas3D::_update_volumes_hover_state() const
 
         break;
     }
+    }
+}
+
+void GLCanvas3D::_update_gizmos_data()
+{
+    if (!m_gizmos.is_enabled())
+        return;
+
+    bool enable_move_z = !m_selection.is_wipe_tower();
+    m_gizmos.enable_grabber(Gizmos::Move, 2, enable_move_z);
+    bool enable_scale_xyz = m_selection.is_single_full_instance();
+    for (int i = 0; i < 6; ++i)
+    {
+        m_gizmos.enable_grabber(Gizmos::Scale, i, enable_scale_xyz);
+    }
+
+    if (m_selection.is_single_full_instance())
+    {
+        ModelObject* model_object = m_model->objects[m_selection.get_object_idx()];
+        ModelInstance* model_instance = model_object->instances[m_selection.get_instance_idx()];
+        m_gizmos.set_scale(model_instance->get_scaling_factor());
+        m_gizmos.set_rotation(model_instance->get_rotation());
+        m_gizmos.set_flattening_data(model_object);
+        m_gizmos.set_model_object_ptr(model_object);
+    }
+    else
+    {
+        m_gizmos.set_scale(Vec3d::Ones());
+        m_gizmos.set_rotation(Vec3d::Zero());
+        m_gizmos.set_flattening_data(nullptr);
     }
 }
 

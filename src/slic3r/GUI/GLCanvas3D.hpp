@@ -742,7 +742,7 @@ public:
     void set_viewport_from_scene(const GLCanvas3D& other);
 
     void update_volumes_colors_by_extruder();
-    void update_gizmos_data();
+
     Rect get_gizmo_reset_rect(const GLCanvas3D& canvas, bool viewport) const;
     bool gizmo_reset_rect_contains(const GLCanvas3D& canvas, float x, float y) const;
 
@@ -822,6 +822,7 @@ private:
 #endif // ENABLE_SHOW_CAMERA_TARGET
 
     void _update_volumes_hover_state() const;
+    void _update_gizmos_data();
 
     float _get_layers_editing_cursor_z_relative() const;
     void _perform_layer_editing_action(wxMouseEvent* evt = nullptr);
