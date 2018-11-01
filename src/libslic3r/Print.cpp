@@ -411,7 +411,7 @@ void Print::add_model_object(ModelObject* model_object, int idx)
 
     // Set the transformation matrix without translation from the first instance.
     if (! model_object->instances.empty())
-        object->set_trafo(model_object->instances.front()->world_matrix(true));
+        object->set_trafo(model_object->instances.front()->get_matrix(true));
 
     size_t volume_id = 0;
     for (const ModelVolume *volume : model_object->volumes) {
@@ -686,7 +686,7 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     trafo.copies.assign(1, Point());
     for (ModelInstance *model_instance : model_object.instances)
         if (model_instance->is_printable()) {
-            trafo.trafo = model_instance->world_matrix();
+            trafo.trafo = model_instance->get_matrix();
             // Set the Z axis of the transformation.
 			trafo.copies.front() = Point::new_scale(trafo.trafo.data()[3], trafo.trafo.data()[7]);
             trafo.trafo.data()[3] = 0;

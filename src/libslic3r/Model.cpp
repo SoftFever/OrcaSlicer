@@ -727,7 +727,7 @@ void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
     invalidate_bounding_box();
 }
 
-void ModelObject::translate(coordf_t x, coordf_t y, coordf_t z)
+void ModelObject::translate(double x, double y, double z)
 {
     for (ModelVolume *v : this->volumes)
     {
@@ -918,7 +918,7 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     double min_z = DBL_MAX;
 
     ModelInstance* inst = instances[instance_idx];
-    const Transform3d& m = inst->world_matrix(true);
+    const Transform3d& m = inst->get_matrix(true);
 
     for (ModelVolume *v : volumes)
     {
@@ -945,7 +945,7 @@ unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3
         unsigned int inside_outside = 0;
         for (const ModelVolume *vol : this->volumes)
             if (vol->is_model_part()) {
-                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->world_matrix());
+                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->get_matrix());
                 if (print_volume.contains(bb))
                     inside_outside |= INSIDE;
                 else if (print_volume.intersects(bb))
@@ -1042,11 +1042,6 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
     return m_convex_hull;
 }
 
-TriangleMesh& ModelVolume::get_convex_hull()
-{
-    return m_convex_hull;
-}
-
 ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
 {
     // Legacy support
@@ -1113,6 +1108,17 @@ size_t ModelVolume::split(unsigned int max_extruders)
     return idx;
 }
 
+void ModelVolume::translate(double x, double y, double z)
+{
+    translate(Vec3d(x, y, z));
+}
+
+void ModelVolume::translate(const Vec3d& displacement)
+{
+    mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+    m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+}
+
 #if !ENABLE_MODELVOLUME_TRANSFORM
 void ModelInstance::set_rotation(const Vec3d& rotation)
 {
@@ -1168,14 +1174,14 @@ void ModelInstance::set_mirror(Axis axis, double mirror)
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
-    mesh->transform(world_matrix(dont_translate).cast<float>());
+    mesh->transform(get_matrix(dont_translate).cast<float>());
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
-    copy.transform(world_matrix(true, false, true, true).cast<float>());
+    copy.transform(get_matrix(true, false, true, true).cast<float>());
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
@@ -1212,12 +1218,12 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    return bbox.transformed(world_matrix(dont_translate));
+    return bbox.transformed(get_matrix(dont_translate));
 }
 
 Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 {
-    return world_matrix(dont_translate) * v;
+    return get_matrix(dont_translate) * v;
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const

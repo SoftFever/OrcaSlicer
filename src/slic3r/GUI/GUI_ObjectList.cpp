@@ -729,10 +729,7 @@ void ObjectList::load_part( ModelObject* model_object,
                 part_names.Add(new_volume->name);
 
                 if (delta != Vec3d::Zero())
-                {
-                    new_volume->mesh.translate((float)delta(0), (float)delta(1), (float)delta(2));
-                    new_volume->get_convex_hull().translate((float)delta(0), (float)delta(1), (float)delta(2));
-                }
+                    new_volume->translate(delta);
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));

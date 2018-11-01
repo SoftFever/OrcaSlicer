@@ -160,7 +160,7 @@ public:
     void translate_instances(const Vec3d& vector);
     void translate_instance(size_t instance_idx, const Vec3d& vector);
     void translate(const Vec3d &vector) { this->translate(vector(0), vector(1), vector(2)); }
-    void translate(coordf_t x, coordf_t y, coordf_t z);
+    void translate(double x, double y, double z);
     void scale(const Vec3d &versor);
     void scale(const double s) { this->scale(Vec3d(s, s, s)); }
     void rotate(float angle, const Axis &axis);
@@ -210,13 +210,6 @@ class ModelVolume : public ModelBase
 {
     friend class ModelObject;
 
-    // The convex hull of this model's mesh.
-    TriangleMesh        m_convex_hull;
-
-#if ENABLE_MODELVOLUME_TRANSFORM
-    Geometry::Transformation m_transformation;
-#endif // ENABLE_MODELVOLUME_TRANSFORM
-
 public:
     std::string         name;
     // The triangular model.
@@ -253,18 +246,22 @@ public:
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
     size_t              split(unsigned int max_extruders);
+    void                translate(double x, double y, double z);
+    void                translate(const Vec3d& displacement);
 
     ModelMaterial*      assign_unique_material();
     
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
-    TriangleMesh&       get_convex_hull();
 
     // Helpers for loading / storing into AMF / 3MF files.
     static Type         type_from_string(const std::string &s);
     static std::string  type_to_string(const Type t);
 
 #if ENABLE_MODELVOLUME_TRANSFORM
+    const Geometry::Transformation& get_transformation() const { return m_transformation; }
+    void set_transformation(const Geometry::Transformation& transformation) { m_transformation = transformation; }
+
     const Vec3d& get_offset() const { return m_transformation.get_offset(); }
     double get_offset(Axis axis) const { return m_transformation.get_offset(axis); }
 
@@ -288,6 +285,8 @@ public:
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
+
+    const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
 private:
@@ -296,7 +295,12 @@ private:
     // Is it an object to be printed, or a modifier volume?
     Type                    m_type;
     t_model_material_id     m_material_id;
-    
+    // The convex hull of this model's mesh.
+    TriangleMesh             m_convex_hull;
+#if ENABLE_MODELVOLUME_TRANSFORM
+    Geometry::Transformation m_transformation;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+
     ModelVolume(ModelObject *object, const TriangleMesh &mesh) : mesh(mesh), m_type(MODEL_PART), object(object)
     {
         if (mesh.stl.stats.number_of_facets > 1)
@@ -419,9 +423,9 @@ public:
     void transform_polygon(Polygon* polygon) const;
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
+    const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 #else
-    Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+    Transform3d get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }

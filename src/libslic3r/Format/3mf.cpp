@@ -1828,7 +1828,7 @@ namespace Slic3r {
                 stream << "   </" << COMPONENTS_TAG << ">\n";
             }
 
-            Transform3d t = instance->world_matrix();
+            Transform3d t = instance->get_matrix();
             build_items.emplace_back(instance_id, t);
 
             stream << "  </" << OBJECT_TAG << ">\n";

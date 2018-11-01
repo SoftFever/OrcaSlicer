@@ -1184,7 +1184,7 @@ void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
         int instance_idx = selection.get_instance_idx();
         if ((instance_idx != -1) && (m_model_object != nullptr))
         {
-            Transform3d m = m_model_object->instances[instance_idx]->world_matrix();
+            Transform3d m = m_model_object->instances[instance_idx]->get_matrix();
             m.pretranslate(dragged_offset);
             ::glPushMatrix();
             ::glMultMatrixd(m.data());
@@ -1214,7 +1214,7 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
         if ((instance_idx != -1) && (m_model_object != nullptr))
         {
             ::glPushMatrix();
-            ::glMultMatrixd(m_model_object->instances[instance_idx]->world_matrix().data());
+            ::glMultMatrixd(m_model_object->instances[instance_idx]->get_matrix().data());
             ::glBegin(GL_POLYGON);
             for (const Vec3d& vertex : m_planes[i].vertices)
             {
@@ -1439,7 +1439,7 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
 Vec3d GLGizmoFlatten::get_flattening_rotation() const
 {
     // calculates the rotations in model space, taking in account the scaling factors
-    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = m_model_object->instances.front()->world_matrix(true, true).matrix().block(0, 0, 3, 3).inverse().transpose();
+    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = m_model_object->instances.front()->get_matrix(true, true).matrix().block(0, 0, 3, 3).inverse().transpose();
     Eigen::Quaterniond q;
     Vec3d angles = Geometry::extract_euler_angles(q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix());
     m_normal = Vec3d::Zero();
@@ -1478,7 +1478,7 @@ void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
     m_model_object = model_object;
-    m_model_object_matrix = model_object->instances.front()->world_matrix();
+    m_model_object_matrix = model_object->instances.front()->get_matrix();
     if (is_mesh_update_necessary())
         update_mesh();
 }
@@ -1560,7 +1560,7 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-    if ((m_model_object->instances.front()->world_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001 )
+    if ((m_model_object->instances.front()->get_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001)
         return true;
 
     // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
@@ -1588,7 +1588,7 @@ void GLGizmoSlaSupports::update_mesh()
         F(i, 1) = 3*i+1;
         F(i, 2) = 3*i+2;
     }
-    m_source_data.matrix = m_model_object->instances.front()->world_matrix();
+    m_source_data.matrix = m_model_object->instances.front()->get_matrix();
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
     // we'll now reload Grabbers (selection might have changed):
@@ -1629,7 +1629,7 @@ Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)
     const Vec3f& b = m_V.row(m_F(fid, 1));
     const Vec3f& c = m_V.row(m_F(fid, 2));
     Vec3f point = bc(0)*a + bc(1)*b + bc(2)*c;
-    return m_model_object->instances.front()->world_matrix().inverse().cast<float>() * point;
+    return m_model_object->instances.front()->get_matrix().inverse().cast<float>() * point;
 }
 
 void GLGizmoSlaSupports::clicked_on_object(const Vec2d& mouse_position)
