@@ -135,7 +135,6 @@ public:
     void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
-    void update_gizmos_data(wxGLCanvas* canvas);
 
     void render(wxGLCanvas* canvas) const;
 

@@ -565,7 +565,6 @@ public:
     static void set_viewport_from_scene(wxGLCanvas* canvas, wxGLCanvas* other);
 
     static void update_volumes_colors_by_extruder(wxGLCanvas* canvas);
-    static void update_gizmos_data(wxGLCanvas* canvas);
 
     static void render(wxGLCanvas* canvas);
 

@@ -485,13 +485,6 @@ void GLCanvas3DManager::update_volumes_colors_by_extruder(wxGLCanvas* canvas)
         it->second->update_volumes_colors_by_extruder();
 }
 
-void GLCanvas3DManager::update_gizmos_data(wxGLCanvas* canvas)
-{
-    CanvasesMap::const_iterator it = _get_canvas(canvas);
-    if (it != m_canvases.end())
-        it->second->update_gizmos_data();
-}
-
 void GLCanvas3DManager::render(wxGLCanvas* canvas) const
 {
     CanvasesMap::const_iterator it = _get_canvas(canvas);
