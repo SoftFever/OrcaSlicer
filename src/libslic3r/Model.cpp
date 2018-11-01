@@ -693,22 +693,11 @@ void ModelObject::center_around_origin()
         if (v->is_model_part())
 			bb.merge(v->mesh.bounding_box());
     
-#if ENABLE_EXTENDED_SELECTION
     // Shift is the vector from the center of the bounding box to the origin
     Vec3d shift = -bb.center();
-#else
-    // Shift is the vector from the center of the bottom face of the bounding box to the origin
-    Vec3d shift = -bb.center();
-    shift(2) = -bb.min(2);
-#endif // ENABLE_EXTENDED_SELECTION
 
     this->translate(shift);
     this->origin_translation += shift;
-
-#if !ENABLE_EXTENDED_SELECTION
-    // set z to zero, translation in z has already been done within the mesh
-    shift(2) = 0.0;
-#endif // !ENABLE_EXTENDED_SELECTION
 
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
@@ -738,7 +727,7 @@ void ModelObject::translate_instance(size_t instance_idx, const Vec3d& vector)
     invalidate_bounding_box();
 }
 
-void ModelObject::translate(coordf_t x, coordf_t y, coordf_t z)
+void ModelObject::translate(double x, double y, double z)
 {
     for (ModelVolume *v : this->volumes)
     {
@@ -929,7 +918,7 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     double min_z = DBL_MAX;
 
     ModelInstance* inst = instances[instance_idx];
-    const Transform3d& m = inst->world_matrix(true);
+    const Transform3d& m = inst->get_matrix(true);
 
     for (ModelVolume *v : volumes)
     {
@@ -956,7 +945,7 @@ unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3
         unsigned int inside_outside = 0;
         for (const ModelVolume *vol : this->volumes)
             if (vol->is_model_part()) {
-                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->world_matrix());
+                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->get_matrix());
                 if (print_volume.contains(bb))
                     inside_outside |= INSIDE;
                 else if (print_volume.intersects(bb))
@@ -1053,11 +1042,6 @@ const TriangleMesh& ModelVolume::get_convex_hull() const
     return m_convex_hull;
 }
 
-TriangleMesh& ModelVolume::get_convex_hull()
-{
-    return m_convex_hull;
-}
-
 ModelVolume::Type ModelVolume::type_from_string(const std::string &s)
 {
     // Legacy support
@@ -1124,6 +1108,17 @@ size_t ModelVolume::split(unsigned int max_extruders)
     return idx;
 }
 
+void ModelVolume::translate(double x, double y, double z)
+{
+    translate(Vec3d(x, y, z));
+}
+
+void ModelVolume::translate(const Vec3d& displacement)
+{
+    mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+    m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+}
+
 #if !ENABLE_MODELVOLUME_TRANSFORM
 void ModelInstance::set_rotation(const Vec3d& rotation)
 {
@@ -1146,7 +1141,6 @@ void ModelInstance::set_rotation(Axis axis, double rotation)
     m_rotation(axis) = rotation;
 }
 
-#if ENABLE_MIRROR
 void ModelInstance::set_scaling_factor(const Vec3d& scaling_factor)
 {
     set_scaling_factor(X, scaling_factor(0));
@@ -1176,23 +1170,18 @@ void ModelInstance::set_mirror(Axis axis, double mirror)
 
     m_mirror(axis) = mirror;
 }
-#endif // ENABLE_MIRROR
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
-    mesh->transform(world_matrix(dont_translate).cast<float>());
+    mesh->transform(get_matrix(dont_translate).cast<float>());
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
-#if ENABLE_MIRROR
-    copy.transform(world_matrix(true, false, true, true).cast<float>());
-#else
-    copy.transform(world_matrix(true, false, true).cast<float>());
-#endif // ENABLE_MIRROR
+    copy.transform(get_matrix(true, false, true, true).cast<float>());
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
@@ -1229,12 +1218,12 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 
 BoundingBoxf3 ModelInstance::transform_bounding_box(const BoundingBoxf3 &bbox, bool dont_translate) const
 {
-    return bbox.transformed(world_matrix(dont_translate));
+    return bbox.transformed(get_matrix(dont_translate));
 }
 
 Vec3d ModelInstance::transform_vector(const Vec3d& v, bool dont_translate) const
 {
-    return world_matrix(dont_translate) * v;
+    return get_matrix(dont_translate) * v;
 }
 
 void ModelInstance::transform_polygon(Polygon* polygon) const
@@ -1253,21 +1242,13 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM
-#if ENABLE_MIRROR
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
-#else
-Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
-#endif // ENABLE_MIRROR
 {
     Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
     Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
     Vec3d scale = dont_scale ? Vec3d::Ones() : m_scaling_factor;
-#if ENABLE_MIRROR
     Vec3d mirror = dont_mirror ? Vec3d::Ones() : m_mirror;
     return Geometry::assemble_transform(translation, rotation, scale, mirror);
-#else
-    return Geometry::assemble_transform(translation, rotation, scale);
-#endif // ENABLE_MIRROR
 }
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 

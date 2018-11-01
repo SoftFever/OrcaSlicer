@@ -201,9 +201,7 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     : m_offset(Vec3d::Zero())
     , m_rotation(Vec3d::Zero())
     , m_scaling_factor(Vec3d::Ones())
-#if ENABLE_MIRROR
     , m_mirror(Vec3d::Ones())
-#endif // ENABLE_MIRROR
     , m_world_matrix(Transform3f::Identity())
     , m_world_matrix_dirty(true)
     , m_transformed_bounding_box_dirty(true)
@@ -211,10 +209,6 @@ GLVolume::GLVolume(float r, float g, float b, float a)
     , m_transformed_convex_hull_bounding_box_dirty(true)
     , m_convex_hull(nullptr)
     , composite_id(-1)
-#if !ENABLE_EXTENDED_SELECTION
-    , select_group_id(-1)
-    , drag_group_id(-1)
-#endif // !ENABLE_EXTENDED_SELECTION
     , extruder_id(0)
     , selected(false)
     , is_active(true)
@@ -272,14 +266,11 @@ const Vec3d& GLVolume::get_rotation() const
 
 void GLVolume::set_rotation(const Vec3d& rotation)
 {
-#if ENABLE_EXTENDED_SELECTION
     static const double TWO_PI = 2.0 * (double)PI;
-#endif // ENABLE_EXTENDED_SELECTION
 
     if (m_rotation != rotation)
     {
         m_rotation = rotation;
-#if ENABLE_EXTENDED_SELECTION
         for (int i = 0; i < 3; ++i)
         {
             while (m_rotation(i) < 0.0)
@@ -291,7 +282,6 @@ void GLVolume::set_rotation(const Vec3d& rotation)
                 m_rotation(i) -= TWO_PI;
             }
         }
-#endif // ENABLE_EXTENDED_SELECTION
         m_world_matrix_dirty = true;
         m_transformed_bounding_box_dirty = true;
         m_transformed_convex_hull_bounding_box_dirty = true;
@@ -314,12 +304,10 @@ void GLVolume::set_offset(const Vec3d& offset)
     }
 }
 
-#if ENABLE_EXTENDED_SELECTION
 const Vec3d& GLVolume::get_scaling_factor() const
 {
     return m_scaling_factor;
 }
-#endif // ENABLE_EXTENDED_SELECTION
 
 void GLVolume::set_scaling_factor(const Vec3d& scaling_factor)
 {
@@ -332,7 +320,6 @@ void GLVolume::set_scaling_factor(const Vec3d& scaling_factor)
     }
 }
 
-#if ENABLE_MIRROR
 const Vec3d& GLVolume::get_mirror() const
 {
     return m_mirror;
@@ -364,7 +351,6 @@ void GLVolume::set_mirror(Axis axis, double mirror)
         m_transformed_convex_hull_bounding_box_dirty = true;
     }
 }
-#endif // ENABLE_MIRROR
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 
 void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
@@ -372,36 +358,12 @@ void GLVolume::set_convex_hull(const TriangleMesh& convex_hull)
     m_convex_hull = &convex_hull;
 }
 
-#if !ENABLE_EXTENDED_SELECTION
-void GLVolume::set_select_group_id(const std::string& select_by)
-{
-    if (select_by == "object")
-        select_group_id = object_idx() * 1000000;
-    else if (select_by == "volume")
-        select_group_id = object_idx() * 1000000 + volume_idx() * 1000;
-    else if (select_by == "instance")
-        select_group_id = composite_id;
-}
-
-void GLVolume::set_drag_group_id(const std::string& drag_by)
-{
-    if (drag_by == "object")
-        drag_group_id = object_idx() * 1000;
-    else if (drag_by == "instance")
-        drag_group_id = object_idx() * 1000 + instance_idx();
-}
-#endif // !ENABLE_EXTENDED_SELECTION
-
 #if !ENABLE_MODELVOLUME_TRANSFORM
 const Transform3f& GLVolume::world_matrix() const
 {
     if (m_world_matrix_dirty)
     {
-#if ENABLE_MIRROR
         m_world_matrix = Geometry::assemble_transform(m_offset, m_rotation, m_scaling_factor, m_mirror).cast<float>();
-#else
-        m_world_matrix = Geometry::assemble_transform(m_offset, m_rotation, m_scaling_factor).cast<float>();
-#endif // ENABLE_MIRROR
         m_world_matrix_dirty = false;
     }
     return m_world_matrix;
@@ -730,23 +692,12 @@ void GLVolume::generate_layer_height_texture(const PrintObject *print_object, bo
 #define LAYER_HEIGHT_TEXTURE_WIDTH  1024
 #define LAYER_HEIGHT_TEXTURE_HEIGHT 1024
 
-#if ENABLE_EXTENDED_SELECTION
 std::vector<int> GLVolumeCollection::load_object(
     const ModelObject       *model_object,
     int                      obj_idx,
     const std::vector<int>  &instance_idxs,
     const std::string       &color_by,
     bool                     use_VBOs)
-#else
-std::vector<int> GLVolumeCollection::load_object(
-    const ModelObject       *model_object, 
-    int                      obj_idx,
-    const std::vector<int>  &instance_idxs,
-    const std::string       &color_by,
-    const std::string       &select_by,
-    const std::string       &drag_by,
-    bool                     use_VBOs)
-#endif // ENABLE_EXTENDED_SELECTION
 {
     static float colors[4][4] = {
         { 1.0f, 1.0f, 0.0f, 1.f }, 
@@ -797,10 +748,6 @@ std::vector<int> GLVolumeCollection::load_object(
             v.bounding_box = v.indexed_vertex_array.bounding_box();
             v.indexed_vertex_array.finalize_geometry(use_VBOs);
             v.composite_id = obj_idx * 1000000 + volume_idx * 1000 + instance_idx;
-#if !ENABLE_EXTENDED_SELECTION
-            v.set_select_group_id(select_by);
-            v.set_drag_group_id(drag_by);
-#endif // !ENABLE_EXTENDED_SELECTION
             if (model_volume->is_model_part())
             {
                 v.set_convex_hull(model_volume->get_convex_hull());
@@ -816,9 +763,7 @@ std::vector<int> GLVolumeCollection::load_object(
             v.set_offset(instance->get_offset());
             v.set_rotation(instance->get_rotation());
             v.set_scaling_factor(instance->get_scaling_factor());
-#if ENABLE_MIRROR
             v.set_mirror(instance->get_mirror());
-#endif // ENABLE_MIRROR
 #endif // ENABLE_MODELVOLUME_TRANSFORM
         }
     }
@@ -894,10 +839,6 @@ int GLVolumeCollection::load_wipe_tower_preview(
     v.bounding_box = v.indexed_vertex_array.bounding_box();
     v.indexed_vertex_array.finalize_geometry(use_VBOs);
     v.composite_id = obj_idx * 1000000;
-#if !ENABLE_EXTENDED_SELECTION
-    v.select_group_id = obj_idx * 1000000;
-    v.drag_group_id = obj_idx * 1000;
-#endif // !ENABLE_EXTENDED_SELECTION
     v.is_wipe_tower = true;
     v.shader_outside_printer_detection_enabled = ! size_unknown;
     return int(this->volumes.size() - 1);
@@ -1092,26 +1033,6 @@ void GLVolumeCollection::update_colors_by_extruder(const DynamicPrintConfig* con
         }
     }
 }
-
-#if !ENABLE_EXTENDED_SELECTION
-void GLVolumeCollection::set_select_by(const std::string& select_by)
-{
-    for (GLVolume *vol : this->volumes)
-    {
-        if (vol != nullptr)
-            vol->set_select_group_id(select_by);
-    }
-}
-
-void GLVolumeCollection::set_drag_by(const std::string& drag_by)
-{
-    for (GLVolume *vol : this->volumes)
-    {
-        if (vol != nullptr)
-            vol->set_drag_group_id(drag_by);
-    }
-}
-#endif // !ENABLE_EXTENDED_SELECTION
 
 std::vector<double> GLVolumeCollection::get_current_print_zs(bool active_only) const
 {
@@ -1884,23 +1805,6 @@ void _3DScene::reset_volumes(wxGLCanvas* canvas)
     s_canvas_mgr.reset_volumes(canvas);
 }
 
-#if !ENABLE_EXTENDED_SELECTION
-void _3DScene::deselect_volumes(wxGLCanvas* canvas)
-{
-    s_canvas_mgr.deselect_volumes(canvas);
-}
-
-void _3DScene::select_volume(wxGLCanvas* canvas, unsigned int id)
-{
-    s_canvas_mgr.select_volume(canvas, id);
-}
-
-void _3DScene::update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections)
-{
-    s_canvas_mgr.update_volumes_selection(canvas, selections);
-}
-#endif // !ENABLE_EXTENDED_SELECTION
-
 int _3DScene::check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config)
 {
     return s_canvas_mgr.check_volumes_outside_state(canvas, config);
@@ -1916,17 +1820,10 @@ bool _3DScene::move_volume_down(wxGLCanvas* canvas, unsigned int id)
     return s_canvas_mgr.move_volume_down(canvas, id);
 }
 
-#if ENABLE_EXTENDED_SELECTION
 GUI::GLCanvas3D* _3DScene::get_canvas(wxGLCanvas* canvas)
 {
     return s_canvas_mgr.get_canvas(canvas);
 }
-#else
-void _3DScene::set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections)
-{
-    s_canvas_mgr.set_objects_selections(canvas, selections);
-}
-#endif // ENABLE_EXTENDED_SELECTION
 
 void _3DScene::set_config(wxGLCanvas* canvas, DynamicPrintConfig* config)
 {
@@ -1972,23 +1869,6 @@ void _3DScene::set_color_by(wxGLCanvas* canvas, const std::string& value)
 {
     s_canvas_mgr.set_color_by(canvas, value);
 }
-
-#if !ENABLE_EXTENDED_SELECTION
-void _3DScene::set_select_by(wxGLCanvas* canvas, const std::string& value)
-{
-    s_canvas_mgr.set_select_by(canvas, value);
-}
-
-void _3DScene::set_drag_by(wxGLCanvas* canvas, const std::string& value)
-{
-    s_canvas_mgr.set_drag_by(canvas, value);
-}
-
-std::string _3DScene::get_select_by(wxGLCanvas* canvas)
-{
-    return s_canvas_mgr.get_select_by(canvas);
-}
-#endif // !ENABLE_EXTENDED_SELECTION
 
 bool _3DScene::is_layers_editing_enabled(wxGLCanvas* canvas)
 {
@@ -2167,14 +2047,10 @@ int _3DScene::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx)
     return s_canvas_mgr.get_in_object_volume_id(canvas, scene_vol_idx);
 }
 
-#if ENABLE_MIRROR
-#if ENABLE_EXTENDED_SELECTION
 void _3DScene::mirror_selection(wxGLCanvas* canvas, Axis axis)
 {
     s_canvas_mgr.mirror_selection(canvas, axis);
 }
-#endif // ENABLE_EXTENDED_SELECTION
-#endif // ENABLE_MIRROR
 
 void _3DScene::reload_scene(wxGLCanvas* canvas, bool force)
 {

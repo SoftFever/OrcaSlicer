@@ -79,7 +79,7 @@ void Field::on_kill_focus(wxEvent& event)
 
 void Field::on_change_field()
 {
-      std::cerr << "calling Field::_on_change \n";
+//       std::cerr << "calling Field::_on_change \n";
     if (m_on_change != nullptr  && !m_disable_change_event)
         m_on_change(m_opt_id, get_value());
 }

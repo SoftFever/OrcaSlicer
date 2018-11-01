@@ -87,20 +87,11 @@ public:
 
     unsigned int get_volumes_count(wxGLCanvas* canvas) const;
     void reset_volumes(wxGLCanvas* canvas);
-#if !ENABLE_EXTENDED_SELECTION
-    void deselect_volumes(wxGLCanvas* canvas);
-    void select_volume(wxGLCanvas* canvas, unsigned int id);
-    void update_volumes_selection(wxGLCanvas* canvas, const std::vector<int>& selections);
-#endif // !ENABLE_EXTENDED_SELECTION
     int check_volumes_outside_state(wxGLCanvas* canvas, const DynamicPrintConfig* config) const;
     bool move_volume_up(wxGLCanvas* canvas, unsigned int id);
     bool move_volume_down(wxGLCanvas* canvas, unsigned int id);
 
-#if ENABLE_EXTENDED_SELECTION
     GLCanvas3D* get_canvas(wxGLCanvas* canvas);
-#else
-    void set_objects_selections(wxGLCanvas* canvas, const std::vector<int>& selections);
-#endif // ENABLE_EXTENDED_SELECTION
 
     void set_config(wxGLCanvas* canvas, DynamicPrintConfig* config);
     void set_print(wxGLCanvas* canvas, Print* print);
@@ -116,12 +107,6 @@ public:
     void set_cutting_plane(wxGLCanvas* canvas, float z, const ExPolygons& polygons);
 
     void set_color_by(wxGLCanvas* canvas, const std::string& value);
-#if !ENABLE_EXTENDED_SELECTION
-    void set_select_by(wxGLCanvas* canvas, const std::string& value);
-    void set_drag_by(wxGLCanvas* canvas, const std::string& value);
-
-    std::string get_select_by(wxGLCanvas* canvas) const;
-#endif // !ENABLE_EXTENDED_SELECTION
 
     bool is_layers_editing_enabled(wxGLCanvas* canvas) const;
     bool is_layers_editing_allowed(wxGLCanvas* canvas) const;
@@ -163,11 +148,7 @@ public:
     int get_first_volume_id(wxGLCanvas* canvas, int obj_idx) const;
     int get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx) const;
 
-#if ENABLE_MIRROR
-#if ENABLE_EXTENDED_SELECTION
     void mirror_selection(wxGLCanvas* canvas, Axis axis);
-#endif // ENABLE_EXTENDED_SELECTION
-#endif // ENABLE_MIRROR
 
     void reload_scene(wxGLCanvas* canvas, bool force);
 

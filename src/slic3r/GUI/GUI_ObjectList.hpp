@@ -5,6 +5,7 @@
 #include <wx/dataview.h>
 #include <map>
 #include <vector>
+#include "Event.hpp"
 
 class wxBoxSizer;
 class PrusaObjectDataViewModel;
@@ -16,6 +17,8 @@ class ModelObject;
 class ModelVolume;
 
 namespace GUI {
+
+wxDECLARE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
 
 class ObjectList : public wxDataViewCtrl
 {

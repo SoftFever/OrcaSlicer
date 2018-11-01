@@ -18,6 +18,8 @@ namespace Slic3r
 namespace GUI
 {
 
+wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
@@ -233,6 +235,13 @@ void ObjectList::selection_changed()
 
     // update object selection on Plater
     update_selections_on_canvas();
+
+    // to update the toolbar and info sizer
+    if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject) {
+        auto event = SimpleEvent(EVT_OBJ_LIST_OBJECT_SELECT);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+    }
 
     part_selection_changed();
 
@@ -720,10 +729,7 @@ void ObjectList::load_part( ModelObject* model_object,
                 part_names.Add(new_volume->name);
 
                 if (delta != Vec3d::Zero())
-                {
-                    new_volume->mesh.translate((float)delta(0), (float)delta(1), (float)delta(2));
-                    new_volume->get_convex_hull().translate((float)delta(0), (float)delta(1), (float)delta(2));
-                }
+                    new_volume->translate(delta);
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
@@ -960,10 +966,8 @@ void ObjectList::split(const bool split_part)
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-#if ENABLE_EXTENDED_SELECTION
     // restores selection
     _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
@@ -1071,11 +1075,7 @@ void ObjectList::part_selection_changed()
 
     m_selected_object_id = obj_idx;
 
-#if ENABLE_EXTENDED_SELECTION
     wxGetApp().obj_manipul()->update_settings_value(_3DScene::get_canvas(wxGetApp().canvas3D())->get_selection());
-#else
-    wxGetApp().obj_manipul()->update_values();
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::update_manipulation_sizer(const bool is_simple_mode)
@@ -1094,9 +1094,6 @@ void ObjectList::add_object_to_list(size_t obj_idx)
     auto model_object = (*m_objects)[obj_idx];
     wxString item_name = model_object->name;
     auto item = m_objects_model->Add(item_name);
-#if !ENABLE_EXTENDED_SELECTION
-    /*Select*/select_item(item);
-#endif // !ENABLE_EXTENDED_SELECTION
 
     // Add error icon if detected auto-repaire
     auto stats = model_object->volumes[0]->mesh.stl.stats;
@@ -1224,7 +1221,6 @@ bool ObjectList::multiple_selection() const
 
 void ObjectList::update_selections()
 {
-#if ENABLE_EXTENDED_SELECTION
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
     wxDataViewItemArray sels;
 
@@ -1234,13 +1230,10 @@ void ObjectList::update_selections()
         sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
     }
     select_items(sels);
-
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::update_selections_on_canvas()
 {
-#if ENABLE_EXTENDED_SELECTION
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
 
     const int sel_cnt = GetSelectedItemsCount();
@@ -1288,8 +1281,6 @@ void ObjectList::update_selections_on_canvas()
         add_to_selection(item, selection, false);
 
     _3DScene::render(wxGetApp().canvas3D());
-
-#endif // ENABLE_EXTENDED_SELECTION
 }
 
 void ObjectList::select_item(const wxDataViewItem& item)
