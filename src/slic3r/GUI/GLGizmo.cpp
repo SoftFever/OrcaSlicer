@@ -1981,13 +1981,7 @@ bool GLGizmoSlaSupports::is_mesh_update_necessary() const
     if (m_state != On || !m_model_object || m_model_object->instances.empty())
         return false;
 
-#if ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
     if ((m_model_object->instances.front()->world_matrix() * m_source_data.matrix.inverse() * Vec3d(1., 1., 1.) - Vec3d(1., 1., 1.)).norm() > 0.001 )
-#else
-    if (m_model_object->instances.front()->get_scaling_factor() != m_source_data.scaling_factor
-     || m_model_object->instances.front()->get_rotation() != m_source_data.rotation
-     || m_model_object->instances.front()->get_offset() != m_source_data.offset)
-#endif // ENABLE_MODELINSTANCE_3D_ROTATION
         return true;
 
     // following should detect direct mesh changes (can be removed after the mesh is made completely immutable):
@@ -2015,13 +2009,7 @@ void GLGizmoSlaSupports::update_mesh()
         F(i, 1) = 3*i+1;
         F(i, 2) = 3*i+2;
     }
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-    m_source_data.scaling_factor = m_model_object->instances.front()->get_scaling_factor();
-    m_source_data.rotation = m_model_object->instances.front()->get_rotation();
-    m_source_data.offset = m_model_object->instances.front()->get_offset();
-#else
     m_source_data.matrix = m_model_object->instances.front()->world_matrix();
-#endif
     const float* first_vertex = m_model_object->volumes.front()->get_convex_hull().first_vertex();
     m_source_data.mesh_first_point = Vec3d((double)first_vertex[0], (double)first_vertex[1], (double)first_vertex[2]);
     // we'll now reload Grabbers (selection might have changed):

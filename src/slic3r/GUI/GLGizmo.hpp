@@ -497,13 +497,7 @@ private:
     Eigen::MatrixXi m_F; // facets indices
     struct SourceDataSummary {
         BoundingBoxf3 bounding_box;
-#if !ENABLE_MODELINSTANCE_3D_FULL_TRANSFORM
-        Vec3d scaling_factor;
-        Vec3d rotation;
-        Vec3d offset;
-#else
         Transform3d matrix;
-#endif
         Vec3d mesh_first_point;
     };
 
