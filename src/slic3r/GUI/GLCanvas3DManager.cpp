@@ -596,7 +596,6 @@ int GLCanvas3DManager::get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol
     return (it != m_canvases.end()) ? it->second->get_in_object_volume_id(scene_vol_idx) : -1;
 }
 
-#if ENABLE_MIRROR
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3DManager::mirror_selection(wxGLCanvas* canvas, Axis axis)
 {
@@ -605,7 +604,6 @@ void GLCanvas3DManager::mirror_selection(wxGLCanvas* canvas, Axis axis)
         it->second->mirror_selection(axis);
 }
 #endif // ENABLE_EXTENDED_SELECTION
-#endif // ENABLE_MIRROR
 
 void GLCanvas3DManager::reload_scene(wxGLCanvas* canvas, bool force)
 {

@@ -283,13 +283,11 @@ public:
     void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
     void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); }
 
-#if ENABLE_MIRROR
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
-#endif // ENABLE_MIRROR
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
 private:
@@ -347,9 +345,7 @@ private:
     Vec3d m_offset;              // in unscaled coordinates
     Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
     Vec3d m_scaling_factor;      // Scaling factors along the three axes
-#if ENABLE_MIRROR
     Vec3d m_mirror;              // Mirroring along the three axes
-#endif // ENABLE_MIRROR
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
 public:
@@ -380,13 +376,11 @@ public:
     void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); }
     void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); }
 
-#if ENABLE_MIRROR
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); }
-#endif // ENABLE_MIRROR
 #else
     const Vec3d& get_offset() const { return m_offset; }
     double get_offset(Axis axis) const { return m_offset(axis); }
@@ -403,21 +397,14 @@ public:
     Vec3d get_scaling_factor() const { return m_scaling_factor; }
     double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
 
-#if ENABLE_MIRROR
     void set_scaling_factor(const Vec3d& scaling_factor);
     void set_scaling_factor(Axis axis, double scaling_factor);
-#else
-    void set_scaling_factor(const Vec3d& scaling_factor) { m_scaling_factor = scaling_factor; }
-    void set_scaling_factor(Axis axis, double scaling_factor) { m_scaling_factor(axis) = scaling_factor; }
-#endif // ENABLE_MIRROR
 
-#if ENABLE_MIRROR
     const Vec3d& get_mirror() const { return m_mirror; }
     double get_mirror(Axis axis) const { return m_mirror(axis); }
 
     void set_mirror(const Vec3d& mirror);
     void set_mirror(Axis axis, double mirror);
-#endif // ENABLE_MIRROR
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
     // To be called on an external mesh
@@ -432,17 +419,9 @@ public:
     void transform_polygon(Polygon* polygon) const;
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-#if ENABLE_MIRROR
-    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.world_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
+    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const { return m_transformation.get_matrix(dont_translate, dont_rotate, dont_scale, dont_mirror); }
 #else
-    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const { return m_transformation.world_matrix(dont_translate, dont_rotate, dont_scale); }
-#endif // ENABLE_MIRROR
-#else
-#if ENABLE_MIRROR
     Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
-#else
-    Transform3d world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
-#endif // ENABLE_MIRROR
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
     bool is_printable() const { return print_volume_state == PVS_Inside; }
@@ -456,15 +435,9 @@ private:
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) {}
 #else
-#if ENABLE_MIRROR
     ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
     ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_offset(other.m_offset), m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_mirror(other.m_mirror), object(object), print_volume_state(PVS_Inside) {}
-#else
-    ModelInstance(ModelObject *object) : m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_offset(Vec3d::Zero()), object(object), print_volume_state(PVS_Inside) {}
-    ModelInstance(ModelObject *object, const ModelInstance &other) :
-        m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_offset(other.m_offset), object(object), print_volume_state(PVS_Inside) {}
-#endif // ENABLE_MIRROR
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
     explicit ModelInstance(ModelInstance &rhs) = delete;

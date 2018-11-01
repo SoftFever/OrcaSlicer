@@ -1463,7 +1463,6 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
     m_bounding_box_dirty = true;
 }
 
-#if ENABLE_MIRROR
 void GLCanvas3D::Selection::mirror(Axis axis)
 {
     if (!m_valid)
@@ -1482,7 +1481,6 @@ void GLCanvas3D::Selection::mirror(Axis axis)
 
     m_bounding_box_dirty = true;
 }
-#endif // ENABLE_MIRROR
 
 void GLCanvas3D::Selection::translate(unsigned int object_idx, const Vec3d& displacement)
 {
@@ -1897,9 +1895,7 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
         int instance_idx = volume->instance_idx();
         const Vec3d& rotation = volume->get_rotation();
         const Vec3d& scaling_factor = volume->get_scaling_factor();
-#if ENABLE_MIRROR
         const Vec3d& mirror = volume->get_mirror();
-#endif // ENABLE_MIRROR
 
         // Process unselected instances.
         for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
@@ -1916,9 +1912,7 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
 
             v->set_rotation(rotation);
             v->set_scaling_factor(scaling_factor);
-#if ENABLE_MIRROR
             v->set_mirror(mirror);
-#endif // ENABLE_MIRROR
 
             done.insert(j);
         }
@@ -3608,7 +3602,6 @@ int GLCanvas3D::get_in_object_volume_id(int scene_vol_idx) const
     return ((0 <= scene_vol_idx) && (scene_vol_idx < (int)m_volumes.volumes.size())) ? m_volumes.volumes[scene_vol_idx]->volume_idx() : -1;
 }
 
-#if ENABLE_MIRROR
 #if ENABLE_EXTENDED_SELECTION
 void GLCanvas3D::mirror_selection(Axis axis)
 {
@@ -3617,7 +3610,6 @@ void GLCanvas3D::mirror_selection(Axis axis)
     wxGetApp().obj_manipul()->update_settings_value(m_selection);
 }
 #endif // ENABLE_EXTENDED_SELECTION
-#endif // ENABLE_MIRROR
 
 void GLCanvas3D::reload_scene(bool force)
 {
@@ -6868,7 +6860,6 @@ void GLCanvas3D::_on_flatten()
     _on_rotate();
 }
 
-#if ENABLE_MIRROR
 void GLCanvas3D::_on_mirror()
 {
     if (m_model == nullptr)
@@ -6902,7 +6893,6 @@ void GLCanvas3D::_on_mirror()
 
     post_event(SimpleEvent(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS));
 }
-#endif // ENABLE_MIRROR
 #else
 void GLCanvas3D::_on_move(const std::vector<int>& volume_idxs)
 {

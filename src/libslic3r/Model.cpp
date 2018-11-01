@@ -1146,7 +1146,6 @@ void ModelInstance::set_rotation(Axis axis, double rotation)
     m_rotation(axis) = rotation;
 }
 
-#if ENABLE_MIRROR
 void ModelInstance::set_scaling_factor(const Vec3d& scaling_factor)
 {
     set_scaling_factor(X, scaling_factor(0));
@@ -1176,7 +1175,6 @@ void ModelInstance::set_mirror(Axis axis, double mirror)
 
     m_mirror(axis) = mirror;
 }
-#endif // ENABLE_MIRROR
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
@@ -1188,11 +1186,7 @@ BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mes
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
-#if ENABLE_MIRROR
     copy.transform(world_matrix(true, false, true, true).cast<float>());
-#else
-    copy.transform(world_matrix(true, false, true).cast<float>());
-#endif // ENABLE_MIRROR
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {
@@ -1253,21 +1247,13 @@ void ModelInstance::transform_polygon(Polygon* polygon) const
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM
-#if ENABLE_MIRROR
 Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
-#else
-Transform3d ModelInstance::world_matrix(bool dont_translate, bool dont_rotate, bool dont_scale) const
-#endif // ENABLE_MIRROR
 {
     Vec3d translation = dont_translate ? Vec3d::Zero() : m_offset;
     Vec3d rotation = dont_rotate ? Vec3d::Zero() : m_rotation;
     Vec3d scale = dont_scale ? Vec3d::Ones() : m_scaling_factor;
-#if ENABLE_MIRROR
     Vec3d mirror = dont_mirror ? Vec3d::Ones() : m_mirror;
     return Geometry::assemble_transform(translation, rotation, scale, mirror);
-#else
-    return Geometry::assemble_transform(translation, rotation, scale);
-#endif // ENABLE_MIRROR
 }
 #endif // !ENABLE_MODELVOLUME_TRANSFORM
 

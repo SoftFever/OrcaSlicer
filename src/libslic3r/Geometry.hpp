@@ -172,7 +172,6 @@ class MedialAxis {
 };
 
 // Sets the given transform by assembling the given transformations in the following order:
-#if ENABLE_MIRROR
 // 1) mirror
 // 2) scale
 // 3) rotate X
@@ -180,17 +179,8 @@ class MedialAxis {
 // 5) rotate Z
 // 6) translate
 void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
-#else
-// 1) scale
-// 2) rotate X
-// 3) rotate Y
-// 4) rotate Z
-// 5) translate
-void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones());
-#endif // ENABLE_MIRROR
 
 // Returns the transform obtained by assembling the given transformations in the following order:
-#if ENABLE_MIRROR
 // 1) mirror
 // 2) scale
 // 3) rotate X
@@ -198,14 +188,6 @@ void assemble_transform(Transform3d& transform, const Vec3d& translation = Vec3d
 // 5) rotate Z
 // 6) translate
 Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones(), const Vec3d& mirror = Vec3d::Ones());
-#else
-// 1) scale
-// 2) rotate X
-// 3) rotate Y
-// 4) rotate Z
-// 5) translate
-Transform3d assemble_transform(const Vec3d& translation = Vec3d::Zero(), const Vec3d& rotation = Vec3d::Zero(), const Vec3d& scale = Vec3d::Ones());
-#endif // ENABLE_MIRROR
 
 // Returns the euler angles extracted from the given rotation matrix
 // Warning -> The matrix should not contain any scale or shear !!!
@@ -223,27 +205,18 @@ class Transformation
         bool dont_translate;
         bool dont_rotate;
         bool dont_scale;
-#if ENABLE_MIRROR
         bool dont_mirror;
-#endif // ENABLE_MIRROR
 
         Flags();
 
-#if ENABLE_MIRROR
         bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const;
         void set(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror);
-#else
-        bool needs_update(bool dont_translate, bool dont_rotate, bool dont_scale) const;
-        void set(bool dont_translate, bool dont_rotate, bool dont_scale);
-#endif // ENABLE_MIRROR
     };
 
     Vec3d m_offset;              // In unscaled coordinates
     Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
     Vec3d m_scaling_factor;      // Scaling factors along the three axes
-#if ENABLE_MIRROR
     Vec3d m_mirror;              // Mirroring along the three axes
-#endif // ENABLE_MIRROR
     mutable Transform3d m_matrix;
 
     mutable Flags m_flags;
@@ -267,7 +240,6 @@ public:
     Vec3d get_scaling_factor() const { return m_scaling_factor; }
     double get_scaling_factor(Axis axis) const { return m_scaling_factor(axis); }
 
-#if ENABLE_MIRROR
     void set_scaling_factor(const Vec3d& scaling_factor);
     void set_scaling_factor(Axis axis, double scaling_factor);
 
@@ -277,13 +249,7 @@ public:
     void set_mirror(const Vec3d& mirror);
     void set_mirror(Axis axis, double mirror);
 
-    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
-#else
-    void set_scaling_factor(const Vec3d& scaling_factor) { m_scaling_factor = scaling_factor; }
-    void set_scaling_factor(Axis axis, double scaling_factor) { m_scaling_factor(axis) = scaling_factor; }
-
-    const Transform3d& world_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false) const;
-#endif // ENABLE_MIRROR
+    const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
 };
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 

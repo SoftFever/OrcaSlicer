@@ -20,8 +20,6 @@
 // New selections
 #define ENABLE_EXTENDED_SELECTION (1 && ENABLE_1_42_0)
 #define DISABLE_INSTANCES_SYNCH (1 && ENABLE_EXTENDED_SELECTION)
-// Add mirror components along the three axes in ModelInstance and GLVolume
-#define ENABLE_MIRROR (1 && ENABLE_1_42_0)
 // Modified camera target behavior
 #define ENABLE_MODIFIED_CAMERA_TARGET (1 && ENABLE_1_42_0)
 // Add Geometry::Transformation class and use it into ModelInstance, ModelVolume and GLVolume

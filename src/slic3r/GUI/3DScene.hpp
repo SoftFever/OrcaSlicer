@@ -263,10 +263,8 @@ private:
     Vec3d                 m_rotation;
     // Scale factor along the three axes of the volume to be rendered.
     Vec3d                 m_scaling_factor;
-#if ENABLE_MIRROR
     // Mirroring along the three axes of the volume to be rendered.
     Vec3d m_mirror;
-#endif // ENABLE_MIRROR
     // World matrix of the volume to be rendered.
     mutable Transform3f   m_world_matrix;
     // Whether or not is needed to recalculate the world matrix.
@@ -358,13 +356,11 @@ public:
     void set_scaling_factor(const Vec3d& scaling_factor) { m_transformation.set_scaling_factor(scaling_factor); set_bounding_boxes_as_dirty(); }
     void set_scaling_factor(Axis axis, double scaling_factor) { m_transformation.set_scaling_factor(axis, scaling_factor); set_bounding_boxes_as_dirty(); }
 
-#if ENABLE_MIRROR
     const Vec3d& get_mirror() const { return m_transformation.get_mirror(); }
     double get_mirror(Axis axis) const { return m_transformation.get_mirror(axis); }
 
     void set_mirror(const Vec3d& mirror) { m_transformation.set_mirror(mirror); set_bounding_boxes_as_dirty(); }
     void set_mirror(Axis axis, double mirror) { m_transformation.set_mirror(axis, mirror); set_bounding_boxes_as_dirty(); }
-#endif // ENABLE_MIRROR
 #else
     const Vec3d& get_rotation() const;
     void set_rotation(const Vec3d& rotation);
@@ -374,12 +370,10 @@ public:
 #endif // ENABLE_EXTENDED_SELECTION
     void set_scaling_factor(const Vec3d& scaling_factor);
 
-#if ENABLE_MIRROR
     const Vec3d& get_mirror() const;
     double get_mirror(Axis axis) const;
     void set_mirror(const Vec3d& mirror);
     void set_mirror(Axis axis, double mirror);
-#endif // ENABLE_MIRROR
 
     const Vec3d& get_offset() const;
     void set_offset(const Vec3d& offset);
@@ -397,7 +391,7 @@ public:
     int                 instance_idx() const { return this->composite_id % 1000; }
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-    const Transform3d&   world_matrix() const { return m_transformation.world_matrix(); }
+    const Transform3d&   world_matrix() const { return m_transformation.get_matrix(); }
 #else
     const Transform3f&   world_matrix() const;
 #endif // ENABLE_MODELVOLUME_TRANSFORM
@@ -634,11 +628,9 @@ public:
     static int get_first_volume_id(wxGLCanvas* canvas, int obj_idx);
     static int get_in_object_volume_id(wxGLCanvas* canvas, int scene_vol_idx);
 
-#if ENABLE_MIRROR
 #if ENABLE_EXTENDED_SELECTION
     static void mirror_selection(wxGLCanvas* canvas, Axis axis);
 #endif // ENABLE_EXTENDED_SELECTION
-#endif // ENABLE_MIRROR
 
     static void reload_scene(wxGLCanvas* canvas, bool force);
 

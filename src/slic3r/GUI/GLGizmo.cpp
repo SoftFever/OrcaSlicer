@@ -935,13 +935,8 @@ void GLGizmoScale3D::on_render(const BoundingBoxf3& box) const
         // gets angles from first selected volume
         angles = v->get_rotation();
 
-#if ENABLE_MIRROR
         // consider rotation+mirror only components of the transform for offsets
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
-#else
-        // set rotation-only component of transform
-        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles);
-#endif // ENABLE_MIRROR
     }
     else
         box = selection.get_bounding_box();
