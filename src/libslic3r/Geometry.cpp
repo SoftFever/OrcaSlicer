@@ -1245,6 +1245,11 @@ Transformation::Transformation()
 {
 }
 
+Transformation::Transformation(const Transform3d& transform)
+{
+    set_from_transform(transform);
+}
+
 void Transformation::set_offset(const Vec3d& offset)
 {
     set_offset(X, offset(0));
@@ -1317,6 +1322,45 @@ void Transformation::set_mirror(Axis axis, double mirror)
     }
 }
 
+void Transformation::set_from_transform(const Transform3d& transform)
+{
+    // offset
+    set_offset(transform.matrix().block(0, 3, 3, 1));
+
+    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m3x3 = transform.matrix().block(0, 0, 3, 3);
+
+    // mirror
+    // it is impossible to reconstruct the original mirroring factors from a matrix,
+    // we can only detect if the matrix contains a left handed reference system
+    // in which case we reorient it back to right handed by mirroring the x axis
+    Vec3d mirror = Vec3d::Ones();
+    if (m3x3.col(0).dot(m3x3.col(1).cross(m3x3.col(2))) < 0.0)
+    {
+        mirror(0) = -1.0;
+        // remove mirror
+        m3x3.col(0) *= -1.0;
+    }
+    set_mirror(mirror);
+
+    // scale
+    set_scaling_factor(Vec3d(m3x3.col(0).norm(), m3x3.col(1).norm(), m3x3.col(2).norm()));
+
+    // remove scale
+    m3x3.col(0).normalize();
+    m3x3.col(1).normalize();
+    m3x3.col(2).normalize();
+
+    // rotation
+    set_rotation(extract_euler_angles(m3x3));
+
+    // forces matrix recalculation matrix
+    m_matrix = get_matrix();
+
+//    // debug check
+//    if (!m_matrix.isApprox(transform))
+//        std::cout << "something went wrong in extracting data from matrix" << std::endl;
+}
+
 const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rotate, bool dont_scale, bool dont_mirror) const
 {
     if (m_dirty || m_flags.needs_update(dont_translate, dont_rotate, dont_scale, dont_mirror))
@@ -1335,6 +1379,10 @@ const Transform3d& Transformation::get_matrix(bool dont_translate, bool dont_rot
     return m_matrix;
 }
 
+Transformation Transformation::operator * (const Transformation& other) const
+{
+    return Transformation(get_matrix() * other.get_matrix());
+}
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
 } }

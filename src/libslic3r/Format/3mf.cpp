@@ -1329,6 +1329,14 @@ namespace Slic3r {
 
     void _3MF_Importer::_apply_transform(ModelInstance& instance, const Transform3d& transform)
     {
+#if ENABLE_MODELVOLUME_TRANSFORM
+        Slic3r::Geometry::Transformation t(transform);
+        // invalid scale value, return
+        if (!t.get_scaling_factor().all())
+            return;
+
+        instance.set_transformation(t);
+#else
         // translation
         Vec3d offset = transform.matrix().block(0, 3, 3, 1);
 
@@ -1363,6 +1371,7 @@ namespace Slic3r {
         instance.set_scaling_factor(scale);
         instance.set_rotation(rotation);
         instance.set_mirror(mirror);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
     bool _3MF_Importer::_handle_start_config(const char** attributes, unsigned int num_attributes)

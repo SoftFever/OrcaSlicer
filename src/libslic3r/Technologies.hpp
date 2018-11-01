@@ -1,16 +1,16 @@
 #ifndef _technologies_h_
 #define _technologies_h_
 
-//==============
+//============
 // debug techs
-//==============
+//============
 
 // Shows camera target in the 3D scene
 #define ENABLE_SHOW_CAMERA_TARGET 1
 
-//==============
+//=============
 // 1.42.0 techs
-//==============
+//=============
 #define ENABLE_1_42_0 1
 
 // Add double click on gizmo grabbers to reset transformation components to their default value

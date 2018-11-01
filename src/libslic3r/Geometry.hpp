@@ -217,13 +217,14 @@ class Transformation
     Vec3d m_rotation;            // Rotation around the three axes, in radians around mesh center point
     Vec3d m_scaling_factor;      // Scaling factors along the three axes
     Vec3d m_mirror;              // Mirroring along the three axes
-    mutable Transform3d m_matrix;
 
+    mutable Transform3d m_matrix;
     mutable Flags m_flags;
     mutable bool m_dirty;
 
 public:
     Transformation();
+    explicit Transformation(const Transform3d& transform);
 
     const Vec3d& get_offset() const { return m_offset; }
     double get_offset(Axis axis) const { return m_offset(axis); }
@@ -249,7 +250,11 @@ public:
     void set_mirror(const Vec3d& mirror);
     void set_mirror(Axis axis, double mirror);
 
+    void set_from_transform(const Transform3d& transform);
+
     const Transform3d& get_matrix(bool dont_translate = false, bool dont_rotate = false, bool dont_scale = false, bool dont_mirror = false) const;
+
+    Transformation operator * (const Transformation& other) const;
 };
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
