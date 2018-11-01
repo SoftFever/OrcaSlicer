@@ -1272,7 +1272,7 @@ void Transformation::set_rotation(Axis axis, double rotation)
 {
     rotation = angle_to_0_2PI(rotation);
 
-    if (m_rotation(axis) = rotation)
+    if (m_rotation(axis) != rotation)
     {
         m_rotation(axis) = rotation;
         m_dirty = true;
