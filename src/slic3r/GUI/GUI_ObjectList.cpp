@@ -1115,6 +1115,9 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         Expand(item);
     }
 
+    if (model_object->instances.size()>1)
+        increase_object_instances(obj_idx, model_object->instances.size());
+
 #ifndef __WXOSX__ 
     selection_changed();
 #endif //__WXMSW__

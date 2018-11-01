@@ -270,7 +270,8 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
 {
     if (selection.is_single_full_object())
     {
-        if (!wxGetApp().model_objects()->empty() && (*wxGetApp().model_objects())[selection.get_object_idx()]->instances.size() == 1)
+        auto obj_idx = selection.get_object_idx();
+        if (obj_idx >=0 && !wxGetApp().model_objects()->empty() && (*wxGetApp().model_objects())[obj_idx]->instances.size() == 1)
         {
             // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
             const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
