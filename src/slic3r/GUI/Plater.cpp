@@ -795,7 +795,7 @@ void Sidebar::show_button(ButtonAction but_action, bool show)
 
 bool Sidebar::is_multifilament()
 {
-    return p->combos_filament.size() > 0;
+    return p->combos_filament.size() > 1;
 }
 
 
