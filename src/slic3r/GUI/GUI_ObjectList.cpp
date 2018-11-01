@@ -18,6 +18,10 @@ namespace Slic3r
 namespace GUI
 {
 
+#if ENABLE_EXTENDED_SELECTION
+    wxDEFINE_EVENT(EVT_OBJ_LIST_OBJECT_SELECT, SimpleEvent);
+#endif // ENABLE_EXTENDED_SELECTION
+
 ObjectList::ObjectList(wxWindow* parent) :
     wxDataViewCtrl(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxDV_MULTIPLE)
 {
@@ -233,6 +237,13 @@ void ObjectList::selection_changed()
 
     // update object selection on Plater
     update_selections_on_canvas();
+
+    // to update the toolbar and info sizer
+    if (!GetSelection() || m_objects_model->GetItemType(GetSelection()) == itObject) {
+        auto event = SimpleEvent(EVT_OBJ_LIST_OBJECT_SELECT);
+        event.SetEventObject(this);
+        wxPostEvent(this, event);
+    }
 
     part_selection_changed();
 

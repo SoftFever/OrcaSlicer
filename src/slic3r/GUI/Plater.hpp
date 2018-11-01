@@ -78,6 +78,7 @@ public:
     wxButton*               get_wiping_dialog_button();
     void                    update_objects_list_extruder_column(int extruders_count);
     void                    show_info_sizers(const bool show);
+    void                    show_info_sizer();
     void                    show_sliced_info_sizer(const bool show);
     void                    show_buttons(const bool show);
     void                    show_button(ButtonAction but_action, bool show);
@@ -128,6 +129,8 @@ public:
 
     void on_extruders_change(int extruders_count);
     void on_config_change(const DynamicPrintConfig &config);
+
+    int get_selected_object_idx();
 
     wxGLCanvas* canvas3D();
 private:

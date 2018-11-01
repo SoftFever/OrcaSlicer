@@ -85,12 +85,13 @@ public:
     ObjectInfo(wxWindow *parent);
 
     wxStaticBitmap *manifold_warning_icon;
-private:
     wxStaticText *info_size;
     wxStaticText *info_volume;
     wxStaticText *info_facets;
     wxStaticText *info_materials;
     wxStaticText *info_manifold;
+    bool        showing_manifold_warning_icon;
+    void        show_sizer(bool show);
 };
 
 ObjectInfo::ObjectInfo(wxWindow *parent) :
@@ -112,12 +113,13 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
         grid_sizer->Add(*info_label, 0);
     };
 
-    init_info_label(&info_size, _(L("Size")));
-    init_info_label(&info_volume, _(L("Volume")));
-    init_info_label(&info_facets, _(L("Facets")));
-    init_info_label(&info_materials, _(L("Materials")));
+    init_info_label(&info_size, _(L("Size:")));
+    init_info_label(&info_volume, _(L("Volume:")));
+    init_info_label(&info_facets, _(L("Facets:")));
+    init_info_label(&info_materials, _(L("Materials:")));
+    Add(grid_sizer, 0, wxEXPAND);
 
-    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold")));
+    auto *info_manifold_text = new wxStaticText(parent, wxID_ANY, _(L("Manifold:")));
     info_manifold_text->SetFont(wxGetApp().small_font());
     info_manifold = new wxStaticText(parent, wxID_ANY, "");
     info_manifold->SetFont(wxGetApp().small_font());
@@ -127,9 +129,14 @@ ObjectInfo::ObjectInfo(wxWindow *parent) :
     sizer_manifold->Add(info_manifold_text, 0);
     sizer_manifold->Add(manifold_warning_icon, 0, wxLEFT, 2);
     sizer_manifold->Add(info_manifold, 0, wxLEFT, 2);
-    grid_sizer->Add(sizer_manifold, 0, wxEXPAND | wxTOP, 4);
+    Add(sizer_manifold, 0, wxEXPAND | wxTOP, 4);
+}
 
-    Add(grid_sizer, 0, wxEXPAND);
+void ObjectInfo::show_sizer(bool show)
+{
+    Show(show);
+    if (show)
+        manifold_warning_icon->Show(showing_manifold_warning_icon && show);
 }
 
 enum SlisedInfoIdx
@@ -432,10 +439,6 @@ struct Sidebar::priv
 
     priv(Plater *plater) : plater(plater) {}
 
-    bool show_manifold_warning_icon = false;
-    bool show_print_info = false;
-
-
     void show_preset_comboboxes();
 };
 
@@ -654,15 +657,76 @@ void Sidebar::update_objects_list_extruder_column(int extruders_count)
 
 void Sidebar::show_info_sizers(const bool show)
 {
-    p->object_info->Show(show);
-    p->object_info->manifold_warning_icon->Show(show && p->show_manifold_warning_icon); // where is g_show_manifold_warning_icon updating? #ys_FIXME
-//     p->sliced_info->Show(show && p->show_print_info);
+    p->object_info->show_sizer(show);
+}
+
+void Sidebar::show_info_sizer()
+{
+    wxWindowUpdateLocker freeze_guard(p->plater);
+
+#if ENABLE_EXTENDED_SELECTION
+    int obj_idx = p->plater->get_selected_object_idx();
+    bool have_sel = (obj_idx != -1);
+#else
+    const auto obj_idx = selected_object();
+    const bool have_sel = !!obj_idx;
+#endif // ENABLE_EXTENDED_SELECTION
+
+    if (!have_sel) {
+        p->object_info->Show(false);
+        return;
+    }
+
+#if ENABLE_EXTENDED_SELECTION
+    const ModelObject* model_object = (*wxGetApp().model_objects())[obj_idx];
+#else
+    const auto *model_object = model.objects[*obj_idx];
+#endif // ENABLE_EXTENDED_SELECTION
+    // FIXME print_info runs model fixing in two rounds, it is very slow, it should not be performed here!
+    // # $model_object->print_info;
+
+    const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
+    auto size = model_object->instance_bounding_box(0).size();
+    
+    p->object_info->info_size->SetLabel(wxString::Format("%.2f x %.2f x %.2f",size(0), size(1), size(2)));
+    p->object_info->info_materials->SetLabel(wxString::Format("%d", static_cast<int>(model_object->materials_count())));
+
+    auto& stats = model_object->volumes[0]->mesh.stl.stats;
+    auto sf = model_instance->get_scaling_factor();
+    p->object_info->info_volume->SetLabel(wxString::Format("%.2f", stats.volume * sf(0) * sf(0) * sf(0)));
+    p->object_info->info_facets->SetLabel(wxString::Format(_(L("%d (%d shells)")), static_cast<int>(model_object->facets_count()), stats.number_of_parts));
+
+    int errors = stats.degenerate_facets + stats.edges_fixed + stats.facets_removed +
+        stats.facets_added + stats.facets_reversed + stats.backwards_edges;
+    if (errors > 0) {
+        wxString tooltip = wxString::Format(_(L("Auto-repaired (%d errors)")), errors);
+        p->object_info->info_manifold->SetLabel(tooltip);
+        
+        tooltip += wxString::Format(_(L(":\n%d degenerate facets, %d edges fixed, %d facets removed, "
+                                        "%d facets added, %d facets reversed, %d backwards edges")),
+                                        stats.degenerate_facets, stats.edges_fixed, stats.facets_removed,
+                                        stats.facets_added, stats.facets_reversed, stats.backwards_edges);
+
+        p->object_info->showing_manifold_warning_icon = true;
+        p->object_info->info_manifold->SetToolTip(tooltip);
+        p->object_info->manifold_warning_icon->SetToolTip(tooltip);
+    } 
+    else {
+        p->object_info->info_manifold->SetLabel(L("Yes"));
+        p->object_info->showing_manifold_warning_icon = false;
+        p->object_info->info_manifold->SetToolTip("");
+        p->object_info->manifold_warning_icon->SetToolTip("");
+    }
+
+    p->object_info->show_sizer(true);
+    p->scrolled->Layout();
+    p->plater->Layout();
 }
 
 void Sidebar::show_sliced_info_sizer(const bool show) 
 {
-    p->plater->Freeze();
-//     p->show_print_info = show;
+    wxWindowUpdateLocker freeze_guard(p->plater);
+
     p->sliced_info->Show(show);
     if (show) {
         const PrintStatistics& ps = p->plater->print().print_statistics();
@@ -692,7 +756,6 @@ void Sidebar::show_sliced_info_sizer(const bool show)
 
     p->scrolled->Layout();
     p->plater->Layout();
-    p->plater->Thaw();
 }
 
 void Sidebar::show_buttons(const bool show)
@@ -1005,6 +1068,8 @@ Plater::priv::priv(Plater *q, MainFrame *main_frame) :
 
     // Preset change event
     sidebar->Bind(wxEVT_COMBOBOX, &priv::on_select_preset, this);
+
+    sidebar->Bind(EVT_OBJ_LIST_OBJECT_SELECT, [this](wxEvent&) { priv::selection_changed(); });
 
     // 3DScene events:
     canvas3D->Bind(EVT_GLCANVAS_SCHEDULE_BACKGROUND_PROCESS, &priv::on_schedule_background_process, this);
@@ -1449,10 +1514,7 @@ void Plater::priv::selection_changed()
     _3DScene::enable_toolbar_item(canvas3D, "layersediting", have_sel && config->opt_bool("variable_layer_height") && _3DScene::is_layers_editing_allowed(canvas3D));
 #endif // ENABLE_EXTENDED_SELECTION
 
-#if ENABLE_EXTENDED_SELECTION
-    int obj_idx = get_selected_object_idx();
-    bool have_sel = (obj_idx != -1);
-#else
+#if !ENABLE_EXTENDED_SELECTION
     bool can_select_by_parts = false;
 
     if (have_sel) {
@@ -1472,53 +1534,7 @@ void Plater::priv::selection_changed()
     }
 #endif // ENABLE_EXTENDED_SELECTION
 
-    wxWindowUpdateLocker freeze_guard(sidebar);
-    if (have_sel) {
-#if ENABLE_EXTENDED_SELECTION
-        const ModelObject* model_object = model.objects[obj_idx];
-#else
-        const auto *model_object = model.objects[*obj_idx];
-#endif // ENABLE_EXTENDED_SELECTION
-        // FIXME print_info runs model fixing in two rounds, it is very slow, it should not be performed here!
-        // # $model_object->print_info;
-
-        const ModelInstance* model_instance = !model_object->instances.empty() ? model_object->instances.front() : nullptr;
-        // TODO
-        // $self->{object_info_size}->SetLabel(sprintf("%.2f x %.2f x %.2f", @{$model_object->instance_bounding_box(0)->size}));
-        // $self->{object_info_materials}->SetLabel($model_object->materials_count);
-
-        // if (my $stats = $model_object->mesh_stats) {
-        //     $self->{object_info_volume}->SetLabel(sprintf('%.2f', $stats->{volume} * ($model_instance->scaling_factor**3)));
-        //     $self->{object_info_facets}->SetLabel(sprintf(L('%d (%d shells)'), $model_object->facets_count, $stats->{number_of_parts}));
-        //     if (my $errors = sum(@$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)})) {
-        //         $self->{object_info_manifold}->SetLabel(sprintf(L("Auto-repaired (%d errors)"), $errors));
-        //         #$self->{object_info_manifold_warning_icon}->Show;
-        //         $self->{"object_info_manifold_warning_icon_show"}->(1);
-
-        //         # we don't show normals_fixed because we never provide normals
-        //         # to admesh, so it generates normals for all facets
-        //         my $message = sprintf L('%d degenerate facets, %d edges fixed, %d facets removed, %d facets added, %d facets reversed, %d backwards edges'),
-        //             @$stats{qw(degenerate_facets edges_fixed facets_removed facets_added facets_reversed backwards_edges)};
-        //         $self->{object_info_manifold}->SetToolTipString($message);
-        //         $self->{object_info_manifold_warning_icon}->SetToolTipString($message);
-        //     } else {
-        //         $self->{object_info_manifold}->SetLabel(L("Yes"));
-        //         #$self->{object_info_manifold_warning_icon}->Hide;
-        //         $self->{"object_info_manifold_warning_icon_show"}->(0);
-        //         $self->{object_info_manifold}->SetToolTipString("");
-        //         $self->{object_info_manifold_warning_icon}->SetToolTipString("");
-        //     }
-        // } else {
-        //     $self->{object_info_facets}->SetLabel($object->facets);
-        // }
-    } else {
-        // $self->{"object_info_$_"}->SetLabel("") for qw(size volume facets materials manifold);
-        // $self->{"object_info_manifold_warning_icon_show"}->(0);
-        // $self->{object_info_manifold}->SetToolTipString("");
-        // $self->{object_info_manifold_warning_icon}->SetToolTipString("");
-    }
-
-    q->Layout();
+    sidebar->show_info_sizer();
 }
 
 void Plater::priv::object_list_changed()
@@ -2601,6 +2617,11 @@ void Plater::on_config_change(const DynamicPrintConfig &config)
 
     if (p->main_frame->is_loaded())
         this->p->schedule_background_process();
+}
+
+int Plater::get_selected_object_idx()
+{
+    return p->get_selected_object_idx();
 }
 
 wxGLCanvas* Plater::canvas3D()
