@@ -496,6 +496,8 @@ public:
         int get_object_idx() const;
         // Returns the instance id if the selection is from a single object and from a single instance, otherwise is -1
         int get_instance_idx() const;
+        // Returns the indices of selected instances if the selection is from a single object, throws otherwise!
+        const InstanceIdxsList& get_instance_idxs() const;
 
         const IndicesList& get_volume_idxs() const { return m_list; }
         const GLVolume* get_volume(unsigned int volume_idx) const;
@@ -507,6 +509,7 @@ public:
 
         void translate(const Vec3d& displacement);
         void rotate(const Vec3d& rotation);
+        void flattening_rotate(const Vec3d& normal);
         void scale(const Vec3d& scale);
         void mirror(Axis axis);
 
@@ -597,7 +600,7 @@ private:
         Vec3d get_rotation() const;
         void set_rotation(const Vec3d& rotation);
 
-        Vec3d get_flattening_rotation() const;
+        Vec3d get_flattening_normal() const;
 
         void set_flattening_data(const ModelObject* model_object);
         

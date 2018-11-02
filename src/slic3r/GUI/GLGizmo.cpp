@@ -1175,38 +1175,41 @@ void GLGizmoFlatten::on_start_dragging(const GLCanvas3D::Selection& selection)
 
 void GLGizmoFlatten::on_render(const GLCanvas3D::Selection& selection) const
 {
-    // the dragged_offset is a vector measuring where was the object moved
-    // with the gizmo being on. This is reset in set_flattening_data and
-    // does not work correctly when there are multiple copies.
+    // The planes are rendered incorrectly when the object is being moved. We better won't render anything in that case.
+    // This indeed has a better solution (to be implemented when there is more time)
     Vec3d dragged_offset(Vec3d::Zero());
     if (m_starting_center == Vec3d::Zero())
         m_starting_center = selection.get_bounding_box().center();
     dragged_offset = selection.get_bounding_box().center() - m_starting_center;
+    if (dragged_offset.norm() > 0.001)
+        return;
 
     ::glEnable(GL_BLEND);
     ::glEnable(GL_DEPTH_TEST);
     ::glDisable(GL_CULL_FACE);
 
-    for (int i=0; i<(int)m_planes.size(); ++i) {
-        if (i == m_hover_id)
-            ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
-        else
-            ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+    if (selection.is_from_single_object()) {
+        const std::set<int>& instances_list = selection.get_instance_idxs();
 
-        int instance_idx = selection.get_instance_idx();
-        if ((instance_idx != -1) && (m_model_object != nullptr))
-        {
+        if (!instances_list.empty() && m_model_object) {
+            for (const int instance_idx : instances_list) {
             Transform3d m = m_model_object->instances[instance_idx]->get_matrix();
-            m.pretranslate(dragged_offset);
-            ::glPushMatrix();
-            ::glMultMatrixd(m.data());
-            ::glBegin(GL_POLYGON);
-            for (const Vec3d& vertex : m_planes[i].vertices)
-            {
-                ::glVertex3dv(vertex.data());
+                for (int i=0; i<(int)m_planes.size(); ++i) {
+                    if (i == m_hover_id)
+                        ::glColor4f(0.9f, 0.9f, 0.9f, 0.75f);
+                    else
+                        ::glColor4f(0.9f, 0.9f, 0.9f, 0.5f);
+
+                    m.pretranslate(dragged_offset);
+                    ::glPushMatrix();
+                    ::glMultMatrixd(m.data());
+                    ::glBegin(GL_POLYGON);
+                    for (const Vec3d& vertex : m_planes[i].vertices)
+                        ::glVertex3dv(vertex.data());
+                    ::glEnd();
+                    ::glPopMatrix();
+                }
             }
-            ::glEnd();
-            ::glPopMatrix();
         }
     }
 
@@ -1218,22 +1221,21 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
 {
     ::glEnable(GL_DEPTH_TEST);
     ::glDisable(GL_CULL_FACE);
-
-    for (unsigned int i = 0; i < m_planes.size(); ++i)
-    {
-        ::glColor3f(1.0f, 1.0f, picking_color_component(i));
-        int instance_idx = selection.get_instance_idx();
-        if ((instance_idx != -1) && (m_model_object != nullptr))
-        {
-            ::glPushMatrix();
-            ::glMultMatrixd(m_model_object->instances[instance_idx]->get_matrix().data());
-            ::glBegin(GL_POLYGON);
-            for (const Vec3d& vertex : m_planes[i].vertices)
-            {
-                ::glVertex3dv(vertex.data());
+    if (selection.is_from_single_object()) {
+        const std::set<int>& instances_list = selection.get_instance_idxs();
+        if (!instances_list.empty() && m_model_object) {
+            for (const int instance_idx : instances_list) {
+                for (int i=0; i<(int)m_planes.size(); ++i) {
+                    ::glColor3f(1.0f, 1.0f, picking_color_component(i));
+                    ::glPushMatrix();
+                    ::glMultMatrixd(m_model_object->instances[instance_idx]->get_matrix().data());
+                    ::glBegin(GL_POLYGON);
+                    for (const Vec3d& vertex : m_planes[i].vertices)
+                        ::glVertex3dv(vertex.data());
+                    ::glEnd();
+                    ::glPopMatrix();
+                }
             }
-            ::glEnd();
-            ::glPopMatrix();
         }
     }
 
@@ -1243,9 +1245,10 @@ void GLGizmoFlatten::on_render_for_picking(const GLCanvas3D::Selection& selectio
 void GLGizmoFlatten::set_flattening_data(const ModelObject* model_object)
 {
     m_starting_center = Vec3d::Zero();
+    bool object_changed = m_model_object != model_object;
     m_model_object = model_object;
 
-    if (is_plane_update_necessary())
+    if (object_changed && is_plane_update_necessary())
         update_planes();
 }
 
@@ -1456,19 +1459,13 @@ bool GLGizmoFlatten::is_plane_update_necessary() const
     return false;
 }
 
-Vec3d GLGizmoFlatten::get_flattening_rotation() const
+Vec3d GLGizmoFlatten::get_flattening_normal() const
 {
-    // calculates the rotations in model space, taking in account the scaling factors
-    Eigen::Matrix<double, 3, 3, Eigen::DontAlign> m = m_model_object->instances.front()->get_matrix(true, true).matrix().block(0, 0, 3, 3).inverse().transpose();
-    Eigen::Quaterniond q;
-    Vec3d angles = Geometry::extract_euler_angles(q.setFromTwoVectors(m * m_normal, -Vec3d::UnitZ()).toRotationMatrix());
+    Vec3d out = m_normal;
     m_normal = Vec3d::Zero();
     m_starting_center = Vec3d::Zero();
-    return angles;
+    return out;
 }
-
-
-
 
 GLGizmoSlaSupports::GLGizmoSlaSupports(GLCanvas3D& parent)
     : GLGizmoBase(parent), m_starting_center(Vec3d::Zero())

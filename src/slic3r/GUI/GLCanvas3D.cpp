@@ -1394,6 +1394,14 @@ int GLCanvas3D::Selection::get_instance_idx() const
     return -1;
 }
 
+const GLCanvas3D::Selection::InstanceIdxsList& GLCanvas3D::Selection::get_instance_idxs() const
+{
+    if (m_cache.content.size() != 1)
+        throw std::runtime_error("get_instance_idxs() called for multiple object selection.");
+
+    return m_cache.content.begin()->second;
+}
+
 const GLVolume* GLCanvas3D::Selection::get_volume(unsigned int volume_idx) const
 {
     return (m_valid && (volume_idx < (unsigned int)m_volumes->size())) ? (*m_volumes)[volume_idx] : nullptr;
@@ -1482,6 +1490,36 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
 
     m_bounding_box_dirty = true;
 }
+
+void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
+{
+    // We get the normal in untransformed coordinates. We must transform it using the instance matrix, find out
+    // how to rotate the instance so it faces downwards and do the rotation. All that for all selected instances.
+    // The function assumes that is_from_single_object() holds.
+
+    if (!m_valid)
+        return;
+
+    for (unsigned int i : m_list)
+    {
+        Vec3d scaling_factor = m_cache.volumes_data[i].get_scaling_factor();
+        scaling_factor = Vec3d(1./scaling_factor(0), 1./scaling_factor(1), 1./scaling_factor(2));
+
+        Vec3d transformed_normal = Geometry::assemble_transform(Vec3d::Zero(), m_cache.volumes_data[i].get_rotation(), scaling_factor) * normal;
+        transformed_normal.normalize();
+
+        Vec3d axis = transformed_normal(2) > 0.999f ? Vec3d(1., 0., 0.) : Vec3d(transformed_normal.cross(Vec3d(0., 0., -1.)));
+        axis.normalize();
+
+        Transform3d extra_rotation = Transform3d::Identity();
+        extra_rotation.rotate(Eigen::AngleAxisd(acos(-transformed_normal(2)), axis));
+
+        Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_rotation_matrix() );
+        (*m_volumes)[i]->set_rotation(new_rotation);
+    }
+    m_bounding_box_dirty = true;
+}
+
 
 void GLCanvas3D::Selection::scale(const Vec3d& scale)
 {
@@ -2389,13 +2427,13 @@ void GLCanvas3D::Gizmos::set_rotation(const Vec3d& rotation)
         reinterpret_cast<GLGizmoRotate3D*>(it->second)->set_rotation(rotation);
 }
 
-Vec3d GLCanvas3D::Gizmos::get_flattening_rotation() const
+Vec3d GLCanvas3D::Gizmos::get_flattening_normal() const
 {
     if (!m_enabled)
         return Vec3d::Zero();
 
     GizmosMap::const_iterator it = m_gizmos.find(Flatten);
-    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_rotation() : Vec3d::Zero();
+    return (it != m_gizmos.end()) ? reinterpret_cast<GLGizmoFlatten*>(it->second)->get_flattening_normal() : Vec3d::Zero();
 }
 
 void GLCanvas3D::Gizmos::set_flattening_data(const ModelObject* model_object)
@@ -2520,12 +2558,12 @@ float GLCanvas3D::Gizmos::_get_total_overlay_height() const
 
     for (GizmosMap::const_iterator it = m_gizmos.begin(); it != m_gizmos.end(); ++it)
     {
-        height += (float)it->second->get_textures_size();
-        if (std::distance(it, m_gizmos.end()) > 1)
-            height += OverlayGapY;
+        if (it->first == SlaSupports && wxGetApp().preset_bundle->printers.get_edited_preset().printer_technology() != ptSLA)
+            continue;
+        height += (float)it->second->get_textures_size() + OverlayGapY;
     }
 
-    return height;
+    return height - OverlayGapY;
 }
 
 GLGizmoBase* GLCanvas3D::Gizmos::_get_current() const
@@ -3898,7 +3936,7 @@ void GLCanvas3D::on_mouse(wxMouseEvent& evt)
 
             if (m_gizmos.get_current_type() == Gizmos::Flatten) {
                 // Rotate the object so the normal points downward:
-                m_selection.rotate(m_gizmos.get_flattening_rotation());
+                m_selection.flattening_rotate(m_gizmos.get_flattening_normal());
                 _on_flatten();
                 wxGetApp().obj_manipul()->update_settings_value(m_selection);
             }
@@ -4977,7 +5015,7 @@ void GLCanvas3D::_update_gizmos_data()
     {
         m_gizmos.set_scale(Vec3d::Ones());
         m_gizmos.set_rotation(Vec3d::Zero());
-        m_gizmos.set_flattening_data(nullptr);
+        m_gizmos.set_flattening_data(m_selection.is_from_single_object() ? m_model->objects[m_selection.get_object_idx()] : nullptr);
         m_gizmos.set_model_object_ptr(nullptr);
     }
 }

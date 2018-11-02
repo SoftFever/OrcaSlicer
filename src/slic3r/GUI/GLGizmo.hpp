@@ -348,6 +348,7 @@ private:
     std::vector<PlaneData> m_planes;
     mutable Vec3d m_starting_center;
     const ModelObject* m_model_object = nullptr;
+    std::vector<const Transform3d*> instances_matrices;
 
     void update_planes();
     bool is_plane_update_necessary() const;
@@ -356,12 +357,12 @@ public:
     explicit GLGizmoFlatten(GLCanvas3D& parent);
 
     void set_flattening_data(const ModelObject* model_object);
-    Vec3d get_flattening_rotation() const;
+    Vec3d get_flattening_normal() const;
 
 protected:
     virtual bool on_init();
     virtual std::string on_get_name() const;
-    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return selection.is_single_full_instance(); }
+    virtual bool on_is_activable(const GLCanvas3D::Selection& selection) const { return (selection.is_from_single_object() && !selection.is_wipe_tower() && !selection.is_modifier());  }
     virtual void on_start_dragging(const GLCanvas3D::Selection& selection);
     virtual void on_update(const Linef3& mouse_ray, const Point* mouse_pos) {}
     virtual void on_render(const GLCanvas3D::Selection& selection) const;
