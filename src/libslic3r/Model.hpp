@@ -27,16 +27,31 @@ class Print;
 
 typedef std::string t_model_material_id;
 typedef std::string t_model_material_attribute;
-typedef std::map<t_model_material_attribute,std::string> t_model_material_attributes;
+typedef std::map<t_model_material_attribute, std::string> t_model_material_attributes;
 
-typedef std::map<t_model_material_id,ModelMaterial*> ModelMaterialMap;
+typedef std::map<t_model_material_id, ModelMaterial*> ModelMaterialMap;
 typedef std::vector<ModelObject*> ModelObjectPtrs;
 typedef std::vector<ModelVolume*> ModelVolumePtrs;
 typedef std::vector<ModelInstance*> ModelInstancePtrs;
 
 // Unique identifier of a Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial.
 // Used to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject)
-typedef size_t ModelID;
+// Valid IDs are strictly positive (non zero).
+// It is declared as an object, as some compilers (notably msvcc) consider a typedef size_t equivalent to size_t
+// for parameter overload.
+struct ModelID 
+{
+	ModelID(size_t id) : id(id) {}
+
+	bool operator==(const ModelID &rhs) const { return this->id == rhs.id; }
+	bool operator!=(const ModelID &rhs) const { return this->id != rhs.id; }
+	bool operator< (const ModelID &rhs) const { return this->id <  rhs.id; }
+	bool operator> (const ModelID &rhs) const { return this->id >  rhs.id; }
+	bool operator<=(const ModelID &rhs) const { return this->id <= rhs.id; }
+	bool operator>=(const ModelID &rhs) const { return this->id >= rhs.id; }
+
+	size_t	id;
+};
 
 // Base for Model, ModelObject, ModelVolume, ModelInstance or ModelMaterial to provide a unique ID
 // to synchronize the front end (UI) with the back end (BackgroundSlicingProcess / Print / PrintObject).
@@ -45,17 +60,70 @@ typedef size_t ModelID;
 class ModelBase
 {
 public:
-    ModelID  id() const { return m_id; }
+    ModelID     id() const { return m_id; }
+    // Use with caution!
+    void        set_new_unique_id() { m_id = generate_new_id(); }
+    void        set_invalid_id()	{ m_id = 0; }
+    // Use with caution!
+    void        copy_id(const ModelBase &rhs) { m_id = rhs.id(); }
 
 protected:
-    // Constructor to be only called by derived classes.
-    ModelBase() {}
-    ModelID  m_id = generate_new_id();
+    // Constructors to be only called by derived classes.
+    // Default constructor to assign a unique ID.
+    ModelBase() : m_id(generate_new_id()) {}
+    // Constructor with ignored int parameter to assign an invalid ID, to be replaced
+    // by an existing ID copied from elsewhere.
+    ModelBase(int) : m_id(ModelID(0)) {}
+
+    // Override this method if a ModelBase derived class owns other ModelBase derived instances.
+    void        assign_new_unique_ids_recursive() { this->set_new_unique_id(); }
 
 private:
-    static inline ModelID generate_new_id() { return s_last_id ++; }
-    static ModelID s_last_id;
+    ModelID                 m_id;
+
+	static inline ModelID   generate_new_id() { return ModelID(++ s_last_id); }
+    static size_t           s_last_id;
 };
+
+#define MODELBASE_DERIVED_COPY_MOVE_CLONE(TYPE) \
+    /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */ \
+    /* (Omits copy and move(since C++11) constructors, resulting in zero - copy pass - by - value semantics). */ \
+    TYPE(const TYPE &rhs) : ModelBase(-1) { this->assign_copy(rhs); } \
+    explicit TYPE(TYPE &&rhs) : ModelBase(-1) { this->assign_clone(std::move(rhs)); } \
+    TYPE& operator=(const TYPE &rhs) { this->assign_copy(rhs); return *this; } \
+    TYPE& operator=(TYPE &&rhs) { this->assign_copy(std::move(rhs)); return *this; } \
+    /* Copy a model, copy the IDs. The Print::apply() will call the TYPE::copy() method */ \
+    /* to make a private copy for background processing. */ \
+    static TYPE* new_copy(const TYPE &rhs)  { return new TYPE(rhs); } \
+    static TYPE* new_copy(TYPE &&rhs)       { return new TYPE(std::move(rhs)); } \
+    static TYPE  make_copy(const TYPE &rhs) { return TYPE(rhs); } \
+    static TYPE  make_copy(TYPE &&rhs)      { return TYPE(std::move(rhs)); } \
+    TYPE&        assign_copy(const TYPE &rhs); \
+    TYPE&        assign_copy(TYPE &&rhs); \
+    /* Copy a TYPE, generate new IDs. The front end will use this call. */ \
+    TYPE*        new_clone(const TYPE &rhs) { \
+        /* Default constructor assigning an invalid ID. */ \
+        auto obj = new TYPE(-1); \
+        obj->assign_clone(rhs); \
+        return obj; \
+	} \
+    TYPE         make_clone(const TYPE &rhs) { \
+        /* Default constructor assigning an invalid ID. */ \
+        TYPE obj(-1); \
+        obj.assign_clone(rhs); \
+        return obj; \
+    } \
+    TYPE&        assign_clone(const TYPE &rhs) { \
+        this->assign_copy(rhs); \
+        this->assign_new_unique_ids_recursive(); \
+		return *this; \
+    }
+
+#define MODELBASE_DERIVED_PRIVATE_COPY_MOVE(TYPE) \
+private: \
+    /* Private constructor with an unused int parameter will create a TYPE instance with an invalid ID. */ \
+    explicit TYPE(int) : ModelBase(-1) {}; \
+    void assign_new_unique_ids_recursive();
 
 // Material, which may be shared across multiple ModelObjects of a single Model.
 class ModelMaterial : public ModelBase
@@ -119,15 +187,12 @@ public:
         when user expects that. */
     Vec3d                   origin_translation;
 
-    // Assign a ModelObject to this object while keeping the original pointer to the parent Model.
-	// Make a deep copy.
-	ModelObject&            assign(const ModelObject *rhs, bool copy_volumes = true);
-
     Model*                  get_model() const { return m_model; };
     
     ModelVolume*            add_volume(const TriangleMesh &mesh);
     ModelVolume*            add_volume(TriangleMesh &&mesh);
     ModelVolume*            add_volume(const ModelVolume &volume);
+    ModelVolume*            add_volume(const ModelVolume &volume, TriangleMesh &&mesh);
     void                    delete_volume(size_t idx);
     void                    clear_volumes();
     bool                    is_multiparts() const { return volumes.size() > 1; }
@@ -184,17 +249,16 @@ public:
 
 protected:
     friend class Print;
-    // Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
-    // Called by Print::apply() to clone the Model / ModelObject hierarchy to the back end for background processing.
-    ModelObject*          clone(Model *parent);
-    void                  set_model(Model *model) { m_model = model; }
+    // Called by Print::apply() to set the model pointer after making a copy.
+    void        set_model(Model *model) { m_model = model; }
 
 private:
     ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
-    ModelObject(Model *model, const ModelObject &rhs, bool copy_volumes = true);
-    explicit ModelObject(ModelObject &rhs) = delete;
+    ModelObject(Model *model, const ModelObject &rhs);
     ~ModelObject();
-    ModelObject& operator=(ModelObject &rhs) = default;
+
+	MODELBASE_DERIVED_COPY_MOVE_CLONE(ModelObject)
+	MODELBASE_DERIVED_PRIVATE_COPY_MOVE(ModelObject)
 
     // Parent object, owning this ModelObject.
     Model                *m_model;
@@ -314,7 +378,7 @@ private:
     {
         this->set_material_id(other.material_id());
     }
-    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
+    ModelVolume(ModelObject *object, const ModelVolume &other, TriangleMesh &&mesh) :
         ModelBase(other), // copy the ID
         name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object)
     {
@@ -460,30 +524,32 @@ class Model : public ModelBase
 public:
     // Materials are owned by a model and referenced by objects through t_model_material_id.
     // Single material may be shared by multiple models.
-    ModelMaterialMap materials;
+    ModelMaterialMap    materials;
     // Objects are owned by a model. Each model may have multiple instances, each instance having its own transformation (shift, scale, rotation).
-    ModelObjectPtrs objects;
+    ModelObjectPtrs     objects;
     
+    // Default constructor assigns a new ID to the model.
     Model() {}
-    Model(const Model &rhs);
-    Model& operator=(const Model &rhs);
     ~Model() { this->clear_objects(); this->clear_materials(); }
 
-    // XXX: use fs::path ?
+    MODELBASE_DERIVED_COPY_MOVE_CLONE(Model)
+
     static Model read_from_file(const std::string &input_file, DynamicPrintConfig *config = nullptr, bool add_default_instances = true);
     static Model read_from_archive(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances = true);
 
     /// Repair the ModelObjects of the current Model.
     /// This function calls repair function on each TriangleMesh of each model object volume
-    void repair();
+    void         repair();
 
+    // Add a new ModelObject to this Model, generate a new ID for this ModelObject.
     ModelObject* add_object();
     ModelObject* add_object(const char *name, const char *path, const TriangleMesh &mesh);
     ModelObject* add_object(const char *name, const char *path, TriangleMesh &&mesh);
-    ModelObject* add_object(const ModelObject &other, bool copy_volumes = true);
-    void delete_object(size_t idx);
-    void delete_object(ModelObject* object);
-    void clear_objects();
+    ModelObject* add_object(const ModelObject &other);
+    void         delete_object(size_t idx);
+    void         delete_object(ModelID id);
+    void         delete_object(ModelObject* object);
+    void         clear_objects();
     
     ModelMaterial* add_material(t_model_material_id material_id);
     ModelMaterial* add_material(t_model_material_id material_id, const ModelMaterial &other);
@@ -520,7 +586,13 @@ public:
     static unsigned int get_auto_extruder_id(unsigned int max_extruders);
     static std::string get_auto_extruder_id_as_string(unsigned int max_extruders);
     static void reset_auto_extruder_id();
+
+private:
+    MODELBASE_DERIVED_PRIVATE_COPY_MOVE(Model)
 };
+
+#undef MODELBASE_DERIVED_COPY_MOVE_CLONE
+#undef MODELBASE_DERIVED_PRIVATE_COPY_MOVE
 
 }
 

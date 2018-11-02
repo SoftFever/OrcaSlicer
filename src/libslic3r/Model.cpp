@@ -21,24 +21,38 @@ namespace Slic3r {
 
 unsigned int Model::s_auto_extruder_id = 1;
 
-ModelID ModelBase::s_last_id = 0;
+size_t ModelBase::s_last_id = 0;
 
-Model::Model(const Model &rhs)
+Model& Model::assign_copy(const Model &rhs)
 {
-    *this = rhs;
-}
-
-Model& Model::operator=(const Model &rhs)
-{
-    m_id = rhs.m_id;
+    this->copy_id(rhs);
     // copy materials
-    for (const auto &m : rhs.materials)
+    for (const std::pair<t_model_material_id, ModelMaterial*> &m : rhs.materials)
         this->add_material(m.first, *m.second);
     // copy objects
     this->objects.reserve(rhs.objects.size());
     for (const ModelObject *o : rhs.objects)
-        this->add_object(*o, true);
+        this->add_object(*o);
     return *this;
+}
+
+Model& Model::assign_copy(Model &&rhs)
+{
+    this->copy_id(rhs);
+	this->materials = std::move(rhs.materials);
+    rhs.materials.clear();
+	this->objects = std::move(rhs.objects);
+	rhs.objects.clear();
+    return *this;
+}
+
+void Model::assign_new_unique_ids_recursive()
+{
+    this->set_new_unique_id();
+    for (std::pair<const t_model_material_id, ModelMaterial*> &m : this->materials)
+        m.second->assign_new_unique_ids_recursive();
+    for (ModelObject *model_object : this->objects)
+        model_object->assign_new_unique_ids_recursive();
 }
 
 Model Model::read_from_file(const std::string &input_file, DynamicPrintConfig *config, bool add_default_instances)
@@ -150,9 +164,9 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
     return new_object;
 }
 
-ModelObject* Model::add_object(const ModelObject &other, bool copy_volumes)
+ModelObject* Model::add_object(const ModelObject &other)
 {
-    ModelObject* new_object = new ModelObject(this, other, copy_volumes);
+    ModelObject* new_object = new ModelObject(this, other);
     this->objects.push_back(new_object);
     return new_object;
 }
@@ -483,10 +497,10 @@ void Model::reset_auto_extruder_id()
     s_auto_extruder_id = 1;
 }
 
-ModelObject::ModelObject(Model *model, const ModelObject &rhs, bool copy_volumes) :
+ModelObject::ModelObject(Model *model, const ModelObject &rhs) :
     m_model(model)
 {
-    this->assign(&rhs, copy_volumes);
+    this->assign_copy(rhs);
 }
 
 ModelObject::~ModelObject()
@@ -495,40 +509,73 @@ ModelObject::~ModelObject()
     this->clear_instances();
 }
 
-// Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
-// Called by Print::apply() to clone the Model / ModelObject hierarchy to the back end for background processing.
-ModelObject* ModelObject::clone(Model *parent)
+// maintains the m_model pointer
+ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
 {
-    return new ModelObject(parent, *this, true);
-}
+    this->copy_id(rhs);
 
-ModelObject& ModelObject::assign(const ModelObject *rhs, bool copy_volumes)
-{ 
-    m_id                        = rhs->m_id;
-    name                        = rhs->name;
-    input_file                  = rhs->input_file;
-    config                      = rhs->config;
-    sla_support_points          = rhs->sla_support_points;
-    layer_height_ranges         = rhs->layer_height_ranges;
-    layer_height_profile        = rhs->layer_height_profile;
-    layer_height_profile_valid  = rhs->layer_height_profile_valid;
-    origin_translation          = rhs->origin_translation;
-    m_bounding_box              = rhs->m_bounding_box;
-    m_bounding_box_valid        = rhs->m_bounding_box_valid;
+    this->name                        = rhs.name;
+    this->input_file                  = rhs.input_file;
+    this->config                      = rhs.config;
+    this->sla_support_points          = rhs.sla_support_points;
+    this->layer_height_ranges         = rhs.layer_height_ranges;
+    this->layer_height_profile        = rhs.layer_height_profile;
+    this->layer_height_profile_valid  = rhs.layer_height_profile_valid;
+    this->origin_translation          = rhs.origin_translation;
+    m_bounding_box                    = rhs.m_bounding_box;
+    m_bounding_box_valid              = rhs.m_bounding_box_valid;
 
-    volumes.clear();
-    instances.clear();
-    if (copy_volumes) {
-        this->volumes.reserve(rhs->volumes.size());
-        for (ModelVolume *model_volume : rhs->volumes)
-            this->add_volume(*model_volume);
-        this->instances.reserve(rhs->instances.size());
-        for (const ModelInstance *model_instance : rhs->instances)
-            this->add_instance(*model_instance);
-    }
+    this->volumes.clear();
+    this->volumes.reserve(rhs.volumes.size());
+    for (ModelVolume *model_volume : rhs.volumes)
+        this->add_volume(*model_volume);
+	this->instances.clear();
+	this->instances.reserve(rhs.instances.size());
+    for (const ModelInstance *model_instance : rhs.instances)
+        this->add_instance(*model_instance);
 
     return *this;
 }
+
+// maintains the m_model pointer
+ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
+{
+    this->copy_id(rhs);
+
+    this->name                        = std::move(rhs.name);
+    this->input_file                  = std::move(rhs.input_file);
+    this->config                      = std::move(rhs.config);
+    this->sla_support_points          = std::move(rhs.sla_support_points);
+    this->layer_height_ranges         = std::move(rhs.layer_height_ranges);
+    this->layer_height_profile        = std::move(rhs.layer_height_profile);
+    this->layer_height_profile_valid  = std::move(rhs.layer_height_profile_valid);
+    this->origin_translation          = std::move(rhs.origin_translation);
+    m_bounding_box                    = std::move(rhs.m_bounding_box);
+    m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
+
+	this->volumes = std::move(rhs.volumes);
+	rhs.volumes.clear();
+	this->instances = std::move(rhs.instances);
+	rhs.instances.clear();
+
+	return *this;
+}
+
+void ModelObject::assign_new_unique_ids_recursive()
+{
+    this->set_new_unique_id();
+    for (ModelVolume *model_volume : this->volumes)
+        model_volume->assign_new_unique_ids_recursive();
+    for (ModelInstance *model_instance : this->instances)
+        model_instance->assign_new_unique_ids_recursive();
+}
+
+// Clone this ModelObject including its volumes and instances, keep the IDs of the copies equal to the original.
+// Called by Print::apply() to clone the Model / ModelObject hierarchy to the back end for background processing.
+//ModelObject* ModelObject::clone(Model *parent)
+//{
+//    return new ModelObject(parent, *this, true);
+//}
 
 ModelVolume* ModelObject::add_volume(const TriangleMesh &mesh)
 {
@@ -549,6 +596,14 @@ ModelVolume* ModelObject::add_volume(TriangleMesh &&mesh)
 ModelVolume* ModelObject::add_volume(const ModelVolume &other)
 {
     ModelVolume* v = new ModelVolume(this, other);
+    this->volumes.push_back(v);
+    this->invalidate_bounding_box();
+    return v;
+}
+
+ModelVolume* ModelObject::add_volume(const ModelVolume &other, TriangleMesh &&mesh)
+{
+    ModelVolume* v = new ModelVolume(this, other, std::move(mesh));
     this->volumes.push_back(v);
     this->invalidate_bounding_box();
     return v;
@@ -876,15 +931,13 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
         
         mesh->repair();
         
-        ModelObject* new_object = m_model->add_object(*this, false);
-        new_object->sla_support_points.clear();
-        new_object->input_file  = "";
-        ModelVolume* new_volume = new_object->add_volume(*mesh);
-        new_volume->name        = volume->name;
-        new_volume->config      = volume->config;
-        new_volume->set_type(volume->type());
-        new_volume->set_material_id(volume->material_id());
-        
+        ModelObject* new_object = m_model->add_object();
+		new_object->name   = this->name;
+		new_object->config = this->config;
+		new_object->instances.reserve(this->instances.size());
+		for (const ModelInstance *model_instance : this->instances)
+			new_object->add_instance(*model_instance);
+        new_object->add_volume(*volume, std::move(*mesh));
         new_objects->push_back(new_object);
         delete mesh;
     }
