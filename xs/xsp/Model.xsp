@@ -32,7 +32,7 @@
     
     %name{_add_object} Ref<ModelObject> add_object();
     Ref<ModelObject> _add_object_clone(ModelObject* other, bool copy_volumes = true)
-        %code%{ RETVAL = THIS->add_object(*other, copy_volumes); %};
+        %code%{ auto ptr = THIS->add_object(*other); if (! copy_volumes) ptr->clear_volumes(); RETVAL = ptr; %};
     void delete_object(size_t idx);
     void clear_objects();
     size_t objects_count()
