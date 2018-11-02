@@ -634,7 +634,7 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
     return false;
 }
 
-static inline void model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src)
+void Print::model_volume_list_update_supports(ModelObject &model_object_dst, const ModelObject &model_object_src)
 {
     // 1) Delete the support volumes from model_object_dst.
     {
@@ -650,8 +650,10 @@ static inline void model_volume_list_update_supports(ModelObject &model_object_d
     }
     // 2) Copy the support volumes from model_object_src to the end of model_object_dst.
     for (ModelVolume *vol : model_object_src.volumes) {
-        if (vol->is_support_modifier())
-            model_object_dst.volumes.emplace_back(vol->clone(&model_object_dst));
+		if (vol->is_support_modifier()) {
+			model_object_dst.volumes.emplace_back(new ModelVolume(*vol));
+			model_object_dst.volumes.back()->set_model_object(&model_object_dst);
+		}
     }
 }
 

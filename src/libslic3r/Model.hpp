@@ -256,7 +256,6 @@ protected:
 
 private:
     ModelObject(Model *model) : layer_height_profile_valid(false), m_model(model), origin_translation(Vec3d::Zero()), m_bounding_box_valid(false) {}
-    ModelObject(Model *model, const ModelObject &rhs) { this->assign_copy(rhs); m_model = model; }
     ~ModelObject();
 
     /* To be able to return an object from own copy / clone methods. Hopefully the compiler will do the "Copy elision" */
@@ -281,8 +280,6 @@ private:
 // ModelVolume instances are owned by a ModelObject.
 class ModelVolume : public ModelBase
 {
-    friend class ModelObject;
-
 public:
     std::string         name;
     // The triangular model.
@@ -298,9 +295,6 @@ public:
         SUPPORT_ENFORCER,
         SUPPORT_BLOCKER,
     };
-
-    // Clone this ModelVolume, keep the ID identical, set the parent to the cloned volume.
-    ModelVolume*        clone(ModelObject *parent) { return new ModelVolume(parent, *this); }
 
     // A parent object owning this modifier volume.
     ModelObject*        get_object() const { return this->object; };
@@ -363,7 +357,10 @@ public:
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
 protected:
-    explicit ModelVolume(ModelVolume &rhs) = default;
+	friend class Print;
+	friend class ModelObject;
+
+	explicit ModelVolume(ModelVolume &rhs) = default;
     void     set_model_object(ModelObject *model_object) { object = model_object; }
 
 private:
@@ -517,13 +514,13 @@ private:
 
 #if ENABLE_MODELVOLUME_TRANSFORM
     // Constructor, which assigns a new unique ID.
-    ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) {}
+    explicit ModelInstance(ModelObject *object) : object(object), print_volume_state(PVS_Inside) {}
     // Constructor, which assigns a new unique ID.
-    ModelInstance(ModelObject *object, const ModelInstance &other) :
+    explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_transformation(other.m_transformation), object(object), print_volume_state(PVS_Inside) {}
 #else
-    ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
-    ModelInstance(ModelObject *object, const ModelInstance &other) :
+    explicit ModelInstance(ModelObject *object) : m_offset(Vec3d::Zero()), m_rotation(Vec3d::Zero()), m_scaling_factor(Vec3d::Ones()), m_mirror(Vec3d::Ones()), object(object), print_volume_state(PVS_Inside) {}
+    explicit ModelInstance(ModelObject *object, const ModelInstance &other) :
         m_offset(other.m_offset), m_rotation(other.m_rotation), m_scaling_factor(other.m_scaling_factor), m_mirror(other.m_mirror), object(object), print_volume_state(PVS_Inside) {}
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 

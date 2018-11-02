@@ -32,9 +32,8 @@ void Layer::make_slices()
         slices = m_regions.front()->slices;
     } else {
         Polygons slices_p;
-        FOREACH_LAYERREGION(this, layerm) {
-            polygons_append(slices_p, to_polygons((*layerm)->slices));
-        }
+        for (LayerRegion *layerm : m_regions)
+            polygons_append(slices_p, to_polygons(layerm->slices));
         slices = union_ex(slices_p);
     }
     
@@ -53,7 +52,7 @@ void Layer::make_slices()
     
     // populate slices vector
     for (size_t i : order)
-        this->slices.expolygons.push_back(STDMOVE(slices[i]));
+        this->slices.expolygons.push_back(std::move(slices[i]));
 }
 
 void Layer::merge_slices()
@@ -63,10 +62,9 @@ void Layer::merge_slices()
         // but use the non-split islands of a layer. For a single region print, these shall be equal.
         m_regions.front()->slices.set(this->slices.expolygons, stInternal);
     } else {
-        FOREACH_LAYERREGION(this, layerm) {
+        for (LayerRegion *layerm : m_regions)
             // without safety offset, artifacts are generated (GH #2494)
-            (*layerm)->slices.set(union_ex(to_polygons(STDMOVE((*layerm)->slices.surfaces)), true), stInternal);
-        }
+            layerm->slices.set(union_ex(to_polygons(std::move(layerm->slices.surfaces)), true), stInternal);
     }
 }
 
@@ -80,7 +78,7 @@ void Layer::make_perimeters()
     // keep track of regions whose perimeters we have already generated
     std::set<size_t> done;
     
-    FOREACH_LAYERREGION(this, layerm) {
+    for (LayerRegionPtrs::iterator layerm = m_regions.begin(); layerm != m_regions.end(); ++ layerm) {
         size_t region_id = layerm - m_regions.begin();
         if (done.find(region_id) != done.end()) continue;
         BOOST_LOG_TRIVIAL(trace) << "Generating perimeters for layer " << this->id() << ", region " << region_id;

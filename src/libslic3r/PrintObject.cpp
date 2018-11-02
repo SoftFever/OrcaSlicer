@@ -170,8 +170,8 @@ void PrintObject::make_perimeters()
     
     // merge slices if they were split into types
     if (this->typed_slices) {
-        FOREACH_LAYER(this, layer_it) {
-            (*layer_it)->merge_slices();
+        for (Layer *layer : m_layers) {
+            layer->merge_slices();
             m_print->throw_if_canceled();
         }
         this->typed_slices = false;
@@ -1243,9 +1243,10 @@ void PrintObject::bridge_over_infill()
             *this
         );
         
-        FOREACH_LAYER(this, layer_it) {
+		for (LayerPtrs::iterator layer_it = m_layers.begin(); layer_it != m_layers.end(); ++ layer_it) {
             // skip first layer
-            if (layer_it == m_layers.begin()) continue;
+			if (layer_it == m_layers.begin())
+                continue;
             
             Layer* layer        = *layer_it;
             LayerRegion* layerm = layer->m_regions[region_id];
@@ -1271,8 +1272,8 @@ void PrintObject::bridge_over_infill()
                     
                     // iterate through regions and collect internal surfaces
                     Polygons lower_internal;
-                    FOREACH_LAYERREGION(lower_layer, lower_layerm_it)
-                        (*lower_layerm_it)->fill_surfaces.filter_by_type(stInternal, &lower_internal);
+                    for (LayerRegion *lower_layerm : lower_layer->m_regions)
+                        lower_layerm->fill_surfaces.filter_by_type(stInternal, &lower_internal);
                     
                     // intersect such lower internal surfaces with the candidate solid surfaces
                     to_bridge_pp = intersection(to_bridge_pp, lower_internal);
@@ -1734,8 +1735,8 @@ void PrintObject::_make_perimeters()
     
     // merge slices if they were split into types
     if (this->typed_slices) {
-        FOREACH_LAYER(this, layer_it)
-            (*layer_it)->merge_slices();
+        for (Layer *layer : m_layers)
+            layer->merge_slices();
         this->typed_slices = false;
         this->invalidate_step(posPrepareInfill);
     }
