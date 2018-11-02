@@ -27,21 +27,39 @@ Model& Model::assign_copy(const Model &rhs)
 {
     this->copy_id(rhs);
     // copy materials
-    for (const std::pair<t_model_material_id, ModelMaterial*> &m : rhs.materials)
-        this->add_material(m.first, *m.second);
+    this->clear_materials();
+    this->materials = rhs.materials;
+    for (std::pair<const t_model_material_id, ModelMaterial*> &m : this->materials) {
+        // Copy including the ID and m_model.
+        m.second = new ModelMaterial(*m.second);
+        m.second->set_model(this);
+    }
     // copy objects
+    this->clear_objects();
     this->objects.reserve(rhs.objects.size());
-    for (const ModelObject *o : rhs.objects)
-        this->add_object(*o);
+	for (const ModelObject *model_object : rhs.objects) {
+        // Copy including the ID, leave ID set to invalid (zero).
+        auto mo = ModelObject::new_copy(*model_object);
+        mo->set_model(this);
+		this->objects.emplace_back(mo);
+    }
     return *this;
 }
 
 Model& Model::assign_copy(Model &&rhs)
 {
     this->copy_id(rhs);
-	this->materials = std::move(rhs.materials);
+	// Move materials, adjust the parent pointer.
+    this->clear_materials();
+    this->materials = std::move(rhs.materials);
+    for (std::pair<const t_model_material_id, ModelMaterial*> &m : this->materials)
+        m.second->set_model(this);
     rhs.materials.clear();
+    // Move objects, adjust the parent pointer.
+    this->clear_objects();
 	this->objects = std::move(rhs.objects);
+    for (ModelObject *model_object : this->objects)
+        model_object->set_model(this);
 	rhs.objects.clear();
     return *this;
 }
@@ -166,7 +184,8 @@ ModelObject* Model::add_object(const char *name, const char *path, TriangleMesh 
 
 ModelObject* Model::add_object(const ModelObject &other)
 {
-    ModelObject* new_object = new ModelObject(this, other);
+	ModelObject* new_object = ModelObject::new_clone(other);
+    new_object->set_model(this);
     this->objects.push_back(new_object);
     return new_object;
 }
@@ -178,21 +197,36 @@ void Model::delete_object(size_t idx)
     this->objects.erase(i);
 }
 
-void Model::delete_object(ModelObject* object)
+bool Model::delete_object(ModelObject* object)
 {
-    if (object == nullptr)
-        return;
-
-    for (ModelObjectPtrs::iterator it = objects.begin(); it != objects.end(); ++it)
-    {
-        ModelObject* obj = *it;
-        if (obj == object)
-        {
-            delete obj;
-            objects.erase(it);
-            return;
+    if (object != nullptr) {
+        size_t idx = 0;
+        for (ModelObject *model_object : objects) {
+            if (model_object == object) {
+                delete model_object;
+                objects.erase(objects.begin() + idx);
+                return true;
+            }
+            ++ idx;
         }
     }
+    return false;
+}
+
+bool Model::delete_object(ModelID id)
+{
+    if (id.id != 0) {
+        size_t idx = 0;
+        for (ModelObject *model_object : objects) {
+            if (model_object->id() == id) {
+                delete model_object;
+                objects.erase(objects.begin() + idx);
+                return true;
+            }
+            ++ idx;
+        }
+    }
+    return false;
 }
 
 void Model::clear_objects()
@@ -232,7 +266,8 @@ ModelMaterial* Model::add_material(t_model_material_id material_id, const ModelM
     ModelMaterial* material = this->get_material(material_id);
     delete material;
     // set new material
-    material = new ModelMaterial(this, other);
+	material = new ModelMaterial(other);
+	material->set_model(this);
     this->materials[material_id] = material;
     return material;
 }
@@ -435,6 +470,7 @@ void Model::convert_multipart_object(unsigned int max_extruders)
     ModelObject* object = new ModelObject(this);
     object->input_file = this->objects.front()->input_file;
     object->name = this->objects.front()->name;
+    //FIXME copy the config etc?
 
     reset_auto_extruder_id();
 
@@ -497,12 +533,6 @@ void Model::reset_auto_extruder_id()
     s_auto_extruder_id = 1;
 }
 
-ModelObject::ModelObject(Model *model, const ModelObject &rhs) :
-    m_model(model)
-{
-    this->assign_copy(rhs);
-}
-
 ModelObject::~ModelObject()
 {
     this->clear_volumes();
@@ -525,14 +555,18 @@ ModelObject& ModelObject::assign_copy(const ModelObject &rhs)
     m_bounding_box                    = rhs.m_bounding_box;
     m_bounding_box_valid              = rhs.m_bounding_box_valid;
 
-    this->volumes.clear();
+    this->clear_volumes();
     this->volumes.reserve(rhs.volumes.size());
-    for (ModelVolume *model_volume : rhs.volumes)
-        this->add_volume(*model_volume);
-	this->instances.clear();
+    for (ModelVolume *model_volume : rhs.volumes) {
+        this->volumes.emplace_back(new ModelVolume(*model_volume));
+        this->volumes.back()->set_model_object(this);
+    }
+    this->clear_instances();
 	this->instances.reserve(rhs.instances.size());
-    for (const ModelInstance *model_instance : rhs.instances)
-        this->add_instance(*model_instance);
+    for (const ModelInstance *model_instance : rhs.instances) {
+        this->instances.emplace_back(new ModelInstance(*model_instance));
+        this->instances.back()->set_model_object(this);
+    }
 
     return *this;
 }
@@ -553,10 +587,16 @@ ModelObject& ModelObject::assign_copy(ModelObject &&rhs)
     m_bounding_box                    = std::move(rhs.m_bounding_box);
     m_bounding_box_valid              = std::move(rhs.m_bounding_box_valid);
 
+    this->clear_volumes();
 	this->volumes = std::move(rhs.volumes);
 	rhs.volumes.clear();
+    for (ModelVolume *model_volume : this->volumes)
+        model_volume->set_model_object(this);
+    this->clear_instances();
 	this->instances = std::move(rhs.instances);
 	rhs.instances.clear();
+    for (ModelInstance *model_instance : this->instances)
+        model_instance->set_model_object(this);
 
 	return *this;
 }
@@ -919,7 +959,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
     if (this->volumes.size() > 1) {
         // We can't split meshes if there's more than one volume, because
         // we can't group the resulting meshes by object afterwards
-        new_objects->push_back(this);
+        new_objects->emplace_back(this);
         return;
     }
     
@@ -938,7 +978,7 @@ void ModelObject::split(ModelObjectPtrs* new_objects)
 		for (const ModelInstance *model_instance : this->instances)
 			new_object->add_instance(*model_instance);
         new_object->add_volume(*volume, std::move(*mesh));
-        new_objects->push_back(new_object);
+        new_objects->emplace_back(new_object);
         delete mesh;
     }
     
@@ -1060,9 +1100,8 @@ void ModelObject::print_info() const
 void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
-    
     // ensure m_material_id references an existing material
-    (void)this->object->get_model()->add_material(material_id);
+    this->object->get_model()->add_material(material_id);
 }
 
 ModelMaterial* ModelVolume::material() const
@@ -1073,13 +1112,12 @@ ModelMaterial* ModelVolume::material() const
 void ModelVolume::set_material(t_model_material_id material_id, const ModelMaterial &material)
 {
     m_material_id = material_id;
-    (void)this->object->get_model()->add_material(material_id, material);
+    this->object->get_model()->add_material(material_id, material);
 }
 
 ModelMaterial* ModelVolume::assign_unique_material()
 {
     Model* model = this->get_object()->get_model();
-    
     // as material-id "0" is reserved by the AMF spec we start from 1
     m_material_id = 1 + model->materials.size();  // watchout for implicit cast
     return model->add_material(m_material_id);

@@ -1435,7 +1435,9 @@ void Plater::priv::mirror(Axis axis)
 
 void Plater::priv::arrange()
 {
+	this->background_process.stop();
     main_frame->app_controller()->arrange_model();
+    this->schedule_background_process();
 
     // ignore arrange failures on purpose: user has visual feedback and we don't need to warn him
     // when parts don't fit in print bed

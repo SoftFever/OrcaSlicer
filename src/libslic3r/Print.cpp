@@ -709,8 +709,60 @@ static std::vector<PrintInstances> print_objects_from_model_object(const ModelOb
     return std::vector<PrintInstances>(trafos.begin(), trafos.end());
 }
 
+#ifdef _DEBUG
+// Verify whether the IDs of Model / ModelObject / ModelVolume / ModelInstance / ModelMaterial are valid and unique.
+static inline void check_model_ids_validity(const Model &model)
+{
+    std::set<ModelID> ids;
+    auto check = [&ids](ModelID id) { 
+        assert(id.id > 0);
+        assert(ids.find(id) == ids.end());
+        ids.insert(id);
+    };
+    for (const ModelObject *model_object : model.objects) {
+        check(model_object->id());
+        for (const ModelVolume *model_volume : model_object->volumes)
+            check(model_volume->id());
+        for (const ModelInstance *model_instance : model_object->instances)
+            check(model_instance->id());
+    }
+    for (const auto mm : model.materials)
+        check(mm.second->id());
+}
+
+static inline void check_model_ids_equal(const Model &model1, const Model &model2)
+{
+    // Verify whether the IDs of model1 and model match.
+    assert(model1.objects.size() == model2.objects.size());
+    for (size_t idx_model = 0; idx_model < model2.objects.size(); ++ idx_model) {
+        const ModelObject &model_object1 = *model1.objects[idx_model];
+        const ModelObject &model_object2 = *  model2.objects[idx_model];
+        assert(model_object1.id() == model_object2.id());
+        assert(model_object1.volumes.size() == model_object2.volumes.size());
+        assert(model_object1.instances.size() == model_object2.instances.size());
+        for (size_t i = 0; i < model_object1.volumes.size(); ++ i)
+			assert(model_object1.volumes[i]->id() == model_object2.volumes[i]->id());
+        for (size_t i = 0; i < model_object1.instances.size(); ++ i)
+			assert(model_object1.instances[i]->id() == model_object2.instances[i]->id());
+    }
+    assert(model1.materials.size() == model2.materials.size());
+    {
+        auto it1 = model1.materials.begin();
+        auto it2 = model2.materials.begin();
+        for (; it1 != model1.materials.end(); ++ it1, ++ it2) {
+            assert(it1->first == it2->first); // compare keys
+            assert(it1->second->id() == it2->second->id());
+        }
+    }
+}
+#endif /* _DEBUG */
+
 Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &config_in)
 {
+#ifdef _DEBUG
+    check_model_ids_validity(model);
+#endif /* _DEBUG */
+
     // Make a copy of the config, normalize it.
     DynamicPrintConfig config(config_in);
     config.normalize();
@@ -807,7 +859,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 auto it = std::lower_bound(model_objects_old.begin(), model_objects_old.end(), mobj, by_id_lower);
                 if (it == model_objects_old.end() || (*it)->id() != mobj->id()) {
                     // New ModelObject added.
-                    m_model.objects.emplace_back(ModelObject::new_copy(**it));
+					m_model.objects.emplace_back(ModelObject::new_copy(*mobj));
 					m_model.objects.back()->set_model(&m_model);
                     model_object_status.emplace(mobj->id(), ModelObjectStatus::New);
                 } else {
@@ -935,8 +987,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             model_object.name       = model_object_new.name;
             model_object.input_file = model_object_new.input_file;
             model_object.clear_instances();
-            for (const ModelInstance *model_instance : model_object_new.instances)
-                model_object.add_instance(*model_instance);
+            model_object.instances.reserve(model_object_new.instances.size());
+            for (const ModelInstance *model_instance : model_object_new.instances) {
+                model_object.instances.emplace_back(new ModelInstance(*model_instance));
+                model_object.instances.back()->set_model_object(&model_object);
+            }
         }
     }
 
@@ -1138,6 +1193,11 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
             object->update_layer_height_profile();
 
     this->update_object_placeholders();
+
+#ifdef _DEBUG
+    check_model_ids_equal(m_model, model);
+#endif /* _DEBUG */
+
 	return static_cast<ApplyStatus>(apply_status);
 }
 
