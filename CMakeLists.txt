@@ -27,6 +27,10 @@ option(SLIC3R_MSVC_COMPILE_PARALLEL "Compile on Visual Studio in parallel" 1)
 option(SLIC3R_MSVC_PDB          "Generate PDB files on MSVC in Release mode" 1)
 option(SLIC3R_PERL_XS           "Compile XS Perl module and enable Perl unit and integration tests" 0)
 
+# Proposal for C++ unit tests and sandboxes
+option(SLIC3R_BUILD_SANDBOXES   "Build development sandboxes" OFF)
+option(SLIC3R_BUILD_TESTS       "Build unit tests" OFF)
+
 if (MSVC)
     if (SLIC3R_MSVC_COMPILE_PARALLEL)
 	   add_compile_options(/MP)
@@ -243,6 +247,14 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT s
 if (SLIC3R_PERL_XS)
     add_subdirectory(xs)
 endif ()
+
+if(SLIC3R_BUILD_SANDBOXES)
+    add_subdirectory(sandboxes)
+endif()
+
+if(SLIC3R_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
 
 file(GLOB MyVar var/*.png)
 install(FILES ${MyVar} DESTINATION share/slic3r-prusa3d)

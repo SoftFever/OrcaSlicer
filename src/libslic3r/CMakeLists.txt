@@ -153,6 +153,16 @@ add_library(libslic3r STATIC
     SLABasePool.cpp
     utils.cpp
     Utils.hpp
+    SLA/SLABoilerPlate.hpp
+    SLA/SLABasePool.hpp
+    SLA/SLABasePool.cpp
+    SLA/SLASupportTree.hpp
+    SLA/SLASupportTree.cpp
+    SLA/SLASupportTreeIGL.cpp
+    SLA/SLARotfinder.hpp
+    SLA/SLARotfinder.cpp
+    SLA/SLABoostAdapter.hpp
+    SLA/SLASpatIndex.hpp
 )
 
 add_precompiled_header(libslic3r pchheader.hpp FORCEINCLUDE)

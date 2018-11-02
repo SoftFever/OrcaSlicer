@@ -885,7 +885,8 @@ igl::AABB<DerivedV,DIM>::intersect_ray(
   const RowVectorDIMS & dir,
   igl::Hit & hit) const
 {
-#if false
+    // FIXME: Needs a proper path
+#if /*false*/ 0
   // BFS
   std::queue<const AABB *> Q;
   // Or DFS

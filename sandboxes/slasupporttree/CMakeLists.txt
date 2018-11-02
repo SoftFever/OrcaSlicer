@@ -1,0 +1,2 @@
+add_executable(slasupporttree EXCLUDE_FROM_ALL slasupporttree.cpp)
+target_link_libraries(slasupporttree libslic3r)
