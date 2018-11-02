@@ -268,6 +268,9 @@ void ObjectManipulation::update_settings_list()
 
 void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& selection)
 {
+#if ENABLE_MODELVOLUME_TRANSFORM
+    if (selection.is_single_full_instance())
+#else
     if (selection.is_single_full_object())
     {
         auto obj_idx = selection.get_object_idx();
@@ -284,30 +287,49 @@ void ObjectManipulation::update_settings_value(const GLCanvas3D::Selection& sele
             reset_settings_value();
     }
     else if (selection.is_single_full_instance())
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     {
         // all volumes in the selection belongs to the same instance, any of them contains the needed data, so we take the first
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+#if ENABLE_MODELVOLUME_TRANSFORM
+        update_position_value(volume->get_instance_offset());
+        update_rotation_value(volume->get_instance_rotation());
+        update_scale_value(volume->get_instance_scaling_factor());
+#else
         update_position_value(volume->get_offset());
         update_rotation_value(volume->get_rotation());
         update_scale_value(volume->get_scaling_factor());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         m_og->enable();
     }
     else if (selection.is_wipe_tower())
     {
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+#if ENABLE_MODELVOLUME_TRANSFORM
+        update_position_value(volume->get_volume_offset());
+        update_rotation_value(volume->get_volume_rotation());
+        update_scale_value(volume->get_volume_scaling_factor());
+#else
         update_position_value(volume->get_offset());
         update_rotation_value(volume->get_rotation());
         update_scale_value(volume->get_scaling_factor());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         m_og->enable();
     }
     else if (selection.is_modifier())
     {
         // the selection contains a single volume
         const GLVolume* volume = selection.get_volume(*selection.get_volume_idxs().begin());
+#if ENABLE_MODELVOLUME_TRANSFORM
+        update_position_value(volume->get_volume_offset());
+        update_rotation_value(volume->get_volume_rotation());
+        update_scale_value(volume->get_volume_scaling_factor());
+#else
         update_position_value(volume->get_offset());
         update_rotation_value(volume->get_rotation());
         update_scale_value(volume->get_scaling_factor());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         m_og->enable();
     }
     else

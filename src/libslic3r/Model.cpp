@@ -624,8 +624,16 @@ const BoundingBoxf3& ModelObject::bounding_box() const
         BoundingBoxf3 raw_bbox;
         for (const ModelVolume *v : this->volumes)
             if (v->is_model_part())
+#if ENABLE_MODELVOLUME_TRANSFORM
+            {
+                TriangleMesh m = v->mesh;
+                m.transform(v->get_matrix().cast<float>());
+                raw_bbox.merge(m.bounding_box());
+            }
+#else
                 // mesh.bounding_box() returns a cached value.
                 raw_bbox.merge(v->mesh.bounding_box());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         BoundingBoxf3 bb;
         for (const ModelInstance *i : this->instances)
             bb.merge(i->transform_bounding_box(raw_bbox));
@@ -656,7 +664,15 @@ TriangleMesh ModelObject::raw_mesh() const
     TriangleMesh mesh;
     for (const ModelVolume *v : this->volumes)
         if (v->is_model_part())
-            mesh.merge(v->mesh);
+#if ENABLE_MODELVOLUME_TRANSFORM
+        {
+            TriangleMesh vol_mesh(v->mesh);
+            vol_mesh.transform(v->get_matrix().cast<float>());
+            mesh.merge(vol_mesh);
+        }
+#else
+        mesh.merge(v->mesh);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     return mesh;
 }
 
@@ -699,12 +715,14 @@ void ModelObject::center_around_origin()
     this->translate(shift);
     this->origin_translation += shift;
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
     if (!this->instances.empty()) {
         for (ModelInstance *i : this->instances) {
             i->set_offset(i->get_offset() - shift);
         }
         this->invalidate_bounding_box();
     }
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
 }
 
 void ModelObject::ensure_on_bed()
@@ -731,8 +749,12 @@ void ModelObject::translate(double x, double y, double z)
 {
     for (ModelVolume *v : this->volumes)
     {
+#if ENABLE_MODELVOLUME_TRANSFORM
+        v->translate(x, y, z);
+#else
         v->mesh.translate(float(x), float(y), float(z));
         v->m_convex_hull.translate(float(x), float(y), float(z));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
     if (m_bounding_box_valid)
@@ -918,17 +940,29 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
     double min_z = DBL_MAX;
 
     ModelInstance* inst = instances[instance_idx];
-    const Transform3d& m = inst->get_matrix(true);
+    const Transform3d& mi = inst->get_matrix(true);
 
-    for (ModelVolume *v : volumes)
+    for (const ModelVolume* v : volumes)
     {
+#if ENABLE_MODELVOLUME_TRANSFORM
+        Transform3d mv = mi * v->get_matrix();
+        const TriangleMesh& hull = v->get_convex_hull();
+        for (uint32_t f = 0; f < hull.stl.stats.number_of_facets; ++f)
+        {
+            const stl_facet* facet = hull.stl.facet_start + f;
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(mv * facet->vertex[0].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(mv * facet->vertex[1].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(mv * facet->vertex[2].cast<double>()));
+        }
+#else
         for (uint32_t f = 0; f < v->mesh.stl.stats.number_of_facets; ++f)
         {
             const stl_facet* facet = v->mesh.stl.facet_start + f;
-            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[0].cast<double>()));
-            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[1].cast<double>()));
-            min_z = std::min(min_z, Vec3d::UnitZ().dot(m * facet->vertex[2].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(mi * facet->vertex[0].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(mi * facet->vertex[1].cast<double>()));
+            min_z = std::min(min_z, Vec3d::UnitZ().dot(mi * facet->vertex[2].cast<double>()));
         }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
     return min_z + inst->get_offset(Z);
@@ -1115,8 +1149,12 @@ void ModelVolume::translate(double x, double y, double z)
 
 void ModelVolume::translate(const Vec3d& displacement)
 {
+#if ENABLE_MODELVOLUME_TRANSFORM
+    m_transformation.set_offset(m_transformation.get_offset() + displacement);
+#else
     mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
     m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 }
 
 #if !ENABLE_MODELVOLUME_TRANSFORM

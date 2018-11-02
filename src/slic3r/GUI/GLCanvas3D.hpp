@@ -358,9 +358,14 @@ public:
 
         enum EMode : unsigned char
         {
+#if ENABLE_MODELVOLUME_TRANSFORM
+            Volume,
+            Instance
+#else
             Volume,
             Instance,
             Object
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         };
 
         enum EType : unsigned char
@@ -378,21 +383,57 @@ public:
         struct VolumeCache
         {
         private:
+#if ENABLE_MODELVOLUME_TRANSFORM
+            struct TransformCache
+            {
+                Vec3d position;
+                Vec3d rotation;
+                Vec3d scaling_factor;
+                Transform3d rotation_matrix;
+                Transform3d scale_matrix;
+
+                TransformCache();
+                explicit TransformCache(const Geometry::Transformation& transform);
+            };
+
+            TransformCache m_volume;
+            TransformCache m_instance;
+#else
             Vec3d m_position;
             Vec3d m_rotation;
             Vec3d m_scaling_factor;
             Transform3d m_rotation_matrix;
             Transform3d m_scale_matrix;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
         public:
+#if ENABLE_MODELVOLUME_TRANSFORM
+            VolumeCache() {}
+            VolumeCache(const Geometry::Transformation& volume_transform, const Geometry::Transformation& instance_transform);
+#else
             VolumeCache();
             VolumeCache(const Vec3d& position, const Vec3d& rotation, const Vec3d& scaling_factor);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
+#if ENABLE_MODELVOLUME_TRANSFORM
+            const Vec3d& get_volume_position() const { return m_volume.position; }
+            const Vec3d& get_volume_rotation() const { return m_volume.rotation; }
+            const Vec3d& get_volume_scaling_factor() const { return m_volume.scaling_factor; }
+            const Transform3d& get_volume_rotation_matrix() const { return m_volume.rotation_matrix; }
+            const Transform3d& get_volume_scale_matrix() const { return m_volume.scale_matrix; }
+
+            const Vec3d& get_instance_position() const { return m_instance.position; }
+            const Vec3d& get_instance_rotation() const { return m_instance.rotation; }
+            const Vec3d& get_instance_scaling_factor() const { return m_instance.scaling_factor; }
+            const Transform3d& get_instance_rotation_matrix() const { return m_instance.rotation_matrix; }
+            const Transform3d& get_instance_scale_matrix() const { return m_instance.scale_matrix; }
+#else
             const Vec3d& get_position() const { return m_position; }
             const Vec3d& get_rotation() const { return m_rotation; }
             const Vec3d& get_scaling_factor() const { return m_scaling_factor; }
             const Transform3d& get_rotation_matrix() const { return m_rotation_matrix; }
             const Transform3d& get_scale_matrix() const { return m_scale_matrix; }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         };
 
         typedef std::map<unsigned int, VolumeCache> VolumesCache;

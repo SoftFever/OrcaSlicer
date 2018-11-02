@@ -306,8 +306,25 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
-    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) : 
+    ModelVolume(ModelObject *object, TriangleMesh &&mesh, TriangleMesh &&convex_hull) :
         mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+    ModelVolume(ModelObject *object, const ModelVolume &other) :
+        ModelBase(other), // copy the ID
+        name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+    {
+        this->set_material_id(other.material_id());
+    }
+    ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
+        ModelBase(other), // copy the ID
+        name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
+    {
+        this->set_material_id(other.material_id());
+        if (mesh.stl.stats.number_of_facets > 1)
+            calculate_convex_hull();
+    }
+#else
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ModelBase(other), // copy the ID
         name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object)
@@ -322,6 +339,7 @@ private:
         if (mesh.stl.stats.number_of_facets > 1)
             calculate_convex_hull();
     }
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     explicit ModelVolume(ModelVolume &rhs) = delete;
     ModelVolume& operator=(ModelVolume &rhs) = delete;

@@ -615,8 +615,12 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
         if (mv_old.id() != mv_new.id())
             return true;
         //FIXME test for the content of the mesh!
-        //FIXME test for the transformation matrices!
-        ++ i_old;
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+        if (!mv_old.get_matrix().isApprox(mv_new.get_matrix()))
+            return true;
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+        ++i_old;
         ++ i_new;
     }
     for (; i_old < model_object_old.volumes.size(); ++ i_old) {

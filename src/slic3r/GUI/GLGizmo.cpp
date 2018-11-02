@@ -718,7 +718,11 @@ void GLGizmoScale3D::on_process_double_click()
 void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 {
     bool single_instance = selection.is_single_full_instance();
+#if ENABLE_MODELVOLUME_TRANSFORM
+    Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_instance_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
+#else
     Vec3f scale = single_instance ? 100.0f * selection.get_volume(*selection.get_volume_idxs().begin())->get_scaling_factor().cast<float>() : 100.0f * m_scale.cast<float>();
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     if ((single_instance && ((m_hover_id == 0) || (m_hover_id == 1))) || m_grabbers[0].dragging || m_grabbers[1].dragging)
         set_tooltip("X: " + format(scale(0), 4) + "%");
@@ -760,10 +764,18 @@ void GLGizmoScale3D::on_render(const GLCanvas3D::Selection& selection) const
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
         // gets angles from first selected volume
+#if ENABLE_MODELVOLUME_TRANSFORM
+        angles = v->get_instance_rotation();
+#else
         angles = v->get_rotation();
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
         // consider rotation+mirror only components of the transform for offsets
+#if ENABLE_MODELVOLUME_TRANSFORM
+        offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_instance_mirror());
+#else
         offsets_transform = Geometry::assemble_transform(Vec3d::Zero(), angles, Vec3d::Ones(), v->get_mirror());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
     else
         box = selection.get_bounding_box();
@@ -1241,7 +1253,15 @@ void GLGizmoFlatten::update_planes()
 {
     TriangleMesh ch;
     for (const ModelVolume* vol : m_model_object->volumes)
+#if ENABLE_MODELVOLUME_TRANSFORM
+    {
+        TriangleMesh vol_ch = vol->get_convex_hull();
+        vol_ch.transform(vol->get_matrix().cast<float>());
+        ch.merge(vol_ch);
+    }
+#else
         ch.merge(vol->get_convex_hull());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
     ch = ch.convex_hull_3d();
 
@@ -1476,11 +1496,14 @@ bool GLGizmoSlaSupports::on_init()
 
 void GLGizmoSlaSupports::set_model_object_ptr(ModelObject* model_object)
 {
-    m_starting_center = Vec3d::Zero();
-    m_model_object = model_object;
-    m_model_object_matrix = model_object->instances.front()->get_matrix();
-    if (is_mesh_update_necessary())
-        update_mesh();
+    if (model_object != nullptr)
+    {
+        m_starting_center = Vec3d::Zero();
+        m_model_object = model_object;
+        m_model_object_matrix = model_object->instances.front()->get_matrix();
+        if (is_mesh_update_necessary())
+            update_mesh();
+    }
 }
 
 void GLGizmoSlaSupports::on_render(const GLCanvas3D::Selection& selection) const
