@@ -4768,8 +4768,14 @@ void GLCanvas3D::_refresh_if_shown_on_screen()
     {
         const Size& cnv_size = get_canvas_size();
         _resize((unsigned int)cnv_size.get_width(), (unsigned int)cnv_size.get_height());
-        if (m_canvas != nullptr)
-            m_canvas->Refresh();
+
+        // Because of performance problems on macOS, where PaintEvents are not delivered
+        // frequently enough, we call render() here directly when we can.
+        // We can't do that when m_force_zoom_to_bed_enabled == true, because then render()
+        // ends up calling back here via _force_zoom_to_bed(), causing a stack overflow.
+        if (m_canvas != nullptr) {
+            m_force_zoom_to_bed_enabled ? m_canvas->Refresh() : render();
+        }
     }
 }
 

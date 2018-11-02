@@ -16,6 +16,7 @@
 #include <boost/nowide/cenv.hpp>
 #include <boost/nowide/fstream.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/format.hpp>
 #include <string.h>
 
 namespace Slic3r {
