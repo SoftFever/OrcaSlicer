@@ -28,9 +28,13 @@ class ObjectList : public wxDataViewCtrl
 
     wxBitmap	m_bmp_modifiermesh;
     wxBitmap	m_bmp_solidmesh;
+    wxBitmap	m_bmp_support_enforcer;
+    wxBitmap	m_bmp_support_blocker;
     wxBitmap	m_bmp_manifold_warning;
     wxBitmap	m_bmp_cog;
     wxBitmap	m_bmp_split;
+
+    std::vector<wxBitmap*> m_bmp_vector;
 
     int			m_selected_object_id = -1;
     bool		m_prevent_list_events = false;		// We use this flag to avoid circular event handling Select() 
@@ -85,9 +89,8 @@ public:
     wxMenu*             create_part_settings_popupmenu();
     wxMenu*             create_add_settings_popupmenu(bool is_part);
 
-    void                load_subobject(bool is_modifier = false, bool is_lambda = false);
-    void                load_part(ModelObject* model_object, wxArrayString& part_names, const bool is_modifier);
-    void                load_lambda(ModelObject* model_object, wxArrayString& part_names, const bool is_modifier);
+    void                load_subobject(int type);
+    void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
     void                load_lambda(const std::string& type_name);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
