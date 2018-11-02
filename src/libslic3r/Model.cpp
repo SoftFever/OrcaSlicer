@@ -749,12 +749,7 @@ void ModelObject::translate(double x, double y, double z)
 {
     for (ModelVolume *v : this->volumes)
     {
-#if ENABLE_MODELVOLUME_TRANSFORM
         v->translate(x, y, z);
-#else
-        v->mesh.translate(float(x), float(y), float(z));
-        v->m_convex_hull.translate(float(x), float(y), float(z));
-#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
     if (m_bounding_box_valid)
@@ -765,11 +760,12 @@ void ModelObject::scale(const Vec3d &versor)
 {
     for (ModelVolume *v : this->volumes)
     {
-        v->mesh.scale(versor);
-        v->m_convex_hull.scale(versor);
+        v->scale(versor);
     }
+#if !ENABLE_MODELVOLUME_TRANSFORM
     // reset origin translation since it doesn't make sense anymore
     this->origin_translation = Vec3d::Zero();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
     this->invalidate_bounding_box();
 }
 
@@ -1142,11 +1138,6 @@ size_t ModelVolume::split(unsigned int max_extruders)
     return idx;
 }
 
-void ModelVolume::translate(double x, double y, double z)
-{
-    translate(Vec3d(x, y, z));
-}
-
 void ModelVolume::translate(const Vec3d& displacement)
 {
 #if ENABLE_MODELVOLUME_TRANSFORM
@@ -1154,6 +1145,16 @@ void ModelVolume::translate(const Vec3d& displacement)
 #else
     mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
     m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+}
+
+void ModelVolume::scale(const Vec3d& scaling_factors)
+{
+#if ENABLE_MODELVOLUME_TRANSFORM
+    m_transformation.set_scaling_factor(m_transformation.get_scaling_factor().cwiseProduct(scaling_factors));
+#else
+    mesh.scale(scaling_factors);
+    m_convex_hull.scale(scaling_factors);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 }
 

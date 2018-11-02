@@ -163,6 +163,7 @@ public:
     void translate(double x, double y, double z);
     void scale(const Vec3d &versor);
     void scale(const double s) { this->scale(Vec3d(s, s, s)); }
+    void scale(double x, double y, double z) { this->scale(Vec3d(x, y, z)); }
     void rotate(float angle, const Axis &axis);
     void rotate(float angle, const Vec3d& axis);
     void mirror(const Axis &axis);
@@ -246,8 +247,11 @@ public:
     // Return the number of volumes created from this one.
     // This is useful to assign different materials to different volumes of an object.
     size_t              split(unsigned int max_extruders);
-    void                translate(double x, double y, double z);
+    void                translate(double x, double y, double z) { translate(Vec3d(x, y, z)); }
     void                translate(const Vec3d& displacement);
+    void                scale(const Vec3d& scaling_factors);
+    void                scale(double x, double y, double z) { scale(Vec3d(x, y, z)); }
+    void                scale(double s) { scale(Vec3d(s, s, s)); }
 
     ModelMaterial*      assign_unique_material();
     
