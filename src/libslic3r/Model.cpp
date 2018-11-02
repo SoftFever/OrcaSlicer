@@ -627,7 +627,7 @@ const BoundingBoxf3& ModelObject::bounding_box() const
 #if ENABLE_MODELVOLUME_TRANSFORM
             {
                 TriangleMesh m = v->mesh;
-                m.transform(v->get_matrix().cast<float>());
+                m.transform(v->get_matrix());
                 raw_bbox.merge(m.bounding_box());
             }
 #else
@@ -667,7 +667,7 @@ TriangleMesh ModelObject::raw_mesh() const
 #if ENABLE_MODELVOLUME_TRANSFORM
         {
             TriangleMesh vol_mesh(v->mesh);
-            vol_mesh.transform(v->get_matrix().cast<float>());
+            vol_mesh.transform(v->get_matrix());
             mesh.merge(vol_mesh);
         }
 #else
@@ -1212,14 +1212,14 @@ void ModelInstance::set_mirror(Axis axis, double mirror)
 
 void ModelInstance::transform_mesh(TriangleMesh* mesh, bool dont_translate) const
 {
-    mesh->transform(get_matrix(dont_translate).cast<float>());
+    mesh->transform(get_matrix(dont_translate));
 }
 
 BoundingBoxf3 ModelInstance::transform_mesh_bounding_box(const TriangleMesh* mesh, bool dont_translate) const
 {
     // Rotate around mesh origin.
     TriangleMesh copy(*mesh);
-    copy.transform(get_matrix(true, false, true, true).cast<float>());
+    copy.transform(get_matrix(true, false, true, true));
     BoundingBoxf3 bbox = copy.bounding_box();
 
     if (!empty(bbox)) {

@@ -1256,7 +1256,7 @@ void GLGizmoFlatten::update_planes()
 #if ENABLE_MODELVOLUME_TRANSFORM
     {
         TriangleMesh vol_ch = vol->get_convex_hull();
-        vol_ch.transform(vol->get_matrix().cast<float>());
+        vol_ch.transform(vol->get_matrix());
         ch.merge(vol_ch);
     }
 #else

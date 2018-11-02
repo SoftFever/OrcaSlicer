@@ -1604,14 +1604,14 @@ std::vector<ExPolygons> PrintObject::_slice_volumes(const std::vector<float> &z,
 #if ENABLE_MODELVOLUME_TRANSFORM
         {
             TriangleMesh vol_mesh(v->mesh);
-            vol_mesh.transform(v->get_matrix().cast<float>());
+            vol_mesh.transform(v->get_matrix());
             mesh.merge(vol_mesh);
         }
 #else
         mesh.merge(v->mesh);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
         if (mesh.stl.stats.number_of_facets > 0) {
-            mesh.transform(m_trafo.cast<float>());
+            mesh.transform(m_trafo);
             // apply XY shift
             mesh.translate(- unscale<float>(m_copies_shift(0)), - unscale<float>(m_copies_shift(1)), 0);
             // perform actual slicing
