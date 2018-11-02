@@ -774,7 +774,7 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
         for (PrintRegion *region : m_regions)
             delete region;
         m_regions.clear();
-        m_model = model;
+        m_model.assign_copy(model);
 		for (const ModelObject *model_object : m_model.objects)
 			model_object_status.emplace(model_object->id(), ModelObjectStatus::New);
     } else {
@@ -789,7 +789,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 model_object_status.emplace(model_object->id(), ModelObjectStatus::Old);
             for (size_t i = m_model.objects.size(); i < model.objects.size(); ++ i) {
                 model_object_status.emplace(model.objects[i]->id(), ModelObjectStatus::New);
-                m_model.objects.emplace_back(model.objects[i]->clone(&m_model));
+                m_model.objects.emplace_back(ModelObject::new_copy(*model.objects[i]));
+				m_model.objects.back()->set_model(&m_model);
             }
         } else {
             // Reorder the objects, add new objects.
@@ -806,7 +807,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 auto it = std::lower_bound(model_objects_old.begin(), model_objects_old.end(), mobj, by_id_lower);
                 if (it == model_objects_old.end() || (*it)->id() != mobj->id()) {
                     // New ModelObject added.
-                    m_model.objects.emplace_back((*it)->clone(&m_model));
+                    m_model.objects.emplace_back(ModelObject::new_copy(**it));
+					m_model.objects.back()->set_model(&m_model);
                     model_object_status.emplace(mobj->id(), ModelObjectStatus::New);
                 } else {
                     // Existing ModelObject re-added (possibly moved in the list).
@@ -899,8 +901,8 @@ Print::ApplyStatus Print::apply(const Model &model, const DynamicPrintConfig &co
                 update_apply_status(it->print_object->invalidate_all_steps());
                 const_cast<PrintObjectStatus&>(*it).status = PrintObjectStatus::Deleted;
             }
-            // Copy content of the ModelObject including its ID, reset the parent.
-            model_object.assign(&model_object_new);
+            // Copy content of the ModelObject including its ID, do not change the parent.
+            model_object.assign_copy(model_object_new);
         } else if (support_blockers_differ || support_enforcers_differ) {
             // First stop background processing before shuffling or deleting the ModelVolumes in the ModelObject's list.
             m_cancel_callback();
