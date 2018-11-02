@@ -1,7 +1,0 @@
-IGL interface to tetgen library
-
-Dependencies:
-  tetgen  
-  
-Travel to $IGL/external/tetgen and issue:
-  make -f Makefile.igl tetlib

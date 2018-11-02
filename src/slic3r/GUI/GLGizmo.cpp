@@ -1459,15 +1459,15 @@ bool GLGizmoSlaSupports::on_init()
 {
     std::string path = resources_dir() + "/icons/overlay/";
 
-    std::string filename = path + "layflat_off.png";
+    std::string filename = path + "sla_support_points_off.png";
     if (!m_textures[Off].load_from_file(filename, false))
         return false;
 
-    filename = path + "layflat_hover.png";
+    filename = path + "sla_support_points_hover.png";
     if (!m_textures[Hover].load_from_file(filename, false))
         return false;
 
-    filename = path + "layflat_on.png";
+    filename = path + "sla_support_points_on.png";
     if (!m_textures[On].load_from_file(filename, false))
         return false;
 
