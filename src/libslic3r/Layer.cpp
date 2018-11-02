@@ -135,7 +135,7 @@ void Layer::make_perimeters()
                     // Separate the fill surfaces.
                     ExPolygons expp = intersection_ex(to_polygons(fill_surfaces), (*l)->slices);
                     (*l)->fill_expolygons = expp;
-                    (*l)->fill_surfaces.set(STDMOVE(expp), fill_surfaces.surfaces.front());
+                    (*l)->fill_surfaces.set(std::move(expp), fill_surfaces.surfaces.front());
                 }
             }
         }
