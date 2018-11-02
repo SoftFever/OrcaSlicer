@@ -145,6 +145,9 @@ public:
     void select_all();
     // correct current selections to avoid of the possible conflicts
     void fix_multiselection_conflicts();
+
+    ModelVolume* get_selected_model_volume();
+    void change_part_type();
 };
 
 

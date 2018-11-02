@@ -9,6 +9,7 @@
 #include <wx/numformatter.h>
 #include "GUI_App.hpp"
 #include "GUI_ObjectList.hpp"
+#include "Model.hpp"
 
 wxMenuItem* append_menu_item(wxMenu* menu, int id, const wxString& string, const wxString& description,
     std::function<void(wxCommandEvent& event)> cb, const std::string& icon, wxEvtHandler* event_handler)
@@ -400,10 +401,9 @@ bool PrusaObjectDataViewModelNode::update_settings_digest(const std::vector<std:
 
     m_opt_categories = categories;
     m_name = wxEmptyString;
-//     m_icon = m_empty_icon;
     m_bmp = m_empty_bmp;
 
-    std::map<std::string, wxBitmap>& categories_icon = Slic3r::GUI::wxGetApp().obj_list()->CATEGORY_ICON;//Slic3r::GUI::get_category_icon();
+    std::map<std::string, wxBitmap>& categories_icon = Slic3r::GUI::wxGetApp().obj_list()->CATEGORY_ICON;
 
     for (auto& cat : m_opt_categories)
         m_name += cat + "; ";
@@ -453,19 +453,18 @@ wxDataViewItem PrusaObjectDataViewModel::Add(const wxString &name)
 
 wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &parent_item,
 													const wxString &name,
-                                                    const wxBitmap& icon,
+                                                    const int volume_type,
                                                     const int extruder/* = 0*/,
                                                     const bool create_frst_child/* = true*/)
 {
 	PrusaObjectDataViewModelNode *root = (PrusaObjectDataViewModelNode*)parent_item.GetID();
 	if (!root) return wxDataViewItem(0);
 
-    const wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
+    wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
 
     if (create_frst_child && root->m_volumes_cnt == 0)
 	{
-		const auto bmp_solid_mesh = wxBitmap(Slic3r::GUI::from_u8(Slic3r::var("object.png")), wxBITMAP_TYPE_PNG);
-		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, bmp_solid_mesh, extruder_str, 0);
+		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, *m_volume_bmps[0], extruder_str, 0);
 		root->Append(node);
 		// notify control
 		const wxDataViewItem child((void*)node);
@@ -474,7 +473,10 @@ wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &pa
         root->m_volumes_cnt++;
 	}
 
-    const auto node = new PrusaObjectDataViewModelNode(root, name, icon, extruder_str, root->m_volumes_cnt);
+//     if (volume_type >= Slic3r::ModelVolume::SUPPORT_ENFORCER)
+//         extruder_str = "";
+
+    const auto node = new PrusaObjectDataViewModelNode(root, name, *m_volume_bmps[volume_type], extruder_str, root->m_volumes_cnt);
 	root->Append(node);
 	// notify control
 	const wxDataViewItem child((void*)node);
@@ -563,6 +565,10 @@ wxDataViewItem PrusaObjectDataViewModel::Delete(const wxDataViewItem &item)
 		auto id = node_parent->GetChildren().Index(node);
         auto idx = node->GetIdx();
 		node_parent->GetChildren().Remove(node);
+
+        if (node->m_type == itVolume)
+            node_parent->m_volumes_cnt--;
+
 		if (id > 0) { 
 			if(id == node_parent->GetChildCount()) id--;
 			ret_item = wxDataViewItem(node_parent->GetChildren().Item(id));
@@ -691,6 +697,9 @@ void PrusaObjectDataViewModel::DeleteChildren(wxDataViewItem& parent)
         auto node = children[id];
         auto item = wxDataViewItem(node);
         children.RemoveAt(id);
+
+        if (node->m_type == itVolume)
+            root->m_volumes_cnt--;
 
         // free the node
         delete node;
@@ -1047,6 +1056,16 @@ void PrusaObjectDataViewModel::UpdateSettingsDigest(const wxDataViewItem &item,
     PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
     if (!node->update_settings_digest(categories))
         return;
+    ItemChanged(item);
+}
+
+void PrusaObjectDataViewModel::SetVolumeType(const wxDataViewItem &item, const int type)
+{
+    if (!item.IsOk() || GetItemType(item) != itVolume) 
+        return;
+
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    node->SetBitmap(*m_volume_bmps[type]);
     ItemChanged(item);
 }
 

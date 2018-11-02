@@ -36,10 +36,10 @@ ObjectList::ObjectList(wxWindow* parent) :
 		CATEGORY_ICON[L("Advanced")]				= wxBitmap(from_u8(var("wand.png")), wxBITMAP_TYPE_PNG);
     }
 
-    init_icons();
-
     // create control
     create_objects_ctrl();
+
+    init_icons();
 
     // describe control behavior 
     Bind(wxEVT_DATAVIEW_SELECTION_CHANGED, [this](wxEvent& event) {
@@ -224,6 +224,7 @@ void ObjectList::init_icons()
     m_bmp_vector.push_back(&m_bmp_modifiermesh);      // Add modifier
     m_bmp_vector.push_back(&m_bmp_support_enforcer);  // Add support enforcer
     m_bmp_vector.push_back(&m_bmp_support_blocker);   // Add support blocker
+    m_objects_model->SetVolumeBitmaps(m_bmp_vector);
 
     // init icon for manifold warning
     m_bmp_manifold_warning  = wxBitmap(from_u8(var("exclamation_mark_.png")), wxBITMAP_TYPE_PNG);//(Slic3r::var("error.png")), wxBITMAP_TYPE_PNG);
@@ -569,10 +570,10 @@ wxMenu* ObjectList::create_add_part_popupmenu()
     const int obj_types_count = menu_object_types_items.size();
     const int generics_count = 4;
 
-    wxWindowID config_id_base = wxWindow::NewControlId(menu_object_types_items.size() + 4 + 2);
+    wxWindowID config_id_base = NewControlId(menu_object_types_items.size() + 4 + 2);
 
     // Add first 4 menu items
-    int i = 0;
+    int i;
     for (i = 0; i < obj_types_count - 1; i++) {
         auto& item = menu_object_types_items[i];
         auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
@@ -631,24 +632,33 @@ wxMenu* ObjectList::create_add_part_popupmenu()
 wxMenu* ObjectList::create_part_settings_popupmenu()
 {
     wxMenu *menu = new wxMenu;
-    wxWindowID config_id_base = wxWindow::NewControlId(2);
+    wxWindowID config_id_base = NewControlId(3);
 
     auto menu_item = menu_item_split(menu, config_id_base);
     menu->Append(menu_item);
     menu_item->Enable(is_splittable_object(true));
 
+    // Append change part type
     menu->AppendSeparator();
+    menu->Append(new wxMenuItem(menu, config_id_base + 1, _(L("Change type"))));
+
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + 1, true));
+    menu->AppendSeparator();
+    menu_item = menu_item_settings(menu, config_id_base + 2, true);
+    menu->Append(menu_item);
+    menu_item->Enable(get_selected_model_volume()->type() <= ModelVolume::PARAMETER_MODIFIER);
 
     menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
         switch (event.GetId() - config_id_base) {
         case 0:
             split(true);
             break;
-        default:{
+        case 1:
+            change_part_type();
+            break;
+        default:
             get_settings_choice(menu, event.GetId(), true);
-            break; }
+            break;
         }
     });
 
@@ -691,7 +701,7 @@ void ObjectList::load_subobject(int type)
     parts_changed(obj_idx);
 
     for (int i = 0; i < part_names.size(); ++i) {
-        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), *m_bmp_vector[type]);
+        const wxDataViewItem sel_item = m_objects_model->AddVolumeChild(item, part_names.Item(i), /**m_bmp_vector[*/type/*]*/);
 
         if (i == part_names.size() - 1)
             select_item(sel_item);
@@ -790,8 +800,7 @@ void ObjectList::load_lambda(const std::string& type_name)
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-    select_item(m_objects_model->AddVolumeChild(GetSelection(),
-        name, m_bmp_modifiermesh));
+    select_item(m_objects_model->AddVolumeChild(GetSelection(), name, ModelVolume::PARAMETER_MODIFIER/*m_bmp_modifiermesh*/));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
@@ -908,7 +917,7 @@ void ObjectList::split(const bool split_part)
 
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
-            model_object->volumes[id]->is_modifier() ? m_bmp_modifiermesh : m_bmp_solidmesh,
+            model_object->volumes[id]->is_modifier() ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART,
             model_object->volumes[id]->config.has("extruder") ?
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
             false);
@@ -918,7 +927,7 @@ void ObjectList::split(const bool split_part)
     else {
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddVolumeChild(item, model_object->volumes[id]->name,
-            m_bmp_solidmesh,
+            ModelVolume::MODEL_PART,
             model_object->volumes[id]->config.has("extruder") ?
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
             false);
@@ -929,7 +938,7 @@ void ObjectList::split(const bool split_part)
     parts_changed(m_selected_object_id);
 
     // restores selection
-    _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
+//     _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
@@ -979,7 +988,7 @@ void ObjectList::part_settings_changed()
 
 void ObjectList::parts_changed(int obj_idx)
 {
-    wxGetApp().plater()->changed_object(get_selected_obj_idx());
+    wxGetApp().plater()->changed_object(obj_idx);
     m_parts_changed = false;
 }
 
@@ -1071,7 +1080,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddVolumeChild(item,
             model_object->volumes[id]->name,
-            m_bmp_solidmesh,
+            ModelVolume::MODEL_PART,
             model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value,
             false);
         Expand(item);
@@ -1294,6 +1303,41 @@ void ObjectList::fix_multiselection_conflicts()
     }
 
     m_prevent_list_events = false;
+}
+
+ModelVolume* ObjectList::get_selected_model_volume()
+{
+    auto item = GetSelection();
+    if (!item || m_objects_model->GetItemType(item) != itVolume)
+        return nullptr;
+
+    const auto vol_idx = m_objects_model->GetVolumeIdByItem(item);
+    const auto obj_idx = get_selected_obj_idx();
+    if (vol_idx < 0 || obj_idx < 0)
+        return nullptr;
+
+    return (*m_objects)[obj_idx]->volumes[vol_idx];
+}
+
+void ObjectList::change_part_type()
+{
+    ModelVolume* volume = get_selected_model_volume();
+    if (!volume)
+        return;
+    const auto type = volume->type();
+
+    const wxString names[] = { "Part", "Modifier", "Support Enforcer", "Support Blocker" };
+    
+    auto new_type = wxGetSingleChoiceIndex("Type: ", _(L("Select type of part")), wxArrayString(4, names), type);
+
+    if (new_type == type || new_type < 0)
+        return;
+
+    volume->set_type(static_cast<ModelVolume::Type>(new_type));
+    m_objects_model->SetVolumeType(GetSelection(), new_type);
+
+    m_parts_changed = true;
+    parts_changed(get_selected_obj_idx());
 }
 
 } //namespace GUI
