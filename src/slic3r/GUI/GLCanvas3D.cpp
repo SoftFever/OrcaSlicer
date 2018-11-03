@@ -1396,9 +1396,7 @@ int GLCanvas3D::Selection::get_instance_idx() const
 
 const GLCanvas3D::Selection::InstanceIdxsList& GLCanvas3D::Selection::get_instance_idxs() const
 {
-    if (m_cache.content.size() != 1)
-        throw std::runtime_error("get_instance_idxs() called for multiple object selection.");
-
+    assert(m_cache.content.size() == 1);
     return m_cache.content.begin()->second;
 }
 
@@ -1502,10 +1500,10 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
 
     for (unsigned int i : m_list)
     {
-        Vec3d scaling_factor = m_cache.volumes_data[i].get_scaling_factor();
+        Vec3d scaling_factor = m_cache.volumes_data[i].get_volume_scaling_factor();
         scaling_factor = Vec3d(1./scaling_factor(0), 1./scaling_factor(1), 1./scaling_factor(2));
 
-        Vec3d transformed_normal = Geometry::assemble_transform(Vec3d::Zero(), m_cache.volumes_data[i].get_rotation(), scaling_factor) * normal;
+        Vec3d transformed_normal = Geometry::assemble_transform(Vec3d::Zero(), m_cache.volumes_data[i].get_volume_rotation(), scaling_factor) * normal;
         transformed_normal.normalize();
 
         Vec3d axis = transformed_normal(2) > 0.999f ? Vec3d(1., 0., 0.) : Vec3d(transformed_normal.cross(Vec3d(0., 0., -1.)));
@@ -1514,8 +1512,8 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
         Transform3d extra_rotation = Transform3d::Identity();
         extra_rotation.rotate(Eigen::AngleAxisd(acos(-transformed_normal(2)), axis));
 
-        Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_rotation_matrix() );
-        (*m_volumes)[i]->set_rotation(new_rotation);
+        Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_volume_rotation_matrix() );
+        (*m_volumes)[i]->set_volume_rotation(new_rotation);
     }
     m_bounding_box_dirty = true;
 }

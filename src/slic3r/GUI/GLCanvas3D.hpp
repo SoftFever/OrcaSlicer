@@ -496,7 +496,8 @@ public:
         int get_object_idx() const;
         // Returns the instance id if the selection is from a single object and from a single instance, otherwise is -1
         int get_instance_idx() const;
-        // Returns the indices of selected instances if the selection is from a single object, throws otherwise!
+        // Returns the indices of selected instances.
+        // Can only be called if selection is from a single object.
         const InstanceIdxsList& get_instance_idxs() const;
 
         const IndicesList& get_volume_idxs() const { return m_list; }
