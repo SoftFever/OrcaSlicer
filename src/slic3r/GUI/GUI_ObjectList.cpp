@@ -1333,11 +1333,24 @@ void ObjectList::change_part_type()
     if (new_type == type || new_type < 0)
         return;
 
+    const auto item = GetSelection();
     volume->set_type(static_cast<ModelVolume::Type>(new_type));
-    m_objects_model->SetVolumeType(GetSelection(), new_type);
+    m_objects_model->SetVolumeType(item, new_type);
 
     m_parts_changed = true;
     parts_changed(get_selected_obj_idx());
+
+    // Update settings showing, if we have it
+    //(we show additional settings for Part and Modifier and hide it for Support Blocker/Enforcer)
+    const auto settings_item = m_objects_model->GetSettingsItem(item);
+    if (settings_item && 
+        new_type == ModelVolume::SUPPORT_ENFORCER || new_type == ModelVolume::SUPPORT_BLOCKER) {
+        m_objects_model->Delete(settings_item);
+    }
+    else if (!settings_item && 
+              new_type == ModelVolume::MODEL_PART || new_type == ModelVolume::PARAMETER_MODIFIER) {
+        select_item(m_objects_model->AddSettingsChild(item));
+    }
 }
 
 } //namespace GUI
