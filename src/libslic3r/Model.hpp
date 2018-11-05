@@ -233,7 +233,7 @@ public:
     void scale(double x, double y, double z) { this->scale(Vec3d(x, y, z)); }
     void rotate(double angle, Axis axis);
     void rotate(double angle, const Vec3d& axis);
-    void mirror(const Axis &axis);
+    void mirror(Axis axis);
     size_t materials_count() const;
     size_t facets_count() const;
     bool needed_repair() const;
@@ -321,6 +321,7 @@ public:
     void                scale(double s) { scale(Vec3d(s, s, s)); }
     void                rotate(double angle, Axis axis);
     void                rotate(double angle, const Vec3d& axis);
+    void                mirror(Axis axis);
 
     ModelMaterial*      assign_unique_material();
     

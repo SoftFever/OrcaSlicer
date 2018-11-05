@@ -894,15 +894,16 @@ void ModelObject::rotate(double angle, const Vec3d& axis)
     this->invalidate_bounding_box();
 }
 
-void ModelObject::mirror(const Axis &axis)
+void ModelObject::mirror(Axis axis)
 {
     for (ModelVolume *v : this->volumes)
     {
-        v->mesh.mirror(axis);
-        v->m_convex_hull.mirror(axis);
+        v->mirror(axis);
     }
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
     this->origin_translation = Vec3d::Zero();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
     this->invalidate_bounding_box();
 }
 
@@ -1273,6 +1274,23 @@ void ModelVolume::rotate(double angle, const Vec3d& axis)
 #else
     mesh.rotate(angle, axis);
     m_convex_hull.rotate(angle, axis);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+}
+
+void ModelVolume::mirror(Axis axis)
+{
+#if ENABLE_MODELVOLUME_TRANSFORM
+    Vec3d mirror = m_transformation.get_mirror();
+    switch (axis)
+    {
+    case X: { mirror(0) *= -1.0; break; }
+    case Y: { mirror(1) *= -1.0; break; }
+    case Z: { mirror(2) *= -1.0; break; }
+    }
+    m_transformation.set_mirror(mirror);
+#else
+    mesh.mirror(axis);
+    m_convex_hull.mirror(axis);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 }
 
