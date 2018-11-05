@@ -1476,13 +1476,7 @@ void Plater::priv::split_object()
     {
         unsigned int counter = 1;
         for (ModelObject* m : new_objects)
-        {
             m->name = current_model_object->name + "_" + std::to_string(counter++);
-            for (ModelInstance* i : current_model_object->instances)
-            {
-                m->add_instance(*i);
-            }
-        }
 
         remove(obj_idx);
 
