@@ -633,7 +633,7 @@ void PrintObject::detect_surfaces_type()
     // should be visible.
     bool interface_shells = m_config.interface_shells.value;
 
-    for (int idx_region = 0; idx_region < m_print->m_regions.size(); ++ idx_region) {
+    for (int idx_region = 0; idx_region < this->region_volumes.size(); ++ idx_region) {
         BOOST_LOG_TRIVIAL(debug) << "Detecting solid surfaces for region " << idx_region << " in parallel - start";
 #ifdef SLIC3R_DEBUG_SLICE_PROCESSING
         for (Layer *layer : m_layers)

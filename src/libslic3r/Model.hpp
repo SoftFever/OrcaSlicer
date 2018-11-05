@@ -22,7 +22,6 @@ class ModelInstance;
 class ModelMaterial;
 class ModelObject;
 class ModelVolume;
-class PresetBundle;
 class Print;
 
 typedef std::string t_model_material_id;
@@ -323,8 +322,6 @@ public:
     void                rotate(double angle, const Vec3d& axis);
     void                mirror(Axis axis);
 
-    ModelMaterial*      assign_unique_material();
-    
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
 
@@ -391,14 +388,15 @@ private:
         mesh(std::move(mesh)), m_convex_hull(std::move(convex_hull)), m_type(MODEL_PART), object(object) {}
 
 #if ENABLE_MODELVOLUME_TRANSFORM
+    // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
         ModelBase(other), // copy the ID
         name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
     }
+    // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, const TriangleMesh &&mesh) :
-        ModelBase(other), // copy the ID
         name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object), m_transformation(other.m_transformation)
     {
         this->set_material_id(other.material_id());
@@ -406,12 +404,15 @@ private:
             calculate_convex_hull();
     }
 #else
+    // Copying an existing volume, therefore this volume will get a copy of the ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other) :
+        ModelBase(other), // copy the ID
         name(other.name), mesh(other.mesh), m_convex_hull(other.m_convex_hull), config(other.config), m_type(other.m_type), object(object)
     {
 		if (! other.material_id().empty())
 			this->set_material_id(other.material_id());
     }
+    // Providing a new mesh, therefore this volume will get a new unique ID assigned.
     ModelVolume(ModelObject *object, const ModelVolume &other, TriangleMesh &&mesh) :
         name(other.name), mesh(std::move(mesh)), config(other.config), m_type(other.m_type), object(object)
     {

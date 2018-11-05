@@ -286,8 +286,6 @@ ModelMaterial::attributes()
         %code%{ THIS->set_type(ModelVolume::SUPPORT_BLOCKER); %};
 
     size_t split(unsigned int max_extruders);
-    
-    ModelMaterial* assign_unique_material();
 };
 
 

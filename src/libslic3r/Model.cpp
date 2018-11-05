@@ -254,6 +254,7 @@ void Model::clear_materials()
 
 ModelMaterial* Model::add_material(t_model_material_id material_id)
 {
+    assert(! material_id.empty());
     ModelMaterial* material = this->get_material(material_id);
     if (material == nullptr)
         material = this->materials[material_id] = new ModelMaterial(this);
@@ -262,6 +263,7 @@ ModelMaterial* Model::add_material(t_model_material_id material_id)
 
 ModelMaterial* Model::add_material(t_model_material_id material_id, const ModelMaterial &other)
 {
+    assert(! material_id.empty());
     // delete existing material if any
     ModelMaterial* material = this->get_material(material_id);
     delete material;
@@ -1134,7 +1136,8 @@ void ModelVolume::set_material_id(t_model_material_id material_id)
 {
     m_material_id = material_id;
     // ensure m_material_id references an existing material
-    this->object->get_model()->add_material(material_id);
+    if (! material_id.empty())
+        this->object->get_model()->add_material(material_id);
 }
 
 ModelMaterial* ModelVolume::material() const
@@ -1145,15 +1148,8 @@ ModelMaterial* ModelVolume::material() const
 void ModelVolume::set_material(t_model_material_id material_id, const ModelMaterial &material)
 {
     m_material_id = material_id;
-    this->object->get_model()->add_material(material_id, material);
-}
-
-ModelMaterial* ModelVolume::assign_unique_material()
-{
-    Model* model = this->get_object()->get_model();
-    // as material-id "0" is reserved by the AMF spec we start from 1
-    m_material_id = 1 + model->materials.size();  // watchout for implicit cast
-    return model->add_material(m_material_id);
+    if (! material_id.empty())
+        this->object->get_model()->add_material(material_id, material);
 }
 
 void ModelVolume::calculate_convex_hull()
