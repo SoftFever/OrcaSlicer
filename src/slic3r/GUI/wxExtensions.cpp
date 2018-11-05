@@ -727,7 +727,7 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemById(int obj_idx)
 
 wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volume_idx)
 {
-	if (obj_idx >= m_objects.size()) {
+	if (obj_idx >= m_objects.size() || obj_idx < 0) {
 		printf("Error! Out of objects range.\n");
 		return wxDataViewItem(0);
 	}
@@ -744,6 +744,25 @@ wxDataViewItem PrusaObjectDataViewModel::GetItemByVolumeId(int obj_idx, int volu
 
     for (size_t i = 0; i < parent->GetChildCount(); i++)
         if (parent->GetNthChild(i)->m_idx == volume_idx && parent->GetNthChild(0)->GetType() & itVolume)
+            return wxDataViewItem(parent->GetNthChild(i));
+
+    return wxDataViewItem(0);
+}
+
+wxDataViewItem PrusaObjectDataViewModel::GetItemByInstanceId(int obj_idx, int inst_idx)
+{
+    if (obj_idx >= m_objects.size() || obj_idx < 0) {
+        printf("Error! Out of objects range.\n");
+        return wxDataViewItem(0);
+    }
+
+    auto instances_item = GetInstanceRootItem(wxDataViewItem(m_objects[obj_idx]));
+    if (!instances_item)
+        return wxDataViewItem(0);
+
+    auto parent = (PrusaObjectDataViewModelNode*)instances_item.GetID();;
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+        if (parent->GetNthChild(i)->m_idx == inst_idx)
             return wxDataViewItem(parent->GetNthChild(i));
 
     return wxDataViewItem(0);
@@ -1024,19 +1043,31 @@ ItemType PrusaObjectDataViewModel::GetItemType(const wxDataViewItem &item) const
     return node->m_type;
 }
 
-wxDataViewItem PrusaObjectDataViewModel::GetSettingsItem(const wxDataViewItem &item) const
+wxDataViewItem PrusaObjectDataViewModel::GetItemByType(const wxDataViewItem &parent_item, ItemType type) const 
 {
-    if (!item.IsOk())
+    if (!parent_item.IsOk())
         return wxDataViewItem(0);
 
-    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)item.GetID();
+    PrusaObjectDataViewModelNode *node = (PrusaObjectDataViewModelNode*)parent_item.GetID();
     if (node->GetChildCount() == 0)
         return wxDataViewItem(0);
 
-    if (node->GetNthChild(0)->m_type == itSettings)
-        return wxDataViewItem((void*)node->GetNthChild(0));
+    for (int i = 0; i < node->GetChildCount(); i++) {
+        if (node->GetNthChild(i)->m_type == type)
+            return wxDataViewItem((void*)node->GetNthChild(i));
+    }
 
     return wxDataViewItem(0);
+}
+
+wxDataViewItem PrusaObjectDataViewModel::GetSettingsItem(const wxDataViewItem &item) const
+{
+    return GetItemByType(item, itSettings);
+}
+
+wxDataViewItem PrusaObjectDataViewModel::GetInstanceRootItem(const wxDataViewItem &item) const
+{
+    return GetItemByType(item, itInstanceRoot);
 }
 
 bool PrusaObjectDataViewModel::IsSettingsItem(const wxDataViewItem &item) const
