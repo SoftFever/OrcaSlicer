@@ -424,7 +424,9 @@ private:
 
 class PrusaObjectDataViewModel :public wxDataViewModel
 {
-	std::vector<PrusaObjectDataViewModelNode*> m_objects;
+	std::vector<PrusaObjectDataViewModelNode*>  m_objects;
+    std::vector<wxBitmap*>                      m_volume_bmps;
+
 public:
     PrusaObjectDataViewModel();
     ~PrusaObjectDataViewModel();
@@ -432,7 +434,7 @@ public:
 	wxDataViewItem Add(const wxString &name);
 	wxDataViewItem AddVolumeChild(const wxDataViewItem &parent_item, 
 							const wxString &name, 
-                            const wxBitmap& icon,
+                            const int volume_type,
                             const int extruder = 0,
                             const bool create_frst_child = true);
 	wxDataViewItem AddSettingsChild(const wxDataViewItem &parent_item);
@@ -491,6 +493,9 @@ public:
     wxDataViewItem    GetSettingsItem(const wxDataViewItem &item) const;
     bool    IsSettingsItem(const wxDataViewItem &item) const;
     void    UpdateSettingsDigest(const wxDataViewItem &item, const std::vector<std::string>& categories);
+
+    void    SetVolumeBitmaps(const std::vector<wxBitmap*>& volume_bmps) { m_volume_bmps = volume_bmps; }
+    void    SetVolumeType(const wxDataViewItem &item, const int type);
 };
 
 // ----------------------------------------------------------------------------
