@@ -231,8 +231,8 @@ public:
     void scale(const Vec3d &versor);
     void scale(const double s) { this->scale(Vec3d(s, s, s)); }
     void scale(double x, double y, double z) { this->scale(Vec3d(x, y, z)); }
-    void rotate(float angle, const Axis &axis);
-    void rotate(float angle, const Vec3d& axis);
+    void rotate(double angle, Axis axis);
+    void rotate(double angle, const Vec3d& axis);
     void mirror(const Axis &axis);
     size_t materials_count() const;
     size_t facets_count() const;
@@ -319,6 +319,8 @@ public:
     void                scale(const Vec3d& scaling_factors);
     void                scale(double x, double y, double z) { scale(Vec3d(x, y, z)); }
     void                scale(double s) { scale(Vec3d(s, s, s)); }
+    void                rotate(double angle, Axis axis);
+    void                rotate(double angle, const Vec3d& axis);
 
     ModelMaterial*      assign_unique_material();
     

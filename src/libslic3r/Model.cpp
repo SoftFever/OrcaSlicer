@@ -864,31 +864,33 @@ void ModelObject::scale(const Vec3d &versor)
     this->invalidate_bounding_box();
 }
 
-void ModelObject::rotate(float angle, const Axis& axis)
+void ModelObject::rotate(double angle, Axis axis)
 {
     for (ModelVolume *v : this->volumes)
     {
-        v->mesh.rotate(angle, axis);
-        v->m_convex_hull.rotate(angle, axis);
+        v->rotate(angle, axis);
     }
 
     center_around_origin();
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
     this->origin_translation = Vec3d::Zero();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
     this->invalidate_bounding_box();
 }
 
-void ModelObject::rotate(float angle, const Vec3d& axis)
+void ModelObject::rotate(double angle, const Vec3d& axis)
 {
     for (ModelVolume *v : this->volumes)
     {
-        v->mesh.rotate(angle, axis);
-        v->m_convex_hull.rotate(angle, axis);
+        v->rotate(angle, axis);
     }
 
     center_around_origin();
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
     this->origin_translation = Vec3d::Zero();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
     this->invalidate_bounding_box();
 }
 
@@ -1246,6 +1248,31 @@ void ModelVolume::scale(const Vec3d& scaling_factors)
 #else
     mesh.scale(scaling_factors);
     m_convex_hull.scale(scaling_factors);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+}
+
+void ModelVolume::rotate(double angle, Axis axis)
+{
+#if ENABLE_MODELVOLUME_TRANSFORM
+    switch (axis)
+    {
+    case X: { rotate(angle, Vec3d::UnitX()); break; }
+    case Y: { rotate(angle, Vec3d::UnitY()); break; }
+    case Z: { rotate(angle, Vec3d::UnitZ()); break; }
+    }
+#else
+    mesh.rotate(angle, axis);
+    m_convex_hull.rotate(angle, axis);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+}
+
+void ModelVolume::rotate(double angle, const Vec3d& axis)
+{
+#if ENABLE_MODELVOLUME_TRANSFORM
+    m_transformation.set_rotation(m_transformation.get_rotation() + Geometry::extract_euler_angles(Eigen::Quaterniond(Eigen::AngleAxisd(angle, axis)).toRotationMatrix()));
+#else
+    mesh.rotate(angle, axis);
+    m_convex_hull.rotate(angle, axis);
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 }
 
