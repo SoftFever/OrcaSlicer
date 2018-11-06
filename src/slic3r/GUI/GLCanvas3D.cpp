@@ -1513,6 +1513,12 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
         Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_instance_rotation_matrix() );
         (*m_volumes)[i]->set_instance_rotation(new_rotation);
     }
+
+#if !DISABLE_INSTANCES_SYNCH
+    if (m_mode == Instance)
+        _synchronize_unselected_instances();
+#endif // !DISABLE_INSTANCES_SYNCH
+
     m_bounding_box_dirty = true;
 }
 
@@ -2046,11 +2052,11 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
                 continue;
 
 #if ENABLE_MODELVOLUME_TRANSFORM
-            v->set_instance_rotation(rotation);
+            v->set_instance_rotation(Vec3d(rotation(0), rotation(1), v->get_instance_rotation()(2)));
             v->set_instance_scaling_factor(scaling_factor);
             v->set_instance_mirror(mirror);
 #else
-            v->set_rotation(rotation);
+            v->set_rotation(Vec3d(rotation(0), rotation(1), v->get_rotation()(2)));
             v->set_scaling_factor(scaling_factor);
             v->set_mirror(mirror);
 #endif // ENABLE_MODELVOLUME_TRANSFORM

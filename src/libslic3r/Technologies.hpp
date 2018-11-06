@@ -18,7 +18,7 @@
 // Uses a unique opengl context
 #define ENABLE_USE_UNIQUE_GLCONTEXT (1 && ENABLE_1_42_0)
 // Disable synchronization of unselected instances
-#define DISABLE_INSTANCES_SYNCH (1 && ENABLE_1_42_0)
+#define DISABLE_INSTANCES_SYNCH (0 && ENABLE_1_42_0)
 // Modified camera target behavior
 #define ENABLE_MODIFIED_CAMERA_TARGET (1 && ENABLE_1_42_0)
 // Add Geometry::Transformation class and use it into ModelInstance, ModelVolume and GLVolume
