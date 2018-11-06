@@ -172,15 +172,15 @@ target_include_directories(libslic3r PUBLIC ${CMAKE_CURRENT_BINARY_DIR} ${LIBNES
 target_link_libraries(libslic3r
     libnest2d
     admesh
-    miniz 
+    miniz
     ${Boost_LIBRARIES}
-    clipper 
+    clipper
     nowide
-    ${EXPAT_LIBRARIES} 
-    ${GLEW_LIBRARIES} 
+    ${EXPAT_LIBRARIES}
+    ${GLEW_LIBRARIES}
     ${PNG_LIBRARIES}
-    polypartition 
-    poly2tri 
+    polypartition
+    poly2tri
     qhull
     semver
     tbb

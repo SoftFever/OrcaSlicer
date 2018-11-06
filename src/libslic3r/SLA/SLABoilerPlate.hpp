@@ -64,11 +64,6 @@ struct Contour3D {
     }
 };
 
-struct EigenMesh3D {
-    Eigen::MatrixXd V;
-    Eigen::MatrixXi F;
-};
-
 using PointSet = Eigen::MatrixXd;
 using ClusterEl = std::vector<unsigned>;
 using ClusteredPoints = std::vector<ClusterEl>;

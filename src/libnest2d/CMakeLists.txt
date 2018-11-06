@@ -88,7 +88,7 @@ endif()
 add_subdirectory(${SRC_DIR}/libnest2d/backends/${LIBNEST2D_GEOMETRIES})
 add_subdirectory(${SRC_DIR}/libnest2d/optimizers/${LIBNEST2D_OPTIMIZER})
 
-target_sources(libnest2d INTERFACE ${LIBNEST2D_SRCFILES})
+#target_sources(libnest2d INTERFACE ${LIBNEST2D_SRCFILES})
 target_include_directories(libnest2d INTERFACE ${SRC_DIR})
 
 if(NOT LIBNEST2D_HEADER_ONLY)

@@ -11,6 +11,8 @@
 #include <igl/unproject_onto_mesh.h>
 #include <GL/glew.h>
 
+#include <SLA/SLASupportTree.hpp>
+
 #include <iostream>
 #include <numeric>
 
@@ -1597,6 +1599,29 @@ void GLGizmoSlaSupports::update_mesh()
         m_grabbers.push_back(Grabber());
         m_grabbers.back().center = point.cast<double>();
     }
+}
+
+void GLGizmoSlaSupports::on_deactivate() {
+    if(!m_model_object) return;
+
+    sla::Controller supportctl;
+    std::cout << "Generating supports:" << std::endl;
+
+    // TODO: somehow get the global status indicator
+    supportctl.statuscb = [] (unsigned st, const std::string& msg) {
+        std::cout << st << "% "  << msg << std::endl;
+    };
+
+    const Model& model = *m_model_object->get_model();
+    auto emesh = sla::to_eigenmesh(model);
+    sla::PointSet input = sla::support_points(model);
+    sla::SupportConfig cfg;
+
+    sla::SLASupportTree stree(input, emesh, cfg, supportctl);
+
+    TriangleMesh output;
+    stree.merged_mesh(output);
+    m_model_object->add_volume(output);
 }
 
 Vec3f GLGizmoSlaSupports::unproject_on_mesh(const Vec2d& mouse_pos)

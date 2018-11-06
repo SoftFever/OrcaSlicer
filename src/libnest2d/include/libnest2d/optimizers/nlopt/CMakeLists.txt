@@ -48,12 +48,12 @@ else()
     target_link_libraries(NloptOptimizer INTERFACE Nlopt::Nlopt)
 endif()
 
-target_sources( NloptOptimizer INTERFACE
-${CMAKE_CURRENT_SOURCE_DIR}/simplex.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/subplex.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/genetic.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/nlopt_boilerplate.hpp
-)
+#target_sources( NloptOptimizer INTERFACE
+#${CMAKE_CURRENT_SOURCE_DIR}/simplex.hpp
+#${CMAKE_CURRENT_SOURCE_DIR}/subplex.hpp
+#${CMAKE_CURRENT_SOURCE_DIR}/genetic.hpp
+#${CMAKE_CURRENT_SOURCE_DIR}/nlopt_boilerplate.hpp
+#)
 
 target_compile_definitions(NloptOptimizer INTERFACE LIBNEST2D_OPTIMIZER_NLOPT)
 

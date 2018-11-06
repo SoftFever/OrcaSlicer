@@ -4,6 +4,7 @@
 #include <libnest2d/optimizers/nlopt/genetic.hpp>
 #include "SLABoilerPlate.hpp"
 #include "SLARotfinder.hpp"
+#include "SLASupportTree.hpp"
 #include "Model.hpp"
 
 namespace Slic3r {

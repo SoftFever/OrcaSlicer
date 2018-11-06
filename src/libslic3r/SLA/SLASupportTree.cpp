@@ -1209,6 +1209,7 @@ bool SLASupportTree::generate(const PointSet &points,
                     (SpatIndex& spindex, const Vec3d& jsh)
             {
                 long nearest_id = -1;
+                const double max_len = maxbridgelen / 2;
                 while(nearest_id < 0 && !spindex.empty()) {
                     // loop until a suitable head is not found
                     // if there is a pillar closer than the cluster center
@@ -1227,16 +1228,14 @@ bool SLASupportTree::generate(const PointSet &points,
                     Vec3d jn(jh(X), jh(Y), jp(Z) + dist2d*std::tan(-cfg.tilt));
 
                     if(jn(Z) > jh(Z)) {
-                        // if the main head is below the point where the bridge
-                        // would connect, than we must adjust the bridge
-                        // endpoints
-                        double hdiff = jn(Z) - jh(Z);
-                        jp(Z) -= hdiff;
-                        jn(Z) -= hdiff;
+                        // If the sidepoint cannot connect to the pillar from
+                        // its head junction, then just skip this pillar.
+                        spindex.remove(ne);
+                        continue;
                     }
 
                     double d = distance(jp, jn);
-                    if(jn(Z) <= 0 || d > maxbridgelen) break;
+                    if(jn(Z) <= 0 || d > max_len) break;
 
                     double chkd = ray_mesh_intersect(jp, dirv(jp, jn), emesh);
                     if(chkd >= d) nearest_id = ne.second;

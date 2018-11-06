@@ -63,6 +63,13 @@ struct Controller {
     std::function<bool(void)> stopcondition = [](){ return false; };
 };
 
+struct EigenMesh3D {
+    Eigen::MatrixXd V;
+    Eigen::MatrixXi F;
+};
+
+using PointSet = Eigen::MatrixXd;
+
 /* ************************************************************************** */
 /* TODO: May not be needed:                                                   */
 /* ************************************************************************** */
@@ -73,10 +80,10 @@ void create_head(TriangleMesh&, double r1_mm, double r2_mm, double width_mm);
 void add_sla_supports(Model& model, const SupportConfig& cfg = {},
                       const Controller& ctl = {});
 
-/* ************************************************************************** */
+EigenMesh3D to_eigenmesh(const Model& model);
+PointSet support_points(const Model& model);
 
-using PointSet = Eigen::MatrixXd;
-struct EigenMesh3D;
+/* ************************************************************************** */
 
 /// Just a wrapper to the runtime error to be recognizable in try blocks
 class SLASupportsStoppedException: public std::runtime_error {
