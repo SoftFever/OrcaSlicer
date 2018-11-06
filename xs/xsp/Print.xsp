@@ -44,8 +44,6 @@ _constant()
     int region_count()
         %code%{ RETVAL = THIS->print()->regions().size(); %};
 
-    int region_volumes_count()
-        %code%{ RETVAL = THIS->region_volumes.size(); %};
     Ref<Print> print();
     Ref<ModelObject> model_object();
     Ref<StaticPrintConfig> config()

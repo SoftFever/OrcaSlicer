@@ -151,7 +151,7 @@ void ToolOrdering::collect_extruders(const PrintObject &object)
     for (auto layer : object.layers()) {
         LayerTools &layer_tools = this->tools_for_layer(layer->print_z);
         // What extruders are required to print this object layer?
-        for (size_t region_id = 0; region_id < object.print()->regions().size(); ++ region_id) {
+        for (size_t region_id = 0; region_id < object.region_volumes.size(); ++ region_id) {
 			const LayerRegion *layerm = (region_id < layer->regions().size()) ? layer->regions()[region_id] : nullptr;
             if (layerm == nullptr)
                 continue;

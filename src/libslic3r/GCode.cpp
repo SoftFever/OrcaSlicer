@@ -445,7 +445,7 @@ void GCode::do_export(Print *print, const char *path, GCodePreviewData *preview_
             boost::nowide::remove(path_tmp.c_str());
             throw std::runtime_error(std::string("G-code export to ") + path + " failed\nIs the disk full?\n");
         }
-    } catch (std::exception &ex) {
+    } catch (std::exception & /* ex */) {
         // Rethrow on any exception. std::runtime_exception and CanceledException are expected to be thrown.
         // Close and remove the file.
         fclose(file);
@@ -606,7 +606,7 @@ void GCode::_do_export(Print &print, FILE *file, GCodePreviewData *preview_data)
         // get the minimum cross-section used in the print
         std::vector<double> mm3_per_mm;
         for (auto object : printable_objects) {
-            for (size_t region_id = 0; region_id < print.regions().size(); ++region_id) {
+            for (size_t region_id = 0; region_id < object->region_volumes.size(); ++ region_id) {
                 auto region = print.regions()[region_id];
                 for (auto layer : object->layers()) {
                     auto layerm = layer->regions()[region_id];
@@ -1442,7 +1442,7 @@ void GCode::process_layer(
             };
 
             for (size_t region_id = 0; region_id < print.regions().size(); ++ region_id) {
-                const LayerRegion *layerm = layer.regions()[region_id];
+                const LayerRegion *layerm = (region_id < layer.regions().size()) ? layer.regions()[region_id] : nullptr;
                 if (layerm == nullptr)
                     continue;
                 const PrintRegion &region = *print.regions()[region_id];
