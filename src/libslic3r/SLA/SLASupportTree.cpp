@@ -61,13 +61,13 @@ inline Portion make_portion(double a, double b) {
     return std::make_tuple(a, b);
 }
 
+template<class Vec> double distance(const Vec& p) {
+    return std::sqrt(p.transpose() * p);
+}
+
 template<class Vec> double distance(const Vec& pp1, const Vec& pp2) {
     auto p = pp2 - pp1;
     return distance(p);
-}
-
-template<class Vec> double distance(const Vec& p) {
-    return std::sqrt(p.transpose() * p);
 }
 
 /// The horizontally projected 2D boundary of the model as individual line
@@ -1181,10 +1181,10 @@ bool SLASupportTree::generate(const PointSet &points,
         // now we will go through the clusters ones again and connect the
         // sidepoints with the cluster centroid (which is a ground pillar)
         // or a nearby pillar if the centroid is unreachable.
-        for(auto cle : enumerate(gnd_clusters)) {
-            auto cl = cle.value;
-            auto cidx = cl_centroids[cle.index];
-            cl_centroids[cle.index] = cl[cidx];
+        long ci = 0;
+        for(auto cl : gnd_clusters) {
+            auto cidx = cl_centroids[ci];
+            cl_centroids[ci++] = cl[cidx];
 
             long index_to_heads = gndidx[cl[cidx]];
             auto& head = result.head(index_to_heads);
@@ -1317,7 +1317,7 @@ bool SLASupportTree::generate(const PointSet &points,
 
             auto newring = pts_convex_hull(rem,
                                         [gnd_head_pt](unsigned i) {
-                auto& p = gnd_head_pt(i);
+                auto&& p = gnd_head_pt(i);
                 return Vec2d(p(X), p(Y)); // project to 2D in along Z axis
             });
 

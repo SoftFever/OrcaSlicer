@@ -26,7 +26,7 @@ template<> struct coordinate_system<Slic3r::Point> {
 
 template<> struct dimension<Slic3r::Point>: boost::mpl::int_<2> {};
 
-template<int d> struct access<Slic3r::Point, d > {
+template<std::size_t d> struct access<Slic3r::Point, d > {
     static inline coord_t get(Slic3r::Point const& a) {
         return a(d);
     }
@@ -52,7 +52,7 @@ template<> struct coordinate_system<Slic3r::Vec2d> {
 
 template<> struct dimension<Slic3r::Vec2d>: boost::mpl::int_<2> {};
 
-template<int d> struct access<Slic3r::Vec2d, d > {
+template<std::size_t d> struct access<Slic3r::Vec2d, d > {
     static inline double get(Slic3r::Vec2d const& a) {
         return a(d);
     }
@@ -78,7 +78,7 @@ template<> struct coordinate_system<Slic3r::Vec3d> {
 
 template<> struct dimension<Slic3r::Vec3d>: boost::mpl::int_<3> {};
 
-template<int d> struct access<Slic3r::Vec3d, d > {
+template<std::size_t d> struct access<Slic3r::Vec3d, d > {
     static inline double get(Slic3r::Vec3d const& a) {
         return a(d);
     }
