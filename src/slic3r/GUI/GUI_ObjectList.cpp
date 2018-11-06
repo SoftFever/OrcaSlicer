@@ -734,19 +734,27 @@ void ObjectList::load_part( ModelObject* model_object,
             if (model_object->origin_translation != Vec3d::Zero())
             {
                 object->center_around_origin();
+#if !ENABLE_MODELVOLUME_TRANSFORM
                 object->ensure_on_bed();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
                 delta = model_object->origin_translation - object->origin_translation;
             }
             for (auto volume : object->volumes) {
+#if ENABLE_MODELVOLUME_TRANSFORM
+                Vec3d shift = volume->mesh.bounding_box().center();
+                volume->translate_geometry(-shift);
+                volume->translate(delta + shift);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
                 auto new_volume = model_object->add_volume(*volume);
                 new_volume->set_type(static_cast<ModelVolume::Type>(type));
-                boost::filesystem::path(input_file).filename().string();
                 new_volume->name = boost::filesystem::path(input_file).filename().string();
 
                 part_names.Add(new_volume->name);
 
+#if !ENABLE_MODELVOLUME_TRANSFORM
                 if (delta != Vec3d::Zero())
                     new_volume->translate(delta);
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
 
                 // set a default extruder value, since user can't add it manually
                 new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));

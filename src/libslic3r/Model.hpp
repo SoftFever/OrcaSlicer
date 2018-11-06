@@ -322,6 +322,10 @@ public:
     void                rotate(double angle, const Vec3d& axis);
     void                mirror(Axis axis);
 
+#if ENABLE_MODELVOLUME_TRANSFORM
+    void                translate_geometry(const Vec3d& displacement);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+
     void                calculate_convex_hull();
     const TriangleMesh& get_convex_hull() const;
 

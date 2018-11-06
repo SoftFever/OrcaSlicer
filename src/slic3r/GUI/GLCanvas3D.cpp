@@ -1197,16 +1197,30 @@ void GLCanvas3D::Selection::add(unsigned int volume_idx, bool as_single_selectio
     if (!m_valid || ((unsigned int)m_volumes->size() <= volume_idx))
         return;
 
-    // resets the current list if needed
     const GLVolume* volume = (*m_volumes)[volume_idx];
-    if (as_single_selection || volume->is_wipe_tower || is_wipe_tower() || volume->is_modifier || is_modifier())
+    // wipe tower is already selected
+    if (is_wipe_tower() && volume->is_wipe_tower)
+        return;
+
+    // resets the current list if needed
+    bool needs_reset = as_single_selection;
+    needs_reset |= volume->is_wipe_tower;
+    needs_reset |= is_wipe_tower() && !volume->is_wipe_tower;
+    needs_reset |= !is_modifier() && volume->is_modifier;
+    needs_reset |= is_modifier() && !volume->is_modifier;
+
+    if (needs_reset)
         clear();
+
+    m_mode = volume->is_modifier ? Volume : Instance;
 
     switch (m_mode)
     {
     case Volume:
     {
-        _add_volume(volume_idx);
+        if (is_empty() || ((is_modifier() && volume->is_modifier) && (volume->instance_idx() == get_instance_idx())))
+            _add_volume(volume_idx);
+
         break;
     }
     case Instance:
@@ -1435,6 +1449,11 @@ void GLCanvas3D::Selection::translate(const Vec3d& displacement)
 #endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
+#if !DISABLE_INSTANCES_SYNCH
+    if (m_mode == Volume)
+        _synchronize_unselected_volumes();
+#endif // !DISABLE_INSTANCES_SYNCH
+
     m_bounding_box_dirty = true;
 }
 
@@ -1466,7 +1485,6 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
             {
                 // extracts rotations from the composed transformation
                 Vec3d new_rotation = Geometry::extract_euler_angles(m * m_cache.volumes_data[i].get_volume_rotation_matrix());
-                (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_volume_position() - m_cache.dragging_center));
                 (*m_volumes)[i]->set_volume_rotation(new_rotation);
             }
 #else
@@ -1481,6 +1499,8 @@ void GLCanvas3D::Selection::rotate(const Vec3d& rotation)
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
         _synchronize_unselected_instances();
+    else if (m_mode == Volume)
+        _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
@@ -1497,6 +1517,7 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
 
     for (unsigned int i : m_list)
     {
+#if ENABLE_MODELVOLUME_TRANSFORM
         Transform3d wst = m_cache.volumes_data[i].get_instance_scale_matrix() * m_cache.volumes_data[i].get_volume_scale_matrix();
         Vec3d scaling_factor = Vec3d(1./wst(0,0), 1./wst(1,1), 1./wst(2,2));
 
@@ -1512,6 +1533,23 @@ void GLCanvas3D::Selection::flattening_rotate(const Vec3d& normal)
 
         Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_instance_rotation_matrix() );
         (*m_volumes)[i]->set_instance_rotation(new_rotation);
+#else
+        Transform3d wst = m_cache.volumes_data[i].get_scale_matrix() * m_cache.volumes_data[i].get_scale_matrix();
+        Vec3d scaling_factor = Vec3d(1. / wst(0, 0), 1. / wst(1, 1), 1. / wst(2, 2));
+
+        Vec3d rotation = Geometry::extract_euler_angles(m_cache.volumes_data[i].get_rotation_matrix() * m_cache.volumes_data[i].get_rotation_matrix());
+        Vec3d transformed_normal = Geometry::assemble_transform(Vec3d::Zero(), rotation, scaling_factor) * normal;
+        transformed_normal.normalize();
+
+        Vec3d axis = transformed_normal(2) > 0.999f ? Vec3d(1., 0., 0.) : Vec3d(transformed_normal.cross(Vec3d(0., 0., -1.)));
+        axis.normalize();
+
+        Transform3d extra_rotation = Transform3d::Identity();
+        extra_rotation.rotate(Eigen::AngleAxisd(acos(-transformed_normal(2)), axis));
+
+        Vec3d new_rotation = Geometry::extract_euler_angles(extra_rotation * m_cache.volumes_data[i].get_rotation_matrix());
+        (*m_volumes)[i]->set_rotation(new_rotation);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
     }
 
 #if !DISABLE_INSTANCES_SYNCH
@@ -1553,7 +1591,6 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
                 Eigen::Matrix<double, 3, 3, Eigen::DontAlign> new_matrix = (m * m_cache.volumes_data[i].get_volume_scale_matrix()).matrix().block(0, 0, 3, 3);
                 // extracts scaling factors from the composed transformation
                 Vec3d new_scale(new_matrix.col(0).norm(), new_matrix.col(1).norm(), new_matrix.col(2).norm());
-                (*m_volumes)[i]->set_volume_offset(m_cache.dragging_center + m * (m_cache.volumes_data[i].get_volume_position() - m_cache.dragging_center));
                 (*m_volumes)[i]->set_volume_scaling_factor(new_scale);
             }
 #else
@@ -1569,6 +1606,8 @@ void GLCanvas3D::Selection::scale(const Vec3d& scale)
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
         _synchronize_unselected_instances();
+    else if (m_mode == Volume)
+        _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
@@ -1592,6 +1631,8 @@ void GLCanvas3D::Selection::mirror(Axis axis)
 #if !DISABLE_INSTANCES_SYNCH
     if (m_mode == Instance)
         _synchronize_unselected_instances();
+    else if (m_mode == Volume)
+        _synchronize_unselected_volumes();
 #endif // !DISABLE_INSTANCES_SYNCH
 
     m_bounding_box_dirty = true;
@@ -1746,7 +1787,7 @@ void GLCanvas3D::Selection::_update_type()
             if (first->is_wipe_tower)
                 m_type = WipeTower;
             else if (first->is_modifier)
-                m_type = Modifier;
+                m_type = SingleModifier;
             else
             {
                 const ModelObject* model_object = m_model->objects[first->object_idx()];
@@ -1769,6 +1810,8 @@ void GLCanvas3D::Selection::_update_type()
                     m_type = SingleFullObject;
                 else if ((m_cache.content.begin()->second.size() == 1) && (volumes_count == (unsigned int)m_list.size()))
                     m_type = SingleFullInstance;
+                else if ((*m_volumes)[*m_list.begin()]->is_modifier)
+                    m_type = MultipleModifier;
             }
         }
     }
@@ -1790,9 +1833,14 @@ void GLCanvas3D::Selection::_update_type()
         std::cout << "selection type: WipeTower" << std::endl;
         break;
     }
-    case Modifier:
+    case SingleModifier:
     {
-        std::cout << "selection type: Modifier" << std::endl;
+        std::cout << "selection type: SingleModifier" << std::endl;
+        break;
+    }
+    case MultipleModifier:
+    {
+        std::cout << "selection type: MultipleModifier" << std::endl;
         break;
     }
     case SingleFullObject:
@@ -2008,6 +2056,53 @@ void GLCanvas3D::Selection::_synchronize_unselected_instances()
 #endif // ENABLE_MODELVOLUME_TRANSFORM
 
             done.insert(j);
+        }
+    }
+}
+
+void GLCanvas3D::Selection::_synchronize_unselected_volumes()
+{
+    for (unsigned int i : m_list)
+    {
+        const GLVolume* volume = (*m_volumes)[i];
+        int object_idx = volume->object_idx();
+        if (object_idx >= 1000)
+            continue;
+
+        int volume_idx = volume->volume_idx();
+#if ENABLE_MODELVOLUME_TRANSFORM
+        const Vec3d& offset = volume->get_volume_offset();
+        const Vec3d& rotation = volume->get_volume_rotation();
+        const Vec3d& scaling_factor = volume->get_volume_scaling_factor();
+        const Vec3d& mirror = volume->get_volume_mirror();
+#else
+        const Vec3d& offset = volume->get_offset();
+        const Vec3d& rotation = volume->get_rotation();
+        const Vec3d& scaling_factor = volume->get_scaling_factor();
+        const Vec3d& mirror = volume->get_mirror();
+#endif // ENABLE_MODELVOLUME_TRANSFORM
+
+        // Process unselected volumes.
+        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
+        {
+            if (j == i)
+                continue;
+
+            GLVolume* v = (*m_volumes)[j];
+            if ((v->object_idx() != object_idx) || (v->volume_idx() != volume_idx))
+                continue;
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+            v->set_volume_offset(offset);
+            v->set_volume_rotation(rotation);
+            v->set_volume_scaling_factor(scaling_factor);
+            v->set_volume_mirror(mirror);
+#else
+            v->set_offset(offset);
+            v->set_rotation(Vec3d(rotation));
+            v->set_scaling_factor(scaling_factor);
+            v->set_mirror(mirror);
+#endif // ENABLE_MODELVOLUME_TRANSFORM
         }
     }
 }

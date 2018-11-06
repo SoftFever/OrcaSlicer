@@ -1038,6 +1038,9 @@ double ModelObject::get_instance_min_z(size_t instance_idx) const
 
     for (const ModelVolume* v : volumes)
     {
+        if (!v->is_model_part())
+            continue;
+
 #if ENABLE_MODELVOLUME_TRANSFORM
         Transform3d mv = mi * v->get_matrix();
         const TriangleMesh& hull = v->get_convex_hull();
@@ -1151,6 +1154,14 @@ void ModelVolume::set_material(t_model_material_id material_id, const ModelMater
     if (! material_id.empty())
         this->object->get_model()->add_material(material_id, material);
 }
+
+#if ENABLE_MODELVOLUME_TRANSFORM
+void ModelVolume::translate_geometry(const Vec3d& displacement)
+{
+    mesh.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+    m_convex_hull.translate((float)displacement(0), (float)displacement(1), (float)displacement(2));
+}
+#endif // ENABLE_MODELVOLUME_TRANSFORM
 
 void ModelVolume::calculate_convex_hull()
 {

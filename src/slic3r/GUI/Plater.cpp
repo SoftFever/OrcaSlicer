@@ -2255,7 +2255,9 @@ void Plater::changed_object(int obj_idx)
     if (list->is_parts_changed()) {
         // recenter and re - align to Z = 0
         auto model_object = p->model.objects[obj_idx];
+#if !ENABLE_MODELVOLUME_TRANSFORM
         model_object->center_around_origin();
+#endif // !ENABLE_MODELVOLUME_TRANSFORM
         model_object->ensure_on_bed();
         _3DScene::reload_scene(p->canvas3D, false);
     }

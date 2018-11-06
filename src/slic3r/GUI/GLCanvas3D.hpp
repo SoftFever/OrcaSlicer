@@ -373,7 +373,8 @@ public:
             Invalid,
             Empty,
             WipeTower,
-            Modifier,
+            SingleModifier,
+            MultipleModifier,
             SingleFullObject,
             SingleFullInstance,
             Mixed
@@ -483,7 +484,7 @@ public:
 
         bool is_empty() const { return m_type == Empty; }
         bool is_wipe_tower() const { return m_type == WipeTower; }
-        bool is_modifier() const { return m_type == Modifier; }
+        bool is_modifier() const { return (m_type == SingleModifier) || (m_type == MultipleModifier); }
         bool is_single_full_instance() const;
         bool is_single_full_object() const { return m_type == SingleFullObject; }
         bool is_mixed() const { return m_type == Mixed; }
@@ -533,6 +534,7 @@ public:
         void _render_selected_volumes() const;
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
         void _synchronize_unselected_instances();
+        void _synchronize_unselected_volumes();
     };
 
 private:
