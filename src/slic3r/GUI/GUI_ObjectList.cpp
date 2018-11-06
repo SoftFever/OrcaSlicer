@@ -768,31 +768,31 @@ void ObjectList::load_part( ModelObject* model_object,
 
 void ObjectList::load_generic_subobject(const std::string& type_name, const int type)
 {
-    if (m_selected_object_id < 0) return;
-
-    auto dlg = new LambdaObjectDialog(GetMainWindow(), type_name);
-    if (dlg->ShowModal() == wxID_CANCEL)
-        return;
+    const auto obj_idx = get_selected_obj_idx();
+    if (obj_idx < 0) return;
 
     const std::string name = "lambda-" + type_name;
     TriangleMesh mesh;
 
-    const auto params = dlg->ObjectParameters();
+    auto& bed_shape = wxGetApp().preset_bundle->printers.get_edited_preset().config.option<ConfigOptionPoints>("bed_shape")->values;
+    const auto& sz = BoundingBoxf(bed_shape).size();
+    const auto side = 0.1 * std::max(sz(0), sz(1));
+
     if (type_name == _("Box"))
-        mesh = make_cube(params.dim[0], params.dim[1], params.dim[2]);
+        mesh = make_cube(side, side, side);
     else if (type_name == _("Cylinder"))
-        mesh = make_cylinder(params.cyl_r, params.cyl_h);
+        mesh = make_cylinder(0.5*side, side);
     else if (type_name == _("Sphere"))
-        mesh = make_sphere(params.sph_rho);
+        mesh = make_sphere(side, PI/18);
     else if (type_name == _("Slab")) {
-        const auto& size = (*m_objects)[m_selected_object_id]->bounding_box().size();
-        mesh = make_cube(size(0)*1.5, size(1)*1.5, params.slab_h);
+        const auto& size = (*m_objects)[obj_idx]->bounding_box().size();
+        mesh = make_cube(size(0)*1.5, size(1)*1.5, size(2)*0.5);
         // box sets the base coordinate at 0, 0, move to center of plate and move it up to initial_z
-        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, params.slab_z);
+        mesh.translate(-size(0)*1.5 / 2.0, -size(1)*1.5 / 2.0, 0);
     }
     mesh.repair();
 
-    auto new_volume = (*m_objects)[m_selected_object_id]->add_volume(mesh);
+    auto new_volume = (*m_objects)[obj_idx]->add_volume(mesh);
     new_volume->set_type(static_cast<ModelVolume::Type>(type));
 
     new_volume->name = name;
@@ -800,7 +800,7 @@ void ObjectList::load_generic_subobject(const std::string& type_name, const int 
     new_volume->config.set_key_value("extruder", new ConfigOptionInt(0));
 
     m_parts_changed = true;
-    parts_changed(m_selected_object_id);
+    parts_changed(obj_idx);
 
     select_item(m_objects_model->AddVolumeChild(GetSelection(), name, type));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
