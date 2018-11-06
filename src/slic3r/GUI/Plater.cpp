@@ -1151,16 +1151,26 @@ std::vector<size_t> Plater::priv::load_files(const std::vector<fs::path> &input_
         try {
             if (type_3mf || type_zip_amf) {
                 DynamicPrintConfig config;
-                config.apply(FullPrintConfig::defaults());
-                model = Slic3r::Model::read_from_archive(path.string(), &config, false);
-                Preset::normalize(config);
-                wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
-                for (const auto &kv : main_frame->options_tabs()) { kv.second->load_current_preset(); }
+                {
+                    DynamicPrintConfig config_loaded;
+                    model = Slic3r::Model::read_from_archive(path.string(), &config_loaded, false);
+                    // Based on the printer technology field found in the loaded config, select the base for the config,
+    				PrinterTechnology printer_technology = Preset::printer_technology(config_loaded);
+                    if (! config_loaded.empty()) {
+                        config.apply(printer_technology == ptFFF ? 
+                            static_cast<const ConfigBase&>(FullPrintConfig::defaults()) : 
+                            static_cast<const ConfigBase&>(SLAFullPrintConfig::defaults()));
+                        // and place the loaded config over the base.
+                        config += std::move(config_loaded);
+                    }
+                }
+                if (! config.empty()) {
+                    Preset::normalize(config);
+                    wxGetApp().preset_bundle->load_config_model(filename.string(), std::move(config));
+					for (const auto &kv : main_frame->options_tabs())
+						kv.second->load_current_preset();
+				}
                 wxGetApp().app_config->update_config_dir(path.parent_path().string());
-                // forces the update of the config here, or it will invalidate the imported layer heights profile if done using the timer
-                // and if the config contains a "layer_height" different from the current defined one
-                // TODO:
-                // $self->async_apply_config;
             } else {
                 model = Slic3r::Model::read_from_file(path.string(), nullptr, false);
                 for (auto obj : model.objects)

@@ -1237,6 +1237,7 @@ public:
     ConfigOption*           optptr(const t_config_option_key &opt_key, bool create = false) override;
     // Overrides ConfigBase::keys(). Collect names of all configuration values maintained by this configuration store.
     t_config_option_keys    keys() const override;
+    bool                    empty() const { return options.empty(); }
 
     // Set a value for an opt_key. Returns true if the value did not exist yet.
     // This DynamicConfig will take ownership of opt.
