@@ -462,22 +462,25 @@ wxDataViewItem PrusaObjectDataViewModel::AddVolumeChild(const wxDataViewItem &pa
 
     wxString extruder_str = extruder == 0 ? "default" : wxString::Format("%d", extruder);
 
+    // because of istance_root is a last item of the object
+    int insert_position = root->GetChildCount() - 1;
+    if (insert_position < 0 || root->GetNthChild(insert_position)->m_type != itInstanceRoot)
+        insert_position = -1;
+
     if (create_frst_child && root->m_volumes_cnt == 0)
 	{
 		const auto node = new PrusaObjectDataViewModelNode(root, root->m_name, *m_volume_bmps[0], extruder_str, 0);
-		root->Append(node);
+        insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 		// notify control
 		const wxDataViewItem child((void*)node);
 		ItemAdded(parent_item, child);
 
         root->m_volumes_cnt++;
+        if (insert_position > 0) insert_position++;
 	}
 
-//     if (volume_type >= Slic3r::ModelVolume::SUPPORT_ENFORCER)
-//         extruder_str = "";
-
     const auto node = new PrusaObjectDataViewModelNode(root, name, *m_volume_bmps[volume_type], extruder_str, root->m_volumes_cnt);
-	root->Append(node);
+    insert_position < 0 ? root->Append(node) : root->Insert(node, insert_position);
 	// notify control
 	const wxDataViewItem child((void*)node);
     ItemAdded(parent_item, child);
@@ -501,15 +504,13 @@ wxDataViewItem PrusaObjectDataViewModel::AddSettingsChild(const wxDataViewItem &
 
 int get_istances_root_idx(PrusaObjectDataViewModelNode *parent_node)
 {
-    int inst_root_id = -1;
-    int stop_search_i = parent_node->GetChildCount();
-    if (stop_search_i > 2) stop_search_i = 2;
-    for (int i = 0; i < stop_search_i; ++i)
-        if (parent_node->GetNthChild(i)->m_type & itInstanceRoot) {
-            inst_root_id = i;
-            break;
-        }
-    return inst_root_id;
+    // because of istance_root is a last item of the object
+    const int inst_root_idx = parent_node->GetChildCount()-1;
+
+    if (inst_root_idx < 0 || parent_node->GetNthChild(inst_root_idx)->m_type == itInstanceRoot) 
+        return inst_root_idx;
+    
+    return -1;
 }
 
 wxDataViewItem PrusaObjectDataViewModel::AddInstanceChild(const wxDataViewItem &parent_item, size_t num)
@@ -526,8 +527,7 @@ wxDataViewItem PrusaObjectDataViewModel::AddInstanceChild(const wxDataViewItem &
     const wxDataViewItem inst_root_item((void*)inst_root_node);
 
     if (inst_root_id < 0) {
-        const unsigned insert_pos = parent_node->GetChildCount() == 0 || parent_node->GetNthChild(0)->m_type != itSettings ? 0 : 1;
-        parent_node->Insert(inst_root_node, insert_pos);
+        parent_node->Append(inst_root_node);
         // notify control
         ItemAdded(parent_item, inst_root_item);
         if (num == 1) num++;

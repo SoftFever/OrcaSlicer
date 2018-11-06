@@ -387,7 +387,8 @@ void ObjectList::on_drop(wxDataViewEvent &event)
     wxDataViewItem item(event.GetItem());
 
     // only allow drops for item, not containers
-    if (item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
+    if (m_selected_object_id < 0 ||
+        item.IsOk() && m_objects_model->GetParent(item) == wxDataViewItem(0) ||
         event.GetDataFormat() != wxDF_UNICODETEXT || m_objects_model->GetItemType(item) != itVolume) {
         event.Veto();
         return;
