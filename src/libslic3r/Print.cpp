@@ -603,7 +603,7 @@ static inline bool model_volume_list_changed(const ModelObject &model_object_old
     size_t i_old, i_new;
     for (i_old = 0, i_new = 0; i_old < model_object_old.volumes.size() && i_new < model_object_new.volumes.size();) {
         const ModelVolume &mv_old = *model_object_old.volumes[i_old];
-        const ModelVolume &mv_new = *model_object_new.volumes[i_old];
+		const ModelVolume &mv_new = *model_object_new.volumes[i_new];
         if (mv_old.type() != type) {
             ++ i_old;
             continue;
