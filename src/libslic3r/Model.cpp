@@ -1076,7 +1076,11 @@ unsigned int ModelObject::check_instances_print_volume_state(const BoundingBoxf3
         unsigned int inside_outside = 0;
         for (const ModelVolume *vol : this->volumes)
             if (vol->is_model_part()) {
+#if ENABLE_MODELVOLUME_TRANSFORM
+                BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->get_matrix() * vol->get_matrix());
+#else
                 BoundingBoxf3 bb = vol->get_convex_hull().transformed_bounding_box(model_instance->get_matrix());
+#endif // ENABLE_MODELVOLUME_TRANSFORM
                 if (print_volume.contains(bb))
                     inside_outside |= INSIDE;
                 else if (print_volume.intersects(bb))
