@@ -49,15 +49,15 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat{ 1.0 };
-		def.label = L("L");
+		def.label = L("Length");
 		Option option(def, "l");
 		optgroup->append_single_option_line(option);
 		
-		def.label = L("W");
+		def.label = L("Width");
 		option = Option(def, "w");
 		optgroup->append_single_option_line(option);
 		
-		def.label = L("H");
+		def.label = L("Height");
 		option = Option(def, "h");
 		optgroup->append_single_option_line(option);
 	}
@@ -112,7 +112,7 @@ LambdaObjectDialog::LambdaObjectDialog(wxWindow* parent,
 
 		def.type = coFloat;
 		def.default_value = new ConfigOptionFloat{ 1.0 };
-		def.label = L("H");
+		def.label = L("Height");
 		auto option = Option(def, "slab_h");
 		optgroup->append_single_option_line(option);
 

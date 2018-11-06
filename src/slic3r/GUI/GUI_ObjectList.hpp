@@ -82,7 +82,7 @@ public:
     void                on_drop(wxDataViewEvent &event);
 
     void                get_settings_choice(wxMenu *menu, int id, bool is_part);
-    void                menu_item_add_generic(wxMenuItem* &menu, int id);
+    void                menu_item_add_generic(wxMenuItem* &menu, int id, const int type);
     wxMenuItem*         menu_item_split(wxMenu* menu, int id);
     wxMenuItem*         menu_item_settings(wxMenu* menu, int id, const bool is_part);
     wxMenu*             create_add_part_popupmenu();
@@ -91,7 +91,7 @@ public:
 
     void                load_subobject(int type);
     void                load_part(ModelObject* model_object, wxArrayString& part_names, int type);
-    void                load_lambda(const std::string& type_name);
+    void                load_generic_subobject(const std::string& type_name, const int type);
     void                del_subobject_item(wxDataViewItem& item);
     void                del_settings_from_config();
     void                del_instances_from_object(const int obj_idx);

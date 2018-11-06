@@ -529,16 +529,24 @@ void ObjectList::get_settings_choice(wxMenu *menu, int id, bool is_part)
         wxGetApp().obj_manipul()->update_settings_list();
 }
 
-void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id) {
+void ObjectList::menu_item_add_generic(wxMenuItem* &menu, int id, const int type) {
     auto sub_menu = new wxMenu;
+
+    const wxString menu_load = _(L("Load")) +" "+ dots;
+    sub_menu->Append(new wxMenuItem(sub_menu, id++, menu_load));
+    sub_menu->AppendSeparator();
 
     std::vector<std::string> menu_items = { L("Box"), L("Cylinder"), L("Sphere"), L("Slab") };
     for (auto& item : menu_items)
-        sub_menu->Append(new wxMenuItem(sub_menu, ++id, _(item)));
+        sub_menu->Append(new wxMenuItem(sub_menu, id++, _(item)));
 
 #ifndef __WXMSW__
-    sub_menu->Bind(wxEVT_MENU, [this, sub_menu](wxEvent &event) {
-        load_lambda(sub_menu->GetLabel(event.GetId()).ToStdString());
+    sub_menu->Bind(wxEVT_MENU, [sub_menu, type, menu_load, this](wxEvent &event) {
+        auto selection = sub_menu->GetLabel(event.GetId());
+        if (selection == menu_load)
+            load_subobject(type);
+        else
+            load_generic_subobject(selection.ToStdString(), type);
     });
 #endif //no __WXMSW__
 
@@ -563,68 +571,53 @@ wxMenuItem* ObjectList::menu_item_settings(wxMenu* menu, int id, const bool is_p
 wxMenu* ObjectList::create_add_part_popupmenu()
 {
     wxMenu *menu = new wxMenu;
-    std::vector<std::string> menu_object_types_items = {L("Add part"), 
-                                                        L("Add modifier"), 
-                                                        L("Add support enforcer"), 
-                                                        L("Add support bloker"), 
-                                                        L("Add generic") };
+    // Note: id accords to type of the sub-object, so sequence of the menu items is important
+    std::vector<std::string> menu_object_types_items = {L("Add part"),              // ~ModelVolume::MODEL_PART
+                                                        L("Add modifier"),          // ~ModelVolume::PARAMETER_MODIFIER
+                                                        L("Add support enforcer"),  // ~ModelVolume::SUPPORT_ENFORCER
+                                                        L("Add support bloker") };  // ~ModelVolume::SUPPORT_BLOCKER
+    
     const int obj_types_count = menu_object_types_items.size();
-    const int generics_count = 4;
+    const int generics_count = 5; // "Load ...", "Box", "Cylinder", "Sphere", "Slab"
 
-    wxWindowID config_id_base = NewControlId(menu_object_types_items.size() + 4 + 2);
+    wxWindowID config_id_base = NewControlId(generics_count*obj_types_count + 2);
 
     // Add first 4 menu items
-    int i;
-    for (i = 0; i < obj_types_count - 1; i++) {
-        auto& item = menu_object_types_items[i];
-        auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
-        menu_item->SetBitmap(*m_bmp_vector[i]);
+    for (int type = 0; type < obj_types_count; type++) {
+        auto& item = menu_object_types_items[type];
+        auto menu_item = new wxMenuItem(menu, config_id_base + type, _(item));
+        menu_item->SetBitmap(*m_bmp_vector[type]);
+        menu_item_add_generic(menu_item, config_id_base + type*generics_count, type);
         menu->Append(menu_item);
     }
-    // Add generic modifier
-    auto& item = menu_object_types_items[i];
-    auto menu_item = new wxMenuItem(menu, config_id_base + i, _(item));
-    menu_item->SetBitmap(*m_bmp_vector[1]); // set modifier's icon
-    menu_item_add_generic(menu_item, config_id_base + i);
-    menu->Append(menu_item);
 
     // Split object to parts
     menu->AppendSeparator();
-    menu_item = menu_item_split(menu, config_id_base + obj_types_count + generics_count);
+    auto menu_item = menu_item_split(menu, config_id_base + obj_types_count * generics_count);
     menu->Append(menu_item);
     menu_item->Enable(is_splittable_object(false));
 
     // Settings
     menu->AppendSeparator();
     // Append settings popupmenu
-    menu->Append(menu_item_settings(menu, config_id_base + obj_types_count + generics_count+1, false));
+    menu->Append(menu_item_settings(menu, config_id_base + obj_types_count * generics_count+1, false));
 
-    menu->Bind(wxEVT_MENU, [config_id_base, menu, this](wxEvent &event) {
-        switch (event.GetId() - config_id_base) {
-        case 0: // ~ModelVolume::MODEL_PART
-        case 1: // ~ModelVolume::PARAMETER_MODIFIER
-        case 2: // ~ModelVolume::SUPPORT_ENFORCER
-        case 3: // ~ModelVolume::SUPPORT_BLOCKER
-            load_subobject(event.GetId() - config_id_base);
-            break;
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-        case 8:
-#ifdef __WXMSW__
-            load_lambda(menu->GetLabel(event.GetId()).ToStdString());
-#endif // __WXMSW__
-            break;
-        case 9:
+    menu->Bind(wxEVT_MENU, [config_id_base, menu, obj_types_count, generics_count, this](wxEvent &event) {
+        auto selection = event.GetId() - config_id_base;
+        
+        if ( selection ==  0 * generics_count ||  // ~ModelVolume::MODEL_PART
+             selection ==  1 * generics_count ||  // ~ModelVolume::PARAMETER_MODIFIER
+             selection ==  2 * generics_count ||  // ~ModelVolume::SUPPORT_ENFORCER
+             selection ==  3 * generics_count  )  // ~ModelVolume::SUPPORT_BLOCKER
+            load_subobject(int(selection / generics_count));
+        else if ( selection == obj_types_count * generics_count)
             split(false);
-            break;
-        default:
 #ifdef __WXMSW__
+        else if ( selection > obj_types_count * generics_count) // "Add Settings" is selected 
             get_settings_choice(menu, event.GetId(), false);
+        else // Some generic model is selected
+            load_generic_subobject(menu->GetLabel(event.GetId()).ToStdString(), int(selection / generics_count));
 #endif // __WXMSW__
-            break;
-        }
     });
 
     return menu;
@@ -765,7 +758,7 @@ void ObjectList::load_part( ModelObject* model_object,
 
 }
 
-void ObjectList::load_lambda(const std::string& type_name)
+void ObjectList::load_generic_subobject(const std::string& type_name, const int type)
 {
     if (m_selected_object_id < 0) return;
 
@@ -792,7 +785,7 @@ void ObjectList::load_lambda(const std::string& type_name)
     mesh.repair();
 
     auto new_volume = (*m_objects)[m_selected_object_id]->add_volume(mesh);
-    new_volume->set_type(ModelVolume::PARAMETER_MODIFIER);
+    new_volume->set_type(static_cast<ModelVolume::Type>(type));
 
     new_volume->name = name;
     // set a default extruder value, since user can't add it manually
@@ -801,7 +794,7 @@ void ObjectList::load_lambda(const std::string& type_name)
     m_parts_changed = true;
     parts_changed(m_selected_object_id);
 
-    select_item(m_objects_model->AddVolumeChild(GetSelection(), name, ModelVolume::PARAMETER_MODIFIER/*m_bmp_modifiermesh*/));
+    select_item(m_objects_model->AddVolumeChild(GetSelection(), name, type));
 #ifndef __WXOSX__ //#ifdef __WXMSW__ // #ys_FIXME
     selection_changed();
 #endif //no __WXOSX__ //__WXMSW__
@@ -934,6 +927,9 @@ void ObjectList::split(const bool split_part)
             Collapse(vol_item);
         }
     }
+
+    if (parent == item)
+        Expand(parent);
 
     m_parts_changed = true;
     parts_changed(obj_idx);
