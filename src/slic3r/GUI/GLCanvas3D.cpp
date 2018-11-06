@@ -1703,17 +1703,13 @@ void GLCanvas3D::Selection::translate(unsigned int object_idx, unsigned int inst
     m_bounding_box_dirty = true;
 }
 
-void GLCanvas3D::Selection::render(bool show_indirect_selection) const
+void GLCanvas3D::Selection::render() const
 {
     if (is_empty())
         return;
 
     // render cumulative bounding box of selected volumes
     _render_selected_volumes();
-
-    // render bounding boxes of indirectly selected instances
-    if (show_indirect_selection && (m_mode == Instance))
-        _render_unselected_instances();
 }
 
 void GLCanvas3D::Selection::_update_valid()
@@ -1910,56 +1906,6 @@ void GLCanvas3D::Selection::_render_selected_volumes() const
 {
     float color[3] = { 1.0f, 1.0f, 1.0f };
     _render_bounding_box(get_bounding_box(), color);
-}
-
-void GLCanvas3D::Selection::_render_unselected_instances() const
-{
-    std::set<unsigned int> done;  // prevent processing volumes twice
-    done.insert(m_list.begin(), m_list.end());
-
-    typedef std::map<std::pair<int, int>, BoundingBoxf3> InstanceToBoxMap;
-    InstanceToBoxMap boxes;
-    for (unsigned int i : m_list)
-    {
-        if (done.size() == m_volumes->size())
-            break;
-
-        const GLVolume* volume = (*m_volumes)[i];
-        int object_idx = volume->object_idx();
-        if (object_idx >= 1000)
-            continue;
-
-        int instance_idx = volume->instance_idx();
-
-        for (unsigned int j = 0; j < (unsigned int)m_volumes->size(); ++j)
-        {
-            if (done.size() == m_volumes->size())
-                break;
-
-            if (done.find(j) != done.end())
-                continue;
-
-            GLVolume* v = (*m_volumes)[j];
-            int i_idx = v->instance_idx();
-            if ((v->object_idx() != object_idx) || (i_idx == instance_idx))
-                continue;
-
-            std::pair<int, int> box_id(object_idx, i_idx);
-            InstanceToBoxMap::iterator it = boxes.find(box_id);
-            if (it == boxes.end())
-                it = boxes.insert(InstanceToBoxMap::value_type(box_id, BoundingBoxf3())).first;
-
-            it->second.merge(v->transformed_convex_hull_bounding_box());
-
-            done.insert(j);
-        }
-    }
-
-    float color[3] = { 1.0f, 1.0f, 0.0f };
-    for (const InstanceToBoxMap::value_type& box : boxes)
-    {
-        _render_bounding_box(box.second, color);
-    }
 }
 
 void GLCanvas3D::Selection::_render_bounding_box(const BoundingBoxf3& box, float* color) const
@@ -4798,9 +4744,8 @@ void GLCanvas3D::_render_objects() const
 
 void GLCanvas3D::_render_selection() const
 {
-    Gizmos::EType type = m_gizmos.get_current_type();
-    bool show_indirect_selection = m_gizmos.is_running() && ((type == Gizmos::Rotate) || (type == Gizmos::Scale) || (type == Gizmos::Flatten));
-    m_selection.render(show_indirect_selection);
+    if (!m_gizmos.is_running())
+        m_selection.render();
 }
 
 void GLCanvas3D::_render_cutting_plane() const

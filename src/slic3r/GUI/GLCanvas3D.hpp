@@ -517,7 +517,7 @@ public:
         void translate(unsigned int object_idx, const Vec3d& displacement);
         void translate(unsigned int object_idx, unsigned int instance_idx, const Vec3d& displacement);
 
-        void render(bool show_indirect_selection) const;
+        void render() const;
 
     private:
         void _update_valid();
@@ -531,7 +531,6 @@ public:
         void _remove_object(unsigned int object_idx);
         void _calc_bounding_box() const;
         void _render_selected_volumes() const;
-        void _render_unselected_instances() const;
         void _render_bounding_box(const BoundingBoxf3& box, float* color) const;
         void _synchronize_unselected_instances();
     };
