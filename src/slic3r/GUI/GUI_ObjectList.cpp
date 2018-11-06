@@ -898,8 +898,10 @@ bool ObjectList::del_subobject_from_object(const int obj_idx, const int idx, con
 void ObjectList::split(const bool split_part)
 {
     const auto item = GetSelection();
-    if (!item || m_selected_object_id < 0)
+    const int obj_idx = get_selected_obj_idx();
+    if (!item || obj_idx < 0)
         return;
+
     ModelVolume* volume;
     if (!get_volume_by_item(split_part, item, volume)) return;
     DynamicPrintConfig&	config = wxGetApp().preset_bundle->printers.get_edited_preset().config;
@@ -909,52 +911,51 @@ void ObjectList::split(const bool split_part)
         return;
     }
 
-    auto model_object = (*m_objects)[m_selected_object_id];
+    auto model_object = (*m_objects)[obj_idx];
 
-    if (split_part) {
-        auto parent = m_objects_model->GetParent(item);
-        m_objects_model->DeleteChildren(parent);
+    auto parent = m_objects_model->GetTopParent(item);
+    if (parent)
+        m_objects_model->DeleteVolumeChildren(parent);
+    else
+        parent = item;
 
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
-            model_object->volumes[id]->is_modifier() ? ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART,
-            model_object->volumes[id]->config.has("extruder") ?
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
-            false);
-
-        Expand(parent);
-    }
-    else {
-        for (auto id = 0; id < model_object->volumes.size(); id++)
-            m_objects_model->AddVolumeChild(item, model_object->volumes[id]->name,
-            ModelVolume::MODEL_PART,
-            model_object->volumes[id]->config.has("extruder") ?
-            model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
-            false);
-        Expand(item);
+    for (auto id = 0; id < model_object->volumes.size(); id++) {
+        const auto vol_item = m_objects_model->AddVolumeChild(parent, model_object->volumes[id]->name,
+                                            model_object->volumes[id]->is_modifier() ? 
+                                                ModelVolume::PARAMETER_MODIFIER : ModelVolume::MODEL_PART,
+                                            model_object->volumes[id]->config.has("extruder") ?
+                                                model_object->volumes[id]->config.option<ConfigOptionInt>("extruder")->value : 0,
+                                            false);
+        // add settings to the part, if it has those
+        auto opt_keys = model_object->volumes[id]->config.keys();
+        if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
+            select_item(m_objects_model->AddSettingsChild(vol_item));
+            Collapse(vol_item);
+        }
     }
 
     m_parts_changed = true;
-    parts_changed(m_selected_object_id);
-
-    // restores selection
-//     _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection().add_object(m_selected_object_id);
+    parts_changed(obj_idx);
 }
 
 bool ObjectList::get_volume_by_item(const bool split_part, const wxDataViewItem& item, ModelVolume*& volume)
 {
-    if (!item || m_selected_object_id < 0)
+    auto obj_idx = get_selected_obj_idx();
+    if (!item || obj_idx < 0)
         return false;
     const auto volume_id = m_objects_model->GetVolumeIdByItem(item);
+
+    // object is selected
     if (volume_id < 0) {
-        if (split_part) return false;
-        volume = (*m_objects)[m_selected_object_id]->volumes[0];
+        if ( split_part || (*m_objects)[obj_idx]->volumes.size() > 1 ) 
+            return false;
+        volume = (*m_objects)[obj_idx]->volumes[0];
     }
+    // volume is selected
     else
-        volume = (*m_objects)[m_selected_object_id]->volumes[volume_id];
-    if (volume)
-        return true;
-    return false;
+        volume = (*m_objects)[obj_idx]->volumes[volume_id];
+    
+    return true;
 }
 
 bool ObjectList::is_splittable_object(const bool split_part)
@@ -962,20 +963,14 @@ bool ObjectList::is_splittable_object(const bool split_part)
     const wxDataViewItem item = GetSelection();
     if (!item) return false;
 
-    wxDataViewItemArray children;
-    if (!split_part && m_objects_model->GetChildren(item, children) > 0)
-        return false;
-
     ModelVolume* volume;
     if (!get_volume_by_item(split_part, item, volume) || !volume)
         return false;
 
     TriangleMeshPtrs meshptrs = volume->mesh.split();
     bool splittable = meshptrs.size() > 1;
-    for (TriangleMesh* m : meshptrs)
-    {
-        delete m;
-    }
+    for (TriangleMesh* m : meshptrs) { delete m; }
+
     return splittable;
 }
 
@@ -1076,6 +1071,7 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         m_objects_model->SetValue(variant, item, 0);
     }
 
+    // add volumes to the object
     if (model_object->volumes.size() > 1) {
         for (auto id = 0; id < model_object->volumes.size(); id++)
             m_objects_model->AddVolumeChild(item,
@@ -1086,8 +1082,16 @@ void ObjectList::add_object_to_list(size_t obj_idx)
         Expand(item);
     }
 
+    // add instances to the object, if it has those
     if (model_object->instances.size()>1)
         increase_object_instances(obj_idx, model_object->instances.size());
+
+    // add settings to the object, if it has those
+    auto opt_keys = model_object->config.keys();
+    if ( !(opt_keys.size() == 1 && opt_keys[0] == "extruder") ) {
+        select_item(m_objects_model->AddSettingsChild(item));
+        Collapse(item);
+    }
 
 #ifndef __WXOSX__ 
     selection_changed();
@@ -1198,11 +1202,18 @@ void ObjectList::update_selections()
     auto& selection = _3DScene::get_canvas(wxGetApp().canvas3D())->get_selection();
     wxDataViewItemArray sels;
 
-    for (auto idx: selection.get_volume_idxs())
-    {
-        const auto gl_vol = selection.get_volume(idx);
-        sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+    if (selection.is_single_full_object()) {
+        for (auto idx : selection.get_volume_idxs()) {
+            const auto gl_vol = selection.get_volume(idx);
+            sels.Add(m_objects_model->GetItemByVolumeId(gl_vol->object_idx(), gl_vol->volume_idx()));
+        }
     }
+    else if (selection.is_single_full_instance()) {
+        for (auto idx : selection.get_instance_idxs()) {            
+            sels.Add(m_objects_model->GetItemByInstanceId(selection.get_object_idx(), idx));
+        }
+    }
+    
     select_items(sels);
 }
 
